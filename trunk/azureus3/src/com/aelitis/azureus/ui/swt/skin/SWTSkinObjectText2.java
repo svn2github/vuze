@@ -58,19 +58,21 @@ public class SWTSkinObjectText2
 
 	private Canvas canvas;
 
-	private boolean bUnderline;
+	private boolean isUnderline;
 
 	private int antialiasMode = SWT.DEFAULT;
 
-	private boolean allcaps;
+	private boolean isAllcaps;
 	
-	private boolean shadow;
+	private boolean hasShadow;
 	
 	private int hpadding;
 
 	private int vpadding;
 
 	private boolean relayoutOnTextChange = true;
+
+	private boolean isItalic = false;
 
 	private static Font font = null;
 
@@ -157,10 +159,13 @@ public class SWTSkinObjectText2
 				pt.y += border + vpadding;
 				gc.dispose();
 
-				if (bUnderline) {
+				if (isUnderline) {
 					pt.y++;
 				}
-				if (shadow) {
+				if (hasShadow) {
+					pt.x++;
+				}
+				if (isItalic) {
 					pt.x++;
 				}
 
@@ -198,7 +203,7 @@ public class SWTSkinObjectText2
 		if (typeParams.length > 1) {
 			bIsTextDefault = true;
 			sText = typeParams[1];
-			this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+			this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 					: sText;
 		}
 
@@ -218,7 +223,7 @@ public class SWTSkinObjectText2
 			String text = properties.getStringValue(sPrefix + suffix);
 			if (text != null) {
 				sText = text;
-				this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+				this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 						: sText;
 			}
 		}
@@ -265,13 +270,13 @@ public class SWTSkinObjectText2
 
 			String sStyle = properties.getStringValue(sPrefix + ".style" + suffix);
 			if (sStyle != null) {
-				allcaps = false;
+				isAllcaps = false;
 				String[] sStyles = sStyle.toLowerCase().split(",");
 				for (int i = 0; i < sStyles.length; i++) {
 					String s = sStyles[i];
 
 					if (s.equals("allcaps")) {
-						allcaps = true;
+						isAllcaps = true;
 					}
 
 					if (s.equals("bold")) {
@@ -290,10 +295,13 @@ public class SWTSkinObjectText2
 							iFontWeight |= SWT.ITALIC;
 						}
 						bNewFont = true;
+						isItalic  = true;
+					} else {
+						isItalic = false;
 					}
 
-					bUnderline = s.equals("underline");
-					if (bUnderline) {
+					isUnderline = s.equals("underline");
+					if (isUnderline) {
 						canvas.addPaintListener(new PaintListener() {
 							public void paintControl(PaintEvent e) {
 								int x = 0;
@@ -323,10 +331,10 @@ public class SWTSkinObjectText2
 					}
 					
 					if (s.equals("shadow")) {
-						shadow = true;
+						hasShadow = true;
 					}
 				}
-				this.sDisplayText = allcaps && sText != null ? sText.toUpperCase()
+				this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 						: sText;
 			}
 
@@ -414,7 +422,7 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = text;
-		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = null;
 		bIsTextDefault = false;
 		// Doing execSWTThreadLater delays the relayout for too long at skin startup
@@ -462,7 +470,7 @@ public class SWTSkinObjectText2
 			}
 		}
 	
-		if (shadow) {
+		if (hasShadow) {
 			Rectangle r = new Rectangle(clientArea.x + 1, clientArea.y + 1, clientArea.width,
 					clientArea.height);
 			
@@ -490,7 +498,7 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = MessageText.getString(key);
-		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = key;
 		bIsTextDefault = false;
 
@@ -515,7 +523,7 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = MessageText.getString(key, params);
-		this.sDisplayText = allcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
 		this.sKey = key;
 		bIsTextDefault = false;
 
