@@ -68,6 +68,8 @@ VuzeCryptoManager
 		crypt_man.addPasswordHandler(
 			new CryptoManagerPasswordHandler()
 			{
+				private boolean	error_logged = false;
+				
 				public int
 				getHandlerType()
 				{
@@ -122,13 +124,21 @@ VuzeCryptoManager
 									}
 								};
 							
-								return( session_pw );
+							error_logged = false;
+								
+							return( session_pw );
 								
 						}catch (VuzeCryptoException ve) {
 
-							Debug.out( "Listener failed " + ve.toString() + " on " + reason );
-							if (ve.getCause() != null) {
-								Debug.out(ve.getCause());
+							if ( !error_logged ){
+								
+								error_logged = true;
+								
+								Debug.out( "Listener failed " + ve.toString() + " on " + reason );
+								
+								if (ve.getCause() != null) {
+									Debug.out(ve.getCause());
+								}
 							}
 						}catch( Throwable e ){
 							
