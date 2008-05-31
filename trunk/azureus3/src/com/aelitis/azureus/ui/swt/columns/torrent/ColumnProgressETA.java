@@ -3,7 +3,6 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
@@ -23,13 +22,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
@@ -75,15 +71,13 @@ public class ColumnProgressETA
 
 	private class Cell
 		implements TableCellRefreshListener, TableCellDisposeListener,
-		TableCellMouseMoveListener, TableCellVisibilityListener
+		TableCellVisibilityListener
 	{
 		int lastPercentDone = 0;
 
 		long lastETA;
 
 		private boolean bMouseDowned = false;
-
-		Rectangle areaPlay = null;
 
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
@@ -259,18 +253,8 @@ public class ColumnProgressETA
 			String sSpeed = lSpeed <= 0 ? "" : "("
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
-			areaPlay = null;
 			if (dm.isDownloadComplete(true) && TorrentListViewsUtils.canPlay(dm)) {
-				String id = "";
 				bDrawProgressBar = false;
-				id = "image.stream.play";
-				Image img = ImageLoaderFactory.getInstance().getImage(id);
-				if (ImageLoader.isRealImage(img)) {
-					Rectangle bounds = img.getBounds();
-					areaPlay = new Rectangle(newWidth - bounds.width - 2, 2,
-							bounds.width, bounds.height);
-					gcImage.drawImage(img, areaPlay.x, areaPlay.y);
-				}
 
 				if (edm != null && edm.getProgressiveMode()) {
 					if (isStopped(cell)) {
@@ -416,44 +400,6 @@ public class ColumnProgressETA
 			return dmEnhancer.getEnhancedDownload(dm);
 		}
 
-		public void cellMouseTrigger(TableCellMouseEvent event) {
-			boolean inAreaPlay = areaPlay != null
-					&& areaPlay.contains(event.x, event.y);
-
-			if (event.cell instanceof TableCellCore) {
-				((TableCellCore) event.cell).setCursorID(inAreaPlay ? SWT.CURSOR_HAND
-						: SWT.CURSOR_ARROW);
-			}
-
-			// only first button
-			if (event.button != 1) {
-				return;
-			}
-
-			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-				bMouseDowned = true;
-				return;
-			}
-
-			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && bMouseDowned) {
-				// no rating if row isn't selected yet
-				if (!event.cell.getTableRow().isSelected()) {
-					log(event.cell, "not selected");
-					return;
-				}
-
-				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-				if (dm == null) {
-					return;
-				}
-
-				if (inAreaPlay) {
-					TorrentListViewsUtils.playOrStreamDataSource(dm, null);
-				}
-				refresh(event.cell, true);
-			}
-			bMouseDowned = false;
-		}
 
 		private void disposeExisting(TableCell cell) {
 			Graphic oldGraphic = cell.getGraphic();
