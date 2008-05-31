@@ -283,13 +283,13 @@ public class SWTSkinObjectSash
 		createOn.addListener(SWT.Resize, l);
 		sash.addListener(SWT.Selection, l);
 		sash.addListener(SWT.MouseUp, l);
-		
+
 		addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				Event event = new Event();
 				event.type = SWT.Show;
-				
+
 				l.handleEvent(event);
 				return null;
 			}
@@ -371,9 +371,14 @@ public class SWTSkinObjectSash
 			int minAbove, int belowMin) {
 		FormData belowData = (FormData) below.getLayoutData();
 		double d = l.doubleValue();
+		boolean layoutNeeded = false;
 		if (bVertical) {
 			int parentWidth = parentComposite.getBounds().width;
-			belowData.width = (int) ((parentWidth - (sash.getSize().x / 2)) * d);
+			int newWidth = (int) ((parentWidth - (sash.getSize().x / 2)) * d);
+			if (newWidth != belowData.width) {
+				belowData.width = newWidth;
+				layoutNeeded = true;
+			}
 
 			int aboveWidth = parentWidth - belowData.width - sash.getSize().x;
 
@@ -384,9 +389,11 @@ public class SWTSkinObjectSash
 			}
 			if (parentWidth - belowData.width - sash.getSize().x < minAbove) {
 				belowData.width = parentWidth - minAbove - sash.getSize().x;
+				layoutNeeded = true;
 
 				//d = (double) (belowData.width + (sash.getSize().x / 2)) / parentWidth;
 			} else if (belowData.width < belowMin) {
+				layoutNeeded = true;
 				belowData.width = belowMin;
 			} else {
 				ignoreContainerAboveMin = aboveWidth <= resizeContainerAboveMin;
@@ -394,16 +401,24 @@ public class SWTSkinObjectSash
 
 		} else {
 			int parentHeight = parentComposite.getBounds().height;
-			belowData.height = (int) ((parentHeight - (sash.getSize().y / 2)) * d);
+			int newHeight = (int) ((parentHeight - (sash.getSize().y / 2)) * d);
+			if (belowData.height != newHeight) {
+				belowData.height = newHeight;
+				layoutNeeded = true;
+			}
 
 			if (parentHeight - belowData.height < minAbove
 					&& parentHeight >= minAbove) {
 				belowData.height = parentHeight - minAbove;
+				layoutNeeded = true;
 			} else if (belowData.height < belowMin) {
+				layoutNeeded = true;
 				belowData.height = belowMin;
 			}
 		}
-		below.getParent().layout();
+		if (layoutNeeded) {
+			below.getParent().layout();
+		}
 
 		l = ensureVisibilityStates(l, above, below, bVertical);
 		sash.setData("PCT", l);
