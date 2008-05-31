@@ -122,7 +122,7 @@ public class SplashWindow
 		this.display = _display;
 		this.initializer = initializer;
 
-		splash = new Shell(display, SWT.NULL);
+		splash = new Shell(display, SWT.NO_TRIM);
 		splash.setText("Vuze");
 		Utils.setShellIcon(splash);
 
