@@ -786,7 +786,7 @@ PluginUpdatePlugin
 		boolean				verify )
 	{
 		log.log( LoggerChannel.LT_INFORMATION,
-				 "Installing plugin " + plugin.getPluginID() + ", version " + version );
+				 "Installing plugin '" + update.getName() + "', version " + version );
 
 		String	target_version = version.endsWith("_CVS")?version.substring(0,version.length()-4):version;
 
@@ -1548,8 +1548,7 @@ PluginUpdatePlugin
 				}	
 			}
 			
-			String msg =   "Version " + version + " of plugin '" + 
-							plugin.getPluginID() + "' " +
+			String msg =   "Version " + version + " of plugin '" + update.getName() + "' " +
 							"installed successfully";
 
 			if ( update_txt_found ){
@@ -1561,8 +1560,7 @@ PluginUpdatePlugin
 
 		}catch( Throwable e ){
 					
-			String msg =   "Version " + version + " of plugin '" + 
-							plugin.getPluginID() + "' " +
+			String msg =   "Version " + version + " of plugin '" + 	update.getName() + "' " +
 							"failed to install - " + (e.getMessage());
 		
 			log.logAlertRepeatable( LoggerChannel.LT_ERROR, msg );
