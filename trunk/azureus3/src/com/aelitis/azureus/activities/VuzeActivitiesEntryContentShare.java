@@ -56,20 +56,22 @@ public class VuzeActivitiesEntryContentShare
 		if (content == null) {
 			return;
 		}
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			VuzeBuddyManager.log("Can't share download: Not logged in");
+			throw new NotLoggedInException();
+		}
+
 		DownloadManager dm = content.getDM();
 		TOTorrent torrent = dm == null ? null : dm.getTorrent();
 
 		boolean ourContent = content.isPlatformContent();
 
-		if (!LoginInfoManager.getInstance().isLoggedIn()) {
-			VuzeBuddyManager.log("Can't share download: Not logged in");
-			throw new NotLoggedInException();
-		}
 		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
 
 		setTypeID(VuzeActivitiesConstants.TYPEID_BUDDYSHARE, true);
 		setID(VuzeActivitiesConstants.TYPEID_BUDDYSHARE + "-"
 				+ SystemTime.getCurrentTime());
+		setTorrent(torrent);
 
 		String contentString;
 
@@ -80,7 +82,6 @@ public class VuzeActivitiesEntryContentShare
 			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
 					+ "</A>";
 		} else {
-			setTorrent(torrent);
 			if (dm != null) {
 				setTorrentName(dm.getDisplayName());
 			}
