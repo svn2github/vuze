@@ -51,6 +51,22 @@ public class SplashWindow
 	implements InitializerListener
 {
 
+	// config 1 : PB_HEIGHT = 3, PB_INVERTED = false
+	// config 2 : PB_HEIGHT = 3, PB_INVERTED = true, PB_INVERTED_BG_HEIGHT = 3
+	// config 3 : PB_HEIGHT = 2, PB_INVERTED = true, PB_INVERTED_BG_HEIGHT = 2
+	// config 4 : PB_HEIGHT = 3, PB_INVERTED = true, PB_INVERTED_BG_HEIGHT = 1, PB_INVERTED_X_OFFSET = 4
+	
+	protected static final int OFFSET_LEFT = 10;
+	protected static final int OFFSET_RIGHT = 139;
+	protected static final int OFFSET_BOTTOM = 10;
+	protected static final int PB_HEIGHT = 2;
+	
+	protected static final boolean PB_INVERTED = true;
+	protected static final int PB_INVERTED_BG_HEIGHT = 2;
+	protected static final int PB_INVERTED_X_OFFSET = 0;
+	
+	protected static final boolean DISPLAY_BORDER = true;
+
 	Display display;
 
 	IUIIntializer initializer;
@@ -73,6 +89,8 @@ public class SplashWindow
 	Color progressBarColor;
 
 	Color textColor;
+	
+	Color fadedGreyColor;
 
 	Font textFont;
 
@@ -81,6 +99,8 @@ public class SplashWindow
 	private int percent;
 
 	private boolean updating;
+	
+	int pbX, pbY, pbWidth;
 
 	public SplashWindow(Display display) {
 		this(display, null);
@@ -100,7 +120,7 @@ public class SplashWindow
 						splash.reportPercent(percent++);
 						splash.reportCurrentTask("Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid : "
 								+ percent);
-						Thread.sleep(200);
+						Thread.sleep(100);
 					}
 				} catch (Exception e) {
 					// TODO: handle exception
@@ -156,9 +176,14 @@ public class SplashWindow
 
 		progressBarColor = new Color(display, 21, 92, 198);
 		textColor = new Color(display, 180, 180, 180);
+		fadedGreyColor = new Color(display, 70, 70, 70);
 
 		width = background.getBounds().width;
 		height = background.getBounds().height;
+		
+		pbX = OFFSET_LEFT;
+		pbY = height - OFFSET_BOTTOM;
+		pbWidth = width - OFFSET_LEFT - OFFSET_RIGHT;
 
 		canvas.setSize(width, height);
 		Font font = canvas.getFont();
@@ -279,13 +304,33 @@ public class SplashWindow
 					}
 					gc.setFont(textFont);
 					gc.setForeground(textColor);
-					gc.drawText(task, 10, height - 26, true);
+					gc.drawText(task, OFFSET_LEFT, height - OFFSET_BOTTOM - 16, true);
 				}
 
-				gc.setForeground(progressBarColor);
-				gc.setBackground(progressBarColor);
-				gc.fillRectangle(10, height - 10, percent * (width - 20) / 100, 2);
-
+				if(PB_INVERTED){
+					gc.setForeground(fadedGreyColor);
+					gc.setBackground(fadedGreyColor);
+					gc.fillRectangle(pbX-PB_INVERTED_X_OFFSET, pbY + Math.abs(PB_HEIGHT - PB_INVERTED_BG_HEIGHT) / 2, pbWidth+2*PB_INVERTED_X_OFFSET, PB_INVERTED_BG_HEIGHT);
+					gc.setForeground(progressBarColor);
+					gc.setBackground(progressBarColor);
+					gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
+					
+				} else {
+					gc.setForeground(progressBarColor);
+					gc.setBackground(progressBarColor);
+					if(DISPLAY_BORDER){
+						gc.fillRectangle(pbX + 1, pbY, percent * (pbWidth - 2) / 100, PB_HEIGHT);
+						gc.setForeground(fadedGreyColor);
+						gc.setBackground(fadedGreyColor);
+						gc.fillRectangle(pbX, pbY - 1, pbWidth, 1);
+						gc.fillRectangle(pbX + pbWidth - 1, pbY, 1, PB_HEIGHT);
+						gc.fillRectangle(pbX, pbY + PB_HEIGHT, pbWidth, 1);
+						gc.fillRectangle(pbX, pbY, 1, PB_HEIGHT);
+					} else {
+						gc.fillRectangle(pbX, pbY, percent * pbWidth / 100, PB_HEIGHT);
+					}
+				}
+				
 				Image old = current;
 				current = newCurrent;
 				if (old != null && !old.isDisposed()) {
