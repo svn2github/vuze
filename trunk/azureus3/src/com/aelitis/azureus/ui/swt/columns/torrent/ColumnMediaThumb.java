@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -356,7 +357,7 @@ public class ColumnMediaThumb
 				clickAreaPlay.setPosition(cellWidth / 2 - 16, cellHeight / 2 - 14);
 				clickAreaPlay.setVisible(canPlay);
 			}
-			
+
 			if (showPlayButton && imgPlay != null) {
 				int imgW = imgPlayBounds.width;
 				int imgH = imgPlayBounds.height;
@@ -380,13 +381,12 @@ public class ColumnMediaThumb
 
 			if (cellHasMouse && dm != null && !dm.getAssumedComplete()) {
 				gc.setForeground(Colors.white);
-				String sPercent = dm.getStats().getDownloadCompleted(
-						false) / 10 + "%";
+				String sPercent = dm.getStats().getDownloadCompleted(false) / 10 + "%";
 				Point extent = gc.textExtent(sPercent);
 				gc.drawText(sPercent, cellWidth - extent.x - 2, cellHeight / 2 - 6,
 						true);
 			}
-			
+
 			gc.dispose();
 
 			if (disposeImage) {
@@ -415,10 +415,11 @@ public class ColumnMediaThumb
 			} catch (Exception e) {
 			}
 		} else if (ds instanceof VuzeActivitiesEntry) {
-			if (onlyOurs) {
+			VuzeActivitiesEntry entry = ((VuzeActivitiesEntry) ds);
+			if (onlyOurs
+					&& (entry.getAssetHash() == null || entry.getAssetImageURL() == null)) {
 				return null;
 			}
-			VuzeActivitiesEntry entry = ((VuzeActivitiesEntry) ds);
 			return entry.getAssetHash();
 		}
 		return null;

@@ -230,6 +230,10 @@ public class VuzeActivitiesEntry
 			}
 		});
 	}
+	
+	public String getAssetImageURL() {
+		return assetImageURL;
+	}
 
 	public Map toMap() {
 		Map map = new HashMap();
