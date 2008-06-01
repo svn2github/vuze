@@ -197,7 +197,10 @@ public class SeedingUnchoker implements Unchoker {
   
   
   
-  private void setBuddyUnchokes( int max_buddies, ArrayList all_peers ) {	  
+  private void setBuddyUnchokes( int max_buddies, ArrayList all_peers ) {
+	  
+	  if( unchokes.isEmpty() )  return;   //don't bother trying to replace peers in an empty list
+	  
 	  ArrayList buddies = new ArrayList();
 	  
 	  //find all buddies
