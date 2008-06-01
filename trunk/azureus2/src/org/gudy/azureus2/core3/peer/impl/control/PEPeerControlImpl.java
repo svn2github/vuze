@@ -54,6 +54,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 /**
  * manages all peer transports for a torrent
@@ -751,10 +752,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public void 
 	addPeer( 
-		String 	ip_address, 
-		int		tcp_port, 
-		int		udp_port,
-		boolean use_crypto ) 
+		String 		ip_address, 
+		int			tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto,
+		Map			user_data )
 	{
 		final byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
 		final PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, tcp_port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type, udp_port, PeerItemFactory.CRYPTO_LEVEL_1, 0 );
@@ -770,11 +772,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			if ( 	tcp_ok && !( prefer_udp && udp_ok )){
 
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level, null );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level, user_data );  //directly inject the the imported peer
 
 			}else if ( udp_ok ){
 
-				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level, null );  //directly inject the the imported peer
+				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, false, use_crypto, crypto_level, user_data );  //directly inject the the imported peer
 
 			}else{
 
@@ -874,10 +876,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 		//make sure we need a new connection
 		final int needed = getMaxNewConnectionsAllowed();
 
+		boolean	force = user_data != null && user_data.get( BuddyPluginTracker.PEER_KEY ) != null;
+		
 		if( needed == 0 ){
 
 			if ( 	peer_source != PEPeerSource.PS_PLUGIN ||
-					!doOptimisticDisconnect( AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO)){
+					!doOptimisticDisconnect(
+							AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO,
+							force )){
 
 				return "Too many connections";
 			}
@@ -3585,7 +3591,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
 			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
-				doOptimisticDisconnect( false );
+				doOptimisticDisconnect( false, false );
 			}
 		}
 
@@ -3757,7 +3763,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
-	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer )
+	public boolean doOptimisticDisconnect( boolean	pending_lan_local_peer, boolean force )
 	{
 		final ArrayList peer_transports = peer_transports_cow;
 		PEPeerTransport max_transport = null;

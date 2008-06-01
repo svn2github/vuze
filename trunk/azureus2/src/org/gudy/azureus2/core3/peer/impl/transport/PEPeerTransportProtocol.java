@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 
 public class 
@@ -2079,7 +2080,9 @@ implements PEPeerTransport
 
 		//make sure we haven't reached our connection limit
 		final int maxAllowed = manager.getMaxNewConnectionsAllowed();
-		if (maxAllowed ==0 &&!manager.doOptimisticDisconnect( isLANLocal()))
+		if (	 maxAllowed ==0 &&
+				!manager.doOptimisticDisconnect( 
+					isLANLocal(), getUserData( BuddyPluginTracker.PEER_KEY) != null ))
 		{
 			final String msg = "too many existing peer connections [p" +
 			PeerIdentityManager.getIdentityCount( my_peer_data_id )

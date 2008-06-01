@@ -277,7 +277,7 @@ PeerManagerImpl
 	{
 		checkIfPrivate();
 		
-		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
+		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ), null );
 	}
   
 	
@@ -291,7 +291,7 @@ PeerManagerImpl
 		
 		if ( pluginPeerSourceEnabled()){
 		
-			manager.addPeer( ip_address, tcp_port, 0, use_crypto );	
+			manager.addPeer( ip_address, tcp_port, 0, use_crypto, null );	
 		}
 	}
   
@@ -304,7 +304,7 @@ PeerManagerImpl
 	{
 		checkIfPrivate();
 		
-		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto );
+		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto, null );
 	}
 	
 	protected boolean

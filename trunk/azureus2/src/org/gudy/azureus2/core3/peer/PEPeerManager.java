@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.peer;
  *
  */
 
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
@@ -219,8 +219,10 @@ PEPeerManager
 		String 		ip_address, 
 		int 		tcp_port,
 		int			udp_port,
-		boolean 	use_crypto );
+		boolean 	use_crypto,
+		Map			user_data );
   
+	
 	
 	public void
 	removePeer(

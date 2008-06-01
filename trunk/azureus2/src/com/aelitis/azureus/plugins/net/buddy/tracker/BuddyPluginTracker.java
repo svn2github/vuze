@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -396,7 +397,11 @@ BuddyPluginTracker
 
 				PEPeerManager c_pm = PluginCoreUtils.unwrap( pm ); 
 				
-				c_pm.addPeer( ip.getHostAddress(), tcp_port, udp_port, true );
+				Map	user_data = new LightHashMap();
+				
+				user_data.put( PEER_KEY, download );
+				
+				c_pm.addPeer( ip.getHostAddress(), tcp_port, udp_port, true, user_data );
 			}
 		}
 	}
@@ -985,7 +990,11 @@ outer:
 			markBuddyPeer( download, peer );
 			
 		}else if ( type == BUDDY_MAYBE ){
-									
+			
+				// mark as peer early so that we get optimistic disconnect if needed
+			
+			markBuddyPeer( download, peer );
+			
 			peer.addListener(
 				new PeerListener2()
 				{
@@ -999,9 +1008,12 @@ outer:
 								
 								peer.removeListener( this );
 								
-								if ( isBuddy( peer ) == BUDDY_YES ){
+									// withdraw buddy marker if it turns out our earlier optimism
+									// was misplaced
+								
+								if ( isBuddy( peer ) != BUDDY_YES ){
 									
-									markBuddyPeer( download, peer );
+									unmarkBuddyPeer( peer );
 								}
 							}
 						}

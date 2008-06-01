@@ -80,7 +80,8 @@ PEPeerControl
     
     public boolean 
     doOptimisticDisconnect(
-    	boolean pending_lan_local_peer );
+    	boolean pending_lan_local_peer,
+    	boolean	force );
     
 	public int getNbActivePieces();
 
