@@ -821,7 +821,7 @@ EnhancedDownloadManager
 								
 								peer.setInjectTime( now );
 								
-								pm.addPeer( peer.getAddress().getHostAddress(), peer.getPort(), 0, false );
+								pm.addPeer( peer.getAddress().getHostAddress(), peer.getPort(), 0, false, null );
 								
 								last_peer_inject = now;
 							}
