@@ -475,6 +475,13 @@ public class ColumnMediaThumb
 				String referal = null;
 				Object ds = event.cell.getDataSource();
 				if (ds instanceof VuzeActivitiesEntry) {
+					if (((VuzeActivitiesEntry) ds).isDRM()) {
+						String hash = getHash(event.cell.getDataSource(), true);
+						if (hash != null) {
+							TorrentListViewsUtils.viewDetails(hash, "thumb");
+						}
+						return;
+					}
 					referal = "playdashboardactivity-"
 							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
@@ -483,6 +490,14 @@ public class ColumnMediaThumb
 				String referal = null;
 				Object ds = event.cell.getDataSource();
 				if (ds instanceof VuzeActivitiesEntry) {
+					if (((VuzeActivitiesEntry) ds).isDRM()) {
+						String hash = getHash(event.cell.getDataSource(), true);
+						if (hash != null) {
+							TorrentListViewsUtils.viewDetails(hash, "thumb");
+						}
+						return;
+					}
+
 					referal = "dashboardactivity-"
 							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
