@@ -209,37 +209,28 @@ public class SeedingUnchoker implements Unchoker {
 		  }
 	  }
 	  
-	  int num_unchoked = 0;
-	  	  
-	  for( int i=0; i < unchokes.size(); i++ ) {
-		  PEPeerTransport peer = (PEPeerTransport)unchokes.get( i );
-
-		  if( buddies.remove( peer ) ) {   //check if this peer is a friend and already in the unchoke list
-			  num_unchoked++;			  
-		  }
-	  }	  
-	 
 	  //we want to give all connected friends an equal chance if there are more than max_friends allowed
 	  Collections.shuffle( buddies );
 	  
-	  while( num_unchoked < max_buddies && !buddies.isEmpty() ) {   //we need to add more friends		
+	  int num_unchoked = 0;
+	  
+	  while( num_unchoked < max_buddies && !buddies.isEmpty() ) {    //go through unchoke list and replace non-buddy peers with buddy ones 
+		 
+		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( unchokes.size() - 1 );  //pop peer from *end* of unchoke list
 		  
-		  //drop end peer to make room for the buddy
-		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( unchokes.size() - 1 );
-		  
-		  if( peer.getUserData( BuddyPluginTracker.PEER_KEY  ) != null ) {  //oops, is already buddy
-			  unchokes.add( 0, peer );   //so add back to front of list			  
+		  if( buddies.remove( peer ) ) {   //peer is already in the buddy list
+			  unchokes.add( 0, peer );     //so insert confirmed buddy peer back in to *front* of list			  
 		  }
-		  else {
+		  else {  //not a buddy, so replace
 			  PEPeerTransport buddy = (PEPeerTransport)buddies.remove( buddies.size() - 1 );  //get next buddy
 			  
-			  chokes.remove( buddy );  //just in case
+			  chokes.remove( buddy );    //just in case
 			  
-			  unchokes.add( 0, buddy );  	  	//add buddy to front of list
-			  
-			  num_unchoked++;			  
+			  unchokes.add( 0, buddy ); 	//add buddy to *front* of list		  
 		  }
-	  }	  
+		  
+		  num_unchoked++;
+	  }
   }
   
   
