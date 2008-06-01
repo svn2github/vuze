@@ -188,7 +188,7 @@ public class SplashWindow
 		canvas.setSize(width, height);
 		Font font = canvas.getFont();
 		FontData[] fdata = font.getFontData();
-		fdata[0].setHeight(Constants.isOSX ? 10 : 7);
+		fdata[0].setHeight(Constants.isOSX ? 9 : 7);
 		textFont = new Font(display, fdata);
 
 		canvas.addPaintListener(new PaintListener() {
@@ -301,6 +301,7 @@ public class SplashWindow
 				if (task != null) {
 					if (task.length() > 60) {
 						task = task.substring(0, 60);
+						if(Constants.isOSX) task = task.substring(0, 51);
 					}
 					gc.setFont(textFont);
 					gc.setForeground(textColor);
