@@ -217,19 +217,21 @@ public class SeedingUnchoker implements Unchoker {
 	  
 	  int num_unchoked = 0;
 	  
-	  while( num_unchoked < max_buddies && !buddies.isEmpty() ) {    //go through unchoke list and replace non-buddy peers with buddy ones 
-		 
-		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( unchokes.size() - 1 );  //pop peer from *end* of unchoke list
+	  int max = max_buddies > unchokes.size() ? unchokes.size() : max_buddies;
+	  
+	  while( num_unchoked < max && !buddies.isEmpty() ) {    //go through unchoke list and replace non-buddy peers with buddy ones 
+		  
+		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( 0 );     //pop peer from front of unchoke list
 		  
 		  if( buddies.remove( peer ) ) {   //peer is already in the buddy list
-			  unchokes.add( 0, peer );     //so insert confirmed buddy peer back in to *front* of list			  
+			  unchokes.add( peer );  //so insert confirmed buddy peer back into list at the end		  
 		  }
 		  else {  //not a buddy, so replace
 			  PEPeerTransport buddy = (PEPeerTransport)buddies.remove( buddies.size() - 1 );  //get next buddy
 			  
 			  chokes.remove( buddy );    //just in case
 			  
-			  unchokes.add( 0, buddy ); 	//add buddy to *front* of list		  
+			  unchokes.add( buddy ); 	//add buddy to back of list		  
 		  }
 		  
 		  num_unchoked++;
