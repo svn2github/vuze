@@ -1426,10 +1426,17 @@ outer:
 	}
 	
 	protected void
-	logVerbose(
-		String		str )
+	log(
+		String		str,
+		boolean		verbose )
 	{
-		if ( Constants.isCVSVersion()){
+		if ( verbose ){
+			
+			if ( Constants.isCVSVersion()){
+			
+				log( str );
+			}
+		}else{
 			
 			log( str );
 		}
@@ -1728,7 +1735,7 @@ outer:
 						
 						if ( downloads_in_common.remove( d ) != null ){
 							
-							logNoBuddy( "Removed " + d.getName() + " common download" );
+							log( "Removed " + d.getName() + " common download", false, true );
 						}
 					}
 				
@@ -1768,7 +1775,7 @@ outer:
 							
 							if ( !downloads.containsKey( download )){
 								
-								logNoBuddy( "Removing " + download.getName() + " from common downloads");
+								log( "Removing " + download.getName() + " from common downloads", false, true );
 
 								it.remove();
 							}
@@ -1790,7 +1797,7 @@ outer:
 					
 					if ( existing == null ){
 						
-						logNoBuddy( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")");
+						log( "Adding " + d.getName() + " to common downloads (bdd=" + bdd.getString() + ")", false, true );
 						
 						downloads_in_common.put( d, bdd );
 						
@@ -1803,7 +1810,7 @@ outer:
 						
 							existing.setRemoteComplete( new_rc ); 
 							
-							logNoBuddy( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")");
+							log( "Changing " + d.getName() + " common downloads (bdd=" + existing.getString() + ")", false, true );
 						}				
 					}
 				}
@@ -2059,7 +2066,7 @@ outer:
 
 			if ( seeding_only == buddy_seeding_only ){
 				
-				logVerbose( "Not tracking, buddy and me both " + (seeding_only?"seeding":"downloading" ));
+				log( "Not tracking, buddy and me both " + (seeding_only?"seeding":"downloading"), true, false );
 
 				return( res );
 			}			
@@ -2070,7 +2077,7 @@ outer:
 
 				if ( downloads_in_common == null ){
 					
-					logVerbose( "Not tracking, buddy has nothing in common" );
+					log( "Not tracking, buddy has nothing in common", true, false );
 
 					return( res );
 				}
@@ -2089,7 +2096,7 @@ outer:
 						
 							// both complete, nothing to do!
 						
-						logVerbose( d.getName() + " - not tracking, both complete" );
+						log( d.getName() + " - not tracking, both complete", true, true );
 						
 					}else{
 						
@@ -2098,7 +2105,7 @@ outer:
 						if ( 	last_track == 0 || 
 								now - last_track >= TRACK_INTERVAL ){
 							
-							logNoBuddy( d.getName() + " - tracking" );
+							log( d.getName() + " - tracking", false, true );
 
 							bdd.setTrackTime( now );
 							
@@ -2143,17 +2150,12 @@ outer:
 		}
 		
 		protected void
-		logNoBuddy(
-			String	str )
+		log(
+			String	str,
+			boolean	verbose,
+			boolean	no_buddy )
 		{
-			BuddyPluginTracker.this.log( str );
-		}
-		
-		protected void
-		logVerbose(
-			String	str )
-		{
-			BuddyPluginTracker.this.logVerbose( buddy.getName() + ": " + str );
+			BuddyPluginTracker.this.log( (no_buddy?"":( buddy.getName() + ": ")) + str, true );
 		}
 	}
 	

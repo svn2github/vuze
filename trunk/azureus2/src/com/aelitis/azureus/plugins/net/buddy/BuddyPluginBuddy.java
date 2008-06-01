@@ -225,7 +225,7 @@ BuddyPluginBuddy
 	protected String
 	getShortString()
 	{
-		return( public_key.substring( 0, 16 ) + ".." );
+		return( public_key.substring( 0, 16 ) + "..." );
 	}
 	
 	public String
@@ -1092,8 +1092,6 @@ BuddyPluginBuddy
 			
 			plugin.fireDetailsChanged( this );
 		}
-		
-		plugin.logMessage( public_key + ": offline" );
 	}
 	
 	protected void
@@ -1522,7 +1520,7 @@ BuddyPluginBuddy
 	public String
 	getString()
 	{
-		return( "pk=" + public_key + (nick_name==null?"":(",nick=" + nick_name)) + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",online=" + online + ",age=" + (SystemTime.getCurrentTime() - post_time ));
+		return( "pk=" +  getShortString() + (nick_name==null?"":(",nick=" + nick_name)) + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",online=" + online + ",age=" + (SystemTime.getCurrentTime() - post_time ));
 	}
 
 	protected class
