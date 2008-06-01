@@ -43,7 +43,7 @@ public interface Unchoker {
    * @param all_peers list of peers to choose from
    * @param force_refresh force a refresh of optimistic unchokes
    */
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh );
+  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_buddies );
   
   /**
    * Get the list of peers calculated to be choked.

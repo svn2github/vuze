@@ -1600,7 +1600,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
 
-				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh );
+				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh, adapter.hasBuddies());
 
 				ArrayList	chokes 		= unchoker.getChokes();
 				ArrayList	unchokes	= unchoker.getUnchokes();

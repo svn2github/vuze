@@ -160,4 +160,7 @@ PEPeerManagerAdapter
 	public boolean 
 	isPeerSourceEnabled(
 		String peer_source );
+	
+	public boolean
+	hasBuddies();
 }

@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 public class 
 DownloadManagerController 
@@ -2046,6 +2047,12 @@ DownloadManagerController
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	public boolean
+	hasBuddies()
+	{
+		return( download_manager.getUserData( BuddyPluginTracker.DOWNLOAD_KEY ) != null );
 	}
 	
 	public String 

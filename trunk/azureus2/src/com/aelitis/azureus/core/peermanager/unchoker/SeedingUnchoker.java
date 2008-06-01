@@ -26,6 +26,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
+import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
+
 
 
 /**
@@ -84,7 +86,7 @@ public class SeedingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_buddies ) {
 	  
 	int max_optimistic = ((max_to_unchoke - 1) / 5) + 1;  //one optimistic unchoke for every 5 upload slots
 	  
@@ -185,32 +187,25 @@ public class SeedingUnchoker implements Unchoker {
       }
       
     }
-    
-    
-    //TODO for performance reasons, would be nice to have a flag
-    //to check if we should even run setFriendUnchokes() at all
-    //i.e. only run if there will actually be friend peers in the all_peers list
-    /*
-    if( buddy_bandwidth_peers_exist ) {
+       
+    if( check_buddies ) {
     	//add Friend peers preferentially, leaving room for 1 non-friend peer for every 5 upload slots
-    	setFriendUnchokes( max_to_unchoke - max_optimistic, all_peers );
+    	setBuddyUnchokes( max_to_unchoke - max_optimistic, all_peers );
     }
-    */
-
   }
   
   
   
   
-  private void setFriendUnchokes( int max_friends, ArrayList all_peers ) {	  
-	  ArrayList friends = new ArrayList();
+  private void setBuddyUnchokes( int max_buddies, ArrayList all_peers ) {	  
+	  ArrayList buddies = new ArrayList();
 	  
-	  //find all friends
+	  //find all buddies
 	  for( int i=0; i < all_peers.size(); i++ ) {
 		  PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
 	    	
-		  if( peer.getData( "isBandwidthBoosterBuddy" ) != null && UnchokerUtil.isUnchokable( peer, true ) ) {
-			  friends.add( peer );	    		
+		  if( peer.getUserData( BuddyPluginTracker.PEER_KEY ) != null && UnchokerUtil.isUnchokable( peer, true ) ) {
+			  buddies.add( peer );	    		
 		  }
 	  }
 	  
@@ -219,28 +214,28 @@ public class SeedingUnchoker implements Unchoker {
 	  for( int i=0; i < unchokes.size(); i++ ) {
 		  PEPeerTransport peer = (PEPeerTransport)unchokes.get( i );
 
-		  if( friends.remove( peer ) ) {   //check if this peer is a friend and already in the unchoke list
+		  if( buddies.remove( peer ) ) {   //check if this peer is a friend and already in the unchoke list
 			  num_unchoked++;			  
 		  }
 	  }	  
 	 
 	  //we want to give all connected friends an equal chance if there are more than max_friends allowed
-	  Collections.shuffle( friends );
+	  Collections.shuffle( buddies );
 	  
-	  while( num_unchoked < max_friends && !friends.isEmpty() ) {   //we need to add more friends		
+	  while( num_unchoked < max_buddies && !buddies.isEmpty() ) {   //we need to add more friends		
 		  
-		  //drop end peer to make room for the friend
+		  //drop end peer to make room for the buddy
 		  PEPeerTransport peer = (PEPeerTransport)unchokes.remove( unchokes.size() - 1 );
 		  
-		  if( peer.getData( "isBandwidthBoosterBuddy" ) != null ) {  //oops, is already friend
+		  if( peer.getUserData( BuddyPluginTracker.PEER_KEY  ) != null ) {  //oops, is already buddy
 			  unchokes.add( 0, peer );   //so add back to front of list			  
 		  }
 		  else {
-			  PEPeerTransport friend = (PEPeerTransport)friends.remove( friends.size() - 1 );  //get next friend
+			  PEPeerTransport buddy = (PEPeerTransport)buddies.remove( buddies.size() - 1 );  //get next buddy
 			  
-			  chokes.remove( friend );  //just in case
+			  chokes.remove( buddy );  //just in case
 			  
-			  unchokes.add( 0, friend );  	  	//add friend to front of list
+			  unchokes.add( 0, buddy );  	  	//add buddy to front of list
 			  
 			  num_unchoked++;			  
 		  }

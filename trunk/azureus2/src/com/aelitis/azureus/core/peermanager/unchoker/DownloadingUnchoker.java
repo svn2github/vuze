@@ -69,7 +69,7 @@ public class DownloadingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_buddies ) {
     int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
     
     ArrayList optimistic_unchokes = new ArrayList();
