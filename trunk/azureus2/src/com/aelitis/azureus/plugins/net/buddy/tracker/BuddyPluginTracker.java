@@ -639,7 +639,7 @@ outer:
 				}
 			}
 			
-			log( "isBuddy: " + peer_ip + " -> " + result + ",tested=" + tested );
+			// log( "isBuddy: " + peer_ip + " -> " + result + ",tested=" + tested );
 			
 			return( result );
 		}
