@@ -181,7 +181,6 @@ public class VuzeActivitiesView
 		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
 		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
 				true);
-		TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
 
 		skinObject = skin.getSkinObject(PREFIX + "delete");
 		if (skinObject instanceof SWTSkinObject) {
@@ -589,10 +588,11 @@ public class VuzeActivitiesView
 				SelectedContent currentContent;
 				try {
 					currentContent = ds.createSelectedContentObject();
-					if (ds != null) {
+					if (currentContent != null) {
 						listContent.add(currentContent);
 					}
 				} catch (Exception e) {
+					//e.printStackTrace();
 				}
 			}
 		}
