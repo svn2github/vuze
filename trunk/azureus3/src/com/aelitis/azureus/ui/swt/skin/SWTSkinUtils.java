@@ -273,7 +273,7 @@ public class SWTSkinUtils
 				int h = fd.height >= 0 ? fd.height : control.getSize().y;
 				int newHeight = (int) (h + (size.y - h) * pct);
 				pct += 0.01;
-				System.out.println(control + "] newh=" + newHeight + " to " + size.y);
+				//System.out.println(control + "] newh=" + newHeight + " to " + size.y);
 
 				if (newWidth == fd.width && newHeight == h) {
 					fd.width = size.x;
