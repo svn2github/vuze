@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.crypto;
 import java.util.Iterator;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
@@ -320,6 +321,21 @@ VuzeCryptoManager
 					return( -1 );	// session 
 				}
 			};
+			
+		new AEThread2( "VuzeCryptoManager:testUnlock", true )
+		{
+			public void
+			run()
+			{
+				try{
+					crypt_man.getECCHandler().unlock();
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Password incorrect", e );
+				}
+			}
+		}.start();
 	}
 	
 	public void
