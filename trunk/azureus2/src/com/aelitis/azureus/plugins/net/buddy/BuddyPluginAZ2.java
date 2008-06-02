@@ -207,6 +207,8 @@ BuddyPluginAZ2
 
 			Iterator it = track_listeners.iterator();
 			
+			boolean	ok = false;
+			
 			while( it.hasNext()){
 				
 				try{
@@ -218,7 +220,9 @@ BuddyPluginAZ2
 						reply.put( "msg", res );
 						reply.put( "type", new Long( RT_AZ2_REPLY_TRACK ));
 
-						return( reply );
+						ok = true;
+						
+						break;
 					}
 				}catch( Throwable e ){
 					
@@ -226,8 +230,10 @@ BuddyPluginAZ2
 				}
 			}
 			
-			throw( new BuddyPluginException( "Unhandled request type " + type ));
+			if ( !ok ){
 			
+				throw( new BuddyPluginException( "Unhandled request type " + type ));
+			}
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
@@ -368,6 +374,8 @@ BuddyPluginAZ2
 		Map										msg,
 		final BuddyPluginAZ2TrackerListener		listener )
 	{
+		logMessage( "AZ2 request sent: " + buddy.getString() + " <- " + msg );
+
 		try{
 			Map	request = new HashMap();
 			
