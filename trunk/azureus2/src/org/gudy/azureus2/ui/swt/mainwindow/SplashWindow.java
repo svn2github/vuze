@@ -118,8 +118,7 @@ public class SplashWindow
 					int percent = 0;
 					while (percent <= 100) {
 						splash.reportPercent(percent++);
-						splash.reportCurrentTask("Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid : "
-								+ percent);
+						splash.reportCurrentTask(percent + "% Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid opnum supnum boopergood haha");
 						Thread.sleep(100);
 					}
 				} catch (Exception e) {
@@ -299,13 +298,9 @@ public class SplashWindow
 				}
 
 				if (task != null) {
-					if (task.length() > 60) {
-						task = task.substring(0, 60);
-						if(Constants.isOSX) task = task.substring(0, 51);
-					}
 					gc.setFont(textFont);
 					gc.setForeground(textColor);
-					gc.drawText(task, OFFSET_LEFT, height - OFFSET_BOTTOM - 16, true);
+					gc.drawText(task, OFFSET_LEFT, height - OFFSET_BOTTOM - 17, true);
 				}
 
 				if(PB_INVERTED){
