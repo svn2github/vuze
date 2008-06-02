@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 
@@ -310,6 +311,8 @@ WebEngine
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,
 		String				headers )
+	
+		throws SearchException
 	{
 		
 		try {
@@ -416,10 +419,10 @@ WebEngine
 			
 			return page;
 				
-		} catch (Exception e) {
-			e.printStackTrace();
+		}catch( Throwable e) {
+			
+			throw( new SearchException( "Failed to load page", e ));
 		}
-		return null;
 	}
 
 	protected void

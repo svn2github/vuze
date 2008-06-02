@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.core.metasearch;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +46,7 @@ public abstract class Result {
 	public abstract int getNbPeers();
 	public abstract int getNbSeeds();
 	public abstract int getComments();
+	public abstract int getVotes();
 	
 	//Links
 	public abstract String getDownloadLink();
@@ -198,6 +198,12 @@ public abstract class Result {
 		if ( this.getPlayLink().length() > 0 ){
 			object.put("pl", this.getPlayLink());
 		}
+		
+		if ( this.getVotes() >= 0 ){
+			object.put("v", "" + this.getVotes());
+		}
+
+		
 		
 		return object;
 	}

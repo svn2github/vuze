@@ -40,6 +40,7 @@ Engine
 	public static final int FIELD_COMMENTS 		= 7;
 	public static final int FIELD_CONTENT_TYPE 	= 8;
 	public static final int FIELD_DISCARD	 	= 9;
+	public static final int FIELD_VOTES		 	= 10;
 	public static final int FIELD_TORRENTLINK 	= 102;
 	public static final int FIELD_CDPLINK 		= 103;
 	public static final int FIELD_PLAYLINK 		= 104;
@@ -47,13 +48,13 @@ Engine
 	public static final int[] FIELD_IDS = {
 		FIELD_NAME, FIELD_DATE, FIELD_SIZE, FIELD_PEERS, FIELD_SEEDS, FIELD_CATEGORY,
 		FIELD_COMMENTS, FIELD_CONTENT_TYPE, FIELD_DISCARD, 
-		FIELD_TORRENTLINK, FIELD_CDPLINK, FIELD_PLAYLINK,
+		FIELD_TORRENTLINK, FIELD_CDPLINK, FIELD_PLAYLINK, FIELD_VOTES,
 	};
 		
 	public static final String[] FIELD_NAMES = {
 		"TITLE", "DATE", "SIZE", "PEERS", "SEEDS", "CAT",
 		"COMMENTS", "CONTENT_TYPE", "DISCARD",
-		"TORRENT", "CDP", "PLAY",
+		"TORRENT", "CDP", "PLAY", "VOTES",
 	};
 	
 	public static final int ENGINE_TYPE_REGEX		= 1;

@@ -57,6 +57,7 @@ public class WebResult extends Result {
 	String torrentLink;
 	String playLink;
 	
+	int votes = -1;
 	
 	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
 		this.rootPageURL = rootPageURL;
@@ -175,6 +176,26 @@ public class WebResult extends Result {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public void setVotesFromHTML(String votes_str) {
+		if(votes_str != null) {
+			votes_str = removeHTMLTags(votes_str);
+			votes_str = Entities.HTML40.unescape(votes_str);
+			votes_str = votes_str.replaceAll(",", "");
+			votes_str = votes_str.replaceAll(" ", "");
+			try {
+				this.votes = Integer.parseInt(votes_str);
+			} catch(Throwable e) {
+				//e.printStackTrace();
+			}
+		}
+	}	
+	
+	public int
+	getVotes()
+	{
+		return( votes );
 	}
 	
 	public void setCDPLink(String cdpLink) {

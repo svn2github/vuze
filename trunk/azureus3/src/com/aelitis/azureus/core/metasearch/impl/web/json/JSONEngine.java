@@ -181,148 +181,152 @@ JSONEngine
 		
 		FieldMapping[] mappings = getMappings();
 
-		if(page != null) {
-			try {
-				Object jsonObject = JSONValue.parse(page);
-				
-				JSONArray resultArray = null;
-				
-				if(resultsEntryPath != null) {
-					StringTokenizer st = new StringTokenizer(resultsEntryPath,".");
-					if(jsonObject instanceof JSONArray && st.countTokens() > 0) {
-						JSONArray array = (JSONArray) jsonObject;
-						if(array.size() == 1) {
-							jsonObject = array.get(0);
-						}
-					}
-					while(st.hasMoreTokens()) {
-						try {
-							jsonObject = ((JSONObject)jsonObject).get(st.nextToken());
-						} catch(Throwable t) {
-							throw new SearchException("Invalid entry path : " + resultsEntryPath,t);
-						}
+		try {
+			Object jsonObject = JSONValue.parse(page);
+			
+			JSONArray resultArray = null;
+			
+			if(resultsEntryPath != null) {
+				StringTokenizer st = new StringTokenizer(resultsEntryPath,".");
+				if(jsonObject instanceof JSONArray && st.countTokens() > 0) {
+					JSONArray array = (JSONArray) jsonObject;
+					if(array.size() == 1) {
+						jsonObject = array.get(0);
 					}
 				}
-				
-				try {
-					resultArray = (JSONArray) jsonObject;
-				} catch (Throwable t) {
-					throw new SearchException("Object is not a result array. Check the JSON service and/or the entry path");
-				}
-					
-					
-				if(resultArray != null) {
-					
-					List results = new ArrayList();
-					
-					for(int i = 0 ; i < resultArray.size() ; i++) {
-						
-						Object obj = resultArray.get(i);
-						
-						if(obj instanceof JSONObject) {
-							JSONObject jsonEntry = (JSONObject) obj;
-							
-							if ( max_matches >= 0 ){
-								if ( --max_matches < 0 ){
-									break;
-								}
-							}
-							
-							if ( listener != null ){
-								
-									// sort for consistent order
-								
-								Iterator it = new TreeMap( jsonEntry ).entrySet().iterator();
-								
-								String[]	groups = new String[ jsonEntry.size()];
-								
-								int	pos = 0;
-								
-								while( it.hasNext()){
-									
-									Map.Entry entry = (Map.Entry)it.next();
-									
-									Object key 		= entry.getKey();
-									Object value 	= entry.getValue();
-									
-									if ( key != null && value != null ){
-									
-										groups[pos++] = key.toString() + "=" + UrlUtils.encode( value.toString());
-										
-									}else{
-										
-										groups[pos++] = "";
-									}
-								}
-								
-								listener.matchFound( this, groups );
-							}
-							
-							WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
-														
-							for(int j = 0 ; j < mappings.length ; j++) {
-								String fieldFrom = mappings[j].getName();
-								if(fieldFrom != null) {
-									int fieldTo = mappings[j].getField();
-									Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
-									if(fieldContentObj != null) {
-										String fieldContent = fieldContentObj.toString();
-										
-										switch(fieldTo) {
-										case FIELD_NAME :
-											result.setNameFromHTML(fieldContent);
-											break;
-										case FIELD_SIZE :
-											result.setSizeFromHTML(fieldContent);
-											break;
-										case FIELD_PEERS :
-											result.setNbPeersFromHTML(fieldContent);
-											break;
-										case FIELD_SEEDS :
-											result.setNbSeedsFromHTML(fieldContent);
-											break;
-										case FIELD_CATEGORY :
-											result.setCategoryFromHTML(fieldContent);
-											break;
-										case FIELD_DATE :
-											result.setPublishedDateFromHTML(fieldContent);
-											break;
-										case FIELD_COMMENTS :
-											result.setCommentsFromHTML(fieldContent);
-											break;
-										case FIELD_CDPLINK :
-											result.setCDPLink(fieldContent);
-											break;
-										case FIELD_TORRENTLINK :
-											result.setTorrentLink(fieldContent);
-											break;
-										case FIELD_PLAYLINK :
-											result.setPlayLink(fieldContent);
-											break;
-										default:
-											break;
-										}
-									}
-								}
-							}
-														
-							results.add(result);
-						}
+				while(st.hasMoreTokens()) {
+					try {
+						jsonObject = ((JSONObject)jsonObject).get(st.nextToken());
+					} catch(Throwable t) {
+						throw new SearchException("Invalid entry path : " + resultsEntryPath,t);
 					}
-					
-					return (Result[]) results.toArray(new Result[results.size()]);
-					
 				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				throw new SearchException(e);
 			}
-		} else {
-			throw new SearchException("Web Page is empty");
+			
+			try {
+				resultArray = (JSONArray) jsonObject;
+			} catch (Throwable t) {
+				throw new SearchException("Object is not a result array. Check the JSON service and/or the entry path");
+			}
+				
+				
+			if(resultArray != null) {
+				
+				List results = new ArrayList();
+				
+				for(int i = 0 ; i < resultArray.size() ; i++) {
+					
+					Object obj = resultArray.get(i);
+					
+					if(obj instanceof JSONObject) {
+						JSONObject jsonEntry = (JSONObject) obj;
+						
+						if ( max_matches >= 0 ){
+							if ( --max_matches < 0 ){
+								break;
+							}
+						}
+						
+						if ( listener != null ){
+							
+								// sort for consistent order
+							
+							Iterator it = new TreeMap( jsonEntry ).entrySet().iterator();
+							
+							String[]	groups = new String[ jsonEntry.size()];
+							
+							int	pos = 0;
+							
+							while( it.hasNext()){
+								
+								Map.Entry entry = (Map.Entry)it.next();
+								
+								Object key 		= entry.getKey();
+								Object value 	= entry.getValue();
+								
+								if ( key != null && value != null ){
+								
+									groups[pos++] = key.toString() + "=" + UrlUtils.encode( value.toString());
+									
+								}else{
+									
+									groups[pos++] = "";
+								}
+							}
+							
+							listener.matchFound( this, groups );
+						}
+						
+						WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
+													
+						for(int j = 0 ; j < mappings.length ; j++) {
+							String fieldFrom = mappings[j].getName();
+							if(fieldFrom != null) {
+								int fieldTo = mappings[j].getField();
+								Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
+								if(fieldContentObj != null) {
+									String fieldContent = fieldContentObj.toString();
+									
+									switch(fieldTo) {
+									case FIELD_NAME :
+										result.setNameFromHTML(fieldContent);
+										break;
+									case FIELD_SIZE :
+										result.setSizeFromHTML(fieldContent);
+										break;
+									case FIELD_PEERS :
+										result.setNbPeersFromHTML(fieldContent);
+										break;
+									case FIELD_SEEDS :
+										result.setNbSeedsFromHTML(fieldContent);
+										break;
+									case FIELD_CATEGORY :
+										result.setCategoryFromHTML(fieldContent);
+										break;
+									case FIELD_DATE :
+										result.setPublishedDateFromHTML(fieldContent);
+										break;
+									case FIELD_COMMENTS :
+										result.setCommentsFromHTML(fieldContent);
+										break;
+									case FIELD_CDPLINK :
+										result.setCDPLink(fieldContent);
+										break;
+									case FIELD_TORRENTLINK :
+										result.setTorrentLink(fieldContent);
+										break;
+									case FIELD_PLAYLINK :
+										result.setPlayLink(fieldContent);
+										break;
+									case FIELD_VOTES :
+										result.setVotesFromHTML(fieldContent);
+										break;
+									default:
+										break;
+									}
+								}
+							}
+						}
+													
+						results.add(result);
+					}
+				}
+				
+				return (Result[]) results.toArray(new Result[results.size()]);	
+			}
+			
+			return( new Result[0]);
+			
+		}catch( SearchException e ){
+		                           
+			throw( e );
+			
+		}catch (Throwable  e) {
+			
+			log( "Failed process result", e );
+			
+			throw new SearchException(e);
 		}
-		
-		return new Result[0];
 	}
 	
 	public String getIcon() {
