@@ -1329,7 +1329,7 @@ public class MainWindow
 						//composite.setForeground(colorText);
 
 						MessageBoxShell shell = (MessageBoxShell) skinnableObject;
-						shell.setUrlColor(colorLink);
+						//shell.setUrlColor(colorLink);
 
 						TOTorrent torrent = null;
 						DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
