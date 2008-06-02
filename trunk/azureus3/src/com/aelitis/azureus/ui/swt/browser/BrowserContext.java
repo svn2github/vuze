@@ -153,10 +153,10 @@ public class BrowserContext
 
 		final TimerEventPerformer checkURLEventPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
-				if (!browser.isDisposed()) {
+				if (browser != null && !browser.isDisposed()) {
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
-							if (!browser.isDisposed()) {
+							if (browser != null && !browser.isDisposed()) {
 								browser.execute("try { "
 										+ "tuxLocString = document.location.toString();"
 										+ "if (tuxLocString.indexOf('res://') == 0) {"
