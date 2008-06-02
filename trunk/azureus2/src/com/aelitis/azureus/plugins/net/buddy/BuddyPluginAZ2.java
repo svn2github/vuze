@@ -128,8 +128,6 @@ BuddyPluginAZ2
 			
 			reply.put( "type", new Long( RT_AZ2_REPLY_MESSAGE ));
 
-			return( reply );
-
 		}else if (  type == RT_AZ2_REQUEST_SEND_TORRENT ){
 			
 			try{
@@ -159,8 +157,6 @@ BuddyPluginAZ2
 				}.start();
 				
 				reply.put( "type", new Long( RT_AZ2_REPLY_SEND_TORRENT ));
-
-				return( reply );
 				
 			}catch( Throwable e ){
 				
@@ -204,9 +200,7 @@ BuddyPluginAZ2
 			chat.process( from_buddy, msg );
 						
 			reply.put( "type", new Long( RT_AZ2_REPLY_CHAT ));
-			
-			return( reply );
-			
+						
 		}else if (  type == RT_AZ2_REQUEST_TRACK ){
 			
 			Map msg = (Map)request.get( "msg" );
@@ -233,10 +227,15 @@ BuddyPluginAZ2
 			}
 			
 			throw( new BuddyPluginException( "Unhandled request type " + type ));
+			
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
 		}
+		
+		logMessage( "AZ2 reply sent: " + from_buddy.getString() + " <- " + reply );
+
+		return( reply );
 	}
 		
 	public chatInstance
@@ -418,6 +417,8 @@ BuddyPluginAZ2
 	
 		throws BuddyPluginException
 	{
+		logMessage( "AZ2 request sent: " + buddy.getString() + " <- " + request );
+
 		buddy.getMessageHandler().queueMessage( 
 				BuddyPlugin.SUBSYSTEM_AZ2,
 				request,

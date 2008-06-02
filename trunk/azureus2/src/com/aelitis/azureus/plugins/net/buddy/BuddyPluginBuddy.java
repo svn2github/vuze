@@ -109,7 +109,8 @@ BuddyPluginBuddy
 
 	private Map			user_data = new LightHashMap();
 	
-	private boolean	destroyed;
+	private volatile boolean	closing;
+	private volatile boolean	destroyed;
 	
 	protected
 	BuddyPluginBuddy(
@@ -637,12 +638,14 @@ BuddyPluginBuddy
 		List	to_send = new ArrayList();
 	
 		synchronized( this ){
-						
+				
+			closing	= true;
+			
 			for (int i=0;i<connections.size();i++){
 				
 				buddyConnection c = (buddyConnection)connections.get(i);
 				
-				if ( c.isConnected() && !c.hasFailed()){
+				if ( c.isConnected() && !c.hasFailed() && !c.isActive()){
 					
 					to_send.add( c );
 				}
@@ -685,7 +688,7 @@ BuddyPluginBuddy
 							}
 						});
 				
-				c.sendMessage( message, true );
+				c.sendCloseMessage( message );
 
 			}catch( Throwable e ){
 							
@@ -862,7 +865,7 @@ BuddyPluginBuddy
 							
 							if ( current_message != message ){
 								
-								Debug.out( "Inconsistent" );
+								Debug.out( "Inconsistent: reply received not for current message" );
 							}
 							
 							current_message = null;
@@ -884,16 +887,33 @@ BuddyPluginBuddy
 					logMessage( "Msg " + message.getString() + " failed: " + Debug.getNestedExceptionMessage( cause ));
 
 					try{
-						synchronized( BuddyPluginBuddy.this ){
+							// only try and reconcile this failure with the current message if
+							// the message has actually been sent
+						
+						boolean	was_active;
+						
+						if ( cause instanceof BuddyPluginTimeoutException ){
 							
-							if ( current_message != message ){
-								
-								Debug.out( "Inconsistent" );
-							}
+							was_active = ((BuddyPluginTimeoutException)cause).wasActive();
 							
-							current_message = null;
+						}else{
+							
+							was_active = true;
 						}
-				
+						
+						if ( was_active ){
+							
+							synchronized( BuddyPluginBuddy.this ){
+								
+								if ( current_message != message ){
+									
+									Debug.out( "Inconsistent: error received not for current message" );
+								}
+								
+								current_message = null;
+							}
+						}
+						
 						long	now = SystemTime.getCurrentTime();
 						
 						int	retry_count = message.getRetryCount();
@@ -940,17 +960,17 @@ BuddyPluginBuddy
 	{
 		buddyConnection	bc = null;
 		
-		buddyMessage 	failed_msg 			= null;
+		buddyMessage 	allocated_message 	= null;
 		Throwable		failed_msg_error 	= null;
 		
 		synchronized( this ){
 	
-			if ( current_message != null || messages.size() == 0 ){
+			if ( current_message != null || messages.size() == 0 || closing ){
 				
 				return;
 			}
 			
-			current_message = (buddyMessage)messages.remove( 0 );
+			allocated_message = current_message = (buddyMessage)messages.remove( 0 );
 			
 			for (int i=0;i<connections.size();i++){
 				
@@ -985,7 +1005,6 @@ BuddyPluginBuddy
 
 				}catch( Throwable e ){
 			
-					failed_msg 			= current_message;
 					failed_msg_error	= e;
 				}
 			}
@@ -993,22 +1012,21 @@ BuddyPluginBuddy
 		
 			// take outside sync block
 		
-		if ( failed_msg != null ){
+		if ( failed_msg_error != null ){
 			
-			failed_msg.reportFailed( failed_msg_error );
+			allocated_message.reportFailed( failed_msg_error );
 			
 			return;
 		}
 		
 		try{
-			String bc_string = (bc == null) ? "null" : bc.getString();
-			logMessage( "Allocating msg " + current_message.getString() + " to con " + bc_string);
+			logMessage( "Allocating msg " + allocated_message.getString() + " to con " + bc.getString());
 
-			bc.sendMessage( current_message, false );
+			bc.sendMessage( allocated_message );
 		
 		}catch( BuddyPluginException e ){
 			
-			current_message.reportFailed( e );
+			allocated_message.reportFailed( e );
 		}
 	}
 	
@@ -1281,7 +1299,7 @@ BuddyPluginBuddy
 			
 			for (int i=0;i<failed.size();i++){
 				
-				((buddyMessage)failed.get(i)).reportFailed( new BuddyPluginException( "Timeout" ));
+				((buddyMessage)failed.get(i)).reportFailed( new BuddyPluginTimeoutException( "Timeout", false ));
 			}
 		}
 	}
@@ -1300,6 +1318,12 @@ BuddyPluginBuddy
 			
 			return( str );
 		}
+	}
+	
+	protected boolean
+	isClosing()
+	{
+		return( closing );
 	}
 	
 	protected void
@@ -1700,10 +1724,12 @@ BuddyPluginBuddy
 		
 		private String							dir_str;
 		
-		private boolean			connected;
-		private buddyMessage	active_message;
-		private boolean			closing;
-		private boolean			failed;
+		
+		private volatile buddyMessage	active_message;
+		
+		private volatile boolean			connected;
+		private volatile boolean			closing;
+		private volatile boolean			failed;
 		
 		private long			last_active	= SystemTime.getCurrentTime();
 		
@@ -1747,20 +1773,22 @@ BuddyPluginBuddy
 		
 		protected void
 		sendMessage(
-			buddyMessage	message,
-			boolean			force )
+			buddyMessage	message )
 		
 			throws BuddyPluginException
-		{
-			boolean	send = false;
-			
+		{			
 			BuddyPluginException	failed_error = null;
-			
-			buddyMessage 	cancelled_msg 		= null;
+
+			buddyMessage	msg_to_send			= null;
 
 			synchronized( this ){
 				
-				if ( active_message != null && !force ){
+				if ( BuddyPluginBuddy.this.isClosing()){
+					
+					throw( new BuddyPluginException( "Close in progress" ));
+				}
+				
+				if ( active_message != null ){
 					
 					Debug.out( "Inconsistent: active message already set" );
 					
@@ -1771,15 +1799,13 @@ BuddyPluginBuddy
 					throw( new BuddyPluginException( "Connection failed" ));
 					
 				}else{
-					
-					if ( active_message != null ){
-						
-						cancelled_msg = active_message;
-					}
-					
+										
 					active_message = message;
 					
-					send	= connected;
+					if ( connected ){
+						
+						msg_to_send = active_message;
+					}
 				}
 			}
 			
@@ -1790,15 +1816,33 @@ BuddyPluginBuddy
 				throw( failed_error );
 			}
 			
-			if ( cancelled_msg != null ){
+			if ( msg_to_send != null ){
+			
+				send( msg_to_send );
+			}
+		}
+		
+		protected void
+		sendCloseMessage(
+			buddyMessage	message )	
+		{			
+			boolean	ok_to_send;
+			
+			synchronized( this ){
 				
-				cancelled_msg.reportFailed( new BuddyPluginException( "Message cancelled" ));
+				ok_to_send = active_message == null && connected && !failed && !closing;
 			}
 			
-			if ( send ){
+			if ( ok_to_send ){
 			
-				send();
+				send( message );
 			}
+		}
+		
+		public boolean
+		isActive()
+		{
+			return( active_message != null );
 		}
 		
 		public void
@@ -1808,7 +1852,7 @@ BuddyPluginBuddy
 				System.out.println( dir_str + " connected" );
 			}
 			
-			boolean	send = false;
+			buddyMessage	msg_to_send = null;
 			
 			synchronized( this ){
 				
@@ -1816,14 +1860,14 @@ BuddyPluginBuddy
 				
 				connected = true;
 				
-				send = active_message != null;
+				msg_to_send = active_message;
 			}
 			
 			buddyConnectionEstablished();
 			
-			if ( send ){
+			if ( msg_to_send != null  ){
 			
-				send();
+				send( msg_to_send );
 			}
 		}
 		
@@ -1860,7 +1904,7 @@ BuddyPluginBuddy
 			
 			if ( bm != null ){
 				
-				bm.reportFailed( new BuddyPluginException( "Timeout" ));
+				bm.reportFailed( new BuddyPluginTimeoutException( "Timeout", true ));
 			}
 
 			if ( close ){
@@ -1870,19 +1914,20 @@ BuddyPluginBuddy
 		}
 		
 		protected void
-		send()
+		send(
+			buddyMessage		msg )
 		{
-			Map request = active_message.getRequest();
+			Map request = msg.getRequest();
 			
 			Map	send_map = new HashMap();
 			
 			send_map.put( "type", new Long( RT_REQUEST_DATA ));
 			send_map.put( "req", request );
-			send_map.put( "ss", new Long( active_message.getSubsystem()));
-			send_map.put( "id", new Long( active_message.getID()));
+			send_map.put( "ss", new Long( msg.getSubsystem()));
+			send_map.put( "id", new Long( msg.getID()));
 						
 			try{
-				logMessage( "Sending " + active_message.getString() + " to " + getString());
+				logMessage( "Sending " + msg.getString() + " to " + getString());
 
 				fragment_handler.send( send_map, true, true );
 							

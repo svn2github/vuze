@@ -91,9 +91,6 @@ public class
 BuddyPluginViewInstance 
 	implements BuddyPluginListener, BuddyPluginBuddyRequestListener
 {
-	private static final boolean	TEST_AZ3 = false;
-	
-	
 	private static final int LOG_NORMAL 	= 1;
 	private static final int LOG_SUCCESS 	= 2;
 	private static final int LOG_ERROR 		= 3;
@@ -1065,62 +1062,7 @@ BuddyPluginViewInstance
 					}
 				};
 			});
-		
-			// test AZ3
-		
-		if ( TEST_AZ3 ){
-			
-			MenuItem az3 = new MenuItem(menu, SWT.PUSH);
-	
-			az3.setText( lu.getLocalisedMessageText( "!AZ3 test!" ) );
-	
-			az3.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent event ) 
-					{
-						TableItem[] selection = buddy_table.getSelection();
-						
-						for (int i=0;i<selection.length;i++){
-							
-							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
-							
-							try{
-							
-								buddy.sendMessage(
-									BuddyPlugin.SUBSYSTEM_AZ3,
-									new HashMap(),
-									60*1000,
-									new BuddyPluginBuddyReplyListener()
-									{
-										public void
-										replyReceived(
-											BuddyPluginBuddy		from_buddy,
-											Map						reply )
-										{
-											print( "AZ3 reply: " + reply );
-										}
-										
-										public void
-										sendFailed(
-											BuddyPluginBuddy		to_buddy,
-											BuddyPluginException	cause )
-										{
-											print( "AZ3 error", cause );
-										}
-									});
-								
-							}catch( Throwable e ){
-								
-								print( "AZ3 failed", e );
-							}
-						}
-					}
-				});
-		}	
-		
+				
 		
 		buddy_table.setMenu( menu );
 			
@@ -1371,16 +1313,6 @@ BuddyPluginViewInstance
 	
 		throws BuddyPluginException
 	{
-		if ( TEST_AZ3 ){
-			
-			if ( subsystem == BuddyPlugin.SUBSYSTEM_AZ3 ){
-				
-				plugin.addBuddy( from_buddy.getPublicKey(), BuddyPlugin.SUBSYSTEM_AZ3 );
-				
-				return( new HashMap());
-			}
-		}
-		
 		return( null );
 	}
 	
