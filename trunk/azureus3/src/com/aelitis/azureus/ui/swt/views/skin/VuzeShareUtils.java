@@ -25,7 +25,8 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(final SelectedContent currentContent, String referer) {
+	public void shareTorrent(final SelectedContent currentContent,
+			final String referer) {
 		if (Constants.DISABLE_BUDDIES_BAR) {
 			return;
 		}
@@ -47,7 +48,7 @@ public class VuzeShareUtils
 			public void loginComplete() {
 				if (null != sharePage) {
 					try {
-						sharePage.setShareItem(currentContent);
+						sharePage.setShareItem(currentContent, referer);
 					} catch (Exception e) {
 					}
 				}

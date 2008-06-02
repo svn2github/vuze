@@ -138,6 +138,8 @@ public class SharePage
 
 	private ButtonBar buttonBar;
 
+	private String referer;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -515,6 +517,9 @@ public class SharePage
 				getMessageContext().executeInBrowser(
 						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
 
+				getMessageContext().executeInBrowser(
+						"setShareReferer('" + referer + "')");
+
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				List buddiesToShareWith = buddyList.getFriends();
@@ -715,8 +720,9 @@ public class SharePage
 		return browser;
 	}
 
-	public void setShareItem(SelectedContent content) {
+	public void setShareItem(SelectedContent content, String referer) {
 		this.shareItem = content;
+		this.referer = referer;
 		this.dm = shareItem.getDM();
 
 		if (content != null && content.getThumbURL() != null) {
