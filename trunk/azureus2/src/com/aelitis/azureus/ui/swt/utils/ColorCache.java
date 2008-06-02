@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
  * @author TuxPaper
@@ -143,5 +144,13 @@ public class ColorCache
 			return null;
 		}
 		return getColor(device, rgb[0], rgb[1], rgb[2]);
+	}
+	
+	public static Color getRandomColor() {
+		if (mapColors.size() == 0) {
+			return Colors.black;
+		}
+		int r = (int) (Math.random() * mapColors.size());
+		return (Color) mapColors.values().toArray()[r];
 	}
 }
