@@ -33,9 +33,15 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
+import com.aelitis.azureus.core.security.CryptoHandler;
+import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 
@@ -48,9 +54,7 @@ BuddyPluginView
 	private UISWTInstance	ui_instance;
 	
 	private BuddyPluginViewInstance		current_instance;
-	
-	private UISWTStatusEntry		status;
-	
+		
 	public
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
@@ -92,105 +96,7 @@ BuddyPluginView
 				}
 			});
 		
-		final BuddyPluginTracker	tracker = plugin.getTracker();
-		
-		status = ui_instance.createStatusEntry();
-		
-		status.setText( "BBB" );
-		status.setTooltipText( "Idle" );
-		status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
-		status.setImageEnabled( true );
-		
-		status.setVisible( tracker.isEnabled());
-		
-		tracker.addListener(
-			new BuddyPluginTrackerListener()
-			{
-				private TimerEventPeriodic	update_event;
-				
-				public void
-				networkStatusChanged(
-					BuddyPluginTracker	tracker,
-					int					new_status )
-				{
-					if ( new_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
-						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
-						status.setTooltipText( "Idle" );
-						
-						disableUpdates();
-						
-					}else if ( new_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
-						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_GREEN );
-						
-						enableUpdates();
-					}else{
-						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
-						
-						enableUpdates();
-					}
-				}
-				
-				protected synchronized void
-				enableUpdates()
-				{
-					if ( update_event == null ){
-						
-						update_event = SimpleTimer.addPeriodicEvent(
-							"Buddy:guiupdate",
-							2500,
-							new TimerEventPerformer()
-							{
-								public void 
-								perform(
-									TimerEvent event ) 
-								{	
-									String	tt;
-									
-									
-									int ns = tracker.getNetworkStatus();
-									
-									if ( ns == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
-										
-										tt = "Idle";
-										
-									}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
-										
-										tt = "In: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
-										
-									}else{
-										
-										tt = "Out: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
-									}
-																			
-									status.setTooltipText( tt );
-								}
-								
-							});
-					}
-				}
-				
-				protected synchronized void
-				disableUpdates()
-				{
-					if ( update_event != null ){
-
-						update_event.cancel();
-						
-						update_event = null;
-					}
-				}
-				
-				public void 
-				enabledStateChanged(
-					BuddyPluginTracker 		tracker,
-					boolean 				enabled ) 
-				{
-					status.setVisible( enabled );
-				}
-			});
+		new statusUpdater( ui_instance.createStatusEntry());
 	}
 	
 	public boolean 
@@ -232,5 +138,230 @@ BuddyPluginView
 		}
 		
 		return true;
+	}
+	
+	protected class
+	statusUpdater
+		implements BuddyPluginTrackerListener
+	{
+		private UISWTStatusEntry	status;
+		private BuddyPluginTracker	tracker;
+		
+		private TimerEventPeriodic	update_event;
+
+		private CryptoManager	crypto;
+		private boolean			crypto_ok;
+		private boolean			has_buddies;
+		
+		protected
+		statusUpdater(
+			UISWTStatusEntry		_status )
+		{
+			status	= _status;
+			
+			tracker = plugin.getTracker();
+			
+			status.setText( "BBB" );
+			
+			status.setImageEnabled( true );
+			
+			status.setVisible( tracker.isEnabled());
+		
+			tracker.addListener( this );
+			
+			has_buddies = plugin.getBuddies().size() > 0;
+			
+			plugin.addListener( 
+				new BuddyPluginListener()
+				{
+					public void
+					initialised(
+						boolean		available )
+					{
+					}
+					
+					public void
+					buddyAdded(
+						BuddyPluginBuddy	buddy )
+					{
+						if ( !has_buddies ){
+							
+							has_buddies = true;
+						
+							updateStatus();
+						}
+					}
+					
+					public void
+					buddyRemoved(
+						BuddyPluginBuddy	buddy )
+					{
+						has_buddies	= plugin.getBuddies().size() > 0;	
+						
+						if ( !has_buddies ){
+							
+							updateStatus();
+						}
+					}
+
+					public void
+					buddyChanged(
+						BuddyPluginBuddy	buddy )
+					{
+					}
+					
+					public void
+					messageLogged(
+						String		str )
+					{
+					}
+					
+					public void
+					enabledStateChanged(
+						boolean enabled )
+					{
+					}
+				});
+			
+			crypto = CryptoManagerFactory.getSingleton();
+			
+			crypto.addKeyListener(
+				new CryptoManagerKeyListener()
+				{
+					public void
+					keyChanged(
+						CryptoHandler		handler )
+					{
+					}
+					
+					public void
+					keyLockStatusChanged(
+						CryptoHandler		handler )
+					{
+						boolean	ok = crypto.getECCHandler().isUnlocked();
+						
+						if ( ok != crypto_ok ){
+							
+							crypto_ok = ok;
+							
+							updateStatus();
+						}
+					}
+				});
+			
+			crypto_ok = crypto.getECCHandler().isUnlocked();
+				
+			updateStatus();
+		}
+				
+		public void
+		networkStatusChanged(
+			BuddyPluginTracker	tracker,
+			int					new_status )
+		{
+			updateStatus();
+		}
+		
+		protected synchronized void
+		updateStatus()
+		{
+			if ( tracker.isEnabled()){
+				
+				status.setVisible( true );
+				
+				if ( has_buddies && !crypto_ok ){
+					
+					status.setImage( UISWTStatusEntry.IMAGE_LED_RED );
+					
+					disableUpdates();
+					
+				}else{
+					int	network_status = tracker.getNetworkStatus();
+					
+					if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
+						
+						disableUpdates();
+						
+					}else if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_GREEN );
+						
+						enableUpdates();
+					}else{
+						
+						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
+						
+						enableUpdates();
+					}
+				}
+			}else{
+				
+				disableUpdates();
+				
+				status.setVisible( false );
+			}
+		}
+		
+		protected void
+		enableUpdates()
+		{
+			if ( update_event == null ){
+				
+				update_event = SimpleTimer.addPeriodicEvent(
+					"Buddy:guiupdate",
+					2500,
+					new TimerEventPerformer()
+					{
+						public void 
+						perform(
+							TimerEvent event ) 
+						{	
+							String	tt;
+							
+							
+							int ns = tracker.getNetworkStatus();
+							
+							if ( ns == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+								
+								tt = "Idle";
+								
+							}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
+								
+								tt = "In: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
+								
+							}else{
+								
+								tt = "Out: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
+							}
+																	
+							status.setTooltipText( tt );
+						}
+						
+					});
+			}
+		}
+		
+		protected void
+		disableUpdates()
+		{
+			if ( update_event != null ){
+
+				update_event.cancel();
+				
+				update_event = null;
+			}
+			
+			status.setTooltipText( "Idle" );
+		}
+		
+		public void 
+		enabledStateChanged(
+			BuddyPluginTracker 		tracker,
+			boolean 				enabled ) 
+		{
+			updateStatus();
+		}
 	}
 }

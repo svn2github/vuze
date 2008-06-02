@@ -84,7 +84,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -616,14 +616,29 @@ BuddyPlugin
 						}
 					});
 			
-			CryptoManagerFactory.getSingleton().addKeyChangeListener(
-				new CryptoManagerKeyChangeListener()
+			CryptoManagerFactory.getSingleton().addKeyListener(
+				new CryptoManagerKeyListener()
 				{
 					public void 
 					keyChanged(
 						CryptoHandler handler ) 
 					{
 						updateKey();
+					}
+					
+					public void
+					keyLockStatusChanged(
+						CryptoHandler		handler )
+					{	
+						boolean unlocked = handler.isUnlocked();
+						
+						if ( unlocked ){
+							
+							if ( latest_publish.isEnabled()){
+								
+								updatePublish( latest_publish );
+							}
+						}
 					}
 				});
 			

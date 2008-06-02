@@ -55,10 +55,10 @@ CryptoManager
 		CryptoManagerPasswordHandler		handler );
 	
 	public void
-	addKeyChangeListener(
-		CryptoManagerKeyChangeListener		listener );
+	addKeyListener(
+		CryptoManagerKeyListener		listener );
 	
 	public void
-	removeKeyChangeListener(
-		CryptoManagerKeyChangeListener		listener );
+	removeKeyListener(
+		CryptoManagerKeyListener		listener );
 }

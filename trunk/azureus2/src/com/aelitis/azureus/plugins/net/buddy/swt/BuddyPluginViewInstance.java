@@ -77,7 +77,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
@@ -224,8 +224,8 @@ BuddyPluginViewInstance
 	    	}
 	    });
 		
-		crypt_man.addKeyChangeListener(
-				new CryptoManagerKeyChangeListener()
+		crypt_man.addKeyListener(
+				new CryptoManagerKeyListener()
 				{
 					public void 
 					keyChanged(
@@ -233,7 +233,7 @@ BuddyPluginViewInstance
 					{
 						if ( control_val_pk.isDisposed()){
 							
-							crypt_man.removeKeyChangeListener( this );
+							crypt_man.removeKeyListener( this );
 							
 						}else{
 							if ( handler.getType() == CryptoManager.HANDLER_ECC ){
@@ -252,6 +252,12 @@ BuddyPluginViewInstance
 								}
 							}
 						}
+					}
+					
+					public void
+					keyLockStatusChanged(
+						CryptoHandler		handler )
+					{
 					}
 				});
 		

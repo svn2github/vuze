@@ -65,7 +65,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -282,14 +282,14 @@ ConfigSectionSecurity
 		    	}
 		    });
 			
-			crypt_man.addKeyChangeListener(
-					new CryptoManagerKeyChangeListener()
+			crypt_man.addKeyListener(
+					new CryptoManagerKeyListener()
 					{
 						public void 
 						keyChanged(
 							final CryptoHandler handler ) 
 						{
-							final CryptoManagerKeyChangeListener me = this;
+							final CryptoManagerKeyListener me = this;
 							
 							Utils.execSWTThread(
 								new Runnable()
@@ -299,7 +299,7 @@ ConfigSectionSecurity
 									{						
 										if ( public_key_value.isDisposed()){
 											
-											crypt_man.removeKeyChangeListener( me );
+											crypt_man.removeKeyListener( me );
 											
 										}else{
 											if ( handler.getType() == CryptoManager.HANDLER_ECC ){
@@ -320,6 +320,12 @@ ConfigSectionSecurity
 										}
 									}
 								});
+						}
+						
+						public void
+						keyLockStatusChanged(
+							CryptoHandler		handler )
+						{
 						}
 					});
 			

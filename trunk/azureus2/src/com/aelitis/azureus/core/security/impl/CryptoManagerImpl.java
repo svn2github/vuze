@@ -46,7 +46,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerException;
-import com.aelitis.azureus.core.security.CryptoManagerKeyChangeListener;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -258,14 +258,14 @@ CryptoManagerImpl
 	clearPasswords(
 		int		password_handler_type )
 	{
-		ecc_handler.lock();
-		
 		session_passwords.clear();
 		
 		for (int i=0;i<CryptoManager.HANDLERS.length;i++){
 			
 			clearPassword( CryptoManager.HANDLERS[i], password_handler_type );
 		}
+		
+		ecc_handler.lock();
 	}
 	
 	protected void
@@ -484,7 +484,25 @@ CryptoManagerImpl
 		while( it.hasNext()){
 			
 			try{		
-				((CryptoManagerKeyChangeListener)it.next()).keyChanged( handler );
+				((CryptoManagerKeyListener)it.next()).keyChanged( handler );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	protected void
+	lockChanged(
+		CryptoHandler	handler )
+	{
+		Iterator it = keychange_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{		
+				((CryptoManagerKeyListener)it.next()).keyLockStatusChanged( handler );
 				
 			}catch( Throwable e ){
 				
@@ -508,15 +526,15 @@ CryptoManagerImpl
 	}
 	
 	public void
-	addKeyChangeListener(
-		CryptoManagerKeyChangeListener		listener )
+	addKeyListener(
+		CryptoManagerKeyListener		listener )
 	{
 		keychange_listeners.add( listener );
 	}
 	
 	public void
-	removeKeyChangeListener(
-		CryptoManagerKeyChangeListener		listener )
+	removeKeyListener(
+		CryptoManagerKeyListener		listener )
 	{
 		keychange_listeners.remove( listener );
 	}

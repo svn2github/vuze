@@ -114,10 +114,22 @@ CryptoHandlerECC
 		return( use_method_private_key != null );
 	}
 	
-	public synchronized void
+	public void
 	lock()
 	{
-		use_method_private_key	= null;
+		boolean	changed = false;
+		
+		synchronized( this ){
+			
+			changed = use_method_private_key != null;
+		
+			use_method_private_key	= null;
+		}
+		
+		if ( changed ){
+		
+			manager.lockChanged( this );
+		}
 	}
 	
 	public int
@@ -300,7 +312,11 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
+		boolean	lock_changed = false;
+		
 		synchronized( this ){
+			
+			lock_changed = use_method_private_key != null;
 			
 			use_method_private_key	= null;
 			use_method_public_key	= null;
@@ -320,9 +336,14 @@ CryptoHandlerECC
 			COConfigurationManager.setParameter( CONFIG_PREFIX + "privatekey", encrypted_private_key );
 			
 			COConfigurationManager.save();
-		}
+		}		
 		
 		manager.keyChanged( this );
+
+		if ( lock_changed ){
+		
+			manager.lockChanged( this );
+		}
 	}
 	
 	public void
@@ -331,8 +352,12 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
+		boolean	lock_changed = false;
+
 		synchronized( this ){
 			
+			lock_changed = use_method_private_key != null;
+
 			use_method_private_key	= null;
 			use_method_public_key	= null;
 			
@@ -345,6 +370,11 @@ CryptoHandlerECC
 			COConfigurationManager.save();
 		}
 		
+		if ( lock_changed ){
+
+			manager.lockChanged( this );
+		}
+		
 		createAndStoreKeys( "resetting keys" );
 	}
 	
@@ -354,100 +384,116 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		synchronized( this ){
-			
-			if ( use_method_private_key != null ){
+		boolean	lock_change = false;
+		
+		try{
+			synchronized( this ){
 				
-				int	timeout_secs = getUnlockTimeoutSeconds();
-				
-				if ( timeout_secs > 0 ){
+				if ( use_method_private_key != null ){
 					
-					if ( SystemTime.getCurrentTime() - last_unlock_time >= timeout_secs * 1000 ){
+					int	timeout_secs = getUnlockTimeoutSeconds();
+					
+					if ( timeout_secs > 0 ){
 						
-						use_method_private_key = null;
+						if ( SystemTime.getCurrentTime() - last_unlock_time >= timeout_secs * 1000 ){
+							
+							lock_change = true;
+							
+							use_method_private_key = null;
+						}
 					}
+				}
+				
+				if ( use_method_private_key != null ){
+					
+					return( use_method_private_key );
 				}
 			}
 			
-			if ( use_method_private_key != null ){
+			final byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
+			
+			if ( encoded == null ){
+				
+				return((PrivateKey)createAndStoreKeys( reason )[1]);
+				
+			}else{
+				
+				CryptoManagerImpl.passwordDetails password_details = 
+					manager.getPassword( 
+							CryptoManager.HANDLER_ECC, 
+							CryptoManagerPasswordHandler.ACTION_DECRYPT, 
+							reason,
+							new CryptoManagerImpl.passwordTester()
+							{
+								public boolean 
+								testPassword(
+									char[] password )
+								{
+									try{
+										manager.decryptWithPBE( encoded, password );
+										
+										return( true );
+										
+									}catch( Throwable e ){
+										
+										return( false );
+									}
+								}
+							},
+							getCurrentPasswordType());
+	
+				synchronized( this ){
+					
+					boolean		ok = false;
+					
+					try{
+						use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password_details.getPassword()));
+					
+						lock_change = true;
+						
+						last_unlock_time = SystemTime.getCurrentTime();
+					
+						if ( !checkKeysOK( reason )){
+												
+							throw( new CryptoManagerPasswordException( true, "Password incorrect" ));
+						}
+						
+						ok = true;
+						
+					}catch( CryptoManagerException e ){
+						
+						throw( e );
+						
+					}catch( Throwable e ){
+						
+						throw( new CryptoManagerException( "Password incorrect", e ));
+						
+					}finally{
+						
+						if ( !ok ){
+														
+							manager.clearPassword( CryptoManager.HANDLER_ECC, CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
+							
+							lock_change = true;
+							
+							use_method_private_key	= null;
+						}
+					}
+				}
+			
+				if ( use_method_private_key == null ){
+					
+					throw( new CryptoManagerException( "Failed to get private key" ));
+				}
 				
 				return( use_method_private_key );
 			}
-		}
-		
-		final byte[]	encoded = COConfigurationManager.getByteParameter( CONFIG_PREFIX + "privatekey", null );
-		
-		if ( encoded == null ){
+		}finally{
 			
-			return((PrivateKey)createAndStoreKeys( reason )[1]);
-			
-		}else{
-			
-			CryptoManagerImpl.passwordDetails password_details = 
-				manager.getPassword( 
-						CryptoManager.HANDLER_ECC, 
-						CryptoManagerPasswordHandler.ACTION_DECRYPT, 
-						reason,
-						new CryptoManagerImpl.passwordTester()
-						{
-							public boolean 
-							testPassword(
-								char[] password )
-							{
-								try{
-									manager.decryptWithPBE( encoded, password );
-									
-									return( true );
-									
-								}catch( Throwable e ){
-									
-									return( false );
-								}
-							}
-						},
-						getCurrentPasswordType());
+			if ( lock_change ){
 
-			synchronized( this ){
-				
-				boolean		ok = false;
-				
-				try{
-					use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password_details.getPassword()));
-				
-					last_unlock_time = SystemTime.getCurrentTime();
-				
-					if ( !checkKeysOK( reason )){
-											
-						throw( new CryptoManagerPasswordException( true, "Password incorrect" ));
-					}
-					
-					ok = true;
-					
-				}catch( CryptoManagerException e ){
-					
-					throw( e );
-					
-				}catch( Throwable e ){
-					
-					throw( new CryptoManagerException( "Password incorrect", e ));
-					
-				}finally{
-					
-					if ( !ok ){
-													
-						manager.clearPassword( CryptoManager.HANDLER_ECC, CryptoManagerPasswordHandler.HANDLER_TYPE_ALL );
-						
-						use_method_private_key	= null;
-					}
-				}
+				manager.lockChanged( this );
 			}
-		
-			if ( use_method_private_key == null ){
-				
-				throw( new CryptoManagerException( "Failed to get private key" ));
-			}
-			
-			return( use_method_private_key );
 		}
 	}
 	
@@ -623,6 +669,8 @@ CryptoHandlerECC
 		}finally{
 				
 			manager.keyChanged( this );
+			
+			manager.lockChanged( this );
 		}
 	}
 	

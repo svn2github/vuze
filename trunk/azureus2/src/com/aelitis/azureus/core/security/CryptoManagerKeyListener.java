@@ -22,9 +22,13 @@
 package com.aelitis.azureus.core.security;
 
 public interface 
-CryptoManagerKeyChangeListener 
+CryptoManagerKeyListener 
 {
 	public void
 	keyChanged(
+		CryptoHandler		handler );
+	
+	public void
+	keyLockStatusChanged(
 		CryptoHandler		handler );
 }
