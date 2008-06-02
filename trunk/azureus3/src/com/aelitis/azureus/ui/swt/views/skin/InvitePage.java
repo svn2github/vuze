@@ -2,7 +2,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -25,11 +25,7 @@ public class InvitePage
 
 	private Composite content;
 
-	private Composite blinder;
-
 	private Browser browser = null;
-
-	private StackLayout stackLayout = null;
 
 	private ClientMessageContext context = null;
 
@@ -39,23 +35,22 @@ public class InvitePage
 
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
-		stackLayout = new StackLayout();
-		content.setLayout(stackLayout);
 		init();
 	}
 
 	private void init() {
-		blinder = new Composite(content, SWT.NONE);
+		FillLayout fLayout = new FillLayout();
+		fLayout.marginHeight = 0;
+		fLayout.marginWidth = 0;
+		content.setLayout(fLayout);
+
 	}
 
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(content, SWT.NONE);
-			String url = Constants.URL_PREFIX + "share.start?ts="
-					+ Math.random();
+			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
-			stackLayout.topControl = browser;
-			content.layout();
 
 			/*
 			 * Calling to initialize the listeners
