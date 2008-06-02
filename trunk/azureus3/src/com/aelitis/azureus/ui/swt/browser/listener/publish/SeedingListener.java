@@ -10,13 +10,13 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.PublishUtils;
 
 public class SeedingListener
-	extends AbstractMessageListener
+	extends AbstractBrowserMessageListener
 {
 
 	private static final long INFINITE_ETA = 31535999; //1 year

@@ -44,11 +44,15 @@ import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.swt.browser.listener.*;
+import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
@@ -89,7 +93,7 @@ public class Initializer
 	}
 
 	/**
-	 * Main Initializer
+	 * Main Initializer.  Usually called by reflection
 	 * @param core
 	 * @param args
 	 */
@@ -106,7 +110,11 @@ public class Initializer
 			}
 		} else {
 			Constants.initialize(core);
+
+			initializePlatformClientMessageContext();
+
 			PlatformConfigMessenger.login(0);
+			// typically the caller will call run() now 
 		}
 	}
 
@@ -499,5 +507,24 @@ public class Initializer
 						  init_task.release();
 					  }
 				  });
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	private void initializePlatformClientMessageContext() {
+		ClientMessageContext clientMsgContext = PlatformMessenger.getClientMessageContext();
+		if (clientMsgContext != null) {
+			clientMsgContext.setMessageDispatcher(new MessageDispatcherSWT(clientMsgContext));
+			clientMsgContext.addMessageListener(new TorrentListener());
+			clientMsgContext.addMessageListener(new DisplayListener(null));
+			clientMsgContext.addMessageListener(new ConfigListener(null));
+			clientMsgContext.addMessageListener(new LightBoxBrowserRequestListener());
+			clientMsgContext.addMessageListener(new StatusListener());
+			clientMsgContext.addMessageListener(new BrowserRpcBuddyListener());
+			clientMsgContext.addMessageListener(new MetaSearchListener());
+		}
 	}
 }

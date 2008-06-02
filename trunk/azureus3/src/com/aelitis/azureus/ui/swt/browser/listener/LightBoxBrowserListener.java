@@ -2,10 +2,10 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;

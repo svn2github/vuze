@@ -67,6 +67,8 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
@@ -83,8 +85,6 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -94,9 +94,9 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DCAdManager;
-import com.aelitis.azureus.util.NavigationHelper;
+import com.aelitis.azureus.util.PublishUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -171,7 +171,7 @@ public class MainWindow
 		this.uiInitializer = uiInitializer;
 
 		disposedOrDisposing = false;
-
+		
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
 			public VuzeBuddy createBuddy(String publicKey) {
 				VuzeBuddyManager.log("created buddy: " + publicKey);
@@ -2369,14 +2369,18 @@ public class MainWindow
 	 */
 	public void showURL(String url, String target) {
 
-		if (url.startsWith("AZMSG%3B")) {
+		if (url.startsWith("AZMSG%3B") && false) {
 			try {
 				BrowserMessage browserMsg;
 				browserMsg = new BrowserMessage(URLDecoder.decode(url, "utf-8"));
 				ClientMessageContext context = PlatformMessenger.getClientMessageContext();
-				MessageDispatcher dispatcher = context.getMessageDispatcher();
-				dispatcher.dispatch(browserMsg);
-				dispatcher.resetSequence();
+				BrowserMessageDispatcher dispatcher = context.getDispatcher();
+				if (dispatcher != null) {
+					dispatcher.dispatch(browserMsg);
+					dispatcher.resetSequence();
+				} else {
+					browserMsg.debug("no dispatcher for showURL action");
+				}
 			} catch (UnsupportedEncodingException e) {
 			}
 			return;

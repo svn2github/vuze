@@ -23,15 +23,11 @@ package com.aelitis.azureus.core.messenger;
 import java.util.Collection;
 import java.util.Map;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.widgets.Control;
-
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
+import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
-import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
-import com.aelitis.azureus.ui.swt.browser.txn.TransactionManager;
 
 /**
  * @author TuxPaper
@@ -47,29 +43,29 @@ public interface ClientMessageContext
 	 * @param browser the browser to be attached
 	 * @param widgetWaitingIndicator Widget to be shown when browser is loading
 	 */
-	public abstract void registerBrowser(final Browser browser,
-			Control widgetWaitingIndicator);
+	public abstract void registerBrowser(final Object browser,
+			Object widgetWaitingIndicator);
 
 	/**
 	 * Detaches everything from this context's browser.
 	 */
 	public abstract void deregisterBrowser();
 
-	public abstract void addMessageListener(MessageListener listener);
+	public abstract void addMessageListener(BrowserMessageListener listener);
 
 	public abstract void removeMessageListener(String listenerId);
 
-	public abstract void removeMessageListener(MessageListener listener);
+	public abstract void removeMessageListener(BrowserMessageListener listener);
 
-	public abstract TransactionManager getTransactionManager();
+	public abstract BrowserTransactionManager getTransactionManager();
 
 	public abstract void registerTransactionType(String type, Class clazz);
 
-	public abstract Transaction getTransaction(String type);
+	public abstract BrowserTransaction getTransaction(String type);
 
-	public abstract Transaction startTransaction(String type);
+	public abstract BrowserTransaction startTransaction(String type);
 
-	public abstract Transaction cancelTransaction(String type);
+	public abstract BrowserTransaction cancelTransaction(String type);
 
 	public abstract Object getBrowserData(String key);
 
@@ -95,22 +91,6 @@ public interface ClientMessageContext
 	public abstract boolean executeInBrowser(final String javascript);
 
 	/**
-	 * Handles operations intended for the context.
-	 * 
-	 * @param message holds all message information
-	 */
-	public abstract void handleMessage(BrowserMessage message);
-
-	/**
-	 * Deregisters the browser before it's disposed.
-	 * 
-	 * @param event used to verify it's the correct context
-	 * 
-	 * @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt.events.DisposeEvent)
-	 */
-	public abstract void widgetDisposed(DisposeEvent event);
-
-	/**
 	 * Displays a debug message tagged with the context ID.
 	 * 
 	 * @param message sent to the debug log
@@ -125,6 +105,11 @@ public interface ClientMessageContext
 	 */
 	public abstract void debug(String message, Throwable t);
 
+	public BrowserMessageDispatcher getDispatcher();
+	
+	// DO NOT USE. LEGACY
+	// TODO: Remove after EMP update for 3.1.0.0
+	// THIS IS THE ONLY REMAINING SWT DEPENDENCY LEFT in core.message
 	public MessageDispatcher getMessageDispatcher();
 
 	/**
@@ -136,4 +121,11 @@ public interface ClientMessageContext
 	 * @since 3.0.1.5
 	 */
 	boolean sendBrowserMessage(String key, String op, Collection params);
+
+	/**
+	 * @param dispatcher
+	 *
+	 * @since 3.0.5.3
+	 */
+	void setMessageDispatcher(BrowserMessageDispatcher dispatcher);
 }

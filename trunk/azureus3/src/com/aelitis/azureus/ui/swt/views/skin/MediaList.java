@@ -51,11 +51,11 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.util.PublishUtils;
 
 /**
  * @author TuxPaper

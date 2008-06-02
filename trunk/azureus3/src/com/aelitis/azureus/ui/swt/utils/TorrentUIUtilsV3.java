@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 
@@ -70,7 +71,8 @@ public class TorrentUIUtilsV3
 		String referer, 
 		final boolean playNow,			// open player
 		final boolean playPrepare,		// as for open player but don't actually open it
-		final boolean bringToFront )
+		final boolean bringToFront,
+		final boolean forceDRMtoCDP)
 	{
 		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
 		// Security: Only allow torrents from whitelisted urls
@@ -98,7 +100,7 @@ public class TorrentUIUtilsV3
 								}else{
 									Debug.outNoStack("loadTorrent already exists.. preparing", false);
 
-									TorrentListViewsUtils.prepareForPlay(dm);
+									PlayUtils.prepareForPlay(dm);
 								}
 							}
 						
@@ -151,12 +153,18 @@ public class TorrentUIUtilsV3
 											Debug.out("stopped loading torrent because it's not in whitelist");
 											return;
 										}
-
+										
 										HashWrapper hw;
 										try {
 											hw = torrent.getHashWrapper();
 										} catch (TOTorrentException e1) {
 											Debug.out(e1);
+											return;
+										}
+
+										if (forceDRMtoCDP && PlatformTorrentUtils.isContentDRM(torrent)) {
+											TorrentListViewsUtils.viewDetails(hw.toBase32String(),
+													"loadtorrent");
 											return;
 										}
 
@@ -168,7 +176,7 @@ public class TorrentUIUtilsV3
 												if ( playNow ){
 													TorrentListViewsUtils.playOrStream(existingDM);
 												}else{
-													TorrentListViewsUtils.prepareForPlay(existingDM);
+													PlayUtils.prepareForPlay(existingDM);
 												}
 												return;
 											}
@@ -221,7 +229,7 @@ public class TorrentUIUtilsV3
 						if ( playNow ){
 							showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
 						}else{
-							TorrentListViewsUtils.prepareForPlay(dm);
+							PlayUtils.prepareForPlay(dm);
 							showHomeHint = false;
 						}
 					}

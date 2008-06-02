@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -41,7 +40,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -50,6 +48,8 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -173,11 +173,11 @@ public class ColumnMediaThumb
 
 	public void refresh(final TableCell cell, final boolean bForce) {
 		Object ds = cell.getDataSource();
-		DownloadManager dm = TorrentListViewsUtils.getDMFromDS(ds);
+		DownloadManager dm = DataSourceUtils.getDM(ds);
 
 		//System.out.println("refresh " + bForce + " via " + Debug.getCompressedStackTrace(10));
 
-		TOTorrent newTorrent = TorrentListViewsUtils.getTorrentFromDS(ds);
+		TOTorrent newTorrent = DataSourceUtils.getTorrent(ds);
 		long lastUpdated = PlatformTorrentUtils.getContentLastUpdated(newTorrent);
 		// xxx hack.. cell starts with 0 sort value
 		if (lastUpdated == 0) {
@@ -215,12 +215,12 @@ public class ColumnMediaThumb
 		disposeOldImage(cell);
 
 		byte[] b = null;
-		boolean canPlay = TorrentListViewsUtils.canPlay(dm);
+		boolean canPlay = PlayUtils.canPlayDS(ds);
 		boolean showPlayButton = false; // TorrentListViewsUtils.canPlay(dm);
-		if (torrent == null && (ds instanceof VuzeActivitiesEntry)) {
+		if (ds instanceof VuzeActivitiesEntry) {
 			b = ((VuzeActivitiesEntry) ds).getImageBytes();
-			canPlay |= ((VuzeActivitiesEntry) ds).getAssetHash() != null;
-		} else {
+		}
+		if (b == null) {
 			b = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
 
@@ -405,24 +405,10 @@ public class ColumnMediaThumb
 	}
 
 	private String getHash(Object ds, boolean onlyOurs) {
-		TOTorrent torrent = TorrentListViewsUtils.getTorrentFromDS(ds);
-		if (torrent != null) {
-			try {
-				if (onlyOurs && !PlatformTorrentUtils.isContent(torrent, true)) {
-					return null;
-				}
-				return torrent.getHashWrapper().toBase32String();
-			} catch (Exception e) {
-			}
-		} else if (ds instanceof VuzeActivitiesEntry) {
-			VuzeActivitiesEntry entry = ((VuzeActivitiesEntry) ds);
-			if (onlyOurs
-					&& (entry.getAssetHash() == null || entry.getAssetImageURL() == null)) {
-				return null;
-			}
-			return entry.getAssetHash();
+		if (onlyOurs && !DataSourceUtils.isPlatformContent(ds)) {
+			return null;
 		}
-		return null;
+		return DataSourceUtils.getHash(ds);
 	}
 
 	/**
@@ -440,10 +426,10 @@ public class ColumnMediaThumb
 
 	public void cellVisibilityChanged(TableCell cell, int visibility) {
 		if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
-			//log(cell, "whoo, save");
+			log(cell, "whoo, save");
 			disposeOldImage(cell);
 		} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
-			//log(cell, "whoo, draw");
+			log(cell, "whoo, draw");
 			refresh(cell, true);
 		}
 	}
@@ -568,7 +554,7 @@ public class ColumnMediaThumb
 		}
 
 		Object ds = cell.getDataSource();
-		DownloadManager dm = TorrentListViewsUtils.getDMFromDS(ds);
+		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm != null) {
 			cell.setToolTip(PlatformTorrentUtils.getContentTitle2(dm));
 		}

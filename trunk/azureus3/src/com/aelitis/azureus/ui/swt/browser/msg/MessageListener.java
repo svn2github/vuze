@@ -19,44 +19,12 @@
  */
 package com.aelitis.azureus.ui.swt.browser.msg;
 
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 
 /**
- * Accepts and handles messages dispatched from {@link MessageDispatcher}.
- * Subclasses should use the message's operation ID and parameters to perform
- * the requested operation.
- * 
- * @author dharkness
- * @created Jul 18, 2006
+ * DO NOT USE
+ *
  */
-public interface MessageListener
+public interface MessageListener extends BrowserMessageListener
 {
-    /**
-     * Returns the unique ID for this listener.
-     * 
-     * @return listener's unique ID
-     */
-    public String getId ( ) ;
-
-    /**
-     * Returns the context for this listener.
-     * 
-     * @return listener's context
-     */
-    public ClientMessageContext getContext ( ) ;
-
-    /**
-     * Sets the context for this listener. Called by its dispatcher when attached.
-     * 
-     * @param context the new context for this listener
-     */
-    public void setContext ( ClientMessageContext context ) ;
-
-    /**
-     * Handles the given message, usually by parsing the parameters 
-     * and calling the appropriate operation.
-     * 
-     * @param message holds all message information
-     */
-    public void handleMessage ( BrowserMessage message ) ;
 }

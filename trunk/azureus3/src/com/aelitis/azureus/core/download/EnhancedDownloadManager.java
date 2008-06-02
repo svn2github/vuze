@@ -69,9 +69,9 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DownloadUtils;
+import com.aelitis.azureus.util.PublishUtils;
 
 public class 
 EnhancedDownloadManager 

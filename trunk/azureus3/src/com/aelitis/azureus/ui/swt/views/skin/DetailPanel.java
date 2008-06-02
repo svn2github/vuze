@@ -3,12 +3,14 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -255,8 +257,11 @@ public class DetailPanel
 						detailPanel.layout();
 					}
 
-					SWTSkinUtils.setVisibility(skin, null,
-							SkinConstants.VIEWID_DETAIL_PANEL, value, false, false);
+					FormData fd = (FormData) control.getLayoutData();
+					SWTSkinUtils.slide(control, fd, value
+							? new Point(SWT.DEFAULT, size.y) : new Point(0, 0));
+//					SWTSkinUtils.setVisibility(skin, null,
+//							SkinConstants.VIEWID_DETAIL_PANEL, value, false, false);
 
 					/*
 					 * For OSX after the layout operation is done must set focus so the ui will repaint properly

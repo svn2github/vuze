@@ -27,7 +27,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
-import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -111,7 +111,7 @@ public class ColumnProgressETA
 			TOTorrent torrent = dm.getTorrent();
 			EnhancedDownloadManager edm = null;
 			boolean bCanBeProgressive = PlatformTorrentUtils.isContentProgressive(torrent)
-					&& !TorrentListViewsUtils.canUseEMP(torrent);
+					&& !PlayUtils.canUseEMP(torrent);
 			if (bCanBeProgressive) {
 				edm = getEDM(dm);
 				if (edm == null || !edm.supportsProgressiveMode()) {
@@ -253,7 +253,7 @@ public class ColumnProgressETA
 			String sSpeed = lSpeed <= 0 ? "" : "("
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
-			if (dm.isDownloadComplete(true) && TorrentListViewsUtils.canPlay(dm)) {
+			if (dm.isDownloadComplete(true) && PlayUtils.canPlayDS(dm)) {
 				bDrawProgressBar = false;
 
 				if (edm != null && edm.getProgressiveMode()) {

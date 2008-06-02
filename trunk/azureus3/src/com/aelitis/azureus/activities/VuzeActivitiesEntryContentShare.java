@@ -65,6 +65,8 @@ public class VuzeActivitiesEntryContentShare
 		TOTorrent torrent = dm == null ? null : dm.getTorrent();
 
 		boolean ourContent = content.isPlatformContent();
+		
+		setPlayable(content.canPlay());
 
 		LoginInfo userInfo = LoginInfoManager.getInstance().getUserInfo();
 
@@ -82,15 +84,15 @@ public class VuzeActivitiesEntryContentShare
 			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
 					+ "</A>";
 		} else {
-			if (dm != null) {
-				setTorrentName(dm.getDisplayName());
-			}
-
 			contentString = content.getDisplayName();
 		}
 
-		setAssetImageURL(content.getThumbURL());
+		if (dm != null) {
+			setTorrentName(PlatformTorrentUtils.getContentTitle2(dm));
+		}
 
+		setAssetImageURL(content.getThumbURL());
+		
 		String textid = (message == null || message.length() == 0)
 				? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
 
@@ -108,6 +110,7 @@ public class VuzeActivitiesEntryContentShare
 		}
 		setShowThumb(true);
 		setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		setIsPlatformContent(ourContent);
 		// The recipient will set the timestamp
 		setTimestamp(0);
 	}

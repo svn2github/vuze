@@ -40,16 +40,16 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
 
 
-public class MetaSearchListener extends AbstractMessageListener {
+public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 	public static final String LISTENER_ID = "metasearch";
 

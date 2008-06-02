@@ -275,7 +275,7 @@ public class TorrentListView
 								String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD
 										+ contentHash + ".torrent?referal=coq";
 								TorrentUIUtilsV3.loadTorrent(core, url, null, false, false,
-										true);
+										true, false);
 							}
 
 						}

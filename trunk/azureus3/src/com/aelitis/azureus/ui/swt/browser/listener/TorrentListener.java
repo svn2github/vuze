@@ -8,24 +8,22 @@ import org.eclipse.swt.widgets.Shell;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public class TorrentListener
-	extends AbstractMessageListener
+	extends AbstractBrowserMessageListener
 {
 	public static final String DEFAULT_LISTENER_ID = "torrent";
 
@@ -70,7 +68,7 @@ public class TorrentListener
 					"bring-to-front", true);
 			if (url != null) {
 				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow,
-						playPrepare, bringToFront);
+						playPrepare, bringToFront, false);
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));
@@ -99,7 +97,9 @@ public class TorrentListener
 			if (hash != null && displayName != null) {
 				String referer = MapUtils.getMapString(decodedMap, "referer",
 						"torrentlistener");
-				SelectedContent content = new SelectedContent(hash, displayName, true);
+				boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
+				SelectedContent content = new SelectedContent(hash, displayName, true,
+						canPlay);
 				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 						null));
 				VuzeShareUtils.getInstance().shareTorrent(content, referer);

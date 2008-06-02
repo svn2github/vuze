@@ -13,8 +13,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -25,7 +25,7 @@ import com.aelitis.azureus.util.MapUtils;
  *
  */
 public abstract class AbstractBuddyPageListener
-	extends AbstractMessageListener
+	extends AbstractBrowserMessageListener
 	implements IBuddyPageListener
 {
 

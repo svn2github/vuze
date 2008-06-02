@@ -33,8 +33,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
-import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 /**
@@ -79,6 +78,10 @@ public class VuzeActivitiesEntry
 
 	private boolean isDRM;
 
+	private boolean isPlatformContent;
+	
+	private boolean playable;
+
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
 		this.timestamp = timestamp;
@@ -115,7 +118,8 @@ public class VuzeActivitiesEntry
 		setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url",
 				null));
 		setDRM(MapUtils.getMapBoolean(platformEntry, "no-play", false));
-		setTorrentName(MapUtils.getMapString(platformEntry, "related-asset-name", null));
+		setTorrentName(MapUtils.getMapString(platformEntry, "related-asset-name",
+				null));
 		loadCommonFromMap(platformEntry);
 	}
 
@@ -135,18 +139,20 @@ public class VuzeActivitiesEntry
 	}
 
 	public void loadCommonFromMap(Map map) {
+		if (!isPlatformContent) {
+			setIsPlatformContent(MapUtils.getMapBoolean(map, "is-platform",
+					isPlatformContent));
+		}
 		setID(MapUtils.getMapString(map, "id", null));
 		setText(MapUtils.getMapString(map, "text", null));
 		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
-		if (torrentMap == null) {
-			setTorrent(null);
-		} else {
+		if (torrentMap != null) {
 			TOTorrent torrent = null;
 			try {
 				torrent = TOTorrentFactory.deserialiseFromMap(torrentMap);
+				setTorrent(torrent);
 			} catch (TOTorrentException e) {
 			}
-			setTorrent(torrent);
 		}
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
@@ -172,7 +178,7 @@ public class VuzeActivitiesEntry
 
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(ourTypeID);
 				boolean isOtherHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(theirTypeID);
-				
+
 				if (isHeader) {
 					ourTypeID = getID();
 				}
@@ -190,7 +196,7 @@ public class VuzeActivitiesEntry
 				if (ourIDpos > theirIDpos) {
 					return -1;
 				}
-				
+
 				// same
 				if (isHeader) {
 					return 1;
@@ -198,7 +204,7 @@ public class VuzeActivitiesEntry
 				if (isOtherHeader) {
 					return -1;
 				}
-				
+
 				// FALLTHROUGH to date sort
 			}
 
@@ -230,7 +236,7 @@ public class VuzeActivitiesEntry
 			}
 		});
 	}
-	
+
 	public String getAssetImageURL() {
 		return assetImageURL;
 	}
@@ -275,6 +281,8 @@ public class VuzeActivitiesEntry
 		if (torrentName != null) {
 			map.put("torrent-name", torrentName);
 		}
+		
+		map.put("is-platform", new Long(isPlatformContent ? 1 : 0));
 
 		return map;
 	}
@@ -300,6 +308,10 @@ public class VuzeActivitiesEntry
 		this.typeID = typeID;
 		if (getIconID() == null && typeID != null) {
 			setIconID("image.vuze-entry." + typeID.toLowerCase());
+		}
+		if (VuzeActivitiesConstants.TYPEID_CONTENT_PROMO.equals(typeID)) {
+			setIsPlatformContent(true);
+			setPlayable(true);
 		}
 	}
 
@@ -382,16 +394,8 @@ public class VuzeActivitiesEntry
 	public void setDownloadManager(DownloadManager dm) {
 		this.dm = dm;
 		if (dm != null) {
-			setDRM(PlatformTorrentUtils.isContentDRM(dm.getTorrent()));
-
-			try {
-				assetHash = dm.getTorrent().getHashWrapper().toBase32String();
-			} catch (Exception e) {
-			}
-		} else {
-			setDRM(false);
+			setTorrent(dm.getTorrent());
 		}
-
 	}
 
 	/**
@@ -453,11 +457,13 @@ public class VuzeActivitiesEntry
 		this.torrent = torrent;
 
 		try {
-			assetHash = dm.getTorrent().getHashWrapper().toBase32String();
+			assetHash = torrent.getHashWrapper().toBase32String();
 		} catch (Exception e) {
 		}
 
 		setDRM(torrent == null ? false : PlatformTorrentUtils.isContentDRM(torrent));
+		setIsPlatformContent(torrent == null ? false
+				: PlatformTorrentUtils.isContent(torrent, true));
 	}
 
 	public boolean isDRM() {
@@ -479,11 +485,13 @@ public class VuzeActivitiesEntry
 	public SelectedContent createSelectedContentObject()
 			throws Exception {
 
+		boolean ourContent = DataSourceUtils.isPlatformContent(this);
+		
 		SelectedContent sc = new SelectedContent();
 		dm = getDownloadManger();
 		if (dm != null) {
 			sc.setDisplayName(dm.getDisplayName());
-			sc.setDM(dm, PlatformTorrentUtils.isContent(dm.getTorrent(), true));
+			sc.setDM(dm, ourContent);
 			return sc;
 		}
 
@@ -492,13 +500,12 @@ public class VuzeActivitiesEntry
 			TOTorrent torrent = getTorrent();
 			if (torrent != null) {
 				sc.setDisplayName(TorrentUtils.getLocalisedName(torrent));
-				sc.setHash(torrent.getHashWrapper().toBase32String(),
-						PlatformTorrentUtils.isContent(torrent, true));
+				sc.setHash(torrent.getHashWrapper().toBase32String(), ourContent);
 			} else {
 				throw new Exception("No Display Name");
 			}
 		}
-
+		
 		if (sc.getHash() == null && assetHash != null) {
 			sc.setHash(assetHash, true);
 		} else {
@@ -508,5 +515,26 @@ public class VuzeActivitiesEntry
 		sc.setThumbURL(assetImageURL);
 		return sc;
 
+	}
+
+	public boolean isPlatformContent() {
+		return isPlatformContent;
+	}
+
+	public void setIsPlatformContent(boolean isPlatformContent) {
+		this.isPlatformContent = isPlatformContent;
+	}
+
+	public boolean isPlayable() {
+		// our variable is an override
+		if (playable)  {
+			return true;
+		}
+		// use torrent so we don't recurse
+		return PlayUtils.canPlayDS(DataSourceUtils.getTorrent(this));
+	}
+
+	public void setPlayable(boolean playable) {
+		this.playable = playable;
 	}
 }

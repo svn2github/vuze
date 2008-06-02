@@ -120,9 +120,10 @@ public class SWTSkinUtils
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, final boolean visible, boolean save, boolean fast) {
 		final SWTSkinObject skinObject = skin.getSkinObject(viewID);
-		// XXX Following wont work at startup because main window is invisible..
-		//		if (skinObject != null && skinObject.isVisible() != visible) {
 		if (skinObject != null) {
+			if (skinObject.isVisible() == visible && skin.getShell().isVisible()) {
+				return;
+			}
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
 				control.setData("oldSize", new Point(1,1));
@@ -253,6 +254,7 @@ public class SWTSkinUtils
 		//System.out.println("slid to " + size);
 		AERunnable runnable = new AERunnable() {
 			boolean firstTime = true;
+			float pct = 0.4f;
 
 			public void runSupport() {
 				if (control.isDisposed()) {
@@ -267,10 +269,11 @@ public class SWTSkinUtils
 					control.setData("Sliding", "1");
 				}
 
-				int newWidth = (int) (fd.width + (size.x - fd.width) * 0.4);
+				int newWidth = (int) (fd.width + (size.x - fd.width) * pct);
 				int h = fd.height >= 0 ? fd.height : control.getSize().y;
-				int newHeight = (int) (h + (size.y - h) * 0.4);
-				//System.out.println(control + "] newh=" + newHeight + " to " + size.y);
+				int newHeight = (int) (h + (size.y - h) * pct);
+				pct += 0.01;
+				System.out.println(control + "] newh=" + newHeight + " to " + size.y);
 
 				if (newWidth == fd.width && newHeight == h) {
 					fd.width = size.x;
@@ -286,15 +289,10 @@ public class SWTSkinUtils
 					fd.width = newWidth;
 					fd.height = newHeight;
 					control.setLayoutData(fd);
-					Utils.relayout(control);
+					//Utils.relayout(control, false);
+					control.getParent().layout();
 
-					final AERunnable r = this;
-					SimpleTimer.addEvent("slide", SystemTime.getCurrentTime() + 10,
-							new TimerEventPerformer() {
-								public void perform(TimerEvent event) {
-									control.getDisplay().asyncExec(r);
-								}
-							});
+					Utils.execSWTThreadLater(100, this);
 				}
 			}
 		};

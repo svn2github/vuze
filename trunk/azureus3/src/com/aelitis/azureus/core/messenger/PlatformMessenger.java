@@ -34,10 +34,9 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.browser.*;
+import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
-import com.aelitis.azureus.ui.swt.browser.listener.*;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageCompletionListener;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
@@ -87,14 +86,8 @@ public class PlatformMessenger
 		}
 		initialized = true;
 
+		// The UI will initialize this
 		context = new fakeContext();
-		context.addMessageListener(new TorrentListener());
-		context.addMessageListener(new DisplayListener(null));
-		context.addMessageListener(new ConfigListener(null));
-		context.addMessageListener(new LightBoxBrowserRequestListener());
-		context.addMessageListener(new StatusListener());
-		context.addMessageListener(new BrowserRpcBuddyListener());
-		context.addMessageListener(new MetaSearchListener());
 	}
 
 	public static void setAuthorizedTransferListener(
@@ -452,7 +445,10 @@ public class PlatformMessenger
 			// Todo check array [1] for reply type
 
 			if (replySections[1].equals("action")) {
-				if (actionResults instanceof Map) {
+				final BrowserMessageDispatcher dispatcher = context.getDispatcher();
+				if (dispatcher == null) {
+					debug("action requested.. no dispatcher");
+				} else if (actionResults instanceof Map) {
 					final boolean bRetry = MapUtils.getMapBoolean(actionResults,
 							"retry-client-message", false);
 
@@ -513,7 +509,7 @@ public class PlatformMessenger
 
 							new AEThread2("v3.Msg.Dispatch", true) {
 								public void run() {
-									context.getMessageDispatcher().dispatch(browserMsg);
+									dispatcher.dispatch(browserMsg);
 								}
 							}.start();
 						}
@@ -532,7 +528,10 @@ public class PlatformMessenger
 				}
 			}
 		}
-		context.getMessageDispatcher().resetSequence();
+		BrowserMessageDispatcher dispatcher = context.getDispatcher();
+		if (dispatcher != null) {
+			dispatcher.resetSequence();
+		}
 	}
 
 	private static byte[] downloadURL(PluginInterface pi, URL url, String postData)
@@ -595,7 +594,7 @@ public class PlatformMessenger
 		}
 
 		public fakeContext() {
-			super("fakeContext");
+			super("fakeContext", null);
 		}
 
 		public void deregisterBrowser() {
@@ -614,10 +613,6 @@ public class PlatformMessenger
 		public Object getBrowserData(String key) {
 			log("getBrowserData - " + key );
 			return null;
-		}
-
-		public void handleMessage(BrowserMessage message) {
-			log("handleMessage - " + message);
 		}
 
 		public boolean sendBrowserMessage(String key, String op) {

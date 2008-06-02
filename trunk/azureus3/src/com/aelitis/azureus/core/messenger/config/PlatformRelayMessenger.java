@@ -51,6 +51,9 @@ public class PlatformRelayMessenger
 	public static final long DEFAULT_RECHECKIN_MINS = 30;
 
 	private static final long ERROR_RECHECKIN_MINS = 90;
+	
+	private static final boolean TEST_ERRORACK = System.getProperty(
+			"relay.errack.test", "0").equals("1");
 
 	public static String OP_FETCH = "fetch";
 
@@ -200,7 +203,6 @@ public class PlatformRelayMessenger
 						PlatformMessenger.REPLY_EXCEPTION.equals(replyType)
 								? ERROR_RECHECKIN_MINS : DEFAULT_RECHECKIN_MINS);
 
-				PlatformMessenger.debug("Relay: rechecking in " + recheckInMins + "m");
 				resetTimerEvent(recheckInMins);
 
 				for (Iterator iter = list.iterator(); iter.hasNext();) {
@@ -236,7 +238,11 @@ public class PlatformRelayMessenger
 							l.newRelayServerPayLoad(buddy, pkSender, decodedMap, addedOn);
 						}
 
-						ack(ack_id, decrypt.getChallenge());
+						if (TEST_ERRORACK) {
+							errorAck(ack_id);
+						} else {
+							ack(ack_id, decrypt.getChallenge());
+						}
 
 					} catch (BuddyPluginPasswordException e) {
 

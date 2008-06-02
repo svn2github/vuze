@@ -21,9 +21,7 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.File;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.buddy.QueuedVuzeShare;
 import com.aelitis.azureus.util.MapUtils;
@@ -35,6 +33,8 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class VuzeQueuedShares
 {
+	private static final long EXPIREY_MS = 1000l * 60 * 60 * 24 * 30;
+
 	private static List shares = new ArrayList();
 
 	private static AEMonitor shares_mon = new AEMonitor("Qd Shares");
@@ -184,12 +184,16 @@ public class VuzeQueuedShares
 		try {
 			shares.clear();
 
+			long tooOld = SystemTime.getCurrentTime() - EXPIREY_MS;
+			
 			for (Iterator iter = storedBuddyList.iterator(); iter.hasNext();) {
 				Map mapBuddy = (Map) iter.next();
 
 				QueuedVuzeShare share = new QueuedVuzeShare(mapBuddy);
-
-				shares.add(share);
+				
+				if (share.getSharedOn() > tooOld) {
+					shares.add(share);
+				}
 			}
 		} finally {
 			shares_mon.exit();

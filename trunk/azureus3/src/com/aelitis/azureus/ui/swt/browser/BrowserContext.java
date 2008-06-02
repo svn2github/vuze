@@ -37,9 +37,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
+import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
+import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -54,10 +54,6 @@ public class BrowserContext
 	extends ClientMessageContextImpl
 	implements DisposeListener
 {
-	public static final String LISTENER_ID = "context";
-
-	public static final String OP_PAGE_CHANGED = "page-changed";
-
 	private static final String CONTEXT_KEY = "BrowserContext";
 
 	private static final String KEY_ENABLE_MENU = "browser.menu.enable";
@@ -75,6 +71,12 @@ public class BrowserContext
 	private TimerEventPeriodic checkURLEvent;
 
 	private boolean checkBlocked = true;
+
+	private Control widgetWaitIndicator;
+
+	private MessageDispatcherSWT messageDispatcherSWT;
+
+	protected boolean wiggleBrowser = org.gudy.azureus2.core3.util.Constants.isOSX;
 
 	/**
 	 * Creates a context and registers the given browser.
@@ -95,17 +97,30 @@ public class BrowserContext
 	 * @param id unique identifier of this context
 	 */
 	public BrowserContext(String id, boolean forceVisibleAfterLoad) {
-		super(id);
+		super(id, null);
+		messageDispatcherSWT = new MessageDispatcherSWT(this);
+		setMessageDispatcher(messageDispatcherSWT);
 		this.forceVisibleAfterLoad = forceVisibleAfterLoad;
 	}
 
-	public void registerBrowser(final Browser browser,
-			final Control widgetWaitIndicator) {
+	public void registerBrowser(Object oBrowser,
+			Object oWidgetWaitIndicator) {
 		if (this.browser != null) {
 			throw new IllegalStateException("Context " + getID()
 					+ " already has a registered browser");
 		}
 
+		if (oBrowser instanceof Browser) {
+			this.browser = (Browser) oBrowser;
+		} else {
+			throw new IllegalStateException("Context " + getID()
+					+ ": brwoser isn't a Browser");
+		}
+
+		if (oWidgetWaitIndicator instanceof Control) {
+			this.widgetWaitIndicator = (Control) oWidgetWaitIndicator;
+		}
+		
 		final TimerEventPerformer showBrowersPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (browser != null && !browser.isDisposed()) {
@@ -216,7 +231,7 @@ public class BrowserContext
 					}
 				}
 
-				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
+				if (wiggleBrowser ) {
 					Shell shell = browser.getShell();
 					Point size = shell.getSize();
 					size.x -= 1;
@@ -383,8 +398,7 @@ public class BrowserContext
 		});
 
 		// check if blocked only if we aren't already blocking
-		getMessageDispatcher().registerBrowser(browser, !checkBlocked);
-		this.browser = browser;
+		messageDispatcherSWT.registerBrowser(browser, !checkBlocked);
 		this.display = browser.getDisplay();
 	}
 
@@ -407,7 +421,7 @@ public class BrowserContext
 
 		browser.setData(CONTEXT_KEY, null);
 		browser.removeDisposeListener(this);
-		getMessageDispatcher().deregisterBrowser(browser);
+		messageDispatcherSWT.deregisterBrowser(browser);
 		browser = null;
 
 		if (checkURLEvent != null && !checkURLEvent.isCancelled()) {
@@ -433,8 +447,8 @@ public class BrowserContext
 		return (BrowserContext) data;
 	}
 
-	public void addMessageListener(MessageListener listener) {
-		getMessageDispatcher().addListener(listener);
+	public void addMessageListener(BrowserMessageListener listener) {
+		messageDispatcherSWT.addListener(listener);
 	}
 
 	public Object getBrowserData(String key) {
@@ -512,25 +526,6 @@ public class BrowserContext
 		return !pageLoading;
 	}
 
-	public void handleMessage(BrowserMessage message) {
-		String operationId = message.getOperationId();
-		if (OP_PAGE_CHANGED.equals(operationId)) {
-			pageChanged(message);
-		} else {
-			throw new IllegalArgumentException("Unknown operation: " + operationId);
-		}
-	}
-
-	/**
-	 * Resets the internal page identifier when a page loads or the URL changes.
-	 * 
-	 * @param message contains information about the new page
-	 */
-	private void pageChanged(BrowserMessage message) {
-		// TODO determine the page identifier
-		debug("Page changed");
-	}
-
 	public void widgetDisposed(DisposeEvent event) {
 		if (event.widget == browser) {
 			deregisterBrowser();
@@ -554,5 +549,9 @@ public class BrowserContext
 
 	public void setCheckBlocked(boolean checkBlocked) {
 		this.checkBlocked = checkBlocked;
+	}
+
+	public void setWiggleBrowser(boolean wiggleBrowser) {
+		this.wiggleBrowser = wiggleBrowser;
 	}
 }

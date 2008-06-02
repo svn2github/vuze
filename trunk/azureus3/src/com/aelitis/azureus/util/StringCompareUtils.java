@@ -1,5 +1,5 @@
 /**
- * Created on Jun 2, 2008
+ * Created on Jun 1, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -15,22 +15,22 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
-
-package com.aelitis.azureus.ui.swt.browser.msg;
-
-import org.eclipse.swt.browser.Browser;
-
-import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
+ 
+package com.aelitis.azureus.util;
 
 /**
- * DO NOT USE. LEGACY. REMOVE AFTER 3100
+ * @author TuxPaper
+ * @created Jun 1, 2008
+ *
  */
-public abstract class MessageDispatcher
-	implements BrowserMessageDispatcher
+public class StringCompareUtils
 {
-	public abstract void registerBrowser(Browser browser);
-
-	public abstract void deregisterBrowser(Browser browser);
-	
-	public abstract void addListener ( MessageListener listener );
+	public static boolean equals(String s0, String s1) {
+		boolean s0Null = s0 == null;
+		boolean s1Null = s1 == null;
+		if (s0Null || s1Null) {
+			return  s0Null == s1Null;
+		}
+		return s0.equals(s1);
+	}
 }

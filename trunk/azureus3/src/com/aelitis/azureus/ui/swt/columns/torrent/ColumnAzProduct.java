@@ -15,6 +15,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -65,12 +66,7 @@ public class ColumnAzProduct
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		if (dm == null) {
-			return;
-		}
-		TOTorrent torrent = dm.getTorrent();
-		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
+		boolean isContent = DataSourceUtils.isPlatformContent(cell.getDataSource());
 
 		long sortVal = (isContent) ? 1 : 0;
 

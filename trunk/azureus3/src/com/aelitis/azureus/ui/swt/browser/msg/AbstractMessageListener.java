@@ -20,86 +20,43 @@
 package com.aelitis.azureus.ui.swt.browser.msg;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 
 /**
- * Accepts and handles messages dispatched from {@link MessageDispatcher}.
- * Subclasses should use the message's operation ID and parameters to perform
- * the requested operation.
- * 
- * @author dharkness
- * @created Jul 18, 2006
+ * DO NOT USE. REMOVE after 3100
  */
-public abstract class AbstractMessageListener implements MessageListener
+public abstract class AbstractMessageListener
+	implements MessageListener
 {
-    protected ClientMessageContext context = null;
-    
-    private String id;
+	protected ClientMessageContext context = null;
 
+	private String id;
 
-    /**
-     * Stores the given context for accessing the browser and its services.
-     * 
-     * @param context used to access the browser
-     */
-    public AbstractMessageListener ( String id ) {
-        this.id = id;
-    }
+	public AbstractMessageListener(String id) {
+		this.id = id;
+	}
 
+	public String getId() {
+		return id;
+	}
 
-    /**
-     * Returns the unique ID for this listener.
-     * 
-     * @return listener's unique ID
-     */
-    public String getId ( ) {
-        return id;
-    }
+	public ClientMessageContext getContext() {
+		return context;
+	}
 
-    /**
-     * Returns the context for this listener.
-     * 
-     * @return listener's context
-     */
-    public ClientMessageContext getContext ( ) {
-        return context;
-    }
+	public void setContext(ClientMessageContext context) {
+		if (this.context == null) {
+			this.context = context;
+		}
+	}
 
-    /**
-     * Sets the context for this listener. Called by its dispatcher when attached.
-     * 
-     * @param context the new context for this listener
-     */
-    public void setContext ( ClientMessageContext context ) {
-        if ( this.context == null ) {
-            this.context = context;
-        }
-    }
+	public abstract void handleMessage(BrowserMessage message);
 
-    /**
-     * Handles the given message, usually by parsing the parameters 
-     * and calling the appropriate operation.
-     * 
-     * @param message holds all message information
-     */
-    public abstract void handleMessage ( BrowserMessage message ) ;
+	protected void debug(String message) {
+		context.debug("[" + id + "] " + message);
+	}
 
-
-    /**
-     * Displays a debug message tagged with the listener ID.
-     * 
-     * @param message sent to the debug log
-     */
-    protected void debug ( String message ) {
-        context.debug("[" + id + "] " + message);
-    }
-
-    /**
-     * Displays a debug message and exception tagged with the listener ID.
-     * 
-     * @param message sent to the debug log
-     * @param t exception to log with message
-     */
-    public void debug ( String message , Throwable t ) {
-        context.debug("[" + id + "] " + message, t);
-    }
+	public void debug(String message, Throwable t) {
+		context.debug("[" + id + "] " + message, t);
+	}
 }

@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -54,6 +53,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.*;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -80,7 +80,7 @@ public class ColumnVuzeActivity
 	private static Font headerFont = null;
 
 	private static Font vuzeNewsFont = null;
-	
+
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
 			"h:mm:ss a, EEEE, MMMM d, yyyy");
 
@@ -91,7 +91,7 @@ public class ColumnVuzeActivity
 	private Color colorHeaderBG;
 
 	private Color colorHeaderFG;
-	
+
 	private Color colorNewsFG;
 
 	private Color colorNewsBG;
@@ -112,7 +112,7 @@ public class ColumnVuzeActivity
 		colorHeaderFG = skinProperties.getColor("color.activity.row.header.fg");
 		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
-		
+
 		//imgDelete = ImageRepository.getImage("progress_remove"); 
 	}
 
@@ -155,7 +155,7 @@ public class ColumnVuzeActivity
 			cell.setSortValue(entry.getTimestamp());
 			return;
 		}
-		
+
 		boolean canShowThumb = canShowThumb(entry);
 
 		Image image = null;
@@ -200,8 +200,9 @@ public class ColumnVuzeActivity
 		int x = isHeader ? 0 : EVENT_INDENT;
 		int y = 0;
 
-		boolean isVuzeNewsEntry = !isHeader && VuzeActivitiesConstants.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
-		
+		boolean isVuzeNewsEntry = !isHeader
+				&& VuzeActivitiesConstants.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
+
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
 		GCStringPrinter stringPrinter;
@@ -235,8 +236,8 @@ public class ColumnVuzeActivity
 				gcQuery.setFont(vuzeNewsFont);
 			}
 			Rectangle potentialArea = new Rectangle(x, 2, width - x - 4, 10000);
-			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), potentialArea,
-					0, SWT.WRAP | SWT.TOP);
+			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(),
+					potentialArea, 0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
 			Point size = stringPrinter.getCalculatedSize();
 			//System.out.println(size + ";" + entry.text);
@@ -317,16 +318,16 @@ public class ColumnVuzeActivity
 				if (isVuzeNewsEntry) {
 					if (colorNewsBG != null) {
 						gc.setBackground(colorNewsBG);
-	  				ListRow row = (ListRow) cell.getTableRow();
-	  				row.setBackgroundColor(colorNewsBG);
+						ListRow row = (ListRow) cell.getTableRow();
+						row.setBackgroundColor(colorNewsBG);
 					}
 					if (colorNewsFG != null) {
 						gc.setForeground(colorNewsFG);
 					}
 					gc.setFont(vuzeNewsFont);
 				} else {
-  				TableRow row = cell.getTableRow();
-  				gc.setBackground(((ListRow) row).getBackground());
+					TableRow row = cell.getTableRow();
+					gc.setBackground(((ListRow) row).getBackground());
 				}
 
 				gc.fillRectangle(imgBounds);
@@ -363,8 +364,7 @@ public class ColumnVuzeActivity
 				invalidateAndRefresh(thumbCell);
 
 				if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
-					if (canShowThumb
-							&& PlatformTorrentUtils.isContent(entry.getDownloadManger().getTorrent(), true)) {
+					if (canShowThumb && DataSourceUtils.isPlatformContent(ds)) {
 						Rectangle dmRatingRect = getDMRatingRect(width, height);
 						if (ratingCell == null) {
 							ListCell listCell = new ListCellGraphic(
@@ -386,9 +386,9 @@ public class ColumnVuzeActivity
 					}
 				}
 			}
-			
-			
-			if (!isHeader && ((TableCellCore)cell).isMouseOver() && imgDelete != null) {
+
+			if (!isHeader && ((TableCellCore) cell).isMouseOver()
+					&& imgDelete != null) {
 				gc.setAlpha(50);
 				gc.drawImage(imgDelete, width - imgDelete.getBounds().width - 5, 2);
 			}
@@ -433,10 +433,23 @@ public class ColumnVuzeActivity
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void dispose(TableCell cell) {
 		disposeExisting(cell, null);
-		TableCellImpl thumbCell = getThumbCell(cell);
-		if (thumbCell != null) {
-			thumbCell.dispose();
-			setThumbCell(cell, null);
+		try {
+			TableCellImpl thumbCell = getThumbCell(cell);
+			if (thumbCell != null) {
+				thumbCell.dispose();
+				setThumbCell(cell, null);
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		try {
+			TableCellImpl ratingCell = getRatingCell(cell);
+			if (ratingCell != null) {
+				ratingCell.dispose();
+				setRatingCell(cell, null);
+			}
+		} catch (Exception e) {
+			Debug.out(e);
 		}
 	}
 
@@ -463,7 +476,7 @@ public class ColumnVuzeActivity
 			TableRowCore tableRowCore = (TableRowCore) tableRow;
 			Object data = tableRowCore.getData("IsMouseOver" + id + "Cell");
 			if (data instanceof Boolean) {
-				return ((Boolean)data).booleanValue();
+				return ((Boolean) data).booleanValue();
 			}
 		}
 		return false;
@@ -494,7 +507,7 @@ public class ColumnVuzeActivity
 		}
 		return null;
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
 		TableCellImpl thumbCell = getThumbCell(cell);
@@ -507,7 +520,7 @@ public class ColumnVuzeActivity
 			}
 		}
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHoverComplete(TableCell cell) {
 		TableCellImpl thumbCell = getThumbCell(cell);
@@ -524,7 +537,7 @@ public class ColumnVuzeActivity
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		String tooltip = null;
-		
+
 		TableCellImpl thumbCell = getThumbCell(event.cell);
 		TableCellImpl ratingCell = getRatingCell(event.cell);
 		if (thumbCell != null || ratingCell != null) {
@@ -679,7 +692,9 @@ public class ColumnVuzeActivity
 		}
 
 		event.cell.setToolTip(tooltip);
-		invalidateAndRefresh(event.cell);
+		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEMOVE) {
+			invalidateAndRefresh(event.cell);
+		}
 	}
 
 	private void invalidateAndRefresh(TableCell cell) {
@@ -689,7 +704,6 @@ public class ColumnVuzeActivity
 			cellCore.refreshAsync();
 		}
 	}
-
 
 	private Rectangle getDMImageRect(int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);

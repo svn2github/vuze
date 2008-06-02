@@ -21,10 +21,10 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.*;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -34,7 +34,7 @@ import com.aelitis.azureus.util.MapUtils;
  *
  */
 public class BrowserRpcBuddyListener
-extends AbstractMessageListener
+extends AbstractBrowserMessageListener
 {
 	private static final String DEFAULT_LISTENER_ID = "buddy";
 

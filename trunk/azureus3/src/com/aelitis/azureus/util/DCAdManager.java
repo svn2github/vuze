@@ -6,7 +6,6 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
-import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import java.util.*;
 import java.io.File;
@@ -639,7 +638,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		StringBuffer repBuffer = new StringBuffer(origPlaylist);
 
 
-		String contentPath = TorrentListViewsUtils.getContentUrl(dmContent);
+		String contentPath = PlayUtils.getContentUrl(dmContent);
 
 		debug("  contentPath: "+contentPath);
 		replace(repBuffer,"<##-CONTENT-PATH-##>",contentPath);

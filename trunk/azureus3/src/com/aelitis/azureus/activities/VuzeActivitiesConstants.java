@@ -21,6 +21,8 @@ package com.aelitis.azureus.activities;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+
 /**
  * @author TuxPaper
  * @created May 28, 2008
@@ -47,7 +49,7 @@ public class VuzeActivitiesConstants
 	public static final String TYPEID_BUDDYSHARE = "buddy-share";
 
 	public static final String TYPEID_CHANNEL_ANNOUNCE = "CHANNEL_ANNOUNCE";
-	
+
 	public static final String TYPEID_CONTENT_PROMO = "CONTENT_PROMO";
 
 	public static final int SORT_DATE = 0;
@@ -57,11 +59,23 @@ public class VuzeActivitiesConstants
 	public static final Map SORT_TYPE_ORDER = new HashMap();
 
 	public static int sortBy = SORT_DATE;
-	
+
 	public static VuzeActivitiesEntry[] HEADERS_SORTBY_TYPE;
 
 	static {
 		int pos = 0;
+		SORT_TYPE_ORDER.put(TYPEID_BUDDYREQUEST, new Long(pos));
+		SORT_TYPE_ORDER.put(TYPEID_BUDDYLINKUP, new Long(pos));
+		pos++;
+
+		SORT_TYPE_ORDER.put(TYPEID_BUDDYSHARE, new Long(pos));
+		pos++;
+
+		SORT_TYPE_ORDER.put(TYPEID_DL_ADDED, new Long(pos));
+		SORT_TYPE_ORDER.put(TYPEID_DL_COMPLETE, new Long(pos));
+		SORT_TYPE_ORDER.put(TYPEID_DL_REMOVE, new Long(pos));
+		pos++;
+
 		SORT_TYPE_ORDER.put(TYPEID_RATING_REMINDER, new Long(pos));
 		pos++;
 
@@ -70,21 +84,23 @@ public class VuzeActivitiesConstants
 		SORT_TYPE_ORDER.put(TYPEID_CONTENT_PROMO, new Long(pos));
 		pos++;
 
-		SORT_TYPE_ORDER.put(TYPEID_DL_ADDED, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_DL_COMPLETE, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_DL_REMOVE, new Long(pos));
-		pos++;
-
-		SORT_TYPE_ORDER.put(TYPEID_BUDDYLINKUP, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_BUDDYREQUEST, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_BUDDYSHARE, new Long(pos));
-		
 		HEADERS_SORTBY_TYPE = new VuzeActivitiesEntry[] {
-			new VuzeActivitiesEntry(0, "Rating Reminders", null, TYPEID_RATING_REMINDER, TYPEID_HEADER, null),
-			new VuzeActivitiesEntry(0, "Vuze News", null, TYPEID_VUZENEWS, TYPEID_HEADER, null),
-			new VuzeActivitiesEntry(0, "Download Info", null, TYPEID_DL_ADDED, TYPEID_HEADER, null),
-			new VuzeActivitiesEntry(0, "Buddy Stuff", null, TYPEID_BUDDYLINKUP, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.friend.requests"), null,
+					TYPEID_BUDDYREQUEST, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.share.requests"), null,
+					TYPEID_BUDDYSHARE, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.downloads"), null,
+					TYPEID_DL_ADDED, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.rating.reminders"), null,
+					TYPEID_RATING_REMINDER, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.vuze.news"), null,
+					TYPEID_VUZENEWS, TYPEID_HEADER, null),
 		};
-		
+
 	}
 }

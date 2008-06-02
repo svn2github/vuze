@@ -70,6 +70,10 @@ public class PlatformTorrentMessenger
 
 		for (int i = 0; i < torrents.length; i++) {
 			TOTorrent torrent = torrents[i];
+			if (!PlatformTorrentUtils.isContent(torrent, true)) {
+				continue;
+			}
+
 			String hash = null;
 			try {
 				hash = torrent.getHashWrapper().toBase32String();

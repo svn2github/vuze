@@ -18,7 +18,7 @@
  *
  */
 
-package com.aelitis.azureus.ui.swt.browser.msg;
+package com.aelitis.azureus.core.messenger.browser.listeners;
 
 /**
  * @author TuxPaper

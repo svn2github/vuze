@@ -20,17 +20,17 @@
 
 package com.aelitis.azureus.core.messenger;
 
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.widgets.Control;
+import java.lang.reflect.Constructor;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
+import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageListener;
-import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
-import com.aelitis.azureus.ui.swt.browser.txn.TransactionManager;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -43,21 +43,54 @@ public abstract class ClientMessageContextImpl
 {
 	private String id;
 
-	private MessageDispatcher dispatcher;
+	private BrowserMessageDispatcher dispatcher;
 
-	private TransactionManager txnManager;
+	private BrowserTransactionManager txnManager;
 
+	public ClientMessageContextImpl(String id, BrowserMessageDispatcher dispatcher) {
+		this.id = id;
+		this.dispatcher = dispatcher;
+		this.txnManager = new BrowserTransactionManager(this);
+	}
+
+	/**
+	 * Legacy Support for old EMP
+	 * 
+	 * @param id
+	 */
 	public ClientMessageContextImpl(String id) {
 		this.id = id;
-		this.dispatcher = new MessageDispatcher(this);
-		this.txnManager = new TransactionManager(this);
+		this.txnManager = new BrowserTransactionManager(this);
+
+		try {
+			Class c;
+			
+			c = Class.forName("com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT");
+
+			final Constructor constructor = c.getConstructor(new Class[] {
+				ClientMessageContext.class,
+			});
+			
+			if (constructor != null) {
+				dispatcher = (BrowserMessageDispatcher) constructor.newInstance(new Object[] {
+					this
+				});
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void addMessageListener(MessageListener listener) {
-		dispatcher.addListener(listener);
+	public void addMessageListener(BrowserMessageListener listener) {
+		if (dispatcher != null) {
+			dispatcher.addListener(listener);
+		} else {
+			debug("No dispatcher when trying to add MessageListener "
+					+ listener.getId() + ";" + Debug.getCompressedStackTrace());
+		}
 	}
 
-	public Transaction cancelTransaction(String type) {
+	public BrowserTransaction cancelTransaction(String type) {
 		return txnManager.cancelTransaction(type);
 	}
 
@@ -79,11 +112,11 @@ public abstract class ClientMessageContextImpl
 		}
 	}
 
-	public Transaction getTransaction(String type) {
+	public BrowserTransaction getTransaction(String type) {
 		return txnManager.getTransaction(type);
 	}
 
-	public TransactionManager getTransactionManager() {
+	public BrowserTransactionManager getTransactionManager() {
 		return txnManager;
 	}
 
@@ -92,18 +125,28 @@ public abstract class ClientMessageContextImpl
 	}
 
 	public void removeMessageListener(String listenerId) {
-		dispatcher.removeListener(listenerId);
+		if (dispatcher != null) {
+			dispatcher.removeListener(listenerId);
+		} else {
+			debug("No dispatcher when trying to remove MessageListener "
+					+ listenerId + ";" + Debug.getCompressedStackTrace());
+		}
 	}
 
-	public void removeMessageListener(MessageListener listener) {
-		dispatcher.removeListener(listener);
+	public void removeMessageListener(BrowserMessageListener listener) {
+		if (dispatcher != null) {
+			dispatcher.removeListener(listener);
+		} else {
+			debug("No dispatcher when trying to remove MessageListener "
+					+ listener.getId() + ";" + Debug.getCompressedStackTrace());
+		}
 	}
 
-	public Transaction startTransaction(String type) {
+	public BrowserTransaction startTransaction(String type) {
 		return txnManager.startTransaction(type);
 	}
 
-	public MessageDispatcher getMessageDispatcher() {
+	public BrowserMessageDispatcher getDispatcher() {
 		return dispatcher;
 	}
 
@@ -111,9 +154,14 @@ public abstract class ClientMessageContextImpl
 		return id;
 	}
 
-	public void registerBrowser(Browser browser, Control widgetWaitingIndicator) {
+	public void registerBrowser(Object browser, Object widgetWaitingIndicator) {
 	}
 
-	public void widgetDisposed(DisposeEvent event) {
+	public void setMessageDispatcher(BrowserMessageDispatcher dispatcher) {
+		this.dispatcher = dispatcher;
+	}
+	
+	public MessageDispatcher getMessageDispatcher() {
+		return (MessageDispatcher) dispatcher;
 	}
 }

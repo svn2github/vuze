@@ -41,12 +41,12 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
 import com.aelitis.azureus.ui.swt.utils.ImageResizeException;
 import com.aelitis.azureus.ui.swt.utils.ImageResizer;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.PublishUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -59,14 +59,12 @@ import org.gudy.azureus2.plugins.torrent.*;
  * @author dharkness
  * @created Jul 20, 2006
  */
-public class PublishTransaction extends Transaction
+public class PublishTransaction extends BrowserTransaction
 {
 	
 	
 	private static final String ELEMENTS = "elements";
 
-	public static final String PUBLISH_ATTRIBUTE_KEY = "DIRECTOR PUBLISH";  //TODO this should really be placed in DirectorPlugin.java
-	
 	private static final int   DEFAULT_IMAGE_BOX_SIZE = 320;
 	private static final float DEFAULT_JPEG_QUALITY = 0.85f;
 	

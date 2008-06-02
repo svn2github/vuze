@@ -21,9 +21,9 @@ package com.aelitis.azureus.ui.swt.browser.listener.publish;
 
 import org.eclipse.swt.widgets.Shell;
 
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
-import com.aelitis.azureus.ui.swt.browser.txn.AbstractTransactionalListener;
-import com.aelitis.azureus.ui.swt.browser.txn.Transaction;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractTransactionalListener;
 
 /**
  * Handles messages from the PublishNewContent page.
@@ -77,7 +77,7 @@ public class PublishListener extends AbstractTransactionalListener
      * 
      * @param message holds all message information
      */
-    public void handleTxnlMessage ( BrowserMessage message , Transaction txn ) {
+    public void handleTxnlMessage ( BrowserMessage message , BrowserTransaction txn ) {
         PublishTransaction realTxn = (PublishTransaction) txn;
         
         realTxn.setShell(shell);

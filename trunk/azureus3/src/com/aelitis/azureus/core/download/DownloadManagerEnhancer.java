@@ -319,7 +319,7 @@ DownloadManagerEnhancer
 		}
 	}
 	
-	protected boolean
+	public boolean
 	isProgressiveAvailable()
 	{
 		if ( progressive_enabled ){

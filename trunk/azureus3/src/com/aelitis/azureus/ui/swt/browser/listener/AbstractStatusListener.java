@@ -3,12 +3,12 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class AbstractStatusListener
-	extends AbstractMessageListener
+	extends AbstractBrowserMessageListener
 	implements IStatusMessageListener
 {
 	protected Map decodedMap = new HashMap(0);

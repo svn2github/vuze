@@ -44,7 +44,7 @@ public class Constants
 
 	public static final String DEFAULT_PORT = "80";
 
-	public static final String DEFAULT_RELAY_ADDRESS = "relay.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
+	public static final String DEFAULT_RELAY_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
 
 	public static final String DEFAULT_RELAY_PORT = "80";
 
@@ -100,7 +100,7 @@ public class Constants
 
 	public static String URL_RELAY_RPC = System.getProperty("relay_url",
 			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
-					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/app");
+					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/msgrelay");
 
 	public static final String URL_AUTHORIZED_RPC = System.getProperty(
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX

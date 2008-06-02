@@ -29,10 +29,10 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.browser.msg.AbstractMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -42,7 +42,7 @@ import com.aelitis.net.magneturi.MagnetURIHandler;
  *
  */
 public class ConfigListener
-	extends AbstractMessageListener
+	extends AbstractBrowserMessageListener
 {
 	public static final String DEFAULT_LISTENER_ID = "config";
 

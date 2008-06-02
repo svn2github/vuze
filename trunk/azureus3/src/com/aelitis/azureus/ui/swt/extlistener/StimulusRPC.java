@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -35,7 +37,6 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTab;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
@@ -101,8 +102,13 @@ public class StimulusRPC
 
 							// this is actually sync.. so we could add a completion listener
 							// and return the boolean result if we wanted/needed
-							context.getMessageDispatcher().dispatch(browserMsg);
-							context.getMessageDispatcher().resetSequence();
+							BrowserMessageDispatcher dispatcher = context.getDispatcher();
+							if (dispatcher != null) {
+								dispatcher.dispatch(browserMsg);
+								dispatcher.resetSequence();
+							} else {
+								context.debug("No dispatcher for StimulusRPC" + opId);
+							}
 														
 							return true;
 						}
@@ -124,7 +130,7 @@ public class StimulusRPC
 
 							TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
 									decodedMap, "referer", null), playNow, playPrepare,
-									bringToFront);
+									bringToFront, false);
 
 							return true;
 						}
@@ -174,8 +180,11 @@ public class StimulusRPC
 					}
 											
 					if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
-							
-						context.getMessageDispatcher().dispatch(browserMsg);
+
+						BrowserMessageDispatcher dispatcher = context.getDispatcher();
+						if (dispatcher != null) {
+							dispatcher.dispatch(browserMsg);
+						}
 					}else{
 							
 						System.err.println( "Unhandled external stimulus: " + browserMsg );

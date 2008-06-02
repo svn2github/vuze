@@ -23,17 +23,16 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -41,13 +40,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
@@ -62,29 +54,28 @@ import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DCAdManager;
 import com.aelitis.azureus.util.win32.Win32Utils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -112,8 +103,7 @@ public class TorrentListViewsUtils
 					/*
 					 * KN: we're only supporting sharing a single content right now
 					 */
-					VuzeShareUtils.getInstance().shareTorrent(contents[0],
-							PREFIX + "-btn");
+					VuzeShareUtils.getInstance().shareTorrent(contents[0], PREFIX + "btn");
 				}
 			}
 		});
@@ -138,7 +128,7 @@ public class TorrentListViewsUtils
 					 * KN: we're only supporting sharing a single content right now
 					 */
 					VuzeShareUtils.getInstance().shareTorrent(contents[0],
-							PREFIX + "-btn");
+							PREFIX + "tag-btn");
 				}
 			}
 		});
@@ -219,59 +209,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static void viewDetails(TableRowCore row, String ref) {
-		viewDetails(getAssetHashFromDS(row.getDataSource(true)), ref);
-	}
-
-	private static String getAssetHashFromDS(Object ds) {
-		try {
-			if (ds instanceof DownloadManager) {
-				return ((DownloadManager) ds).getTorrent().getHashWrapper().toBase32String();
-			} else if (ds instanceof VuzeActivitiesEntry) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				return entry.getAssetHash();
-			}
-		} catch (Exception e) {
-			Debug.printStackTrace(e);
-		}
-		return null;
-	}
-
-	public static DownloadManager getDMFromDS(Object ds) {
-		try {
-			if (ds instanceof DownloadManager) {
-				return (DownloadManager) ds;
-			} else if (ds instanceof VuzeActivitiesEntry) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				DownloadManager dm = entry.getDownloadManger();
-				if (dm == null) {
-					String assetHash = entry.getAssetHash();
-					if (assetHash != null) {
-						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-						dm = gm.getDownloadManager(new HashWrapper(Base32.decode(assetHash)));
-					}
-				}
-				return dm;
-			}
-		} catch (Exception e) {
-			Debug.printStackTrace(e);
-		}
-		return null;
-	}
-
-	public static TOTorrent getTorrentFromDS(Object ds) {
-		TOTorrent torrent = null;
-		if (ds instanceof DownloadManager) {
-			torrent = ((DownloadManager) ds).getTorrent();
-		} else if (ds instanceof VuzeActivitiesEntry) {
-			torrent = ((VuzeActivitiesEntry) ds).getTorrent();
-			if (torrent == null) {
-				DownloadManager dm = ((VuzeActivitiesEntry) ds).getDownloadManger();
-				if (dm != null) {
-					torrent = dm.getTorrent();
-				}
-			}
-		}
-		return torrent;
+		viewDetails(DataSourceUtils.getHash(row.getDataSource(true)), ref);
 	}
 
 	public static void viewDetails(DownloadManager dm, String ref) {
@@ -317,7 +255,7 @@ public class TorrentListViewsUtils
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
-					String hash = getAssetHashFromDS(selectedRows[0].getDataSource(true));
+					String hash = DataSourceUtils.getHash(selectedRows[0].getDataSource(true));
 
 					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS + hash
 							+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
@@ -389,7 +327,8 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				TableRowCore rowWithCursor = ENABLE_ON_HOVER ? view.getTableRowWithCursor() : null;
+				TableRowCore rowWithCursor = ENABLE_ON_HOVER
+						? view.getTableRowWithCursor() : null;
 
 				boolean bDisabled = rowWithCursor == null
 						? view.getSelectedRowsSize() != 1 : false;
@@ -399,12 +338,8 @@ public class TorrentListViewsUtils
 								rowWithCursor
 							};
 					Object ds = rows[0].getDataSource(true);
-					DownloadManager dm = getDMFromDS(ds);
-					if (dm == null) {
-						bDisabled = getAssetHashFromDS(ds) == null;
-					} else {
-						bDisabled = !canPlay(dm);
-					}
+					bDisabled = !PlayUtils.canPlayDS(ds);
+
 				}
 				btn.setDisabled(bDisabled);
 			}
@@ -438,7 +373,7 @@ public class TorrentListViewsUtils
 
 		debugDCAD("enter - playOrStreamDataSource");
 
-		DownloadManager dm = getDMFromDS(ds);
+		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			downloadDataSource(ds, true, referal);
 		} else {
@@ -451,18 +386,18 @@ public class TorrentListViewsUtils
 
 	public static void downloadDataSource(Object ds, boolean playNow,
 			String referal) {
-		TOTorrent torrent = getTorrentFromDS(ds);
+		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
 		// we want to re-download the torrent if it's ours, since the existing
 		// one is likely stale
-		if (torrent != null && !PlatformTorrentUtils.isContent(torrent, true)) {
+		if (torrent != null && !DataSourceUtils.isPlatformContent(ds)) {
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
 		} else {
-			String hash = getAssetHashFromDS(ds);
+			String hash = DataSourceUtils.getHash(ds);
 			if (hash != null) {
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
-				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true);
+				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true, true);
 			}
 		}
 	}
@@ -506,7 +441,7 @@ public class TorrentListViewsUtils
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				for (int i = 0; i < selectedRows.length; i++) {
 
-					DownloadManager dm = getDMFromDS(selectedRows[i].getDataSource(true));
+					DownloadManager dm = DataSourceUtils.getDM(selectedRows[i].getDataSource(true));
 					if (dm != null) {
 						TorrentListViewsUtils.removeDownload(dm, view, true, true);
 					}
@@ -515,73 +450,6 @@ public class TorrentListViewsUtils
 		});
 
 		return btn;
-	}
-
-	public static boolean canPlay(DownloadManager dm) {
-		if (dm == null) {
-			return false;
-		}
-		TOTorrent torrent = dm.getTorrent();
-		if (!PlatformTorrentUtils.isContent(torrent, false)) {
-			return false;
-		}
-
-		return dm.getAssumedComplete() || canUseEMP(torrent);
-	}
-
-	public static boolean canUseEMP(TOTorrent torrent) {
-		if (!PlatformTorrentUtils.useEMP(torrent)
-				|| !PlatformTorrentUtils.embeddedPlayerAvail()) {
-			return false;
-		}
-
-		return canProgressiveOrIsComplete(torrent);
-	}
-
-	private static boolean canProgressiveOrIsComplete(TOTorrent torrent) {
-		if (torrent == null) {
-			return false;
-		}
-		try {
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
-					torrent.getHash());
-
-			if (edm == null) {
-				return false;
-			}
-
-			boolean complete = edm.getDownloadManager().isDownloadComplete(false);
-			if (complete) {
-				return true;
-			}
-
-			// not complete
-			if (!edm.supportsProgressiveMode()) {
-				return false;
-			}
-		} catch (TOTorrentException e) {
-			return false;
-		}
-
-		return true;
-	}
-
-	public static boolean prepareForPlay(DownloadManager dm) {
-		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
-				dm);
-
-		if (edm != null) {
-
-			edm.setProgressiveMode(true);
-
-			return (true);
-		}
-
-		return (false);
-	}
-
-	public static boolean playOrStream(final DownloadManager dm) {
-		return playOrStream(dm, null);
 	}
 
 	public static boolean playOrStream(final DownloadManager dm,
@@ -598,7 +466,7 @@ public class TorrentListViewsUtils
 		//		}
 
 		TOTorrent torrent = dm.getTorrent();
-		if (canUseEMP(torrent)) {
+		if (PlayUtils.canUseEMP(torrent)) {
 			debug("Can use EMP");
 
 			if (openInEMP(dm)) {
@@ -618,7 +486,7 @@ public class TorrentListViewsUtils
 
 		boolean reenableButton = false;
 		try {
-			if (!canProgressiveOrIsComplete(torrent)) {
+			if (!PlayUtils.canProgressiveOrIsComplete(torrent)) {
 				return false;
 			}
 
@@ -759,7 +627,7 @@ public class TorrentListViewsUtils
 					public void runSupport() {
 						debugDCAD("enter - runFile - runSupport");
 
-						if (canUseEMP(torrent)) {
+						if (PlayUtils.canUseEMP(torrent)) {
 							Debug.out("Shouldn't call runFile with EMP torrent.");
 						}
 
@@ -975,59 +843,6 @@ public class TorrentListViewsUtils
 		return Arrays.binarySearch(badExts, ext) >= 0;
 	}
 
-	public static String getMediaServerContentURL(DownloadManager dm) {
-		try {
-			return getMediaServerContentURL(DownloadManagerImpl.getDownloadStatic(dm));
-		} catch (DownloadException e) {
-		}
-		return null;
-	}
-
-	/**
-	 * @param dl
-	 *
-	 * @since 3.0.2.3
-	 */
-	private static String getMediaServerContentURL(Download dl) {
-
-		debugDCAD("enter - getMediaServerContentURL");
-
-		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav");
-
-		if (pi == null) {
-			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
-			return null;
-		}
-
-		if (!pi.isOperational()) {
-			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not operational"));
-			return null;
-		}
-
-		try {
-			Program program = Program.findProgram(".qtl");
-			boolean hasQuickTime = program == null ? false
-					: (program.getName().toLowerCase().indexOf("quicktime") != -1);
-
-			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
-				new Boolean(hasQuickTime)
-			});
-
-			Object url = pi.getIPC().invoke("getContentURL", new Object[] {
-				dl
-			});
-			if (url instanceof String) {
-				return (String) url;
-			}
-		} catch (Throwable e) {
-			Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
-					"IPC to media server plugin failed", e));
-		}
-
-		return null;
-	}
-
 	/**
 	 * 
 	 */
@@ -1049,12 +864,12 @@ public class TorrentListViewsUtils
 							}
 
 							public void asxFailed() {
-								runFile(dm.getTorrent(), getContentUrl(dm), true);
+								runFile(dm.getTorrent(), PlayUtils.getContentUrl(dm), true);
 							}
 						});
 			} else {
 				// force to WMP if we aren't using EMP
-				runFile(torrent, getContentUrl(dm), true);
+				runFile(torrent, PlayUtils.getContentUrl(dm), true);
 			}
 		} catch (Throwable e) {
 			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
@@ -1081,7 +896,7 @@ public class TorrentListViewsUtils
 					update();
 				}
 			}
-			
+
 			public void mouseExit(TableRowCore row) {
 				if (ENABLE_ON_HOVER) {
 					update();
@@ -1101,7 +916,8 @@ public class TorrentListViewsUtils
 			}
 
 			private void update() {
-				TableRowCore rowWithCursor = ENABLE_ON_HOVER ? view.getTableRowWithCursor() : null;
+				TableRowCore rowWithCursor = ENABLE_ON_HOVER
+						? view.getTableRowWithCursor() : null;
 
 				boolean bDisabled;
 				int size;
@@ -1128,13 +944,8 @@ public class TorrentListViewsUtils
 					for (int i = 0; i < rows.length; i++) {
 						TableRowCore row = rows[i];
 						Object ds = row.getDataSource(true);
-						DownloadManager dm = getDMFromDS(ds);
-						if (dm == null && (ds instanceof VuzeActivitiesEntry)) {
-							if (((VuzeActivitiesEntry) ds).getAssetHash() == null) {
-								bDisabled = true;
-								break;
-							}
-						} else if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+						boolean ourContent = DataSourceUtils.isPlatformContent(ds);
+						if (!ourContent) {
 							bDisabled = true;
 							break;
 						}
@@ -1237,37 +1048,11 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	private static void debugDCAD(String s) {
+	public static void debugDCAD(String s) {
 		PlatformDCAdManager.debug("TorrentListViewsUtils: " + s);
 	}//debugDCAD
 
-	/**
-	 * @param dmContent
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	public static String getContentUrl(DownloadManager dmContent) {
-		String contentPath;
-		if (dmContent.isDownloadComplete(false)) {
-			//use the file path if download is complete.
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
-					dmContent);
-			File file;
-			if (edm != null) {
-				file = edm.getPrimaryFile().getFile(true);
-			} else {
-				file = new File(dmContent.getDownloadState().getPrimaryFile());
-			}
-			try {
-				contentPath = file.toURL().toString();
-			} catch (MalformedURLException e) {
-				contentPath = file.getAbsolutePath();
-			}
-		} else {
-			//use the stream path if download is not complete.
-			contentPath = TorrentListViewsUtils.getMediaServerContentURL(dmContent);
-		}
-		return contentPath;
+	public static boolean playOrStream(final DownloadManager dm) {
+		return playOrStream(dm, null);
 	}
 }

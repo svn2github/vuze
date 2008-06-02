@@ -26,7 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -44,7 +43,6 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -154,7 +152,7 @@ public class Browse
 			}
 
 			return new SelectedContent[] {
-				new SelectedContent(hash, title, true)
+				new SelectedContent(hash, title, true, false)
 			};
 		}
 
