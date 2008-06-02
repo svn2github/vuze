@@ -274,7 +274,7 @@ public class VuzeActivitiesEntry
 
 				map.put("torrent", torrent_to_send.serialiseToMap());
 			} catch (TOTorrentException e) {
-				Debug.out(e);
+				Debug.outNoStack("VuzeActivityEntry.toMap: " + e.toString());
 			}
 		}
 		map.put("isDRM", new Long(isDRM() ? 1 : 0));
