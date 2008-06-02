@@ -995,7 +995,7 @@ outer:
 			
 			markBuddyPeer( download, peer );
 			
-			peer.addListener(
+			PeerListener2 listener = 
 				new PeerListener2()
 				{
 					public void 
@@ -1018,7 +1018,22 @@ outer:
 							}
 						}
 					}
-				});
+				};
+				
+			peer.addListener( listener );
+
+			if ( peer.getState() == Peer.TRANSFERING ){
+				
+				peer.removeListener( listener );
+				
+					// withdraw buddy marker if it turns out our earlier optimism
+					// was misplaced
+			
+				if ( isBuddy( peer ) != BUDDY_YES ){
+					
+					unmarkBuddyPeer( peer );
+				}
+			}
 		}
 	}
 	
