@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
 import org.gudy.azureus2.plugins.download.DownloadActivationListener;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
+import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadEventNotifier;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -55,6 +56,7 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 	private DownloadTrackerNotifier download_tracker_notifier;
 	private DownloadTrackerNotifier download_tracker_notifier_instant;
 	private DownloadWillBeRemovedNotifier download_will_be_removed_notifier;
+	private DownloadCompletionNotifier download_completion_notifier;
 	private DownloadManager dm;
 	
 	private HashMap read_attribute_listeners;
@@ -69,6 +71,7 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 		this.download_tracker_notifier = new DownloadTrackerNotifier(false);
 		this.download_tracker_notifier_instant = new DownloadTrackerNotifier(true);
 		this.download_will_be_removed_notifier = new DownloadWillBeRemovedNotifier();
+		this.download_completion_notifier = new DownloadCompletionNotifier();
 		
 		this.read_attribute_listeners = new HashMap();
 		this.write_attribute_listeners = new HashMap();
@@ -76,6 +79,10 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 
 	public void addActivationListener(DownloadActivationListener l) {
 		this.download_activation_notifier.addListener(l);
+	}
+	
+	public void addCompletionListener(DownloadCompletionListener l) {
+		this.download_completion_notifier.addListener(l);
 	}
 
 	public void addDownloadWillBeRemovedListener(DownloadWillBeRemovedListener l) {
@@ -93,7 +100,7 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 	public void addPropertyListener(DownloadPropertyListener l) {
 		this.download_property_notifier.addListener(l);
 	}
-
+	
 	public void addTrackerListener(DownloadTrackerListener l) {
 		this.download_tracker_notifier.addListener(l);
 	}
@@ -106,6 +113,10 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 		this.download_activation_notifier.removeListener(l);
 	}
 
+	public void removeCompletionListener(DownloadCompletionListener l) {
+		this.download_completion_notifier.removeListener(l);
+	}
+	
 	public void removeDownloadWillBeRemovedListener(DownloadWillBeRemovedListener l) {
 		this.download_will_be_removed_notifier.removeListener(l);
 	}
@@ -202,6 +213,18 @@ public class DownloadEventNotifierImpl implements DownloadEventNotifier {
 		}
 	}
 
+	public class DownloadCompletionNotifier extends BaseDownloadListener implements DownloadCompletionListener {
+		public void downloadAdded(Download download) {download.addCompletionListener(this);}
+		public void downloadRemoved(Download download) {download.removeCompletionListener(this);}
+		public void onCompletion(Download download) {
+			Iterator itr = this.listeners.iterator();
+			while (itr.hasNext()) {
+				try {((DownloadCompletionListener)itr.next()).onCompletion(download);}
+				catch (Throwable t) {Debug.printStackTrace(t);}
+			}
+		}
+	}
+	
 	public class DownloadNotifier extends BaseDownloadListener implements DownloadListener {
 		public void downloadAdded(Download download) {download.addListener(this);}
 		public void downloadRemoved(Download download) {download.removeListener(this);}

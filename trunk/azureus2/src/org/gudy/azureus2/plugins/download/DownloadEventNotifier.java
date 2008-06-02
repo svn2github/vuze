@@ -180,4 +180,22 @@ public interface DownloadEventNotifier {
 	 * @since 3.0.3.5
 	 */
 	public void removeAttributeListener(DownloadAttributeListener l, TorrentAttribute attr, int event_type);
+	
+	/**
+	 * Adds a listener that will be informed when a download moves into a
+	 * completed state.
+	 * 
+	 * @param l The listener to add.
+	 * @since 3.0.5.3
+	 */
+	public void addCompletionListener(DownloadCompletionListener l);
+	
+	/**
+	 * Removes a listener object removed via the
+	 * {@link #addCompletionListener(DownloadCompletionListener)} method.
+	 * 
+	 * @param l The listener to remove.
+	 * @since 3.0.5.3
+	 */
+	public void removeCompletionListener(DownloadCompletionListener l);
 }

@@ -13,6 +13,7 @@ FEATURE: Plug | Added support for plugins to easily use an external configuratio
 FEATURE: Plug | Plugins can now have full control over on-complete and on-removal file moving [amc1]
 FEATURE: Plug | Added resource downloader to provide way to download files from Sourceforge [amc1]
 FEATURE: Plug | Added API methods to generically pop up the message box to a user [amc1]
+FEATURE: Plug | Added API methods to listen to download-complete events [amc1]
 FEATURE: Plug | Added various convenience methods for using log views and config models [amc1]
 FEATURE: Plug | Added API to allow native UI objects to be added to config views [amc1]
 FEATURE: Plug | Added some more methods for plugins to control some transport mechanisms [amc1]

@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
 import org.gudy.azureus2.plugins.download.DownloadActivationListener;
 import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
+import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
@@ -99,6 +100,8 @@ DownloadImpl
 	private AEMonitor	removal_listeners_mon	= new AEMonitor( "Download:RL");
 	private Map			peer_listeners			= new HashMap();
 	private AEMonitor	peer_listeners_mon		= new AEMonitor( "Download:PL");
+	
+	private CopyOnWriteList completion_listeners     = new CopyOnWriteList();
 	
 	private CopyOnWriteMap read_attribute_listeners_map_cow  = new CopyOnWriteMap();
 	private CopyOnWriteMap write_attribute_listeners_map_cow = new CopyOnWriteMap();
@@ -877,6 +880,19 @@ DownloadImpl
 	public void
 	downloadComplete(DownloadManager manager)
 	{	
+		if (this.completion_listeners.isEmpty()) {return;}
+		Iterator itr = this.completion_listeners.iterator();
+		DownloadCompletionListener dcl;
+		while (itr.hasNext()) {
+			dcl = (DownloadCompletionListener)itr.next();
+			long startTime = SystemTime.getCurrentTime();
+			try {dcl.onCompletion(this);}
+			catch (Throwable t) {Debug.printStackTrace(t);}
+			long diff = SystemTime.getCurrentTime() - startTime;
+			if (diff > 1000) {
+				System.out.println("Plugin should move long processes (" + diff + "ms) off of Download's onCompletion listener trigger. " + dcl);
+			}
+		}
 	}
 
 	public void 
@@ -934,6 +950,7 @@ DownloadImpl
 		}
 	}
 	
+
 	public void
 	removeListener(
 		DownloadListener	l )
@@ -1440,7 +1457,27 @@ DownloadImpl
 			peer_listeners_mon.exit();
 		}
 	}
-		
+
+	public void	addCompletionListener(DownloadCompletionListener l) {
+		try {
+			listeners_mon.enter();
+			this.completion_listeners.add(l);
+		}
+		finally{
+			listeners_mon.exit();
+		}
+	}
+	
+	public void	removeCompletionListener(DownloadCompletionListener l) {
+		try {
+			listeners_mon.enter();
+			this.completion_listeners.remove(l);
+		}
+		finally{
+			listeners_mon.exit();
+		}
+	}
+	
  	public PeerManager
 	getPeerManager()
  	{

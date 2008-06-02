@@ -987,6 +987,9 @@ RPDownload
 	public void addAttributeListener(DownloadAttributeListener l, TorrentAttribute a, int e) {notSupported();}
 	public void removeAttributeListener(DownloadAttributeListener l, TorrentAttribute a, int e) {notSupported();}
 	
+	public void addCompletionListener(DownloadCompletionListener l) {notSupported();}
+	public void removeCompletionListener(DownloadCompletionListener l) {notSupported();}
+	
 	public boolean isRemoved() {notSupported();	return false; }
 	public boolean canMoveDataFiles() {notSupported(); return false;}
 	public SaveLocationChange calculateDefaultDownloadLocation() {notSupported(); return null;}
