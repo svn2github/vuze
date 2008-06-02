@@ -3906,6 +3906,23 @@ DiskManagerCheckRequestListener, IPFilterListener
 				closeAndRemovePeer( max_transport, "making space for LAN peer in doOptimisticDisconnect()", true );
 				return true;
 			}
+			
+			if ( force ){
+								
+				closeAndRemovePeer( max_transport, "force removal of worst peer in doOptimisticDisconnect()", true );
+				
+				return true;
+			}
+		}else if ( force ){
+			
+			if ( peer_transports.size() > 0 ){
+				
+				PEPeerTransport pt = (PEPeerTransport)peer_transports.get( new Random().nextInt( peer_transports.size()));
+				
+				closeAndRemovePeer( pt, "force removal of random peer in doOptimisticDisconnect()", true );
+				
+				return true;
+			}
 		}
 
 		return false;
