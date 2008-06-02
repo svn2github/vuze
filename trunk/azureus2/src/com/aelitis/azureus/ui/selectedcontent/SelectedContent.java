@@ -34,10 +34,12 @@ public class SelectedContent
 	private DownloadManager dm;
 
 	private String displayName;
-	
+
 	private String thumbURL;
-	
+
 	private boolean isPlatformContent;
+
+	private boolean canPlay;
 
 	/**
 	 * @param dm2
@@ -53,10 +55,12 @@ public class SelectedContent
 	/**
 	 * 
 	 */
-	public SelectedContent(String hash, String displayName, boolean isPlatformContent) {
+	public SelectedContent(String hash, String displayName,
+			boolean isPlatformContent, boolean canPlay) {
 		this.hash = hash;
 		this.displayName = displayName;
 		this.isPlatformContent = isPlatformContent;
+		this.canPlay = canPlay;
 	}
 
 	public SelectedContent() {
@@ -109,5 +113,13 @@ public class SelectedContent
 
 	public void setPlatformContent(boolean isPlatformContent) {
 		this.isPlatformContent = isPlatformContent;
+	}
+
+	public boolean canPlay() {
+		return canPlay;
+	}
+
+	public void setCanPlay(boolean canPlay) {
+		this.canPlay = canPlay;
 	}
 }
