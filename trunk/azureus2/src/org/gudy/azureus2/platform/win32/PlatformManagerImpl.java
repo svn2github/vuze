@@ -460,7 +460,7 @@ PlatformManagerImpl
 			
 			unregisterAdditionalFileType( OLD_MAIN_ASS0C, ".torrent" );
 			
-			registerAdditionalFileType( NEW_MAIN_ASSOC, "Vuze Download", ".torrent", "application/x-bittorrent" );
+			registerAdditionalFileType( NEW_MAIN_ASSOC, Constants.APP_NAME + " Download", ".torrent", "application/x-bittorrent" );
 		}
 		
 		boolean	reg = isAdditionalFileTypeRegistered( NEW_MAIN_ASSOC, ".torrent" );
@@ -469,7 +469,7 @@ PlatformManagerImpl
 		
 		if ( !reg && !COConfigurationManager.getBooleanParameter( "platform.win32.autoregdone", false )){
 			
-			registerAdditionalFileType( NEW_MAIN_ASSOC, "Vuze Download", ".torrent", "application/x-bittorrent" );
+			registerAdditionalFileType( NEW_MAIN_ASSOC, Constants.APP_NAME + " Download", ".torrent", "application/x-bittorrent" );
 
 			COConfigurationManager.setParameter( "platform.win32.autoregdone", true );
 			
@@ -613,7 +613,7 @@ PlatformManagerImpl
 	{
 		registerMagnet();
 		
-		registerAdditionalFileType( NEW_MAIN_ASSOC, "Vuze Download", ".torrent", "application/x-bittorrent" );
+		registerAdditionalFileType( NEW_MAIN_ASSOC, Constants.APP_NAME + " Download", ".torrent", "application/x-bittorrent" );
 		
 		registerAdditionalFileType( VUZE_ASSOC, "Vuze File", ".vuze", "application/x-vuze" );
 	}

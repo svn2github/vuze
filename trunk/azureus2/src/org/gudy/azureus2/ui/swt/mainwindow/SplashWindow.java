@@ -143,7 +143,7 @@ public class SplashWindow
 		this.initializer = initializer;
 
 		splash = new Shell(display, SWT.NO_TRIM);
-		splash.setText("Vuze");
+		splash.setText(Constants.APP_NAME);
 		Utils.setShellIcon(splash);
 
 		/*GridLayout layout = new GridLayout();
@@ -160,7 +160,7 @@ public class SplashWindow
 		GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
 		currentTask.setLayoutData(gridData);
 		currentTask.setBackground(ColorCache.getColor(display, 255, 255, 255));
-		currentTask.setText("(: Vuze :)");
+		currentTask.setText("(: " + Constants.APP_NAME + " :)");
 		
 		this.percentDone = new ProgressBar(splash,SWT.HORIZONTAL);
 		this.percentDone.setMinimum(0);

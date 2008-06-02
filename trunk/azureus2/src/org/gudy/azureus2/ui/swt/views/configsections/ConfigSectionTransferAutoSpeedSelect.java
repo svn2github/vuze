@@ -12,6 +12,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.Constants;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -546,7 +547,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         azWiki.setText(MessageText.getString("Utils.link.visit"));
 
         final Label linkLabel = new Label(azWiki, SWT.NULL);
-        linkLabel.setText( "Vuze Wiki AutoSpeed (beta)" );
+        linkLabel.setText( Constants.APP_NAME + " Wiki AutoSpeed (beta)" );
         linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);

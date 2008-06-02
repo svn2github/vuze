@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -41,7 +42,7 @@ public class ScriptBeforeStartup
   		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
   		if (argsSent) {
   			// azureus was open..
-  			String msg = "Passing startup args to already-running Vuze java process listening on [127.0.0.1: 6880]";
+  			String msg = "Passing startup args to already-running " + Constants.APP_NAME + " java process listening on [127.0.0.1: 6880]";
   			log(msg);
   			sysout.println("exit");
   
@@ -58,7 +59,7 @@ public class ScriptBeforeStartup
 		COConfigurationManager.removeParameter("scriptaftershutdown");
 		COConfigurationManager.save();
 		if (scriptAfterShutdown != null) {
-			log("Script after Vuze shutdown did not run.. running now");
+			log("Script after " + Constants.APP_NAME + " shutdown did not run.. running now");
 
 			sysout.println(scriptAfterShutdown);
 
@@ -191,7 +192,7 @@ public class ScriptBeforeStartup
 
 		if (!canOpenBrowser()) {
 			log("Can't create browser.  Will try to set LD_LIBRARY_PATH and hope "
-					+ " Vuze has better luck.");
+					+ Constants.APP_NAME + "has better luck.");
 		}
 
 		return grePath;
