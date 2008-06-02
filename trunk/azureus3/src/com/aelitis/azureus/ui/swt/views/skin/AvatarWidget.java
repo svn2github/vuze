@@ -635,6 +635,18 @@ public class AvatarWidget
 	}
 
 	public void refreshVisual() {
+
+		/*
+		 * Resets the image and image bounds since this is the only info cached;
+		 * all other info is asked for on-demand so no need to update them 
+		 */
+		image = vuzeBuddy.getAvatarImage();
+		if (null == image) {
+			image = imageDefaultAvatar;
+		}
+		sourceImageBounds = null == image ? null : image.getBounds();
+		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (null != canvas && false == canvas.isDisposed()) {
@@ -712,16 +724,6 @@ public class AvatarWidget
 	public void setVuzeBuddy(VuzeBuddySWT vuzeBuddy) {
 		if (null != vuzeBuddy) {
 			this.vuzeBuddy = vuzeBuddy;
-
-			/*
-			 * Resets the image and image bounds since this is the only info cached;
-			 * all other info is asked for on-demand so no need to update them 
-			 */
-			image = vuzeBuddy.getAvatarImage();
-			if (null == image) {
-				image = imageDefaultAvatar;
-			}
-			sourceImageBounds = null == image ? null : image.getBounds();
 			refreshVisual();
 		}
 	}
