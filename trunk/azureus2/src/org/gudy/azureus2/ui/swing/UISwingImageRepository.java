@@ -22,6 +22,8 @@
 package org.gudy.azureus2.ui.swing;
 
 /**
+ * This class is used by the remote applet UI.
+ * 
  * @author parg
  *
  */
