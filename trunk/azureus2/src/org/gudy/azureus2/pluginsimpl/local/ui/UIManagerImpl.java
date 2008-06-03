@@ -296,15 +296,10 @@ UIManagerImpl
   			
   			if ( initialisation_complete ){
   				
-  				int num = ui_event_listeners.size();
-  				int i = 0;
-  							
   				Iterator it = ui_listeners.iterator();
 
   				while( it.hasNext()){
   					
-  					i++;
-  					  					
   					Object[]	entry = (Object[])it.next();
   					
   					PluginInterface pi = (PluginInterface)entry[1];
@@ -314,7 +309,7 @@ UIManagerImpl
   					if(init != null)
   					{
   						init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
-  						init.reportPercent(i/num);
+  						init.increaseProgresss();
   					}
   					
   					try{
