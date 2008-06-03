@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.utils;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -38,7 +39,7 @@ public class SWTLoginUtils
 		if (l == null) {
 			return;
 		}
-		
+
 		final AERunnable loginCompleteRunnable = new AERunnable() {
 			public void runSupport() {
 				l.loginComplete();
@@ -66,7 +67,7 @@ public class SWTLoginUtils
 		};
 
 		loginManager.addListener(loginInfoListener);
-		LightBoxBrowserWindow loginWindow = openLoginWindow();
+		LightBoxBrowserWindow loginWindow = openLoginWindow(l.getOptionalMessage());
 		loginWindow.setCloseListener(new LightBoxBrowserWindow.closeListener() {
 			public void close() {
 				SimpleTimer.addEvent("cancel login wiat",
@@ -84,19 +85,37 @@ public class SWTLoginUtils
 
 	/**
 	 * 
-	 *
-	 * @return 
+	 * @return
 	 * @since 3.0.5.3
 	 */
 	public static LightBoxBrowserWindow openLoginWindow() {
-		String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?"
-				+ Constants.URL_SUFFIX;
+		return openLoginWindow(null);
+	}
+
+	/**
+	 * 
+	 * @param optionalMessage an optional message to display in the Sign In window
+	 * @return
+	 * @since 3.0.5.3
+	 */
+	public static LightBoxBrowserWindow openLoginWindow(String optionalMessage) {
+		String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?";
+		if (null == optionalMessage || optionalMessage.length() < 1) {
+			url += Constants.URL_SUFFIX;
+		} else {
+			url += "msg=" + optionalMessage;
+			url += "&" + Constants.URL_SUFFIX;
+		}
+
 		return new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
 				380, 280);
 	}
 
 	public static abstract class loginWaitListener
 	{
+
+		private String message = null;
+
 		/**
 		 * This will be on the SWT thread
 		 *
@@ -104,7 +123,16 @@ public class SWTLoginUtils
 		 */
 		public abstract void loginComplete();
 
-		public void loginCanceled() {};
+		public String getOptionalMessage() {
+			if (null == message) {
+				message = MessageText.getString("login.optional.message");
+				message = message.replaceAll(" ", "+");
+			}
+			return message;
+		}
+
+		public void loginCanceled() {
+		};
 	}
 
 }
