@@ -27,7 +27,7 @@ package com.aelitis.azureus.ui;
  */
 public interface IUIIntializer
 {
-	public void stopIt(boolean isForRestart, boolean isCloseAreadyInPorgress);
+	public void stopIt(boolean isForRestart, boolean isCloseAreadyInProgress);
 
 	public void run();
 
@@ -54,7 +54,7 @@ public interface IUIIntializer
 	 *
 	 * @since 3.0.4.3
 	 */
-	void increaseProgresss();
+	void increaseProgress();
 	
 	/**
 	 *

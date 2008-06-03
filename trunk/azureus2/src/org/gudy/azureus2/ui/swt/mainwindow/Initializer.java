@@ -539,7 +539,7 @@ Initializer
   }
  
   // @see com.aelitis.azureus.ui.IUIIntializer#increaseProgresss()
-  public void increaseProgresss() {
+  public void increaseProgress() {
   	if (lastTaskPercent < 100) {
   		reportPercent(lastTaskPercent + 1);
   	}
