@@ -31,6 +31,8 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.ModifyEvent;
@@ -82,7 +84,6 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessageListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyReplyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyRequestListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
@@ -144,7 +145,7 @@ BuddyPluginViewInstance
 		
 		Composite controls = new Composite(main, SWT.NONE);
 		layout = new GridLayout();
-		layout.numColumns = 5;
+		layout.numColumns = 6;
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		controls.setLayout(layout);
@@ -181,17 +182,51 @@ BuddyPluginViewInstance
 					SelectionEvent e )
 				{
 					plugin.addBuddy( control_text.getText().trim(), BuddyPlugin.SUBSYSTEM_AZ2 );
+					
+					control_text.setText( "" );
 				}
 			});
 		
 		final Label control_lab_pk = new Label( controls, SWT.NULL );
 		control_lab_pk.setText( lu.getLocalisedMessageText( "azbuddy.ui.mykey" ) + " ");
 
-		final Label control_val_pk = new Label( controls, SWT.NULL );
+		final Text control_val_pk = new Text( controls, SWT.NULL );
 		gridData = new GridData();
 		gridData.widthHint = 400;
-		
 		control_val_pk.setLayoutData(gridData);
+
+		control_val_pk.setEditable( false );
+		control_val_pk.setBackground( control_lab_pk.getBackground());
+		
+		control_val_pk.addKeyListener(
+			new KeyListener()
+			{
+				public void 
+				keyPressed(
+					KeyEvent event) 
+				{
+					int	key = event.character;
+					
+					if (key <= 26 && key > 0){
+						
+						key += 'a' - 1;
+					}
+				
+					if ( event.stateMask == SWT.MOD1 && key == 'a' ){
+	
+						control_val_pk.setSelection( 0, control_val_pk.getText().length());	
+					}
+				}
+				
+				public void 
+				keyReleased(
+					KeyEvent event) 
+				{	
+				}
+			});
+		
+
+	
 
     	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
 
@@ -258,6 +293,20 @@ BuddyPluginViewInstance
 					keyLockStatusChanged(
 						CryptoHandler		handler )
 					{
+					}
+				});
+		
+		final Button config_button = new Button( controls, SWT.NULL );
+		config_button.setText( lu.getLocalisedMessageText( "plugins.basicview.config" ));
+
+		config_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent e )
+					{
+						plugin.showConfig();
 					}
 				});
 		
@@ -1300,9 +1349,10 @@ BuddyPluginViewInstance
 	
 	public void
 	messageLogged(
-		String		str )
+		String		str,
+		boolean		error )
 	{
-		print( str, LOG_NORMAL, false, false );
+		print( str, error?LOG_ERROR:LOG_NORMAL, false, false );
 	}
 	
 	// @see com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener#enabledStateChanged(boolean)

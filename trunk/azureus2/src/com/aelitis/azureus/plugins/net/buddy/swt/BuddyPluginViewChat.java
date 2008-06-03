@@ -104,7 +104,7 @@ BuddyPluginViewChat
 		shell.setLayoutData(grid_data);
 
 		
-		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER | SWT.NO_FOCUS );
+		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;
@@ -171,6 +171,15 @@ BuddyPluginViewChat
 					
 					BuddyPluginAZ2.chatParticipant	participant = (BuddyPluginAZ2.chatParticipant)participants.get(index);
 					
+					if ( participant.getBuddy().isOnline()){
+						
+						item.setForeground( 0, Colors.black );
+						
+					}else{
+						
+						item.setForeground( 0, Colors.grey );
+					}
+					
 					item.setText(0, participant.getName());					
 				}
 			});
@@ -185,7 +194,7 @@ BuddyPluginViewChat
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 50;
 		text.setLayoutData(grid_data);
-		
+				
 		text.addKeyListener(
 			new KeyListener()
 			{
@@ -234,7 +243,7 @@ BuddyPluginViewChat
 			participants.addAll( Arrays.asList( existing_participants ));
 		}
 		
-		updateTable();
+		updateTable( false );
 		
 		BuddyPluginAZ2.chatMessage[] history = chat.getHistory();
 		
@@ -252,11 +261,34 @@ BuddyPluginViewChat
 	}
 	
 	protected void
-	updateTable()
+	updateTable(
+		boolean	async )
 	{
-		buddy_table.setItemCount( participants.size());
-		buddy_table.clearAll();
-		buddy_table.redraw();
+		if ( async ){
+			
+			if ( !buddy_table.isDisposed()){
+
+				buddy_table.getDisplay().asyncExec(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								if ( buddy_table.isDisposed()){
+
+									return;
+								}
+								
+								updateTable( false );
+							}
+						});
+			}					
+		}else{
+			
+			buddy_table.setItemCount( participants.size());
+			buddy_table.clearAll();
+			buddy_table.redraw();
+		}
 	}
 	
 	protected void
@@ -282,23 +314,26 @@ BuddyPluginViewChat
 			participants.add( participant );
 		}
 		
-		if ( !buddy_table.isDisposed()){
-
-			buddy_table.getDisplay().asyncExec(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							if ( buddy_table.isDisposed()){
-
-								return;
-							}
-							
-							updateTable();
-						}
-					});
-		}					
+		updateTable( true );
+	}
+	
+	public void
+	participantChanged(
+		BuddyPluginAZ2.chatParticipant		participant )
+	{
+		updateTable( true );
+	}
+	
+	public void
+	participantRemoved(
+		BuddyPluginAZ2.chatParticipant		participant )
+	{
+		synchronized( participants ){
+			
+			participants.remove( participant );
+		}
+		
+		updateTable( true );
 	}
 	
 	protected void
@@ -375,20 +410,41 @@ BuddyPluginViewChat
 		
 		int	start = log.getText().length();
 		
-		String says = lu.getLocalisedMessageText( "azbuddy.chat.says", new String[]{ buddy_name }) + "\n";
-		
-		log.append( says ); 
-		
-		if ( colour != Colors.black ){
+		if ( msg.startsWith( "/me" )){
 			
-			StyleRange styleRange = new StyleRange();
-			styleRange.start = start;
-			styleRange.length = says.length();
-			styleRange.foreground = colour;
-			log.setStyleRange(styleRange);
+			msg = msg.substring( 3 ).trim();
+			
+			String	me = "* " + buddy_name + " " + msg;
+			
+			log.append( me  );
+			
+			if ( colour != Colors.black ){
+				
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = start;
+				styleRange.length = me.length();
+				styleRange.foreground = colour;
+				log.setStyleRange(styleRange);
+			}
+			
+			log.append( "\n" );
+			
+		}else{
+			String says = lu.getLocalisedMessageText( "azbuddy.chat.says", new String[]{ buddy_name }) + "\n";
+			
+			log.append( says ); 
+			
+			if ( colour != Colors.black ){
+				
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = start;
+				styleRange.length = says.length();
+				styleRange.foreground = colour;
+				log.setStyleRange(styleRange);
+			}
+			
+			log.append( msg + "\n" ); 
 		}
-		
-		log.append( msg + "\n" ); 
 
 		log.setSelection( log.getText().length());
 	}

@@ -496,6 +496,7 @@ BuddyPluginAZ2
 	
 	public class
 	chatInstance
+		extends BuddyPluginAdapter
 	{
 		private String		id;
 		
@@ -509,6 +510,8 @@ BuddyPluginAZ2
 			String		_id )
 		{
 			id		= _id;
+			
+			plugin.addListener( this );
 		}
 		
 		public String
@@ -517,12 +520,65 @@ BuddyPluginAZ2
 			return( id );
 		}
 		
+		public void
+		buddyAdded(
+			BuddyPluginBuddy	buddy )
+		{
+			buddyChanged( buddy );
+		}
+		
+		public void
+		buddyRemoved(
+			BuddyPluginBuddy	buddy )
+		{
+			chatParticipant p = getParticipant( buddy );
+			
+			if ( p != null ){
+				
+				Iterator it = listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						((BuddyPluginAZ2ChatListener)it.next()).participantRemoved( p );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		}
+
+		public void
+		buddyChanged(
+			BuddyPluginBuddy	buddy )
+		{
+			chatParticipant p = getParticipant( buddy );
+			
+			if ( p != null ){
+			
+				Iterator it = listeners.iterator();
+			
+				while( it.hasNext()){
+					
+					try{
+						((BuddyPluginAZ2ChatListener)it.next()).participantChanged( p );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		}
+		
 		protected void
 		process(
 			BuddyPluginBuddy	from_buddy,
 			Map					msg )
 		{
-			chatParticipant p = getParticipant( from_buddy );
+			chatParticipant p = getOrAddParticipant( from_buddy );
 			
 			int	type = ((Long)msg.get( "type")).intValue();
 			
@@ -617,7 +673,7 @@ BuddyPluginAZ2
 		}
 	
 		protected chatParticipant
-		getParticipant(
+		getOrAddParticipant(
 			BuddyPluginBuddy	buddy )
 		{
 			return( addParticipant( buddy ));
@@ -708,6 +764,25 @@ BuddyPluginAZ2
 			}
 		}
 
+		protected chatParticipant
+		getParticipant(
+			BuddyPluginBuddy	b )
+		{
+			String	pk = b.getPublicKey();
+			
+			synchronized( participants ){
+				
+				chatParticipant p = (chatParticipant)participants.get( pk );
+
+				if ( p != null ){
+					
+					return( p );
+				}
+			}
+			
+			return( null );
+		}
+		
 		public chatParticipant[]
 		getParticipants()
 		{
@@ -721,9 +796,39 @@ BuddyPluginAZ2
 			}
 		}
 		
+		protected void
+		removeParticipant(
+			chatParticipant		p )
+		{
+			boolean	removed;
+			
+			synchronized( participants ){
+
+				removed = participants.remove( p.getPublicKey()) != null;
+			}
+			
+			if ( removed ){
+				
+				Iterator it = listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						((BuddyPluginAZ2ChatListener)it.next()).participantRemoved( p );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		}
+		
 		public void
 		destroy()
 		{
+			plugin.removeListener( this );
+
 			destroyChat( this );
 		}
 		

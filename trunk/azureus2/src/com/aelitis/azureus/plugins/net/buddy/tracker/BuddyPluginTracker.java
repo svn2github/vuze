@@ -652,7 +652,8 @@ outer:
 	
 	public void
 	messageLogged(
-		String		str )
+		String		str,
+		boolean		error )
 	{	
 	}
 	

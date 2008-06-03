@@ -42,7 +42,8 @@ BuddyPluginListener
 	
 	public void
 	messageLogged(
-		String		str );
+		String		str,
+		boolean		is_error );
 	
 	public void
 	enabledStateChanged(

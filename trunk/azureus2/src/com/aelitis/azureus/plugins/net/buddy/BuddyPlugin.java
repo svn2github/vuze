@@ -570,6 +570,12 @@ BuddyPlugin
 				}, 1);
 	}
 
+	public void
+	showConfig()
+	{
+		plugin_interface.getUIManager().showConfigSection("Views.plugins." + VIEW_ID + ".title");
+	}
+	
 	protected void
 	startup()
 	{
@@ -2879,12 +2885,20 @@ BuddyPlugin
 		String		str,
 		Throwable	e )
 	{
-		logMessage( str + ": " + Debug.getNestedExceptionMessage(e));
+		logMessage( str + ": " + Debug.getNestedExceptionMessage(e), true );
 	}
 	
 	public void
 	logMessage(
 		String		str )
+	{
+		logMessage( str, false );
+	}
+	
+	public void
+	logMessage(
+		String		str,
+		boolean		is_error )
 	{
 		log( str );
 		
@@ -2893,7 +2907,7 @@ BuddyPlugin
 		while( it.hasNext()){
 			
 			try{
-				((BuddyPluginListener)it.next()).messageLogged( str );
+				((BuddyPluginListener)it.next()).messageLogged( str, is_error );
 				
 			}catch( Throwable e ){
 				
