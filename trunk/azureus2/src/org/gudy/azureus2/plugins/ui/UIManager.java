@@ -32,7 +32,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
- * Management tools for the User Inferface
+ * Management tools for the user interface.
  * 
  * @author parg
  */
@@ -310,4 +310,28 @@ UIManager
  	 * @since 3.0.0.7
  	 */
  	public UIInstance[] getUIInstances();
+ 	
+ 	/**
+ 	 * Retrieves a {@link UIInputReceiver} from any interface available, or
+ 	 * returns <tt>null</tt> if one is not available. This is a convenience
+ 	 * method to allow you to grab an instance without having to iterate over
+ 	 * any attached interfaces.
+ 	 * 
+ 	 * @see UIInstance#getInputReceiver()
+ 	 * @since 3.0.5.3
+ 	 */
+ 	public UIInputReceiver getInputReceiver();
+
+ 	/**
+ 	 * Retrieves a {@link UIMessage} from any interface available, or
+ 	 * returns <tt>null</tt> if one is not available. This is a convenience
+ 	 * method to allow you to grab an instance without having to iterate over
+ 	 * any attached interfaces.
+ 	 * 
+ 	 * @see UIInstance#createMessage()
+ 	 * @since 3.0.5.3
+ 	 */
+ 	public UIMessage createMessage();
+
+ 	
 }

@@ -621,4 +621,25 @@ UIManagerImpl
 
 		return ((Boolean)event.getResult()).booleanValue();
 	}
+	
+ 	public UIInputReceiver getInputReceiver() {
+ 		UIInstance[] instances = this.getUIInstances();
+ 		UIInputReceiver r = null;
+ 		for (int i=0; i<instances.length; i++) {
+ 			r = instances[i].getInputReceiver();
+ 			if (r != null) {return r;}
+ 		}
+ 		return null;
+ 	}
+ 	
+ 	public UIMessage createMessage() {
+ 		UIInstance[] instances = this.getUIInstances();
+ 		UIMessage r = null;
+ 		for (int i=0; i<instances.length; i++) {
+ 			r = instances[i].createMessage();
+ 			if (r != null) {return r;}
+ 		}
+ 		return null;
+ 	}
+ 	
 }
