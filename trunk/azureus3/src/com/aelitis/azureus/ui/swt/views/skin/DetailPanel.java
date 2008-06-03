@@ -178,17 +178,6 @@ public class DetailPanel
 				SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
 				Control control = detailPanelObject.getControl();
 
-				/*
-				 * Hack into SWTSkinUtils.setVisibility() behavior by inspecting whether this shell
-				 * is in the middle of sliding; if that's the case then ignore this button press
-				 * and do nothing.  The main problem this is overcoming is when the user click (or double-click)
-				 * the button multiple times; we want a single click to initiate and finish the sliding before 
-				 * handling the next click
-				 */
-				if (control.getData("Sliding") != null) {
-					return;
-				}
-
 				Point size = detailPanelObject.getControl().getSize();
 
 				if (detailPanelObject != null) {
@@ -239,7 +228,6 @@ public class DetailPanel
 						 */
 
 						size.y = DETAIL_PANEL_HEIGHT;
-						control.setData("v3.oldHeight", size);
 
 					} else {
 						if (null != lbShell) {
@@ -260,8 +248,6 @@ public class DetailPanel
 					FormData fd = (FormData) control.getLayoutData();
 					SWTSkinUtils.slide(control, fd, value
 							? new Point(SWT.DEFAULT, size.y) : new Point(0, 0));
-//					SWTSkinUtils.setVisibility(skin, null,
-//							SkinConstants.VIEWID_DETAIL_PANEL, value, false, false);
 
 					/*
 					 * For OSX after the layout operation is done must set focus so the ui will repaint properly
