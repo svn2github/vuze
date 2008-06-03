@@ -308,7 +308,7 @@ public class VuzeBuddyManager
 
 
 	private static BuddyPluginListener buddyPluginListener = new BuddyPluginListener() {
-		public void messageLogged(String str) {
+		public void messageLogged(String str, boolean error ) {
 		}
 
 		public void initialised(boolean available) {
