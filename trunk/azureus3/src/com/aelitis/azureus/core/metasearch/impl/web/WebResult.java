@@ -51,6 +51,7 @@ public class WebResult extends Result {
 	long size = -1;
 	int nbPeers = -1;
 	int nbSeeds = -1;
+	int nbSuperSeeds = -1;
 	int	comments	= -1;
 	
 	String cdpLink;
@@ -82,10 +83,12 @@ public class WebResult extends Result {
 		if(comments != null) {
 			comments = removeHTMLTags(comments);
 			comments = Entities.HTML40.unescape(comments);
+			comments = comments.replaceAll(",", "");
+			comments = comments.replaceAll(" ", "");
 			try{
 				this.comments = Integer.parseInt(comments);
 			}catch( Throwable e ){
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}
@@ -110,7 +113,7 @@ public class WebResult extends Result {
 			try {
 				this.nbPeers = Integer.parseInt(nbPeersS);
 			} catch(Throwable e) {
-				this.nbPeers = 0;
+				//this.nbPeers = 0;
 				//e.printStackTrace();
 			}
 		}
@@ -125,7 +128,22 @@ public class WebResult extends Result {
 			try {
 				this.nbSeeds = Integer.parseInt(nbSeedsS);
 			} catch(Throwable e) {
-				this.nbSeeds = 0;
+				//this.nbSeeds = 0;
+				//e.printStackTrace();
+			}
+		}
+	}
+	
+	public void setNbSuperSeedsFromHTML(String nbSuperSeeds) {
+		if(nbSuperSeeds != null) {
+			nbSuperSeeds = removeHTMLTags(nbSuperSeeds);
+			String nbSuperSeedsS = Entities.HTML40.unescape(nbSuperSeeds);
+			nbSuperSeedsS = nbSuperSeedsS.replaceAll(",", "");
+			nbSuperSeedsS = nbSuperSeedsS.replaceAll(" ", "");
+			try {
+				this.nbSuperSeeds = Integer.parseInt(nbSuperSeedsS);
+			} catch(Throwable e) {
+				//this.nbSeeds = 0;
 				//e.printStackTrace();
 			}
 		}
@@ -173,7 +191,7 @@ public class WebResult extends Result {
 				
 				this.size = (long) (base * multiplier);
 			} catch(Throwable e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 			}
 		}
 	}
@@ -294,6 +312,10 @@ public class WebResult extends Result {
 
 	public int getNbSeeds() {
 		return nbSeeds;
+	}
+	
+	public int getNbSuperSeeds() {
+		return nbSuperSeeds;
 	}
 
 	public Date getPublishedDate() {

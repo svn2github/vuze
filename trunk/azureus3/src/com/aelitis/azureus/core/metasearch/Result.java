@@ -45,6 +45,7 @@ public abstract class Result {
 	public abstract long getSize();
 	public abstract int getNbPeers();
 	public abstract int getNbSeeds();
+	public abstract int getNbSuperSeeds();
 	public abstract int getComments();
 	public abstract int getVotes();
 	
@@ -94,6 +95,11 @@ public abstract class Result {
 		
 		int totalPeers = seeds + peers;
 		int expectedDLSpeedKBS = 20 * (peers+seeds+1) / (peers+1);
+		
+		int superSeeds = getNbSuperSeeds();
+		if(superSeeds > 0) {
+			expectedDLSpeedKBS += 800 * superSeeds;
+		}
 		
 		//We consider 150KB/s as a good dl speed
 		float speed = (float)expectedDLSpeedKBS / 150f;

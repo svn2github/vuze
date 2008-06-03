@@ -301,6 +301,9 @@ JSONEngine
 									case FIELD_VOTES :
 										result.setVotesFromHTML(fieldContent);
 										break;
+									case FIELD_SUPERSEEDS :
+										result.setNbSuperSeedsFromHTML(fieldContent);
+										break;
 									default:
 										break;
 									}

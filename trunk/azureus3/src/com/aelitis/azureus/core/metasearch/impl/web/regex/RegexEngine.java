@@ -308,6 +308,9 @@ RegexEngine
 						case FIELD_VOTES :
 							result.setVotesFromHTML(groupContent);
 							break;
+						case FIELD_SUPERSEEDS :
+							result.setNbSuperSeedsFromHTML(groupContent);
+							break;
 						default:
 							break;
 						}
