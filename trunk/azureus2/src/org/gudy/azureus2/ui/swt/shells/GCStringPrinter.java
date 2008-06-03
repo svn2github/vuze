@@ -50,6 +50,9 @@ public class GCStringPrinter
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>",
 			Pattern.CASE_INSENSITIVE);
 
+	// Limit word length as OSX crashes on stringExtent on very very long words
+	private static final int MAX_WORD_LEN = 1023;
+
 	private boolean cutoff;
 
 	private GC gc;
@@ -439,16 +442,27 @@ public class GCStringPrinter
 			final Rectangle printArea, final boolean wrap, final int[] iLineLength,
 			StringBuffer outputLine, final StringBuffer space) {
 
+		boolean bWordChopped = word.length() > MAX_WORD_LEN;
+		if (word.length() > MAX_WORD_LEN) {
+			word = word.substring(0, MAX_WORD_LEN);
+		}
+		
 		Point ptWordSize = gc.stringExtent(word + " ");
-		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
-		if (iLineLength[0] + ptWordSize.x > printArea.width) {
+		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width || bWordChopped;
+		int targetWidth = iLineLength[0] + ptWordSize.x; 
+		if (targetWidth > printArea.width || bWordChopped) {
 			//if (ptWordSize.x > printArea.width && word.length() > 1) {
 			// word is longer than space avail, split
 			int endIndex = word.length();
 			do {
-				endIndex--;
+				if (targetWidth / 4 > printArea.width) {
+					endIndex /= 2;
+				} else {
+					endIndex--;
+				}
 				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
-			} while (endIndex > 0 && ptWordSize.x + iLineLength[0] > printArea.width);
+				targetWidth = iLineLength[0] + ptWordSize.x;
+			} while (endIndex > 0 && targetWidth > printArea.width);
 
 			if (DEBUG) {
 				System.out.println("excess starts at " + endIndex + "(" + ptWordSize.x
