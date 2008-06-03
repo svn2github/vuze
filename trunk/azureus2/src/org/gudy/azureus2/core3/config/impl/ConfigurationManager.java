@@ -419,6 +419,7 @@ ConfigurationManager
   			encoded.add( stringToBytes((String)l.get(i)));
   		}
   		propertiesMap.put(parameter,encoded);
+  		notifyParameterListeners(parameter);
   	} catch(Exception e) {
   		Debug.printStackTrace(e);
   		return false;
