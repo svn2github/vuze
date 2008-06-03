@@ -489,11 +489,11 @@ public class MainWindow
 
 			initSkinListeners();
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
-			skin.initialize(shell, "main.shell");
+			skin.initialize(shell, "main.shell", uiInitializer);
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("skin init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -537,7 +537,7 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin.layout();
 
@@ -595,7 +595,7 @@ public class MainWindow
 				}
 			});
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("pre skin widgets init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -607,14 +607,14 @@ public class MainWindow
 
 			StimulusRPC.hookListeners(core, this);
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("hooks init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
 			initWidgets();
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("skin widgets init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -661,7 +661,7 @@ public class MainWindow
 				startTime = SystemTime.getCurrentTime();
 			}
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "splash.initializeGui");
 
 			buildTopBarViews();
 
@@ -795,7 +795,7 @@ public class MainWindow
 
 			//================
 
-			increaseProgress(uiInitializer, null);
+			increaseProgress(uiInitializer, "splash.initializeGui");
 
 			System.out.println("shell.open took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
