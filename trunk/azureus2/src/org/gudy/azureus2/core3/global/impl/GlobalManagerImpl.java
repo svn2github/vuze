@@ -1653,11 +1653,19 @@ public class GlobalManagerImpl
 					  if(progress_listener != null &&  SystemTime.getCurrentTime() - lastListenerUpdate > 100) {
 						  lastListenerUpdate = SystemTime.getCurrentTime();
 	
+						  String shortFileName = fileName;
+						  try {
+							  File f = new File(fileName);
+							  shortFileName = f.getName();
+						  } catch (Exception e) {
+							// TODO: handle exception
+						}
+						  
 						  progress_listener.reportPercent(100 * currentDownload / nbDownloads);
 						  progress_listener.reportCurrentTask(MessageText.getString("splash.loadingTorrent") 
 								  + " " + currentDownload + " "
 								  + MessageText.getString("splash.of") + " " + nbDownloads
-								  + " : " + fileName );
+								  + " : " + shortFileName );
 					  }
 	
 					  //migration from using a single savePath to a separate dir and file entry
