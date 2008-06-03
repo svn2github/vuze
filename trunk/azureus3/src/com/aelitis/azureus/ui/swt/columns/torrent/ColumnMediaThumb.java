@@ -426,10 +426,10 @@ public class ColumnMediaThumb
 
 	public void cellVisibilityChanged(TableCell cell, int visibility) {
 		if (visibility == TableCellVisibilityListener.VISIBILITY_HIDDEN) {
-			log(cell, "whoo, save");
+			//log(cell, "whoo, save");
 			disposeOldImage(cell);
 		} else if (visibility == TableCellVisibilityListener.VISIBILITY_SHOWN) {
-			log(cell, "whoo, draw");
+			//log(cell, "whoo, draw");
 			refresh(cell, true);
 		}
 	}
