@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.skin.SkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -396,7 +397,19 @@ public class SWTSkin
 		return tabSet.setActiveTab(sTabViewID);
 	}
 
+	/**
+	 * @param shell2
+	 * @param string
+	 * @param uiInitializer
+	 *
+	 * @since 3.0.5.3
+	 */
 	public void initialize(Shell shell, String startID) {
+		initialize(shell, startID, null);
+	}
+
+	public void initialize(Shell shell, String startID,
+			IUIIntializer uiInitializer) {
 
 		this.shell = shell;
 		FormLayout layout = new FormLayout();
@@ -436,6 +449,11 @@ public class SWTSkin
 
 			if (DEBUGLAYOUT) {
 				System.out.println("Container: " + sID);
+			}
+			System.out.println("Container: " + sID);
+			
+			if (uiInitializer != null) {
+				uiInitializer.increaseProgress();
 			}
 
 			linkIDtoParent(skinProperties, sID, sID, null, false, true);
