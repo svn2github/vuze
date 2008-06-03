@@ -315,7 +315,7 @@ public class Initializer
 
 		core.start();
 
-		reportPercent(70);
+		reportPercent(60);
 
 		System.out.println("Core Initializing took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
