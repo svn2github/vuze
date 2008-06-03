@@ -64,6 +64,10 @@ public abstract class AbstractUISWTInputReceiver extends AbstractUIInputReceiver
 		if (!allow_edit && this.preentered_text != null) {
 			throw new RuntimeException("cannot set allow_edit to false if you have already set pre-entered text");
 		} 
+		
+		// Don't resort to combo mode if there's no choices - it seems to break things.
+		if (choices.length == 0) {return;}
+		
 		this.choices = choices;
 		this.choices_allow_edit = allow_edit;
 		this.choices_default = default_choice;
