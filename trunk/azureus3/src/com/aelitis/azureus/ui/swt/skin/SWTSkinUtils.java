@@ -139,7 +139,7 @@ public class SWTSkinUtils
 				if (visible) {
 					final FormData fd = (FormData) control.getLayoutData();
 					Point size = (Point) control.getData("v3.oldHeight");
-					System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
+					//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
 					if (size == null && control.getSize().y < 2) {
 						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 						if (fd.height > 0) {
@@ -251,7 +251,19 @@ public class SWTSkinUtils
 	
 	public static void slide(final Control control, final FormData fd,
 			final Point size) {
-		//System.out.println("slid to " + size);
+		//System.out.println("slide to " + size + " via "+ Debug.getCompressedStackTrace());
+		boolean exit = Utils.execSWTThreadWithBool("slide", new AERunnableBoolean() {
+			public boolean runSupport() {
+				boolean exit = control.getData("Sliding") != null;
+				control.setData("slide.destSize", size);
+				return exit;
+			}
+		}, 1000);
+
+		if (exit) {
+			return;
+		}
+
 		AERunnable runnable = new AERunnable() {
 			boolean firstTime = true;
 			float pct = 0.4f;
@@ -260,12 +272,13 @@ public class SWTSkinUtils
 				if (control.isDisposed()) {
 					return;
 				}
+				Point size = (Point) control.getData("slide.destSize");
+				if (size == null) {
+					return;
+				}
 
 				if (firstTime) {
 					firstTime = false;
-					if (control.getData("Sliding") != null) {
-						return;
-					}
 					control.setData("Sliding", "1");
 				}
 
@@ -284,6 +297,7 @@ public class SWTSkinUtils
 					control.getParent().layout();
 
 					control.setData("Sliding", null);
+					control.setData("slide.destSize", null);
 				} else {
 					fd.width = newWidth;
 					fd.height = newHeight;
