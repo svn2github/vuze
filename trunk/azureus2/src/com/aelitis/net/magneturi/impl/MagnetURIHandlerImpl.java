@@ -644,14 +644,53 @@ MagnetURIHandlerImpl
 						value = ((MagnetURIHandlerListener)listeners.get(i)).get( name, paramsCopy );
 					}
 				}
+								
+				if ( value == Integer.MIN_VALUE ){
+					
+					String	def_str = (String)params.get( "default" );
+
+					if ( def_str != null ){
+						
+						try{
+							value = Integer.parseInt( def_str );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+						}
+						
+					}
+				}
 				
 				if ( value != Integer.MIN_VALUE ){
+					
+					String	max_str = (String)params.get( "max" );
+
+					if( max_str != null ){
+						
+						try{
+							int	max = Integer.parseInt( max_str );
+							
+							if ( value > max ){
+								
+								value = max;
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+
+					if ( value < 0 ){
+						
+						value = 0;
+					}
 					
 						// need to trim if too large
 					
 					if ( value > 1024 * 1024 ){
 						
-						value = 1024 * 1024;
+						value = 1024 * 1024;	
 					}
 										
 						// see if we need to div/mod for clients that don't support huge images
