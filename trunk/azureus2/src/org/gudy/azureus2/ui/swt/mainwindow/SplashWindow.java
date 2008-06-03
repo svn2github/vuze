@@ -193,8 +193,7 @@ public class SplashWindow
 		canvas.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
 				GC gc = event.gc;
-				gc.drawImage(current, event.x, event.y, event.width, event.height,
-						event.x, event.y, event.width, event.height);
+				gc.drawImage(current, 0, 0);
 			}
 		});
 
