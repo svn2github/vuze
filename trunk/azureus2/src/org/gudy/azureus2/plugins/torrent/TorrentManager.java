@@ -228,11 +228,14 @@ TorrentManager
 		String		name );
 
 		/**
-		 * Gives access to/creates arbitrary String attributes for plugins to use
+		 * Gives access to/creates arbitrary String attributes for plugins to use. The
+		 * attribute will be specific to the plugin, so you can use short torrent names
+		 * like "name", you won't need to add the plugin ID or any other sort of unique
+		 * identifier to the attribute name.
+		 * 
 		 * @param name
 		 * @return
 		 */
-
 	public TorrentAttribute
 	getPluginAttribute(
 		String		name );
