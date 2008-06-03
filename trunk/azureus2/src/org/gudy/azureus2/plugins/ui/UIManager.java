@@ -98,7 +98,8 @@ UIManager
 	 * Creates a basic plugin view model and adds it to the plugin in one step.
 	 * view is placed inside the plugins section of the configuration page.
 	 * 
-	 * @param name
+	 * @param name The name for the view (this should be localised text, rather
+	 *     than a message string).
 	 * @return BasicPluginViewModel
 	 * @since 2.1.0.2
 	 */
