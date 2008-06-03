@@ -518,9 +518,13 @@ public class SWTSkinObjectText2
 			setText("");
 		}
 
-		else if (key.equals(sKey)) {
-			return;
-		}
+		/*
+		 * KN: disabling the caching of the key since this is parameterized it may be called
+		 * multiple times with different parameters
+		 */
+//		else if (key.equals(sKey)) {
+//			return;
+//		}
 
 		this.sText = MessageText.getString(key, params);
 		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
