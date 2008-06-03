@@ -397,7 +397,8 @@ public class TorrentListViewsUtils
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
-				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true, true);
+				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true,
+						true);
 			}
 		}
 	}
@@ -520,41 +521,45 @@ public class TorrentListViewsUtils
 			boolean untrusted = isUntrustworthyContent(ext);
 			boolean trusted = isTrustedContent(ext);
 
-			if (untrusted || !trusted) {
-				String sPrefix = untrusted ? "v3.mb.notTrusted."
-						: "v3.mb.UnknownContent.";
-
-				UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-				if (functionsSWT == null) {
-					return false;
-				}
-				Program program = Program.findProgram(ext);
-				String sTextID;
-				String sFileType;
-				if (program == null) {
-					sTextID = sPrefix + "noapp.text";
-					sFileType = ext;
-				} else {
-					sTextID = sPrefix + "text";
-					sFileType = program.getName();
-				}
-
-				MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
-						MessageText.getString(sPrefix + "title"), MessageText.getString(
-								sTextID, new String[] {
-									dm.getDisplayName(),
-									sFileType,
-									ext
-								}), new String[] {
-							MessageText.getString(sPrefix + "button.run"),
-							MessageText.getString(sPrefix + "button.cancel")
-						}, 1);
-				mb.setRelatedObject(dm);
-				int i = mb.open();
-				if (i != 0) {
-					return false;
-				}
+			//if (untrusted || !trusted) {
+			String sPrefix = untrusted ? "v3.mb.notTrusted."
+					: "v3.mb.UnknownContent.";
+			if (trusted) {
+				sPrefix = "v3.mb.Trusted.";
 			}
+
+			UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (functionsSWT == null) {
+				return false;
+			}
+			Program program = Program.findProgram(ext);
+			String sTextID;
+			String sFileType;
+			if (program == null) {
+				sTextID = sPrefix + "noapp.text";
+				sFileType = ext;
+			} else {
+				sTextID = sPrefix + "text";
+				sFileType = program.getName();
+			}
+
+			MessageBoxShell mb = new MessageBoxShell(functionsSWT.getMainShell(),
+					MessageText.getString(sPrefix + "title"), MessageText.getString(
+							sTextID, new String[] {
+								dm.getDisplayName(),
+								sFileType,
+								ext
+							}), new String[] {
+						MessageText.getString(sPrefix + "button.run"),
+						MessageText.getString(sPrefix + "button.cancel")
+					}, 1, sPrefix + ".remember_id", MessageText.getString(sPrefix
+							+ "remember"), false, 0);
+			mb.setRelatedObject(dm);
+			int i = mb.open();
+			if (i != 0) {
+				return false;
+			}
+			//}
 
 			boolean bComplete = dm.isDownloadComplete(false);
 
