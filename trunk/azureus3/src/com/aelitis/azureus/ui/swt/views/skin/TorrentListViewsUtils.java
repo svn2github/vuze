@@ -554,6 +554,7 @@ public class TorrentListViewsUtils
 						MessageText.getString(sPrefix + "button.cancel")
 					}, 1, sPrefix + ".remember_id", MessageText.getString(sPrefix
 							+ "remember"), false, 0);
+			mb.setRememberOnlyIfButton(0);
 			mb.setRelatedObject(dm);
 			int i = mb.open();
 			if (i != 0) {
