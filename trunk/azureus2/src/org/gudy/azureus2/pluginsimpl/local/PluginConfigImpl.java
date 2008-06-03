@@ -917,6 +917,17 @@ PluginConfigImpl
     //
     //
     
+    public String[] getPluginStringListParameter(String key) {
+    	notifyParamExists(this.key + key);
+    	return COConfigurationManager.getStringListParameter(this.key + key).toArray();
+    }
+
+	 public void setPluginStringListParameter(String key, String[] value) {
+		 notifyParamExists(this.key + key);
+		 StringListImpl list_obj = new StringListImpl(Arrays.asList(value));
+		 COConfigurationManager.setParameter(this.key+key, list_obj);
+	 }
+    
 	 public List getPluginListParameter(String key, List default_value) {
 		 notifyParamExists(this.key + key);
 		return COConfigurationManager.getListParameter(this.key+key, default_value); 

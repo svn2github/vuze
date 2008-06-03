@@ -772,6 +772,16 @@ PluginConfig
    * @since 2.0.4.2
    */
   public String getPluginStringParameter(String key, String default_value);
+  
+  /**
+   * Returns the value of a plugin string-list parameter. If no value is set,
+   * an empty string array will be returned.
+   * 
+   * @param key The parameter name.
+   * @return The value of the parameter.
+   * @since 3.0.5.3
+   */
+  public String[] getPluginStringListParameter(String key);
 
   /**
    * Sets the value of a plugin boolean parameter.
@@ -846,6 +856,15 @@ PluginConfig
    */
   public void setPluginParameter(String key, String value);
 
+  /**
+   * Sets the value of a plugin string-list parameter.
+   * 
+   * @param key The parameter name.
+   * @param value The new value of the parameter.
+   * @since 3.0.5.3
+   */
+  public void setPluginStringListParameter(String key, String[] value);
+  
   /**
    * Sets the value of a plugin color parameter.
    * 

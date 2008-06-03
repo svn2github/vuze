@@ -596,4 +596,6 @@ RPPluginConfig
 		  public void setPluginConfigSource(PluginConfigSource source) {notSupported();}
 		  public PluginConfigSource enableExternalConfigSource() {notSupported(); return null;}
 		  
+		  public void setPluginStringListParameter(String key, String[] value)  {notSupported();}
+		  public String[] getPluginStringListParameter(String key)  {notSupported(); return null;}
 }
