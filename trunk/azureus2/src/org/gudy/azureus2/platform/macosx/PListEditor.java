@@ -22,7 +22,10 @@ package org.gudy.azureus2.platform.macosx;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.CharBuffer;
 
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -130,7 +133,32 @@ PListEditor
 	getFileContent()
 		throws IOException
 	{
-		return FileUtil.readFileAsString(new File(plistFile), 64*1024, "UTF-8" );
+		FileReader fr = null;
+		
+		try{
+			fr = new FileReader(plistFile);
+			//max 32KB
+			int length = 32 * 1024;
+			char[] buffer = new char[length];
+			int offset = 0;
+			int len = 0;
+			
+			while((len = fr.read(buffer,offset,length-offset)) > 0) {
+				offset += len;
+			}
+			
+			String result =  new String(buffer,0,offset);
+			
+			return result;
+			
+		} finally {
+			if(fr != null) {
+				fr.close();
+			}
+		}
+		
+		
+		//return FileUtil.readFileAsString(new File(plistFile), 64*1024, "UTF-8" );
 	}
 	
 	private void 
@@ -154,19 +182,19 @@ PListEditor
 		boolean	ok = false;
 		
 		try{
-			FileOutputStream fos = null;
+			
+			FileWriter fw = null;
 			
 			try{
 				
-				fos = new FileOutputStream(plistFile);
-				
-				fos.write(fileContent.getBytes("UTF-8"));
+				fw = new FileWriter(plistFile);
+				fw.write(fileContent);
 	
 			} finally {
 				
-				if( fos != null ){
+				if( fw != null ){
 					
-					fos.close();
+					fw.close();
 					
 					ok = true;
 				}
