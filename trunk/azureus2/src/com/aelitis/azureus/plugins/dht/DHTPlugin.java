@@ -579,21 +579,6 @@ DHTPlugin
 			return;
 		}
 		
-		PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
-		
-		if ( pi_upnp == null ){
-
-			log.log( "UPnP plugin not found, can't map port" );
-			
-		}else{
-			
-			upnp_mapping = ((UPnPPlugin)pi_upnp.getPlugin()).addMapping( 
-							plugin_interface.getPluginName(), 
-							false, 
-							dht_data_port, 
-							true );
-		}
-
 		setPluginInfo();
 		
 		plugin_interface.addListener(
@@ -602,6 +587,21 @@ DHTPlugin
 				public void
 				initializationComplete()
 				{
+					PluginInterface pi_upnp = plugin_interface.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+					
+					if ( pi_upnp == null ){
+
+						log.log( "UPnP plugin not found, can't map port" );
+						
+					}else{
+						
+						upnp_mapping = ((UPnPPlugin)pi_upnp.getPlugin()).addMapping( 
+										plugin_interface.getPluginName(), 
+										false, 
+										dht_data_port, 
+										true );
+					}
+
 					String	ip = null;
 					
 					if ( advanced.getValue()){

@@ -215,6 +215,8 @@ PluginInitializer
   private List		initThreads;
   private boolean	initialisation_complete;
   
+  private volatile boolean	plugins_initialised;
+  
   
   public static PluginInitializer
   getSingleton(
@@ -1296,12 +1298,23 @@ PluginInitializer
 			
 			registration_queue.clear();
 			
+			plugins_initialised = true;
+			
 			fireEvent( PluginEvent.PEV_ALL_PLUGINS_INITIALISED );
 	  }finally{
 		  
 		  initThreads = null;
 	  }
 	}
+  
+  	protected void
+  	checkPluginsInitialised()
+  	{
+  		if ( !plugins_initialised ){
+  			
+  			Debug.out( "Wait until plugin initialisation is complete until doing this!" );
+  		}
+  	}
   
   	private void
 	initialisePlugin(
@@ -1752,6 +1765,9 @@ PluginInitializer
   }
 
   protected List getPluginInterfacesSupport() {
+	  
+	checkPluginsInitialised();
+		
   	return plugin_interfaces;
   }
   
