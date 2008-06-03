@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -28,6 +29,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -55,6 +57,11 @@ BuddyPluginView
 	
 	private BuddyPluginViewInstance		current_instance;
 		
+	private static Image icon_nli 	= ImageRepository.getImage( "bbb_nli" );
+	private static Image icon_idle 	= ImageRepository.getImage( "bbb_idle" );
+	private static Image icon_in 	= ImageRepository.getImage( "bbb_in" );
+	private static Image icon_out 	= ImageRepository.getImage( "bbb_out" );
+	
 	public
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
@@ -160,7 +167,7 @@ BuddyPluginView
 			status	= _status;
 			
 			tracker = plugin.getTracker();
-			
+				
 			status.setText( "BBB" );
 			
 			status.setImageEnabled( true );
@@ -271,7 +278,7 @@ BuddyPluginView
 				
 				if ( has_buddies && !crypto_ok ){
 					
-					status.setImage( UISWTStatusEntry.IMAGE_LED_RED );
+					status.setImage( icon_nli );
 					
 					disableUpdates();
 					
@@ -280,18 +287,18 @@ BuddyPluginView
 					
 					if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
 						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_GREY );
+						status.setImage( icon_idle );
 						
 						disableUpdates();
 						
 					}else if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
 						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_GREEN );
+						status.setImage( icon_in );
 						
 						enableUpdates();
 					}else{
 						
-						status.setImage( UISWTStatusEntry.IMAGE_LED_YELLOW );
+						status.setImage( icon_out );
 						
 						enableUpdates();
 					}

@@ -156,6 +156,11 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/statusbar/status_warning.gif","sb_warning");
 		addPath("org/gudy/azureus2/ui/icons/statusbar/user_count.png", "sb_count");
 
+		addPath("org/gudy/azureus2/ui/icons/statusbar/bbb_notloggedin.png", "bbb_nli");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/bbb_idle.png", "bbb_idle");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/bbb_boosting.png", "bbb_out");
+		addPath("org/gudy/azureus2/ui/icons/statusbar/bbb_boosted.png", "bbb_in");
+
 		addPath("org/gudy/azureus2/ui/icons/smallx.png", "smallx");
 		addPath("org/gudy/azureus2/ui/icons/smallx-gray.png", "smallx-gray");
 		addPath("org/gudy/azureus2/ui/icons/working.gif", "working");
