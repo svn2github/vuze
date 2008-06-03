@@ -21,11 +21,7 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
@@ -58,7 +54,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_GET_ENGINES 			= "get-engines";
 	public static final String OP_GET_ALL_ENGINES 		= "get-all-engines";
 
+	public static final String OP_CHANGE_ENGINE_SELECTION 	= "change-engine-selection";
+	
 	public static final String OP_SET_SELECTED_ENGINES 	= "set-selected-engines";
+
 	public static final String OP_GET_AUTO_MODE		 	= "get-auto-mode";
 	
 	public static final String OP_SAVE_TEMPLATE		 	= "save-template";
@@ -221,6 +220,72 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage("metasearch", "setSelectedFailed",params);
+			}
+		} else if( OP_CHANGE_ENGINE_SELECTION.equals(opid)){
+			
+			Map decodedMap = message.getDecodedMap();
+
+			MetaSearch ms = metaSearchManager.getMetaSearch();
+			
+			Engine[] engines = ms.getEngines( false );
+			
+			Set selected = new HashSet();
+			
+			for (int i=0;i<engines.length;i++){
+				
+				Engine e = engines[i];
+				
+				if ( e.getSelectionState() == Engine.SEL_STATE_MANUAL_SELECTED ){
+					
+					selected.add( new Long( e.getId()));
+				}
+			}
+			
+			List l_engines = (List)decodedMap.get( "engines" );
+			
+			for (int i=0;i<l_engines.size();i++){
+				
+				Map	map = (Map)l_engines.get(i);
+				
+				long id = ((Long)map.get("id")).longValue();
+
+				String str = (String)map.get( "selected");
+				
+				if ( str.equalsIgnoreCase( Engine.SEL_STATE_STRINGS[Engine.SEL_STATE_MANUAL_SELECTED])){
+					
+					selected.add( new Long( id ));
+					
+				}else if ( str.equalsIgnoreCase( Engine.SEL_STATE_STRINGS[Engine.SEL_STATE_DESELECTED])){
+					
+					selected.remove( new Long( id ));
+				}
+			}
+			
+			long[] ids = new long[selected.size()];
+			
+			Iterator it = selected.iterator();
+			
+			int	pos = 0;
+			
+			while( it.hasNext()){
+				
+				long	 id = ((Long)it.next()).longValue();
+				
+				ids[pos++] = id;
+			}
+						
+			try{
+				metaSearchManager.setSelectedEngines( ids, metaSearchManager.isAutoMode());
+				
+				Map params = new HashMap();
+				sendBrowserMessage("metasearch", "changeEngineSelectionCompleted",params);
+
+			}catch( Throwable e ){
+				
+				Map params = new HashMap();
+				params.put("error",Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "changeEngineSelectionFailed",params);
 			}	
 		} else if(OP_GET_AUTO_MODE.equals(opid)) {
 						
