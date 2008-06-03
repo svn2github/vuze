@@ -309,7 +309,7 @@ UIManagerImpl
   					if(init != null)
   					{
   						init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
-  						init.increaseProgresss();
+  						init.increaseProgress();
   					}
   					
   					try{
