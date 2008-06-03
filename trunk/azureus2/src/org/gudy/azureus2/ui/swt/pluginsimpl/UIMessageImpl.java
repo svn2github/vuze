@@ -36,6 +36,14 @@ public class UIMessageImpl extends AbstractUIMessage {
 	}
 
 	public int ask() {
+		final int[] result = new int[1];
+		Utils.execSWTThread(new Runnable() {
+			public void run() {result[0] = ask0();}
+		}, false);
+		return result[0];
+	}
+	
+	private int ask0() {
 		final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		Utils.setShellIcon(shell);
 		
