@@ -865,7 +865,7 @@ public class MainWindow
 	 */
 	private void increaseProgress(IUIIntializer uiInitializer, String taskKey) {
 		if (uiInitializer != null) {
-			uiInitializer.increaseProgresss();
+			uiInitializer.increaseProgress();
 			if (taskKey != null) {
 				uiInitializer.reportCurrentTask(MessageText.getString(taskKey));
 			}

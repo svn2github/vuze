@@ -452,7 +452,7 @@ public class Initializer
 		reportCurrentTask(MessageText.getString(key));
 	}
 	
-	public void increaseProgresss() {
+	public void increaseProgress() {
 		if (curPercent < 100) {
 			reportPercent(curPercent + 1);
 		}
