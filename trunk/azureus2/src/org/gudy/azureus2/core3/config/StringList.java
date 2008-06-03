@@ -43,4 +43,6 @@ public interface StringList {
 	public boolean contains(String str);
 
 	public String remove(int index);
+	
+	public String[] toArray();
 }

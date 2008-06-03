@@ -48,8 +48,8 @@ public class StringListImpl implements StringList {
 	/*
 	 * package accessor to load / save the list.
 	 */	
-	StringListImpl(List _list) {
-		//Atempt to convert list to String List
+	public StringListImpl(List _list) {
+		//Attempt to convert list to String List
 		this();		
 		Iterator iter = _list.iterator();
 		while(iter.hasNext()) {
@@ -100,6 +100,10 @@ public class StringListImpl implements StringList {
 
 	public String remove(int index) {
 		return (String)list.remove(index);
+	}
+	
+	public String[] toArray() {
+		return (String[])list.toArray(new String[list.size()]);
 	}
 
 }
