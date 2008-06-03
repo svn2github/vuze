@@ -338,7 +338,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 			 * @return  -
 			 */
 			public int query(String name, Map values) {
-				return 0;  //new method not likely needed.
+				return Integer.MIN_VALUE;
 			}
 		});
 	}
