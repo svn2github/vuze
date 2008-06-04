@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.swt.graphics.Point;
+
 public interface IBuddyPageListener
 {
 	public static final String OP_CLOSE = "close";
@@ -19,6 +21,20 @@ public interface IBuddyPageListener
 
 	public static final String OP_INVITE_CONFIRM_PARAM_MSG = "message";
 
+	public static final String OP_RESIZE = "resize";
+
+	public static final String OP_RESIZE_PARAM_WIDTH = "width";
+
+	public static final String OP_RESIZE_PARAM_HEIGHT = "height";
+
+	public static final String OP_RESIZE_PARAM_WINDOW_STATE = "window_state";
+
+	public static final String OP_RESIZE_PARAM_STATE_MAXIMIZE = "maximize";
+
+	public static final String OP_RESIZE_PARAM_STATE_MINIMIZE = "minimize";
+
+	public static final String OP_RESIZE_PARAM_STATE_RESTORE = "restore";
+
 	public void handleClose();
 
 	public void handleCancel();
@@ -28,6 +44,8 @@ public interface IBuddyPageListener
 	public void handleEmailInvites();
 
 	public void handleInviteConfirm();
+
+	public void handleResize();
 
 	/**
 	 * Returns a list of <code>VuzeBuddy</code>; the list may be empty but never <code>null</code>
@@ -43,4 +61,7 @@ public interface IBuddyPageListener
 
 	public String getConfirmationMessage();
 
+	public Point getSize();
+	
+	public String getWindowState();
 }

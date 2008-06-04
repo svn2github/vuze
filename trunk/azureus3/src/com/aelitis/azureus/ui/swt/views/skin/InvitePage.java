@@ -117,24 +117,12 @@ public class InvitePage
 						}
 
 						public void handleInviteConfirm() {
-							try {
-								VuzeBuddyManager.inviteWithShare(getConfirmationResponse(),
-										null, null, null);
-							} catch (NotLoggedInException e) {
-								// XXX Handle me!
-								e.printStackTrace();
+						}
+
+						public void handleResize() {
+							if(null != getWindowState()){
+								System.out.println("Resizing standalone Add Friends: " + getWindowState());//KN: sysout
 							}
-
-							if (null != getConfirmationMessage()) {
-								Utils.execSWTThread(new AERunnable() {
-
-									public void runSupport() {
-										Utils.openMessageBox(content.getShell(), SWT.OK, "Invite",
-												getConfirmationMessage());
-									}
-								});
-							}
-
 						}
 					}
 

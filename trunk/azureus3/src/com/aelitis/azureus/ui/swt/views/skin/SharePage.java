@@ -743,9 +743,12 @@ public class SharePage
 				}
 
 				public void handleResize() {
-					// TODO Auto-generated method stub
-
+					if (null != getWindowState()) {
+						System.out.println("Resizing embedded Add Friends: "
+								+ getWindowState());//KN: sysout
+					}
 				}
+
 			});
 		}
 		return context;

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.graphics.Point;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -41,13 +42,17 @@ public abstract class AbstractBuddyPageListener
 
 	private String invitationMessage = "";
 
+	private Point size = new Point(-1, -1);
+
+	private String windowState = null;
+
 	public AbstractBuddyPageListener(Browser browser) {
 		super(LISTENER_ID);
 		this.browser = browser;
 	}
 
 	public void handleMessage(final BrowserMessage message) {
-
+System.out.println(message.getFullMessage());//KN: sysout
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String opID = message.getOperationId();
@@ -80,6 +85,28 @@ public abstract class AbstractBuddyPageListener
 						}
 						handleInviteConfirm();
 					}
+				}
+
+				else if (true == OP_RESIZE.equals(opID)) {
+
+					if (true == decodedMap.containsKey(OP_RESIZE_PARAM_WINDOW_STATE)) {
+						windowState = decodedMap.get(OP_RESIZE_PARAM_WINDOW_STATE).toString();
+						if (null != windowState) {
+							if (false == windowState.equals(OP_RESIZE_PARAM_STATE_MAXIMIZE)
+									&& false == windowState.equals(OP_RESIZE_PARAM_STATE_MINIMIZE)
+									&& false == windowState.equals(OP_RESIZE_PARAM_STATE_RESTORE)) {
+								windowState = null;
+							}
+						}
+					} else {
+						if (true == decodedMap.containsKey(OP_RESIZE_PARAM_WIDTH)) {
+							size.x = Integer.parseInt(decodedMap.get(OP_RESIZE_PARAM_WIDTH).toString());
+						}
+						if (true == decodedMap.containsKey(OP_RESIZE_PARAM_HEIGHT)) {
+							size.y = Integer.parseInt(decodedMap.get(OP_RESIZE_PARAM_HEIGHT).toString());
+						}
+					}
+					handleResize();
 				}
 			}
 		});
@@ -132,4 +159,13 @@ public abstract class AbstractBuddyPageListener
 	public void setConfirmationMessage(String confirmationMessage) {
 		this.confirmationMessage = confirmationMessage;
 	}
+
+	public Point getSize() {
+		return size;
+	}
+
+	public String getWindowState() {
+		return windowState;
+	}
+
 }
