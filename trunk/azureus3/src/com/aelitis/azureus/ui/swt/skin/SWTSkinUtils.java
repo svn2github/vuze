@@ -121,6 +121,12 @@ public class SWTSkinUtils
 			String viewID, final boolean visible, boolean save, boolean fast) {
 
 		SWTSkinObject skinObject = skin.getSkinObject(viewID);
+		
+		if (skinObject == null) {
+			Debug.out("setVisibility on non existing skin object: " + viewID);
+			return;
+		}
+		
 		if (skinObject.isVisible() == visible && skin.getShell().isVisible()) {
 			return;
 		}
