@@ -392,7 +392,8 @@ public class ColumnMediaThumb
 				}
 			}
 
-			if (cellHasMouse && dm != null && !dm.getAssumedComplete()) {
+			if (!(ds instanceof DownloadManager) && cellHasMouse && dm != null
+					&& !dm.getAssumedComplete()) {
 				gc.setForeground(Colors.white);
 				String sPercent = dm.getStats().getDownloadCompleted(false) / 10 + "%";
 				Point extent = gc.textExtent(sPercent);
