@@ -21,17 +21,24 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.net.URL;
+
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
+import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -103,7 +110,12 @@ BuddyPluginView
 				}
 			});
 		
-		new statusUpdater( ui_instance.createStatusEntry());
+
+		UISWTStatusEntry label = ui_instance.createStatusEntry();
+		
+		label.setText( MessageText.getString( "azbuddy.tracker.bbb.status.title" ));
+
+		new statusUpdater( ui_instance );
 	}
 	
 	public boolean 
@@ -151,6 +163,7 @@ BuddyPluginView
 	statusUpdater
 		implements BuddyPluginTrackerListener
 	{
+		private UISWTStatusEntry	label;
 		private UISWTStatusEntry	status;
 		private BuddyPluginTracker	tracker;
 		
@@ -162,21 +175,60 @@ BuddyPluginView
 		
 		protected
 		statusUpdater(
-			UISWTStatusEntry		_status )
+			UISWTInstance		instance )
 		{
-			status	= _status;
+			status	= ui_instance.createStatusEntry();
+			label 	= ui_instance.createStatusEntry();
+			
+			label.setText( MessageText.getString( "azbuddy.tracker.bbb.status.title" ));
+			label.setTooltipText( MessageText.getString( "azbuddy.tracker.bbb.status.title.tooltip" ));
 			
 			tracker = plugin.getTracker();
 				
-			status.setText( "BBB" );
+			status.setText( "" );
 			
 			status.setImageEnabled( true );
 			
 			status.setVisible( tracker.isEnabled());
+			label.setVisible( tracker.isEnabled());
 		
 			tracker.addListener( this );
 			
 			has_buddies = plugin.getBuddies().size() > 0;
+			
+			MenuItem mi = plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
+									status.getMenuContext(),
+									"dweeble" );
+			
+			mi.addListener(
+				new MenuItemListener()
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						System.out.println( "whee" );
+					}
+				});
+			
+			status.setListener(
+				new UISWTStatusEntryListener()
+				{
+					public void 
+					entryClicked(
+						UISWTStatusEntry entry )
+					{
+						try{
+							plugin.getPluginInterface().getUIManager().openURL(
+									new URL( "http://faq.vuze.com/?CategoryID=6" ));
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
 			
 			plugin.addListener( 
 				new BuddyPluginListener()
@@ -276,19 +328,25 @@ BuddyPluginView
 			if ( tracker.isEnabled()){
 				
 				status.setVisible( true );
+				label.setVisible( true );
 				
 				if ( has_buddies && !crypto_ok ){
 					
 					status.setImage( icon_nli );
 					
+					status.setTooltipText( MessageText.getString( "azbuddy.tracker.bbb.status.nli" ));
+
 					disableUpdates();
 					
 				}else{
+					
 					int	network_status = tracker.getNetworkStatus();
 					
 					if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
 						
 						status.setImage( icon_idle );
+						
+						status.setTooltipText( MessageText.getString( "azbuddy.tracker.bbb.status.idle" ));
 						
 						disableUpdates();
 						
@@ -297,6 +355,7 @@ BuddyPluginView
 						status.setImage( icon_in );
 						
 						enableUpdates();
+						
 					}else{
 						
 						status.setImage( icon_out );
@@ -309,6 +368,7 @@ BuddyPluginView
 				disableUpdates();
 				
 				status.setVisible( false );
+				label.setVisible( false );
 			}
 		}
 		
@@ -318,7 +378,7 @@ BuddyPluginView
 			if ( update_event == null ){
 				
 				update_event = SimpleTimer.addPeriodicEvent(
-					"Buddy:guiupdate",
+					"Buddy:GuiUpdater",
 					2500,
 					new TimerEventPerformer()
 					{
@@ -326,27 +386,31 @@ BuddyPluginView
 						perform(
 							TimerEvent event ) 
 						{	
-							String	tt;
-							
-							
-							int ns = tracker.getNetworkStatus();
-							
-							if ( ns == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+							synchronized( statusUpdater.this ){
 								
-								tt = "Idle";
-								
-							}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
-								
-								tt = "In: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
-								
-							}else{
-								
-								tt = "Out: " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
+								if ( tracker.isEnabled() && ( crypto_ok || !has_buddies )){
+									
+									String	tt;
+															
+									int ns = tracker.getNetworkStatus();
+									
+									if ( ns == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
+										
+										tt = MessageText.getString( "azbuddy.tracker.bbb.status.idle" );
+									
+									}else if ( ns == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
+										
+										tt = MessageText.getString( "azbuddy.tracker.bbb.status.in" ) + ": " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkReceiveBytesPerSecond());
+										
+									}else{
+										
+										tt = MessageText.getString( "azbuddy.tracker.bbb.status.out" ) + ": " + DisplayFormatters.formatByteCountToKiBEtcPerSec( tracker.getNetworkSendBytesPerSecond());
+									}
+																			
+									status.setTooltipText( tt );
+								}
 							}
-																	
-							status.setTooltipText( tt );
-						}
-						
+						}					
 					});
 			}
 		}
@@ -360,8 +424,6 @@ BuddyPluginView
 				
 				update_event = null;
 			}
-			
-			status.setTooltipText( "Idle" );
 		}
 		
 		public void 
