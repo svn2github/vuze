@@ -398,6 +398,9 @@ public class SharePage
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
 		contentStats.setForeground(textColor);
+		
+		commentText.setTextLimit(140);
+		
 		contentStats.getCaret().setVisible(false);
 		contentStats.setEditable(false);
 
@@ -666,7 +669,6 @@ public class SharePage
 								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
 								inviteeList.addFriend(buddy);
 							}
-							//							adjustLayout();
 						}
 					});
 
@@ -680,7 +682,6 @@ public class SharePage
 								buddy.setDisplayName((iterator.next()).toString());
 								inviteeList.addFriend(buddy);
 							}
-							//							adjustLayout();
 						}
 					});
 
@@ -698,6 +699,11 @@ public class SharePage
 							}
 						});
 					}
+				}
+
+				public void handleResize() {
+					// TODO Auto-generated method stub
+					
 				}
 			});
 		}
