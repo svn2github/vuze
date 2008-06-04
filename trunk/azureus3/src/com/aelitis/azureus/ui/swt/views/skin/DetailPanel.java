@@ -245,9 +245,10 @@ public class DetailPanel
 						detailPanel.layout();
 					}
 
-					FormData fd = (FormData) control.getLayoutData();
-					SWTSkinUtils.slide(control, fd, value
-							? new Point(SWT.DEFAULT, size.y) : new Point(0, 0));
+					Point destSize = value ? new Point(SWT.DEFAULT, size.y) : new Point(
+							0, 0);
+					SWTSkinUtils.setVisibility(skin, null, detailPanelObject, destSize,
+							false, false, null);
 
 					/*
 					 * For OSX after the layout operation is done must set focus so the ui will repaint properly
