@@ -60,6 +60,12 @@ SESecurityManager
 	}
 	
 	public static void
+	stopThread(
+		Thread	t )
+	{
+		SESecurityManagerImpl.getSingleton().stopThread(t);
+	}
+	public static void
 	installAuthenticator()
 	{
 		SESecurityManagerImpl.getSingleton().installAuthenticator();

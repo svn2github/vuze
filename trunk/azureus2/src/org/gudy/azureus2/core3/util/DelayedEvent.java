@@ -29,13 +29,15 @@ package org.gudy.azureus2.core3.util;
 public class 
 DelayedEvent 
 {
+	private TimerEvent		event;
+	
 	public
 	DelayedEvent(
 		String				name,
 		long				delay_millis,
 		final AERunnable	target )
 	{		
-		SimpleTimer.addEvent(
+		event = SimpleTimer.addEvent(
 						name,
 						SystemTime.getCurrentTime() + delay_millis,
 						new TimerEventPerformer()
@@ -50,5 +52,11 @@ DelayedEvent
 								}
 							}					
 						});
+	}
+	
+	public void
+	cancel()
+	{
+		event.cancel();
 	}
 }

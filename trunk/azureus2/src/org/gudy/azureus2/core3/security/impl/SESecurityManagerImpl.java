@@ -123,6 +123,8 @@ SESecurityManagerImpl
 	
 	private boolean initialized = false;
 	
+	private List	stoppable_threads = new ArrayList();
+	
 	public void
 	initialise()
 	{
@@ -273,6 +275,14 @@ SESecurityManagerImpl
 					{						
 						if ( perm instanceof RuntimePermission && perm.getName().equals( "stopThread")){
 							
+							synchronized( stoppable_threads ){
+								
+								if ( stoppable_threads.contains( Thread.currentThread())){
+									
+									return;
+								}
+							}
+							
 							throw( new SecurityException( "Thread.stop operation prohibited"));
 						}
 						
@@ -307,19 +317,43 @@ SESecurityManagerImpl
 	}
 	
 	public void
+	stopThread(
+		Thread	t )
+	{
+		synchronized( stoppable_threads ){
+			
+			stoppable_threads.add( Thread.currentThread());	
+		}
+		
+		try{
+			
+			t.stop();
+			
+		}finally{
+		
+			synchronized( stoppable_threads ){
+				
+				stoppable_threads.remove( Thread.currentThread());	
+			}
+		}
+	}
+	
+	public void
 	exitVM(
 		int		status )
 	{
 		try{
 			exit_vm_permitted	= true;
-			
+
 			try{
-      	System.exit( status );
-      }
-      catch( Throwable t ){}
-			
+				System.exit( status );
+				
+			}catch( Throwable t ){
+				
+			}
+
 		}finally{
-			
+
 			exit_vm_permitted	= false;
 		}
 	}
