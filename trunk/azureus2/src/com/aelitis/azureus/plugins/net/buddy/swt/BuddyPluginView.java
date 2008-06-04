@@ -196,6 +196,7 @@ BuddyPluginView
 			
 			has_buddies = plugin.getBuddies().size() > 0;
 			
+			/*
 			MenuItem mi = plugin.getPluginInterface().getUIManager().getMenuManager().addMenuItem(
 									status.getMenuContext(),
 									"dweeble" );
@@ -211,10 +212,11 @@ BuddyPluginView
 						System.out.println( "whee" );
 					}
 				});
+			*/
 			
-			status.setListener(
+			UISWTStatusEntryListener click_listener = 
 				new UISWTStatusEntryListener()
-				{
+			{
 					public void 
 					entryClicked(
 						UISWTStatusEntry entry )
@@ -228,7 +230,11 @@ BuddyPluginView
 							Debug.printStackTrace(e);
 						}
 					}
-				});
+				};
+				
+			status.setListener( click_listener );
+			label.setListener( click_listener );
+	
 			
 			plugin.addListener( 
 				new BuddyPluginListener()
