@@ -84,6 +84,10 @@ public class ColumnMediaThumb
 
 	private static final int BORDER_SIZE = 0;
 
+	private static final int IMG_SIZE = 19;
+
+	private static final int IMG_SIZE_HALF = IMG_SIZE / 2;
+
 	private Map mapCellTorrent = new HashMap();
 
 	private final int maxThumbHeight;
@@ -116,7 +120,7 @@ public class ColumnMediaThumb
 			loadImages();
 		}
 
-		final String IMG_PREFIX = "image.button.";
+		final String IMG_PREFIX = "image.button.thumb.";
 
 		clickAreaPlay = new ColumnImageClickArea(COLUMN_ID, BTN_PLAY, IMG_PREFIX
 				+ BTN_PLAY);
@@ -341,20 +345,28 @@ public class ColumnMediaThumb
 				}
 			}
 
+			float scale = (ds instanceof DownloadManager) ? 0.8f : 1.0f;
+			int imgSize = (int) (IMG_SIZE * scale);
+			int imgSizeHalf = (int) (IMG_SIZE_HALF * scale);
+			int border = (int) (4 * scale);
+
 			if (clickAreaDL != null) {
-				clickAreaDL.setPosition(cellWidth - 30, cellHeight / 2 - 14);
+				clickAreaDL.setPosition(cellWidth - imgSize - border, cellHeight / 2
+						- imgSizeHalf);
 				clickAreaDL.setVisible(dm == null);
 			}
 			if (clickAreaDetails != null) {
-				clickAreaDetails.setPosition(2, cellHeight / 2 - 14);
+				clickAreaDetails.setPosition(border, cellHeight / 2 - imgSizeHalf);
 				clickAreaDetails.setVisible(getHash(ds, true) != null);
 			}
 			if (clickAreaRun != null) {
-				clickAreaRun.setPosition(cellWidth - 30, cellHeight / 2 - 14);
+				clickAreaRun.setPosition(cellWidth - imgSize - border, cellHeight / 2
+						- imgSizeHalf);
 				clickAreaRun.setVisible(canRun);
 			}
 			if (clickAreaPlay != null) {
-				clickAreaPlay.setPosition(cellWidth / 2 - 16, cellHeight / 2 - 14);
+				clickAreaPlay.setPosition(cellWidth / 2 - imgSizeHalf, cellHeight / 2
+						- imgSizeHalf);
 				clickAreaPlay.setVisible(canPlay);
 			}
 
@@ -375,6 +387,7 @@ public class ColumnMediaThumb
 				ColumnImageClickArea clickArea = (ColumnImageClickArea) iter.next();
 
 				if (cellHasMouse) {
+					clickArea.setScale(scale);
 					clickArea.drawImage(gc);
 				}
 			}
