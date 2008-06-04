@@ -305,11 +305,17 @@ RegexEngine
 						case FIELD_PLAYLINK :
 							result.setPlayLink(groupContent);
 							break;
+						case FIELD_COMMENTS :
+							result.setCommentsFromHTML(groupContent);
+							break;
 						case FIELD_VOTES :
 							result.setVotesFromHTML(groupContent);
 							break;
 						case FIELD_SUPERSEEDS :
 							result.setNbSuperSeedsFromHTML(groupContent);
+							break;
+						case FIELD_PRIVATE :
+							result.setPrivateFromHTML(groupContent);
 							break;
 						default:
 							break;

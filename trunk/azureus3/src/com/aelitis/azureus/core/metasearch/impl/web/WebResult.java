@@ -54,6 +54,8 @@ public class WebResult extends Result {
 	int nbSuperSeeds = -1;
 	int	comments	= -1;
 	
+	boolean privateTorrent;
+	
 	String cdpLink;
 	String torrentLink;
 	String playLink;
@@ -210,6 +212,12 @@ public class WebResult extends Result {
 		}
 	}	
 	
+	public void setPrivateFromHTML(String privateTorrent) {
+		if(privateTorrent != null && ! "".equals(privateTorrent)) {
+			this.privateTorrent = true;
+		}
+	}
+	
 	public int
 	getVotes()
 	{
@@ -334,5 +342,9 @@ public class WebResult extends Result {
 	
 	public String getSearchQuery() {
 		return searchQuery;
+	}
+	
+	public boolean isPrivate() {
+		return privateTorrent;
 	}
 }

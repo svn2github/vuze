@@ -304,6 +304,9 @@ JSONEngine
 									case FIELD_SUPERSEEDS :
 										result.setNbSuperSeedsFromHTML(fieldContent);
 										break;
+									case FIELD_PRIVATE :
+										result.setPrivateFromHTML(fieldContent);
+										break;
 									default:
 										break;
 									}

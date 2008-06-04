@@ -48,6 +48,7 @@ public abstract class Result {
 	public abstract int getNbSuperSeeds();
 	public abstract int getComments();
 	public abstract int getVotes();
+	public abstract boolean isPrivate();
 	
 	//Links
 	public abstract String getDownloadLink();
@@ -208,9 +209,9 @@ public abstract class Result {
 		if ( this.getVotes() >= 0 ){
 			object.put("v", "" + this.getVotes());
 		}
+		
+		object.put("pr", this.isPrivate() ? "1" : "0");
 
-		
-		
 		return object;
 	}
 	
