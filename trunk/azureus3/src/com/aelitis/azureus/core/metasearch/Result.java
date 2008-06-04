@@ -94,50 +94,32 @@ public abstract class Result {
 			peers = 0;
 		}
 		
-		int totalPeers = seeds + peers;
-		int expectedDLSpeedKBS = 20 * (peers+seeds+1) / (peers+1);
+		int totalVirtualPeers = 3 * seeds + peers + 2;
 		
 		int superSeeds = getNbSuperSeeds();
 		if(superSeeds > 0) {
-			expectedDLSpeedKBS += 800 * superSeeds;
+			totalVirtualPeers  += 100 * superSeeds;
 		}
 		
-		//We consider 150KB/s as a good dl speed
-		float speed = (float)expectedDLSpeedKBS / 150f;
-		
-		
-		if(speed > 3f) speed = 3f;
-		
-		//In case there are less than 20 peers, we apply a ratio
-		//This is because with such a small amount of seeds we can't make sure that the client will connect to everyone
-		float totalPeersFactor = (float)totalPeers / 500f;
-		if(totalPeersFactor > 1f) totalPeersFactor = 1f;
-		speed = speed * totalPeersFactor;
-		
-		//If we're going to download faster than 150kB/s let's simply consider it as a good speed (1)
-		//if(speed > 1f) speed = 1f;
-		
-		Date publishedDate = getPublishedDate();
-		double ageInWeeks = 520.0;
-		if(publishedDate != null) {
-			ageInWeeks  = 1 + ((SystemTime.getCurrentTime() - publishedDate.getTime()) / 604800000.0);
-		}
-		if(ageInWeeks <= 0) {
-			ageInWeeks = 1;
+		int votes = getVotes();
+		if(votes > 0) {
+			totalVirtualPeers += 10 * votes;
 		}
 		
-
+		float rank = (float) (Math.log(totalVirtualPeers)/Math.log(10)) / 5f;
 		
-		float rank = (float) (speed / (1 + Math.log(ageInWeeks)/Math.log( 10 )));
+		if(rank > 2f) rank = 2f;
 		
-		if(rank > 1f) rank = 1f;
+		if(isPrivate()) {
+			rank /= 2;
+		}
 		
 		String queryString = getSearchQuery();
 		String name = getName();
 		if(queryString != null && name != null) {
 			name = name.toLowerCase();
 			//TODO :  METASEARCH Change this as soon as Gouss sends a non escaped string
-			StringTokenizer st = new StringTokenizer(queryString, "%20");
+			StringTokenizer st = new StringTokenizer(queryString, " ");
 			while(st.hasMoreElements()) {
 				String match = st.nextToken().toLowerCase();
 				if(name.indexOf(match) == -1) {
@@ -145,6 +127,8 @@ public abstract class Result {
 				}
 			}
 		}
+		
+		if(rank > 1f) rank = 1f;
 		
 		return rank;
 	}
