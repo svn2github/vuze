@@ -145,7 +145,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
 		{
 			console = new ConsoleInput(consoleName, UIConst.getAzureusCore(), new InputStreamReader(inputStream), outputStream, Boolean.FALSE, profile);
 			
-			System.out.println( "TelnetUI: console input instanciated" );
+			System.out.println( "TelnetUI: console input instantiated" );
 		}	
 		console.printconsolehelp();
 	}
