@@ -78,6 +78,13 @@ public interface MenuManager {
 	public static final String MENU_DOWNLOAD_CONTEXT = "download_context";
 	
 	/**
+	 * This ID is used to menus attached to status entries
+	 * @since 3.0.5.3
+	 */
+	
+	public static final String MENU_STATUS_ENTRY = "statusentry";
+
+	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 

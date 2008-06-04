@@ -59,6 +59,8 @@ public class MenuItemImpl implements MenuItem {
 	
 	private boolean visible = true;
 
+	private removeListener	remove_listener;
+	
 	public MenuItemImpl(String menuID, String key) {
 		sMenuID = menuID;
 		sName = key;
@@ -239,6 +241,10 @@ public class MenuItemImpl implements MenuItem {
 	
 	public void remove() {
 		removeWithEvents(UIManagerEvent.ET_REMOVE_MENU_ITEM, UIManagerEvent.ET_REMOVE_SUBMENU_ITEM);
+		
+		if ( remove_listener != null ){
+			remove_listener.removed();
+		}
 	}
 
 	public void removeAllChildItems() {
@@ -265,4 +271,16 @@ public class MenuItemImpl implements MenuItem {
 		return ((Boolean)data).booleanValue();
 	}
 
+	public void
+	setRemoveListener(
+		removeListener	rl )
+	{
+		remove_listener = rl;
+	}
+	public interface
+	removeListener
+	{
+		public void
+		removed();
+	}
 }

@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.plugins;
 
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+
 import org.eclipse.swt.graphics.Image;
 
 /**
@@ -80,6 +82,9 @@ public interface UISWTStatusEntry {
 	 * Sets the image to display.
 	 */
 	public void setImage(Image image);
+	
+	public MenuItem
+	addMenuItem( String text );
 	
 	/**
 	 * Destroys the status entry.
