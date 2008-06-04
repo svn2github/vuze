@@ -239,9 +239,7 @@ RegexEngine
 						throws Exception
 					{
 						int	max_matches = o_max_matches;
-					
-						while( max_matches == max_matches );
-						
+											
 						String searchQuery = null;
 						
 						for(int i = 0 ; i < searchParameters.length ; i++) {
