@@ -31,7 +31,7 @@ public class Hack extends TorrentCommand
 	
 	public Hack() 
 	{
-		super(new String[] { "hack", "#" }, "Hacking");
+		super("hack", "#", "Hacking");
 		subCommands.add(new HackFile());
 		subCommands.add(new HackTracker());
 		subCommands.add(new HackDownloadSpeed());
@@ -44,7 +44,7 @@ public class Hack extends TorrentCommand
 		return "hack [<various options>]\t#\tModify torrent settings. Use without parameters for further help.";
 	}
 	
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("'hack' syntax:");
 		if( args.size() > 0 ) {
@@ -96,7 +96,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackDownloadSpeed()
 		{
-			super(new String[] { "downloadspeed", "d" });
+			super("downloadspeed", "d");
 		}
 		
 		public String getCommandDescriptions() {
@@ -122,7 +122,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackUploadSpeed()
 		{
-			super(new String[] { "uploadspeed", "u" });
+			super("uploadspeed", "u");
 		}
 		
 		public String getCommandDescriptions() {
@@ -148,7 +148,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackUploads()
 		{
-			super(new String[] { "uploads", "v" });
+			super("uploads", "v");
 		}
 		
 		public String getCommandDescriptions() {
@@ -176,13 +176,13 @@ public class Hack extends TorrentCommand
 		
 		public HackTracker()
 		{
-			super(new String[] { "tracker", "t" });
+			super("tracker", "t");
 			subCommands.add(new HackHost());
 			subCommands.add(new HackPort());
 			subCommands.add(new HackURL());
 		}
 
-		public void printHelp(PrintStream out, List args)
+		public void printHelpExtra(PrintStream out, List args)
 		{
 			out.println("hack <torrent id> tracker [command] <new value>");
 			out.println();
@@ -231,9 +231,9 @@ public class Hack extends TorrentCommand
 	{
 		public HackFile()
 		{
-			super(new String[] { "file", "f" });
+			super("file", "f");
 		}
-		public void printHelp(PrintStream out, List args)
+		public void printHelpExtra(PrintStream out, List args)
 		{
 			out.println("hack <torrent id> file <#> <priority>");
 			out.println();
@@ -288,7 +288,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackPort()
 		{
-			super(new String[] { "port", "p" });
+			super("port", "p");
 		}
 		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
 		{
@@ -317,7 +317,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackHost()
 		{
-			super(new String[] { "host", "h" });
+			super("host", "h");
 		}
 		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
 		{
@@ -345,7 +345,7 @@ public class Hack extends TorrentCommand
 	{
 		public HackURL()
 		{
-			super(new String[] { "url", "u" });
+			super("url", "u");
 		}
 		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
 		{

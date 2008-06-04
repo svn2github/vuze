@@ -49,7 +49,7 @@ public class UserCommand extends IConsoleCommand {
 	 * @param _commandNames
 	 */
 	public UserCommand(UserManager userManager) {
-		super(new String [] { "user" } );
+		super("user");
 		this.userManager = userManager;
 		
 		subCommands.add(new AddUserCommand());
@@ -110,7 +110,7 @@ public class UserCommand extends IConsoleCommand {
 	/**
 	 * prints out the help message showing the syntax for all subcommands
 	 */
-	public void printHelp(PrintStream out, List args) 
+	public void printHelpExtra(PrintStream out, List args) 
 	{
 		out.println("> -----");
 		out.println("'user' syntax:");
@@ -141,7 +141,7 @@ public class UserCommand extends IConsoleCommand {
 
 		public AddUserCommand() 
 		{
-			super(new String [] { "add", "a" } );
+			super("add", "a");
 			getOptions().addOption(new Option("u", "username", true, "name of new user"));
 			getOptions().addOption(new Option("p", "password", true, "password for new user"));
 			getOptions().addOption(new Option("t", "type", true, "user type (Admin / User / Guest)"));
@@ -205,7 +205,7 @@ public class UserCommand extends IConsoleCommand {
 
 		public DeleteUserCommand() 
 		{
-			super(new String [] { "delete", "d" } );
+			super("delete", "d");
 			getOptions().addOption(new Option("u", "username", true, "name of user to delete"));
 		}
 
@@ -243,7 +243,7 @@ public class UserCommand extends IConsoleCommand {
 
 		public ModifyUserCommand() 
 		{
-			super(new String [] { "modify", "m" } );
+			super("modify", "m");
 			
 			getOptions().addOption(new Option("u", "username", true, "name of user to modify"));
 			getOptions().addOption(new Option("p", "password", true, "password for new user"));
@@ -328,7 +328,7 @@ public class UserCommand extends IConsoleCommand {
 	{
 		public ListUsersCommand() 
 		{
-			super(new String [] { "list", "l" } );
+			super("list", "l");
 		}
 
 		public void execute(String commandName, ConsoleInput ci, List args) 

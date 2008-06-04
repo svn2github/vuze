@@ -38,7 +38,7 @@ public class TorrentHost extends TorrentCommand {
 
 	public TorrentHost()
 	{
-		super(new String[] { "host"}, "Hosting");
+		super("host", null, "Hosting");
 	}
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {

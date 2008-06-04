@@ -38,13 +38,13 @@ public class Set extends IConsoleCommand {
 
 	public Set()
 	{
-		super(new String[] {"set", "+" });
+		super("set", "+");
 	}
 	
 	public String getCommandDescriptions() {
 		return("set [options] [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
 	}
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("'set' options: ");
 		out.println("\t-export\t\tPrints all the options with non-defaut values.");

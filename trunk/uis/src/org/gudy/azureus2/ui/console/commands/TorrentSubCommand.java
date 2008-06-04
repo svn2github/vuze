@@ -38,8 +38,8 @@ public abstract class TorrentSubCommand extends TorrentCommand
 	 * @param commandNames
 	 * @param action
 	 */
-	public TorrentSubCommand(String[] commandNames) {
-		super(commandNames, null);
+	public TorrentSubCommand(String command_name, String short_name) {
+		super(command_name, short_name, null);
 	}
 
 	public abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);

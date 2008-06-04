@@ -40,7 +40,7 @@ public class Alias extends OptionsConsoleCommand {
 	 * @param _commandNames
 	 */
 	public Alias() {
-		super(new String []{ "alias"} );
+		super("alias");
 		getOptions().addOption(new Option("d", "delete", false, "delete the specified alias"));
 	}
 

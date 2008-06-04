@@ -36,7 +36,7 @@ public class Log extends OptionsConsoleCommand {
 	
 	public Log()
 	{
-		super( new String[] { "log", "l" });
+		super("log", "l");
 	}
 	
 	protected Options getOptions()

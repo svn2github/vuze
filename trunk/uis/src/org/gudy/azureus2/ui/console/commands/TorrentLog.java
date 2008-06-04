@@ -54,8 +54,7 @@ public class TorrentLog extends TorrentCommand implements ILogEventListener
 	 * @param action
 	 */
 	public TorrentLog() {
-		super(new String[] { "tlog", "tl"
-		}, "Torrent Logging");
+		super("tlog", "tl", "Torrent Logging");
 	}
 
 	public void execute(String commandName, ConsoleInput ci, List args) {

@@ -38,14 +38,14 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public class Priority extends OptionsConsoleCommand {
 
 	public Priority() {
-		super(new String []{ "prio" } );
+		super("prio");
 	}
 
 	public String getCommandDescriptions() {
 		return "prio [#torrent] [#file|range(i.e. 1-2,5)|all] [normal|high|dnd|del]";
 	}
 
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("Usage: prio [torrent] [file(s)] [priority]");
 		out.println("Options:");

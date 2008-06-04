@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -21,14 +22,21 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
  * @author Tobias Minich
  */
 public abstract class IConsoleCommand {
-	private final Set commandNames = new HashSet();
+	private String main_name;
+	private String short_name;
+	private HashSet commands;
+
+	public IConsoleCommand(String main_name) {
+		this(main_name, null);
+	}
 	
-	public IConsoleCommand(String []_commandNames)
-	{
-		for (int i=0;i<_commandNames.length;i++){
-			
-			commandNames.add( _commandNames[i] );
-		}
+	public IConsoleCommand(String main_name, String short_name) {
+		this.commands = new HashSet();
+		this.main_name = main_name;
+		this.short_name = short_name;
+		
+		if (main_name != null)  {commands.add(main_name);}
+		if (short_name != null) {commands.add(short_name);}
 	}
 	
 	/**
@@ -50,9 +58,14 @@ public abstract class IConsoleCommand {
 	 * @param out
 	 * @param args
 	 */
-	public void printHelp(PrintStream out, List args)
+	public final void printHelp(PrintStream out, List args)
 	{
-		out.println("No further help for this command");
+		out.println(getCommandDescriptions());
+		printHelpExtra(out, args);
+	}
+	
+	public void printHelpExtra(PrintStream out, List args) {
+		// Do nothing by default.
 	}
 	
 	/**
@@ -83,16 +96,10 @@ public abstract class IConsoleCommand {
 	 */
 	public Set getCommandNames()
 	{
-		return Collections.unmodifiableSet(commandNames);
+		return Collections.unmodifiableSet(commands);
 	}
 	
-	/**
-	 * print some 'extra' help that is displayed after all of the help commands.
-	 * eg: explain some options that are common to a group of commands
-	 * @return
-	 */
-	public String getHelpExtra()
-	{
-		return null;
-	}
+	public final String getCommandName() {return this.main_name;}
+	public final String getShortCommandName() {return this.short_name;}
+
 }

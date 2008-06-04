@@ -23,7 +23,7 @@ public class XML extends IConsoleCommand {
 	
 	public XML()
 	{
-		super( new String[] { "xml"} );
+		super("xml");
 	}
 	
 	public String getCommandDescriptions() {

@@ -46,13 +46,14 @@ public abstract class OptionsConsoleCommand extends IConsoleCommand
 	private Options options = new Options();
 	private CommandLineParser parser = null;
 	
-	/**
-	 * @param commandNames
-	 */
-	public OptionsConsoleCommand(String[] commandNames) {
-		super(commandNames);
+	public OptionsConsoleCommand(String main_name) {
+		super(main_name);
 	}
 
+	public OptionsConsoleCommand(String main_name, String short_name) {
+		super(main_name, short_name);
+	}
+	
 	/**
 	 * take the args and try and create a command line object
 	 */
@@ -80,7 +81,7 @@ public abstract class OptionsConsoleCommand extends IConsoleCommand
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.console.commands.IConsoleCommand#printHelp(java.io.PrintStream, java.util.List)
 	 */
-	public void printHelp(PrintStream out, List args)
+	public void printHelpExtra(PrintStream out, List args)
 	{
 		HelpFormatter formatter = new HelpFormatter();
 		PrintWriter writer = new PrintWriter(out);

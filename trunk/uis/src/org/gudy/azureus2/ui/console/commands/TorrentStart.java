@@ -40,7 +40,7 @@ public class TorrentStart extends TorrentCommand {
 	
 	public TorrentStart()
 	{
-		super( new String[] { "start" , "s" }, "Starting" );
+		super("start" , "s", "Starting");
 	}
 	public void execute(String commandName, ConsoleInput console, List args) {
 		startNow = false;
@@ -81,11 +81,4 @@ public class TorrentStart extends TorrentCommand {
 		return "start (<torrentoptions>) \ts\tStart torrent(s).";
 	}
 	
-	public String getHelpExtra()
-	{
-		return ("<torrentoptions> can be one of:\n"+
-		"<#>\t\tNumber of a torrent. You have to use 'show torrents' first. as the number is taken from there.\n"+
-		"all\t\tCommand is applied to all torrents\n"+
-		"hash <hash>\tApplied to torrent with the hash <hash> as given in the xml output or extended torrent info ('show <#>').");
-	}
 }

@@ -33,7 +33,7 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public class TorrentForceStart extends TorrentCommand {
 	public TorrentForceStart()
 	{
-		super(new String[] {"forcestart"}, "Force Starting");
+		super("forcestart", null, "Force Starting");
 	}
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {

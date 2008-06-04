@@ -37,7 +37,7 @@ public class TorrentStop extends TorrentCommand {
 	 * @param action
 	 */
 	public TorrentStop() {
-		super(new String[] {"stop", "h"}, "Stopping");
+		super("stop", "h", "Stopping");
 	}
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {

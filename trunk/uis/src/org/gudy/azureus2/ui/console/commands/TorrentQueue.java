@@ -34,7 +34,7 @@ public class TorrentQueue extends TorrentCommand {
 
 	public TorrentQueue()
 	{
-		super( new String[] { "queue", "q" }, "Queueing");
+		super("queue", "q", "Queueing");
 	}
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {

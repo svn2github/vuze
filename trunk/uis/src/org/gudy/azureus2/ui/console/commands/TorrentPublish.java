@@ -38,7 +38,7 @@ public class TorrentPublish extends TorrentCommand {
 
 	public TorrentPublish()
 	{
-		super(new String[] { "publish"}, "Publishing");
+		super("publish", null, "Publishing");
 	}
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {

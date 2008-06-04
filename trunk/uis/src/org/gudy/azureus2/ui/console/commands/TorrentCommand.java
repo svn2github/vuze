@@ -30,7 +30,6 @@ import org.gudy.azureus2.ui.console.UserProfile;
  * @author tobi
  */
 public abstract class TorrentCommand extends IConsoleCommand {
-	private final String primaryCommandName;
 	private final String action;
 	
 	/**
@@ -38,17 +37,12 @@ public abstract class TorrentCommand extends IConsoleCommand {
 	 * @param commandNames (the first item in the array is regarded as the primary command name)
 	 * @param action a description to be used when this command is executed
 	 */
-	public TorrentCommand(String []commandNames, String action)
+	public TorrentCommand(String main_name, String short_name, String action)
 	{
-		super(commandNames);
-		this.primaryCommandName = commandNames[0];
+		super(main_name, short_name);
 		this.action = action;
 	}
 
-	protected String getCommandName()
-	{
-		return primaryCommandName;
-	}
 	protected String getAction()
 	{
 		return action;
@@ -218,7 +212,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 	/**
 	 * prints out the syntax of this command
 	 */
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> " + getCommandName() + " syntax: " + getCommandName() + " (<#>|all|hash <hash>)");
 	}
 }

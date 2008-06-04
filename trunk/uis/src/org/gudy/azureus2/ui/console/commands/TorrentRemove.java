@@ -35,7 +35,7 @@ public class TorrentRemove extends TorrentCommand {
 
 	public TorrentRemove()
 	{
-		super(new String[] {"remove", "r"}, "Removing");
+		super("remove", "r", "Removing");
 	}
 
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {

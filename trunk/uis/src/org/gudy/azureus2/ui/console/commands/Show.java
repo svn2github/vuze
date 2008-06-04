@@ -72,14 +72,14 @@ public class Show extends IConsoleCommand {
 
 	public Show()
 	{
-		super( new String[] { "show", "sh" });
+		super("show", "sh");
 	}
 
 	public String getCommandDescriptions() {
 		return("show [<various options>]\tsh\tShow info. Use without parameter to get a list of available options.");
 	}
 
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("'show' options: ");
 		out.println("<#>\t\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");

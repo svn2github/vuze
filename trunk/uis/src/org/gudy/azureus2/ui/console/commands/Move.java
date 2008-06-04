@@ -23,7 +23,7 @@ public class Move extends IConsoleCommand {
 
 	public Move()
 	{
-		super(new String[] { "move", "m" });
+		super("move", "m");
 	}
 	
 	public String getCommandDescriptions()

@@ -34,7 +34,7 @@ public class AddFind extends OptionsConsoleCommand {
 	
 	public AddFind()
 	{
-		super( new String[] { "add", "a" } );
+		super("add", "a");
 		
 		OptionBuilder.withArgName("outputDir");
 		OptionBuilder.withLongOpt("output");

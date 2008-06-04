@@ -34,7 +34,7 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public class TorrentCheck extends TorrentCommand {
 	public TorrentCheck()
 	{
-		super(new String[] { "check", "c"}, "Initiating recheck of");
+		super("check", "c", "Initiating recheck of");
 	}
 	
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {

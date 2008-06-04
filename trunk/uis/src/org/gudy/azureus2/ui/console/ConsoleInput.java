@@ -351,7 +351,7 @@ public class ConsoleInput extends Thread {
 	{
 		public CommandHelp()
 		{
-			super(new String[] { "help", "?"});
+			super("help", "?");
 		}
 		public String getCommandDescriptions() {
 			return("help [torrents]\t\t\t?\tShow this help. 'torrents' shows info about the show torrents display.");
@@ -368,6 +368,7 @@ public class ConsoleInput extends Thread {
 					List newargs = new ArrayList(args);
 					newargs.remove(0);
 					cmd.printHelp(ci.out, newargs);
+					//if (cmd.getHelpExtra())
 				}
 				else if (subcommand.equalsIgnoreCase("torrents") || subcommand.equalsIgnoreCase("t")) {
 					ci.out.println("> -----");
@@ -399,10 +400,44 @@ public class ConsoleInput extends Thread {
 	}
 	private void printconsolehelp(PrintStream os) {
 		os.println("> -----");
-		os.println("Available console commands:");
-		os.println("Command\t\t\t\tShort\tDescription");
-		os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
+		os.println("Available console commands (use help <command> for more details):");
+		os.println();
 		
+		ArrayList cmd_lines = new ArrayList();
+		Iterator itr = helpItems.iterator();
+		while (itr.hasNext()) {
+			StringBuffer line_so_far = new StringBuffer("[");
+			IConsoleCommand cmd = (IConsoleCommand)itr.next();
+			String short_name = cmd.getShortCommandName();
+			if (short_name != null) {
+				line_so_far.append(short_name);
+			}
+			line_so_far.append("] ");
+			line_so_far.append(cmd.getCommandName());
+			cmd_lines.add(line_so_far.toString());
+		}
+		
+		StringBuffer command_line_so_far = new StringBuffer("  ");
+		Iterator cmd_itr = cmd_lines.iterator();
+		final String SPACE_BETWEEN_COMMANDS = "   ";
+		while (cmd_itr.hasNext()) {
+			String next_command = (String)cmd_itr.next();
+			int current_length = command_line_so_far.length();
+			if (current_length + next_command.length() + SPACE_BETWEEN_COMMANDS.length() > 79) {
+				os.println(command_line_so_far);
+				command_line_so_far.setLength(2);
+			}
+			command_line_so_far.append(next_command);
+			command_line_so_far.append(SPACE_BETWEEN_COMMANDS);
+		}
+		if (command_line_so_far.length() > 2) {
+			os.println(command_line_so_far);
+		}
+		
+		//os.println("Command\t\t\t\tShort\tDescription");
+		//os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
+		
+		/*
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		
@@ -411,7 +446,7 @@ public class ConsoleInput extends Thread {
 			String cmddesc = cmd.getCommandDescriptions();
 			if( cmddesc != null )
 				os.println(cmddesc);
-			String extraHelp = cmd.getHelpExtra();
+			String extraHelp = ""; //cmd.getHelpExtra();
 			if( extraHelp != null )
 			{
 				pw.println();
@@ -419,6 +454,7 @@ public class ConsoleInput extends Thread {
 			}
 		}
 		os.println(sw.toString());
+		*/
 		os.println("> -----");
 	}
 	
@@ -426,7 +462,7 @@ public class ConsoleInput extends Thread {
 	{
 		public CommandQuit()
 		{
-			super(new String[] {"quit"});
+			super("quit");
 		}
 		public String getCommandDescriptions() {
 			return("quit\t\t\t\t\tShutdown Azureus");
@@ -455,7 +491,7 @@ public class ConsoleInput extends Thread {
 	{
 		public CommandLogout()
 		{
-			super(new String[] {"logout"});
+			super("logout");
 		}
 		public String getCommandDescriptions() {
 			return "logout\t\t\t\t\tLog out of the CLI";
@@ -489,7 +525,7 @@ public class ConsoleInput extends Thread {
 	{
 		public CommandUI()
 		{
-			super( new String[] { "ui", "u" });
+			super("ui", "u");
 		}
 		public String getCommandDescriptions() {
 			return("ui <interface>\t\t\tu\tStart additional user interface.");

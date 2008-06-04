@@ -32,14 +32,14 @@ public class Share extends IConsoleCommand {
 	
 	public Share()
 	{
-		super(new String[] {"share"});
+		super("share");
 	}
 	
 	public String getCommandDescriptions() {
 		return("share <type> <path> [<properties>]\t\t\tShare a file or folder(s). Use without parameters to get a list of available options." );
 	}
 	
-	public void printHelp(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List args) {
 		out.println( "> -----" );
 		out.println( "[share <type> <path> [<properties>]" );
 		out.println( "type options:" );
