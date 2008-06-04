@@ -402,6 +402,49 @@ public class ButtonBar
 					shareAllBuddies();
 				}
 			});
+			
+			
+			/*
+			 * ShareAll should only be visible if the user has at least 1 friend
+			 */
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					shareAllBuddiesObject.setVisible(VuzeBuddyManager.getAllVuzeBuddies().size()>0);
+				}
+			});
+
+			/*
+			 * Update when the number of Friends changes
+			 */
+			VuzeBuddyManager.addListener(new VuzeBuddyListener() {
+
+				public void buddyRemoved(VuzeBuddy buddy) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							shareAllBuddiesObject.setVisible(VuzeBuddyManager.getAllVuzeBuddies().size()>0);
+						}
+					});
+
+				}
+
+				public void buddyAdded(VuzeBuddy buddy, int position) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							shareAllBuddiesObject.setVisible(VuzeBuddyManager.getAllVuzeBuddies().size()>0);
+						}
+					});
+				}
+
+				public void buddyOrderChanged() {
+				}
+
+				public void buddyChanged(VuzeBuddy buddy) {
+				}
+
+			}, false);
+			
+			
 		}
 	}
 
