@@ -66,8 +66,6 @@ public class SWTSkinObjectBrowser
 
 	private BrowserContext context;
 
-	private boolean noListeners;
-
 	/**
 	 * @param skin
 	 * @param properties
@@ -106,8 +104,6 @@ public class SWTSkinObjectBrowser
 			browserID = sID;
 		}
 		
-		noListeners = properties.getBooleanValue(sConfigID + ".browser.nolisteners", false);
-		
 		context = new BrowserContext(browserID, browser, widgetIndicator,
 				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
 
@@ -121,9 +117,6 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new MetaSearchListener());
 
 		PublishUtils.setupContext(context);
-		if (noListeners) {
-			context.setCheckBlocked(false);
-		}
 
 		setControl(browser);
 	}

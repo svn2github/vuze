@@ -50,19 +50,21 @@ public class PlatformConfigMessenger
 
 	private static int iRPCVersion = 0;
 
-	private static String DEFAULT_WHITELIST = "https?://"
+	private static String DEFAULT_RPC_WHITELIST = "https?://"
 			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 	
-	private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
+	//private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
 
 	private static String[] sURLWhiteList = new String[] {
-		DEFAULT_WHITELIST,
-		RPC_WHITELIST
+		DEFAULT_RPC_WHITELIST,
+		".*inconsp.*",
 	};
 
 	private static String playAfterURL = null;
 
 	private static boolean sendStats;
+
+	protected static List listBlack = Collections.EMPTY_LIST;
 	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -142,20 +144,22 @@ public class PlatformConfigMessenger
 					List listURLs = (List) MapUtils.getMapObject(reply, "url-whitelist",
 							null, List.class);
 					if (listURLs != null) {
-						String[] sNewWhiteList = new String[listURLs.size() + 2];
-						sNewWhiteList[0] = DEFAULT_WHITELIST;
-						sNewWhiteList[1] = RPC_WHITELIST;
+						String[] sNewWhiteList = new String[listURLs.size() + 1];
+						sNewWhiteList[0] = DEFAULT_RPC_WHITELIST;
 
 						for (int i = 0; i < listURLs.size(); i++) {
 							String string = (String) listURLs.get(i);
 							PlatformMessenger.debug("v3.login: got whitelist of " + string);
-							sNewWhiteList[i + 2] = string;
+							sNewWhiteList[i + 1] = string;
 						}
 						sURLWhiteList = sNewWhiteList;
 					}
 				} catch (Exception e) {
 					Debug.out(e);
 				}
+				
+				listBlack = MapUtils.getMapList(reply, "url-blacklist", Collections.EMPTY_LIST);
+				
 
 				try {
 					List listDomains = (List) MapUtils.getMapObject(reply, "tracker-domains",
@@ -227,27 +231,43 @@ public class PlatformConfigMessenger
 		return sURLWhiteList;
 	}
 
-	public static boolean isURLBlocked(String url) {
-		return isURLBlocked(url,true);
+	public static boolean urlCanRPC(String url) {
+		return urlCanRPC(url,true);
 	}
 	
-	public static boolean isURLBlocked(String url,boolean showDebug) {
+	public static boolean urlCanRPC(String url,boolean showDebug) {
 		if (url == null) {
 			Debug.out("URL null and should be blocked");
-			return true;
+			return false;
 		}
 
 		String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
 		for (int i = 0; i < whitelist.length; i++) {
 			if (url.matches(whitelist[i])) {
-				return false;
+				return true;
 			}
 		}
 		if(showDebug) {
-			Debug.out("URL '" + url + "' " + " does not match one of the "
+			Debug.out("urlCanRPC: URL '" + url + "' " + " does not match one of the "
 					+ whitelist.length + " whitelist entries");
 		}
-		return true;
+		return false;
+	}
+	
+	public static boolean isURLBlocked(String url) {
+		if (url == null) {
+			Debug.out("URL null and should be blocked");
+			return true;
+		}
+
+		for (Iterator iter = listBlack.iterator(); iter.hasNext();) {
+			String blackListed = (String) iter.next();
+			if (url.matches(blackListed)) {
+				Debug.out("URL '" + url + "' " + " is blocked by " + blackListed);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

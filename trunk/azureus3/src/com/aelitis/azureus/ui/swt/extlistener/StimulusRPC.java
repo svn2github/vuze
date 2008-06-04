@@ -92,7 +92,8 @@ public class StimulusRPC
 						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
 						if (decodedMap.containsKey("target")
-								&& !PlatformConfigMessenger.isURLBlocked(url)) {
+								&& !PlatformConfigMessenger.isURLBlocked(url)
+								&& PlatformConfigMessenger.urlCanRPC(url)) {
 
 							// implicit bring to front
 							final UIFunctions functions = UIFunctionsManager.getUIFunctions();

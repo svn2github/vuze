@@ -70,8 +70,6 @@ public class BrowserContext
 
 	private TimerEventPeriodic checkURLEvent;
 
-	private boolean checkBlocked = true;
-
 	private Control widgetWaitIndicator;
 
 	private MessageDispatcherSWT messageDispatcherSWT;
@@ -250,8 +248,8 @@ public class BrowserContext
 		
 		browser.addOpenWindowListener(new OpenWindowListener() {
 			public void open(WindowEvent event) {
-				if(! event.required) return;
-				if(checkBlocked) return;
+				event.required = true;
+
 				final Browser subBrowser = new Browser(browser,SWT.NONE);
 				subBrowser.addLocationListener(new LocationListener() {
 					public void changed(LocationEvent arg0) {
@@ -264,7 +262,11 @@ public class BrowserContext
 						if(event.location.startsWith("http://") || event.location.startsWith("https://")) {
 							Program.launch(event.location);
 						}
-						subBrowser.dispose();
+						Utils.execSWTThreadLater(0, new AERunnable() {
+							public void runSupport() {
+								subBrowser.dispose();
+							}
+						});
 					}
 				});
 				event.browser = subBrowser;
@@ -314,18 +316,7 @@ public class BrowserContext
 					return;
 				}
 
-				// Regex Test for https?://moo\.com:?[0-9]*/dr
-				// http://moo.com/dr
-				// httpd://moo.com:80/dr
-				// https://moo.com:a0/dr
-				// http://moo.com:80/dr
-				// http://moo.com:8080/dr
-				// https://moo.com/dr
-				// https://moo.com:80/dr
-				
-				
-
-				boolean blocked = checkBlocked && PlatformConfigMessenger.isURLBlocked(event.location);
+				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
 
 				if (blocked) {
 					event.doit = false;
@@ -337,7 +328,7 @@ public class BrowserContext
 							event.location + " is blocked");
 					browser.back();
 				} else {
-					if(event.top || checkBlocked) {
+					if(event.top) {
 						lastValidURL = event.location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 							widgetWaitIndicator.setVisible(true);
@@ -403,8 +394,7 @@ public class BrowserContext
 			}
 		});
 
-		// check if blocked only if we aren't already blocking
-		messageDispatcherSWT.registerBrowser(browser, !checkBlocked);
+		messageDispatcherSWT.registerBrowser(browser);
 		this.display = browser.getDisplay();
 	}
 
@@ -547,14 +537,6 @@ public class BrowserContext
 		result.append("...");
 		result.append(javascript.substring(javascript.length() - 256));
 		return result.toString();
-	}
-
-	public boolean getCheckBlocked() {
-		return checkBlocked;
-	}
-
-	public void setCheckBlocked(boolean checkBlocked) {
-		this.checkBlocked = checkBlocked;
 	}
 
 	public void setWiggleBrowser(boolean wiggleBrowser) {

@@ -78,8 +78,6 @@ public class MessageDispatcherSWT
 
 	private Browser browser;
 
-	private boolean checkBlocked;
-
 	/**
 	 * Registers itself as a listener to receive sequence number reset message.
 	 */
@@ -88,19 +86,7 @@ public class MessageDispatcherSWT
 	}
 
 	public void registerBrowser(Browser browser) {
-		registerBrowser(browser, false);
-	}
-
-	/**
-	 * Attaches this dispatcher to the given {@link Browser} to receive
-	 * status text change and dispose events.
-	 * 
-	 * @param browser {@link Browser} which will send events
-	 * @param checkBlocked 
-	 */
-	public void registerBrowser(Browser browser, boolean checkBlocked) {
 		this.browser = browser;
-		this.checkBlocked = checkBlocked;
 		browser.addStatusTextListener(this);
 		browser.addTitleListener(this);
 	}
@@ -197,11 +183,6 @@ public class MessageDispatcherSWT
 			return;
 		}
 
-		if (checkBlocked && PlatformConfigMessenger.isURLBlocked(referer)) {
-			context.debug("blocked " + msg + "\n  " + referer);
-			return;
-		}
-
 		try {
 			class_mon.enter();
 			if (sLastEventText != null && msg.equals(sLastEventText)) {
@@ -229,6 +210,13 @@ public class MessageDispatcherSWT
 		if (message == null) {
 			return;
 		}
+		String referer = message.getReferer();
+		if (referer != null && !PlatformConfigMessenger.urlCanRPC(referer)) {
+			context.debug("blocked " + message + "\n  " + referer);
+			return;
+		}
+
+
 		context.debug("Received " + message);
 		if (browser != null && !browser.isDisposed() && Utils.isThisThreadSWT()) {
 			context.debug("   browser url: " + browser.getUrl());
