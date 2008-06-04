@@ -26,6 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -50,8 +52,14 @@ public class GCStringPrinter
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>",
 			Pattern.CASE_INSENSITIVE);
 
-	// Limit word length as OSX crashes on stringExtent on very very long words
-	private static final int MAX_WORD_LEN = 1023;
+	//private static final Pattern patOver1000 = Pattern.compile("[^\n]{1010,}");
+
+	// Limit word/line length as OSX crashes on stringExtent on very very long words
+	private static final int MAX_LINE_LEN = 4000;
+
+	// max Word length can be same as line length since words are auto-split
+	// across lines
+	private static final int MAX_WORD_LEN = 4000;
 
 	private boolean cutoff;
 
@@ -245,7 +253,9 @@ public class GCStringPrinter
 								if (fullLinesOnly) {
 									if (lines.size() > 0) {
 										lineInfo = (LineInfo) lines.remove(lines.size() - 1);
-										sProcessedLine = lineInfo.originalLine;
+										sProcessedLine = lineInfo.originalLine.length() > MAX_LINE_LEN
+												? lineInfo.originalLine.substring(0, MAX_LINE_LEN)
+												: lineInfo.originalLine;
 										//sProcessedLine = ((LineInfo) lines.remove(lines.size() - 1)).originalLine;
 										extent = gc.stringExtent(sProcessedLine);
 									} else {
@@ -254,6 +264,14 @@ public class GCStringPrinter
 										}
 										return false;
 									}
+								} else {
+									sProcessedLine = sProcessedLine.length() > MAX_LINE_LEN
+											? sProcessedLine.substring(0, MAX_LINE_LEN)
+											: sProcessedLine;
+								}
+
+								if (excess.length() > MAX_LINE_LEN) {
+									excess = excess.substring(0, MAX_LINE_LEN);
 								}
 
 								StringBuffer outputLine = new StringBuffer(sProcessedLine);
@@ -357,7 +375,8 @@ public class GCStringPrinter
 		StringBuffer outputLine = new StringBuffer();
 		int excessPos = -1;
 
-		if (gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
+		if (lineInfo.originalLine.length() > MAX_LINE_LEN
+				|| gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
 			if (DEBUG) {
 				System.out.println("Line to process: " + lineInfo.originalLine);
 			}
@@ -371,27 +390,45 @@ public class GCStringPrinter
 					System.out.println("No Wrap.. doing all in one line");
 				}
 
-				excessPos = processWord(gc, lineInfo.originalLine,
-						lineInfo.originalLine, printArea, wrap, iLineLength, outputLine,
-						space);
+				String sProcessedLine = lineInfo.originalLine.length() > MAX_LINE_LEN
+						? lineInfo.originalLine.substring(0, MAX_LINE_LEN)
+						: lineInfo.originalLine;
+
+				outputLine.append(sProcessedLine);
 			} else {
 				StringTokenizer stWord = new StringTokenizer(lineInfo.originalLine, " ");
 				// Process line word by word
 				int curPos = 0;
 				while (stWord.hasMoreElements()) {
 					String word = stWord.nextToken();
-					excessPos = processWord(gc, lineInfo.originalLine, word, printArea,
-							wrap, iLineLength, outputLine, space);
-					if (DEBUG) {
-						System.out.println("  with word [" + word + "] len is "
-								+ iLineLength[0] + "(" + printArea.width + ") w/excess "
-								+ excessPos);
+					for (int i = 0; i < word.length(); i += MAX_WORD_LEN) {
+						String subWord;
+						int endPos = i + MAX_WORD_LEN;
+						if (endPos > word.length()) {
+							subWord = word.substring(i);
+						} else {
+							subWord = word.substring(i, endPos);
+						}
+
+						excessPos = processWord(gc, lineInfo.originalLine, subWord,
+								printArea, wrap, iLineLength, outputLine, space);
+						if (DEBUG) {
+							System.out.println("  with word [" + subWord + "] len is "
+									+ iLineLength[0] + "(" + printArea.width + ") w/excess "
+									+ excessPos);
+						}
+						if (excessPos >= 0) {
+							excessPos += curPos;
+							break;
+						}
+						if (endPos <= word.length()) {
+							space.setLength(0);
+						}
+						curPos += subWord.length() + 1;
 					}
 					if (excessPos >= 0) {
-						excessPos += curPos;
 						break;
 					}
-					curPos += word.length() + 1;
 				}
 			}
 		} else {
@@ -442,27 +479,49 @@ public class GCStringPrinter
 			final Rectangle printArea, final boolean wrap, final int[] iLineLength,
 			StringBuffer outputLine, final StringBuffer space) {
 
-		boolean bWordChopped = word.length() > MAX_WORD_LEN;
-		if (word.length() > MAX_WORD_LEN) {
-			word = word.substring(0, MAX_WORD_LEN);
-		}
-		
 		Point ptWordSize = gc.stringExtent(word + " ");
-		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width || bWordChopped;
-		int targetWidth = iLineLength[0] + ptWordSize.x; 
-		if (targetWidth > printArea.width || bWordChopped) {
-			//if (ptWordSize.x > printArea.width && word.length() > 1) {
+		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
+		int targetWidth = iLineLength[0] + ptWordSize.x;
+		if (wrap && targetWidth > printArea.width) {
 			// word is longer than space avail, split
 			int endIndex = word.length();
-			do {
-				if (targetWidth / 4 > printArea.width) {
-					endIndex /= 2;
-				} else {
-					endIndex--;
+			long diff = endIndex;
+
+			while (targetWidth != printArea.width) {
+				diff = (diff >> 1) + (diff % 2);
+
+				if (diff <= 0) {
+					diff = 1;
 				}
+
+				//System.out.println("diff=" + diff + ";e=" + endIndex + ";tw=" + targetWidth + ";paw= " + printArea.width);
+				if (targetWidth > printArea.width) {
+					endIndex -= diff;
+					if (endIndex < 1) {
+						endIndex = 1;
+					}
+				} else {
+					endIndex += diff;
+					if (endIndex > word.length()) {
+						endIndex = word.length();
+					}
+				}
+
 				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
 				targetWidth = iLineLength[0] + ptWordSize.x;
-			} while (endIndex > 0 && targetWidth > printArea.width);
+
+				if (diff <= 1) {
+					break;
+				}
+			}
+			;
+			if (endIndex == 0) {
+				endIndex = 1;
+			}
+			if (targetWidth > printArea.width && endIndex > 1) {
+				endIndex--;
+				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
+			}
 
 			if (DEBUG) {
 				System.out.println("excess starts at " + endIndex + "(" + ptWordSize.x
@@ -554,7 +613,7 @@ public class GCStringPrinter
 	private void drawLine(GC gc, LineInfo lineInfo, int swtFlags,
 			Rectangle printArea, boolean noDraw) {
 		String text = lineInfo.lineOutputed;
-		Point drawSize = gc.textExtent(text);
+		Point drawSize = gc.stringExtent(text);
 		int x0;
 		if ((swtFlags & SWT.RIGHT) > 0) {
 			x0 = printArea.x + printArea.width - drawSize.x;
@@ -573,82 +632,81 @@ public class GCStringPrinter
 
 		URLInfo urlInfo = null;
 		boolean drawURL = hasHitUrl();
-		
+
 		if (drawURL) {
-  		URLInfo[] hitUrlInfo = getHitUrlInfo();
-  		int nextHitUrlInfoPos = 0;
-  
-  		while (drawURL) {
-  			drawURL = false;
-  			for (int i = nextHitUrlInfoPos; i < hitUrlInfo.length; i++) {
+			URLInfo[] hitUrlInfo = getHitUrlInfo();
+			int nextHitUrlInfoPos = 0;
+
+			while (drawURL) {
+				drawURL = false;
+				for (int i = nextHitUrlInfoPos; i < hitUrlInfo.length; i++) {
 					urlInfo = hitUrlInfo[i];
-					
-  				drawURL = (urlInfo.relStartPos < lineInfoRelEndPos)
-  						&& (urlInfo.relStartPos + urlInfo.titleLength > relStartPos)
-  						&& (relStartPos >= lineInfo.relStartPos)
-  						&& (relStartPos < lineInfoRelEndPos);
-  				if (drawURL) {
-  					nextHitUrlInfoPos = i + 1;
-  					break;
-  				}
-  			}
-  
-  			if (!drawURL) {
-  				break;
-  			}
-  
-  			//int numHitUrlsAlready = urlInfo.hitAreas == null ? 0 : urlInfo.hitAreas.size();
-  
-  			// draw text before url
-  			int i = lineStartPos + urlInfo.relStartPos - relStartPos;
-  			//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
-  			if (i > 0 && i > lineStartPos && i <= text.length()) {
-  				String s = text.substring(lineStartPos, i);
-  				if (!noDraw) {
-  					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-  					gc.drawText(s, x0, y0, false);
-  				}
-  
-  				Point textExtent = gc.textExtent(s, SWT.DRAW_TRANSPARENT
-  						| SWT.DRAW_DELIMITER | SWT.DRAW_TAB);
-  				x0 += textExtent.x;
-  				relStartPos += (i - lineStartPos);
-  				lineStartPos += (i - lineStartPos);
-  				//System.out.println("|" + s + "|" + textExtent.x);
-  			}
-  
-  			// draw url text
-  			int end = i + urlInfo.titleLength;
-  			if (i < 0) {
-  				i = 0;
-  			}
-  			//System.out.println("end=" + end + ";" + text.length() + ";titlelen=" + urlInfo.titleLength);
-  			if (end > text.length()) {
-  				end = text.length();
-  			}
-  			String s = text.substring(i, end);
-  			relStartPos += (end - i);
-  			lineStartPos += (end - i);
-  			//System.out.println("|" + s + "|");
-  			if (!noDraw) {
-  				Color fgColor = gc.getForeground();
-  				if (urlInfo.urlColor != null) {
-  					gc.setForeground(urlInfo.urlColor);
-  				} else if (urlColor != null) {
-  					gc.setForeground(urlColor);
-  				}
-  				gc.drawText(s, x0, y0, true);
-  				gc.setForeground(fgColor);
-  			}
-  			Point textExtent = gc.textExtent(s);
-  
-  			if (urlInfo.hitAreas == null) {
-  				urlInfo.hitAreas = new ArrayList(1);
-  			}
-  			urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
-  
-  			x0 += textExtent.x;
-  		}
+
+					drawURL = (urlInfo.relStartPos < lineInfoRelEndPos)
+							&& (urlInfo.relStartPos + urlInfo.titleLength > relStartPos)
+							&& (relStartPos >= lineInfo.relStartPos)
+							&& (relStartPos < lineInfoRelEndPos);
+					if (drawURL) {
+						nextHitUrlInfoPos = i + 1;
+						break;
+					}
+				}
+
+				if (!drawURL) {
+					break;
+				}
+
+				//int numHitUrlsAlready = urlInfo.hitAreas == null ? 0 : urlInfo.hitAreas.size();
+
+				// draw text before url
+				int i = lineStartPos + urlInfo.relStartPos - relStartPos;
+				//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
+				if (i > 0 && i > lineStartPos && i <= text.length()) {
+					String s = text.substring(lineStartPos, i);
+					if (!noDraw) {
+						//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+						gc.drawText(s, x0, y0, false);
+					}
+
+					Point textExtent = gc.textExtent(s);
+					x0 += textExtent.x;
+					relStartPos += (i - lineStartPos);
+					lineStartPos += (i - lineStartPos);
+					//System.out.println("|" + s + "|" + textExtent.x);
+				}
+
+				// draw url text
+				int end = i + urlInfo.titleLength;
+				if (i < 0) {
+					i = 0;
+				}
+				//System.out.println("end=" + end + ";" + text.length() + ";titlelen=" + urlInfo.titleLength);
+				if (end > text.length()) {
+					end = text.length();
+				}
+				String s = text.substring(i, end);
+				relStartPos += (end - i);
+				lineStartPos += (end - i);
+				//System.out.println("|" + s + "|");
+				if (!noDraw) {
+					Color fgColor = gc.getForeground();
+					if (urlInfo.urlColor != null) {
+						gc.setForeground(urlInfo.urlColor);
+					} else if (urlColor != null) {
+						gc.setForeground(urlColor);
+					}
+					gc.drawText(s, x0, y0, true);
+					gc.setForeground(fgColor);
+				}
+				Point textExtent = gc.textExtent(s);
+
+				if (urlInfo.hitAreas == null) {
+					urlInfo.hitAreas = new ArrayList(1);
+				}
+				urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
+
+				x0 += textExtent.x;
+			}
 		}
 
 		// draw text after url
@@ -687,7 +745,7 @@ public class GCStringPrinter
 		Composite cButtons = new Composite(shell, SWT.NONE);
 		GridData gridData = new GridData(SWT.NONE, SWT.FILL, false, true);
 		cButtons.setLayoutData(gridData);
-		final Composite cPaint = new Composite(shell, SWT.NONE);
+		final Canvas cPaint = new Canvas(shell, SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 		cPaint.setLayoutData(gridData);
 
@@ -702,7 +760,17 @@ public class GCStringPrinter
 		final Text txtText = new Text(cButtons, SWT.WRAP | SWT.MULTI | SWT.BORDER);
 		txtText.setText(text);
 		txtText.addListener(SWT.Modify, l);
-		txtText.setLayoutData(new RowData(100, 100));
+		txtText.setLayoutData(new RowData(100, 200));
+		txtText.addKeyListener(new KeyListener() {
+			public void keyReleased(KeyEvent e) {
+			}
+
+			public void keyPressed(KeyEvent e) {
+				if (e.keyCode == 'a' && e.stateMask == SWT.CONTROL) {
+					txtText.selectAll();
+				}
+			}
+		});
 
 		final Button btnSkipClip = new Button(cButtons, SWT.CHECK);
 		btnSkipClip.setText("Skip Clip");
@@ -786,6 +854,9 @@ public class GCStringPrinter
 					gc.drawRectangle(bounds);
 
 					//System.out.println("-         " + System.currentTimeMillis());
+
+				} catch (Throwable t) {
+					t.printStackTrace();
 
 				} finally {
 					if (ourGC) {
@@ -938,4 +1009,26 @@ public class GCStringPrinter
 	public boolean isCutoff() {
 		return cutoff;
 	}
+
+	/*
+	private Point stringExtent(GC gc, String s) {
+		Matcher m = patOver1000.matcher(s);
+		//if (s.length() > MAX_LINE_LEN) {
+		if (m.find()) {
+			System.out.println(s.length() + "\n" + Debug.getStackTrace(false, false));
+			System.out.println(s);
+		}
+		return gc.stringExtent(s);
+	}
+
+	private Point textExtent(GC gc, String s) {
+		Matcher m = patOver1000.matcher(s);
+		//if (s.length() > MAX_LINE_LEN) {
+		if (m.find()) {
+			System.out.println(s.length() + "\n" + Debug.getStackTrace(false, false));
+			System.out.println(s);
+		}
+		return gc.textExtent(s);
+	}
+	*/
 }
