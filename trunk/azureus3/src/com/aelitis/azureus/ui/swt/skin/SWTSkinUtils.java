@@ -50,7 +50,7 @@ public class SWTSkinUtils
 
 	public static int getAlignment(String sAlign, int def) {
 		int align;
-		
+
 		if (sAlign == null) {
 			align = def;
 		} else if (sAlign.equalsIgnoreCase("center")) {
@@ -119,46 +119,73 @@ public class SWTSkinUtils
 
 	public static void setVisibility(SWTSkin skin, String configID,
 			String viewID, final boolean visible, boolean save, boolean fast) {
-		final SWTSkinObject skinObject = skin.getSkinObject(viewID);
-		if (skinObject != null) {
-			if (skinObject.isVisible() == visible && skin.getShell().isVisible()) {
+
+		SWTSkinObject skinObject = skin.getSkinObject(viewID);
+		if (skinObject.isVisible() == visible && skin.getShell().isVisible()) {
+			return;
+		}
+
+		final Control control = skinObject.getControl();
+
+		if (control != null && !control.isDisposed()) {
+			Point size;
+			if (visible) {
+				final FormData fd = (FormData) control.getLayoutData();
+				size = (Point) control.getData("v3.oldHeight");
+				//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
+				if (size == null) {
+					size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+					if (fd.height > 0) {
+						size.y = fd.height;
+					}
+					if (fd.width > 0) {
+						size.x = fd.width;
+					}
+				}
+			} else {
+				size = new Point(0, 0);
+			}
+			setVisibility(skin, configID, skinObject, size, save, fast, null);
+		}
+	}
+
+	public static void setVisibility(SWTSkin skin, String configID,
+			final SWTSkinObject skinObject, final Point destSize, boolean save,
+			boolean fast, Runnable runAfterSlide) {
+		boolean visible = destSize.x != 0 || destSize.y != 0;
+		try {
+			if (skinObject == null) {
 				return;
 			}
 			final Control control = skinObject.getControl();
 			if (control != null && !control.isDisposed()) {
-				control.setData("oldSize", new Point(1,1));
-				Boolean wasVisible = (Boolean) control.getData("lastSlideVis");
-				if (wasVisible != null && wasVisible.booleanValue() == visible) {
-					fast = true;
-				}
-
-				if (control.getData("Sliding") != null) {
-					return;
-				}
-				control.setData("lastSlideVis", new Boolean(visible));
 				if (visible) {
-					final FormData fd = (FormData) control.getLayoutData();
-					Point size = (Point) control.getData("v3.oldHeight");
-					//System.out.println(control.getData("SkinID") + " oldHeight = " + size + ";v=" + control.getVisible() + ";s=" + control.getSize());
-					if (size == null && control.getSize().y < 2) {
-						size = control.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-						if (fd.height > 0) {
-							size.y = fd.height;
-						}
-						if (fd.width > 0) {
-							size.x = fd.width;
-						}
+					FormData fd = (FormData) control.getLayoutData();
+					fd.width = 0;
+					fd.height = 0;
+					control.setData("oldSize", new Point(0, 0));
+
+					skinObject.setVisible(visible);
+
+					// FormData should now be 0,0, but setVisible may have 
+					// explicitly changed it
+					fd = (FormData) control.getLayoutData();
+					
+					if (fd.width != 0 || fd.height != 0) {
+						return;
 					}
 
-					if (size != null) {
-						if (fd != null && (fd.width != size.x || fd.height != size.y)) {
+					if (destSize != null) {
+						if (fd != null
+								&& (fd.width != destSize.x || fd.height != destSize.y)) {
 							if (fast) {
-								fd.width = size.x;
-								fd.height = size.y;
+								fd.width = destSize.x;
+								fd.height = destSize.y;
 								control.setLayoutData(fd);
 								Utils.relayout(control);
 							} else {
-								slide(control, fd, size);
+								slide(skinObject, fd, destSize, runAfterSlide);
+								runAfterSlide = null; // prevent calling again
 							}
 						}
 					} else {
@@ -180,36 +207,37 @@ public class SWTSkinUtils
 							oldSize = null;
 						}
 						control.setData("v3.oldHeight", oldSize);
-						final Point size = new Point(0, 0);
 
 						if (fast) {
-							fd.width = size.x;
-							fd.height = size.y;
-							control.setLayoutData(fd);
-							Utils.relayout(control);
+							skinObject.setVisible(false);
 						} else {
-							slide(control, fd, size);
+							slide(skinObject, fd, destSize, runAfterSlide);
+							runAfterSlide = null; // prevent calling again
 						}
 					}
 				}
-				skinObject.setVisible(visible);
-				Utils.relayout(control);
 			}
 
 			if (save
 					&& COConfigurationManager.getBooleanParameter(configID) != visible) {
 				COConfigurationManager.setParameter(configID, visible);
 			}
+		} finally {
+			if (runAfterSlide != null) {
+				runAfterSlide.run();
+			}
 		}
 	}
 
 	public static void fade(final Composite c, final boolean fadeIn) {
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		final LightBoxShell lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-		
+		final LightBoxShell lbShell = new LightBoxShell(uiFunctions.getMainShell(),
+				false);
+
 		// assumed: c is on shell
 		Rectangle clientArea = c.getClientArea();
-		lbShell.setInsets(0, c.getShell().getClientArea().height - clientArea.height, 0, 0);
+		lbShell.setInsets(0, c.getShell().getClientArea().height
+				- clientArea.height, 0, 0);
 		lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL);
 		lbShell.setAlphaLevel(fadeIn ? 255 : 0);
 		lbShell.open();
@@ -218,23 +246,23 @@ public class SWTSkinUtils
 				if (c.isDisposed()) {
 					return;
 				}
-				
+
 				int alphaLevel = lbShell.getAlphaLevel();
 				if (fadeIn) {
-  				alphaLevel -= 5;
-  				if (alphaLevel < 0) {
-  					lbShell.close();
-  					return;
-  				}
+					alphaLevel -= 5;
+					if (alphaLevel < 0) {
+						lbShell.close();
+						return;
+					}
 				} else {
-  				alphaLevel += 5;
-  				if (alphaLevel > 255) {
-  					lbShell.close();
-  					return;
-  				}
+					alphaLevel += 5;
+					if (alphaLevel > 255) {
+						lbShell.close();
+						return;
+					}
 				}
 				lbShell.setAlphaLevel(alphaLevel);
-				
+
 				final AERunnable r = this;
 				SimpleTimer.addEvent("fade", SystemTime.getCurrentTime() + 10,
 						new TimerEventPerformer() {
@@ -244,21 +272,30 @@ public class SWTSkinUtils
 						});
 			}
 		};
-		
+
 		c.getDisplay().asyncExec(runnable);
 	}
 
-	
-	public static void slide(final Control control, final FormData fd,
-			final Point size) {
+	public static void slide(final SWTSkinObject skinObject, final FormData fd,
+			final Point destSize, final Runnable runOnCompletion) {
+		final Control control = skinObject.getControl();
 		//System.out.println("slide to " + size + " via "+ Debug.getCompressedStackTrace());
-		boolean exit = Utils.execSWTThreadWithBool("slide", new AERunnableBoolean() {
-			public boolean runSupport() {
-				boolean exit = control.getData("Sliding") != null;
-				control.setData("slide.destSize", size);
-				return exit;
-			}
-		}, 1000);
+		boolean exit = Utils.execSWTThreadWithBool("slide",
+				new AERunnableBoolean() {
+					public boolean runSupport() {
+						boolean exit = control.getData("slide.active") != null;
+						Runnable oldROC = (Runnable) control.getData("slide.runOnCompletion");
+						if (oldROC != null) {
+							oldROC.run();
+						}
+						control.setData("slide.destSize", destSize);
+						control.setData("slide.runOnCompletion", runOnCompletion);
+						if (destSize.y > 0) {
+							skinObject.setVisible(true);
+						}
+						return exit;
+					}
+				}, 1000);
 
 		if (exit) {
 			return;
@@ -266,6 +303,7 @@ public class SWTSkinUtils
 
 		AERunnable runnable = new AERunnable() {
 			boolean firstTime = true;
+
 			float pct = 0.4f;
 
 			public void runSupport() {
@@ -279,7 +317,7 @@ public class SWTSkinUtils
 
 				if (firstTime) {
 					firstTime = false;
-					control.setData("Sliding", "1");
+					control.setData("slide.active", "1");
 				}
 
 				int newWidth = (int) (fd.width + (size.x - fd.width) * pct);
@@ -296,8 +334,19 @@ public class SWTSkinUtils
 					Utils.relayout(control);
 					control.getParent().layout();
 
-					control.setData("Sliding", null);
+					control.setData("slide.active", null);
 					control.setData("slide.destSize", null);
+					
+					if (newHeight == 0) {
+						skinObject.setVisible(false);
+						Utils.relayout(control);
+					}
+
+					Runnable oldROC = (Runnable) control.getData("slide.runOnCompletion");
+					if (oldROC != null) {
+						control.setData("slide.runOnCompletion", null);
+						oldROC.run();
+					}
 				} else {
 					fd.width = newWidth;
 					fd.height = newHeight;
