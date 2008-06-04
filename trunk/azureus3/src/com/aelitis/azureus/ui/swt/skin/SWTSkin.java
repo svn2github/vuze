@@ -450,7 +450,6 @@ public class SWTSkin
 			if (DEBUGLAYOUT) {
 				System.out.println("Container: " + sID);
 			}
-			System.out.println("Container: " + sID);
 			
 			if (uiInitializer != null) {
 				uiInitializer.increaseProgress();
