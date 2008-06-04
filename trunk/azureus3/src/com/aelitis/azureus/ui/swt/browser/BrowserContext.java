@@ -328,13 +328,13 @@ public class BrowserContext
 				boolean blocked = checkBlocked && PlatformConfigMessenger.isURLBlocked(event.location);
 
 				if (blocked) {
+					event.doit = false;
 					if (!event.top && event.location.startsWith("http")) {
 						Utils.launch(event.location);
 						return;
 					}
 					Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "URL blocked",
 							event.location + " is blocked");
-					event.doit = false;
 					browser.back();
 				} else {
 					if(event.top || checkBlocked) {
