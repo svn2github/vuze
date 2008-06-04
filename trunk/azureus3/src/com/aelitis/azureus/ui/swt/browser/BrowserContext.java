@@ -320,12 +320,8 @@ public class BrowserContext
 
 				if (blocked) {
 					event.doit = false;
-					if (!event.top && event.location.startsWith("http")) {
-						Utils.launch(event.location);
-						return;
-					}
 					Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "URL blocked",
-							event.location + " is blocked");
+							"Tried to open " + event.location + " but it's blocked");
 					browser.back();
 				} else {
 					if(event.top) {
