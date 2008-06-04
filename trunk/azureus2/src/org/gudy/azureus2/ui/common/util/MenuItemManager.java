@@ -91,6 +91,10 @@ public class MenuItemManager {
 		}
 	}
 	
+	public void removeAllMenuItems(String sMenuID) {
+		this.items.remove(sMenuID);
+	}
+	
 	public void removeMenuItem(MenuItem item) {
 		Map menu_item_map = (Map)this.items.get(item.getMenuID());
 		if (menu_item_map != null) {menu_item_map.remove(item.getResourceKey());}

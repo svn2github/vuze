@@ -50,7 +50,10 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	
 	public void update(CLabel label) {
 		if (needs_disposing && !label.isDisposed()) {
-			if (menu != null && !menu.isDisposed()) {menu.dispose();}
+			if (menu != null && !menu.isDisposed()) {
+				menu.dispose();
+				menu = null;
+			}
 			label.dispose();
 			return;
 		}
@@ -108,6 +111,9 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			this.image = null;
 			this.needs_disposing = true;
 			this.is_destroyed = true;
+			
+			// Remove any existing menu items.
+			MenuItemManager.getInstance().removeAllMenuItems(this.menu_context.context);
 		}
 		finally {
 			this_mon.exit();
