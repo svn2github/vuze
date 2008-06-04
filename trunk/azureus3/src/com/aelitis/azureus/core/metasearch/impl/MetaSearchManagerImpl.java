@@ -185,6 +185,7 @@ MetaSearchManagerImpl
 			
 			Set		featured_ids 			= new HashSet();
 			Set		popular_ids 			= new HashSet();
+			Set		manual_vuze_ids 		= new HashSet();
 			
 			boolean		auto_mode = isAutoMode();
 					
@@ -262,11 +263,41 @@ MetaSearchManagerImpl
 					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
 							engine.getSelectionState() == Engine.SEL_STATE_MANUAL_SELECTED &&
 							!vuze_selected_ids.containsKey( key )){
+						
+						manual_vuze_ids.add( key );
+					}
+				}
+				
+				if ( manual_vuze_ids.size() > 0 ){
 					
+					long[]	manual_ids = new long[manual_vuze_ids.size()];
+					
+					Iterator it = manual_vuze_ids.iterator();
+					
+					int	pos = 0;
+					
+					while( it.hasNext()){
+						
+						manual_ids[pos++] = ((Long)it.next()).longValue();
+					}
+					
+					PlatformMetaSearchMessenger.templateInfo[] manual = PlatformMetaSearchMessenger.getTemplateDetails( manual_ids );
+										
+					for (int i=0;i<manual.length;i++){
+						
+						PlatformMetaSearchMessenger.templateInfo template = manual[i];
+						
+						if ( !template.isVisible()){
+							
+							continue;
+						}
+						
+						Long	key = new Long( template.getId());
+													
 						vuze_selected_ids.put( 
 							key, 
-							new Long( engine.getLastUpdated()));
-						
+							new Long( template.getModifiedDate()));
+														
 						manual_str += (manual_str.length()==0?"":",") + key;
 					}
 				}
@@ -336,8 +367,7 @@ MetaSearchManagerImpl
 								
 								log( "Failed to import engine '" + details.getValue() + "'", e );
 							}
-						}
-				
+						}			
 					}else{
 						
 						log( "Not updating " + this_engine.getString() + " as unchanged" );
@@ -347,6 +377,8 @@ MetaSearchManagerImpl
 							
 						if ( this_engine.getSelectionState() == Engine.SEL_STATE_DESELECTED ){
 						
+							log( "Auto-selecting " + this_engine.getString());
+							
 							this_engine.setSelectionState( Engine.SEL_STATE_AUTO_SELECTED );
 						}
 					}
@@ -359,8 +391,10 @@ MetaSearchManagerImpl
 					Engine	engine = engines[i];
 					
 					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
-							engine.getSelectionState() == Engine.SEL_STATE_AUTO_SELECTED &&
+							engine.getSelectionState() != Engine.SEL_STATE_DESELECTED &&
 							!vuze_selected_ids.containsKey( new Long( engine.getId()))){
+						
+						log( "Deselecting " + engine.getString() + " as no longer visible on Vuze");
 						
 						engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
 					}
