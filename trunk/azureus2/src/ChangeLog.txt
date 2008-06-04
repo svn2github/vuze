@@ -23,6 +23,7 @@ CHANGE: Core  | Further startup speed improvements [The 8472, amc1, parg]
 CHANGE: Core  | Speedup of various file batch operations (priority changes) [amc1, The 8472]
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Column menu option to disable fast renaming in files view, changed fast rename to behave more like the windows explorer [The 8472]
+CHANGE: UI    | In console UI, shrunk help text down to be more concise [amc1]
 
 BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a while now -> fixed [The 8472]
