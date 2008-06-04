@@ -139,28 +139,6 @@ public class SplashWindow
 		splash.setText(Constants.APP_NAME);
 		Utils.setShellIcon(splash);
 
-		/*GridLayout layout = new GridLayout();
-		layout.numColumns = 1;
-		layout.horizontalSpacing = 0;
-		layout.verticalSpacing = 0;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		splash.setLayout(layout);
-		Label label = new Label(splash, SWT.NONE);
-		label.setImage(ImageRepository.getImage("azureus_splash"));
-
-		currentTask = new Label(splash,SWT.BORDER);
-		GridData gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
-		currentTask.setLayoutData(gridData);
-		currentTask.setBackground(ColorCache.getColor(display, 255, 255, 255));
-		currentTask.setText("(: " + Constants.APP_NAME + " :)");
-		
-		this.percentDone = new ProgressBar(splash,SWT.HORIZONTAL);
-		this.percentDone.setMinimum(0);
-		this.percentDone.setMaximum(100);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		this.percentDone.setLayoutData(gridData);*/
-
 		splash.setLayout(new FillLayout());
 		canvas = new Canvas(splash, SWT.DOUBLE_BUFFERED);
 
@@ -230,6 +208,9 @@ public class SplashWindow
 					}
 					if (progressBarColor != null && !progressBarColor.isDisposed()) {
 						progressBarColor.dispose();
+					}
+					if (fadedGreyColor != null && !fadedGreyColor.isDisposed()) {
+						fadedGreyColor.dispose();
 					}
 					if (textColor != null && !textColor.isDisposed()) {
 						textColor.dispose();
