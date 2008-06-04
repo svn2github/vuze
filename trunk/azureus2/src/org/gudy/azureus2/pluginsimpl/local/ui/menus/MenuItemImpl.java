@@ -58,9 +58,9 @@ public class MenuItemImpl implements MenuItem {
 	private String display_text = null;
 	
 	private boolean visible = true;
-
-	private removeListener	remove_listener;
 	
+	private MenuContextImpl menu_context = null;
+
 	public MenuItemImpl(String menuID, String key) {
 		sMenuID = menuID;
 		sName = key;
@@ -236,15 +236,13 @@ public class MenuItemImpl implements MenuItem {
 		this.graphic = null;
 		this.listeners.clear();
 		this.fill_listeners.clear();
-		this.m_listeners.clear();		
+		this.m_listeners.clear();
+		
+		if (this.menu_context != null) {menu_context.dirty();}
 	}
 	
 	public void remove() {
 		removeWithEvents(UIManagerEvent.ET_REMOVE_MENU_ITEM, UIManagerEvent.ET_REMOVE_SUBMENU_ITEM);
-		
-		if ( remove_listener != null ){
-			remove_listener.removed();
-		}
 	}
 
 	public void removeAllChildItems() {
@@ -270,17 +268,9 @@ public class MenuItemImpl implements MenuItem {
 		}
 		return ((Boolean)data).booleanValue();
 	}
+	
+	public void setContext(MenuContextImpl context) {
+		this.menu_context = context;
+	}
 
-	public void
-	setRemoveListener(
-		removeListener	rl )
-	{
-		remove_listener = rl;
-	}
-	public interface
-	removeListener
-	{
-		public void
-		removed();
-	}
 }

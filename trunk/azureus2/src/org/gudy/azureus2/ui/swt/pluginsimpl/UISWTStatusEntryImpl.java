@@ -3,20 +3,17 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.custom.CLabel;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuContext;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 
@@ -29,6 +26,7 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	private AEMonitor this_mon = new AEMonitor("UISWTStatusEntryImpl@" + Integer.toHexString(this.hashCode()));
 	
 	private UISWTStatusEntryListener listener = null;
+	private MenuContextImpl menu_context = MenuContextImpl.create("status_entry");
 	
 	// Used by "update".
 	private boolean needs_update = false;
@@ -40,15 +38,23 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	private boolean needs_disposing = false;
 	private boolean is_destroyed = false;
 	
-	private List	menu_items = new ArrayList();
-	private Menu	menu;
+	private Menu menu;
 	
 	private void checkDestroyed() {
 		if (is_destroyed) {throw new RuntimeException("object is destroyed, cannot be reused");}
 	}
 	
+	public MenuContext getMenuContext() {
+		return this.menu_context;
+	}
+	
 	public void update(CLabel label) {
-		if (needs_disposing && !label.isDisposed()) {label.dispose(); return;}
+		if (needs_disposing && !label.isDisposed()) {
+			if (menu != null && !menu.isDisposed()) {menu.dispose();}
+			label.dispose();
+			return;
+		}
+		if (menu_context.is_dirty) {needs_update = true; menu_context.is_dirty = false;} 
 		if (!needs_update) {return;}
 		
 		// This is where we do a big update.
@@ -67,41 +73,26 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		label.setImage(image_enabled ? image : null);
 		label.setVisible(this.is_visible);
 		
-		if ( menu_items.size() > 0 && menu == null ){
-			
+		MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
+		if (items.length > 0 && menu == null) {
 			menu = new Menu(label);
-			
-			label.setMenu( menu );
-			
+			label.setMenu(menu);
 			MenuBuildUtils.addMaintenanceListenerForMenu(menu,
-					new MenuBuildUtils.MenuBuilder() {
-						public void 
-						buildMenu(
-							Menu menu) 
-						{
-							this_mon.enter();
-							
-							MenuItem[]	items = (MenuItem[])menu_items.toArray(new MenuItem[ menu_items.size()]);
-							
-							this_mon.exit();
-							
-							MenuBuildUtils.addPluginMenuItems(
-									label, 
-									items, 
-									menu, 
-									true,
-									true, 
-									MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER );
-						}
-			});
-
-			
-		}else if ( menu_items.size() == 0 && menu != null ){
-			
-			label.setMenu( null );
-			
-			menu = null;
+			    new MenuBuildUtils.MenuBuilder() {
+					public void buildMenu(Menu menu) {
+						MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
+						MenuBuildUtils.addPluginMenuItems(label, items, menu, true, true, 
+							MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
+					}
+				});
 		}
+		else if (menu != null) {
+			label.setMenu(null);
+			if (!menu.isDisposed()) {menu.dispose();}
+			this.menu = null;
+		}
+		
+		this.needs_update = false;
 	}
 	
 	void onClick() {
@@ -187,34 +178,4 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		this_mon.exit();
 	}
 
-	public MenuItem addMenuItem( String resource_key ){
-		
-		final MenuItemImpl item = new MenuItemImpl(MenuManager.MENU_STATUS_ENTRY, resource_key );
-		
-		this_mon.enter();
-		
-		menu_items.add( item );
-		
-		needs_update = menu == null;;
-		
-		this_mon.exit();
-		
-		item.setRemoveListener(
-			new MenuItemImpl.removeListener()
-			{
-				public void 
-				removed() 
-				{
-					this_mon.enter();
-					
-					menu_items.remove( item );
-					
-					needs_update = menu_items.size() == 0;
-					
-					this_mon.exit();
-				}
-			});
-		
-		return( item );
-	}
 }

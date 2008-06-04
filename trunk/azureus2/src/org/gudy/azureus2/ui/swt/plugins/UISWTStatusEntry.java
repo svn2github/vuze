@@ -21,7 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.plugins;
 
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuContext;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 
 import org.eclipse.swt.graphics.Image;
 
@@ -74,22 +75,29 @@ public interface UISWTStatusEntry {
 	
 	/**
 	 * Sets the image to display - the value here must be one of the <tt>IMAGE_</tt>
-	 * values defined above.
+	 * values defined above. You must call {@link #setImageEnabled(boolean)} to enable
+	 * images to be displayed for this status entry.
 	 */
 	public void setImage(int image_id);
 	
 	/**
-	 * Sets the image to display.
+	 * Sets the image to display. You must call {@link #setImageEnabled(boolean)} to enable
+	 * images to be displayed for this status entry.
 	 */
 	public void setImage(Image image);
-	
-	public MenuItem
-	addMenuItem( String text );
 	
 	/**
 	 * Destroys the status entry.
 	 */
 	public void destroy();
+	
+	/**
+	 * Returns a menu context object to allow you to add menu items to the status entry.
+	 * 
+	 * @see MenuManager#addMenuItem(MenuContext, String)
+	 * @since 3.0.5.3
+	 */
+	public MenuContext getMenuContext();
 	
 }
  

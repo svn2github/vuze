@@ -37,6 +37,14 @@ public class MenuManagerImpl implements MenuManager {
     	UIManagerImpl.fireEvent(UIManagerEvent.ET_ADD_MENU_ITEM, item);
     	return item;
     }
+    
+    public MenuItem addMenuItem(MenuContext context, String resource_key) {
+    	MenuContextImpl context_impl = (MenuContextImpl)context;
+    	MenuItemImpl result = (MenuItemImpl)addMenuItem(context_impl.context, resource_key);
+    	result.setContext(context_impl);
+    	context_impl.dirty();
+    	return result;
+    }
 
     public MenuItem addMenuItem(MenuItem parent, String resource_key) {
 

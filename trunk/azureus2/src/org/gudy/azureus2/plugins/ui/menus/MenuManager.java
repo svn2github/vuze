@@ -78,13 +78,6 @@ public interface MenuManager {
 	public static final String MENU_DOWNLOAD_CONTEXT = "download_context";
 	
 	/**
-	 * This ID is used to menus attached to status entries
-	 * @since 3.0.5.3
-	 */
-	
-	public static final String MENU_STATUS_ENTRY = "statusentry";
-
-	/**
 	 * Creates a menu item for the appropriate menu.
 	 * 
 	 * @param menuID The <tt>MENU_</tt> identifier as defined above. 
@@ -93,6 +86,20 @@ public interface MenuManager {
 	 * @return The newly created menu item.
 	 */
     public MenuItem addMenuItem(String menuID, String resource_key);
+    
+    /**
+     * Creates a menu item in a particular context. {@link MenuContext}
+     * instances can be retrieved from some plugin objects that support 
+     * menu items to be added to it.
+     * 
+     * @param context The menu context object which represents the place to
+     *                add a menu item.
+	 * @param resource_key ID of the menu, which is also used to retrieve the
+	 *                     textual name from the plugin language file.
+	 * @return The newly created menu item.
+	 * @since 3.0.5.3
+     */
+    public MenuItem addMenuItem(MenuContext context, String resource_key);
     
     /**
      * Creates a menu item as a sub-item of the given menu item.
