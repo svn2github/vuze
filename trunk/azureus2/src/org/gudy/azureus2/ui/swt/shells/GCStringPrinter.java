@@ -394,7 +394,12 @@ public class GCStringPrinter
 						? lineInfo.originalLine.substring(0, MAX_LINE_LEN)
 						: lineInfo.originalLine;
 
-				outputLine.append(sProcessedLine);
+				// if it weren't for the elipses, we could do:
+				// outputLine.append(sProcessedLine);
+
+				excessPos = processWord(gc, lineInfo.originalLine,
+						sProcessedLine, printArea, wrap, iLineLength, outputLine,
+						space);
 			} else {
 				StringTokenizer stWord = new StringTokenizer(lineInfo.originalLine, " ");
 				// Process line word by word
@@ -482,7 +487,7 @@ public class GCStringPrinter
 		Point ptWordSize = gc.stringExtent(word + " ");
 		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
 		int targetWidth = iLineLength[0] + ptWordSize.x;
-		if (wrap && targetWidth > printArea.width) {
+		if (targetWidth > printArea.width) {
 			// word is longer than space avail, split
 			int endIndex = word.length();
 			long diff = endIndex;
