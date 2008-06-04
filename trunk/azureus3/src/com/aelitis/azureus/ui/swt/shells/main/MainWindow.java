@@ -1753,7 +1753,6 @@ public class MainWindow
 							if (event.y > clientArea.height - 10) {
 								mouseDownAt = event.y;
 							}
-							c.setCursor(c.getDisplay().getSystemCursor(SWT.CURSOR_SIZENS));
 						} else if (event.type == SWT.MouseUp && mouseDownAt > 0) {
 							int diff = event.y - mouseDownAt;
 							mouseDownAt = 0;
@@ -1771,6 +1770,11 @@ public class MainWindow
 							COConfigurationManager.setParameter("v3.topbar.height",
 									formData.height);
 							Utils.relayout(c);
+						} else if (event.type == SWT.MouseMove) {
+							Rectangle clientArea = c.getClientArea();
+							boolean draggable = (event.y > clientArea.height - 10);
+							c.setCursor(draggable ? c.getDisplay().getSystemCursor(SWT.CURSOR_SIZENS) : null);
+						} else if (event.type == SWT.MouseExit) {
 							c.setCursor(null);
 						}
 					}
@@ -1778,6 +1782,8 @@ public class MainWindow
 				Control control = skinObject.getControl();
 				control.addListener(SWT.MouseDown, l);
 				control.addListener(SWT.MouseUp, l);
+				control.addListener(SWT.MouseMove, l);
+				control.addListener(SWT.MouseExit, l);
 
 				skinObject.addListener(new SWTSkinObjectListener() {
 					public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -2471,7 +2477,8 @@ public class MainWindow
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 
-			SWTSkinUtils.setVisibility(skin, "TabBar.visible", "tabbar", value);
+			SWTSkinUtils.setVisibility(skin, "TabBar.visible", "tabbar", value, true,
+					true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
 			//TODO:
@@ -2480,7 +2487,7 @@ public class MainWindow
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
 
 			SWTSkinUtils.setVisibility(skin, "Footer.visible",
-					SkinConstants.VIEWID_FOOTER, value);
+					SkinConstants.VIEWID_FOOTER, value, true, true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 			// We don't allow the button bar to ever be hidden
