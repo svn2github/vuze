@@ -126,6 +126,9 @@ Engine
 		int			state );
 	
 	public void
+	recordSelectionState();
+	
+	public void
 	checkSelectionStateRecorded();
 		
 	public int

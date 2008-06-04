@@ -829,6 +829,14 @@ EngineImpl
 	}
 	
 	public void
+	recordSelectionState()
+	{
+		selection_state_recorded = false;
+		
+		checkSelectionStateRecorded();
+	}
+	
+	public void
 	checkSelectionStateRecorded()
 	{
 		if ( !selection_state_recorded ){

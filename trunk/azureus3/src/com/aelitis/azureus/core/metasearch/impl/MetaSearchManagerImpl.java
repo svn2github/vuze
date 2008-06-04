@@ -372,7 +372,15 @@ MetaSearchManagerImpl
 					
 					Engine	engine = engines[i];
 					
-					engine.checkSelectionStateRecorded();
+					if ( 	engine.getSource() == Engine.ENGINE_SOURCE_VUZE &&
+							engine.getSelectionState() == Engine.SEL_STATE_MANUAL_SELECTED ){
+						
+						engine.recordSelectionState();
+						
+					}else{
+						
+						engine.checkSelectionStateRecorded();
+					}
 				}
 			}catch( Throwable e ){
 				
