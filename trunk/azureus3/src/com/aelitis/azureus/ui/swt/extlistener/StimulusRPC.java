@@ -144,8 +144,7 @@ public class StimulusRPC
 							String id = MapUtils.getMapString(decodedMap, "id", "client");
 							String version = MapUtils.getMapString(decodedMap, "version", "");
 							if (id.equals("client")) {
-								return org.gudy.azureus2.core3.util.Constants.isCVSVersion()
-										|| org.gudy.azureus2.core3.util.Constants.compareVersions(
+								return org.gudy.azureus2.core3.util.Constants.compareVersions(
 												org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
 												version) >= 0;
 							}
