@@ -25,6 +25,9 @@ import java.net.URLDecoder;
 import java.util.*;
 import java.util.regex.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TimeLimitedTask;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONObject;
 
@@ -167,16 +170,16 @@ RegexEngine
 	
 	protected Result[] 
 	searchSupport(
-		SearchParameter[] 	searchParameters,
-		int					max_matches,
-		String				headers,
-		ResultListener		listener )
+		final SearchParameter[] 	searchParameters,
+		final int					o_max_matches,
+		final String				headers,
+		final ResultListener		listener )
 	
 		throws SearchException 
 	{
 		debugStart();
 				
-		String page = getWebPageContent( searchParameters, headers );
+		final String page = getWebPageContent( searchParameters, headers );
 			
 		if ( listener != null ){
 			
@@ -222,117 +225,152 @@ RegexEngine
 			
 		}
 		 */
-		
-		String searchQuery = null;
-		
-		for(int i = 0 ; i < searchParameters.length ; i++) {
-			if(searchParameters[i].getMatchPattern().equals("s")) {
-				searchQuery = searchParameters[i].getValue();
-			}
-		}
-		
-		
-		FieldMapping[] mappings = getMappings();
+				
+		try{
+			TimeLimitedTask task = new TimeLimitedTask(
+				"MetaSearch:regexpr",
+				30*1000,
+				Thread.NORM_PRIORITY - 1,
+				new TimeLimitedTask.task()
+				{
+					public Object
+					run()
 					
-		try {
-			
-			List results = new ArrayList();
-				
-			Matcher m = pattern.matcher( page );
-				
-			while( m.find()){
-				
-				if ( max_matches >= 0 ){
-					if ( --max_matches < 0 ){
-						break;
-					}
-				}
-				
-				if ( listener != null ){
+						throws Exception
+					{
+						int	max_matches = o_max_matches;
 					
-					String[]	groups = new String[m.groupCount()];
-					
-					for (int i=0;i<groups.length;i++){
+						while( max_matches == max_matches );
 						
-						groups[i] = m.group(i+1);
-					}
-					
-					listener.matchFound( this, groups );
-				}
+						String searchQuery = null;
+						
+						for(int i = 0 ; i < searchParameters.length ; i++) {
+							if(searchParameters[i].getMatchPattern().equals("s")) {
+								searchQuery = searchParameters[i].getValue();
+							}
+						}
+						
+						
+						FieldMapping[] mappings = getMappings();
+	
+						try{						
+							List results = new ArrayList();
+								
+							Matcher m = pattern.matcher( page );
+								
+							while( m.find()){
+								
+								if ( max_matches >= 0 ){
+									if ( --max_matches < 0 ){
+										break;
+									}
+								}
+								
+								if ( listener != null ){
+									
+									String[]	groups = new String[m.groupCount()];
+									
+									for (int i=0;i<groups.length;i++){
+										
+										groups[i] = m.group(i+1);
+									}
+									
+									listener.matchFound( RegexEngine.this, groups );
+								}
+								
+								debugLog( "Found match:" );
+								
+								WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
+								for(int i = 0 ; i < mappings.length ; i++) {
+									int group = -1;
+									try {
+										group = Integer.parseInt(mappings[i].getName());
+									} catch(Exception e) {
+										//In "Debug/Test" mode, we should fire an exception / notification
+									}
+									if(group > 0 && group <= m.groupCount()) {
+										
+										int field = mappings[i].getField();
+										String groupContent = m.group(group);
+										
+										debugLog( "    " + field + "=" + groupContent );
+										
+										switch(field) {
+										case FIELD_NAME :
+											result.setNameFromHTML(groupContent);
+											break;
+										case FIELD_SIZE :
+											result.setSizeFromHTML(groupContent);
+											break;
+										case FIELD_PEERS :
+											result.setNbPeersFromHTML(groupContent);
+											break;
+										case FIELD_SEEDS :
+											result.setNbSeedsFromHTML(groupContent);
+											break;
+										case FIELD_CATEGORY :
+											result.setCategoryFromHTML(groupContent);
+											break;
+										case FIELD_DATE :
+											result.setPublishedDateFromHTML(groupContent);
+											break;
+										case FIELD_CDPLINK :
+											result.setCDPLink(groupContent);
+											break;
+										case FIELD_TORRENTLINK :
+											result.setTorrentLink(groupContent);
+											break;
+										case FIELD_PLAYLINK :
+											result.setPlayLink(groupContent);
+											break;
+										case FIELD_COMMENTS :
+											result.setCommentsFromHTML(groupContent);
+											break;
+										case FIELD_VOTES :
+											result.setVotesFromHTML(groupContent);
+											break;
+										case FIELD_SUPERSEEDS :
+											result.setNbSuperSeedsFromHTML(groupContent);
+											break;
+										case FIELD_PRIVATE :
+											result.setPrivateFromHTML(groupContent);
+											break;
+										default:
+											break;
+										}
+									}
+								}
+								
+								results.add(result);
+							}
+								
+							return (Result[]) results.toArray(new Result[results.size()]);
+									
+						}catch (Throwable e){
+							
+							log( "Failed process result", e );
 				
-				debugLog( "Found match:" );
-				
-				WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
-				for(int i = 0 ; i < mappings.length ; i++) {
-					int group = -1;
-					try {
-						group = Integer.parseInt(mappings[i].getName());
-					} catch(Exception e) {
-						//In "Debug/Test" mode, we should fire an exception / notification
-					}
-					if(group > 0 && group <= m.groupCount()) {
-						
-						int field = mappings[i].getField();
-						String groupContent = m.group(group);
-						
-						debugLog( "    " + field + "=" + groupContent );
-						
-						switch(field) {
-						case FIELD_NAME :
-							result.setNameFromHTML(groupContent);
-							break;
-						case FIELD_SIZE :
-							result.setSizeFromHTML(groupContent);
-							break;
-						case FIELD_PEERS :
-							result.setNbPeersFromHTML(groupContent);
-							break;
-						case FIELD_SEEDS :
-							result.setNbSeedsFromHTML(groupContent);
-							break;
-						case FIELD_CATEGORY :
-							result.setCategoryFromHTML(groupContent);
-							break;
-						case FIELD_DATE :
-							result.setPublishedDateFromHTML(groupContent);
-							break;
-						case FIELD_CDPLINK :
-							result.setCDPLink(groupContent);
-							break;
-						case FIELD_TORRENTLINK :
-							result.setTorrentLink(groupContent);
-							break;
-						case FIELD_PLAYLINK :
-							result.setPlayLink(groupContent);
-							break;
-						case FIELD_COMMENTS :
-							result.setCommentsFromHTML(groupContent);
-							break;
-						case FIELD_VOTES :
-							result.setVotesFromHTML(groupContent);
-							break;
-						case FIELD_SUPERSEEDS :
-							result.setNbSuperSeedsFromHTML(groupContent);
-							break;
-						case FIELD_PRIVATE :
-							result.setPrivateFromHTML(groupContent);
-							break;
-						default:
-							break;
+							throw new SearchException(e);
 						}
 					}
-				}
-				
-				results.add(result);
-			}
-							
-			return (Result[]) results.toArray(new Result[results.size()]);
-					
-		}catch (Throwable e){
+				});
 			
-			log( "Failed process result", e );
-
-			throw new SearchException(e);
+			Result[] res = (Result[])task.run();
+			
+			debugLog( "success: found " + res.length + " results" );
+			
+			return( res );
+			
+		}catch( Throwable e ){
+			
+			debugLog( "failed: " + Debug.getNestedExceptionMessageAndStack( e ));
+			
+			if ( e instanceof SearchException ){
+				
+				throw((SearchException)e );
+			}
+			
+			throw( new SearchException( "Regex matching failed", e ));
 		}
 	}
 	

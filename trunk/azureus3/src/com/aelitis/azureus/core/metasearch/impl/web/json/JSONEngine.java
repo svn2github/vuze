@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -164,6 +165,8 @@ JSONEngine
 	
 		throws SearchException
 	{	
+		debugStart();
+		
 		String page = super.getWebPageContent( searchParameters, headers );
 		
 		if ( listener != null ){
@@ -203,14 +206,16 @@ JSONEngine
 				}
 			}
 			
-			try {
+			try{
 				resultArray = (JSONArray) jsonObject;
-			} catch (Throwable t) {
+				
+			}catch(Throwable t){
+				
 				throw new SearchException("Object is not a result array. Check the JSON service and/or the entry path");
 			}
 				
 				
-			if(resultArray != null) {
+			if ( resultArray != null ){
 				
 				List results = new ArrayList();
 				
@@ -318,20 +323,29 @@ JSONEngine
 					}
 				}
 				
-				return (Result[]) results.toArray(new Result[results.size()]);	
+				Result[] res = (Result[]) results.toArray(new Result[results.size()]);
+
+				debugLog( "success: found " + res.length + " results" );
+				
+				return( res );
+				
+			}else{
+			
+				debugLog( "success: no result array found so no results" );
+				
+				return( new Result[0]);
 			}
 			
-			return( new Result[0]);
+		}catch( Throwable e ){
 			
-		}catch( SearchException e ){
-		                           
-			throw( e );
+			debugLog( "failed: " + Debug.getNestedExceptionMessageAndStack( e ));
 			
-		}catch (Throwable  e) {
+			if ( e instanceof SearchException ){
+				
+				throw((SearchException)e );
+			}
 			
-			log( "Failed process result", e );
-			
-			throw new SearchException(e);
+			throw( new SearchException( "JSON matching failed", e ));
 		}
 	}
 	
