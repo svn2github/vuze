@@ -958,8 +958,13 @@ public class TableCellImpl
   
   // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean)
   public boolean refresh(boolean bDoGraphics) {
-  	TableView view = tableRow.getView();
-		boolean isRowShown = view.isRowVisible(tableRow);
+  	boolean isRowShown;
+  	if (tableRow != null) {
+  		TableView view = tableRow.getView();
+  		isRowShown = view.isRowVisible(tableRow);
+  	} else {
+  		isRowShown = true;
+  	}
 		boolean isCellShown = isRowShown && isShown();
 		return refresh(bDoGraphics, isRowShown, isCellShown);
   }
