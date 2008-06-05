@@ -1392,13 +1392,12 @@ DownloadManagerStateImpl
 	isPeerSourcePermitted(
 		String	peerSource )
 	{
-			// no DHT for private torrents or if no DHT or explicitly prevented
+			// no DHT for private torrents or explicitly prevented
 		
 		if ( peerSource.equals( PEPeerSource.PS_DHT )){
 			
 			if ( 	TorrentUtils.getPrivate( torrent ) ||
-					( !TorrentUtils.getDHTTrackerEnabled()) ||
-					( !TorrentUtils.getDHTBackupEnabled( torrent ))){
+					!TorrentUtils.getDHTBackupEnabled( torrent )){
 							
 				return( false );
 			}

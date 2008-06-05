@@ -1196,26 +1196,7 @@ TorrentUtils
 		
 		m.put( TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED, new Long(requested?1:0));
 	}
-	
-	public static boolean
-	getDHTTrackerEnabled()
-	{
-		PluginInterface dht_pi = 
-			AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
-						DHTPlugin.class );
-				
-		if ( dht_pi == null ){
-			
-			return( false );
-			
-		}else{
-			
-			DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();		
-			
-			return( dht.peekEnabled());
-		}
-	}
-	
+		
 	public static boolean
 	getPrivate(
 		TOTorrent		torrent )
