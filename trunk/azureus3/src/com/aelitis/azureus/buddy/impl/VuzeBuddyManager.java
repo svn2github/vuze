@@ -353,6 +353,7 @@ public class VuzeBuddyManager
 				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
 				if (vuzeBuddy != null) {
 					//vuzeBuddy.setDisplayName(buddy.getName());
+					triggerChangeListener(vuzeBuddy);
 				} else {
 					buddyAdded(buddy);
 				}
