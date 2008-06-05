@@ -283,14 +283,17 @@ public class SWTSkinObjectSash
 		createOn.addListener(SWT.Resize, l);
 		sash.addListener(SWT.Selection, l);
 		sash.addListener(SWT.MouseUp, l);
+		sash.getShell().addListener(SWT.Show, l);
 
 		addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
-				Event event = new Event();
-				event.type = SWT.Show;
-
-				l.handleEvent(event);
+				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+  				Event event = new Event();
+  				event.type = SWT.Show;
+  
+  				l.handleEvent(event);
+				}
 				return null;
 			}
 		});
