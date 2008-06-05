@@ -17,5 +17,10 @@ public interface IDetailPage
 
 	public ClientMessageContext getMessageContext();
 
-	public void refresh();
+	public void refresh(RefreshListener refreshListener);
+
+	public interface RefreshListener
+	{
+		public void refreshCompleted();
+	}
 }

@@ -10,7 +10,6 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -239,10 +238,26 @@ public class DetailPanel
 					 * Move the specified page on top if found
 					 */
 					if (true == pages.containsKey(pageID)) {
-						IDetailPage page = ((IDetailPage) pages.get(pageID));
-						page.refresh();
-						stackLayout.topControl = page.getControl();
-						detailPanel.layout();
+						final IDetailPage page = ((IDetailPage) pages.get(pageID));
+						page.refresh(new IDetailPage.RefreshListener() {
+							public void refreshCompleted() {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										Utils.relayout(detailPanel);
+										stackLayout.topControl = page.getControl();
+										detailPanel.layout();
+
+										/*
+										 * For OSX after the layout operation is done must set focus so the ui will repaint properly
+										 */
+										if (true == Constants.isOSX && true == value) {
+											detailPanel.setFocus();
+										}
+									}
+								});
+
+							}
+						});
 					}
 
 					Point destSize = value ? new Point(SWT.DEFAULT, size.y) : new Point(

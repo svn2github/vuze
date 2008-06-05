@@ -14,6 +14,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
+import com.aelitis.azureus.ui.swt.views.skin.IDetailPage.RefreshListener;
 import com.aelitis.azureus.util.Constants;
 
 public class InvitePage
@@ -28,6 +29,8 @@ public class InvitePage
 	private Browser browser = null;
 
 	private ClientMessageContext context = null;
+
+	private RefreshListener refreshListener = null;
 
 	public InvitePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -81,6 +84,10 @@ public class InvitePage
 					 * Setting inviteFromShare to false in the browser
 					 */
 					context.executeInBrowser("inviteFromShare(" + false + ")");
+					
+					if(null != refreshListener){
+						refreshListener.refreshCompleted();
+					}
 				}
 			});
 
@@ -120,8 +127,9 @@ public class InvitePage
 						}
 
 						public void handleResize() {
-							if(null != getWindowState()){
-								System.out.println("Resizing standalone Add Friends: " + getWindowState());//KN: sysout
+							if (null != getWindowState()) {
+								System.out.println("Resizing standalone Add Friends: "
+										+ getWindowState());//KN: sysout
 							}
 						}
 					}
@@ -131,7 +139,8 @@ public class InvitePage
 		return context;
 	}
 
-	public void refresh() {
+	public void refresh(RefreshListener refreshListener) {
+		this.refreshListener = refreshListener;
 		/*
 		 * Calling to init the browser if it's not been done already
 		 */

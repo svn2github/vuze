@@ -52,6 +52,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.views.skin.IDetailPage.RefreshListener;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
@@ -140,6 +141,8 @@ public class SharePage
 	private ButtonBar buttonBar;
 
 	private String referer;
+
+	private RefreshListener refreshListener;
 
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -676,6 +679,10 @@ public class SharePage
 					 * Setting inviteFromShare to true in the browser
 					 */
 					context.executeInBrowser("inviteFromShare(" + true + ")");
+					
+					if(null != refreshListener){
+						refreshListener.refreshCompleted();
+					}
 				}
 			});
 
@@ -814,7 +821,10 @@ public class SharePage
 		return shareItem;
 	}
 
-	public void refresh() {
+	public void refresh(RefreshListener refreshListener) {
+		
+		this.refreshListener = refreshListener;
+		
 		/*
 		 * Init the browser if it was not done already
 		 */
@@ -881,6 +891,7 @@ public class SharePage
 		updateContentStats();
 
 		adjustLayout();
+		
 	}
 
 	private void updateContentStats() {

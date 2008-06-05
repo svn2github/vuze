@@ -4,7 +4,7 @@ public abstract class AbstractDetailPage
 	implements IDetailPage
 {
 
-	private String pageID = null;
+	protected String pageID = null;
 
 	private DetailPanel detailPanel = null;
 
