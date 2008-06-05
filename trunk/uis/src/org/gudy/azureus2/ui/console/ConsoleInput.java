@@ -62,6 +62,7 @@ import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 
 /**
  * @author Tobias Minich
@@ -165,7 +166,19 @@ public class ConsoleInput extends Thread {
 		registerAlertHandler();
 		registerCommands();
 		registerPluginCommands();
-		registerUpdateChecker();
+		
+		azureus_core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public void
+				started(
+					AzureusCore		core )
+				{
+					registerUpdateChecker();
+				}
+			});
+		
+	
 		try {
 			loadAliases();
 		} catch (IOException e) {
