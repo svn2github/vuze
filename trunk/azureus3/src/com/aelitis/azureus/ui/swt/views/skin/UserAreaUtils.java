@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.browser.Browser;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -139,7 +140,7 @@ public class UserAreaUtils
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE + "?"
-								+ Constants.URL_SUFFIX;
+								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);
 					}
@@ -158,7 +159,7 @@ public class UserAreaUtils
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					if (null != uiFunctions) {
 						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
-								+ Constants.URL_SUFFIX;
+								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);
 					}
