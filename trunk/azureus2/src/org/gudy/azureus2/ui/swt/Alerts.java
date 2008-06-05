@@ -191,7 +191,7 @@ public class Alerts
 			if (amb_key_suffix != null
 					&& title.equals(MessageText.getString("AlertMessageBox."
 							+ amb_key_suffix))) {
-				title2 = Constants.AZUREUS_NAME;
+				title2 = Constants.APP_NAME;
 			} else {
 				title2 = title;
 			}
