@@ -56,9 +56,26 @@ public class SearchResultsTabArea
 		skin = skinObject.getSkin();
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(SkinConstants.VIEWID_BROWSER_SEARCHRESULTS);
 
-		Browser browser = browserSkinObject.getBrowser();
-
 		createBrowseArea(browserSkinObject);
+
+		final SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+		if (tabSetMain != null) {
+			final SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
+			if (tab != null) {
+				SWTSkinObjectListener l = new SWTSkinObjectListener() {
+					public Object eventOccured(SWTSkinObject skinObject, int eventType,
+							Object params) {
+						if (eventType == SWTSkinObjectListener.EVENT_SELECT) {
+							tab.setVisible(tabSetMain.getActiveTab() == tab);
+						}
+						return null;
+					}
+				};
+				tab.addListener(l);
+			}
+		}
+
+		
 		return null;
 	}
 
@@ -133,17 +150,6 @@ public class SearchResultsTabArea
 				if (view == null) {
 					return null;
 				}
-
-				SWTSkinObject[] children = tab.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					SWTSkinObject child = children[i];
-					
-					if (child instanceof SWTSkinObjectText) {
-						SWTSkinObjectText soTxt = (SWTSkinObjectText) child;
-						soTxt.setText("Last\nSearch");
-					}
-				}
-				tabSetMain.setActiveTab(tab);
 			}
 		}
 		return view;
