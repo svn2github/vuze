@@ -478,7 +478,7 @@ public class SharePage
 			public void runSupport() {
 				stackLayout.topControl = firstPanel;
 				adjustLayout();
-				content.layout();
+				
 			}
 		});
 
@@ -489,7 +489,7 @@ public class SharePage
 		addBuddyButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				stackLayout.topControl = browserPanel;
-				content.layout();
+				content.layout(true,true);
 			}
 		});
 
@@ -647,7 +647,7 @@ public class SharePage
 			addBuddyButtonData.height = size.y;
 		}
 
-		firstPanel.layout(true, true);
+		content.layout(true, true);
 	}
 
 	public void addBuddies(List buddies) {
