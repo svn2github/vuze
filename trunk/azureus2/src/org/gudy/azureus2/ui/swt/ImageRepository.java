@@ -67,7 +67,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
 		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
 		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
-    addPath("org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
+    addPath("org/gudy/azureus2/ui/splash/splash_frog.png", "azureus_splash");
   }
 
   public static void loadImages(Display display) {

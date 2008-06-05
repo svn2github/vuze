@@ -52,6 +52,7 @@ public class AboutWindow {
   static Image image;
   static AEMonitor	class_mon	= new AEMonitor( "AboutWindow" );
   private static Shell instance;
+	private static Image imgSrc;
 
   public static void show(final Display display) {
     if(instance != null)
@@ -77,14 +78,37 @@ public class AboutWindow {
     GridData gridData;
     window.setLayout(new GridLayout(3, false));
 
-    image = new Image(display,ImageRepository.getImage("azureus_splash"),SWT.IMAGE_GRAY);
-//    Image image2 = new Image(display, image.getBounds().width, image.getBounds().height);
-//    GC gc = new GC(image2);
-//    gc.setBackground(Colors.black);
-//    gc.fillRectangle(image2.getBounds());
-//    gc.dispose();
-//    image = Utils.renderTransparency(display, image2, image, new Point(0, 0), 120);
-//    image2.dispose();
+    image = ImageRepository.getImage("azureus_splash");
+    int w = image.getBounds().width;
+    int ow = w;
+    if (w > 350) {
+    	w = 350;
+    }
+    int h = image.getBounds().height;
+    h = 220;
+    imgSrc = new Image(display, w, h);
+    GC gc = new GC(imgSrc);
+    gc.drawImage(image, (w - ow) / 2, 0);
+    gc.dispose();
+    
+    Image imgGray = new Image(display,
+				ImageRepository.getImage("azureus_splash"), SWT.IMAGE_GRAY);
+    gc = new GC(imgGray);
+    if (Constants.isOSX) {
+    	gc.drawImage(imgGray, (w - ow) / 2, 0);
+    } else {
+    	gc.copyArea(0, 0, ow, h, (w - ow) / 2, 0);
+    }
+    gc.dispose();
+    
+    Image image2 = new Image(display, w, h);
+    gc = new GC(image2);
+    gc.setBackground(Colors.black);
+    gc.fillRectangle(image2.getBounds());
+    gc.dispose();
+    image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
+    image2.dispose();
+    imgGray.dispose();
     
     Group gDevelopers = new Group(window, SWT.NULL);
     gDevelopers.setLayout(new GridLayout());
@@ -185,6 +209,7 @@ public class AboutWindow {
     txtSysInfo.setFocus();
     Utils.centreWindow(window);
     window.open();
+    System.out.println(window.getBounds());
 
     instance = window;
     window.addDisposeListener(new DisposeListener() {
@@ -203,7 +228,6 @@ public class AboutWindow {
         final int[] x = new int[1];
         final int maxX = image.getBounds().width;
         final int maxY = image.getBounds().height;
-        final Image imgSrc = ImageRepository.getImage("azureus_splash");
         while(!finished[0]) {
           if(image == null || image.isDisposed()) {
             finished[0] = true;
@@ -247,6 +271,9 @@ public class AboutWindow {
 	    if(image != null && ! image.isDisposed())
 	      image.dispose();
 	    image = null;
+	    if(imgSrc != null && ! imgSrc.isDisposed())
+	      imgSrc.dispose();
+	    imgSrc = null;
   	}finally{
   		
   		class_mon.exit();
