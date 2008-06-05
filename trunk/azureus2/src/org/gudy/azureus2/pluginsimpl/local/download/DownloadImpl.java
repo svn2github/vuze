@@ -1746,4 +1746,18 @@ DownloadImpl
 	 public void setUserData( Object key, Object data ){
 		 download_manager.setUserData(key, data);
 	 }
+	 
+	 public void startDownload(boolean force) {
+		if (force) {
+			this.setForceStart(true);
+			return;
+		}
+		this.setForceStart(false);
+		
+		int state = this.getState();
+		if (state == DownloadManager.STATE_STOPPED ||	state == DownloadManager.STATE_QUEUED) {
+			download_manager.setStateWaiting();
+		}
+		
+	 }
 }

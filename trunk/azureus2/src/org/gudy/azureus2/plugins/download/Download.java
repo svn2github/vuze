@@ -997,4 +997,13 @@ Download extends DownloadEventNotifier
   	 * @param data
   	 */
   public void setUserData( Object key, Object data );
+  
+  /**
+   * Simple method to start the download. Will not raise an error if it
+   * didn't work, or if the download is already running.
+   * 
+   * @since 3.0.5.3
+   * @param force <tt>true</tt> to force the download to be started.
+   */
+  public void startDownload(boolean force);
 }
