@@ -58,53 +58,41 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			return;
 		}
 		
-		boolean rebuild_menu = menu_context.is_dirty;
-		
-		if ( rebuild_menu ){
-			needs_update = true; 
-			menu_context.is_dirty = false;
-		} 
+		if (menu_context.is_dirty) {needs_update = true; menu_context.is_dirty = false;} 
 		if (!needs_update) {return;}
 		
 		// This is where we do a big update.
 		try {
 			this_mon.enter();
-			update0(label, rebuild_menu);
+			update0(label);
 		}
 		finally {
 			this_mon.exit();
 		}
 	}
 	
-	private void update0(final CLabel label, boolean rebuild_menu ) {
+	private void update0(final CLabel label) {
 		label.setText(text);
 		label.setToolTipText(tooltip);
 		label.setImage(image_enabled ? image : null);
 		label.setVisible(this.is_visible);
 		
 		MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
-		if (items.length > 0 ) {
-			if ( menu == null || rebuild_menu ){
+		if (items.length > 0 & menu == null) {
+			menu = new Menu(label);
+			label.setMenu(menu);
 				
-				if ( menu != null ){
-					
-					menu.dispose();
+			MenuBuildUtils.addMaintenanceListenerForMenu(menu,
+			    new MenuBuildUtils.MenuBuilder() {
+					public void buildMenu(Menu menu) {
+						MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
+						MenuBuildUtils.addPluginMenuItems(label, items, menu, true, true, 
+							MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
+					}
 				}
-				menu = new Menu(label);
-				
-				label.setMenu(menu);
-				
-				MenuBuildUtils.addMaintenanceListenerForMenu(menu,
-				    new MenuBuildUtils.MenuBuilder() {
-						public void buildMenu(Menu menu) {
-							MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
-							MenuBuildUtils.addPluginMenuItems(label, items, menu, true, true, 
-								MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
-						}
-					});
-			}
+			);
 		}
-		else if (menu != null) {
+		else if (menu != null && items.length == 0) {
 			label.setMenu(null);
 			if (!menu.isDisposed()) {menu.dispose();}
 			this.menu = null;
