@@ -39,6 +39,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -228,17 +229,19 @@ public class AvatarWidget
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				//				if (true == isActivated && highlightBorder > 0) {
-				//
-				//					e.gc.setForeground(Colors.grey);
-				//					e.gc.setLineWidth(highlightBorder);
-				//					Rectangle bounds = canvas.getBounds();
-				//					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
-				//							bounds.width - (2 * highlightBorder), bounds.height
-				//									- (2 * highlightBorder), 10, 10);
-				//					e.gc.setForeground(canvas.getForeground());
-				//					e.gc.setLineWidth(1);
-				//				}
+//				if (true == vuzeBuddy.isOnline()) {
+//					System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
+//							+ vuzeBuddy.isOnline());//KN: sysout
+//					e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178, 210,
+//							129));
+////					e.gc.setLineWidth(highlightBorder);
+//					Rectangle bounds = canvas.getBounds();
+//					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
+//							bounds.width - (2 * highlightBorder), bounds.height
+//									- (2 * highlightBorder), 10, 10);
+//					e.gc.setForeground(canvas.getForeground());
+////					e.gc.setLineWidth(1);
+//				}
 				/*
 				 * Draw the avatar image
 				 */
@@ -262,7 +265,15 @@ public class AvatarWidget
 						 * Image border
 						 */
 						if (imageBorder > 0) {
-							e.gc.setForeground(imageBorderColor);
+							if (true == vuzeBuddy.isOnline()) {
+								e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 43, 190,
+							90));
+								e.gc.setLineWidth(imageBorder+1);
+							}
+							else{
+								e.gc.setForeground(imageBorderColor);
+								e.gc.setLineWidth(imageBorder);
+							}
 							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
 									- imageBorder, imageBounds.width + imageBorder,
 									imageBounds.height + imageBorder);
@@ -279,7 +290,15 @@ public class AvatarWidget
 						 * Image border
 						 */
 						if (imageBorder > 0) {
-							e.gc.setForeground(imageBorderColor);
+							if (true == vuzeBuddy.isOnline()) {
+								e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 43, 190,
+							90));
+								e.gc.setLineWidth(imageBorder+1);
+							}
+							else{
+								e.gc.setForeground(imageBorderColor);
+								e.gc.setLineWidth(imageBorder);
+							}
 							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
 									- imageBorder, imageBounds.width + imageBorder,
 									imageBounds.height + imageBorder);
@@ -646,7 +665,7 @@ public class AvatarWidget
 		}
 		sourceImageBounds = null == image ? null : image.getBounds();
 		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
-		
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (null != canvas && false == canvas.isDisposed()) {
