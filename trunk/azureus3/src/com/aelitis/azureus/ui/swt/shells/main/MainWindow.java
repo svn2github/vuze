@@ -69,11 +69,11 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
+import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFPListener;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -832,6 +832,15 @@ public class MainWindow
 
 									uif.bringToFront();
 								}
+							} else if (type == NavigationHelper.COMMAND_BUDDY_SYNC) {
+
+								try {
+									PlatformRelayMessenger.fetch(0);
+									PlatformBuddyMessenger.sync(null);
+									PlatformBuddyMessenger.getInvites();
+								} catch (NotLoggedInException e1) {
+								}
+
 							} else if (type == NavigationHelper.COMMAND_CONDITION_CHECK) {
 
 								if (args[0].equals(NavigationHelper.COMMAND_CHECK_BUDDY_MANAGER)) {
