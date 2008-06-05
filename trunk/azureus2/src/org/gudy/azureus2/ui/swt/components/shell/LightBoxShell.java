@@ -89,7 +89,7 @@ public class LightBoxShell
 	public static final int RESIZE_HORIZONTAL = 1 << 2;
 
 	private int styleMask = RESIZE_VERTICAL | RESIZE_HORIZONTAL;
-	
+
 	private int alphaLevel = 178;
 
 	public LightBoxShell() {
@@ -125,6 +125,11 @@ public class LightBoxShell
 		this.insetBottom = bottom;
 		this.insetLeft = left;
 		this.insetRight = right;
+		if (null != lbShell && false == lbShell.isDisposed()) {
+			if (true == isAlreadyOpened()) {
+				lbShell.setBounds(getBounds(true));
+			}
+		}
 	}
 
 	private void createControls() {
@@ -258,6 +263,7 @@ public class LightBoxShell
 
 	public void open() {
 		if (null != lbShell && false == lbShell.isDisposed()) {
+
 			lbShell.setBounds(getBounds());
 			isAlreadyOpened = true;
 
