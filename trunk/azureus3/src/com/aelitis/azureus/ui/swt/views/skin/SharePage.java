@@ -452,6 +452,7 @@ public class SharePage
 		Messages.setLanguageText(inviteeListDescription, "v3.Share.add.buddy.new");
 
 		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
+
 		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 		addBuddyButton.setImage(imageLoader.getImage("image.buddy.add"));
 
@@ -622,6 +623,7 @@ public class SharePage
 	}
 
 	private void adjustLayout() {
+
 		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
 			//			previewButton.setVisible(true);
 			sendNowButton.setEnabled(true);
@@ -631,9 +633,21 @@ public class SharePage
 		}
 		if (inviteeList.getContentCount() > 0) {
 			showInviteeList(true);
+			addBuddyButton.setText(MessageText.getString("v3.Share.add.edit.buddy"));
+			Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			FormData addBuddyButtonData = (FormData) addBuddyButton.getLayoutData();
+			addBuddyButtonData.width = size.x;
+			addBuddyButtonData.height = size.y;
 		} else {
 			showInviteeList(false);
+			addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
+			Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+			FormData addBuddyButtonData = (FormData) addBuddyButton.getLayoutData();
+			addBuddyButtonData.width = size.x;
+			addBuddyButtonData.height = size.y;
 		}
+
+		firstPanel.layout(true, true);
 	}
 
 	public void addBuddies(List buddies) {
@@ -678,8 +692,8 @@ public class SharePage
 					 * Setting inviteFromShare to true in the browser
 					 */
 					context.executeInBrowser("inviteFromShare(" + true + ")");
-					
-					if(null != refreshListener){
+
+					if (null != refreshListener) {
 						refreshListener.refreshCompleted();
 					}
 				}
@@ -821,9 +835,9 @@ public class SharePage
 	}
 
 	public void refresh(RefreshListener refreshListener) {
-		
+
 		this.refreshListener = refreshListener;
-		
+
 		/*
 		 * Init the browser if it was not done already
 		 */
@@ -890,7 +904,7 @@ public class SharePage
 		updateContentStats();
 
 		adjustLayout();
-		
+
 	}
 
 	private void updateContentStats() {
@@ -935,7 +949,6 @@ public class SharePage
 			FormData fData = (FormData) layoutData;
 			if (fData.height != listHeight) {
 				fData.height = listHeight;
-				firstPanel.layout(true, true);
 			}
 		}
 
