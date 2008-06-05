@@ -1002,4 +1002,6 @@ RPDownload
 	public void setUserData(Object key, Object data) {
 		notSupported();
 	}
+	
+	public void startDownload(boolean force) {notSupported();}
 }
