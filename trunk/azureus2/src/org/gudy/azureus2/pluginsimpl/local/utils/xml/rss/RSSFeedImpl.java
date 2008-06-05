@@ -53,8 +53,16 @@ RSSFeedImpl
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
 	{
-		InputStream	is = downloader.download();
-		
+		this( utilities, downloader.download());
+	}
+	
+	public
+	RSSFeedImpl(
+		Utilities			utilities,
+		InputStream			is  )
+	
+		throws SimpleXMLParserDocumentException
+	{
 		try{
 			SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( is );
 		

@@ -202,6 +202,12 @@ Utilities
 	
 	public RSSFeed
 	getRSSFeed(
+		InputStream		is )
+	
+		throws SimpleXMLParserDocumentException;
+
+	public RSSFeed
+	getRSSFeed(
 		URL		feed_location )
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException;

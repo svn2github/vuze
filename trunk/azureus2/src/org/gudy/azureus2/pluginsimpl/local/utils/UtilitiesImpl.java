@@ -342,6 +342,25 @@ UtilitiesImpl
 	
 	public RSSFeed
 	getRSSFeed(
+		InputStream	is )
+	
+		throws SimpleXMLParserDocumentException
+	{
+		try{
+			return( new RSSFeedImpl( this, is ));
+			
+		}finally{
+			
+			try{
+				is.close();
+				
+			}catch( Throwable e ){
+			}
+		}
+	}
+	
+	public RSSFeed
+	getRSSFeed(
 		URL		feed_location )
 	
 		throws ResourceDownloaderException, SimpleXMLParserDocumentException
