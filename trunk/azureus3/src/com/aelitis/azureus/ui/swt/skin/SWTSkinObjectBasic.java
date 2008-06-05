@@ -305,8 +305,8 @@ public class SWTSkinObjectBasic
 							}
 						}
 						control.setLayoutData(fd);
-						control.getParent().layout(true, true);
-						//Utils.relayout(control, false);
+						control.getParent().layout(true);
+						Utils.relayout(control);
 					}
 					control.setVisible(visible);
 					setIsVisible(visible);
