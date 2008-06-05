@@ -5,13 +5,15 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -38,6 +40,8 @@ public class DetailPanel
 	private Map pages = new HashMap();
 
 	private StackLayout stackLayout;
+
+	private BlankDetailPage blankPage = null;
 
 	public DetailPanel() {
 
@@ -87,14 +91,52 @@ public class DetailPanel
 			}
 		});
 
-		/*
-		 * TODO: Add a listener to the parent shell and recalculate the appropriate height for the detail panel
-		 */
+		detailPanel.addControlListener(new ControlListener() {
+
+			public void controlResized(ControlEvent e) {
+				calculateLightBoxDimensions(lbShell);
+			}
+
+			public void controlMoved(ControlEvent e) {
+			}
+		});
 
 		return null;
 	}
 
+	private void calculateLightBoxDimensions(LightBoxShell shell) {
+		if (null != shell) {
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+
+			IMainWindow mainWindow = uiFunctions.getMainWindow();
+
+			/*
+			 * Calculate the offset from the bottom for the lightbox
+			 * We're subtracting the status bar, the footer, and the button bar
+			 */
+			int offsetHeight = ((FormData) detailPanel.getLayoutData()).height;
+			offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
+			SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+			if (null != footerObject) {
+				offsetHeight += footerObject.getControl().getSize().y;
+			}
+
+			SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
+			if (null != buttonBarObject) {
+				offsetHeight += buttonBarObject.getControl().getSize().y;
+			}
+
+			lbShell.setInsets(0, offsetHeight, 0, 0);
+
+		}
+
+	}
+
 	private void createDefaultPages() {
+
+		blankPage = new BlankDetailPage(this, "blankPage");
+
+		blankPage.createControls(detailPanel);
 		/*
 		 * Create the Share flow page
 		 */
@@ -175,14 +217,11 @@ public class DetailPanel
 			public void runSupport() {
 				int DETAIL_PANEL_HEIGHT = 463;
 				SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
-				Control control = detailPanelObject.getControl();
 
 				Point size = detailPanelObject.getControl().getSize();
 
 				if (detailPanelObject != null) {
 					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-
-					IMainWindow mainWindow = uiFunctions.getMainWindow();
 
 					if (true == value) {
 
@@ -194,26 +233,10 @@ public class DetailPanel
 						}
 
 						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-						/*
-						 * Calculate the offset from the bottom for the lightbox
-						 * We're subtracting the status bar
-						 */
-						int offsetHeight = DETAIL_PANEL_HEIGHT;
-						offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-						SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-						if (null != footerObject) {
-							offsetHeight += footerObject.getControl().getSize().y;
-						}
-
-						SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-						if (null != buttonBarObject) {
-							offsetHeight += buttonBarObject.getControl().getSize().y;
-						}
-
-						lbShell.setInsets(0, offsetHeight, 0, 0);
 						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
 								| LightBoxShell.RESIZE_VERTICAL);
 						lbShell.setAlphaLevel(200);
+						//						calculateLightBoxDimensions(lbShell);
 						lbShell.open();
 
 						/*
@@ -228,49 +251,58 @@ public class DetailPanel
 
 						size.y = DETAIL_PANEL_HEIGHT;
 
-					} else {
-						if (null != lbShell) {
-							lbShell.close();
-							lbShell = null;
-						}
-					}
-					/*
-					 * Move the specified page on top if found
-					 */
-					if (true == pages.containsKey(pageID)) {
-						final IDetailPage page = ((IDetailPage) pages.get(pageID));
-						page.refresh(new IDetailPage.RefreshListener() {
-							public void refreshCompleted() {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										Utils.relayout(detailPanel);
-										stackLayout.topControl = page.getControl();
-										detailPanel.layout();
+						stackLayout.topControl = blankPage.getControl();
+						detailPanel.layout();
 
-										/*
-										 * For OSX after the layout operation is done must set focus so the ui will repaint properly
-										 */
-										if (true == Constants.isOSX && true == value) {
-											detailPanel.setFocus();
+					}
+					AERunnable runWhenDone = new AERunnable() {
+
+						public void runSupport() {
+							if (false == value) {
+								if (null != lbShell) {
+									lbShell.close();
+									lbShell = null;
+								}
+							} else {
+								/*
+								 * If the page is found call it's .refresh() method with a RefreshListener;
+								 * in the RefreshListener bring the page to the top and update the UI
+								 */
+								if (true == pages.containsKey(pageID)) {
+									final IDetailPage page = ((IDetailPage) pages.get(pageID));
+									blankPage.showBusy(true, 0);
+									page.refresh(new IDetailPage.RefreshListener() {
+										public void refreshCompleted() {
+											Utils.execSWTThread(new AERunnable() {
+												public void runSupport() {
+													blankPage.showBusy(false, 0);
+													Utils.relayout(detailPanel);
+													stackLayout.topControl = page.getControl();
+													detailPanel.layout();
+
+													/*
+													 * For OSX after the layout operation is done must set focus so the ui will repaint properly
+													 */
+													if (true == Constants.isOSX && true == value) {
+														detailPanel.setFocus();
+													}
+												}
+											});
+
 										}
-									}
-								});
-
+									});
+								}
 							}
-						});
-					}
+
+						}
+					};
 
 					Point destSize = value ? new Point(SWT.DEFAULT, size.y) : new Point(
 							0, 0);
-					SWTSkinUtils.setVisibility(skin, null, detailPanelObject, destSize,
-							false, false, null);
 
-					/*
-					 * For OSX after the layout operation is done must set focus so the ui will repaint properly
-					 */
-					if (true == Constants.isOSX && true == value) {
-						detailPanel.setFocus();
-					}
+					SWTSkinUtils.setVisibility(skin, null, detailPanelObject, destSize,
+							false, false, runWhenDone);
+
 				}
 			}
 		});
