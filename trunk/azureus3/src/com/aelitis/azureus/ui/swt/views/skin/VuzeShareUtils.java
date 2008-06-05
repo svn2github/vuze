@@ -30,7 +30,8 @@ public class VuzeShareUtils
 		if (Constants.DISABLE_BUDDIES_BAR) {
 			return;
 		}
-		PlatformBuddyMessenger.startShare(referer);
+		PlatformBuddyMessenger.startShare(referer,
+				currentContent.isPlatformContent() ? currentContent.getHash() : null);
 
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();

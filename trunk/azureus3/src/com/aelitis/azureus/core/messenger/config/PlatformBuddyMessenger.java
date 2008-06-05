@@ -303,13 +303,22 @@ public class PlatformBuddyMessenger
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public static void startShare(String referer) {
+	/**
+	 * 
+	 * @param referer Where share started from
+	 * @param hash hash of Vuze content being shared
+	 *
+	 * @since 3.0.5.3
+	 */
+	public static void startShare(String referer, String hash) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_STARTSHARE, new Object[] {
 					"referer",
 					referer,
 					"logged-in",
-					new Boolean(LoginInfoManager.getInstance().isLoggedIn())
+					new Boolean(LoginInfoManager.getInstance().isLoggedIn()),
+					"torrent-hash",
+					hash
 				}, 1000);
 
 		PlatformMessenger.queueMessage(message, null);
