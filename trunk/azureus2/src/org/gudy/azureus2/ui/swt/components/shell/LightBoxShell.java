@@ -311,19 +311,10 @@ public class LightBoxShell
 					shellBounds.height);
 		}
 
-		/*
-		 * Not entirely sure why this has to be done this way but it seems
-		 * the Windows' shell has a 4 pixel border whereas the OSX's shell has none;
-		 * this offset is used to shift the image to fit the client area exactly
-		 */
-
-		int xyOffset = (true == Constants.isOSX) ? 0 : 4;
-
 		shellBounds = parentShell.getClientArea();
-		Point parentLocation = parentShell.getLocation();
-		shellBounds.x = parentLocation.x + xyOffset + insetLeft;
-		shellBounds.y = parentLocation.y + parentShell.getSize().y
-				- shellBounds.height - xyOffset + insetTop;
+		Point parentLocation = parentShell.toDisplay(insetLeft, insetTop);
+		shellBounds.x = parentLocation.x;
+		shellBounds.y = parentLocation.y;
 		shellBounds.width -= insetRight + insetLeft;
 		shellBounds.height -= insetTop + insetBottom;
 		return new Rectangle(shellBounds.x, shellBounds.y, shellBounds.width,
