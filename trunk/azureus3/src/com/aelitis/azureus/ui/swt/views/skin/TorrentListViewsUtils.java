@@ -850,6 +850,19 @@ public class TorrentListViewsUtils
 	}
 
 	/**
+	 * XXX DO NOT USE.  Only for EMP <= 2.0.14 support
+	 * @param dm
+	 * @return
+	 */
+	public static String getMediaServerContentURL(DownloadManager dm) {
+		try {
+			return PlayUtils.getMediaServerContentURL(DownloadManagerImpl.getDownloadStatic(dm));
+		} catch (DownloadException e) {
+		}
+		return null;
+	}
+
+	/**
 	 * 
 	 */
 	public static void playViaMediaServer(Download download) {
