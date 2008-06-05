@@ -20,7 +20,6 @@
 package com.aelitis.azureus.ui.swt.browser.msg;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 
 /**
  * DO NOT USE. REMOVE after 3100
@@ -51,6 +50,13 @@ public abstract class AbstractMessageListener
 	}
 
 	public abstract void handleMessage(BrowserMessage message);
+	// TODO: Change to new BrowserMessage class and make abstract after 3100 release
+	public void handleMessage(
+			com.aelitis.azureus.core.messenger.browser.BrowserMessage message)
+	{
+		handleMessage((BrowserMessage) message);
+	}
+	
 
 	protected void debug(String message) {
 		context.debug("[" + id + "] " + message);

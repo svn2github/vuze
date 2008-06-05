@@ -91,6 +91,12 @@ public abstract class AbstractBrowserMessageListener
 	 * @param message holds all message information
 	 */
 	public abstract void handleMessage(BrowserMessage message);
+	
+	public void handleMessage(
+			com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage message)
+	{
+		handleMessage((BrowserMessage) message);
+	}
 
 	/**
 	 * Sets the context for this listener. Called by its dispatcher when attached.

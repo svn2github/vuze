@@ -36,7 +36,8 @@ import com.aelitis.azureus.util.JSONUtils;
  * @author dharkness
  * @created Jul 18, 2006
  */
-public class BrowserMessage
+public class BrowserMessage 
+	extends com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage
 {
 	/** All messages must start with this prefix. */
 	public static final String MESSAGE_PREFIX = "AZMSG";
