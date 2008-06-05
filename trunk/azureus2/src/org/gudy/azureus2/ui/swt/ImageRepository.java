@@ -90,8 +90,8 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/publish.gif", "publish");
 		addPath("org/gudy/azureus2/ui/icons/run.gif", "run");
 		addPath("org/gudy/azureus2/ui/icons/details.gif", "details");
-		addPath("org/gudy/azureus2/ui/icons/up.gif", "up");
-		addPath("org/gudy/azureus2/ui/icons/down.gif", "down");
+		addPath("org/gudy/azureus2/ui/icons/up.png", "up");
+		addPath("org/gudy/azureus2/ui/icons/down.png", "down");
 		addPath("org/gudy/azureus2/ui/icons/top.gif", "top");
 		addPath("org/gudy/azureus2/ui/icons/bottom.gif", "bottom");
 		addPath("org/gudy/azureus2/ui/icons/recheck.gif", "recheck");
