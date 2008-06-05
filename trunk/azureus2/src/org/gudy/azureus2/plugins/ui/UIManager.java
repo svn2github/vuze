@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import java.io.File;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginView;
@@ -332,6 +333,21 @@ UIManager
  	 * @since 3.0.5.3
  	 */
  	public UIMessage createMessage();
+ 	
+ 	/**
+ 	 * Opens up the file using the associated application. 
+ 	 * 
+ 	 * @param file The file to open.
+ 	 * @since 3.0.5.3
+ 	 */
+ 	public void openFile(File file);
 
+ 	/**
+ 	 * Shows the file in a file explorer application in its parent folder. 
+ 	 * 
+ 	 * @param file The file to show.
+ 	 * @since 3.0.5.3
+ 	 */
+ 	public void showFile(File file);
  	
 }

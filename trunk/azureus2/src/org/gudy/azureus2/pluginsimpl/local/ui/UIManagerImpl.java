@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -610,6 +611,9 @@ UIManagerImpl
 		fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_TORRENT, torrent );
 	}
 	
+ 	public void openFile(File file) {fireEvent(UIManagerEvent.ET_FILE_OPEN, file);}
+ 	public void showFile(File file) {fireEvent(UIManagerEvent.ET_FILE_SHOW, file);}
+	
 	public boolean showConfigSection(String sectionID) {
 		UIManagerEventAdapter event = new UIManagerEventAdapter(
 				UIManagerEvent.ET_SHOW_CONFIG_SECTION, sectionID);
@@ -641,5 +645,5 @@ UIManagerImpl
  		}
  		return null;
  	}
- 	
+ 	 	
 }

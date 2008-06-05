@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UIMessageImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -411,6 +412,18 @@ UISWTInstanceImpl
 
 				break;
 			}
+			case UIManagerEvent.ET_FILE_OPEN: {
+				File file_to_use = (File)data;
+				Utils.launch(file_to_use.getAbsolutePath());
+				break;
+			}
+			case UIManagerEvent.ET_FILE_SHOW: {
+				File file_to_use = (File)data;
+				final boolean use_open_containing_folder = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+				ManagerUtils.open(file_to_use, use_open_containing_folder);
+				break;
+			}			
+			
 			default:
 			{
 				done	= false;

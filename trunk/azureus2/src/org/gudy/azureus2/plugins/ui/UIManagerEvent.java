@@ -53,6 +53,8 @@ UIManagerEvent
 	public static final int ET_REMOVE_SUBMENU_ITEM              = 20;       // data is MenuItem[] - child, parent
 	public static final int ET_SHOW_MSG_BOX						= 21;		// data is Object[]{ String,String,Long} - title, message, MT options
 	public static final int ET_OPEN_TORRENT_VIA_TORRENT			= 22;		// data is Torrent
+	public static final int ET_FILE_SHOW                        = 23;       // data is File
+	public static final int ET_FILE_OPEN                        = 24;       // data is File
 	
 	
 	public static final int ET_CALLBACK_MSG_SELECTION			= 100;		// data is Long - MT_OK etc

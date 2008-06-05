@@ -84,13 +84,15 @@ public class ManagerUtils {
 	public static void open(DownloadManager dm) {open(dm, false);}
 	
 	public static void open(DownloadManager dm, boolean open_containing_folder_mode) {
-		if (dm != null) {
-			if (open_containing_folder_mode) {
-				Utils.launch(dm.getSaveLocation().getParent());
-			}
-			else {
-				open(dm.getSaveLocation());
-			}
+		if (dm != null) {open(dm.getSaveLocation(), open_containing_folder_mode);}
+	}
+
+	public static void open(File f, boolean open_containing_folder_mode) {
+		if (open_containing_folder_mode) {
+			Utils.launch(f.getParent());
+		}
+		else {
+			open(f);
 		}
 	}
 	
