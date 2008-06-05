@@ -157,7 +157,7 @@ public class FriendsList
 					canvas.layout(true);
 					Rectangle r = scrollable.getClientArea();
 					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
-//					getBuddiesViewer().removeFromShare(buddy);
+					//					getBuddiesViewer().removeFromShare(buddy);
 				}
 			}
 		});
@@ -296,7 +296,7 @@ public class FriendsList
 					if (false == isEmailDisplayOnly()) {
 						if (true == closeButtonBounds.contains(e.x, e.y)) {
 							if (true == closeIsActive) {
-//								removeFriend(FriendWidget.this.buddy);
+								//								removeFriend(FriendWidget.this.buddy);
 								getBuddiesViewer().removeFromShare(FriendWidget.this.buddy);
 							}
 						}
@@ -387,11 +387,19 @@ public class FriendsList
 						displayNameBounds.x = extent.x + 6;
 						displayNameBounds.width = textAreaBounds.width - extent.x;
 						e.gc.setFont(normalFont);
+
+						if (null != vbuddy.getLoginID() && vbuddy.getLoginID().length() > 0) {
+							GCStringPrinter.printString(e.gc,
+									"(" + vbuddy.getLoginID() + ")", displayNameBounds, false,
+									true, SWT.LEFT);
+						}
 					}
 
-					if (null != vbuddy.getLoginID() && vbuddy.getLoginID().length() > 0) {
-						GCStringPrinter.printString(e.gc, "(" + vbuddy.getLoginID() + ")",
-								displayNameBounds, false, true, SWT.LEFT);
+					else {
+						if (null != vbuddy.getLoginID() && vbuddy.getLoginID().length() > 0) {
+							GCStringPrinter.printString(e.gc, vbuddy.getLoginID(),
+									displayNameBounds, false, true, SWT.LEFT);
+						}
 					}
 					/*
 					 * Paint the close button

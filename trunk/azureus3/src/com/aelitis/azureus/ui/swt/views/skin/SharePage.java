@@ -52,7 +52,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.ui.swt.views.skin.IDetailPage.RefreshListener;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
@@ -727,7 +726,7 @@ public class SharePage
 						public void runSupport() {
 							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
 								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy();
-								buddy.setDisplayName((iterator.next()).toString());
+								buddy.setLoginID((iterator.next()).toString());
 								inviteeList.addFriend(buddy);
 							}
 						}
