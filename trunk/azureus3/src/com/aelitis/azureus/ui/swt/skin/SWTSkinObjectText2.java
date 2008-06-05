@@ -166,7 +166,7 @@ public class SWTSkinObjectText2
 					pt.x++;
 				}
 				if (isItalic) {
-					pt.x++;
+					pt.x += 4;
 				}
 
 				int fixedWidth = skinProperties.getIntValue(sConfigID + ".width", -1);
