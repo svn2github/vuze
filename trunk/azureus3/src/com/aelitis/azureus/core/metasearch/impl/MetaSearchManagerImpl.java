@@ -122,6 +122,8 @@ MetaSearchManagerImpl
 	private MetaSearchImpl	meta_search;
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( 10000 );
 	
+	private AESemaphore	initial_refresh_sem = new AESemaphore( "MetaSearch:initrefresh" );
+	
 	private AESemaphore	refresh_sem = new AESemaphore( "MetaSearch:refresh", 1 );
 	
 	protected
@@ -158,13 +160,22 @@ MetaSearchManagerImpl
 						
 						try{
 							syncRefresh();
-							
+														
 						}catch( Throwable e ){
 							
 						}
 					}
 				}
 			});
+	}
+	
+	protected void
+	ensureEnginesUpToDate()
+	{
+		if ( !initial_refresh_sem.reserve( 10*1000 )){
+			
+			log( "Timeout waiting for initial refresh to complete, continuing" );
+		}
 	}
 	
 	protected void
@@ -189,7 +200,7 @@ MetaSearchManagerImpl
 			
 			boolean		auto_mode = isAutoMode();
 					
-			Engine[]	engines = meta_search.getEngines( false );
+			Engine[]	engines = meta_search.getEngines( false, false );
 	
 			try{
 				PlatformMetaSearchMessenger.templateInfo[] featured = PlatformMetaSearchMessenger.listFeaturedTemplates();
@@ -425,6 +436,8 @@ MetaSearchManagerImpl
 		}finally{
 			
 			refresh_sem.release();
+			
+			initial_refresh_sem.releaseForever();
 		}
 	}
 	
@@ -461,7 +474,7 @@ MetaSearchManagerImpl
 			
 			COConfigurationManager.setParameter( "metasearch.auto.mode", auto );
 
-			Engine[]	engines = meta_search.getEngines( false );
+			Engine[]	engines = meta_search.getEngines( false, false );
 			
 			Map	engine_map = new HashMap();
 			
@@ -490,7 +503,7 @@ MetaSearchManagerImpl
 			
 			syncRefresh();
 			
-			engines = meta_search.getEngines( false );
+			engines = meta_search.getEngines( false, false );
 
 				// next add in any missing engines
 			

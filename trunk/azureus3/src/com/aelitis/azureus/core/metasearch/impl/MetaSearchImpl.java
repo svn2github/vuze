@@ -128,8 +128,14 @@ MetaSearchImpl
 	
 	public Engine[] 
 	getEngines(
-		boolean	active_only )
+		boolean		active_only,
+		boolean		ensure_up_to_date )
 	{
+		if ( ensure_up_to_date ){
+			
+			manager.ensureEnginesUpToDate();
+		}
+		
 		List l = engines.getList();
 				
 		List result;
@@ -278,7 +284,7 @@ MetaSearchImpl
 			
 		SearchExecuter se = new SearchExecuter(listener);
 		
-		Engine[] engines = getEngines( true );
+		Engine[] engines = getEngines( true, true );
 
 		String	engines_str = "";
 		

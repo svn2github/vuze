@@ -152,7 +152,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
-			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true );
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true, true );
 			List params = new ArrayList();
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
@@ -172,7 +172,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 		} else if(OP_GET_ALL_ENGINES.equals(opid)) {
 
-			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false );
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false, true );
 			List params = new ArrayList();
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
@@ -227,7 +227,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 			MetaSearch ms = metaSearchManager.getMetaSearch();
 			
-			Engine[] engines = ms.getEngines( false );
+			Engine[] engines = ms.getEngines( false, true );
 			
 			Set selected = new HashSet();
 			

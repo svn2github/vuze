@@ -31,7 +31,8 @@ MetaSearch
 	
 	public Engine[] 
 	getEngines(
-		boolean		active_only );
+		boolean		active_only,
+		boolean		ensure_up_to_date );
 	
 	public Engine
 	getEngine(
