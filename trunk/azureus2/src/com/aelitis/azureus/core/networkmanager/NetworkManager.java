@@ -242,7 +242,7 @@ public class NetworkManager {
       public void destroyInitiated(){}
       public void destroyed(){}
 
-      public void seedingStatusChanged( boolean seeding_only ) {
+      public void seedingStatusChanged( boolean seeding_only, boolean b ) {
         seeding_only_mode = seeding_only;
         refreshRates();
       }

@@ -25,9 +25,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.util.*;
 
@@ -44,7 +42,7 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
  */
 public class 
 OverallStatsImpl 
-	extends GlobalManagerAdpater 
+	extends GlobalManagerAdapter
 	implements OverallStats
 {
   

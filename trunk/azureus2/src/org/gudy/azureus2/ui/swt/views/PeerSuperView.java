@@ -171,7 +171,7 @@ public class PeerSuperView
 	// Methods I have to implement but have no need for...
 	public void	destroyInitiated() {}		
 	public void destroyed() {}
-    public void seedingStatusChanged(boolean seeding_only_mode) {}
+    public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {}
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {}
 	public void peerManagerAdded(PEPeerManager manager){}
 	public void peerManagerRemoved(PEPeerManager manager) {}

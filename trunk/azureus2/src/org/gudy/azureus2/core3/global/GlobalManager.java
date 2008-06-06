@@ -234,7 +234,15 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * 
 	 * @return  Seeding Only State
 	 */
+	
 	public boolean isSeedingOnly();
+
+	/**
+	 * As for isSeedingOnly but includes queued seeds
+	 * @return
+	 */
+	
+	public boolean isPotentiallySeedingOnly();
 
 	/**
 	 * Retrieve the index of a DownloadManager within the GlobalManager

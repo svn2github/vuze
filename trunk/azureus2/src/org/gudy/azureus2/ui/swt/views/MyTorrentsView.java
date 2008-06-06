@@ -1783,7 +1783,7 @@ public class MyTorrentsView
 
   public void destroyInitiated() {  }
   public void destroyed() { }
-  public void seedingStatusChanged( boolean seeding_only_mode ){}       
+  public void seedingStatusChanged( boolean seeding_only_mode, boolean b ){}       
 
   // End of globalmanagerlistener Functions
   

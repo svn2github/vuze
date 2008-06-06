@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -148,7 +148,7 @@ UserAlerts
 			};
 
     	global_manager.addListener(
-    		new GlobalManagerAdpater()
+    		new GlobalManagerAdapter()
     		{
 				public void 
 				downloadManagerAdded(DownloadManager manager) 

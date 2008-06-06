@@ -172,15 +172,16 @@ BuddyPluginTracker
 			{
 				public void 
 				seedingStatusChanged( 
-					boolean seeding_only_mode )
+					boolean seeding_only_mode,
+					boolean potentially_seeding_only )
 				{
-					seeding_only = seeding_only_mode;
+					seeding_only = potentially_seeding_only;
 					
 					checkEnabledState();
 				}
 			}, false );
 		
-		seeding_only = gm.isSeedingOnly();
+		seeding_only = gm.isPotentiallySeedingOnly();
 		
 		checkEnabledState();
 	}

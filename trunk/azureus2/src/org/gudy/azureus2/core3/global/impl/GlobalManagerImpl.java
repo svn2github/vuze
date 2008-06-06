@@ -110,7 +110,9 @@ public class GlobalManagerImpl
                     
 				}else if ( type == LDT_SEEDING_ONLY ){
                     
-                    target.seedingStatusChanged( ((Boolean)value).booleanValue() );
+					boolean	[] temp = (boolean[])value;
+					
+                    target.seedingStatusChanged( temp[0], temp[1] );
                 }
 			}
 		});
@@ -176,7 +178,9 @@ public class GlobalManagerImpl
 	private volatile boolean	destroyed;
 	private volatile boolean 	needsSaving = false;
   
-	private boolean seeding_only_mode = false;
+	private boolean seeding_only_mode 				= false;
+	private boolean potentially_seeding_only_mode	= false;
+	
 	private FrequencyLimitedDispatcher	check_seeding_only_state_dispatcher = 
 		new FrequencyLimitedDispatcher(
 			new AERunnable(){ public void runSupport(){ checkSeedingOnlyStateSupport(); }}, 5000 );
@@ -2302,7 +2306,7 @@ public class GlobalManagerImpl
 
 		  //the new state is downloading, so can skip the full check
 
-		  setSeedingOnlyState( false );
+		  setSeedingOnlyState( false, false );
 
 	  }else{
 
@@ -2365,8 +2369,9 @@ public class GlobalManagerImpl
   protected void
   checkSeedingOnlyStateSupport()
   {
-    boolean seeding = false;
-    	
+    boolean seeding 			= false;
+    boolean	potentially_seeding	= false;
+    
     List managers = managers_cow;
     
     for( int i=0; i < managers.size(); i++ ) {
@@ -2375,15 +2380,23 @@ public class GlobalManagerImpl
 
         PEPeerManager pm = dm.getPeerManager();
         
+        int	state = dm.getState();
+
         if ( dm.getDiskManager() == null || pm == null ){
         	
-        		// download not running, not interesting
+        		// download not running
+        	
+        	if ( state == DownloadManager.STATE_QUEUED ){
+        		 
+        		if ( dm.isDownloadComplete( false )){
+        			
+        			potentially_seeding = true;
+        		}
+        	}
         	
         	continue;
         }
-        
-        int	state = dm.getState();
-        
+                
         if ( state == DownloadManager.STATE_DOWNLOADING ){
         	
         	if (!pm.hasDownloadablePiece()){
@@ -2394,7 +2407,8 @@ public class GlobalManagerImpl
         		
         	}else{
         		
-        		seeding = false;
+        		seeding 			= false;
+        		potentially_seeding	= false;
         		
         		break;
         	}
@@ -2404,18 +2418,28 @@ public class GlobalManagerImpl
         }
     }
     
-    setSeedingOnlyState( seeding );
+    setSeedingOnlyState( seeding, potentially_seeding );
   }
   
   
   protected void
   setSeedingOnlyState(
-		boolean	seeding )
+		boolean		seeding,
+		boolean		potentially_seeding )
   { 
-    if( seeding != seeding_only_mode ) {
-      seeding_only_mode = seeding;
-      listeners.dispatch( LDT_SEEDING_ONLY, new Boolean( seeding_only_mode ) );
-    }
+	  synchronized( this ){
+		  
+		  if ( 	seeding 			!= seeding_only_mode ||
+	    		potentially_seeding != potentially_seeding_only_mode ){
+		    	
+		      seeding_only_mode 			= seeding;
+		      potentially_seeding_only_mode	= potentially_seeding;
+		      
+		      // System.out.println( "dispatching " + seeding_only_mode + "/" + potentially_seeding_only_mode );
+		      
+		      listeners.dispatch( LDT_SEEDING_ONLY, new boolean[]{ seeding_only_mode, potentially_seeding_only_mode });
+		  }
+	  }
   }
 		
   public boolean
@@ -2424,6 +2448,11 @@ public class GlobalManagerImpl
 	  return( seeding_only_mode );
   }
   
+  public boolean
+  isPotentiallySeedingOnly()
+  {
+	  return( potentially_seeding_only_mode );
+  }
   
 	public long 
 	getTotalSwarmsPeerRate(

@@ -40,7 +40,7 @@ GlobalManagerAdapter
 	}
 		
 	public void
-	downloadManagerRemoved(
+	downloadManagerRemoved( 
 		DownloadManager	dm )
 	{
 	}
@@ -55,7 +55,7 @@ GlobalManagerAdapter
 	{
 	}
     
-    public void seedingStatusChanged( boolean seeding_only_mode )
+    public void seedingStatusChanged( boolean seeding_only_mode, boolean potentially_seeding_only_mode )
     {
     }
 }

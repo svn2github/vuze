@@ -49,6 +49,11 @@ GlobalManagerListener
     /**
      * Notification of global seeding status changes.
      * @param seeding_only_mode true if only seeding torrents (no downloads), false otherwise
+     * @param potentially_seeding_only_mode - as above but true if queued seeds
      */
-    public void seedingStatusChanged( boolean seeding_only_mode );
+	
+    public void 
+    seedingStatusChanged( 
+    	boolean seeding_only_mode,
+    	boolean	potentially_seeding_only_mode );
 }
