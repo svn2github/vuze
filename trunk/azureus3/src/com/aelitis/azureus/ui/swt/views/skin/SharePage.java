@@ -529,34 +529,8 @@ public class SharePage
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
-				List buddiesToShareWith = buddyList.getFriends();
-				final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
-				try {
-					VuzeBuddyManager.inviteWithShare(confirmationResponse,
-							getShareItem(), commentText.getText(), buddies);
-					getDetailPanel().show(false);
-					showConfirmationDialog();
-					resetControls();
-
-				} catch (NotLoggedInException e1) {
-					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-						public void loginComplete() {
-							try {
-								VuzeBuddyManager.inviteWithShare(confirmationResponse,
-										getShareItem(), commentText.getText(), buddies);
-								getDetailPanel().show(false);
-								showConfirmationDialog();
-								resetControls();
-
-							} catch (NotLoggedInException e) {
-								//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
-								// try again
-							}
-						}
-
-					});
-				}
-
+				// We'll get a buddy-page.invite-confirm message from the webpage,
+				// even if it's just a share with no invites
 			}
 		});
 
@@ -751,6 +725,26 @@ public class SharePage
 				public void handleInviteConfirm() {
 					confirmationResponse = getConfirmationResponse();
 
+					if (null != confirmationResponse) {
+  					List buddiesToShareWith = buddyList.getFriends();
+  					final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
+  					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+  						public void loginComplete() {
+  							try {
+  								VuzeBuddyManager.inviteWithShare(confirmationResponse,
+  										getShareItem(), commentText.getText(), buddies);
+  								getDetailPanel().show(false);
+  								showConfirmationDialog();
+  								resetControls();
+  
+  							} catch (NotLoggedInException e) {
+  								//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
+  								// try again
+  							}
+  						}
+  					});
+					}
+					
 					if (null != getConfirmationMessage()) {
 						Utils.execSWTThread(new AERunnable() {
 
