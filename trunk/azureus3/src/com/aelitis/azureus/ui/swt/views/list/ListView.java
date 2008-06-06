@@ -1713,7 +1713,6 @@ public class ListView
 						}
 
 						rows.add(index, row);
-						row.setBasicYPos(0);
 						logADDREMOVE("addDS pos " + index);
 
 						mapDataSourceToRow.put(datasource, row);
