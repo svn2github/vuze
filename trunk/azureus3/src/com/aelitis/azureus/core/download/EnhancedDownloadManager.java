@@ -444,6 +444,26 @@ EnhancedDownloadManager
 		return( download_manager.getDisplayName());
 	}
 	
+	public byte[]
+	getHash()
+	{
+		TOTorrent t = download_manager.getTorrent();
+		
+		if ( t == null ){
+			
+			return( null );
+		}
+		
+		try{
+			
+			return( t.getHash());
+			
+		}catch( Throwable e ){
+		
+			return( null );
+		}
+	}
+	
 	public boolean
 	isPlatform()
 	{
@@ -1034,6 +1054,9 @@ EnhancedDownloadManager
 			}			
 
 			if (active && !supportsProgressiveMode()) {
+				
+				Debug.out( "Attempt to set progress mode on non-progressible content - " + getName());
+				
 				return;
 			}
 			

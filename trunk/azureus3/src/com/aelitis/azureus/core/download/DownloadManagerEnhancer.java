@@ -170,6 +170,24 @@ DownloadManagerEnhancer
 				{
 					if ( name.equals( "az3.downloadmanager.stream.eta" )){
 						
+						Object	hash = values.get( "hash" );
+						
+						byte[]	b_hash = null;
+						
+						if ( hash instanceof String ){
+							
+							String	hash_str = (String)hash;
+							
+							if ( hash_str.length() == 32 ){
+								
+								b_hash = Base32.decode( hash_str );
+								
+							}else{
+							
+								b_hash = ByteFormatter.decodeString( hash_str );
+							}
+						}
+						
 						synchronized( download_map ){
 
 							Iterator it = download_map.values().iterator();
@@ -178,16 +196,44 @@ DownloadManagerEnhancer
 								
 								EnhancedDownloadManager	edm = (EnhancedDownloadManager)it.next();
 								
-								if ( edm.getProgressiveMode()){
+								if ( b_hash != null ){
 									
-									long eta = edm.getProgressivePlayETA();
+									byte[]	d_hash = edm.getHash();
 									
-									if ( eta > Integer.MAX_VALUE ){
+									if ( d_hash != null && Arrays.equals( b_hash, d_hash )){
+									
+										if ( !edm.supportsProgressiveMode()){
+											
+											return( Integer.MIN_VALUE );
+										}
 										
-										return( Integer.MAX_VALUE );
+										if ( !edm.getProgressiveMode()){
+										
+											edm.setProgressiveMode( true );
+										}
+										
+										long eta = edm.getProgressivePlayETA();
+										
+										if ( eta > Integer.MAX_VALUE ){
+											
+											return( Integer.MAX_VALUE );
+										}
+										
+										return((int)eta);
 									}
+								}else{
 									
-									return((int)eta);
+									if ( edm.getProgressiveMode()){
+										
+										long eta = edm.getProgressivePlayETA();
+										
+										if ( eta > Integer.MAX_VALUE ){
+											
+											return( Integer.MAX_VALUE );
+										}
+										
+										return((int)eta);
+									}
 								}
 							}
 						}
