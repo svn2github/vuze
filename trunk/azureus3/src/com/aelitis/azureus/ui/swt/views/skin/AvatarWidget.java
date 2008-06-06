@@ -238,13 +238,24 @@ public class AvatarWidget
 					if (true == vuzeBuddy.isOnline()) {
 						//System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
 						//		+ vuzeBuddy.isOnline());//KN: sysout
-						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178,
-								210, 129));
-						//					e.gc.setLineWidth(highlightBorder);
+						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 81,
+								255, 139) );
+						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
+								130, 70) );
+						//e.gc.setLineWidth(1);
 						Rectangle bounds = canvas.getBounds();
-						e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
-								bounds.width - (2 * highlightBorder), bounds.height
-										- (2 * highlightBorder), 10, 10);
+						/*e.gc.fillRoundRectangle(1, bounds.height-12,
+								bounds.width - (2 * 1), 12,
+								10, 10);*/
+						
+						e.gc.fillRoundRectangle(11, 1,
+								bounds.width - 22, 3,
+								3, 3);
+						
+						e.gc.drawRoundRectangle(11, 1,
+								bounds.width -22, 3,
+								3, 3);
+						
 						e.gc.setForeground(canvas.getForeground());
 						//					e.gc.setLineWidth(1);
 
