@@ -231,7 +231,7 @@ public class PlatformConfigMessenger
 	}
 
 	public static boolean urlCanRPC(String url) {
-		return urlCanRPC(url,true);
+		return urlCanRPC(url, false);
 	}
 	
 	public static boolean urlCanRPC(String url,boolean showDebug) {
