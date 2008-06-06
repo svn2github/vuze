@@ -340,7 +340,8 @@ public class BrowserContext
 							isTorrent = true;
 						} else {
 							//If it's not obviously a web page
-							if(event.location.indexOf(".htm") == -1) {
+							if (!PlatformConfigMessenger.urlCanRPC(event.location)
+									&& event.location.indexOf(".htm") == -1) {
 								try {
 									//See what the content type is
 									URL url = new URL(event.location);
