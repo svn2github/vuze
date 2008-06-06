@@ -1236,6 +1236,7 @@ public class VuzeBuddyManager
 
 		log("invite " + sentInvitations.size() + " ppl, sharing " + name);
 
+		List displayNames = new ArrayList();
 		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
 			Map mapInvitation = (Map) iter.next();
 
@@ -1252,7 +1253,15 @@ public class VuzeBuddyManager
 				String[] newPKs = (String[]) pkList.toArray(new String[0]);
 
 				VuzeBuddyManager.invitePKs(newPKs, code);
+				displayNames.add(MapUtils.getMapString(mapInvitation, "display-name",
+						MapUtils.getMapString(mapInvitation, "value", "???")));
 			}
+		}
+		if (displayNames.size() > 0) {
+			VuzeActivitiesBuddyInvited entry = new VuzeActivitiesBuddyInvited(displayNames);
+			VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+				entry
+			});
 		}
 	}
 

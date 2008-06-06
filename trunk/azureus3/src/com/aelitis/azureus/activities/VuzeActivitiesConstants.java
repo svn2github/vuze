@@ -52,6 +52,8 @@ public class VuzeActivitiesConstants
 
 	public static final String TYPEID_CONTENT_PROMO = "CONTENT_PROMO";
 
+	public static final String TYPEID_BUDDYINVITED = "buddy-invited";
+
 	public static final int SORT_DATE = 0;
 
 	public static final int SORT_TYPE = 1;
@@ -65,6 +67,9 @@ public class VuzeActivitiesConstants
 	static {
 		int pos = 0;
 		SORT_TYPE_ORDER.put(TYPEID_BUDDYREQUEST, new Long(pos));
+		pos++;
+		SORT_TYPE_ORDER.put(TYPEID_BUDDYINVITED, new Long(pos));
+		pos++;
 		SORT_TYPE_ORDER.put(TYPEID_BUDDYLINKUP, new Long(pos));
 		pos++;
 
@@ -86,8 +91,14 @@ public class VuzeActivitiesConstants
 
 		HEADERS_SORTBY_TYPE = new VuzeActivitiesEntry[] {
 			new VuzeActivitiesEntry(0,
-					MessageText.getString("v3.activity.header.friend.requests"), null,
-					TYPEID_BUDDYREQUEST, TYPEID_HEADER, null),
+					MessageText.getString("v3.activity.header.friend.requests.foryou"),
+					null, TYPEID_BUDDYREQUEST, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.friend.requests.fromyou"),
+					null, TYPEID_BUDDYINVITED, TYPEID_HEADER, null),
+			new VuzeActivitiesEntry(0,
+					MessageText.getString("v3.activity.header.friend.requests.accepted"),
+					null, TYPEID_BUDDYLINKUP, TYPEID_HEADER, null),
 			new VuzeActivitiesEntry(0,
 					MessageText.getString("v3.activity.header.share.requests"), null,
 					TYPEID_BUDDYSHARE, TYPEID_HEADER, null),
