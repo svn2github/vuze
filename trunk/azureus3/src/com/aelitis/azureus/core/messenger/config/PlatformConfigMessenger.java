@@ -57,7 +57,6 @@ public class PlatformConfigMessenger
 
 	private static String[] sURLWhiteList = new String[] {
 		DEFAULT_RPC_WHITELIST,
-		".*inconsp.*",
 	};
 
 	private static String playAfterURL = null;
