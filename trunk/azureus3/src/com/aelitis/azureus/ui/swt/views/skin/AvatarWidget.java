@@ -46,8 +46,9 @@ import com.aelitis.azureus.util.LoginInfoManager;
 
 public class AvatarWidget
 {
-	private static final boolean SHOW_ONLINE_BORDER = System.getProperty( "az.buddy.show_online", "0" ).equals( "1" );
-	
+	private static final boolean SHOW_ONLINE_BORDER = System.getProperty(
+			"az.buddy.show_online", "0").equals("1");
+
 	private Canvas canvas = null;
 
 	private BuddiesViewer viewer = null;
@@ -231,19 +232,19 @@ public class AvatarWidget
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				
-				if ( SHOW_ONLINE_BORDER ){
+
+				if (SHOW_ONLINE_BORDER) {
 
 					if (true == vuzeBuddy.isOnline()) {
 						//System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
 						//		+ vuzeBuddy.isOnline());//KN: sysout
-						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178, 210,
-								129));
+						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178,
+								210, 129));
 						//					e.gc.setLineWidth(highlightBorder);
 						Rectangle bounds = canvas.getBounds();
 						e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
 								bounds.width - (2 * highlightBorder), bounds.height
-								- (2 * highlightBorder), 10, 10);
+										- (2 * highlightBorder), 10, 10);
 						e.gc.setForeground(canvas.getForeground());
 						//					e.gc.setLineWidth(1);
 
@@ -394,15 +395,21 @@ public class AvatarWidget
 		canvas.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
-			}
-
-			public void mouseDown(MouseEvent e) {
 				if (false == isFullyVisible()) {
 					return;
 				}
 				if (e.button != 1) {
 					return;
 				}
+
+				/*
+				 * If it's in Share mode then clicking on any part will add it to Share
+				 */
+				if (true == viewer.isShareMode()) {
+					doAddBuddyToShare();
+					return;
+				}
+
 				if (true == nameAreaBounds.contains(e.x, e.y)
 						&& e.stateMask != SWT.MOD1) {
 					doLinkClicked();
@@ -411,9 +418,7 @@ public class AvatarWidget
 						doRemoveBuddy();
 					}
 				} else if (decorator_add_to_share.contains(e.x, e.y)) {
-					if (true == viewer.isShareMode()) {
-						doAddBuddyToShare();
-					}
+
 				} else {
 					if (e.stateMask == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
@@ -424,7 +429,14 @@ public class AvatarWidget
 				}
 			}
 
+			public void mouseDown(MouseEvent e) {
+
+			}
+
 			public void mouseDoubleClick(MouseEvent e) {
+				if (false == viewer.isShareMode()) {
+					doLinkClicked();
+				}
 			}
 		});
 
@@ -447,15 +459,16 @@ public class AvatarWidget
 				 * can be annoying
 				 */
 				String tooltipText = "";
-				if (decorator_remove_friend.contains(e.x, e.y)) {
-					if (true == viewer.isEditMode()) {
-						tooltipText = tooltip_remove_friend;
+
+				if (true == viewer.isShareMode()) {
+					if (false == isSharedAlready()) {
+						tooltipText = tooltip_add_to_share;
 					} else {
 						tooltipText = tooltip;
 					}
-				} else if (decorator_add_to_share.contains(e.x, e.y)) {
-					if (true == viewer.isShareMode() && false == isSharedAlready()) {
-						tooltipText = tooltip_add_to_share;
+				} else if (decorator_remove_friend.contains(e.x, e.y)) {
+					if (true == viewer.isEditMode()) {
+						tooltipText = tooltip_remove_friend;
 					} else {
 						tooltipText = tooltip;
 					}
