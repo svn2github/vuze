@@ -670,7 +670,7 @@ public class GCStringPrinter
 					String s = text.substring(lineStartPos, i);
 					if (!noDraw) {
 						//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-						gc.drawText(s, x0, y0, false);
+						gc.drawText(s, x0, y0, true);
 					}
 
 					Point textExtent = gc.textExtent(s);
