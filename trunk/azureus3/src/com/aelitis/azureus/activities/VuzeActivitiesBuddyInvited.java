@@ -43,7 +43,7 @@ public class VuzeActivitiesBuddyInvited
 			names += name;
 		}
 		String id = "v3.activity.buddy-invited";
-		if (displayNames.size() >= 1) {
+		if (displayNames.size() > 1) {
 			id += ".multi";
 		}
 
