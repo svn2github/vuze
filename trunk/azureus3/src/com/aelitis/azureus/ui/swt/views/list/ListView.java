@@ -3510,13 +3510,16 @@ public class ListView
 
 	public boolean _cellRefresh(final ListCell cell, final boolean bDoGraphics,
 			final boolean bForceRedraw) {
-		// assume cell if being refreshed if there's already a GC
-		if (gcImgView != null || imgView == null || !cell.isShown()) {
+		// assume cell is being refreshed if there's already a GC
+		if (imgView == null || !cell.isShown()) {
 			return true;
 		}
 
+		boolean isOurGC = gcImgView == null;
 		try {
-			gcImgView = new GC(imgView);
+			if (isOurGC) {
+				gcImgView = new GC(imgView);
+			}
 
 			((TableCellSWT)cell.cell).doPaint(gcImgView);
 			//cell.doPaint(gcImgView);
@@ -3526,6 +3529,7 @@ public class ListView
 				logPAINT("redraw via cellRefresh " + rect + ";"
 						+ Debug.getCompressedStackTrace());
 				listCanvas.redraw(rect.x, rect.y, rect.width, rect.height, false);
+				listCanvas.update();
 			}
 		} catch (Exception e) {
 			if (cell instanceof TableCellCore) {
@@ -3534,7 +3538,7 @@ public class ListView
 				Debug.out(e);
 			}
 		} finally {
-			if (gcImgView != null) {
+			if (gcImgView != null && isOurGC) {
 				gcImgView.dispose();
 				gcImgView = null;
 			}

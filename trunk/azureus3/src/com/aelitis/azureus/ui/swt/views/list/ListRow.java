@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.views.list;
 
 import java.util.*;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 
@@ -71,6 +70,8 @@ public class ListRow
 	private Map mapTableCells;
 
 	private boolean bDisposed;
+
+	private boolean bNeverRefreshed = true;
 
 	private boolean bSelected;
 
@@ -240,6 +241,12 @@ public class ListRow
 		// XXX Copied from TableRowImpl
 		if (bDisposed || !bVisible) {
 			return;
+		}
+		
+		if (bNeverRefreshed) {
+			bNeverRefreshed = false;
+			_refresh(true, true);
+			//return;
 		}
 
 		TableColumnCore[] visibleColumns = view.getVisibleColumns();
