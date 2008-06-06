@@ -20,12 +20,9 @@
 package org.gudy.azureus2.core3.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +35,12 @@ import com.aelitis.net.magneturi.MagnetURIHandler;
  */
 public class UrlUtils
 {
+	private static final ThreadPool	connect_pool = new ThreadPool( "URLConnectWithTimeout", 8, false );
+	
+	static{
+		connect_pool.setWarnWhenFull();
+	}
+	
 	private static final String[] prefixes = new String[] {
 			"http://",
 			"https://",
@@ -284,5 +287,63 @@ public class UrlUtils
 		}
 		
 		return( host );
+	}
+	
+	public static void
+	connectWithTimeout(
+		final URLConnection		connection,
+		long					timeout )
+	
+		throws IOException
+	{
+		final AESemaphore sem = new AESemaphore( "URLUtils:cwt" );
+		
+		final Throwable[] res = { null };
+		
+		//long	start = SystemTime.getMonotonousTime();
+		
+		connect_pool.run(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					try{
+						connection.connect();
+						
+					}catch( Throwable e ){
+						
+						res[0] = e;
+						
+					}finally{
+						
+						sem.release();
+					}
+				}
+			});
+		
+		boolean ok = sem.reserve( timeout );
+		
+		//long	duration = SystemTime.getMonotonousTime() - start;
+		
+		//System.out.println( connection.getURL() + ": time=" + duration + ", ok=" + ok );
+		
+		if ( ok ){
+
+			Throwable error = res[0];
+			
+			if ( error != null ){
+				
+				if ( error instanceof IOException ){
+					
+					throw((IOException)error);
+				}
+				
+				throw( new IOException( Debug.getNestedExceptionMessage( error )));
+			}
+		}else{
+			
+			throw( new IOException( "Timeout" ));
+		}
 	}
 }
