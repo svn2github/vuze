@@ -1738,12 +1738,16 @@ BuddyPlugin
 					
 					if ( buddy.getSubsystem() != subsystem ){
 						
+						log( "Buddy " + buddy.getString() + ": subsystem changed from " + buddy.getSubsystem() + " to " + subsystem );
+						
 						buddy.setSubsystem( subsystem );
 						
 						saveConfig( true );
 					}
 					
 					if ( authorised && !buddy.isAuthorised()){
+						
+						log( "Buddy " + buddy.getString() + ": no authorised" );
 						
 						buddy.setAuthorised( true );
 						
@@ -1763,6 +1767,11 @@ BuddyPlugin
 				buddies.add( buddy_to_return );
 				
 				buddies_map.put( key, buddy_to_return );
+				
+				if ( !authorised ){
+					
+					log( "Added unauthorised buddy: " + buddy_to_return.getString());
+				}
 			}
 			
 			if ( buddy_to_return.isAuthorised()){
