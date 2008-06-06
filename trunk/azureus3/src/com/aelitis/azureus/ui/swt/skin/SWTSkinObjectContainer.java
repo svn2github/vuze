@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
@@ -86,20 +87,16 @@ public class SWTSkinObjectContainer
 				// @see org.eclipse.swt.widgets.Composite#computeSize(int, int, boolean)
 				public Point computeSize(int wHint, int hHint, boolean changed) {
 					Point size = super.computeSize(wHint, hHint, changed);
-					
-					if (size.x == 64 || size.y == 64) {
-  					Control[] children = getChildren();
-  					boolean anyVis = false;
-  					for (int i = 0; i < children.length; i++) {
-  						Control child = children[i];
-  						if (child.isVisible()) {
-  							anyVis = true;
-  							break;
-  						}
-  					}
-  					if (!anyVis) {
-  						return new Point(1,1);
-  					}
+					if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+						Object ld = getLayoutData();
+						if (ld instanceof FormData) {
+							FormData fd = (FormData) ld;
+							if (fd.width != 0 && fd.height != 0) {
+								Rectangle trim = computeTrim (0, 0, fd.width, fd.height);
+								return new Point(trim.width, trim.height);
+							}
+						}
+						return new Point(1, 1);
 					}
 					return size;
 				}
@@ -107,20 +104,16 @@ public class SWTSkinObjectContainer
 				// @see org.eclipse.swt.widgets.Control#computeSize(int, int)
 				public Point computeSize(int wHint, int hHint) {
 					Point size = super.computeSize(wHint, hHint);
-					
-					if (size.x == 64 || size.y == 64) {
-  					Control[] children = getChildren();
-  					boolean anyVis = false;
-  					for (int i = 0; i < children.length; i++) {
-  						Control child = children[i];
-  						if (child.isVisible()) {
-  							anyVis = true;
-  							break;
-  						}
-  					}
-  					if (!anyVis) {
-  						return new Point(1, 1);
-  					}
+					if (getChildren().length == 0 && (size.x == 64 || size.y == 64)) {
+						Object ld = getLayoutData();
+						if (ld instanceof FormData) {
+							FormData fd = (FormData) ld;
+							if (fd.width != 0 && fd.height != 0) {
+								Rectangle trim = computeTrim (0, 0, fd.width, fd.height);
+								return new Point(trim.width, trim.height);
+							}
+						}
+						return new Point(1, 1);
 					}
 					return size;
 				}
