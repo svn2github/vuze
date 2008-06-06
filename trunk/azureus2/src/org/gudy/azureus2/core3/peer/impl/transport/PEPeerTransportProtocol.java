@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
@@ -577,6 +578,16 @@ implements PEPeerTransport
 		}else{
 		
 			priority = ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM;
+		}
+		
+			// give plugin peers some priority as they're being injected for a good reason
+		
+		if ( peer_source == PEPeerSource.PS_PLUGIN ){
+			
+			if ( priority > ProtocolEndpoint.CONNECT_PRIORITY_HIGH ){
+				
+				priority = ProtocolEndpoint.CONNECT_PRIORITY_HIGH;
+			}
 		}
 		
 		connection.connect( 
