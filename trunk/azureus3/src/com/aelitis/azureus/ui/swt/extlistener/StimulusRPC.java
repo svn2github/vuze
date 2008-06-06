@@ -91,10 +91,13 @@ public class StimulusRPC
 					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
 						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
-						if (decodedMap.containsKey("target")
-								&& !PlatformConfigMessenger.isURLBlocked(url)
-								&& PlatformConfigMessenger.urlCanRPC(url)) {
-
+						if (!decodedMap.containsKey("target")) {
+							context.debug("no target for url: " + url);
+						} else if (PlatformConfigMessenger.isURLBlocked(url)) {
+							context.debug("url blocked: " + url);
+						} else if (!PlatformConfigMessenger.urlCanRPC(url)) {
+							context.debug("url not in whitelistL " + url);
+						} else {
 							// implicit bring to front
 							final UIFunctions functions = UIFunctionsManager.getUIFunctions();
 							if (functions != null) {
@@ -113,7 +116,6 @@ public class StimulusRPC
 														
 							return true;
 						}
-						context.debug("no target or open url");
 
 					} else if (opId.equals(TorrentListener.OP_LOAD_TORRENT)) {
 						Map decodedMap = browserMsg.getDecodedMap();
