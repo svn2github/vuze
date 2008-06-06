@@ -783,7 +783,7 @@ public class TorrentListView
 	}
 
 	// GlobalManagerListener
-	public void seedingStatusChanged(boolean seeding_only_mode) {
+	public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
 		// TODO Auto-generated method stub
 
 	}

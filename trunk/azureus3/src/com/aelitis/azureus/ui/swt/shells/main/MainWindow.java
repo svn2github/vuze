@@ -242,7 +242,7 @@ public class MainWindow
 		dms_Startup = gm.getDownloadManagers().toArray();
 		gm.addListener(new GlobalManagerListener() {
 
-			public void seedingStatusChanged(boolean seeding_only_mode) {
+			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
 			}
 
 			public void downloadManagerRemoved(DownloadManager dm) {

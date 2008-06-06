@@ -196,7 +196,7 @@ public class VuzeActivitiesManager
 
 		GlobalManagerListener gmListener = new GlobalManagerListener() {
 
-			public void seedingStatusChanged(boolean seeding_only_mode) {
+			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
 			}
 
 			public void downloadManagerRemoved(DownloadManager dm) {

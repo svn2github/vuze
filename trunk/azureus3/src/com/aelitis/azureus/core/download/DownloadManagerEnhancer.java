@@ -122,7 +122,7 @@ DownloadManagerEnhancer
 			  
 			    public void 
 			    seedingStatusChanged( 
-			    	boolean seeding_only_mode )
+			    	boolean seeding_only_mode, boolean b )
 			    {
 			    }
 			});
