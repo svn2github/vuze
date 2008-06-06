@@ -46,6 +46,8 @@ import com.aelitis.azureus.util.LoginInfoManager;
 
 public class AvatarWidget
 {
+	private static final boolean SHOW_ONLINE_BORDER = System.getProperty( "az.buddy.show_online", "0" ).equals( "1" );
+	
 	private Canvas canvas = null;
 
 	private BuddiesViewer viewer = null;
@@ -229,19 +231,24 @@ public class AvatarWidget
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				//				if (true == vuzeBuddy.isOnline()) {
-				//					System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
-				//							+ vuzeBuddy.isOnline());//KN: sysout
-				//					e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178, 210,
-				//							129));
-				////					e.gc.setLineWidth(highlightBorder);
-				//					Rectangle bounds = canvas.getBounds();
-				//					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
-				//							bounds.width - (2 * highlightBorder), bounds.height
-				//									- (2 * highlightBorder), 10, 10);
-				//					e.gc.setForeground(canvas.getForeground());
-				////					e.gc.setLineWidth(1);
-				//				}
+				
+				if ( SHOW_ONLINE_BORDER ){
+
+					if (true == vuzeBuddy.isOnline()) {
+						//System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
+						//		+ vuzeBuddy.isOnline());//KN: sysout
+						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 178, 210,
+								129));
+						//					e.gc.setLineWidth(highlightBorder);
+						Rectangle bounds = canvas.getBounds();
+						e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
+								bounds.width - (2 * highlightBorder), bounds.height
+								- (2 * highlightBorder), 10, 10);
+						e.gc.setForeground(canvas.getForeground());
+						//					e.gc.setLineWidth(1);
+
+					}
+				}
 				/*
 				 * Draw the avatar image
 				 */
