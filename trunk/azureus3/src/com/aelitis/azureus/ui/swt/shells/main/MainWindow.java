@@ -976,11 +976,14 @@ public class MainWindow
 			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 			if (tabSetMain != null && tabSetMain.getActiveTab() != null) {
 				String id = tabSetMain.getActiveTab().getSkinObjectID();
-				if (id.equals(SkinConstants.VIEWID_HOME_TAB)) {
+				if (id.equals("maintabs.home")) {
 					SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
 					if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
-						id += "-" + tabSetLeft.getActiveTab().getSkinObjectID();
+						id += "-" + tabSetLeft.getActiveTab().getSkinObjectID().substring(8);
 					}
+				}
+				if (id.length() > 9) {
+					id = id.substring(9);
 				}
 				return id;
 			}
@@ -1094,7 +1097,7 @@ public class MainWindow
 						} else {
 							updateMapTrackUsage(getUsageActiveTabID());
 							lastShellStatus = shell.getMinimized() || !shell.isVisible()
-									? "minimized" : "notfocused";
+									? "minimized" : "no-focus";
 							start = SystemTime.getCurrentTime();
 						}
 					}
@@ -2233,7 +2236,7 @@ public class MainWindow
 						newLength = currentLength.longValue() + lCurrentTrackTime;
 					}
 					if (newLength > 1000) {
-						mapTrackUsage.put(sTabID + "-secs", new Long(newLength / 1000));
+						mapTrackUsage.put(sTabID, new Long(newLength / 1000));
 					}
 				}
 
@@ -2244,7 +2247,7 @@ public class MainWindow
 							? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
 									+ lCurrentTrackTimeIdle;
 					if (newLengthIdle > 1000) {
-						mapTrackUsage.put(id + "-secs", new Long(newLengthIdle / 1000));
+						mapTrackUsage.put(id, new Long(newLengthIdle / 1000));
 					}
 				}
 			} finally {
