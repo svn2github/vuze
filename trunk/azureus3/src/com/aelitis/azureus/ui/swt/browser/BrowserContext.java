@@ -346,7 +346,9 @@ public class BrowserContext
 									//See what the content type is
 									URL url = new URL(event.location);
 									URLConnection conn = url.openConnection();
-									conn.setConnectTimeout(1000);
+									
+									UrlUtils.connectWithTimeout( conn, 1500 );
+									
 									String contentType = conn.getContentType();
 									if(contentType != null && contentType.indexOf("torrent") != -1) {
 										isTorrent = true;
