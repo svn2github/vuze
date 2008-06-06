@@ -35,7 +35,7 @@ import com.aelitis.net.magneturi.MagnetURIHandler;
  */
 public class UrlUtils
 {
-	private static final ThreadPool	connect_pool = new ThreadPool( "URLConnectWithTimeout", 8, false );
+	private static final ThreadPool	connect_pool = new ThreadPool( "URLConnectWithTimeout", 8, true );
 	
 	static{
 		connect_pool.setWarnWhenFull();
@@ -301,6 +301,13 @@ public class UrlUtils
 		final Throwable[] res = { null };
 		
 		//long	start = SystemTime.getMonotonousTime();
+		
+		if ( connect_pool.isFull()){
+			
+			Debug.out( "Connect pool is full, forcing timeout" );
+			
+			throw( new IOException( "Timeout" ));
+		}
 		
 		connect_pool.run(
 			new AERunnable()

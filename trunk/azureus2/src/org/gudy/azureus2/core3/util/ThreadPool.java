@@ -399,10 +399,41 @@ ThreadPool
 		return( res );
 	}
 	
+	public int
+  	getRunningCount()
+  	{
+  		int	res = 0;
+  		
+  		synchronized( this ){
+
+  			Iterator	it = busy.iterator();
+  			
+  			while( it.hasNext()){
+  				
+  				threadPoolWorker	worker = (threadPoolWorker)it.next();
+  				
+  				AERunnable	runnable = worker.getRunnable();
+  				
+  				if ( runnable != null ){
+  					
+  					res++;
+  				}
+  			}
+  		}
+  			
+  		return( res );
+  	}
+	              	
+	public boolean
+	isFull()
+	{
+		return( thread_sem.getValue() == 0 );
+	}
+	
 	protected void
 	checkTimeouts()
 	{
-		synchronized( ThreadPool.this ){
+		synchronized( this ){
 		
 			long	diff = task_total - task_total_last;
 			
@@ -471,7 +502,7 @@ ThreadPool
 		if(!busy.contains(toRelease.worker) || toRelease.manualRelease != ThreadPoolTask.RELEASE_MANUAL_ALLOWED)
 			throw new IllegalStateException("task already released or not manually releasable");
 
-		synchronized (ThreadPool.this)
+		synchronized (this)
 		{
 			long elapsed = SystemTime.getCurrentTime() - toRelease.worker.run_start_time;
 			if (elapsed > WARN_TIME && LOG_WARNINGS)
@@ -484,7 +515,7 @@ ThreadPool
 			if (busy.size() == 0 && !debug_thread_pool)
 				synchronized (busy_pools)
 				{
-					busy_pools.remove(ThreadPool.this);
+					busy_pools.remove(this);
 				}
 
 			if(busy.size() == 0)
