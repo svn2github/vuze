@@ -224,11 +224,12 @@ public class SWTSkinUtils
 				}
 			}
 
+		} finally {
 			if (save
 					&& COConfigurationManager.getBooleanParameter(configID) != visible) {
 				COConfigurationManager.setParameter(configID, visible);
 			}
-		} finally {
+
 			if (runAfterSlide != null) {
 				runAfterSlide.run();
 			}
