@@ -305,7 +305,7 @@ public class DetailPanel
 							0, 0);
 
 					SWTSkinUtils.setVisibility(skin, null, detailPanelObject, destSize,
-							false, false, runWhenDone);
+							false, true, runWhenDone);
 
 				}
 			}
