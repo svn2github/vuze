@@ -1097,7 +1097,7 @@ public class MainWindow
 						} else {
 							updateMapTrackUsage(getUsageActiveTabID());
 							lastShellStatus = shell.getMinimized() || !shell.isVisible()
-									? "minimized" : "no-focus";
+									? "idle-minimized" : "idle-nofocus";
 							start = SystemTime.getCurrentTime();
 						}
 					}
