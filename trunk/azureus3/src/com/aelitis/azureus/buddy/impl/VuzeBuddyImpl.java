@@ -52,7 +52,7 @@ import com.aelitis.azureus.util.MapUtils;
 public class VuzeBuddyImpl
 	implements VuzeBuddy
 {
-	private String displayName;
+	protected String displayName;
 
 	private String loginID;
 

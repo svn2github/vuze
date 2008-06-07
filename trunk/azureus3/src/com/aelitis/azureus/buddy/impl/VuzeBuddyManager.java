@@ -425,6 +425,8 @@ public class VuzeBuddyManager
 
 	private static boolean pluginEnabled = false;
 
+	private static boolean skipOrderChangedListener;
+
 	
 	/**
 	 * @param vuzeBuddyCreator
@@ -1448,6 +1450,10 @@ public class VuzeBuddyManager
 	}
 
 	protected static void triggerOrderChangedListener() {
+		if (skipOrderChangedListener) {
+			return;
+		}
+		Collections.sort(buddyList);
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
@@ -1484,6 +1490,8 @@ public class VuzeBuddyManager
 
 	private static void loadVuzeBuddies() {
 		Map map = FileUtil.readResilientFile(configDir, SAVE_FILENAME, true);
+		
+		skipOrderChangedListener = true;
 
 		List storedBuddyList = MapUtils.getMapList(map, "buddies",
 				Collections.EMPTY_LIST);
@@ -1493,6 +1501,11 @@ public class VuzeBuddyManager
 
 			createNewBuddy(mapBuddy, false);
 		}
+		
+		skipOrderChangedListener = false;
+
+		// this will resort
+		triggerOrderChangedListener();
 	}
 
 	/**

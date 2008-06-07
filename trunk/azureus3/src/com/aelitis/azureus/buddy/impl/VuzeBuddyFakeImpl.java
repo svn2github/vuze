@@ -62,4 +62,15 @@ public class VuzeBuddyFakeImpl
 	public String[] getPublicKeys() {
 		return (String[]) pks.toArray(new String[pks.size()]);
 	}
+	
+	public void setDisplayName(String displayName) {
+		// like super, except no trigger
+		if (displayName == null) {
+			displayName = "";
+		}
+		if (displayName.equals(this.displayName)){
+			return;
+		}
+		this.displayName = displayName;
+	}
 }
