@@ -54,6 +54,8 @@ public class BlankDetailPage
 
 	private Label propmptLabel;
 
+	private String instanceKey;
+
 	public BlankDetailPage(DetailPanel detailPanel, String pageID) {
 		super(detailPanel, pageID);
 	}
@@ -115,7 +117,7 @@ public class BlankDetailPage
 				if (event.keyCode == SWT.ESC) {
 					System.out.println("ESC pressed");//KN: sysout
 					showBusy(false, 0);
-					
+
 					getDetailPanel().show(false);
 					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 					if (null != buttonBar) {
@@ -136,10 +138,29 @@ public class BlankDetailPage
 			/*
 			 * Display a message to the user if this is taking too long
 			 */
-			Utils.execSWTThreadLater(10000, new AERunnable() {
+			instanceKey = System.currentTimeMillis() + "";
+
+			/*
+			 * Because each time this method is called a new runnable is created; it is possible
+			 * for a runnable to be out of synch (at the time it's executed) with the current busy
+			 * state which could pre-maturely show the message prompt.  Using the simple instanceKey
+			 * should be enough to ensure that if the key has changed.. then this runnable is no
+			 * longer applicable to the current showing of this page
+			 */
+			Utils.execSWTThreadLater(10000, new KeyedRunnable(instanceKey) {
+
 				public void runSupport() {
 					if (true == isBusy) {
-						propmptLabel.setVisible(true);
+						if (getInstanceKey().equals(instanceKey)) {
+							if (null != propmptLabel && false == propmptLabel.isDisposed()) {
+								propmptLabel.setVisible(true);
+							}
+						} else {
+							/*
+							 * instanceKey not matching so just ignore
+							 */
+						}
+
 					}
 				}
 			});
@@ -147,7 +168,9 @@ public class BlankDetailPage
 		}
 		if (false == isBusy) {
 			display.removeFilter(SWT.KeyUp, listener);
-			propmptLabel.setVisible(false);
+			if (null != propmptLabel && false == propmptLabel.isDisposed()) {
+				propmptLabel.setVisible(false);
+			}
 		}
 	}
 
@@ -299,4 +322,23 @@ public class BlankDetailPage
 	public void refresh(RefreshListener refreshListener) {
 	}
 
+	/**
+	 * Just a simple extension of an AERunnable that carries a key with it
+	 * @author khai
+	 *
+	 */
+	private abstract class KeyedRunnable
+		extends AERunnable
+	{
+		private String instanceKey;
+
+		public KeyedRunnable(String instanceKey) {
+			this.instanceKey = instanceKey;
+		}
+
+		public String getInstanceKey() {
+			return instanceKey;
+		}
+
+	}
 }
