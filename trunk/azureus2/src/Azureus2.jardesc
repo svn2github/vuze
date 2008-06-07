@@ -207,7 +207,6 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.config.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrent.test"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.platform"/>
-        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.donations"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.digests"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.tracker"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.peers"/>

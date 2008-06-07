@@ -107,7 +107,6 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/redled.gif", "redled");
 		addPath("org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
 		addPath("org/gudy/azureus2/ui/icons/grayled.gif", "grayled");
-		addPath("org/gudy/azureus2/ui/icons/donation.jpg", "donation");
 		addPath("org/gudy/azureus2/ui/icons/popup.png", "popup");
 		addPath("org/gudy/azureus2/ui/icons/error.gif", "error");
 		addPath("org/gudy/azureus2/ui/icons/info.gif", "info");
