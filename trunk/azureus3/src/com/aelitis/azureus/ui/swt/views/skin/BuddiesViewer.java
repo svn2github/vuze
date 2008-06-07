@@ -654,6 +654,8 @@ public class BuddiesViewer
 		
 		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 		
+		if(avatarsPanel.isDisposed()) return;
+		
 		final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
 		
 		//Only sort by online status if we show it
@@ -670,26 +672,29 @@ public class BuddiesViewer
 			});
 		}
 		
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				boolean changed = false;
-				for(int i = 0 ; i < buddies.size() ; i++) {
-					VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
-					AvatarWidget widget = findWidget(buddy);
-					Control control = widget.getControl();
-					if(control!= null && ! control.isDisposed()) {
-						SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
-						if(rData.position != i) {
-							rData.position = i;
-							changed = true;
+		Display display = avatarsPanel.getDisplay();
+		if(! display.isDisposed()) {
+			display.asyncExec(new Runnable() {
+				public void run() {
+					boolean changed = false;
+					for(int i = 0 ; i < buddies.size() ; i++) {
+						VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
+						AvatarWidget widget = findWidget(buddy);
+						Control control = widget.getControl();
+						if(control!= null && ! control.isDisposed()) {
+							SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
+							if(rData.position != i) {
+								rData.position = i;
+								changed = true;
+							}
 						}
 					}
+					if(changed) {
+						avatarsPanel.layout();
+					}
 				}
-				if(changed) {
-					avatarsPanel.layout();
-				}
-			}
-		});
+			});
+		}
 	
 		
 		
