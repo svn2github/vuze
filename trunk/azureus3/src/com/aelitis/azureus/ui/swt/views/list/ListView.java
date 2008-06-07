@@ -2747,7 +2747,7 @@ public class ListView
 			changeColumnIndicator();
 
 			logCOLUMNSIZE("refresh " + lastVisibleColumns.length + " columns");
-			refreshVisible(true, true, false);
+			refreshVisible(true, true, true);
 
 		} finally {
 			adjustingColumns = false;
