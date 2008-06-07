@@ -6,14 +6,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Layout;
 
 public class SimpleReorderableListLayout extends Layout {
-
-	public int itemWidth;
-	public int itemHeight;
 	
 	public int margin;
 
-	public int borderW,borderH;
-	
+	public int borderW = 3;
+	public int borderH = 3;
 	
 	private boolean cached = false;
 	private Point cachedSize = null;
@@ -71,8 +68,8 @@ public class SimpleReorderableListLayout extends Layout {
 				SimpleReorderableListLayoutData sData = (SimpleReorderableListLayoutData) layoutData;
 				int index = sData.position;
 				if(index >= 0 && index < positions.length) {
-					controls[i].setLocation(positions[index], borderH);
-					controls[i].setBounds(positions[index], borderH,sData.width,sData.height);
+					controls[i].setLocation(borderW + positions[index], borderH);
+					controls[i].setBounds(borderW + positions[index], borderH,sData.width,sData.height);
 				}
 			}
 		}
