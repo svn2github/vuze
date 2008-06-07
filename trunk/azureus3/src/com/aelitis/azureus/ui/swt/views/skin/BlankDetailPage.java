@@ -5,6 +5,10 @@ import java.io.InputStream;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -14,6 +18,10 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
@@ -21,6 +29,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class BlankDetailPage
 	extends AbstractDetailPage
@@ -41,19 +50,47 @@ public class BlankDetailPage
 
 	private Display display;
 
+	private Listener listener;
+
+	private Label propmptLabel;
+
 	public BlankDetailPage(DetailPanel detailPanel, String pageID) {
 		super(detailPanel, pageID);
 	}
 
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.INHERIT_DEFAULT);
+		display = content.getDisplay();
+
+		propmptLabel = new Label(content, SWT.WRAP);
+		propmptLabel.setLocation(50, 50);
+
+		FontData[] fDatas = propmptLabel.getFont().getFontData();
+		for (int i = 0; i < fDatas.length; i++) {
+			fDatas[i].height = 10;
+		}
+		final Font newFont = new Font(display, fDatas);
+		propmptLabel.setFont(newFont);
+		propmptLabel.setForeground(ColorCache.getColor(display, 100, 100, 100));
+
+		propmptLabel.addDisposeListener(new DisposeListener() {
+
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != newFont && false == newFont.isDisposed()) {
+					newFont.dispose();
+				}
+			}
+		});
+
 		spinnerCanvas = new Canvas(content, SWT.NO_BACKGROUND);
 		if (null == spinnerGC) {
 			spinnerGC = new GC(spinnerCanvas);
 			spinnerGC.setBackground(content.getBackground());
 		}
 
-		display = content.getDisplay();
+		propmptLabel.setText(MessageText.getString("message.taking.too.long"));
+		propmptLabel.setSize(propmptLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		propmptLabel.setVisible(false);
 
 		content.addControlListener(new ControlListener() {
 
@@ -63,29 +100,54 @@ public class BlankDetailPage
 					public void runSupport() {
 						if (true == isBusy) {
 							Utils.centerRelativeTo(spinnerBounds, content.getBounds());
-							//							Point to_lbShell = content.toControl(spinnerBounds.x,
-							//									spinnerBounds.y);
-							//							spinnerBounds.x = to_lbShell.x;
-							//							spinnerBounds.y = to_lbShell.y;
 							spinnerCanvas.setBounds(spinnerBounds);
-							System.out.println("Spinner bounds: " + spinnerBounds);//KN: sysout
 						}
 					}
 				});
 			}
 
 			public void controlMoved(ControlEvent e) {
-				// TODO Auto-generated method stub
-
 			}
 		});
+
+		listener = new Listener() {
+			public void handleEvent(Event event) {
+				if (event.keyCode == SWT.ESC) {
+					System.out.println("ESC pressed");//KN: sysout
+					showBusy(false, 0);
+					
+					getDetailPanel().show(false);
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					if (null != buttonBar) {
+						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+					}
+				}
+			}
+		};
+
 	}
 
 	public void showBusy(boolean value, long delayInMilli) {
 		isBusy = value;
 
 		if (true == isBusy && false == busyAlready) {
+			display.addFilter(SWT.KeyUp, listener);
+
+			/*
+			 * Display a message to the user if this is taking too long
+			 */
+			Utils.execSWTThreadLater(10000, new AERunnable() {
+				public void runSupport() {
+					if (true == isBusy) {
+						propmptLabel.setVisible(true);
+					}
+				}
+			});
 			showSpinner(Math.max(0, delayInMilli));
+		}
+		if (false == isBusy) {
+			display.removeFilter(SWT.KeyUp, listener);
+			propmptLabel.setVisible(false);
 		}
 	}
 
@@ -130,15 +192,11 @@ public class BlankDetailPage
 				offScreenImageGC.dispose();
 			}
 		}
-		spinnerCanvas.setBounds(spinnerBounds);
 
 		/*
 		 * Adjust the spinner bounds to be centered on the lightbox shell itself
 		 */
 		Utils.centerRelativeTo(spinnerBounds, content.getBounds());
-		//		Point to_lbShell = content.toControl(spinnerBounds.x, spinnerBounds.y);
-		//		spinnerBounds.x = to_lbShell.x;
-		//		spinnerBounds.y = to_lbShell.y;
 
 		/*
 		 * Create the canvas for the spinner; size the canvas to be just enough for the image
