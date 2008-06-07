@@ -1197,6 +1197,21 @@ TorrentUtils
 		m.put( TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED, new Long(requested?1:0));
 	}
 		
+	
+	public static boolean isReallyPrivate(TOTorrent torrent) {
+		if ( torrent == null ){
+			
+			return( false );
+		}	
+		
+		String announceURL = torrent.getAnnounceURL().toExternalForm();
+		if(announceURL.matches(".*[0-9a-z]{20,40}.*")) {
+			return torrent.getPrivate();
+		}
+		
+		return false;
+	}
+	
 	public static boolean
 	getPrivate(
 		TOTorrent		torrent )
