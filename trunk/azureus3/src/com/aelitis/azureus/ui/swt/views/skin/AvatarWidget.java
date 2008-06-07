@@ -76,6 +76,8 @@ public class AvatarWidget
 	private boolean isSelected = false;
 
 	private boolean isEnabled = true;
+	
+	private boolean isDisposing = false;
 
 	private boolean nameLinkActive = false;
 
@@ -734,6 +736,9 @@ public class AvatarWidget
 
 					public void runSupport() {
 
+						
+						isDisposing = true;
+						
 						/*
 						 * KN: TODO: disposal check is still not complete since it could still happen
 						 * between the .isDisposed() check and the .redraw() or .update() calls.
@@ -859,10 +864,12 @@ public class AvatarWidget
 	}
 
 	private int getAlpha() {
-		if (true == isEnabled()) {
-			alpha = 255;
-		} else {
-			alpha = 128;
+		if(!isDisposing) {
+			if (true == isEnabled()) {
+				alpha = 255;
+			} else {
+				alpha = 128;
+			}
 		}
 
 		return alpha;
