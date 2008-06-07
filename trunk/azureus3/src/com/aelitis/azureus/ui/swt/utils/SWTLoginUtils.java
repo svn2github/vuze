@@ -61,6 +61,7 @@ public class SWTLoginUtils
 		final ILoginInfoListener loginInfoListener = new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
 				if (loginManager.isLoggedIn()) {
+					loginManager.removeListener(this);
 					Utils.execSWTThread(loginCompleteRunnable);
 				}
 			}
