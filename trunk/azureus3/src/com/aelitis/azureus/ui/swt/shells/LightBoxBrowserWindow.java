@@ -241,7 +241,8 @@ public class LightBoxBrowserWindow
 		/*
 		 * Open the shell in it's hidden state to prevent flickering when the browser initializes
 		 */
-		styledShell.hideShell(true);
+		// Temp disabled because Login Window isn't showing up at all for me
+		//styledShell.hideShell(true);
 		lightBoxShell.open(styledShell);
 	}
 
@@ -300,7 +301,8 @@ public class LightBoxBrowserWindow
 				}
 
 				lightBoxShell.showBusy(false, 0);
-				styledShell.animateFade(100);
+				// Temp disabled because Login Window isn't showing up at all for me
+				//styledShell.animateFade(100);
 
 			}
 
@@ -310,7 +312,8 @@ public class LightBoxBrowserWindow
 				 * show it again once the page has finished loading
 				 */
 				if (event.current == 0 && event.total != 0) {
-					styledShell.hideShell(true);
+					// Temp disabled because Login Window isn't showing up at all for me
+					//styledShell.hideShell(true);
 					lightBoxShell.showBusy(true, 500);
 				}
 			}
