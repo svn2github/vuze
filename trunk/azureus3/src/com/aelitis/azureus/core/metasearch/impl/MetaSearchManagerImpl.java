@@ -684,6 +684,20 @@ MetaSearchManagerImpl
 			
 			meta_search.addEngine( engine );
 			
+			if ( is_import && warn_user ){
+				
+				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+				
+				String details = MessageText.getString(
+						"metasearch.addtemplate.done.desc",
+						new String[]{ engine.getName() });
+				
+				pi.getUIManager().showMessageBox(
+						"metasearch.addtemplate.done.title",
+						"!" + details + "!",
+						UIManagerEvent.MT_OK );
+			}
+			
 			return( engine );
 			
 		}catch( Throwable e ){
