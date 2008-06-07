@@ -280,15 +280,6 @@ public class AvatarWidget
 						 * Image border
 						 */
 						if (imageBorder > 0) {
-							//							if (true == vuzeBuddy.isOnline()) {
-							//								e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 43, 190,
-							//							90));
-							//								e.gc.setLineWidth(imageBorder+1);
-							//							}
-							//							else{
-							//								e.gc.setForeground(imageBorderColor);
-							//								e.gc.setLineWidth(imageBorder);
-							//							}
 							e.gc.setForeground(imageBorderColor);
 							e.gc.setLineWidth(imageBorder);
 							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
@@ -307,15 +298,6 @@ public class AvatarWidget
 						 * Image border
 						 */
 						if (imageBorder > 0) {
-							//							if (true == vuzeBuddy.isOnline()) {
-							//								e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 43, 190,
-							//							90));
-							//								e.gc.setLineWidth(imageBorder+1);
-							//							}
-							//							else{
-							//								e.gc.setForeground(imageBorderColor);
-							//								e.gc.setLineWidth(imageBorder);
-							//							}
 							e.gc.setForeground(imageBorderColor);
 							e.gc.setLineWidth(imageBorder);
 							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
