@@ -76,7 +76,7 @@ public class AvatarWidget
 	private boolean isSelected = false;
 
 	private boolean isEnabled = true;
-	
+
 	private boolean isDisposing = false;
 
 	private boolean nameLinkActive = false;
@@ -235,33 +235,28 @@ public class AvatarWidget
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-				
-				
+
 				if (SHOW_ONLINE_BORDER) {
 
 					if (true == vuzeBuddy.isOnline()) {
 
 						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 81,
-								255, 139) );
-						
+								255, 139));
+
 						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
-								130, 70) );
-						
+								130, 70));
+
 						Rectangle bounds = canvas.getBounds();
 
-						
-						e.gc.fillRectangle(8, 5,
-								bounds.width -16, bounds.height-18);
-						
-						e.gc.drawRectangle(8, 5,
-								bounds.width -17, bounds.height-19);
-						
+						e.gc.fillRectangle(8, 5, bounds.width - 16, bounds.height - 18);
+
+						e.gc.drawRectangle(8, 5, bounds.width - 17, bounds.height - 19);
+
 						e.gc.setForeground(canvas.getForeground());
 
 					}
 				}
 
-				
 				/*
 				 * Draw the avatar image
 				 */
@@ -422,8 +417,7 @@ public class AvatarWidget
 					return;
 				}
 
-				if (true == nameAreaBounds.contains(e.x, e.y)
-						&& e.stateMask != SWT.MOD1) {
+				if (true == nameAreaBounds.contains(e.x, e.y)) {
 					doLinkClicked();
 				} else if (decorator_remove_friend.contains(e.x, e.y)) {
 					if (true == viewer.isEditMode()) {
@@ -432,7 +426,7 @@ public class AvatarWidget
 				} else if (decorator_add_to_share.contains(e.x, e.y)) {
 
 				} else {
-					if (e.stateMask == SWT.MOD1) {
+					if ((e.stateMask & SWT.MOD1) == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
 					} else {
 						viewer.select(vuzeBuddy, !isSelected, false);
@@ -462,7 +456,7 @@ public class AvatarWidget
 				if (false == isFullyVisible()) {
 					return;
 				}
-				if (e.stateMask == SWT.MOD1) {
+				if ((e.stateMask & SWT.MOD1) == SWT.MOD1) {
 					return;
 				}
 
@@ -736,9 +730,8 @@ public class AvatarWidget
 
 					public void runSupport() {
 
-						
 						isDisposing = true;
-						
+
 						/*
 						 * KN: TODO: disposal check is still not complete since it could still happen
 						 * between the .isDisposed() check and the .redraw() or .update() calls.
@@ -864,7 +857,7 @@ public class AvatarWidget
 	}
 
 	private int getAlpha() {
-		if(!isDisposing) {
+		if (!isDisposing) {
 			if (true == isEnabled()) {
 				alpha = 255;
 			} else {
