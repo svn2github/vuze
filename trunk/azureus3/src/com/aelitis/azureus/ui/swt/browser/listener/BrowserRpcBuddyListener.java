@@ -20,9 +20,12 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.util.Constants;
@@ -41,6 +44,8 @@ extends AbstractBrowserMessageListener
 	public static final String OP_ACCEPT = "accept";
 
 	public static final String OP_INVITE = "invite";
+
+	public static final String OP_SYNC = "sync";
 
 	public BrowserRpcBuddyListener() {
 		super(DEFAULT_LISTENER_ID);
@@ -67,6 +72,12 @@ extends AbstractBrowserMessageListener
 				}
 			} else if (OP_INVITE.equals(opid)) {
 				VuzeBuddyManager.inviteWithShare(decodedMap, null, null, null);
+			} else if (OP_SYNC.equals(opid)) {
+				long last = MapUtils.getMapLong(decodedMap, "min-time-secs", 0);
+				if (SystemTime.getCurrentTime()
+						- PlatformBuddyMessenger.getLastSyncCheck() > last * 1000) {
+					PlatformBuddyMessenger.sync(null);
+				}
 			}
 		} catch (Throwable t) {
 			message.debug("handle Config message", t);

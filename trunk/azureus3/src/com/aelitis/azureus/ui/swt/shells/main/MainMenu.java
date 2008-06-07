@@ -394,6 +394,7 @@ public class MainMenu
 			}
 		};
 
+		System.out.println(configID);
 		COConfigurationManager.addAndFireParameterListener(configID, listener);
 		item.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {

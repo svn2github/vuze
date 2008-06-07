@@ -58,9 +58,13 @@ public class PlatformBuddyMessenger
 
 	public static final String OP_STARTSHARE = "start-share";
 	
+	private static long lastSyncCheck = 0; 
+	
 	public static void sync(
 			final VuzeBuddySyncListener l)
 		throws NotLoggedInException {
+
+		lastSyncCheck = SystemTime.getCurrentTime();
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_SYNC, new Object[0], 1000);
@@ -322,5 +326,9 @@ public class PlatformBuddyMessenger
 				}, 1000);
 
 		PlatformMessenger.queueMessage(message, null);
+	}
+
+	public static long getLastSyncCheck() {
+		return lastSyncCheck;
 	}
 }

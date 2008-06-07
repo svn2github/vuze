@@ -64,6 +64,8 @@ public class PlatformConfigMessenger
 	private static boolean sendStats;
 
 	protected static List listBlack = Collections.EMPTY_LIST;
+
+	protected static long buddySyncOnShareMinTime;
 	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -177,8 +179,9 @@ public class PlatformConfigMessenger
 				try {
 					sendStats = MapUtils.getMapBoolean(reply, "send-stats", true);
 				} catch (Exception e) {
-					Debug.out(e);
 				}
+				
+				buddySyncOnShareMinTime = MapUtils.getMapLong(reply, "buddy-sync-on-share-min-time-secs", 60000);
 
 				try {
   				iRPCVersion = MapUtils.getMapInt(reply, "rpc-version", 0);
@@ -282,5 +285,13 @@ public class PlatformConfigMessenger
 
 	public static boolean allowSendStats() {
 		return sendStats;
+	}
+
+	public static long getBuddySyncOnShareMinTimeSecs() {
+		return buddySyncOnShareMinTime;
+	}
+
+	public static void setBuddySyncOnShareMinTimeSecs(long buddySyncOnShareMinTime) {
+		PlatformConfigMessenger.buddySyncOnShareMinTime = buddySyncOnShareMinTime;
 	}
 }
