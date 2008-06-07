@@ -38,8 +38,9 @@ public class VuzeShareUtils
 			return;
 		}
 		
+		//TODO : Gudy : make sure that this private detection method is reliable enough
 		if (currentContent.getDM() != null
-				&& TorrentUtils.getPrivate(currentContent.getDM().getTorrent())) {
+				&& (TorrentUtils.isReallyPrivate(currentContent.getDM().getTorrent()))) {
 			Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "v3.share.private",
 					(String[]) null);
 			return;
