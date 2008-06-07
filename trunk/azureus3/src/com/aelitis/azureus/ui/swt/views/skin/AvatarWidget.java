@@ -233,35 +233,33 @@ public class AvatarWidget
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
-
+				
+				
 				if (SHOW_ONLINE_BORDER) {
 
 					if (true == vuzeBuddy.isOnline()) {
-						//System.out.println("\t" + vuzeBuddy.getLoginID() + " is online: "
-						//		+ vuzeBuddy.isOnline());//KN: sysout
+
 						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 81,
 								255, 139) );
+						
 						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
 								130, 70) );
-						//e.gc.setLineWidth(1);
+						
 						Rectangle bounds = canvas.getBounds();
-						/*e.gc.fillRoundRectangle(1, bounds.height-12,
-								bounds.width - (2 * 1), 12,
-								10, 10);*/
+
 						
-						e.gc.fillRoundRectangle(11, 1,
-								bounds.width - 22, 3,
-								3, 3);
+						e.gc.fillRectangle(8, 5,
+								bounds.width -16, bounds.height-18);
 						
-						e.gc.drawRoundRectangle(11, 1,
-								bounds.width -22, 3,
-								3, 3);
+						e.gc.drawRectangle(8, 5,
+								bounds.width -17, bounds.height-19);
 						
 						e.gc.setForeground(canvas.getForeground());
-						//					e.gc.setLineWidth(1);
 
 					}
 				}
+
+				
 				/*
 				 * Draw the avatar image
 				 */
