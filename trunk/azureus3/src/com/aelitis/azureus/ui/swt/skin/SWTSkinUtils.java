@@ -360,7 +360,7 @@ public class SWTSkinUtils
 					//Utils.relayout(control, false);
 					control.getParent().layout();
 
-					Utils.execSWTThreadLater(0, this);
+					Utils.execSWTThreadLater(20, this);
 				}
 			}
 		};
