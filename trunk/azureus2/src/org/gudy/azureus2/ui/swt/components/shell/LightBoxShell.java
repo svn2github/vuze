@@ -90,7 +90,7 @@ public class LightBoxShell
 
 	private int styleMask = RESIZE_VERTICAL | RESIZE_HORIZONTAL;
 
-	private int alphaLevel = 178;
+	private int alphaLevel = 255; //178; // Disabled because this doesn't work via VNC (and possibly other places)
 
 	public LightBoxShell() {
 		this(false);
