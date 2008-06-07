@@ -2,6 +2,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,6 +19,8 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -29,6 +32,8 @@ import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
+import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -41,6 +46,11 @@ import com.aelitis.azureus.util.FAQTopics;
 public class BuddiesViewer
 	extends SkinView
 {
+	
+	private static final boolean SHOW_ONLINE_STATUS = System.getProperty(
+			"az.buddy.show_online", "0").equals("1");
+	
+	
 	public static final int none_active_mode = 0;
 
 	public static final int edit_mode = 1;
@@ -176,10 +186,18 @@ public class BuddiesViewer
 
 			fillBuddies(avatarsPanel);
 
+			/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
 			rLayout.wrap = false;
 			rLayout.spacing = hSpacing;
+			avatarsPanel.setLayout(rLayout);*/
+			
+			
+			// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
+			rLayout.margin = hSpacing;
 			avatarsPanel.setLayout(rLayout);
+
 
 			avatarsPanel.pack();
 
@@ -462,9 +480,18 @@ public class BuddiesViewer
 		avatarWidget.setSelectedColor(selectedColor);
 		avatarWidget.setHighlightedColor(highlightedColor);
 
+		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 		RowData rData = new RowData();
 		rData.width = avatarSize.x;
 		rData.height = avatarSize.y;
+		avatarWidget.getControl().setLayoutData(rData);*/
+		
+		
+		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+		SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
+		rData.width = avatarSize.x;
+		rData.height = avatarSize.y;
+		rData.position = (int) VuzeBuddyManager.getBuddyPosition(vuzeBuddy);
 		avatarWidget.getControl().setLayoutData(rData);
 
 		avatarWidgets.add(avatarWidget);
@@ -619,6 +646,55 @@ public class BuddiesViewer
 		}
 	}
 
+	private void recomputeOrder() {
+	
+		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+		return;
+		*/
+		
+		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+		
+		final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+		
+		//Only sort by online status if we show it
+		if(SHOW_ONLINE_STATUS) {
+			Collections.sort(buddies,new Comparator() {
+				public int compare(Object o1, Object o2) {
+					VuzeBuddy v1 = (VuzeBuddy) o1;
+					VuzeBuddy v2 = (VuzeBuddy) o2;
+					int score = 0;
+					score -= v1.isOnline() ?  1 : 0;
+					score += v2.isOnline() ? 1 : 0;
+					return score;
+				}
+			});
+		}
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				boolean changed = false;
+				for(int i = 0 ; i < buddies.size() ; i++) {
+					VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
+					AvatarWidget widget = findWidget(buddy);
+					Control control = widget.getControl();
+					if(control!= null && ! control.isDisposed()) {
+						SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
+						if(rData.position != i) {
+							rData.position = i;
+							changed = true;
+						}
+					}
+				}
+				if(changed) {
+					avatarsPanel.layout();
+				}
+			}
+		});
+	
+		
+		
+	}
+	
 	private List getBuddies() {
 
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
@@ -627,17 +703,21 @@ public class BuddiesViewer
 
 			public void buddyRemoved(VuzeBuddy buddy) {
 				removeBuddy(buddy);
+				recomputeOrder();
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
 				updateBuddy(buddy);
+				recomputeOrder();
 			}
 
 			public void buddyAdded(VuzeBuddy buddy, int position) {
 				addBuddy(buddy);
+				recomputeOrder();
 			}
 
 			public void buddyOrderChanged() {
+				
 			}
 		}, false);
 
