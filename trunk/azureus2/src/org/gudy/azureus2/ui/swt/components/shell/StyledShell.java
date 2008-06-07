@@ -47,7 +47,7 @@ public class StyledShell
 
 	private boolean isAlreadyOpened = false;
 
-	private int alpha = 230;
+	private int alpha = 255; //230; // Disabled because this doesn't work via VNC (and possibly other places)
 
 	private boolean isAnimating = false;
 
