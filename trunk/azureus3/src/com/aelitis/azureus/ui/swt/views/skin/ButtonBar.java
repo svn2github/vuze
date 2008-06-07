@@ -197,6 +197,27 @@ public class ButtonBar
 
 	}
 
+	public void enableShare(boolean value){
+		if(false == value){
+			if(shareAllBuddiesObject.isVisible()){
+				shareAllBuddiesObject.switchSuffix("-disabled", 1, false);
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+				if(null != viewer){
+					viewer.setMode(BuddiesViewer.disabled_mode);
+				}
+			}
+		}
+		else{
+			if(shareAllBuddiesObject.isVisible()){
+				shareAllBuddiesObject.switchSuffix("", 1, false);
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+				if(null != viewer){
+					viewer.setMode(BuddiesViewer.share_mode);
+				}
+			}
+		}
+	}
+	
 	public void setActiveMode(int mode) {
 
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);

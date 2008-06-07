@@ -62,6 +62,8 @@ public interface IBuddyPageListener
 	public String getConfirmationMessage();
 
 	public Point getSize();
-	
+
 	public String getWindowState();
+
+	public int getInvitationsSent();
 }

@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,6 +51,8 @@ public class BuddiesViewer
 
 	public static final int add_buddy_mode = 4;
 
+	public static final int disabled_mode = 5;
+
 	private Composite content = null;
 
 	private Composite avatarsPanel = null;
@@ -79,6 +82,8 @@ public class BuddiesViewer
 	private boolean isEditMode = false;
 
 	private boolean isAddBuddyMode = false;
+
+	private boolean isEnabled = true;
 
 	private Color textColor = null;
 
@@ -750,6 +755,12 @@ public class BuddiesViewer
 		} else if (mode == add_buddy_mode) {
 			setAddBuddyMode(true);
 		}
+
+		if (mode == disabled_mode) {
+			setEnabled(false);
+		} else {
+			setEnabled(true);
+		}
 	}
 
 	public int getCurrentPage() {
@@ -780,6 +791,19 @@ public class BuddiesViewer
 					Utils.launch(url);
 				}
 			});
+		}
+	}
+
+	public boolean isEnabled() {
+		return isEnabled;
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		if (this.isEnabled != isEnabled) {
+			this.isEnabled = isEnabled;
+			avatarsPanel.setEnabled(isEnabled);
+			avatarsPanel.layout(true);
+			
 		}
 	}
 }

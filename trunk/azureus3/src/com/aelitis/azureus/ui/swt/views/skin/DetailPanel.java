@@ -14,6 +14,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -72,6 +74,8 @@ public class DetailPanel
 		stackLayout.marginWidth = 6;
 		detailPanel.setLayout(stackLayout);
 
+		detailPanel.setBackground(ColorCache.getColor(detailPanel.getDisplay(), 22,
+				22, 22));
 		createDefaultPages();
 
 		/*

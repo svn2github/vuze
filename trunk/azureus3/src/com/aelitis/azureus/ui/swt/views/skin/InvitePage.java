@@ -139,6 +139,7 @@ public class InvitePage
 										+ getWindowState());//KN: sysout
 							}
 						}
+
 					}
 
 			);

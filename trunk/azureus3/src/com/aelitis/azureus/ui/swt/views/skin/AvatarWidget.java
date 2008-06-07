@@ -75,6 +75,8 @@ public class AvatarWidget
 
 	private boolean isSelected = false;
 
+	private boolean isEnabled = true;
+
 	private boolean nameLinkActive = false;
 
 	private Color textColor = null;
@@ -197,7 +199,6 @@ public class AvatarWidget
 		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
-
 				if (false == isFullyVisible()) {
 					return;
 				}
@@ -209,7 +210,7 @@ public class AvatarWidget
 				try {
 					e.gc.setAntialias(SWT.ON);
 					e.gc.setTextAntialias(SWT.ON);
-					e.gc.setAlpha(alpha);
+					e.gc.setAlpha(getAlpha());
 					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
 					// ignore.. some of these may not be avail
@@ -272,14 +273,14 @@ public class AvatarWidget
 					Debug.out("No avatar image found and no default image supplies?");
 				} else {
 					if (true == viewer.isEditMode()) {
-						e.gc.setAlpha((int) (alpha * .7));
+						e.gc.setAlpha((int) (getAlpha() * .7));
 						/*
 						 * Image
 						 */
 						e.gc.drawImage(image, 0, 0, sourceImageBounds.width,
 								sourceImageBounds.height, imageBounds.x, imageBounds.y,
 								imageBounds.width, imageBounds.height);
-						e.gc.setAlpha(alpha);
+						e.gc.setAlpha(getAlpha());
 						/*
 						 * Image border
 						 */
@@ -447,6 +448,7 @@ public class AvatarWidget
 			public void mouseDoubleClick(MouseEvent e) {
 				if (false == viewer.isShareMode()) {
 					doLinkClicked();
+					return;
 				}
 			}
 		});
@@ -844,5 +846,27 @@ public class AvatarWidget
 
 	public void setHighlightedColor(Color highlightedColor) {
 		this.highlightedColor = highlightedColor;
+	}
+
+	public boolean isEnabled() {
+		if (false == isEnabled) {
+			return isEnabled;
+		}
+
+		return viewer.isEnabled();
+	}
+
+	public void setEnabled(boolean isEnabled) {
+		this.isEnabled = isEnabled;
+	}
+
+	private int getAlpha() {
+		if (true == isEnabled()) {
+			alpha = 255;
+		} else {
+			alpha = 128;
+		}
+
+		return alpha;
 	}
 }

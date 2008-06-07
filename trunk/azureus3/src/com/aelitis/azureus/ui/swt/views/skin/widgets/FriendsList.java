@@ -59,11 +59,17 @@ public class FriendsList
 
 	private BuddiesViewer buddiesViewer;
 
+	private Image default_prompt_image = null;
+
+	private String default_prompt_text = null;
+
+	private Color textColor;
+
 	public FriendsList(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
 		FillLayout fLayout = new FillLayout();
-		fLayout.marginHeight = 6;
-		fLayout.marginWidth = 6;
+		fLayout.marginHeight = 4;
+		fLayout.marginWidth = 4;
 		content.setLayout(fLayout);
 		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
@@ -77,7 +83,9 @@ public class FriendsList
 				"color.widget.border");
 		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.table.bg");
-
+		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+		"color.text.fg");
+		
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.container.bg");
 
@@ -99,6 +107,21 @@ public class FriendsList
 				e.gc.setForeground(borderColor);
 				e.gc.drawRectangle(bounds);
 
+				if (friendsWidgets.size() < 1) {
+					e.gc.setForeground(textColor);
+					int textOffset = 16;
+					if (null != default_prompt_image
+							&& false == default_prompt_image.isDisposed()) {
+						Rectangle imageBounds = default_prompt_image.getBounds();
+						e.gc.drawImage(default_prompt_image, textOffset, (bounds.height/2) - (imageBounds.height/2));
+						
+						textOffset += default_prompt_image.getBounds().width + 8; 
+					}
+
+					if (null != default_prompt_text && default_prompt_text.length() > 0) {
+						e.gc.drawString(default_prompt_text, textOffset, 50);
+					}
+				}
 			}
 		});
 
@@ -142,6 +165,7 @@ public class FriendsList
 					canvas.layout(true, true);
 					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
 					content.layout(true, true);
+					canvas.redraw();
 				}
 			}
 		});
@@ -153,11 +177,11 @@ public class FriendsList
 				FriendWidget widget = findWidget(buddy);
 				if (null != widget) {
 					friendsWidgets.remove(widget);
-					widget.dispose(true);
+					widget.dispose(false);
 					canvas.layout(true);
 					Rectangle r = scrollable.getClientArea();
 					scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
-					//					getBuddiesViewer().removeFromShare(buddy);
+					canvas.redraw();
 				}
 			}
 		});
@@ -217,7 +241,6 @@ public class FriendsList
 
 		private boolean closeIsActive = false;
 
-		private Color textColor;
 
 		private int alpha = 255;
 
@@ -251,8 +274,7 @@ public class FriendsList
 			borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.widget.border");
 			activeColor = borderColor;
-			textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-					"color.text.fg");
+
 
 			friendCanvas = new Canvas(parent, SWT.DOUBLE_BUFFERED);
 			friendCanvas.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -496,5 +518,21 @@ public class FriendsList
 			vuzeBuddies.add(widget.getBuddy());
 		}
 		return vuzeBuddies;
+	}
+
+	public Image getDefault_prompt_image() {
+		return default_prompt_image;
+	}
+
+	public void setDefault_prompt_image(Image default_prompt_image) {
+		this.default_prompt_image = default_prompt_image;
+	}
+
+	public String getDefault_prompt_text() {
+		return default_prompt_text;
+	}
+
+	public void setDefault_prompt_text(String default_prompt_text) {
+		this.default_prompt_text = default_prompt_text;
 	}
 }

@@ -49,6 +49,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -135,13 +136,13 @@ public class SharePage
 
 	private MiniCloseButton miniCloseButton;
 
-	private Font smallFont = null;
-
 	private ButtonBar buttonBar;
 
 	private String referer;
 
 	private RefreshListener refreshListener;
+
+	private AbstractBuddyPageListener buddyPageListener;
 
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -150,8 +151,7 @@ public class SharePage
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
 
-		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-				"color.text.fg");
+		textColor = ColorCache.getColor(content.getDisplay(), 206, 206, 206);
 		textDarkerColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.heading");
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
@@ -160,18 +160,6 @@ public class SharePage
 		buddiesViewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 		buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
 
-		FontData[] fDatas = parent.getFont().getFontData();
-		for (int i = 0; i < fDatas.length; i++) {
-			fDatas[i].height -= 1;
-		}
-		smallFont = new Font(parent.getDisplay(), fDatas);
-		content.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != smallFont && false == smallFont.isDisposed()) {
-					smallFont.dispose();
-				}
-			}
-		});
 		createFirstPanel();
 		createBrowserPanel();
 	}
@@ -206,7 +194,7 @@ public class SharePage
 		//		previewButton = new BubbleButton(firstPanel);
 		contentThumbnail = new Label(contentDetail, SWT.NONE);
 		contentStats = new StyledText(contentDetail, SWT.NONE);
-		optionalMessageLabel = new Label(contentDetail, SWT.NONE);
+		optionalMessageLabel = new Label(contentDetail, SWT.WRAP);
 		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
 		commentText = new Text(contentDetail, SWT.WRAP);
 
@@ -256,8 +244,8 @@ public class SharePage
 		FormData buddyListData = new FormData();
 		buddyListData.top = new FormAttachment(buddyListDescription, 6);
 		buddyListData.left = new FormAttachment(buddyListDescription, -2, SWT.LEFT);
-		buddyListData.width = 315;
-		buddyListData.height = 124;
+		buddyListData.width = 300;
+		buddyListData.height = 120;
 		buddyList.getControl().setLayoutData(buddyListData);
 
 		FormData inviteeListDescriptionData = new FormData();
@@ -312,7 +300,7 @@ public class SharePage
 		FormData contentDetailData = new FormData();
 		contentDetailData.top = new FormAttachment(buddyList.getControl(), 0,
 				SWT.TOP);
-		contentDetailData.left = new FormAttachment(buddyList.getControl(), 30);
+		contentDetailData.left = new FormAttachment(buddyList.getControl(), 16);
 		contentDetailData.right = new FormAttachment(100, -58);
 		contentDetailData.height = 259;
 		contentDetail.setLayoutData(contentDetailData);
@@ -362,8 +350,7 @@ public class SharePage
 				disclaimerLinkLabelData);
 
 		FormData sendNowButtonData = new FormData();
-		sendNowButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel,
-				8);
+		sendNowButtonData.bottom = new FormAttachment(100, -24);
 		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
 		size = sendNowButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		sendNowButtonData.width = size.x;
@@ -372,7 +359,7 @@ public class SharePage
 
 		FormData cancelButtonData = new FormData();
 		cancelButtonData.right = new FormAttachment(sendNowButton, -8);
-		cancelButtonData.top = new FormAttachment(optionalMessageDisclaimerLabel, 8);
+		cancelButtonData.bottom = new FormAttachment(100, -24);
 		size = cancelButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 		cancelButtonData.width = size.x;
 		cancelButtonData.height = size.y;
@@ -391,25 +378,72 @@ public class SharePage
 	}
 
 	private void formatControls() {
-		buddyListDescription.setForeground(textDarkerColor);
-		inviteeListDescription.setForeground(textDarkerColor);
+		buddyListDescription.setForeground(textColor);
+		FontData[] buddyListfData = buddyListDescription.getFont().getFontData();
+		for (int i = 0; i < buddyListfData.length; i++) {
+			buddyListfData[i].height = 10;
+			buddyListfData[i].setStyle(SWT.BOLD);
+		}
+		final Font buddyListFont = new Font(content.getDisplay(), buddyListfData);
+		buddyListDescription.setFont(buddyListFont);
+		buddyListDescription.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != buddyListFont && false == buddyListFont.isDisposed()) {
+					buddyListFont.dispose();
+				}
+			}
+		});
+
+		inviteeListDescription.setForeground(textColor);
+		FontData[] inviteeListfData = inviteeListDescription.getFont().getFontData();
+		for (int i = 0; i < inviteeListfData.length; i++) {
+			inviteeListfData[i].height = 10;
+			inviteeListfData[i].setStyle(SWT.BOLD);
+		}
+		final Font inviteeListFont = new Font(content.getDisplay(),
+				inviteeListfData);
+		inviteeListDescription.setFont(inviteeListFont);
+		inviteeListDescription.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != inviteeListFont && false == inviteeListFont.isDisposed()) {
+					inviteeListFont.dispose();
+				}
+			}
+		});
+
 		optionalMessageLabel.setForeground(textDarkerColor);
+		FontData[] optionalMessageLabelfData = optionalMessageLabel.getFont().getFontData();
+		for (int i = 0; i < optionalMessageLabelfData.length; i++) {
+			optionalMessageLabelfData[i].height = 8;
+		}
+		final Font optionalMessageLabelFont = new Font(content.getDisplay(),
+				optionalMessageLabelfData);
+		optionalMessageLabel.setFont(optionalMessageLabelFont);
+		optionalMessageLabel.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != optionalMessageLabelFont
+						&& false == optionalMessageLabelFont.isDisposed()) {
+					optionalMessageLabelFont.dispose();
+				}
+			}
+		});
 
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
-		optionalMessageDisclaimerLabel.setFont(smallFont);
 
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
 		contentStats.setForeground(textColor);
 
 		commentText.setTextLimit(140);
+		commentText.setBackground(ColorCache.getColor(content.getDisplay(), 153,
+				153, 153));
 
 		contentStats.getCaret().setVisible(false);
 		contentStats.setEditable(false);
 
 		inviteeList.setEmailDisplayOnly(true);
 
-		shareHeaderMessageLabel.setForeground(textColor);
+		shareHeaderMessageLabel.setForeground(textDarkerColor);
 
 		shareHeaderLabel.setForeground(textColor);
 		FontData[] fData = shareHeaderLabel.getFont().getFontData();
@@ -430,6 +464,13 @@ public class SharePage
 
 		buddyList.getControl().setBackground(widgetBackgroundColor);
 		buddyList.setBuddiesViewer(buddiesViewer);
+		buddyList.setDefault_prompt_text(MessageText.getString("message.prompt.add.friends"));
+		if (null == ImageRepository.getImage("buddy_prompt_image")) {
+			ImageRepository.addPath(
+					"com/aelitis/azureus/ui/images/buddy_prompt_image.png",
+					"buddy_prompt_image");
+		}
+		buddyList.setDefault_prompt_image(ImageRepository.getImage("buddy_prompt_image"));
 
 		inviteePanel.setBackground(widgetBackgroundColor);
 
@@ -442,7 +483,6 @@ public class SharePage
 
 		Messages.setLanguageText(optionalMessageDisclaimerLinkLabel.getControl(),
 				"v3.Share.disclaimer.link");
-		optionalMessageDisclaimerLinkLabel.setFont(smallFont);
 
 		Messages.setLanguageText(shareHeaderLabel, "v3.Share.header");
 		Messages.setLanguageText(shareHeaderMessageLabel, "v3.Share.header.message");
@@ -478,7 +518,7 @@ public class SharePage
 			public void runSupport() {
 				stackLayout.topControl = firstPanel;
 				adjustLayout();
-				
+				buttonBar.enableShare(true);
 			}
 		});
 
@@ -489,7 +529,8 @@ public class SharePage
 		addBuddyButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				stackLayout.topControl = browserPanel;
-				content.layout(true,true);
+				content.layout(true, true);
+				buttonBar.enableShare(false);
 			}
 		});
 
@@ -529,8 +570,34 @@ public class SharePage
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
-				// We'll get a buddy-page.invite-confirm message from the webpage,
-				// even if it's just a share with no invites
+				List buddiesToShareWith = buddyList.getFriends();
+				final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
+				try {
+					VuzeBuddyManager.inviteWithShare(confirmationResponse,
+							getShareItem(), commentText.getText(), buddies);
+					getDetailPanel().show(false);
+					//					showConfirmationDialog();
+					resetControls();
+
+				} catch (NotLoggedInException e1) {
+					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+						public void loginComplete() {
+							try {
+								VuzeBuddyManager.inviteWithShare(confirmationResponse,
+										getShareItem(), commentText.getText(), buddies);
+								getDetailPanel().show(false);
+								showConfirmationDialog();
+								resetControls();
+
+							} catch (NotLoggedInException e) {
+								//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
+								// try again
+							}
+						}
+
+					});
+				}
+
 			}
 		});
 
@@ -539,14 +606,15 @@ public class SharePage
 	private void showConfirmationDialog() {
 		final String[] message = new String[1];
 
-		if (buddyList.getContentCount() == 0 && inviteeList.getContentCount() == 1) {
+		if (buddyList.getContentCount() == 0
+				&& buddyPageListener.getInvitationsSent() == 1) {
 			message[0] = MessageText.getString("message.confirm.share.invite.singular");
 		} else if (buddyList.getContentCount() + inviteeList.getContentCount() > 1) {
 			message[0] = MessageText.getString("message.confirm.share.invite.plural");
-		} else if (inviteeList.getContentCount() == 0
+		} else if (buddyPageListener.getInvitationsSent() == 0
 				&& buddyList.getContentCount() == 1) {
 			message[0] = MessageText.getString("message.confirm.share.singular");
-		} else if (inviteeList.getContentCount() == 0) {
+		} else if (buddyPageListener.getInvitationsSent() == 0) {
 			message[0] = MessageText.getString("message.confirm.share.plural");
 		}
 
@@ -676,7 +744,8 @@ public class SharePage
 			/*
 			 * Add the appropriate messaging listeners
 			 */
-			context.addMessageListener(new AbstractBuddyPageListener(getBrowser()) {
+
+			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
 
 				public void handleCancel() {
 					Utils.execSWTThread(new AERunnable() {
@@ -724,36 +793,7 @@ public class SharePage
 
 				public void handleInviteConfirm() {
 					confirmationResponse = getConfirmationResponse();
-
-					if (null != confirmationResponse) {
-  					List buddiesToShareWith = buddyList.getFriends();
-  					final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
-  					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-  						public void loginComplete() {
-  							try {
-  								VuzeBuddyManager.inviteWithShare(confirmationResponse,
-  										getShareItem(), commentText.getText(), buddies);
-  								getDetailPanel().show(false);
-  								showConfirmationDialog();
-  								resetControls();
-  
-  							} catch (NotLoggedInException e) {
-  								//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
-  								// try again
-  							}
-  						}
-  					});
-					}
-					
-					if (null != getConfirmationMessage()) {
-						Utils.execSWTThread(new AERunnable() {
-
-							public void runSupport() {
-								Utils.openMessageBox(content.getShell(), SWT.OK, "Share",
-										getConfirmationMessage());
-							}
-						});
-					}
+					showConfirmationDialog();
 				}
 
 				public void handleResize() {
@@ -763,7 +803,8 @@ public class SharePage
 					}
 				}
 
-			});
+			};
+			context.addMessageListener(buddyPageListener);
 		}
 		return context;
 	}
@@ -935,7 +976,7 @@ public class SharePage
 	private void showInviteeList(boolean value) {
 		int listHeight = 0;
 		if (true == value) {
-			listHeight = 80;
+			listHeight = 76;
 		}
 
 		Object layoutData = inviteeList.getControl().getLayoutData();

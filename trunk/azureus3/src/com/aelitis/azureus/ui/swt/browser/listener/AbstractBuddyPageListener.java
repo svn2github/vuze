@@ -46,13 +46,15 @@ public abstract class AbstractBuddyPageListener
 
 	private String windowState = null;
 
+	private int invitationsSent = 0;
+
 	public AbstractBuddyPageListener(Browser browser) {
 		super(LISTENER_ID);
 		this.browser = browser;
 	}
 
 	public void handleMessage(final BrowserMessage message) {
-System.out.println(message.getFullMessage());//KN: sysout
+		System.out.println(message.getFullMessage());//KN: sysout
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String opID = message.getOperationId();
@@ -75,8 +77,11 @@ System.out.println(message.getFullMessage());//KN: sysout
 						Object getmessageObj = decodedMap.get(OP_INVITE_CONFIRM_PARAM_MSG);
 						if (getmessageObj instanceof Map) {
 							confirmationResponse = (Map) getmessageObj;
-							confirmationMessage = MapUtils.getMapString(confirmationResponse,
-									"message", null);
+
+							List sentInvitations = MapUtils.getMapList(confirmationResponse,
+									"sentInvitations", Collections.EMPTY_LIST);
+							invitationsSent = sentInvitations.size();
+
 						} else if (getmessageObj instanceof String) {
 							confirmationMessage = getmessageObj.toString();
 						} else {
@@ -166,6 +171,10 @@ System.out.println(message.getFullMessage());//KN: sysout
 
 	public String getWindowState() {
 		return windowState;
+	}
+
+	public int getInvitationsSent() {
+		return invitationsSent;
 	}
 
 }
