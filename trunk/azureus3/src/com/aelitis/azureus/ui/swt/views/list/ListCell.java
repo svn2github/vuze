@@ -26,17 +26,14 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
@@ -432,7 +429,7 @@ public class ListCell
 	}
 	
 	public Point getMouseRelative() {
-		if (view == null) {
+		if (view == null || view.isDisposed()) {
 			return null;
 		}
 
