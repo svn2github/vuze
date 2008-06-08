@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 
 public class 
 CryptoWindow 
@@ -149,6 +150,13 @@ CryptoWindow
 	    			return( persist_for );
 	    		}
 			});
+	}
+	
+	public void 
+	passwordOK(
+		int 				handler_type, 
+		passwordDetails 	details) 
+	{		
 	}
 	
 	protected class

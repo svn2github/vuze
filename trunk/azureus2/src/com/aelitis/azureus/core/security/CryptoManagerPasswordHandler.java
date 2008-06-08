@@ -55,6 +55,11 @@ CryptoManagerPasswordHandler
 		boolean		last_pw_incorrect,
 		String		reason );
 	
+	public void
+	passwordOK(
+		int					handler_type,
+		passwordDetails		details );
+	
 	public interface
 	passwordDetails
 	{

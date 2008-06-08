@@ -49,6 +49,7 @@ import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -440,6 +441,8 @@ CryptoManagerImpl
 						}
 					}
 					
+					provider.passwordOK( handler, details );
+					
 					return( result );
 
 				}catch( Throwable e ){
@@ -616,7 +619,14 @@ CryptoManagerImpl
 										return( 10 );
 									}
 								});					
-						}
+					}
+					
+					public void 
+					passwordOK(
+						int 				handler_type,
+						passwordDetails 	details) 
+					{
+					}
 				});
 			
 			CryptoHandler	handler1 = man.getECCHandler();
