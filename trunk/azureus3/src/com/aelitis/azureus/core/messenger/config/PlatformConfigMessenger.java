@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.messenger.config;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -128,7 +129,9 @@ public class PlatformConfigMessenger
 			"locale",
 			Locale.getDefault().toString(),
 			"azCID",
-			azComputerID
+			azComputerID,
+			"vid",
+			COConfigurationManager.getStringParameter("ID"),
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
