@@ -2418,6 +2418,11 @@ public class GlobalManagerImpl
         }
     }
     
+    if ( seeding ){
+    	
+    	potentially_seeding = true;
+    }
+    
     setSeedingOnlyState( seeding, potentially_seeding );
   }
   
