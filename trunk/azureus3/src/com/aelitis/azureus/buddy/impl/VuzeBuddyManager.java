@@ -266,10 +266,31 @@ public class VuzeBuddyManager
 		};
 
 	private static VuzeCryptoListener vuzeCryptoListener = new VuzeCryptoListener() {
+		
+		private int 	consec_bad_passwords;
+		private long	first_bad_password	= -1;
+		
 		public void sessionPasswordIncorrect() {
 			VuzeBuddyManager.log("Incorrect Password!");
+			
+			if ( org.gudy.azureus2.core3.util.Constants.isCVSVersion()){
+				
+				if ( first_bad_password == -1 ){
+					
+					first_bad_password = SystemTime.getMonotonousTime();
+				}
+				
+				consec_bad_passwords++;
+			}
 		}
 
+		
+		public void sessionPasswordCorrect() {
+		
+			consec_bad_passwords		= 0;
+			first_bad_password			= -1;
+		}
+		
 		public char[] getSessionPassword(String reason)
 				throws VuzeCryptoException {
 			VuzeBuddyManager.log("PW Request: " + reason + "; "

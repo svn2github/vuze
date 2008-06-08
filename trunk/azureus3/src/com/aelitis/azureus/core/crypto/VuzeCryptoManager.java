@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.security.*;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 
@@ -75,6 +76,19 @@ VuzeCryptoManager
 				getHandlerType()
 				{
 					return( HANDLER_TYPE_SYSTEM );
+				}
+				
+				public void 
+				passwordOK(
+					int 				handler_type,
+					passwordDetails 	details) 
+				{
+					Iterator it = listeners.iterator();
+					
+					while( it.hasNext()){
+
+						((VuzeCryptoListener)it.next()).sessionPasswordCorrect();
+					}
 				}
 				
 				public passwordDetails

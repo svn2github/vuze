@@ -30,6 +30,9 @@ VuzeCryptoListener
 	
 		throws VuzeCryptoException;
 	
+	public void
+	sessionPasswordCorrect();
+	
 		/**
 		 * Indicates that the session password returned is incorrect. This is a bad state of 
 		 * affairs and the (probable) only solution is to generate a new public/private key
