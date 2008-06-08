@@ -144,14 +144,6 @@ public class LightBoxBrowserWindow
 		fData.bottom = new FormAttachment(100, -20);
 		fData.right = new FormAttachment(100, -20);
 		
-		/*
-		 * TODO: remove the following 3 lines once the automatic behavior is implemented for
-		 * size calculation
-		 */
-		Point size = closeButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		fData.width=size.x;
-		fData.height=size.y;
-
 		
 		closeButton.setLayoutData(fData);
 

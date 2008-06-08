@@ -196,9 +196,6 @@ public class SharePage
 		FormData miniCloseButtonData = new FormData();
 		miniCloseButtonData.top = new FormAttachment(0, 10);
 		miniCloseButtonData.right = new FormAttachment(100, -18);
-		Point size = miniCloseButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		miniCloseButtonData.width = size.x;
-		miniCloseButtonData.height = size.y;
 		miniCloseButton.setLayoutData(miniCloseButtonData);
 
 		FormData shareHeaderData = new FormData();
@@ -262,9 +259,6 @@ public class SharePage
 		addBuddyButtonData.bottom = new FormAttachment(100, -8);
 		addBuddyButtonData.right = new FormAttachment(inviteeList.getControl(), -8,
 				SWT.RIGHT);
-		size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		addBuddyButtonData.width = size.x;
-		addBuddyButtonData.height = size.y;
 		addBuddyButton.setLayoutData(addBuddyButtonData);
 
 		FormData addBuddyLabelData = new FormData();
@@ -331,17 +325,11 @@ public class SharePage
 		FormData sendNowButtonData = new FormData();
 		sendNowButtonData.bottom = new FormAttachment(100, -24);
 		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
-		size = sendNowButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		sendNowButtonData.width = size.x;
-		sendNowButtonData.height = size.y;
 		sendNowButton.setLayoutData(sendNowButtonData);
 
 		FormData cancelButtonData = new FormData();
 		cancelButtonData.right = new FormAttachment(sendNowButton, -8);
 		cancelButtonData.bottom = new FormAttachment(100, -24);
-		size = cancelButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		cancelButtonData.width = size.x;
-		cancelButtonData.height = size.y;
 		cancelButton.setLayoutData(cancelButtonData);
 
 		//		FormData previewButtonData = new FormData();

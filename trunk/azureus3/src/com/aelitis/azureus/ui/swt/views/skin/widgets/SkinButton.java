@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Layout;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -64,6 +65,20 @@ public abstract class SkinButton
 
 	private void init() {
 		setCursor(Cursors.handCursor);
+
+		/*
+		 * Adding a simple layout manager to recompute the button size 
+		 */
+		setLayout(new Layout() {
+			protected void layout(Composite composite, boolean flushCache) {
+			}
+
+			protected Point computeSize(Composite composite, int wHint, int hHint,
+					boolean flushCache) {
+				return SkinButton.this.computeSize(wHint, hHint);
+			}
+		});
+
 		addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
