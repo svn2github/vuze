@@ -189,6 +189,11 @@ public class PlatformBuddyMessenger
 					}
 
 					VuzeBuddy futureBuddy = VuzeBuddyManager.createPotentialBuddy();
+					VuzeBuddy existingBuddy = VuzeBuddyManager.getBuddyByLoginID(futureBuddy.getLoginID());
+					if (existingBuddy != null) {
+						continue;
+					}
+
 					futureBuddy.loadFromMap(mapBuddy);
 					futureBuddy.setCode(inviteCode);
 
