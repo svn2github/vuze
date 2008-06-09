@@ -1,10 +1,10 @@
 package com.aelitis.azureus.util;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.gudy.azureus2.core3.util.UrlUtils;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * A manager class to store login info
@@ -24,12 +24,12 @@ public class LoginInfoManager
 	 * DO NOT initialize userName and userID to null because null is a valid value for these variables
 	 */
 	private String userName = NAME_NOT_SET_VALUE;
-	
+
 	private String displayName = null;
 
 	private String pk = null;
 
-	private List listeners = new ArrayList();
+	private CopyOnWriteList listeners = new CopyOnWriteList();
 
 	private LoginInfoManager() {
 		//Making this private
@@ -61,7 +61,7 @@ public class LoginInfoManager
 	public void removeListener(ILoginInfoListener listener) {
 		listeners.remove(listener);
 	}
-	
+
 	public LoginInfo getUserInfo() {
 		return new LoginInfo();
 	}
@@ -87,7 +87,7 @@ public class LoginInfoManager
 			notifyListeners(isNewLoginID);
 		}
 	}
-	
+
 	public boolean isLoggedIn() {
 		return this.userName != null && !this.userName.equals(NAME_NOT_SET_VALUE);
 	}
@@ -95,7 +95,8 @@ public class LoginInfoManager
 	private void notifyListeners(boolean isNewLoginID) {
 
 		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-			((ILoginInfoListener) iterator.next()).loginUpdate(new LoginInfo(), isNewLoginID);
+			((ILoginInfoListener) iterator.next()).loginUpdate(new LoginInfo(),
+					isNewLoginID);
 		}
 
 	}
@@ -111,7 +112,7 @@ public class LoginInfoManager
 		 * The public key that the webapp thinks we have
 		 */
 		public final String pk = LoginInfoManager.this.pk;
-		
+
 		public String getProfileAHREF(String referer) {
 			StringBuffer buf = new StringBuffer();
 			buf.append("<A HREF=\"");
