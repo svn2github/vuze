@@ -1006,4 +1006,13 @@ Download extends DownloadEventNotifier
    * @param force <tt>true</tt> to force the download to be started.
    */
   public void startDownload(boolean force);
+  
+  /**
+   * Simple method to stop the download. Will not raise an error if it
+   * didn't work, or if the download is already stopped.
+   * 
+   * @since 3.0.5.3
+   */
+  public void stopDownload();
+  
 }

@@ -1004,4 +1004,5 @@ RPDownload
 	}
 	
 	public void startDownload(boolean force) {notSupported();}
+	public void stopDownload() {notSupported();}
 }

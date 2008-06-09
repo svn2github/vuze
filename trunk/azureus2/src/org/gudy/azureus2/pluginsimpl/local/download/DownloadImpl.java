@@ -1760,4 +1760,10 @@ DownloadImpl
 		}
 		
 	 }
+	 
+	 public void stopDownload() {
+		 if (download_manager.getState() == DownloadManager.STATE_STOPPED) {return;}
+		 download_manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
+	 }
+	 
 }
