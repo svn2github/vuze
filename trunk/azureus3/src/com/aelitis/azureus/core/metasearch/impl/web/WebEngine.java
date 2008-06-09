@@ -41,6 +41,7 @@ import org.json.simple.JSONObject;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
+import com.aelitis.azureus.core.util.GeneralUtils;
 
 public abstract class 
 WebEngine 
@@ -320,10 +321,10 @@ WebEngine
 			
 			for(int i = 0 ; i < searchParameters.length ; i++){
 				SearchParameter parameter = searchParameters[i];
-				//TODO :  METASEARCH Change this as soon as Gouss sends a non escaped string
-				// ie, escape it
+				
 				String escapedKeyword = parameter.getValue();
-				searchURL = searchURL.replaceAll("%" + parameter.getMatchPattern(), escapedKeyword);
+				
+				searchURL = GeneralUtils.replaceAll(searchURL, "%" + parameter.getMatchPattern(), escapedKeyword);
 			}
 			
 			debugLog( "search_url: " + searchURL );
@@ -420,6 +421,8 @@ WebEngine
 			return page;
 				
 		}catch( Throwable e) {
+			
+			e.printStackTrace();
 			
 			throw( new SearchException( "Failed to load page", e ));
 		}
