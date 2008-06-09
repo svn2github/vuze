@@ -1528,7 +1528,7 @@ public class VuzeBuddyManager
 			return;
 		}
 
-		log("save via " + Debug.getCompressedStackTrace());
+		log("save");
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);
