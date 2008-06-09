@@ -33,9 +33,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
-import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -101,32 +99,24 @@ public class VuzeBuddyImpl
 			}
 		}
 
+		// first try to get the avatar via raw bytes
 		byte[] avatarBytes = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
-		if (avatarBytes == null) {
-			String avatarB64 = MapUtils.getMapString(mapNewBuddy, "avatar.B64", null);
-			if (avatarB64 != null) {
-				avatarBytes = Base64.decode(avatarB64);
-			} else {
-				String avatarB32 = MapUtils.getMapString(mapNewBuddy, "avatar.B32",
-						null);
-				if (avatarB32 != null) {
-					avatarBytes = Base32.decode(avatarB32);
-				} else {
-					String newAvatarURL = MapUtils.getMapString(mapNewBuddy,
-							"avatar.url", null);
-					if (newAvatarURL != null && !newAvatarURL.equals(avatarURL)) {
-						avatarURL = newAvatarURL;
-						ImageDownloader.loadImage(avatarURL,
-								new ImageDownloader.ImageDownloaderListener() {
-									public void imageDownloaded(byte[] image) {
-										VuzeBuddyManager.log("Got new avatar!");
-										setAvatar(image);
-									}
-								});
-					}
-				}
+		
+		String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
+		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || avatarBytes == null) {
+			avatarURL = newAvatarURL;
+			if (avatarURL != null) {
+				ImageDownloader.loadImage(avatarURL,
+						new ImageDownloader.ImageDownloaderListener() {
+							public void imageDownloaded(byte[] image) {
+								VuzeBuddyManager.log("Got new avatar!");
+								setAvatar(image);
+							}
+						});
 			}
 		}
+
+		
 		if (avatarBytes != null) {
 			setAvatar(avatarBytes);
 		}
@@ -145,6 +135,7 @@ public class VuzeBuddyImpl
 		List pks = Arrays.asList(getPublicKeys());
 		map.put("pks", pks);
 
+		map.put("avatar.url", avatarURL);
 		map.put("avatar", avatar);
 
 		return map;
@@ -158,7 +149,7 @@ public class VuzeBuddyImpl
 		if (displayName == null) {
 			displayName = "";
 		}
-		if (displayName.equals(this.displayName)){
+		if (displayName.equals(this.displayName)) {
 			return;
 		}
 		this.displayName = displayName;
@@ -346,10 +337,10 @@ public class VuzeBuddyImpl
 		if (!(arg0 instanceof VuzeBuddy) || !(arg1 instanceof VuzeBuddy)) {
 			return 0;
 		}
-		
+
 		String c0 = ((VuzeBuddy) arg0).getDisplayName();
 		String c1 = ((VuzeBuddy) arg1).getDisplayName();
-		
+
 		if (c0 == null) {
 			c0 = "";
 		}
@@ -358,7 +349,7 @@ public class VuzeBuddyImpl
 		}
 		return c0.compareToIgnoreCase(c1);
 	}
-	
+
 	// @see java.lang.Comparable#compareTo(java.lang.Object)
 	public int compareTo(Object arg0) {
 		return compare(this, arg0);
