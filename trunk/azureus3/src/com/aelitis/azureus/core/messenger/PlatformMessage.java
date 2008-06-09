@@ -194,4 +194,8 @@ public class PlatformMessage
 	public boolean getLoginAndRetry() {
 		return loginAndRetry;
 	}
+	
+	public String toShortString() {
+		return getMessageID() + "." + getListenerID() + "."+ getOperationID();
+	}
 }
