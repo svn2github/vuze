@@ -73,4 +73,8 @@ public class VuzeBuddyFakeImpl
 		}
 		this.displayName = displayName;
 	}
+	
+	public String toDebugString() {
+		return "Fake" + super.toDebugString(); 
+	}
 }

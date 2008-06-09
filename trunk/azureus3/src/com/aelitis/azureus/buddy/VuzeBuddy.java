@@ -103,4 +103,11 @@ public interface VuzeBuddy
 	 * @since 3.0.5.3
 	 */
 	String getProfileAHREF(String referer);
+
+	/**
+	 * 
+	 *
+	 * @since 3.0.5.3
+	 */
+	String toDebugString();
 }
