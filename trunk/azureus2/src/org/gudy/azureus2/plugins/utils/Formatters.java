@@ -70,6 +70,11 @@ Formatters
 	 * @since 3.0.5.3
 	 */
 	public String formatTimeOnly(long millis);
+	
+	/**
+	 * @since 3.0.5.3
+	 */
+	public String formatTimeOnly(long millis, boolean include_secs);
 
 	/**
 	 * @since 3.0.5.3

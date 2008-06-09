@@ -93,6 +93,10 @@ FormattersImpl
 	public String formatTimeOnly(long millis) {
 		return DisplayFormatters.formatCustomTimeOnly(millis);
 	}
+	
+	public String formatTimeOnly(long millis, boolean with_secs) {
+		return DisplayFormatters.formatCustomTimeOnly(millis, with_secs);
+	}
 
 	public String formatDateOnly(long millis) {
 		return DisplayFormatters.formatCustomDateOnly(millis);

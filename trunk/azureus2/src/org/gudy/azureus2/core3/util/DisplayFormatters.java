@@ -852,8 +852,12 @@ DisplayFormatters
   }
 
   public static String formatCustomTimeOnly(long date) {
+	  return formatCustomTimeOnly(date, true);
+  }
+	
+  public static String formatCustomTimeOnly(long date, boolean with_secs) {
 	  if (date == 0) {return "";}
-	  return formatDate(date, "HH:mm");
+	  return formatDate(date, (with_secs) ? "HH:mm:ss" : "HH:mm");
   }
   
   public static String formatCustomDateTime(long date) {
