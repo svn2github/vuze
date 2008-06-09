@@ -35,7 +35,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.security.*;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler.passwordDetails;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 

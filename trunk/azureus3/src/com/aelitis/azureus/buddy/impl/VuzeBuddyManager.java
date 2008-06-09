@@ -44,6 +44,7 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 /**
  * General Management of Vuze Buddies.
@@ -267,20 +268,58 @@ public class VuzeBuddyManager
 
 	private static VuzeCryptoListener vuzeCryptoListener = new VuzeCryptoListener() {
 		
+		private AESemaphore warning_sem = new AESemaphore( "VBM:pwwarning", 1 );
+		
 		private int 	consec_bad_passwords;
 		private long	first_bad_password	= -1;
+		private long	last_warning		= -1;
 		
 		public void sessionPasswordIncorrect() {
+			
 			VuzeBuddyManager.log("Incorrect Password!");
 			
 			if ( org.gudy.azureus2.core3.util.Constants.isCVSVersion()){
 				
+				long	time = SystemTime.getMonotonousTime();
+				
 				if ( first_bad_password == -1 ){
 					
-					first_bad_password = SystemTime.getMonotonousTime();
+					first_bad_password = time;
 				}
 				
 				consec_bad_passwords++;
+				
+				VuzeBuddyManager.log( "Consecutive bad passwords = " + consec_bad_passwords );
+				
+				if ( 	time - first_bad_password > 10*60*1000 &&
+						consec_bad_passwords >= 3 ){
+					
+					if  ( 	( last_warning == -1 || time - last_warning > 60*60*1000 ) &&
+							warning_sem.getValue() > 0 ){
+					
+						last_warning = time;
+						
+						new AEThread2( "VBM:warning", true )
+						{
+							public void
+							run()
+							{
+								try{
+									warning_sem.reserve();
+								
+									StaticUtilities.promptUser(
+											"Password Error",
+											"There is a problem with system password management. Please logout and login again.\nIf this problem persists refer to the user forums.",
+											new String[]{ "OK" },
+											0 );
+								}finally{
+									
+									warning_sem.release();
+								}
+							}
+						}.start();
+					}
+				}
 			}
 		}
 
