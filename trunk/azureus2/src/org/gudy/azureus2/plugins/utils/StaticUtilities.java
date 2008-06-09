@@ -22,7 +22,9 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
@@ -61,5 +63,35 @@ public class StaticUtilities {
   getDefaultPluginInterface()
   {
 	  return( AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface());
+  }
+  
+  	/**
+  	 * See UIInstance.promptUser
+  	 * @param title
+  	 * @param desc
+  	 * @param options
+  	 * @param default_option
+  	 * @return
+  	 */
+  
+  public static int
+  promptUser(
+	 String		title,
+	 String		desc,
+	 String[]	options,
+	 int		default_option )
+  {
+	  UIInstance[] instances = getDefaultPluginInterface().getUIManager().getUIInstances();
+	  
+	  if ( instances.length > 0 ){
+		  
+		  return( instances[0].promptUser(title, desc, options, default_option ));
+		  
+	  }else{
+		  
+		  Debug.out( "No UIInstances to handle prompt: " + title + "/" + desc );
+		  
+		  return( -1 );
+	  }
   }
 }
