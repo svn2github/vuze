@@ -329,7 +329,9 @@ public class AvatarWidget
 				if (null != textLinkColor && null != textColor) {
 					if (true == nameLinkActive && true == isActivated) {
 						e.gc.setForeground(textLinkColor);
+						canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 					} else {
+						canvas.setCursor(null);
 						e.gc.setForeground(textColor);
 					}
 
