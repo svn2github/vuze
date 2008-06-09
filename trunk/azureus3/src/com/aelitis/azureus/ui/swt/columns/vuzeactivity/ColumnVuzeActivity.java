@@ -54,6 +54,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.StringCompareUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -131,6 +132,8 @@ public class ColumnVuzeActivity
 	}
 
 	public void refresh(TableCell cell) {
+		if (!cell.isValid())
+		System.out.println("refresh " + Debug.getCompressedStackTrace());
 		TableCellImpl thumbCell = getThumbCell(cell);
 		TableCellImpl ratingCell = getRatingCell(cell);
 		boolean force = !cell.isValid();
@@ -537,6 +540,8 @@ public class ColumnVuzeActivity
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		String tooltip = null;
+		
+		boolean invalidateAndRefresh = false;
 
 		TableCellImpl thumbCell = getThumbCell(event.cell);
 		TableCellImpl ratingCell = getRatingCell(event.cell);
@@ -558,6 +563,7 @@ public class ColumnVuzeActivity
 				//System.out.println("was=" + wasMouseOverThumbCell + ";is=" + isMouseOverThumbCell);
 
 				if (wasMouseOverThumbCell != isMouseOverThumbCell) {
+					invalidateAndRefresh = true;
 					setIsMouseOverCell("Thumb", event.cell, isMouseOverThumbCell);
 					subCellEvent.eventType = isMouseOverThumbCell
 							? TableCellMouseEvent.EVENT_MOUSEENTER
@@ -585,6 +591,7 @@ public class ColumnVuzeActivity
 				boolean wasMouseOverRatingCell = getIsMouseOverCell("Rating",
 						event.cell);
 				if (wasMouseOverRatingCell != isMouseOverRatingCell) {
+					invalidateAndRefresh = true;
 					setIsMouseOverCell("Rating", event.cell, isMouseOverRatingCell);
 					subCellEvent.eventType = isMouseOverRatingCell
 							? TableCellMouseEvent.EVENT_MOUSEENTER
@@ -602,14 +609,6 @@ public class ColumnVuzeActivity
 					}
 					event.skipCoreFunctionality |= subCellEvent.skipCoreFunctionality;
 				}
-			}
-
-			if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
-					|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
-				if (event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
-					invalidateAndRefresh(event.cell);
-				}
-				return;
 			}
 
 			if (thumbCell != null && isMouseOverThumbCell) {
@@ -648,6 +647,14 @@ public class ColumnVuzeActivity
 			}
 		}
 
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
+				|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
+			if (invalidateAndRefresh) {
+				invalidateAndRefresh(event.cell);
+			}
+			return;
+		}
+		
 		Comparable sortValue = event.cell.getSortValue();
 		if (sortValue instanceof VuzeActivitiesEntry) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) sortValue;
@@ -656,6 +663,7 @@ public class ColumnVuzeActivity
 				//System.out.println(entry.urlHitArea);
 				URLInfo hitUrl = ((GCStringPrinter) entry.urlInfo).getHitUrl(event.x
 						- MARGIN_WIDTH, event.y);
+				int newCursor;
 				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
 						if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
@@ -671,7 +679,8 @@ public class ColumnVuzeActivity
 						}
 					}
 
-					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_HAND);
+					
+					newCursor = SWT.CURSOR_HAND;
 					if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						tooltip = hitUrl.title;
 					} else {
@@ -679,7 +688,13 @@ public class ColumnVuzeActivity
 					}
 					//tooltip = hitUrl.url;
 				} else {
-					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_ARROW);
+					newCursor = SWT.CURSOR_ARROW;
+				}
+
+				int oldCursor = ((TableCellSWT) event.cell).getCursorID();
+				if (oldCursor != newCursor) {
+					invalidateAndRefresh = true;
+					((TableCellSWT) event.cell).setCursorID(newCursor);
 				}
 			}
 		}
@@ -697,8 +712,16 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		event.cell.setToolTip(tooltip);
-		if (event.eventType != TableCellMouseEvent.EVENT_MOUSEMOVE) {
+		Object o = event.cell.getToolTip();
+		if ((o == null) | (o instanceof String)) {
+			String oldTooltip = (String) o;
+			if (!StringCompareUtils.equals(oldTooltip, tooltip)) {
+				invalidateAndRefresh = true;
+				event.cell.setToolTip(tooltip);
+			}
+		}
+
+		if (invalidateAndRefresh) {
 			invalidateAndRefresh(event.cell);
 		}
 	}
