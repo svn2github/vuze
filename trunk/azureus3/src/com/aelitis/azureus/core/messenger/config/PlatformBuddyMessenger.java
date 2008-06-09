@@ -88,31 +88,38 @@ public class PlatformBuddyMessenger
 
 				List buddies = MapUtils.getMapList(reply, "buddies", null);
 
-				if (buddies == null) {
-					return;
-				}
-
-				for (Iterator iter = buddies.iterator(); iter.hasNext();) {
-					Map mapBuddy = (Map) iter.next();
-
-					String loginID = MapUtils.getMapString(mapBuddy, "login-id", null);
-
-					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByLoginID(loginID);
-					if (buddy != null) {
-						buddy.loadFromMap(mapBuddy);
-					} else {
-						buddy = VuzeBuddyManager.createNewBuddy(mapBuddy, true);
-					}
-
-					if (buddy != null) {
-						buddy.setLastUpdated(updateTime);
-					}
-				}
-
-				VuzeBuddyManager.removeBuddiesOlderThan(updateTime, false);
-
-				if (l != null) {
-					l.syncComplete();
+				try {
+  				if (buddies == null) {
+  					return;
+  				}
+  				
+  				if (buddies.size() > 0) {
+  					VuzeBuddyManager.setSaveDelayed(true);
+  				}
+  
+  				for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+  					Map mapBuddy = (Map) iter.next();
+  
+  					String loginID = MapUtils.getMapString(mapBuddy, "login-id", null);
+  
+  					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByLoginID(loginID);
+  					if (buddy != null) {
+  						buddy.loadFromMap(mapBuddy);
+  					} else {
+  						buddy = VuzeBuddyManager.createNewBuddy(mapBuddy, true);
+  					}
+  
+  					if (buddy != null) {
+  						buddy.setLastUpdated(updateTime);
+  					}
+  				}
+  
+  				VuzeBuddyManager.removeBuddiesOlderThan(updateTime, false);
+					VuzeBuddyManager.setSaveDelayed(false);
+				} finally {
+  				if (l != null) {
+  					l.syncComplete();
+  				}
 				}
 			}
 		};

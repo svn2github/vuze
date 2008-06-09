@@ -85,7 +85,7 @@ public class VuzeBuddyManager
 
 	private static List listeners = new ArrayList();
 
-	private static boolean skipSave = true;
+	private static boolean saveDelayed = true;
 
 	private static File configDir;
 
@@ -506,7 +506,7 @@ public class VuzeBuddyManager
 	}
 	
 	private static void setupBuddyPlugin() {
-		skipSave = true;
+		setSaveDelayed(true);
 
 		try {
 			LoginInfoManager.getInstance().addListener(loginInfoListener);
@@ -595,7 +595,7 @@ public class VuzeBuddyManager
 				Debug.out(t);
 			}
 		} finally {
-			skipSave = false;
+			setSaveDelayed(false);
 		}
 	}
 
@@ -1524,11 +1524,11 @@ public class VuzeBuddyManager
 	}
 
 	private static void saveVuzeBuddies() {
-		if (skipSave) {
+		if (isSaveDelayed()) {
 			return;
 		}
 
-		log("save");
+		log("save via " + Debug.getCompressedStackTrace());
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);
@@ -1625,5 +1625,24 @@ public class VuzeBuddyManager
 						MessageText.getString("Button.ok")
 					}, 0, null, null, false, 0);
 		}
+	}
+
+	/**
+	 * @param saveDelayed the saveDelayed to set
+	 */
+	public static void setSaveDelayed(boolean saveDelayed) {
+		if (VuzeBuddyManager.saveDelayed != saveDelayed) {
+			VuzeBuddyManager.saveDelayed = saveDelayed;
+			if (!saveDelayed) {
+				saveVuzeBuddies();
+			}
+		}
+	}
+
+	/**
+	 * @return the saveDelayed
+	 */
+	public static boolean isSaveDelayed() {
+		return saveDelayed;
 	}
 }
