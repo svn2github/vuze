@@ -82,7 +82,7 @@ public class ColumnProgressETA
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
 			cell.setMarginHeight(1);
-			cell.setFillCell(true);
+			//cell.setFillCell(true);
 		}
 
 		public void dispose(TableCell cell) {
