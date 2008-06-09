@@ -21,9 +21,7 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
