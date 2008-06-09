@@ -1,12 +1,18 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.IMessage;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -14,7 +20,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
-import com.aelitis.azureus.ui.swt.views.skin.IDetailPage.RefreshListener;
+import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.util.Constants;
 
 public class InvitePage
@@ -31,6 +37,8 @@ public class InvitePage
 	private ClientMessageContext context = null;
 
 	private RefreshListener refreshListener = null;
+
+	private AbstractBuddyPageListener buddyPageListener;
 
 	public InvitePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -84,8 +92,8 @@ public class InvitePage
 					 * Setting inviteFromShare to false in the browser
 					 */
 					context.executeInBrowser("inviteFromShare(" + false + ")");
-					
-					if(null != refreshListener){
+
+					if (null != refreshListener) {
 						refreshListener.refreshCompleted();
 					}
 				}
@@ -94,55 +102,57 @@ public class InvitePage
 			/*
 			 * Add the appropriate messaging listeners
 			 */
-			getMessageContext().addMessageListener(
-					new AbstractBuddyPageListener(getBrowser()) {
 
-						public void handleCancel() {
-							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-							if (null != buttonBar) {
-								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-							}
+			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
 
-							getDetailPanel().show(false);
-
-						}
-
-						public void handleClose() {
-							ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
-							if (null != buttonBar) {
-								buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-							}
-
-							getDetailPanel().show(false);
-
-						}
-
-						public void handleBuddyInvites() {
-						}
-
-						public void handleEmailInvites() {
-						}
-
-						public void handleInviteConfirm() {
-							try {
-								VuzeBuddyManager.inviteWithShare(getConfirmationResponse(),
-										null, null, null);
-							} catch (NotLoggedInException e) {
-								// XXX Handle me!
-								e.printStackTrace();
-							}
-						}
-
-						public void handleResize() {
-							if (null != getWindowState()) {
-								System.out.println("Resizing standalone Add Friends: "
-										+ getWindowState());//KN: sysout
-							}
-						}
-
+				public void handleCancel() {
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					if (null != buttonBar) {
+						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}
 
-			);
+					getDetailPanel().show(false);
+
+				}
+
+				public void handleClose() {
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					if (null != buttonBar) {
+						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+					}
+
+					getDetailPanel().show(false);
+
+				}
+
+				public void handleBuddyInvites() {
+				}
+
+				public void handleEmailInvites() {
+				}
+
+				public void handleInviteConfirm() {
+					try {
+						VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
+								null, null);
+					} catch (NotLoggedInException e) {
+						// XXX Handle me!
+						e.printStackTrace();
+					}
+
+					showConfirmationDialog();
+				}
+
+				public void handleResize() {
+					if (null != getWindowState()) {
+						System.out.println("Resizing standalone Add Friends: "
+								+ getWindowState());//KN: sysout
+					}
+				}
+
+			};
+
+			getMessageContext().addMessageListener(buddyPageListener);
 		}
 		return context;
 	}
@@ -158,4 +168,22 @@ public class InvitePage
 		browser.refresh();
 	}
 
+	private void showConfirmationDialog() {
+		if (null != buddyPageListener) {
+			Utils.execSWTThread(new AERunnable() {
+
+				public void runSupport() {
+					StyledMessageWindow messageWindow = new StyledMessageWindow(
+							content.getShell(), 6, true);
+
+					messageWindow.setDetailMessages(buddyPageListener.getConfirmationMessages());
+					messageWindow.setMessage(buddyPageListener.getFormattedInviteMessage());
+
+					messageWindow.setTitle("Invite confirmation");
+					messageWindow.setSize(400, 300);
+					messageWindow.open();
+				}
+			});
+		}
+	}
 }

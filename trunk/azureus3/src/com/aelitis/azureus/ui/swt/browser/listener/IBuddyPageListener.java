@@ -57,9 +57,7 @@ public interface IBuddyPageListener
 
 	public Map getConfirmationResponse();
 
-	public String getInvitationMessage();
-
-	public String getConfirmationMessage();
+	public List getConfirmationMessages();
 
 	public Point getSize();
 

@@ -2,8 +2,12 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -11,10 +15,20 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -23,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -36,11 +51,21 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.MiniCloseButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
+import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.FAQTopics;
+import com.aelitis.azureus.util.ImageDownloader;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 public class SharePage
@@ -346,54 +371,13 @@ public class SharePage
 
 	private void formatControls() {
 		buddyListDescription.setForeground(textColor);
-		FontData[] buddyListfData = buddyListDescription.getFont().getFontData();
-		for (int i = 0; i < buddyListfData.length; i++) {
-			buddyListfData[i].height = 10;
-			buddyListfData[i].setStyle(SWT.BOLD);
-		}
-		final Font buddyListFont = new Font(content.getDisplay(), buddyListfData);
-		buddyListDescription.setFont(buddyListFont);
-		buddyListDescription.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != buddyListFont && false == buddyListFont.isDisposed()) {
-					buddyListFont.dispose();
-				}
-			}
-		});
+		Utils.setFontHeight(buddyListDescription, 10,SWT.BOLD);
 
 		inviteeListDescription.setForeground(textColor);
-		FontData[] inviteeListfData = inviteeListDescription.getFont().getFontData();
-		for (int i = 0; i < inviteeListfData.length; i++) {
-			inviteeListfData[i].height = 10;
-			inviteeListfData[i].setStyle(SWT.BOLD);
-		}
-		final Font inviteeListFont = new Font(content.getDisplay(),
-				inviteeListfData);
-		inviteeListDescription.setFont(inviteeListFont);
-		inviteeListDescription.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != inviteeListFont && false == inviteeListFont.isDisposed()) {
-					inviteeListFont.dispose();
-				}
-			}
-		});
+		Utils.setFontHeight(inviteeListDescription, 10,SWT.BOLD);
 
 		optionalMessageLabel.setForeground(textDarkerColor);
-		FontData[] optionalMessageLabelfData = optionalMessageLabel.getFont().getFontData();
-		for (int i = 0; i < optionalMessageLabelfData.length; i++) {
-			optionalMessageLabelfData[i].height = 8;
-		}
-		final Font optionalMessageLabelFont = new Font(content.getDisplay(),
-				optionalMessageLabelfData);
-		optionalMessageLabel.setFont(optionalMessageLabelFont);
-		optionalMessageLabel.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != optionalMessageLabelFont
-						&& false == optionalMessageLabelFont.isDisposed()) {
-					optionalMessageLabelFont.dispose();
-				}
-			}
-		});
+//		Utils.setFontHeight(optionalMessageLabel, 8,SWT.NORMAL);
 
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
 
@@ -413,19 +397,7 @@ public class SharePage
 		shareHeaderMessageLabel.setForeground(textDarkerColor);
 
 		shareHeaderLabel.setForeground(textColor);
-		FontData[] fData = shareHeaderLabel.getFont().getFontData();
-		for (int i = 0; i < fData.length; i++) {
-			fData[i].height = 16;
-		}
-		final Font newFont = new Font(content.getDisplay(), fData);
-		shareHeaderLabel.setFont(newFont);
-		shareHeaderLabel.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != newFont && false == newFont.isDisposed()) {
-					newFont.dispose();
-				}
-			}
-		});
+		Utils.setFontHeight(shareHeaderLabel, 16,SWT.NORMAL);
 
 		contentDetail.setBackground(widgetBackgroundColor);
 
@@ -544,26 +516,120 @@ public class SharePage
 
 	}
 
-	private void showConfirmationDialog() {
-		final String[] message = new String[1];
+	private void showConfirmationDialog(List buddiesToShareWith) {
 
-		if (buddyList.getContentCount() == 0
-				&& buddyPageListener.getInvitationsSent() == 1) {
-			message[0] = MessageText.getString("message.confirm.share.invite.singular");
-		} else if (buddyList.getContentCount() + inviteeList.getContentCount() > 1) {
-			message[0] = MessageText.getString("message.confirm.share.invite.plural");
-		} else if (buddyPageListener.getInvitationsSent() == 0
-				&& buddyList.getContentCount() == 1) {
-			message[0] = MessageText.getString("message.confirm.share.singular");
-		} else if (buddyPageListener.getInvitationsSent() == 0) {
-			message[0] = MessageText.getString("message.confirm.share.plural");
-		}
+		if (null != buddyPageListener) {
 
-		if (null != message[0] && message[0].length() > 0) {
+			final String[] message = new String[1];
+			final List messages = new ArrayList();
+
+			if (null == buddiesToShareWith) {
+				buddiesToShareWith = Collections.EMPTY_LIST;
+			}
+
+			/*
+			 * Share only
+			 */
+			if (buddyPageListener.getInvitationsSent() == 0) {
+				if (true == buddiesToShareWith.isEmpty()) {
+					//Do nothing since there should at least be 1 friend to share with
+				} else {
+					/*
+					 * The main message to display
+					 */
+					if (buddiesToShareWith.size() == 1) {
+						message[0] = MessageText.getString("message.confirm.share.singular");
+					} else {
+						message[0] = MessageText.getString("message.confirm.share.plural");
+					}
+
+					/*
+					 * The header in the detail section for existing friends
+					 */
+					String shareHeader = getShareItem().getDisplayName()
+							+ " has been shared with:";
+					messages.add(new ProgressReportMessage(shareHeader,
+							ProgressReportMessage.MSG_TYPE_INFO));
+
+					/*
+					 * The existing friends
+					 */
+					for (Iterator iterator = buddiesToShareWith.iterator(); iterator.hasNext();) {
+						VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+						messages.add(new ProgressReportMessage("\t"
+								+ buddy.getDisplayName() + " (" + buddy.getLoginID() + ")",
+								ProgressReportMessage.MSG_TYPE_INFO));
+					}
+				}
+			}
+
+			/*
+			 * Share with invitations
+			 */
+			else {
+
+				/*
+				 * The main message to display
+				 */
+				if (buddiesToShareWith.size() + buddyPageListener.getInvitationsSent() == 1) {
+					message[0] = MessageText.getString("message.confirm.share.invite.singular");
+				} else {
+					message[0] = MessageText.getString("message.confirm.share.invite.plural");
+				}
+
+				/*
+				 * Existing friends
+				 */
+				if (true == buddiesToShareWith.isEmpty()) {
+					//Do nothing for existing friends if there are none
+				} else {
+
+					/*
+					 * The header in the detail section for existing friends
+					 */
+					String shareHeader = getShareItem().getDisplayName()
+							+ " has been shared with:";
+					messages.add(new ProgressReportMessage(shareHeader,
+							ProgressReportMessage.MSG_TYPE_INFO));
+
+					/*
+					 * The existing friends
+					 */
+					for (Iterator iterator = buddiesToShareWith.iterator(); iterator.hasNext();) {
+						VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+						messages.add(new ProgressReportMessage("\t"
+								+ buddy.getDisplayName() + " (" + buddy.getLoginID() + ")",
+								ProgressReportMessage.MSG_TYPE_INFO));
+					}
+
+					messages.add(new ProgressReportMessage("\n",
+							ProgressReportMessage.MSG_TYPE_INFO));
+				}
+
+				/*
+				 * New friends
+				 */
+				String invitationHeader = getShareItem().getDisplayName()
+						+ " has been shared through invitations to the following:";
+				messages.add(new ProgressReportMessage(invitationHeader,
+						ProgressReportMessage.MSG_TYPE_INFO));
+
+				messages.addAll(buddyPageListener.getConfirmationMessages());
+
+			}
+
 			Utils.execSWTThread(new AERunnable() {
 
 				public void runSupport() {
-					Utils.openMessageBox(content.getShell(), SWT.OK, "Share", message[0]);
+					StyledMessageWindow messageWindow = new StyledMessageWindow(
+							content.getShell(), 6, true);
+
+					messageWindow.setDetailMessages(messages);
+					messageWindow.setMessage(message[0]);
+
+					messageWindow.setTitle("Share confirmation");
+					messageWindow.setSize(400, 300);
+					messageWindow.open();
 				}
 			});
 		}
@@ -736,7 +802,7 @@ public class SharePage
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
-  					List buddiesToShareWith = buddyList.getFriends();
+  					final List buddiesToShareWith = buddyList.getFriends();
   					final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
   					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
   						public void loginComplete() {
@@ -744,7 +810,7 @@ public class SharePage
   								VuzeBuddyManager.inviteWithShare(confirmationResponse,
   										getShareItem(), commentText.getText(), buddies);
   								getDetailPanel().show(false);
-  								showConfirmationDialog();
+  								showConfirmationDialog(buddiesToShareWith);
   								resetControls();
   
   							} catch (NotLoggedInException e) {
@@ -754,8 +820,6 @@ public class SharePage
   						}
   					});
 					}
-					
-					showConfirmationDialog();
 				}
 
 				public void handleResize() {

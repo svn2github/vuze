@@ -9,8 +9,10 @@ import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Point;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -37,8 +39,6 @@ public abstract class AbstractBuddyPageListener
 	protected Browser browser;
 
 	private Map confirmationResponse = null;
-
-	private String confirmationMessage = null;
 
 	private String invitationMessage = "";
 
@@ -82,11 +82,8 @@ public abstract class AbstractBuddyPageListener
 									"sentInvitations", Collections.EMPTY_LIST);
 							invitationsSent = sentInvitations.size();
 
-						} else if (getmessageObj instanceof String) {
-							confirmationMessage = getmessageObj.toString();
 						} else {
 							confirmationResponse = null;
-							confirmationMessage = null;
 						}
 						handleInviteConfirm();
 					}
@@ -157,12 +154,83 @@ public abstract class AbstractBuddyPageListener
 		return invitationMessage;
 	}
 
-	public String getConfirmationMessage() {
-		return confirmationMessage;
+	public List getConfirmationMessages() {
+		Map response = getConfirmationResponse();
+		List message = new ArrayList();
+
+		if (null != response && false == response.isEmpty()) {
+
+			List sentInvitations = MapUtils.getMapList(response, "sentInvitations",
+					Collections.EMPTY_LIST);
+			if (null != sentInvitations && false == sentInvitations.isEmpty()) {
+				for (Iterator iterator = sentInvitations.iterator(); iterator.hasNext();) {
+					Object object = (Object) iterator.next();
+					if (object instanceof Map) {
+						Map invitation = (Map) object;
+						String msg = "\tInvitation to "
+								+ MapUtils.getMapString(invitation, "value", "");
+						if (true == MapUtils.getMapBoolean(invitation, "success", false)) {
+							msg += " was sent successfully.";
+							message.add(new ProgressReportMessage(msg,
+									ProgressReportMessage.MSG_TYPE_INFO));
+						} else {
+							msg += " was not sent because ["
+									+ MapUtils.getMapString(invitation, "cause", "") + "]";
+							message.add(new ProgressReportMessage(msg,
+									ProgressReportMessage.MSG_TYPE_ERROR));
+						}
+					}
+				}
+			}
+
+		}
+
+		return message;
 	}
 
-	public void setConfirmationMessage(String confirmationMessage) {
-		this.confirmationMessage = confirmationMessage;
+	public String getFormattedInviteMessage() {
+		String message;
+		int successMessages = 0;
+		int errorMessages = 0;
+
+		List messages = getConfirmationMessages();
+		for (Iterator iterator = messages.iterator(); iterator.hasNext();) {
+			ProgressReportMessage msg = (ProgressReportMessage) iterator.next();
+			if (true == msg.isInfo()) {
+				successMessages++;
+			} else {
+				errorMessages++;
+			}
+
+		}
+
+		if (errorMessages == 0) {
+			if (successMessages == 1) {
+				message = MessageText.getString("message.confirm.invite.singular");
+			} else if (successMessages > 1) {
+				message = MessageText.getString("message.confirm.invite.plural");
+			} else {
+				message = "DEBUG: confirmation with no error and no success???";
+			}
+		} else {
+			if (successMessages == 1) {
+				message = "Excellent!  1 of your Friend request has been sent";
+				message += "\n\nUnfortunately, not all of your Friend requests succeeded.\nSee detail below for more info.";
+			} else if (successMessages > 1) {
+				message = "Excellent!  " + successMessages
+						+ " of your Friend requests have been sent";
+				message += "\n\nUnfortunately, not all of your Friend requests succeeded.\nSee detail below for more info.";
+			} else {
+				if (errorMessages == 1) {
+					message = "Oops!  Your Friend request did not succeed.\n\nSee detail below for more info.";
+				} else {
+					message = "Oops!  Your Friend requests did not succeed.\n\nSee detail below for more info.";
+				}
+			}
+
+		}
+
+		return message;
 	}
 
 	public Point getSize() {
