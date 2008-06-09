@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -322,9 +323,9 @@ WebEngine
 			for(int i = 0 ; i < searchParameters.length ; i++){
 				SearchParameter parameter = searchParameters[i];
 				
-				String escapedKeyword = parameter.getValue();
+				String escapedKeyword = URLEncoder.encode(parameter.getValue(),"UTF-8");
 				
-				searchURL = GeneralUtils.replaceAll(searchURL, "%" + parameter.getMatchPattern(), escapedKeyword);
+				searchURL = GeneralUtils.replaceAll(searchURL, "%" + parameter.getMatchPattern(), escapedKeyword);//System.out.println(searchURL);
 			}
 			
 			debugLog( "search_url: " + searchURL );
