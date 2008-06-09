@@ -1978,6 +1978,8 @@ BuddyPlugin
 		
 		long	now = SystemTime.getCurrentTime();
 		
+		Random random = new Random();
+		
 		for (int i=0;i<buddies_copy.size();i++){
 			
 			BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies_copy.get(i);
@@ -1987,6 +1989,10 @@ BuddyPlugin
 			buddy.checkTimeouts();
 			
 			int	period = BUDDY_STATUS_CHECK_PERIOD_MIN + BUDDY_STATUS_CHECK_PERIOD_INC*buddies_copy.size()/5;
+			
+				// randomise a bit
+			
+			period += random.nextInt( 120*60*1000 );
 			
 			if ( last_check > now || now - last_check > period ){
 				
