@@ -98,7 +98,10 @@ public class VuzeBuddyImpl
 		}
 
 		// first try to get the avatar via raw bytes
-		avatar = MapUtils.getMapByteArray(mapNewBuddy, "avatar", avatar);
+		byte[] newAvatar = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
+		if (newAvatar != null) {
+			setAvatar(newAvatar);
+		}
 		
 		String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
 		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || avatar == null) {
