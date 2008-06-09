@@ -21,10 +21,8 @@ package com.aelitis.azureus.ui.swt.views.list;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 
 /**
@@ -134,7 +132,9 @@ public class ListCellGraphic
 		if (bounds == null) {
 			return;
 		}
-		gc.fillRectangle(bounds);
+		if (orientation != SWT.FILL) {
+			gc.fillRectangle(bounds);
+		}
 
 		// TODO: Orientation: fill
 		if (image != null && !image.isDisposed()) {
