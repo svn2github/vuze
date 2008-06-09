@@ -1992,7 +1992,7 @@ BuddyPlugin
 			
 				// randomise a bit
 			
-			period += random.nextInt( 120*60*1000 );
+			period += random.nextInt( 2*60*1000 );
 			
 			if ( last_check > now || now - last_check > period ){
 				
