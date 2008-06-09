@@ -52,6 +52,12 @@ public class GCStringPrinter
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>",
 			Pattern.CASE_INSENSITIVE);
 
+	private static final Pattern patAHREF_TITLE = Pattern.compile(
+			"title=\\\"([^\\\"]+)", Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern patAHREF_TARGET = Pattern.compile(
+			"target=\\\"([^\\\"]+)", Pattern.CASE_INSENSITIVE);
+
 	//private static final Pattern patOver1000 = Pattern.compile("[^\n]{1010,}");
 
 	// Limit word/line length as OSX crashes on stringExtent on very very long words
@@ -83,7 +89,7 @@ public class GCStringPrinter
 	{
 		public String url;
 
-		public String title;
+		public String text;
 
 		public Color urlColor;
 
@@ -94,10 +100,16 @@ public class GCStringPrinter
 
 		int titleLength;
 
+		public String fullString;
+
+		public String title;
+
+		public String target;
+
 		// @see java.lang.Object#toString()
 		public String toString() {
 			return super.toString() + ": relStart=" + relStartPos + ";url=" + url
-					+ ";title=" + title + ";hit="
+					+ ";title=" + text + ";hit="
 					+ (hitAreas == null ? 0 : hitAreas.size());
 		}
 	}
@@ -183,17 +195,38 @@ public class GCStringPrinter
 
 				while (hasURL) {
 					URLInfo urlInfo = new URLInfo();
-					urlInfo.url = htmlMatcher.group(1);
-					// For now, replace spaces with dashes so url title is always on 1 line
-					String s = htmlMatcher.group(2); //.replaceAll(" ", "`");
 
-					urlInfo.title = s;
+					// Store the full ahref string once, then use substring which doesn't
+					// create real strings :)
+					urlInfo.fullString = htmlMatcher.group();
 					urlInfo.relStartPos = htmlMatcher.start(0);
-					urlInfo.titleLength = s.length();
 
-					//System.out.println("URLINFO! " + s + ";" + s.length() + ";" + urlInfo.relStartPos);
+					urlInfo.url = string.substring(htmlMatcher.start(1),
+							htmlMatcher.end(1));
+					urlInfo.text = string.substring(htmlMatcher.start(2),
+							htmlMatcher.end(2));
+					urlInfo.titleLength = urlInfo.text.length();
 
-					string = htmlMatcher.replaceFirst(s.replaceAll("\\$", "\\\\\\$"));
+					Matcher matcherTitle = patAHREF_TITLE.matcher(urlInfo.fullString);
+					if (matcherTitle.find()) {
+						urlInfo.title = string.substring(urlInfo.relStartPos
+								+ matcherTitle.start(1), urlInfo.relStartPos
+								+ matcherTitle.end(1));
+					}
+
+					Matcher matcherTarget = patAHREF_TARGET.matcher(urlInfo.fullString);
+					if (matcherTarget.find()) {
+						urlInfo.target = string.substring(urlInfo.relStartPos
+								+ matcherTarget.start(1), urlInfo.relStartPos
+								+ matcherTarget.end(1));
+					}
+
+					//System.out.println("URLINFO! " + urlInfo.fullString + "\ntarget="
+					//		+ urlInfo.target + "\ntt=" + urlInfo.tooltip + "\nurl="
+					//		+ urlInfo.url + "\ntext=" + urlInfo.title + "\n\n");
+
+					string = htmlMatcher.replaceFirst(urlInfo.text.replaceAll("\\$",
+							"\\\\\\$"));
 
 					listUrlInfo.add(urlInfo);
 					htmlMatcher = patHREF.matcher(string);
@@ -397,9 +430,8 @@ public class GCStringPrinter
 				// if it weren't for the elipses, we could do:
 				// outputLine.append(sProcessedLine);
 
-				excessPos = processWord(gc, lineInfo.originalLine,
-						sProcessedLine, printArea, wrap, iLineLength, outputLine,
-						space);
+				excessPos = processWord(gc, lineInfo.originalLine, sProcessedLine,
+						printArea, wrap, iLineLength, outputLine, space);
 			} else {
 				StringTokenizer stWord = new StringTokenizer(lineInfo.originalLine, " ");
 				// Process line word by word
