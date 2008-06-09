@@ -89,6 +89,8 @@ public class VuzeActivitiesEntryContentShare
 
 		if (dm != null) {
 			setTorrentName(PlatformTorrentUtils.getContentTitle2(dm));
+		} else {
+			setTorrentName(content.getDisplayName());
 		}
 
 		setAssetImageURL(content.getThumbURL());
