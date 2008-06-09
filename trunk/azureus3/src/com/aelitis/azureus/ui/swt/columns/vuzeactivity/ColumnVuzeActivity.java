@@ -120,6 +120,7 @@ public class ColumnVuzeActivity
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(MARGIN_WIDTH);
 		cell.setMarginHeight(0);
+		cell.setFillCell(true);
 
 		Object ds = cell.getDataSource();
 		if (!(ds instanceof VuzeActivitiesEntry)) {
@@ -132,8 +133,6 @@ public class ColumnVuzeActivity
 	}
 
 	public void refresh(TableCell cell) {
-		if (!cell.isValid())
-		System.out.println("refresh " + Debug.getCompressedStackTrace());
 		TableCellImpl thumbCell = getThumbCell(cell);
 		TableCellImpl ratingCell = getRatingCell(cell);
 		boolean force = !cell.isValid();
@@ -647,14 +646,6 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEENTER
-				|| event.eventType == TableRowMouseEvent.EVENT_MOUSEEXIT) {
-			if (invalidateAndRefresh) {
-				invalidateAndRefresh(event.cell);
-			}
-			return;
-		}
-		
 		Comparable sortValue = event.cell.getSortValue();
 		if (sortValue instanceof VuzeActivitiesEntry) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) sortValue;
