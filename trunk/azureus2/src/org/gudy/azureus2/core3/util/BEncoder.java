@@ -79,7 +79,7 @@ BEncoder
     {
     	url_encode	= _url_encode;
     }
-    
+        
     private boolean 
 	encodeObject(
 		Object 					object) 
@@ -91,13 +91,50 @@ BEncoder
         	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
 
-            ByteBuffer	bb 	= Constants.DEFAULT_CHARSET.encode( tempString );           
+            	// usually this is simpler to encode by hand as chars < 0x80 map directly in UTF-8
             
-            writeInt( bb.limit() );
+            boolean	simple = true;
             
-            writeChar(':');
+            char[] chars = tempString.toCharArray();
             
-            writeByteBuffer(bb );
+            int	char_count = chars.length;
+            
+            byte[]	encoded = new byte[char_count];
+            
+            for (int i=0;i<char_count;i++){
+            	
+            	char c = chars[i];
+            	
+            	if ( c < 0x80 ){
+            		
+            		encoded[i] = (byte)c;
+            		
+            	}else{
+            		
+            		simple = false;
+            		
+            		break;
+            	}
+            }
+            
+            if ( simple ){
+            	
+             	writeInt( char_count );
+	            
+	            writeChar( ':' );
+
+            	writeBytes( encoded );
+            	
+            }else{
+            	           	
+	            ByteBuffer	bb 	= Constants.DEFAULT_CHARSET.encode( tempString );           
+	            
+	            writeInt( bb.limit() );
+	            
+	            writeChar(':');
+	            
+	            writeByteBuffer(bb );
+            }
             
         }else if(object instanceof Map){
         	
