@@ -326,6 +326,8 @@ public class VuzeBuddyManager
 		
 		public void sessionPasswordCorrect() {
 		
+			VuzeBuddyManager.log("Correct Password!");
+			
 			consec_bad_passwords		= 0;
 			first_bad_password			= -1;
 		}
