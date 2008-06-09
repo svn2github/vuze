@@ -162,7 +162,7 @@ BuddyPlugin
 	private publishDetails	current_publish		= new publishDetails();
 	private publishDetails	latest_publish		= current_publish;
 	private long			last_publish_start;
-	
+	private TimerEvent		republish_delay_event;
 	
 	private AsyncDispatcher	publish_dispatcher = new AsyncDispatcher();
 	
@@ -1410,32 +1410,45 @@ BuddyPlugin
 				
 				if ( failed_to_get_key ){
 					
-					if ( 	last_publish_start == 0 ||
-							SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
-					
-						log( "Rescheduling publish as failed to get key" );
-					
-						SimpleTimer.addEvent(
-							"BuddyPlugin:republish",
-							SystemTime.getCurrentTime() + 60*1000,
-							new TimerEventPerformer()
-							{
-								public void 
-								perform(
-									TimerEvent event) 
+					synchronized( this ){
+						
+						if ( republish_delay_event != null ){
+							
+							return;
+						}
+						
+						if ( 	last_publish_start == 0 ||
+								SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
+						
+							log( "Rescheduling publish as failed to get key" );
+						
+							republish_delay_event = SimpleTimer.addEvent(
+								"BuddyPlugin:republish",
+								SystemTime.getCurrentTime() + 60*1000,
+								new TimerEventPerformer()
 								{
-									if ( 	last_publish_start == 0 ||
-											SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
-									
-										if ( latest_publish.isEnabled()){
+									public void 
+									perform(
+										TimerEvent event) 
+									{
+										synchronized( BuddyPlugin.this ){
 											
-											updatePublish( latest_publish );
+											republish_delay_event = null;
+										}
+										
+										if ( 	last_publish_start == 0 ||
+												SystemTime.getMonotonousTime() - last_publish_start > STATUS_REPUBLISH_PERIOD ){
+										
+											if ( latest_publish.isEnabled()){
+												
+												updatePublish( latest_publish );
+											}
 										}
 									}
-								}
-							});
-							
-					}	
+								});
+								
+						}	
+					}
 				}
 			}
 		}
