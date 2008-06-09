@@ -658,7 +658,7 @@ public class ColumnVuzeActivity
 						- MARGIN_WIDTH, event.y);
 				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
-						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
+						if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 							Utils.launch(hitUrl.url);
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
