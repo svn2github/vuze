@@ -98,16 +98,16 @@ public class VuzeBuddyImpl
 		}
 
 		// first try to get the avatar via raw bytes
-		byte[] avatarBytes = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
+		avatar = MapUtils.getMapByteArray(mapNewBuddy, "avatar", avatar);
 		
 		String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
-		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || avatarBytes == null) {
+		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || avatar == null) {
 			avatarURL = newAvatarURL;
 			if (avatarURL != null) {
 				ImageDownloader.loadImage(avatarURL,
 						new ImageDownloader.ImageDownloaderListener() {
 							public void imageDownloaded(byte[] image) {
-								VuzeBuddyManager.log("Got new avatar!");
+								VuzeBuddyManager.log("Got new avatar! " + toDebugString());
 								setAvatar(image);
 							}
 						});
@@ -115,10 +115,6 @@ public class VuzeBuddyImpl
 		}
 
 		
-		if (avatarBytes != null) {
-			setAvatar(avatarBytes);
-		}
-
 		setCode(MapUtils.getMapString(mapNewBuddy, "code", null));
 		setCreatedOn(MapUtils.getMapLong(mapNewBuddy, "created-on", 0));
 	}
@@ -361,5 +357,10 @@ public class VuzeBuddyImpl
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#getCreatedOn()
 	public long getCreatedOn() {
 		return createdOn;
+	}
+	
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#toDebugString()
+	public String toDebugString() {
+		return "Buddy {" + loginID + "}";
 	}
 }
