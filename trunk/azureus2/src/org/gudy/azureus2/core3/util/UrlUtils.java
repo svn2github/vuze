@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
@@ -296,61 +297,69 @@ public class UrlUtils
 	
 		throws IOException
 	{
-		final AESemaphore sem = new AESemaphore( "URLUtils:cwt" );
-		
-		final Throwable[] res = { null };
-		
-		//long	start = SystemTime.getMonotonousTime();
-		
-		if ( connect_pool.isFull()){
+		if ( Java15Utils.isAvailable()){
 			
-			Debug.out( "Connect pool is full, forcing timeout" );
+			Java15Utils.setConnectTimeout( connection, (int)timeout );
 			
-			throw( new IOException( "Timeout" ));
-		}
-		
-		connect_pool.run(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					try{
-						connection.connect();
-						
-					}catch( Throwable e ){
-						
-						res[0] = e;
-						
-					}finally{
-						
-						sem.release();
-					}
-				}
-			});
-		
-		boolean ok = sem.reserve( timeout );
-		
-		//long	duration = SystemTime.getMonotonousTime() - start;
-		
-		//System.out.println( connection.getURL() + ": time=" + duration + ", ok=" + ok );
-		
-		if ( ok ){
-
-			Throwable error = res[0];
+			connection.connect();
 			
-			if ( error != null ){
-				
-				if ( error instanceof IOException ){
-					
-					throw((IOException)error);
-				}
-				
-				throw( new IOException( Debug.getNestedExceptionMessage( error )));
-			}
 		}else{
+			final AESemaphore sem = new AESemaphore( "URLUtils:cwt" );
 			
-			throw( new IOException( "Timeout" ));
+			final Throwable[] res = { null };
+			
+			//long	start = SystemTime.getMonotonousTime();
+			
+			if ( connect_pool.isFull()){
+				
+				Debug.out( "Connect pool is full, forcing timeout" );
+				
+				throw( new IOException( "Timeout" ));
+			}
+			
+			connect_pool.run(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							connection.connect();
+							
+						}catch( Throwable e ){
+							
+							res[0] = e;
+							
+						}finally{
+							
+							sem.release();
+						}
+					}
+				});
+			
+			boolean ok = sem.reserve( timeout );
+			
+			//long	duration = SystemTime.getMonotonousTime() - start;
+			
+			//System.out.println( connection.getURL() + ": time=" + duration + ", ok=" + ok );
+			
+			if ( ok ){
+	
+				Throwable error = res[0];
+				
+				if ( error != null ){
+					
+					if ( error instanceof IOException ){
+						
+						throw((IOException)error);
+					}
+					
+					throw( new IOException( Debug.getNestedExceptionMessage( error )));
+				}
+			}else{
+				
+				throw( new IOException( "Timeout" ));
+			}
 		}
 	}
 }

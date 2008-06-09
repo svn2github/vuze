@@ -26,7 +26,13 @@ import java.net.URLConnection;
 public class
 Java15Utils 
 {
-	private static Java15UtilsProvider	provider;
+	private static volatile Java15UtilsProvider	provider;
+	
+	public static boolean
+	isAvailable()
+	{
+		return( provider != null );
+	}
 	
 	public static void
 	setProvider(
