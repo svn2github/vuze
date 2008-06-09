@@ -663,14 +663,20 @@ public class ColumnVuzeActivity
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 							if (uif != null) {
-								uif.viewURL(hitUrl.url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
-										0, false, false);
+								String target = hitUrl.target == null
+										? SkinConstants.VIEWID_BROWSER_BROWSE : hitUrl.target;
+								uif.viewURL(hitUrl.url, target, 0, 0, false, false);
 								return;
 							}
 						}
 					}
 
 					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_HAND);
+					if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+						tooltip = hitUrl.title;
+					} else {
+						tooltip = hitUrl.url;
+					}
 					//tooltip = hitUrl.url;
 				} else {
 					((TableCellSWT) event.cell).setCursorID(SWT.CURSOR_ARROW);
