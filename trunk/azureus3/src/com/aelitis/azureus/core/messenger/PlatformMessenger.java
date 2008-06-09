@@ -114,7 +114,8 @@ public class PlatformMessenger
 		}
 
 		if (message != null) {
-			debug("q msg " + message + " for " + new Date(message.getFireBefore()));
+			debug("q " + message.toShortString() + ": " + message + " for "
+					+ new Date(message.getFireBefore()));
 			if (message.requiresAuthorization() && authorizedDelayed) {
 				debug("   authorized msg is delayed");
 			}
@@ -295,7 +296,9 @@ public class PlatformMessenger
 			sURL = sURL_RPC;
 			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
-			debug("POST: " + sURL + "?" + sPostData);
+			if (!requiresAuthorization) {
+				debug("POST: " + sURL + "?" + sPostData);
+			}
 		} else {
 			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
@@ -426,7 +429,7 @@ public class PlatformMessenger
 				continue;
 			}
 
-			debug("Got a reply! " + reply + "\n\t for " + message.toString());
+			debug("Got a reply for " + message.toShortString() + "!\n\t" + reply);
 
 			final PlatformMessage fMessage = message;
 			final PlatformMessengerListener fListener = listener;
