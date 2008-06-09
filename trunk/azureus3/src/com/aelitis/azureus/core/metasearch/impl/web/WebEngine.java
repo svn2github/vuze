@@ -320,13 +320,21 @@ WebEngine
 		try {
 			String searchURL = searchURLFormat;
 			
-			for(int i = 0 ; i < searchParameters.length ; i++){
+			String[]	from_strs 	= new String[ searchParameters.length ];
+			String[]	to_strs 	= new String[ searchParameters.length ];
+			
+			for( int i = 0 ; i < searchParameters.length ; i++ ){
+				
 				SearchParameter parameter = searchParameters[i];
 				
-				String escapedKeyword = URLEncoder.encode(parameter.getValue(),"UTF-8");
-				
-				searchURL = GeneralUtils.replaceAll(searchURL, "%" + parameter.getMatchPattern(), escapedKeyword);//System.out.println(searchURL);
+				from_strs[i]	= "%" + parameter.getMatchPattern();
+				to_strs[i]		= URLEncoder.encode(parameter.getValue(),"UTF-8");
 			}
+			
+			searchURL = 
+					GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
+				
+			//System.out.println(searchURL);
 			
 			debugLog( "search_url: " + searchURL );
 			

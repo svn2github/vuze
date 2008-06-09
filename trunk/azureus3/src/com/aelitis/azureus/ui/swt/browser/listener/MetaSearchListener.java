@@ -93,6 +93,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
+			Boolean	mature = (Boolean)decodedMap.get( "mature" );
+			
 			ResultListener listener = new ResultListener() {
 				
 				public void contentReceived(Engine engine, String content) {
@@ -145,10 +147,18 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				}
 			};
 			
+			List	sps = new ArrayList();
+						
+			sps.add( new SearchParameter( "s", searchText ));
 			
-			SearchParameter parameter = new SearchParameter("s",searchText);
-			SearchParameter[] parameters = new SearchParameter[] {parameter};
-			metaSearchManager.getMetaSearch().search(listener, parameters,headers);
+			if ( mature != null ){
+				
+				sps.add( new SearchParameter( "m", mature.toString()));
+			}
+			
+			SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
+			
+			metaSearchManager.getMetaSearch().search( listener, parameters, headers );
 
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
