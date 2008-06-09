@@ -76,4 +76,71 @@ GeneralUtils
 			}
 		}
 	}
+	
+	/**
+	 * as above but does safe replacement of multiple strings (i.e. a match in the replacement
+	 * of one string won't be substituted by another)
+	 * @param str
+	 * @param from_strs
+	 * @param to_strs
+	 * @return
+	 */
+	public static String
+	replaceAll(
+		String		str,
+		String[]	from_strs,
+		String[]	to_strs )
+	{
+		StringBuffer	res = null;
+				
+		int	pos = 0;
+		
+		while( true ){
+		
+			int	min_match_pos 	= Integer.MAX_VALUE;
+			int	match_index		= -1;
+			
+			for ( int i=0;i<from_strs.length;i++ ){
+			
+				int	pt = str.indexOf( from_strs[i], pos );
+				
+				if ( pt != -1 ){
+					
+					if ( pt < min_match_pos ){
+						
+						min_match_pos		= pt;
+						match_index			= i;
+					}
+				}
+			}
+			
+			if ( match_index == -1 ){
+				
+				if ( res == null ){
+				
+					return( str );
+				}
+				
+				res.append( str.substring( pos ));
+				
+				return( res.toString());
+				
+			}else{
+				
+				if ( res == null ){
+					
+					res = new StringBuffer( str.length() * 2 );
+				}
+				
+				if ( min_match_pos > pos ){
+					
+					res.append( str.substring( pos, min_match_pos ));
+				}
+				
+				res.append( to_strs[match_index] );
+				
+				pos = min_match_pos + from_strs[match_index].length();
+			}
+		}
+	}
 }
