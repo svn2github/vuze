@@ -21,23 +21,75 @@
 
 package org.gudy.azureus2.ui.swt;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetAdapter;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.HTMLTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Region;
+import org.eclipse.swt.graphics.Resource;
+import org.eclipse.swt.graphics.TextLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Monitor;
+import org.eclipse.swt.widgets.ScrollBar;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableBoolean;
+import org.gudy.azureus2.core3.util.AERunnableObject;
+import org.gudy.azureus2.core3.util.AERunnableWithCallback;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -836,9 +888,9 @@ public class Utils
 		}
 		return buttonVals[ret].intValue();
 	}
-	
-	public static int openMessageBox(Shell parent, int style, int default_style, String title,
-			String text) {
+
+	public static int openMessageBox(Shell parent, int style, int default_style,
+			String title, String text) {
 		if (parent == null) {
 			parent = findAnyShell();
 		}
@@ -848,18 +900,18 @@ public class Utils
 		}
 
 		Object[] buttonInfo = swtButtonStylesToText(style);
-		
+
 		Object[] defaultButtonInfo = swtButtonStylesToText(default_style);
-		
-		int	defaultIndex = 0;
-		
-		if ( defaultButtonInfo.length > 0 ){
-			String name = ((String[])defaultButtonInfo[0])[0];
-			
-			String[] names = (String[])buttonInfo[0];
-			
-			for (int i=0;i<names.length;i++){
-				if ( names[i].equals(name)){
+
+		int defaultIndex = 0;
+
+		if (defaultButtonInfo.length > 0) {
+			String name = ((String[]) defaultButtonInfo[0])[0];
+
+			String[] names = (String[]) buttonInfo[0];
+
+			for (int i = 0; i < names.length; i++) {
+				if (names[i].equals(name)) {
 					defaultIndex = i;
 					break;
 				}
@@ -876,7 +928,7 @@ public class Utils
 		}
 		return buttonVals[ret].intValue();
 	}
-	
+
 	private static Object[] swtButtonStylesToText(int style) {
 		List buttons = new ArrayList(2);
 		List buttonVal = new ArrayList(2);
@@ -921,7 +973,7 @@ public class Utils
 			(Integer[]) buttonVal.toArray(new Integer[buttonCount])
 		};
 	}
-	
+
 	/**
 	 * Bottom Index may be negative
 	 */
@@ -982,7 +1034,7 @@ public class Utils
 			if (!launched && Constants.isUnix
 					&& (UrlUtils.isURL(sFile) || sFile.startsWith("mailto:"))) {
 				if (!Program.launch("xdg-open " + sFile)) {
-						Program.launch("htmlview " + sFile);
+					Program.launch("htmlview " + sFile);
 				}
 			}
 		} else {
@@ -1051,7 +1103,7 @@ public class Utils
 		boolean isMaximized = COConfigurationManager.getBooleanParameter(sConfigPrefix
 				+ ".maximized");
 		if (Constants.isOSX && windowRectangle != null) {
-				isMaximized = false;
+			isMaximized = false;
 		}
 		shell.setMaximized(isMaximized);
 
@@ -1388,8 +1440,7 @@ public class Utils
 
 				gc.setFont(font);
 
-			} while (gc.textExtent(GOOD_STRING).y > heightInPixels
-					&& size > 1);
+			} while (gc.textExtent(GOOD_STRING).y > heightInPixels && size > 1);
 
 		} finally {
 			if (bOurGC) {
@@ -1728,28 +1779,25 @@ public class Utils
 
 		return new Image(device, dstImageData);
 	}
-	
+
 	/**
 	 * Draws diagonal stripes onto the specified area of a GC
 	 * @param lineDist spacing between the individual lines
 	 * @param leftshift moves the stripes to the left, useful to shift with the background
 	 * @param fallingLines true for top left to bottom-right lines, false otherwise 
 	 */
-	public static void drawStriped(GC gcImg, int x, int y, int width, int height, int lineDist, int leftshift, boolean fallingLines)
-	{
+	public static void drawStriped(GC gcImg, int x, int y, int width, int height,
+			int lineDist, int leftshift, boolean fallingLines) {
 		lineDist += 2;
 		final int xm = x + width;
 		final int ym = y + height;
-		for(int i = x; i < xm; i++)
-		{
-			for(int j = y; j < ym; j++)
-			{
-				if((i + leftshift + (fallingLines ? -j : j)) % lineDist == 0)
+		for (int i = x; i < xm; i++) {
+			for (int j = y; j < ym; j++) {
+				if ((i + leftshift + (fallingLines ? -j : j)) % lineDist == 0)
 					gcImg.drawPoint(i, j);
 			}
 		}
 	}
-
 
 	/**
 	 * 
@@ -1934,8 +1982,8 @@ public class Utils
 
 		} catch (Throwable t) {
 			//Do nothing
-				}
-			}
+		}
+	}
 
 	/**
 	 * Ensure that the given <code>Rectangle</code> is fully visible on the given <code>Monitor</code>.
@@ -1956,8 +2004,8 @@ public class Utils
 	public static void makeVisibleOnMonitor(Rectangle rect, Monitor monitor) {
 
 		if (null == rect || null == monitor) {
-				return;
-			}
+			return;
+		}
 
 		try {
 
@@ -2045,8 +2093,9 @@ public class Utils
 
 		return null;
 	}
-	
+
 	private static boolean gotBrowserStyle = false;
+
 	private static int browserStyle = SWT.NONE;
 
 	/**
@@ -2054,13 +2103,37 @@ public class Utils
 	 * @param style the style you wish to apply
 	 * @return the style, possibly ORed with <code>SWT.MOZILLA</code>
 	 */
-	public static int getInitialBrowserStyle(int style)
-	{
-		if(!gotBrowserStyle)
-		{
-			browserStyle = COConfigurationManager.getBooleanParameter("swt.forceMozilla") ? SWT.MOZILLA : SWT.NONE;
+	public static int getInitialBrowserStyle(int style) {
+		if (!gotBrowserStyle) {
+			browserStyle = COConfigurationManager.getBooleanParameter("swt.forceMozilla")
+					? SWT.MOZILLA : SWT.NONE;
 			gotBrowserStyle = true;
 		}
 		return style | browserStyle;
+	}
+
+	/**
+	 * Change the height of the installed <code>Font</code> and takes care of disposing
+	 * the new font when the control is disposed
+	 * @param control
+	 * @param height
+	 * @param style one or both of SWT.BOLD, SWT.ITALIC, or SWT.NORMAL
+	 */
+	public static void setFontHeight(Control control, int height, int style) {
+		FontData[] fDatas = control.getFont().getFontData();
+		for (int i = 0; i < fDatas.length; i++) {
+			fDatas[i].height = height;
+			fDatas[i].setStyle(style);
+		}
+		final Font newFont = new Font(control.getDisplay(), fDatas);
+		control.setFont(newFont);
+		control.addDisposeListener(new DisposeListener() {
+
+			public void widgetDisposed(DisposeEvent e) {
+				if (null != newFont && false == newFont.isDisposed()) {
+					newFont.dispose();
+				}
+			}
+		});
 	}
 }
