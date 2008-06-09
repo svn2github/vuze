@@ -178,6 +178,10 @@ PluginInterfaceImpl
   		return( initialiser.getPluginManager());
   	}
   	
+  	public String getApplicationName() {
+  		return Constants.APP_NAME;
+  	}
+  	
 	public String
 	getAzureusName()
 	{

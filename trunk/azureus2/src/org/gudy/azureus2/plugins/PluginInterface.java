@@ -55,14 +55,22 @@ import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTManager;
  */
 public interface PluginInterface {  
 	
-	/** Retrieve the Application's name
-   *
-   * @return the Application's name
-   *
-   * @since 2.1.0.0
-   */
-	public String
-	getAzureusName();
+	/**
+	 * Retrieve the name of the application.
+     *
+     * @return the Application's name
+     *
+     * @since 2.1.0.0
+     */
+	public String getAzureusName();
+	
+	/**
+	 * Returns the name of the application that the user sees - if you need to
+	 * display the name of the program, you should use this method.
+	 * 
+	 * @return 3.0.5.3
+	 */
+	public String getApplicationName();
 	
 	/** Retrieve the Application's version as a string.
 	 *

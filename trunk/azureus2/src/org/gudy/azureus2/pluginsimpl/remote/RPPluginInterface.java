@@ -227,6 +227,10 @@ RPPluginInterface
 		return( azureus_version );
 	}
 	
+  	public String getApplicationName() {
+  		return Constants.APP_NAME;
+  	}
+	
 	public void 
 	addView(PluginView view)
 	{
