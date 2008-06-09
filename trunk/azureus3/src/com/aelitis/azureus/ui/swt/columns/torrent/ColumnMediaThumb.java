@@ -43,11 +43,14 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.utils.ColumnImageClickArea;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
@@ -82,6 +85,8 @@ public class ColumnMediaThumb
 
 	private static final String BTN_RUN = "run";
 
+	private static final String BTN_SHARE = "share";
+
 	private static final int BORDER_SIZE = 0;
 
 	private static final int IMG_SIZE = 19;
@@ -105,6 +110,8 @@ public class ColumnMediaThumb
 	private ColumnImageClickArea clickAreaDetails;
 
 	private ColumnImageClickArea clickAreaDL;
+
+	private ColumnImageClickArea clickAreaShare;
 
 	/**
 	 * 
@@ -141,6 +148,11 @@ public class ColumnMediaThumb
 				+ BTN_RUN);
 		clickAreaRun.setTooltip(MessageText.getString("v3.MainWindow.button.run"));
 		listClickAreas.add(clickAreaRun);
+
+		clickAreaShare = new ColumnImageClickArea(COLUMN_ID, BTN_SHARE, IMG_PREFIX
+				+ BTN_SHARE);
+		clickAreaShare.setTooltip(MessageText.getString("v3.MainWindow.button.share"));
+		listClickAreas.add(clickAreaShare);
 	}
 
 	private void loadImages() {
@@ -349,18 +361,27 @@ public class ColumnMediaThumb
 			int imgSize = (int) (IMG_SIZE * scale);
 			int imgSizeHalf = (int) (IMG_SIZE_HALF * scale);
 			int border = (int) (4 * scale);
+			
+			boolean canShare = dm != null;
+			if (!canShare && (ds instanceof VuzeActivitiesEntry)) {
+				SelectedContent sc = ((VuzeActivitiesEntry)ds).createSelectedContentObject();
+				canShare = sc != null;
+			}
 
 			if (clickAreaDL != null) {
 				clickAreaDL.setPosition(cellWidth - imgSize - border, cellHeight / 2
 						- imgSizeHalf);
 				clickAreaDL.setVisible(dm == null);
+				if (dm == null) {
+					canShare = false;
+				}
 			}
 			if (clickAreaDetails != null) {
 				clickAreaDetails.setPosition(border, cellHeight / 2 - imgSizeHalf);
 				clickAreaDetails.setVisible(getHash(ds, true) != null);
 			}
 			if (clickAreaRun != null) {
-				clickAreaRun.setPosition(cellWidth - imgSize - border, cellHeight / 2
+				clickAreaRun.setPosition(border, cellHeight / 2
 						- imgSizeHalf);
 				clickAreaRun.setVisible(canRun);
 			}
@@ -368,6 +389,12 @@ public class ColumnMediaThumb
 				clickAreaPlay.setPosition(cellWidth / 2 - imgSizeHalf, cellHeight / 2
 						- imgSizeHalf);
 				clickAreaPlay.setVisible(canPlay);
+			}
+			
+			if (clickAreaShare != null) {
+				clickAreaShare.setPosition(cellWidth - imgSize - border, cellHeight / 2
+						- imgSizeHalf);
+				clickAreaShare.setVisible(canShare);
 			}
 
 			if (showPlayButton && imgPlay != null) {
@@ -397,8 +424,8 @@ public class ColumnMediaThumb
 				gc.setForeground(Colors.white);
 				String sPercent = dm.getStats().getDownloadCompleted(false) / 10 + "%";
 				Point extent = gc.textExtent(sPercent);
-				gc.drawText(sPercent, cellWidth - extent.x - 2, cellHeight / 2 - 6,
-						true);
+				gc.drawText(sPercent, (cellWidth / 2) - (extent.x / 2),
+						cellHeight / 2 - 6, true);
 			}
 
 			gc.dispose();
@@ -511,6 +538,11 @@ public class ColumnMediaThumb
 				// run via play or stream so we get the security warning
 				Object ds = event.cell.getDataSource();
 				TorrentListViewsUtils.playOrStreamDataSource(ds, null, "unknown");
+			} else if (id.equals(BTN_SHARE)) {
+				SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				if (contents.length > 0) {
+					VuzeShareUtils.getInstance().shareTorrent(contents[0], "media-thumb-btn");
+				}
 			}
 
 			return;
