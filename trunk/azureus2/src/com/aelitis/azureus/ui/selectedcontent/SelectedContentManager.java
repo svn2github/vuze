@@ -32,7 +32,7 @@ public class SelectedContentManager
 {
 	private static List listeners = new ArrayList();
 
-	private static SelectedContent[] currentlySelectedContent = new SelectedContent[0];
+	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
 
 	public static void addCurrentlySelectedContentListener(
 			SelectedContentListener l) {
@@ -41,9 +41,9 @@ public class SelectedContentManager
 	}
 
 	public static void changeCurrentlySelectedContent(
-			SelectedContent[] currentlySelectedContent) {
+			ISelectedContent[] currentlySelectedContent) {
 		SelectedContentManager.currentlySelectedContent = currentlySelectedContent == null
-				? new SelectedContent[0] : currentlySelectedContent;
+				? new ISelectedContent[0] : currentlySelectedContent;
 
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
@@ -52,7 +52,7 @@ public class SelectedContentManager
 		}
 	}
 
-	public static SelectedContent[] getCurrentlySelectedContent() {
+	public static ISelectedContent[] getCurrentlySelectedContent() {
 		return currentlySelectedContent;
 	}
 }

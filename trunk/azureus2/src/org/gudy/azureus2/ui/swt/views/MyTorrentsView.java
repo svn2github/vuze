@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -863,7 +864,7 @@ public class MyTorrentsView
 			return;
 		}
 		DownloadManager[] dms = getSelectedDownloads();
-		SelectedContent[] sc = new SelectedContent[dms.length];
+		ISelectedContent[] sc = new ISelectedContent[dms.length];
 		int pos = 0;
 		for (int i = 0; i < dms.length; i++) {
 			DownloadManager dm = dms[i];

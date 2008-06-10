@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
  * @created May 6, 2008
  *
  */
-public class SelectedContent
+public class SelectedContent implements ISelectedContent
 {
 	private String hash;
 
@@ -35,61 +35,46 @@ public class SelectedContent
 
 	private String displayName;
 
-	private String thumbURL;
-
-	private boolean isPlatformContent;
-
-	private boolean canPlay;
-
 	/**
 	 * @param dm2
 	 * @throws Exception 
 	 */
 	public SelectedContent(DownloadManager dm)
 			throws Exception {
-		this.dm = dm;
-		this.hash = dm.getTorrent().getHashWrapper().toBase32String();
-		displayName = dm.getDisplayName();
+		setDM(dm);
+		setHash(dm.getTorrent().getHashWrapper().toBase32String());
+		setDisplayName(dm.getDisplayName());
 	}
 
 	/**
 	 * 
 	 */
-	public SelectedContent(String hash, String displayName,
-			boolean isPlatformContent, boolean canPlay) {
+	public SelectedContent(String hash, String displayName) {
 		this.hash = hash;
 		this.displayName = displayName;
-		this.isPlatformContent = isPlatformContent;
-		this.canPlay = canPlay;
 	}
 
 	public SelectedContent() {
 	}
 
-	public String getThumbURL() {
-		return thumbURL;
-	}
-
-	public void setThumbURL(String thumbURL) {
-		this.thumbURL = thumbURL;
-	}
-
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getHash()
 	public String getHash() {
 		return hash;
 	}
 
-	public void setHash(String hash, boolean isPlatformContent) {
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setHash(java.lang.String)
+	public void setHash(String hash) {
 		this.hash = hash;
-		this.isPlatformContent = isPlatformContent;
 	}
 
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDM()
 	public DownloadManager getDM() {
 		return dm;
 	}
 
-	public void setDM(DownloadManager dm, boolean isPlatformContent) {
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDM(org.gudy.azureus2.core3.download.DownloadManager)
+	public void setDM(DownloadManager dm) {
 		this.dm = dm;
-		this.isPlatformContent = isPlatformContent;
 		if (this.dm != null) {
 			try {
 				hash = this.dm.getTorrent().getHashWrapper().toBase32String();
@@ -99,27 +84,13 @@ public class SelectedContent
 		}
 	}
 
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDisplayName()
 	public String getDisplayName() {
 		return displayName;
 	}
 
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDisplayName(java.lang.String)
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
-	}
-
-	public boolean isPlatformContent() {
-		return isPlatformContent;
-	}
-
-	public void setPlatformContent(boolean isPlatformContent) {
-		this.isPlatformContent = isPlatformContent;
-	}
-
-	public boolean canPlay() {
-		return canPlay;
-	}
-
-	public void setCanPlay(boolean canPlay) {
-		this.canPlay = canPlay;
 	}
 }
