@@ -1,18 +1,12 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.progress.IMessage;
-import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -84,7 +78,7 @@ public class InvitePage
 					true);
 
 			context.addMessageListener(new DisplayListener(getBrowser()));
-			
+
 			/*
 			 * Add listener to call the 'inviteFromShare' script; this listener is only called
 			 * once whenever a web page is loaded the first time or when it's refreshed

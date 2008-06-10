@@ -509,35 +509,13 @@ public class SharePage
 			 * Share only
 			 */
 			if (buddyPageListener.getInvitationsSent() == 0) {
-				if (true == buddiesToShareWith.isEmpty()) {
-					//Do nothing since there should at least be 1 friend to share with
+				/*
+				 * The main message to display
+				 */
+				if (buddiesToShareWith.size() > 1) {
+					message[0] = MessageText.getString("message.confirm.share.plural");
 				} else {
-					/*
-					 * The main message to display
-					 */
-					if (buddiesToShareWith.size() == 1) {
-						message[0] = MessageText.getString("message.confirm.share.singular");
-					} else {
-						message[0] = MessageText.getString("message.confirm.share.plural");
-					}
-
-					/*
-					 * The header in the detail section for existing friends
-					 */
-					String shareHeader = getShareItem().getDisplayName()
-							+ " has been shared with:";
-					messages.add(new ProgressReportMessage(shareHeader,
-							ProgressReportMessage.MSG_TYPE_INFO));
-
-					/*
-					 * The existing friends
-					 */
-					for (Iterator iterator = buddiesToShareWith.iterator(); iterator.hasNext();) {
-						VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-						messages.add(new ProgressReportMessage("\t"
-								+ buddy.getDisplayName() + " (" + buddy.getLoginID() + ")",
-								ProgressReportMessage.MSG_TYPE_INFO));
-					}
+					message[0] = MessageText.getString("message.confirm.share.singular");
 				}
 			}
 
@@ -546,54 +524,30 @@ public class SharePage
 			 */
 			else {
 
-				/*
-				 * The main message to display
-				 */
-				if (buddiesToShareWith.size() + buddyPageListener.getInvitationsSent() == 1) {
-					message[0] = MessageText.getString("message.confirm.share.invite.singular");
-				} else {
-					message[0] = MessageText.getString("message.confirm.share.invite.plural");
-				}
-
-				/*
-				 * Existing friends
-				 */
-				if (true == buddiesToShareWith.isEmpty()) {
-					//Do nothing for existing friends if there are none
-				} else {
-
-					/*
-					 * The header in the detail section for existing friends
-					 */
-					String shareHeader = getShareItem().getDisplayName()
-							+ " has been shared with:";
-					messages.add(new ProgressReportMessage(shareHeader,
-							ProgressReportMessage.MSG_TYPE_INFO));
-
-					/*
-					 * The existing friends
-					 */
-					for (Iterator iterator = buddiesToShareWith.iterator(); iterator.hasNext();) {
-						VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-						messages.add(new ProgressReportMessage("\t"
-								+ buddy.getDisplayName() + " (" + buddy.getLoginID() + ")",
-								ProgressReportMessage.MSG_TYPE_INFO));
+				boolean hasError = false;
+				List inviteMessages = buddyPageListener.getConfirmationMessages();
+				for (Iterator iterator = inviteMessages.iterator(); iterator.hasNext();) {
+					ProgressReportMessage cMessage = (ProgressReportMessage) iterator.next();
+					if (true == cMessage.isError()) {
+						hasError = true;
+						break;
 					}
-
-					messages.add(new ProgressReportMessage("\n",
-							ProgressReportMessage.MSG_TYPE_INFO));
 				}
 
-				/*
-				 * New friends
-				 */
-				String invitationHeader = getShareItem().getDisplayName()
-						+ " has been shared through invitations to the following:";
-				messages.add(new ProgressReportMessage(invitationHeader,
-						ProgressReportMessage.MSG_TYPE_INFO));
-
-				messages.addAll(buddyPageListener.getConfirmationMessages());
-
+				if (true == hasError) {
+					message[0] = MessageText.getString("message.confirm.invite.error");
+					messages.addAll(buddyPageListener.getConfirmationMessages());
+				} else {
+					/*
+					 * The main message to display
+					 */
+					if (buddiesToShareWith.size()
+							+ buddyPageListener.getInvitationsSent() == 1) {
+						message[0] = MessageText.getString("message.confirm.share.invite.singular");
+					} else {
+						message[0] = MessageText.getString("message.confirm.share.invite.plural");
+					}
+				}
 			}
 
 			Utils.execSWTThread(new AERunnable() {

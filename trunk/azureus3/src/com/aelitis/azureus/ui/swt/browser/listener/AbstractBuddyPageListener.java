@@ -48,6 +48,8 @@ public abstract class AbstractBuddyPageListener
 
 	private int invitationsSent = 0;
 
+	private String message_success = MessageText.getString("message.status.success");
+
 	public AbstractBuddyPageListener(Browser browser) {
 		super(LISTENER_ID);
 		this.browser = browser;
@@ -167,15 +169,15 @@ public abstract class AbstractBuddyPageListener
 					Object object = (Object) iterator.next();
 					if (object instanceof Map) {
 						Map invitation = (Map) object;
-						String msg = "\tInvitation to "
-								+ MapUtils.getMapString(invitation, "value", "");
+						String msg = MapUtils.getMapString(invitation, "value", "");
+						msg += " : ";
+
 						if (true == MapUtils.getMapBoolean(invitation, "success", false)) {
-							msg += " was sent successfully.";
+							msg += message_success;
 							message.add(new ProgressReportMessage(msg,
 									ProgressReportMessage.MSG_TYPE_INFO));
 						} else {
-							msg += " was not sent because ["
-									+ MapUtils.getMapString(invitation, "cause", "") + "]";
+							msg += MapUtils.getMapString(invitation, "cause", "");
 							message.add(new ProgressReportMessage(msg,
 									ProgressReportMessage.MSG_TYPE_ERROR));
 						}
@@ -213,21 +215,7 @@ public abstract class AbstractBuddyPageListener
 				message = "DEBUG: confirmation with no error and no success???";
 			}
 		} else {
-			if (successMessages == 1) {
-				message = "Excellent!  1 of your Friend request has been sent";
-				message += "\n\nUnfortunately, not all of your Friend requests succeeded.\nSee detail below for more info.";
-			} else if (successMessages > 1) {
-				message = "Excellent!  " + successMessages
-						+ " of your Friend requests have been sent";
-				message += "\n\nUnfortunately, not all of your Friend requests succeeded.\nSee detail below for more info.";
-			} else {
-				if (errorMessages == 1) {
-					message = "Oops!  Your Friend request did not succeed.\n\nSee detail below for more info.";
-				} else {
-					message = "Oops!  Your Friend requests did not succeed.\n\nSee detail below for more info.";
-				}
-			}
-
+			message = MessageText.getString("message.confirm.invite.error");
 		}
 
 		return message;
