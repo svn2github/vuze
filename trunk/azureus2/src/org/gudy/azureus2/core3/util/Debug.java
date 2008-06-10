@@ -172,7 +172,7 @@ public class Debug {
 		return getCompressedStackTrace(t, frames_to_skip, 200);
 	}
 
-	private static String 
+	public static String 
 	getCompressedStackTrace(
 		Throwable t,
 		int frames_to_skip, 
