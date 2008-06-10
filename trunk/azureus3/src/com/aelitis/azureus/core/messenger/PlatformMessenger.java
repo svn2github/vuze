@@ -53,6 +53,8 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
  */
 public class PlatformMessenger
 {
+	private static final boolean DEBUG_URL = System.getProperty("platform.messenger.debug.url", "0").equals("1");
+
 	private static boolean USE_HTTP_POST = true;
 
 	public static String REPLY_EXCEPTION = "exception";
@@ -297,12 +299,20 @@ public class PlatformMessenger
 			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
 			if (!requiresAuthorization) {
-				debug("POST: " + sURL + "?" + sPostData);
+				if (DEBUG_URL) {
+					debug("POST: " + sURL + "?" + sPostData);
+				} else {
+					debug("POST: " + sURL);
+				}
 			}
 		} else {
 			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
 					+ Constants.URL_SUFFIX;
-			debug("GET: " + sURL);
+			if (DEBUG_URL) {
+				debug("GET: " + sURL);
+			} else {
+				debug("GET: " + sURL_RPC + Constants.URL_PLATFORM_MESSAGE);
+			}
 		}
 
 		final String fURL = sURL;
@@ -429,7 +439,7 @@ public class PlatformMessenger
 				continue;
 			}
 
-			debug("Got a reply for " + message.toShortString() + "!\n\t" + reply);
+			debug("Got a reply for " + message.toShortString() + "\n\t\t" + reply);
 
 			final PlatformMessage fMessage = message;
 			final PlatformMessengerListener fListener = listener;

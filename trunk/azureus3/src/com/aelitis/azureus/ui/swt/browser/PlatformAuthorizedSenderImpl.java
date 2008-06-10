@@ -69,7 +69,8 @@ public class PlatformAuthorizedSenderImpl
 					String responseType = Constants.isOSX ? "text/html" : "text/plain";
 					final String url = Constants.URL_AUTHORIZED_RPC + "?" + data
 							+ "&responseType=" + responseType;
-					PlatformMessenger.debug("Open Auth URL: " + url);
+					PlatformMessenger.debug("Open Auth URL: "
+							+ Constants.URL_AUTHORIZED_RPC + " in " + responseType);
 					browser.setUrl(url);
 
 					browser.addProgressListener(new ProgressListener() {
@@ -108,9 +109,9 @@ public class PlatformAuthorizedSenderImpl
 			int i = s.indexOf("0;");
 
 			if (i >= 0) {
-				PlatformMessenger.debug("Got Auth Reply: " + s);
+				PlatformMessenger.debug("Got Auth Reply: " + s.substring(i));
 			} else {
-				String partial = s.length() == 0 ? "" : s.substring(0, Math.min(100,
+				String partial = s.length() == 0 ? "" : s.substring(0, Math.min(200,
 						s.length()));
 				PlatformMessenger.debug("Got BAD Auth Reply ( " + s.length() + "): "
 						+ partial);
