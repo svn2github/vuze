@@ -84,8 +84,8 @@ public class FriendsList
 		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.table.bg");
 		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-		"color.text.fg");
-		
+				"color.text.fg");
+
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.container.bg");
 
@@ -113,9 +113,10 @@ public class FriendsList
 					if (null != default_prompt_image
 							&& false == default_prompt_image.isDisposed()) {
 						Rectangle imageBounds = default_prompt_image.getBounds();
-						e.gc.drawImage(default_prompt_image, textOffset, (bounds.height/2) - (imageBounds.height/2));
-						
-						textOffset += default_prompt_image.getBounds().width + 8; 
+						e.gc.drawImage(default_prompt_image, textOffset,
+								(bounds.height / 2) - (imageBounds.height / 2));
+
+						textOffset += default_prompt_image.getBounds().width + 8;
 					}
 
 					if (null != default_prompt_text && default_prompt_text.length() > 0) {
@@ -194,7 +195,8 @@ public class FriendsList
 			widget.dispose(false);
 		}
 		friendsWidgets.clear();
-		canvas.layout(true);
+		Rectangle r = scrollable.getClientArea();
+		scrollable.setMinSize(canvas.computeSize(r.width, SWT.DEFAULT));
 	}
 
 	public FriendWidget findWidget(VuzeBuddy buddy) {
@@ -241,7 +243,6 @@ public class FriendsList
 
 		private boolean closeIsActive = false;
 
-
 		private int alpha = 255;
 
 		private Font boldFont = null;
@@ -274,7 +275,6 @@ public class FriendsList
 			borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.widget.border");
 			activeColor = borderColor;
-
 
 			friendCanvas = new Canvas(parent, SWT.DOUBLE_BUFFERED);
 			friendCanvas.setBackgroundMode(SWT.INHERIT_DEFAULT);
