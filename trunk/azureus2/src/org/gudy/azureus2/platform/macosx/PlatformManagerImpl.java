@@ -158,6 +158,11 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     		PListEditor editor = new PListEditor( plist );
 		
     		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
+    		editor.setSimpleStringValue("CFBundleName", "Vuze");
+			editor.setSimpleStringValue("CFBundleTypeName", "Vuze Download");
+			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
+			editor.setSimpleStringValue("CFBundleShortVersionString",Constants.AZUREUS_VERSION);
+			editor.setSimpleStringValue("CFBundleVersion",Constants.AZUREUS_VERSION);
     		
     	}catch( Throwable e ){
     		
