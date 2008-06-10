@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class StyledShell
 {
@@ -147,7 +148,13 @@ public class StyledShell
 
 		content = new Composite(borderedBackground, SWT.DOUBLE_BUFFERED);
 		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
-		
+
+		setBackground(ColorCache.getColor(styledShell.getDisplay(), 38, 38, 38));
+		content.setBackground(ColorCache.getColor(styledShell.getDisplay(), 13, 13,
+				13));
+		content.setForeground(ColorCache.getColor(styledShell.getDisplay(), 206,
+				206, 206));
+
 		borderedBackground.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
@@ -221,7 +228,7 @@ public class StyledShell
 					p.y -= startY;
 					styledShell.setLocation(p);
 				}
-				if(e.type == SWT.Resize){
+				if (e.type == SWT.Resize) {
 					styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
 				}
 			}
@@ -266,13 +273,12 @@ public class StyledShell
 		 * so it is not obscured by the other shell(s); conversely DO NOT bring this shell on top if the 
 		 * above condition is false so that it will not obscure other windows like external browser, etc...
 		 */
-//		if (true == Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
-//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-//			if (uiFunctions != null && uiFunctions.getMainShell() != null) {
-//				style |= SWT.ON_TOP;
-//			}
-//		}
-
+		//		if (true == Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
+		//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		//			if (uiFunctions != null && uiFunctions.getMainShell() != null) {
+		//				style |= SWT.ON_TOP;
+		//			}
+		//		}
 		/*
 		 * 
 		 * On non-osx set the NO_TRIM flag and on OSX ONLY set the NO_TRIM flag if setAlpha()
@@ -366,7 +372,8 @@ public class StyledShell
 			isAlreadyOpened = true;
 		}
 	}
-	public void close(){
+
+	public void close() {
 		if (true == isAlive()) {
 			styledShell.close();
 			isAlreadyOpened = false;
