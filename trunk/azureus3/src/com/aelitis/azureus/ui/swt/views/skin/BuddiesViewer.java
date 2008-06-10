@@ -164,8 +164,8 @@ public class BuddiesViewer
 			 */
 			textColor = skin.getSkinProperties().getColor("color.links.normal");
 			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
-			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 38, 38,
-					38);
+			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 55, 55,
+	                  55);
 
 			selectedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 16, 16, 16);
 
