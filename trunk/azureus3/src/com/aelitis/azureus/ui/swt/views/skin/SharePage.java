@@ -2,8 +2,12 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
 import java.text.DateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -13,10 +17,17 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -41,9 +52,19 @@ import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.utils.*;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.MiniCloseButton;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
+import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.FAQTopics;
+import com.aelitis.azureus.util.ImageDownloader;
+import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 public class SharePage
@@ -237,7 +258,7 @@ public class SharePage
 		//============		
 		FormLayout fLayout = new FormLayout();
 		fLayout.marginTop = 0;
-		fLayout.marginBottom = 0;
+		fLayout.marginBottom = 8;
 		fLayout.marginLeft = 0;
 		fLayout.marginRight = 0;
 		inviteePanel.setLayout(fLayout);
@@ -259,14 +280,12 @@ public class SharePage
 
 		FormData addBuddyButtonData = new FormData();
 		addBuddyButtonData.top = new FormAttachment(inviteeList.getControl(), 8);
-		addBuddyButtonData.bottom = new FormAttachment(100, -8);
 		addBuddyButtonData.right = new FormAttachment(inviteeList.getControl(), -8,
 				SWT.RIGHT);
 		addBuddyButton.setLayoutData(addBuddyButtonData);
 
 		FormData addBuddyLabelData = new FormData();
 		addBuddyLabelData.top = new FormAttachment(inviteeList.getControl(), 8);
-		addBuddyLabelData.bottom = new FormAttachment(100, -8);
 		addBuddyLabelData.right = new FormAttachment(addBuddyButton, -8);
 		addBuddyLabelData.left = new FormAttachment(0, 8);
 		addBuddyPromptLabel.setLayoutData(addBuddyLabelData);
@@ -479,6 +498,8 @@ public class SharePage
 
 		sendNowButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
+
+				getDetailPanel().showBusy(true, 0);
 				getMessageContext().executeInBrowser(
 						"sendSharingBuddies('" + getCommitJSONMessage() + "')");
 
@@ -487,6 +508,7 @@ public class SharePage
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
+				System.out.println("shareSubmit() called");//KN: sysout
 				// We'll get a buddy-page.invite-confirm message from the webpage,
 				// even if it's just a share with no invites
 			}
@@ -495,7 +517,8 @@ public class SharePage
 	}
 
 	private void showConfirmationDialog(List buddiesToShareWith) {
-
+		System.out.println("showConfirmationDialog()");//KN: sysout
+		getDetailPanel().showBusy(false, 0);
 		if (null != buddyPageListener) {
 
 			final String[] message = new String[1];
@@ -615,17 +638,9 @@ public class SharePage
 		if (inviteeList.getContentCount() > 0) {
 			showInviteeList(true);
 			addBuddyButton.setText(MessageText.getString("v3.Share.add.edit.buddy"));
-			Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			FormData addBuddyButtonData = (FormData) addBuddyButton.getLayoutData();
-			addBuddyButtonData.width = size.x;
-			addBuddyButtonData.height = size.y;
 		} else {
 			showInviteeList(false);
 			addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
-			Point size = addBuddyButton.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			FormData addBuddyButtonData = (FormData) addBuddyButton.getLayoutData();
-			addBuddyButtonData.width = size.x;
-			addBuddyButtonData.height = size.y;
 		}
 
 		content.layout(true, true);
@@ -733,6 +748,7 @@ public class SharePage
 				}
 
 				public void handleInviteConfirm() {
+					System.out.println("Confirmation received!!!!");//KN: sysout
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
@@ -741,6 +757,7 @@ public class SharePage
 						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 							public void loginComplete() {
 								try {
+									System.out.println("inviteWithShare() called");//KN: sysout
 									VuzeBuddyManager.inviteWithShare(confirmationResponse,
 											getShareItem(), commentText.getText(), buddies);
 									getDetailPanel().show(false);
@@ -839,7 +856,7 @@ public class SharePage
 	public void refresh(RefreshListener refreshListener) {
 
 		this.refreshListener = refreshListener;
-
+		firstPanel.setEnabled(true);
 		/*
 		 * Init the browser if it was not done already
 		 */

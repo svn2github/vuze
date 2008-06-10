@@ -12,7 +12,6 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Layout;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -65,20 +64,6 @@ public abstract class SkinButton
 
 	private void init() {
 		setCursor(Cursors.handCursor);
-
-		/*
-		 * Adding a simple layout manager to recompute the button size 
-		 */
-		setLayout(new Layout() {
-			protected void layout(Composite composite, boolean flushCache) {
-			}
-
-			protected Point computeSize(Composite composite, int wHint, int hHint,
-					boolean flushCache) {
-				return SkinButton.this.computeSize(wHint, hHint);
-			}
-		});
-
 		addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
@@ -192,7 +177,6 @@ public abstract class SkinButton
 					} else {
 						e.gc.setForeground(getForeground());
 					}
-
 					if (imageOffset != 0) {
 						imageOffset += 6;
 						Point extent = e.gc.textExtent(getText());
@@ -231,14 +215,11 @@ public abstract class SkinButton
 
 	}
 
-	private void reComputeSize() {
-		computeSize(0, 0);
-	}
-
 	/**
 	 * Computes the optimal size to fit either/or the image, text, and background; whichever is larger
 	 */
-	public Point computeSize(int hint, int hint2) {
+	public Point computeSize(int hint, int hint2, boolean changed) {
+		System.out.println("Compute size");//KN: sysout
 		Point backgroundExtent = new Point(0, 0);
 		Point imageExtent = new Point(0, 0);
 		Point textExtent = new Point(0, 0);
@@ -281,9 +262,7 @@ public abstract class SkinButton
 		maxWidth = Math.max(maxWidth, imageExtent.x + inset.left + inset.right);
 		maxWidth = Math.max(maxWidth, textExtent.x + inset.left + inset.right);
 
-		Point computedSize = super.computeSize(maxWidth, maxHeight);
-		setSize(computedSize);
-		return computedSize;
+		return new Point(maxWidth, maxHeight);
 	}
 
 	private Image[] getCurrentBackgroundImages() {
@@ -317,7 +296,6 @@ public abstract class SkinButton
 	public void setImage(Image buttonImage) {
 		if (this.buttonImage != buttonImage) {
 			this.buttonImage = buttonImage;
-			reComputeSize();
 			refreshVisuals();
 		}
 	}
@@ -329,7 +307,6 @@ public abstract class SkinButton
 	public void setText(String buttonText) {
 		if (this.buttonText != buttonText) {
 			this.buttonText = buttonText;
-			reComputeSize();
 			refreshVisuals();
 		}
 	}
@@ -353,7 +330,6 @@ public abstract class SkinButton
 				currentState = WIDGET_STATE_NORMAL;
 				alpha = 255;
 			}
-			reComputeSize();
 			refreshVisuals();
 			update();
 		}
@@ -370,7 +346,6 @@ public abstract class SkinButton
 	public void setInset(Inset inset) {
 		if (this.inset != inset) {
 			this.inset = inset;
-			reComputeSize();
 			refreshVisuals();
 		}
 
