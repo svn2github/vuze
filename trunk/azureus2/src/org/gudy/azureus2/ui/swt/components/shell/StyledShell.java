@@ -129,7 +129,7 @@ public class StyledShell
 	 * Creates a pop-up shell with out custom style and trim
 	 */
 	private void createCustomShell() {
-		styledShell = new Shell(parentShell, getShellStyle(SWT.NONE));
+		styledShell = ShellFactory.createShell(parentShell,getShellStyle(SWT.NONE));
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginHeight = borderWidth;
 		fillLayout.marginWidth = borderWidth;
@@ -244,7 +244,7 @@ public class StyledShell
 	 * Creates a pop-up shell with standard dialog style and trim
 	 */
 	private void createStandardShell() {
-		styledShell = new Shell(parentShell, getShellStyle(SWT.NONE));
+		styledShell = ShellFactory.createShell(parentShell, getShellStyle(SWT.NONE));
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginHeight = 0;
 		fillLayout.marginWidth = 0;
