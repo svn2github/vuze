@@ -51,7 +51,7 @@ public class PlatformRelayMessenger
 	public static final long DEFAULT_RECHECKIN_MINS = 30;
 
 	private static final long ERROR_RECHECKIN_MINS = 90;
-	
+
 	private static final boolean TEST_ERRORACK = System.getProperty(
 			"relay.errack.test", "0").equals("1");
 
@@ -98,7 +98,7 @@ public class PlatformRelayMessenger
 			long maxDelayMS, final putListener putListener) {
 		try {
 			// if ( true ) throw( new Exception( "bork bork" ));
-			String myPK = VuzeCryptoManager.getSingleton().getPublicKey(
+			final String myPK = VuzeCryptoManager.getSingleton().getPublicKey(
 					"RelayMessenger put");
 
 			BuddyPluginBuddy pluginBuddy = buddyMessage.getBuddy();
@@ -109,14 +109,22 @@ public class PlatformRelayMessenger
 
 			cryptoResult encryptResult = pluginBuddy.encrypt(encode);
 
-			Map mapParameters = new HashMap();
+			final Map mapParameters = new HashMap();
 			mapParameters.put("sender_pk", myPK);
 			mapParameters.put("recipient_pk", pk);
 			mapParameters.put("payload", Base32.encode(encryptResult.getPayload()));
 			mapParameters.put("ack_hash", Base32.encode(encryptResult.getChallenge()));
 
 			PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
-					OP_PUT, mapParameters, maxDelayMS);
+					OP_PUT, mapParameters, maxDelayMS) {
+				// @see com.aelitis.azureus.core.messenger.PlatformMessage#toString()
+				public String toString() {
+					return "PlaformMessage {" + getSequenceNo() + ", " + getMessageID()
+							+ ", " + getListenerID() + ", " + getOperationID() + ", sender="
+							+ myPK + ", recipient=" + pk + ", ack_hash="
+							+ mapParameters.get("ack_hash") + "}";
+				}
+			};
 
 			PlatformMessengerListener listener = new PlatformMessengerListener() {
 				public void messageSent(PlatformMessage message) {
@@ -162,7 +170,8 @@ public class PlatformRelayMessenger
 		}
 	}
 
-	public static final void fetch(long maxDelayMS) throws NotLoggedInException {
+	public static final void fetch(long maxDelayMS)
+			throws NotLoggedInException {
 		if (!LoginInfoManager.getInstance().isLoggedIn()
 				|| PlatformMessenger.isAuthorizedDelayed()) {
 			resetTimerEvent(DEFAULT_RECHECKIN_MINS);
@@ -210,7 +219,8 @@ public class PlatformRelayMessenger
 
 					String pkSender = MapUtils.getMapString(map, "sender", null);
 					long addedOn = SystemTime.getOffsetTime(MapUtils.getMapLong(map,
-							"added-secs-ago", 0) * -1000);
+							"added-secs-ago", 0)
+							* -1000);
 					VuzeBuddy buddy = VuzeBuddyManager.getBuddyByPK(pkSender);
 
 					BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pkSender);
