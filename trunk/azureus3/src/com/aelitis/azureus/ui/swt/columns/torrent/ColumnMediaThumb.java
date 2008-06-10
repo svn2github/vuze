@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -364,8 +365,12 @@ public class ColumnMediaThumb
 			
 			boolean canShare = dm != null;
 			if (!canShare && (ds instanceof VuzeActivitiesEntry)) {
-				SelectedContent sc = ((VuzeActivitiesEntry)ds).createSelectedContentObject();
-				canShare = sc != null;
+				try {
+					SelectedContent sc = ((VuzeActivitiesEntry)ds).createSelectedContentObject();
+					canShare = sc != null;
+				} catch (Exception e) {
+					canShare = false;
+				}
 			}
 
 			if (clickAreaDL != null) {
