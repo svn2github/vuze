@@ -30,7 +30,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -271,7 +271,7 @@ public class VuzeBuddyImpl
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#shareDownload(com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent, java.lang.String)
-	public void shareDownload(SelectedContent content, String message)
+	public void shareDownload(VuzeUISelectedContent content, String message)
 			throws NotLoggedInException {
 		if (content == null) {
 			return;

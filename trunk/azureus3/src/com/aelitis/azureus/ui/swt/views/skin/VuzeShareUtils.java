@@ -7,8 +7,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.Constants;
 
 public class VuzeShareUtils
@@ -25,7 +27,17 @@ public class VuzeShareUtils
 		return instance;
 	}
 
-	public void shareTorrent(final SelectedContent currentContent,
+	public void shareTorrent(ISelectedContent content, String referer) {
+		if (content instanceof VuzeUISelectedContent) {
+			VuzeUISelectedContent sc = (VuzeUISelectedContent) content;
+			shareTorrent(sc, referer);
+		} else if (content instanceof SelectedContent) {
+			SelectedContent sc = (SelectedContent) content;
+			shareTorrent(new VuzeUISelectedContent(sc), referer);
+		}
+	}
+
+	public void shareTorrent(final VuzeUISelectedContent currentContent,
 			final String referer) {
 		if (Constants.DISABLE_BUDDIES_BAR) {
 			return;

@@ -601,7 +601,7 @@ public class VuzeActivitiesManager
 			List removedEntriesList = new ArrayList();
 			for (Iterator iter = removedEntries.iterator(); iter.hasNext();) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
-				removedEntriesList.add(entry.toMap());
+				removedEntriesList.add(entry.toDeletedMap());
 			}
 			mapSave.put("removed-entries", removedEntriesList);
 

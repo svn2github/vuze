@@ -17,8 +17,8 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -98,8 +98,8 @@ public class TorrentListener
 				String referer = MapUtils.getMapString(decodedMap, "referer",
 						"torrentlistener");
 				boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
-				SelectedContent content = new SelectedContent(hash, displayName, true,
-						canPlay);
+				VuzeUISelectedContent content = new VuzeUISelectedContent(hash,
+						displayName, true, canPlay);
 				content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 						null));
 				VuzeShareUtils.getInstance().shareTorrent(content, referer);

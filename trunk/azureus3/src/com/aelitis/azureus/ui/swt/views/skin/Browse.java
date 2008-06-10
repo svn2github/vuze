@@ -36,12 +36,13 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -128,7 +129,7 @@ public class Browse
 	 *
 	 * @since 3.0.5.3
 	 */
-	protected SelectedContent[] getCurrentlySelectedContent() {
+	protected ISelectedContent[] getCurrentlySelectedContent() {
 		if (browserSkinObject == null) {
 			return null;
 		}
@@ -151,8 +152,8 @@ public class Browse
 				hash = url.substring(i, end);
 			}
 
-			return new SelectedContent[] {
-				new SelectedContent(hash, title, true, false)
+			return new VuzeUISelectedContent[] {
+				new VuzeUISelectedContent(hash, title, true, false)
 			};
 		}
 

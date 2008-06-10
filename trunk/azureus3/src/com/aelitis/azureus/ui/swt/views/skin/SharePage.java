@@ -2,12 +2,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
 import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -18,17 +14,9 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -46,7 +34,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
@@ -54,19 +41,10 @@ import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.FlatButton;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.MiniCloseButton;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.SkinLinkLabel;
-import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.FAQTopics;
-import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
+import com.aelitis.azureus.ui.swt.views.skin.widgets.*;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 public class SharePage
@@ -133,7 +111,7 @@ public class SharePage
 
 	private Color widgetBackgroundColor = null;
 
-	private SelectedContent shareItem = null;
+	private VuzeUISelectedContent shareItem = null;
 
 	private DownloadManager dm = null;
 
@@ -854,7 +832,7 @@ public class SharePage
 		return browser;
 	}
 
-	public void setShareItem(SelectedContent content, String referer) {
+	public void setShareItem(VuzeUISelectedContent content, String referer) {
 		this.shareItem = content;
 		this.referer = referer;
 		this.dm = shareItem.getDM();
@@ -901,7 +879,7 @@ public class SharePage
 		}
 	}
 
-	public SelectedContent getShareItem() {
+	public VuzeUISelectedContent getShareItem() {
 		return shareItem;
 	}
 

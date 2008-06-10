@@ -39,13 +39,14 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.Constants;
@@ -361,7 +362,7 @@ public class TorrentListView
 			public void selectionChanged() {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						SelectedContent[] contents = getCurrentlySelectedContent();
+						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (dataArea.isVisible()) {
 							SelectedContentManager.changeCurrentlySelectedContent(contents);
 						}
@@ -1007,7 +1008,7 @@ public class TorrentListView
 	}
 
 	private void shareTorrents(String referer) {
-		SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+		ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 		if (contents.length > 0) {
 			/*
 			 * KN: we're only supporting sharing a single content right now
@@ -1020,21 +1021,20 @@ public class TorrentListView
 		return bAllowScrolling;
 	}
 
-	public SelectedContent[] getCurrentlySelectedContent() {
+	public ISelectedContent[] getCurrentlySelectedContent() {
 		List listContent = new ArrayList();
 		Object[] selectedDataSources = getSelectedDataSources(true);
 		for (int i = 0; i < selectedDataSources.length; i++) {
 			DownloadManager dm = (DownloadManager) selectedDataSources[i];
 			if (dm != null) {
-				SelectedContent currentContent;
+				VuzeUISelectedContent currentContent;
 				try {
-					currentContent = new SelectedContent(dm);
-					currentContent.setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
+					currentContent = new VuzeUISelectedContent(dm);
 					listContent.add(currentContent);
 				} catch (Exception e) {
 				}
 			}
 		}
-		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
+		return (ISelectedContent[]) listContent.toArray(new ISelectedContent[listContent.size()]);
 	}
 }

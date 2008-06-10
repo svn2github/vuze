@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
@@ -143,6 +143,9 @@ public class VuzeActivitiesEntry
 			setIsPlatformContent(MapUtils.getMapBoolean(map, "is-platform",
 					isPlatformContent));
 		}
+		if (!playable) {
+			setPlayable(MapUtils.getMapBoolean(map, "playable", false));
+		}
 		setID(MapUtils.getMapString(map, "id", null));
 		setText(MapUtils.getMapString(map, "text", null));
 		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
@@ -241,6 +244,13 @@ public class VuzeActivitiesEntry
 		return assetImageURL;
 	}
 
+	public Map toDeletedMap() {
+		Map map = new HashMap();
+		map.put("timestamp", new Long(timestamp));
+		map.put("id", id);
+		return map;
+	}
+
 	public Map toMap() {
 		Map map = new HashMap();
 		map.put("timestamp", new Long(timestamp));
@@ -283,6 +293,10 @@ public class VuzeActivitiesEntry
 		}
 		
 		map.put("is-platform", new Long(isPlatformContent ? 1 : 0));
+		
+		if (playable) {
+			map.put("playable", new Long(playable ? 1 : 0));
+		}
 
 		return map;
 	}
@@ -482,16 +496,16 @@ public class VuzeActivitiesEntry
 		this.torrentName = torrentName;
 	}
 
-	public SelectedContent createSelectedContentObject()
+	public VuzeUISelectedContent createSelectedContentObject()
 			throws Exception {
 
 		boolean ourContent = DataSourceUtils.isPlatformContent(this);
 		
-		SelectedContent sc = new SelectedContent();
+		VuzeUISelectedContent sc = new VuzeUISelectedContent();
 		dm = getDownloadManger();
 		if (dm != null) {
 			sc.setDisplayName(dm.getDisplayName());
-			sc.setDM(dm, ourContent);
+			sc.setDM(dm);
 			return sc;
 		}
 

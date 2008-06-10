@@ -40,7 +40,7 @@ import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.ColumnVuzeActivity;
@@ -267,7 +267,7 @@ public class VuzeActivitiesView
 			public void selectionChanged() {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
-						SelectedContent[] contents = getCurrentlySelectedContent();
+						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (soData.isVisible()) {
 							SelectedContentManager.changeCurrentlySelectedContent(contents);
 						}
@@ -575,7 +575,7 @@ public class VuzeActivitiesView
 		}
 	}
 
-	public SelectedContent[] getCurrentlySelectedContent() {
+	public ISelectedContent[] getCurrentlySelectedContent() {
 		if (view == null) {
 			return null;
 		}
@@ -585,7 +585,7 @@ public class VuzeActivitiesView
 			
 			VuzeActivitiesEntry ds = (VuzeActivitiesEntry) selectedDataSources[i];
 			if (ds != null) {
-				SelectedContent currentContent;
+				ISelectedContent currentContent;
 				try {
 					currentContent = ds.createSelectedContentObject();
 					if (currentContent != null) {
@@ -596,6 +596,6 @@ public class VuzeActivitiesView
 				}
 			}
 		}
-		return (SelectedContent[]) listContent.toArray(new SelectedContent[listContent.size()]);
+		return (ISelectedContent[]) listContent.toArray(new ISelectedContent[listContent.size()]);
 	}
 }

@@ -79,7 +79,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
@@ -719,7 +719,7 @@ public class MainWindow
 								COConfigurationManager.setParameter("ui.adv.share.newtag",
 										false);
 								tiShare.setImage(dstImage1);
-								SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+								ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 								if (contents.length > 0) {
 									VuzeShareUtils.getInstance().shareTorrent(contents[0],
 											"advanced");
@@ -731,7 +731,7 @@ public class MainWindow
 
 						tiShare.addListener(SWT.Selection, new Listener() {
 							public void handleEvent(Event e) {
-								SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+								ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 								if (contents.length > 0) {
 									VuzeShareUtils.getInstance().shareTorrent(contents[0],
 											"advanced");

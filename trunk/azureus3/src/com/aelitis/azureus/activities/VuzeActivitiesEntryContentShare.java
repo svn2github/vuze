@@ -31,7 +31,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
@@ -51,7 +51,7 @@ public class VuzeActivitiesEntryContentShare
 		super();
 	}
 
-	public VuzeActivitiesEntryContentShare(SelectedContent content, String message)
+	public VuzeActivitiesEntryContentShare(VuzeUISelectedContent content, String message)
 			throws NotLoggedInException {
 		if (content == null) {
 			return;

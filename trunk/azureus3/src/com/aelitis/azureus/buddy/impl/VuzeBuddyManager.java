@@ -37,7 +37,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -216,7 +216,7 @@ public class VuzeBuddyManager
 				
 				PlatformRelayMessenger.put(
 					message,
-					0,
+					500,
 					new PlatformRelayMessenger.putListener()
 					{
 						public void
@@ -1260,15 +1260,16 @@ public class VuzeBuddyManager
 	 * 
 	 * @param invites This is the map that comes from the webpage after it
 	 *                sends outs the invites
-	 * @param dm The download you wish to share
+	 * @param contentToShare the content you wish to share (null if none)
 	 * @param shareMessage The message the user typed to go with the share
-	 * @param buddies The buddies that should be notified
+	 * @param buddies The buddies that should be notified (null ok)
 	 * @throws NotLoggedInException 
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void inviteWithShare(Map invites, SelectedContent content,
-			String shareMessage, VuzeBuddy[] buddies)
+	public static void inviteWithShare(Map invites,
+			VuzeUISelectedContent contentToShare, String shareMessage,
+			VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
@@ -1276,17 +1277,17 @@ public class VuzeBuddyManager
 		}
 
 		String name = "na";
-		if (content != null) {
-			name = content.getDM() == null ? content.getDisplayName()
-					: content.getDM().toString();
+		if (contentToShare != null) {
+			name = contentToShare.getDM() == null ? contentToShare.getDisplayName()
+					: contentToShare.getDM().toString();
 		}
 
-		if (buddies != null && content != null) {
+		if (buddies != null && contentToShare != null) {
 			log("share " + name + " with " + buddies.length + " existing buddies");
 			for (int i = 0; i < buddies.length; i++) {
 				VuzeBuddy v3Buddy = buddies[i];
 				if (v3Buddy != null) {
-					v3Buddy.shareDownload(content, shareMessage);
+					v3Buddy.shareDownload(contentToShare, shareMessage);
 				}
 			}
 		}
@@ -1308,8 +1309,8 @@ public class VuzeBuddyManager
 			if (success) {
 				String code = MapUtils.getMapString(mapInvitation, "code", null);
 
-				if (content != null) {
-					queueShare(content, shareMessage, code);
+				if (contentToShare != null) {
+					queueShare(contentToShare, shareMessage, code);
 				}
 
 				List pkList = MapUtils.getMapList(mapInvitation, "pks",
@@ -1329,7 +1330,7 @@ public class VuzeBuddyManager
 		}
 	}
 
-	private static void queueShare(SelectedContent content, String message,
+	private static void queueShare(VuzeUISelectedContent content, String message,
 			String code) {
 		if (content == null) {
 			return;

@@ -23,7 +23,7 @@ import java.util.Map;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 
 /**
  * @author TuxPaper
@@ -62,7 +62,7 @@ public interface VuzeBuddy
 
 	public void loadFromMap(Map mapNewBuddy);
 
-	public void shareDownload(SelectedContent content, String message) throws NotLoggedInException;
+	public void shareDownload(VuzeUISelectedContent content, String message) throws NotLoggedInException;
 
 	public void sendPayloadMap(Map map) throws NotLoggedInException;
 

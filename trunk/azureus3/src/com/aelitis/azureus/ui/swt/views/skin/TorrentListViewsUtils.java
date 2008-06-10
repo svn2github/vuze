@@ -55,7 +55,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -98,7 +98,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					/*
 					 * KN: we're only supporting sharing a single content right now
@@ -122,7 +122,7 @@ public class TorrentListViewsUtils
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 			public void pressed(SWTSkinButtonUtility buttonUtility) {
-				SelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					/*
 					 * KN: we're only supporting sharing a single content right now

@@ -108,9 +108,7 @@ public class PlatformAuthorizedSenderImpl
 
 			int i = s.indexOf("0;");
 
-			if (i >= 0) {
-				PlatformMessenger.debug("Got Auth Reply: " + s.substring(i));
-			} else {
+			if (i < 0) {
 				String partial = s.length() == 0 ? "" : s.substring(0, Math.min(200,
 						s.length()));
 				PlatformMessenger.debug("Got BAD Auth Reply ( " + s.length() + "): "
