@@ -243,16 +243,17 @@ public class PlatformRelayMessenger
 
 						PlatformMessenger.debug("Relay: got message from " + pkSender);
 
-						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
-							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
-							l.newRelayServerPayLoad(buddy, pkSender, decodedMap, addedOn);
-						}
-
 						if (TEST_ERRORACK) {
 							errorAck(ack_id);
 						} else {
 							ack(ack_id, decrypt.getChallenge());
 						}
+
+						for (Iterator iter2 = listeners.iterator(); iter2.hasNext();) {
+							VuzeRelayListener l = (VuzeRelayListener) iter2.next();
+							l.newRelayServerPayLoad(buddy, pkSender, decodedMap, addedOn);
+						}
+
 
 					} catch (BuddyPluginPasswordException e) {
 
@@ -327,7 +328,7 @@ public class PlatformRelayMessenger
 		};
 
 		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID, OP_ACK,
-				mapParameters, 0);
+				mapParameters, 500);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
@@ -384,7 +385,7 @@ public class PlatformRelayMessenger
 		};
 
 		PlatformMessage message = new PlatformMessage(MSG_ID, LISTENER_ID,
-				OP_ERRORACK, mapParameters, 0);
+				OP_ERRORACK, mapParameters, 500);
 
 		PlatformMessenger.queueMessage(message, listener);
 	}
