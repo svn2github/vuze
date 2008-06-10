@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
+import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -371,13 +372,13 @@ public class SharePage
 
 	private void formatControls() {
 		buddyListDescription.setForeground(textColor);
-		Utils.setFontHeight(buddyListDescription, 10,SWT.BOLD);
+		Utils.setFontHeight(buddyListDescription, 10, SWT.BOLD);
 
 		inviteeListDescription.setForeground(textColor);
-		Utils.setFontHeight(inviteeListDescription, 10,SWT.BOLD);
+		Utils.setFontHeight(inviteeListDescription, 10, SWT.BOLD);
 
 		optionalMessageLabel.setForeground(textDarkerColor);
-//		Utils.setFontHeight(optionalMessageLabel, 8,SWT.NORMAL);
+		//		Utils.setFontHeight(optionalMessageLabel, 8,SWT.NORMAL);
 
 		optionalMessageDisclaimerLabel.setForeground(textDarkerColor);
 
@@ -397,7 +398,7 @@ public class SharePage
 		shareHeaderMessageLabel.setForeground(textDarkerColor);
 
 		shareHeaderLabel.setForeground(textColor);
-		Utils.setFontHeight(shareHeaderLabel, 16,SWT.NORMAL);
+		Utils.setFontHeight(shareHeaderLabel, 16, SWT.NORMAL);
 
 		contentDetail.setBackground(widgetBackgroundColor);
 
@@ -731,6 +732,8 @@ public class SharePage
 			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
 					getBrowser(), null, true);
 
+			context.addMessageListener(new DisplayListener(getBrowser()));
+
 			/*
 			 * Add listener to call the 'inviteFromShare' script; this listener is only called
 			 * once whenever a web page is loaded the first time or when it's refreshed
@@ -802,23 +805,23 @@ public class SharePage
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
-  					final List buddiesToShareWith = buddyList.getFriends();
-  					final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
-  					SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-  						public void loginComplete() {
-  							try {
-  								VuzeBuddyManager.inviteWithShare(confirmationResponse,
-  										getShareItem(), commentText.getText(), buddies);
-  								getDetailPanel().show(false);
-  								showConfirmationDialog(buddiesToShareWith);
-  								resetControls();
-  
-  							} catch (NotLoggedInException e) {
-  								//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
-  								// try again
-  							}
-  						}
-  					});
+						final List buddiesToShareWith = buddyList.getFriends();
+						final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
+						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+							public void loginComplete() {
+								try {
+									VuzeBuddyManager.inviteWithShare(confirmationResponse,
+											getShareItem(), commentText.getText(), buddies);
+									getDetailPanel().show(false);
+									showConfirmationDialog(buddiesToShareWith);
+									resetControls();
+
+								} catch (NotLoggedInException e) {
+									//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
+									// try again
+								}
+							}
+						});
 					}
 				}
 
@@ -855,7 +858,7 @@ public class SharePage
 		this.shareItem = content;
 		this.referer = referer;
 		this.dm = shareItem.getDM();
-		
+
 		if (SystemTime.getCurrentTime() - PlatformBuddyMessenger.getLastSyncCheck() > PlatformConfigMessenger.getBuddySyncOnShareMinTimeSecs() * 1000) {
 			try {
 				PlatformBuddyMessenger.sync(null);

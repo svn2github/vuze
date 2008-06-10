@@ -20,6 +20,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
+import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.util.Constants;
 
@@ -82,6 +83,8 @@ public class InvitePage
 					"buddy-page-listener-invite" + Math.random(), getBrowser(), null,
 					true);
 
+			context.addMessageListener(new DisplayListener(getBrowser()));
+			
 			/*
 			 * Add listener to call the 'inviteFromShare' script; this listener is only called
 			 * once whenever a web page is loaded the first time or when it's refreshed
