@@ -58,7 +58,7 @@ public class Constants
 			+ URL_PORT + "/";
 
 	public static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS
-			+ ":443/app";
+			+ ":443/rpc";
 
 	public static String URL_SUFFIX;
 
@@ -100,7 +100,8 @@ public class Constants
 
 	public static String URL_RELAY_RPC = System.getProperty("relay_url",
 			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
-					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT) + "/msgrelay");
+					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT)
+					+ "/msgrelay/rpc");
 
 	public static final String URL_AUTHORIZED_RPC = System.getProperty(
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
