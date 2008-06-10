@@ -1110,7 +1110,16 @@ public class MainStatusBar
 				 * this is to help catch the users attention
 				 */
 				if (true == pReport.isInErrorState()) {
+					
+					if(true == "reporterType_updater".equals(pReport.getReporterType())){
+						/*
+						 * Suppressing the pop-up for update-related errors
+						 */
+						return RETVAL_OK;
+					}
+					
 					final IProgressReporter final_reporter = reporter;
+					
 
 					/*
 					 * The new window is opened only if there is not one already showing the same reporter

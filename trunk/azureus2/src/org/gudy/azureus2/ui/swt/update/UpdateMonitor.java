@@ -218,6 +218,7 @@ public class UpdateMonitor
 			/*
 			 * Init reporter and allow cancel
 			 */
+			updateReporter.setReporterType("reporterType_updater");
 			updateReporter.setCancelAllowed(true);
 			updateReporter.setTitle(MessageText.getString("updater.progress.window.title"));
 			updateReporter.appendDetailMessage(format(instance, "added"));
