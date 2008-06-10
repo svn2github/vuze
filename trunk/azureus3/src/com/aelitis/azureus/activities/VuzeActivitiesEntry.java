@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
-import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
@@ -496,12 +496,12 @@ public class VuzeActivitiesEntry
 		this.torrentName = torrentName;
 	}
 
-	public VuzeUISelectedContent createSelectedContentObject()
+	public SelectedContentV3 createSelectedContentObject()
 			throws Exception {
 
 		boolean ourContent = DataSourceUtils.isPlatformContent(this);
 		
-		VuzeUISelectedContent sc = new VuzeUISelectedContent();
+		SelectedContentV3 sc = new SelectedContentV3();
 		dm = getDownloadManger();
 		if (dm != null) {
 			sc.setDisplayName(dm.getDisplayName());
@@ -527,6 +527,8 @@ public class VuzeActivitiesEntry
 		}
 
 		sc.setThumbURL(assetImageURL);
+		sc.setImageBytes(imageBytes);
+
 		return sc;
 
 	}

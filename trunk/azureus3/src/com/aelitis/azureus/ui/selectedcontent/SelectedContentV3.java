@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package com.aelitis.azureus.ui.swt.views.list;
+package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -31,7 +31,7 @@ import com.aelitis.azureus.util.PlayUtils;
  * @created Jun 9, 2008
  *
  */
-public class VuzeUISelectedContent
+public class SelectedContentV3
 	implements ISelectedContent
 {
 
@@ -42,24 +42,26 @@ public class VuzeUISelectedContent
 	private boolean canPlay;
 
 	private String thumbURL;
+	
+	private byte[] imageBytes;
 
-	public VuzeUISelectedContent(SelectedContent content) {
+	public SelectedContentV3(SelectedContent content) {
 		this.content = content;
 		this.setDM(content.getDM());
 	}
 
-	public VuzeUISelectedContent() {
+	public SelectedContentV3() {
 		content = new SelectedContent();
 	}
 
-	public VuzeUISelectedContent(String hash, String displayName, boolean isPlatformContent,
+	public SelectedContentV3(String hash, String displayName, boolean isPlatformContent,
 			boolean canPlay) {
 		this.isPlatformContent = isPlatformContent;
 		this.canPlay = canPlay;
 		content = new SelectedContent(hash, displayName);
 	}
 
-	public VuzeUISelectedContent(DownloadManager dm) throws Exception {
+	public SelectedContentV3(DownloadManager dm) throws Exception {
 		content = new SelectedContent();
 		setDM(dm);
 	}
@@ -95,6 +97,7 @@ public class VuzeUISelectedContent
   		setPlatformContent(PlatformTorrentUtils.isContent(dm.getTorrent(), true));
   		setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
   		setCanPlay(isPlatformContent && PlayUtils.canUseEMP(dm.getTorrent()));
+  		setImageBytes(PlatformTorrentUtils.getContentThumbnail(dm.getTorrent()));
 		}
 	}
 
@@ -130,5 +133,19 @@ public class VuzeUISelectedContent
 
 	public void setThumbURL(String thumbURL) {
 		this.thumbURL = thumbURL;
+	}
+
+	/**
+	 * @param imageBytes the imageBytes to set
+	 */
+	public void setImageBytes(byte[] imageBytes) {
+		this.imageBytes = imageBytes;
+	}
+
+	/**
+	 * @return the imageBytes
+	 */
+	public byte[] getImageBytes() {
+		return imageBytes;
 	}
 }

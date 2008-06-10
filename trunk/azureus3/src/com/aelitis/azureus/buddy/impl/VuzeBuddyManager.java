@@ -37,7 +37,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -1268,7 +1268,7 @@ public class VuzeBuddyManager
 	 * @since 3.0.5.3
 	 */
 	public static void inviteWithShare(Map invites,
-			VuzeUISelectedContent contentToShare, String shareMessage,
+			SelectedContentV3 contentToShare, String shareMessage,
 			VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 
@@ -1330,7 +1330,7 @@ public class VuzeBuddyManager
 		}
 	}
 
-	private static void queueShare(VuzeUISelectedContent content, String message,
+	private static void queueShare(SelectedContentV3 content, String message,
 			String code) {
 		if (content == null) {
 			return;

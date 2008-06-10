@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -34,6 +33,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
@@ -42,7 +42,6 @@ import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.*;
-import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.*;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
@@ -111,7 +110,7 @@ public class SharePage
 
 	private Color widgetBackgroundColor = null;
 
-	private VuzeUISelectedContent shareItem = null;
+	private SelectedContentV3 shareItem = null;
 
 	private DownloadManager dm = null;
 
@@ -832,7 +831,7 @@ public class SharePage
 		return browser;
 	}
 
-	public void setShareItem(VuzeUISelectedContent content, String referer) {
+	public void setShareItem(SelectedContentV3 content, String referer) {
 		this.shareItem = content;
 		this.referer = referer;
 		this.dm = shareItem.getDM();
@@ -879,7 +878,7 @@ public class SharePage
 		}
 	}
 
-	public VuzeUISelectedContent getShareItem() {
+	public SelectedContentV3 getShareItem() {
 		return shareItem;
 	}
 
@@ -908,48 +907,42 @@ public class SharePage
 			buddiesViewer.addSelectionToShare();
 		}
 
-		if (null != dm && null != dm.getTorrent()) {
-			Image img = null;
-
-			byte[] imageBytes = PlatformTorrentUtils.getContentThumbnail(dm.getTorrent());
-			if (null != imageBytes && imageBytes.length > 0) {
-				ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-				img = new Image(Display.getDefault(), bis);
-
-				/*
-				 * Dispose this image when the canvas is disposed
-				 */
-				final Image img_final = img;
-				contentDetail.addDisposeListener(new DisposeListener() {
-
-					public void widgetDisposed(DisposeEvent e) {
-						if (null != img_final && false == img_final.isDisposed()) {
-							img_final.dispose();
-						}
-					}
-				});
-
-			} else {
-				String path = dm == null ? null
-						: dm.getDownloadState().getPrimaryFile();
-				if (path != null) {
-					img = ImageRepository.getPathIcon(path, true, dm.getTorrent() != null
-							&& !dm.getTorrent().isSimpleTorrent());
-					/*
-					 * DO NOT dispose the image from .getPathIcon()!!!!
-					 */
-				}
-			}
-
-			if (null != img) {
-				contentThumbnail.setImage(img);
-			} else {
-				Debug.out("Problem getting image for torrent in SharePage.refresh()");
-			}
-
-		} else {
-			contentThumbnail.setImage(null);
+		byte[] imageBytes = shareItem.getImageBytes();
+		if (imageBytes == null && null != dm && null != dm.getTorrent()) {
+			imageBytes = PlatformTorrentUtils.getContentThumbnail(dm.getTorrent());
 		}
+
+		Image img = null;
+		if (null != imageBytes && imageBytes.length > 0) {
+			ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+			img = new Image(Display.getDefault(), bis);
+
+			/*
+			 * Dispose this image when the canvas is disposed
+			 */
+			final Image img_final = img;
+			contentDetail.addDisposeListener(new DisposeListener() {
+
+				public void widgetDisposed(DisposeEvent e) {
+					if (null != img_final && false == img_final.isDisposed()) {
+						img_final.dispose();
+					}
+				}
+			});
+
+		} else if (dm != null) {
+			String path = dm.getDownloadState().getPrimaryFile();
+			if (path != null) {
+				img = ImageRepository.getPathIcon(path, true, dm.getTorrent() != null
+						&& !dm.getTorrent().isSimpleTorrent());
+				/*
+				 * DO NOT dispose the image from .getPathIcon()!!!!
+				 */
+			}
+		}
+
+		contentThumbnail.setImage(img);
+
 		updateContentStats();
 
 		adjustLayout();

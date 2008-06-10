@@ -41,12 +41,12 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
-import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.Constants;
@@ -1027,9 +1027,9 @@ public class TorrentListView
 		for (int i = 0; i < selectedDataSources.length; i++) {
 			DownloadManager dm = (DownloadManager) selectedDataSources[i];
 			if (dm != null) {
-				VuzeUISelectedContent currentContent;
+				SelectedContentV3 currentContent;
 				try {
-					currentContent = new VuzeUISelectedContent(dm);
+					currentContent = new SelectedContentV3(dm);
 					listContent.add(currentContent);
 				} catch (Exception e) {
 				}

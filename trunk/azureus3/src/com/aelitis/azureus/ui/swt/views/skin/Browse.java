@@ -38,11 +38,11 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.list.VuzeUISelectedContent;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -152,8 +152,8 @@ public class Browse
 				hash = url.substring(i, end);
 			}
 
-			return new VuzeUISelectedContent[] {
-				new VuzeUISelectedContent(hash, title, true, false)
+			return new SelectedContentV3[] {
+				new SelectedContentV3(hash, title, true, false)
 			};
 		}
 
