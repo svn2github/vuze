@@ -145,8 +145,9 @@ public class StyledShell
 		fillLayout.marginWidth = borderWidth;
 		borderedBackground.setLayout(fillLayout);
 
-		content = new Composite(borderedBackground, SWT.NONE);
-
+		content = new Composite(borderedBackground, SWT.DOUBLE_BUFFERED);
+		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		
 		borderedBackground.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
@@ -220,11 +221,15 @@ public class StyledShell
 					p.y -= startY;
 					styledShell.setLocation(p);
 				}
+				if(e.type == SWT.Resize){
+					styledShell.setRegion(getRoundedRegion(styledShell.getBounds()));
+				}
 			}
 		};
 		styledShell.addListener(SWT.KeyDown, l);
 		styledShell.addListener(SWT.MouseDown, l);
 		styledShell.addListener(SWT.MouseMove, l);
+		styledShell.addListener(SWT.Resize, l);
 		styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
 	}
 
@@ -243,7 +248,8 @@ public class StyledShell
 		}
 		Utils.setShellIcon(styledShell);
 
-		content = new Composite(styledShell, SWT.NONE);
+		content = new Composite(styledShell, SWT.DOUBLE_BUFFERED);
+		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
 		alpha = 255;
 
@@ -358,6 +364,12 @@ public class StyledShell
 
 			styledShell.open();
 			isAlreadyOpened = true;
+		}
+	}
+	public void close(){
+		if (true == isAlive()) {
+			styledShell.close();
+			isAlreadyOpened = false;
 		}
 	}
 

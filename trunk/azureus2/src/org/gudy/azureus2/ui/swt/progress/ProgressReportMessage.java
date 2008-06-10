@@ -44,4 +44,15 @@ public class ProgressReportMessage
 		return type;
 	}
 
+	public boolean isError() {
+		return type == MSG_TYPE_ERROR;
+	}
+
+	public boolean isInfo() {
+		return type == MSG_TYPE_INFO;
+	}
+
+	public boolean isLog() {
+		return type == MSG_TYPE_LOG;
+	}
 }

@@ -26,7 +26,7 @@ public class TwistieSection
 		*/
 	public TwistieSection(Composite parent, int style) {
 		super(parent, SWT.NONE);
-
+		setBackgroundMode(SWT.INHERIT_FORCE);
 		GridLayout gLayout = new GridLayout();
 		gLayout.marginHeight = 0;
 		gLayout.marginWidth = 0;
@@ -38,6 +38,7 @@ public class TwistieSection
 
 		content = new TwistieContentPanel(this, SWT.NONE);
 		final GridData gDataExpanded = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gDataExpanded.horizontalIndent = 10;
 		final GridData gDataCollapsed = new GridData(SWT.FILL, SWT.FILL, true,
 				false);
 		gDataCollapsed.heightHint = 0;
@@ -170,6 +171,7 @@ public class TwistieSection
 
 		public TwistieContentPanel(Composite parent, int style) {
 			super(parent, style);
+			setBackgroundMode(SWT.INHERIT_FORCE);
 		}
 
 		private void _setLayoutData(GridData gData) {

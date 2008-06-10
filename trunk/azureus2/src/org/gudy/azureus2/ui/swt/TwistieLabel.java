@@ -98,6 +98,7 @@ public class TwistieLabel
 	 */
 	public TwistieLabel(Composite parent, int style) {
 		super(parent, SWT.NONE);
+		setBackgroundMode(SWT.INHERIT_FORCE);
 		this.style = style;
 
 		GridLayout gLayout = new GridLayout();
@@ -144,11 +145,6 @@ public class TwistieLabel
 		GridData labelData = new GridData(SWT.FILL, SWT.CENTER, true, false);
 		labelData.horizontalIndent = 10;
 		titleLabel.setLayoutData(labelData);
-
-		/*
-		 * Defaults to the parent's background color
-		 */
-		setBackground(parent.getBackground());
 
 		/*
 		 * Add our mouse interceptor to the control and the title label
