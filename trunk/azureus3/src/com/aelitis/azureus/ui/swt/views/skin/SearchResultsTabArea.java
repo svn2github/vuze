@@ -31,8 +31,10 @@ import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -111,8 +113,12 @@ public class SearchResultsTabArea
 
 				Control browser = browserSkinObject.getControl();
 				Browser search = (Browser) soSearchResults.getControl();
-				search.setUrl(MapUtils.getMapString(params, "url",
-						"http://google.com/search?q=" + Math.random()));
+				String url = MapUtils.getMapString(params, "url",
+						"http://google.com/search?q=" + Math.random());
+				if (PlatformConfigMessenger.urlCanRPC(url)) {
+					url = Constants.appendURLSuffix(url);
+				}
+				search.setUrl(url);
 
 				FormData gd = (FormData) search.getLayoutData();
 				gd.top = new FormAttachment(browser, 0);
