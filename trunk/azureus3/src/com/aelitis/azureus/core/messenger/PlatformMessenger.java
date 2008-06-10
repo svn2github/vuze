@@ -117,7 +117,8 @@ public class PlatformMessenger
 
 		if (message != null) {
 			debug("q " + message.toShortString() + ": " + message + " for "
-					+ new Date(message.getFireBefore()));
+					+ new Date(message.getFireBefore()) + "; in "
+					+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
 			if (message.requiresAuthorization() && authorizedDelayed) {
 				debug("   authorized msg is delayed");
 			}
@@ -205,13 +206,17 @@ public class PlatformMessenger
 		queue_mon.enter();
 		try {
 			// add one at a time, ensure relay server messages are seperate
+			boolean first = true;
+			boolean isRelayServerBatch = false;
 			for (Iterator iter = mapQueue.keySet().iterator(); iter.hasNext();) {
 				PlatformMessage message = (PlatformMessage) iter.next();
 				Object value = mapQueue.get(message);
 
 				boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
-
-				if (isRelayServer && mapProcessing.size() > 0) {
+				if (first) {
+					isRelayServerBatch = isRelayServer;
+					first = false;
+				} else  if (isRelayServerBatch != isRelayServer) {
 					break;
 				}
 
@@ -226,10 +231,6 @@ public class PlatformMessenger
 					if (loginAndRetry != message.getLoginAndRetry()) {
 						break;
 					}
-				}
-				
-				if (isRelayServer) {
-					break;
 				}
 			}
 		} finally {
@@ -255,9 +256,10 @@ public class PlatformMessenger
 			}
 
 			String listenerID = message.getListenerID();
+			String messageID = message.getMessageID();
 			try {
 				urlStem += "cmd="
-						+ URLEncoder.encode(message.getMessageID()
+						+ URLEncoder.encode(messageID
 								+ BrowserMessage.MESSAGE_DELIM + sequenceNo
 								+ BrowserMessage.MESSAGE_DELIM + listenerID
 								+ BrowserMessage.MESSAGE_DELIM + message.getOperationID()
@@ -265,9 +267,10 @@ public class PlatformMessenger
 								+ message.getParameters().toString(), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 			}
+			String curServer = messageID + "-" + listenerID;
 			if (server == null) {
-				server = message.getMessageID() + "-" + listenerID;
-			} else if (!server.equals(listenerID)) {
+				server = curServer;
+			} else if (!server.equals(curServer)) {
 				server = "multi";
 			}
 
@@ -439,7 +442,8 @@ public class PlatformMessenger
 				continue;
 			}
 
-			debug("Got a reply for " + message.toShortString() + "\n\t\t" + reply);
+			debug("Got a reply for " + message.toShortString() + "\n\t\t"
+					+ reply.substring(0, Math.min(8192, reply.length())));
 
 			final PlatformMessage fMessage = message;
 			final PlatformMessengerListener fListener = listener;
