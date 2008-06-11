@@ -219,7 +219,6 @@ public abstract class SkinButton
 	 * Computes the optimal size to fit either/or the image, text, and background; whichever is larger
 	 */
 	public Point computeSize(int hint, int hint2, boolean changed) {
-		System.out.println("Compute size");//KN: sysout
 		Point backgroundExtent = new Point(0, 0);
 		Point imageExtent = new Point(0, 0);
 		Point textExtent = new Point(0, 0);
