@@ -14,8 +14,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -44,6 +42,8 @@ public class DetailPanel
 	private StackLayout stackLayout;
 
 	private BlankDetailPage blankPage = null;
+
+	private String currentPageID = null;
 
 	public DetailPanel() {
 
@@ -139,6 +139,7 @@ public class DetailPanel
 	private void createDefaultPages() {
 
 		blankPage = new BlankDetailPage(this, "blankPage");
+		currentPageID = "blankPage";
 
 		blankPage.createControls(detailPanel);
 		/*
@@ -273,13 +274,14 @@ public class DetailPanel
 								 * in the RefreshListener bring the page to the top and update the UI
 								 */
 								if (true == pages.containsKey(pageID)) {
+									currentPageID = pageID;
 									final IDetailPage page = ((IDetailPage) pages.get(pageID));
 									blankPage.showBusy(true, 0);
 									page.refresh(new IDetailPage.RefreshListener() {
 										public void refreshCompleted() {
 											Utils.execSWTThread(new AERunnable() {
 												public void runSupport() {
-													blankPage.showBusy(false, 0);
+													blankPage.showBusy(false);
 													Utils.relayout(detailPanel);
 													stackLayout.topControl = page.getControl();
 													detailPanel.layout();
@@ -310,5 +312,20 @@ public class DetailPanel
 				}
 			}
 		});
+	}
+
+	public void showBusy(boolean value, long delay) {
+		if (true == value) {
+			stackLayout.topControl = blankPage.getControl();
+			detailPanel.layout();
+			blankPage.showBusy(value, delay);
+		} else {
+			IDetailPage page = getPage(currentPageID);
+			if (null != page) {
+				stackLayout.topControl = page.getControl();
+				detailPanel.layout();
+				blankPage.showBusy(false, 0);
+			}
+		}
 	}
 }

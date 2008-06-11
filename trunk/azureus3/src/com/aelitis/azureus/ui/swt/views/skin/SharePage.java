@@ -508,7 +508,6 @@ public class SharePage
 
 				getMessageContext().executeInBrowser("shareSubmit()");
 
-				System.out.println("shareSubmit() called");//KN: sysout
 				// We'll get a buddy-page.invite-confirm message from the webpage,
 				// even if it's just a share with no invites
 			}
@@ -517,8 +516,8 @@ public class SharePage
 	}
 
 	private void showConfirmationDialog(List buddiesToShareWith) {
-		System.out.println("showConfirmationDialog()");//KN: sysout
 		getDetailPanel().showBusy(false, 0);
+		
 		if (null != buddyPageListener) {
 
 			final String[] message = new String[1];
@@ -748,7 +747,6 @@ public class SharePage
 				}
 
 				public void handleInviteConfirm() {
-					System.out.println("Confirmation received!!!!");//KN: sysout
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
@@ -757,7 +755,6 @@ public class SharePage
 						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 							public void loginComplete() {
 								try {
-									System.out.println("inviteWithShare() called");//KN: sysout
 									VuzeBuddyManager.inviteWithShare(confirmationResponse,
 											getShareItem(), commentText.getText(), buddies);
 									getDetailPanel().show(false);

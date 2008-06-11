@@ -129,6 +129,10 @@ public class BlankDetailPage
 
 	}
 
+	public void showBusy(boolean value) {
+		showBusy(value, 0);
+	}
+
 	public void showBusy(boolean value, long delayInMilli) {
 		isBusy = value;
 
