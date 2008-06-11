@@ -388,7 +388,7 @@ GenericMessageConnectionDirect
 					public String 
 					getDescription() 
 					{
-						return( "generic connection: " + connection.getString());
+						return( "generic connection");
 					}
 				});
 	}
