@@ -186,16 +186,11 @@ BuddyPluginBuddy
 		return( subsystem );
 	}
 	
-	public void
+	protected void
 	setSubsystem(
 		int		_s )
 	{
-		if ( _s != subsystem ){
-			
-			subsystem	= _s;
-			
-			plugin.saveConfig( true );
-		}
+		subsystem = _s;
 	}
 	
 	public boolean
@@ -1448,7 +1443,7 @@ BuddyPluginBuddy
 						}
 					},
 					reason, 
-					SESecurityManager.BLOCK_ENCRYPTION_AES );		
+					BuddyPlugin.BLOCK_CRYPTO );		
 				
 			con.connect();
 			
