@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -33,34 +32,28 @@ import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 DeleteFileOnCloseInputStream
-	extends FilterInputStream
+	extends InputStream
 {
 	private InputStream			in;
 	private File				file;
 	private boolean				closed;
 	
+	private long				pos;
+	private long				mark;
+	
 	public
 	DeleteFileOnCloseInputStream(
-		File		file )
+		File		_file )
 	
 		throws IOException
 	{
-		this( new FileInputStream( file ), file );
-	}
-	
-	protected
-	DeleteFileOnCloseInputStream(
-		InputStream		_in,
-		File			_file )
-	{
-		super( _in );
-				
-		in		= _in;
-		file	= _file;
+		file		= _file;
+		in			= new FileInputStream( file );
 	}
 	
 	public void 
 	close() 
+	
 		throws IOException 
 	{
 		if ( closed ){
@@ -80,5 +73,103 @@ DeleteFileOnCloseInputStream
 				Debug.out( "Failed to delete file '" + file + "'" );
 			}
 		}
+	}
+	
+	public int 
+	read() 
+	
+		throws IOException 
+	{
+		int	result = in.read();
+		
+		pos++;
+		
+		return( result );
+	}
+
+
+	public int 
+	read(
+		byte 	b[] ) 
+	
+		throws IOException 
+	{
+		int	res = read( b, 0, b.length );
+		
+		if ( res > 0 ){
+		
+			pos += res;
+		}
+		
+		return( res );
+	}
+
+
+	public int 
+	read(
+		byte	b[], 
+		int 	off, 
+		int 	len )
+	
+		throws IOException 
+	{
+		int res = in.read( b, off, len );
+		
+		if ( res > 0 ){
+			
+			pos += res;
+		}
+		
+		return( res );
+	}
+
+
+	public long 
+	skip(
+		long 	n ) 
+	
+		throws IOException 
+	{
+		long res = in.skip( n );
+		
+		pos += res;
+		
+		return( res );
+	}
+
+
+	public int 
+	available() 
+	
+		throws IOException 
+	{
+		return( in.available());
+	}
+	
+	public synchronized void 
+	mark(
+		int readlimit ) 
+	{
+		mark	= pos;
+	}
+	
+	public synchronized void 
+	reset() 
+	
+		throws IOException
+	{
+		in.close();
+		
+		in = new FileInputStream( file );
+		
+		in.skip( mark );
+		
+		pos = mark;
+	}
+	
+	public boolean 
+	markSupported() 
+	{
+		return( true );
 	}
 }

@@ -264,7 +264,7 @@ ResourceDownloaderMetaRefreshImpl
 				
 				boolean	marked = false;
 				
-				if ( data instanceof ByteArrayInputStream){
+				if ( data.markSupported()){
 				
 					data.mark(data.available());
 					
