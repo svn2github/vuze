@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -39,7 +40,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.PaginationWidget;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
 

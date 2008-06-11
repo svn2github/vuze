@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
+import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -34,7 +35,6 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserListener;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 import com.aelitis.azureus.util.Constants;
 
 /**

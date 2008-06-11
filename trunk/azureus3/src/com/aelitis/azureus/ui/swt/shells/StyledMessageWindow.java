@@ -20,13 +20,13 @@ import org.gudy.azureus2.ui.swt.TwistieLabel;
 import org.gudy.azureus2.ui.swt.TwistieSection;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
+import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.progress.IMessage;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.widgets.BubbleButton;
 
 public class StyledMessageWindow
 	extends StyledShell
