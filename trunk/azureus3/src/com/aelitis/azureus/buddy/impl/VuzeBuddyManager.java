@@ -1261,24 +1261,39 @@ public class VuzeBuddyManager
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void inviteWithShare(Map invites,
+	public static void inviteWithShare(final Map invites,
+			final SelectedContentV3 contentToShare, final String shareMessage,
+			final VuzeBuddy[] buddies)
+			throws NotLoggedInException {
+		if (!LoginInfoManager.getInstance().isLoggedIn()) {
+			throw new NotLoggedInException();
+		}
+		new AEThread2("inviteWithShare", true) {
+			public void run() {
+				try {
+					_inviteWithShare(invites, contentToShare, shareMessage, buddies);
+				} catch (NotLoggedInException e) {
+					Debug.out(e);
+				}
+			}
+		}.start();
+	}
+
+	private static void _inviteWithShare(Map invites,
 			SelectedContentV3 contentToShare, String shareMessage,
 			VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start");
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
 			throw new NotLoggedInException();
 		}
 
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start2");
 		String name = "na";
 		if (contentToShare != null) {
 			name = contentToShare.getDM() == null ? contentToShare.getDisplayName()
 					: contentToShare.getDM().toString();
 		}
 
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start3");
 		if (buddies != null && contentToShare != null) {
 			log("share " + name + " with " + buddies.length + " existing buddies");
 			for (int i = 0; i < buddies.length; i++) {
@@ -1289,7 +1304,6 @@ public class VuzeBuddyManager
 			}
 		}
 
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start4");
 		Map inviteMessage = MapUtils.getMapMap(invites, "message", null);
 		if (inviteMessage == null) {
 			inviteMessage = invites;
@@ -1298,8 +1312,6 @@ public class VuzeBuddyManager
 				Collections.EMPTY_LIST);
 
 		log("invite " + sentInvitations.size() + " ppl, sharing " + name);
-
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start5");
 
 		List displayNames = new ArrayList();
 		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
@@ -1325,14 +1337,12 @@ public class VuzeBuddyManager
 				displayNames.add(nameArray);
 			}
 		}
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start6");
 		if (displayNames.size() > 0) {
 			VuzeActivitiesBuddyInvited entry = new VuzeActivitiesBuddyInvited(displayNames);
 			VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 				entry
 			});
 		}
-		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start7");
 	}
 
 	private static void queueShare(SelectedContentV3 content, String message,
