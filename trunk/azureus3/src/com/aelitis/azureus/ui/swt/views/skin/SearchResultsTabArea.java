@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
@@ -32,6 +34,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
@@ -85,7 +88,7 @@ public class SearchResultsTabArea
 	 * 
 	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
-		this.browserSkinObject = browserSkinObject;
+		this.browserSkinObject = browserSkinObject;		
 	}
 
 
@@ -118,6 +121,35 @@ public class SearchResultsTabArea
 				if (PlatformConfigMessenger.urlCanRPC(url)) {
 					url = Constants.appendURLSuffix(url);
 				}
+				
+				//Gudy, Not Tux, Listener Added
+				String listenerAdded = (String) search.getData("g.nt.la");
+				if(listenerAdded == null) {
+					search.setData("g.nt.la","");
+					search.addProgressListener(new ProgressListener() {
+						public void changed(ProgressEvent event) {}
+						
+						public void completed(ProgressEvent event) {
+							Browser search = (Browser) event.widget;
+							String execAfterLoad = (String) search.getData("execAfterLoad");
+							//Erase it, so that it's only used once after the page loads
+							search.setData("execAfterLoad",null);
+							if(execAfterLoad != null && ! execAfterLoad.equals("")) {
+								//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
+								//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
+								boolean result = search.execute(execAfterLoad);
+								//System.out.println("Injection : " + execAfterLoad + " (" + result + ")");
+							}
+
+						}
+					});
+				}
+				
+				
+				//Store the "css" match string in the search cdp browser object
+				String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad", null);
+				search.setData("execAfterLoad",execAfterLoad);
+				
 				search.setUrl(url);
 
 				FormData gd = (FormData) search.getLayoutData();
