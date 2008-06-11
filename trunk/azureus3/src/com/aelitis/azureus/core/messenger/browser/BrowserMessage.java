@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.core.messenger.browser;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
@@ -45,6 +47,8 @@ public class BrowserMessage
 	/** Separates prefix and listener ID from rest of message. */
 	public static final String MESSAGE_DELIM = ";";
 
+	public static String MESSAGE_DELIM_ENCODED;
+
 	/** There were no parameters passed with the message. */
 	public static final int NO_PARAM = 0;
 
@@ -56,6 +60,14 @@ public class BrowserMessage
 
 	/** Parameters were an encoded list. */
 	public static final int LIST_PARAM = 3;
+	
+	static {
+		try {
+			MESSAGE_DELIM_ENCODED = URLEncoder.encode(";", "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			MESSAGE_DELIM_ENCODED = MESSAGE_DELIM;
+		}
+	}
 
 	static int seqFake = 1;
 

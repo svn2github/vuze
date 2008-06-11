@@ -55,6 +55,8 @@ public class PlatformMessenger
 {
 	private static final boolean DEBUG_URL = System.getProperty("platform.messenger.debug.url", "0").equals("1");
 
+	private static final int MAX_POST_LENGTH = 1024 * 512 * 3; // 1.5M
+
 	private static boolean USE_HTTP_POST = true;
 
 	public static String REPLY_EXCEPTION = "exception";
@@ -176,6 +178,11 @@ public class PlatformMessenger
 					+ System.currentTimeMillis() + "] " + string);
 		}
 	}
+
+	protected static void debug(String string, Throwable e) {
+		debug(string + "\n\t" + Debug.getCompressedStackTrace(e, 1, 80));
+	}
+
 	
 	/**
 	 * Sends the message almost immediately, skipping delayauthorization check 
@@ -203,6 +210,13 @@ public class PlatformMessenger
 		final Map mapProcessing = new HashMap();
 
 		boolean loginAndRetry = false;
+
+		// Create urlStem (or post data)
+		// determine which server to use
+		String server = null;
+		StringBuffer urlStem = new StringBuffer();
+		long sequenceNo = 0;
+
 		queue_mon.enter();
 		try {
 			// add one at a time, ensure relay server messages are seperate
@@ -216,10 +230,59 @@ public class PlatformMessenger
 				if (first) {
 					isRelayServerBatch = isRelayServer;
 					first = false;
-				} else  if (isRelayServerBatch != isRelayServer) {
+				} else if (isRelayServerBatch != isRelayServer) {
 					break;
 				}
 
+				// build urlStem
+				message.setSequenceNo(sequenceNo);
+
+				StringBuffer urlStemSegment = new StringBuffer();
+				if (sequenceNo > 0) {
+					urlStemSegment.append('&');
+				}
+
+				String listenerID = message.getListenerID();
+				String messageID = message.getMessageID();
+				String params = message.getParameters().toString();
+				try {
+					urlStemSegment.append("cmd=");
+					urlStemSegment.append(URLEncoder.encode(messageID, "UTF-8"));
+					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
+					urlStemSegment.append(sequenceNo);
+					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
+					urlStemSegment.append(URLEncoder.encode(listenerID, "UTF-8"));
+					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
+					urlStemSegment.append(URLEncoder.encode(message.getOperationID(),
+							"UTF-8"));
+					urlStemSegment.append(BrowserMessage.MESSAGE_DELIM_ENCODED);
+					urlStemSegment.append(URLEncoder.encode(params, "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+				}
+
+				if (sequenceNo > 0
+						&& urlStem.length() + urlStemSegment.length() > MAX_POST_LENGTH) {
+					debug("breaking up batch at " + sequenceNo
+							+ " because max limit would be exceeded (" + urlStem.length()
+							+ " + " + urlStemSegment.length() + ")");
+					break;
+				}
+
+				urlStem.append(urlStemSegment);
+				String curServer = messageID + "-" + listenerID;
+				if (server == null) {
+					server = curServer;
+				} else if (!server.equals(curServer)) {
+					server = "multi";
+				}
+
+				PlatformMessengerListener listener = (PlatformMessengerListener) mapProcessing.get(message);
+				if (listener != null) {
+					listener.messageSent(message);
+				}
+				sequenceNo++;
+
+				// Adjust lists
 				mapProcessing.put(message, value);
 
 				iter.remove();
@@ -242,45 +305,6 @@ public class PlatformMessenger
 			return;
 		}
 
-		// Create urlStem (or post data)
-		// determine which server to use
-		String server = null;
-		String urlStem = "";
-		long sequenceNo = 0;
-		for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
-			PlatformMessage message = (PlatformMessage) iter.next();
-			message.setSequenceNo(sequenceNo);
-
-			if (sequenceNo > 0) {
-				urlStem += "&";
-			}
-
-			String listenerID = message.getListenerID();
-			String messageID = message.getMessageID();
-			try {
-				urlStem += "cmd="
-						+ URLEncoder.encode(messageID
-								+ BrowserMessage.MESSAGE_DELIM + sequenceNo
-								+ BrowserMessage.MESSAGE_DELIM + listenerID
-								+ BrowserMessage.MESSAGE_DELIM + message.getOperationID()
-								+ BrowserMessage.MESSAGE_DELIM
-								+ message.getParameters().toString(), "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-			}
-			String curServer = messageID + "-" + listenerID;
-			if (server == null) {
-				server = curServer;
-			} else if (!server.equals(curServer)) {
-				server = "multi";
-			}
-
-			PlatformMessengerListener listener = (PlatformMessengerListener) mapProcessing.get(message);
-			if (listener != null) {
-				listener.messageSent(message);
-			}
-			sequenceNo++;
-		}
-
 		if (server == null) {
 			server = "default";
 		}
@@ -299,18 +323,19 @@ public class PlatformMessenger
 		String sPostData = null;
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem + "&"
-					+ Constants.URL_SUFFIX;
+			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
+					+ "&" + Constants.URL_SUFFIX;
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
-					debug("POST: " + sURL + "?" + sPostData);
+					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
+							+ sPostData);
 				} else {
-					debug("POST: " + sURL);
+					debug("POST for " + mapProcessing.size() + ": " + sURL);
 				}
 			}
 		} else {
-			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&" + urlStem + "&"
-					+ Constants.URL_SUFFIX;
+			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&"
+					+ urlStem.toString() + "&" + Constants.URL_SUFFIX;
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
 			} else {
@@ -320,7 +345,7 @@ public class PlatformMessenger
 
 		final String fURL = sURL;
 		final String fPostData = sPostData;
-		final boolean fLoginAndRetry = loginAndRetry; 
+		final boolean fLoginAndRetry = loginAndRetry;
 
 		// proccess queue on a new thread
 		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
@@ -330,10 +355,9 @@ public class PlatformMessenger
 							requiresAuthorization, fLoginAndRetry);
 				} catch (Throwable e) {
 					if (e instanceof ResourceDownloaderException) {
-						Debug.out("Error while sending message(s) to Platform: "
-								+ e.toString());
+						debug("Error while sending message(s) to Platform: " + e.toString());
 					} else {
-						Debug.out("Error while sending message(s) to Platform", e);
+						debug("Error while sending message(s) to Platform", e);
 					}
 					for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
 						PlatformMessage message = (PlatformMessage) iter.next();
@@ -345,7 +369,7 @@ public class PlatformMessenger
 								map.put("Throwable", e);
 								l.replyReceived(message, REPLY_EXCEPTION, map);
 							} catch (Throwable e2) {
-								Debug.out("Error while sending replyReceived", e2);
+								debug("Error while sending replyReceived", e2);
 							}
 						}
 					}
@@ -382,7 +406,7 @@ public class PlatformMessenger
 		// Format: <sequence no> ; <classification> [; <results>] [ \n ]
 
 		if (s == null || s.length() == 0 || !Character.isDigit(s.charAt(0))) {
-			Debug.out("Error while sending message(s) to Platform: reply: " + s
+			debug("Error while sending message(s) to Platform: reply: " + s
 					+ "\nurl: " + sURL + "\nPostData: " + sData);
 			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
 				PlatformMessage message = (PlatformMessage) iter.next();
@@ -393,7 +417,7 @@ public class PlatformMessenger
 						map.put("text", "result was " + s);
 						l.replyReceived(message, REPLY_EXCEPTION, map);
 					} catch (Throwable e2) {
-						Debug.out("Error while sending replyReceived" + "\nurl: " + sURL
+						debug("Error while sending replyReceived" + "\nurl: " + sURL
 								+ "\nPostData: " + sData, e2);
 					}
 				}
@@ -420,7 +444,7 @@ public class PlatformMessenger
 				try {
 					actionResults = JSONUtils.decodeJSON(replySections[2]);
 				} catch (Throwable e) {
-					Debug.out("Error while sending message(s) to Platform: reply: " + s
+					debug("Error while sending message(s) to Platform: reply: " + s
 							+ "\nurl: " + sURL + "\nPostData: " + sData, e);
 				}
 			}
@@ -438,7 +462,7 @@ public class PlatformMessenger
 			}
 
 			if (message == null) {
-				Debug.out("No message with sequence number " + sequenceNo);
+				debug("No message with sequence number " + sequenceNo);
 				continue;
 			}
 
@@ -493,7 +517,7 @@ public class PlatformMessenger
 													fListener.replyReceived(fMessage, replySections[1],
 															fActionResults);
 												} catch (Throwable e2) {
-													Debug.out("Error while sending replyReceived", e2);
+													debug("Error while sending replyReceived", e2);
 												}
 											}
 										}
@@ -516,7 +540,7 @@ public class PlatformMessenger
 													fListener.replyReceived(fMessage, replySections[1],
 															fActionResults);
 												} catch (Throwable e2) {
-													Debug.out("Error while sending replyReceived", e2);
+													debug("Error while sending replyReceived", e2);
 												}
 											}
 										}
@@ -541,7 +565,7 @@ public class PlatformMessenger
 				try {
 					listener.replyReceived(message, replySections[1], actionResults);
 				} catch (Exception e2) {
-					Debug.out("Error while sending replyReceived", e2);
+					debug("Error while sending replyReceived", e2);
 				}
 			}
 		}
