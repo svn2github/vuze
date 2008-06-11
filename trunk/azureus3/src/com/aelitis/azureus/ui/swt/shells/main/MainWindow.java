@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -107,7 +108,7 @@ import org.gudy.azureus2.plugins.download.Download;
  *
  */
 public class MainWindow
-	implements SWTSkinTabSetListener, IMainWindow
+	implements SWTSkinTabSetListener, IMainWindow, ObfusticateShell
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -2567,5 +2568,24 @@ public class MainWindow
 
 	public boolean isReady() {
 		return isReady;
+	}
+	
+	public Image generateObfusticatedImage() {
+		if (getActiveTab().equals(SkinConstants.VIEWID_ADVANCED_TAB)
+				&& oldMainWindow != null) {
+			return oldMainWindow.generateObfusticatedImage();
+		}
+
+		Image image;
+		Rectangle clientArea = shell.getClientArea();
+		image = new Image(display, clientArea.width, clientArea.height);
+
+		GC gc = new GC(shell);
+		try {
+			gc.copyArea(image, clientArea.x, clientArea.y);
+		} finally {
+			gc.dispose();
+		}
+		return image;
 	}
 }
