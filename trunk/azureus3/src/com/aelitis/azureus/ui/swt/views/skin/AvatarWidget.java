@@ -238,24 +238,24 @@ public class AvatarWidget
 
 				if (SHOW_ONLINE_BORDER) {
 
-	                  if (true == vuzeBuddy.isOnline()) {
+					if (true == vuzeBuddy.isOnline()) {
 
-	                     e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
-	                              107, 57) );
-	                     e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
-	                              130, 70) );
-	                     Rectangle bounds = canvas.getBounds();
+						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
+								107, 57));
+						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
+								130, 70));
+						Rectangle bounds = canvas.getBounds();
 
-	                     e.gc.fillRectangle(8, 5, bounds.width -16, bounds.height-18);
-	                     e.gc.drawRectangle(8, 5, bounds.width -17, bounds.height-19);
-	                     e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 50,
-	                              159, 86) );
-	                     e.gc.drawLine(8, 5, bounds.width - 9, 5);
-	                     e.gc.drawLine(8, 5, 8, bounds.height-15);
+						e.gc.fillRectangle(8, 5, bounds.width - 16, bounds.height - 18);
+						e.gc.drawRectangle(8, 5, bounds.width - 17, bounds.height - 19);
+						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 50,
+								159, 86));
+						e.gc.drawLine(8, 5, bounds.width - 9, 5);
+						e.gc.drawLine(8, 5, 8, bounds.height - 15);
 
-	                     e.gc.setForeground(canvas.getForeground());
+						e.gc.setForeground(canvas.getForeground());
 
-	                  }
+					}
 				}
 
 				/*
@@ -330,7 +330,8 @@ public class AvatarWidget
 				if (null != textLinkColor && null != textColor) {
 					if (true == nameLinkActive && true == isActivated) {
 						e.gc.setForeground(textLinkColor);
-						canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+						canvas.setCursor(canvas.getDisplay().getSystemCursor(
+								SWT.CURSOR_HAND));
 					} else {
 						canvas.setCursor(null);
 						e.gc.setForeground(textColor);
@@ -601,7 +602,11 @@ public class AvatarWidget
 	private void doRemoveBuddy() {
 		MessageBox mBox = new MessageBox(parent.getShell(), SWT.ICON_QUESTION
 				| SWT.YES | SWT.NO);
-		mBox.setMessage("Really delete?");
+		mBox.setText(MessageText.getString("v3.buddies.remove.buddy.dialog.title"));
+		mBox.setMessage(MessageText.getString(
+				"v3.buddies.remove.buddy.dialog.text", new String[] {
+					vuzeBuddy.getLoginID()
+				}));
 		if (SWT.NO == mBox.open()) {
 			return;
 		}
