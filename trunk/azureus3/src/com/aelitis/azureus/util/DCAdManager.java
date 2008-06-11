@@ -647,9 +647,13 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		boolean isNullAd = determinIfNullAd(dmContent);
 		if( !isNullAd ){
 			//Find location of the ad(s).
-			File adFile = getAdMediaFromContentDownloadManager(dmContent);
-			debug("  adPath: "+adFile.getAbsolutePath());
-			replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+			try {
+  			File adFile = getAdMediaFromContentDownloadManager(dmContent);
+  			debug("  adPath: "+adFile.getAbsolutePath());
+  			replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
+			} catch (Exception e) {
+				debug("reokacASXParams: " + e.toString());
+			}
 		}
 
 		//pass the params to the player via the download manager.
