@@ -48,7 +48,7 @@ public class SimpleReorderableListLayout extends Layout {
 		Control[] controls = composite.getChildren();
 		
 		int[] positions = new int[controls.length];
-		
+			
 		//Compute the positions of each based on the index of the controls
 		for(int i = 0 ; i < controls.length ; i++) {
 			Object layoutData = controls[i].getLayoutData();
@@ -61,6 +61,7 @@ public class SimpleReorderableListLayout extends Layout {
 			}
 		}
 		
+		int[] extraShift = new int[controls.length];
 		//Set the positions
 		for(int i = 0 ; i < controls.length ; i++) {
 			Object layoutData = controls[i].getLayoutData();
@@ -68,9 +69,10 @@ public class SimpleReorderableListLayout extends Layout {
 				SimpleReorderableListLayoutData sData = (SimpleReorderableListLayoutData) layoutData;
 				int index = sData.position;
 				if(index >= 0 && index < positions.length) {
-					controls[i].setLocation(borderW + positions[index], borderH);
-					controls[i].setBounds(borderW + positions[index], borderH,sData.width,sData.height);
+					controls[i].setLocation(extraShift[index] + borderW + positions[index], borderH);
+					controls[i].setBounds(extraShift[index] + borderW + positions[index], borderH,sData.width,sData.height);
 				}
+				extraShift[index] += margin + sData.width;
 			}
 		}
 	}
