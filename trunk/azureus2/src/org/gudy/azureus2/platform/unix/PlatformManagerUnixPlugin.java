@@ -85,8 +85,6 @@ public class PlatformManagerUnixPlugin
 		plugin_interface.getPluginProperties().setProperty("plugin.version",
 				version);
 		
-		if (Constants.compareVersions(UpdaterUtils.getUpdaterPluginVersion(),
-				"1.8.5") >= 0) {
   		plugin_interface.getUIManager().addUIListener(new UIManagerListener() {
   			boolean done = false;
   		
@@ -94,14 +92,17 @@ public class PlatformManagerUnixPlugin
   			}
   		
   			public void UIAttached(UIInstance instance) {
-  				if (!done) {
+  				if (!done){
+  					
   					done = true;
-  					checkStartupScript();
+  					
+  					if (Constants.compareVersions(UpdaterUtils.getUpdaterPluginVersion(),"1.8.5") >= 0) {
+
+  						checkStartupScript();
+  					}
   				}
   			}
-  		
   		});
-		}
 	}
 
 	/**
