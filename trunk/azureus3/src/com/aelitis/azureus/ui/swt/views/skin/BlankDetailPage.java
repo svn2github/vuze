@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -54,6 +55,8 @@ public class BlankDetailPage
 
 	private Label propmptLabel;
 
+	private Label counterLabel;
+
 	private String instanceKey;
 
 	public BlankDetailPage(DetailPanel detailPanel, String pageID) {
@@ -67,22 +70,19 @@ public class BlankDetailPage
 		propmptLabel = new Label(content, SWT.WRAP);
 		propmptLabel.setLocation(50, 50);
 
-		FontData[] fDatas = propmptLabel.getFont().getFontData();
-		for (int i = 0; i < fDatas.length; i++) {
-			fDatas[i].height = 10;
-		}
-		final Font newFont = new Font(display, fDatas);
-		propmptLabel.setFont(newFont);
+		Utils.setFontHeight(propmptLabel, 10, SWT.NORMAL);
 		propmptLabel.setForeground(ColorCache.getColor(display, 100, 100, 100));
 
-		propmptLabel.addDisposeListener(new DisposeListener() {
-
-			public void widgetDisposed(DisposeEvent e) {
-				if (null != newFont && false == newFont.isDisposed()) {
-					newFont.dispose();
-				}
-			}
-		});
+		/*
+		 * Add a counter to running time
+		 */
+		if (true == Constants.isCVSVersion()) {
+			counterLabel = new Label(content, SWT.NONE);
+			Utils.setFontHeight(counterLabel, 10, SWT.BOLD);
+			counterLabel.setForeground(ColorCache.getColor(display, 100, 100, 100));
+			counterLabel.setBounds(50, 100, 200, 20);
+			counterLabel.setVisible(false);
+		}
 
 		spinnerCanvas = new Canvas(content, SWT.NO_BACKGROUND);
 		if (null == spinnerGC) {
@@ -159,6 +159,9 @@ public class BlankDetailPage
 							if (null != propmptLabel && false == propmptLabel.isDisposed()) {
 								propmptLabel.setVisible(true);
 							}
+							if (null != counterLabel && false == counterLabel.isDisposed()) {
+								counterLabel.setVisible(true);
+							}
 						} else {
 							/*
 							 * instanceKey not matching so just ignore
@@ -175,10 +178,17 @@ public class BlankDetailPage
 			if (null != propmptLabel && false == propmptLabel.isDisposed()) {
 				propmptLabel.setVisible(false);
 			}
+			if (null != counterLabel && false == counterLabel.isDisposed()) {
+				counterLabel.setVisible(false);
+			}
 		}
 	}
 
 	private void showSpinner(final long delayInMilli) {
+
+		final long[] startTime = new long[] {
+			System.currentTimeMillis()
+		};
 
 		/*
 		 * Create the images off-line and store them in the array if not done already;
@@ -272,6 +282,14 @@ public class BlankDetailPage
 							 */
 							if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
 								spinnerGC.drawImage(spinnerImages[imageDataIndex[0]], 0, 0);
+							}
+
+							if (null != counterLabel && false == counterLabel.isDisposed()
+									&& counterLabel.isVisible()) {
+								counterLabel.setText("Running time: "
+										+ ((System.currentTimeMillis() - startTime[0]) / 1000)
+										+ " seconds");
+								counterLabel.update();
 							}
 						}
 					});
