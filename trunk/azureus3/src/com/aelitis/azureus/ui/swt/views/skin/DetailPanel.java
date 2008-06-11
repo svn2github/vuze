@@ -185,9 +185,8 @@ public class DetailPanel
 		if (Constants.isOSX) {
 			page.setActivationListener(new IDetailPage.ActivationListener() {
 				public void pageActivated() {
-					if (null != lbShell) {
+					if (null != getLbShell()) {
 						getLbShell().moveAbove(null);
-						System.out.println("Moving to top");//KN: sysout
 					}
 				}
 			});
