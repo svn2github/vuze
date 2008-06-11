@@ -772,7 +772,6 @@ public class MessageBoxShell
 			swtButtons[i] = button;
 			button.setData(new Integer(i));
 			button.setText(buttons[i]);
-			System.out.println(buttons[i]);//KN: sysout
 			button.addListener(SWT.MouseUp, buttonListener);
 
 			formData = new FormData();
@@ -789,6 +788,9 @@ public class MessageBoxShell
 
 			if (i == defaultOption) {
 				button.setFocus();
+				/*
+				 * KN: TODO: Must implement default button behavior
+				 */
 				//				shell.setDefaultButton(button);
 			}
 
