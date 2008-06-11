@@ -860,7 +860,8 @@ public class MyTorrentsView
 
 	protected void updateSelectedContent() {
 		if (!viewActive) {
-			SelectedContentManager.changeCurrentlySelectedContent(null);
+			SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
+					null);
 			return;
 		}
 		DownloadManager[] dms = getSelectedDownloads();
@@ -879,7 +880,7 @@ public class MyTorrentsView
 		if (pos != dms.length) {
 			System.arraycopy(sc, 0, sc, 0, pos);
 		}
-		SelectedContentManager.changeCurrentlySelectedContent(sc);
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc);
 	}
 
   private void refreshIconBar() {

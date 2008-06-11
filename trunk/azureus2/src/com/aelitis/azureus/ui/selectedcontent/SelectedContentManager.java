@@ -33,6 +33,8 @@ public class SelectedContentManager
 	private static List listeners = new ArrayList();
 
 	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
+	
+	private static String viewID = null;
 
 	public static void addCurrentlySelectedContentListener(
 			SelectedContentListener l) {
@@ -40,10 +42,21 @@ public class SelectedContentManager
 		l.currentlySectedContentChanged(currentlySelectedContent);
 	}
 
-	public static void changeCurrentlySelectedContent(
+	public static void changeCurrentlySelectedContent(String viewID,
 			ISelectedContent[] currentlySelectedContent) {
+		if (currentlySelectedContent == null) {
+			currentlySelectedContent = new ISelectedContent[0];
+		}
+		if (currentlySelectedContent.length == 0
+				&& SelectedContentManager.viewID != null
+				&& !viewID.equals(SelectedContentManager.viewID)) {
+			// don't allow clearing if someone else set the currently selected
+			return;
+		}
+
 		SelectedContentManager.currentlySelectedContent = currentlySelectedContent == null
 				? new ISelectedContent[0] : currentlySelectedContent;
+		SelectedContentManager.viewID = viewID;
 
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {

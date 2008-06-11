@@ -328,6 +328,11 @@ public class MyTorrentsSuperView extends AbstractIView implements
     if (currentView instanceof IViewExtension) {
     	((IViewExtension)currentView).viewDeactivated();
     }
-    SelectedContentManager.changeCurrentlySelectedContent(null);
+    String ID = currentView.getShortTitle();
+    if (currentView instanceof MyTorrentsView) {
+    	ID = ((MyTorrentsView)currentView).getTableView().getTableID();
+    }
+
+    SelectedContentManager.changeCurrentlySelectedContent(ID, null);
 	}
 }
