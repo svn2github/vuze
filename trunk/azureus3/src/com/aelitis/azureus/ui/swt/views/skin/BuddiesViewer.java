@@ -16,8 +16,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -46,11 +44,10 @@ import com.aelitis.azureus.util.FAQTopics;
 public class BuddiesViewer
 	extends SkinView
 {
-	
+
 	private static final boolean SHOW_ONLINE_STATUS = System.getProperty(
 			"az.buddy.show_online", "0").equals("1");
-	
-	
+
 	public static final int none_active_mode = 0;
 
 	public static final int edit_mode = 1;
@@ -165,7 +162,7 @@ public class BuddiesViewer
 			textColor = skin.getSkinProperties().getColor("color.links.normal");
 			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
 			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 55, 55,
-	                  55);
+					55);
 
 			selectedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 16, 16, 16);
 
@@ -191,13 +188,11 @@ public class BuddiesViewer
 			rLayout.wrap = false;
 			rLayout.spacing = hSpacing;
 			avatarsPanel.setLayout(rLayout);*/
-			
-			
+
 			// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
 			rLayout.margin = hSpacing;
 			avatarsPanel.setLayout(rLayout);
-
 
 			avatarsPanel.pack();
 
@@ -485,8 +480,7 @@ public class BuddiesViewer
 		rData.width = avatarSize.x;
 		rData.height = avatarSize.y;
 		avatarWidget.getControl().setLayoutData(rData);*/
-		
-		
+
 		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 		SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
 		rData.width = avatarSize.x;
@@ -647,59 +641,57 @@ public class BuddiesViewer
 	}
 
 	private void recomputeOrder() {
-	
+
 		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
 		return;
 		*/
-		
+
 		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-		
-		if(avatarsPanel.isDisposed()) return;
-		
+		if (avatarsPanel.isDisposed())
+			return;
+
 		final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
-		
+
 		//Only sort by online status if we show it
-		if(SHOW_ONLINE_STATUS) {
-			Collections.sort(buddies,new Comparator() {
+		if (SHOW_ONLINE_STATUS) {
+			Collections.sort(buddies, new Comparator() {
 				public int compare(Object o1, Object o2) {
 					VuzeBuddy v1 = (VuzeBuddy) o1;
 					VuzeBuddy v2 = (VuzeBuddy) o2;
 					int score = 0;
-					score -= v1.isOnline() ?  1 : 0;
+					score -= v1.isOnline() ? 1 : 0;
 					score += v2.isOnline() ? 1 : 0;
 					return score;
 				}
 			});
 		}
-		
+
 		Display display = avatarsPanel.getDisplay();
-		if(! display.isDisposed()) {
+		if (!display.isDisposed()) {
 			display.asyncExec(new Runnable() {
 				public void run() {
 					boolean changed = false;
-					for(int i = 0 ; i < buddies.size() ; i++) {
+					for (int i = 0; i < buddies.size(); i++) {
 						VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
 						AvatarWidget widget = findWidget(buddy);
 						Control control = widget.getControl();
-						if(control!= null && ! control.isDisposed()) {
+						if (control != null && !control.isDisposed()) {
 							SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
-							if(rData.position != i) {
+							if (rData.position != i) {
 								rData.position = i;
 								changed = true;
 							}
 						}
 					}
-					if(changed) {
+					if (changed) {
 						avatarsPanel.layout();
 					}
 				}
 			});
 		}
-	
-		
-		
+
 	}
-	
+
 	private List getBuddies() {
 
 		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
@@ -722,7 +714,7 @@ public class BuddiesViewer
 			}
 
 			public void buddyOrderChanged() {
-				
+
 			}
 		}, false);
 
@@ -888,7 +880,7 @@ public class BuddiesViewer
 			this.isEnabled = isEnabled;
 			avatarsPanel.setEnabled(isEnabled);
 			avatarsPanel.layout(true);
-			
+
 		}
 	}
 }

@@ -22,8 +22,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
 import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.progress.IMessage;
-import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
