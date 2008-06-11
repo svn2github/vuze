@@ -63,6 +63,8 @@ public class FriendsList
 
 	private String default_prompt_text = null;
 
+	private Rectangle textBounds;
+
 	private Color textColor;
 
 	public FriendsList(Composite parent) {
@@ -99,6 +101,16 @@ public class FriendsList
 		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
+				textBounds = canvas.getClientArea();
+
+				try {
+					e.gc.setAntialias(SWT.ON);
+					e.gc.setTextAntialias(SWT.ON);
+					e.gc.setInterpolation(SWT.HIGH);
+				} catch (Exception ex) {
+					// ignore.. some of these may not be avail
+				}
+
 				Rectangle bounds = canvas.getBounds();
 				bounds.width -= 1;
 				bounds.height -= 1;
@@ -109,18 +121,22 @@ public class FriendsList
 
 				if (friendsWidgets.size() < 1) {
 					e.gc.setForeground(textColor);
-					int textOffset = 16;
+					int imageXOffset = 16;
 					if (null != default_prompt_image
 							&& false == default_prompt_image.isDisposed()) {
 						Rectangle imageBounds = default_prompt_image.getBounds();
-						e.gc.drawImage(default_prompt_image, textOffset,
+						e.gc.drawImage(default_prompt_image, imageXOffset,
 								(bounds.height / 2) - (imageBounds.height / 2));
 
-						textOffset += default_prompt_image.getBounds().width + 8;
+						textBounds.x += default_prompt_image.getBounds().width
+								+ imageXOffset + 8;
+						textBounds.width -= default_prompt_image.getBounds().width
+								+ imageXOffset + 8;
 					}
 
 					if (null != default_prompt_text && default_prompt_text.length() > 0) {
-						e.gc.drawString(default_prompt_text, textOffset, 50);
+						GCStringPrinter.printString(e.gc, default_prompt_text, textBounds,
+								false, false, SWT.WRAP);
 					}
 				}
 			}
