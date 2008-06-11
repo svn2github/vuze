@@ -139,6 +139,9 @@ public class VuzeActivitiesManager
 				Object[] allEntriesArray = allEntries.toArray();
 				for (int i = 0; i < allEntriesArray.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntriesArray[i];
+					if (entry == null) {
+						continue;
+					}
 					String typeID = entry.getTypeID();
 					DownloadManager dm = entry.getDownloadManger();
 					if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(typeID)
@@ -591,6 +594,10 @@ public class VuzeActivitiesManager
 			VuzeActivitiesEntry[] allEntriesArray = getAllEntries();
 			for (int i = 0; i < allEntriesArray.length; i++) {
 				VuzeActivitiesEntry entry = allEntriesArray[i];
+				if (entry == null) {
+					continue;
+				}
+
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 				if (!isHeader) {
 					entriesList.add(entry.toMap());
