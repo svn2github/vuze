@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
  *
  */
 public class TransportImpl implements Transport {
-  com.aelitis.azureus.core.networkmanager.Transport core_transport;
+  private com.aelitis.azureus.core.networkmanager.Transport core_transport;
   private NetworkConnection	core_network;
   
   public TransportImpl( NetworkConnection core_network ) {
@@ -52,7 +52,7 @@ public class TransportImpl implements Transport {
     return coreTransport().write( buffers, array_offset, length );
   }
   
-  private com.aelitis.azureus.core.networkmanager.Transport coreTransport() throws IOException {
+  public com.aelitis.azureus.core.networkmanager.Transport coreTransport() throws IOException {
 	if ( core_transport == null ){
 		core_transport = core_network.getTransport();
 		if ( core_transport == null ){

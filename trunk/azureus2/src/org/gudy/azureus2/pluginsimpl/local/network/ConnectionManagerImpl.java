@@ -114,7 +114,10 @@ public class ConnectionManagerImpl implements ConnectionManager {
   
   public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException {
 	  Transport transport = connection.getTransport();
-	  com.aelitis.azureus.core.networkmanager.Transport core_transport = ((TransportImpl)transport).core_transport;
+	  com.aelitis.azureus.core.networkmanager.Transport core_transport;
+	  try {core_transport = ((TransportImpl)transport).coreTransport();}
+	  catch (IOException e) {throw new TransportException(e);}
+	  
 	  TransportHelper helper;
 	  
 	  if (core_transport instanceof TCPTransportImpl) {
