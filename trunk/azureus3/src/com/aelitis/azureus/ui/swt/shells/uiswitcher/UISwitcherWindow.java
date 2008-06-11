@@ -182,6 +182,7 @@ public class UISwitcherWindow
 				}
 
 				Composite c2 = new Composite(c, SWT.NONE);
+				c2.setBackgroundMode(SWT.INHERIT_FORCE);
 				c2.setData("INDEX", new Long(i));
 				c2.setLayout(new GridLayout());
 				c2.setLayoutData(new GridData(GridData.FILL_BOTH));
