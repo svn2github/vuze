@@ -111,7 +111,11 @@ public class VuzeActivitiesEntryContentShare
 			setDownloadManager(content.getDM());
 		}
 		setShowThumb(true);
-		setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		if (content.getImageBytes() == null) {
+			setImageBytes(PlatformTorrentUtils.getContentThumbnail(torrent));
+		} else {
+			setImageBytes(content.getImageBytes());
+		}
 		setIsPlatformContent(ourContent);
 		// The recipient will set the timestamp
 		setTimestamp(0);
