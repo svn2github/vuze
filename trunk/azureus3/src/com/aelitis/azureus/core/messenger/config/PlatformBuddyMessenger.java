@@ -20,6 +20,7 @@ package com.aelitis.azureus.core.messenger.config;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -329,15 +330,23 @@ public class PlatformBuddyMessenger
 	 * @since 3.0.5.3
 	 */
 	public static void startShare(String referer, String hash) {
+		boolean loggedIn = LoginInfoManager.getInstance().isLoggedIn();
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
 				OP_STARTSHARE, new Object[] {
 					"referer",
 					referer,
 					"logged-in",
-					new Boolean(LoginInfoManager.getInstance().isLoggedIn()),
+					new Boolean(loggedIn),
 					"torrent-hash",
 					hash
 				}, 1000);
+		if (loggedIn) {
+			try {
+				message.setRequiresAuthorization(true, false);
+			} catch (NotLoggedInException e) {
+				Debug.out(e);
+			}
+		}
 
 		PlatformMessenger.queueMessage(message, null);
 	}
