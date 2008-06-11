@@ -1212,14 +1212,8 @@ public class VuzeBuddyManager
 		if (buddyPlugin == null) {
 			return null;
 		}
-
-		BuddyPluginBuddy pluginBuddy = buddyPlugin.getBuddyFromPublicKey(pk);
-		if (pluginBuddy == null) {
-			pluginBuddy = buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3);
-		} else {
-			pluginBuddy.setSubsystem(BuddyPlugin.SUBSYSTEM_AZ3);
-		}
-		return pluginBuddy;
+		
+		return( buddyPlugin.addBuddy(pk, BuddyPlugin.SUBSYSTEM_AZ3));
 	}
 
 	private static void invitePKs(String[] pks, String code) {
