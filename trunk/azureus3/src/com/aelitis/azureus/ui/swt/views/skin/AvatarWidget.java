@@ -613,7 +613,7 @@ public class AvatarWidget
 				}, 1);
 
 		mBox.setLeftImage(SWT.ICON_QUESTION);
-		if (1 == mBox.open(false)) {
+		if (1 == mBox.open(true)) {
 			return;
 		}
 		try {
