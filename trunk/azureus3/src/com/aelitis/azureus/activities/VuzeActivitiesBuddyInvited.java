@@ -24,6 +24,8 @@ import java.util.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+
 /**
  * @author TuxPaper
  * @created Jun 6, 2008
@@ -36,11 +38,16 @@ public class VuzeActivitiesBuddyInvited
 	public VuzeActivitiesBuddyInvited(List displayNames) {
 		String names = "";
 		for (Iterator iter = displayNames.iterator(); iter.hasNext();) {
-			String name = (String) iter.next();
+			String[] name = (String[]) iter.next();
 			if (names.length() > 0) {
 				names += ", ";
 			}
-			names += name;
+			if (name[1] != null && name[1].length() > 0) {
+				names += VuzeBuddyManager.generateBuddyAHREF(name[0], name[1],
+						VuzeActivitiesConstants.TYPEID_BUDDYINVITED);
+			} else {
+				names += name[0];
+			}
 		}
 		String id = "v3.activity.buddy-invited";
 		if (displayNames.size() > 1) {

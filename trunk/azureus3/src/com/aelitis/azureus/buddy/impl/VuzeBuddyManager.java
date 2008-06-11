@@ -1266,16 +1266,19 @@ public class VuzeBuddyManager
 			VuzeBuddy[] buddies)
 			throws NotLoggedInException {
 
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start");
 		if (!LoginInfoManager.getInstance().isLoggedIn()) {
 			throw new NotLoggedInException();
 		}
 
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start2");
 		String name = "na";
 		if (contentToShare != null) {
 			name = contentToShare.getDM() == null ? contentToShare.getDisplayName()
 					: contentToShare.getDM().toString();
 		}
 
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start3");
 		if (buddies != null && contentToShare != null) {
 			log("share " + name + " with " + buddies.length + " existing buddies");
 			for (int i = 0; i < buddies.length; i++) {
@@ -1286,6 +1289,7 @@ public class VuzeBuddyManager
 			}
 		}
 
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start4");
 		Map inviteMessage = MapUtils.getMapMap(invites, "message", null);
 		if (inviteMessage == null) {
 			inviteMessage = invites;
@@ -1294,6 +1298,8 @@ public class VuzeBuddyManager
 				Collections.EMPTY_LIST);
 
 		log("invite " + sentInvitations.size() + " ppl, sharing " + name);
+
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start5");
 
 		List displayNames = new ArrayList();
 		for (Iterator iter = sentInvitations.iterator(); iter.hasNext();) {
@@ -1312,16 +1318,21 @@ public class VuzeBuddyManager
 				String[] newPKs = (String[]) pkList.toArray(new String[0]);
 
 				VuzeBuddyManager.invitePKs(newPKs, code);
-				displayNames.add(MapUtils.getMapString(mapInvitation, "display-name",
-						MapUtils.getMapString(mapInvitation, "value", "???")));
+				String[] nameArray = {
+					MapUtils.getMapString(mapInvitation, "value", "???"),
+					MapUtils.getMapString(mapInvitation, "display-name", null)
+				};
+				displayNames.add(nameArray);
 			}
 		}
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start6");
 		if (displayNames.size() > 0) {
 			VuzeActivitiesBuddyInvited entry = new VuzeActivitiesBuddyInvited(displayNames);
 			VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 				entry
 			});
 		}
+		System.out.println(SystemTime.getCurrentTime() + "] inviteWithShare Start7");
 	}
 
 	private static void queueShare(SelectedContentV3 content, String message,
@@ -1639,5 +1650,30 @@ public class VuzeBuddyManager
 	 */
 	public static boolean isSaveDelayed() {
 		return saveDelayed;
+	}
+	
+	public static String generateBuddyAHREF(String loginID, String displayName,
+			String referer) {
+		StringBuffer buf = new StringBuffer();
+
+		buf.append("<A HREF=\"");
+		buf.append(Constants.URL_PREFIX);
+		buf.append(Constants.URL_PROFILE);
+		buf.append(UrlUtils.encode(loginID));
+		buf.append("?");
+		buf.append(Constants.URL_SUFFIX);
+		buf.append("&client_ref=");
+		buf.append(UrlUtils.encode(referer));
+		buf.append("\" TITLE=\"");
+		buf.append(displayName);
+		if (!loginID.equals(displayName)) {
+			buf.append(" (");
+			buf.append(loginID);
+			buf.append(")");
+		}
+		buf.append("\">");
+		buf.append(displayName);
+		buf.append("</A>");
+		return buf.toString();
 	}
 }
