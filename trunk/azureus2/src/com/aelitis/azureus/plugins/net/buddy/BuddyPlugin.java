@@ -148,11 +148,11 @@ BuddyPlugin
 
 	private static BloomFilter	ygm_unauth_bloom;
 
-	//public static final int STREAM_CRYPTO 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
-	//public static final int BLOCK_CRYPTO	= SESecurityManager.BLOCK_ENCRYPTION_AES;
+	public static final int STREAM_CRYPTO 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
+	public static final int BLOCK_CRYPTO	= SESecurityManager.BLOCK_ENCRYPTION_AES;
 	
-	public static final int STREAM_CRYPTO 	= MessageManager.STREAM_ENCRYPTION_NONE;
-	public static final int BLOCK_CRYPTO	= SESecurityManager.BLOCK_ENCRYPTION_NONE;
+	//public static final int STREAM_CRYPTO 	= MessageManager.STREAM_ENCRYPTION_NONE;
+	//public static final int BLOCK_CRYPTO	= SESecurityManager.BLOCK_ENCRYPTION_NONE;
 	
 	private volatile int	 initialisation_state = INIT_UNKNOWN;
 	
