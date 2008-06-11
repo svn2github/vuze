@@ -874,7 +874,7 @@ BuddyPluginViewInstance
 								BuddyPlugin.cryptoResult result = buddy.encrypt( contents );
 								
 								sb.append( "key: " );
-								sb.append( buddy.getPublicKey());
+								sb.append( plugin.getPublicKey());
 								sb.append( "\r\n" );
 								
 								sb.append( "hash: " );

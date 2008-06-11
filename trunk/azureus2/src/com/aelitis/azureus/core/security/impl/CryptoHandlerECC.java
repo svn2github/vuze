@@ -54,6 +54,7 @@ import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.bouncycastle.math.ec.ECPoint;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -69,9 +70,6 @@ CryptoHandlerECC
 {
 	private static final ECNamedCurveParameterSpec ECCparam = ECNamedCurveTable.getParameterSpec("prime192v2");
 	
-	private static final byte[]  ECIES_D = new byte[] {(byte)0x6d, (byte)0xc1, (byte)0x62, (byte)0x32, (byte)0x15, (byte)0x4d, (byte)0x0f, (byte)0x7b }; 
-	private static final byte[]  ECIES_E = new byte[] {(byte)0x6a, (byte)0x64, (byte)0x98, (byte)0xde, (byte)0x1a, (byte)0xa4, (byte)0x98, (byte)0xcc }; 
-
 	private static final int	TIMEOUT_DEFAULT_SECS		= 60*60;
 
 	
@@ -201,13 +199,27 @@ CryptoHandlerECC
 		try{
 			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( reason ), rawdataToPubkey( other_public_key ));
 	 
-			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
+			byte[]	d = new byte[16];
+			byte[]	e = new byte[16];
+			
+			RandomUtils.nextSecureBytes( d );
+			RandomUtils.nextSecureBytes( e );
+			
+			IESParameterSpec param = new IESParameterSpec( d, e, 128);
 		
 			InternalECIES	cipher = new InternalECIES();
 	
 			cipher.internalEngineInit( Cipher.ENCRYPT_MODE, key_spec, param, null ); 
 		
-			return( cipher.internalEngineDoFinal(data, 0, data.length ));
+			byte[]	encrypted = cipher.internalEngineDoFinal(data, 0, data.length );
+			
+			byte[] result = new byte[32+encrypted.length];
+			
+			System.arraycopy( d, 0, result, 0, 16 );
+			System.arraycopy( e, 0, result, 16, 16 );
+			System.arraycopy( encrypted, 0, result, 32, encrypted.length );
+			
+			return( result );
 			
 		}catch( CryptoManagerException e ){
 			
@@ -230,13 +242,19 @@ CryptoHandlerECC
 		try{
 			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey(  reason ), rawdataToPubkey( other_public_key ));
 	 	
-			IESParameterSpec param = new IESParameterSpec(ECIES_D, ECIES_E, 128);
+			byte[]	d = new byte[16];
+			byte[]	e = new byte[16];
+			
+			System.arraycopy( data, 0, d, 0, 16 );
+			System.arraycopy( data, 16, e, 0, 16 );
+			
+			IESParameterSpec param = new IESParameterSpec( d, e, 128);
 		
 			InternalECIES	cipher = new InternalECIES();
 	
 			cipher.internalEngineInit( Cipher.DECRYPT_MODE, key_spec, param, null ); 
 		
-			return( cipher.internalEngineDoFinal(data, 0, data.length ));
+			return( cipher.internalEngineDoFinal( data, 32, data.length - 32 ));
 			
 		}catch( CryptoManagerException e ){
 			
