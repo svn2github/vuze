@@ -2,6 +2,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -57,6 +59,15 @@ public class InvitePage
 			browser = new Browser(content, SWT.NONE);
 			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
+
+			if (null != activationListener) {
+				browser.addMouseListener(new MouseAdapter() {
+
+					public void mouseDown(MouseEvent e) {
+						activationListener.pageActivated();
+					}
+				});
+			}
 
 			/*
 			 * Calling to initialize the listeners

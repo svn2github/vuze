@@ -15,6 +15,8 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
@@ -506,6 +508,7 @@ public class SharePage
 				getMessageContext().executeInBrowser(
 						"setShareReferer('" + referer + "')");
 
+				System.out.println("shareSubmit()");//KN: sysout
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				// We'll get a buddy-page.invite-confirm message from the webpage,
@@ -517,7 +520,7 @@ public class SharePage
 
 	private void showConfirmationDialog(List buddiesToShareWith) {
 		getDetailPanel().showBusy(false, 0);
-		
+
 		if (null != buddyPageListener) {
 
 			final String[] message = new String[1];
@@ -747,6 +750,7 @@ public class SharePage
 				}
 
 				public void handleInviteConfirm() {
+					System.out.println("handleInviteConfirm()");//KN: sysout
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
@@ -755,6 +759,7 @@ public class SharePage
 						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 							public void loginComplete() {
 								try {
+									System.out.println("inviteWithShare()");//KN: sysout
 									VuzeBuddyManager.inviteWithShare(confirmationResponse,
 											getShareItem(), commentText.getText(), buddies);
 									getDetailPanel().show(false);
@@ -788,6 +793,15 @@ public class SharePage
 			browser = new Browser(browserPanel, SWT.NONE);
 			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
+
+			if (null != activationListener) {
+				browser.addMouseListener(new MouseAdapter() {
+
+					public void mouseDown(MouseEvent e) {
+						activationListener.pageActivated();
+					}
+				});
+			}
 
 			/*
 			 * Calling to initialize the listeners

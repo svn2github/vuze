@@ -178,6 +178,21 @@ public class DetailPanel
 			throw new IllegalArgumentException(page.getPageID()
 					+ " is already in use by an existing page");
 		}
+
+		/*
+		 * Must bring lightbox back on top when ever a browser component is activated
+		 */
+		if (Constants.isOSX) {
+			page.setActivationListener(new IDetailPage.ActivationListener() {
+				public void pageActivated() {
+					if (null != lbShell) {
+						getLbShell().moveAbove(null);
+						System.out.println("Moving to top");//KN: sysout
+					}
+				}
+			});
+		}
+
 		page.createControls(detailPanel);
 
 		pages.put(page.getPageID(), page);
@@ -327,5 +342,9 @@ public class DetailPanel
 				blankPage.showBusy(false, 0);
 			}
 		}
+	}
+
+	private LightBoxShell getLbShell() {
+		return lbShell;
 	}
 }

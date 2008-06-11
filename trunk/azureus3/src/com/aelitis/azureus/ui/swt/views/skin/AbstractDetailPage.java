@@ -8,6 +8,8 @@ public abstract class AbstractDetailPage
 
 	private DetailPanel detailPanel = null;
 
+	protected ActivationListener activationListener = null;
+
 	public AbstractDetailPage(DetailPanel detailPanel, String pageID) {
 		this.pageID = pageID;
 		this.detailPanel = detailPanel;
@@ -19,6 +21,10 @@ public abstract class AbstractDetailPage
 
 	public DetailPanel getDetailPanel() {
 		return detailPanel;
+	}
+
+	public void setActivationListener(ActivationListener activationListener) {
+		this.activationListener = activationListener;
 	}
 
 }

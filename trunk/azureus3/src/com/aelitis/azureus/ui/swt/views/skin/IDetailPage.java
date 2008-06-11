@@ -19,8 +19,15 @@ public interface IDetailPage
 
 	public void refresh(RefreshListener refreshListener);
 
+	public void setActivationListener(ActivationListener listener);
+
 	public interface RefreshListener
 	{
 		public void refreshCompleted();
+	}
+
+	public interface ActivationListener
+	{
+		public void pageActivated();
 	}
 }
