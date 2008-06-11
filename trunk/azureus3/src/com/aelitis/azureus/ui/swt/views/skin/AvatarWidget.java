@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -600,14 +601,19 @@ public class AvatarWidget
 	}
 
 	private void doRemoveBuddy() {
-		MessageBox mBox = new MessageBox(parent.getShell(), SWT.ICON_QUESTION
-				| SWT.YES | SWT.NO);
-		mBox.setText(MessageText.getString("v3.buddies.remove.buddy.dialog.title"));
-		mBox.setMessage(MessageText.getString(
-				"v3.buddies.remove.buddy.dialog.text", new String[] {
-					vuzeBuddy.getLoginID()
-				}));
-		if (SWT.NO == mBox.open()) {
+
+		MessageBoxShell mBox = new MessageBoxShell(parent.getShell(),
+				MessageText.getString("v3.buddies.remove.buddy.dialog.title"),
+				MessageText.getString("v3.buddies.remove.buddy.dialog.text",
+						new String[] {
+							vuzeBuddy.getLoginID()
+						}), new String[] {
+					MessageText.getString("v3.mb.delPublished.delete"),
+					MessageText.getString("v3.mb.delPublished.cancel")
+				}, 1);
+
+		mBox.setLeftImage(SWT.ICON_QUESTION);
+		if (1 == mBox.open(false)) {
 			return;
 		}
 		try {
