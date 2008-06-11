@@ -139,6 +139,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					params.put("id", new Long(engine.getId()));
 					params.put("name", engine.getName());
 					params.put("favicon", engine.getIcon());
+					params.put("dl_link_css", engine.getDownloadLinkCSS());
 					
 					if ( sid != null ){
 						params.put( "sid", sid );
