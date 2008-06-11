@@ -60,6 +60,7 @@ WebEngine
 	private String 			timeZone;
 	private boolean			automaticDateParser;
 	private String 			userDateFormat;
+	private String			downloadLinkCSS;
 	private FieldMapping[]	mappings;
 
 	
@@ -109,7 +110,8 @@ WebEngine
 		searchURLFormat 	= importString( map, "web.search_url_format" );
 		timeZone			= importString( map, "web.time_zone" );
 		userDateFormat		= importString( map, "web.date_format" );
-
+		downloadLinkCSS		= importString( map, "web.dl_link_css" );
+		
 		automaticDateParser	= importBoolean( map, "web.auto_date", true );
 
 		List	maps = (List)map.get( "web.maps" );
@@ -140,6 +142,7 @@ WebEngine
 		exportString( map, "web.search_url_format", searchURLFormat );
 		exportString( map, "web.time_zone", 		timeZone );		
 		exportString( map, "web.date_format", 		userDateFormat );
+		exportString( map, "web.dl_link_css",		downloadLinkCSS );
 		
 		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
 
@@ -178,7 +181,22 @@ WebEngine
 		searchURLFormat 	= importString( map, "searchURL" );
 		timeZone			= importString( map, "timezone" );
 		userDateFormat		= importString( map, "time_format" );
+		downloadLinkCSS		= importString( map, "download_link" );
 
+		if ( downloadLinkCSS != null ){
+			
+			downloadLinkCSS = downloadLinkCSS.trim();
+			
+			if ( downloadLinkCSS.length() == 0 ){
+				
+				downloadLinkCSS = null;
+				
+			}else{
+				
+				downloadLinkCSS = URLDecoder.decode( downloadLinkCSS, "UTF-8" );
+			}
+		}
+		
 		searchURLFormat = URLDecoder.decode( searchURLFormat, "UTF-8" );
 		
 		automaticDateParser	= userDateFormat == null || userDateFormat.trim().length() == 0;
@@ -241,6 +259,11 @@ WebEngine
 		
 		res.put( "searchURL", 	UrlUtils.encode( searchURLFormat));
 		res.put( "timezone", 	timeZone );	
+		
+		if ( downloadLinkCSS != null ){
+			
+			res.put( "download_link", UrlUtils.encode( downloadLinkCSS ));
+		}
 		
 		if ( !automaticDateParser ){
 			
@@ -534,5 +557,16 @@ WebEngine
 	getDateParser()
 	{
 		return( dateParser );
+	}
+	
+	public String 
+	getDownloadLinkCSS()
+	{
+		if ( downloadLinkCSS == null ){
+			
+			return( "" );
+		}
+		
+		return( downloadLinkCSS );
 	}
 }

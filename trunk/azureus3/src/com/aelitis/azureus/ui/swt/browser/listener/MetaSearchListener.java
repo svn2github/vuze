@@ -174,6 +174,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("id", new Long(engine.getId()));
 				engineMap.put("name", engine.getName());
 				engineMap.put("favicon", engine.getIcon());
+				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);
@@ -195,6 +196,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("id", new Long(engine.getId()));
 				engineMap.put("name", engine.getName());
 				engineMap.put("favicon", engine.getIcon());
+				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
 				params.add(engineMap);

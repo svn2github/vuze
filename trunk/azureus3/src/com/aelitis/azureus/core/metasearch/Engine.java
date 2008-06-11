@@ -115,6 +115,9 @@ Engine
 	public String 
 	getIcon();
 
+	public String
+	getDownloadLinkCSS();
+	
 	public boolean
 	isActive();
 	
