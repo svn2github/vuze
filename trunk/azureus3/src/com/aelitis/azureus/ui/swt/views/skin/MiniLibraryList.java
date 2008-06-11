@@ -49,7 +49,7 @@ extends SkinView
 
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		soData = skinObject;
-		SelectedContentManager.changeCurrentlySelectedContent(null);
+		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		AzureusCore core = AzureusCoreFactory.getSingleton();

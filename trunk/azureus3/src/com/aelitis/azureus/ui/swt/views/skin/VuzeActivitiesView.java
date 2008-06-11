@@ -108,9 +108,9 @@ public class VuzeActivitiesView
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, getCurrentlySelectedContent());
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(null);
+					SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, null);
 				}
 				return null;
 			}
@@ -269,7 +269,7 @@ public class VuzeActivitiesView
 					public void runSupport() {
 						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (soData.isVisible()) {
-							SelectedContentManager.changeCurrentlySelectedContent(contents);
+							SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, contents);
 						}
 						if (btnShare != null) {
 							btnShare.setDisabled(contents.length != 1);

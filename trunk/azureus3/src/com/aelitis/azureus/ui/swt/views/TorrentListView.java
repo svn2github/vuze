@@ -112,9 +112,11 @@ public class TorrentListView
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent(getTableID(),
+							getCurrentlySelectedContent());
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(null);
+					SelectedContentManager.changeCurrentlySelectedContent(getTableID(),
+							null);
 				}
 				return null;
 			}
@@ -364,7 +366,8 @@ public class TorrentListView
 					public void runSupport() {
 						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (dataArea.isVisible()) {
-							SelectedContentManager.changeCurrentlySelectedContent(contents);
+							SelectedContentManager.changeCurrentlySelectedContent(
+									getTableID(), contents);
 						}
 						if (btnShare != null) {
 							btnShare.setDisabled(contents.length != 1);

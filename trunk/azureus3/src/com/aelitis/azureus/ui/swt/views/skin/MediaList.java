@@ -98,7 +98,7 @@ public class MediaList
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		soData = skinObject;
-		SelectedContentManager.changeCurrentlySelectedContent(null);
+		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();

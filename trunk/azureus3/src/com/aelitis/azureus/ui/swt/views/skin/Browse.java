@@ -72,14 +72,16 @@ public class Browse
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent("browse",
+							getCurrentlySelectedContent());
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(null);
+					SelectedContentManager.changeCurrentlySelectedContent("browse",
+							null);
 				}
 				return null;
 			}
 		});
-		SelectedContentManager.changeCurrentlySelectedContent(null);
+		SelectedContentManager.changeCurrentlySelectedContent("browse", null);
 
 		Browser browser = browserSkinObject.getBrowser();
 		browser.addTitleListener(new TitleListener() {
@@ -97,7 +99,8 @@ public class Browse
 			}
 
 			public void changed(LocationEvent event) {
-				SelectedContentManager.changeCurrentlySelectedContent(getCurrentlySelectedContent());
+				SelectedContentManager.changeCurrentlySelectedContent("browse",
+						getCurrentlySelectedContent());
 			}
 		});
 
