@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
+import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
@@ -561,7 +562,6 @@ public class MessageBoxShell
 		titleLabel.setLayoutData(new GridData(GridData.FILL_BOTH));
 		Utils.setFontHeight(titleLabel, 12, SWT.NORMAL);
 
-
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageBoxShell.class.toString());
 		for (int i = 0; i < listeners.length; i++) {
@@ -766,13 +766,14 @@ public class MessageBoxShell
 		};
 
 		int buttonWidth = 0;
-		Button[] swtButtons = new Button[buttons.length];
+		BubbleButton[] swtButtons = new BubbleButton[buttons.length];
 		for (int i = 0; i < buttons.length; i++) {
-			Button button = new Button(cButtons, SWT.PUSH);
+			BubbleButton button = new BubbleButton(cButtons);
 			swtButtons[i] = button;
 			button.setData(new Integer(i));
 			button.setText(buttons[i]);
-			button.addListener(SWT.Selection, buttonListener);
+			System.out.println(buttons[i]);//KN: sysout
+			button.addListener(SWT.MouseUp, buttonListener);
 
 			formData = new FormData();
 			if (lastButton != null) {
