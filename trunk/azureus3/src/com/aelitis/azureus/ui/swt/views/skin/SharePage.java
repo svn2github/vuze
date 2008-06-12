@@ -12,12 +12,15 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
@@ -149,6 +152,8 @@ public class SharePage
 	private RefreshListener refreshListener;
 
 	private AbstractBuddyPageListener buddyPageListener;
+
+	private Font contentTitleFont = null;
 
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
@@ -300,7 +305,7 @@ public class SharePage
 				SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList.getControl(), 16);
 		contentDetailData.right = new FormAttachment(100, -58);
-		contentDetailData.height = 259;
+		contentDetailData.height = 240;
 		contentDetail.setLayoutData(contentDetailData);
 
 		FormLayout detailLayout = new FormLayout();
@@ -348,13 +353,13 @@ public class SharePage
 				disclaimerLinkLabelData);
 
 		FormData sendNowButtonData = new FormData();
-		sendNowButtonData.bottom = new FormAttachment(100, -24);
+		sendNowButtonData.bottom = new FormAttachment(100, -38);
 		sendNowButtonData.right = new FormAttachment(contentDetail, 0, SWT.RIGHT);
 		sendNowButton.setLayoutData(sendNowButtonData);
 
 		FormData cancelButtonData = new FormData();
 		cancelButtonData.right = new FormAttachment(sendNowButton, -8);
-		cancelButtonData.bottom = new FormAttachment(100, -24);
+		cancelButtonData.bottom = new FormAttachment(100, -38);
 		cancelButton.setLayoutData(cancelButtonData);
 
 		//		FormData previewButtonData = new FormData();
@@ -383,7 +388,7 @@ public class SharePage
 
 		addBuddyPromptLabel.setForeground(textDarkerColor);
 
-		contentStats.setForeground(textColor);
+		contentStats.setForeground(textDarkerColor);
 
 		commentText.setTextLimit(140);
 		commentText.setBackground(ColorCache.getColor(content.getDisplay(), 153,
@@ -946,7 +951,32 @@ public class SharePage
 			return;
 		}
 
+		if (null == contentTitleFont) {
+			FontData[] fDatas = contentStats.getFont().getFontData();
+			for (int i = 0; i < fDatas.length; i++) {
+				fDatas[i].height += 2;
+			}
+			contentTitleFont = new Font(contentStats.getDisplay(), fDatas);
+			contentStats.addDisposeListener(new DisposeListener() {
+
+				public void widgetDisposed(DisposeEvent e) {
+					if (null != contentTitleFont
+							&& false == contentTitleFont.isDisposed()) {
+						contentTitleFont.dispose();
+					}
+				}
+			});
+
+		}
+
+		int charCount = contentStats.getCharCount();
 		contentStats.append(shareItem.getDisplayName() + "\n");
+		StyleRange style2 = new StyleRange();
+		style2.start = charCount;
+		style2.length = shareItem.getDisplayName().length();
+		style2.font = contentTitleFont;
+		style2.foreground = textColor;
+		contentStats.setStyleRange(style2);
 
 		if (null == dm) {
 			return;
