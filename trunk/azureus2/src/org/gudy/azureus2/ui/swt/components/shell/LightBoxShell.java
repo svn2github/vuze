@@ -582,4 +582,8 @@ public class LightBoxShell
 	public void moveAbove(Control control) {
 		lbShell.moveAbove(control);
 	}
+
+	public Shell getShell() {
+		return lbShell;
+	}
 }
