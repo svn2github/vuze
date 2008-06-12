@@ -1118,7 +1118,7 @@ public class MainWindow
 
 	private void showMainWindow() {
 		if (oldMainWindow != null) {
-			oldMainWindow.postPluginSetup();
+			oldMainWindow.postPluginSetup(-1, 0);
 		}
 
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
@@ -2317,7 +2317,7 @@ public class MainWindow
 							oldMainWindow.setShowMainWindow(false);
 							oldMainWindow.runSupport();
 							if (isReady) {
-								oldMainWindow.postPluginSetup();
+								oldMainWindow.postPluginSetup(-1, 0);
 							}
 
 							/*
