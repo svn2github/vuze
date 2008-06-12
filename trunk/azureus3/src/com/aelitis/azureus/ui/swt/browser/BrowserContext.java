@@ -347,21 +347,30 @@ public class BrowserContext
 									//See what the content type is
 									URL url = new URL(event.location);
 									URLConnection conn = url.openConnection();
+									
+										// we're only trying to get the content type so just use head
+									
 									((HttpURLConnection)conn).setRequestMethod("HEAD");
+									
+									String	referer_str = null;
+									
 									try{
 										URL referer = new URL(((Browser)event.widget).getUrl());
 
 										if ( referer != null ){
 											
-											conn.setRequestProperty( "Referer", referer.toExternalForm());
+											referer_str = referer.toExternalForm();
 
 										}
 									}catch( Throwable e ){
 									}
 									
+									UrlUtils.setBrowserHeaders( conn, referer_str );
+									
 									UrlUtils.connectWithTimeout( conn, 1500 );
 									
 									String contentType = conn.getContentType();
+									
 									if(contentType != null && contentType.indexOf("torrent") != -1) {
 										isTorrent = true;
 									}
@@ -379,16 +388,18 @@ public class BrowserContext
 						if(isTorrent) {
 							event.doit = false;
 							try {
-								URL	referer = null;
+								String referer_str = null;
 
 								try{
-									referer = new URL(((Browser)event.widget).getUrl());
+									referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
 
 								}catch( Throwable e ){
 								}
 								
+								Map headers = UrlUtils.getBrowserHeaders( referer_str );
+								
 								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-										new URL(event.location),referer);
+										new URL(event.location), headers );
 								
 							} catch(Exception e) {
 								e.printStackTrace();

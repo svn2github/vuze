@@ -125,7 +125,7 @@ public class TorrentUIUtilsV3
 
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {
-					new FileDownloadWindow(core, shell, url, referer,
+					new FileDownloadWindow(core, shell, url, referer, null, 
 							new TorrentDownloaderCallBackInterface() {
 
 								public void TorrentDownloaderEvent(int state,

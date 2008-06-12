@@ -30,8 +30,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.bouncycastle.util.encoders.Base64;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -52,9 +50,7 @@ WebEngine
 	static private final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
 	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
 	static private final Pattern baseURLPattern = Pattern.compile("(https?://.*/)");
-	
-	static private String	last_headers = COConfigurationManager.getStringParameter( "metasearch.web.last.headers", null );
-	
+		
 	
 	private String 			searchURLFormat;
 	private String 			timeZone;
@@ -465,67 +461,7 @@ WebEngine
 		ResourceDownloader		rd,
 		String					encoded_headers )
 	{
-			// test headers
-		
-		String	headers_to_use = encoded_headers;
-		
-		synchronized( WebEngine.class ){
-			
-			if ( headers_to_use == null ){
-				
-				if ( last_headers != null ){
-					
-					headers_to_use = last_headers;
-					
-				}else{
-					
-					final String test_headers = "SG9zdDogbG9jYWxob3N0OjQ1MTAwClVzZXItQWdlbnQ6IE1vemlsbGEvNS4wIChXaW5kb3dzOyBVOyBXaW5kb3dzIE5UIDUuMTsgZW4tVVM7IHJ2OjEuOC4xLjE0KSBHZWNrby8yMDA4MDQwNCBGaXJlZm94LzIuMC4wLjE0CkFjY2VwdDogdGV4dC94bWwsYXBwbGljYXRpb24veG1sLGFwcGxpY2F0aW9uL3hodG1sK3htbCx0ZXh0L2h0bWw7cT0wLjksdGV4dC9wbGFpbjtxPTAuOCxpbWFnZS9wbmcsKi8qO3E9MC41CkFjY2VwdC1MYW5ndWFnZTogZW4tdXMsZW47cT0wLjUKQWNjZXB0LUVuY29kaW5nOiBnemlwLGRlZmxhdGUKQWNjZXB0LUNoYXJzZXQ6IElTTy04ODU5LTEsdXRmLTg7cT0wLjcsKjtxPTAuNwpLZWVwLUFsaXZlOiAzMDAKQ29ubmVjdGlvbjoga2VlcC1hbGl2ZQ==";
-
-					headers_to_use = test_headers;
-				}
-			}else{
-			
-				if ( last_headers == null || !headers_to_use.equals( last_headers )){
-					
-					COConfigurationManager.setParameter( "metasearch.web.last.headers", headers_to_use );
-				}
-				
-				last_headers = headers_to_use;
-			}
-		}
-		
-		
-		try{
-		
-			String header_string = new String( Base64.decode( headers_to_use ), "UTF-8" );
-		
-			String[]	headers = header_string.split( "\n" );
-			
-			for (int i=0;i<headers.length;i++ ){
-			
-				String	header = headers[i];
-				
-				int	pos = header.indexOf( ':' );
-				
-				if ( pos != -1 ){
-					
-					String	lhs = header.substring(0,pos).trim();
-					String	rhs	= header.substring(pos+1).trim();
-					
-					if ( !lhs.toLowerCase().equals("host")){
-						
-						if ( lhs.equalsIgnoreCase( "Referer")){
-							
-							rhs = rootPage;
-						}
-						
-						rd.setProperty( "URL_" + lhs, rhs );
-					}
-				}
-			}
-		}catch( Throwable e ){
-			
-		}
+		UrlUtils.setBrowserHeaders( rd, encoded_headers, rootPage );
 	}
 	
 	public String getIcon() {
