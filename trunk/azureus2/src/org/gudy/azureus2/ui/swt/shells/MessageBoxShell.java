@@ -404,7 +404,8 @@ public class MessageBoxShell
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
-					if (rememberID != null && checkRemember != null
+					if (rememberID != null
+							&& checkRemember != null
 							&& checkRemember.getSelection()
 							&& (rememberOnlyIfButton == -1 || rememberOnlyIfButton == result[0])) {
 						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
@@ -736,12 +737,15 @@ public class MessageBoxShell
 			checkRemember = new Button(content, SWT.CHECK);
 			checkRemember.setText(rememberText);
 			checkRemember.setSelection(rememberByDefault);
-
+			checkRemember.setForeground(ColorCache.getColor(parent.getDisplay(), 194,
+					194, 194));
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
-					if (rememberID != null && checkRemember != null
-							&& checkRemember.getSelection()) {
+					if (rememberID != null
+							&& checkRemember != null
+							&& checkRemember.getSelection()
+							&& (rememberOnlyIfButton == -1 || rememberOnlyIfButton == result[0])) {
 						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
 					}
 				}
@@ -1133,6 +1137,6 @@ public class MessageBoxShell
 	 * @since 3.0.5.3
 	 */
 	public void setHandleHTML(boolean handleHTML) {
-		this.handleHTML  = handleHTML;
+		this.handleHTML = handleHTML;
 	}
 }
