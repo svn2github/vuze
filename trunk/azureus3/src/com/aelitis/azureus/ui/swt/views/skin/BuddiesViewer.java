@@ -18,7 +18,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -642,54 +641,51 @@ public class BuddiesViewer
 
 	private void recomputeOrder() {
 
-		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-		return;
-		*/
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
 
-		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-		if (avatarsPanel.isDisposed())
-			return;
+				/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+				return;
+				*/
 
-		final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+				// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+				if (avatarsPanel.isDisposed())
+					return;
 
-		//Only sort by online status if we show it
-		if (SHOW_ONLINE_STATUS) {
-			Collections.sort(buddies, new Comparator() {
-				public int compare(Object o1, Object o2) {
-					VuzeBuddy v1 = (VuzeBuddy) o1;
-					VuzeBuddy v2 = (VuzeBuddy) o2;
-					int score = 0;
-					score -= v1.isOnline() ? 1 : 0;
-					score += v2.isOnline() ? 1 : 0;
-					return score;
+				final List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+
+				//Only sort by online status if we show it
+				if (SHOW_ONLINE_STATUS) {
+					Collections.sort(buddies, new Comparator() {
+						public int compare(Object o1, Object o2) {
+							VuzeBuddy v1 = (VuzeBuddy) o1;
+							VuzeBuddy v2 = (VuzeBuddy) o2;
+							int score = 0;
+							score -= v1.isOnline() ? 1 : 0;
+							score += v2.isOnline() ? 1 : 0;
+							return score;
+						}
+					});
 				}
-			});
-		}
 
-		Display display = avatarsPanel.getDisplay();
-		if (!display.isDisposed()) {
-			display.asyncExec(new Runnable() {
-				public void run() {
-					boolean changed = false;
-					for (int i = 0; i < buddies.size(); i++) {
-						VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
-						AvatarWidget widget = findWidget(buddy);
-						Control control = widget.getControl();
-						if (control != null && !control.isDisposed()) {
-							SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
-							if (rData.position != i) {
-								rData.position = i;
-								changed = true;
-							}
+				boolean changed = false;
+				for (int i = 0; i < buddies.size(); i++) {
+					VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
+					AvatarWidget widget = findWidget(buddy);
+					Control control = widget.getControl();
+					if (control != null && !control.isDisposed()) {
+						SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
+						if (rData.position != i) {
+							rData.position = i;
+							changed = true;
 						}
 					}
-					if (changed) {
-						avatarsPanel.layout();
-					}
 				}
-			});
-		}
-
+				if (changed) {
+					avatarsPanel.layout();
+				}
+			}
+		});
 	}
 
 	private List getBuddies() {
