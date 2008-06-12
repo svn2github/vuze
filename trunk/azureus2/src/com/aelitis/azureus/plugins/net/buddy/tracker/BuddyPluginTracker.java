@@ -2188,7 +2188,7 @@ outer:
 			boolean	verbose,
 			boolean	no_buddy )
 		{
-			BuddyPluginTracker.this.log( (no_buddy?"":( buddy.getName() + ": ")) + str, true );
+			BuddyPluginTracker.this.log( (no_buddy?"":( buddy.getName() + ": ")) + str, verbose );
 		}
 	}
 	
