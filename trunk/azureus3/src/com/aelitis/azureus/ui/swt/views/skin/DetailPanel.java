@@ -244,6 +244,8 @@ public class DetailPanel
 
 					if (true == value) {
 
+						DETAIL_PANEL_HEIGHT = getPanelHeight(uiFunctions,
+								DETAIL_PANEL_HEIGHT);
 						/*
 						 * LightBox to cover the elements above this detail panel
 						 */
@@ -271,7 +273,7 @@ public class DetailPanel
 						size.y = DETAIL_PANEL_HEIGHT;
 
 						stackLayout.topControl = blankPage.getControl();
-						detailPanel.layout();
+						detailPanel.layout(true,true);
 
 					}
 					AERunnable runWhenDone = new AERunnable() {
@@ -345,5 +347,16 @@ public class DetailPanel
 
 	private LightBoxShell getLbShell() {
 		return lbShell;
+	}
+
+	/**
+	 * Calculates and return the optimum height to fit the panel in the main window without overlap
+	 * @param uiFunctions
+	 * @param heightHint
+	 * @return
+	 */
+	private int getPanelHeight(UIFunctionsSWT uiFunctions, int heightHint) {
+
+		return heightHint;
 	}
 }
