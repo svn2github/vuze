@@ -585,7 +585,7 @@ public class MainWindow
 					return;
 				}
 
-				postPluginSetup();
+				postPluginSetup(0, 50);
 			}
 
 		} catch (Throwable e) {
@@ -600,10 +600,7 @@ public class MainWindow
 	 *
 	 * @since 3.0.4.3
 	 */
-	public void postPluginSetup() {
-		int delay = 0;
-		final int delayInc = 50;
-
+	public void postPluginSetup(int delay, final int delayInc) {
 		if (initializer != null) {
 			initializer.reportCurrentTask(MessageText.getString("splash.openViews"));
 			initializer.nextTask();
