@@ -514,7 +514,6 @@ public class SharePage
 				getMessageContext().executeInBrowser(
 						"setShareReferer('" + referer + "')");
 
-				System.out.println("shareSubmit()");//KN: sysout
 				getMessageContext().executeInBrowser("shareSubmit()");
 
 				// We'll get a buddy-page.invite-confirm message from the webpage,
@@ -581,7 +580,7 @@ public class SharePage
 				}
 			}
 
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
 					final LightBoxShell lightBoxShell = new LightBoxShell(true);
@@ -763,7 +762,6 @@ public class SharePage
 				}
 
 				public void handleInviteConfirm() {
-					System.out.println("handleInviteConfirm()");//KN: sysout
 					confirmationResponse = getConfirmationResponse();
 
 					if (null != confirmationResponse) {
@@ -772,7 +770,6 @@ public class SharePage
 						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 							public void loginComplete() {
 								try {
-									System.out.println("inviteWithShare()");//KN: sysout
 									VuzeBuddyManager.inviteWithShare(confirmationResponse,
 											getShareItem(), commentText.getText(), buddies);
 									getDetailPanel().show(false);

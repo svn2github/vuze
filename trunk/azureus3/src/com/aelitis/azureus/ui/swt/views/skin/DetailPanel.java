@@ -231,7 +231,7 @@ public class DetailPanel
 	 */
 	public void show(final boolean value, final String pageID) {
 
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 
 			public void runSupport() {
 				int DETAIL_PANEL_HEIGHT = 463;
@@ -273,7 +273,7 @@ public class DetailPanel
 						size.y = DETAIL_PANEL_HEIGHT;
 
 						stackLayout.topControl = blankPage.getControl();
-						detailPanel.layout(true,true);
+						detailPanel.layout(true, true);
 
 					}
 					AERunnable runWhenDone = new AERunnable() {
@@ -295,7 +295,7 @@ public class DetailPanel
 									blankPage.showBusy(true, 0);
 									page.refresh(new IDetailPage.RefreshListener() {
 										public void refreshCompleted() {
-											Utils.execSWTThread(new AERunnable() {
+											Utils.execSWTThreadLater(0, new AERunnable() {
 												public void runSupport() {
 													blankPage.showBusy(false);
 													Utils.relayout(detailPanel);

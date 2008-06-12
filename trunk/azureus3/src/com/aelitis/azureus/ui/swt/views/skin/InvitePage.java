@@ -183,7 +183,7 @@ public class InvitePage
 		getDetailPanel().show(false);
 
 		if (null != buddyPageListener) {
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
 					final LightBoxShell lightBoxShell = new LightBoxShell(true);
