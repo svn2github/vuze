@@ -131,8 +131,7 @@ public class InvitePage
 					if (null != buttonBar) {
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}
-
-					getDetailPanel().show(false);
+					getDetailPanel().showBusy(true, 0);
 
 				}
 
@@ -180,6 +179,9 @@ public class InvitePage
 	}
 
 	private void showConfirmationDialog() {
+		getDetailPanel().showBusy(false, 0);
+		getDetailPanel().show(false);
+
 		if (null != buddyPageListener) {
 			Utils.execSWTThread(new AERunnable() {
 
