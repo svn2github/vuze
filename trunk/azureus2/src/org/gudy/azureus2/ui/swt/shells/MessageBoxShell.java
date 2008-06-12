@@ -105,6 +105,8 @@ public class MessageBoxShell
 
 	protected Color urlColor;
 
+	private boolean handleHTML = true;
+
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
 		return open(parent, title, text, buttons, defaultOption, null, false, -1);
@@ -897,7 +899,8 @@ public class MessageBoxShell
 
 		final Canvas canvas = new Canvas(shell, SWT.None) {
 			public Point computeSize(int wHint, int hHint, boolean changed) {
-				Rectangle area = new Rectangle(0, 0, MAX_SIZE_X, 5000);
+				Rectangle area = new Rectangle(0, 0, wHint < 0 ? MAX_SIZE_X : wHint,
+						5000);
 				GC gc = new GC(this);
 				GCStringPrinter sp = new GCStringPrinter(gc, text, area, true, false,
 						SWT.WRAP | SWT.TOP);
@@ -912,6 +915,15 @@ public class MessageBoxShell
 			GCStringPrinter sp;
 
 			public void handleEvent(Event e) {
+				if (!handleHTML) {
+					if (e.type == SWT.Paint) {
+						Rectangle area = canvas.getClientArea();
+						GCStringPrinter.printString(e.gc, text, area, true, false, SWT.WRAP
+								| SWT.TOP);
+					}
+					return;
+				}
+
 				if (e.type == SWT.Paint) {
 					Rectangle area = canvas.getClientArea();
 					sp = new GCStringPrinter(e.gc, text, area, true, false, SWT.WRAP
@@ -946,8 +958,10 @@ public class MessageBoxShell
 			}
 		};
 		canvas.addListener(SWT.Paint, l);
-		canvas.addListener(SWT.MouseMove, l);
-		canvas.addListener(SWT.MouseUp, l);
+		if (!handleHTML) {
+			canvas.addListener(SWT.MouseMove, l);
+			canvas.addListener(SWT.MouseUp, l);
+		}
 
 		ClipboardCopy.addCopyToClipMenu(canvas,
 				new ClipboardCopy.copyToClipProvider() {
@@ -1111,5 +1125,14 @@ public class MessageBoxShell
 
 	public void setUrlColor(Color colorURL) {
 		this.urlColor = colorURL;
+	}
+
+	/**
+	 * @param b
+	 *
+	 * @since 3.0.5.3
+	 */
+	public void setHandleHTML(boolean handleHTML) {
+		this.handleHTML  = handleHTML;
 	}
 }
