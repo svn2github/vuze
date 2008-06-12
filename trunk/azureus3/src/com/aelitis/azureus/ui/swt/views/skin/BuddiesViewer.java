@@ -556,13 +556,16 @@ public class BuddiesViewer
 		if (buddy instanceof VuzeBuddySWT) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					if (soNoBuddies != null) {
-						soNoBuddies.setVisible(false);
+					AvatarWidget widget = findWidget(buddy);
+					if(widget == null) {
+						if (soNoBuddies != null) {
+							soNoBuddies.setVisible(false);
+						}
+						createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
+						avatarsPanel.layout();
+						Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+						avatarsPanel.setSize(size);
 					}
-					createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
-					avatarsPanel.layout();
-					Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
-					avatarsPanel.setSize(size);
 				}
 			});
 
