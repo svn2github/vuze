@@ -509,7 +509,7 @@ public class BuddiesViewer
 	}
 
 	public void removeBuddy(final AvatarWidget widget) {
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				avatarWidgets.remove(widget);
 				widget.dispose(true);
@@ -533,7 +533,7 @@ public class BuddiesViewer
 	public void updateBuddy(final VuzeBuddy buddy) {
 		if (buddy instanceof VuzeBuddySWT) {
 
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
 					AvatarWidget widget = findWidget(buddy);
@@ -554,16 +554,17 @@ public class BuddiesViewer
 
 	public void addBuddy(final VuzeBuddy buddy) {
 		if (buddy instanceof VuzeBuddySWT) {
-			Utils.execSWTThread(new AERunnable() {
+			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
 					AvatarWidget widget = findWidget(buddy);
-					if(widget == null) {
+					if (widget == null) {
 						if (soNoBuddies != null) {
 							soNoBuddies.setVisible(false);
 						}
 						createBuddyControls(avatarsPanel, (VuzeBuddySWT) buddy);
 						avatarsPanel.layout();
-						Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+						Point size = avatarsPanel.computeSize(SWT.DEFAULT, SWT.DEFAULT,
+								true);
 						avatarsPanel.setSize(size);
 					}
 				}
@@ -644,7 +645,7 @@ public class BuddiesViewer
 
 	private void recomputeOrder() {
 
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 
 				/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT

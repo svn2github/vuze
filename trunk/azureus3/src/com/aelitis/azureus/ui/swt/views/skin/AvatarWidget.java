@@ -721,8 +721,7 @@ public class AvatarWidget
 	public void dispose(boolean animate) {
 		if (null != canvas && false == canvas.isDisposed()) {
 			if (true == animate) {
-				parent.getDisplay().asyncExec(new AERunnable() {
-
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 
 						isDisposing = true;
