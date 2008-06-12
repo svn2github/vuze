@@ -126,7 +126,10 @@ public class AboutWindow {
     labelImage.setLayoutData(gridData);
   
     Group gTranslators = new Group(window, SWT.NULL);
-    gTranslators.setLayout(new GridLayout());
+    GridLayout gl = new GridLayout();
+    gl.marginHeight = 2;
+    gl.marginWidth = 0;
+    gTranslators.setLayout(gl);
     Messages.setLanguageText(gTranslators, "MainWindow.about.section.translators"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gTranslators.setLayoutData(gridData);
@@ -134,6 +137,7 @@ public class AboutWindow {
     Text txtTrans = new Text(gTranslators, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
     txtTrans.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
     gridData = new GridData(GridData.FILL_BOTH);
+    gridData.heightHint = txtTrans.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 10;
     txtTrans.setLayoutData(gridData);
     txtTrans.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     
