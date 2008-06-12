@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.browser;
 
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
@@ -346,7 +347,7 @@ public class BrowserContext
 									//See what the content type is
 									URL url = new URL(event.location);
 									URLConnection conn = url.openConnection();
-									
+									((HttpURLConnection)conn).setRequestMethod("HEAD");
 									try{
 										URL referer = new URL(((Browser)event.widget).getUrl());
 
