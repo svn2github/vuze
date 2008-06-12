@@ -1590,6 +1590,10 @@ outer:
 				
 				if ( now - last_fail >= retry_millis ){
 					
+					last_fail			= now;	// assume we're going to fail so we avoid
+												// falling through here multiple times before
+												// actuallt failing again
+					
 					downloads_sent 		= null;
 					downloads_sent_id	= 0;
 				}
