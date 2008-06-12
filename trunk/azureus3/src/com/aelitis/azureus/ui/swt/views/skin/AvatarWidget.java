@@ -718,7 +718,7 @@ public class AvatarWidget
 		this.textLinkColor = textLinkColor;
 	}
 
-	public void dispose(boolean animate) {
+	public void dispose(boolean animate, final AfterDisposeListener listener) {
 		if (null != canvas && false == canvas.isDisposed()) {
 			if (true == animate) {
 				Utils.execSWTThreadLater(0, new AERunnable() {
@@ -744,14 +744,21 @@ public class AvatarWidget
 
 						if (false == canvas.isDisposed()) {
 							canvas.dispose();
-							parent.layout(true);
+							if(null != listener){
+								listener.disposed();
+							}
+//							parent.layout(true);
 						}
 					}
 				});
 			} else {
 				if (false == canvas.isDisposed()) {
 					canvas.dispose();
-					parent.layout(true);
+					if(null != listener){
+						listener.disposed();
+					}
+
+//				parent.layout(true);
 				}
 			}
 
@@ -860,5 +867,10 @@ public class AvatarWidget
 		}
 
 		return alpha;
+	}
+
+	public interface AfterDisposeListener
+	{
+		public void disposed();
 	}
 }

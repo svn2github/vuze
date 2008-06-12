@@ -512,11 +512,16 @@ public class BuddiesViewer
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				avatarWidgets.remove(widget);
-				widget.dispose(true);
+				widget.dispose(true, new AvatarWidget.AfterDisposeListener() {
+					public void disposed() {
+						avatarsPanel.setSize(avatarsPanel.computeSize(SWT.DEFAULT,
+								SWT.DEFAULT, true));
+						if (avatarWidgets.size() < 1) {
+							showNoBuddiesPanel(true);
+						}
+					}
+				});
 
-				if (avatarWidgets.size() < 1) {
-					showNoBuddiesPanel(true);
-				}
 			}
 		});
 	}
