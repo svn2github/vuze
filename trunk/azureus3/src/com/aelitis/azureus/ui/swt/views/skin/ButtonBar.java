@@ -203,27 +203,26 @@ public class ButtonBar
 
 	}
 
-	public void enableShare(boolean value){
-		if(false == value){
-			if(shareAllBuddiesObject.isVisible()){
+	public void enableShare(boolean value) {
+		if (false == value) {
+			if (shareAllBuddiesObject.isVisible()) {
 				shareAllBuddiesObject.switchSuffix("-disabled", 1, false);
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-				if(null != viewer){
+				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.disabled_mode);
 				}
 			}
-		}
-		else{
-			if(shareAllBuddiesObject.isVisible()){
+		} else {
+			if (shareAllBuddiesObject.isVisible()) {
 				shareAllBuddiesObject.switchSuffix("", 1, false);
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-				if(null != viewer){
+				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.share_mode);
 				}
 			}
 		}
 	}
-	
+
 	public void setActiveMode(int mode) {
 
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
@@ -308,7 +307,7 @@ public class ButtonBar
 					showImageObject);
 			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(true, false);
+					showFooter(true, true);
 				}
 			});
 
@@ -319,7 +318,7 @@ public class ButtonBar
 					hideImageObject);
 			btnHide.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(false, false);
+					showFooter(false, true);
 				}
 			});
 
