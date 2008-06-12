@@ -551,7 +551,7 @@ public class TorrentListViewsUtils
 									dm.getDisplayName(),
 									sFileType,
 									ext
-								}), buttons, 0, sPrefix + ".remember_id3", MessageText.getString(sPrefix
+								}), buttons, 0, sPrefix + ".remember_id", MessageText.getString(sPrefix
 								+ "remember"), false, 0);
 				mb.setRememberOnlyIfButton(1);
 				mb.setRelatedObject(dm);
