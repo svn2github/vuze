@@ -158,8 +158,12 @@ public class PlatformMessenger
 						});
 			} else {
 				// Move the time up if we have to
-				if (fireBefore < timerEvent.getWhen()) {
-					timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
+				try {
+  				if (fireBefore < timerEvent.getWhen()) {
+  					timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
+  				}
+				} catch (Exception e) {
+					
 				}
 			}
 		} finally {
