@@ -776,7 +776,7 @@ public class MessageBoxShell
 
 			formData = new FormData();
 			if (lastButton != null) {
-				formData.left = new FormAttachment(lastButton, 5);
+				formData.left = new FormAttachment(lastButton, 20);
 			}
 
 			button.setLayoutData(formData);
