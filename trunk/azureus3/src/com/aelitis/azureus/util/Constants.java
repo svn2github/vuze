@@ -121,7 +121,7 @@ public class Constants
 
 	// WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty(
-			"debug.buddies.bar", "0").equals("0");
+			"debug.buddies.bar", "1").equals("0");
 
 	/**
 	 * This verifier value is only used to validate that the page we're loading is
