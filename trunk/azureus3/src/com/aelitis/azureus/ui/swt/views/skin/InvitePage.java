@@ -7,8 +7,11 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
@@ -181,15 +184,23 @@ public class InvitePage
 			Utils.execSWTThread(new AERunnable() {
 
 				public void runSupport() {
+					final LightBoxShell lightBoxShell = new LightBoxShell(true);
 					StyledMessageWindow messageWindow = new StyledMessageWindow(
-							content.getShell(), 6, true);
+							lightBoxShell.getShell(), 6, true);
 
 					messageWindow.setDetailMessages(buddyPageListener.getConfirmationMessages());
 					messageWindow.setMessage(buddyPageListener.getFormattedInviteMessage());
 
 					messageWindow.setTitle("Invite confirmation");
 					messageWindow.setSize(400, 300);
-					messageWindow.open();
+
+					messageWindow.addListener(SWT.Close, new Listener() {
+						public void handleEvent(Event event) {
+							lightBoxShell.close();
+						}
+					});
+					lightBoxShell.open(messageWindow);
+
 				}
 			});
 		}

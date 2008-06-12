@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.components.widgets.FlatButton;
 import org.gudy.azureus2.ui.swt.components.widgets.MiniCloseButton;
@@ -578,15 +579,22 @@ public class SharePage
 			Utils.execSWTThread(new AERunnable() {
 
 				public void runSupport() {
+					final LightBoxShell lightBoxShell = new LightBoxShell(true);
 					StyledMessageWindow messageWindow = new StyledMessageWindow(
-							content.getShell(), 6, true);
+							lightBoxShell.getShell(), 6, true);
 
 					messageWindow.setDetailMessages(messages);
 					messageWindow.setMessage(message[0]);
-
 					messageWindow.setTitle("Share confirmation");
 					messageWindow.setSize(400, 300);
-					messageWindow.open();
+
+					messageWindow.addListener(SWT.Close, new Listener() {
+						public void handleEvent(Event event) {
+							lightBoxShell.close();
+						}
+					});
+					lightBoxShell.open(messageWindow);
+
 				}
 			});
 		}

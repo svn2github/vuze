@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -601,7 +602,9 @@ public class AvatarWidget
 
 	private void doRemoveBuddy() {
 
-		MessageBoxShell mBox = new MessageBoxShell(parent.getShell(),
+		LightBoxShell lbShell = new LightBoxShell(parent.getShell(), false);
+		
+		MessageBoxShell mBox = new MessageBoxShell(lbShell.getShell(),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.title"),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.text",
 						new String[] {
@@ -612,7 +615,11 @@ public class AvatarWidget
 				}, 1);
 
 		mBox.setLeftImage(SWT.ICON_QUESTION);
+		
+		lbShell.open();
+		
 		if (1 == mBox.open(true)) {
+			lbShell.close();
 			return;
 		}
 		try {
@@ -621,6 +628,7 @@ public class AvatarWidget
 			// should not happen, unless the user cancelled
 			Debug.out(e);
 		}
+		lbShell.close();
 	}
 
 	private void doAddBuddyToShare() {
