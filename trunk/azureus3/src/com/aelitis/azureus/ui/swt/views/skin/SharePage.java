@@ -305,7 +305,7 @@ public class SharePage
 				SWT.TOP);
 		contentDetailData.left = new FormAttachment(buddyList.getControl(), 16);
 		contentDetailData.right = new FormAttachment(100, -58);
-		contentDetailData.height = 240;
+		contentDetailData.height = 239;
 		contentDetail.setLayoutData(contentDetailData);
 
 		FormLayout detailLayout = new FormLayout();
@@ -341,12 +341,12 @@ public class SharePage
 		commentText.setLayoutData(commentTextData);
 
 		FormData disclaimerLabelData = new FormData();
-		disclaimerLabelData.top = new FormAttachment(contentDetail, 6);
+		disclaimerLabelData.top = new FormAttachment(contentDetail, 3);
 		disclaimerLabelData.left = new FormAttachment(contentDetail, 0, SWT.LEFT);
 		optionalMessageDisclaimerLabel.setLayoutData(disclaimerLabelData);
 
 		FormData disclaimerLinkLabelData = new FormData();
-		disclaimerLinkLabelData.top = new FormAttachment(contentDetail, 6);
+		disclaimerLinkLabelData.top = new FormAttachment(contentDetail, 3);
 		disclaimerLinkLabelData.left = new FormAttachment(
 				optionalMessageDisclaimerLabel, 6);
 		optionalMessageDisclaimerLinkLabel.getControl().setLayoutData(
