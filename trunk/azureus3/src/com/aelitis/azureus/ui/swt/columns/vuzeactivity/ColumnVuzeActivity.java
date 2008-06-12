@@ -89,8 +89,6 @@ public class ColumnVuzeActivity
 
 	private Color colorLinkHover;
 
-	private Color colorHeaderBG;
-
 	private Color colorHeaderFG;
 
 	private Color colorNewsFG;
@@ -109,7 +107,6 @@ public class ColumnVuzeActivity
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");
-		colorHeaderBG = skinProperties.getColor("color.activity.row.header.bg");
 		colorHeaderFG = skinProperties.getColor("color.activity.row.header.fg");
 		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
@@ -209,6 +206,7 @@ public class ColumnVuzeActivity
 		Device device = Display.getDefault();
 		GCStringPrinter stringPrinter;
 		GC gcQuery = new GC(device);
+		Rectangle drawRect;
 		try {
 			try {
 				gcQuery.setAdvanced(true);
@@ -278,6 +276,11 @@ public class ColumnVuzeActivity
 				imgBounds = image.getBounds();
 			}
 
+			drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
+			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), drawRect,
+					0, SWT.WRAP | SWT.TOP);
+			stringPrinter.calculateMetrics();
+
 			if (stringPrinter.hasHitUrl()) {
 				URLInfo[] hitUrlInfo = stringPrinter.getHitUrlInfo();
 				for (int i = 0; i < hitUrlInfo.length; i++) {
@@ -287,7 +290,7 @@ public class ColumnVuzeActivity
 				int[] mouseOfs = cell.getMouseOffset();
 				if (mouseOfs != null) {
 					URLInfo hitUrl = stringPrinter.getHitUrl(mouseOfs[0] - MARGIN_WIDTH,
-							mouseOfs[1] - (y - 2));
+							mouseOfs[1]);
 					if (hitUrl != null) {
 						hitUrl.urlColor = colorLinkHover;
 					}
@@ -340,8 +343,6 @@ public class ColumnVuzeActivity
 				}
 			}
 
-			Rectangle drawRect = new Rectangle(x, y, width - x - 4, height - y
-					+ MARGIN_HEIGHT);
 			stringPrinter.printString(gc, drawRect, style);
 			entry.urlInfo = stringPrinter;
 
@@ -539,7 +540,7 @@ public class ColumnVuzeActivity
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		String tooltip = null;
-		
+
 		boolean invalidateAndRefresh = false;
 
 		TableCellImpl thumbCell = getThumbCell(event.cell);
@@ -670,7 +671,6 @@ public class ColumnVuzeActivity
 						}
 					}
 
-					
 					newCursor = SWT.CURSOR_HAND;
 					if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						tooltip = hitUrl.title;
