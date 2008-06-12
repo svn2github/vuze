@@ -205,7 +205,7 @@ OpenUrlWindow
       		url_str = url.getText();
       	}
       	
-        new FileDownloadWindow(azureus_core,parent,url_str, last_referrer, listener );
+        new FileDownloadWindow(azureus_core,parent,url_str, last_referrer, null, listener );
         shell.dispose();
       }
     }); 

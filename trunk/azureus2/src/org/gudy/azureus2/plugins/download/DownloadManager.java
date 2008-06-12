@@ -23,6 +23,7 @@ package org.gudy.azureus2.plugins.download;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
@@ -97,8 +98,20 @@ DownloadManager
 	 */
 	public void 
 	addDownload(
-		final URL	url,
-		final URL 	referer);
+		URL		url,
+		URL 	referer);
+	
+		/**
+		 * add a torrent from a URL and use the supplied request properties
+		 * @param url
+		 * @param request_properties
+		 * @since 3.0.5.3
+		 */
+	
+	public void 
+	addDownload(
+		URL		url,
+		Map		request_properties );
 	
 	/**
 	 * Add a torrent from a "Torrent" object. The default torrent file and data locations will be

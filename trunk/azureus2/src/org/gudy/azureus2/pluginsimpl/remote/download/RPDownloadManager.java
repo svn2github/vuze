@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
 
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.*;
@@ -220,6 +221,14 @@ RPDownloadManager
 		boolean		auto_download )
 	
 		throws DownloadException
+	{
+		notSupported();
+	}
+	
+	public void 
+	addDownload(
+		URL 		url, 
+		Map 		request_properties) 
 	{
 		notSupported();
 	}

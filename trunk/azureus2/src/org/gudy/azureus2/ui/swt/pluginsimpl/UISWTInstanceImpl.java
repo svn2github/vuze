@@ -259,10 +259,11 @@ UISWTInstanceImpl
 					public void runSupport() {
 						Object[] params = (Object[]) data;
 
-						URL target = (URL) params[0];
-						URL referrer = (URL) params[1];
-						boolean auto_download = ((Boolean) params[2]).booleanValue();
-
+						URL 		target 				= (URL) params[0];
+						URL 		referrer 			= (URL) params[1];
+						boolean 	auto_download 		= ((Boolean) params[2]).booleanValue();
+						Map			request_properties	= (Map)params[3];
+						
 						// programmatic request to add a torrent, make sure az is visible
 
 						if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
@@ -273,7 +274,8 @@ UISWTInstanceImpl
 							Shell shell = uiFunctions.getMainShell();
 							if (shell != null) {
 								new FileDownloadWindow(core, shell, target.toString(),
-										referrer == null ? null : referrer.toString());
+										referrer == null ? null : referrer.toString(),
+										request_properties );
 							}
 						} else {
 

@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.torrentdownloader;
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderImpl;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
@@ -65,7 +67,7 @@ public class TorrentDownloaderFactory {
   {
     TorrentDownloaderImpl dl = getClass(logged);
     if (dl!=null)
-      dl.init(callback, url, referrer, fileordir);
+      dl.init(callback, url, referrer, null, fileordir);
     return dl;
   }
   
@@ -77,6 +79,20 @@ public class TorrentDownloaderFactory {
 		String 								fileordir) 
   {
     return create(callback, url, referrer, fileordir, false);
+  }
+  
+  public static TorrentDownloader 
+  create(
+  		TorrentDownloaderCallBackInterface 	callback, 
+		String 								url,
+		String								referrer,
+		Map									request_properties,
+		String 								fileordir) 
+  {
+	   TorrentDownloaderImpl dl = getClass(false);
+	    if (dl!=null)
+	      dl.init(callback, url, referrer, request_properties, fileordir);
+	    return dl;
   }
   
   public static TorrentDownloader create(TorrentDownloaderCallBackInterface callback, String url, boolean logged) {

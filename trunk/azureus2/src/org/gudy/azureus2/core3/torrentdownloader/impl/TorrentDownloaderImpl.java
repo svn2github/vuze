@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.net.ssl.*;
 
@@ -51,6 +53,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   private String 	url_str;
   private String	referrer;
+  private Map		request_properties;
   private String 	file_str;
   
   private URL url;
@@ -82,6 +85,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   		TorrentDownloaderCallBackInterface	_iface, 
 		String 								_url,
 		String								_referrer,
+		Map									_request_properties,
 		String								_file )
   {
     this.iface = _iface;
@@ -94,9 +98,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
     setName("TorrentDownloader: " + _url);
     
-    url_str 	= _url;
-    referrer	= _referrer;
-    file_str	= _file;
+    url_str 			= _url;
+    referrer			= _referrer;
+    request_properties	= _request_properties;
+    file_str			= _file;
   }
 
   public void notifyListener() {
@@ -192,6 +197,26 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	      if ( referrer != null && referrer.length() > 0 ){
 	      
 	      	con.setRequestProperty( "Referer", referrer );
+	      }
+	      
+	      if ( request_properties != null ){
+	    	  
+	    	  Iterator it = request_properties.entrySet().iterator();
+	    	  
+	    	  while( it.hasNext()){
+	    		
+	    		  Map.Entry	entry = (Map.Entry)it.next();
+	    		  
+	    		  String	key 	= (String)entry.getKey();
+	    		  String	value	= (String)entry.getValue();
+	    		  
+	    		  	// currently this code doesn't support gzip/deflate...
+	    		  
+	    		  if ( !key.equalsIgnoreCase( "Accept-Encoding" )){
+	    			  	    			    			  
+	    			  con.setRequestProperty( key, value );
+	    		  }
+	    	  }
 	      }
 	      
 	      this.con.connect();

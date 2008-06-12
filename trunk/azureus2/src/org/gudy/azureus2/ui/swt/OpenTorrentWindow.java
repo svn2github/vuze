@@ -1931,7 +1931,7 @@ public class OpenTorrentWindow
 				String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
 				if (sURL != null) {
 					if (COConfigurationManager.getBooleanParameter("Add URL Silently")) {
-						new FileDownloadWindow(core, shellForChildren, sURL, null, this);
+						new FileDownloadWindow(core, shellForChildren, sURL, null, null, this);
 					} else {
 						new OpenUrlWindow(core, shellForChildren, sURL, null, this);
 					}

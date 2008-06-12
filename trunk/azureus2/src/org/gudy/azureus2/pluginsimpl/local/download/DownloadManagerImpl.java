@@ -214,7 +214,7 @@ DownloadManagerImpl
 	addDownload(
 		final URL	url) 
 	{
-		addDownload(url,null,true);
+		addDownload(url,null,true,null);
 	}
 	
 	public void 
@@ -224,7 +224,7 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		addDownload(url,null,auto_download);	
+		addDownload(url,null,auto_download,null);	
 	}
 	
 	public void 
@@ -232,18 +232,28 @@ DownloadManagerImpl
 		final URL	url,
 		final URL 	referrer) 
 	{
-		addDownload(url,referrer,true);
+		addDownload(url,referrer,true,null);
+	}
+	
+	public void 
+	addDownload(
+		URL 		url, 
+		Map 		request_properties ) 
+	{
+		addDownload(url,null,true,request_properties);
 	}
 	
 	public void 
 	addDownload(
 		final URL	url,
 		final URL 	referrer,
-		boolean		auto_download )
+		boolean		auto_download,
+		Map			request_properties )
 	{
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download )});
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download ), request_properties });
 	}
 	
+
 	protected void
 	addDownloadManager(
 		DownloadManager	dm )

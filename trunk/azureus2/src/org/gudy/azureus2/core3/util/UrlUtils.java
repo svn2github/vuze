@@ -23,8 +23,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -361,5 +367,173 @@ public class UrlUtils
 				throw( new IOException( "Timeout" ));
 			}
 		}
+	}
+	
+	private static String	last_headers = COConfigurationManager.getStringParameter( "metasearch.web.last.headers", null );
+	
+	private static final String default_headers = "SG9zdDogbG9jYWxob3N0OjQ1MTAwClVzZXItQWdlbnQ6IE1vemlsbGEvNS4wIChXaW5kb3dzOyBVOyBXaW5kb3dzIE5UIDUuMTsgZW4tVVM7IHJ2OjEuOC4xLjE0KSBHZWNrby8yMDA4MDQwNCBGaXJlZm94LzIuMC4wLjE0CkFjY2VwdDogdGV4dC94bWwsYXBwbGljYXRpb24veG1sLGFwcGxpY2F0aW9uL3hodG1sK3htbCx0ZXh0L2h0bWw7cT0wLjksdGV4dC9wbGFpbjtxPTAuOCxpbWFnZS9wbmcsKi8qO3E9MC41CkFjY2VwdC1MYW5ndWFnZTogZW4tdXMsZW47cT0wLjUKQWNjZXB0LUVuY29kaW5nOiBnemlwLGRlZmxhdGUKQWNjZXB0LUNoYXJzZXQ6IElTTy04ODU5LTEsdXRmLTg7cT0wLjcsKjtxPTAuNwpLZWVwLUFsaXZlOiAzMDAKQ29ubmVjdGlvbjoga2VlcC1hbGl2ZQ==";
+
+	public static void
+	setBrowserHeaders(
+		ResourceDownloader		rd,
+		String					encoded_headers,
+		String					referer )
+	{
+		String	headers_to_use = getBrowserHeadersToUse( encoded_headers );
+		
+		try{
+			String header_string = new String( Base64.decode( headers_to_use ), "UTF-8" );
+		
+			String[]	headers = header_string.split( "\n" );
+			
+			for (int i=0;i<headers.length;i++ ){
+			
+				String	header = headers[i];
+				
+				int	pos = header.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					String	lhs = header.substring(0,pos).trim();
+					String	rhs	= header.substring(pos+1).trim();
+					
+					if ( !( lhs.equalsIgnoreCase( "Host") || 
+							lhs.equalsIgnoreCase( "Referer" ))){
+						
+						rd.setProperty( "URL_" + lhs, rhs );
+					}
+				}
+			}
+			
+			if ( referer != null ){
+				
+				rd.setProperty( "URL_Referer", referer );
+			}
+		}catch( Throwable e ){	
+		}
+	}
+	
+	public static void
+	setBrowserHeaders(
+		URLConnection			connection,
+		String					referer )
+	{
+		setBrowserHeaders( connection, null, referer );
+	}
+	
+	public static void
+	setBrowserHeaders(
+		URLConnection			connection,
+		String					encoded_headers,
+		String					referer )
+	{
+		String	headers_to_use = getBrowserHeadersToUse( encoded_headers );
+		
+		try{
+		
+			String header_string = new String( Base64.decode( headers_to_use ), "UTF-8" );
+		
+			String[]	headers = header_string.split( "\n" );
+			
+			for (int i=0;i<headers.length;i++ ){
+			
+				String	header = headers[i];
+				
+				int	pos = header.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					String	lhs = header.substring(0,pos).trim();
+					String	rhs	= header.substring(pos+1).trim();
+					
+					if ( !( lhs.equalsIgnoreCase( "Host") || 
+							lhs.equalsIgnoreCase( "Referer" ))){
+						
+						connection.setRequestProperty( lhs, rhs );
+					}
+				}
+			}
+			
+			if ( referer != null ){
+				
+				connection.setRequestProperty( "Referer", referer );
+			}
+		}catch( Throwable e ){		
+		}
+	}
+	
+	public static Map
+	getBrowserHeaders(
+		String					referer )
+	{
+		String	headers_to_use = getBrowserHeadersToUse( null );
+		
+		Map	result = new HashMap();
+		
+		try{
+		
+			String header_string = new String( Base64.decode( headers_to_use ), "UTF-8" );
+		
+			String[]	headers = header_string.split( "\n" );
+			
+			for (int i=0;i<headers.length;i++ ){
+			
+				String	header = headers[i];
+				
+				int	pos = header.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					String	lhs = header.substring(0,pos).trim();
+					String	rhs	= header.substring(pos+1).trim();
+					
+					if ( !( lhs.equalsIgnoreCase( "Host") || 
+							lhs.equalsIgnoreCase( "Referer" ))){
+						
+						result.put( lhs, rhs );
+					}
+				}
+			}
+			
+			if ( referer != null ){
+				
+				result.put( "Referer", referer );
+			}
+		}catch( Throwable e ){		
+		}
+		
+		return( result );
+	}
+	
+	private static String
+	getBrowserHeadersToUse(
+		String		encoded_headers )
+	{
+		String	headers_to_use = encoded_headers;
+		
+		synchronized( UrlUtils.class ){
+			
+			if ( headers_to_use == null ){
+				
+				if ( last_headers != null ){
+					
+					headers_to_use = last_headers;
+					
+				}else{
+					
+					headers_to_use = default_headers;
+				}
+			}else{
+			
+				if ( last_headers == null || !headers_to_use.equals( last_headers )){
+					
+					COConfigurationManager.setParameter( "metasearch.web.last.headers", headers_to_use );
+				}
+				
+				last_headers = headers_to_use;
+			}
+		}
+		
+		return( headers_to_use );
 	}
 }

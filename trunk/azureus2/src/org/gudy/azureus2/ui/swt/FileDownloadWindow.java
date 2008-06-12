@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.net.URLDecoder;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -76,7 +77,8 @@ public class FileDownloadWindow
 	String original_url;
 	String decoded_url;
 
-	String referrer;
+	String 	referrer;
+	Map		request_properties;
 
 	AzureusCore _azureus_core;
 
@@ -93,8 +95,8 @@ public class FileDownloadWindow
 	 * @param referrer
 	 */
 	public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
-			final String url, final String referrer) {
-		this(_azureus_core, parent, url, referrer, null);
+			final String url, final String referrer, Map request_properties) {
+		this(_azureus_core, parent, url, referrer, request_properties, null);
 	}
 
 	/**
@@ -110,6 +112,7 @@ public class FileDownloadWindow
 	 */
 	public FileDownloadWindow(final AzureusCore _azureus_core,
 			final Shell parent, final String url, final String referrer,
+			final Map request_properties,
 			final TorrentDownloaderCallBackInterface listener) {
 
 		this._azureus_core = _azureus_core;
@@ -117,6 +120,7 @@ public class FileDownloadWindow
 		this.original_url = url;
 		this.referrer = referrer;
 		this.listener = listener;
+		this.request_properties = request_properties;
 
 		try{
 			decoded_url = URLDecoder.decode( original_url, "UTF8" );
@@ -152,7 +156,7 @@ public class FileDownloadWindow
 		pReporter = ProgressReportingManager.getInstance().addReporter();
 		setupAndShowDialog();
 
-		downloader = TorrentDownloaderFactory.create(this, original_url, referrer, dirName);
+		downloader = TorrentDownloaderFactory.create(this, original_url, referrer, request_properties, dirName);
 		downloader.start();
 	}
 
@@ -195,7 +199,7 @@ public class FileDownloadWindow
 							if (true == pReport.isRetryAllowed()) {
 								downloader.cancel();
 								downloader = TorrentDownloaderFactory.create(
-										FileDownloadWindow.this, original_url, referrer, dirName);
+										FileDownloadWindow.this, original_url, referrer, request_properties, dirName);
 								downloader.start();
 							}
 							break;
