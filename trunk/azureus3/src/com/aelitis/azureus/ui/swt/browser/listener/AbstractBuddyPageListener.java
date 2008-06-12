@@ -11,6 +11,7 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Point;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 
@@ -56,7 +57,10 @@ public abstract class AbstractBuddyPageListener
 	}
 
 	public void handleMessage(final BrowserMessage message) {
-		System.out.println(message.getFullMessage());//KN: sysout
+		if (true == Constants.isCVSVersion()) {
+			System.out.println(message.getFullMessage());//KN: sysout
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String opID = message.getOperationId();
