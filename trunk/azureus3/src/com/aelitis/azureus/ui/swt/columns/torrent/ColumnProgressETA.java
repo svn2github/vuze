@@ -21,13 +21,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
-import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -109,15 +107,6 @@ public class ColumnProgressETA
 			}
 
 			TOTorrent torrent = dm.getTorrent();
-			EnhancedDownloadManager edm = null;
-			boolean bCanBeProgressive = PlatformTorrentUtils.isContentProgressive(torrent)
-					&& !PlayUtils.canUseEMP(torrent);
-			if (bCanBeProgressive) {
-				edm = getEDM(dm);
-				if (edm == null || !edm.supportsProgressiveMode()) {
-					bCanBeProgressive = false;
-				}
-			}
 
 			int percentDone = getPercentDone(cell);
 			long eta = getETA(cell);
@@ -175,7 +164,7 @@ public class ColumnProgressETA
 			int x1 = borderWidth;
 			int y1 = borderWidth;
 			int x2 = newWidth - x1 - borderWidth;
-			int progressX2 = bCanBeProgressive ? x2 - 55 : x2;
+			int progressX2 = x2;
 			int progressY2 = newHeight - y1 - borderWidth - 12;
 			if (progressY2 > 18) {
 				progressY2 = 18;
@@ -252,32 +241,6 @@ public class ColumnProgressETA
 			long lSpeed = getSpeed(dm);
 			String sSpeed = lSpeed <= 0 ? "" : "("
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
-
-			if (dm.isDownloadComplete(true) && PlayUtils.canPlayDS(dm)) {
-				bDrawProgressBar = false;
-
-				if (edm != null && edm.getProgressiveMode()) {
-					if (isStopped(cell)) {
-						sETALine = MessageText.getString(
-								"MyTorrents.column.ColumnProgressETA.2ndLine",
-								new String[] {
-									DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource())
-								});
-					} else {
-						long newETA = edm.getProgressivePlayETA();
-						if (newETA <= 0) {
-							sETALine = MessageText.getString("MyTorrents.column.ColumnProgressETA.StreamReady");
-						} else {
-							String sETA = TimeFormatter.format(newETA);
-							sETALine = MessageText.getString(
-									"MyTorrents.column.ColumnProgressETA.PlayableIn",
-									new String[] {
-										sETA
-									});
-						}
-					}
-				}
-			}
 
 			if (bDrawProgressBar && percentDone < 1000) {
 				if (bImageSizeChanged || true) {
