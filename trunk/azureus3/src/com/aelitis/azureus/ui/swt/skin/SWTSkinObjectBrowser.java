@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
@@ -119,6 +120,11 @@ public class SWTSkinObjectBrowser
 		PublishUtils.setupContext(context);
 
 		setControl(browser);
+		String url = properties.getStringValue(sConfigID + ".url", (String) null);
+		if (url != null) {
+			setURL(url);
+		}
+		
 	}
 
 	public Browser getBrowser() {
@@ -132,7 +138,8 @@ public class SWTSkinObjectBrowser
 					browser.setText("");
 				} else {
 					String urlToUse = url;
-					if (urlToUse.indexOf("azid=") < 0) {
+					if (PlatformConfigMessenger.urlCanRPC(url)
+							&& urlToUse.indexOf("azid=") < 0) {
 						if (urlToUse.indexOf("?") >= 0) {
 							urlToUse += "&" + Constants.URL_SUFFIX;
 						} else {
