@@ -347,6 +347,10 @@ public class BrowserContext
 									URL url = new URL(event.location);
 									URLConnection conn = url.openConnection();
 									
+									String referer = ((Browser)event.widget).getUrl();
+									//TODO : parg : we need to set the referer here
+									
+									
 									UrlUtils.connectWithTimeout( conn, 1500 );
 									
 									String contentType = conn.getContentType();
@@ -367,6 +371,8 @@ public class BrowserContext
 						if(isTorrent) {
 							event.doit = false;
 							try {
+								String referer = ((Browser)event.widget).getUrl();
+								//TODO : parg : we need to set the referer here
 								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(new URL(event.location),true);
 							} catch(Exception e) {
 								e.printStackTrace();
