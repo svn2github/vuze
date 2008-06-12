@@ -569,7 +569,7 @@ public class ColumnVuzeActivity
 							? TableCellMouseEvent.EVENT_MOUSEENTER
 							: TableCellMouseEvent.EVENT_MOUSEEXIT;
 					subCellEvent.x = event.x - dmThumbRect.x - MARGIN_WIDTH;
-					subCellEvent.y = event.y - dmThumbRect.y - MARGIN_WIDTH;
+					subCellEvent.y = event.y - dmThumbRect.y;
 					subCellEvent.cell = thumbCell;
 
 					TableColumn tc = thumbCell.getTableColumn();
@@ -598,7 +598,7 @@ public class ColumnVuzeActivity
 							: TableCellMouseEvent.EVENT_MOUSEEXIT;
 					subCellEvent.cell = ratingCell;
 					subCellEvent.x = event.x - dmRatingRect.x - MARGIN_WIDTH;
-					subCellEvent.y = event.y - dmRatingRect.y - MARGIN_WIDTH;
+					subCellEvent.y = event.y - dmRatingRect.y;
 
 					TableColumn tc = ratingCell.getTableColumn();
 					if (tc instanceof TableColumnCore) {
@@ -614,8 +614,9 @@ public class ColumnVuzeActivity
 			if (thumbCell != null && isMouseOverThumbCell) {
 				subCellEvent.cell = thumbCell;
 				subCellEvent.x = event.x - dmThumbRect.x - MARGIN_WIDTH;
-				subCellEvent.y = event.y - dmThumbRect.y - MARGIN_WIDTH;
+				subCellEvent.y = event.y - dmThumbRect.y;
 
+				System.out.println(subCellEvent.x + ";" + subCellEvent.y);
 				if (thumbCell instanceof TableCellCore) {
 					TableRowCore row = ((TableCellCore) thumbCell).getTableRowCore();
 					if (row != null) {
@@ -632,7 +633,7 @@ public class ColumnVuzeActivity
 			if (ratingCell != null && isMouseOverRatingCell) {
 				subCellEvent.cell = ratingCell;
 				subCellEvent.x = event.x - dmRatingRect.x - MARGIN_WIDTH;
-				subCellEvent.y = event.y - dmRatingRect.y - MARGIN_WIDTH;
+				subCellEvent.y = event.y - dmRatingRect.y;
 
 				if (ratingCell instanceof TableCellCore) {
 					((TableCellCore) ratingCell).getTableRowCore().invokeMouseListeners(
