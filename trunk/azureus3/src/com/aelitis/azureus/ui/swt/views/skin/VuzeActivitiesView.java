@@ -449,6 +449,7 @@ public class VuzeActivitiesView
 									MessageText.getString("MessageBoxWindow.nomoreprompting"),
 									false, 0);
 							mb.setRememberOnlyIfButton(0);
+							mb.setHandleHTML(false);
 							int result = mb.open();
 							if (result == 0) {
 								entriesToRemove[entriesToRemovePos++] = entry;
