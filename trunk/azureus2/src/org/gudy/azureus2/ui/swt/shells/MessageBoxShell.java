@@ -403,7 +403,8 @@ public class MessageBoxShell
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
 					if (rememberID != null && checkRemember != null
-							&& checkRemember.getSelection()) {
+							&& checkRemember.getSelection()
+							&& (rememberOnlyIfButton == -1 || rememberOnlyIfButton == result[0])) {
 						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
 					}
 				}
