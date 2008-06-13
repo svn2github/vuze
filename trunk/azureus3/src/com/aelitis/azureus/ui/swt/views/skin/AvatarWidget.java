@@ -603,7 +603,7 @@ public class AvatarWidget
 	private void doRemoveBuddy() {
 
 		LightBoxShell lbShell = new LightBoxShell(parent.getShell(), false);
-		
+
 		MessageBoxShell mBox = new MessageBoxShell(lbShell.getShell(),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.title"),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.text",
@@ -615,9 +615,9 @@ public class AvatarWidget
 				}, 1);
 
 		mBox.setLeftImage(SWT.ICON_QUESTION);
-		
+
 		lbShell.open();
-		
+
 		if (1 == mBox.open(true)) {
 			lbShell.close();
 			return;
@@ -752,21 +752,20 @@ public class AvatarWidget
 
 						if (false == canvas.isDisposed()) {
 							canvas.dispose();
-							if(null != listener){
+							parent.layout(true);
+							if (null != listener) {
 								listener.disposed();
 							}
-//							parent.layout(true);
 						}
 					}
 				});
 			} else {
 				if (false == canvas.isDisposed()) {
 					canvas.dispose();
-					if(null != listener){
+					parent.layout(true);
+					if (null != listener) {
 						listener.disposed();
 					}
-
-//				parent.layout(true);
 				}
 			}
 
