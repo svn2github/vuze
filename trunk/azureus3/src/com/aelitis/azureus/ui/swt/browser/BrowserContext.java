@@ -367,7 +367,7 @@ public class BrowserContext
 									
 									UrlUtils.setBrowserHeaders( conn, referer_str );
 									
-									UrlUtils.connectWithTimeout( conn, 1500 );
+									UrlUtils.connectWithTimeouts( conn, 1500, 5000 );
 									
 									String contentType = conn.getContentType();
 									
