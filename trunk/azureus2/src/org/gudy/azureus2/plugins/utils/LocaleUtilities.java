@@ -68,6 +68,23 @@ LocaleUtilities
 		String		key,
 		String[]	params );
 	
+	/**
+	 * Returns <tt>true</tt> if there exists a message string
+	 * with the given key name.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public boolean hasLocalisedMessageText(String key);
+	
+	/**
+	 * An alias for {@link #getLocalisedMessageText(String)} which returns
+	 * <tt>null</tt> if there is no message string definition for the given
+	 * key.
+	 * 
+	 * @since 3.0.5.3
+	 */
+	public String localise(String key);
+	
 	public LocaleDecoder[]
 	getDecoders();
 	

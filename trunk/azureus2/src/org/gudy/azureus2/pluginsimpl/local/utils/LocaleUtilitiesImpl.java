@@ -94,6 +94,18 @@ LocaleUtilitiesImpl
 		return( MessageText.getString( key, params ));
 	}
 	
+	public boolean hasLocalisedMessageText(String key) {
+		return MessageText.keyExists(key);
+	}
+	
+	public String localise(String key) {
+		String res = MessageText.getString(key);
+		if (res.charAt(0) == '!' && !MessageText.keyExists(key)) {
+			return null;
+		}
+		return res;
+	}
+	
 	public Locale getCurrentLocale() {
 		return MessageText.getCurrentLocale();
 	}
