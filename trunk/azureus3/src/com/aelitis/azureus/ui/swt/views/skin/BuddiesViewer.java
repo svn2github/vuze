@@ -363,15 +363,17 @@ public class BuddiesViewer
 			public void runSupport() {
 				if (avatarsPanel.getSize().x > parent.getSize().x
 						|| avatarsPanel.getLocation().x < 0) {
+					leftScroll.setVisible(true);
 					if (currentPage != 0) {
-						leftScroll.setVisible(true);
+						leftScroll.switchSuffix("", 1, false);
 					} else {
-						leftScroll.setVisible(false);
+						leftScroll.switchSuffix("-disabled", 1, false);
 					}
+					rightScroll.setVisible(true);
 					if (currentPage != pageCount - 1) {
-						rightScroll.setVisible(true);
+						rightScroll.switchSuffix("", 1, false);
 					} else {
-						rightScroll.setVisible(false);
+						rightScroll.switchSuffix("-disabled", 1, false);
 					}
 				} else {
 					if (true == leftScroll.isVisible()) {
