@@ -135,6 +135,8 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("suppress_file_download_dialog", true);
 			
+			defaults.addParameter("useNewStyleMessageBox", true);
+			
 			defaults.addParameter("auto_remove_inactive_items", false);
 			
 			defaults.addParameter("show_torrents_menu", false);
