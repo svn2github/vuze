@@ -56,6 +56,10 @@ public class PaginationWidget
 
 	private List listeners = new ArrayList();
 
+	private int itemsPerPage = 1;
+
+	private int itemsTotal = 0;
+
 	public PaginationWidget(Composite parent) {
 		if (null == parent || true == parent.isDisposed()) {
 			throw new IllegalArgumentException("parent can not be null or disposed");
@@ -116,7 +120,7 @@ public class PaginationWidget
 					boolean pageFound = false;
 					for (int i = 0; i < pages.length; i++) {
 						if (pages[i].contains(event.x, event.y)) {
-							String tooltipText = "Page " + (i + 1);
+							String tooltipText = getTooltip(i);
 							if (false == tooltipText.equals(canvas.getToolTipText())) {
 								canvas.setToolTipText(tooltipText);
 							}
@@ -138,6 +142,13 @@ public class PaginationWidget
 		canvas.addListener(SWT.MouseDown, listener);
 		canvas.addListener(SWT.MouseMove, listener);
 
+	}
+
+	private String getTooltip(int pageIndex) {
+		pageIndex++;
+		int end = Math.min(pageIndex * itemsPerPage, itemsTotal);
+		int start = Math.max(pageIndex * itemsPerPage - (itemsPerPage - 1), 1);
+		return start + "-" + end + " of " + itemsTotal;
 	}
 
 	public void setPageCount(int pageCount) {
@@ -194,6 +205,22 @@ public class PaginationWidget
 			this.currentPage = currentPage;
 			canvas.redraw();
 		}
+	}
+
+	public int getItemsPerPage() {
+		return itemsPerPage;
+	}
+
+	public void setItemsPerPage(int itemsPerPage) {
+		this.itemsPerPage = itemsPerPage;
+	}
+
+	public int getItemsTotal() {
+		return itemsTotal;
+	}
+
+	public void setItemsTotal(int itemsTotal) {
+		this.itemsTotal = itemsTotal;
 	}
 
 }
