@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
@@ -124,6 +122,10 @@ public class BuddiesViewer
 
 	private List buddiesList;
 
+	private SWTSkinObject leftScroll;
+
+	private SWTSkinObject rightScroll;
+
 	public BuddiesViewer() {
 	}
 
@@ -199,15 +201,6 @@ public class BuddiesViewer
 
 			avatarsPanel.pack();
 
-			/*
-			 * Get a new page width when the content panel is resized
-			 */
-			parent.addControlListener(new ControlAdapter() {
-				public void controlResized(ControlEvent e) {
-					calculatePagination();
-				}
-			});
-
 			avatarsPanel.addMouseListener(new MouseAdapter() {
 				public void mouseDown(MouseEvent e) {
 					select(null, false, false);
@@ -255,121 +248,80 @@ public class BuddiesViewer
 			avatarsPanel.setLocation(-pageXOffsets[pageNumber],
 					avatarsPanel.getLocation().y);
 		} else {
-
-			//			parent.getDisplay().asyncExec(new AERunnable() {
-			//				public void runSupport() {
-			//					int newOffset = pageXOffsets[pageNumber];
-			//					int currentOffset = pageXOffsets[currentPage];
-			//
-			//
-			//					/*
-			//					 * Scroll left
-			//					 */
-			//					if (newOffset > currentOffset) {
-			//						int diff = newOffset - currentOffset;
-			//
-			//						for (int i = diff; i > 1; i -= (int) (i * .6)) {
-			//							System.out.println(diff - i);//KN: sysout
-			//							avatarsPanel.setLocation(-(currentOffset + diff),
-			//									avatarsPanel.getLocation().y);
-			//							avatarsPanel.redraw();
-			//							avatarsPanel.update();
-			//							try {
-			//								Thread.sleep(500);
-			//							} catch (InterruptedException e) {
-			//								e.printStackTrace();
-			//							}
-			//						}
-			//
-			//					}
-			//
-			//					/*
-			//					 * Scroll right
-			//					 */
-			//					else {
-			//
-			//					}
-			//
-			//					//					while (incrementer > 0) {
-			//					//						location.x -= incrementer;
-			//					//						avatarsPanel.setLocation(location.x, location.y);
-			//					//						parent.update();
-			//					//						incrementer = (int) (incrementer * .5);
-			//					//						try {
-			//					//							Thread.sleep(50);
-			//					//						} catch (InterruptedException e) {
-			//					//							e.printStackTrace();
-			//					//						}
-			//					//					}
-			//
-			//				}
-			//			});
+			//No animation yet
 		}
 
+		enableScroll();
 	}
 
 	private void calculatePagination() {
 
-		pageWindowWidth = content.getClientArea().width;
+		Utils.execSWTThreadLater(0, new AERunnable() {
 
-		/*
-		 * Avoid divide by zero when the viewer is collapsed
-		 */
-		if (pageWindowWidth < 1) {
-			pageCount = 1;
+			public void runSupport() {
+				pageWindowWidth = content.getClientArea().width;
 
-			/*
-			 * Single page offset
-			 */
-			pageXOffsets = new int[] {
-				0
-			};
-		} else {
-			avatarsPerPage = 0;
-			/*
-			 * If windowWidth can only fully show 1 avatar then the number of pages
-			 * would equal the number of avatars
-			 */
-			if (pageWindowWidth <= avatarWidthPlusSpacing) {
-				pageCount = avatarWidgets.size();
-				avatarsPerPage = 1;
-			} else {
+				/*
+				 * Avoid divide by zero when the viewer is collapsed
+				 */
+				if (pageWindowWidth < 1) {
+					pageCount = 1;
 
-				avatarsPerPage = (pageWindowWidth / avatarWidthPlusSpacing);
-				pageCount = Math.max(1, avatarsPanel.getClientArea().width
-						/ (avatarsPerPage * avatarWidthPlusSpacing));
+					/*
+					 * Single page offset
+					 */
+					pageXOffsets = new int[] {
+						0
+					};
+				} else {
+					avatarsPerPage = 0;
+					/*
+					 * If windowWidth can only fully show 1 avatar then the number of pages
+					 * would equal the number of avatars
+					 */
+					if (pageWindowWidth <= avatarWidthPlusSpacing) {
+						pageCount = avatarWidgets.size();
+						avatarsPerPage = 1;
+					} else {
 
-				if (pageCount == 1
-						&& pageWindowWidth < avatarsPanel.getClientArea().width) {
-					pageCount++;
+						avatarsPerPage = (pageWindowWidth / avatarWidthPlusSpacing);
+						pageCount = Math.max(1, avatarsPanel.getClientArea().width
+								/ (avatarsPerPage * avatarWidthPlusSpacing));
+
+						if (pageCount == 1
+								&& pageWindowWidth < avatarsPanel.getClientArea().width) {
+							pageCount++;
+						}
+					}
+
+					/*
+					 * Create the new offset array which is used for pagination
+					 */
+					pageXOffsets = new int[pageCount];
+
+					int xOffset = 0;
+					/*
+					 * First page has no offset
+					 */
+					pageXOffsets[0] = 0;
+
+					for (int i = 1; i < pageXOffsets.length; i++) {
+						xOffset += (avatarsPerPage * avatarWidthPlusSpacing);
+						pageXOffsets[i] = xOffset;
+					}
+				}
+				if (null != pWidget) {
+					pWidget.setPageCount(pageCount);
+					pWidget.setItemsPerPage(avatarsPerPage);
+					pWidget.setItemsTotal(getBuddies().size());
 				}
 			}
+		});
 
-			/*
-			 * Create the new offset array which is used for pagination
-			 */
-			pageXOffsets = new int[pageCount];
-
-			int xOffset = 0;
-			/*
-			 * First page has no offset
-			 */
-			pageXOffsets[0] = 0;
-
-			for (int i = 1; i < pageXOffsets.length; i++) {
-				xOffset += (avatarsPerPage * avatarWidthPlusSpacing);
-				pageXOffsets[i] = xOffset;
-			}
-		}
-		if (null != pWidget) {
-			pWidget.setPageCount(pageCount);
-			pWidget.setItemsPerPage(avatarsPerPage);
-			pWidget.setItemsTotal(getBuddies().size());
-		}
 	}
 
 	private void hookScrollers() {
-		final SWTSkinObject leftScroll = skin.getSkinObject("buddies-left-scroller");
+		leftScroll = skin.getSkinObject("buddies-left-scroller");
 		if (null != leftScroll) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(leftScroll);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
@@ -381,7 +333,7 @@ public class BuddiesViewer
 			});
 		}
 
-		final SWTSkinObject rightScroll = skin.getSkinObject("buddies-right-scroller");
+		rightScroll = skin.getSkinObject("buddies-right-scroller");
 		if (null != rightScroll) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(rightScroll);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
@@ -393,36 +345,44 @@ public class BuddiesViewer
 			});
 		}
 
-		enableScroll(leftScroll, rightScroll);
+		enableScroll();
 		parent.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
-				enableScroll(leftScroll, rightScroll);
+				calculatePagination();
+				enableScroll();
 			}
 		});
 
 	}
 
-	private void enableScroll(SWTSkinObject leftScroll, SWTSkinObject rightScroll) {
+	private void enableScroll() {
 		if (null == leftScroll || null == rightScroll) {
 			return;
 		}
-
-		if (avatarsPanel.getSize().x > parent.getSize().x
-				|| avatarsPanel.getLocation().x < 0) {
-			if (false == leftScroll.isVisible()) {
-				leftScroll.setVisible(true);
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				if (avatarsPanel.getSize().x > parent.getSize().x
+						|| avatarsPanel.getLocation().x < 0) {
+					if (currentPage != 0) {
+						leftScroll.setVisible(true);
+					} else {
+						leftScroll.setVisible(false);
+					}
+					if (currentPage != pageCount - 1) {
+						rightScroll.setVisible(true);
+					} else {
+						rightScroll.setVisible(false);
+					}
+				} else {
+					if (true == leftScroll.isVisible()) {
+						leftScroll.setVisible(false);
+					}
+					if (true == rightScroll.isVisible()) {
+						rightScroll.setVisible(false);
+					}
+				}
 			}
-			if (false == rightScroll.isVisible()) {
-				rightScroll.setVisible(true);
-			}
-		} else {
-			if (true == leftScroll.isVisible()) {
-				leftScroll.setVisible(false);
-			}
-			if (true == rightScroll.isVisible()) {
-				rightScroll.setVisible(false);
-			}
-		}
+		});
 	}
 
 	public boolean isEditMode() {
