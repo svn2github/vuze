@@ -24,6 +24,8 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -34,6 +36,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -175,7 +178,7 @@ public class MessageBoxShell
 	}
 
 	public int open() {
-		return open(false);
+		return open(COConfigurationManager.getBooleanParameter("useNewStyleMessageBox"));
 	}
 
 	public int open(final boolean useCustomShell) {
@@ -560,8 +563,15 @@ public class MessageBoxShell
 		GridLayout gridLayout = new GridLayout();
 		content.setLayout(gridLayout);
 
+		Color foreground = content.getForeground();
+		//TODO : Khai : fix this properly, quick hack to make things work for now
+		if(foreground == null) {
+			foreground = ColorCache.getColor(display,208,208,208);
+			content.setForeground(foreground);
+		}
+		
 		Label titleLabel = new Label(content, SWT.WRAP);
-		titleLabel.setForeground(content.getForeground());
+		titleLabel.setForeground(foreground);
 		titleLabel.setText(title);
 		titleLabel.setLayoutData(new GridData(GridData.FILL_BOTH));
 		Utils.setFontHeight(titleLabel, 12, SWT.NORMAL);
@@ -578,7 +588,7 @@ public class MessageBoxShell
 		Composite textComposite = content;
 		if (imgLeft != null) {
 			textComposite = new Composite(content, SWT.NONE);
-			textComposite.setForeground(content.getForeground());
+			textComposite.setForeground(foreground);
 			textComposite.setLayout(new GridLayout(2, false));
 			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 			Label lblImage = new Label(textComposite, SWT.NONE);
@@ -646,7 +656,7 @@ public class MessageBoxShell
 		// Closing in..
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(content, SWT.WRAP);
-			lblCloseIn.setForeground(content.getForeground());
+			lblCloseIn.setForeground(foreground);
 			lblCloseIn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
@@ -732,13 +742,32 @@ public class MessageBoxShell
 		}
 
 		// Remember Me
-		Button checkRemember = null;
+		Composite checkRememberPanel = null;
 		if (rememberID != null) {
-			checkRemember = new Button(content, SWT.CHECK);
-			checkRemember.setText(rememberText);
+			checkRememberPanel = new Composite(content,SWT.NONE);
+			FormLayout checklayout = new FormLayout();
+			checkRememberPanel.setLayout(checklayout);
+			final Button checkRemember = new Button(checkRememberPanel, SWT.CHECK);
 			checkRemember.setSelection(rememberByDefault);
-			checkRemember.setForeground(ColorCache.getColor(parent.getDisplay(), 194,
-					194, 194));
+			
+			Label checkRememberLabel = new Label(checkRememberPanel,SWT.NONE);
+			
+			checkRememberLabel.setForeground(foreground);
+			checkRememberLabel.setText(rememberText);
+			
+			
+			checkRememberLabel.addListener(SWT.MouseUp, new Listener() {
+				public void handleEvent(Event arg0) {
+					if(! checkRemember.isDisposed()) {
+						checkRemember.setSelection(!checkRemember.getSelection());
+					}
+				}
+			});
+			FormData data = new FormData();
+			data.left = new FormAttachment(checkRemember);
+			data.bottom = new FormAttachment(checkRemember,-1,SWT.BOTTOM);
+			checkRememberLabel.setLayoutData(data);
+			
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
@@ -922,6 +951,7 @@ public class MessageBoxShell
 				if (!handleHTML) {
 					if (e.type == SWT.Paint) {
 						Rectangle area = canvas.getClientArea();
+						e.gc.setForeground(shell.getForeground());
 						GCStringPrinter.printString(e.gc, text, area, true, false, SWT.WRAP
 								| SWT.TOP);
 					}
