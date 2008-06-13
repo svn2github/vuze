@@ -235,6 +235,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.macs"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.peer"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.asn1.sec"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.components.widgets"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.logging"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.peer.util"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.piecepicker.util"/>
