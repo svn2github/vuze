@@ -123,7 +123,7 @@ public class DetailPanel
 		final UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		uiFunctions.getMainShell().addControlListener(new ControlListener() {
 			public void controlResized(ControlEvent e) {
-				if (true == detailPanel.isVisible()) {
+				if (currentDetailPanelHeight > 0) {
 					calculateDetailPanelHeight(uiFunctions);
 					if (currentDetailPanelHeight != detailPanel.getSize().y) {
 						relayoutDetailPanel(uiFunctions);
