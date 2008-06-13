@@ -120,5 +120,8 @@ public class UIConfigDefaultsSWT
 		String xulPath = COConfigurationManager.getStringParameter("swt.xulRunner.path");
 		if(!xulPath.equals(""))
 			System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulPath);
+		
+		
+		def.addParameter("useNewStyleMessageBox", false);
 	}
 }
