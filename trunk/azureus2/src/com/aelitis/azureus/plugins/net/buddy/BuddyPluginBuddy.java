@@ -246,7 +246,7 @@ BuddyPluginBuddy
 	{
 		persistent_msg_handler.destroy();
 		
-		plugin.removeBuddy( this, authorised );
+		plugin.removeBuddy( this );
 	}
 	
 	public InetAddress

@@ -1799,19 +1799,15 @@ BuddyPlugin
 				saveConfig( true );
 			}
 		}
-		
-		if ( buddy_to_return.isAuthorised()){
-		
-			fireAdded( buddy_to_return );
-		}
+				
+		fireAdded( buddy_to_return );
 		
 		return( buddy_to_return );
 	}
 	
 	protected void
 	removeBuddy(
-		BuddyPluginBuddy 	buddy,
-		boolean				fire_removed )
+		BuddyPluginBuddy 	buddy )
 	{
 		synchronized( this ){
 
@@ -1828,11 +1824,8 @@ BuddyPlugin
 		}
 		
 		buddy.destroy();
-		
-		if ( fire_removed ){
-		
-			fireRemoved( buddy );
-		}
+				
+		fireRemoved( buddy );
 	}
 	
 	protected Map
@@ -2021,7 +2014,7 @@ BuddyPlugin
 				
 				if ( buddy.isIdle() && !buddy.isAuthorised()){
 					
-					removeBuddy( buddy, false );
+					removeBuddy( buddy );
 				}
 			}
 		}
@@ -2792,54 +2785,63 @@ BuddyPlugin
    	fireAdded(
    		BuddyPluginBuddy		buddy )
    	{
-   		List	 listeners_ref = listeners.getList();
-   		
-   		for (int i=0;i<listeners_ref.size();i++){
-   			
-   			try{
-   				((BuddyPluginListener)listeners_ref.get(i)).buddyAdded( buddy );
- 
-   			}catch( Throwable e ){
-   				
-   				Debug.printStackTrace( e );
-   			}
-   		}
+		if ( buddy.isAuthorised()){
+
+	   		List	 listeners_ref = listeners.getList();
+	   		
+	   		for (int i=0;i<listeners_ref.size();i++){
+	   			
+	   			try{
+	   				((BuddyPluginListener)listeners_ref.get(i)).buddyAdded( buddy );
+	 
+	   			}catch( Throwable e ){
+	   				
+	   				Debug.printStackTrace( e );
+	   			}
+	   		}
+		}
    	}
 	
 	protected void
    	fireRemoved(
    		BuddyPluginBuddy		buddy )
    	{
-   		List	 listeners_ref = listeners.getList();
-   		
-   		for (int i=0;i<listeners_ref.size();i++){
-   			
-   			try{
-   				((BuddyPluginListener)listeners_ref.get(i)).buddyRemoved( buddy );
- 
-   			}catch( Throwable e ){
-   				
-   				Debug.printStackTrace( e );
-   			}
-   		}
+		if ( buddy.isAuthorised()){
+			
+	   		List	 listeners_ref = listeners.getList();
+	   		
+	   		for (int i=0;i<listeners_ref.size();i++){
+	   			
+	   			try{
+	   				((BuddyPluginListener)listeners_ref.get(i)).buddyRemoved( buddy );
+	 
+	   			}catch( Throwable e ){
+	   				
+	   				Debug.printStackTrace( e );
+	   			}
+	   		}
+		}
    	}
 	
 	protected void
    	fireDetailsChanged(
    		BuddyPluginBuddy		buddy )
    	{
-   		List	 listeners_ref = listeners.getList();
-   		
-   		for (int i=0;i<listeners_ref.size();i++){
-   			
-   			try{
-   				((BuddyPluginListener)listeners_ref.get(i)).buddyChanged( buddy );
- 
-   			}catch( Throwable e ){
-   				
-   				Debug.printStackTrace( e );
-   			}
-   		}
+		if ( buddy.isAuthorised()){
+			
+	   		List	 listeners_ref = listeners.getList();
+	   		
+	   		for (int i=0;i<listeners_ref.size();i++){
+	   			
+	   			try{
+	   				((BuddyPluginListener)listeners_ref.get(i)).buddyChanged( buddy );
+	 
+	   			}catch( Throwable e ){
+	   				
+	   				Debug.printStackTrace( e );
+	   			}
+	   		}
+		}
    	}
 	
 	protected void
