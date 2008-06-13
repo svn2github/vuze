@@ -647,12 +647,14 @@ public class BuddiesViewer
 				for (int i = 0; i < buddies.size(); i++) {
 					VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
 					AvatarWidget widget = findWidget(buddy);
-					Control control = widget.getControl();
-					if (control != null && !control.isDisposed()) {
-						SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
-						if (rData.position != i) {
-							rData.position = i;
-							changed = true;
+					if (widget != null) {
+						Control control = widget.getControl();
+						if (control != null && !control.isDisposed()) {
+							SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
+							if (rData.position != i) {
+								rData.position = i;
+								changed = true;
+							}
 						}
 					}
 				}
