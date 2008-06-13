@@ -325,6 +325,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	public void viewDeactivated() {
     IView currentView = getCurrentView();
+    if (currentView == null) {return;}
     if (currentView instanceof IViewExtension) {
     	((IViewExtension)currentView).viewDeactivated();
     }
