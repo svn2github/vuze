@@ -299,17 +299,39 @@ public class UrlUtils
 	public static void
 	connectWithTimeout(
 		final URLConnection		connection,
-		long					timeout )
+		long					connect_timeout )
+	
+		throws IOException
+	{
+		connectWithTimeouts( connection, connect_timeout, -1 );
+	}
+	
+	public static void
+	connectWithTimeouts(
+		final URLConnection		connection,
+		long					connect_timeout,
+		long					read_timeout )
 	
 		throws IOException
 	{
 		if ( Java15Utils.isAvailable()){
 			
-			Java15Utils.setConnectTimeout( connection, (int)timeout );
+			if ( connect_timeout != -1 ){
+				
+				Java15Utils.setConnectTimeout( connection, (int)connect_timeout );	
+			}
+			
+			if ( read_timeout != -1 ){
+				
+				Java15Utils.setReadTimeout( connection, (int)read_timeout );	
+			}
 			
 			connection.connect();
 			
 		}else{
+			
+				// TODO: No read timeout support here yet...
+			
 			final AESemaphore sem = new AESemaphore( "URLUtils:cwt" );
 			
 			final Throwable[] res = { null };
@@ -343,7 +365,7 @@ public class UrlUtils
 					}
 				});
 			
-			boolean ok = sem.reserve( timeout );
+			boolean ok = sem.reserve( connect_timeout );
 			
 			//long	duration = SystemTime.getMonotonousTime() - start;
 			
