@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -12,6 +13,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -45,6 +47,14 @@ public class DetailPanel
 
 	private String currentPageID = null;
 
+	private int DETAIL_PANEL_HEIGHT = 466;
+
+	private int currentDetailPanelHeight = 0;
+
+	private ScrolledComposite scrollable = null;
+
+	private Composite content = null;
+
 	public DetailPanel() {
 
 	}
@@ -64,18 +74,30 @@ public class DetailPanel
 			return null;
 		}
 
-		/*
-		 * Move the panel above all others since we want it to overlap all other widgets
-		 */
-		detailPanel.moveAbove(null);
-
-		stackLayout = new StackLayout();
-		stackLayout.marginHeight = 6;
-		stackLayout.marginWidth = 6;
-		detailPanel.setLayout(stackLayout);
-
 		detailPanel.setBackground(ColorCache.getColor(detailPanel.getDisplay(), 22,
 				22, 22));
+
+		FillLayout fLayout = new FillLayout();
+		fLayout.marginHeight = 6;
+		fLayout.marginWidth = 6;
+		detailPanel.setLayout(fLayout);
+		detailPanel.setBackgroundMode(SWT.INHERIT_FORCE);
+
+		scrollable = new ScrolledComposite(detailPanel, SWT.V_SCROLL);
+		scrollable.setExpandHorizontal(true);
+		scrollable.setExpandVertical(true);
+		scrollable.setBackgroundMode(SWT.INHERIT_FORCE);
+
+		content = new Composite(scrollable, SWT.NONE);
+		content.setBackgroundMode(SWT.INHERIT_FORCE);
+
+		scrollable.setContent(content);
+
+		stackLayout = new StackLayout();
+		stackLayout.marginHeight = 0;
+		stackLayout.marginWidth = 0;
+		content.setLayout(stackLayout);
+
 		createDefaultPages();
 
 		/*
@@ -95,9 +117,28 @@ public class DetailPanel
 			}
 		});
 
+		/*
+		 * Recalculate and/or relayout the detail panel if required
+		 */
+		final UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		uiFunctions.getMainShell().addControlListener(new ControlListener() {
+			public void controlResized(ControlEvent e) {
+				if (true == detailPanel.isVisible()) {
+					calculateDetailPanelHeight(uiFunctions);
+					if (currentDetailPanelHeight != detailPanel.getSize().y) {
+						relayoutDetailPanel(uiFunctions);
+					}
+				}
+			}
+
+			public void controlMoved(ControlEvent e) {
+			}
+		});
+
 		detailPanel.addControlListener(new ControlListener() {
 
 			public void controlResized(ControlEvent e) {
+
 				calculateLightBoxDimensions(lbShell);
 			}
 
@@ -105,6 +146,18 @@ public class DetailPanel
 			}
 		});
 
+		content.addControlListener(new ControlListener() {
+
+			public void controlResized(ControlEvent e) {
+				Rectangle r = scrollable.getClientArea();
+				Point size = content.computeSize(r.width, SWT.DEFAULT);
+				size.y = currentDetailPanelHeight - 12;// Subtract 12 for the top/bottom borders
+				scrollable.setMinSize(size);
+			}
+
+			public void controlMoved(ControlEvent e) {
+			}
+		});
 		return null;
 	}
 
@@ -118,7 +171,8 @@ public class DetailPanel
 			 * Calculate the offset from the bottom for the lightbox
 			 * We're subtracting the status bar, the footer, and the button bar
 			 */
-			int offsetHeight = ((FormData) detailPanel.getLayoutData()).height;
+
+			int offsetHeight = currentDetailPanelHeight;
 			offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
 			SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 			if (null != footerObject) {
@@ -141,7 +195,7 @@ public class DetailPanel
 		blankPage = new BlankDetailPage(this, "blankPage");
 		currentPageID = "blankPage";
 
-		blankPage.createControls(detailPanel);
+		blankPage.createControls(content);
 		/*
 		 * Create the Share flow page
 		 */
@@ -169,9 +223,9 @@ public class DetailPanel
 	 * @return
 	 */
 	public void addPage(IDetailPage page) {
-		if (null == detailPanel) {
+		if (null == content) {
 			throw new NullPointerException(
-					"An error has occured... the detail panel has not been properly initialized");
+					"An error has occured... the content panel has not been properly initialized");
 		}
 
 		if (true == pages.containsKey(page.getPageID())) {
@@ -192,7 +246,7 @@ public class DetailPanel
 			});
 		}
 
-		page.createControls(detailPanel);
+		page.createControls(content);
 
 		pages.put(page.getPageID(), page);
 
@@ -200,7 +254,7 @@ public class DetailPanel
 		 * By default the last page created is on top
 		 */
 		stackLayout.topControl = page.getControl();
-		detailPanel.layout();
+		content.layout();
 	}
 
 	public void removePage(String pageID) {
@@ -234,7 +288,7 @@ public class DetailPanel
 		Utils.execSWTThreadLater(0, new AERunnable() {
 
 			public void runSupport() {
-				int DETAIL_PANEL_HEIGHT = 463;
+
 				SWTSkinObject detailPanelObject = skin.getSkinObject(SkinConstants.VIEWID_DETAIL_PANEL);
 
 				Point size = detailPanelObject.getControl().getSize();
@@ -244,8 +298,6 @@ public class DetailPanel
 
 					if (true == value) {
 
-						DETAIL_PANEL_HEIGHT = getPanelHeight(uiFunctions,
-								DETAIL_PANEL_HEIGHT);
 						/*
 						 * LightBox to cover the elements above this detail panel
 						 */
@@ -257,7 +309,6 @@ public class DetailPanel
 						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
 								| LightBoxShell.RESIZE_VERTICAL);
 						lbShell.setAlphaLevel(200);
-						//						calculateLightBoxDimensions(lbShell);
 						lbShell.open();
 
 						/*
@@ -270,11 +321,14 @@ public class DetailPanel
 						 * out of visibility.
 						 */
 
-						size.y = DETAIL_PANEL_HEIGHT;
+						calculateDetailPanelHeight(uiFunctions);
+						size.y = currentDetailPanelHeight;
 
 						stackLayout.topControl = blankPage.getControl();
 						detailPanel.layout(true, true);
 
+					} else {
+						currentDetailPanelHeight = 0;
 					}
 					AERunnable runWhenDone = new AERunnable() {
 
@@ -295,18 +349,18 @@ public class DetailPanel
 									blankPage.showBusy(true, 0);
 									page.refresh(new IDetailPage.RefreshListener() {
 										public void refreshCompleted() {
-											Utils.execSWTThreadLater(0, new AERunnable() {
+											Utils.execSWTThread(new AERunnable() {
 												public void runSupport() {
 													blankPage.showBusy(false);
-													Utils.relayout(detailPanel);
+													//													Utils.relayout(detailPanel);
 													stackLayout.topControl = page.getControl();
-													detailPanel.layout();
+													detailPanel.layout(true, true);
 
 													/*
 													 * For OSX after the layout operation is done must set focus so the ui will repaint properly
 													 */
 													if (true == Constants.isOSX && true == value) {
-														detailPanel.setFocus();
+														content.setFocus();
 													}
 												}
 											});
@@ -333,13 +387,13 @@ public class DetailPanel
 	public void showBusy(boolean value, long delay) {
 		if (true == value) {
 			stackLayout.topControl = blankPage.getControl();
-			detailPanel.layout();
+			content.layout();
 			blankPage.showBusy(value, delay);
 		} else {
 			IDetailPage page = getPage(currentPageID);
 			if (null != page) {
 				stackLayout.topControl = page.getControl();
-				detailPanel.layout();
+				content.layout();
 				blankPage.showBusy(false, 0);
 			}
 		}
@@ -355,8 +409,17 @@ public class DetailPanel
 	 * @param heightHint
 	 * @return
 	 */
-	private int getPanelHeight(UIFunctionsSWT uiFunctions, int heightHint) {
+	private void calculateDetailPanelHeight(UIFunctionsSWT uiFunctions) {
+		IMainWindow mainWindow = uiFunctions.getMainWindow();
+		int heightHint = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
+		currentDetailPanelHeight = heightHint > DETAIL_PANEL_HEIGHT
+				? DETAIL_PANEL_HEIGHT : heightHint;
 
-		return heightHint;
+	}
+
+	private void relayoutDetailPanel(UIFunctionsSWT uiFunctions) {
+		FormData fData = (FormData) detailPanel.getLayoutData();
+		fData.height = currentDetailPanelHeight;
+		detailPanel.getParent().layout();
 	}
 }

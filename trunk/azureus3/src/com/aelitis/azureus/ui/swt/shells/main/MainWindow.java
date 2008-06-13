@@ -2541,18 +2541,24 @@ public class MainWindow
 		} else if (windowElement == IMainWindow.WINDOW_CONTENT_DISPLAY_AREA) {
 
 			Rectangle r = getMetrics(IMainWindow.WINDOW_CLIENT_AREA);
-			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).x;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
-
-			r.x += getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).x;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
-
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_FOOTER).height;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_BUTTON_BAR).height;
 			return r;
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
+			if (skinObject != null) {
+				return skinObject.getControl().getBounds();
+			}
+
+		}
+		else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
+
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}
