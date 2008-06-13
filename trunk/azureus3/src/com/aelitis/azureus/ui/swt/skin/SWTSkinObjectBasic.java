@@ -16,6 +16,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.skin.SkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
 /**
@@ -204,20 +205,29 @@ public class SWTSkinObjectBasic
 		}
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image[] images = imageLoader.getImages(sConfigID + sSuffix);
-		if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
-			imageBG = images[0];
-			imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
-		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
-			imageBGLeft = images[0];
-			imageBG = images[1];
-			imageBGRight = images[2];
-		} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
-			imageBGLeft = images[0];
-			imageBG = images[1];
-			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+		String s = properties.getStringValue(sConfigID + sSuffix, (String) null);
+		if (s != null && s.length() > 0) {
+  		Image[] images = imageLoader.getImages(sConfigID + sSuffix);
+  		if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
+  			imageBG = images[0];
+  			imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
+  			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+  		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
+  			imageBGLeft = images[0];
+  			imageBG = images[1];
+  			imageBGRight = images[2];
+  		} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
+  			imageBGLeft = images[0];
+  			imageBG = images[1];
+  			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+  		} else {
+  			return;
+  		}
 		} else {
+			if (s != null && painter != null) {
+				painter.dispose();
+				painter = null;
+			}
 			return;
 		}
 

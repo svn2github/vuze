@@ -87,7 +87,13 @@ public class SWTBGImagePainter
 			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
 				height = imgSrcBounds.height;
 			}
-			control.setLayoutData(new FormData(width, height));
+			FormData fd = (FormData) control.getLayoutData();
+			if (fd == null) {
+				fd = new FormData();
+			}
+			fd.width = width;
+			fd.height = height;
+			control.setLayoutData(fd);
 		}
 
 		if (bDirty) {
@@ -103,6 +109,25 @@ public class SWTBGImagePainter
 		}
 
 		control.addListener(SWT.Dispose, this);
+	}
+	
+	public void dispose() {
+		if (control == null || control.isDisposed()) {
+			return;
+		}
+
+		if (!TEST_SWT_PAINTING) {
+			control.removeListener(SWT.Resize, this);
+			control.removeListener(SWT.Paint, this);
+			control.getShell().removeListener(SWT.Show, this);
+		}
+
+		control.removeListener(SWT.Dispose, this);
+		control.setBackgroundImage(null);
+		FormData formData = (FormData) control.getLayoutData();
+		formData.width = SWT.DEFAULT;
+		formData.height = SWT.DEFAULT;
+		control.setData("BGPainter", null);
 	}
 
 	/**
@@ -152,7 +177,9 @@ public class SWTBGImagePainter
 		}
 
 		imgSrc = bgImage;
-		imgSrcBounds = imgSrc.getBounds();
+		if (imgSrc != null) {
+			imgSrcBounds = imgSrc.getBounds();
+		}
 		lastShellBGSize = new Point(0, 0);
 		if (ImageLoader.isRealImage(bgImageLeft)) {
 			imgSrcLeft = bgImageLeft;
@@ -190,6 +217,11 @@ public class SWTBGImagePainter
 	public void buildBackground(Control control) {
 		if (inEvent || shell == null || shell.isDisposed() || control == null
 				|| control.isDisposed()) {
+			return;
+		}
+		
+		if (imgSrc == null) {
+			control.setBackgroundImage(null);
 			return;
 		}
 
