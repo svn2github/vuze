@@ -437,8 +437,16 @@ BasicPluginConfigImpl
 					Composite internal_composite = new Composite(current_composite, SWT.NULL);
 					GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 					internal_composite.setLayoutData(gridData);
-					context.create(internal_composite);
-					swt_param = new UISWTParameter(internal_composite, param.getKey());
+					boolean initialised_component = true;
+					try {context.create(internal_composite);}
+					catch (Exception e) {Debug.printStackTrace(e); initialised_component = false;}
+					
+					if (initialised_component) {
+						swt_param = new UISWTParameter(internal_composite, param.getKey());
+					}
+					else {
+						swt_param = null;
+					}
 				}
 				else {
 					swt_param = null;
