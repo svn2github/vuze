@@ -446,6 +446,10 @@ BasicPluginConfigImpl
 					}
 					else {
 						swt_param = null;
+						
+						// We're only expecting this for plugins which screw up their component generation,
+						// so we don't care that this text is not localised.
+						if (label != null) {label.setText("Error while generating UI component.");}
 					}
 				}
 				else {
