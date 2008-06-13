@@ -57,7 +57,7 @@ public class PlatformAuthorizedSenderImpl
 	public void startDownload(final URL url, final String data,
 			final AESemaphore sem_waitDL, final boolean loginAndRetry) {
 		Utils.execSWTThread(new AERunnable() {
-			boolean isRetry = false;
+			boolean[] isRetry = { false };
 
 			public void runSupport() {
 				try {
@@ -94,10 +94,13 @@ public class PlatformAuthorizedSenderImpl
 	}
 
 	private void parseAuthorizedListenerResult(final Browser browser,
-			final AESemaphore sem_waitDL, boolean isRetry, boolean loginAndRetry) {
+			final AESemaphore sem_waitDL, boolean[] isRetry, boolean loginAndRetry) {
 		if (browser.isDisposed()) {
 			return;
 		}
+		
+		boolean	went_async = false;
+		
 		try {
 			s = browser.getText();
 
@@ -115,16 +118,19 @@ public class PlatformAuthorizedSenderImpl
 						+ partial);
 			}
 
-			if (authFail && loginAndRetry && !isRetry) {
+			if ( authFail && loginAndRetry && !isRetry[0]){
+				
 				s = null;
 
-				// add a reserve because finally will release and
-				// we still need to wait for login
-				sem_waitDL.reserve();
-				isRetry = true;
+				isRetry[0] = true;
 
+				went_async = true;
+				
 				SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 					public void loginComplete() {
+						// TUX - is it the case that this refresh will cause us to re-enter this 
+						// code and cause the sem to be released ?
+						
 						browser.refresh();
 					}
 					
@@ -141,7 +147,11 @@ public class PlatformAuthorizedSenderImpl
 				browser.dispose();
 			}
 		} finally {
-			sem_waitDL.release();
+			
+			if ( !went_async ){
+			
+				sem_waitDL.release();
+			}
 		}
 	}
 
