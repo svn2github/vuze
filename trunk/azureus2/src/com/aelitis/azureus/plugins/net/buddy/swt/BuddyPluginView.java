@@ -33,8 +33,6 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -223,7 +221,7 @@ BuddyPluginView
 					{
 						try{
 							plugin.getPluginInterface().getUIManager().openURL(
-									new URL( "http://faq.vuze.com/?CategoryID=6" ));
+									new URL( "http://faq.vuze.com/?View=entry&EntryID=239" ));
 							
 						}catch( Throwable e ){
 							
