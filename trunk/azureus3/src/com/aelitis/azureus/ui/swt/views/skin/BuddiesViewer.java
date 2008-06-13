@@ -120,6 +120,10 @@ public class BuddiesViewer
 
 	private int[] pageXOffsets = null;
 
+	private int avatarsPerPage = 1;
+
+	private List buddiesList;
+
 	public BuddiesViewer() {
 	}
 
@@ -198,12 +202,9 @@ public class BuddiesViewer
 			/*
 			 * Get a new page width when the content panel is resized
 			 */
-			content.addControlListener(new ControlAdapter() {
+			parent.addControlListener(new ControlAdapter() {
 				public void controlResized(ControlEvent e) {
 					calculatePagination();
-					if (null != pWidget) {
-						pWidget.setPageCount(pageCount);
-					}
 				}
 			});
 
@@ -235,12 +236,9 @@ public class BuddiesViewer
 		if (null != paginationObject) {
 			Composite control = (Composite) paginationObject.getControl();
 			pWidget = new PaginationWidget(control);
-			pWidget.setPageCount(pageCount);
-
 			pWidget.addPageSelectionListener(new PaginationWidget.PageSelectionListener() {
 				public void pageSelected(int pageNumber) {
 					setCurrentPage(pageNumber);
-
 				}
 			});
 		}
@@ -327,7 +325,7 @@ public class BuddiesViewer
 				0
 			};
 		} else {
-			int avatarsPerPage = 0;
+			avatarsPerPage = 0;
 			/*
 			 * If windowWidth can only fully show 1 avatar then the number of pages
 			 * would equal the number of avatars
@@ -338,10 +336,11 @@ public class BuddiesViewer
 			} else {
 
 				avatarsPerPage = (pageWindowWidth / avatarWidthPlusSpacing);
-				pageCount = Math.max(1, avatarsPanel.getBounds().width
+				pageCount = Math.max(1, avatarsPanel.getClientArea().width
 						/ (avatarsPerPage * avatarWidthPlusSpacing));
 
-				if (pageWindowWidth < avatarsPanel.getBounds().width) {
+				if (pageCount == 1
+						&& pageWindowWidth < avatarsPanel.getClientArea().width) {
 					pageCount++;
 				}
 			}
@@ -361,6 +360,11 @@ public class BuddiesViewer
 				xOffset += (avatarsPerPage * avatarWidthPlusSpacing);
 				pageXOffsets[i] = xOffset;
 			}
+		}
+		if (null != pWidget) {
+			pWidget.setPageCount(pageCount);
+			pWidget.setItemsPerPage(avatarsPerPage);
+			pWidget.setItemsTotal(getBuddies().size());
 		}
 	}
 
@@ -699,30 +703,34 @@ public class BuddiesViewer
 
 	private List getBuddies() {
 
-		List buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
+		/*
+		 * Add the listener only once at the beginning
+		 */
+		if (null == buddiesList) {
+			VuzeBuddyManager.addListener(new VuzeBuddyListener() {
 
-		VuzeBuddyManager.addListener(new VuzeBuddyListener() {
+				public void buddyRemoved(VuzeBuddy buddy) {
+					removeBuddy(buddy);
+					recomputeOrder();
+				}
 
-			public void buddyRemoved(VuzeBuddy buddy) {
-				removeBuddy(buddy);
-				recomputeOrder();
-			}
+				public void buddyChanged(VuzeBuddy buddy) {
+					updateBuddy(buddy);
+					recomputeOrder();
+				}
 
-			public void buddyChanged(VuzeBuddy buddy) {
-				updateBuddy(buddy);
-				recomputeOrder();
-			}
+				public void buddyAdded(VuzeBuddy buddy, int position) {
+					addBuddy(buddy);
+					recomputeOrder();
+				}
 
-			public void buddyAdded(VuzeBuddy buddy, int position) {
-				addBuddy(buddy);
-				recomputeOrder();
-			}
+				public void buddyOrderChanged() {
 
-			public void buddyOrderChanged() {
+				}
+			}, false);
+		}
 
-			}
-		}, false);
-
+		buddiesList = VuzeBuddyManager.getAllVuzeBuddies();
 		return buddiesList;
 	}
 
@@ -887,5 +895,9 @@ public class BuddiesViewer
 			avatarsPanel.layout(true);
 
 		}
+	}
+
+	public int getAvatarsPerPage() {
+		return avatarsPerPage;
 	}
 }
