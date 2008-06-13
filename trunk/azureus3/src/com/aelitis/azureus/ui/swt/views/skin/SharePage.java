@@ -583,7 +583,7 @@ public class SharePage
 			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
-					final LightBoxShell lightBoxShell = new LightBoxShell(true);
+					final LightBoxShell lightBoxShell = new LightBoxShell(false);
 					StyledMessageWindow messageWindow = new StyledMessageWindow(
 							lightBoxShell.getShell(), 6, true);
 
@@ -592,7 +592,7 @@ public class SharePage
 					messageWindow.setTitle("Share confirmation");
 					messageWindow.setSize(400, 300);
 
-					messageWindow.addListener(SWT.Close, new Listener() {
+					messageWindow.addListener(SWT.Dispose, new Listener() {
 						public void handleEvent(Event event) {
 							lightBoxShell.close();
 						}
