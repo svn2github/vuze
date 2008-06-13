@@ -450,7 +450,7 @@ MetaSearchManagerImpl
 	public boolean
 	isAutoMode()
 	{
-		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", true ));
+		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", false ));
 	}
 	
 	public void
