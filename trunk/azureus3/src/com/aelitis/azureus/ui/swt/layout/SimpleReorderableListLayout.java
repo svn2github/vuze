@@ -72,7 +72,9 @@ public class SimpleReorderableListLayout extends Layout {
 					controls[i].setLocation(extraShift[index] + borderW + positions[index], borderH);
 					controls[i].setBounds(extraShift[index] + borderW + positions[index], borderH,sData.width,sData.height);
 				}
-				extraShift[index] += margin + sData.width;
+				if(index >= 0 && index < extraShift.length) {
+					extraShift[index] += margin + sData.width;
+				}
 			}
 		}
 	}
