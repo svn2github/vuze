@@ -74,6 +74,14 @@ Java15Utils
 		return( 0 );
 	}
 	
+	public static void
+	dumpThreads()
+	{
+		if ( provider != null ){
+			
+			provider.dumpThreads();
+		}
+	}
 	
 	public interface
 	Java15UtilsProvider
@@ -90,5 +98,8 @@ Java15Utils
 		
 		public long
 		getThreadCPUTime();
+		
+		public void
+		dumpThreads();
 	}
 }

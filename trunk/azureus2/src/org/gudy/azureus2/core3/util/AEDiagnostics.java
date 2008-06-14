@@ -237,6 +237,12 @@ AEDiagnostics
 		}
 	}
 	
+	public static void
+	dumpThreads()
+	{
+		Java15Utils.dumpThreads();
+	}
+	
 	/**
 	 * 
 	 */
