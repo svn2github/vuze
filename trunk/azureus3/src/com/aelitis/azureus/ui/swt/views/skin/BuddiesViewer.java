@@ -712,6 +712,10 @@ public class BuddiesViewer
 		addToShare(avatarWidgets);
 	}
 
+	public void removeAllFromShare() {
+		removeFromShare(avatarWidgets);
+	}
+
 	public void addToShare(List avatars) {
 
 		for (Iterator iterator = avatars.iterator(); iterator.hasNext();) {
@@ -725,6 +729,21 @@ public class BuddiesViewer
 	public void addToShare(AvatarWidget widget) {
 		sharePage.addBuddy(widget.getVuzeBuddy());
 		widget.setSharedAlready(true);
+	}
+
+	public void removeFromShare(List avatars) {
+
+		for (Iterator iterator = avatars.iterator(); iterator.hasNext();) {
+			Object object = (Object) iterator.next();
+			if (object instanceof AvatarWidget) {
+				removeFromShare((AvatarWidget) object);
+			}
+		}
+	}
+
+	public void removeFromShare(AvatarWidget widget) {
+		sharePage.removeBuddy(widget.getVuzeBuddy());
+		widget.setSharedAlready(false);
 	}
 
 	public void addToShare(VuzeBuddy buddy) {

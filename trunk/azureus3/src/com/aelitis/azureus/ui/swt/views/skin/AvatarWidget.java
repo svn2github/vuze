@@ -126,7 +126,7 @@ public class AvatarWidget
 
 	private Image removeImage_over = null;
 
-	private Image add_to_share_Image_over = null;
+	private Image add_to_share_Image_selected = null;
 
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
@@ -160,7 +160,7 @@ public class AvatarWidget
 		removeImage_normal = imageLoader.getImage("image.buddy.remove");
 		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
 		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
-		add_to_share_Image_over = imageLoader.getImage("image.buddy.add.to.share-over");
+		add_to_share_Image_selected = imageLoader.getImage("image.buddy.add.to.share-selected");
 		imageDefaultAvatar = imageLoader.getImage("image.buddy.default.avatar");
 
 		removeImage = removeImage_normal;
@@ -309,6 +309,13 @@ public class AvatarWidget
 						}
 					}
 				}
+
+				if (isSharedAlready()) {
+					add_to_share_Image = add_to_share_Image_selected;
+				} else {
+					add_to_share_Image = add_to_share_Image_normal;
+				}
+
 				/*
 				 * Draw decorator
 				 */
@@ -317,7 +324,7 @@ public class AvatarWidget
 							removeImage.getBounds().height, decorator_remove_friend.x,
 							decorator_remove_friend.y, decorator_remove_friend.width,
 							decorator_remove_friend.height);
-				} else if (true == viewer.isShareMode() && false == isSharedAlready()) {
+				} else if (true == viewer.isShareMode()) {
 					e.gc.drawImage(add_to_share_Image, 0, 0,
 							removeImage.getBounds().width, removeImage.getBounds().height,
 							decorator_add_to_share.x, decorator_add_to_share.y,
@@ -632,8 +639,14 @@ public class AvatarWidget
 	}
 
 	private void doAddBuddyToShare() {
-		viewer.addToShare(this);
-		sharedAlready = true;
+		if (false == isSharedAlready()) {
+			viewer.addToShare(this);
+			sharedAlready = true;
+		}
+		else{
+			viewer.removeFromShare(vuzeBuddy);
+			sharedAlready = false;
+		}
 		canvas.redraw();
 		canvas.update();
 	}

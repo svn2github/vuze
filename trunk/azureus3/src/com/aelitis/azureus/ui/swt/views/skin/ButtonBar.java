@@ -426,10 +426,34 @@ public class ButtonBar
 			SWTSkinButtonUtility shareAllBuddiesButton = new SWTSkinButtonUtility(
 					shareAllBuddiesObject);
 			shareAllBuddiesButton.addSelectionListener(new ButtonListenerAdapter() {
+				boolean isSelected = false;
+
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					shareAllBuddies();
+					if (false == isSelected) {
+						shareAllBuddies();
+						isSelected = true;
+					} else {
+						unShareAllBuddies();
+						isSelected = false;
+					}
+
+					SWTSkinObject normalButton = skin.getSkinObject("button-buddy-share-all-normal");
+					if (null != normalButton) {
+						normalButton.setVisible(!isSelected);
+					}
+					SWTSkinObject selectedButton = skin.getSkinObject("button-buddy-share-all-selected");
+					if (null != selectedButton) {
+						selectedButton.setVisible(isSelected);
+					}
 				}
 			});
+		}
+	}
+
+	protected void unShareAllBuddies() {
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		if (null != viewer) {
+			viewer.removeAllFromShare();
 		}
 	}
 
