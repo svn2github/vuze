@@ -128,8 +128,8 @@ public class PlatformAuthorizedSenderImpl
 				
 				SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 					public void loginComplete() {
-						// TUX - is it the case that this refresh will cause us to re-enter this 
-						// code and cause the sem to be released ?
+						// once the page is reloaded ProgressListener.complete will be
+						// triggered again
 						
 						browser.refresh();
 					}
