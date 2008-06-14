@@ -350,7 +350,7 @@ public class VuzeBuddyManager
 		// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#newRelayServerPayLoad(com.aelitis.azureus.buddy.VuzeBuddy, java.lang.String, java.util.Map)
 		public void newRelayServerPayLoad(VuzeBuddy sender, String pkSender,
 				Map decodedMap, long addedOn) {
-			processPayloadMap(pkSender, decodedMap, sender != null, addedOn);
+			processPayloadMap(pkSender, decodedMap, sender != null, addedOn, true);
 		}
 
 		// @see com.aelitis.azureus.core.messenger.config.VuzeRelayListener#hasPendingRelayMessage(int)
@@ -458,7 +458,7 @@ public class VuzeBuddyManager
 				String pk = from_buddy.getPublicKey();
 
 				String reply = processPayloadMap(pk, request,
-						from_buddy.isAuthorised(), SystemTime.getCurrentTime());
+						from_buddy.isAuthorised(), SystemTime.getCurrentTime(), true);
 				mapResponse.put("response", reply);
 			} catch (Exception e) {
 				mapResponse.put("response", "Exception: " + e.toString());
@@ -707,8 +707,9 @@ public class VuzeBuddyManager
 	 * @param addedOn 
 	 * @since 3.0.5.3
 	 */
-	protected static String processPayloadMap(String pkSender, Map mapPayload,
-			boolean authorizedBuddy, long addedOn) {
+	protected static String processPayloadMap(final String pkSender,
+			final Map mapPayload, final boolean authorizedBuddy, final long addedOn,
+			final boolean retryAuthFail) {
 		// TODO: Allow for "try again later" for non auth buddy
 		//       (ie.  A sync up will get the new pk and the message will be valid..)
 
@@ -738,9 +739,24 @@ public class VuzeBuddyManager
 					});
 					return "Ok";
 				} else {
-					log("Not authorized to add activity " + entry.getID() + ";"
-							+ entry.getTypeID());
-					return "Not Authorized";
+					if (retryAuthFail) {
+						try {
+							PlatformBuddyMessenger.sync(new String[] {
+								pkSender
+							}, new VuzeBuddySyncListener() {
+								public void syncComplete() {
+									processPayloadMap(pkSender, mapPayload, authorizedBuddy,
+											addedOn, false);
+								}
+							});
+						} catch (NotLoggedInException e) {
+							log(e);
+						}
+					} else {
+  					log("Not authorized to add activity " + entry.getID() + ";"
+  							+ entry.getTypeID());
+  					return "Not Authorized";
+					}
 				}
 			}
 		} else if (authorizedBuddy && mt.equals(VMT_BUDDYSYNC)) {
@@ -775,6 +791,7 @@ public class VuzeBuddyManager
 			}
 		}
 
+		log("processPayLoadMap from " + pkSender + ": Unknown Message Type " + mt);
 		return "Unknown Message Type";
 	}
 
