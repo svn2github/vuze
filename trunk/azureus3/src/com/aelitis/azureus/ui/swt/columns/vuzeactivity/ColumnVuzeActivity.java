@@ -616,7 +616,7 @@ public class ColumnVuzeActivity
 				subCellEvent.x = event.x - dmThumbRect.x - MARGIN_WIDTH;
 				subCellEvent.y = event.y - dmThumbRect.y;
 
-				System.out.println(subCellEvent.x + ";" + subCellEvent.y);
+				//System.out.println(subCellEvent.x + ";" + subCellEvent.y);
 				if (thumbCell instanceof TableCellCore) {
 					TableRowCore row = ((TableCellCore) thumbCell).getTableRowCore();
 					if (row != null) {
