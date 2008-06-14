@@ -232,7 +232,7 @@ TRTrackerAnnouncerImpl
 	importTrackerCache(
 		Map		map )
 	{
-		if ( torrent.getPrivate() || !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
 			
 			return( 0 );
 		}
@@ -306,7 +306,7 @@ TRTrackerAnnouncerImpl
 	addToTrackerCache(
 		TRTrackerAnnouncerResponsePeerImpl[]		peers )
 	{
-		if ( torrent.getPrivate() || !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
+		if ( !COConfigurationManager.getBooleanParameter("File.save.peers.enable")){
 			
 			return;
 		}
@@ -417,13 +417,6 @@ TRTrackerAnnouncerImpl
 	getPeersFromCache(
 		int	num_want )
 	{
-		if ( torrent.getPrivate()){
-			
-				// we don't use cached peers for private torrents
-			
-			return( new TRTrackerAnnouncerResponsePeer[0] );
-		}
-		
 		try{
 			tracker_peer_cache_mon.enter();
 	
