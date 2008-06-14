@@ -80,7 +80,7 @@ public class FriendsList
 		scrollable.setExpandVertical(true);
 		scrollable.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
-		canvas = new Canvas(scrollable, SWT.NONE);
+		canvas = new Canvas(scrollable, SWT.DOUBLE_BUFFERED);
 		borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.border");
 		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
