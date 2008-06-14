@@ -150,6 +150,13 @@ Download extends DownloadEventNotifier
     public static final long FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES = 0x00000020;
     
     
+    /**
+     * Flag value - if set the data will not be delete when the download is "deleted" from
+     * the v3 interface.
+     * @since 3.1.0.0
+     */
+    public static final long FLAG_DO_NOT_DELETE_DATA_ON_REMOVE = 0x00000040;
+    
 	/** get state from above ST_ set
    * @return ST_ constant
    *
