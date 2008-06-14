@@ -261,6 +261,8 @@ public class BuddiesViewer
 			public void runSupport() {
 				pageWindowWidth = content.getClientArea().width;
 
+				int totalAvatars = avatarWidgets.size();
+
 				/*
 				 * Avoid divide by zero when the viewer is collapsed
 				 */
@@ -288,8 +290,8 @@ public class BuddiesViewer
 						pageCount = Math.max(1, avatarsPanel.getClientArea().width
 								/ (avatarsPerPage * avatarWidthPlusSpacing));
 
-						if (pageCount == 1
-								&& pageWindowWidth < avatarsPanel.getClientArea().width) {
+						if (avatarsPerPage < totalAvatars
+								&& (totalAvatars % avatarsPerPage) != 0) {
 							pageCount++;
 						}
 					}
@@ -313,7 +315,7 @@ public class BuddiesViewer
 				if (null != pWidget) {
 					pWidget.setPageCount(pageCount);
 					pWidget.setItemsPerPage(avatarsPerPage);
-					pWidget.setItemsTotal(getBuddies().size());
+					pWidget.setItemsTotal(totalAvatars);
 				}
 			}
 		});
