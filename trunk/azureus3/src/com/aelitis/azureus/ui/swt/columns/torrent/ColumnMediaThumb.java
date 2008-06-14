@@ -423,15 +423,6 @@ public class ColumnMediaThumb
 				}
 			}
 
-			if (!(ds instanceof DownloadManager) && cellHasMouse && dm != null
-					&& !dm.getAssumedComplete() && !canPlay) {
-				gc.setForeground(Colors.white);
-				String sPercent = dm.getStats().getDownloadCompleted(false) / 10 + "%";
-				Point extent = gc.textExtent(sPercent);
-				gc.drawText(sPercent, (cellWidth / 2) - (extent.x / 2),
-						cellHeight / 2 - 6, true);
-			}
-
 			gc.dispose();
 
 			if (disposeImage) {
