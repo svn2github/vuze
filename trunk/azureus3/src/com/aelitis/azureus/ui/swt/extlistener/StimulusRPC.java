@@ -178,6 +178,9 @@ public class StimulusRPC
 						} else if (ConfigListener.OP_CHECK_FOR_UPDATES.equals(opId)) {
 							ConfigListener.checkForUpdates();
 							return true;
+						} else if (ConfigListener.OP_LOG_DIAGS.equals(opId)) {
+							ConfigListener.logDiagnostics();
+							return true;
 						}
 					}
 											

@@ -25,6 +25,7 @@ import java.util.Map;
 import org.eclipse.swt.browser.Browser;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
@@ -53,6 +54,8 @@ public class ConfigListener
 	public static final String OP_CHECK_FOR_UPDATES = "check-for-updates";
 	
 	public static final String OP_GET_MAGNET_PORT = "get-magnet-port";
+	
+	public static final String OP_LOG_DIAGS = "log-diags";
 
 	public ConfigListener(String id, Browser browser) {
 		super(id);
@@ -104,12 +107,21 @@ public class ConfigListener
 					
 					message.debug("bad or no callback param");
 				}
+			}else if ( OP_LOG_DIAGS.equals( opid )){
+				
+				logDiagnostics();
 			}
 		} catch (Throwable t) {
 			message.debug("handle Config message", t);
 		}
 	}
 
+	public static void
+	logDiagnostics()
+	{
+		AEDiagnostics.dumpThreads();
+	}
+	
 	/**
 	 * 
 	 *
