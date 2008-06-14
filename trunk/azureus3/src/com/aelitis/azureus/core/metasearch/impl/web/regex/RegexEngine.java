@@ -333,6 +333,9 @@ RegexEngine
 										case FIELD_PRIVATE :
 											result.setPrivateFromHTML(groupContent);
 											break;
+										case FIELD_DRMKEY :
+											result.setDrmKey(groupContent);
+											break;
 										default:
 											break;
 										}

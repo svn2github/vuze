@@ -46,6 +46,8 @@ public class WebResult extends Result {
 	String name;
 	String category = "";
 	
+	String drmKey = null;
+	
 	Date publishedDate;
 	
 	long size = -1;
@@ -267,6 +269,10 @@ public class WebResult extends Result {
 		
 	}
 	
+	public void setDrmKey(String drmKey) {
+		this.drmKey = drmKey;
+	}
+	
 
 	public String getCDPLink() {
 		
@@ -346,5 +352,9 @@ public class WebResult extends Result {
 	
 	public boolean isPrivate() {
 		return privateTorrent;
+	}
+	
+	public String getDRMKey() {
+		return drmKey;
 	}
 }

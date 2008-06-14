@@ -44,6 +44,8 @@ Engine
 	public static final int FIELD_SUPERSEEDS 	= 11;
 	public static final int FIELD_PRIVATE	 	= 12;
 	
+	public static final int FIELD_DRMKEY        = 13;
+	
 	
 	public static final int FIELD_TORRENTLINK 	= 102;
 	public static final int FIELD_CDPLINK 		= 103;
@@ -53,14 +55,14 @@ Engine
 		FIELD_NAME, FIELD_DATE, FIELD_SIZE, FIELD_PEERS, FIELD_SEEDS, FIELD_CATEGORY,
 		FIELD_COMMENTS, FIELD_CONTENT_TYPE, FIELD_DISCARD, 
 		FIELD_TORRENTLINK, FIELD_CDPLINK, FIELD_PLAYLINK, FIELD_VOTES, FIELD_SUPERSEEDS,
-		FIELD_PRIVATE, 
+		FIELD_PRIVATE, FIELD_DRMKEY
 	};
 		
 	public static final String[] FIELD_NAMES = {
 		"TITLE", "DATE", "SIZE", "PEERS", "SEEDS", "CAT",
 		"COMMENTS", "CONTENT_TYPE", "DISCARD",
 		"TORRENT", "CDP", "PLAY", "VOTES", "XSEEDS",
-		"PRIVATE",
+		"PRIVATE", "DRMKEY"
 	};
 	
 	public static final int ENGINE_TYPE_REGEX		= 1;

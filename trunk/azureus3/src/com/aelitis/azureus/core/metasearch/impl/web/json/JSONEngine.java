@@ -312,6 +312,9 @@ JSONEngine
 									case FIELD_PRIVATE :
 										result.setPrivateFromHTML(fieldContent);
 										break;
+									case FIELD_DRMKEY :
+										result.setDrmKey(fieldContent);
+										break;
 									default:
 										break;
 									}

@@ -50,6 +50,8 @@ public abstract class Result {
 	public abstract int getVotes();
 	public abstract boolean isPrivate();
 	
+	public abstract String getDRMKey();
+	
 	//Links
 	public abstract String getDownloadLink();
 	public abstract String getCDPLink();
@@ -192,6 +194,11 @@ public abstract class Result {
 		
 		if ( this.getVotes() >= 0 ){
 			object.put("v", "" + this.getVotes());
+		}
+		
+		String drmKey = getDRMKey();
+		if(drmKey != null) {
+			object.put("dk",drmKey);
 		}
 		
 		object.put("pr", this.isPrivate() ? "1" : "0");
