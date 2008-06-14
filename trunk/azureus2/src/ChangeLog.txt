@@ -10,7 +10,6 @@ FEATURE: UI   | Plugin log views now support autoscrolling, pausing and regex fi
 FEATURE: UI   | Plugin menu items which in the right-click menu now appear in the "Torrent" menu also [amc1] 
 FEATURE: UIv3 | Friends (sharing, bandwidth boost)
 FEATURE: UIv3 | Greatly Improved Search
-FEATURE: UIv3 | Removed Vuze Header (the top plugin bar is still there but you have to turn it on)
 FEATURE: UIv3 | Experimental option to use Mozilla/Firefox as browser widget on any platform (XulRunner or Firefox 3 must be installed) [The 8472]
 FEATURE: Plug | Added support for plugins to easily use an external configuration file for settings [amc1]
 FEATURE: Plug | Plugins can now have full control over on-complete and on-removal file moving [amc1]
@@ -29,6 +28,8 @@ CHANGE: Core  | Speedup of various file batch operations (priority changes) [amc
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Column menu option to disable fast renaming in files view, changed fast rename to behave more like the windows explorer [The 8472]
 CHANGE: UI    | In console UI, shrunk help text down to be more concise [amc1]
+CHANGE: UIv3  | Removed Vuze Header (the top plugin bar is still there but you have to turn it on)
+
 
 BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a while now -> fixed [The 8472]
