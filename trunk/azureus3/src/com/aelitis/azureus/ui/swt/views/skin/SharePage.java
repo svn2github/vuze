@@ -1,10 +1,8 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
-import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -988,12 +986,6 @@ public class SharePage
 			contentStats.append("From: " + publisher + "\n");
 		}
 
-		contentStats.append("Published: "
-				+ DateFormat.getDateInstance().format(
-						new Date(
-								PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())))
-				+ "\n");
-		//		contentStats.append("Published: " + PlatformTorrentUtils.getContentLastUpdated(dm.getTorrent())   + "\n");
 		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
 	}
 
