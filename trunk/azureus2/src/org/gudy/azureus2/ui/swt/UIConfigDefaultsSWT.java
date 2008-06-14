@@ -60,7 +60,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Open MyTorrents", true);
 		def.addParameter("DND Always In Incomplete", false);
 
-		def.addParameter("Message Popup Autoclose in Seconds", 5);
+		def.addParameter("Message Popup Autoclose in Seconds", 15);
 
 		def.addParameter("Add URL Silently", false);
 		def.addParameter("config.style.dropdiraction", "0");
