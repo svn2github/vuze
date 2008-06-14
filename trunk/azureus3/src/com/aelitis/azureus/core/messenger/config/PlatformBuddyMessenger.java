@@ -65,10 +65,21 @@ public class PlatformBuddyMessenger
 			final VuzeBuddySyncListener l)
 		throws NotLoggedInException {
 
+		sync(null, l);
+	}
+
+	public static void sync(
+			final String[] pks,
+			final VuzeBuddySyncListener l) 
+		throws NotLoggedInException {
+	
 		lastSyncCheck = SystemTime.getCurrentTime();
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID_BUDDY,
-				OP_SYNC, new Object[0], 1000);
+				OP_SYNC, new Object[] {
+					"pks",
+					pks
+				}, 1000);
 		message.setRequiresAuthorization(true, false);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
@@ -115,7 +126,9 @@ public class PlatformBuddyMessenger
   					}
   				}
   
-  				VuzeBuddyManager.removeBuddiesOlderThan(updateTime, false);
+  				if (pks == null) {
+  					VuzeBuddyManager.removeBuddiesOlderThan(updateTime, false);
+  				}
 					VuzeBuddyManager.setSaveDelayed(false);
 				} finally {
   				if (l != null) {
