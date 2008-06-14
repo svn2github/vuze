@@ -96,6 +96,7 @@ public class PlatformAuthorizedSenderImpl
 	private void parseAuthorizedListenerResult(final Browser browser,
 			final AESemaphore sem_waitDL, boolean[] isRetry, boolean loginAndRetry) {
 		if (browser.isDisposed()) {
+			sem_waitDL.release();
 			return;
 		}
 		
@@ -139,7 +140,6 @@ public class PlatformAuthorizedSenderImpl
 						sem_waitDL.release();
 					}
 				});
-				// TODO: fail and dispose?
 			} else {
 				if (i > 0) {
 					s = s.substring(i);
