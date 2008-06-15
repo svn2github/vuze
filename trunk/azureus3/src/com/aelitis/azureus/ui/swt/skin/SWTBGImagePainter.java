@@ -220,11 +220,6 @@ public class SWTBGImagePainter
 			return;
 		}
 		
-		if (imgSrc == null) {
-			control.setBackgroundImage(null);
-			return;
-		}
-
 		//System.out.println("BB: " + control.getData("ConfigID"));
 
 		inEvent = true;
