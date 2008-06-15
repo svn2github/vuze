@@ -86,6 +86,7 @@ public class DetailPanel
 		scrollable = new ScrolledComposite(detailPanel, SWT.V_SCROLL);
 		scrollable.setExpandHorizontal(true);
 		scrollable.setExpandVertical(true);
+		scrollable.setMinHeight(DETAIL_PANEL_HEIGHT - 12);
 		scrollable.setBackgroundMode(SWT.INHERIT_FORCE);
 
 		content = new Composite(scrollable, SWT.NONE);
@@ -136,28 +137,13 @@ public class DetailPanel
 		});
 
 		detailPanel.addControlListener(new ControlListener() {
-
 			public void controlResized(ControlEvent e) {
-
 				calculateLightBoxDimensions(lbShell);
 			}
-
 			public void controlMoved(ControlEvent e) {
 			}
 		});
 
-		content.addControlListener(new ControlListener() {
-
-			public void controlResized(ControlEvent e) {
-				Rectangle r = scrollable.getClientArea();
-				Point size = content.computeSize(r.width, SWT.DEFAULT);
-				size.y = currentDetailPanelHeight - 12;// Subtract 12 for the top/bottom borders
-				scrollable.setMinSize(size);
-			}
-
-			public void controlMoved(ControlEvent e) {
-			}
-		});
 		return null;
 	}
 
