@@ -112,7 +112,9 @@ public class SplashWindow
 					int percent = 0;
 					while (percent <= 100) {
 						splash.reportPercent(percent++);
-						splash.reportCurrentTask(percent + "% Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid opnum supnum boopergood haha");
+						splash.reportCurrentTask(percent
+								+ "% Loading dbnvsudn vjksfdh fgshdu fbhsduh bvsfd fbsd fbvsdb fsuid opnum supnum boopergood haha text doot subliminal.".substring(
+										0, (int) (1 + Math.random() * 110)));
 						Thread.sleep(100);
 					}
 				} catch (Exception e) {
@@ -274,7 +276,11 @@ public class SplashWindow
 				if (task != null) {
 					gc.setFont(textFont);
 					gc.setForeground(textColor);
-					gc.drawText(task, OFFSET_LEFT, height - OFFSET_BOTTOM - 17, true);
+					Point extent = gc.textExtent(task);
+					int y = pbY - extent.y - 6;
+					gc.setClipping(OFFSET_LEFT, y, width - (OFFSET_LEFT * 2), extent.y);
+					gc.drawText(task, OFFSET_LEFT, y, true);
+					gc.setClipping((Rectangle) null);
 				}
 
 				if(PB_INVERTED){
