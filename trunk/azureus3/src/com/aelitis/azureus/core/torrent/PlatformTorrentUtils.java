@@ -95,6 +95,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_DRM = "DRM";
 
+	private static final String TOR_AZ_PROP_PURCHASED = "Purchased";
+
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
@@ -299,6 +301,11 @@ public class PlatformTorrentUtils
 	public static boolean isContentDRM(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
 	}
+
+	public static boolean isContentPurchased(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_PURCHASED, 0) == 1;
+	}
+
 
 	public static long getQOSClass(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, 0);

@@ -162,7 +162,8 @@ public class TorrentUIUtilsV3
 											return;
 										}
 
-										if (forceDRMtoCDP && PlatformTorrentUtils.isContentDRM(torrent)) {
+										if (forceDRMtoCDP && (PlatformTorrentUtils.isContentDRM(torrent)
+												|| PlatformTorrentUtils.isContentPurchased(torrent))) {
 											TorrentListViewsUtils.viewDetails(hw.toBase32String(),
 													"loadtorrent");
 											return;
