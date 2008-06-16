@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+
+2008.0x.xx | Vuze 3.1.0.1
+
+
 2008.06.16 | Vuze 3.1.0.0
 
 FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
