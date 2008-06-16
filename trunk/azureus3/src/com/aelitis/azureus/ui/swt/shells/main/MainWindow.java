@@ -765,8 +765,7 @@ public class MainWindow
 
 			System.out.println("sb="
 					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR
-							+ ".visible") + ";tb="
-					+ COConfigurationManager.getBooleanParameter("TabBar.visible"));
+							+ ".visible"));
 
 			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
@@ -774,14 +773,6 @@ public class MainWindow
 				COConfigurationManager.setBooleanDefault(configID, true);
 			}
 			setVisible(WINDOW_ELEMENT_SEARCHBAR,
-					COConfigurationManager.getBooleanParameter(configID));
-
-			configID = "TabBar.visible";
-			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-					configID)) {
-				COConfigurationManager.setBooleanDefault(configID, true);
-			}
-			setVisible(WINDOW_ELEMENT_TABBAR,
 					COConfigurationManager.getBooleanParameter(configID));
 
 			configID = "Footer.visible";
@@ -2487,11 +2478,6 @@ public class MainWindow
 
 			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
 					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, value, true, true);
-
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
-
-			SWTSkinUtils.setVisibility(skin, "TabBar.visible", "tabbar", value, true,
-					true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_STATUSBAR) {
 			//TODO:
