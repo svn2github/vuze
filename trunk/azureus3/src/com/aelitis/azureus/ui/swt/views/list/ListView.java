@@ -754,6 +754,10 @@ public class ListView
 				}
 				gcImgView.setForeground(listCanvas.getForeground());
 				gcImgView.setBackground(listCanvas.getBackground());
+				
+				if (lastBounds.isEmpty()) {
+					gcImgView.fillRectangle(clientArea);
+				}
 
 				int y0 = iLastVBarPos + lastBounds.y + lastBounds.height;
 
