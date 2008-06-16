@@ -394,6 +394,13 @@ public class TorrentListViewsUtils
 		} else {
 			String hash = DataSourceUtils.getHash(ds);
 			if (hash != null) {
+				if (ds instanceof VuzeActivitiesEntry) {
+					if (((VuzeActivitiesEntry) ds).isDRM()) {
+						TorrentListViewsUtils.viewDetails(hash, "drm-play");
+						return;
+					}
+				}
+
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
