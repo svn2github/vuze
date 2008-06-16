@@ -1,7 +1,7 @@
-AZUREUS VUZE CHANGELOG
+VUZE CHANGELOG
 -----------------
 
-2008.xx.xx | Azureus Vuze 3.0.5.3
+2008.06.16 | Vuze 3.1.0.0
 
 FEATURE: UI   | Protocol overhead is now shown in the speed graph [The 8472]
 FEATURE: UI   | Downloads can now be moved and renamed while running - torrent will be auto-paused [amc1]
@@ -30,11 +30,11 @@ CHANGE: UI    | Column menu option to disable fast renaming in files view, chang
 CHANGE: UI    | In console UI, shrunk help text down to be more concise [amc1]
 CHANGE: UIv3  | Removed Vuze Header (the top plugin bar is still there but you have to turn it on)
 
-
 BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a while now -> fixed [The 8472]
 BUGFIX: Core  | Fixed various file-priority-change related bugs that resulted in error states [The 8472]
 BUGFIX: Core  | Stop premature creation of torrent directories before download has started [amc1] 
+
 
 
 2008.04.10 | Azureus Vuze 3.0.5.2
