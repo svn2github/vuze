@@ -497,7 +497,8 @@ public class ColumnMediaThumb
 				String referal = null;
 				Object ds = event.cell.getDataSource();
 				if (ds instanceof VuzeActivitiesEntry) {
-					if (((VuzeActivitiesEntry) ds).isDRM()) {
+					if (((VuzeActivitiesEntry) ds).isDRM()
+							&& ((VuzeActivitiesEntry) ds).getDownloadManger() == null) {
 						String hash = getHash(event.cell.getDataSource(), true);
 						if (hash != null) {
 							TorrentListViewsUtils.viewDetails(hash, "thumb");
