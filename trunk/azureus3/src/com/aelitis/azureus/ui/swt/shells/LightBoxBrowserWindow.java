@@ -291,7 +291,6 @@ public class LightBoxBrowserWindow
 				}
 
 				lightBoxShell.showBusy(false, 0);
-				System.out.println(styledShell.getAlpha());
 				styledShell.animateFade(100);
 
 			}
