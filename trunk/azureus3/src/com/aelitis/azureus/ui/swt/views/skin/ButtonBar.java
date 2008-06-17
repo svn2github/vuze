@@ -49,6 +49,8 @@ public class ButtonBar
 
 	private SWTSkinObject shareAllBuddiesObject;
 
+	boolean isShareWithAllSelected = false;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
@@ -223,6 +225,20 @@ public class ButtonBar
 		}
 	}
 
+	private void showShareWithAllSelected(boolean value) {
+		isShareWithAllSelected = value;
+
+		SWTSkinObject normalButton = skin.getSkinObject("button-buddy-share-all-normal");
+		if (null != normalButton) {
+			normalButton.setVisible(!isShareWithAllSelected);
+		}
+		SWTSkinObject selectedButton = skin.getSkinObject("button-buddy-share-all-selected");
+		if (null != selectedButton) {
+			selectedButton.setVisible(isShareWithAllSelected);
+		}
+
+	}
+
 	public void setActiveMode(int mode) {
 
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
@@ -237,6 +253,7 @@ public class ButtonBar
 			disabledForEdit(false);
 			editButton.setDisabled(false);
 			addBuddyButton.setDisabled(false);
+			showShareWithAllSelected(false);
 		} else if (mode == BuddiesViewer.edit_mode) {
 			disabledForEdit(true);
 			addBuddyButton.setDisabled(true);
@@ -426,24 +443,13 @@ public class ButtonBar
 			SWTSkinButtonUtility shareAllBuddiesButton = new SWTSkinButtonUtility(
 					shareAllBuddiesObject);
 			shareAllBuddiesButton.addSelectionListener(new ButtonListenerAdapter() {
-				boolean isSelected = false;
 
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (false == isSelected) {
+					showShareWithAllSelected(!isShareWithAllSelected);
+					if (true == isShareWithAllSelected) {
 						shareAllBuddies();
-						isSelected = true;
 					} else {
 						unShareAllBuddies();
-						isSelected = false;
-					}
-
-					SWTSkinObject normalButton = skin.getSkinObject("button-buddy-share-all-normal");
-					if (null != normalButton) {
-						normalButton.setVisible(!isSelected);
-					}
-					SWTSkinObject selectedButton = skin.getSkinObject("button-buddy-share-all-selected");
-					if (null != selectedButton) {
-						selectedButton.setVisible(isSelected);
 					}
 				}
 			});
