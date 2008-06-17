@@ -143,7 +143,7 @@ BuddyPluginViewInstance
 		}
 			// control area
 		
-		Composite controls = new Composite(main, SWT.NONE);
+		final Composite controls = new Composite(main, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 6;
 		layout.marginHeight = 0;
@@ -264,28 +264,34 @@ BuddyPluginViewInstance
 				{
 					public void 
 					keyChanged(
-						CryptoHandler handler ) 
+						final CryptoHandler handler ) 
 					{
 						if ( control_val_pk.isDisposed()){
 							
 							crypt_man.removeKeyListener( this );
 							
-						}else{
-							if ( handler.getType() == CryptoManager.HANDLER_ECC ){
-								
-								byte[]	public_key = handler.peekPublicKey();
-
-								if ( public_key == null ){
-									
-										// shouldn't happen...
-									
-									 Messages.setLanguageText(control_val_pk, "ConfigView.section.security.publickey.undef");
-									
-								}else{
-									
-									control_val_pk.setText( Base32.encode( public_key ));
-								}
-							}
+						}else if ( handler.getType() == CryptoManager.HANDLER_ECC ){
+							
+							control_val_pk.getDisplay().asyncExec(
+								new Runnable()
+								{
+									public void 
+									run()
+									{
+										byte[]	public_key = handler.peekPublicKey();
+		
+										if ( public_key == null ){
+																				
+											 Messages.setLanguageText(control_val_pk, "ConfigView.section.security.publickey.undef");
+											
+										}else{
+											
+											control_val_pk.setText( Base32.encode( public_key ));
+										}
+										 
+										controls.layout();
+									}
+								});
 						}
 					}
 					

@@ -276,6 +276,8 @@ public class Messages {
           ((Shell) widget).setText(message);
         else if(widget instanceof ToolItem) 
             ((ToolItem) widget).setText(message);
+        else if(widget instanceof Text) 
+            ((Text) widget).setText(message);
         else{
           Debug.out( "No cast for " + widget.getClass().getName());
         }

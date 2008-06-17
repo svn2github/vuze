@@ -393,7 +393,23 @@ CryptoHandlerECC
 			manager.lockChanged( this );
 		}
 		
-		createAndStoreKeys( "resetting keys" );
+		try{
+		
+			createAndStoreKeys( "resetting keys" );
+			
+		}catch( CryptoManagerException e ){
+			
+			manager.keyChanged( this );
+
+			if ( e instanceof CryptoManagerPasswordException ){
+				
+				// they'll be created next time they are required if we're not logged in at the moment
+				
+			}else{
+				
+				throw( e );
+			}
+		}
 	}
 	
 	protected PrivateKey

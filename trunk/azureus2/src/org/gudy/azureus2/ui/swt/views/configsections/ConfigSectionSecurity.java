@@ -215,7 +215,7 @@ ConfigSectionSecurity
 	    	
 	    	final CryptoManager crypt_man = CryptoManagerFactory.getSingleton();
 	    	
-	    	Group crypto_group = new Group(gSecurity, SWT.NULL);
+	    	final Group crypto_group = new Group(gSecurity, SWT.NULL);
 		    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
 		    gridData.horizontalSpan = 3;
 		    crypto_group.setLayoutData(gridData);
@@ -306,16 +306,16 @@ ConfigSectionSecurity
 												
 												byte[]	public_key = handler.peekPublicKey();
 			
-												if ( public_key == null ){
-													
-														// shouldn't happen...
-													
-													 Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
+												if ( public_key == null ){											
+												
+													Messages.setLanguageText(public_key_value, "ConfigView.section.security.publickey.undef");
 													
 												}else{
 													
 													public_key_value.setText( Base32.encode( public_key ));
 												}
+												
+												crypto_group.layout();
 											}
 										}
 									}
@@ -515,7 +515,7 @@ ConfigSectionSecurity
 					        				backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
 					        				MessageText.getString( "ConfigView.section.security.op.error.title" ),
 					        				MessageText.getString( "ConfigView.section.security.op.error", 
-					        						new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        						new String[]{ getError(e) }));
 					        	}
 				        	}
 				        }
@@ -583,7 +583,7 @@ ConfigSectionSecurity
 					        			backup_keys_button.getShell(),SWT.ICON_ERROR | SWT.OK,
 					        			MessageText.getString( "ConfigView.section.security.op.error.title" ),
 					        			MessageText.getString( "ConfigView.section.security.op.error", 
-					        					new String[]{ Debug.getNestedExceptionMessage( e )}));
+					        					new String[]{ getError( e )}));
 					        	}
 				        	}
 				        }
@@ -605,11 +605,21 @@ ConfigSectionSecurity
 			
 			if (((CryptoManagerPasswordException)e).wasIncorrect()){
 				
-				error = MessageText.getString( "ConfigView.section.security.resetkey.error.title");
+				error = MessageText.getString( "ConfigView.section.security.unlockkey.error");
 				
 			}else{
 				
-				error = MessageText.getString( "Torrent.create.progress.cancelled" );
+			    final CryptoManager crypto_man 	= CryptoManagerFactory.getSingleton();
+				final CryptoHandler ecc_handler = crypto_man.getECCHandler();
+				
+				if ( ecc_handler.getDefaultPasswordHandlerType() == CryptoManagerPasswordHandler.HANDLER_TYPE_SYSTEM ){
+					
+					error = MessageText.getString( "ConfigView.section.security.nopw_v" );
+
+				}else{
+					
+					error = MessageText.getString( "ConfigView.section.security.nopw" );
+				}
 			}
 		}else{
 			
