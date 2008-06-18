@@ -41,9 +41,12 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerEvent;
 import org.gudy.azureus2.plugins.peers.PeerListener2;
@@ -748,7 +751,7 @@ outer:
 	
 	public void
 	downloadAdded(
-		Download	download )
+		final Download	download )
 	{
 		Torrent t = download.getTorrent();
 		
@@ -759,7 +762,30 @@ outer:
 		
 		if ( t.isPrivate()){
 			
-			return;
+			download.addTrackerListener(
+				new DownloadTrackerListener()
+				{
+					public void 
+					scrapeResult(
+						DownloadScrapeResult result )
+					{					
+					}
+	
+					public void 
+					announceResult(
+						DownloadAnnounceResult result)
+					{
+						if ( okToTrack( download )){
+							
+							trackDownload( download );
+							
+						}else{
+							
+							untrackDownload( download );
+						}						
+					}
+				}, 
+				false );
 		}
 		
 		if ( okToTrack( download )){
@@ -1440,6 +1466,30 @@ outer:
 	okToTrack(
 		Download	d )
 	{
+		Torrent	t = d.getTorrent();
+		
+		if ( t == null ){
+			
+			return( false );
+		}
+		
+			// only track private torrents if we have successfully received peers from tracker
+			// which means we have the torrent legitimately. As this rule is enforced by both
+			// ends of the tracking operation it means we will only track between peers that
+			// both have a legitimate copy of the torrent.
+				
+		if ( t.isPrivate()){
+			
+			DownloadAnnounceResult announce = d.getLastAnnounceResult();
+
+			if ( 	announce == null ||
+					announce.getResponseType() != DownloadAnnounceResult.RT_SUCCESS ||
+					announce.getPeers().length < 2 ){
+				
+				return( false );
+			}
+		}
+		
 		int state = d.getState();
 		
 		return( 	state != Download.ST_ERROR && 
