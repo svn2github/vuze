@@ -43,7 +43,7 @@ public class BuddiesViewer
 {
 
 	private static final boolean SHOW_ONLINE_STATUS = System.getProperty(
-			"az.buddy.show_online", "0").equals("1");
+			"az.buddy.show_online", "1").equals("1");
 
 	public static final int none_active_mode = 0;
 

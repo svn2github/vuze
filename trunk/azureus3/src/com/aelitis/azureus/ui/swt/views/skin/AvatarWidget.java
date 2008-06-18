@@ -48,7 +48,7 @@ import com.aelitis.azureus.util.LoginInfoManager;
 public class AvatarWidget
 {
 	private static final boolean SHOW_ONLINE_BORDER = System.getProperty(
-			"az.buddy.show_online", "0").equals("1");
+			"az.buddy.show_online", "1").equals("1");
 
 	private Canvas canvas = null;
 
