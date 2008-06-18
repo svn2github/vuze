@@ -4,8 +4,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class DERBitString
-    extends DERObject
+    extends ASN1Object
+    implements DERString
 {
+    private static final char[]  table = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    
     protected byte[]      data;
     protected int         padBits;
 
@@ -16,15 +19,30 @@ public class DERBitString
     static protected int getPadBits(
         int bitString)
     {
-    	int val = 0;
-    	for (int i = 3; i >=0; i--) 
-    	{
-    		if ((bitString >> i) != 0) 
-    		{
-    			val = (bitString >> i) & 0xFF;
-    			break;
-    		}
-    	}
+        int val = 0;
+        for (int i = 3; i >= 0; i--) 
+        {
+            //
+            // this may look a little odd, but if it isn't done like this pre jdk1.2
+            // JVM's break!
+            //
+            if (i != 0)
+            {
+                if ((bitString >> (i * 8)) != 0) 
+                {
+                    val = (bitString >> (i * 8)) & 0xFF;
+                    break;
+                }
+            }
+            else
+            {
+                if (bitString != 0)
+                {
+                    val = bitString & 0xFF;
+                    break;
+                }
+            }
+        }
  
         if (val == 0)
         {
@@ -48,23 +66,22 @@ public class DERBitString
      */
     static protected byte[] getBytes(int bitString)
     {
-        int bytes = 0;
-        for (int i = 0; i < 4; i++)
+        int bytes = 4;
+        for (int i = 3; i >= 1; i--)
         {
-            if ((bitString & (0xFF << i)) != 0)
+            if ((bitString & (0xFF << (i * 8))) != 0)
             {
-                bytes++;
+                break;
             }
+            bytes--;
         }
-        if (bytes == 0)
-        {
-            bytes = 1;
-        }
+        
         byte[] result = new byte[bytes];
         for (int i = 0; i < bytes; i++)
         {
-            result[bytes - i - 1] = (byte) ((bitString >> i) & 0xFF);
+            result[i] = (byte) ((bitString >> (i * 8)) & 0xFF);
         }
+
         return result;
     }
 
@@ -140,7 +157,7 @@ public class DERBitString
     public DERBitString(
         byte[]  data)
     {
-        this(data, getPadBits(data[0]));
+        this(data, 0);
     }
 
     public DERBitString(
@@ -173,6 +190,22 @@ public class DERBitString
         return padBits;
     }
 
+
+    /**
+     * @return the value of the bit string as an int (truncating if necessary)
+     */
+    public int intValue()
+    {
+        int value = 0;
+        
+        for (int i = 0; i != data.length && i != 4; i++)
+        {
+            value |= (data[i] & 0xff) << (8 * i);
+        }
+        
+        return value;
+    }
+    
     void encode(
         DEROutputStream  out)
         throws IOException
@@ -197,10 +230,10 @@ public class DERBitString
         return value;
     }
     
-    public boolean equals(
-        Object  o)
+    protected boolean asn1Equals(
+        DERObject  o)
     {
-        if (o == null || !(o instanceof DERBitString))
+        if (!(o instanceof DERBitString))
         {
             return false;
         }
@@ -221,5 +254,36 @@ public class DERBitString
         }
 
         return (padBits == other.padBits);
+    }
+
+    public String getString()
+    {
+        StringBuffer          buf = new StringBuffer("#");
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        ASN1OutputStream      aOut = new ASN1OutputStream(bOut);
+        
+        try
+        {
+            aOut.writeObject(this);
+        }
+        catch (IOException e)
+        {
+           throw new RuntimeException("internal error encoding BitString");
+        }
+        
+        byte[]    string = bOut.toByteArray();
+        
+        for (int i = 0; i != string.length; i++)
+        {
+            buf.append(table[(string[i] >>> 4) & 0xf]);
+            buf.append(table[string[i] & 0xf]);
+        }
+        
+        return buf.toString();
+    }
+
+    public String toString()
+    {
+        return getString();
     }
 }

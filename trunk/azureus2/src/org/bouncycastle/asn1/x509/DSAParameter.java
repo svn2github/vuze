@@ -3,16 +3,16 @@ package org.bouncycastle.asn1.x509;
 import java.math.BigInteger;
 import java.util.Enumeration;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERSequence;
 
 public class DSAParameter
-    implements DEREncodable
+    extends ASN1Encodable
 {
     DERInteger      p, q, g;
 
@@ -52,11 +52,16 @@ public class DSAParameter
     public DSAParameter(
         ASN1Sequence  seq)
     {
+        if (seq.size() != 3)
+        {
+            throw new IllegalArgumentException("Bad sequence size: " + seq.size());
+        }
+        
         Enumeration     e = seq.getObjects();
 
-        p = (DERInteger)e.nextElement();
-        q = (DERInteger)e.nextElement();
-        g = (DERInteger)e.nextElement();
+        p = DERInteger.getInstance(e.nextElement());
+        q = DERInteger.getInstance(e.nextElement());
+        g = DERInteger.getInstance(e.nextElement());
     }
 
     public BigInteger getP()
@@ -74,7 +79,7 @@ public class DSAParameter
         return g.getPositiveValue();
     }
 
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector  v = new ASN1EncodableVector();
 

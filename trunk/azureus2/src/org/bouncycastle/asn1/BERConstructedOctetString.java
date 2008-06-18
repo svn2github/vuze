@@ -8,6 +8,8 @@ import java.util.Vector;
 public class BERConstructedOctetString
     extends DEROctetString
 {
+    private static final int MAX_LENGTH = 1000;
+
     /**
      * convert a vector of octet strings into a single byte string
      */
@@ -18,15 +20,19 @@ public class BERConstructedOctetString
 
         for (int i = 0; i != octs.size(); i++)
         {
-            DEROctetString  o = (DEROctetString)octs.elementAt(i);
-
             try
             {
+                DEROctetString  o = (DEROctetString)octs.elementAt(i);
+
                 bOut.write(o.getOctets());
+            }
+            catch (ClassCastException e)
+            {
+                throw new IllegalArgumentException(octs.elementAt(i).getClass().getName() + " found in input should only contain DEROctetString");
             }
             catch (IOException e)
             {
-                throw new RuntimeException("exception converting octets " + e.toString());
+                throw new IllegalArgumentException("exception converting octets " + e.toString());
             }
         }
 
@@ -41,13 +47,13 @@ public class BERConstructedOctetString
     public BERConstructedOctetString(
         byte[]  string)
     {
-		super(string);
+        super(string);
     }
 
     public BERConstructedOctetString(
         Vector  octs)
     {
-		super(toBytes(octs));
+        super(toBytes(octs));
 
         this.octs = octs;
     }
@@ -55,7 +61,7 @@ public class BERConstructedOctetString
     public BERConstructedOctetString(
         DERObject  obj)
     {
-		super(obj);
+        super(obj);
     }
 
     public BERConstructedOctetString(
@@ -94,7 +100,7 @@ public class BERConstructedOctetString
             {
                 byte[]  nStr = new byte[end - start + 1];
 
-				System.arraycopy(string, start, nStr, 0, nStr.length);
+                System.arraycopy(string, start, nStr, 0, nStr.length);
 
                 vec.addElement(new DEROctetString(nStr));
                 start = end + 1;
@@ -104,7 +110,7 @@ public class BERConstructedOctetString
 
         byte[]  nStr = new byte[string.length - start];
 
-		System.arraycopy(string, start, nStr, 0, nStr.length);
+        System.arraycopy(string, start, nStr, 0, nStr.length);
 
         vec.addElement(new DEROctetString(nStr));
 
@@ -121,40 +127,37 @@ public class BERConstructedOctetString
 
             out.write(0x80);
 
-			//
-			// write out the octet array
-			//
+            //
+            // write out the octet array
+            //
             if (octs != null)
             {
-				for (int i = 0; i != octs.size(); i++)
-				{
-					out.writeObject(octs.elementAt(i));
-				}
-			}
-			else
-			{
-        		int     start = 0;
-				int     end = 0;
+                for (int i = 0; i != octs.size(); i++)
+                {
+                    out.writeObject(octs.elementAt(i));
+                }
+            }
+            else
+            {
+                for (int i = 0; i < string.length; i += MAX_LENGTH)
+                {
+                    int end;
 
-				while ((end + 1) < string.length)
-				{
-					if (string[end] == 0 && string[end + 1] == 0)
-					{
-						byte[]  nStr = new byte[end - start + 1];
+                    if (i + MAX_LENGTH > string.length)
+                    {
+                        end = string.length;
+                    }
+                    else
+                    {
+                        end = i + MAX_LENGTH;
+                    }
 
-						System.arraycopy(string, start, nStr, 0, nStr.length);
+                    byte[]  nStr = new byte[end - i];
 
-						out.writeObject(new DEROctetString(nStr));
-						start = end + 1;
-					}
-            		end++;
-        		}
+                    System.arraycopy(string, i, nStr, 0, nStr.length);
 
-				byte[]  nStr = new byte[string.length - start];
-
-				System.arraycopy(string, start, nStr, 0, nStr.length);
-
-        		out.writeObject(new DEROctetString(nStr));
+                    out.writeObject(new DEROctetString(nStr));
+                }
             }
 
             out.write(0x00);

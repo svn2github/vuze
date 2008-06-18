@@ -1,8 +1,11 @@
 package org.bouncycastle.asn1.x509;
 
-import java.util.Enumeration;
-
-import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DERObjectIdentifier;
+import org.bouncycastle.asn1.DERSequence;
 
 /**
  * The AuthorityInformationAccess object.
@@ -23,19 +26,24 @@ import org.bouncycastle.asn1.*;
 public class AuthorityInformationAccess
     extends ASN1Encodable
 {
-    DERObjectIdentifier accessMethod=null;
-    GeneralName accessLocation=null;
+    private AccessDescription[]    descriptions;
 
-    public AuthorityInformationAccess getInstance(
+    public static AuthorityInformationAccess getInstance(
         Object  obj)
     {
         if (obj instanceof AuthorityInformationAccess)
         {
             return (AuthorityInformationAccess)obj;
         }
-        else if (obj instanceof ASN1Sequence)
+
+        if (obj instanceof ASN1Sequence)
         {
             return new AuthorityInformationAccess((ASN1Sequence)obj);
+        }
+
+        if (obj instanceof X509Extension)
+        {
+            return getInstance(X509Extension.convertValueToObject((X509Extension)obj));
         }
 
         throw new IllegalArgumentException("unknown object in factory");
@@ -44,17 +52,11 @@ public class AuthorityInformationAccess
     public AuthorityInformationAccess(
         ASN1Sequence   seq)
     {
-        Enumeration     e = seq.getObjects();
-
-        if (e.hasMoreElements())
+        descriptions = new AccessDescription[seq.size()];
+        
+        for (int i = 0; i != seq.size(); i++)
         {
-            DERSequence vec= (DERSequence)e.nextElement();
-            if (vec.size() != 2) 
-            {
-                throw new IllegalArgumentException("wrong number of elements in inner sequence");
-            }
-            accessMethod = (DERObjectIdentifier)vec.getObjectAt(0);
-            accessLocation = (GeneralName)vec.getObjectAt(1);
+            descriptions[i] = AccessDescription.getInstance(seq.getObjectAt(i));
         }
     }
 
@@ -65,22 +67,35 @@ public class AuthorityInformationAccess
         DERObjectIdentifier oid,
         GeneralName location)
     {
-        accessMethod = oid;
-        accessLocation = location;
+        descriptions = new AccessDescription[1];
+        
+        descriptions[0] = new AccessDescription(oid, location);
     }
 
+
+    /**
+     * 
+     * @return the access descriptions contained in this object.
+     */
+    public AccessDescription[] getAccessDescriptions()
+    {
+        return descriptions;
+    }
+    
     public DERObject toASN1Object()
     {
-        ASN1EncodableVector accessDescription  = new ASN1EncodableVector();
-        accessDescription.add(accessMethod);
-        accessDescription.add(accessLocation);
         ASN1EncodableVector vec = new ASN1EncodableVector();
-        vec.add(new DERSequence(accessDescription));
+        
+        for (int i = 0; i != descriptions.length; i++)
+        {
+            vec.add(descriptions[i]);
+        }
+        
         return new DERSequence(vec);
     }
 
     public String toString()
     {
-        return ("AuthorityInformationAccess: Oid(" + this.accessMethod.getId() + ")");
+        return ("AuthorityInformationAccess: Oid(" + this.descriptions[0].getAccessMethod().getId() + ")");
     }
 }

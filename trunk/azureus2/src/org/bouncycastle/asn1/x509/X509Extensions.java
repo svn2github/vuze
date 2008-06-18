@@ -1,22 +1,27 @@
 package org.bouncycastle.asn1.x509;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
-
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBoolean;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
+
 public class X509Extensions
-    implements DEREncodable
+    extends ASN1Encodable
 {
+    /**
+     * Subject Directory Attributes
+     */
+    public static final DERObjectIdentifier SubjectDirectoryAttributes = new DERObjectIdentifier("2.5.29.9");
+    
     /**
      * Subject Key Identifier 
      */
@@ -118,15 +123,55 @@ public class X509Extensions
     public static final DERObjectIdentifier ExtendedKeyUsage = new DERObjectIdentifier("2.5.29.37");
 
     /**
+     * Freshest CRL
+     */
+    public static final DERObjectIdentifier FreshestCRL = new DERObjectIdentifier("2.5.29.46");
+     
+    /**
      * Inhibit Any Policy
      */
     public static final DERObjectIdentifier InhibitAnyPolicy = new DERObjectIdentifier("2.5.29.54");
 
-	/**
-	 * Authority Info Access
-	 */
-	public static final DERObjectIdentifier AuthorityInfoAccess= new DERObjectIdentifier("1.3.6.1.5.5.7.1.1");
+    /**
+     * Authority Info Access
+     */
+    public static final DERObjectIdentifier AuthorityInfoAccess = new DERObjectIdentifier("1.3.6.1.5.5.7.1.1");
 
+    /**
+     * Subject Info Access
+     */
+    public static final DERObjectIdentifier SubjectInfoAccess = new DERObjectIdentifier("1.3.6.1.5.5.7.1.11");
+    
+    /**
+     * Logo Type
+     */
+    public static final DERObjectIdentifier LogoType = new DERObjectIdentifier("1.3.6.1.5.5.7.1.12");
+
+    /**
+     * BiometricInfo
+     */
+    public static final DERObjectIdentifier BiometricInfo = new DERObjectIdentifier("1.3.6.1.5.5.7.1.2");
+    
+    /**
+     * QCStatements
+     */
+    public static final DERObjectIdentifier QCStatements = new DERObjectIdentifier("1.3.6.1.5.5.7.1.3");
+
+    /**
+     * Audit identity extension in attribute certificates.
+     */
+    public static final DERObjectIdentifier AuditIdentity = new DERObjectIdentifier("1.3.6.1.5.5.7.1.4");
+    
+    /**
+     * NoRevAvail extension in attribute certificates.
+     */
+    public static final DERObjectIdentifier NoRevAvail = new DERObjectIdentifier("2.5.29.56");
+
+    /**
+     * TargetInformation extension in attribute certificates.
+     */
+    public static final DERObjectIdentifier TargetInformation = new DERObjectIdentifier("2.5.29.55");
+    
     private Hashtable               extensions = new Hashtable();
     private Vector                  ordering = new Vector();
 
@@ -170,15 +215,19 @@ public class X509Extensions
 
         while (e.hasMoreElements())
         {
-            ASN1Sequence            s = (ASN1Sequence)e.nextElement();
+            ASN1Sequence            s = ASN1Sequence.getInstance(e.nextElement());
 
             if (s.size() == 3)
             {
-                extensions.put(s.getObjectAt(0), new X509Extension((DERBoolean)s.getObjectAt(1), (ASN1OctetString)s.getObjectAt(2)));
+                extensions.put(s.getObjectAt(0), new X509Extension(DERBoolean.getInstance(s.getObjectAt(1)), ASN1OctetString.getInstance(s.getObjectAt(2))));
+            }
+            else if (s.size() == 2)
+            {
+                extensions.put(s.getObjectAt(0), new X509Extension(false, ASN1OctetString.getInstance(s.getObjectAt(1))));
             }
             else
             {
-                extensions.put(s.getObjectAt(0), new X509Extension(false, (ASN1OctetString)s.getObjectAt(1)));
+                throw new IllegalArgumentException("Bad sequence size: " + s.size());
             }
 
             ordering.addElement(s.getObjectAt(0));
@@ -233,6 +282,37 @@ public class X509Extensions
     }
 
     /**
+     * Constructor from two vectors
+     * 
+     * @param objectIDs a vector of the object identifiers.
+     * @param values a vector of the extension values.
+     */
+    public X509Extensions(
+        Vector      objectIDs,
+        Vector      values)
+    {
+        Enumeration e = objectIDs.elements();
+
+        while (e.hasMoreElements())
+        {
+            this.ordering.addElement(e.nextElement()); 
+        }
+
+        int count = 0;
+        
+        e = this.ordering.elements();
+
+        while (e.hasMoreElements())
+        {
+            DERObjectIdentifier     oid = (DERObjectIdentifier)e.nextElement();
+            X509Extension           ext = (X509Extension)values.elementAt(count);
+
+            this.extensions.put(oid, ext);
+            count++;
+        }
+    }
+    
+    /**
      * return an Enumeration of the extension field's object ids.
      */
     public Enumeration oids()
@@ -252,7 +332,17 @@ public class X509Extensions
         return (X509Extension)extensions.get(oid);
     }
 
-    public DERObject getDERObject()
+    /**
+     * <pre>
+     *     Extensions        ::=   SEQUENCE SIZE (1..MAX) OF Extension
+     *
+     *     Extension         ::=   SEQUENCE {
+     *        extnId            EXTENSION.&amp;id ({ExtensionSet}),
+     *        critical          BOOLEAN DEFAULT FALSE,
+     *        extnValue         OCTET STRING }
+     * </pre>
+     */
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector     vec = new ASN1EncodableVector();
         Enumeration             e = ordering.elements();
@@ -278,49 +368,24 @@ public class X509Extensions
         return new DERSequence(vec);
     }
 
-    public int hashCode()
+    public boolean equivalent(
+        X509Extensions other)
     {
-        Enumeration     e = extensions.keys();
-        int             hashCode = 0;
-
-        while (e.hasMoreElements())
-        {
-            Object  o = e.nextElement();
-
-            hashCode ^= o.hashCode();
-            hashCode ^= extensions.get(o).hashCode();
-        }
-
-        return hashCode;
-    }
-
-    public boolean equals(
-        Object o)
-    {
-        if (o == null || !(o instanceof X509Extensions))
+        if (extensions.size() != other.extensions.size())
         {
             return false;
         }
 
-        X509Extensions  other = (X509Extensions)o;
-
         Enumeration     e1 = extensions.keys();
-        Enumeration     e2 = other.extensions.keys();
 
-        while (e1.hasMoreElements() && e2.hasMoreElements())
+        while (e1.hasMoreElements())
         {
-            Object  o1 = e1.nextElement();
-            Object  o2 = e2.nextElement();
-            
-            if (!o1.equals(o2))
+            Object  key = e1.nextElement();
+
+            if (!extensions.get(key).equals(other.extensions.get(key)))
             {
                 return false;
             }
-        }
-
-        if (e1.hasMoreElements() || e2.hasMoreElements())
-        {
-            return false;
         }
 
         return true;

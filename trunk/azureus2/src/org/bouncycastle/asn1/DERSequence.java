@@ -35,6 +35,18 @@ public class DERSequence
         }
     }
 
+    /**
+     * create a sequence containing an array of objects.
+     */
+    public DERSequence(
+        ASN1Encodable[]   a)
+    {
+        for (int i = 0; i != a.length; i++)
+        {
+            this.addObject(a[i]);
+        }
+    }
+    
     /*
      * A note on the implementation:
      * <p>

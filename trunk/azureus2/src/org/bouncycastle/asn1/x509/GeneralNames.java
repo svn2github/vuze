@@ -1,15 +1,15 @@
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DERSequence;
 
 public class GeneralNames
-    implements DEREncodable
+    extends ASN1Encodable
 {
     ASN1Sequence            seq;
-    boolean                 isInsideImplicit = false;
 
     public static GeneralNames getInstance(
         Object  obj)
@@ -34,21 +34,33 @@ public class GeneralNames
         return getInstance(ASN1Sequence.getInstance(obj, explicit));
     }
 
+    /**
+     * Construct a GeneralNames object containing one GeneralName.
+     * 
+     * @param name the name to be contained.
+     */
+    public GeneralNames(
+        GeneralName  name)
+    {
+        this.seq = new DERSequence(name);
+    }
+    
     public GeneralNames(
         ASN1Sequence  seq)
     {
         this.seq = seq;
     }
 
-    /*
-     * this is a hack! But it will have to do until the ambiguity rules
-     * get sorted out for implicit/explicit tagging...
-     * @deprecated
-     */
-    public void markInsideImplicit(
-        boolean    isInsideImplicit)
+    public GeneralName[] getNames()
     {
-        this.isInsideImplicit = isInsideImplicit;
+        GeneralName[]   names = new GeneralName[seq.size()];
+        
+        for (int i = 0; i != seq.size(); i++)
+        {
+            names[i] = GeneralName.getInstance(seq.getObjectAt(i));
+        }
+        
+        return names;
     }
 
     /**
@@ -57,8 +69,26 @@ public class GeneralNames
      * GeneralNames ::= SEQUENCE SIZE {1..MAX} OF GeneralName
      * </pre>
      */
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         return seq;
+    }
+
+    public String toString()
+    {
+        StringBuffer  buf = new StringBuffer();
+        String        sep = System.getProperty("line.separator");
+        GeneralName[] names = getNames();
+
+        buf.append("GeneralNames:");
+        buf.append(sep);
+
+        for (int i = 0; i != names.length; i++)
+        {
+            buf.append("    ");
+            buf.append(names[i]);
+            buf.append(sep);
+        }
+        return buf.toString();
     }
 }

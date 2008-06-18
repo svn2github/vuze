@@ -1,13 +1,26 @@
 package org.bouncycastle.asn1.sec;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.DEREncodable;
+import org.bouncycastle.asn1.DERInteger;
+import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
+
 import java.math.BigInteger;
-import org.bouncycastle.asn1.*;
+import java.util.Enumeration;
 
 /**
  * the elliptic curve private key object from SEC 1
  */
 public class ECPrivateKeyStructure
-implements DEREncodable
+    extends ASN1Encodable
 {
     private ASN1Sequence  seq;
 
@@ -42,12 +55,47 @@ implements DEREncodable
     {
         ASN1OctetString  octs = (ASN1OctetString)seq.getObjectAt(1);
 
-        BigInteger  k = new BigInteger(1, octs.getOctets());
-
-        return k;
+        return new BigInteger(1, octs.getOctets());
     }
 
-    public DERObject getDERObject()
+    public DERBitString getPublicKey()
+    {
+        return (DERBitString)getObjectInTag(1);
+    }
+
+    public ASN1Object getParameters()
+    {
+        return getObjectInTag(0);
+    }
+
+    private ASN1Object getObjectInTag(int tagNo)
+    {
+        Enumeration e = seq.getObjects();
+
+        while (e.hasMoreElements())
+        {
+            DEREncodable obj = (DEREncodable)e.nextElement();
+
+            if (obj instanceof ASN1TaggedObject)
+            {
+                ASN1TaggedObject tag = (ASN1TaggedObject)obj;
+                if (tag.getTagNo() == tagNo)
+                {
+                    return (ASN1Object)((DEREncodable)tag.getObject()).getDERObject();
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * ECPrivateKey ::= SEQUENCE {
+     *     version INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     *     privateKey OCTET STRING,
+     *     parameters [0] Parameters OPTIONAL,
+     *     publicKey [1] BIT STRING OPTIONAL }
+     */
+    public DERObject toASN1Object()
     {
         return seq;
     }

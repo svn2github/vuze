@@ -1,11 +1,20 @@
 package org.bouncycastle.asn1.x509;
 
-import java.math.BigInteger;
-import java.util.Enumeration;
-
-import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DERInteger;
+import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA1Digest;
+
+import java.math.BigInteger;
+import java.util.Enumeration;
 
 /**
  * The AuthorityKeyIdentifier object.
@@ -22,7 +31,7 @@ import org.bouncycastle.crypto.digests.SHA1Digest;
  *
  */
 public class AuthorityKeyIdentifier
-    implements DEREncodable, DERTags
+    extends ASN1Encodable
 {
     ASN1OctetString keyidentifier=null;
     GeneralNames certissuer=null;
@@ -42,14 +51,18 @@ public class AuthorityKeyIdentifier
         {
             return (AuthorityKeyIdentifier)obj;
         }
-        else if (obj instanceof ASN1Sequence)
+        if (obj instanceof ASN1Sequence)
         {
             return new AuthorityKeyIdentifier((ASN1Sequence)obj);
+        }
+        if (obj instanceof X509Extension)
+        {
+            return getInstance(X509Extension.convertValueToObject((X509Extension)obj));
         }
 
         throw new IllegalArgumentException("unknown object in factory");
     }
-	
+
     public AuthorityKeyIdentifier(
         ASN1Sequence   seq)
     {
@@ -57,7 +70,7 @@ public class AuthorityKeyIdentifier
 
         while (e.hasMoreElements())
         {
-            DERTaggedObject o = (DERTaggedObject)e.nextElement();
+            ASN1TaggedObject o = DERTaggedObject.getInstance(e.nextElement());
 
             switch (o.getTagNo())
             {
@@ -83,8 +96,8 @@ public class AuthorityKeyIdentifier
      *
      * Example of making a AuthorityKeyIdentifier:
      * <pre>
-     *   SubjectPublicKeyInfo apki = new SubjectPublicKeyInfo((ASN1Sequence)new DERInputStream(
-     *       new ByteArrayInputStream(publicKey.getEncoded())).readObject());
+     *   SubjectPublicKeyInfo apki = new SubjectPublicKeyInfo((ASN1Sequence)new ASN1InputStream(
+     *       publicKey.getEncoded()).readObject());
      *   AuthorityKeyIdentifier aki = new AuthorityKeyIdentifier(apki);
      * </pre>
      *
@@ -118,10 +131,48 @@ public class AuthorityKeyIdentifier
         digest.doFinal(resBuf, 0);
 
         this.keyidentifier = new DEROctetString(resBuf);
-        this.certissuer = name;
+        this.certissuer = GeneralNames.getInstance(name.toASN1Object());
         this.certserno = new DERInteger(serialNumber);
     }
 
+    /**
+     * create an AuthorityKeyIdentifier with the GeneralNames tag and
+     * the serial number provided.
+     */
+    public AuthorityKeyIdentifier(
+        GeneralNames            name,
+        BigInteger              serialNumber)
+    {
+        this.keyidentifier = null;
+        this.certissuer = GeneralNames.getInstance(name.toASN1Object());
+        this.certserno = new DERInteger(serialNumber);
+    }
+
+    /**
+      * create an AuthorityKeyIdentifier with a precomupted key identifier
+      */
+     public AuthorityKeyIdentifier(
+         byte[]                  keyIdentifier)
+     {
+         this.keyidentifier = new DEROctetString(keyIdentifier);
+         this.certissuer = null;
+         this.certserno = null;
+     }
+
+    /**
+     * create an AuthorityKeyIdentifier with a precomupted key identifier
+     * and the GeneralNames tag and the serial number provided as well.
+     */
+    public AuthorityKeyIdentifier(
+        byte[]                  keyIdentifier,
+        GeneralNames            name,
+        BigInteger              serialNumber)
+    {
+        this.keyidentifier = new DEROctetString(keyIdentifier);
+        this.certissuer = GeneralNames.getInstance(name.toASN1Object());
+        this.certserno = new DERInteger(serialNumber);
+    }
+    
     public byte[] getKeyIdentifier()
     {
         if (keyidentifier != null)
@@ -132,10 +183,25 @@ public class AuthorityKeyIdentifier
         return null;
     }
 
+    public GeneralNames getAuthorityCertIssuer()
+    {
+        return certissuer;
+    }
+    
+    public BigInteger getAuthorityCertSerialNumber()
+    {
+        if (certserno != null)
+        {
+            return certserno.getValue();
+        }
+        
+        return null;
+    }
+    
     /**
      * Produce an object suitable for an ASN1OutputStream.
      */
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector  v = new ASN1EncodableVector();
 

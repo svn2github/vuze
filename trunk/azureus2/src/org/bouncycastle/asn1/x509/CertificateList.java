@@ -1,11 +1,11 @@
 
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERSequence;
 
@@ -23,7 +23,7 @@ import org.bouncycastle.asn1.DERSequence;
  * </pre>
  */
 public class CertificateList
-    implements DEREncodable
+    extends ASN1Encodable
 {
     TBSCertList            tbsCertList;
     AlgorithmIdentifier    sigAlgId;
@@ -54,9 +54,16 @@ public class CertificateList
     public CertificateList(
         ASN1Sequence seq)
     {
-        tbsCertList = TBSCertList.getInstance(seq.getObjectAt(0));
-        sigAlgId = AlgorithmIdentifier.getInstance(seq.getObjectAt(1));
-        sig = (DERBitString)seq.getObjectAt(2);
+        if (seq.size() == 3)
+        {
+            tbsCertList = TBSCertList.getInstance(seq.getObjectAt(0));
+            sigAlgId = AlgorithmIdentifier.getInstance(seq.getObjectAt(1));
+            sig = DERBitString.getInstance(seq.getObjectAt(2));
+        }
+        else
+        {
+            throw new IllegalArgumentException("sequence wrong size for CertificateList");
+        }
     }
 
     public TBSCertList getTBSCertList()
@@ -99,7 +106,7 @@ public class CertificateList
         return tbsCertList.getNextUpdate();
     }
 
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector v = new ASN1EncodableVector();
 

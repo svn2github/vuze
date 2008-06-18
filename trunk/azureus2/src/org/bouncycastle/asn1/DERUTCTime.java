@@ -1,6 +1,7 @@
 package org.bouncycastle.asn1;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.SimpleTimeZone;
@@ -9,7 +10,7 @@ import java.util.SimpleTimeZone;
  * UTC time object.
  */
 public class DERUTCTime
-    extends DERObject
+    extends ASN1Object
 {
     String      time;
 
@@ -64,6 +65,14 @@ public class DERUTCTime
         String  time)
     {
         this.time = time;
+        try
+        {
+            this.getDate();
+        }
+        catch (ParseException e)
+        {
+            throw new IllegalArgumentException("invalid date string: " + e.getMessage());
+        }
     }
 
     /**
@@ -96,6 +105,38 @@ public class DERUTCTime
     }
 
     /**
+     * return the time as a date based on whatever a 2 digit year will return. For
+     * standardised processing use getAdjustedDate().
+     *
+     * @return the resulting date
+     * @exception ParseException if the date string cannot be parsed.
+     */
+    public Date getDate()
+        throws ParseException
+    {
+        SimpleDateFormat dateF = new SimpleDateFormat("yyMMddHHmmssz");
+
+        return dateF.parse(getTime());
+    }
+
+    /**
+     * return the time as an adjusted date
+     * in the range of 1950 - 2049.
+     *
+     * @return a date in the range of 1950 to 2049.
+     * @exception ParseException if the date string cannot be parsed.
+     */
+    public Date getAdjustedDate()
+        throws ParseException
+    {
+        SimpleDateFormat dateF = new SimpleDateFormat("yyyyMMddHHmmssz");
+
+        dateF.setTimeZone(new SimpleTimeZone(0, "Z"));
+
+        return dateF.parse(getAdjustedTime());
+    }
+
+    /**
      * return the time - always in the form of 
      *  YYMMDDhhmmssGMT(+hh:mm|-hh:mm).
      * <p>
@@ -116,24 +157,44 @@ public class DERUTCTime
         //
         // standardise the format.
         //
-        if (time.length() == 11)
+        if (time.indexOf('-') < 0 && time.indexOf('+') < 0)
         {
-            return time.substring(0, 10) + "00GMT+00:00";
+            if (time.length() == 11)
+            {
+                return time.substring(0, 10) + "00GMT+00:00";
+            }
+            else
+            {
+                return time.substring(0, 12) + "GMT+00:00";
+            }
         }
-        else if (time.length() == 13)
+        else
         {
-            return time.substring(0, 12) + "GMT+00:00";
-        }
-        else if (time.length() == 17)
-        {
-            return time.substring(0, 12) + "GMT" + time.substring(12, 15) + ":" + time.substring(15, 17);
-        }
+            int index = time.indexOf('-');
+            if (index < 0)
+            {
+                index = time.indexOf('+');
+            }
+            String d = time;
 
-        return time;
+            if (index == time.length() - 3)
+            {
+                d += "00";
+            }
+
+            if (index == 10)
+            {
+                return d.substring(0, 10) + "00GMT" + d.substring(10, 13) + ":" + d.substring(13, 15);
+            }
+            else
+            {
+                return d.substring(0, 12) + "GMT" + d.substring(12, 15) + ":" +  d.substring(15, 17);
+            }
+        }
     }
 
     /**
-     * return the time as an adjusted date with a 4 digit year. This goes
+     * return a time string as an adjusted date with a 4 digit year. This goes
      * in the range of 1950 - 2049.
      */
     public String getAdjustedTime()
@@ -170,14 +231,24 @@ public class DERUTCTime
         out.writeEncoded(UTC_TIME, this.getOctets());
     }
     
-    public boolean equals(
-        Object  o)
+    boolean asn1Equals(
+        DERObject  o)
     {
-        if ((o == null) || !(o instanceof DERUTCTime))
+        if (!(o instanceof DERUTCTime))
         {
             return false;
         }
 
         return time.equals(((DERUTCTime)o).time);
+    }
+    
+    public int hashCode()
+    {
+        return time.hashCode();
+    }
+
+    public String toString() 
+    {
+      return time;
     }
 }

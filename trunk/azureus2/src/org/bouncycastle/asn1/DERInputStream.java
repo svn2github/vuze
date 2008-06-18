@@ -10,10 +10,14 @@ import java.io.InputStream;
  * Don't use this class. It will eventually disappear, use ASN1InputStream.
  * <br>
  * This class is scheduled for removal.
+ * @deprecated use ASN1InputStream
  */
 public class DERInputStream
     extends FilterInputStream implements DERTags
 {
+    /**
+     * @deprecated use ASN1InputStream
+     */
     public DERInputStream(
         InputStream is)
     {
@@ -38,6 +42,11 @@ public class DERInputStream
         {
             int size = length & 0x7f;
 
+            if (size > 4)
+            {
+                throw new IOException("DER length more than 4 bytes");
+            }
+            
             length = 0;
             for (int i = 0; i < size; i++)
             {
@@ -49,6 +58,11 @@ public class DERInputStream
                 }
 
                 length = (length << 8) + next;
+            }
+            
+            if (length < 0)
+            {
+                throw new IOException("corrupted stream - negative length found");
             }
         }
 
@@ -68,27 +82,27 @@ public class DERInputStream
 
         while (left > 0)
         {
-        	int	l = read(bytes, bytes.length - left, left);
-        	
-        	if (l < 0)
-        	{
-        		throw new EOFException("unexpected end of stream");
-        	}
-        	
-        	left -= l;
+            int    l = read(bytes, bytes.length - left, left);
+            
+            if (l < 0)
+            {
+                throw new EOFException("unexpected end of stream");
+            }
+            
+            left -= l;
         }
     }
 
-	/**
-	 * build an object given its tag and a byte stream to construct it
-	 * from.
-	 */
+    /**
+     * build an object given its tag and a byte stream to construct it
+     * from.
+     */
     protected DERObject buildObject(
-		int	    tag,
-		byte[]	bytes)
-		throws IOException
-	{
-		switch (tag)
+        int       tag,
+        byte[]    bytes)
+        throws IOException
+    {
+        switch (tag)
         {
         case NULL:
             return null;   
@@ -156,8 +170,8 @@ public class DERInputStream
             return new DERVisibleString(bytes);
         case UNIVERSAL_STRING:
             return new DERUniversalString(bytes);
-		case GENERAL_STRING:
-			return new DERGeneralString(bytes);
+        case GENERAL_STRING:
+            return new DERGeneralString(bytes);
         case BMP_STRING:
             return new DERBMPString(bytes);
         case OCTET_STRING:
@@ -237,7 +251,7 @@ public class DERInputStream
 
             return new DERUnknownTag(tag, bytes);
         }
-	}
+    }
 
     public DERObject readObject()
         throws IOException
@@ -253,6 +267,6 @@ public class DERInputStream
 
         readFully(bytes);
 
-		return buildObject(tag, bytes);
-	}
+        return buildObject(tag, bytes);
+    }
 }

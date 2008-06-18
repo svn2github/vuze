@@ -5,7 +5,7 @@ import java.util.Enumeration;
 import java.util.Vector;
 
 public abstract class ASN1Sequence
-    extends DERObject
+    extends ASN1Object
 {
     private Vector seq = new Vector();
 
@@ -91,10 +91,47 @@ public abstract class ASN1Sequence
         return seq.elements();
     }
 
+    public ASN1SequenceParser parser()
+    {
+        final ASN1Sequence outer = this;
+
+        return new ASN1SequenceParser()
+        {
+            private final int max = size();
+
+            private int index;
+
+            public DEREncodable readObject() throws IOException
+            {
+                if (index == max)
+                {
+                    return null;
+                }
+                
+                DEREncodable obj = getObjectAt(index++);
+                if (obj instanceof ASN1Sequence)
+                {
+                    return ((ASN1Sequence)obj).parser();
+                }
+                if (obj instanceof ASN1Set)
+                {
+                    return ((ASN1Set)obj).parser();
+                }
+
+                return obj;
+            }
+
+            public DERObject getDERObject()
+            {
+                return outer;
+            }
+        };
+    }
+
     /**
      * return the object at the sequence postion indicated by index.
      *
-     * @param the sequence number (starting at zero) of the object
+     * @param index the sequence number (starting at zero) of the object
      * @return the object at the sequence postion indicated by index.
      */
     public DEREncodable getObjectAt(
@@ -120,25 +157,25 @@ public abstract class ASN1Sequence
 
         while (e.hasMoreElements())
         {
-        	Object	o = e.nextElement();
-        	
-        	if (o != null)
-        	{
-            	hashCode ^= o.hashCode();
-        	}
+            Object    o = e.nextElement();
+            
+            if (o != null)
+            {
+                hashCode ^= o.hashCode();
+            }
         }
 
         return hashCode;
     }
 
-    public boolean equals(
-        Object  o)
+    boolean asn1Equals(
+        DERObject  o)
     {
-        if (o == null || !(o instanceof ASN1Sequence))
+        if (!(o instanceof ASN1Sequence))
         {
             return false;
         }
-
+        
         ASN1Sequence   other = (ASN1Sequence)o;
 
         if (this.size() != other.size())
@@ -151,24 +188,15 @@ public abstract class ASN1Sequence
 
         while (s1.hasMoreElements())
         {
-            Object  o1 = s1.nextElement();
-            Object  o2 = s2.nextElement();
+            DERObject  o1 = ((DEREncodable)s1.nextElement()).getDERObject();
+            DERObject  o2 = ((DEREncodable)s2.nextElement()).getDERObject();
 
-            if (o1 != null && o2 != null)
-            {
-                if (!o1.equals(o2))
-                {
-                    return false;
-                }
-            }
-            else if (o1 == null && o2 == null)
+            if (o1 == o2 || (o1 != null && o1.equals(o2)))
             {
                 continue;
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
         }
 
         return true;
@@ -182,4 +210,9 @@ public abstract class ASN1Sequence
 
     abstract void encode(DEROutputStream out)
         throws IOException;
+
+    public String toString() 
+    {
+      return seq.toString();
+    }
 }

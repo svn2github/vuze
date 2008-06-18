@@ -23,12 +23,22 @@ public class BERSet
     }
 
     /**
-     * create a set containing a vector of objects.
+     * @param v - a vector of objects making up the set.
      */
     public BERSet(
         DEREncodableVector   v)
     {
-        super(v);
+        super(v, false);
+    }
+
+    /**
+     * @param v - a vector of objects making up the set.
+     */
+    BERSet(
+        DEREncodableVector   v,
+        boolean              needsSorting)
+    {
+        super(v, needsSorting);
     }
 
     /*

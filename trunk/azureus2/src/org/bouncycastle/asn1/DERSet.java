@@ -32,9 +32,38 @@ public class DERSet
     public DERSet(
         DEREncodableVector   v)
     {
+        this(v, true);
+    }
+    
+    /**
+     * create a set from an array of objects.
+     */
+    public DERSet(
+        ASN1Encodable[]   a)
+    {
+        for (int i = 0; i != a.length; i++)
+        {
+            this.addObject(a[i]);
+        }
+        
+        this.sort();
+    }
+    
+    /**
+     * @param v - a vector of objects making up the set.
+     */
+    DERSet(
+        DEREncodableVector   v,
+        boolean              needsSorting)
+    {
         for (int i = 0; i != v.size(); i++)
         {
             this.addObject(v.get(i));
+        }
+
+        if (needsSorting)
+        {
+            this.sort();
         }
     }
 

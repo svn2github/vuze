@@ -6,7 +6,7 @@ import java.io.IOException;
  * DER IA5String object - this is an ascii string.
  */
 public class DERIA5String
-    extends DERObject
+    extends ASN1Object
     implements DERString
 {
     String  string;
@@ -70,15 +70,40 @@ public class DERIA5String
     }
 
     /**
-     * basic constructor - with string.
+     * basic constructor - without validation.
      */
     public DERIA5String(
         String   string)
     {
+        this(string, false);
+    }
+
+    /**
+     * Constructor with optional validation.
+     *
+     * @param string the base string to wrap.
+     * @param validate whether or not to check the string.
+     * @throws IllegalArgumentException if validate is true and the string
+     * contains characters that should not be in an IA5String.
+     */
+    public DERIA5String(
+        String   string,
+        boolean  validate)
+    {
+        if (validate && !isIA5String(string))
+        {
+            throw new IllegalArgumentException("string contains illegal characters");
+        }
+
         this.string = string;
     }
 
     public String getString()
+    {
+        return string;
+    }
+
+    public String toString()
     {
         return string;
     }
@@ -108,8 +133,8 @@ public class DERIA5String
         return this.getString().hashCode();
     }
 
-    public boolean equals(
-        Object  o)
+    boolean asn1Equals(
+        DERObject  o)
     {
         if (!(o instanceof DERIA5String))
         {
@@ -119,5 +144,27 @@ public class DERIA5String
         DERIA5String  s = (DERIA5String)o;
 
         return this.getString().equals(s.getString());
+    }
+
+    /**
+     * return true if the passed in String can be represented without
+     * loss as an IA5String, false otherwise.
+     *
+     * @return true if in printable set, false otherwise.
+     */
+    public static boolean isIA5String(
+        String  str)
+    {
+        for (int i = str.length() - 1; i >= 0; i--)
+        {
+            char    ch = str.charAt(i);
+
+            if (ch > 0x007f)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

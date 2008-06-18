@@ -1,9 +1,9 @@
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -19,7 +19,8 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
  * </pre>
  */
 public class X509CertificateStructure
-    implements DEREncodable, X509ObjectIdentifiers, PKCSObjectIdentifiers
+    extends ASN1Encodable
+    implements X509ObjectIdentifiers, PKCSObjectIdentifiers
 {
     ASN1Sequence  seq;
     TBSCertificateStructure tbsCert;
@@ -32,7 +33,7 @@ public class X509CertificateStructure
     {
         return getInstance(ASN1Sequence.getInstance(obj, explicit));
     }
-	
+
     public static X509CertificateStructure getInstance(
         Object  obj)
     {
@@ -61,7 +62,11 @@ public class X509CertificateStructure
             tbsCert = TBSCertificateStructure.getInstance(seq.getObjectAt(0));
             sigAlgId = AlgorithmIdentifier.getInstance(seq.getObjectAt(1));
 
-            sig = (DERBitString)seq.getObjectAt(2);
+            sig = DERBitString.getInstance(seq.getObjectAt(2));
+        }
+        else
+        {
+            throw new IllegalArgumentException("sequence wrong size for a certificate");
         }
     }
 
@@ -115,7 +120,7 @@ public class X509CertificateStructure
         return sig;
     }
 
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         return seq;
     }

@@ -1,9 +1,9 @@
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERTaggedObject;
@@ -30,7 +30,8 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
  * will parse them, but you really shouldn't be creating new ones.
  */
 public class TBSCertificateStructure
-    implements DEREncodable, X509ObjectIdentifiers, PKCSObjectIdentifiers
+    extends ASN1Encodable
+    implements X509ObjectIdentifiers, PKCSObjectIdentifiers
 {
     ASN1Sequence            seq;
 
@@ -114,10 +115,10 @@ public class TBSCertificateStructure
             switch (extra.getTagNo())
             {
             case 1:
-                issuerUniqueId = DERBitString.getInstance(extra);
+                issuerUniqueId = DERBitString.getInstance(extra, false);
                 break;
             case 2:
-                subjectUniqueId = DERBitString.getInstance(extra);
+                subjectUniqueId = DERBitString.getInstance(extra, false);
                 break;
             case 3:
                 extensions = X509Extensions.getInstance(extra);
@@ -185,7 +186,7 @@ public class TBSCertificateStructure
         return extensions;
     }
 
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         return seq;
     }

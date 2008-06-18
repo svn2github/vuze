@@ -22,9 +22,9 @@ import org.bouncycastle.asn1.DERTaggedObject;
 public class DistributionPoint
     extends ASN1Encodable
 {
-	DistributionPointName   	distributionPoint;
-	ReasonFlags             		reasons;
-	GeneralNames            	cRLIssuer;
+    DistributionPointName       distributionPoint;
+    ReasonFlags                 reasons;
+    GeneralNames                cRLIssuer;
 
     public static DistributionPoint getInstance(
         ASN1TaggedObject obj,
@@ -54,65 +54,105 @@ public class DistributionPoint
     {
         for (int i = 0; i != seq.size(); i++)
         {
-        	ASN1TaggedObject	t = (ASN1TaggedObject)seq.getObjectAt(i);
-        	switch (t.getTagNo())
-        	{
-        	case 0:
-        		distributionPoint = DistributionPointName.getInstance(t, true);
-        		break;
-        	case 1:
-        		reasons = new ReasonFlags(DERBitString.getInstance(t, true));
-        		break;
-        	case 2:
-        		cRLIssuer = GeneralNames.getInstance(t, true);
-        	}
+            ASN1TaggedObject    t = ASN1TaggedObject.getInstance(seq.getObjectAt(i));
+            switch (t.getTagNo())
+            {
+            case 0:
+                distributionPoint = DistributionPointName.getInstance(t, true);
+                break;
+            case 1:
+                reasons = new ReasonFlags(DERBitString.getInstance(t, false));
+                break;
+            case 2:
+                cRLIssuer = GeneralNames.getInstance(t, false);
+            }
         }
     }
     
     public DistributionPoint(
         DistributionPointName distributionPoint,
-        ReasonFlags             	reasons,
+        ReasonFlags                 reasons,
         GeneralNames            cRLIssuer)
     {
-		this.distributionPoint = distributionPoint;
-		this.reasons = reasons;
-		this.cRLIssuer = cRLIssuer;
+        this.distributionPoint = distributionPoint;
+        this.reasons = reasons;
+        this.cRLIssuer = cRLIssuer;
     }
     
     public DistributionPointName getDistributionPoint()
     {
-    	return distributionPoint;
+        return distributionPoint;
     }
 
-	public ReasonFlags getReasons()
-	{
-		return reasons;
-	}
-	
-	public GeneralNames getCRLIssuer()
-	{
-		return cRLIssuer;
-	}
-	
+    public ReasonFlags getReasons()
+    {
+        return reasons;
+    }
+    
+    public GeneralNames getCRLIssuer()
+    {
+        return cRLIssuer;
+    }
+    
     public DERObject toASN1Object()
     {
-		ASN1EncodableVector  v = new ASN1EncodableVector();
-		
-		if (distributionPoint != null)
-		{
-			v.add(new DERTaggedObject(0, distributionPoint));
-		}
+        ASN1EncodableVector  v = new ASN1EncodableVector();
+        
+        if (distributionPoint != null)
+        {
+            //
+            // as this is a CHOICE it must be explicitly tagged
+            //
+            v.add(new DERTaggedObject(0, distributionPoint));
+        }
 
-		if (reasons != null)
-		{
-			v.add(new DERTaggedObject(1, reasons));
-		}
+        if (reasons != null)
+        {
+            v.add(new DERTaggedObject(false, 1, reasons));
+        }
 
-		if (cRLIssuer != null)
-		{
-			v.add(new DERTaggedObject(2, cRLIssuer));
-		}
+        if (cRLIssuer != null)
+        {
+            v.add(new DERTaggedObject(false, 2, cRLIssuer));
+        }
 
-		return new DERSequence(v);
+        return new DERSequence(v);
+    }
+
+    public String toString()
+    {
+        String       sep = System.getProperty("line.separator");
+        StringBuffer buf = new StringBuffer();
+        buf.append("DistributionPoint: [");
+        buf.append(sep);
+        if (distributionPoint != null)
+        {
+            appendObject(buf, sep, "distributionPoint", distributionPoint.toString());
+        }
+        if (reasons != null)
+        {
+            appendObject(buf, sep, "reasons", reasons.toString());
+        }
+        if (cRLIssuer != null)
+        {
+            appendObject(buf, sep, "cRLIssuer", cRLIssuer.toString());
+        }
+        buf.append("]");
+        buf.append(sep);
+        return buf.toString();
+    }
+
+    private void appendObject(StringBuffer buf, String sep, String name, String value)
+    {
+        String       indent = "    ";
+
+        buf.append(indent);
+        buf.append(name);
+        buf.append(":");
+        buf.append(sep);
+        buf.append(indent);
+        buf.append(indent);
+        buf.append(value);
+        buf.append(sep);
     }
 }

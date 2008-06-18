@@ -8,7 +8,7 @@ import org.bouncycastle.asn1.DERObjectIdentifier;
  * X509V3 Extensions.
  *
  * <pre>
- * 	CertPolicyId ::= OBJECT IDENTIFIER
+ *     CertPolicyId ::= OBJECT IDENTIFIER
  * </pre>
  */
 public class CertPolicyId extends DERObjectIdentifier 

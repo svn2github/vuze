@@ -1,12 +1,18 @@
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Choice;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERObjectIdentifier;
+import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.util.IPAddress;
+import org.bouncycastle.util.Strings;
 
 /**
  * The GeneralName object.
@@ -29,20 +35,42 @@ import org.bouncycastle.asn1.DERTaggedObject;
  * EDIPartyName ::= SEQUENCE {
  *      nameAssigner            [0]     DirectoryString OPTIONAL,
  *      partyName               [1]     DirectoryString }
+ * 
+ * Name ::= CHOICE { RDNSequence }
  * </pre>
  */
 public class GeneralName
-    implements DEREncodable
+    extends ASN1Encodable
+    implements ASN1Choice
 {
-    DEREncodable  	obj;
-    int           	tag;
-	boolean			isInsideImplicit = false;		// if we are in an implicitly tagged object
+    public static final int otherName                     = 0;
+    public static final int rfc822Name                    = 1;
+    public static final int dNSName                       = 2;
+    public static final int x400Address                   = 3;
+    public static final int directoryName                 = 4;
+    public static final int ediPartyName                  = 5;
+    public static final int uniformResourceIdentifier     = 6;
+    public static final int iPAddress                     = 7;
+    public static final int registeredID                  = 8;
 
+    DEREncodable      obj;
+    int               tag;
+   
     public GeneralName(
-        X509Name  directoryName)
+        X509Name  dirName)
     {
-        this.obj = directoryName;
+        this.obj = dirName;
         this.tag = 4;
+    }
+
+    /**
+     * @deprecated this constructor seems the wrong way round! Use GeneralName(tag, name).
+     */
+    public GeneralName(
+        DERObject name, int tag)
+    {
+        this.obj = name;
+        this.tag = tag;
     }
 
     /**
@@ -73,12 +101,71 @@ public class GeneralName
      * 1883].
      */
     public GeneralName(
-        DERObject name, int tag)
+        int           tag,
+        ASN1Encodable name)
     {
         this.obj = name;
         this.tag = tag;
     }
+    
+    /**
+     * Create a GeneralName for the given tag from the passed in String.
+     * <p>
+     * This constructor can handle:
+     * <ul>
+     * <li>rfc822Name
+     * <li>iPAddress
+     * <li>directoryName
+     * <li>dNSName
+     * <li>uniformResourceIdentifier
+     * <li>registeredID
+     * </ul>
+     * For x400Address, otherName and ediPartyName there is no common string
+     * format defined.
+     * <p>
+     * Note: A directory name can be encoded in different ways into a byte
+     * representation. Be aware of this if the byte representation is used for
+     * comparing results.
+     *
+     * @param tag tag number
+     * @param name string representation of name
+     * @throws IllegalArgumentException if the string encoding is not correct or     *             not supported.
+     */
+    public GeneralName(
+        int       tag,
+        String    name)
+    {
+        this.tag = tag;
 
+        if (tag == rfc822Name || tag == dNSName || tag == uniformResourceIdentifier)
+        {
+            this.obj = new DERIA5String(name);
+        }
+        else if (tag == registeredID)
+        {
+            this.obj = new DERObjectIdentifier(name);
+        }
+        else if (tag == directoryName)
+        {
+            this.obj = new X509Name(name);
+        }
+        else if (tag == iPAddress)
+        {
+            if (IPAddress.isValid(name))
+            {
+                this.obj = new DEROctetString(Strings.toUTF8ByteArray(name));
+            }
+            else
+            {
+                throw new IllegalArgumentException("IP Address is invalid");
+            }
+        }
+        else
+        {
+            throw new IllegalArgumentException("can't process String for tag: " + tag);
+        }
+    }
+    
     public static GeneralName getInstance(
         Object obj)
     {
@@ -90,28 +177,28 @@ public class GeneralName
         if (obj instanceof ASN1TaggedObject)
         {
             ASN1TaggedObject    tagObj = (ASN1TaggedObject)obj;
-            int tag = tagObj.getTagNo();
+            int                 tag = tagObj.getTagNo();
 
             switch (tag)
             {
-            case 0:
-                return new GeneralName(tagObj.getObject(), tag);
-            case 1:
-                return new GeneralName(DERIA5String.getInstance(tagObj, false), tag);
-            case 2:
-                return new GeneralName(DERIA5String.getInstance(tagObj, false), tag);
-            case 3:
+            case otherName:
+                return new GeneralName(tag, ASN1Sequence.getInstance(tagObj, false));
+            case rfc822Name:
+                return new GeneralName(tag, DERIA5String.getInstance(tagObj, false));
+            case dNSName:
+                return new GeneralName(tag, DERIA5String.getInstance(tagObj, false));
+            case x400Address:
                 throw new IllegalArgumentException("unknown tag: " + tag);
-            case 4:
-                return new GeneralName(tagObj.getObject(), tag);
-            case 5:
-                return new GeneralName(tagObj.getObject(), tag);
-            case 6:
-                return new GeneralName(DERIA5String.getInstance(tagObj, false), tag);
-            case 7:
-                return new GeneralName(ASN1OctetString.getInstance(tagObj, false), tag);
-            case 8:
-                return new GeneralName(DERObjectIdentifier.getInstance(tagObj, false), tag);
+            case directoryName:
+                return new GeneralName(tag, ASN1Sequence.getInstance(tagObj, true));
+            case ediPartyName:
+                return new GeneralName(tag, ASN1Sequence.getInstance(tagObj, false));
+            case uniformResourceIdentifier:
+                return new GeneralName(tag, DERIA5String.getInstance(tagObj, false));
+            case iPAddress:
+                return new GeneralName(tag, ASN1OctetString.getInstance(tagObj, false));
+            case registeredID:
+                return new GeneralName(tag, DERObjectIdentifier.getInstance(tagObj, false));
             }
         }
 
@@ -122,19 +209,8 @@ public class GeneralName
         ASN1TaggedObject tagObj,
         boolean          explicit)
     {
-        return GeneralName.getInstance(ASN1TaggedObject.getInstance(tagObj, explicit));
+        return GeneralName.getInstance(ASN1TaggedObject.getInstance(tagObj, true));
     }
-
-    /**
-     * mark whether or not we are contained inside an implicitly tagged
-     * object.
-     * @deprecated
-     */
-	public void markInsideImplicit(
-		boolean		isInsideImplicit)
-	{
-		this.isInsideImplicit = isInsideImplicit;
-	}
 
     public int getTagNo()
     {
@@ -146,9 +222,31 @@ public class GeneralName
         return obj;
     }
 
-    public DERObject getDERObject()
+    public String toString()
     {
-        if (tag == 4)       // directoryName is explicitly tagged!
+        StringBuffer buf = new StringBuffer();
+
+        buf.append(tag);
+        buf.append(": ");
+        switch (tag)
+        {
+        case rfc822Name:
+        case dNSName:
+        case uniformResourceIdentifier:
+            buf.append(DERIA5String.getInstance(obj).getString());
+            break;
+        case directoryName:
+            buf.append(X509Name.getInstance(obj).toString());
+            break;
+        default:
+            buf.append(obj.toString());
+        }
+        return buf.toString();
+    }
+
+    public DERObject toASN1Object()
+    {
+        if (tag == directoryName)       // directoryName is explicitly tagged as it is a CHOICE
         {
             return new DERTaggedObject(true, tag, obj);
         }

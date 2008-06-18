@@ -3,12 +3,12 @@ package org.bouncycastle.asn1;
 import java.io.IOException;
 
 public class DERBoolean
-    extends DERObject
+    extends ASN1Object
 {
     byte         value;
 
-	public static final DERBoolean FALSE = new DERBoolean(false);
-	public static final DERBoolean TRUE  = new DERBoolean(true);
+    public static final DERBoolean FALSE = new DERBoolean(false);
+    public static final DERBoolean TRUE  = new DERBoolean(true);
 
     /**
      * return a boolean from the passed in object.
@@ -89,8 +89,8 @@ public class DERBoolean
         out.writeEncoded(BOOLEAN, bytes);
     }
     
-    public boolean equals(
-        Object  o)
+    protected boolean asn1Equals(
+        DERObject  o)
     {
         if ((o == null) || !(o instanceof DERBoolean))
         {
@@ -99,5 +99,15 @@ public class DERBoolean
 
         return (value == ((DERBoolean)o).value);
     }
+    
+    public int hashCode()
+    {
+        return value;
+    }
 
+
+    public String toString()
+    {
+      return (value != 0) ? "TRUE" : "FALSE";
+    }
 }

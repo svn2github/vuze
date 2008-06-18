@@ -1,17 +1,18 @@
 package org.bouncycastle.asn1;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
  * DER UniversalString object.
  */
 public class DERUniversalString
-    extends DERObject
+    extends ASN1Object
     implements DERString
 {
-    byte[]  string;
-    char[]  table = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
+    private static final char[]  table = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+    private byte[] string;
+    
     /**
      * return a Universal String from the passed in object.
      *
@@ -58,21 +59,35 @@ public class DERUniversalString
         this.string = string;
     }
 
-    /**
-     * UniversalStrings have characters which are 4 bytes long - for the
-     * moment we just return them in Hex...
-     */
     public String getString()
     {
-        StringBuffer    buf = new StringBuffer();
-
+        StringBuffer    buf = new StringBuffer("#");
+        ByteArrayOutputStream    bOut = new ByteArrayOutputStream();
+        ASN1OutputStream            aOut = new ASN1OutputStream(bOut);
+        
+        try
+        {
+            aOut.writeObject(this);
+        }
+        catch (IOException e)
+        {
+           throw new RuntimeException("internal error encoding BitString");
+        }
+        
+        byte[]    string = bOut.toByteArray();
+        
         for (int i = 0; i != string.length; i++)
         {
-            buf.append(table[(string[i] >>> 4) % 0xf]);
+            buf.append(table[(string[i] >>> 4) & 0xf]);
             buf.append(table[string[i] & 0xf]);
         }
-
+        
         return buf.toString();
+    }
+
+    public String toString()
+    {
+        return getString();
     }
 
     public byte[] getOctets()
@@ -87,14 +102,19 @@ public class DERUniversalString
         out.writeEncoded(UNIVERSAL_STRING, this.getOctets());
     }
     
-    public boolean equals(
-        Object  o)
+    boolean asn1Equals(
+        DERObject  o)
     {
-        if ((o == null) || !(o instanceof DERUniversalString))
+        if (!(o instanceof DERUniversalString))
         {
             return false;
         }
 
         return this.getString().equals(((DERUniversalString)o).getString());
+    }
+    
+    public int hashCode()
+    {
+        return this.getString().hashCode();
     }
 }

@@ -8,25 +8,34 @@ package org.bouncycastle.asn1.x509;
  */
 public class X509NameTokenizer
 {
-    private String          oid;
+    private String          value;
     private int             index;
+    private char            seperator;
     private StringBuffer    buf = new StringBuffer();
 
     public X509NameTokenizer(
-        String oid)
+        String  oid)
     {
-        this.oid = oid;
+        this(oid, ',');
+    }
+    
+    public X509NameTokenizer(
+        String  oid,
+        char    seperator)
+    {
+        this.value = oid;
         this.index = -1;
+        this.seperator = seperator;
     }
 
     public boolean hasMoreTokens()
     {
-        return (index != oid.length());
+        return (index != value.length());
     }
 
     public String nextToken()
     {
-        if (index == oid.length())
+        if (index == value.length())
         {
             return null;
         }
@@ -37,9 +46,9 @@ public class X509NameTokenizer
 
         buf.setLength(0);
 
-        while (end != oid.length())
+        while (end != value.length())
         {
-            char    c = oid.charAt(end);
+            char    c = value.charAt(end);
 
             if (c == '"')
             {
@@ -64,7 +73,7 @@ public class X509NameTokenizer
                 {
                     escaped = true;
                 }
-                else if (c == ',')
+                else if (c == seperator)
                 {
                     break;
                 }

@@ -19,7 +19,7 @@ public class DERTaggedObject
         int             tagNo,
         DEREncodable    obj)
     {
-		super(tagNo, obj);
+        super(tagNo, obj);
     }
 
     /**
@@ -32,7 +32,7 @@ public class DERTaggedObject
         int             tagNo,
         DEREncodable    obj)
     {
-		super(explicit, tagNo, obj);
+        super(explicit, tagNo, obj);
     }
 
     /**

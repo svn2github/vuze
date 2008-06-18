@@ -8,6 +8,8 @@ import java.io.IOException;
 public class BERNull
     extends DERNull
 {
+    public static final BERNull INSTANCE = new BERNull();
+
     public BERNull()
     {
     }
@@ -19,8 +21,6 @@ public class BERNull
         if (out instanceof ASN1OutputStream || out instanceof BEROutputStream)
         {
             out.write(NULL);
-            out.write(0);
-            out.write(0);
         }
         else
         {

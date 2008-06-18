@@ -1,15 +1,15 @@
 package org.bouncycastle.asn1.x509;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DEREncodable;
-import org.bouncycastle.asn1.DERInputStream;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERSequence;
 
@@ -20,7 +20,7 @@ import org.bouncycastle.asn1.DERSequence;
  * encoded one of these.
  */
 public class SubjectPublicKeyInfo
-    implements DEREncodable
+    extends ASN1Encodable
 {
     private AlgorithmIdentifier     algId;
     private DERBitString            keyData;
@@ -66,10 +66,16 @@ public class SubjectPublicKeyInfo
     public SubjectPublicKeyInfo(
         ASN1Sequence  seq)
     {
+        if (seq.size() != 2)
+        {
+            throw new IllegalArgumentException("Bad sequence size: "
+                    + seq.size());
+        }
+
         Enumeration         e = seq.getObjects();
 
         this.algId = AlgorithmIdentifier.getInstance(e.nextElement());
-        this.keyData = (DERBitString)e.nextElement();
+        this.keyData = DERBitString.getInstance(e.nextElement());
     }
 
     public AlgorithmIdentifier getAlgorithmId()
@@ -87,10 +93,9 @@ public class SubjectPublicKeyInfo
     public DERObject getPublicKey()
         throws IOException
     {
-        ByteArrayInputStream    bIn = new ByteArrayInputStream(keyData.getBytes());
-        DERInputStream          dIn = new DERInputStream(bIn);
+        ASN1InputStream         aIn = new ASN1InputStream(keyData.getBytes());
 
-        return dIn.readObject();
+        return aIn.readObject();
     }
 
     /**
@@ -109,7 +114,7 @@ public class SubjectPublicKeyInfo
      *                          publicKey BIT STRING }
      * </pre>
      */
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector  v = new ASN1EncodableVector();
 

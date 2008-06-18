@@ -1,15 +1,14 @@
 package org.bouncycastle.asn1.x509;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Vector;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DEROutputStream;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DERUTCTime;
@@ -92,7 +91,10 @@ public class V2TBSCertListGenerator
         ASN1Sequence crlEntry)
     {
         if (crlentries == null)
+        {
             crlentries = new Vector();
+        }
+        
         crlentries.addElement(crlEntry);
     }
 
@@ -103,41 +105,67 @@ public class V2TBSCertListGenerator
 
     public void addCRLEntry(DERInteger userCertificate, Time revocationDate, int reason)
     {
+        addCRLEntry(userCertificate, revocationDate, reason, null);
+    }
+
+    public void addCRLEntry(DERInteger userCertificate, Time revocationDate, int reason, DERGeneralizedTime invalidityDate)
+    {
+        Vector extOids = new Vector();
+        Vector extValues = new Vector();
+        
+        if (reason != 0)
+        {
+            CRLReason crlReason = new CRLReason(reason);
+            
+            try
+            {
+                extOids.addElement(X509Extensions.ReasonCode);
+                extValues.addElement(new X509Extension(false, new DEROctetString(crlReason.getEncoded())));
+            }
+            catch (IOException e)
+            {
+                throw new IllegalArgumentException("error encoding reason: " + e);
+            }
+        }
+
+        if (invalidityDate != null)
+        {
+            try
+            {
+                extOids.addElement(X509Extensions.InvalidityDate);
+                extValues.addElement(new X509Extension(false, new DEROctetString(invalidityDate.getEncoded())));
+            }
+            catch (IOException e)
+            {
+                throw new IllegalArgumentException("error encoding invalidityDate: " + e);
+            }
+        }
+        
+        if (extOids.size() != 0)
+        {
+            addCRLEntry(userCertificate, revocationDate, new X509Extensions(extOids, extValues));
+        }
+        else
+        {
+            addCRLEntry(userCertificate, revocationDate, null);
+        }
+    }
+
+    public void addCRLEntry(DERInteger userCertificate, Time revocationDate, X509Extensions extensions)
+    {
         ASN1EncodableVector v = new ASN1EncodableVector();
 
         v.add(userCertificate);
         v.add(revocationDate);
-	
-        if (reason != 0)
+        
+        if (extensions != null)
         {
-            CRLReason rf = new CRLReason(reason);
-            ByteArrayOutputStream   bOut = new ByteArrayOutputStream();
-            DEROutputStream         dOut = new DEROutputStream(bOut);
-            try
-            {
-                dOut.writeObject(rf);
-            }
-            catch (IOException e)
-            {
-                throw new IllegalArgumentException("error encoding value: " + e);
-            }
-            byte[] value = bOut.toByteArray();
-            ASN1EncodableVector v1 = new ASN1EncodableVector();
-            v1.add(X509Extensions.ReasonCode);
-            v1.add(new DEROctetString(value));
-            X509Extensions ex = new X509Extensions(new DERSequence(
-                                                        new DERSequence(v1)));
-            v.add(ex);
+            v.add(extensions);
         }
-
-        if (crlentries == null)
-        {
-            crlentries = new Vector();
-        }
-
-        crlentries.addElement(new DERSequence(v));
+        
+        addCRLEntry(new DERSequence(v));
     }
-
+    
     public void setExtensions(
         X509Extensions    extensions)
     {
@@ -168,7 +196,7 @@ public class V2TBSCertListGenerator
         {
             ASN1EncodableVector certs = new ASN1EncodableVector();
             Enumeration it = crlentries.elements();
-            while( it.hasMoreElements() )
+            while(it.hasMoreElements())
             {
                 certs.add((ASN1Sequence)it.nextElement());
             }

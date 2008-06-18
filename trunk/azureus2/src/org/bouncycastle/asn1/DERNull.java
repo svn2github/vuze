@@ -8,6 +8,8 @@ import java.io.IOException;
 public class DERNull
     extends ASN1Null
 {
+    public static final DERNull INSTANCE = new DERNull();
+
     byte[]  zeroBytes = new byte[0];
 
     public DERNull()
@@ -20,15 +22,4 @@ public class DERNull
     {
         out.writeEncoded(NULL, zeroBytes);
     }
-    
-	public boolean equals(
-		Object o)
-	{
-        if ((o == null) || !(o instanceof DERNull))
-        {
-            return false;
-        }
-        
-		return true;
-	}
 }

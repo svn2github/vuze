@@ -32,6 +32,21 @@ public class KeyUsage
     public static final int        encipherOnly     = (1 << 0);
     public static final int        decipherOnly     = (1 << 15);
 
+    public static DERBitString getInstance(Object obj)   // needs to be DERBitString for other VMs
+    {
+        if (obj instanceof KeyUsage)
+        {
+            return (KeyUsage)obj;
+        }
+
+        if (obj instanceof X509Extension)
+        {
+            return new KeyUsage(DERBitString.getInstance(X509Extension.convertValueToObject((X509Extension)obj)));
+        }
+
+        return new KeyUsage(DERBitString.getInstance(obj));
+    }
+    
     /**
      * Basic constructor.
      * 
@@ -53,6 +68,10 @@ public class KeyUsage
 
     public String toString()
     {
-        return "KeyUsage: 0x" + Integer.toHexString(data[0] & 0xff);
+        if (data.length == 1)
+        {
+            return "KeyUsage: 0x" + Integer.toHexString(data[0] & 0xff);
+        }
+        return "KeyUsage: 0x" + Integer.toHexString((data[1] & 0xff) << 8 | (data[0] & 0xff));
     }
 }

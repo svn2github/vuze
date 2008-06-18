@@ -6,18 +6,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Vector;
 
+/**
+ * @deprecated use ASN1InputStream
+ */
 public class BERInputStream
     extends DERInputStream
 {
-	private DERObject END_OF_STREAM = new DERObject() {
-										void encode(
-											DEROutputStream out)
-										throws IOException
-										{
-											throw new IOException("Eeek!");
-										}
-
-									};
+    private static final DERObject END_OF_STREAM = new DERObject()
+    {
+                                        void encode(
+                                            DEROutputStream out)
+                                        throws IOException
+                                        {
+                                            throw new IOException("Eeek!");
+                                        }
+                                        public int hashCode()
+                                        {
+                                            return 0;
+                                        }
+                                        public boolean equals(
+                                            Object o) 
+                                        {
+                                            return o == this;
+                                        }
+                                    };
     public BERInputStream(
         InputStream is)
     {
@@ -37,10 +49,10 @@ public class BERInputStream
 
         while ((b = read()) >= 0)
         {
-			if (b1 == 0 && b == 0)
-			{
-				break;
-			}
+            if (b1 == 0 && b == 0)
+            {
+                break;
+            }
 
             bOut.write(b1);
             b1 = b;
@@ -49,25 +61,25 @@ public class BERInputStream
         return bOut.toByteArray();
     }
 
-	private BERConstructedOctetString buildConstructedOctetString()
-		throws IOException
-	{
-        Vector                  octs = new Vector();
+    private BERConstructedOctetString buildConstructedOctetString()
+        throws IOException
+    {
+        Vector               octs = new Vector();
 
-		for (;;)
-		{
-			DERObject		o = readObject();
+        for (;;)
+        {
+            DERObject        o = readObject();
 
-			if (o == END_OF_STREAM)
-			{
-				break;
-			}
+            if (o == END_OF_STREAM)
+            {
+                break;
+            }
 
             octs.addElement(o);
-		}
+        }
 
-		return new BERConstructedOctetString(octs);
-	}
+        return new BERConstructedOctetString(octs);
+    }
 
     public DERObject readObject()
         throws IOException
@@ -89,35 +101,35 @@ public class BERInputStream
             case SEQUENCE | CONSTRUCTED:
                 BERConstructedSequence  seq = new BERConstructedSequence();
     
-				for (;;)
-				{
-					DERObject   obj = readObject();
+                for (;;)
+                {
+                    DERObject   obj = readObject();
 
-					if (obj == END_OF_STREAM)
-					{
-						break;
-					}
+                    if (obj == END_OF_STREAM)
+                    {
+                        break;
+                    }
 
-					seq.addObject(obj);
-				}
-				return seq;
+                    seq.addObject(obj);
+                }
+                return seq;
             case OCTET_STRING | CONSTRUCTED:
-				return buildConstructedOctetString();
+                return buildConstructedOctetString();
             case SET | CONSTRUCTED:
                 ASN1EncodableVector  v = new ASN1EncodableVector();
     
-				for (;;)
-				{
-					DERObject   obj = readObject();
+                for (;;)
+                {
+                    DERObject   obj = readObject();
 
-					if (obj == END_OF_STREAM)
-					{
-						break;
-					}
+                    if (obj == END_OF_STREAM)
+                    {
+                        break;
+                    }
 
-					v.add(obj);
-				}
-				return new BERSet(v);
+                    v.add(obj);
+                }
+                return new BERSet(v);
             default:
                 //
                 // with tagged object tag number is bottom 5 bits
@@ -142,9 +154,9 @@ public class BERInputStream
                     //
                     // either constructed or explicitly tagged
                     //
-					DERObject		dObj = readObject();
+                    DERObject        dObj = readObject();
 
-					if (dObj == END_OF_STREAM)     // empty tag!
+                    if (dObj == END_OF_STREAM)     // empty tag!
                     {
                         return new DERTaggedObject(tag & 0x1f);
                     }
@@ -191,7 +203,7 @@ public class BERInputStream
     
             readFully(bytes);
     
-			return buildObject(tag, bytes);
+            return buildObject(tag, bytes);
         }
     }
 }

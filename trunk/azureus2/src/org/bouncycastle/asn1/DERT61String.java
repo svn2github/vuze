@@ -6,7 +6,7 @@ import java.io.IOException;
  * DER T61String (also the teletex string)
  */
 public class DERT61String
-    extends DERObject
+    extends ASN1Object
     implements DERString
 {
     String  string;
@@ -59,14 +59,14 @@ public class DERT61String
     public DERT61String(
         byte[]   string)
     {
-		char[]  cs = new char[string.length];
+        char[]  cs = new char[string.length];
 
-		for (int i = 0; i != cs.length; i++)
-		{
-			cs[i] = (char)(string[i] & 0xff);
-		}
+        for (int i = 0; i != cs.length; i++)
+        {
+            cs[i] = (char)(string[i] & 0xff);
+        }
 
-		this.string = new String(cs);
+        this.string = new String(cs);
     }
 
     /**
@@ -83,6 +83,11 @@ public class DERT61String
         return string;
     }
 
+    public String toString()
+    {
+        return string;
+    }
+
     void encode(
         DEROutputStream  out)
         throws IOException
@@ -90,27 +95,32 @@ public class DERT61String
         out.writeEncoded(T61_STRING, this.getOctets());
     }
     
-	public byte[] getOctets()
-	{
-		char[]  cs = string.toCharArray();
-		byte[]  bs = new byte[cs.length];
-
-		for (int i = 0; i != cs.length; i++)
-		{
-			bs[i] = (byte)cs[i];
-		}
-
-		return bs; 
-	}
-	
-    public boolean equals(
-        Object  o)
+    public byte[] getOctets()
     {
-        if ((o == null) || !(o instanceof DERT61String))
+        char[]  cs = string.toCharArray();
+        byte[]  bs = new byte[cs.length];
+
+        for (int i = 0; i != cs.length; i++)
+        {
+            bs[i] = (byte)cs[i];
+        }
+
+        return bs; 
+    }
+
+    boolean asn1Equals(
+        DERObject  o)
+    {
+        if (!(o instanceof DERT61String))
         {
             return false;
         }
 
         return this.getString().equals(((DERT61String)o).getString());
+    }
+    
+    public int hashCode()
+    {
+        return this.getString().hashCode();
     }
 }

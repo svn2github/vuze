@@ -1,15 +1,16 @@
 package org.bouncycastle.asn1.x509;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
-
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
+
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * The extendedKeyUsage object.
@@ -18,7 +19,7 @@ import org.bouncycastle.asn1.DERSequence;
  * </pre>
  */
 public class ExtendedKeyUsage
-    implements DEREncodable
+    extends ASN1Encodable
 {
     Hashtable     usageTable = new Hashtable();
     ASN1Sequence  seq;
@@ -33,7 +34,7 @@ public class ExtendedKeyUsage
     public static ExtendedKeyUsage getInstance(
         Object obj)
     {
-        if(obj == null || obj instanceof ExtendedKeyUsage) 
+        if (obj instanceof ExtendedKeyUsage) 
         {
             return (ExtendedKeyUsage)obj;
         }
@@ -42,10 +43,23 @@ public class ExtendedKeyUsage
         {
             return new ExtendedKeyUsage((ASN1Sequence)obj);
         }
-        
+
+        if (obj instanceof X509Extension)
+        {
+            return getInstance(X509Extension.convertValueToObject((X509Extension)obj));
+        }
+
         throw new IllegalArgumentException("Invalid ExtendedKeyUsage: " + obj.getClass().getName());
     }
 
+    public ExtendedKeyUsage(
+        KeyPurposeId  usage)
+    {
+        this.seq = new DERSequence(usage);
+
+        this.usageTable.put(usage, usage);
+    }
+    
     public ExtendedKeyUsage(
         ASN1Sequence  seq)
     {
@@ -56,7 +70,10 @@ public class ExtendedKeyUsage
         while (e.hasMoreElements())
         {
             Object  o = e.nextElement();
-
+            if (!(o instanceof DERObjectIdentifier))
+            {
+                throw new IllegalArgumentException("Only DERObjectIdentifiers allowed in ExtendedKeyUsage.");
+            }
             this.usageTable.put(o, o);
         }
     }
@@ -83,8 +100,28 @@ public class ExtendedKeyUsage
     {
         return (usageTable.get(keyPurposeId) != null);
     }
+    
+    /**
+     * Returns all extended key usages.
+     * The returned vector contains DERObjectIdentifiers.
+     * @return A vector with all key purposes.
+     */
+    public Vector getUsages()
+    {
+        Vector temp = new Vector();
+        for (Enumeration it = usageTable.elements(); it.hasMoreElements();)
+        {
+            temp.addElement(it.nextElement());
+        }
+        return temp;
+    }
 
-    public DERObject getDERObject()
+    public int size()
+    {
+        return usageTable.size();
+    }
+    
+    public DERObject toASN1Object()
     {
         return seq;
     }

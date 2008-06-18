@@ -6,7 +6,7 @@ import java.io.IOException;
  * A NULL object.
  */
 public abstract class ASN1Null
-    extends DERObject
+    extends ASN1Object
 {
     public ASN1Null()
     {
@@ -17,17 +17,22 @@ public abstract class ASN1Null
         return 0;
     }
 
-	public boolean equals(
-		Object o)
-	{
-        if ((o == null) || !(o instanceof ASN1Null))
+    boolean asn1Equals(
+        DERObject o)
+    {
+        if (!(o instanceof ASN1Null))
         {
             return false;
         }
         
-		return true;
-	}
+        return true;
+    }
 
     abstract void encode(DEROutputStream out)
         throws IOException;
+
+    public String toString()
+    {
+         return "NULL";
+    }
 }

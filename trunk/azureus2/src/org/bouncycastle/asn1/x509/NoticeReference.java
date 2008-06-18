@@ -26,10 +26,11 @@ import org.bouncycastle.asn1.DERSequence;
  * @see PolicyQualifierInfo
  * @see PolicyInformation
  */
-public class NoticeReference extends ASN1Encodable
+public class NoticeReference 
+    extends ASN1Encodable
 {
-   DisplayText organization;
-   ASN1Sequence noticeNumbers;
+   private DisplayText organization;
+   private ASN1Sequence noticeNumbers;
 
    /**
     * Creates a new <code>NoticeReference</code> instance.
@@ -37,17 +38,21 @@ public class NoticeReference extends ASN1Encodable
     * @param orgName a <code>String</code> value
     * @param numbers a <code>Vector</code> value
     */
-   public NoticeReference (String orgName, Vector numbers) 
+   public NoticeReference(
+       String orgName,
+       Vector numbers) 
    {
       organization = new DisplayText(orgName);
 
       Object o = numbers.elementAt(0);
 
       ASN1EncodableVector av = new ASN1EncodableVector();
-      if (o instanceof Integer) {
+      if (o instanceof Integer)
+      {
          Enumeration it = numbers.elements();
 
-         while (it.hasMoreElements()) {
+         while (it.hasMoreElements())
+         {
             Integer nm = (Integer) it.nextElement();
                DERInteger di = new DERInteger(nm.intValue());
             av.add (di);
@@ -63,10 +68,12 @@ public class NoticeReference extends ASN1Encodable
     * @param orgName a <code>String</code> value
     * @param numbers an <code>ASN1EncodableVector</code> value
     */
-   public NoticeReference (String orgName, ASN1Sequence numbers) 
+   public NoticeReference(
+       String orgName, 
+       ASN1Sequence numbers) 
    {
-      organization = new DisplayText (orgName);
-      noticeNumbers = numbers;
+       organization = new DisplayText (orgName);
+       noticeNumbers = numbers;
    }
 
    /**
@@ -76,12 +83,14 @@ public class NoticeReference extends ASN1Encodable
     * @param orgName a <code>String</code> value
     * @param numbers an <code>ASN1EncodableVector</code> value
     */
-   public NoticeReference (int displayTextType,
-                           String orgName, ASN1Sequence numbers) 
+   public NoticeReference(
+       int displayTextType,
+       String orgName,
+       ASN1Sequence numbers) 
    {
-      organization = new DisplayText(displayTextType, 
+       organization = new DisplayText(displayTextType, 
                                      orgName);
-      noticeNumbers = numbers;
+       noticeNumbers = numbers;
    }
 
    /**
@@ -93,13 +102,21 @@ public class NoticeReference extends ASN1Encodable
     * calling @{link toASN1Object()} for a <code>NoticeReference</code>
     * instance or from parsing it from a DER-encoded stream. 
     */
-   public NoticeReference (ASN1Sequence as) 
+   public NoticeReference(
+       ASN1Sequence as) 
    {
-      organization = DisplayText.getInstance(as.getObjectAt(0));
-      noticeNumbers = (ASN1Sequence) as.getObjectAt(1);
+       if (as.size() != 2)
+       {
+            throw new IllegalArgumentException("Bad sequence size: "
+                    + as.size());
+       }
+
+       organization = DisplayText.getInstance(as.getObjectAt(0));
+       noticeNumbers = ASN1Sequence.getInstance(as.getObjectAt(1));
    }
 
-   public static NoticeReference getInstance (Object as) 
+   public static NoticeReference getInstance(
+       Object as) 
    {
       if (as instanceof NoticeReference)
       {
@@ -111,6 +128,16 @@ public class NoticeReference extends ASN1Encodable
       }
 
       throw new IllegalArgumentException("unknown object in getInstance.");
+   }
+   
+   public DisplayText getOrganization()
+   {
+       return organization;
+   }
+   
+   public ASN1Sequence getNoticeNumbers()
+   {
+       return noticeNumbers;
    }
    
    /**

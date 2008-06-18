@@ -15,7 +15,7 @@ public class AlgorithmIdentifier
     private DERObjectIdentifier objectId;
     private DEREncodable        parameters;
     private boolean             parametersDefined = false;
-	
+
     public static AlgorithmIdentifier getInstance(
         ASN1TaggedObject obj,
         boolean          explicit)
@@ -26,7 +26,7 @@ public class AlgorithmIdentifier
     public static AlgorithmIdentifier getInstance(
         Object  obj)
     {
-        if (obj instanceof AlgorithmIdentifier)
+        if (obj== null || obj instanceof AlgorithmIdentifier)
         {
             return (AlgorithmIdentifier)obj;
         }
@@ -73,7 +73,13 @@ public class AlgorithmIdentifier
     public AlgorithmIdentifier(
         ASN1Sequence   seq)
     {
-        objectId = (DERObjectIdentifier)seq.getObjectAt(0);
+        if (seq.size() < 1 || seq.size() > 2)
+        {
+            throw new IllegalArgumentException("Bad sequence size: "
+                    + seq.size());
+        }
+        
+        objectId = DERObjectIdentifier.getInstance(seq.getObjectAt(0));
 
         if (seq.size() == 2)
         {

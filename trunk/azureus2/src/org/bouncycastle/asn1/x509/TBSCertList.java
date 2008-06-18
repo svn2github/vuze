@@ -1,8 +1,8 @@
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERInteger;
 import org.bouncycastle.asn1.DERObject;
@@ -31,10 +31,10 @@ import org.bouncycastle.asn1.DERUTCTime;
  * </pre>
  */
 public class TBSCertList
-    implements DEREncodable
+    extends ASN1Encodable
 {
     public class CRLEntry
-        implements DEREncodable
+        extends ASN1Encodable
     {
         ASN1Sequence  seq;
 
@@ -45,9 +45,14 @@ public class TBSCertList
         public CRLEntry(
             ASN1Sequence  seq)
         {
+            if (seq.size() < 2 || seq.size() > 3)
+            {
+                throw new IllegalArgumentException("Bad sequence size: " + seq.size());
+            }
+            
             this.seq = seq;
 
-            userCertificate = (DERInteger)seq.getObjectAt(0);
+            userCertificate = DERInteger.getInstance(seq.getObjectAt(0));
             revocationDate = Time.getInstance(seq.getObjectAt(1));
             if (seq.size() == 3)
             {
@@ -70,7 +75,7 @@ public class TBSCertList
             return crlEntryExtensions;
         }
 
-        public DERObject getDERObject()
+        public DERObject toASN1Object()
         {
             return seq;
         }
@@ -111,13 +116,18 @@ public class TBSCertList
     public TBSCertList(
         ASN1Sequence  seq)
     {
+        if (seq.size() < 3 || seq.size() > 7)
+        {
+            throw new IllegalArgumentException("Bad sequence size: " + seq.size());
+        }
+
         int seqPos = 0;
 
         this.seq = seq;
 
         if (seq.getObjectAt(seqPos) instanceof DERInteger)
         {
-            version = (DERInteger)seq.getObjectAt(seqPos++);
+            version = DERInteger.getInstance(seq.getObjectAt(seqPos++));
         }
         else
         {
@@ -139,12 +149,12 @@ public class TBSCertList
         if (seqPos < seq.size()
             && !(seq.getObjectAt(seqPos) instanceof DERTaggedObject))
         {
-            ASN1Sequence certs = (ASN1Sequence)seq.getObjectAt(seqPos++);
+            ASN1Sequence certs = ASN1Sequence.getInstance(seq.getObjectAt(seqPos++));
             revokedCertificates = new CRLEntry[certs.size()];
 
-            for ( int i = 0; i < revokedCertificates.length; i++)
+            for (int i = 0; i < revokedCertificates.length; i++)
             {
-                revokedCertificates[i] = new CRLEntry((ASN1Sequence)certs.getObjectAt(i));
+                revokedCertificates[i] = new CRLEntry(ASN1Sequence.getInstance(certs.getObjectAt(i)));
             }
         }
 
@@ -195,7 +205,7 @@ public class TBSCertList
         return crlExtensions;
     }
 
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         return seq;
     }

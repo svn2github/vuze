@@ -1,7 +1,9 @@
 
 package org.bouncycastle.asn1.x509;
 
+import org.bouncycastle.asn1.ASN1Choice;
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERBMPString;
 import org.bouncycastle.asn1.DERIA5String;
@@ -24,7 +26,9 @@ import org.bouncycastle.asn1.DERString;
  * @see PolicyQualifierInfo
  * @see PolicyInformation
  */
-public class DisplayText extends ASN1Encodable 
+public class DisplayText 
+    extends ASN1Encodable
+    implements ASN1Choice
 {
    /**
     * Constant corresponding to ia5String encoding. 
@@ -65,14 +69,16 @@ public class DisplayText extends ASN1Encodable
     */
    public DisplayText (int type, String text) 
    {
-      if (text.length() > DISPLAY_TEXT_MAXIMUM_SIZE) {
+      if (text.length() > DISPLAY_TEXT_MAXIMUM_SIZE)
+      {
          // RFC3280 limits these strings to 200 chars
          // truncate the string
          text = text.substring (0, DISPLAY_TEXT_MAXIMUM_SIZE);
       }
      
       contentType = type;
-      switch (type) {
+      switch (type)
+      {
          case CONTENT_TYPE_IA5STRING:
             contents = (DERString)new DERIA5String (text);
             break;
@@ -90,7 +96,7 @@ public class DisplayText extends ASN1Encodable
             break;
       }
    }
-
+   
    /**
     * Creates a new <code>DisplayText</code> instance.
     *
@@ -100,7 +106,8 @@ public class DisplayText extends ASN1Encodable
    public DisplayText (String text) 
    {
       // by default use UTF8String
-      if (text.length() > DISPLAY_TEXT_MAXIMUM_SIZE) {
+      if (text.length() > DISPLAY_TEXT_MAXIMUM_SIZE)
+      {
          text = text.substring(0, DISPLAY_TEXT_MAXIMUM_SIZE);
       }
       
@@ -134,6 +141,13 @@ public class DisplayText extends ASN1Encodable
       throw new IllegalArgumentException("illegal object in getInstance");
    }
 
+   public static DisplayText getInstance(
+       ASN1TaggedObject obj,
+       boolean          explicit)
+   {
+       return getInstance(obj.getObject()); // must be explicitly tagged
+   }
+   
    public DERObject toASN1Object() 
    {
       return (DERObject)contents;

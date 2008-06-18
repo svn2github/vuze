@@ -101,7 +101,7 @@ public class V1TBSCertificateGenerator
 
         ASN1EncodableVector  seq = new ASN1EncodableVector();
 
-        seq.add(version);
+        // seq.add(version); - not required as default value.
         seq.add(serialNumber);
         seq.add(signature);
         seq.add(issuer);

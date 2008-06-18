@@ -1,18 +1,20 @@
 package org.bouncycastle.asn1.x509;
 
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.SimpleTimeZone;
-
+import org.bouncycastle.asn1.ASN1Choice;
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERUTCTime;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.SimpleTimeZone;
+
 public class Time
-    implements DEREncodable
+    extends ASN1Encodable
+    implements ASN1Choice
 {
     DERObject   time;
 
@@ -20,7 +22,7 @@ public class Time
         ASN1TaggedObject obj,
         boolean          explicit)
     {
-        return getInstance(obj.getObject());
+        return getInstance(obj.getObject()); // must be explicitly tagged
     }
 
     public Time(
@@ -94,9 +96,21 @@ public class Time
 
     public Date getDate()
     {
-        SimpleDateFormat dateF = new SimpleDateFormat("yyyyMMddHHmmssz");
-
-        return dateF.parse(this.getTime(), new ParsePosition(0));
+        try
+        {
+            if (time instanceof DERUTCTime)
+            {
+                return ((DERUTCTime)time).getAdjustedDate();
+            }
+            else
+            {
+                return ((DERGeneralizedTime)time).getDate();
+            }
+        }
+        catch (ParseException e)
+        {         // this should never happen
+            throw new IllegalStateException("invalid date string: " + e.getMessage());
+        }
     }
 
     /**
@@ -107,8 +121,13 @@ public class Time
      *             generalTime    GeneralizedTime }
      * </pre>
      */
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         return time;
+    }
+
+    public String toString()
+    {
+        return getTime();
     }
 }

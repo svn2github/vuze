@@ -6,7 +6,7 @@ import java.io.IOException;
  * DER BMPString object.
  */
 public class DERBMPString
-    extends DERObject
+    extends ASN1Object
     implements DERString
 {
     String  string;
@@ -85,13 +85,18 @@ public class DERBMPString
         return string;
     }
 
+    public String toString()
+    {
+        return string;
+    }
+
     public int hashCode()
     {
         return this.getString().hashCode();
     }
 
-    public boolean equals(
-        Object  o)
+    protected boolean asn1Equals(
+        DERObject  o)
     {
         if (!(o instanceof DERBMPString))
         {

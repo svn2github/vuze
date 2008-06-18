@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 
+/**
+ * 
+ * @deprecated use DERSet
+ */
 public class DERConstructedSet
     extends ASN1Set
 {

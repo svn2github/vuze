@@ -3,16 +3,16 @@ package org.bouncycastle.asn1.x509;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DEREncodable;
 import org.bouncycastle.asn1.DERObject;
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
 
 public class CertificatePolicies
-    implements DEREncodable
+    extends ASN1Encodable
 {
     static final DERObjectIdentifier anyPolicy = new DERObjectIdentifier("2.5.29.32.0");
 
@@ -55,7 +55,7 @@ public class CertificatePolicies
         Enumeration e = seq.getObjects();
         while (e.hasMoreElements())
         {
-            ASN1Sequence s = (ASN1Sequence)e.nextElement();
+            ASN1Sequence s = ASN1Sequence.getInstance(e.nextElement());
             policies.addElement(s.getObjectAt(0));
         }
         // For now we just don't handle PolicyQualifiers
@@ -91,8 +91,10 @@ public class CertificatePolicies
     public String getPolicy(int nr)
     {
         if (policies.size() > nr)
+        {
             return ((DERObjectIdentifier)policies.elementAt(nr)).getId();
-
+        }
+        
         return null;
     }
 
@@ -112,11 +114,11 @@ public class CertificatePolicies
      *   qualifier          ANY DEFINED BY policyQualifierId }
      *
      * PolicyQualifierId ::=
-     *   OBJECT IDENTIFIER ( id-qt-cps | id-qt-unotice )
+     *   OBJECT IDENTIFIER (id-qt-cps | id-qt-unotice)
      * </pre>
      * @deprecated use an ASN1Sequence of PolicyInformation
      */
-    public DERObject getDERObject()
+    public DERObject toASN1Object()
     {
         ASN1EncodableVector  v = new ASN1EncodableVector();
 
@@ -135,7 +137,9 @@ public class CertificatePolicies
         for (int i=0;i<policies.size();i++)
         {
             if (p != null)
+            {
                 p += ", ";
+            }
             p += ((DERObjectIdentifier)policies.elementAt(i)).getId();
         }
         return "CertificatePolicies: "+p;

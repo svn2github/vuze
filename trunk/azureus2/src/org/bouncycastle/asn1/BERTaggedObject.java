@@ -19,7 +19,7 @@ public class BERTaggedObject
         int             tagNo,
         DEREncodable    obj)
     {
-		super(tagNo, obj);
+        super(tagNo, obj);
     }
 
     /**
@@ -32,7 +32,7 @@ public class BERTaggedObject
         int             tagNo,
         DEREncodable    obj)
     {
-		super(explicit, tagNo, obj);
+        super(explicit, tagNo, obj);
     }
 
     /**
@@ -42,7 +42,7 @@ public class BERTaggedObject
     public BERTaggedObject(
         int             tagNo)
     {
-        super(false, tagNo, new BERConstructedSequence());
+        super(false, tagNo, new BERSequence());
     }
 
     void encode(
