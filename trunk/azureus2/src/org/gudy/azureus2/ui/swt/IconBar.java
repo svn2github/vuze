@@ -219,7 +219,7 @@ public class IconBar {
     p = toolBar.getSize();
     coolItem.setControl(toolBar);
     coolItem.setSize(p.x,p.y);
-    coolItem.setMinimumSize(p.x,p.y);    
+    //coolItem.setMinimumSize(p.x,p.y);    
   }
   
   public void setLayoutData(Object layoutData) {
