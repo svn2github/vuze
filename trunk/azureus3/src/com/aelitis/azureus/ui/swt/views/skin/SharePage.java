@@ -460,7 +460,7 @@ public class SharePage
 			public void runSupport() {
 				stackLayout.topControl = firstPanel;
 				adjustLayout();
-				buttonBar.enableShare(true);
+				buttonBar.enableShareButton(true);
 			}
 		});
 
@@ -472,7 +472,7 @@ public class SharePage
 			public void handleEvent(Event event) {
 				stackLayout.topControl = browserPanel;
 				content.layout(true, true);
-				buttonBar.enableShare(false);
+				buttonBar.enableShareButton(false);
 			}
 		});
 
