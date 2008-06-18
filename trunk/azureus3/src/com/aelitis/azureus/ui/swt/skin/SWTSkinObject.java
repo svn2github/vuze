@@ -50,7 +50,7 @@ public interface SWTSkinObject
 	public void setVisible(boolean visible);
 
 	public boolean isVisible();
-	
+
 	public void setDefaultVisibility();
 
 	/**
@@ -66,6 +66,13 @@ public interface SWTSkinObject
 	 * @return TODO
 	 */
 	String switchSuffix(String suffix, int level, boolean walkUp);
+
+	/**
+	 * Convenience method for switching suffix using defaults
+	 * @param suffix
+	 * @return
+	 */
+	String switchSuffix(String suffix);
 
 	/**
 	 * @return

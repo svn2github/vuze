@@ -7,16 +7,24 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.ui.skin.SkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
 /**
@@ -62,7 +70,7 @@ public class SWTSkinObjectBasic
 	protected Color bgColor;
 
 	private int borderType;
-	
+
 	/**
 	 * @param properties TODO
 	 * 
@@ -207,22 +215,22 @@ public class SWTSkinObjectBasic
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		String s = properties.getStringValue(sConfigID + sSuffix, (String) null);
 		if (s != null && s.length() > 0) {
-  		Image[] images = imageLoader.getImages(sConfigID + sSuffix);
-  		if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
-  			imageBG = images[0];
-  			imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-  			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
-  		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
-  			imageBGLeft = images[0];
-  			imageBG = images[1];
-  			imageBGRight = images[2];
-  		} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
-  			imageBGLeft = images[0];
-  			imageBG = images[1];
-  			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
-  		} else {
-  			return;
-  		}
+			Image[] images = imageLoader.getImages(sConfigID + sSuffix);
+			if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
+				imageBG = images[0];
+				imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
+				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+			} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
+				imageBGLeft = images[0];
+				imageBG = images[1];
+				imageBGRight = images[2];
+			} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
+				imageBGLeft = images[0];
+				imageBG = images[1];
+				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+			} else {
+				return;
+			}
 		} else {
 			if (s != null && painter != null) {
 				painter.dispose();
@@ -333,10 +341,10 @@ public class SWTSkinObjectBasic
 
 		setVisible(getDefaultVisibility());
 	}
-	
+
 	public boolean getDefaultVisibility() {
 		return properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
-		"true");
+				"true");
 	}
 
 	public boolean isVisible() {
@@ -344,6 +352,13 @@ public class SWTSkinObjectBasic
 			return false;
 		}
 		return isVisible;
+	}
+
+	/**
+	 * Switch the suffix using the default of <code>1</code> for level and <code>false</code> for walkUp 
+	 */
+	public String switchSuffix(String suffix) {
+		return switchSuffix(suffix, 1, false);
 	}
 
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
@@ -476,7 +491,7 @@ public class SWTSkinObjectBasic
 		} finally {
 			listeners_mon.exit();
 		}
-		
+
 		if (isVisible) {
 			listener.eventOccured(this, SWTSkinObjectListener.EVENT_SHOW, null);
 		}
@@ -579,7 +594,7 @@ public class SWTSkinObjectBasic
 				gc.setAdvanced(true);
 				gc.setAntialias(SWT.ON);
 			} catch (Exception e) {
-				
+
 			}
 			Rectangle bounds = control.getBounds();
 			if (borderType == BORDER_ROUNDED_FILL) {

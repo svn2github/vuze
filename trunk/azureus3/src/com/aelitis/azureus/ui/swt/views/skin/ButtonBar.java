@@ -51,6 +51,8 @@ public class ButtonBar
 
 	boolean isShareWithAllSelected = false;
 
+	private int currentMode = BuddiesViewer.none_active_mode;
+
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
@@ -208,13 +210,13 @@ public class ButtonBar
 	public void enableShareButton(boolean value) {
 		if (shareAllBuddiesObject.isVisible()) {
 			if (false == value) {
-				shareAllBuddiesObject.switchSuffix("-disabled", 1, false);
+				shareAllBuddiesObject.switchSuffix("-disabled");
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.disabled_mode);
 				}
 			} else {
-				shareAllBuddiesObject.switchSuffix("", 1, false);
+				shareAllBuddiesObject.switchSuffix("");
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
 				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.share_mode);
@@ -238,35 +240,38 @@ public class ButtonBar
 	}
 
 	public void setActiveMode(int mode) {
+		if (currentMode != mode) {
+			currentMode = mode;
 
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-		if (null == viewer) {
-			return;
-		}
-
-		shareAllBuddiesObject.setVisible(false);
-		cancelEditBuddies.setVisible(false);
-
-		if (mode == BuddiesViewer.none_active_mode) {
-			disabledForEdit(false);
-			showShareWithAllSelected(false);
-		} else if (mode == BuddiesViewer.edit_mode) {
-			disabledForEdit(true);
-			cancelEditBuddies.setVisible(true);
-			editButton.setDisabled(true);
-			showFooter(true, true);
-
-		} else if (mode == BuddiesViewer.share_mode) {
-			disabledForShare(true);
-			if (VuzeBuddyManager.getAllVuzeBuddies().size() > 0) {
-				shareAllBuddiesObject.setVisible(true);
+			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+			if (null == viewer) {
+				return;
 			}
-			showFooter(true, true);
 
-		} else {
-			disabledForEdit(true);
+			shareAllBuddiesObject.setVisible(false);
+			cancelEditBuddies.setVisible(false);
+
+			if (mode == BuddiesViewer.none_active_mode) {
+				disabledForEdit(false);
+				showShareWithAllSelected(false);
+			} else if (mode == BuddiesViewer.edit_mode) {
+				disabledForEdit(true);
+				cancelEditBuddies.setVisible(true);
+				editButton.setDisabled(true);
+				showFooter(true, true);
+
+			} else if (mode == BuddiesViewer.share_mode) {
+				disabledForShare(true);
+				if (VuzeBuddyManager.getAllVuzeBuddies().size() > 0) {
+					shareAllBuddiesObject.setVisible(true);
+				}
+				showFooter(true, true);
+
+			} else {
+				disabledForEdit(true);
+			}
+			viewer.setMode(mode);
 		}
-		viewer.setMode(mode);
 	}
 
 	private void disabledForShare(boolean value) {
@@ -275,7 +280,7 @@ public class ButtonBar
 		 * Reset shareAllBuddiesObject to normal since it has a dynamic 'disabled' state based on whether
 		 * the user is in Add Friend mode or not
 		 */
-		shareAllBuddiesObject.switchSuffix("", 1, false);
+		shareAllBuddiesObject.switchSuffix("");
 	}
 
 	private void disabledForEdit(boolean value) {
@@ -284,12 +289,12 @@ public class ButtonBar
 		/*
 		 * Reset cancelEditBuddies to normal since it has no 'disabled' state
 		 */
-		cancelEditBuddies.switchSuffix("", 1, false);
+		cancelEditBuddies.switchSuffix("");
 	}
 
 	private void disabledButtonBar(boolean value) {
 		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
-		buttonBarObject.switchSuffix(value ? "-disabled" : "", 1, true);
+		buttonBarObject.switchSuffix(value ? "-disabled" : "");
 	}
 
 	private void hookShowHideButon() {
