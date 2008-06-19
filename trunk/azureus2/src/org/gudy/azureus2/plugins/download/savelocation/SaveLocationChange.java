@@ -127,7 +127,7 @@ public class SaveLocationChange {
 	 */
 	public final boolean isDifferentDownloadLocation(File current_location) {
 		if (!hasDownloadChange()) {return false;}
-		return current_location.equals(this.normaliseDownloadLocation(current_location));
+		return !current_location.equals(this.normaliseDownloadLocation(current_location));
 	}
 
 	/**
@@ -137,7 +137,7 @@ public class SaveLocationChange {
 	 */
 	public final boolean isDifferentTorrentLocation(File current_location) {
 		if (!hasTorrentChange()) {return false;}
-		return current_location.equals(this.normaliseTorrentLocation(current_location));
+		return !current_location.equals(this.normaliseTorrentLocation(current_location));
 	}
 	
 }

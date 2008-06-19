@@ -4,6 +4,7 @@ VUZE CHANGELOG
 
 2008.0x.xx | Vuze 3.1.0.1
 
+BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1] 
 
 2008.06.16 | Vuze 3.1.0.0
 
@@ -37,7 +38,6 @@ CHANGE: UIv3  | Removed Vuze Header (the top plugin bar is still there but you h
 BUGFIX: Core  | Made change so that plugins could not inadvertently turn off Azureus extension protocol [amc1]
 BUGFIX: Core  | The UDP tracker client option has been nonfunctional for quite a while now -> fixed [The 8472]
 BUGFIX: Core  | Fixed various file-priority-change related bugs that resulted in error states [The 8472]
-BUGFIX: Core  | Stop premature creation of torrent directories before download has started [amc1] 
 
 
 
