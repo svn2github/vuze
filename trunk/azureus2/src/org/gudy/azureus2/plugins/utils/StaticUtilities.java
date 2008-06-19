@@ -22,9 +22,10 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
@@ -93,5 +94,68 @@ public class StaticUtilities {
 		  
 		  return( -1 );
 	  }
+  }
+  
+  /**
+   * gets the default UI manager and also waits for up to a specified time for a UI instance to
+   * attach. useful when doing things during initialisation  
+   * @param millis_to_wait_for_attach
+   * @return
+   */
+  
+  public static UIManager
+  getUIManager(
+	  long	millis_to_wait_for_attach )
+  {
+	  final UIManager ui_manager = getDefaultPluginInterface().getUIManager();
+	  
+	  if ( ui_manager.getUIInstances().length == 0 ){
+		  
+		  final AESemaphore sem = new AESemaphore( "waitforui") ;
+		 
+		  ui_manager.addUIListener(
+					new UIManagerListener()
+					{
+						public void
+						UIAttached(
+							UIInstance		instance )
+						{
+							ui_manager.removeUIListener( this );
+							
+							sem.releaseForever();
+						}
+						
+						public void
+						UIDetached(
+							UIInstance		instance )
+						{
+						}
+					});
+		  
+		  	// UIAttached is only fired once initialisation is complete. However, the instance
+		  	// can be made available prior to this and there is a case where this event is blocking
+		  	// the firing of the completion event. therefore pick it up if present directly
+		  
+		  long	time_to_go = millis_to_wait_for_attach;
+		  
+		  while( ui_manager.getUIInstances().length == 0 ){
+			  
+			  if ( sem.reserve( 1000 )){
+				  
+				  break;
+			  }
+			  
+			  time_to_go -= 1000;
+		
+			  if ( time_to_go <= 0 ){
+				  
+				  Debug.out( "Timeout waiting for UI to attach" );
+				  
+				  break;
+			  }
+		  }
+	  }
+	  
+	  return( ui_manager );
   }
 }

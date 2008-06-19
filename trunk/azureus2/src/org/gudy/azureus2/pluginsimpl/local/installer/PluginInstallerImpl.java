@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.update.*;
@@ -127,7 +128,9 @@ PluginInstallerImpl
 										
 										FileUtil.copyFile( new ByteArrayInputStream( plugin_file ), temp_file );
 
-										addFileInstallOperation( temp_file );
+										FilePluginInstaller installer = installFromFile( temp_file );
+
+										addFileInstallOperation( installer );
 										
 										comp.setProcessed();
 										
@@ -144,7 +147,7 @@ PluginInstallerImpl
 	
 	protected void
 	addFileInstallOperation(
-		final File	file )
+		final FilePluginInstaller		installer )
 	{
 		synchronized( this ){
 			
@@ -160,101 +163,75 @@ PluginInstallerImpl
 					runSupport()
 					{
 						try{
-							final FilePluginInstaller inst = installFromFile( file );
-					
 							final AESemaphore done_sem = new AESemaphore( "PluginInstall:fio" );
-							
+																	
+							final UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+									
 							new AEThread2( "PluginInstall:fio", true )
-							{
-								public void
-								run()
 								{
-									if ( inst.isAlreadyInstalled()){
-										
-										PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
-										
-										String details = MessageText.getString(
-												"fileplugininstall.duplicate.desc",
-												new String[]{ inst.getName(), inst.getVersion()});
-										
-										pi.getUIManager().showMessageBox(
-												"fileplugininstall.duplicate.title",
-												"!" + details + "!",
-												UIManagerEvent.MT_OK );
-
-										done_sem.release();
-										
-									}else{
-
-										final PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
-										
-										pi.getUIManager().addUIListener(
-											new UIManagerListener()
-											{
-												public void
-												UIAttached(
-													UIInstance		instance )
-												{
-													new AEThread2( "PluginInstall:fio", true )
-													{
-														public void
-														run()
-														{
-		
-															String details = MessageText.getString(
-																	"fileplugininstall.install.desc",
-																	new String[]{ inst.getName(), inst.getVersion()});
-																														
-															long res = pi.getUIManager().showMessageBox(
-																	"fileplugininstall.install.title",
-																	"!" + details + "!",
-																	UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-															
-															if ( res == UIManagerEvent.MT_YES ){
-															
-																try{
-																	install( 
-																		new InstallablePlugin[]{ inst }, 
-																		false, 
-																		true,
-																		new installListener()
-																		{											
-																			public void 
-																			done() 
-																			{
-																				done_sem.release();
-																			}
-																		});
-																	
-																}catch( Throwable e ){
-																	
-																	Debug.printStackTrace(e);
-																	
-																	done_sem.release();
-																}
-															}else if ( res == UIManagerEvent.MT_NO ){
-																
-																done_sem.release();
-																
-															}else{
-																
-																Debug.out( "Message box not handled" );
-																
+									public void
+									run()
+									{
+										if ( installer.isAlreadyInstalled()){
+																						
+											String details = MessageText.getString(
+													"fileplugininstall.duplicate.desc",
+													new String[]{ installer.getName(), installer.getVersion()});
+											
+											ui_manager.showMessageBox(
+													"fileplugininstall.duplicate.title",
+													"!" + details + "!",
+													UIManagerEvent.MT_OK );
+	
+											done_sem.release();
+											
+										}else{
+	
+											String details = MessageText.getString(
+													"fileplugininstall.install.desc",
+													new String[]{ installer.getName(), installer.getVersion()});
+																										
+											long res = ui_manager.showMessageBox(
+													"fileplugininstall.install.title",
+													"!" + details + "!",
+													UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+											
+											if ( res == UIManagerEvent.MT_YES ){
+											
+												try{
+													install( 
+														new InstallablePlugin[]{ installer }, 
+														false, 
+														true,
+														new installListener()
+														{											
+															public void 
+															done() 
+															{
 																done_sem.release();
 															}
-														}
-													}.start();
+														});
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+													
+													done_sem.release();
 												}
-		
-												public void
-												UIDetached(
-													UIInstance		instance )
-												{												
-												}
-											});
+											}else if ( res == UIManagerEvent.MT_NO ){
+												
+												done_sem.release();
+												
+											}else{
+												
+												Debug.out( "Message box not handled" );
+												
+												done_sem.release();
+											}
+										}
 									}
-								}
-							}.start();
+								}.start();
+	
 						
 							while( !done_sem.reserve( 60*1000 )){
 								
