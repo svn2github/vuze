@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
@@ -624,13 +625,13 @@ MetaSearchManagerImpl
 					
 					if ( is_import && warn_user ){
 						
-						PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 						
 						String details = MessageText.getString(
 								"metasearch.addtemplate.dup.desc",
 								new String[]{ engine.getName() });
 						
-						pi.getUIManager().showMessageBox(
+						ui_manager.showMessageBox(
 								"metasearch.addtemplate.dup.title",
 								"!" + details + "!",
 								UIManagerEvent.MT_OK );
@@ -642,13 +643,13 @@ MetaSearchManagerImpl
 			
 			if ( is_import && warn_user ){
 				
-				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
 				String details = MessageText.getString(
 						"metasearch.addtemplate.desc",
 						new String[]{ engine.getName() });
 				
-				long res = pi.getUIManager().showMessageBox(
+				long res = ui_manager.showMessageBox(
 						"metasearch.addtemplate.title",
 						"!" + details + "!",
 						UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
@@ -686,13 +687,13 @@ MetaSearchManagerImpl
 			
 			if ( is_import && warn_user ){
 				
-				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
 				String details = MessageText.getString(
 						"metasearch.addtemplate.done.desc",
 						new String[]{ engine.getName() });
 				
-				pi.getUIManager().showMessageBox(
+				ui_manager.showMessageBox(
 						"metasearch.addtemplate.done.title",
 						"!" + details + "!",
 						UIManagerEvent.MT_OK );
