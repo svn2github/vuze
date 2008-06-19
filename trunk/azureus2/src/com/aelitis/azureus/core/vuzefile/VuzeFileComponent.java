@@ -30,6 +30,7 @@ VuzeFileComponent
 	public static final int COMP_TYPE_METASEARCH_TEMPLATE	= 0x00000001;
 	public static final int COMP_TYPE_V3_NAVIGATION			= 0x00000002;
 	public static final int COMP_TYPE_V3_CONDITION_CHECK	= 0x00000004;
+	public static final int COMP_TYPE_PLUGIN				= 0x00000008;
 	
 	public int
 	getType();

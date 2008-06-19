@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
@@ -58,6 +59,7 @@ FilePluginInstallerImpl
 	protected File						file;
 	protected String					id;
 	protected String					version;
+	protected String					name;
 	protected boolean					is_jar;
 	
 	protected
@@ -278,6 +280,18 @@ FilePluginInstallerImpl
 
 				}
 				
+				this.name = id;
+				
+				if ( properties != null ){
+					
+					String plugin_name = properties.getProperty( "plugin.name" );
+					
+					if ( plugin_name != null ){
+						
+						this.name = plugin_name;
+					}
+				}
+				
 				ok	= id != null && version != null;
 			}
 		}
@@ -309,7 +323,7 @@ FilePluginInstallerImpl
 	public String
 	getName()
 	{
-		return( "" );
+		return( name );
 	}
 	
 	public String
@@ -328,6 +342,24 @@ FilePluginInstallerImpl
 	getAlreadyInstalledPlugin()
 	{
 		return( installer.getAlreadyInstalledPlugin( getId()));
+	}
+	
+	public boolean
+	isAlreadyInstalled()
+	{
+		PluginInterface pi = getAlreadyInstalledPlugin();
+		
+		if ( pi == null ){
+			
+			return( false );
+		}
+		
+		if ( version == null || version.length() == 0 ){
+			
+			return( false );
+		}
+		
+		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0 );
 	}
 	
 	public void

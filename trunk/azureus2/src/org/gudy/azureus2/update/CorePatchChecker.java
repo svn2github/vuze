@@ -137,6 +137,12 @@ CorePatchChecker
 
 						patch(instance, update, updater_plugin);
 					}
+					
+					public void 
+					cancelled(
+						Update update ) 
+					{						
+					}
 				});
 			}
 		}

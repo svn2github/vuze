@@ -27,24 +27,41 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
  *
  */
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.pluginsimpl.local.FailedPlugin;
+import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
+
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 
 public class 
 PluginInstallerImpl
@@ -67,11 +84,193 @@ PluginInstallerImpl
 	private PluginManager	manager;
 	private List			listeners	 = new ArrayList();
 	
+	private AsyncDispatcher		add_file_install_dispatcher;
+	
 	protected
 	PluginInstallerImpl(
 		PluginManager	_manager )
 	{
 		manager	= _manager;
+		
+		VuzeFileHandler.getSingleton().addProcessor(
+				new VuzeFileProcessor()
+				{
+					public void
+					process(
+						VuzeFile[]		files,
+						int				expected_types )
+					{
+						for (int i=0;i<files.length;i++){
+							
+							VuzeFile	vf = files[i];
+							
+							VuzeFileComponent[] comps = vf.getComponents();
+							
+							for (int j=0;j<comps.length;j++){
+								
+								VuzeFileComponent comp = comps[j];
+								
+								if ( comp.getType() == VuzeFileComponent.COMP_TYPE_PLUGIN ){
+									
+									try{
+										Map	content = comp.getContent();
+										
+										String	id 		= new String((byte[])content.get( "id" ), "UTF-8" );
+										String	version = new String((byte[])content.get( "version" ), "UTF-8" );
+										String	suffix	= ((Long)content.get( "is_jar" )).longValue()==1?"jar":"zip";
+										
+										byte[]	plugin_file = (byte[])content.get( "file" );
+										
+										File temp_dir = AETemporaryFileHandler.createTempDir();
+										
+										File temp_file = new File( temp_dir, id + "_" + version + "." + suffix );
+										
+										FileUtil.copyFile( new ByteArrayInputStream( plugin_file ), temp_file );
+
+										addFileInstallOperation( temp_file );
+										
+										comp.setProcessed();
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}
+						}
+					}
+				});
+	}
+	
+	protected void
+	addFileInstallOperation(
+		final File	file )
+	{
+		synchronized( this ){
+			
+			if ( add_file_install_dispatcher == null ){
+				
+				add_file_install_dispatcher = new AsyncDispatcher();
+			}
+			
+			add_file_install_dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							final FilePluginInstaller inst = installFromFile( file );
+					
+							final AESemaphore done_sem = new AESemaphore( "PluginInstall:fio" );
+							
+							new AEThread2( "PluginInstall:fio", true )
+							{
+								public void
+								run()
+								{
+									if ( inst.isAlreadyInstalled()){
+										
+										PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+										
+										String details = MessageText.getString(
+												"fileplugininstall.duplicate.desc",
+												new String[]{ inst.getName(), inst.getVersion()});
+										
+										pi.getUIManager().showMessageBox(
+												"fileplugininstall.duplicate.title",
+												"!" + details + "!",
+												UIManagerEvent.MT_OK );
+
+										done_sem.release();
+										
+									}else{
+
+										final PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+										
+										pi.getUIManager().addUIListener(
+											new UIManagerListener()
+											{
+												public void
+												UIAttached(
+													UIInstance		instance )
+												{
+													new AEThread2( "PluginInstall:fio", true )
+													{
+														public void
+														run()
+														{
+		
+															String details = MessageText.getString(
+																	"fileplugininstall.install.desc",
+																	new String[]{ inst.getName(), inst.getVersion()});
+																														
+															long res = pi.getUIManager().showMessageBox(
+																	"fileplugininstall.install.title",
+																	"!" + details + "!",
+																	UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+															
+															if ( res == UIManagerEvent.MT_YES ){
+															
+																try{
+																	install( 
+																		new InstallablePlugin[]{ inst }, 
+																		false, 
+																		true,
+																		new installListener()
+																		{											
+																			public void 
+																			done() 
+																			{
+																				done_sem.release();
+																			}
+																		});
+																	
+																}catch( Throwable e ){
+																	
+																	Debug.printStackTrace(e);
+																	
+																	done_sem.release();
+																}
+															}else if ( res == UIManagerEvent.MT_NO ){
+																
+																done_sem.release();
+																
+															}else{
+																
+																Debug.out( "Message box not handled" );
+																
+																done_sem.release();
+															}
+														}
+													}.start();
+												}
+		
+												public void
+												UIDetached(
+													UIInstance		instance )
+												{												
+												}
+											});
+									}
+								}
+							}.start();
+						
+							while( !done_sem.reserve( 60*1000 )){
+								
+								if ( add_file_install_dispatcher.getQueueSize() > 0 ){
+									
+									Debug.out( "File plugin install operation queued pending completion of previous" );
+								}
+							}
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
+		}
 	}
 	
 	protected PluginManager
@@ -179,14 +378,83 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
+		install( plugins, shared, false, null );
+	}
+	
+	protected void
+	install(
+		InstallablePlugin[]			plugins,
+		boolean						shared,
+		boolean						low_noise,
+		final installListener		listener )
+	
+		throws PluginException
+	{
 		PluginUpdatePlugin	pup = (PluginUpdatePlugin)manager.getPluginInterfaceByClass( PluginUpdatePlugin.class ).getPlugin();
 		
-		UpdateManager	uman = manager.getDefaultPluginInterface().getUpdateManager();
+		UpdateManagerImpl	uman = (UpdateManagerImpl)manager.getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	inst = 
 			uman.createEmptyUpdateCheckInstance( 
 					UpdateCheckInstance.UCI_INSTALL,
-					"update.instance.install" );
+					"update.instance.install",
+					low_noise );
+		
+		if ( listener != null ){
+			
+			inst.addListener(
+				new UpdateCheckInstanceListener()
+				{
+					public void
+					cancelled(
+						UpdateCheckInstance		instance )
+					{
+						listener.done();
+					}
+					
+					public void
+					complete(
+						UpdateCheckInstance		instance )
+					{
+						final Update[] updates = instance.getUpdates();
+						
+						for (int i=0;i<updates.length;i++){
+							
+							updates[i].addListener(
+								new UpdateListener()
+								{
+									public void 
+									cancelled(
+										Update update) 
+									{
+										check();
+									}
+									
+									public void 
+									complete(
+										Update update ) 
+									{
+										check();
+									}
+									
+									protected void
+									check()
+									{
+										for (int i=0;i<updates.length;i++){
+											
+											if ( !updates[i].isCancelled() && !updates[i].isComplete()){
+												
+												return;
+											}
+										}
+										
+										listener.done();
+									}
+								});
+						}
+					}
+				});
+		}
 		
 		try{
 			
@@ -268,13 +536,11 @@ PluginInstallerImpl
 							complete(
 								UpdateCheckInstance		instance )
 							{
-								dummy_plugin.requestUnload();
 							}
 						});
 				}else{
 					
 					((InstallablePluginImpl)plugin).addUpdate( inst, pup, existing_plugin, existing_plugin_interface );
-	
 				}
 			}
 		
@@ -519,5 +785,12 @@ PluginInstallerImpl
 		PluginInstallerListener		l )
 	{
 		listeners.remove( l );
+	}
+	
+	protected interface
+	installListener
+	{
+		public void
+		done();
 	}
 }

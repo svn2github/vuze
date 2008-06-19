@@ -167,6 +167,8 @@ UISWTInstanceImpl
 						public void 
 						run()
 						{
+							UIFunctionsManagerSWT.getUIFunctionsSWT().bringToFront();
+							
 							Object[]	params = (Object[])data;
 							
 							long	_styles = ((Long)(params[2])).longValue();

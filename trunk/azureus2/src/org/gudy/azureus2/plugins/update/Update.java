@@ -106,6 +106,12 @@ Update
 	public void
 	cancel();
 	
+	public boolean
+	isCancelled();
+	
+	public boolean
+	isComplete();
+	
 	public UpdateCheckInstance
 	getCheckInstance();
 	

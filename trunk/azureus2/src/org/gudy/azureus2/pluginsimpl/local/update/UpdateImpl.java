@@ -35,6 +35,8 @@ import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 UpdateImpl 
 	implements Update
@@ -47,11 +49,13 @@ UpdateImpl
 	private ResourceDownloader[]	downloaders;
 	private boolean					mandatory;
 	private int						restart_required;
+	private String 					description_url;
 
 	private Object					user_object;
 	
-	private List					listeners = new ArrayList();
-	private String description_url;
+	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	private volatile boolean		cancelled;
+	private volatile boolean		complete;
 	
 	protected
 	UpdateImpl(
@@ -183,6 +187,8 @@ UpdateImpl
 	public void
 	cancel()
 	{
+		cancelled = true;
+		
 		for (int i=0;i<downloaders.length;i++){
 			
 			try{
@@ -193,21 +199,50 @@ UpdateImpl
 				Debug.printStackTrace( e );
 			}
 		}
-	}
-	
-	public void
-	complete()
-	{
-		for (int i=0;i<listeners.size();i++){
+		
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
 			
 			try{
-				((UpdateListener)listeners.get(i)).complete( this );
+				((UpdateListener)it.next()).cancelled( this );
 				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+	
+	public void
+	complete()
+	{
+		complete	= true;
+		
+		Iterator it = listeners.iterator();
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((UpdateListener)it.next()).complete( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public boolean
+	isCancelled()
+	{
+		return( cancelled );
+	}
+	
+	public boolean
+	isComplete()
+	{
+		return( complete );
 	}
 	
 	public Object
@@ -236,6 +271,15 @@ UpdateImpl
 		UpdateListener	l )
 	{
 		listeners.add( l );
+		
+		if ( cancelled ){
+			
+			l.cancelled( this );
+			
+		}else if ( complete ){
+			
+			l.complete( this );
+		}
 	}
 	
 	public void

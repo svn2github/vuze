@@ -144,12 +144,23 @@ UpdateManagerImpl
 		int			type,
 		String		name )
 	{
+		return( createEmptyUpdateCheckInstance( type, name, false ));
+	}
+	
+	public UpdateCheckInstance
+	createEmptyUpdateCheckInstance(
+		int			type,
+		String		name,
+		boolean		low_noise )
+	{
 		try{
 			this_mon.enter();
 	
 			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
 			
 			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( this, type, name, comps );
+			
+			res.setLowNoise( low_noise );
 			
 			for (int i=0;i<listeners.size();i++){
 				

@@ -58,6 +58,7 @@ UpdateCheckInstanceImpl
 	private boolean		cancelled;
 	
 	private boolean		automatic	= true;
+	private boolean		low_noise	= false;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "UpdateCheckInstance" );
 	
@@ -136,6 +137,19 @@ UpdateCheckInstanceImpl
 	isAutomatic()
 	{
 		return( automatic );
+	}
+	
+	public void
+	setLowNoise(
+		boolean	a )
+	{
+		low_noise = a;
+	}
+	
+	public boolean
+	isLowNoise()
+	{
+		return( low_noise );
 	}
 	
 	public void

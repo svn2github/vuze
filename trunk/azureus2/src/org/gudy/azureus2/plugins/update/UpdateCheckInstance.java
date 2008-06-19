@@ -98,6 +98,13 @@ UpdateCheckInstance
 	isAutomatic();
 	
 	public void
+	setLowNoise(
+		boolean	low_noise );
+	
+	public boolean
+	isLowNoise();
+	
+	public void
 	addDecisionListener(
 		UpdateManagerDecisionListener	l );
 	

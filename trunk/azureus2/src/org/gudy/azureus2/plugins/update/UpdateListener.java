@@ -33,4 +33,8 @@ UpdateListener
 	public void
 	complete(
 		Update	update );
+	
+	public void
+	cancelled(
+		Update	update );
 }

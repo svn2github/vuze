@@ -56,6 +56,9 @@ InstallablePlugin
 	public PluginInterface
 	getAlreadyInstalledPlugin();
 	
+	public boolean
+	isAlreadyInstalled();
+	
 	public void
 	install(
 		boolean		shared )

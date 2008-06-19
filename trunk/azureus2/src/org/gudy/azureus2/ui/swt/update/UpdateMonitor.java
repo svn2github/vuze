@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.update;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -32,6 +33,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.progress.IProgressReport;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
 import org.gudy.azureus2.ui.swt.progress.IProgressReporter;
@@ -43,9 +45,11 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.update.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 /**
  * @author Olivier Chalouhi
@@ -99,7 +103,10 @@ public class UpdateMonitor
 			public void checkInstanceCreated(UpdateCheckInstance instance) {
 				instance.addListener(UpdateMonitor.this);
 				
-				new updateStatusChanger(instance);
+				if ( !instance.isLowNoise()){
+				
+					new updateStatusChanger(instance);
+				}
 			}
 		});
 
@@ -472,6 +479,13 @@ public class UpdateMonitor
 	}
 
 	public void complete(UpdateCheckInstance instance) {
+		
+		if ( instance.isLowNoise()){
+			
+			handleLowNoise( instance );
+			
+			return;
+		}
 		// we can get here for either update actions (triggered above) or for plugin
 		// install actions (triggered by the plugin installer)
 
@@ -541,24 +555,7 @@ public class UpdateMonitor
 					new UpdateAutoDownloader(us, new UpdateAutoDownloader.cbCompletion() {
 						public void allUpdatesComplete(boolean requiresRestart, boolean bHadMandatoryUpdates) {
 							if (requiresRestart) {
-								UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-								if (uiFunctions != null) {
-									String title = MessageText.getString(MSG_PREFIX
-											+ "restart.title");
-									String text = MessageText.getString(MSG_PREFIX
-											+ "restart.text");
-									uiFunctions.bringToFront();
-									int timeout = 180000;
-									if (azCore != null && !azCore.getPluginManager().isSilentRestartEnabled()) {
-										timeout = -1;
-									}
-									if (uiFunctions.promptUser(title, text, new String[] {
-										MessageText.getString("UpdateWindow.restart"),
-										MessageText.getString("UpdateWindow.restartLater")
-									}, 0, null, null, false, timeout) == 0) {
-										uiFunctions.dispose(true, false);
-									}
-								}
+								handleRestart();
 							}else if ( bHadMandatoryUpdates ){
 								
 									// no restart and mandatory -> rescan for optional updates now
@@ -587,6 +584,110 @@ public class UpdateMonitor
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
 			uiFunctions.setStatusText("");
+		}
+	}
+	
+	protected void
+	handleRestart()
+	{
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			String title = MessageText.getString(MSG_PREFIX
+					+ "restart.title");
+			String text = MessageText.getString(MSG_PREFIX
+					+ "restart.text");
+			uiFunctions.bringToFront();
+			int timeout = 180000;
+			if (azCore != null && !azCore.getPluginManager().isSilentRestartEnabled()) {
+				timeout = -1;
+			}
+			if (uiFunctions.promptUser(title, text, new String[] {
+				MessageText.getString("UpdateWindow.restart"),
+				MessageText.getString("UpdateWindow.restartLater")
+			}, 0, null, null, false, timeout) == 0) {
+				uiFunctions.dispose(true, false);
+			}
+		}
+	}
+		
+	protected void
+	handleLowNoise(
+		UpdateCheckInstance		instance )
+	{
+		instance.addDecisionListener(
+		  		new UpdateManagerDecisionListener()
+		  		{
+		  			public Object
+		  			decide(
+		  				Update		update,
+		  				int			decision_type,
+		  				String		decision_name,
+		  				String		decision_description,
+		  				Object		decision_data )
+		  			{
+		  				if ( decision_type == UpdateManagerDecisionListener.DT_STRING_ARRAY_TO_STRING ){
+		  					
+		  					String[]	options = (String[])decision_data;
+	  					
+		  					Shell	shell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+		  					
+		  					if ( shell == null ){
+		  						
+		  						Debug.out( "Shell doesn't exist" );
+		  						
+		  						return( null );
+		  					}
+		  					
+		  					StringListChooser chooser = new StringListChooser( shell );
+		  					
+		  					chooser.setTitle( decision_name );
+		  					chooser.setText( decision_description );
+		  					
+		  					for (int i=0;i<options.length;i++){
+		  						
+		  						chooser.addOption( options[i] );
+		  					}
+		  					
+		  					String	result = chooser.open();
+		  					
+		  					return( result );
+		  				}
+		  				
+		  				return( null );
+		  			}
+		  		});		
+				
+		Update[] updates = instance.getUpdates();
+		
+		try{
+			for (int i=0;i<updates.length;i++){
+				
+				ResourceDownloader[] downloaders = updates[i].getDownloaders();
+				
+				for (int j=0;j<downloaders.length;j++){
+					
+					downloaders[j].download();
+				}
+			}
+			
+			boolean	restart_required = false;
+			
+			for (int i=0;i<updates.length;i++){
+
+				if ( updates[i].getRestartRequired() == Update.RESTART_REQUIRED_YES ){
+					
+					restart_required = true;
+				}
+			}
+			
+			if ( restart_required ){
+				
+				handleRestart();
+			}
+		}catch( Throwable e ){
+			
+			// TODO:
+			e.printStackTrace();
 		}
 	}
 }

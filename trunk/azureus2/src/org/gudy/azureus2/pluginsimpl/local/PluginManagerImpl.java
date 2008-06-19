@@ -291,6 +291,10 @@ PluginManagerImpl
 		PluginInitializer		_pi )
 	{
 		pi		= _pi;
+		
+			// pull in the installer here so it can register its handlers early
+		
+		getPluginInstaller();
 	}
 	
 	public PluginInterface[]

@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 import java.util.List;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
@@ -109,6 +110,24 @@ StandardPluginImpl
 	getAlreadyInstalledPlugin()
 	{
 		return( installer.getAlreadyInstalledPlugin( getId()));
+	}
+	
+	public boolean 
+	isAlreadyInstalled() 
+	{
+		PluginInterface pi = getAlreadyInstalledPlugin();
+		
+		if ( pi == null ){
+			
+			return( false );
+		}
+		
+		if ( version == null || version.length() == 0 ){
+			
+			return( false );
+		}
+		
+		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0);
 	}
 	
 	public void
