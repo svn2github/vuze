@@ -1048,6 +1048,13 @@ DHTPlugin
 		}
 	}
 	
+	public DHTPluginValue
+	getLocalValue(
+		byte[]		key )
+	{
+		return( main_dht.getLocalValue( key ));
+	}
+	
 	public void
 	get(
 		final byte[]								key,
