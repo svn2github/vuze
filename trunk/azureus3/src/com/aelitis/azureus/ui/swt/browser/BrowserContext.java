@@ -405,10 +405,6 @@ public class BrowserContext
 								e.printStackTrace();
 							}
 						}
-						
-						if(event.location.indexOf("utorrent.com") != -1) {
-							event.doit = false;
-						}
 					}
 				}
 			}
