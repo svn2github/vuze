@@ -118,4 +118,24 @@ public class VuzeBuddySWTImpl
 			});
 		}
 	}
+	
+	// @see com.aelitis.azureus.buddy.impl.VuzeBuddyImpl#toDebugString()
+	public String toDebugString() {
+		return "SWT" + super.toDebugString();
+	}
+	
+	// @see java.lang.Object#finalize()
+	protected void finalize() throws Throwable {
+		super.finalize();
+
+		if (avatarImage != null) {
+  		Utils.execSWTThread(new AERunnable() {
+  			public void runSupport() {
+  				if (avatarImage != null && !avatarImage.isDisposed()) {
+  					avatarImage.dispose();
+  				}
+  			}
+  		});
+		}
+	}
 }
