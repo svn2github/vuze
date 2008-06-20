@@ -42,6 +42,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
+import org.gudy.azureus2.plugins.utils.search.SearchException;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
@@ -101,6 +103,9 @@ UtilitiesImpl
 		};
 		
 		
+	private static List		search_managers 	= new ArrayList();
+	private static List		search_providers	= new ArrayList();
+	
 	public
 	UtilitiesImpl(
 		AzureusCore			_core,
@@ -885,6 +890,57 @@ UtilitiesImpl
 				delayed_task_thread.start();
 			}
 		}
+	}
+	
+	public void 
+	registerSearchProvider(
+		SearchProvider 		provider )
+	
+		throws SearchException
+	{
+		List	managers;
+		
+		synchronized( UtilitiesImpl.class ){
+			
+			search_providers.add( new Object[]{ pi, provider  });
+			
+			managers = new ArrayList( search_managers );
+		}
+		
+		for (int i=0;i<managers.size();i++){
+				
+			((searchManager)managers.get(i)).addProvider( pi, provider );
+		}
+	}
+	
+	public static void
+	addSearchManager(
+		searchManager		manager )
+	{
+		List	providers;
+		
+		synchronized( UtilitiesImpl.class ){
+			
+			search_managers.add( manager );
+			
+			providers = new ArrayList( search_providers );
+		}
+				
+		for (int i=0;i<providers.size();i++){
+			
+			Object[]	entry = (Object[])providers.get(i);
+			
+			manager.addProvider((PluginInterface)entry[0],(SearchProvider)entry[1]);
+		}
+	}
+	
+	public interface
+	searchManager
+	{
+		public void
+		addProvider( 
+			PluginInterface		pi,
+			SearchProvider		provider );
 	}
 	
 	static class
