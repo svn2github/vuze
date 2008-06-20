@@ -58,13 +58,13 @@ public class StatsView extends AbstractIView {
   TabItem itemStats;
   TabItem itemCache;
   TabItem[] itemDHTs;
-  TabItem itemVivaldi;
+  TabItem[] itemVivaldis;
   
   ActivityView viewActivity;
   TransferStatsView viewStats;
   CacheView viewCache;
   DHTView[] viewDHTs;
-  IView viewVivaldi;
+  IView[] viewVivaldis;
   UpdateThread updateThread;
   
   public StatsView(GlobalManager manager,AzureusCore core) {
@@ -114,22 +114,28 @@ public class StatsView extends AbstractIView {
     folder.setBackground(Colors.background);
     
     List	dhts = new ArrayList();
+    List  vivaldis = new ArrayList();
 
     dhts.add( new DHTView( DHTView.DHT_TYPE_MAIN ));  
+    vivaldis.add( new VivaldiView( VivaldiView.DHT_TYPE_MAIN ));  
 
     if ( NetworkAdmin.getSingleton().hasIPV6Potential()){
   
     	dhts.add(  new DHTView( DHTView.DHT_TYPE_MAIN_V6 ));
+    	vivaldis.add(  new VivaldiView( VivaldiView.DHT_TYPE_MAIN_V6 ));
     }
     
     if( Constants.isCVSVersion()){
     	
        	dhts.add(  new DHTView( DHTView.DHT_TYPE_CVS ));
+       	vivaldis.add(  new VivaldiView( VivaldiView.DHT_TYPE_CVS ));
     }
     
     viewDHTs = new DHTView[dhts.size()];
+    viewVivaldis = new IView[vivaldis.size()];
     
     dhts.toArray( viewDHTs );
+    vivaldis.toArray( viewVivaldis );
     
     itemActivity = new TabItem(folder, SWT.NULL);
     itemStats = new TabItem(folder, SWT.NULL);
@@ -140,8 +146,12 @@ public class StatsView extends AbstractIView {
     for (int i=0;i<itemDHTs.length;i++){
     	itemDHTs[i] = new TabItem(folder, SWT.NULL);
     }
-  
-    itemVivaldi = new TabItem(folder,SWT.NULL);
+
+    itemVivaldis = new TabItem[viewVivaldis.length];
+
+    for (int i=0;i<itemVivaldis.length;i++){
+      itemVivaldis[i] = new TabItem(folder,SWT.NULL);
+    }
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager,core);
@@ -150,17 +160,14 @@ public class StatsView extends AbstractIView {
  
     
     
-    viewVivaldi = new VivaldiView();
-    
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
     Messages.setLanguageText(itemCache, viewCache.getData());
     
     for (int i=0;i<viewDHTs.length;i++){
     	Messages.setLanguageText(itemDHTs[i], viewDHTs[i].getData());
+    	Messages.setLanguageText(itemVivaldis[i], viewVivaldis[i].getData());
     }
-       
-    Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
     
     TabItem items[] = {itemActivity};
     folder.setSelection(items);
@@ -179,8 +186,10 @@ public class StatsView extends AbstractIView {
     	itemDHTs[i].setControl(viewDHTs[i].getComposite());
     }
     
-    viewVivaldi.initialize(folder);
-    itemVivaldi.setControl(viewVivaldi.getComposite());
+    for (int i=0;i<viewVivaldis.length;i++){
+    	viewVivaldis[i].initialize(folder);
+    	itemVivaldis[i].setControl(viewVivaldis[i].getComposite());
+    }
     
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
@@ -193,7 +202,9 @@ public class StatsView extends AbstractIView {
     
     refresh();
     viewActivity.getComposite().layout(true);
-    viewVivaldi.getComposite().layout(true);
+    for (int i=0;i<viewVivaldis.length;i++){
+      viewVivaldis[i].getComposite().layout(true);
+    }
     
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
@@ -229,7 +240,12 @@ public class StatsView extends AbstractIView {
     	  return;
       }
       
-      if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+      if ( index-3-viewDHTs.length < viewVivaldis.length ){
+        if ( !itemVivaldis[index-3-viewDHTs.length].isDisposed()){
+          viewVivaldis[index-3-viewDHTs.length].refresh();
+        }
+        return;
+      }
   
     } catch (Exception e) {
     	Debug.printStackTrace( e );

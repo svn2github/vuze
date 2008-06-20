@@ -4,6 +4,8 @@ VUZE CHANGELOG
 
 2008.0x.xx | Vuze 3.1.0.1
 
+CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy] 
+
 BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1] 
 
 2008.06.16 | Vuze 3.1.0.0

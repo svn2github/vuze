@@ -34,19 +34,28 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
-public class VivaldiView extends AbstractIView {
-  
-  DHT dht;  
+public class VivaldiView 
+  extends AbstractIView
+{
+  public static final int DHT_TYPE_MAIN   = DHT.NW_MAIN;
+  public static final int DHT_TYPE_CVS    = DHT.NW_CVS;
+  public static final int DHT_TYPE_MAIN_V6  = DHT.NW_MAIN_V6;
+
+  DHT dht;
   Composite panel;
   VivaldiPanel drawPanel;
 	private final boolean autoAlpha;
+  private final int dht_type;
   
-  public VivaldiView() {
+
+  public VivaldiView(int dht_type) {
+    this.dht_type = dht_type;
   	autoAlpha = false;
     init();
   }
   
   public VivaldiView(boolean autoAlpha) {
+    this.dht_type = DHT_TYPE_MAIN;
   	this.autoAlpha = autoAlpha;
 		init();
   }
@@ -62,11 +71,17 @@ public class VivaldiView extends AbstractIView {
        
       DHT[] dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
     
-      if (dhts.length == 0){
-    	  return;
+      for (int i=0;i<dhts.length;i++){
+        if ( dhts[i].getTransport().getNetwork() == dht_type ){
+          dht = dhts[i];
+          break;
+        }
+      }
+    
+      if ( dht == null ){
+        return;
       }
       
-      dht = dhts[dhts.length-1];
     } catch(Exception e) {
       Debug.printStackTrace( e );
     }
@@ -95,11 +110,21 @@ public class VivaldiView extends AbstractIView {
   }
   
   public String getData() {
-    return "VivaldiView.title.full";
+    return( getFullTitle());
   }
 
   public String getFullTitle() {
-    return MessageText.getString("VivaldiView.title.full"); //$NON-NLS-1$
+    if ( dht_type == DHT_TYPE_MAIN ){
+
+      return( "VivaldiView.title.full" );
+
+    }else if ( dht_type == DHT_TYPE_CVS ){
+
+      return( "VivaldiView.title.fullcvs" );
+    }else{
+
+      return( "VivaldiView.title.full_v6" );
+    }
   }
   
 	public void delete() {
