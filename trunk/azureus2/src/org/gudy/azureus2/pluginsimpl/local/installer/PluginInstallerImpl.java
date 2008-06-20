@@ -518,8 +518,6 @@ PluginInstallerImpl
 							complete(
 								UpdateCheckInstance		instance )
 							{
-								System.out.println( "sporp" );
-								
 								PluginInterface pi = manager.getPluginInterfaceByID( plugin_id );
 								
 								if ( pi != null && pi.getPlugin() instanceof FailedPlugin ){
