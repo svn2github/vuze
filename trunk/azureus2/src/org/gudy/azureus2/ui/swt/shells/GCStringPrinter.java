@@ -32,6 +32,8 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.ui.swt.ImageRepository;
+
 /**
  * @author Olivier Chalouhi
  * @author TuxPaper (rewrite)
@@ -39,6 +41,8 @@ import org.eclipse.swt.widgets.*;
 public class GCStringPrinter
 {
 	private static final boolean DEBUG = false;
+
+	private static final String GOOD_STRING = "(/|,jI~`gy";
 
 	private static final int FLAG_SKIPCLIP = 1;
 
@@ -85,6 +89,10 @@ public class GCStringPrinter
 
 	private List listUrlInfo;
 
+	private Image[] images;
+	
+	private float[] imageScales;
+
 	public static class URLInfo
 	{
 		public String url;
@@ -114,6 +122,34 @@ public class GCStringPrinter
 		}
 	}
 
+	private class LineInfo
+	{
+		public int width;
+
+		String originalLine;
+
+		String lineOutputed;
+
+		int excessPos;
+
+		public int relStartPos;
+		
+		public int height;
+		
+		public int imageIndexes[];
+
+		public LineInfo(String originalLine, int relStartPos) {
+			this.originalLine = originalLine;
+			this.relStartPos = relStartPos;
+		}
+
+		// @see java.lang.Object#toString()
+		public String toString() {
+			return super.toString() + ": relStart=" + relStartPos + ";xcess="
+					+ excessPos + ";orig=" + originalLine + ";output=" + lineOutputed;
+		}
+	}
+	
 	public static boolean printString(GC gc, String string, Rectangle printArea) {
 		return printString(gc, string, printArea, false, false);
 	}
@@ -170,17 +206,10 @@ public class GCStringPrinter
 		}
 
 		ArrayList lines = new ArrayList();
-
-		if (string.indexOf('\r') > 0) {
-			string = string.replace('\r', ' ');
-		}
-		//We need to add some cariage return ...
-		// replaceall is slow
-		if (string.indexOf('\t') > 0) {
+		
+		while (string.indexOf('\t') >= 0) {
 			string = string.replace('\t', ' ');
 		}
-
-		string = string.replaceAll("\n\n", "\n \n").replaceAll("  +", " ");
 
 		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
 		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
@@ -221,13 +250,14 @@ public class GCStringPrinter
 								+ matcherTarget.end(1));
 					}
 
-					//System.out.println("URLINFO! " + urlInfo.fullString + "\ntarget="
-					//		+ urlInfo.target + "\ntt=" + urlInfo.tooltip + "\nurl="
-					//		+ urlInfo.url + "\ntext=" + urlInfo.title + "\n\n");
+					//System.out.println("URLINFO! " + urlInfo.fullString 
+					//		+ "\ntarget="
+					//		+ urlInfo.target + "\ntt=" + urlInfo.title + "\nurl="
+					//		+ urlInfo.url + "\ntext=" + urlInfo.text + "\n\n");
 
 					string = htmlMatcher.replaceFirst(urlInfo.text.replaceAll("\\$",
 							"\\\\\\$"));
-
+					
 					listUrlInfo.add(urlInfo);
 					htmlMatcher = patHREF.matcher(string);
 					hasURL = htmlMatcher.find(urlInfo.relStartPos);
@@ -253,19 +283,37 @@ public class GCStringPrinter
 			// Process string line by line
 			int iCurrentHeight = 0;
 			int currentCharPos = 0;
-			// stringtokenizer is faster than split
-			StringTokenizer stLine = new StringTokenizer(string, "\n");
-			while (stLine.hasMoreElements()) {
-				String sLine = stLine.nextToken();
+			
+			int pos1 = string.indexOf('\n');
+			int pos2 = string.indexOf('\r');
+			if (pos2 == -1) {
+				pos2 = pos1;
+			}
+			int posNewLine = Math.min(pos1, pos2);
+			if (posNewLine < 0) {
+				posNewLine = string.length();
+			}
+			int posLastNewLine = 0;
+			while (posNewLine >= 0 && posLastNewLine < string.length()) {
+				String sLine = string.substring(posLastNewLine, posNewLine);
 
 				do {
 					LineInfo lineInfo = new LineInfo(sLine, currentCharPos);
 					lineInfo = processLine(gc, lineInfo, printArea, wrap, fullLinesOnly,
-							stLine.hasMoreElements());
+							false);
 					String sProcessedLine = (String) lineInfo.lineOutputed;
 
 					if (sProcessedLine != null && sProcessedLine.length() > 0) {
-						Point extent = gc.stringExtent(sProcessedLine);
+						if (lineInfo.width == 0 || lineInfo.height == 0) {
+							Point gcExtent = gc.stringExtent(sProcessedLine);
+							if (lineInfo.width == 0) {
+								lineInfo.width = gcExtent.x;
+							}
+							if (lineInfo.height == 0) {
+								lineInfo.height = gcExtent.y;
+							}
+						}
+						Point extent = new Point(lineInfo.width, lineInfo.height);
 						iCurrentHeight += extent.y;
 						boolean isOverY = iCurrentHeight > printArea.height;
 
@@ -308,15 +356,13 @@ public class GCStringPrinter
 								}
 
 								StringBuffer outputLine = new StringBuffer(sProcessedLine);
-								int[] iLineLength = {
-									extent.x
-								};
+								lineInfo.width = extent.x;
 								int newExcessPos = processWord(gc, sProcessedLine,
-										" " + excess, printArea, false, iLineLength, outputLine,
+										" " + excess, printArea, false, lineInfo, outputLine,
 										new StringBuffer());
 								if (DEBUG) {
 									System.out.println("  with word [" + excess + "] len is "
-											+ iLineLength[0] + "(" + printArea.width + ") w/excess "
+											+ lineInfo.width + "(" + printArea.width + ") w/excess "
 											+ newExcessPos);
 								}
 
@@ -342,7 +388,10 @@ public class GCStringPrinter
 						if (DEBUG) {
 							System.out.println("Line process resulted in no text: " + sLine);
 						}
-						return false;
+						lines.add(lineInfo);
+						currentCharPos++;
+						break;
+						//return false;
 					}
 
 					currentCharPos += lineInfo.excessPos >= 0 ? lineInfo.excessPos
@@ -351,7 +400,23 @@ public class GCStringPrinter
 					//		+ lineInfo.lineOutputed + ";xc=" + lineInfo.excessPos + ";ccp=" + currentCharPos);
 					//System.out.println("lineo=" + lineInfo.lineOutputed.length() + ";" + sLine.length() );
 				} while (sLine != null);
-				currentCharPos += 1;
+
+				if (string.length() > posNewLine && string.charAt(posNewLine) == '\r'
+						&& string.charAt(posNewLine + 1) == '\n') {
+					posNewLine++;
+				}
+				posLastNewLine = posNewLine + 1;
+				currentCharPos = posLastNewLine;
+
+				pos1 = string.indexOf('\n', posLastNewLine);
+				pos2 = string.indexOf('\r', posLastNewLine);
+				if (pos2 == -1) {
+					pos2 = pos1;
+				}
+				posNewLine = Math.min(pos1, pos2);
+				if (posNewLine < 0) {
+					posNewLine = string.length();
+				}
 			}
 		} finally {
 			if (!skipClip && !noDraw) {
@@ -371,8 +436,14 @@ public class GCStringPrinter
 					fullText.append(lineInfo.lineOutputed);
 				}
 
-				size = gc.textExtent(fullText.toString());
+				//size = gc.textExtent(fullText.toString());
 
+				for (Iterator iter = lines.iterator(); iter.hasNext();) {
+					LineInfo lineInfo = (LineInfo) iter.next();
+					size.x += Math.max(lineInfo.width, size.x);
+					size.y += lineInfo.height;
+				}
+				
 				if ((swtFlags & (SWT.BOTTOM)) != 0) {
 					rectDraw.y = rectDraw.y + rectDraw.height - size.y;
 				} else if ((swtFlags & SWT.TOP) == 0) {
@@ -392,6 +463,7 @@ public class GCStringPrinter
 				}
 			}
 		}
+		
 
 		return size.y <= printArea.height;
 	}
@@ -405,20 +477,24 @@ public class GCStringPrinter
 	private LineInfo processLine(final GC gc, final LineInfo lineInfo,
 			final Rectangle printArea, final boolean wrap,
 			final boolean fullLinesOnly, boolean hasMoreElements) {
+		
+		if (lineInfo.originalLine.length() == 0) {
+			lineInfo.lineOutputed = "";
+			lineInfo.height = gc.stringExtent(GOOD_STRING).y;
+			return lineInfo;
+		}
+		
 		StringBuffer outputLine = new StringBuffer();
 		int excessPos = -1;
 
-		if (lineInfo.originalLine.length() > MAX_LINE_LEN
+		if (images != null || lineInfo.originalLine.length() > MAX_LINE_LEN
 				|| gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
 			if (DEBUG) {
 				System.out.println("Line to process: " + lineInfo.originalLine);
 			}
 			StringBuffer space = new StringBuffer(1);
-			int[] iLineLength = {
-				0
-			};
 
-			if (!wrap) {
+			if (!wrap && images == null) {
 				if (DEBUG) {
 					System.out.println("No Wrap.. doing all in one line");
 				}
@@ -431,13 +507,22 @@ public class GCStringPrinter
 				// outputLine.append(sProcessedLine);
 
 				excessPos = processWord(gc, lineInfo.originalLine, sProcessedLine,
-						printArea, wrap, iLineLength, outputLine, space);
+						printArea, wrap, lineInfo, outputLine, space);
 			} else {
-				StringTokenizer stWord = new StringTokenizer(lineInfo.originalLine, " ");
+				int posLastWordStart = 0;
+				int posWordStart = lineInfo.originalLine.indexOf(' ');
+				if (posWordStart < 0) {
+					posWordStart = lineInfo.originalLine.length();
+				}
 				// Process line word by word
 				int curPos = 0;
-				while (stWord.hasMoreElements()) {
-					String word = stWord.nextToken();
+				while (posWordStart >= 0 && posLastWordStart < lineInfo.originalLine.length()) {
+					String word = lineInfo.originalLine.substring(posLastWordStart, posWordStart);
+					if (word.length() == 0) {
+						excessPos = -1;
+						outputLine.append(' ');
+					}
+
 					for (int i = 0; i < word.length(); i += MAX_WORD_LEN) {
 						String subWord;
 						int endPos = i + MAX_WORD_LEN;
@@ -448,10 +533,10 @@ public class GCStringPrinter
 						}
 
 						excessPos = processWord(gc, lineInfo.originalLine, subWord,
-								printArea, wrap, iLineLength, outputLine, space);
+								printArea, wrap, lineInfo, outputLine, space);
 						if (DEBUG) {
 							System.out.println("  with word [" + subWord + "] len is "
-									+ iLineLength[0] + "(" + printArea.width + ") w/excess "
+									+ lineInfo.width + "(" + printArea.width + ") w/excess "
 									+ excessPos);
 						}
 						if (excessPos >= 0) {
@@ -465,6 +550,12 @@ public class GCStringPrinter
 					}
 					if (excessPos >= 0) {
 						break;
+					}
+					
+					posLastWordStart = posWordStart + 1;
+					posWordStart = lineInfo.originalLine.indexOf(' ', posLastWordStart);
+					if (posWordStart < 0) {
+						posWordStart = lineInfo.originalLine.length();
 					}
 				}
 			}
@@ -485,40 +576,62 @@ public class GCStringPrinter
 		return lineInfo;
 	}
 
-	private class LineInfo
-	{
-		String originalLine;
-
-		String lineOutputed;
-
-		int excessPos;
-
-		public int relStartPos;
-
-		public LineInfo(String originalLine, int relStartPos) {
-			this.originalLine = originalLine;
-			this.relStartPos = relStartPos;
-		}
-
-		// @see java.lang.Object#toString()
-		public String toString() {
-			return super.toString() + ": relStart=" + relStartPos + ";xcess="
-					+ excessPos + ";orig=" + originalLine + ";output=" + lineOutputed;
-		}
-	}
-
 	/**
 	 * @param int Position of part of word that didn't fit
 	 *
 	 * @since 3.0.0.7
 	 */
 	private int processWord(final GC gc, final String sLine, String word,
-			final Rectangle printArea, final boolean wrap, final int[] iLineLength,
+			final Rectangle printArea, final boolean wrap, final LineInfo lineInfo,
 			StringBuffer outputLine, final StringBuffer space) {
+
+		if (word.length() == 0) {
+			space.append(' ');
+			return -1;
+		}
+		
+		//System.out.println("PW: " + word);
+		if (images != null && word.length() >= 2 && word.charAt(0) == '%') {
+			int imgIdx = word.charAt(1) - '0';
+			if (images.length > imgIdx && imgIdx >= 0 && images[imgIdx] != null) {
+				Image img = images[imgIdx];
+				Rectangle bounds = img.getBounds();
+				if (imageScales != null && imageScales.length > imgIdx) {
+					bounds.width = (int) (bounds.width * imageScales[imgIdx]);
+					bounds.height = (int) (bounds.height * imageScales[imgIdx]);
+				}
+				
+				Point spaceExtent = gc.stringExtent(space.toString());
+				int newWidth = lineInfo.width + bounds.width + spaceExtent.x;
+
+
+				if (newWidth > printArea.width) {
+					if (bounds.width + spaceExtent.x < printArea.width || lineInfo.width > 0) {
+						return 0;
+					}
+				}
+				
+				if (lineInfo.imageIndexes == null) {
+					lineInfo.imageIndexes = new int[] { imgIdx };
+				}
+				
+				lineInfo.width = newWidth;
+				lineInfo.height = Math.max(bounds.height, lineInfo.height);
+
+				outputLine.append(space);
+				outputLine.append(word);
+				if (space.length() > 0) {
+					space.delete(0, space.length());
+				}
+				space.append(' ');
+				
+				return -1;
+			}
+		}
 
 		Point ptWordSize = gc.stringExtent(word + " ");
 		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
-		int targetWidth = iLineLength[0] + ptWordSize.x;
+		int targetWidth = lineInfo.width + ptWordSize.x;
 		if (targetWidth > printArea.width) {
 			// word is longer than space avail, split
 			int endIndex = word.length();
@@ -545,7 +658,7 @@ public class GCStringPrinter
 				}
 
 				ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
-				targetWidth = iLineLength[0] + ptWordSize.x;
+				targetWidth = lineInfo.width + ptWordSize.x;
 
 				if (diff <= 1) {
 					break;
@@ -563,7 +676,7 @@ public class GCStringPrinter
 			if (DEBUG) {
 				System.out.println("excess starts at " + endIndex + "(" + ptWordSize.x
 						+ "px) of " + word.length() + ". "
-						+ (ptWordSize.x + iLineLength[0]) + "/" + printArea.width
+						+ (ptWordSize.x + lineInfo.width) + "/" + printArea.width
 						+ "; wrap?" + wrap);
 			}
 
@@ -601,8 +714,8 @@ public class GCStringPrinter
 			return endIndex;
 		}
 
-		iLineLength[0] += ptWordSize.x;
-		if (iLineLength[0] > printArea.width) {
+		lineInfo.width += ptWordSize.x;
+		if (lineInfo.width > printArea.width) {
 			if (space.length() > 0) {
 				space.delete(0, space.length());
 			}
@@ -650,7 +763,18 @@ public class GCStringPrinter
 	private void drawLine(GC gc, LineInfo lineInfo, int swtFlags,
 			Rectangle printArea, boolean noDraw) {
 		String text = lineInfo.lineOutputed;
-		Point drawSize = gc.stringExtent(text);
+		// TODO: ensure width and height have values
+		if (lineInfo.width == 0 || lineInfo.height == 0) {
+			Point gcExtent = gc.stringExtent(text);;
+			if (lineInfo.width == 0) {
+				lineInfo.width = gcExtent.x;
+			}
+			if (lineInfo.height == 0) {
+				lineInfo.height = gcExtent.y;
+			}
+		}
+		Point drawSize = new Point(lineInfo.width, lineInfo.height);
+		
 		int x0;
 		if ((swtFlags & SWT.RIGHT) > 0) {
 			x0 = printArea.x + printArea.width - drawSize.x;
@@ -700,13 +824,9 @@ public class GCStringPrinter
 				//System.out.println("numHitUrlsAlready = " + numHitUrlsAlready + ";i=" + i);
 				if (i > 0 && i > lineStartPos && i <= text.length()) {
 					String s = text.substring(lineStartPos, i);
-					if (!noDraw) {
-						//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-						gc.drawText(s, x0, y0, true);
-					}
+					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+					x0 += drawText(gc, s, x0, y0, lineInfo.height, null, noDraw).x;
 
-					Point textExtent = gc.textExtent(s);
-					x0 += textExtent.x;
 					relStartPos += (i - lineStartPos);
 					lineStartPos += (i - lineStartPos);
 					//System.out.println("|" + s + "|" + textExtent.x);
@@ -724,25 +844,31 @@ public class GCStringPrinter
 				String s = text.substring(i, end);
 				relStartPos += (end - i);
 				lineStartPos += (end - i);
+				Point pt = null;
 				//System.out.println("|" + s + "|");
+				Color fgColor = null;
 				if (!noDraw) {
-					Color fgColor = gc.getForeground();
+					fgColor = gc.getForeground();
 					if (urlInfo.urlColor != null) {
 						gc.setForeground(urlInfo.urlColor);
 					} else if (urlColor != null) {
 						gc.setForeground(urlColor);
 					}
-					gc.drawText(s, x0, y0, true);
+				}
+				if (urlInfo.hitAreas == null) {
+					urlInfo.hitAreas = new ArrayList(1);
+				}
+				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw);
+				if (!noDraw) {
 					gc.setForeground(fgColor);
 				}
-				Point textExtent = gc.textExtent(s);
 
 				if (urlInfo.hitAreas == null) {
 					urlInfo.hitAreas = new ArrayList(1);
 				}
-				urlInfo.hitAreas.add(new Rectangle(x0, y0, textExtent.x, textExtent.y));
+				//gc.drawRectangle(new Rectangle(x0, y0, pt.x, lineInfo.height));
 
-				x0 += textExtent.x;
+				x0 += pt.x;
 			}
 		}
 
@@ -750,10 +876,111 @@ public class GCStringPrinter
 		if (lineStartPos < text.length()) {
 			String s = text.substring(lineStartPos);
 			if (!noDraw) {
-				gc.drawText(s, x0, y0, true);
+				drawText(gc, s, x0, y0, lineInfo.height, null, noDraw);
 			}
 		}
 		printArea.y += drawSize.y;
+	}
+	
+	private Point drawText(GC gc, String s, int x, int y, int height,
+			List hitAreas, boolean nodraw) {
+		Point textExtent;
+
+		if (images != null) {
+  		int pctPos = s.indexOf('%');
+  		int lastPos = 0;
+  		int w = 0;
+  		int h = 0;
+  		while (pctPos >= 0) {
+    		if (pctPos >= 0 && s.length() > pctPos + 1) {
+    			int imgIdx = s.charAt(pctPos + 1) - '0';
+    			
+    			if (imgIdx >= images.length || imgIdx < 0 || images[imgIdx] == null) {
+      			String sStart = s.substring(lastPos, pctPos + 1);
+    				textExtent = gc.textExtent(sStart);
+    				int centerY = y + (height / 2 - textExtent.y / 2); 
+        		if (hitAreas != null) {
+        			hitAreas.add(new Rectangle(x, centerY, textExtent.x, textExtent.y));
+        		}
+      			if (!nodraw) {
+      				gc.drawText(sStart, x, centerY, true);
+      			}
+      			x += textExtent.x;
+      			w += textExtent.x;
+      			h = Math.max(h, textExtent.y);
+
+      			lastPos = pctPos + 1;
+        		pctPos = s.indexOf('%', pctPos + 1);
+    				continue;
+    			}
+    			
+    			String sStart = s.substring(lastPos, pctPos);
+    			textExtent = gc.textExtent(sStart);
+  				int centerY = y + (height / 2 - textExtent.y / 2); 
+    			if (!nodraw) {
+    				gc.drawText(sStart, x, centerY, true);
+    			}
+    			x += textExtent.x;
+    			w += textExtent.x;
+    			h = Math.max(h, textExtent.y);
+    			if (hitAreas != null) {
+    				hitAreas.add(new Rectangle(x, centerY, textExtent.x, textExtent.y));
+    			}
+
+    			//System.out.println("drawimage: " + x + "x" + y + ";idx=" + imgIdx);
+    			Rectangle imgBounds = images[imgIdx].getBounds();
+    			float scale = 1.0f;
+  				if (imageScales != null && imageScales.length > imgIdx) {
+  					scale = imageScales[imgIdx];
+  				}
+  				int scaleImageWidth = (int) (imgBounds.width * scale);
+					int scaleImageHeight = (int) (imgBounds.height * scale);
+
+    			
+  				centerY = y + (height / 2 - scaleImageHeight / 2); 
+    			if (hitAreas != null) {
+    				hitAreas.add(new Rectangle(x, centerY, scaleImageWidth, scaleImageHeight));
+    			}
+    			if (!nodraw) {
+    				//gc.drawImage(images[imgIdx], x, centerY);
+    				gc.drawImage(images[imgIdx], 0, 0, imgBounds.width,
+								imgBounds.height, x, centerY, scaleImageWidth, scaleImageHeight);
+    			}
+    			x += scaleImageWidth;
+    			w += scaleImageWidth;
+    			
+    			h = Math.max(h, scaleImageHeight);
+    		}
+    		lastPos = pctPos + 2;
+    		pctPos = s.indexOf('%', lastPos);
+  		}
+
+  		if (s.length() >= lastPos) {
+    		String sEnd = s.substring(lastPos);
+  			textExtent = gc.textExtent(sEnd);
+				int centerY = y + (height / 2 - textExtent.y / 2); 
+  			if (hitAreas != null) {
+  				hitAreas.add(new Rectangle(x, centerY, textExtent.x, textExtent.y));
+  			}
+  			if (!nodraw) {
+  				gc.drawText(sEnd, x, centerY, true);
+  			}
+  			x += textExtent.x;
+  			w += textExtent.x;
+  			h = Math.max(h, textExtent.y);
+  		}
+  		return new Point(w, h);
+		}
+
+
+		if (!nodraw) {
+			gc.drawText(s, x, y, true);
+		}
+		textExtent = gc.textExtent(s);
+		if (hitAreas != null) {
+			hitAreas.add(new Rectangle(x, y, textExtent.x, textExtent.y));
+		}
+		return textExtent;
 	}
 
 	public static void main(String[] args) {
@@ -767,12 +994,22 @@ public class GCStringPrinter
 		//if (true) {
 		//	return;
 		//}
-
+		
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 
+		ImageRepository.loadImagesForSplashWindow(display);
+		
+		final Image[] images = {
+			ImageRepository.getImage("azureus32"),
+			ImageRepository.getImage("azureus64"),
+			ImageRepository.getImage("azureus"),
+			ImageRepository.getImage("azureus128"),
+		};
+
 		//final String text = "Opil Wrir, Na Poys Iysk, Yann Only. test of the string printer averlongwordthisisyesindeed";
 		final String text = "Apple <A HREF=\"aa\">Banana</a>, Cow <A HREF=\"ss\">Dug Ergo</a>, Flip Only. test of the string printer averlongwordthisisyesindeed";
+		//final String text = "Apple, Cow sfjkhsd %1 f, Flip Only. test of %0 the string printer averlongwordthisisyesindeed";
 
 		shell.setSize(500, 500);
 
@@ -844,7 +1081,7 @@ public class GCStringPrinter
 
 			public void handleEvent(Event event) {
 				GC gc = event.gc;
-				System.out.println("HE" + event.type);
+				//System.out.println("HE" + event.type);
 				boolean ourGC = gc == null;
 				if (ourGC) {
 					gc = new GC(cPaint);
@@ -920,8 +1157,11 @@ public class GCStringPrinter
 					style |= SWT.RIGHT;
 				}
 
-				GCStringPrinter sp = new GCStringPrinter(gc, txtText.getText(), bounds,
+				String text = txtText.getText();
+				text = text.replaceAll("\r\n", "\n");
+				GCStringPrinter sp = new GCStringPrinter(gc, text, bounds,
 						btnSkipClip.getSelection(), btnFullOnly.getSelection(), style);
+				sp.setImages(images);
 				sp.calculateMetrics();
 
 				return sp;
@@ -1045,6 +1285,18 @@ public class GCStringPrinter
 
 	public boolean isCutoff() {
 		return cutoff;
+	}
+	
+	public void setImages(Image[] images) {
+		this.images = images;
+	}
+
+	public float[] getImageScales() {
+		return imageScales;
+	}
+
+	public void setImageScales(float[] imageScales) {
+		this.imageScales = imageScales;
 	}
 
 	/*
