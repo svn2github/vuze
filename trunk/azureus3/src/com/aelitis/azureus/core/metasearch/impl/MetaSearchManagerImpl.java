@@ -40,6 +40,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -54,7 +56,7 @@ import com.aelitis.azureus.util.Constants;
 
 public class 
 MetaSearchManagerImpl
-	implements MetaSearchManager
+	implements MetaSearchManager, UtilitiesImpl.searchManager
 {
 	private static final String	LOGGER_NAME = "MetaSearch";
 	
@@ -107,7 +109,7 @@ MetaSearchManagerImpl
 						}
 					}
 				}
-			});
+			});		
 	}
 	
 	public static synchronized MetaSearchManager
@@ -146,6 +148,24 @@ MetaSearchManagerImpl
 			});
 		
 		refresh();
+		
+		UtilitiesImpl.addSearchManager( this );
+	}
+	
+	public void 
+	addProvider(
+		PluginInterface		pi,
+		SearchProvider 		provider ) 
+	{
+		String	id = pi.getPluginID() + "." + provider.getProperty( SearchProvider.PR_NAME );
+		
+		try{
+			meta_search.importFromPlugin( id, provider );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to add search provider '" + id + "' (" + provider + ")", e );
+		}
 	}
 	
 	protected void

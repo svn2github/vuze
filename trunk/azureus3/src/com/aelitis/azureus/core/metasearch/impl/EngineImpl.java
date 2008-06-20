@@ -42,7 +42,7 @@ import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
-import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
+import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -71,6 +71,10 @@ EngineImpl
 		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
 			
 			return( RegexEngine.importFromBEncodedMap( meta_search, map ));
+			
+		}else if ( type == Engine.ENGINE_TYPE_PLUGIN ){
+			
+			return( PluginEngine.importFromBEncodedMap( meta_search, map ));
 			
 		}else{
 			

@@ -67,6 +67,7 @@ Engine
 	
 	public static final int ENGINE_TYPE_REGEX		= 1;
 	public static final int ENGINE_TYPE_JSON		= 2;
+	public static final int ENGINE_TYPE_PLUGIN		= 3;
 	
 	public static final int	ENGINE_SOURCE_UNKNOWN				= 0;
 	public static final int	ENGINE_SOURCE_VUZE					= 1;
@@ -81,7 +82,7 @@ Engine
 		 */
 	public static final String[] ENGINE_SOURCE_STRS = { "unknown","vuze","local","unused","unused" };
 	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
-	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json" };
+	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json", "plugin" };
 	
 	public int getType();
 	

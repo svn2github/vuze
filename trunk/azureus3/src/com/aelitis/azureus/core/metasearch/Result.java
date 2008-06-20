@@ -27,7 +27,6 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 

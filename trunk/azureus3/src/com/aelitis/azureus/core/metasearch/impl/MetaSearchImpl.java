@@ -26,10 +26,13 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 
 import com.aelitis.azureus.core.metasearch.*;
+import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -40,8 +43,9 @@ MetaSearchImpl
 		
 	private MetaSearchManagerImpl	manager;
 	
-	private CopyOnWriteList 	engines = new CopyOnWriteList();
-		
+	private CopyOnWriteList 	engines 	= new CopyOnWriteList();
+	private Map					plugin_map	= new HashMap();
+	
 	private boolean config_dirty;
 	
 	protected 
@@ -73,6 +77,75 @@ MetaSearchImpl
 		throws IOException
 	{
 		return( EngineImpl.importFromJSONString( this, type, id, last_updated, name, content ));
+	}
+	
+	public EngineImpl
+	importFromPlugin(
+		String				pid,
+		SearchProvider		provider )
+	
+		throws IOException
+	{
+		synchronized( this ){
+
+			Long	l_id = (Long)plugin_map.get( pid );
+			
+			long	id;
+			
+			if ( l_id == null ){
+				
+				Random random = new Random();
+				
+				while( true ){
+				
+					id = (long)Integer.MAX_VALUE + (long)Math.abs(random.nextInt());
+					
+					if ( getEngine( id ) == null ){
+						
+						plugin_map.put( pid, new Long( id ));
+						
+						configDirty();
+						
+						break;
+					}
+				}
+			}else{
+				
+				id = l_id.longValue();
+			}
+			
+			EngineImpl engine = (EngineImpl)getEngine( id );
+			
+			if ( engine == null ){
+				
+				engine = new PluginEngine( this, id, provider );
+				
+				engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
+				
+				engine.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+				
+				addEngine( engine );
+				
+			}else{
+				
+				if ( engine instanceof PluginEngine ){
+					
+					((PluginEngine)engine).setProvider( provider );
+					
+				}else{
+					
+					Debug.out( "Inconsistent: plugin must be a PluginEngine!" );
+					
+					plugin_map.remove( pid );
+					
+					removeEngine( engine );
+					
+					throw( new IOException( "Inconsistent" ));
+				}
+			}
+			
+			return( engine );
+		}	
 	}
 	
 	public void 
@@ -332,6 +405,13 @@ MetaSearchImpl
 					}
 				}
 			}
+			
+			Map	p_map = (Map)map.get( "plugin_map" );
+			
+			if ( p_map != null ){
+				
+				plugin_map = p_map;
+			}
 		}
 	}
 	
@@ -397,6 +477,11 @@ MetaSearchImpl
 					
 					log( "Failed to export engine " + e.getName(), f );
 				}
+			}
+			
+			if ( plugin_map != null ){
+				
+				map.put( "plugin_map", plugin_map );
 			}
 			
 			FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
