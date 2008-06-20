@@ -399,7 +399,7 @@ FilePluginInstallerImpl
 					public String
 					getName()
 					{
-						return( file.getName());
+						return( name );
 					}
 				
 					public int
