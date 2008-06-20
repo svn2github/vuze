@@ -237,7 +237,11 @@ public class BuddiesViewer
 		}
 	}
 
-	private void showPage(final int pageNumber, boolean animateTransition) {
+	private void showPage(int pageNumber, boolean animateTransition) {
+		if (pageNumber > pageXOffsets.length - 1 || pageNumber < 0) {
+			pageNumber = Math.max(0, Math.min(pageXOffsets.length - 1, pageNumber));
+			Debug.out("BuddiesViewer.showPage(): " + pageNumber + " is out of bounds");
+		}
 
 		if (avatarsPanel.getLocation().x == -pageXOffsets[pageNumber]) {
 			//Do nothing if page is still the same
