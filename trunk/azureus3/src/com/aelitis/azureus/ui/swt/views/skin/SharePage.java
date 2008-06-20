@@ -750,7 +750,7 @@ public class SharePage
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
 							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy();
+								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy(null);
 								buddy.setLoginID((iterator.next()).toString());
 								inviteeList.addFriend(buddy);
 							}

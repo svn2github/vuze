@@ -74,6 +74,9 @@ public class VuzeBuddyImpl
 	}
 
 	public void loadFromMap(Map mapNewBuddy) {
+		if (mapNewBuddy == null) {
+			return;
+		}
 		setDisplayName(MapUtils.getMapString(mapNewBuddy, "display-name", ""
 				+ mapNewBuddy.hashCode()));
 		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
@@ -301,6 +304,10 @@ public class VuzeBuddyImpl
 	}
 
 	public String getProfileAHREF(String referer) {
+		return getProfileAHREF(referer, false);
+	}
+
+	public String getProfileAHREF(String referer, boolean useImage) {
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
@@ -319,6 +326,9 @@ public class VuzeBuddyImpl
 			buf.append(")");
 		}
 		buf.append("\">");
+		if (useImage) {
+			buf.append("%0 ");
+		}
 		buf.append(displayName);
 		buf.append("</A>");
 		return buf.toString();

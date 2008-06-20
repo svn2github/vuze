@@ -86,6 +86,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
+import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -182,6 +183,11 @@ public class MainWindow
 			public VuzeBuddy createBuddy() {
 				VuzeBuddyManager.log("created buddy");
 				return new VuzeBuddySWTImpl();
+			}
+			
+			// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
+			public VuzeBuddy createPotentialBuddy(Map map) {
+				return new VuzeBuddyFakeSWTImpl(map);
 			}
 		});
 

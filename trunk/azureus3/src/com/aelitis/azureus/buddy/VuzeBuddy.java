@@ -110,4 +110,13 @@ public interface VuzeBuddy
 	 * @since 3.0.5.3
 	 */
 	String toDebugString();
+
+	/**
+	 * @param referer
+	 * @param useImage
+	 * @return
+	 *
+	 * @since 3.0.5.3
+	 */
+	String getProfileAHREF(String referer, boolean useImage);
 }

@@ -18,15 +18,10 @@
 
 package com.aelitis.azureus.activities;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -34,10 +29,8 @@ import com.aelitis.azureus.util.MapUtils;
  *
  */
 public class VuzeActivitiesEntryBuddyRequest
-	extends VuzeActivitiesEntry
+	extends VuzeActivitiesEntryBuddy
 {
-	private VuzeBuddy buddy;
-
 	public VuzeActivitiesEntryBuddyRequest() {
 		super();
 	}
@@ -66,36 +59,4 @@ public class VuzeActivitiesEntryBuddyRequest
 		return VuzeActivitiesConstants.TYPEID_BUDDYREQUEST + "-" + code;
 	}
 
-	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromExternalMap(java.util.Map)
-	public void loadFromExternalMap(Map platformEntry) {
-		super.loadFromExternalMap(platformEntry);
-		loadOtherValuesFromMap(platformEntry);
-	}
-
-	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#loadFromInternalMap(java.util.Map)
-	public void loadFromInternalMap(Map map) {
-		super.loadFromInternalMap(map);
-		loadOtherValuesFromMap(map);
-	}
-
-	private void loadOtherValuesFromMap(Map map) {
-		Map mapFutureBuddy = (Map) MapUtils.getMapObject(map, "buddy",
-				new HashMap(), Map.class);
-
-		buddy = VuzeBuddyManager.getOrCreatePotentialBuddy(mapFutureBuddy);
-	}
-
-	// @see com.aelitis.azureus.activities.VuzeActivitiesEntry#toMap()
-	public Map toMap() {
-		Map map = super.toMap();
-
-		if (buddy != null) {
-			map.put("buddy", buddy.toMap());
-		}
-		return map;
-	}
-
-	public VuzeBuddy getBuddy() {
-		return buddy;
-	}
 }

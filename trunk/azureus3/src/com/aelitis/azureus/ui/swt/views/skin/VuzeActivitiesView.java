@@ -565,6 +565,7 @@ public class VuzeActivitiesView
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
+		System.out.println("REMOVE " + entries.length);
 		view.removeDataSources(entries);
 	}
 

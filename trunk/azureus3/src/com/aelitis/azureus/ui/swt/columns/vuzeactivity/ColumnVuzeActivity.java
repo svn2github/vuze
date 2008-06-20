@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
+import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -37,6 +38,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -44,6 +47,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnMediaThumb;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -75,6 +79,10 @@ public class ColumnVuzeActivity
 	private static final int EVENT_INDENT = 8 + 16 + 5 - MARGIN_WIDTH;
 
 	private static final int MARGIN_HEIGHT = 7 - 1; // we set row margin height to 1
+
+	private static final int AVATAR_HEIGHT = 40;
+
+	private static final int AVATAR_PADDING = 5;
 
 	public static String COLUMN_ID = "name";
 
@@ -201,6 +209,22 @@ public class ColumnVuzeActivity
 
 		boolean isVuzeNewsEntry = !isHeader
 				&& VuzeActivitiesConstants.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
+		
+		Image imgAvatar = null;
+		if (entry instanceof VuzeActivitiesEntryBuddy) {
+			VuzeActivitiesEntryBuddy entryBuddy = (VuzeActivitiesEntryBuddy) entry;
+			VuzeBuddy buddy = entryBuddy.getBuddy();
+			if (buddy instanceof VuzeBuddySWT) {
+				VuzeBuddySWT buddySWT = (VuzeBuddySWT) buddy; 
+				imgAvatar = buddySWT.getAvatarImage();
+			}
+		}
+		
+		int avatarPos = x;
+		if (imgAvatar != null) {
+			x += AVATAR_HEIGHT + AVATAR_PADDING;
+		}
+		
 
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
@@ -253,14 +277,18 @@ public class ColumnVuzeActivity
 				y = MARGIN_HEIGHT + 1;
 			}
 			style |= SWT.TOP;
+			
+			if (imgAvatar != null) {
+				int minHeight = imgAvatar == null ? 30 : AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
+				if (height < minHeight) {
+					height = minHeight;
+				}
+			}
 
 			if (canShowThumb) {
 				height += 60;
 			}
 
-			if (height < 30) {
-				height = 30;
-			}
 			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setDrawableHeight(
 					height);
 
@@ -275,7 +303,7 @@ public class ColumnVuzeActivity
 				}
 				imgBounds = image.getBounds();
 			}
-
+			
 			drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
 			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), drawRect,
 					0, SWT.WRAP | SWT.TOP);
@@ -341,6 +369,17 @@ public class ColumnVuzeActivity
 					gc.drawImage(imgIcon, iconBounds.x, iconBounds.y, iconBounds.width,
 							iconBounds.height, 0, MARGIN_HEIGHT, 16, 16);
 				}
+			}
+			
+			try {
+				gc.setInterpolation(SWT.HIGH);
+			} catch (Throwable t) {
+			}
+			
+			if (imgAvatar != null) {
+				Rectangle bounds = imgAvatar.getBounds();
+				gc.drawImage(imgAvatar, 0, 0, bounds.width, bounds.height, avatarPos,
+						MARGIN_HEIGHT, AVATAR_HEIGHT, AVATAR_HEIGHT);
 			}
 
 			stringPrinter.printString(gc, drawRect, style);
@@ -700,7 +739,7 @@ public class ColumnVuzeActivity
 			boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 			if (!isHeader && inHitArea) {
 				String ts = timeFormat.format(new Date(entry.getTimestamp()));
-				tooltip = "Activity occurred on " + ts;
+				tooltip = "Activity occurred on " + ts + ";" + entry.getID();
 			}
 		}
 

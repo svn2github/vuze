@@ -132,7 +132,7 @@ public abstract class AbstractBuddyPageListener
 
 			for (Iterator iterator = invitedBuddyMaps.iterator(); iterator.hasNext();) {
 				Map map = (HashMap) iterator.next();
-				VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy();
+				VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy(null);
 				vBuddy.setDisplayName(map.get("displayName").toString());
 				vBuddy.setLoginID(map.get("name").toString());
 				invitedBuddies.add(vBuddy);

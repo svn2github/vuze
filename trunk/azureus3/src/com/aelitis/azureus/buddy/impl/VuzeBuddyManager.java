@@ -1604,24 +1604,21 @@ public class VuzeBuddyManager
 	}
 
 	/**
-	 * Created a Buddy object but without a true relationship to the user.
+	 * Create a Buddy object but without a true relationship to the user.
 	 * 
-	 * @return
-	 *
-	 * @since 3.0.5.3
-	 */
-	public static VuzeBuddy createPotentialBuddy() {
-		return new VuzeBuddyFakeImpl();
-	}
-
-	/**
 	 * @param mapBuddy
 	 * @return
 	 *
 	 * @since 3.0.5.3
 	 */
 	public static VuzeBuddy createPotentialBuddy(Map mapBuddy) {
-		return new VuzeBuddyFakeImpl(mapBuddy);
+		VuzeBuddy newBuddy;
+		if (vuzeBuddyCreator == null) {
+			newBuddy = new VuzeBuddyFakeImpl(mapBuddy);
+		} else {
+			newBuddy = vuzeBuddyCreator.createPotentialBuddy(mapBuddy);
+		}
+		return newBuddy;
 	}
 
 	/**
@@ -1638,7 +1635,7 @@ public class VuzeBuddyManager
 				return vuzeBuddy;
 			}
 		}
-		return new VuzeBuddyFakeImpl(mapBuddy);
+		return createPotentialBuddy(mapBuddy);
 	}
 
 	/**

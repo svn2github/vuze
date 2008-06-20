@@ -18,6 +18,8 @@
  
 package com.aelitis.azureus.buddy;
 
+import java.util.Map;
+
 /**
  * @author TuxPaper
  * @created Apr 14, 2008
@@ -38,4 +40,13 @@ public interface VuzeBuddyCreator
 	 * @since 3.0.5.3
 	 */
 	public VuzeBuddy createBuddy();
+	
+	/**
+	 * 
+	 * @param mapBuddy 
+	 * @return
+	 *
+	 * @since 3.1.0.1
+	 */
+	public VuzeBuddy createPotentialBuddy(Map mapBuddy);
 }
