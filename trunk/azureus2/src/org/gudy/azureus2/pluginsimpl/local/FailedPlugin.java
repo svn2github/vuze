@@ -24,7 +24,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.UnloadablePlugin;
@@ -63,16 +62,4 @@ public class FailedPlugin implements UnloadablePlugin {
 	public void unload() {
 	}
 
-	/**
-	 * For installer
-	 */
-	public void requestUnload() {
-		try {
-			plugin_interface.unload();
-
-		} catch (Throwable e) {
-
-			Debug.printStackTrace(e);
-		}
-	}
 }

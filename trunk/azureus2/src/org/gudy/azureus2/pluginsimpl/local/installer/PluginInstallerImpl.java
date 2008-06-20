@@ -489,11 +489,11 @@ PluginInstallerImpl
 						// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
 						// installed version
 					
-					final FailedPlugin	dummy_plugin = new FailedPlugin( plugin_id, target_dir );
+					FailedPlugin	dummy_plugin = new FailedPlugin( plugin_id, target_dir );
 					
 					PluginManager.registerPlugin( dummy_plugin, plugin_id );
 				
-					PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+					final PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
 					
 					((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
 							
@@ -504,7 +504,14 @@ PluginInstallerImpl
 							cancelled(
 								UpdateCheckInstance		instance )
 							{
-								dummy_plugin.requestUnload();
+								try{
+								
+									dummy_plugin_interface.unload();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( "Failed to unload plugin", e );
+								}
 							}
 							
 							public void
@@ -515,9 +522,15 @@ PluginInstallerImpl
 								
 								PluginInterface pi = manager.getPluginInterfaceByID( plugin_id );
 								
-								if ( pi != null && pi.getPlugin() == dummy_plugin ){
+								if ( pi != null && pi.getPlugin() instanceof FailedPlugin ){
 									
-									dummy_plugin.requestUnload();
+									try{
+										pi.unload();
+										
+									}catch( Throwable e ){
+										
+										Debug.out( "Failed to unload plugin", e );
+									}
 								}
 
 							}
