@@ -175,13 +175,15 @@ public class PlatformBuddyMessenger
 						VuzeActivitiesEntryBuddyRequest inviteEntry = (VuzeActivitiesEntryBuddyRequest) entry;
 						if (inviteEntry.getBuddy() != null) {
 							existingInvites.add(entry);
+							System.out.println("should remove " + entry.getText());
 						}
 					}
 				}
 
+				VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[0]);
+				VuzeActivitiesManager.removeEntries(entries, true);
+
 				if (invitations.size() == 0) {
-					VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[0]);
-					VuzeActivitiesManager.removeEntries(entries);
 					return;
 				}
 
@@ -191,7 +193,7 @@ public class PlatformBuddyMessenger
 					Map mapBuddy = MapUtils.getMapMap(mapInvitation, "buddy-info",
 							Collections.EMPTY_MAP);
 					long addedOn = SystemTime.getOffsetTime(MapUtils.getMapLong(mapInvitation,
-							"added-secs-ago", 0) * 1000);
+							"added-secs-ago", 0) * -1000);
 
 					String inviteCode = MapUtils.getMapString(mapInvitation, "code", null);
 					String acceptURL = MapUtils.getMapString(mapInvitation, "accept-url",
@@ -209,7 +211,7 @@ public class PlatformBuddyMessenger
 						}
 					}
 
-					VuzeBuddy futureBuddy = VuzeBuddyManager.createPotentialBuddy();
+					VuzeBuddy futureBuddy = VuzeBuddyManager.createPotentialBuddy(null);
 					String loginID = MapUtils.getMapString(mapBuddy, "login-id", null);
 
 					VuzeBuddy existingBuddy = VuzeBuddyManager.getBuddyByLoginID(loginID);
@@ -223,13 +225,14 @@ public class PlatformBuddyMessenger
 					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
 							futureBuddy, acceptURL, attempNumber);
 					entry.setTimestamp(addedOn);
+					entry.setID(entry.getID() + SystemTime.getCurrentTime());
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
 						entry
 					});
 				}
 
-				VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[existingInvites.size()]);
-				VuzeActivitiesManager.removeEntries(entries);
+				//VuzeActivitiesEntry[] entries = (VuzeActivitiesEntry[]) existingInvites.toArray(new VuzeActivitiesEntry[existingInvites.size()]);
+				//VuzeActivitiesManager.removeEntries(entries);
 			}
 
 			public void messageSent(
