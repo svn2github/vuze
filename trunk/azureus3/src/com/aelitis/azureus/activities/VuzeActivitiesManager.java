@@ -678,6 +678,10 @@ public class VuzeActivitiesManager
 	}
 
 	public static void removeEntries(VuzeActivitiesEntry[] entries) {
+		removeEntries(entries, false);
+	}
+	
+	public static void removeEntries(VuzeActivitiesEntry[] entries, boolean allowReAdd) {
 		long cutoffTime = getCutoffTime();
 
 		try {
@@ -688,10 +692,10 @@ public class VuzeActivitiesManager
 				if (entry == null) {
 					continue;
 				}
-				//System.out.println("remove " + entry.id);
+				//System.out.println("remove " + entry.getID());
 				allEntries.remove(entry);
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
-				if (entry.getTimestamp() > cutoffTime && !isHeader) {
+				if (!allowReAdd && entry.getTimestamp() > cutoffTime && !isHeader) {
 					removedEntries.add(entry);
 				}
 			}
