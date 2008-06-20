@@ -204,12 +204,7 @@ public class IconBar {
     createBufferedToolItem(toolBar,SWT.PUSH,"publish","cb_publish","iconBar.publish.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"start","cb_start","iconBar.start.tooltip");
     createBufferedToolItem(toolBar,SWT.PUSH,"stop","cb_stop","iconBar.stop.tooltip");
-    BufferedToolItem ti = createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
-    
-    //Control widget = (Control) ti.getWidget();
-    Menu menu = new Menu(toolBar);
-    new MenuItem(menu, SWT.PUSH).setText("Hi");
-    toolBar.setMenu(menu);
+    createBufferedToolItem(toolBar,SWT.PUSH,"remove","cb_remove","iconBar.remove.tooltip");
     
 
     for (Iterator iter = listeners.iterator(); iter.hasNext();) {
