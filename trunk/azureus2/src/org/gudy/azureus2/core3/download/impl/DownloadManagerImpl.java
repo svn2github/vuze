@@ -726,7 +726,6 @@ DownloadManagerImpl
 				 			}
 				 			
 				 			if ( save_dir_file.getName().equals( display_name )){
-				 				
 				 				torrent_save_dir	= save_dir_file.getParent().toString();
 				 			}
 				 		}
@@ -885,7 +884,6 @@ DownloadManagerImpl
 			}
 			
 			if ( download_manager_state == null ){
-			
 				read_torrent_state = 
 					new Object[]{ 	
 						torrent_save_dir, torrent_save_file, torrent_hash,
@@ -1927,7 +1925,7 @@ DownloadManagerImpl
 
 		// Trying to fix a problem where downloads are being moved into the program
 		// directory on my machine, and I don't know why...
-		//Debug.out("Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath());
+		Debug.out("Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath());
 		
 		controller.fileInfoChanged();
 	}
