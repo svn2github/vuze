@@ -188,6 +188,13 @@ DownloadManagerEnhancer
 							}
 						}
 						
+						if ( b_hash != null ){
+						
+								// ensure we have an enhanced download object for it
+							
+							getEnhancedDownload( b_hash );
+						}
+						
 						synchronized( download_map ){
 
 							Iterator it = download_map.values().iterator();
@@ -202,7 +209,14 @@ DownloadManagerEnhancer
 									
 									if ( d_hash != null && Arrays.equals( b_hash, d_hash )){
 									
-										if ( !edm.supportsProgressiveMode()){
+											// if its complete then obviously 0
+										
+										if ( edm.getDownloadManager().isDownloadComplete( false )){
+											
+											return( 0 );
+										}
+
+										if ( !edm.supportsProgressiveMode()){											
 											
 											return( Integer.MIN_VALUE );
 										}
