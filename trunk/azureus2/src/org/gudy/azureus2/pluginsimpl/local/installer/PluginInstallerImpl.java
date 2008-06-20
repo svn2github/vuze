@@ -44,10 +44,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.*;
-import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -439,7 +437,7 @@ PluginInstallerImpl
 				
 				InstallablePlugin	plugin	= plugins[i];
 				
-				String	plugin_id = plugin.getId();
+				final String	plugin_id = plugin.getId();
 				
 				PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
 				
@@ -513,6 +511,15 @@ PluginInstallerImpl
 							complete(
 								UpdateCheckInstance		instance )
 							{
+								System.out.println( "sporp" );
+								
+								PluginInterface pi = manager.getPluginInterfaceByID( plugin_id );
+								
+								if ( pi != null && pi.getPlugin() == dummy_plugin ){
+									
+									dummy_plugin.requestUnload();
+								}
+
 							}
 						});
 				}else{
