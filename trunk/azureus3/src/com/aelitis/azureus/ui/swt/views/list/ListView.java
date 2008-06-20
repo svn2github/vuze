@@ -701,16 +701,26 @@ public class ListView
 			setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
 		}
 
+		boolean needGCImgView = false;
 		if (imgView == null || bForce) {
 			if (DEBUGPAINT) {
 				logPAINT("first resize (img null)");
 			}
-			if (imgView != null && !imgView.isDisposed())
+			needGCImgView = (gcImgView != null && !gcImgView.isDisposed());
+			if (needGCImgView) {
+				gcImgView.dispose();
+			}
+			if (imgView != null && !imgView.isDisposed()) {
 				imgView.dispose();
+			}
 			imgView = new Image(display, clientArea);
 			lastBounds = new Rectangle(0, 0, 0, 0);
 			bNeedsRefresh = true;
 		} else if (!lastBounds.equals(clientArea)) {
+			needGCImgView = (gcImgView != null && !gcImgView.isDisposed());
+			if (needGCImgView) {
+				gcImgView.dispose();
+			}
 			// resize image by creating a new one, drawing the old one on it,
 			// and blanking out the new areas
 			bNeedsRefresh = lastBounds.height != clientArea.height;
@@ -740,6 +750,9 @@ public class ListView
 			imgView.dispose();
 			imgView = newImageView;
 			//listCanvas.update();
+		}
+		if (needGCImgView) {
+			gcImgView = new GC(imgView);
 		}
 
 		if (bNeedsRefresh) {
@@ -3653,6 +3666,19 @@ public class ListView
 				//bForceRedraw = true;
 				if (bForceRedraw) {
 					row.doPaint(gcImgView, true);
+					
+					if (row.getIndex() == rows.size() - 1) {
+						int endPosY = row.getBasicYPos() + row.getHeight();
+						if (endPosY < clientArea.height) {
+							gcImgView.setClipping((Rectangle)null);
+							gcImgView.setBackground(listCanvas.getBackground());
+							gcImgView.fillRectangle(0, endPosY, clientArea.width,
+									clientArea.height - endPosY);
+							listCanvas.redraw(0, endPosY, clientArea.width,
+									clientArea.height - endPosY, false);
+						}
+					}
+					
 				} else if (thisChanged) {
 					String sChanged = "" + row.getIndex() + " ";
 					for (Iterator iter = changedItems.iterator(); iter.hasNext();) {
@@ -3765,7 +3791,8 @@ public class ListView
 	 *
 	 * @since 3.0.4.3
 	 */
-	public void rowHeightChanged(ListRow rowChanged, int oldHeight, int newHeight) {
+	public void rowHeightChanged(ListRow rowChanged, final int oldHeight,
+			final int newHeight) {
 		totalHeight = totalHeight - oldHeight + newHeight;
 
 		if (rowChanged.getBasicYPos() < 0) {
@@ -3777,8 +3804,10 @@ public class ListView
 		fixUpPositions(startPos, true);
 
 		if (bottomRowInfo == null || startPos <= bottomRowInfo.index) {
-			setBottomRowInfo(findBottomRow(iLastVBarPos, clientArea.height));
+			RowInfo newBottomRow = findBottomRow(iLastVBarPos, clientArea.height);
+				setBottomRowInfo(newBottomRow);
 		}
+
 		refreshScrollbar();
 		refreshVisible(true, true, true);
 	}
@@ -4286,7 +4315,8 @@ public class ListView
 	public void setBottomRowInfo(RowInfo newBottomRowInfo) {
 		try {
 			row_mon.enter();
-			if (bottomRowInfo != null && newBottomRowInfo.index < bottomRowInfo.index) {
+			if (bottomRowInfo != null && newBottomRowInfo != null
+					&& newBottomRowInfo.index < bottomRowInfo.index) {
 				for (int i = newBottomRowInfo.index + 1; i <= bottomRowInfo.index; i++) {
 					TableRowCore row = getRow(i);
 					if (row != null) {
