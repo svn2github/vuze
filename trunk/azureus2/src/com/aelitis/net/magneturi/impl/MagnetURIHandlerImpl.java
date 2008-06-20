@@ -647,6 +647,8 @@ MagnetURIHandlerImpl
 								
 				if ( value == Integer.MIN_VALUE ){
 					
+						// no value, see if we have a default
+					
 					String	def_str = (String)params.get( "default" );
 
 					if ( def_str != null ){
@@ -658,15 +660,14 @@ MagnetURIHandlerImpl
 							
 							Debug.printStackTrace( e );
 						}
-						
 					}
-				}
-				
-				if ( value != Integer.MIN_VALUE ){
+				}else{
+					
+						// have a value, see if we have a max
 					
 					String	max_str = (String)params.get( "max" );
 
-					if( max_str != null ){
+					if ( max_str != null ){
 						
 						try{
 							int	max = Integer.parseInt( max_str );
@@ -680,7 +681,10 @@ MagnetURIHandlerImpl
 							Debug.printStackTrace(e);
 						}
 					}
-
+				}
+				
+				if ( value != Integer.MIN_VALUE ){
+	
 					if ( value < 0 ){
 						
 						value = 0;
