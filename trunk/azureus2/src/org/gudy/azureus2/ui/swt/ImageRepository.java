@@ -360,14 +360,14 @@ public class ImageRepository {
 					images.put(id, image);
 				}
 			}
-			if (image == null) {
-				return getImage(minifolder ? "folder" : "transparent");
-			}
 		} catch (Throwable e) {
 			// seen exceptions thrown here, due to images.get failing in Program.hashCode
 			// ignore and use default icon
 		}
 
+		if (image == null) {
+			return getImage(minifolder ? "folder" : "transparent");
+		}
 		return image;
 	}
   
