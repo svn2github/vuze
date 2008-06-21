@@ -102,6 +102,13 @@ BuddyPlugin
 	public static final int	SUBSYSTEM_AZ2		= 1;
 	public static final int	SUBSYSTEM_AZ3		= 2;
 	
+	public static final int STATUS_ONLINE			= 0;
+	public static final int STATUS_AWAY				= 1;
+	public static final int STATUS_NOT_AVAILABLE	= 2;
+	public static final int STATUS_BUSY				= 3;
+	public static final int STATUS_APPEAR_OFFLINE	= 4;
+	
+	
 	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
 	protected static final int RT_INTERNAL_REQUEST_CLOSE	= 3;
@@ -718,6 +725,19 @@ BuddyPlugin
 		nick_name_param.setValue( str );
 	}
 	
+	public void
+	setOnlineStatus(
+		int		status )
+	{
+		updateOnlineStatus( status );
+	}
+	
+	public int
+	getOnlineStatus()
+	{
+		return( latest_publish.getOnlineStatus());
+	}
+	
 	protected void
 	registerMessageHandler()
 	{
@@ -1157,6 +1177,25 @@ BuddyPlugin
 		}
 	}
 	
+	protected void
+	updateOnlineStatus(
+		int		new_status )
+	{
+		synchronized( this ){
+
+			int	old_status = latest_publish.getOnlineStatus();
+			
+			if ( old_status != new_status ){
+			
+				publishDetails new_publish = latest_publish.getCopy();
+					
+				new_publish.setOnlineStatus( new_status );
+					
+				updatePublish( new_publish );
+			}
+		}
+	}
+	
 	protected boolean
 	stringsEqual(
 		String	s1, 
@@ -1330,6 +1369,8 @@ BuddyPlugin
 				
 				payload.put( "n", nick );
 			}
+			
+			payload.put( "o", new Long( details.getOnlineStatus()));
 			
 			int	next_seq = ++status_seq;
 			
@@ -1581,7 +1622,7 @@ BuddyPlugin
 			config_dirty = true;
 		}
 	}
-	
+		
 	protected void
 	loadConfig()
 	{
@@ -2094,7 +2135,11 @@ BuddyPlugin
 									
 									int		seq = l_seq==null?0:l_seq.intValue();
 									
-									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick, seq );
+									Long	l_os = (Long)status.get( "o" );
+									
+									int		os = l_os==null?BuddyPlugin.STATUS_ONLINE:l_os.intValue();
+											
+									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick, os, seq );
 									
 								}catch( Throwable e ){
 									
@@ -2975,6 +3020,7 @@ BuddyPlugin
 		private int				tcp_port;
 		private int				udp_port;
 		private String			nick_name;
+		private int				online_status		= STATUS_ONLINE;
 		
 		private boolean			enabled;
 		private boolean			published;
@@ -3101,10 +3147,23 @@ BuddyPlugin
 			nick_name	= n;
 		}
 		
+		protected int
+		getOnlineStatus()
+		{
+			return( online_status );
+		}
+		
+		protected void
+		setOnlineStatus(
+			int		_status )
+		{
+			online_status = _status;
+		}
+		
 		protected String
 		getString()
 		{
-			return( "enabled=" + enabled + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",key=" + (public_key==null?"<none>":Base32.encode( public_key )));
+			return( "enabled=" + enabled + ",ip=" + ip + ",tcp=" + tcp_port + ",udp=" + udp_port + ",stat=" + online_status + ",key=" + (public_key==null?"<none>":Base32.encode( public_key )));
 		}
 	}
 	

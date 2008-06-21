@@ -74,6 +74,7 @@ BuddyPluginBuddy
 	private InetAddress		ip;
 	private int				tcp_port;
 	private int				udp_port;
+	private int				online_status	= BuddyPlugin.STATUS_ONLINE;	// default
 		
 	private boolean			online;
 	private long			last_time_online;
@@ -228,6 +229,12 @@ BuddyPluginBuddy
 	getNickName()
 	{
 		return( nick_name );
+	}
+	
+	public int
+	getOnlineStatus()
+	{
+		return( online_status );
 	}
 	
 	public String
@@ -1114,6 +1121,7 @@ BuddyPluginBuddy
 		int				_tcp_port,
 		int				_udp_port,
 		String			_nick_name,
+		int				_online_status,
 		int				_status_seq )
 	{
 		boolean	details_change 	= false;
@@ -1182,11 +1190,13 @@ BuddyPluginBuddy
 				
 				if ( 	!addressesEqual( ip, _ip ) ||
 						tcp_port != _tcp_port ||
-						udp_port != _udp_port ){
+						udp_port != _udp_port ||
+						online_status != _online_status ){
 					
-					ip			= _ip;
-					tcp_port	= _tcp_port;
-					udp_port	= _udp_port;
+					ip				= _ip;
+					tcp_port		= _tcp_port;
+					udp_port		= _udp_port;
+					online_status	= _online_status;
 					
 					details_change	= true;
 				}
