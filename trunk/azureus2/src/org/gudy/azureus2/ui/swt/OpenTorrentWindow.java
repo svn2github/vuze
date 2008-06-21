@@ -2224,7 +2224,7 @@ public class OpenTorrentWindow
 								}
 							}
 							
-							dm.getDiskManagerFileInfoSet().setStorageTypes(toSkip, DiskManagerFileInfo.ST_COMPACT);
+							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact, DiskManagerFileInfo.ST_COMPACT);
 							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
 						} finally
 						{
