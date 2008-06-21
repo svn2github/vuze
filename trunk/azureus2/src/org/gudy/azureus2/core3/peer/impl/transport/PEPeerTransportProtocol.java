@@ -32,11 +32,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPeerListener;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransportFactory;
@@ -1073,7 +1069,7 @@ implements PEPeerTransport
 			setSeed(false);
 		
 		if(manager.isSeeding() && isSeed())
-			// we're seeding, peer is a real seed so it's also a relative seed
+			// peer is a real seed so it's also a relative seed
 			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
 		else if(manager.isSeeding() && (relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0)
 			// peer indicated upload-only, we're seeding so he's a relative seed
@@ -1085,7 +1081,10 @@ implements PEPeerTransport
 			boolean couldBeSeed = true;
 			
 			if(!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0 && piecesDone >= peerHavePieces.nbSet)
-			{ // peer indicated upload-only, check if we can use any of the data, otherwise flag as relative seed
+			{ /*
+				 * peer indicated upload-only, check if we can use any of the data, otherwise flag
+				 * as relative seed. Useful to disconnect not-useful pseudo-seeds during downloading  
+				 */
 				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
 				{
 					// relative seed if peer doesn't have the piece, we already have it or we don't need it
@@ -1107,6 +1106,8 @@ implements PEPeerTransport
 			
 			if(couldBeSeed)
 				relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
+			else
+				relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
 		} else
 			relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
 			
