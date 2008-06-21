@@ -63,6 +63,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -457,6 +458,47 @@ BuddyPluginViewInstance
 
 	    buddy_table.setHeaderVisible(true);
 
+	    TableColumn[] columns = buddy_table.getColumns();
+	    columns[0].setData(new Integer(FilterComparator.FIELD_NAME));
+	    columns[1].setData(new Integer(FilterComparator.FIELD_ONLINE));
+	    columns[2].setData(new Integer(FilterComparator.FIELD_LAST_SEEN));
+	    columns[3].setData(new Integer(FilterComparator.FIELD_YGM));
+	    columns[4].setData(new Integer(FilterComparator.FIELD_LAST_MSG));
+	    columns[5].setData(new Integer(FilterComparator.FIELD_CON));
+	    columns[6].setData(new Integer(FilterComparator.FIELD_MSG_IN));
+	    columns[7].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
+	    columns[8].setData(new Integer(FilterComparator.FIELD_QUEUED));
+	    columns[9].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
+	    columns[10].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
+	    columns[11].setData(new Integer(FilterComparator.FIELD_SS));
+	    
+	    
+	    final FilterComparator comparator = new FilterComparator();
+	    
+	    Listener sort_listener = 
+	    	new Listener() 
+	    	{
+		    	public void 
+		    	handleEvent(
+		    		Event e ) 
+		    	{
+		    		TableColumn tc = (TableColumn) e.widget;
+	
+		    		int field = ((Integer) tc.getData()).intValue();
+	
+		    		comparator.setField( field );
+	
+		    		Collections.sort( buddies,comparator);
+	
+		    		updateTable();
+		    	}
+	    	};
+	    
+	    for (int i=0;i<columns.length;i++){
+	    	
+	    	columns[i].addListener(SWT.Selection,sort_listener);
+	    }	    
+	    
 	    gridData = new GridData(GridData.FILL_BOTH);
 	    gridData.heightHint = buddy_table.getHeaderHeight() * 3;
 		buddy_table.setLayoutData(gridData);
@@ -1173,6 +1215,8 @@ BuddyPluginViewInstance
 			buddyAdded((BuddyPluginBuddy)buddies.get(i));
 		}
 		
+		Collections.sort( buddies, comparator );
+
 		plugin.addListener( this );
 		
 		plugin.addRequestListener( this );
@@ -1497,5 +1541,97 @@ BuddyPluginViewInstance
 		
 		plugin.removeRequestListener( this );
 
+	}
+	
+	protected class 
+	FilterComparator 
+		implements Comparator 
+	{
+		boolean ascending = true;
+
+		static final int FIELD_NAME			= 0;
+		static final int FIELD_ONLINE 		= 1;
+		static final int FIELD_LAST_SEEN 	= 2;
+		static final int FIELD_YGM		 	= 3;
+		static final int FIELD_LAST_MSG 	= 4;
+		static final int FIELD_CON		 	= 5;
+		static final int FIELD_MSG_IN	 	= 6;
+		static final int FIELD_MSG_OUT	 	= 7;
+		static final int FIELD_QUEUED	 	= 8;
+		static final int FIELD_BYTES_IN 	= 9;
+		static final int FIELD_BYTES_OUT 	= 10;
+		static final int FIELD_SS		 	= 11;
+
+		int field = FIELD_NAME;
+
+		public int 
+		compare(
+			Object arg0,
+			Object arg1) 
+		{
+			BuddyPluginBuddy b1 = (BuddyPluginBuddy) arg0;
+			BuddyPluginBuddy b2 = (BuddyPluginBuddy) arg1;
+			
+			int	res = 0;
+			
+			if (field == FIELD_NAME){				
+				 res = b1.getName().compareTo( b2.getName());
+			}
+			
+			if(field == FIELD_ONLINE){
+				res = ( b1.isOnline()?1:0 ) - ( b2.isOnline()?1:0 );
+			}
+			
+			if(field == FIELD_LAST_SEEN){
+				res = (int)( b1.getLastTimeOnline() - b2.getLastTimeOnline());
+			}
+			
+			if(field == FIELD_YGM){
+				res = (int)( b1.getLastMessagePending() - b2.getLastMessagePending());
+			}
+			
+			if(field == FIELD_LAST_MSG){
+				res = b1.getLastMessageReceived().compareTo( b2.getLastMessageReceived());
+			}
+			
+			if(field == FIELD_CON){
+				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
+			}
+			
+			if(field == FIELD_MSG_IN){
+				res = b1.getMessageInCount() - b2.getMessageInCount();
+			}
+			
+			if(field == FIELD_MSG_OUT){
+				res = b1.getMessageOutCount() - b2.getMessageOutCount();
+			}
+			
+			if(field == FIELD_QUEUED){
+				res = b1.getMessageHandler().getMessageCount() - b2.getMessageHandler().getMessageCount();
+			}
+			
+			if(field == FIELD_BYTES_IN){
+				res = b1.getBytesInCount() - b2.getBytesInCount();
+			}
+			
+			if(field == FIELD_BYTES_OUT){
+				res = b1.getBytesOutCount() - b2.getBytesOutCount();
+			}
+			
+			if(field == FIELD_SS){
+				res =  b1.getSubsystem() - b2.getSubsystem();
+			}
+			
+			return(( ascending ? 1 : -1) * res );
+		}
+
+		public void 
+		setField(
+			int newField ) 
+		{      
+			if(field == newField) ascending = ! ascending;
+			
+			field = newField;
+		}
 	}
 }

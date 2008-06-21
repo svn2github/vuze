@@ -483,7 +483,7 @@ BuddyPluginBuddy
 	public String
 	getLastMessageReceived()
 	{
-		return( last_message_received );
+		return( last_message_received==null?"":last_message_received );
 	}
 	
 	protected List
