@@ -1338,7 +1338,7 @@ BuddyPluginViewInstance
 		
 		if ( !buddies.contains( buddy )){
 			
-			buddy_table.getDisplay().syncExec(
+			buddy_table.getDisplay().asyncExec(
 					new Runnable()
 					{
 						public void
@@ -1362,7 +1362,7 @@ BuddyPluginViewInstance
 	buddyRemoved(
 		final BuddyPluginBuddy	buddy )
 	{
-		buddy_table.getDisplay().syncExec(
+		buddy_table.getDisplay().asyncExec(
 				new Runnable()
 				{
 					public void
@@ -1383,7 +1383,7 @@ BuddyPluginViewInstance
 	buddyChanged(
 		final BuddyPluginBuddy	buddy )
 	{
-		buddy_table.getDisplay().syncExec(
+		buddy_table.getDisplay().asyncExec(
 				new Runnable()
 				{
 					public void
