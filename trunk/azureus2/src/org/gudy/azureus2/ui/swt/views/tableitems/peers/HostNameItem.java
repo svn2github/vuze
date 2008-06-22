@@ -23,30 +23,35 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
 
 /**
  * @author parg
  *
  */
+public class HostNameItem extends CoreTableColumn implements TableCellRefreshListener {
+	/** Default Constructor */
+	public HostNameItem(String table_id) {
+		super("host", POSITION_INVISIBLE, 100, table_id);
+		setRefreshInterval(INTERVAL_LIVE);
+		setObfustication(true);
+	}
 
-public class 
-HostNameItem 
-	extends CoreTableColumn 
-	implements TableCellRefreshListener
-{
-	 /** Default Constructor */
-	  public HostNameItem(String table_id) {
-	    super("host", POSITION_INVISIBLE, 100, table_id);
-	    setRefreshInterval(INTERVAL_LIVE);
-	    setObfustication(true);
-	  }
-
-	  public void refresh(TableCell cell) {
-	    PEPeer peer = (PEPeer)cell.getDataSource();
-
-	    cell.setText( peer == null ? "" : peer.getIPHostName() );
-	  }
+	public void refresh(TableCell cell) {
+		PEPeer peer = (PEPeer) cell.getDataSource();
+		String addr = peer == null ? "" : peer.getIPHostName();
+		if (cell.setText(addr) && !addr.equals(peer.getIp()))
+		{
+			String[] l = addr.split("\\.");
+			StringBuffer buf = new StringBuffer();
+			for (int i = l.length-1; i >= 0 ; i--)
+			{
+				buf.append(l[i]);
+				buf.append('.');
+			}
+			cell.setSortValue(buf.toString());
+		}
+	}
 }
