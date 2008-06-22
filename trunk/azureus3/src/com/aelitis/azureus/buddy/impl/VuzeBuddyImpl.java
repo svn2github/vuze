@@ -203,9 +203,11 @@ public class VuzeBuddyImpl
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#addPublicKey()
 	public void addPublicKey(String pk) {
 		// We add public keys by adding BuddyPluginBuddy
+		
+		BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze(pk);
+
 		mon_pluginBuddies.enter();
 		try {
-			BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze(pk);
 
 			if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)) {
 				pluginBuddies.add(pluginBuddy);
