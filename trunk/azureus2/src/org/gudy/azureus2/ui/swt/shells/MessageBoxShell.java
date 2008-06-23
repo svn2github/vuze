@@ -717,7 +717,7 @@ public class MessageBoxShell
 								event.cancel();
 								return;
 							}
-							boolean isOver = content.getBounds().contains(
+							boolean isOver = sShell.getBounds().contains(
 									content.getDisplay().getCursorLocation());
 							if (isOver != wasOver) {
 								wasOver = isOver;

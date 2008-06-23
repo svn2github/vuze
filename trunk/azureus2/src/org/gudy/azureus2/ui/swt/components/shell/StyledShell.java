@@ -642,4 +642,8 @@ public class StyledShell
 			shell.setAlpha(alpha);
 		}
 	}
+
+	public Rectangle getBounds() {
+		return styledShell.getBounds();
+	}
 }
