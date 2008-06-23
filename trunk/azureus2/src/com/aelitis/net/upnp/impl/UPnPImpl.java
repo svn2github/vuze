@@ -606,12 +606,16 @@ UPnPImpl
 		return( res );
 	}
 	
+	/**
+	 * The use_http_connection flag is set to false sometimes to avoid using
+	 * the URLConnection library for some dopey UPnP routers.
+	 */
 	public SimpleXMLParserDocument
 	performSOAPRequest(
 		UPnPService		service,
 		String			soap_action,
 		String			request,
-		boolean			permit_proxy_connection)
+		boolean			use_http_connection)
 	
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
@@ -619,69 +623,106 @@ UPnPImpl
 		
 		adapter.trace( "UPnP:Request: -> " + control + "," + request );
 
-		HttpURLConnection	con;
-		if (!permit_proxy_connection) {
-			con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
-		}
-		else {
-			 con = (HttpURLConnection)control.openConnection();
-		}
-			
-		con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
-			
-		con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-			
-		con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
-			
-		con.setRequestMethod( "POST" );
-			
-		con.setDoInput( true );
-		con.setDoOutput( true );
-			
-		OutputStream	os = con.getOutputStream();
-			
-		PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-						
-		pw.println( request );
-			
-		pw.flush();
-	
-		con.connect();
-			
-		if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+		if (use_http_connection) {
+			HttpURLConnection	con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
 				
-			// gotta retry with M-POST method
-								
-			con = (HttpURLConnection)control.openConnection();
+			con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 				
 			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
 				
-			con.setRequestMethod( "M-POST" );
+			con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
 				
-			con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-	
-			con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+			con.setRequestMethod( "POST" );
 				
 			con.setDoInput( true );
 			con.setDoOutput( true );
 				
-			os = con.getOutputStream();
+			OutputStream	os = con.getOutputStream();
 				
-			pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+			PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
 							
 			pw.println( request );
 				
 			pw.flush();
-	
+		
 			con.connect();
-			
-			return( parseXML(con.getInputStream()));	
 				
-		}else{
+			if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+					
+				// gotta retry with M-POST method
+									
+				con = (HttpURLConnection)control.openConnection();
+					
+				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+					
+				con.setRequestMethod( "M-POST" );
+					
+				con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+		
+				con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+					
+				con.setDoInput( true );
+				con.setDoOutput( true );
+					
+				os = con.getOutputStream();
+					
+				pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+								
+				pw.println( request );
+					
+				pw.flush();
+		
+				con.connect();
 				
-			return( parseXML(con.getInputStream()));
+				return( parseXML(con.getInputStream()));	
+					
+			}else{
+					
+				return( parseXML(con.getInputStream()));
+			}
 		}
-	}
+		else {
+			Socket	socket = new Socket(control.getHost(), control.getPort());
+			
+			try{
+				PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
+
+				String	url_target = control.toString();
+			
+				int	p1 	= url_target.indexOf( "://" ) + 3;
+				p1		= url_target.indexOf( "/", p1 );
+				
+				url_target = url_target.substring( p1 );
+				
+				pw.print( "POST " + url_target + " HTTP/1.1" + NL );
+				pw.print( "Content-Type: text/xml; charset=\"utf-8\"" + NL );
+				pw.print( "SOAPAction: \"" + soap_action + "\"" + NL );
+				pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
+				pw.print( "Host: " + control.getHost() + NL );
+				pw.print( "Content-Length: " + request.getBytes( "UTF8" ).length + NL );
+				pw.print( "Connection: Keep-Alive" + NL );
+				pw.print( "Pragma: no-cache" + NL + NL );
+	
+				pw.print( request );
+				
+				pw.flush();
+				
+				InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
+				
+				return( parseXML( is ));
+				
+			}finally{
+
+				try{
+					socket.close();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				} // end catch
+			} // end finally
+		} // end else
+	} // end method
 	
 	protected File
 	getTraceFile()
