@@ -929,10 +929,29 @@ implements PEPeerTransport
 
 	protected void sendBTHandshake() {
 		if ( !handshake_sent ){
-			connection.getOutgoingMessageQueue().addMessage(
-					new BTHandshake( manager.getHash(),
-							manager.getPeerId(),
-	                         manager.isExtendedMessagingEnabled(), other_peer_handshake_version ), false );
+			BTHandshake handshake =	new BTHandshake( manager.getHash(),
+					manager.getPeerId(),
+                    manager.isExtendedMessagingEnabled(), other_peer_handshake_version );
+
+			/**
+			 * AMC's hopefully temporary debug code - some Az clients out there appear to be be
+			 * AZMP neutered and communicating using LTEP instead. Let's bug the user if
+			 * this happens so that I know about it.
+			 */
+			if (Constants.isCVSVersion()) {
+				byte[] reserved = handshake.getReserved();
+				boolean supports_azmp = (reserved[0] & 128) == 128;
+				boolean supports_ltep = (reserved[5] & 16) == 16;
+				if (supports_ltep && !supports_azmp) {
+					Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+						"AZMP support has failed in Azureus, please report this in the " + 
+						"<a href=\"http://forum.vuze.com/forum.jspa?forumID=4\">CVS bug report forum</a>.\n" +
+						"Debug data: " + ByteFormatter.nicePrint(reserved)
+					));
+				}
+			}
+			
+			connection.getOutgoingMessageQueue().addMessage(handshake, false);
 		}
 	}
 
