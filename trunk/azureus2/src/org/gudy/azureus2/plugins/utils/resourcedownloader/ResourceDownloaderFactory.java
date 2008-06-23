@@ -52,6 +52,14 @@ ResourceDownloaderFactory
 	public ResourceDownloader
 	create(
 		URL		url );
+	
+	/**
+	 * Creates a basic downloader, where you can force any configured proxy
+	 * to be avoided. 
+	 *
+	 * @since 3.1.0.1
+	 */
+	public ResourceDownloader create(URL url, boolean force_no_proxy);
 		
 	public ResourceDownloader
 	create(

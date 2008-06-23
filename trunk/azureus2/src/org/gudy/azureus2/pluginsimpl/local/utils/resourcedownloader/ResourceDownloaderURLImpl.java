@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  *
  */
 
+import com.aelitis.azureus.core.util.Java15Utils;
+
 import java.io.*;
 import java.net.*;
 
@@ -67,6 +69,8 @@ ResourceDownloaderURLImpl
 	
 	protected boolean		download_initiated;
 	protected long			size		 	= -2;	// -1 -> unknown
+	
+	protected boolean       force_no_proxy = false;
 
 	private final String post_data;
 	
@@ -136,6 +140,10 @@ ResourceDownloaderURLImpl
 		auth_supplied	= _auth_supplied;
 		user_name		= _user_name;
 		password		= _password;
+	}
+	
+	protected void setForceNoProxy(boolean force_no_proxy) {
+		this.force_no_proxy = force_no_proxy;
 	}
 	
 	protected URL
@@ -234,7 +242,7 @@ ResourceDownloaderURLImpl
 						      	
 									// see ConfigurationChecker for SSL client defaults
 				
-								HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+								HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
 				
 									// allow for certs that contain IP addresses rather than dns names
 				  	
@@ -254,7 +262,7 @@ ResourceDownloaderURLImpl
 				  	
 							}else{
 				  	
-								con = (HttpURLConnection) url.openConnection();
+								con = (HttpURLConnection)openConnection(url);
 				  	
 							}
 				  
@@ -340,6 +348,7 @@ ResourceDownloaderURLImpl
 		c.setSize( size );
 		
 		c.setProperties( this );
+		c.setForceNoProxy(force_no_proxy);
 		
 		return( c );
 	}
@@ -454,7 +463,7 @@ ResourceDownloaderURLImpl
 						      	
 									// see ConfigurationChecker for SSL client defaults
 				
-								HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
+								HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
 				
 									// allow for certs that contain IP addresses rather than dns names
 				  	
@@ -474,7 +483,7 @@ ResourceDownloaderURLImpl
 				  	
 							}else{
 				  	
-								con = (HttpURLConnection) url.openConnection();
+								con = (HttpURLConnection)openConnection(url);
 				  	
 							}
 							
@@ -888,5 +897,10 @@ ResourceDownloaderURLImpl
 	public void
 	clearPasswords()
 	{
+	}
+	
+	private URLConnection openConnection(URL url) throws IOException {
+		if (this.force_no_proxy) {return Java15Utils.openConnectionForceNoProxy(url);}
+		else {return url.openConnection();}
 	}
 }

@@ -85,6 +85,14 @@ ResourceDownloaderFactoryImpl
 		}
 	}
 	
+	public ResourceDownloader create(URL url, boolean force_no_proxy) {
+		ResourceDownloader rd = create(url);
+		if (force_no_proxy && rd instanceof ResourceDownloaderURLImpl) {
+			((ResourceDownloaderURLImpl)rd).setForceNoProxy(force_no_proxy);
+		}
+		return rd;
+	}
+	
 	public ResourceDownloader
 	create(
 		URL		url,
