@@ -642,8 +642,7 @@ public class AvatarWidget
 		if (false == isSharedAlready()) {
 			viewer.addToShare(this);
 			sharedAlready = true;
-		}
-		else{
+		} else {
 			viewer.removeFromShare(vuzeBuddy);
 			sharedAlready = false;
 		}
@@ -668,11 +667,17 @@ public class AvatarWidget
 	}
 
 	public void doLinkClicked() {
-		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if (null != uiFunctions) {
-			String url = getVuzeBuddy().getProfileUrl("buddy-bar");
-			uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true,
-					true);
+
+		/*
+		 * Open the user profile page but only if NOT in Share or Add mode
+		 */
+		if (false == viewer.isShareMode() && false == viewer.isAddBuddyMode()) {
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (null != uiFunctions) {
+				String url = getVuzeBuddy().getProfileUrl("buddy-bar");
+				uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
+						true, true);
+			}
 		}
 	}
 
