@@ -197,7 +197,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         if( use_proxy ) {  //proxy server connection established, login
-        	Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
           
         		// set up a transparent filter for socks negotiation
         	
@@ -205,7 +206,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       		
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
-            	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
+            	if (Logger.isEnabled())
+            		Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
             	handleCrypto( address, channel, initial_data, priority, listener );
             }
             
