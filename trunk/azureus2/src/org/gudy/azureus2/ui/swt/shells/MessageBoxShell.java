@@ -763,8 +763,8 @@ public class MessageBoxShell
 				}
 			});
 			FormData data = new FormData();
-			data.left = new FormAttachment(checkRemember);
-			data.bottom = new FormAttachment(checkRemember, -1, SWT.BOTTOM);
+			data.left = new FormAttachment(checkRemember,6);
+			data.top = new FormAttachment(checkRemember, 0, SWT.CENTER);
 			checkRememberLabel.setLayoutData(data);
 
 			checkRemember.addDisposeListener(new DisposeListener() {
