@@ -21,6 +21,14 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 	
 	public final static DefaultSaveLocationManager DEFAULT_HANDLER = new DefaultSaveLocationManager() {
 		public SaveLocationChange onInitialization(Download d, boolean moving) {
+			
+			/**
+			 * This manager object isn't the sort of object which decides on
+			 * an alternate initialisation place for a download - if a user
+			 * has chosen a path for it, we don't interfere with it under any
+			 * circumstances (though if plugins want to, then that's up to them). 
+			 */
+			if (moving) {return null;}
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
 			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1], moving); // 1 - incomplete downloads
 		}
