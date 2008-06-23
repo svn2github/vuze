@@ -31,6 +31,8 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+import com.aelitis.azureus.core.util.Java15Utils;
+
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -523,59 +525,20 @@ UPnPImpl
 		throws UPnPException
 	{
 		try{
-			if ( forceDirect()){
-			
-				Socket	socket = new Socket(url.getHost(), url.getPort());
+			ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
 				
-				try{
-					PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
+			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url, true ), 3 );
 				
-					String	url_target = url.toString();
-					
-					int	p1 	= url_target.indexOf( "://" ) + 3;
-					p1		= url_target.indexOf( "/", p1 );
-					
-					url_target = url_target.substring( p1 );
-					
-					pw.print( "GET " + url_target + " HTTP/1.1" + NL );
-					pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
-					pw.print( "Host: " + url.getHost() + NL );
-					pw.print( "Connection: Close" + NL );
-					pw.print( "Pragma: no-cache" + NL + NL );
-						
-					pw.flush();
-					
-					InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
-					
-					return( parseXML( is ));
-					
-				}finally{
-					
-					try{
-						socket.close();
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-			}else{
+			rd.addListener( this );
 				
-				ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
-				
-				ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
-				
-				rd.addListener( this );
-				
-				InputStream	data = rd.download();
+			InputStream	data = rd.download();
 					
-				try{
-					return( parseXML( data ));
+			try{
+				return( parseXML( data ));
 					
-				}finally{
+			}finally{
 					
-					data.close();
-				}
+				data.close();
 			}
 		}catch( Throwable e ){
 				
@@ -603,6 +566,8 @@ UPnPImpl
 
 		return( force_direct );
 	}
+	
+
 	
 	public SimpleXMLParserDocument
 	performSOAPRequest(
@@ -646,7 +611,7 @@ UPnPImpl
 		UPnPService		service,
 		String			soap_action,
 		String			request,
-		boolean			use_http_connection )
+		boolean			permit_proxy_connection)
 	
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
@@ -654,105 +619,67 @@ UPnPImpl
 		
 		adapter.trace( "UPnP:Request: -> " + control + "," + request );
 
-		if ( use_http_connection ){
+		HttpURLConnection	con;
+		if (!permit_proxy_connection) {
+			con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
+		}
+		else {
+			 con = (HttpURLConnection)control.openConnection();
+		}
 			
-			HttpURLConnection	con = (HttpURLConnection)control.openConnection();
+		con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 			
-			con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
+		con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
 			
+		con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
+			
+		con.setRequestMethod( "POST" );
+			
+		con.setDoInput( true );
+		con.setDoOutput( true );
+			
+		OutputStream	os = con.getOutputStream();
+			
+		PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+						
+		pw.println( request );
+			
+		pw.flush();
+	
+		con.connect();
+			
+		if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+				
+			// gotta retry with M-POST method
+								
+			con = (HttpURLConnection)control.openConnection();
+				
 			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-			
-			con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
-			
-			con.setRequestMethod( "POST" );
-			
+				
+			con.setRequestMethod( "M-POST" );
+				
+			con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+	
+			con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+				
 			con.setDoInput( true );
 			con.setDoOutput( true );
-			
-			OutputStream	os = con.getOutputStream();
-			
-			PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-						
+				
+			os = con.getOutputStream();
+				
+			pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+							
 			pw.println( request );
-			
+				
 			pw.flush();
 	
 			con.connect();
 			
-			if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+			return( parseXML(con.getInputStream()));	
 				
-					// gotta retry with M-POST method
-								
-				con = (HttpURLConnection)control.openConnection();
-				
-				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-				
-				con.setRequestMethod( "M-POST" );
-				
-				con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-	
-				con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
-				
-				con.setDoInput( true );
-				con.setDoOutput( true );
-				
-				os = con.getOutputStream();
-				
-				pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-							
-				pw.println( request );
-				
-				pw.flush();
-	
-				con.connect();
-			
-				return( parseXML(con.getInputStream()));	
-				
-			}else{
-				
-				return( parseXML(con.getInputStream()));
-			}
 		}else{
-	
-			Socket	socket = new Socket(control.getHost(), control.getPort());
-			
-			try{
-				PrintWriter	pw = new PrintWriter(new OutputStreamWriter( socket.getOutputStream(), "UTF8" ));
-			
-				String	url_target = control.toString();
 				
-				int	p1 	= url_target.indexOf( "://" ) + 3;
-				p1		= url_target.indexOf( "/", p1 );
-				
-				url_target = url_target.substring( p1 );
-				
-				pw.print( "POST " + url_target + " HTTP/1.1" + NL );
-				pw.print( "Content-Type: text/xml; charset=\"utf-8\"" + NL );
-				pw.print( "SOAPAction: \"" + soap_action + "\"" + NL );
-				pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
-				pw.print( "Host: " + control.getHost() + NL );
-				pw.print( "Content-Length: " + request.getBytes( "UTF8" ).length + NL );
-				pw.print( "Connection: Keep-Alive" + NL );
-				pw.print( "Pragma: no-cache" + NL + NL );
-	
-				pw.print( request );
-				
-				pw.flush();
-				
-				InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
-				
-				return( parseXML( is ));
-				
-			}finally{
-				
-				try{
-					socket.close();
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			return( parseXML(con.getInputStream()));
 		}
 	}
 	
