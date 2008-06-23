@@ -565,11 +565,11 @@ public class MessageBoxShell
 
 		Color foreground = content.getForeground();
 		//TODO : Khai : fix this properly, quick hack to make things work for now
-		if(foreground == null) {
-			foreground = ColorCache.getColor(display,208,208,208);
+		if (foreground == null) {
+			foreground = ColorCache.getColor(display, 208, 208, 208);
 			content.setForeground(foreground);
 		}
-		
+
 		Label titleLabel = new Label(content, SWT.WRAP);
 		titleLabel.setForeground(foreground);
 		titleLabel.setText(title);
@@ -678,7 +678,7 @@ public class MessageBoxShell
 								if (SystemTime.getCurrentTime() > endOn) {
 									result[0] = defaultOption;
 									autoClosed = true;
-									content.dispose();
+									sShell.close();
 								} else {
 									String sText = "";
 
@@ -744,30 +744,29 @@ public class MessageBoxShell
 		// Remember Me
 		Composite checkRememberPanel = null;
 		if (rememberID != null) {
-			checkRememberPanel = new Composite(content,SWT.NONE);
+			checkRememberPanel = new Composite(content, SWT.NONE);
 			FormLayout checklayout = new FormLayout();
 			checkRememberPanel.setLayout(checklayout);
 			final Button checkRemember = new Button(checkRememberPanel, SWT.CHECK);
 			checkRemember.setSelection(rememberByDefault);
-			
-			Label checkRememberLabel = new Label(checkRememberPanel,SWT.NONE);
-			
+
+			Label checkRememberLabel = new Label(checkRememberPanel, SWT.NONE);
+
 			checkRememberLabel.setForeground(foreground);
 			checkRememberLabel.setText(rememberText);
-			
-			
+
 			checkRememberLabel.addListener(SWT.MouseUp, new Listener() {
 				public void handleEvent(Event arg0) {
-					if(! checkRemember.isDisposed()) {
+					if (!checkRemember.isDisposed()) {
 						checkRemember.setSelection(!checkRemember.getSelection());
 					}
 				}
 			});
 			FormData data = new FormData();
 			data.left = new FormAttachment(checkRemember);
-			data.bottom = new FormAttachment(checkRemember,-1,SWT.BOTTOM);
+			data.bottom = new FormAttachment(checkRemember, -1, SWT.BOTTOM);
 			checkRememberLabel.setLayoutData(data);
-			
+
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
