@@ -36,7 +36,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   public static final String PROTOCOL = "BitTorrent protocol";
   
   // No reserve bits set.
-  public static final byte[] BT_RESERVED = new byte[]{0, 0, 0, 0, 0, 0, 0, 0 }; 
+  private static final byte[] BT_RESERVED = new byte[]{0, 0, 0, 0, 0, 0, 0, 0 }; 
 
   // Set first bit of first byte to indicate advanced AZ messaging support. (128)
   // Set fourth bit of fifth byte to indicate LT messaging support. (16)
@@ -44,7 +44,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   // Set seventh bit (2) and eight bit (1) to force AZMP over LTEP. [current behaviour]
   // Set seventh bit (2) only to prefer AZMP over LTEP.
   // Set eighth bit (1) only to prefer LTEP over AZMP. 
-  public static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
+  private static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
   public static void setMainlineDHTEnabled(boolean enabled) {
 	  if (enabled) {
