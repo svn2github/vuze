@@ -339,6 +339,7 @@ public class ClientIdentifier {
 		  //assertDecodeLTEP("libTorrent 0.11.9", "2D6C7430 4239302D 11F3EB39 5D44EEFD CEA07E79", "libTorrent 0.11.9");
 		  assertDecodeLTEP("\u00B5Torrent 1.8.0 Beta", "2D555431 3830422D E69C9942 D1A5A6C2 0BE2E4BD", "\u00B5Torrent 1.8");
 		  assertDecodeLTEP("Miro 1.1.0.0 (libtorrent/0.13.0.0)", "-MR1100-00HS~T7*65rm", "libtorrent/0.13.0.0");
+		  assertDecodeLTEP("linkage/0.1.4 libtorrent/0.12.0.0", "-LK0140-ATIV~nbEQAMr", "linkage/0.1.4 libtorrent/0.12.0.0");
 		  assertDecodeLTEP("KTorrent 2.2.2", "-KT2210-347143496631", "KTorrent 2.2.2");
 		  //assertDecodeLTEP("", "B5546F72 72656E74 2F333037 36202020 20202020", "\uFDFFTorrent/3.0.7.6");
 		  assertDecodeLTEP("Transmission 0.96", "-TR0960-6ep6svaa61r4", "Transmission 0.95");

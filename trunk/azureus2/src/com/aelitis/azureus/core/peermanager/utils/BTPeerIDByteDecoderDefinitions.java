@@ -259,6 +259,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("HN", "Hydranode");
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
 		addAzStyle("LH", "LH-ABC");
+		addAzStyle("LK", "linkage", VER_AZ_THREE_DIGITS);
 		addAzStyle("LP", "Lphant", VER_AZ_TWO_MAJ_TWO_MIN);
 		addAzStyle("LT", "libtorrent (Rasterbar)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
 		addAzStyle("lt", "libTorrent (Rakshasa)", VER_AZ_THREE_ALPHANUMERIC_DIGITS);
