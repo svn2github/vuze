@@ -75,19 +75,20 @@ public class VivaldiPanel {
     float maxX = 1000;
     float minY = -1000;
     float maxY = 1000;
+    double rotation = 0;
     
     float saveMinX;
     float saveMaxX;
     float saveMinY;
-    float saveMaxY;    
+    float saveMaxY;
+    double saveRotation;
     
     public int getX(float x,float y) {
-      //return (int) ((x-vMinX) * vRatioX - xMinY * (y-maxY) / (maxY-minY)); 
-      return (int) ((x-minX)/(maxX - minX) * width);
+      return (int) (((x * Math.cos(rotation) + y * Math.sin(rotation))-minX)/(maxX - minX) * width);
     }
     
     public int getY(float x,float y) {
-      return (int) ((y-minY)/(maxY-minY) * height);
+      return (int) (((y * Math.cos(rotation) - x * Math.sin(rotation))-minY)/(maxY-minY) * height);
     }
   }
   
@@ -133,6 +134,7 @@ public class VivaldiPanel {
         scale.saveMaxX = scale.maxX;
         scale.saveMinY = scale.minY;
         scale.saveMaxY = scale.maxY;
+        scale.saveRotation = scale.rotation;
       }
       
       public void mouseUp(MouseEvent event) {
@@ -193,6 +195,9 @@ public class VivaldiPanel {
           refreshContacts(lastContacts, lastSelf);
         }
         if(mouseRightDown) {
+          int deltaX = event.x - xDown;
+          scale.rotation = scale.saveRotation - (float) deltaX / 100;
+
           int deltaY = event.y - yDown;
           // scaleFactor>1 means zoom in, this happens when
           // deltaY<0 which happens when the mouse is moved up.
