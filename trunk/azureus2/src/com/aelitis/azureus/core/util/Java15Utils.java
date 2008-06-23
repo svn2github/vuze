@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.io.IOException;
+import java.net.URL;
 import java.net.URLConnection;
 
 public class
@@ -83,6 +85,15 @@ Java15Utils
 		}
 	}
 	
+	public static URLConnection openConnectionForceNoProxy(URL url) throws IOException {
+		if (provider != null) {
+			return provider.openConnectionForceNoProxy(url);
+		}
+		else {
+			return url.openConnection();
+		}
+	}
+	
 	public interface
 	Java15UtilsProvider
 	{
@@ -101,5 +112,7 @@ Java15Utils
 		
 		public void
 		dumpThreads();
+		
+		public URLConnection openConnectionForceNoProxy(URL url) throws IOException;
 	}
 }
