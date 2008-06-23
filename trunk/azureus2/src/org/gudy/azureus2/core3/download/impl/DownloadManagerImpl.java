@@ -1925,7 +1925,7 @@ DownloadManagerImpl
 
 		// Trying to fix a problem where downloads are being moved into the program
 		// directory on my machine, and I don't know why...
-		Debug.out("Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath());
+		//Debug.out("Torrent save directory changing from \"" + old_location.getPath() + "\" to \"" + new_location.getPath());
 		
 		controller.fileInfoChanged();
 	}

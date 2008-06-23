@@ -8,6 +8,7 @@ CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
 CHANGE: UI    | Added support for rotation in Vivaldi view [Groundy]
 CHANGE: UI    | Peers view hostname column now sorts host names by the most significant part first [The 8472] 
 
+BUGFIX: Core  | Fixed bug which stopped downloads being stored in the chosen directory [amc1]
 BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1]
 BUGFIX: Core  | Reopening torrents does not delete files when setting some of the already existing files to DND anymore [The 8472]
 BUGFIX: Core  | Fixed bug which prevented UPnP mappings from being successful when a SOCKS proxy was used [amc1]
