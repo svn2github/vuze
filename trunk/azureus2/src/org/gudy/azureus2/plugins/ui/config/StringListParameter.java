@@ -36,4 +36,8 @@ StringListParameter
 	
 	public String
 	getValue();
+	
+	public void
+	setLabels(
+		String[]	labels );
 }

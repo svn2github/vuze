@@ -345,7 +345,7 @@ BuddyPluginTracker
 					
 			BuddyPluginBuddy buddy = (BuddyPluginBuddy)entry.getKey();
 			
-			if ( !buddy.isOnline()){
+			if ( !buddy.isOnline( false )){
 				
 				continue;
 			}
@@ -478,7 +478,7 @@ BuddyPluginTracker
 	buddyChanged(
 		BuddyPluginBuddy	buddy )
 	{	
-		if ( buddy.isOnline()){
+		if ( buddy.isOnline( false )){
 			
 			addBuddy( buddy );
 			

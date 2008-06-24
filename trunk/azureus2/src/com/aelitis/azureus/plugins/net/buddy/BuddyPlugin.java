@@ -97,6 +97,9 @@ public class
 BuddyPlugin 
 	implements Plugin
 {
+	public static final boolean SUPPORT_ONLINE_STATUS		= true;
+	
+	
 	public static final int MAX_MESSAGE_SIZE	= 4*1024*1024;
 	
 	public static final int	SUBSYSTEM_INTERNAL	= 0;
@@ -111,10 +114,11 @@ BuddyPlugin
 	
 	public static final String[] STATUS_VALUES 	= { "0", "1", "2", "3", "4" };
 	
-	public static final String[] STATUS_STRINGS = {
-		"Online", "Away", "Not Available", "Busy", "Offline"
+	public static final String[] STATUS_KEYS = {
+		"os_online", "os_away", "os_not_avail", "os_busy", "os_offline"
 	};
-	                          
+
+	public static final String[] STATUS_STRINGS = new String[ STATUS_KEYS.length ];
 	
 	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
@@ -274,6 +278,21 @@ BuddyPlugin
 		
 		logger.setDiagnostic();
 				
+		final LocaleUtilities lu = plugin_interface.getUtilities().getLocaleUtilities();
+		
+		lu.addListener(
+			new LocaleListener()
+			{
+				public void 
+				localeChanged(
+					Locale		l )
+				{
+					updateLocale(lu);
+				}
+			});
+		
+		updateLocale(lu);
+		
 		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( "Views.plugins." + VIEW_ID + ".title" );
 			
 			// enabled
@@ -321,7 +340,7 @@ BuddyPlugin
 					}
 				});
 		
-		online_status_param.setVisible( false ); // If we add this then use proper message texts in the STATUS_STRINGS
+		online_status_param.setVisible( SUPPORT_ONLINE_STATUS  ); // If we add this then use proper message texts in the STATUS_STRINGS
 		
 			// protocol speed
 		
@@ -564,6 +583,21 @@ BuddyPlugin
 				{				
 				}
 			});
+	}
+	
+	protected void
+	updateLocale(
+		LocaleUtilities	lu )
+	{
+		for ( int i=0;i<STATUS_STRINGS.length;i++){
+			
+			STATUS_STRINGS[i] = lu.getLocalisedMessageText( "azbuddy." + STATUS_KEYS[i] );
+		}
+		
+		if ( online_status_param != null ){
+			
+			online_status_param.setLabels( STATUS_STRINGS );
+		}
 	}
 	
 	/**

@@ -64,6 +64,13 @@ public class StringListParameterImpl extends ParameterImpl implements StringList
 	  return labels;
 	}
 	
+	public void
+	setLabels(
+		String[]	_labels )
+	{
+		labels = _labels;
+	}
+	
 	public String
 	getValue()
 	{

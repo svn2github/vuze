@@ -171,7 +171,7 @@ BuddyPluginViewChat
 					
 					BuddyPluginAZ2.chatParticipant	participant = (BuddyPluginAZ2.chatParticipant)participants.get(index);
 					
-					if ( participant.getBuddy().isOnline()){
+					if ( participant.getBuddy().isOnline( false )){
 						
 						item.setForeground( 0, Colors.black );
 						

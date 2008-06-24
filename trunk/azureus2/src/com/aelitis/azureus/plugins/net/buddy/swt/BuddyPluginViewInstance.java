@@ -520,7 +520,7 @@ BuddyPluginViewInstance
 					
 					int	os;
 					
-					if ( buddy.isOnline()){
+					if ( buddy.isOnline( false )){
 						
 						os = buddy.getOnlineStatus();
 						
@@ -1590,15 +1590,15 @@ BuddyPluginViewInstance
 			}
 			
 			if(field == FIELD_ONLINE){
-				res = ( b1.isOnline()?1:0 ) - ( b2.isOnline()?1:0 );
+				res = ( b1.isOnline( false )?1:0 ) - ( b2.isOnline( false )?1:0 );
 			}
 			
 			if(field == FIELD_LAST_SEEN){
-				res = (int)( b1.getLastTimeOnline() - b2.getLastTimeOnline());
+				res = sortInt( b1.getLastTimeOnline() - b2.getLastTimeOnline());
 			}
 			
 			if(field == FIELD_YGM){
-				res = (int)( b1.getLastMessagePending() - b2.getLastMessagePending());
+				res = sortInt( b1.getLastMessagePending() - b2.getLastMessagePending());
 			}
 			
 			if(field == FIELD_LAST_MSG){
@@ -1636,6 +1636,18 @@ BuddyPluginViewInstance
 			return(( ascending ? 1 : -1) * res );
 		}
 
+		protected int
+		sortInt(
+			long	l )
+		{
+			if ( l < 0 ){
+				return( -1 );
+			}else if ( l > 0 ){
+				return( 1 );
+			}else{
+				return( 0 );
+			}
+		}
 		public void 
 		setField(
 			int newField ) 
