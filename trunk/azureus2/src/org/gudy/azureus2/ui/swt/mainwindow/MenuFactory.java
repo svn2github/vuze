@@ -162,7 +162,7 @@ public class MenuFactory
 						for (int i = 0; i < current_dls.length; i++) {
 							String table_name = (current_dls[i].isDownloadComplete(false)
 									? TableManager.TABLE_MYTORRENTS_COMPLETE
-									: TableManager.TABLE_MYTORRENTS_COMPLETE);
+									: TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 							if (table_to_use == null || table_to_use.equals(table_name)) {
 								table_to_use = table_name;
 							} else {
@@ -1324,54 +1324,23 @@ public class MenuFactory
 
 	private static TableRow wrapAsRow(final Object o, final String table_name) {
 		return new TableRow() {
-			public Object getDataSource() {
-				return o;
-			}
+			  public Object getDataSource() {return o;}
+			  public String getTableID() {return table_name;}
+			  
+			  private void notSupported() {
+				  throw new RuntimeException("method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
+			  }
 
-			public String getTableID() {
-				return table_name;
-			}
-
-			private void notSupported() {
-				throw new RuntimeException(
-						"method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
-			}
-
-			// Everything below is unsupported.
-			public void setForeground(int red, int green, int blue) {
-				notSupported();
-			}
-
-			public void setForeground(int[] rgb) {
-				notSupported();
-			}
-
-			public void setForegroundToErrorColor() {
-				notSupported();
-			}
-
-			public boolean isValid() {
-				notSupported();
-				return false;
-			}
-
-			public TableCell getTableCell(String sColumnName) {
-				notSupported();
-				return null;
-			}
-
-			public boolean isSelected() {
-				notSupported();
-				return false;
-			}
-
-			public void addMouseListener(TableRowMouseListener listener) {
-				notSupported();
-			}
-
-			public void removeMouseListener(TableRowMouseListener listener) {
-				notSupported();
-			}
+			  // Everything below is unsupported.
+			  public void setForeground(int red, int green, int blue) {notSupported();}
+			  public void setForeground(int[] rgb) {notSupported();}
+			  public void setForegroundToErrorColor() {notSupported();}
+			  public boolean isValid() {notSupported(); return false;}
+			  public TableCell getTableCell(String sColumnName) {notSupported(); return null;}
+			  public boolean isSelected()  {notSupported(); return false;}
+			  public void addMouseListener(TableRowMouseListener listener) {notSupported();}
+			  public void removeMouseListener(TableRowMouseListener listener) {notSupported();}
 		};
 	}
+
 }
