@@ -35,6 +35,8 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.core.messenger.config.VuzeBuddySyncListener;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -601,6 +603,40 @@ public class AvatarWidget
 						} catch (NotLoggedInException e1) {
 							Debug.out("Shouldn't Happen", e1);
 						}
+					}
+				}
+			});
+			
+			item = new MenuItem(menuCVS, SWT.PUSH);
+			item.setText("Sync this buddy (via PK)");
+			item.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					if (!LoginInfoManager.getInstance().isLoggedIn()) {
+						Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+								"not logged in. no can do");
+						return;
+					}
+					final String pk = vuzeBuddy.getPublicKeys()[0];
+					final long lastUpdate = vuzeBuddy.getLastUpdated();
+					try {
+						PlatformBuddyMessenger.sync(new String[] {
+							pk
+						}, new VuzeBuddySyncListener() {
+							public void syncComplete() {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (vuzeBuddy.getLastUpdated() != lastUpdate) {
+											Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Yay",
+													"Updated");
+										} else {
+											Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Boo",
+													"Not Updated");
+										}
+									}
+								});
+							}
+						});
+					} catch (NotLoggedInException e1) {
 					}
 				}
 			});
