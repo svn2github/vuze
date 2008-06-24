@@ -50,7 +50,7 @@ public interface VuzeBuddy
 
 	public void setAvatar(byte[] image);
 
-	public boolean isOnline();
+	public boolean isOnline( boolean is_connected );
 
 	public String[] getPublicKeys();
 	

@@ -241,7 +241,7 @@ public class AvatarWidget
 
 				if (SHOW_ONLINE_BORDER) {
 
-					if (true == vuzeBuddy.isOnline()) {
+					if (true == vuzeBuddy.isOnline( true )) {
 
 						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
 								107, 57));

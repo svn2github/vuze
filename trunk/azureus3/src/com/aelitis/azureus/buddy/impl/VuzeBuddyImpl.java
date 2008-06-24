@@ -185,12 +185,12 @@ public class VuzeBuddyImpl
 		VuzeBuddyManager.triggerChangeListener(this);
 	}
 
-	public boolean isOnline() {
+	public boolean isOnline( boolean is_connected ) {
 		mon_pluginBuddies.enter();
 		try {
 			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
 				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-				if (pluginBuddy.isOnline()) {
+				if (pluginBuddy.isOnline( is_connected )) {
 					return true;
 				}
 			}

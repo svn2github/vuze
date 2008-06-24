@@ -642,8 +642,8 @@ public class BuddiesViewer
 							VuzeBuddy v1 = (VuzeBuddy) o1;
 							VuzeBuddy v2 = (VuzeBuddy) o2;
 							int score = 0;
-							score -= v1.isOnline() ? 1 : 0;
-							score += v2.isOnline() ? 1 : 0;
+							score -= v1.isOnline( true ) ? 1 : 0;
+							score += v2.isOnline( true ) ? 1 : 0;
 							return score;
 						}
 					});
