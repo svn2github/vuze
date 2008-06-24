@@ -576,6 +576,29 @@ public class MessageBoxShell
 		titleLabel.setLayoutData(new GridData(GridData.FILL_BOTH));
 		Utils.setFontHeight(titleLabel, 12, SWT.NORMAL);
 
+		/*
+		 * Setting cursor and allowing moving of the shell by dragging the title
+		 */
+		titleLabel.setCursor(display.getSystemCursor(SWT.CURSOR_SIZEALL));
+		Listener l = new Listener() {
+			int startX, startY;
+
+			public void handleEvent(Event e) {
+				if (e.type == SWT.MouseDown && e.button == 1) {
+					startX = e.x;
+					startY = e.y;
+				}
+				if (e.type == SWT.MouseMove && (e.stateMask & SWT.BUTTON1) != 0) {
+					Point p = shell.toDisplay(e.x, e.y);
+					p.x -= startX;
+					p.y -= startY;
+					shell.setLocation(p);
+				}
+			}
+		};
+		titleLabel.addListener(SWT.MouseDown, l);
+		titleLabel.addListener(SWT.MouseMove, l);
+
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageBoxShell.class.toString());
 		for (int i = 0; i < listeners.length; i++) {
@@ -763,7 +786,7 @@ public class MessageBoxShell
 				}
 			});
 			FormData data = new FormData();
-			data.left = new FormAttachment(checkRemember,6);
+			data.left = new FormAttachment(checkRemember, 6);
 			data.top = new FormAttachment(checkRemember, 0, SWT.CENTER);
 			checkRememberLabel.setLayoutData(data);
 
