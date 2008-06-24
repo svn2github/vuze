@@ -1439,6 +1439,13 @@ PluginInitializer
 						"",
 						plugin_id,
 						null );
+
+	      // Must use getPluginID() instead of pid, because they may differ
+	      boolean bEnabled = COConfigurationManager
+							.getBooleanParameter("PluginInfo."
+									+ plugin_interface.getPluginID() + ".enabled", true);
+	      
+	      plugin_interface.setDisabled(!bEnabled);
   		
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 
@@ -1458,19 +1465,22 @@ PluginInitializer
 						"Load of built in plugin '" + plugin_id + "' fails", e));
 		}
 		 
-		 if ( core_operation != null ){
+		 if (bEnabled) {
 			 
-			 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
+			 if ( core_operation != null ){
+				 
+				 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
+			 }
+	
+			 fireCreated( plugin_interface );
+			 
+	  		plugin.initialize(plugin_interface);
+	  		
+	  		if (!(plugin instanceof FailedPlugin)){
+	  			
+	  			plugin_interface.setOperational( true );
+	  		}
 		 }
-
-		 fireCreated( plugin_interface );
-		 
-  		plugin.initialize(plugin_interface);
-  		
-  		if (!(plugin instanceof FailedPlugin)){
-  			
-  			plugin_interface.setOperational( true );
-  		}
   		
    		plugins.add( plugin );
    		

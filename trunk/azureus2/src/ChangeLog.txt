@@ -4,6 +4,7 @@ VUZE CHANGELOG
 
 2008.0x.xx | Vuze 3.1.0.1
 
+CHANGE: Core  | Built-in plugins can now be disabled - it didn't work properly in earlier versions [amc1]
 CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
 CHANGE: UI    | Added support for rotation in Vivaldi view [Groundy]
 CHANGE: UI    | Peers view hostname column now sorts host names by the most significant part first [The 8472] 

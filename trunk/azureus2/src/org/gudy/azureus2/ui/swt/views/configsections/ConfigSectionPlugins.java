@@ -529,7 +529,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					item.setText(i, sText);
 				}
 
-				item.setGrayed(pluginIF.isMandatory() || pluginIF.isBuiltIn());
+				item.setGrayed(pluginIF.isMandatory());
 				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
 		    Utils.setCheckedInSetData(item, bEnabled);
