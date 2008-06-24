@@ -19,34 +19,102 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.CoolBar;
+import org.eclipse.swt.widgets.CoolItem;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
+import org.gudy.azureus2.core3.global.GlobalManagerDownloadWillBeRemovedListener;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.LogRelationUtils;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableBoolean;
+import org.gudy.azureus2.core3.util.AERunnableObject;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.IconBar;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.PasswordWindow;
+import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -67,10 +135,16 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessage;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.config.*;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
@@ -83,25 +157,58 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
+import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTab;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.utils.PlayNowList;
+import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
+import com.aelitis.azureus.ui.swt.utils.UIUpdater;
+import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
 import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
-import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.ui.swt.views.skin.Browse;
+import com.aelitis.azureus.ui.swt.views.skin.BuddiesViewer;
+import com.aelitis.azureus.ui.swt.views.skin.ButtonBar;
+import com.aelitis.azureus.ui.swt.views.skin.DetailPanel;
+import com.aelitis.azureus.ui.swt.views.skin.Footer;
+import com.aelitis.azureus.ui.swt.views.skin.ManageCdList;
+import com.aelitis.azureus.ui.swt.views.skin.ManageDlList;
+import com.aelitis.azureus.ui.swt.views.skin.MediaList;
+import com.aelitis.azureus.ui.swt.views.skin.MiniBrowse;
+import com.aelitis.azureus.ui.swt.views.skin.MiniDownloadList;
+import com.aelitis.azureus.ui.swt.views.skin.MiniLibraryList;
+import com.aelitis.azureus.ui.swt.views.skin.MiniRecentList;
+import com.aelitis.azureus.ui.swt.views.skin.Publish;
+import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.ui.swt.views.skin.UserAreaUtils;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeActivitiesView;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DCAdManager;
+import com.aelitis.azureus.util.NavigationHelper;
 import com.aelitis.azureus.util.PublishUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -173,7 +280,7 @@ public class MainWindow
 		this.uiInitializer = uiInitializer;
 
 		disposedOrDisposing = false;
-		
+
 		VuzeBuddyManager.init(new VuzeBuddyCreator() {
 			public VuzeBuddy createBuddy(String publicKey) {
 				VuzeBuddyManager.log("created buddy: " + publicKey);
@@ -184,7 +291,7 @@ public class MainWindow
 				VuzeBuddyManager.log("created buddy");
 				return new VuzeBuddySWTImpl();
 			}
-			
+
 			// @see com.aelitis.azureus.buddy.VuzeBuddyCreator#createPotentialBuddy(Map)
 			public VuzeBuddy createPotentialBuddy(Map map) {
 				return new VuzeBuddyFakeSWTImpl(map);
@@ -977,7 +1084,8 @@ public class MainWindow
 				if (id.equals("maintabs.home")) {
 					SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
 					if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
-						id += "-" + tabSetLeft.getActiveTab().getSkinObjectID().substring(8);
+						id += "-"
+								+ tabSetLeft.getActiveTab().getSkinObjectID().substring(8);
 					}
 				}
 				if (id.length() > 9) {
@@ -1783,7 +1891,8 @@ public class MainWindow
 						} else if (event.type == SWT.MouseMove) {
 							Rectangle clientArea = c.getClientArea();
 							boolean draggable = (event.y > clientArea.height - 10);
-							c.setCursor(draggable ? c.getDisplay().getSystemCursor(SWT.CURSOR_SIZENS) : null);
+							c.setCursor(draggable ? c.getDisplay().getSystemCursor(
+									SWT.CURSOR_SIZENS) : null);
 						} else if (event.type == SWT.MouseExit) {
 							c.setCursor(null);
 						}
@@ -2130,6 +2239,9 @@ public class MainWindow
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
 	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
+
+		MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
+
 		boolean isDashboardTab = tabSet.getID().equals(
 				SkinConstants.TABSET_DASHBOARD_LEFT);
 		boolean isMainTab = tabSet.getID().equals(SkinConstants.TABSET_MAIN);
@@ -2205,7 +2317,6 @@ public class MainWindow
 			/*
 			 * Updates the enablement states when ever a tab is selected
 			 */
-			MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
 			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
 		} else if (isDashboardTab) {
 			String newTabViewID = tabSet.getActiveTab().getViewID();
@@ -2547,8 +2658,7 @@ public class MainWindow
 				return skinObject.getControl().getBounds();
 			}
 
-		}
-		else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 			if (skinObject != null) {
@@ -2567,7 +2677,7 @@ public class MainWindow
 	public boolean isReady() {
 		return isReady;
 	}
-	
+
 	public Image generateObfusticatedImage() {
 		if (getActiveTab().equals(SkinConstants.VIEWID_ADVANCED_TAB)
 				&& oldMainWindow != null) {
