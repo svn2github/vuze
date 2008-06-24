@@ -63,7 +63,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -107,10 +106,7 @@ BuddyPluginViewInstance
 	private List	buddies = new ArrayList();
 
 	private boolean	init_complete;
-	
-	private String	yes_txt;
-	private String	no_txt;
-	
+		
 	protected
 	BuddyPluginViewInstance(
 		BuddyPlugin		_plugin,
@@ -122,10 +118,7 @@ BuddyPluginViewInstance
 		composite	= _composite;
 
 		final LocaleUtilities lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
-	
-		yes_txt = lu.getLocalisedMessageText( "GeneralView.yes" );
-		no_txt 	= lu.getLocalisedMessageText( "GeneralView.no" );
-		
+			
 		Composite main = new Composite(composite, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
@@ -525,7 +518,25 @@ BuddyPluginViewInstance
 					
 					item.setText(0, buddy.getName());
 					
-					item.setText(1, buddy.isOnline()?yes_txt:no_txt);
+					int	os;
+					
+					if ( buddy.isOnline()){
+						
+						os = buddy.getOnlineStatus();
+						
+					}else{
+						
+						os = BuddyPlugin.STATUS_APPEAR_OFFLINE;
+					}
+					
+					if ( os == BuddyPlugin.STATUS_APPEAR_OFFLINE ){
+						
+						item.setText( 1, "" );
+						
+					}else{
+					
+						item.setText(1, plugin.getOnlineStatus( os ));
+					}
 					
 					long lo = buddy.getLastTimeOnline();
 					

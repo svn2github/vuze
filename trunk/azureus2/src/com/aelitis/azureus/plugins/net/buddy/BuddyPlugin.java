@@ -67,6 +67,7 @@ import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
+import org.gudy.azureus2.plugins.ui.config.StringListParameter;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -108,6 +109,12 @@ BuddyPlugin
 	public static final int STATUS_BUSY				= 3;
 	public static final int STATUS_APPEAR_OFFLINE	= 4;
 	
+	public static final String[] STATUS_VALUES 	= { "0", "1", "2", "3", "4" };
+	
+	public static final String[] STATUS_STRINGS = {
+		"Online", "Away", "Not Available", "Busy", "Offline"
+	};
+	                          
 	
 	protected static final int RT_INTERNAL_REQUEST_PING		= 1;
 	protected static final int RT_INTERNAL_REPLY_PING		= 2;
@@ -167,8 +174,9 @@ BuddyPlugin
 	
 	private LoggerChannel	logger;
 	
-	private BooleanParameter 	enabled_param; 
-	private StringParameter 	nick_name_param;
+	private BooleanParameter 		enabled_param; 
+	private StringParameter 		nick_name_param;
+	private StringListParameter 	online_status_param;
 	
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
@@ -288,6 +296,34 @@ BuddyPlugin
 						updateNickName( nick_name_param.getValue());
 					}
 				});
+		
+			// online status
+
+		String[]	os_values 	= STATUS_VALUES;
+		String[]	os_labels	= STATUS_STRINGS;
+		
+		online_status_param = config.addStringListParameter2(
+				"azbuddy.online_status", "azbuddy.online_status",
+				os_values,
+				os_labels,
+				os_values[0] );
+				
+		online_status_param.addListener(
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						Parameter	param )
+					{
+						 int status = Integer.parseInt( online_status_param.getValue());
+						 
+						 updateOnlineStatus( status );
+					}
+				});
+		
+		online_status_param.setVisible( false ); // If we add this then use proper message texts in the STATUS_STRINGS
+		
+			// protocol speed
 		
 		final IntParameter	protocol_speed = config.addIntParameter2( "azbuddy.protocolspeed", "azbuddy.protocolspeed", 32 );
 		
@@ -617,7 +653,9 @@ BuddyPlugin
 			updateIP();
 			
 			updateNickName( nick_name_param.getValue());
-			
+						 
+			updateOnlineStatus( Integer.parseInt( online_status_param.getValue()));
+			 
 			COConfigurationManager.addAndFireParameterListeners(
 					new String[]{
 						"TCP.Listen.Port",
@@ -729,7 +767,7 @@ BuddyPlugin
 	setOnlineStatus(
 		int		status )
 	{
-		updateOnlineStatus( status );
+		online_status_param.setValue( "" + status );
 	}
 	
 	public int
@@ -1194,6 +1232,18 @@ BuddyPlugin
 				updatePublish( new_publish );
 			}
 		}
+	}
+	
+	public String
+	getOnlineStatus(
+		int		status )
+	{
+		if ( status >= STATUS_STRINGS.length || status < 0 ){
+		
+			status = 0;
+		}
+		
+		return( STATUS_STRINGS[status] );
 	}
 	
 	protected boolean
