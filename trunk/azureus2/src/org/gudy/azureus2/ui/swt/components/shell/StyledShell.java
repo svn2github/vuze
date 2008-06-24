@@ -129,7 +129,7 @@ public class StyledShell
 	 * Creates a pop-up shell with out custom style and trim
 	 */
 	private void createCustomShell() {
-		styledShell = ShellFactory.createShell(parentShell,getShellStyle(SWT.NONE));
+		styledShell = ShellFactory.createShell(parentShell, getShellStyle(SWT.NONE));
 		FillLayout fillLayout = new FillLayout();
 		fillLayout.marginHeight = borderWidth;
 		fillLayout.marginWidth = borderWidth;
@@ -237,7 +237,8 @@ public class StyledShell
 		styledShell.addListener(SWT.MouseDown, l);
 		styledShell.addListener(SWT.MouseMove, l);
 		styledShell.addListener(SWT.Resize, l);
-		styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+		styledShell.setCursor(display.getSystemCursor(SWT.CURSOR_SIZEALL));
+		content.setCursor(display.getSystemCursor(SWT.CURSOR_ARROW));
 	}
 
 	/**
