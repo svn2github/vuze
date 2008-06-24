@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
 import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
+import org.gudy.azureus2.ui.swt.components.widgets.MiniCloseButton;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
@@ -561,6 +562,9 @@ public class MessageBoxShell
 		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
 		GridLayout gridLayout = new GridLayout();
+		gridLayout.marginHeight = 0;
+		gridLayout.marginBottom = 5;
+		gridLayout.marginWidth = 0;
 		content.setLayout(gridLayout);
 
 		Color foreground = content.getForeground();
@@ -569,6 +573,14 @@ public class MessageBoxShell
 			foreground = ColorCache.getColor(display, 208, 208, 208);
 			content.setForeground(foreground);
 		}
+
+		MiniCloseButton miniCloseButton = new MiniCloseButton(content);
+		miniCloseButton.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false));
+		miniCloseButton.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
+				sShell.close();
+			}
+		});
 
 		Composite titleComposite = new Composite(content, SWT.NONE);
 		titleComposite.setForeground(foreground);
