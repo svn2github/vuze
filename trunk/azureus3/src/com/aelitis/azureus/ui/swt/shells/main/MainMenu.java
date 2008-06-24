@@ -1,20 +1,33 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.DebugMenuHelper;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.util.Constants;
 
 public class MainMenu
@@ -98,7 +111,33 @@ public class MainMenu
 	 */
 	private void addFileMenu(final Shell parent) {
 		MenuItem fileItem = MenuFactory.createFileMenuItem(menuBar);
-		Menu fileMenu = fileItem.getMenu();
+		final Menu fileMenu = fileItem.getMenu();
+		builFileMenu(fileMenu);
+
+		fileMenu.addListener(SWT.Show, new Listener() {
+			private boolean isAZ3_ADV = MenuFactory.isAZ3_ADV;
+
+			public void handleEvent(Event event) {
+				if (isAZ3_ADV != MenuFactory.isAZ3_ADV) {
+
+					MenuItem[] menuItems = fileMenu.getItems();
+					for (int i = 0; i < menuItems.length; i++) {
+						menuItems[i].dispose();
+					}
+
+					builFileMenu(fileMenu);
+
+					isAZ3_ADV = MenuFactory.isAZ3_ADV;
+				}
+			}
+		});
+	}
+
+	/**
+	 * Builds the File menu dynamically
+	 * @param fileMenu
+	 */
+	private void builFileMenu(Menu fileMenu) {
 
 		MenuItem openMenuItem = MenuFactory.createOpenMenuItem(fileMenu);
 		Menu openSubMenu = openMenuItem.getMenu();
@@ -106,12 +145,13 @@ public class MainMenu
 		MenuFactory.addOpenTorrentForTrackingMenuItem(openSubMenu);
 		MenuFactory.addOpenVuzeFileMenuItem(openSubMenu);
 
-		MenuItem shareMenuItem = MenuFactory.createShareMenuItem(fileMenu);
-		Menu shareSubMenu = shareMenuItem.getMenu();
-		MenuFactory.addShareFileMenuItem(shareSubMenu);
-		MenuFactory.addShareFolderMenuItem(shareSubMenu);
-		MenuFactory.addShareFolderContentMenuItem(shareSubMenu);
-		MenuFactory.addShareFolderContentRecursiveMenuItem(shareSubMenu);
+		if (true == MenuFactory.isAZ3_ADV) {
+			Menu shareSubMenu = MenuFactory.createShareMenuItem(fileMenu).getMenu();
+			MenuFactory.addShareFileMenuItem(shareSubMenu);
+			MenuFactory.addShareFolderMenuItem(shareSubMenu);
+			MenuFactory.addShareFolderContentMenuItem(shareSubMenu);
+			MenuFactory.addShareFolderContentRecursiveMenuItem(shareSubMenu);
+		}
 
 		MenuFactory.addCreateMenuItem(fileMenu);
 
@@ -136,9 +176,6 @@ public class MainMenu
 			MenuFactory.addRestartMenuItem(fileMenu);
 			MenuFactory.addExitMenuItem(fileMenu);
 		}
-
-
-
 	}
 
 	/**
@@ -183,19 +220,18 @@ public class MainMenu
 
 				public void menuShown(MenuEvent e) {
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view." + SkinConstants.VIEWID_PLUGINBAR)) {
-						createViewMenuItem(skin, viewMenu,
-								PREFIX_V3 + ".view." + SkinConstants.VIEWID_PLUGINBAR,
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+							+ SkinConstants.VIEWID_PLUGINBAR)) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+								+ SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
 								SkinConstants.VIEWID_PLUGINBAR, true);
 					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view." + SkinConstants.VIEWID_FOOTER)) {
-						createViewMenuItem(skin, viewMenu,
-								PREFIX_V3 + ".view." + SkinConstants.VIEWID_FOOTER,
-								"Footer.visible",
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+							+ SkinConstants.VIEWID_FOOTER)) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
 								SkinConstants.VIEWID_FOOTER, true);
 					}
 
@@ -255,7 +291,7 @@ public class MainMenu
 		MenuFactory.addConfigWizardMenuItem(toolsMenu);
 		MenuFactory.addNatTestMenuItem(toolsMenu);
 		MenuFactory.addSpeedTestMenuItem(toolsMenu);
-		
+
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
 		if (false == Constants.isOSX) {
 			MenuFactory.createPluginsMenuItem(toolsMenu, true);
@@ -346,7 +382,7 @@ public class MainMenu
 	 * @param string2
 	 */
 	public static MenuItem createViewMenuItem(final SWTSkin skin, Menu viewMenu,
-			final String textID, final String configID, final String viewID, 
+			final String textID, final String configID, final String viewID,
 			final boolean fast) {
 		MenuItem item;
 
@@ -380,7 +416,8 @@ public class MainMenu
 						}
 					}
 
-					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility, true, fast);
+					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility,
+							true, fast);
 				}
 			}
 		});
