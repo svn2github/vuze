@@ -24,8 +24,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -109,6 +107,8 @@ public class MessageBoxShell
 	protected Color urlColor;
 
 	private boolean handleHTML = true;
+
+	private Image iconImage;
 
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -570,7 +570,18 @@ public class MessageBoxShell
 			content.setForeground(foreground);
 		}
 
-		Label titleLabel = new Label(content, SWT.WRAP);
+		Composite titleComposite = new Composite(content, SWT.NONE);
+		titleComposite.setForeground(foreground);
+		titleComposite.setLayout(new GridLayout(2, false));
+		titleComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+		if (null != iconImage) {
+			Label lblImage = new Label(titleComposite, SWT.NONE);
+			lblImage.setImage(iconImage);
+			lblImage.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		}
+
+		Label titleLabel = new Label(titleComposite, SWT.WRAP);
 		titleLabel.setForeground(foreground);
 		titleLabel.setText(title);
 		titleLabel.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -608,16 +619,15 @@ public class MessageBoxShell
 		FormData formData;
 		GridData gridData;
 
-		Composite textComposite = content;
-		if (imgLeft != null) {
-			textComposite = new Composite(content, SWT.NONE);
-			textComposite.setForeground(foreground);
-			textComposite.setLayout(new GridLayout(2, false));
-			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-			Label lblImage = new Label(textComposite, SWT.NONE);
-			lblImage.setImage(imgLeft);
-			lblImage.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		Composite textComposite = new Composite(content, SWT.NONE);
+		textComposite.setForeground(foreground);
+		textComposite.setLayout(new GridLayout(2, false));
+		textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Label iconImageLabel = new Label(textComposite, SWT.NONE);
+		if (imgLeft != null && false == imgLeft.equals(iconImage)) {
+			iconImageLabel.setImage(imgLeft);
 		}
+		iconImageLabel.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
 		Control linkControl;
 		linkControl = createLinkLabel(textComposite, text);
@@ -1122,26 +1132,23 @@ public class MessageBoxShell
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				setLeftImage(Display.getDefault().getSystemImage(icon));
+				iconImage = Display.getDefault().getSystemImage(icon);
 			}
 		});
 	}
 
 	public void setIconResource(String resource) {
 		if (resource.equals("info")) {
-
-			setLeftImage(SWT.ICON_INFORMATION);
+			iconImage = Display.getDefault().getSystemImage(SWT.ICON_INFORMATION);
 
 		} else if (resource.equals("warning")) {
-
-			setLeftImage(SWT.ICON_WARNING);
+			iconImage = Display.getDefault().getSystemImage(SWT.ICON_WARNING);
 
 		} else if (resource.equals("error")) {
-
-			setLeftImage(SWT.ICON_ERROR);
+			iconImage = Display.getDefault().getSystemImage(SWT.ICON_ERROR);
 
 		} else {
-
-			setLeftImage(ImageRepository.getImage(resource));
+			iconImage = ImageRepository.getImage(resource);
 		}
 	}
 
