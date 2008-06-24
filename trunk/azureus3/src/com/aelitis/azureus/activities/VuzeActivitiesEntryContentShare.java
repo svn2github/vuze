@@ -160,7 +160,7 @@ public class VuzeActivitiesEntryContentShare
 		
 		long version = MapUtils.getMapLong(map, "version", 1);
 		
-		if (version >= 2 || getText().indexOf("\\n\\n") == 0) {
+		if (version >= 2) {
 			userMessage = MapUtils.getMapString(map, "userMessage", null);
 			String textid = (userMessage == null || userMessage.length() == 0)
 					? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
