@@ -574,17 +574,14 @@ public class MessageBoxShell
 			content.setForeground(foreground);
 		}
 
-		MiniCloseButton miniCloseButton = new MiniCloseButton(content);
-		miniCloseButton.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false));
-		miniCloseButton.addListener(SWT.MouseUp, new Listener() {
-			public void handleEvent(Event event) {
-				sShell.close();
-			}
-		});
-
 		Composite titleComposite = new Composite(content, SWT.NONE);
 		titleComposite.setForeground(foreground);
-		titleComposite.setLayout(new GridLayout(2, false));
+		GridLayout gLayout = new GridLayout(3, false);
+		gLayout.marginHeight = 0;
+		gLayout.marginBottom = 5;
+		gLayout.marginRight = 0;
+		gLayout.marginLeft = 5;
+		titleComposite.setLayout(gLayout);
 		titleComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		if (null != iconImage) {
@@ -621,6 +618,14 @@ public class MessageBoxShell
 		};
 		titleLabel.addListener(SWT.MouseDown, l);
 		titleLabel.addListener(SWT.MouseMove, l);
+
+		MiniCloseButton miniCloseButton = new MiniCloseButton(titleComposite);
+		miniCloseButton.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false));
+		miniCloseButton.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
+				sShell.close();
+			}
+		});
 
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageBoxShell.class.toString());
