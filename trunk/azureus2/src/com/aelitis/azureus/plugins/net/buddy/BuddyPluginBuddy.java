@@ -780,7 +780,9 @@ BuddyPluginBuddy
 					
 					if ( online ){
 						
-						online			= false;
+						online					= false;
+						consec_connect_fails	= 0;
+						
 						details_change	= true;
 					}
 				}
@@ -1148,7 +1150,9 @@ BuddyPluginBuddy
 			try{
 				if ( online ){
 					
-					online			= false;
+					online					= false;
+					consec_connect_fails	= 0;
+					
 					details_change	= true;
 				}
 			}finally{
@@ -1227,7 +1231,9 @@ BuddyPluginBuddy
 					
 					if ( timed_out ){
 							
-						online			= false;
+						online					= false;
+						consec_connect_fails	= 0;
+						
 						details_change	= true;
 					}
 				}else{	
@@ -1248,7 +1254,6 @@ BuddyPluginBuddy
 					ip				= _ip;
 					tcp_port		= _tcp_port;
 					udp_port		= _udp_port;
-					online_status	= _online_status;
 					
 					details_change	= true;
 				}
