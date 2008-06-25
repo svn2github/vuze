@@ -104,7 +104,7 @@ public class AvatarWidget
 
 	private Image image = null;
 
-	private Image imageDefaultAvatar = null;
+	//	private Image imageDefaultAvatar = null;
 
 	private Rectangle sourceImageBounds = null;
 
@@ -163,7 +163,6 @@ public class AvatarWidget
 		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
 		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
 		add_to_share_Image_selected = imageLoader.getImage("image.buddy.add.to.share-selected");
-		imageDefaultAvatar = imageLoader.getImage("image.buddy.default.avatar");
 
 		removeImage = removeImage_normal;
 		add_to_share_Image = add_to_share_Image_normal;
@@ -195,9 +194,6 @@ public class AvatarWidget
 		 * Get the avatar image and create a default image if none was found
 		 */
 		image = vuzeBuddy.getAvatarImage();
-		if (null == image) {
-			image = imageDefaultAvatar;
-		}
 
 		sourceImageBounds = null == image ? null : image.getBounds();
 
@@ -241,7 +237,7 @@ public class AvatarWidget
 
 				if (SHOW_ONLINE_BORDER) {
 
-					if (true == vuzeBuddy.isOnline( true )) {
+					if (true == vuzeBuddy.isOnline(true)) {
 
 						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
 								107, 57));
@@ -606,7 +602,7 @@ public class AvatarWidget
 					}
 				}
 			});
-			
+
 			item = new MenuItem(menuCVS, SWT.PUSH);
 			item.setText("Sync this buddy (via PK)");
 			item.addSelectionListener(new SelectionAdapter() {
@@ -748,9 +744,6 @@ public class AvatarWidget
 		 * all other info is asked for on-demand so no need to update them 
 		 */
 		image = vuzeBuddy.getAvatarImage();
-		if (null == image) {
-			image = imageDefaultAvatar;
-		}
 		sourceImageBounds = null == image ? null : image.getBounds();
 		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
 
