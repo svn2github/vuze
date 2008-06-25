@@ -106,6 +106,19 @@ CopyOnWriteList
 		return list.isEmpty();
 	}
 	
+	public Object[]
+	toArray()
+	{
+		return( list.toArray());
+	}
+	
+	public Object[]
+  	toArray(
+  		Object[]	 x )
+  	{
+  		return( list.toArray(x));
+  	}
+	
 	/*
 	public int
 	getVersion()
