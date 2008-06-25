@@ -134,6 +134,11 @@ public class BuddiesViewer
 	
 	public BuddiesViewer() {
 		
+		/*
+		 * backed this change out as the desired behaviour is to continue showing
+		 * buddies when logged out as all attempts to do something with buddy will
+		 * prompt for login
+		 * 
 		LoginInfoManager.getInstance().addListener(
 			new ILoginInfoListener()
 			{
@@ -155,6 +160,7 @@ public class BuddiesViewer
 					});
 				}
 			});
+			*/
 	}
 
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
