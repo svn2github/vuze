@@ -301,7 +301,7 @@ public class VuzeBuddyImpl
 
 		VuzeActivitiesEntryContentShare entry;
 		entry = new VuzeActivitiesEntryContentShare(content, message);
-		entry.setBuddy(this);
+		entry.setBuddyID(LoginInfoManager.getInstance().getUserInfo().userName);
 
 		sendActivity(entry);
 	}

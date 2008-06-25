@@ -36,6 +36,7 @@ public class VuzeActivitiesEntryBuddy
 	implements VuzeBuddyListener
 {
 	protected VuzeBuddy buddy;
+	private String buddyID;
 
 
 	public void loadCommonFromMap(Map map) {
@@ -64,6 +65,8 @@ public class VuzeActivitiesEntryBuddy
 		if (buddy != null) {
 			map.put("buddy", buddy.toMap());
 			map.put("buddyID", buddy.getLoginID());
+		} else if (buddyID != null) {
+			map.put("buddyID", buddyID);
 		}
 		return map;
 	}
@@ -83,6 +86,11 @@ public class VuzeActivitiesEntryBuddy
 		if (buddy != null) {
 			buddy.addListener(this);
 		}
+	}
+	
+	public void setBuddyID(String buddyID) {
+		this.buddyID = buddyID;
+		buddy = null;
 	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddyListener#buddyAdded(com.aelitis.azureus.buddy.VuzeBuddy, int)
