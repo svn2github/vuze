@@ -38,6 +38,9 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
+import com.aelitis.azureus.util.ILoginInfoListener;
+import com.aelitis.azureus.util.LoginInfoManager;
+import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 public class BuddiesViewer
 	extends SkinView
@@ -130,6 +133,28 @@ public class BuddiesViewer
 	private boolean		reorder_outstanding;
 	
 	public BuddiesViewer() {
+		
+		LoginInfoManager.getInstance().addListener(
+			new ILoginInfoListener()
+			{
+				public void 
+				loginUpdate(
+					LoginInfo 	info, 
+					boolean 	isNewLoginID )
+				{
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void 
+						runSupport() 
+						{
+							boolean logged_in = LoginInfoManager.getInstance().isLoggedIn();
+						
+							boolean show_no_buddies = avatarWidgets.size() < 1 || !logged_in;
+								
+							showNoBuddiesPanel( show_no_buddies );
+						}
+					});
+				}
+			});
 	}
 
 	public Object showSupport(SWTSkinObject skinObject, Object params) {
