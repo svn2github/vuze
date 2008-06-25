@@ -2514,7 +2514,7 @@ public class MainWindow
 		}
 		
 		if ("_blank".equalsIgnoreCase(target)) {
-			Utils.launch(target);
+			Utils.launch(url);
 			return;
 		}
 
@@ -2525,6 +2525,7 @@ public class MainWindow
 		}
 
 		if (skinObject == null) {
+			Utils.launch(url);
 			return;
 		}
 
