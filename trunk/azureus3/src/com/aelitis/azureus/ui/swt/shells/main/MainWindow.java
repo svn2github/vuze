@@ -2512,6 +2512,11 @@ public class MainWindow
 			}
 			return;
 		}
+		
+		if ("_blank".equalsIgnoreCase(target)) {
+			Utils.launch(target);
+			return;
+		}
 
 		SWTSkinObject skinObject = skin.getSkinObject("tab-" + target);
 
