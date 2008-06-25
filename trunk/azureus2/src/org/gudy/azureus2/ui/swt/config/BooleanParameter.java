@@ -74,6 +74,12 @@ public class BooleanParameter extends Parameter{
 	  delegate = new GenericBooleanParameter( config_adapter, composite, _name, _defaultValue, textKey, actionPerformer );
   }
 
+  public boolean
+  isInitialised()
+  {
+	  return( delegate != null );
+  }
+  
   public void setLayoutData(Object layoutData) {
    delegate.setLayoutData( layoutData );
   }

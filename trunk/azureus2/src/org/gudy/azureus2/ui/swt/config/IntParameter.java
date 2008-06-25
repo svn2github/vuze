@@ -59,7 +59,12 @@ IntParameter
 				minValue, maxValue);
   }
   
-   
+  public boolean
+  isInitialised()
+  {
+	  return( delegate != null );
+  }
+  
   public void
   setMinimumValue(
   	int		value )

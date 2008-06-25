@@ -44,6 +44,9 @@ public class ConfigParameterAdapter extends GenericParameterAdapter
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						try {
+						if (!owner.isInitialised()){
+							return;
+						}
   						if (owner.isDisposed()) {
   							COConfigurationManager.removeParameterListener(parameterName, this);
   							return;

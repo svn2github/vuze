@@ -47,6 +47,12 @@ Parameter
 		config_adapter = new ConfigParameterAdapter( this, sConfigID );
 	}
 	
+	public boolean
+	isInitialised()
+	{
+		return( true );
+	}
+
 	public Control[]
 	getControls()
 	{
