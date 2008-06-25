@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
 
@@ -126,6 +127,8 @@ public class BuddiesViewer
 
 	private SWTSkinObject rightScroll;
 
+	private boolean		reorder_outstanding;
+	
 	public BuddiesViewer() {
 	}
 
@@ -620,8 +623,40 @@ public class BuddiesViewer
 		}
 	}
 
-	private void recomputeOrder() {
+	private void recomputeOrder( boolean delay ) {
 
+		if ( delay ){
+			
+			synchronized( this ){
+				
+				if ( reorder_outstanding ){
+					
+					return;
+				}
+				
+				reorder_outstanding = true;
+			
+				new DelayedEvent( 
+						"BuddiesViewer:delayReorder", 
+						5*1000,
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								synchronized( BuddiesViewer.this ){
+
+									reorder_outstanding = false;
+								}
+								
+								recomputeOrder( false );
+							}
+						});
+				
+				return;
+			}
+		}
+			
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 
@@ -681,17 +716,17 @@ public class BuddiesViewer
 
 				public void buddyRemoved(VuzeBuddy buddy) {
 					removeBuddy(buddy);
-					recomputeOrder();
+					recomputeOrder(false);
 				}
 
 				public void buddyChanged(VuzeBuddy buddy) {
 					updateBuddy(buddy);
-					recomputeOrder();
+					recomputeOrder(true);
 				}
 
 				public void buddyAdded(VuzeBuddy buddy, int position) {
 					addBuddy(buddy);
-					recomputeOrder();
+					recomputeOrder(false);
 				}
 
 				public void buddyOrderChanged() {
