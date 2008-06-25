@@ -71,6 +71,8 @@ public class VuzeBuddyManager
 
 	public static final String VMT_ACTIVITYENTRY = "ActivityEntry";
 
+	public static final String VMT_BUDDY_MESSAGE = "BuddyMessage";
+
 	public static final String VMT_BUDDYSYNC = "BuddySync"; 
 
 	private static BuddyPlugin buddyPlugin = null;
@@ -88,6 +90,8 @@ public class VuzeBuddyManager
 	private static boolean saveDelayed = true;
 
 	private static File configDir;
+	
+	private static ArrayList messageListeners = new ArrayList(1);
 
 	
 	private static BuddyPluginBuddyMessageListener buddy_message_handler_listener = 
@@ -786,6 +790,20 @@ public class VuzeBuddyManager
 					PlatformBuddyMessenger.sync(null);
 				} catch (NotLoggedInException e) {
 					log("Not Logged in, yet we were able to decrypt the BuddyAccept message.  Amazing!");
+					log(e);
+				}
+			}
+		} else if (mt.equals(VMT_BUDDY_MESSAGE)) {
+			VuzeBuddy buddyByPK = getBuddyByPK(pkSender);
+			String namespace = MapUtils.getMapString(mapPayload, "namespace", null);
+			Map map = MapUtils.getMapMap(mapPayload, "map", null);
+
+			Object[] listeners = messageListeners.toArray();
+			for (int i = 0; i < listeners.length; i++) {
+				VuzeBuddyMessageListener l = (VuzeBuddyMessageListener) listeners[i];
+				try {
+					l.messageRecieved(buddyByPK, namespace, map);
+				} catch (Exception e) {
 					log(e);
 				}
 			}
@@ -1699,5 +1717,15 @@ public class VuzeBuddyManager
 		buf.append(displayName);
 		buf.append("</A>");
 		return buf.toString();
+	}
+	
+	public void addMessageListener(VuzeBuddyMessageListener l) {
+		if (!messageListeners.contains(l)) {
+			messageListeners.add(l);
+		}
+	}
+
+	public void removeMessageListener(VuzeBuddyMessageListener l) {
+		messageListeners.remove(l);
 	}
 }

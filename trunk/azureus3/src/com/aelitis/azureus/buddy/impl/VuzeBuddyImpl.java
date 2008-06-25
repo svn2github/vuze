@@ -275,6 +275,19 @@ public class VuzeBuddyImpl
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendPayloadMap(map, buddies);
 	}
+	
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.lang.String, java.util.Map)
+	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendBuddyMessageMap(java.lang.String, java.util.Map)
+	public void sendBuddyMessage(String namespace, Map map)
+			throws NotLoggedInException {
+		HashMap containerMap = new HashMap(3);
+		containerMap.put("namespace", namespace);
+		containerMap.put(VuzeBuddyManager.VUZE_MESSAGE_TYPE,
+				VuzeBuddyManager.VMT_BUDDY_MESSAGE);
+		containerMap.put("map", map);
+		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
+		VuzeBuddyManager.sendPayloadMap(containerMap, buddies);
+	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#shareDownload(com.aelitis.azureus.ui.swt.currentlyselectedcontent.CurrentContent, java.lang.String)
 	public void shareDownload(SelectedContentV3 content, String message)

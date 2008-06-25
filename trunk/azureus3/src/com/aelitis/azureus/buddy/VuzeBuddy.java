@@ -66,6 +66,8 @@ public interface VuzeBuddy
 
 	public void sendPayloadMap(Map map) throws NotLoggedInException;
 
+	public void sendBuddyMessage(String namespace, Map map) throws NotLoggedInException;
+	
 	public Map toMap();
 
 	public String getCode();
