@@ -707,7 +707,10 @@ public class MessageBoxShell
 		if (autoCloseInMS > 0) {
 			final Label lblCloseIn = new Label(content, SWT.WRAP);
 			lblCloseIn.setForeground(foreground);
-			lblCloseIn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			GridData gData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			gData.horizontalIndent = 10;
+			lblCloseIn.setLayoutData(gData);
+
 			long endOn = SystemTime.getCurrentTime() + autoCloseInMS;
 			lblCloseIn.setData("CloseOn", new Long(endOn));
 			SimpleTimer.addPeriodicEvent("autoclose", 500, new TimerEventPerformer() {
@@ -795,6 +798,9 @@ public class MessageBoxShell
 		Composite checkRememberPanel = null;
 		if (rememberID != null) {
 			checkRememberPanel = new Composite(content, SWT.NONE);
+			GridData gData = new GridData(SWT.LEFT, SWT.CENTER, true, false);
+			gData.horizontalIndent = 10;
+			checkRememberPanel.setLayoutData(gData);
 			FormLayout checklayout = new FormLayout();
 			checkRememberPanel.setLayout(checklayout);
 			final Button checkRemember = new Button(checkRememberPanel, SWT.CHECK);
