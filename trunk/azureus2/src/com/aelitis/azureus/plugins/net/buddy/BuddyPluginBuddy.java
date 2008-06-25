@@ -26,12 +26,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.MessageException;
@@ -754,6 +756,18 @@ BuddyPluginBuddy
 	receivedCloseRequest(
 		Map		request )
 	{
+		List	closing = new ArrayList();
+		
+		synchronized( this ){
+			
+			closing.addAll( connections );
+		}
+		
+		for (int i=0;i<closing.size();i++){
+			
+			((buddyConnection)closing.get(i)).remoteClosing();
+		}
+		
 		try{
 			boolean	restarting = ((Long)request.get( "r" )).longValue() == 1;
 			
@@ -1098,6 +1112,54 @@ BuddyPluginBuddy
 			size = connections.size();
 		}
 		
+		if ( size == 0 && bc.isConnected() && !bc.isClosing() && !bc.isRemoteClosing()){
+			
+				// dropped connection, kick in a keep alive 
+			
+			if ( consec_connect_fails < 3 ){
+				
+				if ( consec_connect_fails == 0 ){
+					
+						// delay a bit
+					
+					new DelayedEvent(
+							"BuddyPluginBuddy:recon",
+							new Random().nextInt( 3000 ),
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									int	size;
+									
+									synchronized( this ){
+																				
+										size = connections.size();
+									}
+									
+									if ( consec_connect_fails == 0 && size == 0 ){
+			
+										log( "Attempting reconnect after dropped connection" );
+										
+										sendKeepAlive();
+									}
+								}
+							});
+						
+				}else{
+					
+					long	delay = 60*1000;
+					
+					delay <<= Math.min( 3, consec_connect_fails );
+			
+					if ( SystemTime.getCurrentTime() - last_connect_attempt >= delay ){
+						
+						sendKeepAlive();
+					}
+				}
+			}
+		}
+		
 		// logMessage( "Con " + bc.getString() + " removed: num=" + size );
 
 			// connection failed, see if we need to attempt to re-establish
@@ -1407,62 +1469,7 @@ BuddyPluginBuddy
 		
 		if ( send_keep_alive ){
 			
-			synchronized( this ){
-				
-				if ( keep_alive_outstanding ){
-					
-					send_keep_alive = false;
-					
-				}else{
-				
-					keep_alive_outstanding = true;
-				}
-			}
-			
-			if ( send_keep_alive ){
-				
-				try{
-					Map	ping_request = new HashMap();
-					
-					ping_request.put( "type", new Long( BuddyPlugin.RT_INTERNAL_REQUEST_PING ));
-					
-					sendMessageSupport(
-						ping_request,
-						BuddyPlugin.SUBSYSTEM_INTERNAL,
-						60*1000,
-						new BuddyPluginBuddyReplyListener()
-						{
-							public void
-							replyReceived(
-								BuddyPluginBuddy	from_buddy,
-								Map					reply )
-							{
-								synchronized( this ){
-									
-									keep_alive_outstanding = false;
-								}
-							}
-							
-							public void
-							sendFailed(
-								BuddyPluginBuddy		to_buddy,
-								BuddyPluginException	cause )
-							{
-								synchronized( this ){
-									
-									keep_alive_outstanding = false;
-								}
-							}
-						});
-					
-				}catch( Throwable e ){
-					
-					synchronized( this ){
-						
-						keep_alive_outstanding = false;
-					}
-				}
-			}
+			sendKeepAlive();
 		}
 		
 		if ( failed != null ){
@@ -1470,6 +1477,69 @@ BuddyPluginBuddy
 			for (int i=0;i<failed.size();i++){
 				
 				((buddyMessage)failed.get(i)).reportFailed( new BuddyPluginTimeoutException( "Timeout", false ));
+			}
+		}
+	}
+	
+	protected void
+	sendKeepAlive()
+	{
+		boolean send_keep_alive = true;
+		
+		synchronized( this ){
+			
+			if ( keep_alive_outstanding ){
+				
+				send_keep_alive = false;
+				
+			}else{
+			
+				keep_alive_outstanding = true;
+			}
+		}
+		
+		if ( send_keep_alive ){
+			
+			try{
+				Map	ping_request = new HashMap();
+				
+				ping_request.put( "type", new Long( BuddyPlugin.RT_INTERNAL_REQUEST_PING ));
+				
+				sendMessageSupport(
+					ping_request,
+					BuddyPlugin.SUBSYSTEM_INTERNAL,
+					60*1000,
+					new BuddyPluginBuddyReplyListener()
+					{
+						public void
+						replyReceived(
+							BuddyPluginBuddy	from_buddy,
+							Map					reply )
+						{
+							synchronized( this ){
+								
+								keep_alive_outstanding = false;
+							}
+						}
+						
+						public void
+						sendFailed(
+							BuddyPluginBuddy		to_buddy,
+							BuddyPluginException	cause )
+						{
+							synchronized( this ){
+								
+								keep_alive_outstanding = false;
+							}
+						}
+					});
+				
+			}catch( Throwable e ){
+				
+				synchronized( this ){
+					
+					keep_alive_outstanding = false;
+				}
 			}
 		}
 	}
@@ -1487,6 +1557,22 @@ BuddyPluginBuddy
 			}
 			
 			return( str );
+		}
+	}
+	
+	public void
+	disconnect()
+	{
+		List	to_disconnect = new ArrayList();
+		
+		synchronized( this ){
+			
+			to_disconnect.addAll( connections );
+		}
+		
+		for (int i=0;i<to_disconnect.size();i++){
+			
+			((buddyConnection)to_disconnect.get(i)).disconnect();
 		}
 	}
 	
@@ -1905,6 +1991,7 @@ BuddyPluginBuddy
 		
 		private volatile boolean			connected;
 		private volatile boolean			closing;
+		private volatile boolean			remote_closing;
 		private volatile boolean			failed;
 		
 		private long			last_active	= SystemTime.getCurrentTime();
@@ -2284,6 +2371,30 @@ BuddyPluginBuddy
 			failed( new BuddyPluginException( "Closing" ));
 		}
 		
+		protected boolean
+		isClosing()
+		{
+			return( closing );
+		}
+		
+		protected void
+		remoteClosing()
+		{
+			remote_closing = true;
+		}
+		
+		protected boolean
+		isRemoteClosing()
+		{
+			return( remote_closing );
+		}
+		
+		protected void
+		disconnect()
+		{
+			fragment_handler.close();
+		}
+		
 		public void
 		failed(
 			Throwable 					error )
@@ -2609,6 +2720,10 @@ BuddyPluginBuddy
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
+				
+			}finally{
+				
+				receiver.failed( new Exception( "Connection closed" ));
 			}
 		}
 		

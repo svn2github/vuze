@@ -64,6 +64,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -773,6 +774,32 @@ BuddyPluginViewInstance
 				};
 			});
 		
+			// disconnect message
+		
+		if ( Constants.isCVSVersion()){
+			final  MenuItem send_msg_item = new MenuItem(menu, SWT.PUSH);
+	
+			send_msg_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.disconnect" ) );
+	
+			send_msg_item.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent event ) 
+					{
+						TableItem[] selection = buddy_table.getSelection();
+				
+						for (int i=0;i<selection.length;i++){
+							
+							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+							
+							buddy.disconnect();
+						}
+					}
+				});
+		}
+		
 			// send message
 		
 		final  MenuItem send_msg_item = new MenuItem(menu, SWT.PUSH);
@@ -1283,6 +1310,11 @@ BuddyPluginViewInstance
 	buddyAdded(
 		final BuddyPluginBuddy	buddy )
 	{
+		if ( buddy_table.isDisposed()){
+			
+			return;
+		}
+		
 		buddy.getMessageHandler().addListener(
 			new BuddyPluginBuddyMessageListener()
 			{
@@ -1373,39 +1405,45 @@ BuddyPluginViewInstance
 	buddyRemoved(
 		final BuddyPluginBuddy	buddy )
 	{
-		buddy_table.getDisplay().asyncExec(
-				new Runnable()
-				{
-					public void
-					run()
+		if ( !buddy_table.isDisposed()){
+			
+			buddy_table.getDisplay().asyncExec(
+					new Runnable()
 					{
-						if ( !buddy_table.isDisposed()){
-							
-							if ( buddies.remove( buddy )){
-																
-								updateTable();
+						public void
+						run()
+						{
+							if ( !buddy_table.isDisposed()){
+								
+								if ( buddies.remove( buddy )){
+																	
+									updateTable();
+								}
 							}
 						}
-					}
-				});	
+					});	
+		}
 	}
 
 	public void
 	buddyChanged(
 		final BuddyPluginBuddy	buddy )
 	{
-		buddy_table.getDisplay().asyncExec(
-				new Runnable()
-				{
-					public void
-					run()
+		if ( !buddy_table.isDisposed()){
+			
+			buddy_table.getDisplay().asyncExec(
+					new Runnable()
 					{
-						if ( !buddy_table.isDisposed()){
-																							
-							updateTable();
+						public void
+						run()
+						{
+							if ( !buddy_table.isDisposed()){
+																								
+								updateTable();
+							}
 						}
-					}
-				});	
+					});	
+		}
 	}
 	
 	public void
@@ -1558,7 +1596,7 @@ BuddyPluginViewInstance
 	FilterComparator 
 		implements Comparator 
 	{
-		boolean ascending = true;
+		boolean ascending = false;
 
 		static final int FIELD_NAME			= 0;
 		static final int FIELD_ONLINE 		= 1;
@@ -1585,7 +1623,7 @@ BuddyPluginViewInstance
 			
 			int	res = 0;
 			
-			if (field == FIELD_NAME){				
+			if(field == FIELD_NAME){				
 				 res = b1.getName().compareTo( b2.getName());
 			}
 			
