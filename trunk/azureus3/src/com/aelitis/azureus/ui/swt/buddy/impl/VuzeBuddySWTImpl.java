@@ -23,9 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -34,6 +32,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 /**
  * @author TuxPaper
@@ -53,9 +52,6 @@ public class VuzeBuddySWTImpl
 	 */
 	public VuzeBuddySWTImpl(String publicKey) {
 		super(publicKey);
-
-		//temp.. give user an icon..
-		setAvatarImage(ImageRepository.getImage("azureus128"));
 	}
 
 	public VuzeBuddySWTImpl() {
@@ -74,7 +70,21 @@ public class VuzeBuddySWTImpl
 			return;
 		}
 		InputStream is = new ByteArrayInputStream(avatar);
-		avatarImage = new Image(display, is);
+		Image bigAvatarImage = new Image(display, is);
+		avatarImage = new Image(display, 40, 40);
+		GC gc = new GC(avatarImage);
+		try {
+			Rectangle bounds = bigAvatarImage.getBounds();
+			try {
+				gc.setInterpolation(SWT.HIGH);
+			} catch (Exception e) {
+			}
+			gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0, 40,
+					40);
+		} finally {
+			gc.dispose();
+		}
+		bigAvatarImage.dispose();
 		ourAvatarImage = true;
 
 		// triggers listener
@@ -82,6 +92,16 @@ public class VuzeBuddySWTImpl
 	}
 
 	public Image getAvatarImage() {
+		if (avatarImage == null) {
+			try {
+				avatarImage = ImageLoaderFactory.getInstance().getImage(
+						"image.buddy.default.avatar");
+			} catch (Exception e) {
+				avatarImage = ImageRepository.getImage("azureus64");
+			}
+			ourAvatarImage = false;
+		}
+
 		return avatarImage;
 	}
 
@@ -118,24 +138,24 @@ public class VuzeBuddySWTImpl
 			});
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.buddy.impl.VuzeBuddyImpl#toDebugString()
 	public String toDebugString() {
 		return "SWT" + super.toDebugString();
 	}
-	
+
 	// @see java.lang.Object#finalize()
 	protected void finalize() throws Throwable {
 		super.finalize();
 
 		if (avatarImage != null) {
-  		Utils.execSWTThread(new AERunnable() {
-  			public void runSupport() {
-  				if (avatarImage != null && !avatarImage.isDisposed()) {
-  					avatarImage.dispose();
-  				}
-  			}
-  		});
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (avatarImage != null && !avatarImage.isDisposed()) {
+						avatarImage.dispose();
+					}
+				}
+			});
 		}
 	}
 }
