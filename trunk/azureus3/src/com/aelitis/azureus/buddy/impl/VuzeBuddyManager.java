@@ -1504,7 +1504,9 @@ public class VuzeBuddyManager
 	}
 
 	public static void addListener(VuzeBuddyListener l, boolean trigger) {
-		listeners.add(l);
+		if (!listeners.contains(l)) {
+			listeners.add(l);
+		}
 		if (trigger) {
 			Object[] buddies = buddyList.toArray();
 			for (int i = 0; i < buddies.length; i++) {
@@ -1529,6 +1531,12 @@ public class VuzeBuddyManager
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
 			l.buddyRemoved(buddy);
 		}
+		
+		VuzeBuddyListener[] buddyListeners = buddy.getListeners();
+		for (int i = 0; i < buddyListeners.length; i++) {
+			VuzeBuddyListener l = buddyListeners[i];
+			l.buddyRemoved(buddy);
+		}
 	}
 
 	/**
@@ -1540,6 +1548,12 @@ public class VuzeBuddyManager
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyAdded(buddy, position);
+		}
+
+		VuzeBuddyListener[] buddyListeners = buddy.getListeners();
+		for (int i = 0; i < buddyListeners.length; i++) {
+			VuzeBuddyListener l = buddyListeners[i];
 			l.buddyAdded(buddy, position);
 		}
 	}
@@ -1558,6 +1572,12 @@ public class VuzeBuddyManager
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
+			l.buddyChanged(buddy);
+		}
+
+		VuzeBuddyListener[] buddyListeners = buddy.getListeners();
+		for (int i = 0; i < buddyListeners.length; i++) {
+			VuzeBuddyListener l = buddyListeners[i];
 			l.buddyChanged(buddy);
 		}
 	}

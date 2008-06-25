@@ -204,10 +204,12 @@ public class PlatformBuddyMessenger
 						continue;
 					}
 					
+					VuzeActivitiesEntryBuddyRequest existingEntry = null;
 					for (Iterator iter2 = existingInvites.iterator(); iter2.hasNext();) {
 						VuzeActivitiesEntryBuddyRequest entry = (VuzeActivitiesEntryBuddyRequest) iter2.next();
 						if (inviteCode.equals(entry.getBuddy().getCode())) {
-							iter2.remove();
+							existingEntry = entry;
+							break;
 						}
 					}
 
@@ -221,13 +223,17 @@ public class PlatformBuddyMessenger
 
 					futureBuddy.loadFromMap(mapBuddy);
 					futureBuddy.setCode(inviteCode);
-
-					VuzeActivitiesEntryBuddyRequest entry = new VuzeActivitiesEntryBuddyRequest(
-							futureBuddy, acceptURL, attempNumber);
-					entry.setTimestamp(addedOn);
-					entry.setID(entry.getID() + SystemTime.getCurrentTime());
+					
+					if (existingEntry != null) {
+						existingEntry.init(futureBuddy, acceptURL, attempNumber);
+					} else {
+						existingEntry = new VuzeActivitiesEntryBuddyRequest();
+						existingEntry.init(futureBuddy, acceptURL, attempNumber);
+					}
+					
+					existingEntry.setTimestamp(addedOn);
 					VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
-						entry
+						existingEntry
 					});
 				}
 
