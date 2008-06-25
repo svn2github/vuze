@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
@@ -62,7 +63,7 @@ public class VuzeBuddyImpl
 
 	private String avatarURL;
 
-	private List pluginBuddies = new ArrayList();
+	private CopyOnWriteList pluginBuddies = new CopyOnWriteList();
 
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
 
@@ -186,17 +187,17 @@ public class VuzeBuddyImpl
 	}
 
 	public boolean isOnline( boolean is_connected ) {
-		mon_pluginBuddies.enter();
-		try {
-			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-				if (pluginBuddy.isOnline( is_connected )) {
-					return true;
+		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+			if (pluginBuddy.isOnline( is_connected )) {
+
+				if ( pluginBuddy.getOnlineStatus() != BuddyPlugin.STATUS_APPEAR_OFFLINE ){
+
+					return( true );
 				}
 			}
-		} finally {
-			mon_pluginBuddies.exit();
 		}
+
 		return false;
 	}
 
