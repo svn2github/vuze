@@ -219,10 +219,11 @@ public class IconBar {
     toolBar.pack();
     p = toolBar.getSize();
     coolItem.setControl(toolBar);
-    coolItem.setSize(p.x,p.y);
-    if (!Constants.isOSX) {
-    	coolItem.setMinimumSize(p.x,p.y);
+    if (Constants.isOSX) {
+    	p.x += 12;
     }
+    coolItem.setSize(p.x,p.y);
+  	coolItem.setMinimumSize(p.x,p.y);
   }
   
   public void setLayoutData(Object layoutData) {
