@@ -121,4 +121,25 @@ public interface VuzeBuddy
 	 * @since 3.0.5.3
 	 */
 	String getProfileAHREF(String referer, boolean useImage);
+
+	/**
+	 * @param l
+	 *
+	 * @since 3.1.0.1
+	 */
+	void addListener(VuzeBuddyListener l);
+
+	/**
+	 * @param l
+	 *
+	 * @since 3.1.0.1
+	 */
+	void removeListener(VuzeBuddyListener l);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.0.1
+	 */
+	VuzeBuddyListener[] getListeners();
 }

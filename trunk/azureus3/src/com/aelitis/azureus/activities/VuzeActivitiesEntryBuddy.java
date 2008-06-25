@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -32,6 +33,7 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class VuzeActivitiesEntryBuddy
 	extends VuzeActivitiesEntry
+	implements VuzeBuddyListener
 {
 	protected VuzeBuddy buddy;
 
@@ -48,6 +50,10 @@ public class VuzeActivitiesEntryBuddy
 			}
 		} else {
 			buddy = VuzeBuddyManager.getOrCreatePotentialBuddy(mapNewBuddy);
+		}
+		
+		if (buddy != null) {
+			buddy.addListener(this);
 		}
 	}
 
@@ -67,6 +73,32 @@ public class VuzeActivitiesEntryBuddy
 	}
 
 	public void setBuddy(VuzeBuddy buddy) {
+		if (buddy != this.buddy) {
+			if (this.buddy != null) {
+				buddy.removeListener(this);
+			}
+		}
 		this.buddy = buddy;
+
+		if (buddy != null) {
+			buddy.addListener(this);
+		}
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddyListener#buddyAdded(com.aelitis.azureus.buddy.VuzeBuddy, int)
+	public void buddyAdded(VuzeBuddy buddy, int position) {
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddyListener#buddyChanged(com.aelitis.azureus.buddy.VuzeBuddy)
+	public void buddyChanged(VuzeBuddy buddy) {
+		VuzeActivitiesManager.triggerEntryChanged(this);
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddyListener#buddyOrderChanged()
+	public void buddyOrderChanged() {
+	}
+
+	// @see com.aelitis.azureus.buddy.VuzeBuddyListener#buddyRemoved(com.aelitis.azureus.buddy.VuzeBuddy)
+	public void buddyRemoved(VuzeBuddy buddy) {
 	}
 }

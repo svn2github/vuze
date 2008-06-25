@@ -35,7 +35,7 @@ public class VuzeActivitiesEntryBuddyRequest
 		super();
 	}
 
-	public VuzeActivitiesEntryBuddyRequest(VuzeBuddy buddy, String acceptURL, long attempNumber) {
+	public void init(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
 		String urlAccept = Constants.appendURLSuffix(acceptURL);

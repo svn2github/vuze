@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
@@ -66,6 +67,8 @@ public class VuzeBuddyImpl
 	private CopyOnWriteList pluginBuddies = new CopyOnWriteList();
 
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
+	
+	private ArrayList listeners = new ArrayList(0);
 
 	protected VuzeBuddyImpl(String publicKey) {
 		addPublicKey(publicKey);
@@ -391,5 +394,19 @@ public class VuzeBuddyImpl
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#toDebugString()
 	public String toDebugString() {
 		return "Buddy {" + loginID + "}";
+	}
+	
+	public void addListener(VuzeBuddyListener l) {
+		if (!listeners.contains(l)) {
+			listeners.add(l);
+		}
+	}
+	
+	public void removeListener(VuzeBuddyListener l) {
+		listeners.remove(l);
+	}
+	
+	public VuzeBuddyListener[] getListeners() {
+		return (VuzeBuddyListener[]) listeners.toArray(new VuzeBuddyListener[0]);
 	}
 }

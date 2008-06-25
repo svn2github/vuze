@@ -643,7 +643,8 @@ public class VuzeActivitiesManager
 	public static VuzeActivitiesEntry[] addEntries(VuzeActivitiesEntry[] entries) {
 		long cutoffTime = getCutoffTime();
 
-		ArrayList newEntries = new ArrayList();
+		ArrayList newEntries = new ArrayList(entries.length);
+		ArrayList existingEntries = new ArrayList(0);
 
 		try {
 			allEntries_mon.enter();
@@ -652,9 +653,13 @@ public class VuzeActivitiesManager
 				VuzeActivitiesEntry entry = entries[i];
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 				if ((entry.getTimestamp() >= cutoffTime || isHeader)
-						&& !allEntries.contains(entry) && !removedEntries.contains(entry)) {
-					newEntries.add(entry);
-					allEntries.add(entry);
+						&& !removedEntries.contains(entry)) {
+					if (allEntries.contains(entry)) {
+						existingEntries.add(entry);
+					} else {
+						newEntries.add(entry);
+						allEntries.add(entry);
+					}
 				}
 			}
 		} finally {
@@ -672,6 +677,13 @@ public class VuzeActivitiesManager
 				VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
 				l.vuzeNewsEntriesAdded(newEntriesArray);
 			}
+		}
+
+		if (existingEntries.size() > 0) {
+  		for (Iterator iter = existingEntries.iterator(); iter.hasNext();) {
+  			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
+  			triggerEntryChanged(entry);
+  		}
 		}
 
 		return newEntriesArray;
@@ -692,7 +704,6 @@ public class VuzeActivitiesManager
 				if (entry == null) {
 					continue;
 				}
-				//System.out.println("remove " + entry.getID());
 				allEntries.remove(entry);
 				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
 				if (!allowReAdd && entry.getTimestamp() > cutoffTime && !isHeader) {
