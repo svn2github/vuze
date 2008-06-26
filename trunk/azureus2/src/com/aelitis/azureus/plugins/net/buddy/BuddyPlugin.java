@@ -1256,17 +1256,38 @@ BuddyPlugin
 	updateOnlineStatus(
 		int		new_status )
 	{
+		boolean	changed;
+		
 		synchronized( this ){
 
 			int	old_status = latest_publish.getOnlineStatus();
 			
-			if ( old_status != new_status ){
+			changed = old_status != new_status;
+			
+			if ( changed ){
 			
 				publishDetails new_publish = latest_publish.getCopy();
 					
 				new_publish.setOnlineStatus( new_status );
 					
 				updatePublish( new_publish );
+			}
+		}
+		
+		if ( changed ){
+			
+			List	buddies = getAllBuddies();
+			
+			logMessage( "   closing buddy connections" );
+			
+			for (int i=0;i<buddies.size();i++){
+				
+				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+				
+				if ( buddy.isConnected()){
+				
+					buddy.sendKeepAlive();
+				}
 			}
 		}
 	}
