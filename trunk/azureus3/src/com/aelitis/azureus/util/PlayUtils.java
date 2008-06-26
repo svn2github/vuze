@@ -19,6 +19,7 @@
 package com.aelitis.azureus.util;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 
 import org.eclipse.swt.program.Program;
@@ -30,6 +31,8 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -42,8 +45,6 @@ import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-
 /**
  * @author TuxPaper
  * @created Jun 1, 2008
@@ -51,6 +52,9 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
  */
 public class PlayUtils
 {
+	private static boolean triedLoadingEmpPluginClass = false;
+
+	private static Method methodIsExternallyPlayable;
 
 	public static boolean prepareForPlay(DownloadManager dm) {
 		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
@@ -97,6 +101,10 @@ public class PlayUtils
 	}
 
 	public static boolean canUseEMP(TOTorrent torrent) {
+		if (canPlayViaExternalEMP(torrent)) {
+			return true;
+		}
+		
 		if (!PlatformTorrentUtils.useEMP(torrent)
 				|| !PlatformTorrentUtils.embeddedPlayerAvail()) {
 			return false;
@@ -232,5 +240,54 @@ public class PlayUtils
 		}
 	
 		return null;
+	}
+	
+	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
+		if (!triedLoadingEmpPluginClass) {
+			triedLoadingEmpPluginClass = true;
+
+  		try {
+  			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+  					"azemp");
+  
+  			if (pi == null) {
+  
+  				return (false);
+  			}
+  
+  			Class empPluginClass = pi.getPlugin().getClass();
+
+  			methodIsExternallyPlayable = empPluginClass.getMethod("isExternallyPlayabale", new Class[] {
+  				TOTorrent.class
+  			});
+  			
+  		} catch (Exception e1) {
+  			return false;
+  		}
+		}
+
+		if (methodIsExternallyPlayable == null) {
+			return false;
+		}
+		
+		//Data is passed to the openWindow via download manager.
+		try {
+
+			Object retObj = methodIsExternallyPlayable.invoke(null, new Object[] {
+				torrent
+			});
+			
+			if (retObj instanceof Boolean) {
+				return (Boolean) retObj;
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (e.getMessage() == null
+					|| !e.getMessage().toLowerCase().endsWith("only")) {
+				Debug.out(e);
+			}
+		}
+
+		return false;
 	}
 }
