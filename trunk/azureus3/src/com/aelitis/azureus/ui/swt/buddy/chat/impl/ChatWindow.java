@@ -232,6 +232,7 @@ public class ChatWindow implements DiscussionListener {
 		};
 		avatarControl.getShell().addListener(SWT.Move,moveListener);
 		
+		input.setFocus();
 		
 		hideAllOthers();
 		shell.open();
