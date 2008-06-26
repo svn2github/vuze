@@ -402,7 +402,7 @@ DHTTransportStatsImpl
 		
 		if ( alien ){
 			
-			System.out.println( "Alien on net " + request.getNetwork() + " - sender=" + request.getAddress());
+			// System.out.println( "Alien on net " + request.getNetwork() + " - sender=" + request.getAddress());
 			
 			int	type = request.getAction();
 			
