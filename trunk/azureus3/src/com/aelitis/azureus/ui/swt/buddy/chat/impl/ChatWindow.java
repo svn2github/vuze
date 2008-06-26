@@ -111,13 +111,13 @@ public class ChatWindow implements DiscussionListener {
 		avatarPicture.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Rectangle size = avatar.getAvatarImage().getBounds();
-				e.gc.drawImage(avatar.getAvatarImage(), 0, 0, size.width,size.height,0,0,64,64);
+				e.gc.drawImage(avatar.getAvatarImage(), 0, 0, size.width,size.height,0,0,40,40);
 			}
 		});
 		
 		data = new FormData();
-		data.width = 64;
-		data.height = 64;
+		data.width = 40;
+		data.height = 40;
 		data.left = new FormAttachment(0,5);
 		data.top = new FormAttachment(0,5);
 		
