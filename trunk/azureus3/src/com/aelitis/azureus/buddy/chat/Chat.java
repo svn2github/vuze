@@ -48,9 +48,10 @@ public class Chat implements VuzeBuddyMessageListener {
 	
 	public void messageReceived(VuzeBuddy from,Map message) {
 		String text = new String((byte[])message.get("text"));
+		long originalTimeStamp = ((Long)message.get("timestamp")).longValue();
 		if(text != null) {
 			ChatDiscussion discussion = getChatDiscussionFor(from);
-			ChatMessage localMessage = new ChatMessage(false,SystemTime.getCurrentTime(),from.getDisplayName(),text);
+			ChatMessage localMessage = new ChatMessage(false,originalTimeStamp,SystemTime.getCurrentTime(),from.getDisplayName(),text);
 			discussion.addMessage(localMessage);
 			notifyListenersOfNewMessage(from,localMessage);
 		}
@@ -72,7 +73,8 @@ public class Chat implements VuzeBuddyMessageListener {
 					message.put("text", text);
 					to.sendBuddyMessage("chat", message);
 					ChatDiscussion discussion = getChatDiscussionFor(to);
-					ChatMessage localMessage = new ChatMessage(true,SystemTime.getCurrentTime(),loginInfoManager.getUserInfo().displayName,text);
+					long timeStamp = SystemTime.getCurrentTime();
+					ChatMessage localMessage = new ChatMessage(true,timeStamp,timeStamp,loginInfoManager.getUserInfo().displayName,text);
 					discussion.addMessage(localMessage);
 					notifyListenersOfNewMessage(to,localMessage);
 				} catch(NotLoggedInException e) {

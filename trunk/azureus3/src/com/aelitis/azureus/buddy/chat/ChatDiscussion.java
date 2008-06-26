@@ -16,9 +16,11 @@ public class ChatDiscussion {
 	public void addMessage(ChatMessage message) {
 		synchronized(messages) {
 			unreadMessages++;
-			messages.add(message);
-			if(listener != null) {
-				listener.newMessage(message);
+			if(!messages.contains(message)) {
+				messages.add(message);
+				if(listener != null) {
+					listener.newMessage(message);
+				}
 			}
 		}
 	}

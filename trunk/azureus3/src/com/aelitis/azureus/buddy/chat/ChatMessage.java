@@ -2,14 +2,16 @@ package com.aelitis.azureus.buddy.chat;
 
 public class ChatMessage {
 	
+	long originalTimeStamp;
 	long timestamp;
 	boolean isMe;
 	String sender;
 	String message;
 	
-	public ChatMessage(boolean isMe,long timestamp, String sender, String message) {
+	public ChatMessage(boolean isMe,long originalTimeStamp,long timestamp, String sender, String message) {
 		super();
 		this.isMe = isMe;
+		this.originalTimeStamp = originalTimeStamp;
 		this.timestamp = timestamp;
 		this.sender = sender;
 		this.message = message;
@@ -40,6 +42,14 @@ public class ChatMessage {
 
 	public void setMe(boolean isMe) {
 		this.isMe = isMe;
+	}
+	
+	public boolean equals(Object o) {
+		if(o instanceof ChatMessage) {
+			ChatMessage other = (ChatMessage) o;
+			return other.originalTimeStamp == this.originalTimeStamp;
+		}
+		return false;
 	}
 	
 	
