@@ -214,7 +214,8 @@ BasicPluginViewImpl
     	gridData = new GridData(GridData.FILL_BOTH);
     	gridData.horizontalSpan = 2;
     	log.setLayoutData(gridData);
-    	log.setText( model.getLogArea().getText());
+    	String	text = model.getLogArea().getText().trim();
+    	log.setText( text);
     	log.setTopIndex(log.getLineCount());
     	model.getLogArea().addPropertyChangeListener(this);
 
