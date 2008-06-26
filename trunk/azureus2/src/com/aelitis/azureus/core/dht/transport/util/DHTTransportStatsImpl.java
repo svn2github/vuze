@@ -402,6 +402,8 @@ DHTTransportStatsImpl
 		
 		if ( alien ){
 			
+			System.out.println( "Alien on net " + request.getNetwork() + " - sender=" + request.getAddress());
+			
 			int	type = request.getAction();
 			
 			if ( type == DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE ){
