@@ -221,7 +221,7 @@ public class ColumnVuzeActivity
 		}
 		
 		int avatarPos = x;
-		if (imgAvatar != null) {
+		if (imgAvatar != null && !imgAvatar.isDisposed()) {
 			x += AVATAR_HEIGHT + AVATAR_PADDING;
 		}
 		
@@ -278,11 +278,10 @@ public class ColumnVuzeActivity
 			}
 			style |= SWT.TOP;
 			
-			if (imgAvatar != null) {
-				int minHeight = imgAvatar == null ? 30 : AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
-				if (height < minHeight) {
-					height = minHeight;
-				}
+			int minHeight = imgAvatar == null || imgAvatar.isDisposed() ? 30
+					: AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
+			if (height < minHeight) {
+				height = minHeight;
 			}
 
 			if (canShowThumb) {
@@ -376,7 +375,7 @@ public class ColumnVuzeActivity
 			} catch (Throwable t) {
 			}
 			
-			if (imgAvatar != null) {
+			if (imgAvatar != null && !imgAvatar.isDisposed()) {
 				Rectangle bounds = imgAvatar.getBounds();
 				gc.drawImage(imgAvatar, 0, 0, bounds.width, bounds.height, avatarPos,
 						MARGIN_HEIGHT, AVATAR_HEIGHT, AVATAR_HEIGHT);
