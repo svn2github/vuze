@@ -970,8 +970,14 @@ public class AvatarWidget
 				}
 				chatWindow = new ChatWindow(this,viewer.getChat(),discussion);
 			} else {
-				chatWindow.show();
+				if(chatWindow.isVisible()) {
+					chatWindow.hide();
+				} else {
+					chatWindow.show();
+				}
 			}
+			
+			canvas.redraw();
 		}
 	}
 
