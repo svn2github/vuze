@@ -561,7 +561,7 @@ public class AvatarWidget
 				
 				if(discussion != null) {
 					int nbMessages = discussion.getUnreadMessages();
-					if(nbMessages > 0) {
+					if(nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
 						
 						if(false == vuzeBuddy.isOnline( true )) {
 							e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);

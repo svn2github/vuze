@@ -289,7 +289,10 @@ public class ChatWindow implements DiscussionListener {
 	}
 	
 	public boolean isVisible() {
-		return shell.isVisible();
+		if(!shell.isDisposed()) {
+			return shell.isVisible();
+		}
+		return false;
 	}
 	
 	public void show() {
