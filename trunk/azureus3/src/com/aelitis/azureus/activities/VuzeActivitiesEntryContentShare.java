@@ -134,7 +134,7 @@ public class VuzeActivitiesEntryContentShare
 	public Map toMap() {
 		Map map = super.toMap();
 		
-		map.put("version", version);
+		map.put("version", new Long(version));
 		
 		return map;
 	}
