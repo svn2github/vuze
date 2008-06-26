@@ -156,11 +156,16 @@ NATTraverser
 						
 						if ( dht_plugin.isEnabled()){
 							
-							DHT[]	dhts = dht_plugin.getDHTs();
-
-							if ( dhts.length > 0 ){
+							DHT dht = dht_plugin.getDHT( DHT.NW_MAIN );
+							
+							if ( dht == null ){
 								
-								puncher = dhts[dhts.length-1].getNATPuncher();
+								dht = dht_plugin.getDHT( DHT.NW_CVS );
+							}
+							
+							if ( dht != null ){
+								
+								puncher = dht.getNATPuncher();
 							}
 						}
 					}

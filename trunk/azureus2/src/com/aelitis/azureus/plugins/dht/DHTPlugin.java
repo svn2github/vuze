@@ -1508,6 +1508,26 @@ DHTPlugin
 		return( res );
 	}
 	
+	public DHT
+	getDHT(
+		int		network )
+	{
+		if ( dhts == null ){
+			
+			return( null );
+		}
+		
+		for (int i=0;i<dhts.length;i++){
+			
+			if ( dhts[i].getDHT().getTransport().getNetwork() == network ){
+				
+				return( dhts[i].getDHT());
+			}
+		}
+		
+		return( null );
+	}
+	
 	public DHTPluginKeyStats
 	decodeStats(
 		DHTPluginValue		value )
