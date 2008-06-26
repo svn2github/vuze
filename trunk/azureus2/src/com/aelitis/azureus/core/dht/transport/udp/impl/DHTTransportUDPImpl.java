@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -348,10 +349,13 @@ DHTTransportUDPImpl
 				// only fiddle with the initial view of reachability when things have had
 				// time to stabilise
 			
-			// long fv_average 	= alien_fv_average.getAverage();
-			// long all_average 	= alien_average.getAverage();
+			if ( Constants.isCVSVersion()){
+							
+				long fv_average 		= alien_fv_average.getAverage();
+				long all_average 		= alien_average.getAverage();
 			
-			// System.out.println( "aliens for net " + network + ": " + fv_average + "/" + all_average );
+				logger.log( "Aliens for net " + network + ": " + fv_average + "/" + all_average );
+			}
 			
 			if ( now - stats_start_time > STATS_INIT_PERIOD ){
 				

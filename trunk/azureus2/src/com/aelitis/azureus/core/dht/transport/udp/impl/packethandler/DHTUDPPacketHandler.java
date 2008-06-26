@@ -53,7 +53,7 @@ DHTUDPPacketHandler
 	private boolean						test_network_alive	= true;
 
 	private int							BLOOM_FILTER_SIZE		= 10000;
-	private static final int			BLOOM_ROTATION_PERIOD	= 2*60*1000; 
+	private static final int			BLOOM_ROTATION_PERIOD	= 3*60*1000; 
 	private BloomFilter					bloom1;
 	private BloomFilter					bloom2;
 	private long						last_bloom_rotation_time;
@@ -101,6 +101,29 @@ DHTUDPPacketHandler
 		return( network );
 	}
 	
+	protected void
+	updateBloom(
+		InetSocketAddress		destination_address )
+	{
+	    long diff = SystemTime.getCurrentTime() - last_bloom_rotation_time;
+	    
+	    if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
+	    
+	    	// System.out.println( "bloom rotate: entries = " + bloom1.getEntryCount() + "/" + bloom2.getEntryCount());
+	    	
+	    	bloom1 = bloom2;
+	    	
+	    	bloom2 = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
+	        
+	        last_bloom_rotation_time = SystemTime.getCurrentTime();
+	    }
+
+	    byte[]	address_bytes = destination_address.getAddress().getAddress();
+	    
+	    bloom1.add( address_bytes );
+	    bloom2.add( address_bytes );
+	}
+	
 	public void
 	sendAndReceive(
 		DHTUDPPacketRequest					request,
@@ -120,23 +143,7 @@ DHTUDPPacketHandler
 			
 			if ( test_network_alive ){
 				
-			    long diff = SystemTime.getCurrentTime() - last_bloom_rotation_time;
-			    
-			    if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
-			    
-			    	// System.out.println( "bloom rotate: entries = " + bloom1.getEntryCount() + "/" + bloom2.getEntryCount());
-			    	
-			    	bloom1 = bloom2;
-			    	
-			    	bloom2 = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
-			        
-			        last_bloom_rotation_time = SystemTime.getCurrentTime();
-			    }
-
-			    byte[]	address_bytes = destination_address.getAddress().getAddress();
-			    
-			    bloom1.add( address_bytes );
-			    bloom2.add( address_bytes );
+				updateBloom( destination_address );
 			    
 				packet_handler.sendAndReceive( 
 					request, 
@@ -198,6 +205,8 @@ DHTUDPPacketHandler
 
 	{
 		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
+		
+		updateBloom( destination_address );
 		
 			// one way send (no matching reply expected )
 		
