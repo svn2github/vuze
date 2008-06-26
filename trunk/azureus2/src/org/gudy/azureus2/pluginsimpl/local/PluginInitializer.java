@@ -209,8 +209,8 @@ PluginInitializer
   
   private static boolean	loading_builtin;
   
-  private List		plugins				= new ArrayList();
-  private List		plugin_interfaces	= new ArrayList();
+  private List		s_plugins				= new ArrayList();
+  private List		s_plugin_interfaces		= new ArrayList();
   
   private List		initThreads;
   private boolean	initialisation_complete;
@@ -429,7 +429,12 @@ PluginInitializer
   		
   				// discard any failed ones
   			
-  			List pis = new ArrayList( plugin_interfaces );
+  			List pis;
+  			
+  			synchronized( s_plugin_interfaces ){
+  				
+  				pis = new ArrayList( s_plugin_interfaces );
+  			}
   			
   			for (int i=0;i<pis.size();i++){
   		  		
@@ -1329,7 +1334,12 @@ PluginInitializer
   			PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
   			
   			if (plugin_interface.isDisabled()) {
-  				plugin_interfaces.add( plugin_interface );
+  				
+  				synchronized( s_plugin_interfaces ){
+  				
+  					s_plugin_interfaces.add( plugin_interface );
+  				}
+  				
   				continue;
   			}
   	
@@ -1357,10 +1367,13 @@ PluginInitializer
   				load_failure	= e;
   			}
      
-  			plugins.add( plugin );
+  			synchronized( s_plugin_interfaces ){
+  				
+  				s_plugins.add( plugin );
 	      
-  			plugin_interfaces.add( plugin_interface );
-	      
+  				s_plugin_interfaces.add( plugin_interface );
+  			}
+  			
   			if ( load_failure != null ){
 	      	
   				Debug.printStackTrace( load_failure );
@@ -1482,10 +1495,12 @@ PluginInitializer
 	  		}
 		 }
   		
-   		plugins.add( plugin );
+		 synchronized( s_plugin_interfaces ){
    		
-   		plugin_interfaces.add( plugin_interface );
+			s_plugins.add( plugin );
    		
+			s_plugin_interfaces.add( plugin_interface );
+		 }
   	}catch(Throwable e){
   		
   		Debug.printStackTrace( e );
@@ -1532,10 +1547,12 @@ PluginInitializer
   			plugin_interface.setOperational( true );
   		}
   		
-   		plugins.add( plugin );
+  		synchronized( s_plugin_interfaces ){
    		
-   		plugin_interfaces.add( plugin_interface );
+  			s_plugins.add( plugin );
    		
+  			s_plugin_interfaces.add( plugin_interface );
+  		}
   	}catch(Throwable e){
   		
   		Debug.printStackTrace( e );
@@ -1554,10 +1571,13 @@ PluginInitializer
   unloadPlugin(
   	PluginInterfaceImpl		pi )
   {
-  	plugins.remove( pi.getPlugin());
+	synchronized( s_plugin_interfaces ){
+	
+		s_plugins.remove( pi.getPlugin());
   	
-  	plugin_interfaces.remove( pi );
-  	
+		s_plugin_interfaces.remove( pi );
+	}
+	
   	pi.unloadSupport();
   	
   	for (int i=0;i<loaded_pi_list.size();i++){
@@ -1661,29 +1681,43 @@ PluginInitializer
   public void
   destroyInitiated()
   {	
-  	for (int i=0;i<plugin_interfaces.size();i++){
-  		
-  		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownInitiated();
-  	} 
-  	
-  	if ( default_plugin != null ){
-  		
-  		default_plugin.closedownInitiated();
-  	}
+	  List plugin_interfaces;
+
+	  synchronized( s_plugin_interfaces ){
+
+		  plugin_interfaces = new ArrayList( s_plugin_interfaces );
+	  }
+		
+	  for (int i=0;i<plugin_interfaces.size();i++){
+
+		  ((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownInitiated();
+	  } 
+
+	  if ( default_plugin != null ){
+
+		  default_plugin.closedownInitiated();
+	  }
   }
   
   public void
   destroyed()
   {
-  	for (int i=0;i<plugin_interfaces.size();i++){
-  		
-  		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownComplete();
-  	}  
-  	
- 	if ( default_plugin != null ){
-  		
-  		default_plugin.closedownComplete();
-  	}
+	  List plugin_interfaces;
+
+	  synchronized( s_plugin_interfaces ){
+
+		  plugin_interfaces = new ArrayList( s_plugin_interfaces );
+	  }
+
+	  for (int i=0;i<plugin_interfaces.size();i++){
+
+		  ((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownComplete();
+	  }  
+
+	  if ( default_plugin != null ){
+
+		  default_plugin.closedownComplete();
+	  }
   }
   
   
@@ -1712,6 +1746,13 @@ PluginInitializer
   				return( value );
   			}
   		};
+  	
+  	List plugin_interfaces;
+  		  	
+  	synchronized( s_plugin_interfaces ){
+  			
+  		plugin_interfaces = new ArrayList( s_plugin_interfaces );
+  	}
   	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
@@ -1752,6 +1793,13 @@ PluginInitializer
   	
   	UIManagerImpl.initialisationComplete();
   	
+	List plugin_interfaces;
+	
+	synchronized( s_plugin_interfaces ){
+		
+		plugin_interfaces = new ArrayList( s_plugin_interfaces );
+	}
+	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).initialisationComplete();
@@ -1778,7 +1826,10 @@ PluginInitializer
 	  
 	checkPluginsInitialised();
 		
-  	return plugin_interfaces;
+	synchronized( s_plugin_interfaces ){
+		
+		return( new ArrayList( s_plugin_interfaces ));
+	}
   }
   
   public PluginInterface[]
@@ -1809,7 +1860,14 @@ PluginInitializer
   protected PluginInterfaceImpl
   getPluginFromClass(
   	String	class_name )
-  {  	
+  {  
+	List plugin_interfaces;
+	
+	synchronized( s_plugin_interfaces ){
+		
+		plugin_interfaces = new ArrayList( s_plugin_interfaces );
+	}
+	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
   		PluginInterfaceImpl	pi = (PluginInterfaceImpl)plugin_interfaces.get(i);
@@ -1850,6 +1908,13 @@ PluginInitializer
 		try{
 			writer.indent();
 
+			List plugin_interfaces;
+			
+			synchronized( s_plugin_interfaces ){
+				
+				plugin_interfaces = new ArrayList( s_plugin_interfaces );
+			}
+			
 		 	for (int i=0;i<plugin_interfaces.size();i++){
 		  		
 		  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)plugin_interfaces.get(i);
