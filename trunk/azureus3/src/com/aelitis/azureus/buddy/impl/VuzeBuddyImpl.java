@@ -203,6 +203,18 @@ public class VuzeBuddyImpl
 
 		return false;
 	}
+	
+	public int getVersion() {
+		int	version = VERSION_INITIAL;
+		
+		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+			
+			version = Math.max( pluginBuddy.getVersion(), version );
+		}
+
+		return version;
+	}
 
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#addPublicKey()
 	public void addPublicKey(String pk) {

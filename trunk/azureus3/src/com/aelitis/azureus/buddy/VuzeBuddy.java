@@ -23,6 +23,7 @@ import java.util.Map;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 
 /**
@@ -33,7 +34,14 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 public interface VuzeBuddy
 	extends Comparator, Comparable
 {
-
+		/**
+		 * These constants are ordered so, for example, to test if chat supported do a
+		 *     getVersion() >= VERSION_CHAT
+		 */
+	
+	public static final int	VERSION_INITIAL	= BuddyPlugin.VERSION_INITIAL;
+	public static final int	VERSION_CHAT	= BuddyPlugin.VERSION_CHAT;
+	
 	public String getDisplayName();
 
 	public void setDisplayName(String displayName);
@@ -52,6 +60,11 @@ public interface VuzeBuddy
 
 	public boolean isOnline( boolean is_connected );
 
+		// returns a VERSION constant from above list. This is the maximum version of
+		// any of the buddies identities
+	
+	public int getVersion();
+	
 	public String[] getPublicKeys();
 	
 	public void addPublicKey(String pk);
