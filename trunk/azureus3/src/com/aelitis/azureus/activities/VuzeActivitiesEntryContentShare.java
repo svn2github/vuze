@@ -140,14 +140,6 @@ public class VuzeActivitiesEntryContentShare
 	public void loadCommonFromMap(Map map) {
 		super.loadCommonFromMap(map);
 
-		boolean legacy = getBuddy() == null;
-
-		// legacy.  Normally will load from super
-		String buddyID = MapUtils.getMapString(map, "buddyID", null);
-		if ((buddy == null && buddyID != null) || (buddy != null && buddyID != null && !buddy.getLoginID().equals(buddyID))) {
-			buddy = VuzeBuddyManager.getBuddyByLoginID(buddyID);
-		}
-
 		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
 		if (torrentMap != null) {
 			try {
@@ -160,7 +152,7 @@ public class VuzeActivitiesEntryContentShare
 		
 		long version = MapUtils.getMapLong(map, "version", 1);
 		
-		if (version >= 2) {
+		if (version >= 2 && buddy != null) {
 			userMessage = MapUtils.getMapString(map, "userMessage", null);
 			String textid = (userMessage == null || userMessage.length() == 0)
 					? "v3.activity.share-content.no-msg" : "v3.activity.share-content";
