@@ -18,7 +18,6 @@
  
 package com.aelitis.azureus.activities;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
@@ -42,7 +41,7 @@ public class VuzeActivitiesEntryBuddy
 	public void loadCommonFromMap(Map map) {
 		super.loadCommonFromMap(map);
 
-		Map mapNewBuddy = (Map) MapUtils.getMapObject(map, "buddy", new HashMap(),
+		Map mapNewBuddy = (Map) MapUtils.getMapObject(map, "buddy", null,
 				Map.class);
 		if (mapNewBuddy == null) {
 			String buddyID = MapUtils.getMapString(map, "buddyID", null);
