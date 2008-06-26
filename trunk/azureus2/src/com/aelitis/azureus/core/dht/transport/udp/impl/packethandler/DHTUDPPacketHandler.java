@@ -52,7 +52,7 @@ DHTUDPPacketHandler
 	
 	private boolean						test_network_alive	= true;
 
-	private int							BLOOM_FILTER_SIZE		= 5000;
+	private int							BLOOM_FILTER_SIZE		= 10000;
 	private static final int			BLOOM_ROTATION_PERIOD	= 2*60*1000; 
 	private BloomFilter					bloom1;
 	private BloomFilter					bloom2;
@@ -264,7 +264,17 @@ DHTUDPPacketHandler
 				// an alien request is one that originates from a peer that we haven't recently
 				// talked to
 			
-			boolean	alien = !bloom1.contains( request.getAddress().getAddress().getAddress());
+			byte[] bloom_key = request.getAddress().getAddress().getAddress();
+			
+			boolean	alien = !bloom1.contains( bloom_key );
+			
+			if ( alien ){
+				
+					// avoid counting consecutive requests from same contact more than once
+			
+				bloom1.add( bloom_key );
+				bloom2.add( bloom_key );
+			}
 			
 			stats.packetReceived( request.getSerialisedSize());
 		
