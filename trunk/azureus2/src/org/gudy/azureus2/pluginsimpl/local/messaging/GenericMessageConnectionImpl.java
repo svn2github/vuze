@@ -141,6 +141,19 @@ GenericMessageConnectionImpl
 		}
 	}
 	
+	public int
+	getTransportType()
+	{
+		if ( delegate == null ){
+			
+			return( TT_NONE );
+		}else{
+			
+			return( delegate.getTransportType());
+		}
+	}
+	
+
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter )

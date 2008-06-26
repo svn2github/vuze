@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.network.RateLimiter;
@@ -517,6 +518,12 @@ GenericMessageConnectionIndirect
 	getType()
 	{
 		return( "Tunnel" );
+	}
+	
+	public int
+	getTransportType()
+	{
+		return( GenericMessageConnection.TT_INDIRECT );
 	}
 	
 	public long

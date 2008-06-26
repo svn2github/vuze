@@ -330,6 +330,12 @@ SESTSConnectionImpl
 		return( "AES " + con_type );
 	}
 	
+	public int 
+	getTransportType() 
+	{
+		return( connection.getTransportType());
+	}
+	
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter )

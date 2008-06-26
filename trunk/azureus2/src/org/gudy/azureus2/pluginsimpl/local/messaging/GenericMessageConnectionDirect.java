@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
+import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
@@ -128,6 +129,35 @@ GenericMessageConnectionDirect
 		}
 	}
 	
+	public int
+	getTransportType()
+	{
+		if ( connection == null ){
+			
+			return( GenericMessageConnection.TT_NONE );
+			
+		}else{
+			
+			Transport t = connection.getTransport();
+			
+			if ( t == null ){
+				
+				return( GenericMessageConnection.TT_NONE );
+				
+			}else{
+				
+				if ( t.isTCP()){
+				
+					return( GenericMessageConnection.TT_TCP );
+					
+				}else{
+					
+					return( GenericMessageConnection.TT_UDP );
+				}
+			}
+		}
+	}
+
 	public void
 	addInboundRateLimiter(
 		RateLimiter		limiter )

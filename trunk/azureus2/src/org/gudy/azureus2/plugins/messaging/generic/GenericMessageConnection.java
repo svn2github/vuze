@@ -29,6 +29,11 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 public interface 
 GenericMessageConnection 
 {
+	public static final int TT_NONE			= 0;
+	public static final int TT_TCP			= 0;
+	public static final int TT_UDP			= 0;
+	public static final int TT_INDIRECT		= 0;
+	
 	public GenericMessageEndpoint
 	getEndpoint();
 	
@@ -53,6 +58,9 @@ GenericMessageConnection
 	
 	public String
 	getType();
+	
+	public int
+	getTransportType();
 	
 	public void
 	addInboundRateLimiter(

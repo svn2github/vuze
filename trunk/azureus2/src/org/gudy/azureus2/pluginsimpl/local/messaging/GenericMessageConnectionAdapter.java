@@ -45,6 +45,9 @@ GenericMessageConnectionAdapter
 	public String
 	getType();
 	
+	public int
+	getTransportType();
+
 	public void
 	connect(
 		ByteBuffer			initial_data,
