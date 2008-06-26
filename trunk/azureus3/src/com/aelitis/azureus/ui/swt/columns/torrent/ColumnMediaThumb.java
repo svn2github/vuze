@@ -23,7 +23,9 @@ import java.io.ByteArrayInputStream;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -33,7 +35,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -537,7 +538,8 @@ public class ColumnMediaThumb
 			} else if (id.equals(BTN_SHARE)) {
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
-					VuzeShareUtils.getInstance().shareTorrent(contents[0], "media-thumb-btn");
+					String referer = event.cell.getTableID() + "-media-thumb-btn";
+					VuzeShareUtils.getInstance().shareTorrent(contents[0], referer);
 				}
 			}
 
