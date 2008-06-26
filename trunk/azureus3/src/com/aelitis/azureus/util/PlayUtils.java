@@ -278,7 +278,7 @@ public class PlayUtils
 			});
 			
 			if (retObj instanceof Boolean) {
-				return (Boolean) retObj;
+				return ((Boolean) retObj).booleanValue();
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
