@@ -53,6 +53,7 @@ import org.gudy.azureus2.plugins.sharing.ShareResourceEvent;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.sharing.ShareResourceListener;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
@@ -104,6 +105,8 @@ public class AvatarWidget
 	private Rectangle imageBounds = null;
 
 	private Rectangle nameAreaBounds = null;
+	
+	private Rectangle chatAreaBounds = null;
 
 	private VuzeBuddySWT vuzeBuddy = null;
 
@@ -422,28 +425,6 @@ public class AvatarWidget
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
 
-				if (SHOW_ONLINE_BORDER) {
-
-					if (true == vuzeBuddy.isOnline( true )) {
-
-						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
-								107, 57));
-						e.gc.setBackground(ColorCache.getColor(canvas.getDisplay(), 40,
-								130, 70));
-						Rectangle bounds = canvas.getBounds();
-
-						e.gc.fillRectangle(8, 5, bounds.width - 16, bounds.height - 18);
-						e.gc.drawRectangle(8, 5, bounds.width - 17, bounds.height - 19);
-						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 50,
-								159, 86));
-						e.gc.drawLine(8, 5, bounds.width - 9, 5);
-						e.gc.drawLine(8, 5, 8, bounds.height - 15);
-
-						e.gc.setForeground(canvas.getForeground());
-
-					}
-				}
-
 				/*
 				 * Draw the avatar image
 				 */
@@ -561,17 +542,40 @@ public class AvatarWidget
 						progressArea.width = creationPercent * (progressArea.width-1) / 100;
 						e.gc.setBackground(ColorCache.getColor(e.gc.getDevice(), 0,73,153));
 						e.gc.fillRectangle(progressArea.x, progressArea.y, progressArea.width, progressArea.height);
+					}
+				}
+				
+				boolean showChatIcon = false;
+				
+				if (SHOW_ONLINE_BORDER) {
+
+					if (true == vuzeBuddy.isOnline( true )) {
+
+						e.gc.drawImage(ImageRepository.getImage("green_bubble"), 40, 0);
+						showChatIcon = true;
 						
 
 					}
 				}
 				
+				
 				if(discussion != null) {
 					int nbMessages = discussion.getUnreadMessages();
 					if(nbMessages > 0) {
-						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 20,200,20));
-						e.gc.drawText("" + nbMessages, 50, 10,true);
+						
+						if(false == vuzeBuddy.isOnline( true )) {
+							e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
+							showChatIcon = true;
+						}
+						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 255,255,255));
+						e.gc.drawText("" + nbMessages, 47, 2,true);
 					}
+				}
+				
+				if(showChatIcon) {
+					chatAreaBounds = new Rectangle(40,0,20,19);
+				} else {
+					chatAreaBounds = null;
 				}
 			}
 		});
@@ -627,13 +631,17 @@ public class AvatarWidget
 					}
 				} else if (decorator_add_to_share.contains(e.x, e.y)) {
 
-				} else {
+				}  else {
 					if ((e.stateMask & SWT.MOD1) == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
 					} else {
 						viewer.select(vuzeBuddy, !isSelected, false);
 					}
 					canvas.redraw();
+				}
+				
+				if(chatAreaBounds != null && chatAreaBounds.contains(e.x,e.y)) {
+					doChatClicked();
 				}
 			}
 
@@ -696,7 +704,11 @@ public class AvatarWidget
 						canvas.redraw();
 						lastActiveState = true;
 					}
+				} if(chatAreaBounds != null && chatAreaBounds.contains(e.x,e.y)) {
+					canvas.setCursor(canvas.getDisplay().getSystemCursor(
+							SWT.CURSOR_HAND));
 				} else {
+					canvas.setCursor(null);
 					if (true == lastActiveState) {
 						nameLinkActive = false;
 						canvas.redraw();
