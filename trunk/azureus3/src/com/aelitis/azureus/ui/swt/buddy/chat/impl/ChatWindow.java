@@ -197,15 +197,22 @@ public class ChatWindow implements DiscussionListener {
 			}
 		});
 		
-		input = new Text(shell,SWT.NONE);
-		input.addListener(SWT.DefaultSelection, new Listener() {
+		input = new Text(shell,SWT.WRAP);
+		input.addListener(SWT.KeyUp, new Listener() {
 			public void handleEvent(Event e) {
+				if(e.keyCode == 13) {
 					String text = input.getText();
 					if(text.length() > 0) {
 						chat.sendMessage(avatar.getVuzeBuddy(), text);
 						input.setText("");
 					}
+				}
 			}	
+		});
+		input.addListener(SWT.Modify, new Listener() {
+			public void handleEvent(Event e) {
+					shell.layout();	
+			}
 		});
 		
 		data = new FormData();
@@ -345,6 +352,13 @@ public class ChatWindow implements DiscussionListener {
 	public void hide() {
 		if(!shell.isDisposed()) {
 			shell.setVisible(false);
+			Control[] controls = messages.getChildren();
+			for(int i = 0 ; i < controls.length ; i++) {
+				Control[] children = ((Composite)controls[i]).getChildren();
+				for(int j = 0 ; j < children.length ; j++) {
+					children[j].setForeground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
+				}
+			}
 		}
 	}
 	
