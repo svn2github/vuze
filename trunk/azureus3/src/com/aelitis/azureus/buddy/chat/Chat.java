@@ -70,10 +70,12 @@ public class Chat implements VuzeBuddyMessageListener {
 			public void run() {
 				try {
 					Map message = new HashMap();
+					long timeStamp = SystemTime.getCurrentTime();
+					message.put("timestamp", new Long(timeStamp));
 					message.put("text", text);
 					to.sendBuddyMessage("chat", message);
 					ChatDiscussion discussion = getChatDiscussionFor(to);
-					long timeStamp = SystemTime.getCurrentTime();
+					
 					ChatMessage localMessage = new ChatMessage(true,timeStamp,timeStamp,loginInfoManager.getUserInfo().displayName,text);
 					discussion.addMessage(localMessage);
 					notifyListenersOfNewMessage(to,localMessage);
