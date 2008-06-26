@@ -27,22 +27,30 @@ import java.util.*;
 public class 
 CopyOnWriteList 
 {
-	private volatile List	list = new ArrayList();
-	//private volatile int	version;
+	private List	list = new ArrayList();
+	
+	private boolean	visible = false;
 	
 	public void
 	add(
 		Object	obj )
 	{
-		synchronized( list ){
+		synchronized( this ){
 			
-			List	new_list = new ArrayList( list );
+			if ( visible ){
+				
+				List	new_list = new ArrayList( list );
+				
+				new_list.add( obj );
 			
-			new_list.add( obj );
-		
-			list	= new_list;
+				list	= new_list;
 			
-			//version++;
+				visible = false;
+				
+			}else{
+				
+				list.add( obj );
+			}
 		}
 	}
 	
@@ -50,28 +58,35 @@ CopyOnWriteList
 	remove(
 		Object	obj )
 	{
-		synchronized( list ){
+		synchronized( this ){
 			
-			List	new_list = new ArrayList( list );
+			if ( visible ){
+
+				List	new_list = new ArrayList( list );
+				
+				boolean result = new_list.remove( obj );
 			
-			boolean result = new_list.remove( obj );
-		
-			list	= new_list;
-			
-			//version++;
-			
-			return( result );
+				list	= new_list;
+						
+				visible = false;
+				
+				return( result );
+				
+			}else{
+				
+				return( list.remove( obj ));
+			}
 		}
 	}
 	
 	public void
 	clear()
 	{
-		synchronized( list ){
+		synchronized( this ){
 								
 			list	= new ArrayList();
 			
-			//version++;
+			visible = false;
 		}
 	}
 	
@@ -79,13 +94,21 @@ CopyOnWriteList
 	contains(
 		Object	obj )
 	{
-		return( list.contains( obj ));
+		synchronized( this ){
+
+			return( list.contains( obj ));
+		}
 	}
 	
 	public Iterator
 	iterator()
 	{
-		return( new CopyOnWriteListIterator( list.iterator()));
+		synchronized( this ){
+
+			visible = true;
+			
+			return( new CopyOnWriteListIterator( list.iterator()));
+		}
 	}
 	
 	public List
@@ -93,39 +116,50 @@ CopyOnWriteList
 	{
 			// TODO: we need to either make this a read-only-list or obey the copy-on-write semantics correctly...
 		
-		return( list );
+		synchronized( this ){
+
+			visible = true;
+			
+			return( list );
+		}
 	}
 	
 	public int
 	size()
 	{
-		return( list.size());
+		synchronized( this ){
+
+			return( list.size());
+		}
 	}
 	
-	public boolean isEmpty() {
-		return list.isEmpty();
+	public boolean 
+	isEmpty() 
+	{
+		synchronized( this ){
+
+			return list.isEmpty();
+		}
 	}
 	
 	public Object[]
 	toArray()
 	{
-		return( list.toArray());
+		synchronized( this ){
+
+			return( list.toArray());
+		}
 	}
 	
 	public Object[]
   	toArray(
   		Object[]	 x )
   	{
-  		return( list.toArray(x));
+		synchronized( this ){
+
+			return( list.toArray(x));
+		}
   	}
-	
-	/*
-	public int
-	getVersion()
-	{
-		return( version );
-	}
-	*/
 	
 	private class
 	CopyOnWriteListIterator
