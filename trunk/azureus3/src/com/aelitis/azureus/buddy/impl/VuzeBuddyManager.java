@@ -807,6 +807,7 @@ public class VuzeBuddyManager
 					log(e);
 				}
 			}
+			return "Ok";
 		}
 
 		log("processPayLoadMap from " + pkSender + ": Unknown Message Type " + mt);
