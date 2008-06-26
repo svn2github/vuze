@@ -79,6 +79,8 @@ BuddyPluginBuddy
 	private int				udp_port;
 	private int				online_status	= BuddyPlugin.STATUS_ONLINE;	// default
 		
+	private int				version		= BuddyPlugin.VERSION_INITIAL;
+	
 	private boolean			online;
 	private long			last_time_online;
 	
@@ -127,6 +129,7 @@ BuddyPluginBuddy
 		boolean		_authorised,
 		String		_pk,
 		String		_nick_name,
+		int			_version,
 		int			_last_status_seq,
 		long		_last_time_online,
 		List		_recent_ygm )
@@ -136,6 +139,7 @@ BuddyPluginBuddy
 		authorised			= _authorised;
 		public_key 			= _pk;
 		nick_name			= _nick_name;
+		version				= _version;
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
@@ -239,6 +243,24 @@ BuddyPluginBuddy
 	}
 	
 	public int
+	getVersion()
+	{
+		return( version );
+	}
+	
+	protected void
+	setVersion(
+		int		v )
+	{
+		if ( version != v ){
+			
+			version = v;
+			
+			plugin.fireDetailsChanged( this );
+		}
+	}
+	
+	public int
 	getOnlineStatus()
 	{
 		return( online_status );
@@ -255,6 +277,7 @@ BuddyPluginBuddy
 			plugin.fireDetailsChanged( this );
 		}
 	}
+	
 	public String
 	getName()
 	{
@@ -1239,7 +1262,8 @@ BuddyPluginBuddy
 		int				_udp_port,
 		String			_nick_name,
 		int				_online_status,
-		int				_status_seq )
+		int				_status_seq,
+		int				_version )
 	{
 		boolean	details_change 	= false;
 		boolean	config_dirty 	= false;
@@ -1311,11 +1335,13 @@ BuddyPluginBuddy
 				
 				if ( 	!addressesEqual( ip, _ip ) ||
 						tcp_port != _tcp_port ||
-						udp_port != _udp_port ){
+						udp_port != _udp_port ||
+						version	 != _version ){
 					
 					ip				= _ip;
 					tcp_port		= _tcp_port;
 					udp_port		= _udp_port;
+					version			= _version;
 					
 					details_change	= true;
 				}
@@ -2208,7 +2234,9 @@ BuddyPluginBuddy
 			send_map.put( "req", request );
 			send_map.put( "ss", new Long( msg.getSubsystem()));
 			send_map.put( "id", new Long( msg.getID()));
-			send_map.put( "oz", new Long( plugin.getOnlineStatus()));		
+			send_map.put( "oz", new Long( plugin.getOnlineStatus()));
+			send_map.put( "v", new Long( BuddyPlugin.VERSION_CURRENT ));
+			
 			try{
 				// logMessage( "Sending " + msg.getString() + " to " + getString());
 
@@ -2251,6 +2279,13 @@ BuddyPluginBuddy
 				if ( l_os != null ){
 					
 					setOnlineStatus( l_os.intValue());
+				}
+				
+				Long	l_ver = (Long)data_map.get( "v" );
+				
+				if ( l_ver != null ){
+					
+					setVersion( l_ver.intValue());
 				}
 				
 				if ( type == RT_REQUEST_DATA ){

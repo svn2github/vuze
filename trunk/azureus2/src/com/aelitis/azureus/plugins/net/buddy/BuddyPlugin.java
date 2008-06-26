@@ -99,6 +99,9 @@ BuddyPlugin
 {
 	public static final boolean SUPPORT_ONLINE_STATUS		= true;
 	
+	public static final int VERSION_INITIAL	= 1;
+	public static final int VERSION_CHAT	= 2;
+	public static final int VERSION_CURRENT	= VERSION_CHAT;
 	
 	public static final int MAX_MESSAGE_SIZE	= 4*1024*1024;
 	
@@ -1467,6 +1470,8 @@ BuddyPlugin
 			
 			payload.put( "s", new Long( next_seq ));
 			
+			payload.put( "v", new Long( VERSION_CURRENT ));
+			
 			boolean	failed_to_get_key = true;
 			
 			try{
@@ -1751,7 +1756,11 @@ BuddyPlugin
 						
 						int	subsystem = l_subsystem==null?SUBSYSTEM_AZ2:l_subsystem.intValue();
 						
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, last_seq, last_time_online, recent_ygm );
+						Long l_ver = (Long)details.get("v");
+						
+						int	ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
+								
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, ver, last_seq, last_time_online, recent_ygm );
 						
 						logMessage( "Loaded buddy " + buddy.getString());
 						
@@ -1831,6 +1840,8 @@ BuddyPlugin
 					
 					map.put( "ss", new Long( buddy.getSubsystem()));
 					
+					map.put( "v", new Long( buddy.getVersion()));
+					
 					buddies_config.add( map );
 				}
 				
@@ -1905,7 +1916,8 @@ BuddyPlugin
 			
 			if ( buddy_to_return == null ){
 				
-				buddy_to_return = new BuddyPluginBuddy( this, subsystem, authorised, key, null, 0, 0, null );
+				buddy_to_return = 
+					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_INITIAL, 0, 0, null );
 				
 				buddies.add( buddy_to_return );
 				
@@ -2223,7 +2235,11 @@ BuddyPlugin
 									
 									int		os = l_os==null?BuddyPlugin.STATUS_ONLINE:l_os.intValue();
 											
-									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick, os, seq );
+									Long	l_ver = (Long)status.get( "v" );
+									
+									int		ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
+											
+									buddy.statusCheckComplete( latest_time, ip, tcp_port, udp_port, nick, os, seq, ver );
 									
 								}catch( Throwable e ){
 									

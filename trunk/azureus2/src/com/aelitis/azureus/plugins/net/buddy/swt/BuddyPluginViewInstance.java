@@ -561,7 +561,7 @@ BuddyPluginViewInstance
 					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
 					item.setText(10, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
-					item.setText(11, "" + buddy.getSubsystem());
+					item.setText(11, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
 					
 					item.setData( buddy );
 				}
