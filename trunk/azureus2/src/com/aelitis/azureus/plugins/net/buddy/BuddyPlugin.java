@@ -1277,9 +1277,7 @@ BuddyPlugin
 		if ( changed ){
 			
 			List	buddies = getAllBuddies();
-			
-			logMessage( "   closing buddy connections" );
-			
+						
 			for (int i=0;i<buddies.size();i++){
 				
 				BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
