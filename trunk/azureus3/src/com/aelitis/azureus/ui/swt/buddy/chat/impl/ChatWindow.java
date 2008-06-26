@@ -55,7 +55,7 @@ public class ChatWindow implements DiscussionListener {
 	
 	Listener moveListener;
 	
-	static DateFormat dateFormater = new SimpleDateFormat("hh:mm");
+	static DateFormat dateFormater = new SimpleDateFormat("hh:mm:ss");
 	
 	public ChatWindow(AvatarWidget _avatar,Chat _chat,ChatDiscussion _discussion) {
 		this.avatar = _avatar;
@@ -286,6 +286,10 @@ public class ChatWindow implements DiscussionListener {
 	
 	public boolean isDisposed() {
 		return shell.isDisposed();
+	}
+	
+	public boolean isVisible() {
+		return shell.isVisible();
 	}
 	
 	public void show() {
