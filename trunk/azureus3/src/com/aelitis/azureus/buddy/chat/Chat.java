@@ -47,7 +47,7 @@ public class Chat implements VuzeBuddyMessageListener {
 	}
 	
 	public void messageReceived(VuzeBuddy from,Map message) {
-		String text = (String) message.get("text");
+		String text = new String((byte[])message.get("text"));
 		if(text != null) {
 			ChatDiscussion discussion = getChatDiscussionFor(from);
 			ChatMessage localMessage = new ChatMessage(false,SystemTime.getCurrentTime(),from.getDisplayName(),text);
