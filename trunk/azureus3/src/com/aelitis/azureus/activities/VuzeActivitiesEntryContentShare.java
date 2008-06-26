@@ -45,6 +45,7 @@ public class VuzeActivitiesEntryContentShare
 	extends VuzeActivitiesEntryBuddy
 {
 	private String userMessage;
+	private long version;
 
 	public VuzeActivitiesEntryContentShare() {
 		super();
@@ -112,6 +113,8 @@ public class VuzeActivitiesEntryContentShare
 	  
 		userMessage = message;
 
+		version = 2;
+
 		setAssetHash(content.getHash());
 		if (content.getDM() != null) {
 			setDownloadManager(content.getDM());
@@ -131,7 +134,7 @@ public class VuzeActivitiesEntryContentShare
 	public Map toMap() {
 		Map map = super.toMap();
 		
-		map.put("version", new Long(2));
+		map.put("version", version);
 		
 		return map;
 	}
@@ -150,7 +153,7 @@ public class VuzeActivitiesEntryContentShare
 			}
 		}
 		
-		long version = MapUtils.getMapLong(map, "version", 1);
+		version = MapUtils.getMapLong(map, "version", 1);
 		
 		if (version >= 2 && buddy != null) {
 			userMessage = MapUtils.getMapString(map, "userMessage", null);
