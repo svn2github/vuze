@@ -48,7 +48,9 @@ public class ChatWindow implements DiscussionListener {
 	Shell shell;
 	Color white;
 	
+	ScrolledComposite messagesHolder;
 	Composite messages;
+	
 	Text input;
 	
 	Listener moveListener;
@@ -129,7 +131,7 @@ public class ChatWindow implements DiscussionListener {
 		
 		avatarName.setLayoutData(data);
 		
-		final ScrolledComposite messagesHolder = new ScrolledComposite(shell,SWT.BORDER | SWT.V_SCROLL);
+		messagesHolder = new ScrolledComposite(shell,SWT.BORDER | SWT.V_SCROLL);
 		messagesHolder.setBackground(white);
 		//messagesHolder.setAlwaysShowScrollBars(true);
 		messagesHolder.setExpandHorizontal(true);
@@ -141,15 +143,9 @@ public class ChatWindow implements DiscussionListener {
 		RowLayout messagesLayout = new RowLayout(SWT.VERTICAL);
 		messagesLayout.fill = true;
 		//messagesLayout.pack = true;
+		messagesLayout.spacing = 5;
 		messagesLayout.type = SWT.VERTICAL;
 		messages.setLayout(messagesLayout);
-		messages.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event arg0) {
-			Rectangle r = messagesHolder.getClientArea();
-			messagesHolder.setMinSize(messages.computeSize(r.width, SWT.DEFAULT));
-			}
-		});
-		
 		messagesHolder.setContent(messages);
 		
 		List chatMessages = discussion.getAllMessages();
@@ -244,11 +240,17 @@ public class ChatWindow implements DiscussionListener {
 		text.setLayoutData(data);
 		
 		RowData rowData = new RowData();
-		rowData.width = 240;
+		rowData.width = 220;
 		messageHolder.setLayoutData(rowData);
 		
 		messageHolder.pack();
 		messages.layout();
+		
+		Rectangle r = messagesHolder.getClientArea();
+		messagesHolder.setMinSize(messages.computeSize(r.width, SWT.DEFAULT));
+		
+		messagesHolder.getVerticalBar().setSelection(messagesHolder.getVerticalBar().getMaximum());
+		messagesHolder.layout();	
 		
 		if(shell.isVisible()) {
 			discussion.clearNewMessages();
