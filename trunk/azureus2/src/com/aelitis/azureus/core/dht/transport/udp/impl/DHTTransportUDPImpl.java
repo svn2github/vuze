@@ -348,10 +348,10 @@ DHTTransportUDPImpl
 				// only fiddle with the initial view of reachability when things have had
 				// time to stabilise
 			
-			long fv_average 	= alien_fv_average.getAverage();
-			long all_average 	= alien_average.getAverage();
+			// long fv_average 	= alien_fv_average.getAverage();
+			// long all_average 	= alien_average.getAverage();
 			
-			System.out.println( "aliens for net " + network + ": " + fv_average + "/" + all_average );
+			// System.out.println( "aliens for net " + network + ": " + fv_average + "/" + all_average );
 			
 			if ( now - stats_start_time > STATS_INIT_PERIOD ){
 				
@@ -359,7 +359,7 @@ DHTTransportUDPImpl
 				
 				boolean	old_reachable	= reachable;
 				
-				if ( alien_fv_average.getAverage() > 0 ){
+				if ( alien_fv_average.getAverage() > 1 ){
 					
 					reachable	= true;
 					
