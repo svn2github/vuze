@@ -92,7 +92,7 @@ public class VuzeBuddySWTImpl
 	}
 
 	public Image getAvatarImage() {
-		if (avatarImage == null) {
+		if (avatarImage == null || avatarImage.isDisposed()) {
 			try {
 				avatarImage = ImageLoaderFactory.getInstance().getImage(
 						"image.buddy.default.avatar");
