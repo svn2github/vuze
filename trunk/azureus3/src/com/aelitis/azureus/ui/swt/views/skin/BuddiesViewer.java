@@ -26,6 +26,9 @@ import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
+import com.aelitis.azureus.buddy.chat.Chat;
+import com.aelitis.azureus.buddy.chat.ChatListener;
+import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
@@ -132,7 +135,19 @@ public class BuddiesViewer
 
 	private boolean		reorder_outstanding;
 	
+	private Chat chat;
+	
 	public BuddiesViewer() {
+		
+		chat = new Chat();
+		chat.addChatListener(new ChatListener() {
+			public void newMessage(VuzeBuddy from, ChatMessage message) {
+				AvatarWidget avatarWidget = findWidget(from);
+				if(avatarWidget != null) {
+					avatarWidget.setChatDiscussion(chat.getChatDiscussionFor(from));
+				}
+			}
+		});
 		
 		/*
 		 * backed this change out as the desired behaviour is to continue showing
@@ -954,5 +969,9 @@ public class BuddiesViewer
 
 	public int getAvatarsPerPage() {
 		return avatarsPerPage;
+	}
+
+	public Chat getChat() {
+		return chat;
 	}
 }

@@ -1,6 +1,15 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.File;
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.MouseEvent;
@@ -19,29 +28,53 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.torrent.TOTorrentProgressListener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.sharing.ShareResourceEvent;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
+import org.gudy.azureus2.plugins.sharing.ShareResourceListener;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
+import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.VuzeBuddySyncListener;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.buddy.chat.impl.ChatWindow;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -104,7 +137,7 @@ public class AvatarWidget
 
 	private Image image = null;
 
-	//	private Image imageDefaultAvatar = null;
+	//private Image imageDefaultAvatar = null;
 
 	private Rectangle sourceImageBounds = null;
 
@@ -128,8 +161,20 @@ public class AvatarWidget
 
 	private Image removeImage_over = null;
 
+	private Image add_to_share_Image_over = null;
+	
+	private boolean isDragging = false;
+
 	private Image add_to_share_Image_selected = null;
 
+
+	private boolean isCreatingFile = false;
+	
+	private int creationPercent = 0;
+	
+	private ChatWindow chatWindow;
+	private ChatDiscussion discussion;
+	
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -197,6 +242,148 @@ public class AvatarWidget
 
 		sourceImageBounds = null == image ? null : image.getBounds();
 
+		int operations = DND.DROP_COPY;
+		Transfer[] types = new Transfer[] {FileTransfer.getInstance()};
+		DropTarget target = new DropTarget(canvas, operations);
+		target.setTransfer(types);
+		
+		target.addDropListener(new DropTargetListener() {
+			public void dragEnter(DropTargetEvent event) {
+				if(isCreatingFile) {
+					event.detail = DND.DROP_NONE;
+				} else {
+					event.detail = DND.DROP_COPY;
+					isDragging = true;
+				}
+			};
+			public void dragOver(DropTargetEvent event) {};
+			public void dragLeave(DropTargetEvent event) {
+				isDragging = false;
+			};
+			public void dragOperationChanged(DropTargetEvent event) {};
+			public void dropAccept(DropTargetEvent event) {}
+			public void drop(DropTargetEvent event) {
+				// A drop has occurred, copy over the data
+				if (event.data == null) { // no data to copy, indicate failure in event.detail
+					event.detail = DND.DROP_NONE;
+					return;
+				}
+				String[] files = null;
+				if(event.data instanceof String[]) {
+					files = (String[]) event.data;
+				} else if(event.data instanceof String) {
+					files = new String[] {(String)event.data};
+				}
+				if(files != null) {
+					if(files.length == 1) {
+						try {
+							if(!isCreatingFile) {
+								creationPercent = 0;
+								isCreatingFile = true;
+								final File file = new File(files[0]);
+								final TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(file,new URL("dht:"),false);
+								creator.addListener(new TOTorrentProgressListener() {
+									public void reportCurrentTask(
+											String task_description) {
+										
+									}
+									
+									public void reportProgress(int percent_complete) {
+										creationPercent = percent_complete;
+										
+										if(!canvas.isDisposed()) {
+											canvas.getDisplay().asyncExec(new Runnable() {
+												public void run() {
+													canvas.redraw();
+												};
+											});
+										}
+										
+									}
+									
+								});
+								
+								new AEThread2("DNDBuddy::Share",true) 
+									{
+							            
+										public void
+										run() 
+							            {
+											try {
+												TOTorrent torrent = creator.create();
+												TorrentUtils.setDecentralised( torrent );
+												TorrentUtils.setDHTBackupEnabled( torrent,true );
+												LocaleTorrentUtil.setDefaultTorrentEncoding( torrent );
+												
+												File v3Shares = new File(SystemProperties.getUserPath(),"v3shares");
+												if(!v3Shares.exists()) {
+													v3Shares.mkdirs();
+												}
+												
+												TorrentUtils.setFlag(torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true);
+												
+												final File torrent_file = new File(v3Shares,file.getName() + ".torrent");
+											    torrent.serialiseToBEncodedFile(torrent_file);
+												
+											    byte[] hash = null;
+								             	try {
+								             		hash = torrent.getHash();
+								             	} catch (TOTorrentException e1) { }
+												
+												final DownloadManager dm = AzureusCoreFactory.getSingleton().getGlobalManager().addDownloadManager(
+														torrent_file.getAbsolutePath(),
+														hash,
+														file.getAbsolutePath(),
+														DownloadManager.STATE_QUEUED,
+														true,	// persistent 
+														true,	// for seeding
+														null );	// no adapter required
+												
+												dm.getDownloadState().setFlag(Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE, true);
+												
+												isSelected = true;
+												if(!canvas.isDisposed()) {
+													canvas.getDisplay().asyncExec(new Runnable() {
+														public void run() {
+															try {
+																SelectedContentV3 sc = new SelectedContentV3(dm);
+																VuzeShareUtils.getInstance().shareTorrent(sc, "buddy-dnd");
+															} catch (Exception e) {
+																e.printStackTrace();
+															}
+														}
+													});
+												}
+												
+								            } catch (Exception e) {
+												e.printStackTrace();
+											} finally {
+												isCreatingFile = false;
+											}
+							            }
+									}.start();
+							}
+							
+						} catch (Exception e) {
+							e.printStackTrace();
+							isCreatingFile = false;
+						}
+						
+						canvas.redraw();
+					} else {
+						
+						MessageBoxShell mb = new MessageBoxShell(canvas.getShell(),
+						MessageText.getString("v3.buddies.dnd.multifile.dialog.title"),
+						MessageText.getString("v3.buddies.dnd.multifile.dialog.text"),
+						new String[] {
+							MessageText.getString("v3.buddies.dnd.multifile.dialog.ok"),
+						}, 0);
+						mb.open();
+					}
+				}
+			}
+		});
+		
 		canvas.addPaintListener(new PaintListener() {
 
 			public void paintControl(PaintEvent e) {
@@ -237,7 +424,7 @@ public class AvatarWidget
 
 				if (SHOW_ONLINE_BORDER) {
 
-					if (true == vuzeBuddy.isOnline(true)) {
+					if (true == vuzeBuddy.isOnline( true )) {
 
 						e.gc.setForeground(ColorCache.getColor(canvas.getDisplay(), 33,
 								107, 57));
@@ -334,11 +521,11 @@ public class AvatarWidget
 				 */
 
 				if (null != textLinkColor && null != textColor) {
-					if (true == nameLinkActive && true == isActivated) {
+					if (true == nameLinkActive && true == isActivated && false == isDragging) {
 						e.gc.setForeground(textLinkColor);
 						canvas.setCursor(canvas.getDisplay().getSystemCursor(
 								SWT.CURSOR_HAND));
-					} else {
+					} else if(false == isDragging) {
 						canvas.setCursor(null);
 						e.gc.setForeground(textColor);
 					}
@@ -358,10 +545,33 @@ public class AvatarWidget
 					//					}
 					//					stringPrinter.printString(e.gc, avatarNameBounds, SWT.CENTER);
 					//					e.gc.setFont(null);
-					e.gc.setFont(fontDisplayName);
-					GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+					
+					if(!isCreatingFile) {
+						e.gc.setFont(fontDisplayName);
+						GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
 							nameAreaBounds, false, true, SWT.CENTER);
+					} else {
 
+						Rectangle progressArea = new Rectangle(nameAreaBounds.x+5,nameAreaBounds.y+5,nameAreaBounds.width-10,nameAreaBounds.height-10);
+						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 130,130,130));
+						e.gc.drawRectangle(progressArea.x, progressArea.y, progressArea.width, progressArea.height);
+						progressArea.x += 1;
+						progressArea.y += 1;	
+						progressArea.height -=1;
+						progressArea.width = creationPercent * (progressArea.width-1) / 100;
+						e.gc.setBackground(ColorCache.getColor(e.gc.getDevice(), 0,73,153));
+						e.gc.fillRectangle(progressArea.x, progressArea.y, progressArea.width, progressArea.height);
+						
+
+					}
+				}
+				
+				if(discussion != null) {
+					int nbMessages = discussion.getUnreadMessages();
+					if(nbMessages > 0) {
+						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 20,200,20));
+						e.gc.drawText("" + nbMessages, 50, 10,true);
+					}
 				}
 			}
 		});
@@ -559,6 +769,17 @@ public class AvatarWidget
 				}
 			}
 		});
+		
+		item = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(item, "v3.buddy.menu.chat");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
+				if (aw != null) {
+					aw.doChatClicked();
+				}
+			}
+		});
 
 		if (Constants.isCVSVersion()) {
 			MenuItem itemMenuDebug = new MenuItem(menu, SWT.CASCADE);
@@ -602,7 +823,7 @@ public class AvatarWidget
 					}
 				}
 			});
-
+			
 			item = new MenuItem(menuCVS, SWT.PUSH);
 			item.setText("Sync this buddy (via PK)");
 			item.addSelectionListener(new SelectionAdapter() {
@@ -713,6 +934,25 @@ public class AvatarWidget
 		}
 	}
 
+	public void setChatDiscussion(ChatDiscussion discussion) {
+		if(this.discussion != discussion) {
+			this.discussion = discussion;
+		}
+	}
+	
+	public void doChatClicked() {
+		if (false == viewer.isShareMode() && false == viewer.isAddBuddyMode()) {
+			if(chatWindow == null || chatWindow.isDisposed()) {
+				if(discussion == null) {
+					discussion = viewer.getChat().getChatDiscussionFor(vuzeBuddy);
+				}
+				chatWindow = new ChatWindow(this,viewer.getChat(),discussion);
+			} else {
+				chatWindow.show();
+			}
+		}
+	}
+
 	public Control getControl() {
 		return canvas;
 	}
@@ -744,6 +984,7 @@ public class AvatarWidget
 		 * all other info is asked for on-demand so no need to update them 
 		 */
 		image = vuzeBuddy.getAvatarImage();
+		
 		sourceImageBounds = null == image ? null : image.getBounds();
 		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
 

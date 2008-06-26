@@ -451,7 +451,8 @@ public class TorrentListViewsUtils
 
 					DownloadManager dm = DataSourceUtils.getDM(selectedRows[i].getDataSource(true));
 					if (dm != null) {
-						TorrentListViewsUtils.removeDownload(dm, view, true, true);
+						boolean delete = ! dm.getDownloadState().getFlag(Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+						TorrentListViewsUtils.removeDownload(dm, view, true, delete);
 					}
 				}
 			}

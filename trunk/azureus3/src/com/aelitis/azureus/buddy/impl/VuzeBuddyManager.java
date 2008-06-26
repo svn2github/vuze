@@ -1739,13 +1739,13 @@ public class VuzeBuddyManager
 		return buf.toString();
 	}
 	
-	public void addMessageListener(VuzeBuddyMessageListener l) {
+	public static void addMessageListener(VuzeBuddyMessageListener l) {
 		if (!messageListeners.contains(l)) {
 			messageListeners.add(l);
 		}
 	}
 
-	public void removeMessageListener(VuzeBuddyMessageListener l) {
+	public static void removeMessageListener(VuzeBuddyMessageListener l) {
 		messageListeners.remove(l);
 	}
 }
