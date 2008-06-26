@@ -554,8 +554,8 @@ public class MessageBoxShell
 
 		MouseTrackAdapter mouseAdapter = null;
 		Display display = parent.getDisplay();
-
-		final StyledShell sShell = new StyledShell(parent, 6);
+		int styledShellBorder = 6;
+		final StyledShell sShell = new StyledShell(parent, styledShellBorder);
 		final Shell shell = sShell.getShell();
 
 		final Composite content = sShell.getContent();
@@ -930,8 +930,9 @@ public class MessageBoxShell
 		if (size.x < MIN_SIZE_X) {
 			size.x = MIN_SIZE_X;
 			shell.setSize(size);
-		} else if (size.x > MAX_SIZE_X) {
-			size = shell.computeSize(MAX_SIZE_X, SWT.DEFAULT);
+		} else if (size.x > MAX_SIZE_X + (2 * styledShellBorder)) {
+			size = shell.computeSize(MAX_SIZE_X + (2 * styledShellBorder),
+					SWT.DEFAULT);
 			shell.setSize(size);
 		}
 
