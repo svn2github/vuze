@@ -28,11 +28,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.chat.Chat;
 import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.chat.DiscussionListener;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
 
 public class ChatWindow implements DiscussionListener {
@@ -57,6 +59,10 @@ public class ChatWindow implements DiscussionListener {
 	
 	static DateFormat dateFormater = new SimpleDateFormat("hh:mm:ss");
 	
+	static final int border = 5;
+	static final int spacing = 5;
+	
+	
 	public ChatWindow(AvatarWidget _avatar,Chat _chat,ChatDiscussion _discussion) {
 		this.avatar = _avatar;
 		this.chat = _chat;
@@ -79,12 +85,17 @@ public class ChatWindow implements DiscussionListener {
 		formLayout.marginRight = 0;
 		
 		shell.setLayout(formLayout);
-		
+		shell.setBackground(ColorCache.getColor(display, 72,72,72));
 		FormData data;
 		
-		Button close = new Button(shell,SWT.PUSH);
-		close.setText("x");
-		close.addListener(SWT.Selection, new Listener() {
+		ImageRepository.getImage("test");
+		
+		Label close = new Label(shell,SWT.NONE);
+		close.setBackground(shell.getBackground());
+		close.setImage(ImageRepository.getImage("button_skin_close-over"));
+		//close.setText("X");
+		close.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+		close.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
 				close();
 				
@@ -92,21 +103,27 @@ public class ChatWindow implements DiscussionListener {
 		});
 		
 		data = new FormData();
-		data.right = new FormAttachment(100,-5);
+		data.right = new FormAttachment(100,-border);
+		data.top = new FormAttachment(0,border);
 		close.setLayoutData(data);
 		
-		Button hide = new Button(shell,SWT.PUSH);
-		hide.setText("-");
-		hide.addListener(SWT.Selection, new Listener() {
+		Label hide = new Label(shell,SWT.PUSH);
+		hide.setText("_");
+		hide.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+		hide.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
 				hide();
 			}
 		});
 		
+		
 		data = new FormData();
-		data.right = new FormAttachment(close,-5);
+		data.right = new FormAttachment(close,-border);
+		data.top = new FormAttachment(0,border);
 		hide.setLayoutData(data);
 		
+		
+	
 		Canvas avatarPicture = new Canvas(shell,SWT.NONE);
 		avatarPicture.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -118,18 +135,31 @@ public class ChatWindow implements DiscussionListener {
 		data = new FormData();
 		data.width = 40;
 		data.height = 40;
-		data.left = new FormAttachment(0,5);
-		data.top = new FormAttachment(0,5);
+		data.left = new FormAttachment(0,border);
+		data.top = new FormAttachment(0,border);
 		
 		avatarPicture.setLayoutData(data);
 		
 		Label avatarName = new Label(shell,SWT.NONE);
+		avatarName.setBackground(shell.getBackground());
 		avatarName.setText(avatar.getVuzeBuddy().getDisplayName());
+		avatarName.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		data = new FormData();
-		data.left = new FormAttachment(avatarPicture,5);
-		data.bottom = new FormAttachment(avatarPicture,-5,SWT.BOTTOM);
+		data.left = new FormAttachment(avatarPicture,spacing);
+		data.top = new FormAttachment(avatarPicture,5,SWT.TOP);
 		
 		avatarName.setLayoutData(data);
+		
+		/*Label header = new Label(shell,SWT.NONE);
+		header.setBackground(ColorCache.getColor(display, 72,72,72));
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,0);
+		data.right = new FormAttachment(100,0);
+		data.top = new FormAttachment(0,0);
+		data.bottom = new FormAttachment(0,30);
+		
+		header.setLayoutData(data);*/
 		
 		messagesHolder = new ScrolledComposite(shell,SWT.BORDER | SWT.V_SCROLL);
 		messagesHolder.setBackground(white);
@@ -167,30 +197,28 @@ public class ChatWindow implements DiscussionListener {
 			}
 		});
 		
-		input = new Text(shell,SWT.BORDER);
-		input.addListener(SWT.KeyUp, new Listener() {
+		input = new Text(shell,SWT.NONE);
+		input.addListener(SWT.DefaultSelection, new Listener() {
 			public void handleEvent(Event e) {
-				if(e.keyCode == 13 || e.keyCode == 3) {
 					String text = input.getText();
 					if(text.length() > 0) {
 						chat.sendMessage(avatar.getVuzeBuddy(), text);
 						input.setText("");
 					}
-				}
 			}	
 		});
 		
 		data = new FormData();
-		data.left = new FormAttachment(0,2);
-		data.right = new FormAttachment(100,-2);
-		data.bottom = new FormAttachment(100,-2);
+		data.left = new FormAttachment(0,border);
+		data.right = new FormAttachment(100,-border);
+		data.bottom = new FormAttachment(100,-border);
 		input.setLayoutData(data);
 		
 		data = new FormData();
-		data.left = new FormAttachment(0,2);
-		data.right = new FormAttachment(100,-2);
-		data.top = new FormAttachment(avatarPicture,5);
-		data.bottom = new FormAttachment(input,-2);
+		data.left = new FormAttachment(0,border);
+		data.right = new FormAttachment(100,-border);
+		data.top = new FormAttachment(avatarPicture,spacing);
+		data.bottom = new FormAttachment(input,-border);
 		messagesHolder.setLayoutData(data);
 		
 		shell.setSize(250,400);
@@ -258,7 +286,8 @@ public class ChatWindow implements DiscussionListener {
 		
 	}
 	
-	private void close() {
+	public void close() {
+		discussion.clearAllMessages();
 		avatar.getControl().getShell().removeListener(SWT.Move, moveListener);
 		shell.dispose();
 		synchronized(chatWindows) {
@@ -266,11 +295,19 @@ public class ChatWindow implements DiscussionListener {
 		}
 	}
 	
-	private void setPosition() {
+	public void setPosition() {
 		Control avatarControl = avatar.getControl();
-		Point shellPosition = avatarControl.toDisplay(0,0);
-		shellPosition.y -= 400;
-		shell.setLocation(shellPosition);
+		if(avatar.isFullyVisible() && !shell.isDisposed()) {
+			Point shellPosition = avatarControl.toDisplay(0,0);
+			shellPosition.y -= 400;
+			int displayWidth = display.getBounds().width;
+			if(shellPosition.x + 250 > displayWidth) {
+				shellPosition.x = displayWidth - 250;
+			}
+			shell.setLocation(shellPosition);
+		} else {
+			hide();
+		}
 	}
 	
 	public void newMessage(final ChatMessage message) {
@@ -298,13 +335,16 @@ public class ChatWindow implements DiscussionListener {
 	public void show() {
 		if(!shell.isDisposed()) {
 			hideAllOthers();
+			setPosition();
 			shell.setVisible(true);
 			discussion.clearNewMessages();
 		}
 	}
 	
 	public void hide() {
-		shell.setVisible(false);
+		if(!shell.isDisposed()) {
+			shell.setVisible(false);
+		}
 	}
 	
 	public void hideAllOthers() {

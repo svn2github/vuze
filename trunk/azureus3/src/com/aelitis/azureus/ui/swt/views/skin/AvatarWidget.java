@@ -29,6 +29,8 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -719,10 +721,18 @@ public class AvatarWidget
 			}
 		});
 
+		canvas.addListener(SWT.Move, new Listener() {
+			public void handleEvent(Event arg0) {
+				if(chatWindow != null && chatWindow.isVisible()) {
+					chatWindow.setPosition();
+				}
+			}
+		});
+		
 		initMenu();
 	}
 
-	private boolean isFullyVisible() {
+	public boolean isFullyVisible() {
 		return viewer.isFullyVisible(AvatarWidget.this);
 	}
 
@@ -1028,6 +1038,9 @@ public class AvatarWidget
 
 	public void dispose(boolean animate, final AfterDisposeListener listener) {
 		if (null != canvas && false == canvas.isDisposed()) {
+			if(chatWindow != null && !chatWindow.isDisposed()) {
+				chatWindow.close();
+			}
 			if (true == animate) {
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {

@@ -37,6 +37,12 @@ public class ChatDiscussion {
 		return result;
 	}
 	
+	public void clearAllMessages() {
+		synchronized (messages) {
+			messages.clear();
+		}
+	}
+	
 	public void clearNewMessages() {
 		unreadMessages = 0;
 	}
