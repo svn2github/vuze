@@ -58,5 +58,9 @@ public class ChatDiscussion {
 	public int getUnreadMessages() {
 		return unreadMessages;
 	}
+	
+	public int getNbMessages() {
+		return messages.size();
+	}
 
 }

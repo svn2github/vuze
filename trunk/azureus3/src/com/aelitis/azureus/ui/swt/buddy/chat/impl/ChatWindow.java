@@ -458,6 +458,7 @@ public class ChatWindow implements DiscussionListener {
 			display.asyncExec(new Runnable() {
 				public void run() {
 					renderMessage(message);
+					avatar.getControl().redraw();
 				}
 			});
 		}
@@ -490,7 +491,7 @@ public class ChatWindow implements DiscussionListener {
 	}
 	
 	public void hide() {
-		if(discussion.getAllMessages().size() == 0) {
+		if(discussion.getNbMessages() == 0) {
 			close();
 		}
 		if(!shell.isDisposed()) {

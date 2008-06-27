@@ -555,7 +555,7 @@ public class AvatarWidget
 					chatWindow = null;
 				}
 				
-				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed() && discussion != null && discussion.getAllMessages().size() > 0) || (discussion != null && discussion.getUnreadMessages() > 0);
+				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed() && discussion != null && discussion.getNbMessages() > 0) || (discussion != null && discussion.getUnreadMessages() > 0);
 				
 				if (SHOW_ONLINE_BORDER) {
 
@@ -964,6 +964,17 @@ public class AvatarWidget
 	public void setChatDiscussion(ChatDiscussion discussion) {
 		if(this.discussion != discussion) {
 			this.discussion = discussion;
+		}
+		if(discussion.getUnreadMessages() > 0) {
+			if(canvas != null && !canvas.isDisposed()) {
+				canvas.getDisplay().asyncExec(new Runnable() {
+					public void run() {
+						if(!canvas.isDisposed()) {
+							canvas.redraw();	
+						}
+					}
+				});
+			}
 		}
 	}
 	
