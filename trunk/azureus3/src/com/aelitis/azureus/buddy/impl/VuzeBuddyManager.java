@@ -838,7 +838,7 @@ public class VuzeBuddyManager
 	 * Get direct access tot he buddy plugin.  Usually not a good idea.<br>
 	 * Should be never called from the UI.
 	 * 
-	 * @return
+	 * @return MAY BE NULL if plugin not available
 	 *
 	 * @since 3.0.5.3
 	 */
