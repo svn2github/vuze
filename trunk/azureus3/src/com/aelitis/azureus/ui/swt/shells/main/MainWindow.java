@@ -19,112 +19,39 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Transform;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.CoolBar;
-import org.eclipse.swt.widgets.CoolItem;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
-import org.gudy.azureus2.core3.global.GlobalManagerDownloadWillBeRemovedListener;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.LogRelationUtils;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
-import org.gudy.azureus2.core3.util.AERunnableObject;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.UrlUtils;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.ui.swt.Alerts;
-import org.gudy.azureus2.ui.swt.IconBar;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.PasswordWindow;
-import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -135,16 +62,10 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.PlatformMessage;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
@@ -157,58 +78,24 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
-import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTab;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.utils.PlayNowList;
-import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
-import com.aelitis.azureus.ui.swt.utils.UIUpdater;
-import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
-import com.aelitis.azureus.ui.swt.views.ViewDownSpeedGraph;
-import com.aelitis.azureus.ui.swt.views.ViewUpSpeedGraph;
-import com.aelitis.azureus.ui.swt.views.skin.Browse;
-import com.aelitis.azureus.ui.swt.views.skin.BuddiesViewer;
-import com.aelitis.azureus.ui.swt.views.skin.ButtonBar;
-import com.aelitis.azureus.ui.swt.views.skin.DetailPanel;
-import com.aelitis.azureus.ui.swt.views.skin.Footer;
-import com.aelitis.azureus.ui.swt.views.skin.ManageCdList;
-import com.aelitis.azureus.ui.swt.views.skin.ManageDlList;
-import com.aelitis.azureus.ui.swt.views.skin.MediaList;
-import com.aelitis.azureus.ui.swt.views.skin.MiniBrowse;
-import com.aelitis.azureus.ui.swt.views.skin.MiniDownloadList;
-import com.aelitis.azureus.ui.swt.views.skin.MiniLibraryList;
-import com.aelitis.azureus.ui.swt.views.skin.MiniRecentList;
-import com.aelitis.azureus.ui.swt.views.skin.Publish;
-import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.ui.swt.views.skin.UserAreaUtils;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeActivitiesView;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
+import com.aelitis.azureus.ui.swt.views.TopBarView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DCAdManager;
-import com.aelitis.azureus.util.NavigationHelper;
 import com.aelitis.azureus.util.PublishUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -255,13 +142,11 @@ public class MainWindow
 
 	protected boolean isReady = false;
 
-	private List topbarViews = new ArrayList();
-
-	private IView activeTopBar;
-
 	private MainStatusBar statusBar;
 
 	private String lastShellStatus = null;
+
+	private TopBarView topBarView;
 
 	public static void main(String args[]) {
 		if (Launcher.checkAndLaunch(MainWindow.class, args))
@@ -777,7 +662,8 @@ public class MainWindow
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 
-			buildTopBarViews();
+			topBarView = new TopBarView(skin, uiSWTInstanceImpl);
+			topBarView.buildTopBarViews();
 
 			PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
 					"azbpstartstoprules");
@@ -1705,253 +1591,6 @@ public class MainWindow
 				control.setMenu(menu);
 			}
 		}
-	}
-
-	/**
-	 * @param skinObject
-	 *
-	 * @since 3.0.1.1
-	 */
-	private void buildTopBarViews() {
-		// TODO actually use plugins..
-		SWTSkinObject skinObject = skin.getSkinObject("topbar-plugins");
-		if (skinObject == null) {
-			return;
-		}
-
-		try {
-			IView[] coreTopBarViews = {
-				new ViewDownSpeedGraph(),
-				new ViewUpSpeedGraph(),
-				new VivaldiView(false)
-			};
-
-			final Composite composite = (Composite) skinObject.getControl();
-
-			for (int i = 0; i < coreTopBarViews.length; i++) {
-				IView view = coreTopBarViews[i];
-				addTopBarView(view, composite);
-			}
-
-			Map pluginViews = null;
-			pluginViews = uiSWTInstanceImpl.getViewListeners(UISWTInstance.VIEW_TOPBAR);
-			if (pluginViews != null) {
-				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
-				for (int i = 0; i < sNames.length; i++) {
-					UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
-					if (l != null) {
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-									sNames[i], l);
-							addTopBarView(view, composite);
-						} catch (Exception e) {
-							// skip, plugin probably specifically asked to not be added
-						}
-					}
-				}
-			}
-
-			if (topbarViews.size() > 0) {
-				activeTopBar = (IView) topbarViews.get(0);
-				activeTopBar.getComposite().setVisible(true);
-			}
-
-			UIUpdaterFactory.getInstance().addUpdater(new UIUpdatable() {
-				public void updateUI() {
-					Object[] views = topbarViews.toArray();
-					for (int i = 0; i < views.length; i++) {
-						try {
-							IView view = (IView) views[i];
-							if (view.getComposite().isVisible()) {
-								view.refresh();
-							}
-						} catch (Exception e) {
-							Debug.out(e);
-						}
-					}
-				}
-
-				public String getUpdateUIName() {
-					return "TopBar";
-				}
-			});
-
-			skinObject.getControl().addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent e) {
-					Object[] views = topbarViews.toArray();
-					topbarViews.clear();
-					for (int i = 0; i < views.length; i++) {
-						IView view = (IView) views[i];
-						view.delete();
-					}
-				}
-			});
-
-			SWTSkinObject soPrev = skin.getSkinObject("topbar-plugin-prev");
-			if (soPrev != null) {
-				SWTSkinButtonUtility btnPrev = new SWTSkinButtonUtility(soPrev);
-				btnPrev.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility) {
-						//System.out.println("prev click " + activeTopBar + " ; "
-						//		+ topbarViews.size());
-						if (activeTopBar == null || topbarViews.size() <= 1) {
-							return;
-						}
-						int i = topbarViews.indexOf(activeTopBar) - 1;
-						if (i < 0) {
-							i = topbarViews.size() - 1;
-						}
-						activateTopBar((IView) topbarViews.get(i));
-					}
-				});
-			}
-
-			SWTSkinObject soNext = skin.getSkinObject("topbar-plugin-next");
-			if (soNext != null) {
-				SWTSkinButtonUtility btnNext = new SWTSkinButtonUtility(soNext);
-				btnNext.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility) {
-						//System.out.println("next click");
-						if (activeTopBar == null || topbarViews.size() <= 1) {
-							return;
-						}
-						int i = topbarViews.indexOf(activeTopBar) + 1;
-						if (i >= topbarViews.size()) {
-							i = 0;
-						}
-						activateTopBar((IView) topbarViews.get(i));
-					}
-				});
-			}
-
-			SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
-			if (soTitle != null) {
-				final Composite cTitle = (Composite) soTitle.getControl();
-				cTitle.addPaintListener(new PaintListener() {
-					public void paintControl(PaintEvent e) {
-						e.gc.setAdvanced(true);
-						//Font font = new Font(e.gc.getDevice(), "Sans", 8, SWT.NORMAL);
-						//e.gc.setFont(font);
-						if (e.gc.getAdvanced() && activeTopBar != null) {
-							try {
-								e.gc.setTextAntialias(SWT.ON);
-							} catch (Exception ex) {
-								// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
-							}
-
-							try {
-								Transform transform = new Transform(e.gc.getDevice());
-								transform.rotate(270);
-								e.gc.setTransform(transform);
-
-								String s = activeTopBar.getShortTitle();
-								Point size = e.gc.textExtent(s);
-								e.gc.drawText(s, -size.x, 0, true);
-								//e.gc.drawText(s, 0,0, true);
-								transform.dispose();
-							} catch (Exception ex) {
-								// setTransform can trhow a ERROR_NO_GRAPHICS_LIBRARY error
-								// no use trying to draw.. it would look weird
-							}
-							//font.dispose();
-						}
-					}
-				});
-			}
-
-			skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
-			if (skinObject != null) {
-				Listener l = new Listener() {
-					private int mouseDownAt = 0;
-
-					public void handleEvent(Event event) {
-						Composite c = (Composite) event.widget;
-						if (event.type == SWT.MouseDown) {
-							Rectangle clientArea = c.getClientArea();
-							if (event.y > clientArea.height - 10) {
-								mouseDownAt = event.y;
-							}
-						} else if (event.type == SWT.MouseUp && mouseDownAt > 0) {
-							int diff = event.y - mouseDownAt;
-							mouseDownAt = 0;
-							FormData formData = (FormData) c.getLayoutData();
-							formData.height += diff;
-							if (formData.height < 50) {
-								formData.height = 50;
-							} else {
-								Rectangle clientArea = c.getShell().getClientArea();
-								int max = clientArea.height - 350;
-								if (formData.height > max) {
-									formData.height = max;
-								}
-							}
-							COConfigurationManager.setParameter("v3.topbar.height",
-									formData.height);
-							Utils.relayout(c);
-						} else if (event.type == SWT.MouseMove) {
-							Rectangle clientArea = c.getClientArea();
-							boolean draggable = (event.y > clientArea.height - 10);
-							c.setCursor(draggable ? c.getDisplay().getSystemCursor(
-									SWT.CURSOR_SIZENS) : null);
-						} else if (event.type == SWT.MouseExit) {
-							c.setCursor(null);
-						}
-					}
-				};
-				Control control = skinObject.getControl();
-				control.addListener(SWT.MouseDown, l);
-				control.addListener(SWT.MouseUp, l);
-				control.addListener(SWT.MouseMove, l);
-				control.addListener(SWT.MouseExit, l);
-
-				skinObject.addListener(new SWTSkinObjectListener() {
-					public Object eventOccured(SWTSkinObject skinObject, int eventType,
-							Object params) {
-						if (eventType == EVENT_SHOW) {
-							int h = COConfigurationManager.getIntParameter("v3.topbar.height");
-							Control control = skinObject.getControl();
-							FormData formData = (FormData) control.getLayoutData();
-							formData.height = h;
-							control.setLayoutData(formData);
-							Utils.relayout(control);
-						}
-						return null;
-					}
-				});
-			}
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-	}
-
-	/**
-	 * @param view
-	 *
-	 * @since 3.0.1.1
-	 */
-	protected void activateTopBar(IView view) {
-		activeTopBar.getComposite().setVisible(false);
-		activeTopBar = view;
-		activeTopBar.getComposite().setVisible(true);
-
-		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
-		//System.out.println("Hello" + soTitle);
-		if (soTitle != null) {
-			soTitle.getControl().redraw();
-		}
-	}
-
-	/**
-	 * @param view
-	 *
-	 * @since 3.0.1.1
-	 */
-	private void addTopBarView(IView view, Composite c) {
-		view.initialize(c);
-		Composite composite = view.getComposite();
-		composite.setVisible(false);
-		composite.setLayoutData(Utils.getFilledFormData());
-		topbarViews.add(view);
 	}
 
 	/**
