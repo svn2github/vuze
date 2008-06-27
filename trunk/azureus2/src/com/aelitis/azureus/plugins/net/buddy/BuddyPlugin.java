@@ -184,7 +184,8 @@ BuddyPlugin
 	private BooleanParameter 		enabled_param; 
 	private StringParameter 		nick_name_param;
 	private StringListParameter 	online_status_param;
-	
+	private BooleanParameter 		enable_chat_notifications; 
+
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
 	private publishDetails	latest_publish		= current_publish;
@@ -363,6 +364,13 @@ BuddyPlugin
 						inbound_limit = protocol_speed.getValue()*1024;
 					}
 				});
+		
+			// chat notifications
+		
+		enable_chat_notifications = config.addBooleanParameter2( "azbuddy.enable_chat_notif", "azbuddy.enable_chat_notif", true );
+		
+			// config end
+		
 		
 		final TableContextMenuItem menu_item_itorrents = 
 			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");
@@ -811,6 +819,12 @@ BuddyPlugin
 	getOnlineStatus()
 	{
 		return( latest_publish.getOnlineStatus());
+	}
+	
+	public BooleanParameter
+	getOnlineChatParameter()
+	{
+		return( enable_chat_notifications );
 	}
 	
 	protected void
