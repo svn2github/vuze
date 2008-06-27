@@ -383,6 +383,15 @@ BuddyPluginBuddy
 	isOnline(
 		boolean	is_connected )
 	{
+		boolean	connected = isConnected();
+		
+			// if we're connected then we're online whatever
+		
+		if ( connected ){
+			
+			return( true );
+		}
+		
 		if ( !online ){
 			
 			return( false );
@@ -390,7 +399,7 @@ BuddyPluginBuddy
 	
 		if ( is_connected ){
 		
-			return( isConnected());
+			return( false );
 			
 		}else{
 			
