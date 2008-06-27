@@ -1146,6 +1146,8 @@ public class Utils
 
 			COConfigurationManager.setParameter(sConfigPrefix + ".rectangle",
 					bounds.x + "," + bounds.y + "," + bounds.width + "," + bounds.height);
+
+			COConfigurationManager.save();
 		}
 
 		public void handleEvent(Event event) {
