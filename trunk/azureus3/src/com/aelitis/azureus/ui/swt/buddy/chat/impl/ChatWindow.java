@@ -95,6 +95,16 @@ public class ChatWindow implements DiscussionListener {
 		white = display.getSystemColor(SWT.COLOR_WHITE);
 		
 		shell = new Shell(avatar.getControl().getShell(),SWT.NONE);
+		
+		shell.addListener(SWT.Traverse, new Listener() {
+			public void handleEvent(Event e) {
+				if (e.detail == SWT.TRAVERSE_ESCAPE) {
+					e.doit = false;
+					hide();
+				}
+			}
+		});
+		
 		FormLayout formLayout = new FormLayout();
 		formLayout.marginBottom = 0;
 		formLayout.marginTop = 0;
