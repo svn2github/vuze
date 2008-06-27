@@ -228,11 +228,24 @@ public class MainMenu
 								SkinConstants.VIEWID_PLUGINBAR, true);
 					}
 
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.tabbar")) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+								"TabBar.visible", "tabbar", true);
+					}
+
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
 							+ SkinConstants.VIEWID_FOOTER)) {
 						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
 								SkinConstants.VIEWID_FOOTER, true);
+					}
+
+					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+							+ SkinConstants.VIEWID_BUTTON_BAR)) {
+						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+								+ SkinConstants.VIEWID_BUTTON_BAR, "Buttonbar.visible",
+								SkinConstants.VIEWID_BUTTON_BAR, true);
 					}
 
 				}
@@ -431,7 +444,6 @@ public class MainMenu
 			}
 		};
 
-		System.out.println(configID);
 		COConfigurationManager.addAndFireParameterListener(configID, listener);
 		item.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {

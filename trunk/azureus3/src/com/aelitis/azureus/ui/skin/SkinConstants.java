@@ -56,7 +56,7 @@ public class SkinConstants
 
 	public static final String VIEWID_SEARCHRESULTS_TAB = "tab-searchresults";
 	
-	public static final String VIEWID_BUTTON_BAR = "global-button-bar";
+	public static final String VIEWID_BUTTON_BAR = "buttonbar";
 	
 	public static final String VIEWID_FOOTER = "footer";
 	
