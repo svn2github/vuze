@@ -35,24 +35,43 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
  * instructions which allows both the download and the torrent to be moved and
  * renamed.
  * 
+ * <p>
+ * 
+ * The methods here take two arguments - <tt>for_move</tt> and <tt>on_event</tt>.
+ * 
+ * <ul>
+ * <li>When events happen to downloads (like the download being completed or removed),
+ *   both of these values will be <tt>true</tt>.
+ * <li>When something is trying to update the logical location for the download,
+ *   <tt>for_move</tt> will be <tt>true</tt>, while <tt>on_event</tt> will be false.
+ * <li>When something is trying to determine all the places where existing data
+ *   files might exist, both values will be <tt>false</tt>.  
+ * </ul>
+ * 
+ * If <tt>for_move</tt> is <tt>false</tt>, any checks normally performed on a download
+ * to see if it is applicable or not (to be managed by this object) should not be applied
+ * here.
+ * 
  * <p><b>Note:</b> This interface is intended to be implemented by plugins.</p>
  * 
- * @since 3.0.5.3
+ * @since 3.1.0.1
  */
 public interface SaveLocationManager {
-
+	
 	/**
 	 * Return the location to move the download to when it first started (or
 	 * return <tt>null</tt> to keep the download and torrent in the same
 	 * location). 
 	 * 
 	 * @param download Download to handle.
-	 * @param is_moving <tt>true</tt> if the download really is being initialised, or
+	 * @param for_move <tt>true</tt> if the download is going to be moved, or <tt>false</tt>
+	 *     if the logical path is just being calculated for other reasons.
+	 * @param on_event <tt>true</tt> if the download really is being initialised, or
 	 *   <tt>false</tt> if we are just determining the appropriate location for an incomplete
 	 *   download.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onInitialization(Download download, boolean is_moving);
+	public SaveLocationChange onInitialization(Download download, boolean for_move, boolean on_event);
 
 	/**
 	 * Return the location to move the download to when it is completed (or
@@ -60,12 +79,14 @@ public interface SaveLocationManager {
 	 * location).
 	 * 
 	 * @param download Download to handle.
-	 * @param is_moving <tt>true</tt> if the download really is being moved for completion, or
+	 * @param for_move <tt>true</tt> if the download is going to be moved, or <tt>false</tt>
+	 *     if the logical path is just being calculated for other reasons.
+	 * @param on_event <tt>true</tt> if the download really is being moved for completion, or
 	 *   <tt>false</tt> if we are just determining the appropriate location for an complete
 	 *   download.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onCompletion(Download download, boolean is_moving);
+	public SaveLocationChange onCompletion(Download download, boolean for_move, boolean on_event);
 
 	/**
 	 * Return the location to move the download to when it is removed (or
@@ -73,11 +94,13 @@ public interface SaveLocationManager {
 	 * location).
 	 * 
 	 * @param download Download to handle.
-	 * @param is_moving <tt>true</tt> if the download really is being removed, or
+	 * @param for_move <tt>true</tt> if the download is going to be moved, or <tt>false</tt>
+	 *     if the logical path is just being calculated for other reasons.
+	 * @param on_event <tt>true</tt> if the download really is being removed, or
 	 *   <tt>false</tt> if we are just determining the appropriate location for the download
 	 *   when it is removed.
 	 * @return The new save location instructions.
 	 */
-	public SaveLocationChange onRemoval(Download download, boolean is_moving);
+	public SaveLocationChange onRemoval(Download download, boolean for_move, boolean on_event);
 
 }

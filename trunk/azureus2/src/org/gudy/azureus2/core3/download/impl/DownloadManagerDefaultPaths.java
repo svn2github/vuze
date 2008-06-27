@@ -20,7 +20,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils {
 	
 	public final static DefaultSaveLocationManager DEFAULT_HANDLER = new DefaultSaveLocationManager() {
-		public SaveLocationChange onInitialization(Download d, boolean moving) {
+		public SaveLocationChange onInitialization(Download d, boolean for_move, boolean on_event) {
 			
 			/**
 			 * This manager object isn't the sort of object which decides on
@@ -28,17 +28,18 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 			 * has chosen a path for it, we don't interfere with it under any
 			 * circumstances (though if plugins want to, then that's up to them). 
 			 */
-			if (moving) {return null;}
+			if (on_event) {return null;}
+			
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1], moving); // 1 - incomplete downloads
+			return determinePaths(dm, UPDATE_FOR_MOVE_DETAILS[1], for_move); // 1 - incomplete downloads
 		}
-		public SaveLocationChange onCompletion(Download d, boolean moving) {
+		public SaveLocationChange onCompletion(Download d, boolean for_move, boolean on_event) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, COMPLETION_DETAILS, moving);
+			return determinePaths(dm, COMPLETION_DETAILS, for_move);
 		}
-		public SaveLocationChange onRemoval(Download d, boolean moving) {
+		public SaveLocationChange onRemoval(Download d, boolean for_move, boolean on_event) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, REMOVAL_DETAILS, moving);
+			return determinePaths(dm, REMOVAL_DETAILS, for_move);
 		}
 		public boolean isInDefaultSaveDir(Download d) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
@@ -407,7 +408,7 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		}
 
 	}
-	
+
 	public static File getCompletionDirectory(DownloadManager dm) {
 		return COMPLETION_DETAILS.target.getTarget(dm, null);
 	}

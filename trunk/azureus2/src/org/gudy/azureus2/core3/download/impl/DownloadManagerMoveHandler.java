@@ -55,7 +55,7 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 
 	public static SaveLocationChange onInitialisation(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm), true);}
+		try {return CURRENT_HANDLER.onInitialization(PluginCoreUtils.wrap(dm), true, true);}
 		catch (Exception e) {
 			logError("Error trying to determine initial download location.", dm, e);
 			return null;
@@ -64,7 +64,7 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 	
 	public static SaveLocationChange onRemoval(DownloadManager dm) {
 		if (!isApplicableDownload(dm)) {return null;}
-		try {return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm), true);}
+		try {return CURRENT_HANDLER.onRemoval(PluginCoreUtils.wrap(dm), true, true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-removal location.", dm, e);
 			return null;
@@ -80,7 +80,7 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		}
 		
 		SaveLocationChange sc;
-		try {sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm), true);}
+		try {sc = CURRENT_HANDLER.onCompletion(PluginCoreUtils.wrap(dm), true, true);}
 		catch (Exception e) {
 			logError("Error trying to determine on-completion location.", dm, e);
 			return null;
@@ -107,10 +107,10 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		Download download = PluginCoreUtils.wrap(dm);
 		SaveLocationChange result = null;
 		if (canGoToCompleteDir(dm)) {
-			result = CURRENT_HANDLER.onCompletion(download, false);
+			result = CURRENT_HANDLER.onCompletion(download, true, false);
 		}
 		if (result == null) {
-			result = CURRENT_HANDLER.onInitialization(download, false);
+			result = CURRENT_HANDLER.onInitialization(download, true, false);
 		}
 		return result;
 	}
@@ -125,13 +125,13 @@ public class DownloadManagerMoveHandler extends DownloadManagerMoveHandlerUtils 
 		
 		if (isOnCompleteEnabled()) {
 			addFile(result, COConfigurationManager.getStringParameter("Completed Files Directory"));
-			addFile(result, CURRENT_HANDLER.onCompletion(d, false));
-			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onCompletion(d, false));
+			addFile(result, CURRENT_HANDLER.onCompletion(d, false, false));
+			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onCompletion(d, false, false));
 		}
 		if (isOnRemovalEnabled()) {
 			addFile(result, COConfigurationManager.getStringParameter("File.move.download.removed.path"));
-			addFile(result, CURRENT_HANDLER.onRemoval(d, false));
-			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onRemoval(d, false));
+			addFile(result, CURRENT_HANDLER.onRemoval(d, false, false));
+			addFile(result, DownloadManagerDefaultPaths.DEFAULT_HANDLER.onRemoval(d, false, false));
 		}
 		return (File[])result.toArray(new File[result.size()]);
 	}
