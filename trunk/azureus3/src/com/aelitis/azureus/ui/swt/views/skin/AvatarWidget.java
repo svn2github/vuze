@@ -967,6 +967,10 @@ public class AvatarWidget
 		}
 	}
 	
+	public boolean isChatWindowVisible() {
+		return chatWindow != null && chatWindow.isVisible();
+	}
+	
 	public void doChatClicked() {
 		if (false == viewer.isShareMode() && false == viewer.isAddBuddyMode()) {
 			if(chatWindow == null || chatWindow.isDisposed()) {
