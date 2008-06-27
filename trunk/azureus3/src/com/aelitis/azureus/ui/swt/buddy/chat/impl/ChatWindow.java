@@ -129,22 +129,26 @@ public class ChatWindow implements DiscussionListener {
 		myNameHighligther = new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Label label = (Label) e.widget;
-				String text = label.getText();
-				Point p = e.gc.textExtent(text);
-				e.gc.setBackground(ColorCache.getColor(display, 139,219,168));
-				e.gc.fillRoundRectangle(0, 0, p.x+10, p.y, 10, 10);
-				e.gc.drawText(text, 5, 0);
+				String text = (String)label.getData("text");
+				if(text != null) {
+					Point p = e.gc.textExtent(text);
+					e.gc.setBackground(ColorCache.getColor(display, 139,219,168));
+					e.gc.fillRoundRectangle(0, 0, p.x+10, p.y, 10, 10);
+					e.gc.drawText(text, 5, 0);
+				}
 			}
 		};
 		
 		friendNameHighlighter = new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Label label = (Label) e.widget;
-				String text = label.getText();
-				Point p = e.gc.textExtent(text);
-				e.gc.setBackground(ColorCache.getColor(display, 168,218,255));
-				e.gc.fillRoundRectangle(0, 0, p.x+10, p.y, 10, 10);
-				e.gc.drawText(text, 5, 0);
+				String text = (String)label.getData("text");
+				if(text != null) {
+					Point p = e.gc.textExtent(text);
+					e.gc.setBackground(ColorCache.getColor(display, 168,218,255));
+					e.gc.fillRoundRectangle(0, 0, p.x+10, p.y, 10, 10);
+					e.gc.drawText(text, 5, 0);
+				}
 			}
 		};
 		
@@ -370,7 +374,7 @@ public class ChatWindow implements DiscussionListener {
 		Label time = new Label(messageHolder,SWT.NONE);
 		
 		name.setBackground(white);
-		name.setText(message.getSender());
+		name.setData("text",message.getSender());
 		data = new FormData();
 		data.left = new FormAttachment(0,0);
 		data.right = new FormAttachment(time,0);
