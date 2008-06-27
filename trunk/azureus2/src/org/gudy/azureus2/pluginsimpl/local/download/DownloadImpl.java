@@ -1766,4 +1766,34 @@ DownloadImpl
 		 download_manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
 	 }
 	 
+	 public void changeLocation(SaveLocationChange slc) throws DownloadException {
+		 
+		 // No change in the file.
+		 boolean has_change = slc.hasDownloadChange() || slc.hasTorrentChange();
+		 if (!has_change) {return;}
+		 
+		 // Test that one of the locations is actually different.
+		 has_change = slc.isDifferentDownloadLocation(new File(this.getSavePath()));
+		 if (!has_change) {
+			 has_change = slc.isDifferentTorrentLocation(new File(this.getTorrentFileName()));
+		 }
+		 
+		 if (!has_change) {return;}
+
+		 boolean try_to_resume = !this.isPaused();
+		 try {
+			 try {
+				 if (slc.hasDownloadChange()) {download_manager.moveDataFiles(slc.download_location, slc.download_name);}
+				 if (slc.hasTorrentChange()) {download_manager.moveTorrentFile(slc.torrent_location, slc.torrent_name);}
+			 }
+			 catch (DownloadManagerException e) {
+				 throw new DownloadException(e.getMessage(), e);
+			 }
+		 }
+		 finally {
+			 if (try_to_resume) {this.resume();}
+		 }
+			 
+	 }
+	 
 }

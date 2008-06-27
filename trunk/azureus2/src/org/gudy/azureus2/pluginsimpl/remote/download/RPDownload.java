@@ -1005,4 +1005,5 @@ RPDownload
 	
 	public void startDownload(boolean force) {notSupported();}
 	public void stopDownload() {notSupported();}
+	public void changeLocation(SaveLocationChange slc) {notSupported();}
 }

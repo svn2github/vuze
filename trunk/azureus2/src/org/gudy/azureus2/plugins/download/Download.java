@@ -988,6 +988,16 @@ Download extends DownloadEventNotifier
    * @since 3.0.5.3 
    */
   public SaveLocationChange calculateDefaultDownloadLocation();
+  
+  /**
+   * Apply the changes in the given {@link SaveLocationChange} object - this includes
+   * moving torrent and data file data.
+   * 
+   * @param slc The change to apply.
+   * @since 3.1.0.1
+   * @throws DownloadException If there is a problem moving the data.
+   */
+  public void changeLocation(SaveLocationChange slc) throws DownloadException;
 
   	/**
   	 * get user-defined key/value
