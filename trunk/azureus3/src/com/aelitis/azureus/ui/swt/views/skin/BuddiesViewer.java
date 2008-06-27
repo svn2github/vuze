@@ -18,9 +18,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
 
@@ -30,8 +32,10 @@ import com.aelitis.azureus.buddy.chat.Chat;
 import com.aelitis.azureus.buddy.chat.ChatListener;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -141,10 +145,43 @@ public class BuddiesViewer
 		
 		chat = new Chat();
 		chat.addChatListener(new ChatListener() {
-			public void newMessage(VuzeBuddy from, ChatMessage message) {
-				AvatarWidget avatarWidget = findWidget(from);
+			public void newMessage(final VuzeBuddy from, final ChatMessage message) {
+				final AvatarWidget avatarWidget = findWidget(from);
 				if(avatarWidget != null) {
 					avatarWidget.setChatDiscussion(chat.getChatDiscussionFor(from));
+					BuddyPlugin plugin = VuzeBuddyManager.getBuddyPlugin();
+					if(plugin != null) {
+						BooleanParameter enabledNotifictions = plugin.getEnableChatNotificationsParameter();
+					
+						if(!message.isMe() && enabledNotifictions.getValue()) {
+							avatarWidget.getControl().getDisplay().asyncExec(new Runnable() {
+								public void run() {
+									boolean isVisible = true;
+									if(avatarsPanel != null) {
+										if(!avatarsPanel.isVisible()) {
+											isVisible = false;
+										}
+										/*Shell mainShell = avatarsPanel.getShell();
+										boolean mVisible = mainShell.isVisible();
+										boolean mEnabled = mainShell.isEnabled();
+										boolean mGetEnabled = mainShell.getEnabled();
+										boolean isFC = mainShell.isFocusControl();
+										Shell activeShell = mainShell.getDisplay().getActiveShell();*/
+										if(avatarsPanel.getShell().getDisplay().getActiveShell() == null) {
+											isVisible = false;
+										}
+									}
+									//boolean isVisible = BuddiesViewer.this.isEnabled();
+									//avatarWidget.isChatWindowVisible();
+									if(!isVisible) {
+										new MessageNotificationWindow(avatarWidget,message);
+									}
+									
+								}
+							});
+							
+						}
+					}
 				}
 			}
 		});

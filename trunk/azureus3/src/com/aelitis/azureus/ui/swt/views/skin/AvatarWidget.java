@@ -555,7 +555,7 @@ public class AvatarWidget
 					chatWindow = null;
 				}
 				
-				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed()) || (discussion != null && discussion.getUnreadMessages() > 0);
+				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed() && discussion != null && discussion.getAllMessages().size() > 0) || (discussion != null && discussion.getUnreadMessages() > 0);
 				
 				if (SHOW_ONLINE_BORDER) {
 

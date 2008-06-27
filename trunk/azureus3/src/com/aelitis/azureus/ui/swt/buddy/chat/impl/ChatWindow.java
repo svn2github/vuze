@@ -41,6 +41,7 @@ import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.chat.DiscussionListener;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
+import com.aelitis.azureus.util.Constants;
 
 public class ChatWindow implements DiscussionListener {
 	
@@ -138,7 +139,11 @@ public class ChatWindow implements DiscussionListener {
 		
 		FontData[] fDatas = shell.getFont().getFontData();
 		for(int i = 0 ; i < fDatas.length ; i++) {
-			fDatas[i].height = 12;
+			if(Constants.isOSX) {
+				fDatas[i].height = 12;
+			} else {
+				fDatas[i].height = 10;
+			}
 		}
 		textFont = new Font(display,fDatas);
 		
@@ -256,7 +261,7 @@ public class ChatWindow implements DiscussionListener {
 		});
 		
 		input = new Text(shell,SWT.WRAP);
-		input.setTextLimit(512);
+		input.setTextLimit(256);
 		input.setFont(textFont);
 
 		input.addListener(SWT.KeyUp, new Listener() {
