@@ -180,6 +180,10 @@ public class AvatarWidget
 	private ChatWindow chatWindow;
 	private ChatDiscussion discussion;
 	
+	static {
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/friend_online_glow.png", "friend_online_glow");
+	}
+	
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -547,38 +551,38 @@ public class AvatarWidget
 					}
 				}
 				
-				boolean showChatIcon = false;
+				if(chatWindow != null && chatWindow.isDisposed()) {
+					chatWindow = null;
+				}
+				
+				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed()) || (discussion != null && discussion.getUnreadMessages() > 0);
 				
 				if (SHOW_ONLINE_BORDER) {
 
 					if (true == vuzeBuddy.isOnline( true )) {
 
-						e.gc.drawImage(ImageRepository.getImage("green_bubble"), 40, 0);
-						showChatIcon = true;
+						e.gc.drawImage(ImageRepository.getImage("friend_online_glow"),7 , 4);
 						
-
 					}
+				}
+				
+				if(showChatIcon) {
+					chatAreaBounds = new Rectangle(40,0,20,19);
+					e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
+				} else {
+					chatAreaBounds = null;
 				}
 				
 				
 				if(discussion != null) {
 					int nbMessages = discussion.getUnreadMessages();
 					if(nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
-						
-						if(false == vuzeBuddy.isOnline( true )) {
-							e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
-							showChatIcon = true;
-						}
 						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 255,255,255));
 						e.gc.drawText("" + nbMessages, 47, 2,true);
 					}
 				}
 				
-				if(showChatIcon) {
-					chatAreaBounds = new Rectangle(40,0,20,19);
-				} else {
-					chatAreaBounds = null;
-				}
+				
 			}
 		});
 
@@ -642,18 +646,19 @@ public class AvatarWidget
 					canvas.redraw();
 				}
 				
+				
+			}
+
+			public void mouseDown(MouseEvent e) {
+				//It's conflicting with double click otherwise ...
 				if(chatAreaBounds != null && chatAreaBounds.contains(e.x,e.y)) {
 					doChatClicked();
 				}
 			}
 
-			public void mouseDown(MouseEvent e) {
-
-			}
-
 			public void mouseDoubleClick(MouseEvent e) {
-				if (false == viewer.isShareMode()) {
-					doLinkClicked();
+				if (false == viewer.isShareMode() && false == viewer.isEditMode()) {
+					doChatClicked();
 					return;
 				}
 			}
@@ -968,7 +973,13 @@ public class AvatarWidget
 				if(discussion == null) {
 					discussion = viewer.getChat().getChatDiscussionFor(vuzeBuddy);
 				}
-				chatWindow = new ChatWindow(this,viewer.getChat(),discussion);
+				Display display = canvas.getDisplay();
+				display.asyncExec(new Runnable() {
+					public void run() {
+						chatWindow = new ChatWindow(AvatarWidget.this,viewer.getChat(),discussion);
+					}
+				});
+				
 			} else {
 				if(chatWindow.isVisible()) {
 					chatWindow.hide();

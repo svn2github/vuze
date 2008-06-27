@@ -15,6 +15,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -30,8 +31,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.chat.Chat;
 import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
@@ -64,7 +67,7 @@ public class ChatWindow implements DiscussionListener {
 	PaintListener myNameHighligther;
 	PaintListener friendNameHighlighter;
 	
-	static DateFormat dateFormater = new SimpleDateFormat("hh:mm");
+	static DateFormat dateFormater = new SimpleDateFormat("hh:mm a");
 	
 	static final int border = 5;
 	static final int spacing = 5;
@@ -289,8 +292,46 @@ public class ChatWindow implements DiscussionListener {
 		
 		input.setFocus();
 		
+		
+		
+		if(avatar.getVuzeBuddy().getVersion() < VuzeBuddy.VERSION_CHAT) {
+			renderSystemMessage(MessageText.getString("v3.chat.wrongversion",new String[] {avatar.getVuzeBuddy().getDisplayName()}));
+			input.setEnabled(false);
+		} else {
+			if(!avatar.getVuzeBuddy().isOnline(true)) {
+				renderSystemMessage(MessageText.getString("v3.chat.offline",new String[] {avatar.getVuzeBuddy().getDisplayName()}));
+			}
+		}
+
 		hideAllOthers();
 		shell.open();
+		
+		//Need to post to display in order to NOT catch the mouse up event which would hide this window...
+		display.asyncExec(new Runnable() {
+			public void run() {
+				avatar.getControl().redraw();
+			}
+		});
+		
+	}
+	
+	private void renderSystemMessage(String message) {
+		Composite messageHolder = new Composite(messages,SWT.NONE);
+		messageHolder.setBackground(white);
+		messageHolder.setLayout(new FillLayout());
+
+		Label text = new Label(messageHolder,SWT.WRAP);
+		text.setAlignment(SWT.CENTER);
+		text.setBackground(white);
+		text.setText(message);
+		
+		RowData rowData = new RowData();
+		rowData.width = 210;
+		messageHolder.setLayoutData(rowData);
+		
+		messageHolder.pack();
+		messages.layout();
+
 	}
 	
 	private void renderMessage(ChatMessage message) {
@@ -360,6 +401,7 @@ public class ChatWindow implements DiscussionListener {
 		synchronized(chatWindows) {
 			chatWindows.remove(ChatWindow.this);
 		}
+		avatar.getControl().redraw();
 	}
 	
 	public void setPosition() {
@@ -409,17 +451,22 @@ public class ChatWindow implements DiscussionListener {
 			setPosition();
 			shell.setVisible(true);
 			discussion.clearNewMessages();
+			avatar.getControl().redraw();
 		}
 	}
 	
 	public void hide() {
+		if(discussion.getAllMessages().size() == 0) {
+			close();
+		}
 		if(!shell.isDisposed()) {
 			shell.setVisible(false);
+			Color gray = display.getSystemColor(SWT.COLOR_DARK_GRAY);
 			Control[] controls = messages.getChildren();
 			for(int i = 0 ; i < controls.length ; i++) {
 				Control[] children = ((Composite)controls[i]).getChildren();
 				for(int j = 0 ; j < children.length ; j++) {
-					children[j].setForeground(display.getSystemColor(SWT.COLOR_DARK_GRAY));
+					children[j].setForeground(gray);
 				}
 			}
 		}
