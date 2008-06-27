@@ -231,8 +231,7 @@ public class TopBarView
 						int i = listPlugins.getSelectionIndex();
 						if (i >= 0 && i < topbarViews.size()) {
 							activateTopBar((IView) topbarViews.get(i));
-							COConfigurationManager.setParameter("topbar.viewindex",
-									new Integer(i));
+							COConfigurationManager.setParameter("topbar.viewindex", i);
 						}
 					}
 				
