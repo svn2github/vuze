@@ -21,6 +21,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -28,6 +29,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -73,6 +75,8 @@ public class ChatWindow implements DiscussionListener {
 	static final int border = 5;
 	static final int spacing = 5;
 	
+	Listener linkListener;
+	
 	static {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/button_chat_minimize.png", "button_chat_minimize");
 	}
@@ -86,7 +90,14 @@ public class ChatWindow implements DiscussionListener {
 			chatWindows.add(this);
 		}
 		
-		
+		linkListener = new Listener() {
+			public void handleEvent(Event e) {
+				String text = e.text;
+				//System.out.println(text);
+				//TODO Gudy / Tux launch utily?
+				Program.launch(text);
+			}
+		};
 		
 		Control avatarControl = avatar.getControl();
 		display = avatarControl.getDisplay();
@@ -377,15 +388,19 @@ public class ChatWindow implements DiscussionListener {
 		data.right = new FormAttachment(100,0);
 		time.setLayoutData(data);
 
-		Label text = new Label(messageHolder,SWT.WRAP);
+		Link text = new Link(messageHolder,SWT.WRAP);
 		text.setBackground(white);
 		text.setFont(textFont);
-		text.setText(message.getMessage());
+		String msg = message.getMessage();
+		msg = msg.replaceAll("(?i)\\b([A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,4})\\b", "<a href=\"mailto:$1\">$0</a>");
+		msg = msg.replaceAll("(?i)\\b(https?://[^\\s]*?)\\s", "<a href=\"$1\">$0</a>");
+		text.setText(msg);
 		data = new FormData();
 		data.left = new FormAttachment(0,0);
 		data.right = new FormAttachment(100,0);
 		data.top = new FormAttachment(name,0);
 		text.setLayoutData(data);
+		text.addListener(SWT.Selection, linkListener);
 		
 		RowData rowData = new RowData();
 		rowData.width = 210;
