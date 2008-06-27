@@ -140,9 +140,9 @@ public class ChatWindow implements DiscussionListener {
 		FontData[] fDatas = shell.getFont().getFontData();
 		for(int i = 0 ; i < fDatas.length ; i++) {
 			if(Constants.isOSX) {
-				fDatas[i].height = 12;
+				fDatas[i].setHeight(12);
 			} else {
-				fDatas[i].height = 10;
+				fDatas[i].setHeight(10);
 			}
 		}
 		textFont = new Font(display,fDatas);
