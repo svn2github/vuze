@@ -18,7 +18,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -45,9 +44,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
-import com.aelitis.azureus.util.ILoginInfoListener;
-import com.aelitis.azureus.util.LoginInfoManager;
-import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 public class BuddiesViewer
 	extends SkinView
@@ -137,28 +133,28 @@ public class BuddiesViewer
 
 	private SWTSkinObject rightScroll;
 
-	private boolean		reorder_outstanding;
-	
+	private boolean reorder_outstanding;
+
 	private Chat chat;
-	
+
 	public BuddiesViewer() {
-		
+
 		chat = new Chat();
 		chat.addChatListener(new ChatListener() {
 			public void newMessage(final VuzeBuddy from, final ChatMessage message) {
 				final AvatarWidget avatarWidget = findWidget(from);
-				if(avatarWidget != null) {
+				if (avatarWidget != null) {
 					avatarWidget.setChatDiscussion(chat.getChatDiscussionFor(from));
 					BuddyPlugin plugin = VuzeBuddyManager.getBuddyPlugin();
-					if(plugin != null) {
+					if (plugin != null) {
 						BooleanParameter enabledNotifictions = plugin.getEnableChatNotificationsParameter();
-					
-						if(!message.isMe() && enabledNotifictions.getValue()) {
+
+						if (!message.isMe() && enabledNotifictions.getValue()) {
 							avatarWidget.getControl().getDisplay().asyncExec(new Runnable() {
 								public void run() {
 									boolean isVisible = true;
-									if(avatarsPanel != null) {
-										if(!avatarsPanel.isVisible()) {
+									if (avatarsPanel != null) {
+										if (!avatarsPanel.isVisible()) {
 											isVisible = false;
 										}
 										/*Shell mainShell = avatarsPanel.getShell();
@@ -167,25 +163,25 @@ public class BuddiesViewer
 										boolean mGetEnabled = mainShell.getEnabled();
 										boolean isFC = mainShell.isFocusControl();
 										Shell activeShell = mainShell.getDisplay().getActiveShell();*/
-										if(avatarsPanel.getShell().getDisplay().getActiveShell() == null) {
+										if (avatarsPanel.getShell().getDisplay().getActiveShell() == null) {
 											isVisible = false;
 										}
 									}
 									//boolean isVisible = BuddiesViewer.this.isEnabled();
 									//avatarWidget.isChatWindowVisible();
-									if(!isVisible) {
-										new MessageNotificationWindow(avatarWidget,message);
+									if (!isVisible) {
+										new MessageNotificationWindow(avatarWidget, message);
 									}
-									
+
 								}
 							});
-							
+
 						}
 					}
 				}
 			}
 		});
-		
+
 		/*
 		 * backed this change out as the desired behaviour is to continue showing
 		 * buddies when logged out as all attempts to do something with buddy will
@@ -706,40 +702,35 @@ public class BuddiesViewer
 		}
 	}
 
-	private void recomputeOrder( boolean delay ) {
+	private void recomputeOrder(boolean delay) {
 
-		if ( delay ){
-			
-			synchronized( this ){
-				
-				if ( reorder_outstanding ){
-					
+		if (delay) {
+
+			synchronized (this) {
+
+				if (reorder_outstanding) {
+
 					return;
 				}
-				
+
 				reorder_outstanding = true;
-			
-				new DelayedEvent( 
-						"BuddiesViewer:delayReorder", 
-						5*1000,
-						new AERunnable()
-						{
-							public void
-							runSupport()
-							{
-								synchronized( BuddiesViewer.this ){
+
+				new DelayedEvent("BuddiesViewer:delayReorder", 5 * 1000,
+						new AERunnable() {
+							public void runSupport() {
+								synchronized (BuddiesViewer.this) {
 
 									reorder_outstanding = false;
 								}
-								
-								recomputeOrder( false );
+
+								recomputeOrder(false);
 							}
 						});
-				
+
 				return;
 			}
 		}
-			
+
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 
@@ -760,8 +751,8 @@ public class BuddiesViewer
 							VuzeBuddy v1 = (VuzeBuddy) o1;
 							VuzeBuddy v2 = (VuzeBuddy) o2;
 							int score = 0;
-							score -= v1.isOnline( true ) ? 1 : 0;
-							score += v2.isOnline( true ) ? 1 : 0;
+							score -= v1.isOnline(true) ? 1 : 0;
+							score += v2.isOnline(true) ? 1 : 0;
 							return score;
 						}
 					});
@@ -923,6 +914,10 @@ public class BuddiesViewer
 			}
 		}
 
+	}
+
+	public boolean isNonActiveMode() {
+		return !isAddBuddyMode() && !isShareMode() && !isEditMode();
 	}
 
 	public boolean isAddBuddyMode() {
