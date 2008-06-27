@@ -227,6 +227,27 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 			}
 		});
 		
+			// read select
+		
+		Label lreadsel = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lreadsel, CFG_PREFIX + "read_select", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.read.select.time"))});
+		final IntParameter read_select = new IntParameter(gSocket,	"network.tcp.read.select.time", 10, 250);
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		read_select.setLayoutData(gridData);
+		
+			// write select
+				
+		Label lwritesel = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lwritesel, CFG_PREFIX + "write_select", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.write.select.time"))});
+		final IntParameter write_select = new IntParameter(gSocket,	"network.tcp.write.select.time", 10, 250);
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		write_select.setLayoutData(gridData);
+		
+		
+		
+		
 		new BooleanParameter( cSection, "IPV6 Prefer Addresses", "network.ipv6.prefer.addresses"  );
 		
 		new BooleanParameter(cSection, "Enforce Bind IP","network.enforce.ipbinding");
