@@ -293,7 +293,7 @@ public class ButtonBar
 	}
 
 	private void disabledButtonBar(boolean value) {
-		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
+		SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
 		buttonBarObject.switchSuffix(value ? "-disabled" : "");
 	}
 
@@ -345,7 +345,6 @@ public class ButtonBar
 	private void showFooter(boolean value, boolean fast) {
 		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
 		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
-		SWTSkinObject buttonBarObject = skin.getSkinObject("global-button-bar");
 		SWTSkinObject footerObject = skin.getSkinObject("footer");
 
 		if (footerObject.isVisible() != value) {
@@ -355,7 +354,6 @@ public class ButtonBar
 			SWTSkinUtils.setVisibility(skin, "Footer.visible",
 					SkinConstants.VIEWID_FOOTER, value, true, fast);
 
-			Utils.relayout(buttonBarObject.getControl());
 		}
 	}
 
