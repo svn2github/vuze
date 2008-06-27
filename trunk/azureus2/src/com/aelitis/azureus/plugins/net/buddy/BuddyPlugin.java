@@ -822,7 +822,7 @@ BuddyPlugin
 	}
 	
 	public BooleanParameter
-	getOnlineChatParameter()
+	getEnableChatNotificationsParameter()
 	{
 		return( enable_chat_notifications );
 	}
