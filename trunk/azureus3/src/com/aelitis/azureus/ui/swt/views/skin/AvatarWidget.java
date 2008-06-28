@@ -181,7 +181,10 @@ public class AvatarWidget
 	private ChatDiscussion discussion;
 	
 	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/friend_online_glow.png", "friend_online_glow");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/friend_online_icon.png", "friend_online_icon");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/grey_bubble.png", "grey_bubble");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/red_bubble.png", "red_bubble");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/large_red_bubble.png", "large_red_bubble");
 	}
 	
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
@@ -534,9 +537,61 @@ public class AvatarWidget
 					//					e.gc.setFont(null);
 					
 					if(!isCreatingFile) {
+						
 						e.gc.setFont(fontDisplayName);
-						GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-							nameAreaBounds, false, true, SWT.CENTER);
+						int width = 0;
+						String displayName = vuzeBuddy.getDisplayName();
+						StringBuffer displayed = new StringBuffer();
+						
+						Image icon = null;
+						
+						if(SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
+							icon = ImageRepository.getImage("friend_online_icon");
+							width += icon.getBounds().width + 3;
+						}
+						
+						int dotWidth = e.gc.getAdvanceWidth('.');
+						int maxWidth = nameAreaBounds.width;
+						
+						for(int i = 0 ; i < displayName.length() && width < maxWidth ; i++) {
+							char nextChar = displayName.charAt(i);
+							int extraWidth = e.gc.getAdvanceWidth(nextChar);
+							if(width + 2 * dotWidth >= maxWidth) {
+								//We only have room for 2 dot characters, let's simply check if we're processing the last one,
+								// and if it fits in
+								if(i == displayName.length() -1 && (width + extraWidth <= maxWidth) ){
+									displayed.append(nextChar);
+									width += extraWidth;
+								} else {
+									displayed.append("..");
+									width += 2 * dotWidth;
+								}
+							} else {
+								displayed.append(nextChar);
+								width += extraWidth;
+							}
+						}
+						
+						int offset = (maxWidth - width) / 2;
+						if(icon != null) {
+							e.gc.drawImage(icon, offset + nameAreaBounds.x, nameAreaBounds.y+1);
+							offset += icon.getBounds().width +1;
+						}
+						
+						e.gc.drawText(displayed.toString(), offset + nameAreaBounds.x, nameAreaBounds.y+1,true);
+						
+						//e.gc.fillRectangle(nameAreaBounds);
+						
+						/*if(SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
+							GCStringPrinter stringPrinter = new GCStringPrinter(e.gc,"%0 " + vuzeBuddy.getDisplayName(),
+									nameAreaBounds, false, true, SWT.CENTER);
+							stringPrinter.setImages(new Image[] {});
+							stringPrinter.printString();
+						} else {
+							GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+									nameAreaBounds, false, true, SWT.CENTER);
+						}*/
+						
 					} else {
 
 						Rectangle progressArea = new Rectangle(nameAreaBounds.x+5,nameAreaBounds.y+5,nameAreaBounds.width-10,nameAreaBounds.height-10);
@@ -555,33 +610,31 @@ public class AvatarWidget
 					chatWindow = null;
 				}
 				
-				boolean showChatIcon = (chatWindow != null && !chatWindow.isDisposed() && discussion != null && discussion.getNbMessages() > 0) || (discussion != null && discussion.getUnreadMessages() > 0);
-				
-				if (SHOW_ONLINE_BORDER) {
-
-					if (true == vuzeBuddy.isOnline( true )) {
-
-						e.gc.drawImage(ImageRepository.getImage("friend_online_glow"),7 , 4);
-						
-					}
-				}
+				boolean showChatIcon = ! viewer.isEditMode() && discussion != null && ( (chatWindow != null && !chatWindow.isDisposed() && discussion.getNbMessages() > 0) || (discussion.getUnreadMessages() > 0));
 				
 				if(showChatIcon) {
 					chatAreaBounds = new Rectangle(40,0,20,19);
-					e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
+					int nbMessages = discussion.getUnreadMessages();
+					if(nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
+						int startPixel = 0;
+						if(nbMessages >= 10) {
+							e.gc.drawImage(ImageRepository.getImage("large_red_bubble"), 35, -1);
+							startPixel = 49;
+						} else {
+							e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
+							startPixel = 52;
+						}
+						
+						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 255,255,255));
+						Point textSize = e.gc.stringExtent("" + nbMessages);
+						e.gc.drawText("" + nbMessages, startPixel - textSize.x / 2 , 3,true);
+						
+					} else {
+						e.gc.drawImage(ImageRepository.getImage("grey_bubble"), 40, 0);
+					}
 				} else {
 					chatAreaBounds = null;
 				}
-				
-				
-				if(discussion != null) {
-					int nbMessages = discussion.getUnreadMessages();
-					if(nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
-						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 255,255,255));
-						e.gc.drawText("" + nbMessages, 47, 2,true);
-					}
-				}
-				
 				
 			}
 		});

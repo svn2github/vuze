@@ -1,6 +1,8 @@
 package com.aelitis.azureus.ui.swt.buddy.chat.impl;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -11,6 +13,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
@@ -25,6 +28,8 @@ import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
 import com.aelitis.azureus.util.Constants;
 
 public class MessageNotificationWindow {
+	
+	private static final int initialAlpha = 230;
 	
 	public static int nbOpen = 0;
 	public static int currentOffset = 0;
@@ -72,12 +77,17 @@ public class MessageNotificationWindow {
 		shell.setLayout(new FormLayout());
 		FormData data;
 		
-		Label image = new Label(shell,SWT.NONE);
-		image.setImage(avatar.getAvatarImage());
+		Canvas image = new Canvas(shell,SWT.NONE);
+		image.addPaintListener(new PaintListener() {
+			public void paintControl(PaintEvent e) {
+				e.gc.drawImage(avatar.getAvatarImage(), 0, 0,40,40,0,0,30,30);
+			}
+		});
 		
 		
 		
 		Label name = new Label(shell,SWT.WRAP);
+		name.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		name.setText(message.getSender());
 		
 		FontData[] fDatas = name.getFont().getFontData();
@@ -93,23 +103,26 @@ public class MessageNotificationWindow {
 		name.setFont(nameFont);
 		
 		Label text = new Label(shell,SWT.NONE);
+		text.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		text.setText(message.getMessage());
 		
 		data = new FormData();
-		data.left = new FormAttachment(0,10);
+		data.left = new FormAttachment(0,12);
 		data.top = new FormAttachment(0,10);
+		data.width = 30;
+		data.height = 30;
 		image.setLayoutData(data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(image,5);
-		data.top = new FormAttachment(image,0,SWT.TOP);
+		data.top = new FormAttachment(0,10);
 		name.setLayoutData(data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(image,5);
-		data.top = new FormAttachment(name,5);
+		data.top = new FormAttachment(name,1);
 		data.right = new FormAttachment(100,-5);
-		data.bottom = new FormAttachment(100,-5);
+		data.bottom = new FormAttachment(image,0,SWT.BOTTOM);
 		text.setLayoutData(data);
 		
 		Listener mouseUpListener = new Listener() {
@@ -137,7 +150,7 @@ public class MessageNotificationWindow {
 				try {
 					Thread.sleep(5000);
 					
-					for(int alpha = 255 ; alpha > 0 ; alpha-=10) {
+					for(int alpha = initialAlpha ; alpha > 0 ; alpha-=10) {
 						
 						final int _alpha = alpha;
 						
@@ -158,6 +171,10 @@ public class MessageNotificationWindow {
 						Thread.sleep(50);
 					}
 					
+					
+				} catch (Throwable t) {
+					//Do nothing
+				} finally {
 					if(!display.isDisposed()) {
 						display.asyncExec(new Runnable() {
 							public void run() {
@@ -173,8 +190,6 @@ public class MessageNotificationWindow {
 							};
 						});
 					}
-				} catch (Exception e) {
-					//Do nothing
 				}
 			}
 		};
@@ -185,6 +200,12 @@ public class MessageNotificationWindow {
 		Rectangle displayArea = display.getBounds();
 		shell.setLocation(displayArea.width - imageData.width - 50 ,100 + (imageData.height+20) * currentOffset);
 		shell.setSize(imageData.x + imageData.width, imageData.y + imageData.height);
+		
+		try {
+			shell.setAlpha(initialAlpha);
+		} catch (Throwable t) {
+			//Do nothing
+		}
 		
 		shell.open();
 		shell.setActive();
