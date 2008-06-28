@@ -745,6 +745,21 @@ BuddyPlugin
 								
 								updatePublish( latest_publish );
 							}
+						}else{
+							
+							new AEThread2( "BuddyPlugin:disc", true )
+							{
+								public void
+								run()
+								{
+									List buddies = getAllBuddies();
+									
+									for (int i=0;i<buddies.size();i++){
+										
+										((BuddyPluginBuddy)buddies.get(i)).disconnect();
+									}
+								}
+							}.start();
 						}
 					}
 				});
