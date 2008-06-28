@@ -28,10 +28,12 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
+import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
 
@@ -420,5 +422,78 @@ public class VuzeBuddyImpl
 	
 	public VuzeBuddyListener[] getListeners() {
 		return (VuzeBuddyListener[]) listeners.toArray(new VuzeBuddyListener[0]);
+	}
+	
+	public List
+	getStoredChatMessages()
+	{
+		Iterator it = pluginBuddies.iterator();
+		
+		List	result = new ArrayList();
+		
+		while( it.hasNext()){
+			
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy)it.next();
+			
+			List msgs = pluginBuddy.retrieveMessages( BuddyPlugin.MT_V3_CHAT );
+			
+			for (int i=0;i<msgs.size();i++){
+				
+				try{
+					BuddyPluginBuddyMessage	msg = (BuddyPluginBuddyMessage)msgs.get(i);
+					
+					ChatMessage cm = ChatMessage.deserialise( msg );
+					
+					if ( cm != null ){
+											
+						result.add( cm );
+					}
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		
+			// TODO: sort by timestamp
+		
+		return( result );
+	}
+	
+	public void
+	storeChatMessage(
+		ChatMessage		msg )
+	{
+		String	sender_pk = msg.getSenderPK();
+		
+		if ( sender_pk != null ){
+			
+			BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze( sender_pk );
+	
+			if ( pluginBuddy == null ){
+				
+				VuzeBuddyManager.log( "Can't persist message for " + sender_pk + ", buddy not found" );
+				
+			}else{
+			
+				BuddyPluginBuddyMessage pm = pluginBuddy.storeMessage( BuddyPlugin.MT_V3_CHAT, msg.toMap());
+				
+				if ( pm != null ){
+				
+					msg.setPersistentMessage( pm );
+				}
+			}
+		}
+	}
+	
+	public void
+	deleteChatMessage(
+		ChatMessage		msg )
+	{
+		BuddyPluginBuddyMessage pm = msg.getPersistentMessage();
+		
+		if ( pm != null ){
+			
+			pm.delete();
+		}
 	}
 }

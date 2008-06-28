@@ -802,7 +802,7 @@ public class VuzeBuddyManager
 			for (int i = 0; i < listeners.length; i++) {
 				VuzeBuddyMessageListener l = (VuzeBuddyMessageListener) listeners[i];
 				try {
-					l.messageRecieved(buddyByPK, namespace, map);
+					l.messageRecieved(buddyByPK, pkSender, namespace, map);
 				} catch (Exception e) {
 					log(e);
 				}

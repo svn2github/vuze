@@ -28,9 +28,9 @@ public class Chat implements VuzeBuddyMessageListener {
 		VuzeBuddyManager.addMessageListener(this);
 	}
 	
-	public void messageRecieved(VuzeBuddy buddy, String namespace, Map message) {
+	public void messageRecieved(VuzeBuddy buddy, String senderPK, String namespace, Map message) {
 		if(namespace.equals("chat")) {
-			messageReceived(buddy, message);
+			messageReceived(buddy, senderPK, message);
 		}
 	}
 	
@@ -38,7 +38,7 @@ public class Chat implements VuzeBuddyMessageListener {
 		synchronized (discussions) {
 			ChatDiscussion result = (ChatDiscussion) discussions.get(buddy);
 			if(result == null) {
-				result = new ChatDiscussion();
+				result = new ChatDiscussion( buddy );
 				discussions.put(buddy,result);
 			}
 			
@@ -46,12 +46,12 @@ public class Chat implements VuzeBuddyMessageListener {
 		}
 	}
 	
-	public void messageReceived(VuzeBuddy from,Map message) {
+	public void messageReceived(VuzeBuddy from,String fromPK, Map message) {
 		String text = new String((byte[])message.get("text"));
 		long originalTimeStamp = ((Long)message.get("timestamp")).longValue();
 		if(text != null) {
 			ChatDiscussion discussion = getChatDiscussionFor(from);
-			ChatMessage localMessage = new ChatMessage(false,originalTimeStamp,SystemTime.getCurrentTime(),from.getDisplayName(),text);
+			ChatMessage localMessage = new ChatMessage(fromPK,originalTimeStamp,SystemTime.getCurrentTime(),from.getDisplayName(),text);
 			discussion.addMessage(localMessage);
 			notifyListenersOfNewMessage(from,localMessage);
 		}
@@ -76,7 +76,7 @@ public class Chat implements VuzeBuddyMessageListener {
 					to.sendBuddyMessage("chat", message);
 					ChatDiscussion discussion = getChatDiscussionFor(to);
 					
-					ChatMessage localMessage = new ChatMessage(true,timeStamp,timeStamp,loginInfoManager.getUserInfo().displayName,text);
+					ChatMessage localMessage = new ChatMessage(null,timeStamp,timeStamp,loginInfoManager.getUserInfo().displayName,text);
 					discussion.addMessage(localMessage);
 					notifyListenersOfNewMessage(to,localMessage);
 				} catch(NotLoggedInException e) {

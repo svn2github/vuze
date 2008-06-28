@@ -19,9 +19,11 @@
 package com.aelitis.azureus.buddy;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
@@ -41,7 +43,7 @@ public interface VuzeBuddy
 	
 	public static final int	VERSION_INITIAL	= BuddyPlugin.VERSION_INITIAL;
 	public static final int	VERSION_CHAT	= BuddyPlugin.VERSION_CHAT;
-	
+		
 	public String getDisplayName();
 
 	public void setDisplayName(String displayName);
@@ -155,4 +157,15 @@ public interface VuzeBuddy
 	 * @since 3.1.0.1
 	 */
 	VuzeBuddyListener[] getListeners();
+	
+	public List
+	getStoredChatMessages();
+	
+	public void
+	storeChatMessage(
+		ChatMessage		msg );
+	
+	public void
+	deleteChatMessage(
+		ChatMessage		msg );
 }

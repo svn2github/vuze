@@ -258,11 +258,14 @@ public class ChatWindow implements DiscussionListener {
 		
 		List chatMessages = discussion.getAllMessages();
 		for(int i = 0 ; i < chatMessages.size() ; i++) {
-			renderMessage((ChatMessage)chatMessages.get(i));
+			ChatMessage cm = (ChatMessage)chatMessages.get(i);
+			cm.setRendered();
+			renderMessage( cm );
 		}
 		
 		discussion.setListener(new DiscussionListener() {
 			public void newMessage(final ChatMessage message) {
+				message.setRendered();
 				if(!display.isDisposed()) {
 					display.asyncExec(new Runnable() {
 						public void run() {
@@ -427,6 +430,7 @@ public class ChatWindow implements DiscussionListener {
 	
 	public void close() {
 		discussion.clearAllMessages();
+		discussion.setListener( null );
 		avatar.getControl().getShell().removeListener(SWT.Move, moveListener);
 		shell.dispose();
 		if(textFont != null && !textFont.isDisposed()) {
@@ -455,6 +459,7 @@ public class ChatWindow implements DiscussionListener {
 	
 	public void newMessage(final ChatMessage message) {
 		if(!display.isDisposed()) {
+			message.setRendered();
 			display.asyncExec(new Runnable() {
 				public void run() {
 					renderMessage(message);
