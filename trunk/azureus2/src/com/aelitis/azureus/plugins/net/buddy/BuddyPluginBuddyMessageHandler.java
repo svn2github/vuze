@@ -586,7 +586,7 @@ BuddyPluginBuddyMessageHandler
 		
 		synchronized( this ){
 			
-			String[]	keys = { "messages", "pending_success" };
+			String[]	keys = { "messages", "pending_success", "explicit" };
 			
 			for (int i=0;i<keys.length;i++){
 				
@@ -813,19 +813,99 @@ BuddyPluginBuddyMessageHandler
 		}
 	}
 	
+	public BuddyPluginBuddyMessage
+	storeExplicitMessage(
+		int		type,
+		Map		msg )
+	{
+		BuddyPluginBuddyMessage	message;
+				
+		synchronized( this ){
+			
+			int	id = next_message_id++;
+			
+			try{
+				message = 
+					new BuddyPluginBuddyMessage( 
+							this, id, BuddyPlugin.SUBSYSTEM_MSG_TYPE_BASE + type, msg, 0, SystemTime.getCurrentTime());
+			
+				storeExplicitMessage( message );
+				
+			}catch( Throwable e ){
+				
+				buddy.log( "Failed to store explicit message", e );
+				
+				return( null );
+			}
+		}
+		
+		return( message );
+	}
+	
+	public List
+	retrieveExplicitMessages(
+		int		type )
+	{
+		List	result = new ArrayList();
+		
+		synchronized( this ){
+
+			List	messages = (List)config_map.get( "explicit" );
+			
+			if ( messages != null ){
+				
+				for (int i=0;i<messages.size();i++){
+					
+					try{
+						BuddyPluginBuddyMessage msg = restoreMessage((Map)messages.get(i));
+						
+						if ( msg.getSubsystem() == BuddyPlugin.SUBSYSTEM_MSG_TYPE_BASE + type ){
+							
+							result.add( msg );
+						}
+					}catch( Throwable e ){
+						
+						buddy.log( "Failed to restore message", e );
+					}
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
+	protected void
+	storeExplicitMessage(
+		BuddyPluginBuddyMessage		msg )
+	
+		throws BuddyPluginException
+	{
+		storeMessageSupport( msg, "explicit" );
+	}
+	
 	protected void
 	storeMessage(
 		BuddyPluginBuddyMessage		msg )
 	
 		throws BuddyPluginException
 	{
-		List	messages = (List)config_map.get( "messages" );
+		storeMessageSupport( msg, "messages" );
+	}
+	
+	protected void
+	storeMessageSupport(
+		BuddyPluginBuddyMessage		msg,
+		String						key )
+	
+		throws BuddyPluginException
+	{
+		List	messages = (List)config_map.get( key );
 
 		if ( messages == null ){
 			
 			messages = new ArrayList();
 			
-			config_map.put( "messages", messages );
+			config_map.put( key, messages );
 		}
 		
 		Map map = new HashMap();
@@ -898,6 +978,20 @@ BuddyPluginBuddyMessageHandler
 				last_pending_success = SystemTime.getCurrentTime();
 			}
 		}
+		
+		List	explicit = (List)config_map.get( "explicit" );
+		
+		if ( explicit != null ){
+			
+			int exp_count = explicit.size();
+		
+			if ( exp_count > 0 ){
+										
+				Map	last_msg = (Map)explicit.get( exp_count - 1 );
+					
+				next_message_id = Math.max( next_message_id, ((Long)last_msg.get( "id")).intValue() + 1 );
+			}
+		}
 	}
 	
 	protected void
@@ -909,9 +1003,11 @@ BuddyPluginBuddyMessageHandler
 		
 		List	messages 	= (List)config_map.get( "messages" );
 		List	pending 	= (List)config_map.get( "pending_success" );
+		List	explicit 	= (List)config_map.get( "explicit" );
 
 		if ( 	( messages == null || messages.size() == 0 ) && 
-				( pending == null || pending.size() == 0 )){
+				( pending == null || pending.size() == 0 ) && 
+				( explicit == null || explicit.size() == 0 )){
 			
 			if ( store.exists()){
 			
@@ -944,7 +1040,7 @@ BuddyPluginBuddyMessageHandler
 				throw( new BuddyPluginException( "Failed to write" + config_file ));
 			}
 			
-			message_count = messages.size();
+			message_count = messages==null?0:messages.size();
 		}
 	}
 	

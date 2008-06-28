@@ -103,11 +103,17 @@ BuddyPlugin
 	public static final int VERSION_CHAT	= 2;
 	public static final int VERSION_CURRENT	= VERSION_CHAT;
 	
+	
+	public static final int MT_V3_CHAT		= 1;
+	
+	
 	public static final int MAX_MESSAGE_SIZE	= 4*1024*1024;
 	
 	public static final int	SUBSYSTEM_INTERNAL	= 0;
 	public static final int	SUBSYSTEM_AZ2		= 1;
 	public static final int	SUBSYSTEM_AZ3		= 2;
+	
+	protected static final int	SUBSYSTEM_MSG_TYPE_BASE	= 1024;
 	
 	public static final int STATUS_ONLINE			= 0;
 	public static final int STATUS_AWAY				= 1;

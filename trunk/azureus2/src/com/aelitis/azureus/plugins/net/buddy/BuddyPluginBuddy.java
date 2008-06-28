@@ -451,6 +451,21 @@ BuddyPluginBuddy
 		return( plugin.verify( this, payload, signature ));
 	}
 	
+	public BuddyPluginBuddyMessage
+	storeMessage(
+		int		type,
+		Map		msg )
+	{
+		return( persistent_msg_handler.storeExplicitMessage( type, msg ));
+	}
+	
+	public List
+	retrieveMessages(
+		int		type )
+	{
+		return( persistent_msg_handler.retrieveExplicitMessages( type ));
+	}
+	
 	public void
 	setMessagePending()
 	
