@@ -86,7 +86,7 @@ public class MessageNotificationWindow {
 		
 		
 		
-		Label name = new Label(shell,SWT.WRAP);
+		Label name = new Label(shell,SWT.NONE);
 		name.setForeground(display.getSystemColor(SWT.COLOR_WHITE));
 		name.setText(message.getSender());
 		
@@ -115,6 +115,7 @@ public class MessageNotificationWindow {
 		
 		data = new FormData();
 		data.left = new FormAttachment(image,5);
+		data.right = new FormAttachment(100,-5);
 		data.top = new FormAttachment(0,10);
 		name.setLayoutData(data);
 		
@@ -149,7 +150,7 @@ public class MessageNotificationWindow {
 			public void run() {
 				try {
 					Thread.sleep(5000);
-					
+
 					for(int alpha = initialAlpha ; alpha > 0 ; alpha-=10) {
 						
 						final int _alpha = alpha;
