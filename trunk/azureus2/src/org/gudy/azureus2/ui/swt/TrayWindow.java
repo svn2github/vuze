@@ -75,7 +75,7 @@ public class TrayWindow implements GlobalManagerListener {
     Shell mainShell = uif == null ? Utils.findAnyShell() : uif.getMainShell();
     this.display = mainShell.getDisplay();
     minimized = ShellFactory.createShell(mainShell, SWT.ON_TOP);
-    minimized.setText("Azureus"); //$NON-NLS-1$
+    minimized.setText("Vuze"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
     Image img = ImageRepository.getImage("tray");
     label.setImage(img); //$NON-NLS-1$
