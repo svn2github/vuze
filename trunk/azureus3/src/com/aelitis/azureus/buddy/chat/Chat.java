@@ -28,6 +28,29 @@ public class Chat implements VuzeBuddyMessageListener {
 		VuzeBuddyManager.addMessageListener(this);
 	}
 	
+	public void
+	checkBuddy(
+		VuzeBuddy		buddy )
+	{
+		boolean	new_chat = false;
+		
+		ChatDiscussion result;
+		
+		synchronized (discussions) {
+			result = (ChatDiscussion) discussions.get(buddy);
+			if(result == null) {
+				result = new ChatDiscussion( buddy );
+				discussions.put(buddy,result);
+				new_chat = true;
+			}
+		}
+		
+		if ( new_chat ){
+			
+			notifyListenersOfNewChat( buddy);
+		}
+	}
+	
 	public void messageRecieved(VuzeBuddy buddy, String senderPK, String namespace, Map message) {
 		if(namespace.equals("chat")) {
 			messageReceived(buddy, senderPK, message);
@@ -96,6 +119,14 @@ public class Chat implements VuzeBuddyMessageListener {
 		}
 	}
 	
+	public void notifyListenersOfNewChat(VuzeBuddy buddy ) {
+		synchronized (listeners) {
+			for(int i = 0 ; i < listeners.size() ; i++) {
+				ChatListener listener = (ChatListener) listeners.get(i);
+				listener.newChat(buddy);
+			}
+		}
+	}
 	public void addChatListener(ChatListener listener) {
 		synchronized (listeners) {
 			listeners.add(listener);

@@ -180,6 +180,14 @@ public class BuddiesViewer
 					}
 				}
 			}
+			
+			public void newChat(VuzeBuddy buddy) 
+			{
+				final AvatarWidget avatarWidget = findWidget(buddy);
+				if (avatarWidget != null) {
+					avatarWidget.setChatDiscussion(chat.getChatDiscussionFor(buddy));
+				}
+			}
 		});
 
 		/*
@@ -543,6 +551,9 @@ public class BuddiesViewer
 
 		avatarWidgets.add(avatarWidget);
 
+		
+		chat.checkBuddy( vuzeBuddy );
+		
 		return avatarWidget;
 	}
 
