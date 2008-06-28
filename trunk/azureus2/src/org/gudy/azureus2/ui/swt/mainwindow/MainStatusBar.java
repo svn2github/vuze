@@ -528,7 +528,7 @@ public class MainStatusBar
 					+ Constants.AZUREUS_VERSION + ")";
 			statusImageKey = STATUS_ICON_WARN;
 		} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
-			statusTextKey = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
+			statusTextKey = Constants.APP_NAME + " " + Constants.AZUREUS_VERSION;
 			statusImageKey = null;
 		}
 
