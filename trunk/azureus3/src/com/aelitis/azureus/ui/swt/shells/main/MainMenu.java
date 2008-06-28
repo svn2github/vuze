@@ -231,7 +231,7 @@ public class MainMenu
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
 							+ ".view.tabbar")) {
 						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-								"TabBar.visible", "tabbar", true);
+								"TabBar.visible", SkinConstants.VIEWID_TAB_BAR, true);
 					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."

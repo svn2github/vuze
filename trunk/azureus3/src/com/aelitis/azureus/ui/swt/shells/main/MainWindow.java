@@ -782,6 +782,22 @@ public class MainWindow
 			setVisible(WINDOW_ELEMENT_FOOTER,
 					COConfigurationManager.getBooleanParameter(configID));
 
+			configID = "Buttonbar.visible";
+			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+					configID)) {
+				COConfigurationManager.setBooleanDefault(configID, true);
+			}
+			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
+					COConfigurationManager.getBooleanParameter(configID));
+
+			configID = "TabBar.visible";
+			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+					configID)) {
+				COConfigurationManager.setBooleanDefault(configID, true);
+			}
+			setVisible(WINDOW_ELEMENT_TABBAR,
+					COConfigurationManager.getBooleanParameter(configID));
+			
 			showMainWindow();
 
 			//================
@@ -2151,7 +2167,7 @@ public class MainWindow
 			}
 			return;
 		}
-		
+
 		if ("_blank".equalsIgnoreCase(target)) {
 			Utils.launch(url);
 			return;
@@ -2251,7 +2267,12 @@ public class MainWindow
 					SkinConstants.VIEWID_FOOTER, value, true, true);
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
-			// We don't allow the button bar to ever be hidden
+			SWTSkinUtils.setVisibility(skin, "ButtonBar.visible",
+					SkinConstants.VIEWID_BUTTON_BAR, value, true, true);
+			
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+			SWTSkinUtils.setVisibility(skin, "TabBar.visible",
+					SkinConstants.VIEWID_TAB_BAR, value, true, true);
 		}
 
 	}
