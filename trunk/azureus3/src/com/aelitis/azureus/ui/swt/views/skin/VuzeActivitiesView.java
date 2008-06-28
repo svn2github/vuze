@@ -289,6 +289,7 @@ public class VuzeActivitiesView
 			btnSortByDate.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					VuzeActivitiesConstants.sortBy = VuzeActivitiesConstants.SORT_DATE;
+					view.removeDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
 					shiftVuzeNews();
 					btnSortByDate.getSkinObject().switchSuffix("-selected", 1, false);
 					if (btnSortByType != null) {
