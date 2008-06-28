@@ -12,23 +12,68 @@ public class ChatDiscussion implements ChatMessageListener {
 	int unreadMessages;
 	DiscussionListener listener;
 	
-	public ChatDiscussion(
-			VuzeBuddy	_buddy ) {
+	public 
+	ChatDiscussion(
+		VuzeBuddy	_buddy,
+		boolean		_check_persistent ) 
+	{
 		buddy		= _buddy;
 		messages 	= new ArrayList();
 		
+		if ( _check_persistent ){
+			
+			List stored = buddy.getStoredChatMessages();
+			
+			for (int i=0;i<stored.size();i++){
+				
+				ChatMessage msg = (ChatMessage)stored.get(i);
+											
+				messages.add( msg );
+					
+				msg.addListener( this );
+				
+				unreadMessages++;
+			}
+		}
+	}
+	
+	protected boolean
+	checkPersistentMessages()
+	{
 		List stored = buddy.getStoredChatMessages();
+		
+		boolean	added = false;
 		
 		for (int i=0;i<stored.size();i++){
 			
 			ChatMessage msg = (ChatMessage)stored.get(i);
-										
-			messages.add( msg );
-				
-			msg.addListener( this );
 			
-			unreadMessages++;
+			synchronized(messages) {
+
+				if ( !messages.contains( msg )){
+				
+					added = true;
+					
+					messages.add( msg );
+						
+					msg.addListener( this );
+					
+					unreadMessages++;
+					
+					if(listener != null) {
+						listener.newMessage(msg);
+					}
+				}
+			}
 		}
+		
+		return( added );
+	}
+	
+	protected VuzeBuddy
+	getBuddy()
+	{
+		return( buddy );
 	}
 	
 	public void addMessage(ChatMessage message) {

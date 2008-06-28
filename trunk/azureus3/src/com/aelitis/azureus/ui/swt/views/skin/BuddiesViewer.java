@@ -181,7 +181,7 @@ public class BuddiesViewer
 				}
 			}
 			
-			public void newChat(VuzeBuddy buddy) 
+			public void updatedChat(VuzeBuddy buddy) 
 			{
 				final AvatarWidget avatarWidget = findWidget(buddy);
 				if (avatarWidget != null) {

@@ -11,6 +11,9 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyMessageListener;
+import com.aelitis.azureus.core.security.CryptoHandler;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -26,6 +29,54 @@ public class Chat implements VuzeBuddyMessageListener {
 		listeners = new ArrayList();
 		loginInfoManager = LoginInfoManager.getInstance();
 		VuzeBuddyManager.addMessageListener(this);
+		
+		CryptoManagerFactory.getSingleton().addKeyListener(
+			new CryptoManagerKeyListener()
+			{
+				public void
+				keyChanged(
+					CryptoHandler		handler )
+				{
+				}
+				
+				public void
+				keyLockStatusChanged(
+					CryptoHandler		handler )
+				{
+					if ( handler.isUnlocked()){
+						
+						new AEThread2( "Chat:check", true )
+						{
+							public void
+							run()
+							{
+								checkPersistentMessages();
+							}
+						}.start();
+					}
+				}
+			});
+	}
+	
+	protected void
+	checkPersistentMessages()
+	{
+		List to_check;	 
+	
+		synchronized (discussions) {
+			
+			to_check = new ArrayList( discussions.values());
+		}
+		
+		for (int i=0;i<to_check.size();i++){
+			
+			ChatDiscussion d = (ChatDiscussion)to_check.get(i);
+			
+			if ( d.checkPersistentMessages()){
+			
+				notifyListenersOfChat( d.getBuddy());
+			}
+		}
 	}
 	
 	public void
@@ -36,10 +87,12 @@ public class Chat implements VuzeBuddyMessageListener {
 		
 		ChatDiscussion result;
 		
+		boolean	check_persistent = CryptoManagerFactory.getSingleton().getECCHandler().isUnlocked();
+		
 		synchronized (discussions) {
 			result = (ChatDiscussion) discussions.get(buddy);
 			if(result == null) {
-				result = new ChatDiscussion( buddy );
+				result = new ChatDiscussion( buddy, check_persistent );
 				discussions.put(buddy,result);
 				new_chat = true;
 			}
@@ -47,7 +100,7 @@ public class Chat implements VuzeBuddyMessageListener {
 		
 		if ( new_chat ){
 			
-			notifyListenersOfNewChat( buddy);
+			notifyListenersOfChat( buddy);
 		}
 	}
 	
@@ -58,10 +111,12 @@ public class Chat implements VuzeBuddyMessageListener {
 	}
 	
 	public ChatDiscussion getChatDiscussionFor(VuzeBuddy buddy) {
+		boolean	check_persistent = CryptoManagerFactory.getSingleton().getECCHandler().isUnlocked();
+
 		synchronized (discussions) {
 			ChatDiscussion result = (ChatDiscussion) discussions.get(buddy);
 			if(result == null) {
-				result = new ChatDiscussion( buddy );
+				result = new ChatDiscussion( buddy, check_persistent );
 				discussions.put(buddy,result);
 			}
 			
@@ -119,11 +174,11 @@ public class Chat implements VuzeBuddyMessageListener {
 		}
 	}
 	
-	public void notifyListenersOfNewChat(VuzeBuddy buddy ) {
+	public void notifyListenersOfChat(VuzeBuddy buddy ) {
 		synchronized (listeners) {
 			for(int i = 0 ; i < listeners.size() ; i++) {
 				ChatListener listener = (ChatListener) listeners.get(i);
-				listener.newChat(buddy);
+				listener.updatedChat(buddy);
 			}
 		}
 	}
