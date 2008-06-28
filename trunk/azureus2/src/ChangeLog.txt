@@ -8,8 +8,8 @@ CHANGE: Core  | Built-in plugins can now be disabled - it didn't work properly i
 CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
 CHANGE: UI    | Added support for rotation in Vivaldi view [Groundy]
 CHANGE: UI    | Peers view hostname column now sorts host names by the most significant part first [The 8472] 
-CHANGE: UI    | Added ability to show/hide the TabBar and ButtonBar [KNguyen]
-CHANGE: UI    | Finished fixes for the new styled dialog which are now default in Vuze/Vuze Advanced [KNguyen]
+CHANGE: UIv3  | Added ability to show/hide the TabBar and ButtonBar [KNguyen]
+CHANGE: UIv3  | Finished fixes for the new styled dialog which are now default in Vuze/Vuze Advanced [KNguyen]
 
 BUGFIX: Core  | Fixed bug which stopped downloads being stored in the chosen directory [amc1]
 BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1]
