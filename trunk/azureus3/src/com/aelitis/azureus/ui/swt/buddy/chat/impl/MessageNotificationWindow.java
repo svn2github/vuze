@@ -128,7 +128,7 @@ public class MessageNotificationWindow {
 		
 		Listener mouseUpListener = new Listener() {
 			public void handleEvent(Event arg0) {
-				avatar.doChatClicked();
+				avatar.doChatClicked(true);
 				avatar.getControl().getShell().setVisible(true);
 				avatar.getControl().getShell().setActive();
 				shell.dispose();

@@ -1036,6 +1036,10 @@ public class AvatarWidget
 	}
 	
 	public void doChatClicked() {
+		doChatClicked(false);
+	}
+	
+	public void doChatClicked(final boolean noHide) {
 		if (false == viewer.isShareMode() && false == viewer.isAddBuddyMode()) {
 			if(chatWindow == null || chatWindow.isDisposed()) {
 				if(discussion == null) {
@@ -1049,7 +1053,7 @@ public class AvatarWidget
 				});
 				
 			} else {
-				if(chatWindow.isVisible()) {
+				if(chatWindow.isVisible() || noHide) {
 					chatWindow.hide();
 				} else {
 					chatWindow.show();
