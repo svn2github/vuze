@@ -146,7 +146,7 @@ public class ChatWindow implements DiscussionListener {
 				if(text != null) {
 					Point p = label.getSize();
 					try { e.gc.setTextAntialias(SWT.ON); } catch(Exception e2) {}
-					e.gc.setBackground(ColorCache.getColor(display, 192,204,220));
+					e.gc.setBackground(ColorCache.getColor(display, 208,208,208));
 					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 10, 10);
 					e.gc.drawText(text, 3, 0);
 				}
@@ -160,7 +160,8 @@ public class ChatWindow implements DiscussionListener {
 				if(text != null) {
 					Point p = label.getSize();
 					try { e.gc.setTextAntialias(SWT.ON); } catch(Exception e2) {}
-					e.gc.setBackground(ColorCache.getColor(display, 208,208,208));
+					e.gc.setBackground(ColorCache.getColor(display, 192,204,220));
+					
 					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 10, 10);
 					e.gc.drawText(text, 3, 0);
 				}
@@ -577,6 +578,7 @@ public class ChatWindow implements DiscussionListener {
 			hideAllOthers();
 			setPosition();
 			shell.setVisible(true);
+			input.setFocus();
 			discussion.clearNewMessages();
 			avatar.getControl().redraw();
 		}
