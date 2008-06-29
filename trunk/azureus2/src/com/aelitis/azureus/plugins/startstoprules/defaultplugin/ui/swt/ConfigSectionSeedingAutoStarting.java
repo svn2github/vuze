@@ -23,8 +23,10 @@ package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -131,6 +133,16 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     Control[] controlsSeedCount = { gSeedCount };
     rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsSeedCount));
 
+    
+    // timed rotation ranking type
+    RadioParameter rparamPeer =
+        new RadioParameter(cRankType, "StartStopManager_iRankType", 
+                           StartStopRulesDefaultPlugin.RANK_PEERCOUNT);
+    Messages.setLanguageText(rparamPeer.getControl(), "ConfigView.label.seeding.rankType.peer");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    rparamPeer.setLayoutData(gridData);
+
+    new Label(cRankType, SWT.NULL);
 
     // timed rotation ranking type
     RadioParameter rparamTimed =

@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
@@ -627,8 +626,16 @@ public class DefaultRankCalculator implements Comparable {
 
 			// SeedCount and SPRatio require Scrape Results..
 			if (bScrapeResultsOk) {
-				if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
-						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds)) {
+				if ( iRankType == StartStopRulesDefaultPlugin.RANK_PEERCOUNT )
+				{
+					if(lastModifiedScrapeResultPeers > lastModifiedScrapeResultSeeds * 10)
+						newSR = 100 * lastModifiedScrapeResultPeers * 10;
+					else
+						newSR = 100 * lastModifiedScrapeResultPeers * lastModifiedScrapeResultPeers/(lastModifiedScrapeResultSeeds+1);
+				}				
+				else if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
+						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds))
+				{
 					if (lastModifiedScrapeResultSeeds < 10000)
 						newSR = 10000 - lastModifiedScrapeResultSeeds;
 					else

@@ -26,12 +26,10 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
-import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI;
-
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -42,7 +40,14 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI;
 
 /** Handles Starting and Stopping of torrents.
  *
@@ -77,6 +82,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	/** Rank completed torrents using a timed rotation of minTimeAlive */
 	public static final int RANK_TIMED = 3;
+	
+	/** Rank completed torrents using the peers count, weighted by the seeds to peers ratio */
+	public static final int RANK_PEERCOUNT = 4;
 
 	/** 
 	 * Force at least one check every period of time (in ms).  
@@ -295,7 +303,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		configModel.addIntParameter2(
 				"StartStopManager_iRankType",
 				"ConfigView.label.seeding.rankType",
-				com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO);
+				StartStopRulesDefaultPlugin.RANK_SPRATIO);
 		configModel.addIntParameter2("StartStopManager_iRankTypeSeedFallback",
 				"ConfigView.label.seeding.rankType.seed.fallback", 0);
 
