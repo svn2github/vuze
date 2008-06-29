@@ -65,7 +65,11 @@ StartServer
   StartServer()
     {
     try {
-        socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+        if (Logger.isEnabled())
+        	Logger.log(new LogEvent(LOGID, "StartServer: about to " + 
+        			"start listening on 127.0.0.1:6880"));
+    	
+    	socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
         
         state = STATE_LISTENING;    
         
