@@ -17,6 +17,7 @@ BUGFIX: Core  | Fixed bug which stopped downloads being stored in the chosen dir
 BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1]
 BUGFIX: Core  | Reopening torrents does not delete files when setting some of the already existing files to DND anymore [The 8472]
 BUGFIX: Core  | Fixed bug which prevented UPnP mappings from being successful when a SOCKS proxy was used [amc1]
+BUGFIX: UI    | Blank cells are now properly put at the bottom when sorting a table column [amc1]
 
 2008.06.16 | Vuze 3.1.0.0
 

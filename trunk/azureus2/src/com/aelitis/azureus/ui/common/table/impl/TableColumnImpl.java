@@ -1036,6 +1036,16 @@ public class TableColumnImpl
 
 		Comparable c0 = (cell0 == null) ? "" : cell0.getSortValue();
 		Comparable c1 = (cell1 == null) ? "" : cell1.getSortValue();
+		
+		// Put nulls and empty strings at bottom.
+		boolean c0_is_null = (c0 == null || c0.equals(""));
+		boolean c1_is_null = (c1 == null || c1.equals(""));
+		if (c1_is_null)  {
+			return (c0_is_null) ? 0 : -1;
+		}
+		else if (c0_is_null) {
+			return 1;
+		}
 
 		try {
 			boolean c0isString = c0 instanceof String;
@@ -1049,16 +1059,7 @@ public class TableColumnImpl
 			}
 
 			int val;
-			if (c1 == null) {
-				if (c0 == null) {
-					return 0;
-				}
-				// always place nulls at bottom
-				return -1;
-			} else if (c0 == null) {
-				// always place nulls at bottom
-				return 1;
-			} else if (c0isString && !c1isString) {
+			if (c0isString && !c1isString) {
 				val = -1;
 			} else if (c1isString && !c0isString) {
 				val = 1;
@@ -1067,10 +1068,12 @@ public class TableColumnImpl
 			}
 			return bSortAscending ? -val : val;
 		} catch (ClassCastException e) {
+			int c0_index = (cell0 == null) ? -999 : cell0.getTableRowCore().getIndex();
+			int c1_index = (cell1 == null) ? -999 : cell1.getTableRowCore().getIndex();
 			System.err.println("Can't compare " + c0.getClass().getName() + "("
-					+ c0.toString() + ") from row #" + cell0.getTableRowCore().getIndex()
+					+ c0.toString() + ") from row #" + c0_index
 					+ " to " + c1.getClass().getName() + "(" + c1.toString()
-					+ ") from row #" + cell1.getTableRowCore().getIndex()
+					+ ") from row #" + c1_index
 					+ " while sorting column " + sName);
 			e.printStackTrace();
 			return 0;
@@ -1197,6 +1200,7 @@ public class TableColumnImpl
 		return bPreferredWidthAuto;
 	}
 
+    //  dead
 	public void setPreferredWidthMax(int maxprefwidth) {
 		iPreferredWidthMax = maxprefwidth;
 		if (iPreferredWidth > iPreferredWidthMax) {
@@ -1204,6 +1208,7 @@ public class TableColumnImpl
 		}
 	}
 
+    //  dead
 	public int getPreferredWidthMax() {
 		return iPreferredWidthMax;
 	}
