@@ -11,10 +11,14 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyMessageListener;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.LoginInfoManager;
 
@@ -104,9 +108,9 @@ public class Chat implements VuzeBuddyMessageListener {
 		}
 	}
 	
-	public void messageRecieved(VuzeBuddy buddy, String senderPK, String namespace, Map message) {
+	public void messageRecieved(VuzeBuddy buddy, String senderPK, String namespace, long sentAt, Map message) {
 		if(namespace.equals("chat")) {
-			messageReceived(buddy, senderPK, message);
+			messageReceived(buddy, senderPK, sentAt, message);
 		}
 	}
 	
@@ -124,9 +128,10 @@ public class Chat implements VuzeBuddyMessageListener {
 		}
 	}
 	
-	public void messageReceived(VuzeBuddy from,String fromPK, Map message) {
+	public void messageReceived(VuzeBuddy from,String fromPK, long sentAt, Map message) {
 		String text = new String((byte[])message.get("text"));
-		long originalTimeStamp = ((Long)message.get("timestamp")).longValue();
+		long originalTimeStamp = sentAt; // ((Long)message.get("timestamp")).longValue();
+		// System.out.println( "chat msg: recv=" + sentAt + ",sent=" + ((Long)message.get("timestamp")).longValue());
 		if(text != null) {
 			ChatDiscussion discussion = getChatDiscussionFor(from);
 			ChatMessage localMessage = new ChatMessage(fromPK,originalTimeStamp,SystemTime.getCurrentTime(),from.getDisplayName(),text);
@@ -149,6 +154,11 @@ public class Chat implements VuzeBuddyMessageListener {
 				try {
 					Map message = new HashMap();
 					long timeStamp = SystemTime.getCurrentTime();
+					
+						// try and use a reasonable originating timestamp
+					
+					timeStamp -= AzureusCoreFactory.getSingleton().getInstanceManager().getClockSkew();
+					
 					message.put("timestamp", new Long(timeStamp));
 					message.put("text", text);
 					to.sendBuddyMessage("chat", message);

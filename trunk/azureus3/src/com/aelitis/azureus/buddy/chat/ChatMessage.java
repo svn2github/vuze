@@ -86,6 +86,11 @@ public class ChatMessage {
 		return timestamp;
 	}
 
+	public long getOriginatorTimestamp()
+	{
+		return originalTimeStamp;
+	}
+	
 	public String getSender() {
 		return sender;
 	}

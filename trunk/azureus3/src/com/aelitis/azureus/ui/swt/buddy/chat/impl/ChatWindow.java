@@ -9,7 +9,6 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -25,7 +24,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -37,6 +35,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
@@ -438,7 +437,7 @@ public class ChatWindow implements DiscussionListener {
 		FormData data;
 		
 		Label name = null;
-		Label time = new Label(messageHolder,SWT.NONE);
+		Label time_lab = new Label(messageHolder,SWT.NONE);
 		
 		String sender = message.getSender();
 		if(sender != null) {
@@ -459,15 +458,21 @@ public class ChatWindow implements DiscussionListener {
 			lastSender = sender;
 		}
 		
+		long time = message.getOriginatorTimestamp();
 		
-		time.setText(dateFormater.format(new Date(message.getTimestamp())));
+		if ( time > SystemTime.getCurrentTime()){
+		
+			 time = SystemTime.getCurrentTime();
+		}
+		
+		time_lab.setText(dateFormater.format(new Date(time)));
 		data = new FormData();
 		if(name != null) {
 			data.top = new FormAttachment(name,1);
 		}
 		data.right = new FormAttachment(100,0);
-		time.setLayoutData(data);
-		time.setFont(timeFont);
+		time_lab.setLayoutData(data);
+		time_lab.setFont(timeFont);
 		
 		Link text = new Link(messageHolder,SWT.WRAP);
 		text.setBackground(messageHolder.getBackground());
@@ -478,7 +483,7 @@ public class ChatWindow implements DiscussionListener {
 		text.setText(msg);
 		data = new FormData();
 		data.left = new FormAttachment(0,3);
-		data.right = new FormAttachment(time,-3);
+		data.right = new FormAttachment(time_lab,-3);
 		if(name != null) {
 			data.top = new FormAttachment(name,0);
 		}

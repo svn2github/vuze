@@ -29,5 +29,11 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
  */
 public interface VuzeBuddyMessageListener
 {
-	public void messageRecieved(VuzeBuddy buddy, String originatorPK, String namespace, Map message);
+	public void 
+	messageRecieved(
+		VuzeBuddy 			buddy, 
+		String 				originatorPK, 
+		String 				namespace,
+		long				sent_at,
+		Map 				message);
 }
