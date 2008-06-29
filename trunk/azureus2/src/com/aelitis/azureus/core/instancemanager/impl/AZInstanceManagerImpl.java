@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
@@ -60,6 +61,7 @@ import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 import com.aelitis.azureus.core.util.NetUtils;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
 import com.aelitis.net.udp.mc.MCGroupFactory;
@@ -260,6 +262,26 @@ AZInstanceManagerImpl
 				}
 			}
 		}.start();
+	}
+	
+	public long 
+	getClockSkew() 
+	{
+		try{
+		    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+	    		    
+		    if ( dht_pi != null ){
+	    	
+		    	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
+		    	
+		    	return( dht.getClockSkew());
+		    }
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+	    return( 0 );
 	}
 	
 	public void

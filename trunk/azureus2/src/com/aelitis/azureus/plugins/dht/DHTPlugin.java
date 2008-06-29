@@ -157,6 +157,8 @@ DHTPlugin
 	
 	private List				listeners	= new ArrayList();
 	
+	private long				start_mono_time = SystemTime.getMonotonousTime();
+	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -243,7 +245,7 @@ DHTPlugin
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
 		
 		final BooleanParameter	logging = config.addBooleanParameter2( "dht.logging", "dht.logging", false );
-
+		
 		config.createGroup( "dht.diagnostics.group",
 				new Parameter[]{ command, execute, logging });
 
@@ -627,6 +629,8 @@ DHTPlugin
 							dhts[i].closedownInitiated();
 						}
 					}
+					
+					saveClockSkew();
 				}
 				
 				public void
@@ -655,6 +659,8 @@ DHTPlugin
 						}
 						
 						setPluginInfo();
+						
+						saveClockSkew();
 					}
 				});
 
@@ -910,7 +916,7 @@ DHTPlugin
 				"plugin.info", 
 				reachable?"1":"0" );
 	}
-
+	
 	public boolean
 	isEnabled()
 	{
@@ -1526,6 +1532,51 @@ DHTPlugin
 		}
 		
 		return( null );
+	}
+	
+	protected long
+	loadClockSkew()
+	{
+		return( plugin_interface.getPluginconfig().getPluginLongParameter( "dht.skew", 0 ));
+	}
+	
+	protected void
+	saveClockSkew()
+	{
+		long	existing 	= loadClockSkew();
+		long	current		= getClockSkew();
+		
+		if ( Math.abs( existing - current ) > 5000 ){
+		
+			plugin_interface.getPluginconfig().setPluginParameter( "dht.skew", getClockSkew());
+		}
+	}
+	
+	public long 
+	getClockSkew() 
+	{
+		if ( dhts == null || dhts.length == 0 ){
+			
+			return( 0 );
+		}
+	
+		long uptime = SystemTime.getMonotonousTime() - start_mono_time;
+		
+		if ( uptime < 5*60*1000 ){
+			
+			return( loadClockSkew());
+		}
+		
+		long skew = dhts[0].getClockSkew();
+		
+		if ( skew > 24*60*60*1000 ){
+			
+			skew = 0;
+		}
+		
+		skew = ( skew/500 )*500;
+		
+		return( skew );
 	}
 	
 	public DHTPluginKeyStats

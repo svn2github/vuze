@@ -380,6 +380,12 @@ DHTPluginImpl
 		}
 	}
 	
+	public long
+	getClockSkew()
+	{
+		return( transport.getStats().getSkewAverage());
+	}
+	
 	public void
 	logStats()
 	{

@@ -82,6 +82,9 @@ AZInstanceManager
 	setIncludeWellKnownLANs(
 		boolean		include );
 	
+	public long
+	getClockSkew();
+	
 	public boolean
 	addInstance(
 		InetAddress			explicit_address );
