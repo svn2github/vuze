@@ -252,7 +252,7 @@ BuddyPluginBuddy
 	setVersion(
 		int		v )
 	{
-		if ( version != v ){
+		if ( version < v ){
 			
 			version = v;
 			
@@ -1360,12 +1360,16 @@ BuddyPluginBuddy
 				if ( 	!addressesEqual( ip, _ip ) ||
 						tcp_port != _tcp_port ||
 						udp_port != _udp_port ||
-						version	 != _version ){
+						version	 < _version ){
 					
 					ip				= _ip;
 					tcp_port		= _tcp_port;
 					udp_port		= _udp_port;
-					version			= _version;
+					
+					if ( version < _version ){
+					
+						version			= _version;
+					}
 					
 					details_change	= true;
 				}
