@@ -23,6 +23,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 
 /**
@@ -116,6 +117,11 @@ public class ListCellGraphic
 	}
 
 	public void doPaint(GC gc) {
+		if (gc == null || gc.isDisposed()) {
+			Debug.out("gc is null or disposed");
+			return;
+		}
+
 		if (!isShown()) {
 			return;
 		}

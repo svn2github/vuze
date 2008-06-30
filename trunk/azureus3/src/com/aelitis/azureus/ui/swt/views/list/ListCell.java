@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -111,6 +112,10 @@ public class ListCell
 
 	public void doPaint(GC gc) {
 		// TODO: Orientation
+		if (gc == null || gc.isDisposed()) {
+			Debug.out("gc is null or disposed");
+			return;
+		}
 
 		if (!isShowable()) {
 			return;

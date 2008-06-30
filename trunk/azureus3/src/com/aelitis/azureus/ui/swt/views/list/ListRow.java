@@ -238,6 +238,11 @@ public class ListRow
 	}
 
 	public void doPaint(GC gc, boolean bVisible, boolean bListCellPaint) {
+		if (gc == null || gc.isDisposed()) {
+			Debug.out("gc is null or disposed");
+			return;
+		}
+
 		// XXX Copied from TableRowImpl
 		if (bDisposed || !bVisible) {
 			return;
