@@ -782,21 +782,21 @@ public class MainWindow
 			setVisible(WINDOW_ELEMENT_FOOTER,
 					COConfigurationManager.getBooleanParameter(configID));
 
-			configID = "Buttonbar.visible";
-			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-					configID)) {
-				COConfigurationManager.setBooleanDefault(configID, true);
-			}
-			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
-					COConfigurationManager.getBooleanParameter(configID));
-
-			configID = "TabBar.visible";
-			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-					configID)) {
-				COConfigurationManager.setBooleanDefault(configID, true);
-			}
-			setVisible(WINDOW_ELEMENT_TABBAR,
-					COConfigurationManager.getBooleanParameter(configID));
+//			configID = "Buttonbar.visible";
+//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+//					configID)) {
+//				COConfigurationManager.setBooleanDefault(configID, true);
+//			}
+//			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
+//					COConfigurationManager.getBooleanParameter(configID));
+//
+//			configID = "TabBar.visible";
+//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+//					configID)) {
+//				COConfigurationManager.setBooleanDefault(configID, true);
+//			}
+//			setVisible(WINDOW_ELEMENT_TABBAR,
+//					COConfigurationManager.getBooleanParameter(configID));
 			
 			showMainWindow();
 

@@ -228,11 +228,11 @@ public class MainMenu
 								SkinConstants.VIEWID_PLUGINBAR, true);
 					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-							+ ".view.tabbar")) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-								"TabBar.visible", SkinConstants.VIEWID_TAB_BAR, true);
-					}
+//					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+//							+ ".view.tabbar")) {
+//						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
+//								"TabBar.visible", SkinConstants.VIEWID_TAB_BAR, true);
+//					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
 							+ SkinConstants.VIEWID_FOOTER)) {
@@ -241,12 +241,12 @@ public class MainMenu
 								SkinConstants.VIEWID_FOOTER, true);
 					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
-							+ SkinConstants.VIEWID_BUTTON_BAR)) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
-								+ SkinConstants.VIEWID_BUTTON_BAR, "Buttonbar.visible",
-								SkinConstants.VIEWID_BUTTON_BAR, true);
-					}
+//					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+//							+ SkinConstants.VIEWID_BUTTON_BAR)) {
+//						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+//								+ SkinConstants.VIEWID_BUTTON_BAR, "Buttonbar.visible",
+//								SkinConstants.VIEWID_BUTTON_BAR, true);
+//					}
 
 				}
 
