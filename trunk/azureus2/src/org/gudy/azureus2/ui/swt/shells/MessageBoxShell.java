@@ -1048,7 +1048,7 @@ public class MessageBoxShell
 			}
 		};
 		canvas.addListener(SWT.Paint, l);
-		if (!handleHTML) {
+		if (handleHTML) {
 			canvas.addListener(SWT.MouseMove, l);
 			canvas.addListener(SWT.MouseUp, l);
 		}
