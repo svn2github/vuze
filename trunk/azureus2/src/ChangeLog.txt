@@ -4,16 +4,16 @@ VUZE CHANGELOG
 
 2008.0x.xx | Vuze 3.1.0.1
 
-FEATURE: Core | Added Auto Starting rule to seed large swarms first; useful when many overseeded torrents are in the queue or the upload capacity is far above average
+FEATURE: Core | Added Auto Starting rule to seed large swarms first; useful when many overseeded torrents are in the queue or the upload capacity is far above average [The 8472]
 FEATURE: UIv3 | Friend Chat (double click on friend icon to chat) [Gudy]
-FEATURE: UIv3 | Friends Online Status
+FEATURE: UIv3 | Friends Online Status [Parg]
 
 CHANGE: Core  | Built-in plugins can now be disabled - it didn't work properly in earlier versions [amc1]
 CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
 CHANGE: UI    | Added support for rotation in Vivaldi view [Groundy]
 CHANGE: UI    | Peers view hostname column now sorts host names by the most significant part first [The 8472] 
-CHANGE: UIv3  | Added ability to show/hide the TabBar and ButtonBar [KNguyen]
-CHANGE: UIv3  | Finished fixes for the new styled dialog which are now default in Vuze/Vuze Advanced [KNguyen]
+CHANGE: UIv3  | Added ability to show/hide the TabBar and ButtonBar [knguyen]
+CHANGE: UIv3  | Finished fixes for the new styled dialog which are now default in Vuze/Vuze Advanced [knguyen]
 CHANGE: UIv3  | Added friend icon next to activity entry [TuxPaper]
 CHANGE: UIv3  | New plugin bar look (removed arrows, added selectable list all plugin bar views) [TuxPaper]
 
@@ -49,7 +49,7 @@ FEATURE: Plug | Added ability to add menus to status entry objects [amc1]
 FEATURE: Plug | Plugins can now open files using default application handlers [amc1]
 
 CHANGE: Core  | added "upload_only" flag to AZMP/LTEP handshakes, disconnect any uploading_only peers we don't need / that don't need us when disconnect seeds when seeding is set [The 8472]
-CHANGE: Core  | Further startup speed improvements [The 8472, amc1, parg]
+CHANGE: Core  | Further startup speed improvements [The 8472, amc1, Parg]
 CHANGE: Core  | Speedup of various file batch operations (priority changes) [amc1, The 8472]
 CHANGE: Core  | Added option to allow the removal of files linked outside the save directory when removing data [amc1]
 CHANGE: UI    | Column menu option to disable fast renaming in files view, changed fast rename to behave more like the windows explorer [The 8472]
