@@ -480,7 +480,7 @@ public class ChatWindow implements DiscussionListener {
 		text.setFont(textFont);
 		String msg = message.getMessage();
 		msg = msg.replaceAll("(?i)((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\]))", "<a href=\"mailto:$1\">$0</a>");
-		msg = msg.replaceAll("(?i)\\b(https?://[^\\s]*?)\\s", "<a href=\"$1\">$0</a>");
+		msg = msg.replaceAll("(?i)\\b(https?://[^\\s]*?)(\\s|\\]|>|\\z)", "<a href=\"$1\">$0</a>");
 		text.setText(msg);
 		data = new FormData();
 		data.left = new FormAttachment(0,3);

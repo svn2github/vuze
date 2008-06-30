@@ -275,6 +275,7 @@ public class AvatarWidget
 			public void dragOperationChanged(DropTargetEvent event) {};
 			public void dropAccept(DropTargetEvent event) {}
 			public void drop(DropTargetEvent event) {
+				isDragging = false;
 				// A drop has occurred, copy over the data
 				if (event.data == null) { // no data to copy, indicate failure in event.detail
 					event.detail = DND.DROP_NONE;
@@ -290,6 +291,21 @@ public class AvatarWidget
 					if(files.length == 1) {
 						try {
 							if(!isCreatingFile) {
+								
+								MessageBoxShell mb = new MessageBoxShell(canvas.getShell(),
+								MessageText.getString("v3.buddies.dnd.info.dialog.title"),
+								MessageText.getString("v3.buddies.dnd.info.dialog.text"),
+								new String[] {
+									MessageText.getString("v3.buddies.dnd.info.dialog.ok"),
+								},
+								0,
+								"v3.buddies.dnd.info",
+								MessageText.getString("v3.buddies.dnd.info.dialog.remember"),
+								false,
+								0);
+								
+								mb.open();
+								
 								creationPercent = 0;
 								isCreatingFile = true;
 								final File file = new File(files[0]);
@@ -511,12 +527,16 @@ public class AvatarWidget
 				 */
 
 				if (null != textLinkColor && null != textColor) {
-					if (true == nameLinkActive && true == isActivated && false == isDragging) {
+					if (true == nameLinkActive && true == isActivated) {
 						e.gc.setForeground(textLinkColor);
-						canvas.setCursor(canvas.getDisplay().getSystemCursor(
-								SWT.CURSOR_HAND));
-					} else if(false == isDragging) {
-						canvas.setCursor(null);
+						if(false == isDragging) {
+							canvas.setCursor(canvas.getDisplay().getSystemCursor(
+									SWT.CURSOR_HAND));
+						}
+					} else {
+						if(false == isDragging) {
+							canvas.setCursor(null);
+						}
 						e.gc.setForeground(textColor);
 					}
 
