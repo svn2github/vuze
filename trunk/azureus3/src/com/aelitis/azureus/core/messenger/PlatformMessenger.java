@@ -65,9 +65,9 @@ public class PlatformMessenger
 
 	public static String REPLY_RESULT = "response";
 
-	static private Map mapQueueAuthorized = new HashMap();
+	static private Map mapQueueAuthorized = new LinkedHashMap();
 
-	static private Map mapQueue = new HashMap();
+	static private Map mapQueue = new LinkedHashMap();
 
 	static private AEMonitor queue_mon = new AEMonitor(
 			"v3.PlatformMessenger.queue");
