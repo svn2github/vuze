@@ -869,7 +869,7 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if (null != shell && false == shell.isDisposed()) {
+				if ( !shell.isDisposed() && !item.isDisposed()) {
 					if (false == Constants.isOSX) {
 						if (true == shell.getMaximized()) {
 							Messages.setLanguageText(
