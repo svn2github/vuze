@@ -5,6 +5,8 @@ VUZE CHANGELOG
 2008.0x.xx | Vuze 3.1.0.1
 
 FEATURE: Core | Added Auto Starting rule to seed large swarms first; useful when many overseeded torrents are in the queue or the upload capacity is far above average
+FEATURE: UIv3 | Friend Chat (double click on friend icon to chat) [Gudy]
+FEATURE: UIv3 | Online Status
 
 CHANGE: Core  | Built-in plugins can now be disabled - it didn't work properly in earlier versions [amc1]
 CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
@@ -12,12 +14,19 @@ CHANGE: UI    | Added support for rotation in Vivaldi view [Groundy]
 CHANGE: UI    | Peers view hostname column now sorts host names by the most significant part first [The 8472] 
 CHANGE: UIv3  | Added ability to show/hide the TabBar and ButtonBar [KNguyen]
 CHANGE: UIv3  | Finished fixes for the new styled dialog which are now default in Vuze/Vuze Advanced [KNguyen]
+CHANGE: UIv3  | Added friend icon next to activity entry [TuxPaper]
+CHANGE: UIv3  | New plugin bar look (removed arrows, added selectable list all plugin bar views) [TuxPaper]
 
 BUGFIX: Core  | Fixed bug which stopped downloads being stored in the chosen directory [amc1]
 BUGFIX: Core  | Fixed bug which prevented torrent files from being moved properly [amc1]
 BUGFIX: Core  | Reopening torrents does not delete files when setting some of the already existing files to DND anymore [The 8472]
 BUGFIX: Core  | Fixed bug which prevented UPnP mappings from being successful when a SOCKS proxy was used [amc1]
+BUGFIX: UI    | Fixed bug where delete icon on toolbar was not present on OSX [TuxPaper]
 BUGFIX: UI    | Blank cells are now properly put at the bottom when sorting a table column [amc1]
+BUGFIX: UIv3  | Fixed bottom of list views not repainting properly [TuxPaper]
+BUGFIX: UIv3  | Remove type headers when switching to date sorting [TuxPaper]
+
+
 
 2008.06.16 | Vuze 3.1.0.0
 
