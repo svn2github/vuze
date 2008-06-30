@@ -6,7 +6,7 @@ VUZE CHANGELOG
 
 FEATURE: Core | Added Auto Starting rule to seed large swarms first; useful when many overseeded torrents are in the queue or the upload capacity is far above average [The 8472]
 FEATURE: UIv3 | Friend Chat (double click on friend icon to chat) [Gudy]
-FEATURE: UIv3 | Friends Online Status [Parg]
+FEATURE: UIv3 | Friends Online Status
 
 CHANGE: Core  | Built-in plugins can now be disabled - it didn't work properly in earlier versions [amc1]
 CHANGE: UI    | Create Vivaldi views for each DHT in use [Groundy]
