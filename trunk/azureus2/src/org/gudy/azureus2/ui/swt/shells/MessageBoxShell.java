@@ -552,6 +552,11 @@ public class MessageBoxShell
 			}
 		}
 
+		/*
+		 * Use a lighter blue color so it shows up better with the dark background
+		 */
+		setUrlColor(ColorCache.getColor(parent.getDisplay(), 109, 165, 255));
+
 		MouseTrackAdapter mouseAdapter = null;
 		Display display = parent.getDisplay();
 		int styledShellBorder = 6;
