@@ -139,7 +139,7 @@ public class MessageSlideShell
 	private boolean forceTimer = true;
 
 	protected Color colorURL;
-	
+
 	private Color colorFG;
 
 	private int shellWidth;
@@ -323,12 +323,22 @@ public class MessageSlideShell
 		Rectangle imgPopupBounds;
 		if (imgPopup != null) {
 			shellWidth = imgPopup.getBounds().width;
+			
+			/*
+			 * KN: The buttons at the bottom of the shell has an automatic horizontal spacing on OSX;
+			 * compensating the shellWidth so that the buttons will not overlap the image at the bottom left
+			 * of the shell
+			 */
+			if (true == Constants.isOSX) {
+				shellWidth += 30;
+			}
 			imgPopupBounds = imgPopup.getBounds();
 		} else {
 			shellWidth = SHELL_DEF_WIDTH;
 			imgPopupBounds = null;
 		}
-		Image imgIcon = popupParams.iconID <= 0 ? null : display.getSystemImage(popupParams.iconID);
+		Image imgIcon = popupParams.iconID <= 0 ? null
+				: display.getSystemImage(popupParams.iconID);
 
 		/*
 		 * If forceTimer is true then we always show the counter for auto-closing the shell;
@@ -389,7 +399,7 @@ public class MessageSlideShell
 				Debug.out(e);
 			}
 		}
-		
+
 		if (colorFG == null) {
 			colorFG = display.getSystemColor(SWT.COLOR_BLACK);
 		}
@@ -771,8 +781,8 @@ public class MessageSlideShell
 			public Point computeSize(int wHint, int hHint, boolean changed) {
 				Rectangle area = new Rectangle(0, 0, shellWidth, 5000);
 				GC gc = new GC(this);
-				GCStringPrinter sp = new GCStringPrinter(gc, popupParams.text, area, true,
-						false, SWT.WRAP | SWT.TOP);
+				GCStringPrinter sp = new GCStringPrinter(gc, popupParams.text, area,
+						true, false, SWT.WRAP | SWT.TOP);
 				sp.calculateMetrics();
 				gc.dispose();
 				Point size = sp.getCalculatedSize();
