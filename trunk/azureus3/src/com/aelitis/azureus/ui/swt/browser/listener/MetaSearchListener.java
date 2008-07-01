@@ -21,6 +21,8 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -31,11 +33,16 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
@@ -70,6 +77,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 	public static final String OP_OPEN_SEARCH_RESULTS	= "open-search-results";
 	public static final String OP_CLOSE_SEARCH_RESULTS	= "close-search-results";
+	
+	public static final String OP_LOAD_TORRENT			= "load-torrent";
 	
 	
 	public MetaSearchListener() {
@@ -688,6 +697,30 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
 			SearchResultsTabArea.closeSearchResults(decodedMap);
+		}else if(OP_LOAD_TORRENT.equals(opid)) {
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
+					: new HashMap();
+			final String id = (String) decodedMap.get("id");
+			final String torrentUrl	= (String) decodedMap.get( "torrent_url" );
+			final String referer_str	= (String) decodedMap.get( "referer_url" );
+			
+			try {
+			
+				Map headers = UrlUtils.getBrowserHeaders( referer_str );
+				
+				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
+						new URL(torrentUrl), headers );
+				
+				
+			} catch(Exception e) {
+				Map params = new HashMap();
+				params.put("id",id);
+				params.put("torrent_url",torrentUrl);
+				params.put("referer_url",referer_str);
+				params.put( "error", e.getMessage() );
+				sendBrowserMessage("metasearch", "loadTorrentFailed",params);
+			}
+				
 		}
 	}
 	
