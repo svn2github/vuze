@@ -782,21 +782,25 @@ public class MainWindow
 			setVisible(WINDOW_ELEMENT_FOOTER,
 					COConfigurationManager.getBooleanParameter(configID));
 
+			/*
+			 * KN: This code must be clened up once we decide what to do with show/hide of these elements
+			 * For now we're forcing then to be visible
+			 */
 //			configID = "Buttonbar.visible";
 //			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 //					configID)) {
 //				COConfigurationManager.setBooleanDefault(configID, true);
 //			}
-//			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
-//					COConfigurationManager.getBooleanParameter(configID));
+			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
+					true);
 //
 //			configID = "TabBar.visible";
 //			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 //					configID)) {
 //				COConfigurationManager.setBooleanDefault(configID, true);
 //			}
-//			setVisible(WINDOW_ELEMENT_TABBAR,
-//					COConfigurationManager.getBooleanParameter(configID));
+			setVisible(WINDOW_ELEMENT_TABBAR,
+					true);
 			
 			showMainWindow();
 
