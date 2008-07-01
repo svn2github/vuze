@@ -711,6 +711,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 						new URL(torrentUrl), headers );
 				
+				Map params = new HashMap();
+				params.put("id",id);
+				params.put("torrent_url",torrentUrl);
+				params.put("referer_url",referer_str);
+				sendBrowserMessage("metasearch", "loadTorrentSuccess",params);
 				
 			} catch(Exception e) {
 				Map params = new HashMap();
