@@ -79,6 +79,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_CLOSE_SEARCH_RESULTS	= "close-search-results";
 	
 	public static final String OP_LOAD_TORRENT			= "load-torrent";
+	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
 	
 	
 	public MetaSearchListener() {
@@ -726,6 +727,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				sendBrowserMessage("metasearch", "loadTorrentFailed",params);
 			}
 				
+		}else if(OP_HAS_LOAD_TORRENT.equals(opid)) {
+			Map params = new HashMap();
+			params.put("result","1");
+			sendBrowserMessage("metasearch", "hasLoadTorrent",params);
 		}
 	}
 	
