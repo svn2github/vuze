@@ -1,8 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-
-2008.0x.xx | Vuze 3.1.0.1
+2008.07.01 | Vuze 3.1.1.0
 
 FEATURE: Core | Added Auto Starting rule to seed large swarms first; useful when many overseeded torrents are in the queue or the upload capacity is far above average [The 8472]
 FEATURE: UIv3 | Friend Chat (double click on friend icon to chat) [Gudy]
@@ -25,6 +24,7 @@ BUGFIX: UI    | Fixed bug where delete icon on toolbar was not present on OSX [T
 BUGFIX: UI    | Blank cells are now properly put at the bottom when sorting a table column [amc1]
 BUGFIX: UIv3  | Fixed bottom of list views not repainting properly [TuxPaper]
 BUGFIX: UIv3  | Remove type headers when switching to date sorting [TuxPaper]
+
 
 
 2008.06.16 | Vuze 3.1.0.0
