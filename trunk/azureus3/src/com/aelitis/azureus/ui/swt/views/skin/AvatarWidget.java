@@ -304,7 +304,7 @@ public class AvatarWidget
 								false,
 								0);
 								
-								mb.open();
+								mb.open(true);
 								
 								creationPercent = 0;
 								isCreatingFile = true;
