@@ -67,18 +67,15 @@ public class FileDownloadWindow
 
 	IProgressReporter pReporter;
 
-	/**
-	 * Determines whether progress is displayed in a pop-up dialog or in the statusbar
-	 */
-	boolean suppressDialog = false;
-
 	Shell parent;
 
 	String original_url;
+
 	String decoded_url;
 
-	String 	referrer;
-	Map		request_properties;
+	String referrer;
+
+	Map request_properties;
 
 	AzureusCore _azureus_core;
 
@@ -122,11 +119,11 @@ public class FileDownloadWindow
 		this.listener = listener;
 		this.request_properties = request_properties;
 
-		try{
-			decoded_url = URLDecoder.decode( original_url, "UTF8" );
-		}catch( Throwable e ){
+		try {
+			decoded_url = URLDecoder.decode(original_url, "UTF8");
+		} catch (Throwable e) {
 			decoded_url = original_url;
-			
+
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -151,12 +148,11 @@ public class FileDownloadWindow
 		if (dirName == null)
 			return;
 
-		suppressDialog = COConfigurationManager.getBooleanParameter("suppress_file_download_dialog");
-
 		pReporter = ProgressReportingManager.getInstance().addReporter();
 		setupAndShowDialog();
 
-		downloader = TorrentDownloaderFactory.create(this, original_url, referrer, request_properties, dirName);
+		downloader = TorrentDownloaderFactory.create(this, original_url, referrer,
+				request_properties, dirName);
 		downloader.start();
 	}
 
@@ -199,7 +195,8 @@ public class FileDownloadWindow
 							if (true == pReport.isRetryAllowed()) {
 								downloader.cancel();
 								downloader = TorrentDownloaderFactory.create(
-										FileDownloadWindow.this, original_url, referrer, request_properties, dirName);
+										FileDownloadWindow.this, original_url, referrer,
+										request_properties, dirName);
 								downloader.start();
 							}
 							break;
@@ -212,13 +209,7 @@ public class FileDownloadWindow
 
 			});
 
-			/*
-			 * If the dialog is not suppressed then show it
-			 */
-			if (false == suppressDialog) {
-				ProgressReporterWindow.open(pReporter,
-						ProgressReporterWindow.AUTO_CLOSE);
-			}
+			ProgressReporterWindow.open(pReporter, ProgressReporterWindow.AUTO_CLOSE);
 		}
 	}
 
