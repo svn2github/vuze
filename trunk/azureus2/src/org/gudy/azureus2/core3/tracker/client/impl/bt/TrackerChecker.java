@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.tracker.client.impl.bt;
 import java.util.*;
 import java.net.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -61,16 +62,19 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
        
     trackers  = new HashMap();
     
-    Thread t = new AEThread("Tracker Scrape") {
-       public void runSupport() {
-        runScrapes();
-      }
-    };
-    
-    t.setDaemon(true);
-    t.setPriority(Thread.MIN_PRIORITY);
-    t.start();
-    
+    if ( !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Total Disable")){
+    	
+	    Thread t = new AEThread("Tracker Scrape") {
+	       public void runSupport() {
+	        runScrapes();
+	      }
+	    };
+	    
+	    t.setDaemon(true);
+	    t.setPriority(Thread.MIN_PRIORITY);
+	    t.start();
+    }
+  
     AEDiagnostics.addEvidenceGenerator( this );
     
     SystemTime.registerClockChangeListener( this );
