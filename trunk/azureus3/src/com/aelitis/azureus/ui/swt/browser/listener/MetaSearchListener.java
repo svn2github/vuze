@@ -716,7 +716,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put("id",id);
 				params.put("torrent_url",torrentUrl);
 				params.put("referer_url",referer_str);
-				sendBrowserMessage("metasearch", "loadTorrentSuccess",params);
+				sendBrowserMessage("metasearch", "loadTorrentCompleted",params);
 				
 			} catch(Exception e) {
 				Map params = new HashMap();
