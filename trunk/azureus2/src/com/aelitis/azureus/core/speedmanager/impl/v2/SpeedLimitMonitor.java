@@ -1081,6 +1081,21 @@ public class SpeedLimitMonitor implements PSMonitorListener
         }else if( type==SpeedManagerLimitEstimate.TYPE_UNKNOWN){
             chosenLimit = Math.max( estBytesPerSec, currMaxLimit );
             reason="unknown";
+        }else if (type==SpeedManagerLimitEstimate.TYPE_ESTIMATED ){
+        	
+        	if ( estimate.getMetricRating() >= 0.0 ){
+        		
+        			// things looking good, this is just a new limit estimate and shouldn't
+        			// affect the actual limit in force 
+        		
+           		return( currMaxLimit );
+
+        	}else{
+        		
+        		chosenLimit = estBytesPerSec;
+        		reason = "estimate and bad metric";
+         	}
+        	
         }else{            
             //chose ping mapper.
             chosenLimit = estBytesPerSec;
