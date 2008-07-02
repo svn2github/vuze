@@ -153,7 +153,7 @@ public class HSLColor {
 
 
 
-  public void greyscale() {
+  private void greyscale() {
     initRGBbyHSL(UNDEFINED, 0, pLum);
   }
 
@@ -213,7 +213,7 @@ public class HSLColor {
     return pRed;
   }
 
-  public void setRed(int iNewValue) {
+  private void setRed(int iNewValue) {
     initHSLbyRGB(iNewValue, pGreen, pBlue);
   }
 
@@ -223,7 +223,7 @@ public class HSLColor {
     return pGreen;
   }
 
-  public void setGreen(int iNewValue) {
+  private void setGreen(int iNewValue) {
     initHSLbyRGB(pRed, iNewValue, pBlue);
   }
 
@@ -233,7 +233,7 @@ public class HSLColor {
     return pBlue;
   }
 
-  public void setBlue(int iNewValue) {
+  private void setBlue(int iNewValue) {
     initHSLbyRGB(pRed, pGreen, iNewValue);
   }
 
@@ -245,7 +245,7 @@ public class HSLColor {
 
   // --
 
-  public void reverseLight() {
+  private void reverseLight() {
     setLuminence(HSLMAX - pLum);
   }
 

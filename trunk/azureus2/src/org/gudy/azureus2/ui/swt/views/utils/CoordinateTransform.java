@@ -27,13 +27,13 @@ public class CoordinateTransform
 		{
 			return (int)(Math.round(offsetY+y*scaleY));
 		}
-		
-		public int w(int w)
+
+        private int w(int w)
 		{
 			return (int)Math.round(w*scaleX);
 		}		
-		
-		public int h(int h)
+
+        private int h(int h)
 		{
 			return (int)Math.ceil(h*scaleY);
 		}
@@ -56,8 +56,8 @@ public class CoordinateTransform
 			offsetX += x*scaleX;
 			offsetY += y*scaleY;
 		}
-		
-		public void calcFromDimensions(int internalWidth, int internalHeight, int marginLeft, int marginRight, int marginTop, int marginBottom, boolean leftToRight, boolean topDown)
+
+        private void calcFromDimensions(int internalWidth, int internalHeight, int marginLeft, int marginRight, int marginTop, int marginBottom, boolean leftToRight, boolean topDown)
 		{
 			shiftExternal(leftToRight ? 0 : extWidth,topDown ? 0 : extHeight);
 			scale(leftToRight ? 1.0 : -1.0, topDown ? 1.0 : -1.0);

@@ -35,7 +35,6 @@ public class IpCheckerWizard extends Wizard {
   IpSetterCallBack callBack;
   
   ExternalIPCheckerService selectedService;
-  String detectedIp;
   
   public IpCheckerWizard(AzureusCore azureus_core,Display display) {
     super(azureus_core, "ipCheckerWizard.title");

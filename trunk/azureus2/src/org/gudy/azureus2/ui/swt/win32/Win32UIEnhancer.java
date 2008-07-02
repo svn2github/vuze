@@ -61,7 +61,7 @@ public class Win32UIEnhancer
 		return null;
 	}
 
-	public static ImageData getBigImageData(String extension) {
+    private static ImageData getBigImageData(String extension) {
 		String key = findProgramKey(extension);
 		if (key == null) {
 			return null;

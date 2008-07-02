@@ -80,10 +80,6 @@ public class Wizard {
 		this(azureus_core, keyTitle, false);
 	}
 
-	public Wizard(AzureusCore azureus_core) {
-		this(azureus_core, false);
-	}
-
   public 
   Wizard(
   	AzureusCore		_azureus_core,
