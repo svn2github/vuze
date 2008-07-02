@@ -14,25 +14,33 @@ import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.internal.Callback;
-import org.eclipse.swt.internal.carbon.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.internal.carbon.AEDesc;
+import org.eclipse.swt.internal.carbon.CFRange;
+import org.eclipse.swt.internal.carbon.EventRecord;
+import org.eclipse.swt.internal.carbon.HICommand;
+import org.eclipse.swt.internal.carbon.OS;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
+import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.apple.cocoa.application.NSApplication;
 
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
@@ -616,5 +624,25 @@ public class CarbonUIEnhancer {
 			return OS.noErr;
 		}
 	};
+	
+	/**
+	 * If the application is not active causes the application icon at the bottom to bounce until the application becomes active
+	 * If the application is already active then this method does nothing.
+	 * 
+	 * type can be any one of the NSApplication.UserAttentionxxx constants
+	 * 
+	 * Note: This is an undocumented feature from Apple so it's behavior may change without warning
+	 * 
+	 * @param type
+	 * @return
+	 */
+	public static int bounceIcon(int type){
+		if(Constants.isOSX){
+			NSApplication app = NSApplication.sharedApplication();
+			return app.requestUserAttention(type);
+		}
+		
+		return -1;
+	}
    
 }
