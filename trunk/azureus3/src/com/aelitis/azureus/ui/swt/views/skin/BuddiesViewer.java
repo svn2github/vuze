@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
+import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -44,6 +45,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
+import com.apple.cocoa.application.NSApplication;
 
 public class BuddiesViewer
 	extends SkinView
@@ -170,7 +172,14 @@ public class BuddiesViewer
 									//boolean isVisible = BuddiesViewer.this.isEnabled();
 									//avatarWidget.isChatWindowVisible();
 									if (!isVisible) {
+
 										new MessageNotificationWindow(avatarWidget, message);
+										
+										/*
+										 * Bounce the application icon to get the user's attention;
+										 * only available on osx
+										 */
+										CarbonUIEnhancer.bounceIcon(NSApplication.UserAttentionRequestCritical);
 									}
 
 								}
