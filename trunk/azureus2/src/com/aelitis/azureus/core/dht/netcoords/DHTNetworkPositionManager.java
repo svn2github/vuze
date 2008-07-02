@@ -72,7 +72,12 @@ DHTNetworkPositionManager
 	startUp(
 		DHTNetworkPositionProvider	provider )
 	{
-		byte[] data = storage_adapter.getStorageForKey( "NPP:" + provider.getPositionType());
+		byte[] data = null;
+		
+		if ( storage_adapter != null ){
+			
+			data = storage_adapter.getStorageForKey( "NPP:" + provider.getPositionType());
+		}
 		
 		if ( data == null ){
 			
