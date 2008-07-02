@@ -45,7 +45,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
-import com.apple.cocoa.application.NSApplication;
+//import com.apple.cocoa.application.NSApplication;
 
 public class BuddiesViewer
 	extends SkinView
@@ -179,7 +179,10 @@ public class BuddiesViewer
 										 * Bounce the application icon to get the user's attention;
 										 * only available on osx
 										 */
-										CarbonUIEnhancer.bounceIcon(NSApplication.UserAttentionRequestCritical);
+										//TODO Khai : this is likely going to bork the windows build ...
+										//You should also avoid having the NSapplication in it (commented at top of the class)
+										// -- Olivier C.
+										//CarbonUIEnhancer.bounceIcon(NSApplication.UserAttentionRequestCritical);
 									}
 
 								}
