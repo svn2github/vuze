@@ -1073,7 +1073,7 @@ public class AvatarWidget
 				});
 				
 			} else {
-				if(chatWindow.isVisible() && noHide) {
+				if(chatWindow.isVisible() && !noHide) {
 					chatWindow.hide();
 				} else {
 					chatWindow.show();
