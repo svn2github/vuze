@@ -21,10 +21,11 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
-import org.gudy.azureus2.ui.swt.osx.CarbonUIEnhancer;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -45,7 +46,6 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
-//import com.apple.cocoa.application.NSApplication;
 
 public class BuddiesViewer
 	extends SkinView
@@ -174,15 +174,13 @@ public class BuddiesViewer
 									if (!isVisible) {
 
 										new MessageNotificationWindow(avatarWidget, message);
-										
+
 										/*
-										 * Bounce the application icon to get the user's attention;
-										 * only available on osx
+										 * KN: MessageNotificationWindow above should really be moved into requestUserAttention()
+										 * so it can be handled in a platform-specific way if need be
 										 */
-										//TODO Khai : this is likely going to bork the windows build ...
-										//You should also avoid having the NSapplication in it (commented at top of the class)
-										// -- Olivier C.
-										//CarbonUIEnhancer.bounceIcon(NSApplication.UserAttentionRequestCritical);
+										UserAlerts.requestUserAttention(
+												PlatformManager.USER_REQUEST_INFO, null);
 									}
 
 								}
@@ -192,9 +190,8 @@ public class BuddiesViewer
 					}
 				}
 			}
-			
-			public void updatedChat(VuzeBuddy buddy) 
-			{
+
+			public void updatedChat(VuzeBuddy buddy) {
 				final AvatarWidget avatarWidget = findWidget(buddy);
 				if (avatarWidget != null) {
 					avatarWidget.setChatDiscussion(chat.getChatDiscussionFor(buddy));
@@ -563,9 +560,8 @@ public class BuddiesViewer
 
 		avatarWidgets.add(avatarWidget);
 
-		
-		chat.checkBuddy( vuzeBuddy );
-		
+		chat.checkBuddy(vuzeBuddy);
+
 		return avatarWidget;
 	}
 
