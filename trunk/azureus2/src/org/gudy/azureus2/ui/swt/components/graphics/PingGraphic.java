@@ -37,10 +37,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   
   private static final int	ENTRIES	= 2000;
   
-  public static final int COLOR_AVERAGE = 0;
-  public static final int COLOR_VALUE0 = 1;
-  public static final int COLOR_VALUE1 = 2;
-  public static final int COLOR_VALUE2 = 3;
+  private static final int COLOR_AVERAGE = 0;
   
   public static Color[] colors = new Color[] {
   	Colors.grey,Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen,Colors.fadedRed };

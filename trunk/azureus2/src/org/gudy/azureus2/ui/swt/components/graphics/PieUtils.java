@@ -33,8 +33,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  *
  */
 public class PieUtils {
-  
-  public static Image computePie(Display display,int width,int height,int percent) {
+
+  private static Image computePie(Display display,int width,int height,int percent) {
     Image image = new Image(display,width,height);
     GC gcImage = new GC(image);
     gcImage.setForeground(Colors.blue);

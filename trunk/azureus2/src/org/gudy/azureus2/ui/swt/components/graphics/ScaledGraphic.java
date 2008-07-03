@@ -37,7 +37,7 @@ public class ScaledGraphic extends BackGroundGraphic {
   protected ValueFormater formater;   
   
   protected Image bufferScale;
-  protected int lastMax;
+  private int lastMax;
   
   private int update_divider_width = 0;
   

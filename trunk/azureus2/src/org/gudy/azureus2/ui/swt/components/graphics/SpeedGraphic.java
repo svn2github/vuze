@@ -404,7 +404,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     COConfigurationManager.removeParameterListener("Graphics Update",this);
   }
 
-	public int getAlpha() {
+    private int getAlpha() {
 		return alpha;
 	}
 
@@ -415,11 +415,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 		}
 	}
 
-	public boolean isAutoAlpha() {
+    private boolean isAutoAlpha() {
 		return autoAlpha;
 	}
 
-	public void setAutoAlpha(boolean autoAlpha) {
+    private void setAutoAlpha(boolean autoAlpha) {
 		this.autoAlpha = autoAlpha;
 		if (autoAlpha) {
 			setAlpha(drawCanvas.getDisplay().getCursorControl() == drawCanvas ? ALPHA_FOCUS : ALPHA_NOFOCUS);

@@ -62,14 +62,4 @@ public final class ControlUtils
         else
             return 70;
     }
-
-    /**
-     * <p>Gets the minimum height of a button in a dialog (usually for alerts)</p>
-     * <p>The size may vary between platforms, as specified by their guidelines</p>
-     * @return Height
-     */
-    public static int getDialogButtonMinHeight()
-    {
-        return 20;
-    }
 }
