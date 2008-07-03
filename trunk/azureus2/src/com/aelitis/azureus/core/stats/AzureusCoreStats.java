@@ -26,17 +26,23 @@ package com.aelitis.azureus.core.stats;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.average.Average;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 AzureusCoreStats 
 {
+	public static final int AVERAGE_PERIOD	= 1000;
+	
 	public static final String ST_ALL							= ".*";
 	
 		// DISK
@@ -220,6 +226,67 @@ AzureusCoreStats
 	static{
 		
 		addStatsDefinitions( _ST_ALL );
+		
+		AEDiagnostics.addEvidenceGenerator(
+			new AEDiagnosticsEvidenceGenerator()
+			{
+		  		public void 
+	    		generate(
+	    			IndentWriter writer ) 
+	    		{
+					writer.println( "Stats" );
+						
+					boolean	turn_on_averages = !getEnableAverages();
+
+					try{
+						writer.indent();	
+						
+						if ( turn_on_averages ){
+							
+							setEnableAverages( true );
+							
+							try{
+								Thread.sleep( AVERAGE_PERIOD * 5 );
+								
+							}catch( Throwable e ){
+							}
+						}
+												
+						Set	types = new HashSet();
+						
+						types.add( ST_ALL );
+						
+						Map	reply = getStats( types );
+						
+						Iterator	it = reply.entrySet().iterator();
+						
+						List	lines = new ArrayList();
+						
+						while( it.hasNext()){
+							
+							Map.Entry	entry = (Map.Entry)it.next();
+							
+							lines.add( entry.getKey() + " -> " + entry.getValue());
+						}
+						
+						Collections.sort( lines );
+				
+						for ( int i=0;i<lines.size();i++){
+
+							writer.println((String)lines.get(i));
+						}
+						
+					}finally{
+						
+						if ( turn_on_averages ){
+							
+							setEnableAverages( false );
+						}
+						
+						writer.exdent();
+					}
+	    		}
+			});
 	}
 	
 	private static final CopyOnWriteList	providers 	= new CopyOnWriteList();
@@ -336,7 +403,7 @@ AzureusCoreStats
 					
 					Average	average = (Average)a_entry[0];
 					
-					ave_results.put( key + ".average", new Long( average.getAverage()));
+					ave_results.put( key + ".average", new Long((long)average.getAverage()));
 				}
 			}
 						
@@ -488,7 +555,7 @@ AzureusCoreStats
 				averages = new HashMap();
 				
 				average_timer.addPeriodicEvent(
-					1000,
+					AVERAGE_PERIOD,
 					new TimerEventPerformer()
 					{
 						private Map	ave = averages;
@@ -514,32 +581,39 @@ AzureusCoreStats
 									
 									long	last_value;
 									Average	a;
+									boolean	new_average;
 									
 									Object[] a_entry = (Object[])ave.get( key );
 									
 									if ( a_entry == null ){
 	
-										a 			= Average.getInstance( 1000, 10 );
+										a 			= AverageFactory.MovingImmediateAverage( 10 );
 										last_value	= 0;
 										
 										a_entry = new Object[]{ a, value };
 										
 										ave.put( key, a_entry );
 										
-										new_averages = true;
+										new_averages = new_average = true;
 										
 									}else{
 										a			= (Average)a_entry[0];
 										last_value	= ((Long)a_entry[1]).longValue();
+										
+										new_average = false;
 									}
 									
 									if ( stats_types.get( key ) == CUMULATIVE ){
 									
-										a.addValue(((Long)value).longValue() - last_value);
+											// skip initial value as 'last_value' is invalid
 										
+										if ( !new_average ){
+										
+											a.update(((Long)value).longValue() - last_value);
+										}
 									}else{
 										
-										a.addValue(((Long)value).longValue());
+										a.update(((Long)value).longValue());
 
 									}
 									
