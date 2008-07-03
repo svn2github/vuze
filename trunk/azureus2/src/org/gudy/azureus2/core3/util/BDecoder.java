@@ -22,9 +22,13 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.util.*;
 import java.io.*;
-import java.nio.*;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A set of utility methods to decode a bencoded array of byte into a Map.
@@ -332,6 +336,10 @@ public class BDecoder
   }
 	 */
 
+	/** only create the array once per decoder instance (no issues with recursion as it's only used in a leaf method)
+	 */
+	private final char[] numberChars = new char[32];
+	
 	private long 
 	getNumberFromStream(
 		BDecoderInputStream 	dbis, 
@@ -339,16 +347,16 @@ public class BDecoder
 
 		throws IOException 
 	{
-		final char[]	chars = new char[32];
+		
 
 		int tempByte = dbis.read();
 
 		int pos = 0;
 
 		while ((tempByte != parseChar) && (tempByte >= 0)) {
-			chars[pos++] = (char)tempByte;
-			if ( pos == chars.length ){
-				throw( new NumberFormatException( "Number too large: " + new String(chars,0,pos) + "..." ));
+			numberChars[pos++] = (char)tempByte;
+			if ( pos == numberChars.length ){
+				throw( new NumberFormatException( "Number too large: " + new String(numberChars,0,pos) + "..." ));
 			}
 			tempByte = dbis.read();
 		}
@@ -365,7 +373,7 @@ public class BDecoder
 			return(0);
 		}
 
-		return( parseLong( chars, 0, pos ));
+		return( parseLong( numberChars, 0, pos ));
 	}
 
 	public static long

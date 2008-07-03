@@ -248,6 +248,10 @@ SESecurityManagerImpl
 			System.setSecurityManager(
 				new SecurityManager()
 				{
+					public void checkAccept(String host, int port) {
+						// do nothing
+					}
+					
 					public void checkRead(String file) {
 						// do nothing
 					}

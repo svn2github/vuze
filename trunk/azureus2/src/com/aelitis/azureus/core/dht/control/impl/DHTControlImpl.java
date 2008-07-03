@@ -1454,9 +1454,6 @@ DHTControlImpl
 		 */
 
 	
-	final boolean useBlocking = false;
-
-	
 	protected void lookup(final ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
 	{
 		thread_pool.run(
@@ -1489,7 +1486,7 @@ DHTControlImpl
 				// furthest away at front
 				final Set ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
 				// this handles the search concurrency
-				AESemaphore search_sem = new AESemaphore("DHTControl:search", concurrency);
+				
 				int idle_searches;
 				int active_searches;
 				int values_found;
@@ -1529,7 +1526,7 @@ DHTControlImpl
 						return;
 					}
 					
-					if (timeout > 0 && !useBlocking)
+					if (timeout > 0)
 					{
 						timeoutEvent = SimpleTimer.addEvent("DHT lookup timeout", SystemTime.getCurrentTime()+timeout, new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
@@ -1593,9 +1590,7 @@ DHTControlImpl
 					
 					handler.complete(timeout_occurred);
 					
-					if ( !useBlocking ){
-						releaseToPool();
-					}
+					releaseToPool();
 				}
 				
 				private int runningState = 1; // -1 terminated, 0 waiting, 1 running
@@ -1654,23 +1649,12 @@ DHTControlImpl
 									break;
 								}
 								
-								if(useBlocking)
-								{
-									if(!search_sem.reserve(remaining))
-									{
-										DHTLog.log("lookup: terminates - timeout");
-										timeout_occurred = true;
-										break;
-									}
-								} else if(!reserve())
+								if(!reserve())
 									break; // temporary stop, will be revived by release() or until a timeout occurs
 								
 
-							} else
-								if(useBlocking)
-									search_sem.reserve();
-								else if(!reserve())
-									break; // temporary stop, will be revived by release()*/
+							} else if(!reserve())
+								break; // temporary stop, will be revived by release()*/
 
 							try
 							{
@@ -1752,10 +1736,7 @@ DHTControlImpl
 								// never search ourselves!
 								if (router.isID(closest.getID()))
 								{
-									if(useBlocking)
-										search_sem.release();
-									else
-										release();
+									release();
 									continue;
 								}
 								final int search_level = ((Integer) level_map.get(closest)).intValue();
@@ -1808,10 +1789,7 @@ DHTControlImpl
 														if (idle_searches > 0)
 														{
 															idle_searches--;
-															if(useBlocking)
-																search_sem.release();
-															else
-																release();
+															release();
 														}
 													} else
 													{
@@ -1832,10 +1810,8 @@ DHTControlImpl
 											{
 												contacts_to_query_mon.exit();
 											}
-											if(useBlocking)
-												search_sem.release();
-											else
-												release();										}
+											release();
+										}
 									}
 
 									public void findValueReply(DHTTransportContact contact, DHTTransportValue[] values, byte diversification_type, boolean more_to_come) {
@@ -1892,10 +1868,7 @@ DHTControlImpl
 												{
 													contacts_to_query_mon.exit();
 												}
-												if(useBlocking)
-													search_sem.release();
-												else
-													release();
+												release();
 											}
 										}
 									}
@@ -1925,10 +1898,7 @@ DHTControlImpl
 											{
 												contacts_to_query_mon.exit();
 											}
-											if(useBlocking)
-												search_sem.release();
-											else
-												release();
+											release();
 										}
 									}
 									
@@ -1961,10 +1931,8 @@ DHTControlImpl
 							}
 						}
 						
-						
-						if(useBlocking || terminate)
+						if(terminate)
 							terminateLookup(false);
-
 
 					} catch (Exception e) {
 						Debug.printStackTrace(e);
@@ -1981,7 +1949,7 @@ DHTControlImpl
 				public String getDescription() {
 					return (description);
 				}
-			}, high_priority, !useBlocking);
+			}, high_priority, true);
 	}
 	
 

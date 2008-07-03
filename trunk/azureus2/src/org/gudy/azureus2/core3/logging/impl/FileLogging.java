@@ -156,13 +156,14 @@ public class FileLogging implements ILogEventListener {
 		if (!bLogToFile)
 			return;
 
-		str = format.format(new Date()) + str;
+		String dateStr = format.format(new Date()); 
 		
 		synchronized (Logger.class) {
 
 			// exception handling is done by FileWriter
 			if(logFilePrinter != null)
 			{
+				logFilePrinter.print(dateStr);
 				logFilePrinter.print(str);
 				logFilePrinter.flush();
 			}
@@ -252,7 +253,7 @@ public class FileLogging implements ILogEventListener {
 				.contains(event.logID))
 			return;
 
-		StringBuffer text = new StringBuffer();
+		StringBuffer text = new StringBuffer(event.text.length());
 		
 		text.append(event.entryType).append(" ");
 
