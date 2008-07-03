@@ -343,6 +343,7 @@ public class ClientIdentifier {
 		  assertDecodeLTEP("KTorrent 2.2.2", "-KT2210-347143496631", "KTorrent 2.2.2");
 		  //assertDecodeLTEP("", "B5546F72 72656E74 2F333037 36202020 20202020", "\uFDFFTorrent/3.0.7.6");
 		  assertDecodeLTEP("Transmission 0.96", "-TR0960-6ep6svaa61r4", "Transmission 0.95");
+		  assertDecodeLTEP("Opera 9.50", "O100634008270e29150a", "Opera 9.50");
 		  System.out.println("");
 		  
 		  System.out.println("Testing common clients:");

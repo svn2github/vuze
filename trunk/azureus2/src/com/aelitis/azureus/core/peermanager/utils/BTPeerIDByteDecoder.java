@@ -538,6 +538,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("BitsOnWheels", "-BOWP05-EPICNZOGQPHP"); // Seen in the wild - no idea what version that's meant to be - a pre-release?
 		assertDecode("Burst! 1.1.3", "Mbrst1-1-32e3c394b43");
 		assertDecode("Opera (Build 7685)", "OP7685f2c1495b1680bf");
+		assertDecode("Opera (Build 10063)", "O100634008270e29150a");
 		assertDecode("Rufus 0.6.9", "00455253 416E6F6E 796D6F75 7382BE42 75024AE3");
 		assertDecode("BitTorrent DNA 1.0", "444E413031303030DD01C9B2DA689E6E02803E91");
 		assertDecode("BTuga Revolution 2.1", "BTM21abcdefghijklmno");

@@ -358,10 +358,15 @@ public class BTPeerIDByteDecoderDefinitions {
 		// DNA01000 becomes version 1.0 - we'll ignore the other digits for now.
 		client = addSimpleClient("BitTorrent DNA", "DNA");
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2, 4);
-		
+
+		// Pre build 10000 versions.
 		client = addSimpleClient("Opera", "OP");
 		addVersionedClient(client, VER_BLOCK, 4, " (Build %s)");
-		
+
+		// Post build 10000 versions.
+		client = addSimpleClient("Opera", "O");
+		addVersionedClient(client, VER_BLOCK, 5, " (Build %s)");
+
 		client = addSimpleClient("Burst!", "Mbrst");
 		addVersionedClient(client, VER_DOTTED_BLOCK, 5); // 3 version components, 5 chars which describe it
 		
