@@ -30,6 +30,8 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.PluginManagerDefaults;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -199,6 +201,21 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		plugin_interface.getPluginProperties().setProperty("plugin.version", "1.0");
 		plugin_interface.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
+		
+		// Check to see if the RunEverythingPlugin is setup to override and disable this
+		// one (it currently disables the plugin through PluginManagerDefaults). If not,
+		// but it is disabled through the config, then we need to do something...
+		if (PluginManager.getDefaults().isDefaultPluginEnabled(PluginManagerDefaults.PID_START_STOP_RULES)) {
+			String enabled_param = "PluginInfo." + plugin_interface.getPluginID() + ".enabled"; 
+			if (!plugin_interface.getPluginconfig().getUnsafeBooleanParameter(enabled_param, true)) {
+				plugin_interface.getLogger().getChannel("StartStopRulesInit").logAlert(LoggerChannel.LT_WARNING,
+					"The Start/Stop Rules plugin was disabled - it has been re-enabled to allow " + Constants.APP_NAME +
+					" work correctly."
+				);
+				plugin_interface.getPluginconfig().setUnsafeBooleanParameter(enabled_param, true);
+			}
+		}
+		
 	}
 	
 	public void initialize(PluginInterface _plugin_interface) {
