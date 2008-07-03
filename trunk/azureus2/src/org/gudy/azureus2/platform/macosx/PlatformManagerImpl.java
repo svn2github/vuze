@@ -770,7 +770,6 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			throws PlatformManagerException {
 		try {
 			NSApplication app = NSApplication.sharedApplication();
-			app.requestUserAttention(type);
 			if (type == USER_REQUEST_INFO) {
 				app.requestUserAttention(NSApplication.UserAttentionRequestInformational);
 			} else if (type == USER_REQUEST_WARNING) {
