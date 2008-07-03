@@ -71,8 +71,9 @@ public class SWTLoginUtils
 		LightBoxBrowserWindow loginWindow = openLoginWindow(l.getOptionalMessage());
 		loginWindow.setCloseListener(new LightBoxBrowserWindow.closeListener() {
 			public void close() {
-				SimpleTimer.addEvent("cancel login wiat",
-						SystemTime.getOffsetTime(10000), new TimerEventPerformer() {
+				SimpleTimer.addEvent("cancel login wait",
+						SystemTime.getOffsetTime(l.getCancelDelay()),
+						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								loginManager.removeListener(loginInfoListener);
 								if (!loginManager.isLoggedIn()) {
@@ -118,11 +119,24 @@ public class SWTLoginUtils
 		private String message = null;
 
 		/**
+		 * The milliseconds to wait before firing off a cancel event
+		 */
+		private long cancelDelay;
+
+		/**
 		 * This will be on the SWT thread
 		 *
 		 * @since 3.0.5.3
 		 */
 		public abstract void loginComplete();
+
+		public loginWaitListener() {
+			init();
+		}
+
+		public void init() {
+			cancelDelay = 10000;
+		}
 
 		public String getOptionalMessage() {
 			if (null == message) {
@@ -133,6 +147,14 @@ public class SWTLoginUtils
 		}
 
 		public void loginCanceled() {
+		}
+
+		public long getCancelDelay() {
+			return cancelDelay;
+		}
+
+		public void setCancelDelay(long cancelDelay) {
+			this.cancelDelay = cancelDelay;
 		};
 	}
 
