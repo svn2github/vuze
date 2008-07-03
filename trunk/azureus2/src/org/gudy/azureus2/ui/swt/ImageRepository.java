@@ -133,6 +133,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/switchui.png", "cb_switch");
+		addPath("org/gudy/azureus2/ui/icons/toolbar/editcolumns.gif", "cb_editcolumns");
 
 		//Status icons
 		addPath("org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");

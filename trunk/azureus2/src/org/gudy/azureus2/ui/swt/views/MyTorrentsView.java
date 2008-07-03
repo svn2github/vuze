@@ -1551,7 +1551,7 @@ public class MyTorrentsView
       return down;
     if(itemKey.equals("share"))
       return remove;
-    return false;
+    return super.isEnabled(itemKey);
   }
 
   public void itemActivated(String itemKey) {
@@ -1595,6 +1595,7 @@ public class MyTorrentsView
       TorrentUtil.removeTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
       return;
     }
+    super.itemActivated(itemKey);
   }
   
 

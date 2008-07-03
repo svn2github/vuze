@@ -295,6 +295,12 @@ public class ManagerView extends AbstractIView implements
         	Debug.printStackTrace(e);
         }
       }
+	    
+        UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+        if (uiFunctions != null) {
+      	  uiFunctions.refreshIconBar(); // For edit columns view
+        }
+
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
@@ -330,6 +336,13 @@ public class ManagerView extends AbstractIView implements
 
 		if (itemKey.equals("remove"))
 			return true;
+		
+		if (itemKey.equals("editcolumns")) {
+			IView active_view = getActiveView();
+			if (active_view != null) {
+				return active_view.isEnabled(itemKey);
+			}
+		}
 		
 		return false;
 	}
@@ -370,6 +383,15 @@ public class ManagerView extends AbstractIView implements
 		
 		if (itemKey.equals("remove")) {
 			ManagerUtils.remove(manager, null, false, false);
+			return;
+		}
+		
+		if (itemKey.equals("editcolumns")) {
+			IView active_view = getActiveView();
+			if (active_view != null) {
+				active_view.itemActivated(itemKey);
+				return;
+			}
 		}
 	}
   

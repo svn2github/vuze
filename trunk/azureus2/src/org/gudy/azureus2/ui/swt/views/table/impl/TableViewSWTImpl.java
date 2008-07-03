@@ -1489,9 +1489,7 @@ public class TableViewSWTImpl
 
 		itemChangeTable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
-						getFocusedRow(),
-						TableStructureEventDispatcher.getInstance(sTableID));
+				showColumnEditor();
 			}
 		});
 
@@ -1547,6 +1545,12 @@ public class TableViewSWTImpl
 					});
 			}
 		}
+	}
+	
+	void showColumnEditor() {
+		new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
+				getFocusedRow(),
+				TableStructureEventDispatcher.getInstance(sTableID));		
 	}
 
 	/**

@@ -392,7 +392,7 @@ implements ShareManagerListener,
       return stop;
     if(itemKey.equals("remove"))
       return remove;
-    return false;
+    return super.isEnabled(itemKey);
   }
   
 
@@ -402,9 +402,12 @@ implements ShareManagerListener,
       return;
     }else if ( itemKey.equals( "stop" )){
     	stopSelectedShares();
+    	return;
     }else if ( itemKey.equals( "start" )){
     	startSelectedShares();
+    	return;
     }
+    super.itemActivated(itemKey);
   }
   
   private List

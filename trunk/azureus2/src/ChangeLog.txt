@@ -3,6 +3,8 @@ VUZE CHANGELOG
 
 2008.0x.xx | Vuze 3.1.1.1
 
+FEATURE: UI   | Added "Column Setup" icon to the iconbar [amc1] 
+
 
 
 2008.07.01 | Vuze 3.1.1.0

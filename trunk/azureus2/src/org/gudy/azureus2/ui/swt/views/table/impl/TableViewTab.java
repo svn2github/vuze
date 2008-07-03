@@ -60,4 +60,18 @@ public class TableViewTab extends AbstractIView
 	public Composite getComposite() {
 		return tv.getComposite();
 	}
+	
+	public void itemActivated(String itemKey) {
+		if (itemKey.equals("editcolumns")) {
+			if (tv instanceof TableViewSWTImpl) {
+				((TableViewSWTImpl)tv).showColumnEditor();
+			}
+		}
+	}
+	
+	public boolean isEnabled(String itemKey) {
+		if (itemKey.equals("editcolumns")) {return true;}
+		return false;
+	}
+		
 }
