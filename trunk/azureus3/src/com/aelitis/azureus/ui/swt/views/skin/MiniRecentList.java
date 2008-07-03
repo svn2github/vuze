@@ -20,12 +20,8 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -48,24 +44,8 @@ public class MiniRecentList
 
 	private SWTSkinObjectText skinHeaderText;
 
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-
-		SWTSkinObject soData = skinObject;
-		
-		Composite cHeaders = null;
-		SWTSkinObjectText lblCountArea = null;
-
-		skinObject = skin.getSkinObject(PREFIX + "list-headers");
-		if (skinObject != null) {
-			cHeaders = (Composite) skinObject.getControl();
-		}
-
-		skinObject = skin.getSkinObject(PREFIX + "xOfx");
-		if (skinObject instanceof SWTSkinObjectText) {
-			lblCountArea = (SWTSkinObjectText) skinObject;
-		}
 
 		skinObject = skin.getSkinObject(PREFIX + "header-text");
 		if (skinObject instanceof SWTSkinObjectText) {
@@ -83,9 +63,8 @@ public class MiniRecentList
 			});
 		}
 
-		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, soData, PREFIX, TorrentListView.VIEW_RECENT_DOWNLOADED,
-				true, false);
+		view = new TorrentListView(this, PREFIX,
+				TorrentListView.VIEW_RECENT_DOWNLOADED, true, false);
 
 		if (skinHeaderText != null) {
 			view.addListener(new TorrentListViewListener() {

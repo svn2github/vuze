@@ -57,7 +57,7 @@ public class SearchResultsTabArea
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(SkinConstants.VIEWID_BROWSER_SEARCHRESULTS);
 
@@ -184,7 +184,7 @@ public class SearchResultsTabArea
 			SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
 			if (tab != null) {
 				tabSetMain.setActiveTab(tab);
-				view = (SearchResultsTabArea) SkinViewManager.get(SearchResultsTabArea.class);
+				view = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
 				if (view == null) {
 					return null;
 				}

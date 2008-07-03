@@ -166,8 +166,8 @@ public class SharePage
 		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.container.bg");
 
-		buddiesViewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
-		buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+		buddiesViewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 
 		createFirstPanel();
 		createBrowserPanel();
@@ -887,7 +887,7 @@ public class SharePage
 		/*
 		 * Setting the button bar to Share mode
 		 */
-		ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+		ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.share_mode);
 		}

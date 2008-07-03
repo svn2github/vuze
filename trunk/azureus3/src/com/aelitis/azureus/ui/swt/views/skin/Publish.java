@@ -35,20 +35,14 @@ public class Publish
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
-	public Object showSupport(final SWTSkinObject skinObject, Object params) {
-		browserSkinObject = (SWTSkinObjectBrowser) skinObject.getSkin().getSkinObject(SkinConstants.VIEWID_BROWSER_PUBLISH);
+	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
+				SkinConstants.VIEWID_BROWSER_PUBLISH, soMain);
 
 		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
 				+ Constants.URL_SUFFIX;
 		browserSkinObject.setURL(sURL);
 
 		return null;
-	}
-
-	/**
-	 * 
-	 */
-	public void restart() {
-		browserSkinObject.restart();
 	}
 }

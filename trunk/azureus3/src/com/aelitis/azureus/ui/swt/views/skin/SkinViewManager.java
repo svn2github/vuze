@@ -33,20 +33,28 @@ public class SkinViewManager
 
 	private static Map skinViews = new HashMap();
 
+	private static Map skinIDs = new HashMap();
+	
 	/**
 	 * @param key
 	 * @param skinView
 	 */
 	public static void add(SkinView skinView) {
 		skinViews.put(skinView.getClass(), skinView);
+		if (skinView.getMainSkinObject() != null) {
+			skinIDs.put(skinView.getMainSkinObject().getSkinObjectID(), skinView);
+		}
 	}
 
 	/**
 	 * @param string
 	 * @return
 	 */
-	public static SkinView get(Class cla) {
+	public static SkinView getByClass(Class cla) {
 		return (SkinView) skinViews.get(cla);
 	}
 
+	public static SkinView getBySkinObjectID(String id) {
+		return (SkinView) skinIDs.get(id);
+	}
 }

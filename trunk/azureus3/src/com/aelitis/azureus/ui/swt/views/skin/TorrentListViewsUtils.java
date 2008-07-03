@@ -87,9 +87,9 @@ public class TorrentListViewsUtils
 
 	public static final boolean ENABLE_ON_HOVER = false;
 
-	public static SWTSkinButtonUtility addShareButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addShareButton(final SkinView skinView,
 			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "send-selected");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "send-selected");
 		if (skinObject == null) {
 			return null;
 		}
@@ -111,9 +111,9 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static SWTSkinButtonUtility addNewTagButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addNewTagButton(final SkinView skinView,
 			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "newtag");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "newtag");
 		if (skinObject == null) {
 			return null;
 		}
@@ -135,9 +135,9 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static SWTSkinButtonUtility addStopButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addStopButton(final SkinView skinView,
 			String PREFIX, final TorrentListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "stop");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "stop");
 		if (skinObject == null) {
 			return null;
 		}
@@ -187,9 +187,9 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static SWTSkinButtonUtility addDetailsButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addDetailsButton(final SkinView skinView,
 			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "viewdetails");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "viewdetails");
 		if (skinObject == null) {
 			return null;
 		}
@@ -242,9 +242,9 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static SWTSkinButtonUtility addCommentsButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addCommentsButton(final SkinView skinView,
 			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "comment");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "comment");
 		if (skinObject == null) {
 			return null;
 		}
@@ -270,13 +270,13 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static SWTSkinButtonUtility addPlayButton(final SWTSkin skin,
+	public static SWTSkinButtonUtility addPlayButton(final SkinView skinView,
 			String PREFIX, final ListView view, boolean bOnlyIfMediaServer,
 			boolean bPlayOnDoubleClick) {
 
 		debugDCAD("enter - addPlayButton");
 
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "play");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "play");
 		if (skinObject == null) {
 			return null;
 		}
@@ -418,9 +418,9 @@ public class TorrentListViewsUtils
 	 *
 	 * @since 3.0.4.3
 	 */
-	public static SWTSkinButtonUtility addColumnSetupButton(SWTSkin skin,
+	public static SWTSkinButtonUtility addColumnSetupButton(SkinView skinView,
 			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "columnsetup");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "columnsetup");
 		if (skinObject == null) {
 			return null;
 		}
@@ -438,9 +438,12 @@ public class TorrentListViewsUtils
 		return btn;
 	}
 
-	public static SWTSkinButtonUtility addDeleteButton(SWTSkin skin,
+	public static SWTSkinButtonUtility addDeleteButton(SkinView skinView,
 			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skin.getSkinObject(PREFIX + "delete");
+		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "delete");
+		if (skinObject == null) {
+			return null;
+		}
 
 		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 

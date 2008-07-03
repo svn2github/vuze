@@ -20,18 +20,13 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 
@@ -45,36 +40,16 @@ import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 public class ManageDlList
 	extends SkinView
 {
-	private SWTSkinObjectText lblCountArea;
-
 	private String PREFIX = "manage-dl-";
 
 	private TorrentListView view;
 
-
 	private SWTSkinObjectText statusObject;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		final SWTSkin skin = skinObject.getSkin();
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-		
-		SWTSkinObject soData = skinObject;
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		Composite cHeaders = null;
-
-		skinObject = skin.getSkinObject(PREFIX + "list-headers");
-		if (skinObject != null) {
-			cHeaders = (Composite) skinObject.getControl();
-		}
-
-		skinObject = skin.getSkinObject(PREFIX + "titlextra");
-		if (skinObject instanceof SWTSkinObjectText) {
-			lblCountArea = (SWTSkinObjectText) skinObject;
-		}
-
-		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, soData, PREFIX, TorrentListView.VIEW_DOWNLOADING,
+		view = new TorrentListView(this, PREFIX, TorrentListView.VIEW_DOWNLOADING,
 				false, true);
 
 

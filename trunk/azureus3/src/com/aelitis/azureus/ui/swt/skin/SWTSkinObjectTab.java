@@ -34,7 +34,7 @@ public class SWTSkinObjectTab
 	SWTSkinObject activeWidgetsParent;
 
 	SWTSkinTabSet tabset;
-
+	
 	public SWTSkinObjectTab(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, parent);
@@ -46,7 +46,7 @@ public class SWTSkinObjectTab
 		return sIDs;
 	}
 
-	public SWTSkinObject[] getActiveWidgets() {
+	public SWTSkinObject[] getActiveWidgets(boolean create) {
 		if (activeWidgets == null) {
 
 			String[] sIDs = getActiveWidgetIDs();
@@ -58,6 +58,18 @@ public class SWTSkinObjectTab
 					//							+ activeWidgetsParent);
 					SWTSkinObject skinObject = getSkin().getSkinObjectByID(sIDs[i],
 							activeWidgetsParent);
+
+					if (skinObject == null && create) {
+						SWTSkinObject soParent = skin.getSkinObjectByID(
+								properties.getStringValue(getConfigID() + ".contentarea",
+										(String) null), activeWidgetsParent);
+						if (soParent != null) {
+							skinObject = skin.createSkinObject(sIDs[i], sIDs[i], soParent);
+							skin.layout();
+							skin.getShell().layout(true, true);
+						}
+					}
+
 					if (skinObject != null) {
 						skinObjectArray.add(skinObject);
 					}

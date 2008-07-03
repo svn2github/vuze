@@ -78,7 +78,7 @@ public class SWTSkinObjectContainer
 			System.out.println("linkIDtoParent: Create Composite " + sID + " on "
 					+ createOn);
 			parentComposite = new Group(createOn, style);
-			((Group) parentComposite).setText(sConfigID);
+			((Group) parentComposite).setText(sConfigID == null ? sID : sConfigID);
 			parentComposite.setData("DEBUG", "1");
 		} else {
 			// Lovely SWT has a default size of 64x64 if no children have sizes.

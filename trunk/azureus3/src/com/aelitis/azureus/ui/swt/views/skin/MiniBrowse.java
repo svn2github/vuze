@@ -57,7 +57,7 @@ public class MiniBrowse
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skinObject.getSkin().getSkinObject(SkinConstants.VIEWID_BROWSER_MINI);
 		if (PULL_TABS) {
 			PlatformConfigMessenger.getBrowseSections(
@@ -168,9 +168,5 @@ public class MiniBrowse
 			}
 		}
 		cArea.getParent().layout(true, true);
-	}
-
-	public void restart() {
-		browserSkinObject.restart();
 	}
 }

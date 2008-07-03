@@ -123,7 +123,7 @@ public class ListView
 
 	private ListRow rowFocused = null;
 
-	private final String sTableID;
+	private String sTableID;
 
 	/** Queue added datasources and add them on refresh */
 	private List dataSourcesToAdd = new ArrayList(4);
@@ -169,7 +169,7 @@ public class ListView
 
 	private ArrayList listenersKey = new ArrayList();
 
-	private final int style;
+	private int style;
 
 	private Composite listParent;
 
@@ -233,6 +233,8 @@ public class ListView
 
 	private TimerEvent timerEventProcessDS;
 
+	private boolean syncColumnSizes = false;
+
 	static {
 		rowYPosComparator = new Comparator() {
 			public int compare(Object arg0, Object arg1) {
@@ -246,7 +248,10 @@ public class ListView
 		};
 	}
 
-	public ListView(final String sTableID, SWTSkinProperties skinProperties,
+	public ListView() {
+	}
+	
+	public void init(final String sTableID, SWTSkinProperties skinProperties,
 			Composite parent, Composite headerArea, int style) {
 		this.skinProperties = skinProperties;
 		this.sTableID = sTableID;
@@ -542,7 +547,9 @@ public class ListView
 			setupHeader(headerArea);
 		}
 
-		TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+		if (syncColumnSizes) {
+			TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+		}
 
 		initializeDefaultRowInfo();
 
@@ -3016,7 +3023,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		refreshTable(false);
+		//refreshTable(false);
 	}
 
 	// XXX This gets called a lot.  Could store location and size on 
@@ -4331,5 +4338,18 @@ public class ListView
 		}
 
 		this.bottomRowInfo = newBottomRowInfo;
+	}
+
+	public boolean getSyncColumnSizes() {
+		return syncColumnSizes;
+	}
+
+	public void setSyncColumnSizes(boolean syncColumnSizes) {
+		this.syncColumnSizes = syncColumnSizes;
+		if (syncColumnSizes) {
+			TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
+		} else {
+			TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
+		}
 	}
 }

@@ -61,6 +61,8 @@ public class ColumnControls
 
 	public static Font fontText;
 
+	List listClickAreas = new ArrayList();
+
 	public ColumnControls(String sTableID) {
 		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
@@ -69,7 +71,17 @@ public class ColumnControls
 		setMaxWidth(COLUMN_WIDTH);
 
 		display = SWTThread.getInstance().getDisplay();
-	}
+
+		ColumnImageClickArea clickArea;
+
+		clickArea = new ColumnImageClickArea(COLUMN_ID, "up", "image.torrent.up");
+		clickArea.setPosition(0, 0);
+		listClickAreas.add(clickArea);
+
+		clickArea = new ColumnImageClickArea(COLUMN_ID, "down", "image.torrent.down");
+		clickArea.setPosition(16, 0);
+		listClickAreas.add(clickArea);
+}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
@@ -80,26 +92,16 @@ public class ColumnControls
 		implements TableCellRefreshListener, TableCellDisposeListener,
 		TableCellMouseListener, TableCellVisibilityListener
 	{
-		List listClickAreas = new ArrayList();
-
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
 			cell.setMarginHeight(1);
 			cell.setMarginWidth(0);
 			cell.setFillCell(true);
 
-			ColumnImageClickArea clickArea;
-
-			clickArea = new ColumnImageClickArea(COLUMN_ID, "up", "image.torrent.up");
-			clickArea.setPosition(0, 0);
-			clickArea.addCell(cell);
-			listClickAreas.add(clickArea);
-
-			clickArea = new ColumnImageClickArea(COLUMN_ID, "down", "image.torrent.down");
-			clickArea.setPosition(16, 0);
-			clickArea.addCell(cell);
-			listClickAreas.add(clickArea);
-
+			for (Iterator iter = listClickAreas.iterator(); iter.hasNext();) {
+				ColumnImageClickArea clickArea = (ColumnImageClickArea) iter.next();
+				clickArea.addCell(cell);
+			}
 		}
 
 		public void dispose(TableCell cell) {
@@ -148,25 +150,21 @@ public class ColumnControls
 				}
 				
 
-				if (!dm.getAssumedComplete()) {
-					System.out.println("WHEE");
-  				if (fontText == null) {
-  					fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 15);
-  				}
-  				gcImage.setFont(fontText);
-  				int[] fg = cell.getForeground();
-  				gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
+				if (fontText == null) {
+					fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 15);
+				}
+				gcImage.setFont(fontText);
+				int[] fg = cell.getForeground();
+				gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
 
-  				Rectangle bounds = image.getBounds();
-  				GCStringPrinter.printString(gcImage, "" + position, bounds, true,
-  						false, SWT.BOTTOM | SWT.CENTER);
-  				gcImage.setFont(null);
+				Rectangle bounds = image.getBounds();
+				GCStringPrinter.printString(gcImage, "" + position, bounds, true,
+						false, SWT.BOTTOM | SWT.CENTER);
+				gcImage.setFont(null);
 
-  				for (Iterator iter = listClickAreas.iterator(); iter.hasNext();) {
-  					ColumnImageClickArea clickArea = (ColumnImageClickArea) iter.next();
-
-  					clickArea.drawImage(gcImage);
-  				}
+				for (Iterator iter = listClickAreas.iterator(); iter.hasNext();) {
+					ColumnImageClickArea clickArea = (ColumnImageClickArea) iter.next();
+					clickArea.drawImage(cell, gcImage);
 				}
 			} finally {
 				gcImage.dispose();

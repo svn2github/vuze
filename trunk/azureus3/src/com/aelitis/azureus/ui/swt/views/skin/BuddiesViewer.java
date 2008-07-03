@@ -228,7 +228,7 @@ public class BuddiesViewer
 			*/
 	}
 
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
 		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies-panel");
@@ -237,7 +237,7 @@ public class BuddiesViewer
 
 		if (null != viewer) {
 
-			SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
 			if (detailPanelView instanceof DetailPanel) {
 				detailPanel = ((DetailPanel) detailPanelView);
 				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);

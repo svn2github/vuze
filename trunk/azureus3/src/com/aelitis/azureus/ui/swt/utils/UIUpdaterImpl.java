@@ -100,6 +100,8 @@ public class UIUpdaterImpl
 		try {
 			if (!updateables.contains(updateable)) {
 				updateables.add(updateable);
+			} else {
+				System.out.println("WARNING: already added UIUpdatable " + updateable);
 			}
 		} finally {
 			updateables_mon.exit();

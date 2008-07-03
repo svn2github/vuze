@@ -12,7 +12,7 @@ public class Footer
 	extends SkinView
 {
 
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		/*
 		 * Nothing is done for the footer now... this is here fore future use
 		 */

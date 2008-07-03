@@ -418,8 +418,9 @@ public class VuzeBuddyManager
 
 				VuzeBuddy vuzeBuddy = (VuzeBuddy) mapPKtoVuzeBuddy.get(pk);
 				if (vuzeBuddy != null) {
-					//vuzeBuddy.setDisplayName(buddy.getName());
-					triggerChangeListener(vuzeBuddy);
+					// no need to save.. these are things like YGM marker, buddyactive,
+					// fragment rec'd, closerequest, removeconnection, etc
+					triggerChangeListener(vuzeBuddy, false);
 				} else {
 					buddyAdded(buddy);
 				}
@@ -1559,17 +1560,23 @@ public class VuzeBuddyManager
 		}
 	}
 
+	protected static void triggerChangeListener(VuzeBuddy buddy) {
+		triggerChangeListener(buddy, false);
+	}
+
 	/**
 	 * @param buddy
 	 *
 	 * @since 3.0.5.3
 	 */
-	protected static void triggerChangeListener(VuzeBuddy buddy) {
+	protected static void triggerChangeListener(VuzeBuddy buddy, boolean save) {
 		if (!buddyList.contains(buddy)) {
 			return;
 		}
 
-		saveVuzeBuddies();
+		if (save) {
+			saveVuzeBuddies();
+		}
 		Object[] listenersArray = listeners.toArray();
 		for (int i = 0; i < listenersArray.length; i++) {
 			VuzeBuddyListener l = (VuzeBuddyListener) listenersArray[i];
@@ -1600,7 +1607,7 @@ public class VuzeBuddyManager
 			return;
 		}
 
-		log("save");
+		log("save " + Debug.getCompressedStackTrace());
 		Map mapSave = new HashMap();
 		List storedBuddyList = new ArrayList();
 		mapSave.put("buddies", storedBuddyList);

@@ -20,8 +20,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -65,18 +63,10 @@ public class ManageCdList
 	private boolean bShowMyPublished = false;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		final SWTSkin skin = skinObject.getSkin();
 		core = AzureusCoreFactory.getSingleton();
 		
-		SWTSkinObject soData = skinObject;
-
-		Composite cHeaders = null;
-
-		skinObject = skin.getSkinObject(PREFIX + "list-headers");
-		if (skinObject != null) {
-			cHeaders = (Composite) skinObject.getControl();
-		}
 
 		skinObject = skin.getSkinObject(PREFIX + "titlextra");
 		if (skinObject != null) {
@@ -116,8 +106,8 @@ public class ManageCdList
 			});
 		}
 
-		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				null, soData, PREFIX, TorrentListView.VIEW_RECENT_DOWNLOADED, false, true) {
+		view = new TorrentListView(this, PREFIX,
+				TorrentListView.VIEW_RECENT_DOWNLOADED, false, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (dm == null) {
 					Debug.out("DM == null");

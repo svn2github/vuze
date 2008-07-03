@@ -18,16 +18,14 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 
@@ -45,35 +43,14 @@ extends SkinView
 
 	private SWTSkinObjectText soTitle;
 
-	private SWTSkinObject soData;
-
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		soData = skinObject;
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
-		final SWTSkin skin = skinObject.getSkin();
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-
-		Composite cData = (Composite) skinObject.getControl();
-		Composite cHeaders = null;
-		SWTSkinObjectText lblCountArea = null;
-
-		skinObject = skin.getSkinObject(PREFIX + "list-headers");
-		if (skinObject != null) {
-			cHeaders = (Composite) skinObject.getControl();
-		}
-
-		skinObject = skin.getSkinObject(PREFIX + "titlextra");
-		if (skinObject instanceof SWTSkinObjectText) {
-			lblCountArea = (SWTSkinObjectText) skinObject;
-		}
-
-		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, soData, PREFIX, TorrentListView.VIEW_MY_MEDIA, true,
-				true);
+		view = new TorrentListView(this, PREFIX, TorrentListView.VIEW_MY_MEDIA,
+				true, true);
 		
 		if (Constants.isCVSVersion()) {
-  		SWTSkinObject skinObjectTab = skin.getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
+  		SWTSkinObject skinObjectTab = getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
   		if (skinObjectTab instanceof SWTSkinObjectContainer){
   			SWTSkinObjectContainer soTab = (SWTSkinObjectContainer) skinObjectTab;
   			SWTSkinObject[] children = soTab.getChildren();

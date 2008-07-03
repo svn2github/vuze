@@ -54,7 +54,7 @@ public class ButtonBar
 
 	private int currentMode = BuddiesViewer.none_active_mode;
 
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 
 		hookBuddyCountLabel();
@@ -212,13 +212,13 @@ public class ButtonBar
 		if (shareAllBuddiesObject.isVisible()) {
 			if (false == value) {
 				shareAllBuddiesObject.switchSuffix("-disabled");
-				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.disabled_mode);
 				}
 			} else {
 				shareAllBuddiesObject.switchSuffix("");
-				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 				if (null != viewer) {
 					viewer.setMode(BuddiesViewer.share_mode);
 				}
@@ -244,7 +244,7 @@ public class ButtonBar
 		if (currentMode != mode) {
 			currentMode = mode;
 
-			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 			if (null == viewer) {
 				return;
 			}
@@ -398,7 +398,7 @@ public class ButtonBar
 
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 					if (null == viewer) {
 						return;
 					}
@@ -426,7 +426,7 @@ public class ButtonBar
 
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 
-					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+					BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 					if (null != viewer) {
 						setActiveMode(BuddiesViewer.none_active_mode);
 					}
@@ -469,14 +469,14 @@ public class ButtonBar
 	}
 
 	protected void unShareAllBuddies() {
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null != viewer) {
 			viewer.removeAllFromShare();
 		}
 	}
 
 	protected void shareAllBuddies() {
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null != viewer) {
 			viewer.addAllToShare();
 		}
@@ -505,14 +505,14 @@ public class ButtonBar
 	 * @since 3.0.5.3
 	 */
 	protected void _addBuddy() {
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.get(BuddiesViewer.class);
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null == viewer) {
 			return;
 		}
 
 		setActiveMode(BuddiesViewer.add_buddy_mode);
 
-		SkinView detailPanelView = SkinViewManager.get(DetailPanel.class);
+		SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
 		if (detailPanelView instanceof DetailPanel) {
 			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
 			detailPanel.show(true, InvitePage.PAGE_ID);

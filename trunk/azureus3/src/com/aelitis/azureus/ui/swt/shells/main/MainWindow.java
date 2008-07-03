@@ -622,10 +622,6 @@ public class MainWindow
 			if (tabSet != null) {
 				tabSet.addListener(this);
 			}
-			SWTSkinTabSet subtabSet = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
-			if (subtabSet != null) {
-				subtabSet.addListener(this);
-			}
 
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			System.out.println("pre SWTInstance init took "
@@ -1283,24 +1279,35 @@ public class MainWindow
 	private void initSkinListeners() {
 		final Map views = new HashMap();
 
+		// 3.2 TODO: Move this out of MainWindow and make it a utility class
+		//           so others can easily utilize it
+		//           OR/AND, even better, make dynamic (specify class in skin 
+		//           object properties)
+
 		// List of all views ids we use
 		views.put("minibrowse-area", MiniBrowse.class);
 		views.put("searchresults-area", SearchResultsTabArea.class);
 		views.put("minidownload-list", MiniDownloadList.class);
 		views.put("minirecent-list", MiniRecentList.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY, SBC_LibraryView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG, SBC_LibraryListView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL, SBC_LibraryListView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD, SBC_LibraryTableView.class);
 
 		views.put("browse-area", Browse.class);
 
 		views.put("manage-dl-list", ManageDlList.class);
 		views.put("manage-cd-list", ManageCdList.class);
 
-		views.put("my-media-list", MediaList.class);
+		views.put(SkinConstants.VIEWID_LIBRARY, MediaList.class);
 
 		views.put("publish-area", Publish.class);
 
-		views.put("minilibrary-list", MiniLibraryList.class);
+		views.put(SkinConstants.VIEWID_MINILIBRARY, MiniLibraryList.class);
 
-		views.put("vuzeevents-list", VuzeActivitiesView.class);
+		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
+		
+		views.put("betatab-area", com.aelitis.azureus.ui.swt.views.skin.SideBar.class);
 
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
@@ -1309,15 +1316,23 @@ public class MainWindow
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == EVENT_SHOW) {
-					Object key = skinObject.getViewID();
-					Class cla = (Class) views.get(key);
+					String viewID = skinObject.getViewID();
+					if (SkinViewManager.getBySkinObjectID(skinObject.getSkinObjectID()) != null) {
+						return null;
+					}
+					Class cla = (Class) views.get(viewID);
 					if (cla != null) {
 						try {
 							SkinView skinView = (SkinView) cla.newInstance();
+							skinView.setMainSkinObject(skinObject);
 							SkinViewManager.add(skinView);
 							skinObject.addListener(skinView);
 							skinView.eventOccured(skinObject, eventType, params);
-							views.remove(key);
+							
+							if (skinView instanceof UIUpdatable) {
+								UIUpdatable updateable = (UIUpdatable) skinView;
+								UIUpdaterFactory.getInstance().addUpdater(updateable);
+							}
 						} catch (InstantiationException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -1942,29 +1957,21 @@ public class MainWindow
 			} else if (newTabID.equals("maintabs.home")
 					&& oldTabID.equals("maintabs.home")) {
 
-				SkinView view = SkinViewManager.get(MiniBrowse.class);
-				if (view instanceof MiniBrowse) {
-					((MiniBrowse) view).restart();
-				}
+				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
 			} else if (newTabID.equals("maintabs.browse")
 					&& oldTabID.equals("maintabs.browse")) {
 
-				SkinView view = SkinViewManager.get(Browse.class);
-				if (view instanceof Browse) {
-					((Browse) view).restart();
-				}
+				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
 			} else if (newTabID.equals("maintabs.publish")
 					&& oldTabID.equals("maintabs.publish")) {
 
-				SkinView view = SkinViewManager.get(Publish.class);
-				if (view instanceof Publish) {
-					((Publish) view).restart();
-				}
+				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
 			}
 
 			if (newTabID.equals("maintabs.home")) {
 				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
 				if (tabSetLeft != null && tabSetLeft.getActiveTab() == null) {
+					tabSetLeft.addListener(this);
 					String startTab = COConfigurationManager.getStringParameter("v3.home-tab.starttab");
 
 					if (!tabSetLeft.setActiveTab(startTab)) {
@@ -1985,6 +1992,20 @@ public class MainWindow
 				skin.getSkinObjectByID("main.area.minilibrary").setVisible(true);
 			}
 			COConfigurationManager.setParameter("v3.home-tab.starttab", newTabViewID);
+		}
+	}
+
+	private void restartBrowser(SWTSkinObject[] search) {
+		if (search == null) {
+			return;
+		}
+		for (int i = 0; i < search.length; i++) {
+			SWTSkinObject so = search[i];
+			if (so instanceof SWTSkinObjectBrowser) {
+				((SWTSkinObjectBrowser) so).restart();
+			} else if (so instanceof SWTSkinObjectContainer) {
+				restartBrowser(((SWTSkinObjectContainer) so).getChildren());
+			}
 		}
 	}
 

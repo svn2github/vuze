@@ -117,7 +117,7 @@ public class InvitePage
 			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
 
 				public void handleCancel() {
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 					if (null != buttonBar) {
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}
@@ -127,7 +127,7 @@ public class InvitePage
 				}
 
 				public void handleClose() {
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 					if (null != buttonBar) {
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}

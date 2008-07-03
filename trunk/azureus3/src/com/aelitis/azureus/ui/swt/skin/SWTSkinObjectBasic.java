@@ -71,6 +71,8 @@ public class SWTSkinObjectBasic
 
 	private int borderType;
 
+	private boolean initialized = false;
+
 	/**
 	 * @param properties TODO
 	 * 
@@ -272,6 +274,10 @@ public class SWTSkinObjectBasic
 			s += "/" + sConfigID;
 		}
 
+		if (sViewID != null) {
+			s += "/v=" + sViewID;
+		}
+
 		s += ", " + type + "; parent="
 				+ ((parent == null) ? null : parent.getSkinObjectID() + "}");
 
@@ -343,8 +349,7 @@ public class SWTSkinObjectBasic
 	}
 
 	public boolean getDefaultVisibility() {
-		return properties.getStringValue(sConfigID + ".visible", "true").equalsIgnoreCase(
-				"true");
+		return properties.getBooleanValue(sConfigID + ".visible", true);
 	}
 
 	public boolean isVisible() {
@@ -492,7 +497,7 @@ public class SWTSkinObjectBasic
 			listeners_mon.exit();
 		}
 
-		if (isVisible) {
+		if (isVisible && initialized) {
 			listener.eventOccured(this, SWTSkinObjectListener.EVENT_SHOW, null);
 		}
 	}
@@ -518,11 +523,20 @@ public class SWTSkinObjectBasic
 	}
 
 	public void triggerListeners(final int eventType, final Object params) {
+		// delay show and hide events while not initialized
+		if (eventType == SWTSkinObjectListener.EVENT_SHOW
+				|| eventType == SWTSkinObjectListener.EVENT_HIDE) {
+			if (!initialized) {
+				return;
+			}
 
-		if (eventType == SWTSkinObjectListener.EVENT_SHOW && !isVisible) {
-			return;
-		} else if (eventType == SWTSkinObjectListener.EVENT_HIDE && isVisible) {
-			return;
+			if (eventType == SWTSkinObjectListener.EVENT_SHOW && !isVisible) {
+				return;
+			} else if (eventType == SWTSkinObjectListener.EVENT_HIDE && isVisible) {
+				return;
+			}
+		} else if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
+			initialized = true;
 		}
 
 		// process listeners added locally
@@ -551,6 +565,11 @@ public class SWTSkinObjectBasic
 				Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
 						+ " caused an error for listener added to skin", e);
 			}
+		}
+
+		if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
+			triggerListeners(isVisible ? SWTSkinObjectListener.EVENT_SHOW
+					: SWTSkinObjectListener.EVENT_HIDE);
 		}
 	}
 

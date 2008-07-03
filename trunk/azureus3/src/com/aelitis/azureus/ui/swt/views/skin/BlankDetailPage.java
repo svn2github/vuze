@@ -115,7 +115,7 @@ public class BlankDetailPage
 					showBusy(false, 0);
 
 					getDetailPanel().show(false);
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.get(ButtonBar.class);
+					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 					if (null != buttonBar) {
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}

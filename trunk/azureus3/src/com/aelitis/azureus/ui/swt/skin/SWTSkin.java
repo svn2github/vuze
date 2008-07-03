@@ -100,6 +100,8 @@ public class SWTSkin
 	
 	private boolean ourSkinProperties = false;
 
+	private int currentSkinObjectcreationCount = 0;
+
 	/**
 	 * 
 	 */
@@ -193,7 +195,7 @@ public class SWTSkin
 				if (existingObjects[i] != null && existingObjects[i].equals(object)) {
 					bAlreadyPresent = true;
 					System.err.println("already present: " + key + "; " + object
-							+ "; existing: " + existingObjects[i]);
+							+ "; existing: " + existingObjects[i] + " via " + Debug.getCompressedStackTrace());
 					break;
 				}
 			}
@@ -323,6 +325,10 @@ public class SWTSkin
 			// XXX Search for parent is shell directly
 			return getSkinObject(sViewID);
 		}
+		
+		if (parent.getViewID().equals(sViewID)) {
+			return parent;
+		}
 
 		return (SWTSkinObject) getFromArrayMap(mapPublicViewIDsToControls, sViewID,
 				parent);
@@ -350,7 +356,7 @@ public class SWTSkin
 			boolean bHasSkinObject = false;
 			for (int i = 0; i < tabs.length; i++) {
 				SWTSkinObjectTab tab = tabs[i];
-				SWTSkinObject[] activeWidgets = tab.getActiveWidgets();
+				SWTSkinObject[] activeWidgets = tab.getActiveWidgets(true);
 				for (int j = 0; j < activeWidgets.length; j++) {
 					SWTSkinObject object = activeWidgets[j];
 					//System.out.println("check " + tab + ";" + object + " for " + skinObjectInTab);
@@ -506,6 +512,7 @@ public class SWTSkin
 			SWTSkinLayoutCompleteListener l = (SWTSkinLayoutCompleteListener) listeners[i];
 			l.skinLayoutCompleted();
 		}
+		listenersLayoutComplete.clear();
 
 		if (DEBUGLAYOUT) {
 			System.out.println("==== End Apply Layout");
@@ -524,6 +531,10 @@ public class SWTSkin
 		Control controlToLayout = skinObject.getControl();
 
 		if (controlToLayout == null) {
+			return;
+		}
+
+		if (controlToLayout.getData("skin.layedout") != null) {
 			return;
 		}
 
@@ -748,6 +759,7 @@ public class SWTSkin
 			newFormData.height = 0;
 		}
 		controlToLayout.setLayoutData(newFormData);
+		controlToLayout.setData("skin.layedout", "");
 	}
 
 	private SWTSkinObject createContainer(SWTSkinProperties properties,
@@ -1080,14 +1092,30 @@ public class SWTSkin
 	 */
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
 			SWTSkinObject parentSkinObject) {
-		SWTSkinObject skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
-				parentSkinObject, true, true);
-		if (bLayoutComplete && skinObject != null) {
-			Control control = skinObject.getParent().getControl();
-			if (control instanceof Composite) {
-				((Composite) control).layout(true);
+		SWTSkinObject skinObject = null;
+		Cursor cursor = shell.getCursor();
+		try {
+			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+
+			boolean b = bLayoutComplete;
+			bLayoutComplete = false;
+
+			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
+					parentSkinObject, true, true);
+			if (b && skinObject != null) {
+				Control control = skinObject.getParent().getControl();
+				if (control instanceof Composite) {
+					((Composite) control).layout(true);
+				}
 			}
+			bLayoutComplete = b;
+		} catch (Exception e) {
+			Debug.out("Trying to create " + sID + "." + sConfigID + " on "
+					+ parentSkinObject, e);
+		} finally {
+			shell.setCursor(cursor);
 		}
+
 		return skinObject;
 	}
 
@@ -1132,6 +1160,8 @@ public class SWTSkin
 	private SWTSkinObject linkIDtoParent(SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bAddView) {
+		currentSkinObjectcreationCount++;
+		
 		SWTSkinObject skinObject = null;
 		try {
 			String[] sTypeParams = properties.getStringArray(sConfigID + ".type");
@@ -1227,6 +1257,12 @@ public class SWTSkin
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			currentSkinObjectcreationCount--;
+		}
+		
+		if (skinObject != null) {
+			skinObject.triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
 		}
 
 		return skinObject;
@@ -1482,5 +1518,9 @@ public class SWTSkin
 
 		System.out.println(d + ";" + then);
 
+	}
+	
+	public boolean isCreatingSO() {
+		return currentSkinObjectcreationCount > 0;
 	}
 }

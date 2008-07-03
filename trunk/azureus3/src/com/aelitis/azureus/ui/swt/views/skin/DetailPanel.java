@@ -59,7 +59,7 @@ public class DetailPanel
 
 	}
 
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
 		skin = skinObject.getSkin();
 

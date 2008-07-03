@@ -22,10 +22,12 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter;
+import com.aelitis.azureus.ui.swt.skin.*;
 
 /**
+ * Converts {@link SWTSkinObjectListener} events to method calls, and
+ * ensures we only "show" (initialize) once.
+ * 
  * @author TuxPaper
  * @created Sep 30, 2006
  *
@@ -33,23 +35,29 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter;
 public class SkinView
 	extends SWTSkinObjectAdapter
 {
-	private boolean bAlreadyInitialized;
+	private boolean shownOnce;
+
+	protected SWTSkinObject soMain;
+
+	protected SWTSkin skin;
 
 	/**
 	 * 
 	 */
 	public SkinView() {
-		bAlreadyInitialized = false;
+		shownOnce = false;
 	}
 
-	public final Object show(SWTSkinObject skinObject, Object params) {
-		if (bAlreadyInitialized) {
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		setMainSkinObject(skinObject);
+
+		if (shownOnce) {
 			return null;
 		}
 
-		bAlreadyInitialized = true;
+		shownOnce = true;
 		try {
-			return showSupport(skinObject, params);
+			return skinObjectInitialShow(skinObject, params);
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -61,7 +69,26 @@ public class SkinView
 	 * @param params
 	 * @return
 	 */
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		return null;
+	}
+
+	public SWTSkinObject getMainSkinObject() {
+		return soMain;
+	}
+
+	public void setMainSkinObject(SWTSkinObject main) {
+		soMain = main;
+		if (soMain != null) {
+			skin = soMain.getSkin();
+		}
+	}
+
+	public SWTSkin getSkin() {
+		return skin;
+	}
+
+	public SWTSkinObject getSkinObject(String viewID) {
+		return skin.getSkinObject(viewID, soMain);
 	}
 }

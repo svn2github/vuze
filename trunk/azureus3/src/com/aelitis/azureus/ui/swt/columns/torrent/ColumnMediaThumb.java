@@ -118,6 +118,10 @@ public class ColumnMediaThumb
 	 * 
 	 */
 	public ColumnMediaThumb(String sTableID, int maxThumbHeight) {
+		this(sTableID, maxThumbHeight, WIDTH);
+	}
+
+	public ColumnMediaThumb(String sTableID, int maxThumbHeight, int WIDTH) {
 		super(COLUMN_ID, sTableID);
 		this.maxThumbHeight = maxThumbHeight;
 		initializeAsGraphic(POSITION_LAST, WIDTH);
@@ -420,7 +424,7 @@ public class ColumnMediaThumb
 
 				if (cellHasMouse) {
 					clickArea.setScale(scale);
-					clickArea.drawImage(gc);
+					clickArea.drawImage(cell, gc);
 				}
 			}
 

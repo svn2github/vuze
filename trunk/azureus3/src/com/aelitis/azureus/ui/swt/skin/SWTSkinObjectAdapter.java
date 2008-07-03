@@ -23,6 +23,8 @@ package com.aelitis.azureus.ui.swt.skin;
 import org.gudy.azureus2.core3.util.Debug;
 
 /**
+ * Converts {@link SWTSkinObjectListener} events to method calls 
+ * 
  * @author TuxPaper
  * @created Sep 30, 2006
  *
@@ -30,18 +32,26 @@ import org.gudy.azureus2.core3.util.Debug;
 public class SWTSkinObjectAdapter
 	implements SWTSkinObjectListener
 {
-	public Object show(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
-	public Object hide(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
-	public Object select(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectSelected(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	private Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		return null;
+	}
+	
+	private Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		return null;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener#eventOccured(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int, java.lang.Object)
 	 */
@@ -50,13 +60,19 @@ public class SWTSkinObjectAdapter
 		try {
 			switch (eventType) {
 				case EVENT_SHOW:
-					return show(skinObject, params);
+					return skinObjectShown(skinObject, params);
 
 				case EVENT_HIDE:
-					return hide(skinObject, params);
+					return skinObjectHidden(skinObject, params);
 
 				case EVENT_SELECT:
-					return select(skinObject, params);
+					return skinObjectSelected(skinObject, params);
+					
+				case EVENT_DESTROY:
+					return skinObjectDestroyed(skinObject, params);
+
+				case EVENT_CREATED:
+					return skinObjectCreated(skinObject, params);
 
 				default:
 					return null;

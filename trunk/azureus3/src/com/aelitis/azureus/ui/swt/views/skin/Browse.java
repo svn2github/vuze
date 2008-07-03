@@ -61,12 +61,16 @@ public class Browse
 
 	private SWTSkin skin;
 
+	private SWTSkinObject soMain;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		this.soMain = skinObject;
 		skin = skinObject.getSkin();
-		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
+				SkinConstants.VIEWID_BROWSER_BROWSE, soMain);
 
 		browserSkinObject.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -75,8 +79,7 @@ public class Browse
 					SelectedContentManager.changeCurrentlySelectedContent("browse",
 							getCurrentlySelectedContent());
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent("browse",
-							null);
+					SelectedContentManager.changeCurrentlySelectedContent("browse", null);
 				}
 				return null;
 			}
@@ -253,11 +256,5 @@ public class Browse
 			}
 		}
 		cArea.getParent().layout(true);
-	}
-
-	public void restart() {
-		if (browserSkinObject != null) {
-			browserSkinObject.restart();
-		}
 	}
 }

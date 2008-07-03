@@ -35,11 +35,18 @@ public interface SWTSkinObjectListener
 	
 	public static int EVENT_DESTROY = 3;
 
+	/**
+	 * Skin Object was created.  All children are guaranteed to be created.
+	 */
+	public static int EVENT_CREATED = 4;
+
+	
 	public static String[] NAMES = {
 		"Show",
 		"Hide",
 		"Select",
 		"Destroy",
+		"Created"
 	};
 
 	/**

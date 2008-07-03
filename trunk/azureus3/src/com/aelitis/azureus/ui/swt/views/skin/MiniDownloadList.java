@@ -20,13 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.eclipse.swt.widgets.Composite;
-
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 
 /**
@@ -41,29 +35,8 @@ public class MiniDownloadList
 {
 	private static String PREFIX = "minidownload-";
 
-	private TorrentListView view;
-
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		final SWTSkin skin = skinObject.getSkin();
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-
-		SWTSkinObject soData = skinObject;
-		
-		Composite cHeaders = null;
-		SWTSkinObjectText lblCountArea = null;
-
-		skinObject = skin.getSkinObject(PREFIX + "list-headers");
-		if (skinObject != null) {
-			cHeaders = (Composite) skinObject.getControl();
-		}
-
-		skinObject = skin.getSkinObject(PREFIX + "titlextra");
-		if (skinObject instanceof SWTSkinObjectText) {
-			lblCountArea = (SWTSkinObjectText) skinObject;
-		}
-		
-		view = new TorrentListView(core, skin, skin.getSkinProperties(), cHeaders,
-				lblCountArea, soData, PREFIX, TorrentListView.VIEW_DOWNLOADING, true,
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		new TorrentListView(this, PREFIX, TorrentListView.VIEW_DOWNLOADING, true,
 				true);
 
 		return null;

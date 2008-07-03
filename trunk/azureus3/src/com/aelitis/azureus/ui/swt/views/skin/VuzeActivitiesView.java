@@ -75,8 +75,6 @@ public class VuzeActivitiesView
 
 	private boolean skipShift;
 
-	private SWTSkinButtonUtility btnAdd;
-
 	private SWTSkinButtonUtility btnStop;
 
 	private SWTSkinButtonUtility btnDelete;
@@ -100,9 +98,9 @@ public class VuzeActivitiesView
 	private SWTSkinButtonUtility btnSortByDate;
 	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object showSupport(SWTSkinObject skinObject, Object params) {
-		this.soData = skinObject;
-		final SWTSkin skin = soData.getSkin();
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		
+		soData = getSkinObject(PREFIX + "list");
 
 		soData.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -117,8 +115,9 @@ public class VuzeActivitiesView
 		});
 
 		Composite cData = (Composite) soData.getControl();
-		view = new ListView(TABLE_ID, skin.getSkinProperties(), cData, null,
-				SWT.V_SCROLL);
+		view = new ListView();
+		view.init(TABLE_ID, skin.getSkinProperties(), cData, null, SWT.V_SCROLL);
+		view.setSyncColumnSizes(false);
 		view.setRowMarginHeight(1);
 
 		skipShift = true;
@@ -175,14 +174,14 @@ public class VuzeActivitiesView
 
 		view.addDataSources(VuzeActivitiesManager.getAllEntries());
 
-		btnShare = TorrentListViewsUtils.addShareButton(skin, PREFIX, view);
-		btnTag = TorrentListViewsUtils.addNewTagButton(skin, PREFIX, view);
-		btnDetails = TorrentListViewsUtils.addDetailsButton(skin, PREFIX, view);
-		btnComments = TorrentListViewsUtils.addCommentsButton(skin, PREFIX, view);
-		btnPlay = TorrentListViewsUtils.addPlayButton(skin, PREFIX, view, false,
+		btnShare = TorrentListViewsUtils.addShareButton(this, PREFIX, view);
+		btnTag = TorrentListViewsUtils.addNewTagButton(this, PREFIX, view);
+		btnDetails = TorrentListViewsUtils.addDetailsButton(this, PREFIX, view);
+		btnComments = TorrentListViewsUtils.addCommentsButton(this, PREFIX, view);
+		btnPlay = TorrentListViewsUtils.addPlayButton(this, PREFIX, view, false,
 				true);
 
-		skinObject = skin.getSkinObject(PREFIX + "delete");
+		skinObject = getSkinObject(PREFIX + "delete");
 		if (skinObject instanceof SWTSkinObject) {
 			btnDelete = new SWTSkinButtonUtility(skinObject);
 
@@ -283,7 +282,7 @@ public class VuzeActivitiesView
 		}, true);
 		
 		
-		skinObject = skin.getSkinObject(PREFIX + "sortby-date");
+		skinObject = getSkinObject(PREFIX + "sortby-date");
 		if (skinObject != null) {
 			btnSortByDate = new SWTSkinButtonUtility(skinObject);
 			btnSortByDate.addSelectionListener(new ButtonListenerAdapter() {
@@ -300,7 +299,7 @@ public class VuzeActivitiesView
 			btnSortByDate.getSkinObject().switchSuffix("-selected", 1, false);
 		}
 
-		skinObject = skin.getSkinObject(PREFIX + "sortby-type");
+		skinObject = getSkinObject(PREFIX + "sortby-type");
 		if (skinObject != null) {
 			btnSortByType = new SWTSkinButtonUtility(skinObject);
 			btnSortByType.addSelectionListener(new ButtonListenerAdapter() {
@@ -566,7 +565,6 @@ public class VuzeActivitiesView
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
-		System.out.println("REMOVE " + entries.length);
 		view.removeDataSources(entries);
 	}
 

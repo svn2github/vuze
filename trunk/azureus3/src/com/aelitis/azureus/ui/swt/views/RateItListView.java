@@ -52,7 +52,8 @@ public class RateItListView
 	 * @param parent
 	 */
 	public RateItListView(SWTSkinProperties skinProperties, Composite parent) {
-		lv = new ListView("RateItList", skinProperties, parent, null, SWT.V_SCROLL);
+		lv = new ListView();
+		lv.init("RateItList", skinProperties, parent, null, SWT.V_SCROLL);
 
 		lv.setColumnList(new TableColumnCore[] {
 			new ColumnRate("RateItList")

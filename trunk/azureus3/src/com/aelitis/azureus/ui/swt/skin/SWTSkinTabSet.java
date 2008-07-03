@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
@@ -25,22 +26,19 @@ public class SWTSkinTabSet
 
 	private final SWTSkin skin;
 
-	private final SWTSkinProperties skinProperties;
-
 	private final String sID;
 
 	private SWTSkinObjectTab activeTab;
 
 	/** List of SWTSKinObjectTab */
 	private List tabs;
-
+	
 	private ArrayList listeners = new ArrayList();
 
 	// XXX Do we need to pass in SkinProperties in case of cloning?
 	public SWTSkinTabSet(SWTSkin skin, String sID) {
 		this.sID = sID;
 		this.skin = skin;
-		skinProperties = skin.getSkinProperties();
 		tabs = new ArrayList();
 	}
 
@@ -127,62 +125,73 @@ public class SWTSkinTabSet
 		setActiveTab(newTab, false);
 	}
 
-	private void setActiveTab(final SWTSkinObjectTab newTab, final boolean bEvenIfSame) {
+	private void setActiveTab(final SWTSkinObjectTab newTab, final boolean evenIfSame) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				// Don't exit early if we are already on tab.  We want to be notified if
-				// the user clicks on the tab again (for example, for page refreshing)
-				if (!tabs.contains(newTab)) {
-					System.err.println("No contain in " + sID + ": " + newTab);
-					return;
+				Shell shell = skin.getShell();
+				Cursor cursor = shell.getCursor();
+				try {
+					shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+					swtSetActiveTab(newTab, evenIfSame);
+				} finally {
+					shell.setCursor(cursor);
 				}
-
-				String sOldID = activeTab == null ? "" : activeTab.getSkinObjectID();
-
-				if (newTab != activeTab) {
-					SWTSkinObject[] objects = setTabVisible(newTab, true, null);
-					if (activeTab != null) {
-						setTabVisible(activeTab, false, objects);
-					}
-
-					activeTab = newTab;
-				} else if (!bEvenIfSame) {
-					return;
-				}
-
-				String sConfigID = activeTab.getConfigID();
-				String sNewID = activeTab.getSkinObjectID();
-
-				SWTSkinObject parent = skin.getSkinObject(activeTab.getProperties().getStringValue(sConfigID
-						+ ".activate"));
-				if (parent != null) {
-					parent.getControl().setFocus();
-				}
-
-				if (org.gudy.azureus2.core3.util.Constants.isOSX) {
-					boolean bHasSkinBrowser = false;
-					SWTSkinObject[] activeWidgets = activeTab.getActiveWidgets();
-					for (int i = 0; i < activeWidgets.length; i++) {
-						SWTSkinObject skinObject = activeWidgets[i];
-						if (hasSkinBrowser(skinObject)) {
-							bHasSkinBrowser = true;
-							break;
-						}
-					}
-
-					if (bHasSkinBrowser) {
-						Shell shell = activeTab.getControl().getShell();
-						Point size = shell.getSize();
-						size.x -= 1;
-						shell.setSize(size);
-						size.x += 1;
-						shell.setSize(size);
-					}
-				}
-
-				triggerChangeListener(sOldID, sNewID);
 			}
 		});
+	}
+
+	protected void swtSetActiveTab(SWTSkinObjectTab newTab, boolean evenIfSame) {
+		// Don't exit early if we are already on tab.  We want to be notified if
+		// the user clicks on the tab again (for example, for page refreshing)
+		if (!tabs.contains(newTab)) {
+			System.err.println("Not contain in " + sID + ": " + newTab);
+			return;
+		}
+
+		String sOldID = activeTab == null ? "" : activeTab.getSkinObjectID();
+
+		if (newTab != activeTab) {
+			SWTSkinObject[] objects = setTabVisible(newTab, true, null);
+			if (activeTab != null) {
+				setTabVisible(activeTab, false, objects);
+			}
+
+			activeTab = newTab;
+		} else if (!evenIfSame) {
+			return;
+		}
+
+		String sConfigID = activeTab.getConfigID();
+		String sNewID = activeTab.getSkinObjectID();
+
+		SWTSkinObject parent = skin.getSkinObject(activeTab.getProperties().getStringValue(sConfigID
+				+ ".activate"));
+		if (parent != null) {
+			parent.getControl().setFocus();
+		}
+
+		if (org.gudy.azureus2.core3.util.Constants.isOSX) {
+			boolean bHasSkinBrowser = false;
+			SWTSkinObject[] activeWidgets = activeTab.getActiveWidgets(true);
+			for (int i = 0; i < activeWidgets.length; i++) {
+				SWTSkinObject skinObject = activeWidgets[i];
+				if (hasSkinBrowser(skinObject)) {
+					bHasSkinBrowser = true;
+					break;
+				}
+			}
+
+			if (bHasSkinBrowser) {
+				Shell shell = activeTab.getControl().getShell();
+				Point size = shell.getSize();
+				size.x -= 1;
+				shell.setSize(size);
+				size.x += 1;
+				shell.setSize(size);
+			}
+		}
+
+		triggerChangeListener(sOldID, sNewID);
 	}
 
 	private boolean hasSkinBrowser(SWTSkinObject skinObject) {
@@ -249,19 +258,18 @@ public class SWTSkinTabSet
 	private SWTSkinObject[] setTabVisible(SWTSkinObjectTab tab, boolean visible,
 			SWTSkinObject[] skipObjects) {
 		String sSkinID = tab.getSkinObjectID();
-
-		SWTSkinObject swtObject = skin.getSkinObjectByID(sSkinID);
-		if (swtObject == null) {
+		
+		SWTSkinObject soTabContent = skin.getSkinObjectByID(sSkinID);
+		if (soTabContent == null) {
 			return null;
 		}
 
 		String suffix = visible ? "-selected" : "";
 
-		swtObject.switchSuffix(suffix, 1, true);
+		soTabContent.switchSuffix(suffix, 1, true);
 
-		tab.triggerListeners(SWTSkinObjectListener.EVENT_SELECT);
+		SWTSkinObject[] activeWidgets = tab.getActiveWidgets(visible);
 
-		SWTSkinObject[] activeWidgets = tab.getActiveWidgets();
 		for (int i = 0; i < activeWidgets.length; i++) {
 			SWTSkinObject skinObject = activeWidgets[i];
 			boolean ok = true;
@@ -283,6 +291,7 @@ public class SWTSkinTabSet
 				//System.out.println(((visible ? "show" : "hide") + " " + skinObject) + Debug.getCompressedStackTrace());
 			}
 		}
+		tab.triggerListeners(SWTSkinObjectListener.EVENT_SELECT);
 
 		return activeWidgets;
 	}

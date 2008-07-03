@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
@@ -47,6 +48,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.Constants;
@@ -79,7 +81,7 @@ public class TorrentListView
 
 	private TableColumnCore[] tableColumns;
 
-	private final SWTSkinObjectText countArea;
+	private SWTSkinObjectText countArea = null;
 
 	private final ArrayList listeners = new ArrayList();
 
@@ -93,16 +95,31 @@ public class TorrentListView
 
 	private final AzureusCore core;
 
-	public TorrentListView(final AzureusCore core, final SWTSkin skin,
-			SWTSkinProperties skinProperties, Composite headerArea,
-			SWTSkinObjectText countArea, final SWTSkinObject soData,
-			final String skinPrefix, int viewMode,
-			final boolean bMiniMode, final boolean bAllowScrolling) {
+	public TorrentListView(SkinView skinView, String skinPrefix, int viewMode,
+			boolean bMiniMode, boolean bAllowScrolling) {
+		this(skinView, skinPrefix, viewMode, bMiniMode, null, bAllowScrolling);
+	}
 
-		super(TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : ""), skinProperties,
-				(Composite) soData.getControl(), headerArea, bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
-		this.core = core;
-		this.countArea = countArea;
+	public TorrentListView(SkinView skinView, String skinPrefix, int viewMode,
+			final boolean bMiniMode, String tableID, final boolean bAllowScrolling) {
+
+		if (tableID == null) {
+			tableID = TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : "");
+		}
+		SWTSkinObject soData = skinView.getSkinObject(skinPrefix + "list");
+		SWTSkinObject soHeaders = skinView.getSkinObject(skinPrefix + "list-headers");
+
+		init(tableID, skinView.getSkin().getSkinProperties(), 
+				soData == null ? null : (Composite) soData.getControl(),
+				soHeaders == null ? null : (Composite) soHeaders.getControl(),
+				bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
+
+		
+		this.core = AzureusCoreFactory.getSingleton();
+		SWTSkinObject soExtra = skinView.getSkinObject(skinPrefix + "titlextra");
+		if (soExtra instanceof SWTSkinObjectText) {
+			this.countArea = (SWTSkinObjectText) soExtra;
+		}
 		this.dataArea = (Composite) soData.getControl();
 		this.viewMode = viewMode;
 		this.bAllowScrolling = bAllowScrolling;
@@ -121,13 +138,13 @@ public class TorrentListView
 				return null;
 			}
 		});
-		
+
 		// Setting up tables should really be in their respective class..
 		if (viewMode == VIEW_DOWNLOADING) {
 			setupDownloadingTable(bMiniMode);
 		} else if (viewMode == VIEW_RECENT_DOWNLOADED) {
 			setupDownloadedTable(bMiniMode);
-		} else {
+		} else if (viewMode == VIEW_MY_MEDIA) {
 			setupMyMediaTable(bMiniMode);
 		}
 
@@ -287,7 +304,7 @@ public class TorrentListView
 			}
 		});
 
-		addSkinButtons(skin, skinPrefix);
+		addSkinButtons(skinView, skinPrefix);
 	}
 
 	/**
@@ -296,10 +313,8 @@ public class TorrentListView
 	 *
 	 * @since 3.0.5.3
 	 */
-	private void addSkinButtons(
-			SWTSkin skin,
-			String skinPrefix) {
-		SWTSkinObject skinObject = skin.getSkinObject(skinPrefix + "add");
+	private void addSkinButtons(SkinView skinView, String skinPrefix) {
+		SWTSkinObject skinObject = skinView.getSkinObject(skinPrefix + "add");
 		if (skinObject instanceof SWTSkinObject) {
 			SWTSkinButtonUtility btnAdd = new SWTSkinButtonUtility(skinObject);
 
@@ -310,14 +325,19 @@ public class TorrentListView
 			});
 		}
 
-		SWTSkinButtonUtility btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(skin, skinPrefix, this);
-		
-		SWTSkinButtonUtility btnStop = TorrentListViewsUtils.addStopButton(skin, skinPrefix, this);
-		SWTSkinButtonUtility btnDetails = TorrentListViewsUtils.addDetailsButton(skin, skinPrefix, this);
-		SWTSkinButtonUtility btnComments = TorrentListViewsUtils.addCommentsButton(skin, skinPrefix, this);
-		SWTSkinButtonUtility btnPlay = TorrentListViewsUtils.addPlayButton(skin, skinPrefix, this, true,
-				true);
-		SWTSkinButtonUtility btnDelete = TorrentListViewsUtils.addDeleteButton(skin, skinPrefix, this);
+		SWTSkinButtonUtility btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(
+				skinView, skinPrefix, this);
+
+		SWTSkinButtonUtility btnStop = TorrentListViewsUtils.addStopButton(
+				skinView, skinPrefix, this);
+		SWTSkinButtonUtility btnDetails = TorrentListViewsUtils.addDetailsButton(
+				skinView, skinPrefix, this);
+		SWTSkinButtonUtility btnComments = TorrentListViewsUtils.addCommentsButton(
+				skinView, skinPrefix, this);
+		SWTSkinButtonUtility btnPlay = TorrentListViewsUtils.addPlayButton(
+				skinView, skinPrefix, this, true, true);
+		SWTSkinButtonUtility btnDelete = TorrentListViewsUtils.addDeleteButton(
+				skinView, skinPrefix, this);
 
 		SWTSkinButtonUtility[] buttonsNeedingRow = {
 			btnDelete,
@@ -333,8 +353,10 @@ public class TorrentListView
 		TorrentListViewsUtils.addButtonSelectionDisabler(this, buttonsNeedingRow,
 				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
 
-		final SWTSkinButtonUtility btnShare = TorrentListViewsUtils.addShareButton(skin, skinPrefix, this);
-		final SWTSkinButtonUtility btnTag = TorrentListViewsUtils.addNewTagButton(skin, skinPrefix, this);
+		final SWTSkinButtonUtility btnShare = TorrentListViewsUtils.addShareButton(
+				skinView, skinPrefix, this);
+		final SWTSkinButtonUtility btnTag = TorrentListViewsUtils.addNewTagButton(
+				skinView, skinPrefix, this);
 
 		addSelectionListener(new TableSelectionAdapter() {
 			public void mouseEnter(TableRowCore row) {
@@ -344,7 +366,7 @@ public class TorrentListView
 					}
 				}
 			}
-			
+
 			public void mouseExit(TableRowCore row) {
 				{
 					if (btnTag != null) {
@@ -356,11 +378,11 @@ public class TorrentListView
 			public void selected(TableRowCore[] row) {
 				selectionChanged();
 			}
-		
+
 			public void deselected(TableRowCore[] rows) {
 				selectionChanged();
 			}
-		
+
 			public void selectionChanged() {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
@@ -445,7 +467,7 @@ public class TorrentListView
 	 *
 	 * @since 3.0.4.3
 	 */
-	private void addColumnsToList(TableColumnCore[] v2TableColumns,
+	public void addColumnsToList(TableColumnCore[] v2TableColumns,
 			ArrayList listTableColumns) {
 		for (int i = 0; i < v2TableColumns.length; i++) {
 			boolean add = true;
@@ -524,6 +546,15 @@ public class TorrentListView
 			};
 			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 		}
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.list.ListView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String, boolean, boolean)
+	public void setColumnList(TableColumnCore[] columns,
+			String defaultSortColumnID, boolean defaultSortAscending,
+			boolean titleIsMinWidth) {
+		tableColumns = columns;
+		super.setColumnList(columns, defaultSortColumnID, defaultSortAscending,
+				titleIsMinWidth);
 	}
 
 	/**

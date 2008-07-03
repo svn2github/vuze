@@ -67,5 +67,18 @@ public class SkinConstants
 	public static final String VIEWID_PLUGINBAR = "pluginbar";
 	
 	public static final String VIEWID_TAB_BAR = "tabbar";
-	
+
+	public static final String VIEWID_LIBRARY = "library-area";
+
+	public static final String VIEWID_MINILIBRARY = "minilibrary-area";
+
+	public static final String VIEWID_ACTIVITIESVIEW = "vuzeevents-area";
+
+	public static final String VIEWID_SIDEBAR_LIBRARY = "sidebar-library-area";
+
+	public static final String VIEWID_SIDEBAR_LIBRARY_BIG = "library-bigtable-area";
+
+	public static final String VIEWID_SIDEBAR_LIBRARY_SMALL = "library-smalltable-area";
+
+	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
 }

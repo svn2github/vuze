@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -41,15 +42,19 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.StatusItem;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.MetaDataUpdateListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.table.TableCountChangeListener;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
@@ -62,7 +67,7 @@ import com.aelitis.azureus.util.PublishUtils;
  * @created Oct 12, 2006
  *
  */
-public class MediaList
+public class SBC_LibraryListView
 	extends SkinView
 {
 	private static final int ASYOUTYPE_UPDATEDELAY = 150;
@@ -73,7 +78,9 @@ public class MediaList
 
 	private TorrentListView view;
 
-	private String PREFIX = "my-media-";
+	private String PREFIX = "library-big-";
+
+	private String ID = PREFIX.substring(0, PREFIX.length() - 1);
 
 	private AzureusCore core;
 
@@ -93,13 +100,23 @@ public class MediaList
 
 	private TimerEvent searchUpdateEvent;
 
+	private boolean big;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		big = skinObject.getViewID().equals(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG);
+
+		PREFIX = big ? "library-big-" : "library-small-";
+		ID = PREFIX.substring(0, PREFIX.length() - 1);
+		
+		System.out.println("big? " + big + " ;" + skinObject);
+		
 		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
 		core = AzureusCoreFactory.getSingleton();
-		view = new TorrentListView(this, PREFIX, TorrentListView.VIEW_MY_MEDIA,
-				false, true) {
+
+		view = new TorrentListView(this, PREFIX, -1,
+				false, ID, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
 					return false;
@@ -148,7 +165,8 @@ public class MediaList
 				return bOurs;
 			}
 		};
-		
+		setupTable();
+
 		if (view instanceof ListView) {
 			((ListView) view).addCountChangeListener(new TableCountChangeListener() {
 
@@ -170,7 +188,11 @@ public class MediaList
 			// @see com.aelitis.azureus.ui.swt.views.TorrentListViewListener#stateChanged(org.gudy.azureus2.core3.download.DownloadManager)
 
 			public void stateChanged(final DownloadManager manager) {
-				updateRowFGColor(manager);
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						updateRowFGColor(manager);
+					}
+				});
 			}
 
 			// @see com.aelitis.azureus.ui.swt.views.TorrentListViewListener#countChanged()
@@ -375,6 +397,48 @@ public class MediaList
 		}
 
 		return null;
+	}
+
+	private void setupTable() {
+		String tableID = view.getTableID();
+
+		TableColumnCore[] v3TableColumns;
+		String[] autoHideOrder;
+		v3TableColumns = new TableColumnCore[] {
+			//new ColumnControls(tableID),
+			new ColumnMediaThumb(tableID, -1, big ? 100 : 20),
+			new ColumnControls(tableID),
+			new ColumnRate(tableID, true),
+			new ColumnTitle(tableID),
+			new SizeItem(tableID),
+			new StatusItem(tableID),
+			new ColumnDateCompleted2Liner(tableID, true),
+			new ColumnDateAdded2Liner(tableID, true),
+			new ColumnProgressETA(tableID),
+		};
+		autoHideOrder = new String[] {
+			ColumnQuality.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnMediaThumb.COLUMN_ID,
+			ColumnDateCompleted2Liner.COLUMN_ID,
+		};
+
+		ArrayList listTableColumns = new ArrayList();
+		for (int i = 0; i < v3TableColumns.length; i++) {
+			listTableColumns.add(v3TableColumns[i]);
+		}
+		TableColumnCore[] v2TableColumns = TableColumnCreator.createIncompleteDM(tableID);
+		view.addColumnsToList(v2TableColumns, listTableColumns);
+
+		v2TableColumns = TableColumnCreator.createCompleteDM(tableID);
+		view.addColumnsToList(v2TableColumns, listTableColumns);
+
+		TableColumnCore[] tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
+
+		view.setColumnList(tableColumns, ColumnDateAdded2Liner.COLUMN_ID, false,
+				true);
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		tcManager.setAutoHideOrder(tableID, autoHideOrder);
 	}
 
 	/**
