@@ -18,6 +18,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -35,12 +36,15 @@ public class CompletedItem extends CoreTableColumn implements TableCellRefreshLi
 	}
 
 	public void refresh(TableCell cell) {
-		String sText = "";
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		if (dm == null)
 			return;
 		
-		int completed = dm.getTrackerScrapeResponse().getCompleted();
+		TRTrackerScraperResponse resp = dm.getTrackerScrapeResponse();
+		if (resp == null)
+			return;
+		
+		int completed = resp.getCompleted();
 		if(cell.setSortValue(completed) || !cell.isValid())
 			cell.setText(completed == -1 ? "?" : Integer.toString(completed));
 	}

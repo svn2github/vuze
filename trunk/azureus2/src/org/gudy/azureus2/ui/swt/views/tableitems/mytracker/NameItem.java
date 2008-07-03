@@ -103,7 +103,7 @@ public class NameItem extends CoreTableColumn implements
 					String ext = name.substring(sep);
 					Image icon = ImageRepository.getIconFromExtension(ext);
 
-					if (Constants.isWindows) {
+					if (Constants.isWindows && icon != null) {
 						// recomposite to avoid artifacts - transparency mask does not work
 						final Image dstImage = new Image(Display.getCurrent(),
 								icon.getBounds().width, icon.getBounds().height);
