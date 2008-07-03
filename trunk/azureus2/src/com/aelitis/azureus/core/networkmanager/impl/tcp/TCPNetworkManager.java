@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
@@ -40,8 +41,10 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 public class 
 TCPNetworkManager 
 {  
-	private static int WRITE_SELECT_LOOP_TIME 	= 25;
-	private static int READ_SELECT_LOOP_TIME	= 25;
+	private static int WRITE_SELECT_LOOP_TIME 		= 25;
+	private static int WRITE_SELECT_MIN_LOOP_TIME 	= 0;
+	private static int READ_SELECT_LOOP_TIME		= 25;
+	private static int READ_SELECT_MIN_LOOP_TIME	= 0;
 	
 	protected static int tcp_mss_size;
 	  
@@ -66,15 +69,23 @@ TCPNetworkManager
 				});
 		
 		COConfigurationManager.addAndFireParameterListeners(
-				new String[]{ "network.tcp.read.select.time", "network.tcp.write.select.time"  },
+				new String[]{ 
+					"network.tcp.read.select.time", 
+					"network.tcp.read.select.min.time", 
+					"network.tcp.write.select.time",
+					"network.tcp.write.select.min.time",
+					},
 				new ParameterListener()
 				{
 					public void 
 					parameterChanged(
 						String name )
 					{
-						WRITE_SELECT_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.write.select.time" );
-						READ_SELECT_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.read.select.time" );
+						WRITE_SELECT_LOOP_TIME 		= COConfigurationManager.getIntParameter(  "network.tcp.write.select.time" );
+						WRITE_SELECT_MIN_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.write.select.min.time" );
+						
+						READ_SELECT_LOOP_TIME 		= COConfigurationManager.getIntParameter(  "network.tcp.read.select.time" );
+						READ_SELECT_MIN_LOOP_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.read.select.min.time" );
 					}
 				});
 	}
@@ -152,10 +163,35 @@ TCPNetworkManager
 		    		while( true ) {
 		    	
 		    			try{
-		    				read_selector.select( READ_SELECT_LOOP_TIME );
+		    				if ( READ_SELECT_MIN_LOOP_TIME > 0 ){
+		    					
+		    					long	start = SystemTime.getHighPrecisionCounter();
+		    					
+		    					read_selector.select( READ_SELECT_LOOP_TIME );
+		    					
+		    					long duration = SystemTime.getHighPrecisionCounter() - start;
+		    					
+		    					duration = duration/1000000;
+		    					
+		    					long	sleep = READ_SELECT_MIN_LOOP_TIME - duration;
+		    					
+		    					if ( sleep > 0 ){
+		    						
+		    						System.out.println( "sleeping " + sleep );
+		    						
+		    						try{   							
+		    							Thread.sleep( sleep );
+		    							
+		    						}catch( Throwable e ){		
+		    						}
+		    					}
+		    				}else{
+		    					
+			    				read_selector.select( READ_SELECT_LOOP_TIME );
+		    				}
 		    				
-		    				read_select_count++;
-		    				
+			    			read_select_count++;
+			    				
 		    			}catch( Throwable t ) {
 		    				
 		    				Debug.out( "readSelectorLoop() EXCEPTION: ", t );
@@ -178,10 +214,34 @@ TCPNetworkManager
 		    	    while( true ){
 		    	    	
 		    	    	try{
-		    	    		write_selector.select( WRITE_SELECT_LOOP_TIME );
+		    	    		if ( WRITE_SELECT_MIN_LOOP_TIME > 0 ){
+		    					
+		    					long	start = SystemTime.getHighPrecisionCounter();
+		    					
+		    					write_selector.select( WRITE_SELECT_LOOP_TIME );
+		    					
+		    					long duration = SystemTime.getHighPrecisionCounter() - start;
+		    					
+		    					duration = duration/1000000;
+		    					
+		    					long	sleep = WRITE_SELECT_MIN_LOOP_TIME - duration;
+		    					
+		    					if ( sleep > 0 ){
+		    						
+		    						System.out.println( "sleeping " + sleep );
+		    						
+		    						try{   							
+		    							Thread.sleep( sleep );
+		    							
+		    						}catch( Throwable e ){		
+		    						}
+		    					}
+		    	    		}else{
+		    	    			
+		    	    			write_selector.select( WRITE_SELECT_LOOP_TIME );
 		    	    		
-		    	    		write_select_count++;
-		    	    		
+		    	    			write_select_count++;
+		    	    		}
 		    	    	}catch( Throwable t ) {
 		    	    		
 		    	    		Debug.out( "writeSelectorLoop() EXCEPTION: ", t );

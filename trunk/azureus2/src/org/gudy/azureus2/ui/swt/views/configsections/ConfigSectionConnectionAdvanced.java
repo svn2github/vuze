@@ -236,6 +236,13 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.widthHint = 40;
 		read_select.setLayoutData(gridData);
 		
+		Label lreadselmin = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lreadselmin, CFG_PREFIX + "read_select_min", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.read.select.min.time"))});
+		final IntParameter read_select_min = new IntParameter(gSocket,	"network.tcp.read.select.min.time", 0, 100 );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		read_select_min.setLayoutData(gridData);
+
 			// write select
 				
 		Label lwritesel = new Label(gSocket, SWT.NULL);
@@ -245,7 +252,13 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.widthHint = 40;
 		write_select.setLayoutData(gridData);
 		
-		
+		Label lwriteselmin = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lwriteselmin, CFG_PREFIX + "write_select_min", new String[]{ String.valueOf( COConfigurationManager.getDefault("network.tcp.write.select.min.time"))});
+		final IntParameter write_select_min = new IntParameter(gSocket,	"network.tcp.write.select.min.time", 0, 100 );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		write_select_min.setLayoutData(gridData);
+
 		
 		
 		new BooleanParameter( cSection, "IPV6 Prefer Addresses", "network.ipv6.prefer.addresses"  );
