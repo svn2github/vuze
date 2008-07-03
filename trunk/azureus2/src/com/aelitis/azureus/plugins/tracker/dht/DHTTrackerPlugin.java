@@ -113,7 +113,7 @@ DHTTrackerPlugin
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	private static final boolean	TRACK_LIMITED_DEFAULT	= true;
 	
-	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
+	public static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
 	private static final long	start_time = SystemTime.getCurrentTime();
 	
@@ -2936,114 +2936,7 @@ DHTTrackerPlugin
 	    					
 	    					if ( pos.isValid()){
 	    						
-	    						List	derived_results = new ArrayList();
-	    						
-	    						double[] loc = pos.getLocation();
-	    						
-	    						String	loc_str = "";
-	    						
-	    						for (int j=0;j<loc.length;j++){
-	    							
-	    							loc_str += (j==0?"":",") + loc[j];
-	    						}
-	    						
-	    						TriangleSlicer slicer = new TriangleSlicer( 100 );
-	    						
-	    						double	t1_x = loc[0];
-	    						double	t1_y = loc[1];
-	    						double	t2_x = loc[2];
-	    						double	t2_y = loc[3];
-	    						
-	    						int[] triangle1 = slicer.findVertices( t1_x, t1_y );
-	    						
-	    						int[] triangle2 = slicer.findVertices( t2_x, t2_y );
-	    						
-	    						/*
-	    						
-	    						System.out.println( "NetPos: " + loc_str );						
-	
-	    						String	tr1_str = "";
-	    						
-	    						for (int j=0;j<triangle1.length;j+=2 ){
-	    							
-	    							tr1_str += (j==0?"":",") + "(" + triangle1[j] + "," + triangle1[j+1] + ")";
-	    						}
-	    						
-	    						String	tr2_str = "";
-	    						
-	    						for (int j=0;j<triangle2.length;j+=2 ){
-	    							
-	    							tr2_str += (j==0?"":",") + "(" + triangle2[j] + "," + triangle2[j+1] + ")";
-	    						}
-	    						
-	    						System.out.println( "t1=" + tr1_str + ",t2=" + tr2_str );
-	    						*/
-	    						
-	    						for (int j=0;j<triangle1.length;j+=2 ){
-	
-	    							int	t1_vx = triangle1[j];
-	    							int t1_vy = triangle1[j+1];
-	    							
-	    							double	t1_distance = getDistance( t1_x, t1_y, t1_vx, t1_vy );
-	    							
-	    							for (int k=0;k<triangle2.length;k+=2 ){
-	    						
-		    							int	t2_vx = triangle2[k];
-		    							int t2_vy = triangle2[k+1];
-
-		    							double	t2_distance = getDistance( t2_x, t2_y, t2_vx, t2_vy );
-		    							
-		    								// these distances are in different dimensions - make up a combined distance
-		    								
-		    							double distance = getDistance( t1_distance, 0, 0, t2_distance );
-		    							
-		    							
-	    								String	key = "azderived:vivaldi:";
-	    								
-	    								String v_str = 	t1_vx + "." + t1_vy + "." + t2_vx + "." + t2_vy;
-	    								
-	    								key += v_str;
-	    																
-	    								try{
-	    									byte[] v_bytes = key.getBytes( "UTF-8" );
-	    								
-	    									byte[] key_bytes = new byte[torrent_hash.length + v_bytes.length];
-	    									
-	    									System.arraycopy( torrent_hash, 0, key_bytes, 0, torrent_hash.length );
-	    									
-	    									System.arraycopy( v_bytes, 0, key_bytes, torrent_hash.length, v_bytes.length );
-	    									
-	    									derived_results.add( 
-	    										new Object[]{ 
-	    											new Integer((int)distance), 
-	    											new trackerTarget( key_bytes, REG_TYPE_DERIVED, "Vivaldi: " + v_str ) });
-	    										
-	    									
-	    								}catch( Throwable e ){
-	    									
-	    									Debug.printStackTrace(e);
-	    								}
-	    							}
-	    						}
-	    						
-	    						Collections.sort(
-	    							derived_results,
-	    							new Comparator()
-	    							{
-	    								public int 
-	    								compare(
-	    									Object 	o1, 
-	    									Object 	o2 ) 
-	    								{
-	    									Object[]	entry1 = (Object[])o1;
-	    									Object[]	entry2 = (Object[])o2;
-	    									
-	    									int	d1 = ((Integer)entry1[0]).intValue();
-	    									int	d2 = ((Integer)entry2[0]).intValue();
-	    									
-	    									return( d1 - d2 );
-	    								}
-	    							});
+	    						List	derived_results = getVivaldiTargets( torrent_hash, pos.getLocation());
 	    						
 	    		    			int	num_to_add = metric.intValue() * derived_results.size() / 100;
     				 			
@@ -3087,7 +2980,122 @@ DHTTrackerPlugin
     	}
 	}
 	
-	protected double
+	public static List
+	getVivaldiTargets(
+		byte[]					torrent_hash,
+		double[]				loc )
+	{
+		List	derived_results = new ArrayList();
+				
+		String	loc_str = "";
+		
+		for (int j=0;j<loc.length;j++){
+			
+			loc_str += (j==0?"":",") + loc[j];
+		}
+		
+		TriangleSlicer slicer = new TriangleSlicer( 100 );
+		
+		double	t1_x = loc[0];
+		double	t1_y = loc[1];
+		double	t2_x = loc[2];
+		double	t2_y = loc[3];
+		
+		int[] triangle1 = slicer.findVertices( t1_x, t1_y );
+		
+		int[] triangle2 = slicer.findVertices( t2_x, t2_y );
+		
+		/*
+		
+		System.out.println( "NetPos: " + loc_str );						
+
+		String	tr1_str = "";
+		
+		for (int j=0;j<triangle1.length;j+=2 ){
+			
+			tr1_str += (j==0?"":",") + "(" + triangle1[j] + "," + triangle1[j+1] + ")";
+		}
+		
+		String	tr2_str = "";
+		
+		for (int j=0;j<triangle2.length;j+=2 ){
+			
+			tr2_str += (j==0?"":",") + "(" + triangle2[j] + "," + triangle2[j+1] + ")";
+		}
+		
+		System.out.println( "t1=" + tr1_str + ",t2=" + tr2_str );
+		*/
+		
+		for (int j=0;j<triangle1.length;j+=2 ){
+
+			int	t1_vx = triangle1[j];
+			int t1_vy = triangle1[j+1];
+			
+			double	t1_distance = getDistance( t1_x, t1_y, t1_vx, t1_vy );
+			
+			for (int k=0;k<triangle2.length;k+=2 ){
+		
+				int	t2_vx = triangle2[k];
+				int t2_vy = triangle2[k+1];
+
+				double	t2_distance = getDistance( t2_x, t2_y, t2_vx, t2_vy );
+				
+					// these distances are in different dimensions - make up a combined distance
+					
+				double distance = getDistance( t1_distance, 0, 0, t2_distance );
+				
+				
+				String	key = "azderived:vivaldi:";
+				
+				String v_str = 	t1_vx + "." + t1_vy + "." + t2_vx + "." + t2_vy;
+				
+				key += v_str;
+												
+				try{
+					byte[] v_bytes = key.getBytes( "UTF-8" );
+				
+					byte[] key_bytes = new byte[torrent_hash.length + v_bytes.length];
+					
+					System.arraycopy( torrent_hash, 0, key_bytes, 0, torrent_hash.length );
+					
+					System.arraycopy( v_bytes, 0, key_bytes, torrent_hash.length, v_bytes.length );
+					
+					derived_results.add( 
+						new Object[]{ 
+							new Integer((int)distance), 
+							new trackerTarget( key_bytes, REG_TYPE_DERIVED, "Vivaldi: " + v_str ) });
+						
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		Collections.sort(
+			derived_results,
+			new Comparator()
+			{
+				public int 
+				compare(
+					Object 	o1, 
+					Object 	o2 ) 
+				{
+					Object[]	entry1 = (Object[])o1;
+					Object[]	entry2 = (Object[])o2;
+					
+					int	d1 = ((Integer)entry1[0]).intValue();
+					int	d2 = ((Integer)entry2[0]).intValue();
+					
+					return( d1 - d2 );
+				}
+			});
+		
+		return( derived_results );
+	}
+	
+	protected static double
 	getDistance(
 		double	x1,
 		double	y1,
@@ -3150,7 +3158,7 @@ DHTTrackerPlugin
 		}
 	}
 	
-	protected static class
+	public static class
 	trackerTarget
 	{
 		private String		desc;
@@ -3168,19 +3176,19 @@ DHTTrackerPlugin
 			desc		= _desc;
 		}
 		
-		protected int
+		public int
 		getType()
 		{
 			return( type );
 		}
 		
-		protected byte[]
+		public byte[]
 		getHash()
 		{
 			return( hash );
 		}
 		
-		protected String
+		public String
 		getDesc()
 		{
 			if ( type != REG_TYPE_FULL ){
@@ -3192,7 +3200,7 @@ DHTTrackerPlugin
 		}
 	}
 	
-	public class 
+	public static class 
 	TriangleSlicer 
 	{	
 		int width;

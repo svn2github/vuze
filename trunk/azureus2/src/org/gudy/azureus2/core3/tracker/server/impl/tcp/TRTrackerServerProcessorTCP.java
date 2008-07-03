@@ -452,7 +452,7 @@ TRTrackerServerProcessorTCP
 						if ( lhs.equals( "aznp" )){
 
 							try{
-								network_position = DHTNetworkPositionManager.deserialisePosition( Base32.decode( rhs ));
+								network_position = DHTNetworkPositionManager.deserialisePosition( client_address.getAddress(), Base32.decode( rhs ));
 																
 							}catch( Throwable e ){
 								

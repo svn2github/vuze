@@ -562,12 +562,14 @@ PRUDPPacketHandlerImpl
 						
 			stats.packetReceived(packet_len);
 			
+			InetSocketAddress originator = (InetSocketAddress)dg_packet.getSocketAddress();
+			
 			if ( ( packet_data[0]&0x80 ) == 0 ){
 				
 				request_packet	= false;
 				
 				packet = PRUDPPacketReply.deserialiseReply( 
-					this,
+					this, originator, 
 					new DataInputStream(new ByteArrayInputStream( packet_data, 0, packet_len)));
 				
 			}else{
@@ -582,7 +584,7 @@ PRUDPPacketHandlerImpl
 			
 			packet.setSerialisedSize( packet_len );
 			
-			packet.setAddress( (InetSocketAddress)dg_packet.getSocketAddress());
+			packet.setAddress( originator );
 			
 			if ( request_packet ){
 					

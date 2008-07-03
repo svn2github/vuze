@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
+import java.net.*;
 import java.util.*;
 
 
@@ -163,6 +164,7 @@ DHTUDPPacketHelper
 				public PRUDPPacketReply
 				decode(
 					PRUDPPacketHandler	handler,
+					InetSocketAddress	originator,
 					DataInputStream		is,
 					int					action,
 					int					transaction_id )
@@ -191,31 +193,31 @@ DHTUDPPacketHelper
 					
 						case ACT_REPLY_PING:
 						{
-							return( new DHTUDPPacketReplyPing(network_handler,is, transaction_id));
+							return( new DHTUDPPacketReplyPing(network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_STORE:
 						{
-							return( new DHTUDPPacketReplyStore(network_handler,is, transaction_id));
+							return( new DHTUDPPacketReplyStore(network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_FIND_NODE:
 						{
-							return( new DHTUDPPacketReplyFindNode(network_handler, is, transaction_id));
+							return( new DHTUDPPacketReplyFindNode(network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_FIND_VALUE:
 						{
-							return( new DHTUDPPacketReplyFindValue(network_handler, is, transaction_id));
+							return( new DHTUDPPacketReplyFindValue(network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_ERROR:
 						{
-							return( new DHTUDPPacketReplyError(network_handler, is, transaction_id));
+							return( new DHTUDPPacketReplyError(network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_STATS:
 						{
-							return( new DHTUDPPacketReplyStats( network_handler, is, transaction_id));
+							return( new DHTUDPPacketReplyStats( network_handler, originator, is, transaction_id));
 						}
 						case ACT_REPLY_KEY_BLOCK:
 						{
-							return( new DHTUDPPacketReplyKeyBlock( network_handler, is, transaction_id));
+							return( new DHTUDPPacketReplyKeyBlock( network_handler, originator, is, transaction_id));
 						}
 						default:
 						{

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -95,6 +96,7 @@ DHTUDPPacketReply
 	protected
 	DHTUDPPacketReply(
 		DHTUDPPacketNetworkHandler		network_handler,
+		InetSocketAddress				originator,
 		DataInputStream					is,
 		int								type,
 		int								trans_id )
@@ -102,6 +104,8 @@ DHTUDPPacketReply
 		throws IOException
 	{
 		super( type, trans_id );
+		
+		setAddress( originator );
 		
 		connection_id 	= is.readLong();
 		

@@ -27,13 +27,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 DHTNetworkPositionManager 
@@ -41,6 +45,8 @@ DHTNetworkPositionManager
 	private static DHTNetworkPositionProvider[]	providers = new DHTNetworkPositionProvider[0];
 	
 	private static DHTStorageAdapter	storage_adapter = null;
+	
+	private static CopyOnWriteList	position_listeners;
 	
 	public static void
 	initialise(
@@ -375,7 +381,8 @@ DHTNetworkPositionManager
 	
 	public static DHTNetworkPosition
    	deserialisePosition(
-   		byte[]		bytes )
+   		InetAddress				originator,
+   		byte[]					bytes )
    	
    		throws IOException
    	{
@@ -387,13 +394,14 @@ DHTNetworkPositionManager
    		
    		byte	position_type = dis.readByte();
    		
-   		return( deserialise( position_type, dis ));
+   		return( deserialise( originator, position_type, dis ));
    	}
 	
 	public static DHTNetworkPosition
 	deserialise(
-		byte			position_type,
-		DataInputStream	is )
+		InetAddress				originator,
+		byte					position_type,
+		DataInputStream			is )
 	
 		throws IOException
 	{
@@ -410,7 +418,23 @@ DHTNetworkPositionManager
 				try{
 					DHTNetworkPosition np = provider.deserialisePosition( is );
 					
-					// System.out.println( "Deserialised: " + np.getPositionType());
+					CopyOnWriteList listeners = position_listeners;
+					
+					if ( listeners != null ){
+						
+						Iterator it = listeners.iterator();
+						
+						while( it.hasNext()){
+							
+							try{
+								((DHTNetworkPositionListener)it.next()).positionFound( provider, originator, np );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
 					
 					return( np );
 					
@@ -426,5 +450,20 @@ DHTNetworkPositionManager
 		}
 		
 		return( null );
+	}
+	
+	public static void
+	addPositionListener(
+		DHTNetworkPositionListener		listener )
+	{
+		synchronized( DHTNetworkPositionManager.class ){
+		
+			if ( position_listeners == null ){
+				
+				position_listeners = new CopyOnWriteList();
+			}
+			
+			position_listeners.add( listener );
+		}
 	}
 }

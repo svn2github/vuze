@@ -671,7 +671,7 @@ DHTUDPUtils
 				byte	type = is.readByte();
 				byte	size = is.readByte();
 				
-				DHTNetworkPosition	np = DHTNetworkPositionManager.deserialise( type, is );
+				DHTNetworkPosition	np = DHTNetworkPositionManager.deserialise( reply.getAddress().getAddress(), type, is );
 				
 				if ( np == null ){
 					
@@ -705,7 +705,7 @@ DHTUDPUtils
 			}
 		}else{
 			
-			nps = new DHTNetworkPosition[]{ DHTNetworkPositionManager.deserialise( DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1, is )};	
+			nps = new DHTNetworkPosition[]{ DHTNetworkPositionManager.deserialise( reply.getAddress().getAddress(), DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1, is )};	
 		}
 		
 		boolean	v1_found = false;
