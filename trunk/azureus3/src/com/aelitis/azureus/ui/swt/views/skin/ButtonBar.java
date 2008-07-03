@@ -10,6 +10,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -258,15 +259,23 @@ public class ButtonBar
 				disabledForEdit(true);
 				cancelEditBuddies.setVisible(true);
 				editButton.setDisabled(true);
-				showFooter(true, true);
+
+				/*
+				 * Force the Friend footer to be visible so the Friends can be edited
+				 */
+				SWTSkinUtils.setVisibility(skin, "Footer.visible",
+						SkinConstants.VIEWID_FOOTER, true, true, true);
 
 			} else if (mode == BuddiesViewer.share_mode) {
 				disabledForShare(true);
 				if (VuzeBuddyManager.getAllVuzeBuddies().size() > 0) {
 					shareAllBuddiesObject.setVisible(true);
 				}
-				showFooter(true, true);
-
+				/*
+				 * Force the Friend footer to be visible so the Friends can be added to Share
+				 */
+				SWTSkinUtils.setVisibility(skin, "Footer.visible",
+						SkinConstants.VIEWID_FOOTER, true, true, true);
 			} else {
 				disabledForEdit(true);
 			}
@@ -301,40 +310,46 @@ public class ButtonBar
 
 		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
 		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
-		boolean footerVisible = COConfigurationManager.getBooleanParameter("Footer.visible");
 
 		if (null != showImageObject && null != hideImageObject) {
 
 			/*
-			 * Initial visibility state of the footer
+			 * Change button display if the property changes
 			 */
-			if (true == footerVisible) {
-				showImageObject.setVisible(false);
-				hideImageObject.setVisible(true);
-			} else {
-				showImageObject.setVisible(true);
-				hideImageObject.setVisible(false);
-			}
+			COConfigurationManager.addParameterListener("Footer.visible",
+					new ParameterListener() {
+
+						public void parameterChanged(String parameterName) {
+							showFooterToggleButton(COConfigurationManager.getBooleanParameter("Footer.visible"));
+						}
+					});
 
 			/*
-			 * Hook 'show' button; when pressed hide it and show the 'hide' button
+			 * Initial visibility state of the footer
+			 */
+			showFooterToggleButton(COConfigurationManager.getBooleanParameter("Footer.visible"));
+
+			/*
+			 * Hook 'show' button
 			 */
 			final SWTSkinButtonUtility btnShow = new SWTSkinButtonUtility(
 					showImageObject);
 			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(true, true);
+					SWTSkinUtils.setVisibility(skin, "Footer.visible",
+							SkinConstants.VIEWID_FOOTER, true, true, true);
 				}
 			});
 
 			/*
-			 * Hook 'hide' button; when pressed hide it and show the 'show' button
+			 * Hook 'hide' button
 			 */
 			final SWTSkinButtonUtility btnHide = new SWTSkinButtonUtility(
 					hideImageObject);
 			btnHide.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					showFooter(false, true);
+					SWTSkinUtils.setVisibility(skin, "Footer.visible",
+							SkinConstants.VIEWID_FOOTER, false, true, true);
 				}
 			});
 
@@ -342,18 +357,18 @@ public class ButtonBar
 
 	}
 
-	private void showFooter(boolean value, boolean fast) {
+	/**
+	 * Toggles between showing the 'Hide' or 'Show' buttons
+	 * @param value
+	 */
+	private void showFooterToggleButton(boolean value) {
 		SWTSkinObject showImageObject = skin.getSkinObject("button-show-footer");
 		SWTSkinObject hideImageObject = skin.getSkinObject("button-hide-footer");
-		SWTSkinObject footerObject = skin.getSkinObject("footer");
-
-		if (footerObject.isVisible() != value) {
+		if (null != showImageObject) {
 			showImageObject.setVisible(!value);
+		}
+		if (null != hideImageObject) {
 			hideImageObject.setVisible(value);
-
-			SWTSkinUtils.setVisibility(skin, "Footer.visible",
-					SkinConstants.VIEWID_FOOTER, value, true, fast);
-
 		}
 	}
 
