@@ -2479,6 +2479,7 @@ public class OpenTorrentWindow
 						if (l <= 1) {
 							continue;
 						}
+						segmentArray[i] = segmentArray[i].toLowerCase();
 						totalSegmentsLengths += l;
 					}
 				}
@@ -2504,9 +2505,9 @@ public class OpenTorrentWindow
 								continue;
 							}
 
-							String segment = segmentArray[i].toLowerCase();
+							String segment = segmentArray[i];
 
-							if (dmName.matches(".*" + segment + ".*")) {
+							if (dmName.indexOf(segment) >= 0) {
 								numMatches += l;
 							}
 						}
