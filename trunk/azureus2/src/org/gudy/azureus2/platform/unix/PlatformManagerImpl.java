@@ -249,4 +249,8 @@ public class PlatformManagerImpl implements PlatformManager
 	public String getAzComputerID() throws PlatformManagerException {
     throw new PlatformManagerException(ERR_UNSUPPORTED);
 	}
+
+	public void requestUserAttention(int type, Object data) throws PlatformManagerException {
+		throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
 }

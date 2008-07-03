@@ -26,7 +26,6 @@ import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
@@ -44,25 +43,51 @@ import com.apple.cocoa.application.NSApplication;
 
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
-public class CarbonUIEnhancer {
-	private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
-   private static final int kHICommandAbout= ('a'<<24) + ('b'<<16) + ('o'<<8) + 'u';
-   private static final int kHICommandServices= ('s'<<24) + ('e'<<16) + ('r'<<8) + 'v';
-   private static final int kHICommandWizard = ('a'<<24) + ('z'<<16) + ('c' << 8) + 'n';
-   private static final int kHICommandNatTest = ('a'<<24) + ('z'<<16) + ('n' << 8) + 't';
-   private static final int kHICommandSpeedTest = ('a'<<24) + ('z'<<16) + ('s'<<8) + 't';
-   private static final int kHICommandRestart = ('a'<<24) + ('z'<<16) + ('r'<<8) + 's';
+public class CarbonUIEnhancer
+{
+	private static final int kHICommandPreferences = ('p' << 24) + ('r' << 16)
+			+ ('e' << 8) + 'f';
 
-   private static final int typeAEList = ('l'<<24) + ('i'<<16) + ('s'<<8) + 't';
-   private static final int kCoreEventClass = ('a'<<24) + ('e'<<16) + ('v'<<8) + 't';
-   private static final int kAEOpenDocuments = ('o'<<24) + ('d'<<16) + ('o'<<8) + 'c';
-   private static final int kAEReopenApplication = ('r'<<24) + ('a'<<16) + ('p'<<8) + 'p';
-   private static final int kAEOpenContents = ('o'<<24) + ('c'<<16) + ('o'<<8) + 'n';
-   private static final int kURLEventClass = ('G'<<24) + ('U'<<16) + ('R'<<8) + 'L';
+	private static final int kHICommandAbout = ('a' << 24) + ('b' << 16)
+			+ ('o' << 8) + 'u';
 
-   private static final int typeText = ('T'<<24) + ('E'<<16) + ('X'<<8) + 'T';
+	private static final int kHICommandServices = ('s' << 24) + ('e' << 16)
+			+ ('r' << 8) + 'v';
 
-   private static final String RESOURCE_BUNDLE = "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
+	private static final int kHICommandWizard = ('a' << 24) + ('z' << 16)
+			+ ('c' << 8) + 'n';
+
+	private static final int kHICommandNatTest = ('a' << 24) + ('z' << 16)
+			+ ('n' << 8) + 't';
+
+	private static final int kHICommandSpeedTest = ('a' << 24) + ('z' << 16)
+			+ ('s' << 8) + 't';
+
+	private static final int kHICommandRestart = ('a' << 24) + ('z' << 16)
+			+ ('r' << 8) + 's';
+
+	private static final int typeAEList = ('l' << 24) + ('i' << 16) + ('s' << 8)
+			+ 't';
+
+	private static final int kCoreEventClass = ('a' << 24) + ('e' << 16)
+			+ ('v' << 8) + 't';
+
+	private static final int kAEOpenDocuments = ('o' << 24) + ('d' << 16)
+			+ ('o' << 8) + 'c';
+
+	private static final int kAEReopenApplication = ('r' << 24) + ('a' << 16)
+			+ ('p' << 8) + 'p';
+
+	private static final int kAEOpenContents = ('o' << 24) + ('c' << 16)
+			+ ('o' << 8) + 'n';
+
+	private static final int kURLEventClass = ('G' << 24) + ('U' << 16)
+			+ ('R' << 8) + 'L';
+
+	private static final int typeText = ('T' << 24) + ('E' << 16) + ('X' << 8)
+			+ 'T';
+
+	private static final String RESOURCE_BUNDLE = "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
 
 	private static String fgAboutActionName;
 
@@ -82,33 +107,42 @@ public class CarbonUIEnhancer {
 	 * to see which menu items are effected.
 	 */
 	private boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
-    
-   public CarbonUIEnhancer() {
-      if (fgAboutActionName == null) {
-         fgAboutActionName = MessageText.getString("MainWindow.menu.help.about").replaceAll("&", "");
-      }
-      
-      if(false == isAZ3){
-        if(fgWizardActionName == null) {
-            fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
-        }
-        if(fgNatTestActionName == null) {
-        	fgNatTestActionName = MessageText.getString("MainWindow.menu.tools.nattest").replaceAll("&", "");
-        }
-      
-        if(fgSpeedTestActionName == null){
-            fgSpeedTestActionName = MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll("&", "");
-        }
-      }
 
-      if(fgRestartActionName == null) {
-        fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
-      }
-      earlyStartup();
-      registerTorrentFile();
-   }
-   
-   public static void registerToolbarToggle(Shell shell) {
+	public static final int BOUNCE_SINGLE = NSApplication.UserAttentionRequestInformational;
+
+	public static final int BOUNCE_CONTINUOUS = NSApplication.UserAttentionRequestCritical;
+
+	public CarbonUIEnhancer() {
+		if (fgAboutActionName == null) {
+			fgAboutActionName = MessageText.getString("MainWindow.menu.help.about").replaceAll(
+					"&", "");
+		}
+
+		if (false == isAZ3) {
+			if (fgWizardActionName == null) {
+				fgWizardActionName = MessageText.getString(
+						"MainWindow.menu.file.configure").replaceAll("&", "");
+			}
+			if (fgNatTestActionName == null) {
+				fgNatTestActionName = MessageText.getString(
+						"MainWindow.menu.tools.nattest").replaceAll("&", "");
+			}
+
+			if (fgSpeedTestActionName == null) {
+				fgSpeedTestActionName = MessageText.getString(
+						"MainWindow.menu.tools.speedtest").replaceAll("&", "");
+			}
+		}
+
+		if (fgRestartActionName == null) {
+			fgRestartActionName = MessageText.getString(
+					"MainWindow.menu.file.restart").replaceAll("&", "");
+		}
+		earlyStartup();
+		registerTorrentFile();
+	}
+
+	public static void registerToolbarToggle(Shell shell) {
 		final Callback toolbarToggleCB = new Callback(target, "toolbarToggle", 3);
 		int toolbarToggle = toolbarToggleCB.getAddress();
 		if (toolbarToggle == 0) {
@@ -136,34 +170,36 @@ public class CarbonUIEnhancer {
 				mask.length / 2, mask, 0, null);
 	}
 
-   private void registerTorrentFile() {
- 		int result;
+	private void registerTorrentFile() {
+		int result;
 
- 		Callback clickDockIconCallback = new Callback(target, "clickDockIcon", 3);
- 		int clickDocIcon = clickDockIconCallback.getAddress();
- 		if (clickDocIcon == 0) {
- 			clickDockIconCallback.dispose();
- 		} else {
- 			result = OS.AEInstallEventHandler(kCoreEventClass, kAEReopenApplication,
- 					clickDocIcon, 0, false);
+		Callback clickDockIconCallback = new Callback(target, "clickDockIcon", 3);
+		int clickDocIcon = clickDockIconCallback.getAddress();
+		if (clickDocIcon == 0) {
+			clickDockIconCallback.dispose();
+		} else {
+			result = OS.AEInstallEventHandler(kCoreEventClass, kAEReopenApplication,
+					clickDocIcon, 0, false);
 
- 			if (result != OS.noErr) {
- 				Debug.out("OSX: Could Install ReopenApplication Event Handler. Error: " + result);
- 			}
- 		}
+			if (result != OS.noErr) {
+				Debug.out("OSX: Could Install ReopenApplication Event Handler. Error: "
+						+ result);
+			}
+		}
 
- 		Callback openContentsCallback = new Callback(target, "openContents", 3);
- 		int openContents = openContentsCallback.getAddress();
- 		if (openContents == 0) {
- 			openContentsCallback.dispose();
- 		} else {
- 			result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenContents,
- 					openContents, 0, false);
+		Callback openContentsCallback = new Callback(target, "openContents", 3);
+		int openContents = openContentsCallback.getAddress();
+		if (openContents == 0) {
+			openContentsCallback.dispose();
+		} else {
+			result = OS.AEInstallEventHandler(kCoreEventClass, kAEOpenContents,
+					openContents, 0, false);
 
- 			if (result != OS.noErr) {
- 				Debug.out("OSX: Could Install OpenContents Event Handler. Error: " + result);
- 			}
- 		}
+			if (result != OS.noErr) {
+				Debug.out("OSX: Could Install OpenContents Event Handler. Error: "
+						+ result);
+			}
+		}
 
 		Callback openDocCallback = new Callback(target, "openDocProc", 3);
 		int openDocProc = openDocCallback.getAddress();
@@ -177,19 +213,21 @@ public class CarbonUIEnhancer {
 				openDocProc, 0, false);
 
 		if (result != OS.noErr) {
-			Debug.out("OSX: Could not Install OpenDocs Event Handler. Error: " + result);
+			Debug.out("OSX: Could not Install OpenDocs Event Handler. Error: "
+					+ result);
 			return;
 		}
 
 		result = OS.AEInstallEventHandler(kURLEventClass, kURLEventClass,
 				openDocProc, 0, false);
 		if (result != OS.noErr) {
-			Debug.out("OSX: Could not Install URLEventClass Event Handler. Error: " + result);
+			Debug.out("OSX: Could not Install URLEventClass Event Handler. Error: "
+					+ result);
 			return;
 		}
-		
+
 		///
-		
+
 		Callback quitAppCallback = new Callback(target, "quitAppProc", 3);
 		int quitAppProc = quitAppCallback.getAddress();
 		if (quitAppProc == 0) {
@@ -210,11 +248,12 @@ public class CarbonUIEnhancer {
 		Callback appleEventCallback = new Callback(this, "appleEventProc", 3);
 		int appleEventProc = appleEventCallback.getAddress();
 		int[] mask3 = new int[] {
-				OS.kEventClassAppleEvent,
-				OS.kEventAppleEvent,
-				kURLEventClass,
-				kAEReopenApplication,
-				kAEOpenContents,};
+			OS.kEventClassAppleEvent,
+			OS.kEventAppleEvent,
+			kURLEventClass,
+			kAEReopenApplication,
+			kAEOpenContents,
+		};
 		result = OS.InstallEventHandler(appTarget, appleEventProc,
 				mask3.length / 2, mask3, 0, null);
 		if (result != OS.noErr) {
@@ -223,172 +262,180 @@ public class CarbonUIEnhancer {
 		}
 	}
 
-   /* (non-Javadoc)
-    * @see org.eclipse.ui.IStartup#earlyStartup()
-    */
-   public void earlyStartup() {
-      final Display display= Display.getDefault();
-      display.syncExec(
-      		new AERunnable() {
-            public void runSupport() {
-               hookApplicationMenu(display);
-            }
-         }
-      );
-   }
-      /**
-    * See Apple Technical Q&A 1079 (http://developer.apple.com/qa/qa2001/qa1079.html)<br />
-    * Also http://developer.apple.com/documentation/Carbon/Reference/Menu_Manager/menu_mgr_ref/function_group_10.html
-    */
-   public void hookApplicationMenu(final Display display) {
-            // Callback target
-      Object target= new Object() {
-         int commandProc(int nextHandler, int theEvent, int userData) {
-            if (OS.GetEventKind(theEvent) == OS.kEventProcessCommand) {
-               HICommand command= new HICommand();
-               OS.GetEventParameter(theEvent, OS.kEventParamDirectObject, OS.typeHICommand, null, HICommand.sizeof, null, command);
-               switch (command.commandID) {
-               case kHICommandPreferences: {
-              	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-              	 if (uiFunctions != null) {
-              		 uiFunctions.showConfig(null);
-              	 }
-                  return OS.noErr;
-               }
-               case kHICommandAbout:
-                 AboutWindow.show(display);
-                 return OS.noErr;
-               case kHICommandRestart: {
-              	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-              	 if (uiFunctions != null) {
-              		 uiFunctions.dispose(true, false);
-              	 }
-                  return OS.noErr;
-               }
-               case kHICommandWizard:
-                  new ConfigureWizard(AzureusCoreFactory.getSingleton(), false);
-                  return OS.noErr;
-               case kHICommandNatTest:
-                 new NatTestWindow();
-                 return OS.noErr;
-               case kHICommandSpeedTest:
-                 new SpeedTestWizard(AzureusCoreFactory.getSingleton(), display);  
-                 return OS.noErr;
-                 
-               case OS.kAEQuitApplication:
-           			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-          			if (uiFunctions != null) {
-          				uiFunctions.dispose(false, false);
-            			return OS.noErr;
-          			} else {
-          				UIExitUtilsSWT.setSkipCloseCheck(true);
-          			}
-               default:
-                  break;
-               }
-            }
-            return OS.eventNotHandledErr;
-         }
-      };
-            final Callback commandCallback= new Callback(target, "commandProc", 3); //$NON-NLS-1$
-      int commandProc= commandCallback.getAddress();
-      if (commandProc == 0) {
-         commandCallback.dispose();
-         return;  // give up
-      }
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.IStartup#earlyStartup()
+	 */
+	public void earlyStartup() {
+		final Display display = Display.getDefault();
+		display.syncExec(new AERunnable() {
+			public void runSupport() {
+				hookApplicationMenu(display);
+			}
+		});
+	}
 
-      // Install event handler for commands
-      int[] mask= new int[] {
-         OS.kEventClassCommand, OS.kEventProcessCommand
-      };
-      OS.InstallEventHandler(OS.GetApplicationEventTarget(), commandProc, mask.length / 2, mask, 0, null);
+	/**
+	* See Apple Technical Q&A 1079 (http://developer.apple.com/qa/qa2001/qa1079.html)<br />
+	* Also http://developer.apple.com/documentation/Carbon/Reference/Menu_Manager/menu_mgr_ref/function_group_10.html
+	*/
+	public void hookApplicationMenu(final Display display) {
+		// Callback target
+		Object target = new Object() {
+			int commandProc(int nextHandler, int theEvent, int userData) {
+				if (OS.GetEventKind(theEvent) == OS.kEventProcessCommand) {
+					HICommand command = new HICommand();
+					OS.GetEventParameter(theEvent, OS.kEventParamDirectObject,
+							OS.typeHICommand, null, HICommand.sizeof, null, command);
+					switch (command.commandID) {
+						case kHICommandPreferences: {
+							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+							if (uiFunctions != null) {
+								uiFunctions.showConfig(null);
+							}
+							return OS.noErr;
+						}
+						case kHICommandAbout:
+							AboutWindow.show(display);
+							return OS.noErr;
+						case kHICommandRestart: {
+							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+							if (uiFunctions != null) {
+								uiFunctions.dispose(true, false);
+							}
+							return OS.noErr;
+						}
+						case kHICommandWizard:
+							new ConfigureWizard(AzureusCoreFactory.getSingleton(), false);
+							return OS.noErr;
+						case kHICommandNatTest:
+							new NatTestWindow();
+							return OS.noErr;
+						case kHICommandSpeedTest:
+							new SpeedTestWizard(AzureusCoreFactory.getSingleton(), display);
+							return OS.noErr;
 
-      // create About menu command
-      int[] outMenu= new int[1];
-      short[] outIndex= new short[1];
-      if (OS.GetIndMenuItemWithCommandID(0, kHICommandPreferences, 1, outMenu, outIndex) == OS.noErr && outMenu[0] != 0) {
-         int menu= outMenu[0];
+						case OS.kAEQuitApplication:
+							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+							if (uiFunctions != null) {
+								uiFunctions.dispose(false, false);
+								return OS.noErr;
+							} else {
+								UIExitUtilsSWT.setSkipCloseCheck(true);
+							}
+						default:
+							break;
+					}
+				}
+				return OS.eventNotHandledErr;
+			}
+		};
+		final Callback commandCallback = new Callback(target, "commandProc", 3); //$NON-NLS-1$
+		int commandProc = commandCallback.getAddress();
+		if (commandProc == 0) {
+			commandCallback.dispose();
+			return; // give up
+		}
 
-         int l= fgAboutActionName.length();
-         char buffer[]= new char[l];
-         fgAboutActionName.getChars(0, l, buffer, 0);
-         int str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 0, 0, kHICommandAbout);
-         OS.CFRelease(str);
-                  // add separator between About & Preferences
-         OS.InsertMenuItemTextWithCFString(menu, 0, (short) 1, OS.kMenuItemAttrSeparator, 0);
+		// Install event handler for commands
+		int[] mask = new int[] {
+			OS.kEventClassCommand,
+			OS.kEventProcessCommand
+		};
+		OS.InstallEventHandler(OS.GetApplicationEventTarget(), commandProc,
+				mask.length / 2, mask, 0, null);
 
-         // enable pref menu
-         OS.EnableMenuCommand(menu, kHICommandPreferences);
-               // disable services menu
-         OS.DisableMenuCommand(menu, kHICommandServices);
+		// create About menu command
+		int[] outMenu = new int[1];
+		short[] outIndex = new short[1];
+		if (OS.GetIndMenuItemWithCommandID(0, kHICommandPreferences, 1, outMenu,
+				outIndex) == OS.noErr
+				&& outMenu[0] != 0) {
+			int menu = outMenu[0];
 
-         if(false == isAZ3){
-            // wizard menu
-           l= fgWizardActionName.length();
-           buffer= new char[l];
-           fgWizardActionName.getChars(0, l, buffer, 0);
-           str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-           OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandWizard);
-           OS.CFRelease(str);
-           
-           
-           // NAT test menu
-           l= fgNatTestActionName.length();
-           buffer= new char[l];
-           fgNatTestActionName.getChars(0, l, buffer, 0);
-           str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-           OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0, kHICommandNatTest);
-           OS.CFRelease(str);
-           
-  
-            //SpeedTest
-            l = fgSpeedTestActionName.length();
-            buffer = new char[l];
-            fgSpeedTestActionName.getChars(0,l,buffer,0);
-            str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-            OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandSpeedTest);
-            OS.CFRelease(str);
-         }
-         
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6, OS.kMenuItemAttrSeparator, 0);
+			int l = fgAboutActionName.length();
+			char buffer[] = new char[l];
+			fgAboutActionName.getChars(0, l, buffer, 0);
+			int str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer,
+					l);
+			OS.InsertMenuItemTextWithCFString(menu, str, (short) 0, 0,
+					kHICommandAbout);
+			OS.CFRelease(str);
+			// add separator between About & Preferences
+			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 1,
+					OS.kMenuItemAttrSeparator, 0);
 
-          // restart menu
-         l= fgRestartActionName.length();
-         buffer= new char[l];
-         fgRestartActionName.getChars(0, l, buffer, 0);
-         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 7, 0, kHICommandRestart);
-         OS.CFRelease(str);
+			// enable pref menu
+			OS.EnableMenuCommand(menu, kHICommandPreferences);
+			// disable services menu
+			OS.DisableMenuCommand(menu, kHICommandServices);
 
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 8, OS.kMenuItemAttrSeparator, 0);
-      }
+			if (false == isAZ3) {
+				// wizard menu
+				l = fgWizardActionName.length();
+				buffer = new char[l];
+				fgWizardActionName.getChars(0, l, buffer, 0);
+				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+				OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0,
+						kHICommandWizard);
+				OS.CFRelease(str);
 
-      // schedule disposal of callback object
-      display.disposeExec(
-         new AERunnable() {
-            public void runSupport() {
-               commandCallback.dispose();
-//               stopSidekick();
-            }
-         }
-      );
-   }
+				// NAT test menu
+				l = fgNatTestActionName.length();
+				buffer = new char[l];
+				fgNatTestActionName.getChars(0, l, buffer, 0);
+				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+				OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0,
+						kHICommandNatTest);
+				OS.CFRelease(str);
 
-   private static void stopSidekick()
-   {
-       try
-       {
-           Runtime.getRuntime().exec(new String[]{"osascript", "-e", "tell application \"Azureus\" to quit"});
-       }
-       catch (IOException e)
-       {
-           Debug.printStackTrace(e);
-       }
-   }
+				//SpeedTest
+				l = fgSpeedTestActionName.length();
+				buffer = new char[l];
+				fgSpeedTestActionName.getChars(0, l, buffer, 0);
+				str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+				OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0,
+						kHICommandSpeedTest);
+				OS.CFRelease(str);
+			}
 
+			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6,
+					OS.kMenuItemAttrSeparator, 0);
 
-   int appleEventProc(int nextHandler, int theEvent, int userData) {
+			// restart menu
+			l = fgRestartActionName.length();
+			buffer = new char[l];
+			fgRestartActionName.getChars(0, l, buffer, 0);
+			str = OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+			OS.InsertMenuItemTextWithCFString(menu, str, (short) 7, 0,
+					kHICommandRestart);
+			OS.CFRelease(str);
+
+			OS.InsertMenuItemTextWithCFString(menu, 0, (short) 8,
+					OS.kMenuItemAttrSeparator, 0);
+		}
+
+		// schedule disposal of callback object
+		display.disposeExec(new AERunnable() {
+			public void runSupport() {
+				commandCallback.dispose();
+				//               stopSidekick();
+			}
+		});
+	}
+
+	private static void stopSidekick() {
+		try {
+			Runtime.getRuntime().exec(new String[] {
+				"osascript",
+				"-e",
+				"tell application \"Azureus\" to quit"
+			});
+		} catch (IOException e) {
+			Debug.printStackTrace(e);
+		}
+	}
+
+	int appleEventProc(int nextHandler, int theEvent, int userData) {
 		int eventClass = OS.GetEventClass(theEvent);
 		//int eventKind = OS.GetEventKind(theEvent);
 
@@ -404,9 +451,8 @@ public class CarbonUIEnhancer {
 				return OS.eventNotHandledErr;
 			}
 			//System.out.println("EventID = " + OSXtoString(aeEventID[0]));
-			if (aeEventID[0] != kAEOpenDocuments 
-					&& aeEventID[0] != kURLEventClass
-					&& aeEventID[0] != kAEReopenApplication 
+			if (aeEventID[0] != kAEOpenDocuments && aeEventID[0] != kURLEventClass
+					&& aeEventID[0] != kAEReopenApplication
 					&& aeEventID[0] != kAEOpenContents
 					&& aeEventID[0] != OS.kAEQuitApplication) {
 				return OS.eventNotHandledErr;
@@ -424,16 +470,16 @@ public class CarbonUIEnhancer {
 		return OS.eventNotHandledErr;
 	}
 
- 	private static String OSXtoString(int i) {
+	private static String OSXtoString(int i) {
 		char[] c = new char[4];
-		c[0] = (char)((i >> 24) & 0xff);
-		c[1] = (char)((i >> 16) & 0xff);
-		c[2] = (char)((i >> 8) & 0xff);
-		c[3] = (char)(i & 0xff);
+		c[0] = (char) ((i >> 24) & 0xff);
+		c[1] = (char) ((i >> 16) & 0xff);
+		c[2] = (char) ((i >> 8) & 0xff);
+		c[3] = (char) (i & 0xff);
 		return new String(c);
 	}
- 	
- 	private static void memmove(byte[] dest, int src, int size) {
+
+	private static void memmove(byte[] dest, int src, int size) {
 		switch (memmove_type) {
 			case 0:
 				try {
@@ -495,7 +541,7 @@ public class CarbonUIEnhancer {
 		memmove_type = 3;
 	}
 
-  final static Object target = new Object() {
+	final static Object target = new Object() {
 		int quitAppProc(int theAppleEvent, int reply, int handlerRefcon) {
 			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
@@ -506,7 +552,7 @@ public class CarbonUIEnhancer {
 			}
 			return OS.noErr;
 		}
-  	
+
 		int openDocProc(int theAppleEvent, int reply, int handlerRefcon) {
 			AEDesc aeDesc = new AEDesc();
 			EventRecord eventRecord = new EventRecord();
@@ -624,25 +670,5 @@ public class CarbonUIEnhancer {
 			return OS.noErr;
 		}
 	};
-	
-	/**
-	 * If the application is not active causes the application icon at the bottom to bounce until the application becomes active
-	 * If the application is already active then this method does nothing.
-	 * 
-	 * type can be any one of the NSApplication.UserAttentionxxx constants
-	 * 
-	 * Note: This is an undocumented feature from Apple so it's behavior may change without warning
-	 * 
-	 * @param type
-	 * @return
-	 */
-	public static int bounceIcon(int type){
-		if(Constants.isOSX){
-			NSApplication app = NSApplication.sharedApplication();
-			return app.requestUserAttention(type);
-		}
-		
-		return -1;
-	}
-   
+
 }

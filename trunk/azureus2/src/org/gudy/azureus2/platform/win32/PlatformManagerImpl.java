@@ -1127,4 +1127,8 @@ PlatformManagerImpl
 		}
 		
 	}
+
+	public void requestUserAttention(int type, Object data) throws PlatformManagerException {
+		throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
 }

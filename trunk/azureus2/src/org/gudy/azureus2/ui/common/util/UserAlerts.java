@@ -37,6 +37,10 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -366,5 +370,26 @@ UserAlerts
 			
 			Debug.printStackTrace( e );
 		}
+  	}
+  	
+  	
+  	/**
+  	 * Grab the user's attention in a platform dependent way
+  	 * @param type one of <code>PlatformManager.USER_REQUEST_INFO</code>, 
+  	 * 										<code>PlatformManager.USER_REQUEST_WARNING</code>, OR 
+  	 * 										<code>PlatformManager.USER_REQUEST_QUESTION</code>
+  	 * @param data user-defined data object;
+  	 * 				see the platform-specific <code>PlatformManager</code> for what may be supported
+  	 */
+  	public static void requestUserAttention(int type, Object data) {
+
+  		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+  		if (true == pm.hasCapability(PlatformManagerCapabilities.RequestUserAttention)) {
+  			try {
+  				pm.requestUserAttention(type, data);
+  			} catch (PlatformManagerException e) {
+  				Debug.printStackTrace(e);
+  			}
+  		}
   	}
 }

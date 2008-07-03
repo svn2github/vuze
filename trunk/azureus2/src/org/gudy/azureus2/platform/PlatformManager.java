@@ -34,11 +34,15 @@ public interface
 PlatformManager
 	extends org.gudy.azureus2.plugins.platform.PlatformManager
 {
-	public static final int	PT_WINDOWS		= 1;
-	public static final int PT_OTHER		= 2;
+		public static final int	PT_WINDOWS		= 1;
+		public static final int PT_OTHER		= 2;
     public static final int PT_MACOSX 		= 3;
   	public static final int PT_UNIX		= 4;
 
+  	public static final int USER_REQUEST_INFO = 1;
+  	public static final int USER_REQUEST_WARNING = 2;
+  	public static final int USER_REQUEST_QUESTION = 3;  	
+  	
 	public int
 	getPlatformType();
 	
@@ -154,4 +158,19 @@ PlatformManager
 		 * @throws PlatformManagerException 
 		 */
 		String getAzComputerID() throws PlatformManagerException;
+		
+		/**
+		 * Requests the user's attention such as bouncing the application icon on OSX
+		 *  
+		 * @param type
+		 * @param data
+		 * @throws PlatformManagerException
+		 */
+		public void
+		requestUserAttention(
+			int			type,
+			Object 	data)
+		
+			throws PlatformManagerException;
+
 }

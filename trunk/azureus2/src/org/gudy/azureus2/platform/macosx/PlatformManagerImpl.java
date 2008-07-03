@@ -22,18 +22,6 @@
 
 package org.gudy.azureus2.platform.macosx;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerListener;
-import org.gudy.azureus2.platform.PlatformManagerPingCallback;
-import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
-
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +29,28 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.HashSet;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerListener;
+import org.gudy.azureus2.platform.PlatformManagerPingCallback;
+import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+
+import com.apple.cocoa.application.NSApplication;
 
 
 /**
@@ -118,6 +128,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
         capabilitySet.add(PlatformManagerCapabilities.UseNativeScripting);
         capabilitySet.add(PlatformManagerCapabilities.PlaySystemAlert);
+        capabilitySet.add(PlatformManagerCapabilities.RequestUserAttention);
         
         if (OSXAccess.isLoaded()) {
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
@@ -745,5 +756,32 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	public String getAzComputerID() throws PlatformManagerException {
 		throw new PlatformManagerException(
 				"Unsupported capability called on platform manager");
+	}
+
+	/**
+	 * If the application is not active causes the application icon at the bottom to bounce until the application becomes active
+	 * If the application is already active then this method does nothing.
+	 * 
+	 * Note: This is an undocumented feature from Apple so it's behavior may change without warning
+	 * 
+	 * @param type one of USER_REQUEST_INFO, USER_REQUEST_WARNING
+	 */
+	public void requestUserAttention(int type, Object data)
+			throws PlatformManagerException {
+		try {
+			NSApplication app = NSApplication.sharedApplication();
+			app.requestUserAttention(type);
+			if (type == USER_REQUEST_INFO) {
+				app.requestUserAttention(NSApplication.UserAttentionRequestInformational);
+			} else if (type == USER_REQUEST_WARNING) {
+				app.requestUserAttention(NSApplication.UserAttentionRequestCritical);
+			} else if (type == USER_REQUEST_QUESTION) {
+				// not applicable
+			}
+
+		} catch (Exception e) {
+			throw new PlatformManagerException("Failed to request user attention", e);
+		}
+
 	}
 }
