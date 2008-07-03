@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -66,7 +66,8 @@ ProgressWindow
 				operationCreated(
 					AzureusCoreOperation	operation )
 				{
-					if ( 	operation.getOperationType() == AzureusCoreOperation.OP_FILE_MOVE &&
+					if ( 	( 	operation.getOperationType() == AzureusCoreOperation.OP_FILE_MOVE ||
+								operation.getOperationType() == AzureusCoreOperation.OP_PROGRESS )&&
 							Utils.isThisThreadSWT()){
 												
 						if ( operation.getTask() != null ){
@@ -82,18 +83,21 @@ ProgressWindow
 			});
 	}
 	
-	private volatile Shell 		shell;
-	private volatile boolean 	task_complete;
+	private AzureusCoreOperation	operation;
+	private volatile Shell 			shell;
+	private volatile boolean 		task_complete;
 	
-	public 
+	protected 
 	ProgressWindow(
-		final AzureusCoreOperation	operation )
+		final AzureusCoreOperation	_operation )
 	{
+		operation	= _operation;
+		
 		final RuntimeException[] error = {null};
 		
 		new DelayedEvent( 
 				"ProgWin",
-				1000,
+				operation.getOperationType()==AzureusCoreOperation.OP_FILE_MOVE?1000:10,
 				new AERunnable()
 				{
 					public void
@@ -124,10 +128,10 @@ ProgressWindow
 					}
 				});
 		
-		new AEThread( "ProgressWindow", true )
+		new AEThread2( "ProgressWindow", true )
 		{
 			public void 
-			runSupport()
+			run()
 			{
 				try{	
 					// Thread.sleep(10000);
@@ -238,13 +242,13 @@ ProgressWindow
 		    			    		    
 		    final GC canvas_gc = new GC( canvas );
 
-	        new AEThread("GifAnim", true )
+	        new AEThread2("GifAnim", true )
 	        {
 	        	private Image	image;
 	        	private boolean useGIFBackground;
 	        	
 	        	public void 
-	        	runSupport()
+	        	run()
 	        	{
 	        		Display display = shell.getDisplay();  
 	        	
@@ -378,7 +382,10 @@ ProgressWindow
 		
 		
 		Label label = new Label(shell, SWT.NONE);
-		label.setText(MessageText.getString( "progress.window.msg.filemove" ));
+		
+		String resource = operation.getOperationType()==AzureusCoreOperation.OP_FILE_MOVE?"progress.window.msg.filemove":"progress.window.msg.progress";
+		
+		label.setText(MessageText.getString( resource ));
 		GridData gridData = new GridData();
 		label.setLayoutData(gridData);
 

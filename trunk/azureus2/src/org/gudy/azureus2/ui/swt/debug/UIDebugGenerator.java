@@ -39,6 +39,10 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreOperation;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
+
 /**
  * @author TuxPaper
  * @created May 28, 2006
@@ -61,7 +65,7 @@ public class UIDebugGenerator
 			return;
 		}
 
-		File path = new File(SystemProperties.getUserPath(), "debug");
+		final File path = new File(SystemProperties.getUserPath(), "debug");
 		if (!path.isDirectory()) {
 			path.mkdir();
 		} else {
@@ -139,19 +143,32 @@ public class UIDebugGenerator
 			e.printStackTrace();
 		}
 
-		try {
-			File fEvidence = new File(path, "evidence.log");
-			FileWriter fw;
-			fw = new FileWriter(fEvidence);
-			PrintWriter pw = new PrintWriter(fw);
+		AzureusCoreFactory.getSingleton().createOperation(
+			AzureusCoreOperation.OP_PROGRESS,
+			new AzureusCoreOperationTask()
+			{
+				public void 
+				run(
+						AzureusCoreOperation operation )
+				{		
+					try{
 
-			AEDiagnostics.generateEvidence(pw);
+						File fEvidence = new File(path, "evidence.log");
+						FileWriter fw;
+						fw = new FileWriter(fEvidence);
+						PrintWriter pw = new PrintWriter(fw);
 
-			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+						AEDiagnostics.generateEvidence(pw);
+
+						fw.close();
+
+					} catch (IOException e) {
+
+						Debug.printStackTrace( e );
+					}
+				}
+			});
+
 
 		try {
 			File outFile = new File(SystemProperties.getUserPath(), "debug.zip");

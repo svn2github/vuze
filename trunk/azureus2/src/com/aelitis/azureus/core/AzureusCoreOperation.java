@@ -27,6 +27,7 @@ AzureusCoreOperation
 {
 	public static final int	OP_INITIALISATION	= 1;
 	public static final int	OP_FILE_MOVE		= 2;
+	public static final int	OP_PROGRESS			= 3;
 	
 	public int
 	getOperationType();
