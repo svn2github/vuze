@@ -29,19 +29,15 @@ import java.awt.Panel;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -183,13 +179,19 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 	public void initialize(Composite parent) {
 		if (iControlType == UISWTView.CONTROLTYPE_SWT) {
-			composite = new Composite(parent, SWT.NULL);
-			GridLayout layout = new GridLayout(1, false);
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			composite.setLayout(layout);
-			GridData gridData = new GridData(GridData.FILL_BOTH);
-			composite.setLayoutData(gridData);
+			GridData gridData;
+			Layout parentLayout = parent.getLayout();
+			if (parentLayout instanceof FormLayout) {
+				composite = parent;
+			} else {
+  			composite = new Composite(parent, SWT.NULL);
+  			GridLayout layout = new GridLayout(1, false);
+  			layout.marginHeight = 0;
+  			layout.marginWidth = 0;
+  			composite.setLayout(layout);
+				gridData = new GridData(GridData.FILL_BOTH);
+				composite.setLayoutData(gridData);
+			}
 
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
 			

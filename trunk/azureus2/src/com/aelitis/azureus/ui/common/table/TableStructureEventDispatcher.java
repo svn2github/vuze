@@ -77,7 +77,9 @@ public class TableStructureEventDispatcher implements
 		try {
 			listeners_mon.enter();
 
-			this.listeners.add(listener);
+			if (!this.listeners.contains(listener)) {
+				this.listeners.add(listener);
+			}
 
 		} finally {
 

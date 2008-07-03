@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
@@ -61,6 +62,11 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	private Composite form;
 
 	private MyTorrentsView lastSelectedView;
+
+  public MyTorrentsSuperView() {
+  	this(AzureusCoreFactory.getSingleton());
+  }
+  
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;

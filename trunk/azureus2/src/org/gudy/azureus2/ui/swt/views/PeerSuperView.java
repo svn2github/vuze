@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -74,6 +75,11 @@ public class PeerSuperView
 	private boolean active_listener = true;
 
 
+  public PeerSuperView() {
+  	this(AzureusCoreFactory.getSingleton().getGlobalManager());
+  }
+
+	
   /**
    * Initialize
    *

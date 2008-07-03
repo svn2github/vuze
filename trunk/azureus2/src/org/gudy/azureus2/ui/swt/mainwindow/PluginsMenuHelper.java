@@ -206,8 +206,12 @@ public class PluginsMenuHelper
 			createIViewInfoMenuItem(parent, (IViewInfo) itr.next());
 		}
 	}
+	
+	public IViewInfo[] getPluginViewsInfo() {
+		return (IViewInfo[])plugin_view_info_map.values().toArray(new IViewInfo[0]);
+	}
 
-	private static class IViewInfo
+	public static class IViewInfo
 	{
 		public AbstractIView view;
 
