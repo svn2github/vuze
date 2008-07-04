@@ -24,11 +24,13 @@ package com.aelitis.azureus.plugins.clientid;
 
 import java.util.Properties;
 
-import org.gudy.azureus2.core3.peer.util.PeerUtils;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author parg
@@ -36,33 +38,20 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
  */
 
 public class 
-ClientIDPlugin 
-	implements Plugin
+ClientIDPlugin
 {
 	private static boolean		send_os;
 	
-	public static void
-	load(
-		final PluginInterface	plugin_interface )
-	{
-		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Client ID" );
-
+	public static void initialize() {
 		final String	param = "Tracker Client Send OS and Java Version";
 		
-		send_os = plugin_interface.getPluginconfig().getUnsafeBooleanParameter( param );
+		COConfigurationManager.addAndFireParameterListener(param, new ParameterListener() {
+			public void parameterChanged(String param) {
+				send_os = COConfigurationManager.getBooleanParameter(param);
+			}
+		});
 
-		plugin_interface.getPluginconfig().addListener(
-			new PluginConfigListener()
-			{
-				public void 
-				configSaved() 
-				{
-					send_os = plugin_interface.getPluginconfig().getUnsafeBooleanParameter( param );				
-				}
-			});
-		
-		plugin_interface.getClientIDManager().setGenerator( 
+		ClientIDManagerImpl.getSingleton().setGenerator( 
 			new ClientIDGenerator()
 			{
 				public byte[]
@@ -77,7 +66,7 @@ ClientIDPlugin
 				generateHTTPProperties(
 					Properties	properties )
 				{
-					doHTTPProperties( plugin_interface, properties );
+					doHTTPProperties( properties );
 				}
 				
 				public String[]
@@ -89,17 +78,9 @@ ClientIDPlugin
 			},
 			false );
 	}
-	
-	public void
-	initialize(
-		PluginInterface	_plugin_interface )
-	{
-	}
-	
 
 	protected static void
 	doHTTPProperties(
-		PluginInterface		plugin_interface,
 		Properties			properties )
 	{
 		String	version = Constants.AZUREUS_VERSION;

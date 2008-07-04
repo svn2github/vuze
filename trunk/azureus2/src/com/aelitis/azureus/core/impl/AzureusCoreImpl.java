@@ -60,6 +60,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeL
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
+import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
@@ -220,6 +221,8 @@ AzureusCoreImpl
         
 	    TorrentSessionManager.getSingleton().init();
     
+		// Used to be a plugin, but not any more...
+		ClientIDPlugin.initialize();
 		pi = PluginInitializer.getSingleton( this, initialisation_op );
 		
 		instance_manager = AZInstanceManagerFactory.getSingleton( this );

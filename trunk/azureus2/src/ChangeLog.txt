@@ -5,7 +5,7 @@ VUZE CHANGELOG
 
 FEATURE: UI   | Added "Column Setup" icon to the iconbar [amc1] 
 
-
+CHANGE: Plug  | Client ID plugin is removed [amc1]
 
 2008.07.01 | Vuze 3.1.1.0
 
