@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author TuxPaper
@@ -61,11 +62,30 @@ public class SWTSkinObjectSash
 
 	boolean ignoreContainerAboveMin = false;
 
+	private Composite createOn;
+
+	private final boolean isVertical;
+
+	private Sash sash;
+
+	Point lastSize = new Point(0, 0);
+
+	private Composite parentComposite;
+
+	private Composite above = null;
+
+	private int aboveMin = 0;
+
+	private Composite below = null;
+
+	private int belowMin = 0;
+
 	public SWTSkinObjectSash(final SWTSkin skin,
 			final SWTSkinProperties properties, final String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent,
 			final boolean bVertical) {
 		super(skin, properties, sID, sConfigID, "sash", parent);
+		isVertical = bVertical;
 
 		int style = bVertical ? SWT.VERTICAL : SWT.HORIZONTAL;
 
@@ -74,7 +94,6 @@ public class SWTSkinObjectSash
 			sControlAfter = typeParams[2];
 		}
 
-		final Composite createOn;
 		if (parent == null) {
 			createOn = skin.getShell();
 		} else {
@@ -86,11 +105,11 @@ public class SWTSkinObjectSash
 			return;
 		}
 
-		final Sash sash = new Sash(createOn, style);
+		sash = new Sash(createOn, style);
 
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
-		if (splitAt != -1) {
+		if (splitAt >= 0) {
 			double pct = splitAt / 10000.0;
 			sash.setData("PCT", new Double(pct));
 		} else {
@@ -110,7 +129,7 @@ public class SWTSkinObjectSash
 			}
 		}
 
-		final Composite parentComposite = createOn;
+		parentComposite = createOn;
 
 		String sMinContainerPos = properties.getStringValue(sConfigID
 				+ ".resize.container.min");
@@ -123,176 +142,12 @@ public class SWTSkinObjectSash
 			}
 		}
 
-		final Listener l = new Listener() {
-			Point lastSize = new Point(0, 0);
-
-			private boolean skipResize = false;
-
-			public void handleEvent(Event e) {
-				if (e.type == SWT.MouseUp) {
-					if (e.button == 2 || (e.button == 3 && (e.stateMask & SWT.MOD1) > 0)) {
-						String sPos = properties.getStringValue(sConfigID + ".startpos");
-						if (sPos == null) {
-							return;
-						}
-						try {
-							long l = NumberFormat.getInstance().parse(sPos).longValue();
-							if (sPos.endsWith("%")) {
-								double pct = (double) (100 - l) / 100;
-								sash.setData("PCT", new Double(pct));
-							} else {
-								sash.setData("PX", new Long(l));
-								sash.setData("PCT", null);
-							}
-							// FALL THROUGH
-							e.type = SWT.Show;
-						} catch (Exception ex) {
-							Debug.out(ex);
-							return;
-						}
-					} else {
-						return;
-					}
-				}
-
-				Composite below = null;
-				SWTSkinObject skinObject = skin.getSkinObjectByID(sControlAfter);
-
-				if (skinObject != null) {
-					below = (Composite) skinObject.getControl();
-				}
-				if (below == null) {
-					return;
-				}
-
-				int belowMin = skinObject.getProperties().getIntValue(
-						skinObject.getConfigID() + (bVertical ? ".minwidth" : ".minheight"),
-						0);
-
-				Composite above = null;
-				int aboveMin = 0;
-				skinObject = skin.getSkinObjectByID(sControlBefore);
-
-				if (skinObject != null) {
-					above = (Composite) skinObject.getControl();
-					aboveMin = skinObject.getProperties().getIntValue(
-							skinObject.getConfigID()
-									+ (bVertical ? ".minwidth" : ".minheight"), 0);
-				}
-
-				if (e.type == SWT.Resize && skipResize) {
-					return;
-				}
-				if (e.type == SWT.Resize || e.type == SWT.Show) {
-					if (!createOn.isVisible() && e.type != SWT.Show) {
-						return;
-					}
-					Double l = (Double) sash.getData("PCT");
-					Long px = (Long) sash.getData("PX");
-					if (l != null) {
-						Point size = createOn.getSize();
-						if (bVertical && size.x == lastSize.x) {
-							return;
-						} else if (!bVertical && size.y == lastSize.y) {
-							return;
-						}
-
-						lastSize = size;
-
-						setPercent(l, sash, above, below, bVertical, parentComposite,
-								aboveMin, belowMin);
-					} else if (px != null) {
-						int i = (bVertical) ? parentComposite.getSize().x
-								: parentComposite.getSize().y;
-						double pctBelow = 1 - (px.doubleValue() / i);
-
-						FormData belowData = (FormData) below.getLayoutData();
-						if (bVertical) {
-							int parentWidth = parentComposite.getBounds().width;
-							belowData.width = (int) (parentWidth * pctBelow);
-							if (parentWidth - belowData.width < aboveMin) {
-								belowData.width = parentWidth - aboveMin;
-							}
-						} else {
-							int parentHeight = parentComposite.getBounds().height;
-							belowData.height = (int) (parentHeight * pctBelow);
-							if (parentHeight - belowData.width < aboveMin) {
-								belowData.height = parentHeight - aboveMin;
-							}
-						}
-						sash.setData("PCT", new Double(pctBelow));
-						ignoreContainerAboveMin = px.longValue() < resizeContainerAboveMin;
-						// layout in resize is not needed (and causes browser widget to blink)
-					}
-					if (e.type == SWT.Show) {
-						parentComposite.layout(true);
-					}
-
-				} else if (e.type == SWT.Selection) {
-					skipResize = true;
-
-					if (FASTDRAG && e.detail == SWT.DRAG) {
-						return;
-					}
-
-					Rectangle area = parentComposite.getBounds();
-					FormData belowData = (FormData) below.getLayoutData();
-					if (bVertical) {
-						belowData.width = area.width - (e.x + e.width);
-						if (area.width - belowData.width - sash.getSize().x < aboveMin) {
-							belowData.width = area.width - aboveMin - sash.getSize().x;
-						} else if (belowData.width < belowMin) {
-							belowData.width = belowMin;
-							e.doit = false;
-						}
-						int aboveWidth = area.width - belowData.width - sash.getSize().x;
-						ignoreContainerAboveMin = aboveWidth < resizeContainerAboveMin;
-					} else {
-						belowData.height = area.height - (e.y + e.height);
-						if (area.height - belowData.height < aboveMin) {
-							belowData.height = area.height - aboveMin;
-						} else if (belowData.height < belowMin) {
-							belowData.height = belowMin;
-							e.doit = false;
-						}
-					}
-
-					parentComposite.layout(true);
-
-					double d;
-					if (bVertical) {
-						d = (double) (below.getBounds().width + (sash.getSize().x / 2))
-								/ parentComposite.getBounds().width;
-					} else {
-						d = (double) (below.getBounds().height + (sash.getSize().y / 2))
-								/ parentComposite.getBounds().height;
-					}
-					Double l = new Double(d);
-					l = ensureVisibilityStates(l, above, below, bVertical);
-					sash.setData("PCT", l);
-
-					if (e.detail != SWT.DRAG) {
-						COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
-								(int) (l.doubleValue() * 10000));
-					}
-
-					skipResize = false;
-				}
-			}
-		};
-		createOn.addListener(SWT.Resize, l);
-		sash.addListener(SWT.Selection, l);
-		sash.addListener(SWT.MouseUp, l);
-		sash.getShell().addListener(SWT.Show, l);
-
-		addListener(new SWTSkinObjectListener() {
+		SWTSkinObject soInitializeSashAfterCreated = parent == null ? this : parent;
+		soInitializeSashAfterCreated.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
-				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-  				Event event = new Event();
-  				event.type = SWT.Show;
-  
-  				l.handleEvent(event);
+				if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
+					initialize();
 				}
 				return null;
 			}
@@ -307,28 +162,8 @@ public class SWTSkinObjectSash
 				// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 
 				public void handleEvent(Event e) {
-					Composite below = null;
-					SWTSkinObject skinObject = skin.getSkinObjectByID(sControlAfter);
-
-					if (skinObject != null) {
-						below = (Composite) skinObject.getControl();
-					}
-					if (below == null) {
+					if (below == null || above == null) {
 						return;
-					}
-
-					int belowMin = skinObject.getProperties().getIntValue(
-							skinObject.getConfigID()
-									+ (bVertical ? ".minwidth" : ".minheight"), 0);
-
-					Composite above = null;
-					skinObject = skin.getSkinObjectByID(sControlBefore);
-
-					int aboveMin = 0;
-					if (skinObject != null) {
-						above = (Composite) skinObject.getControl();
-						aboveMin = skinObject.getProperties().getIntValue(
-								bVertical ? "minwidth" : "minheight", 0);
 					}
 
 					Double oldPCT = (Double) sash.getData("PCT");
@@ -359,6 +194,195 @@ public class SWTSkinObjectSash
 		} // dblclick
 
 		setControl(sash);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.0.1
+	 */
+	protected void initialize() {
+		SWTSkinObject skinObject;
+
+		skinObject = skin.getSkinObjectByID(sControlBefore);
+
+		if (skinObject != null) {
+			above = (Composite) skinObject.getControl();
+			aboveMin = skinObject.getProperties().getIntValue(
+					skinObject.getConfigID() + (isVertical ? ".minwidth" : ".minheight"),
+					0);
+		}
+
+		skinObject = skin.getSkinObjectByID(sControlAfter);
+
+		if (skinObject != null) {
+			below = (Composite) skinObject.getControl();
+		}
+		if (below == null) {
+			return;
+		}
+
+		belowMin = skinObject.getProperties().getIntValue(
+				skinObject.getConfigID() + (isVertical ? ".minwidth" : ".minheight"), 0);
+
+		Listener l = new Listener() {
+			private boolean skipResize = false;
+
+			public void handleEvent(Event e) {
+				if (e.type == SWT.MouseUp) {
+					if (e.button == 2 || (e.button == 3 && (e.stateMask & SWT.MOD1) > 0)) {
+						String sPos = properties.getStringValue(sConfigID + ".startpos");
+						if (sPos == null) {
+							return;
+						}
+						try {
+							long l = NumberFormat.getInstance().parse(sPos).longValue();
+							if (sPos.endsWith("%")) {
+								double pct = (double) (100 - l) / 100;
+								sash.setData("PCT", new Double(pct));
+							} else {
+								sash.setData("PX", new Long(l));
+								sash.setData("PCT", null);
+							}
+							// FALL THROUGH
+							e.type = SWT.Show;
+						} catch (Exception ex) {
+							Debug.out(ex);
+							return;
+						}
+					} else {
+						return;
+					}
+				}
+
+				if (e.type == SWT.Resize && skipResize) {
+					return;
+				}
+				if (e.type == SWT.Resize || e.type == SWT.Show) {
+					handleShowResize(e);
+				} else if (e.type == SWT.Selection) {
+					skipResize = true;
+
+					if (FASTDRAG && e.detail == SWT.DRAG) {
+						return;
+					}
+
+					Rectangle area = parentComposite.getBounds();
+					FormData belowData = (FormData) below.getLayoutData();
+					if (isVertical) {
+						belowData.width = area.width - (e.x + e.width);
+						if (area.width - belowData.width - sash.getSize().x < aboveMin) {
+							belowData.width = area.width - aboveMin - sash.getSize().x;
+						} else if (belowData.width < belowMin) {
+							belowData.width = belowMin;
+							e.doit = false;
+						}
+						int aboveWidth = area.width - belowData.width - sash.getSize().x;
+						ignoreContainerAboveMin = aboveWidth < resizeContainerAboveMin;
+					} else {
+						belowData.height = area.height - (e.y + e.height);
+						if (area.height - belowData.height < aboveMin) {
+							belowData.height = area.height - aboveMin;
+						} else if (belowData.height < belowMin) {
+							belowData.height = belowMin;
+							e.doit = false;
+						}
+					}
+
+					parentComposite.layout(true);
+
+					double d;
+					if (isVertical) {
+						d = (double) (below.getBounds().width + (sash.getSize().x / 2))
+								/ parentComposite.getBounds().width;
+					} else {
+						d = (double) (below.getBounds().height + (sash.getSize().y / 2))
+								/ parentComposite.getBounds().height;
+					}
+					Double l = new Double(d);
+					l = ensureVisibilityStates(l, above, below, isVertical);
+					sash.setData("PCT", l);
+
+					if (e.detail != SWT.DRAG) {
+						COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
+								(int) (l.doubleValue() * 10000));
+					}
+
+					skipResize = false;
+				}
+			}
+		};
+		createOn.addListener(SWT.Resize, l);
+		sash.addListener(SWT.Selection, l);
+		sash.addListener(SWT.MouseUp, l);
+		sash.getShell().addListener(SWT.Show, l);
+
+		Event event = new Event();
+		event.type = SWT.Show;
+
+		handleShowResize(event);
+	}
+
+	/**
+	 * @param e
+	 *
+	 * @since 3.1.0.1
+	 */
+	protected void handleShowResize(Event e) {
+		if (!createOn.isVisible() && e.type != SWT.Show) {
+			return;
+		}
+
+		Double l = (Double) sash.getData("PCT");
+		Long px = (Long) sash.getData("PX");
+		if (l != null) {
+			Point size = createOn.getSize();
+			if (isVertical && size.x == lastSize.x) {
+				return;
+			} else if (!isVertical && size.y == lastSize.y) {
+				return;
+			}
+
+			lastSize = size;
+
+			setPercent(l, sash, above, below, isVertical, parentComposite, aboveMin,
+					belowMin);
+		} else if (px != null) {
+			int i = (isVertical) ? parentComposite.getSize().x
+					: parentComposite.getSize().y;
+			if (i == 0) {
+				return;
+			}
+			double pctBelow = 1 - (px.doubleValue() / i);
+
+			FormData belowData = (FormData) below.getLayoutData();
+			if (belowData == null) {
+				belowData = Utils.getFilledFormData();
+				below.setLayoutData(belowData);
+			}
+			if (isVertical) {
+				int parentWidth = parentComposite.getBounds().width;
+				belowData.width = (int) (parentWidth * pctBelow);
+				if (parentWidth - belowData.width < aboveMin) {
+					belowData.width = parentWidth - aboveMin;
+				}
+			} else {
+				int parentHeight = parentComposite.getBounds().height;
+				belowData.height = (int) (parentHeight * pctBelow);
+				if (parentHeight - belowData.width < aboveMin) {
+					belowData.height = parentHeight - aboveMin;
+				}
+			}
+			if (pctBelow >= 0 && pctBelow <= 1.0) {
+				sash.setData("PCT", new Double(pctBelow));
+			}
+			ignoreContainerAboveMin = px.longValue() < resizeContainerAboveMin;
+			// layout in resize is not needed (and causes browser widget to blink)
+		}
+		if (e.type == SWT.Show) {
+			parentComposite.layout(true);
+		}
+
 	}
 
 	/**
