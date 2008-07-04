@@ -113,6 +113,7 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/warning.gif", "warning");
 		addPath("org/gudy/azureus2/ui/icons/subitem.gif", "subitem");
 		addPath("org/gudy/azureus2/ui/icons/comment.png", "comment");
+		addPath("org/gudy/azureus2/ui/icons/comment_blank.png", "no_comment");
 		addPath("org/gudy/azureus2/ui/icons/foldersmall.png", "foldersmall");
 
 		//ToolBar Icons
@@ -244,6 +245,7 @@ public class ImageRepository {
     return im;
   }
 
+    // dead
   public static void unLoadImages() {
     Iterator iter;
     iter = images.values().iterator();
@@ -567,6 +569,7 @@ public class ImageRepository {
      * @param canvasSize Size of image
      * @return The image
      */
+    // dead
     public static Image getImageWithSize(String name, Point canvasSize)
     {
         String key =
@@ -610,7 +613,8 @@ public class ImageRepository {
           img.dispose();        
       }
     }
-    
+
+    // dead
     public static void unloadPathIcon(String path) {
      String key = getKey(path);
      Image img = (Image) registry.get(key);

@@ -41,6 +41,7 @@ public class CommentIconItem
        implements TableCellRefreshListener, TableCellMouseListener
 {
 	static final UISWTGraphic graphicComment = new UISWTGraphicImpl(ImageRepository.getImage("comment"));
+	static final UISWTGraphic noGraphicComment = new UISWTGraphicImpl(ImageRepository.getImage("no_comment"));
 	
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
@@ -75,14 +76,14 @@ public class CommentIconItem
 	  }
 	  
 	  if (comment == null) {
-	  	cell.setGraphic(null);
+	  	cell.setGraphic(noGraphicComment);
 		  cell.setToolTip(null);
-		  cell.setSortValue(0);
+		  cell.setSortValue(null);
 	  }
 	  else {
 	  	cell.setGraphic(graphicComment);
 		  cell.setToolTip(comment);
-		  cell.setSortValue(1);
+		  cell.setSortValue(comment);
 	  }
 	  
   }
