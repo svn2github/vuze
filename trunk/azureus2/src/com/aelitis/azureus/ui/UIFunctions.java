@@ -114,6 +114,8 @@ public interface UIFunctions
 	 */
 	void showMyTorrents();
 	
+	void showDetailedListView();
+	
 	void showAllPeersView();
 
 	void showMultiOptionsView( DownloadManager[] dms );

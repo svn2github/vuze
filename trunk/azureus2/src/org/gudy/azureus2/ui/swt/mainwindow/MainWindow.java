@@ -137,6 +137,8 @@ public class MainWindow
 	private AEMonitor downloadViews_mon = new AEMonitor("MainWindow:dlviews");
 
 	private Tab mytorrents;
+	
+	private Tab detailed_list;
 
 	private Tab all_peers;
 
@@ -881,6 +883,23 @@ public class MainWindow
 					});
 		} else {
 			mytorrents.setFocus();
+		}
+		refreshIconBar();
+		refreshTorrentMenu();
+	}
+	
+	protected void showDetailedListView() {
+		if (detailed_list == null) {
+			DetailedListView view = new DetailedListView(azureus_core);
+			detailed_list = new Tab(view);
+			detailed_list.getView().getComposite().addDisposeListener(
+					new DisposeListener() {
+						public void widgetDisposed(DisposeEvent e) {
+							detailed_list = null;
+						}
+					});
+		} else {
+			detailed_list.setFocus();
 		}
 		refreshIconBar();
 		refreshTorrentMenu();

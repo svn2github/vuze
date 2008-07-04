@@ -113,6 +113,8 @@ public interface IMenuConstants
 	public static final String MENU_ID_RESUME_TRANSFERS = "MainWindow.menu.transfers.resumetransfers";
 
 	public static final String MENU_ID_MY_TORRENTS = "MainWindow.menu.view.mytorrents";
+	
+	public static final String MENU_ID_DETAILED_LIST = "MainWindow.menu.view.detailedlist";
 
 	public static final String MENU_ID_ALL_PEERS = "MainWindow.menu.view.allpeers";
 
@@ -170,7 +172,7 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_ADVANCED = "v3.MainWindow.tab.advanced";
 
-	public static final String MENU_ID_SEARCH_BAR = "v3.MainWindow.menu.view.searchbar";
+	public static final String MENU_ID_SEARCH_BAR = "v3.MainWindow.menu.view.searchbar";  // dead
 
-	public static final String MENU_ID_TAB_BAR = "v3.MainWindow.menu.view.tabbar";
+	public static final String MENU_ID_TAB_BAR = "v3.MainWindow.menu.view.tabbar";               // dead
 }

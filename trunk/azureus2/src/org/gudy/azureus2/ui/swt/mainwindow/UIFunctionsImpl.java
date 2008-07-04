@@ -329,6 +329,14 @@ public class UIFunctionsImpl
 		});
 	}
 
+	public void showDetailedListView() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				mainwindow.showDetailedListView();
+			}
+		});
+	}
+	
 	public void showAllPeersView() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {

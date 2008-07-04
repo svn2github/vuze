@@ -227,6 +227,9 @@ public class MainMenu
 			indent(MenuFactory.addViewToolbarMenuItem(viewMenu));
 			indent(MenuFactory.addTransferBarToMenu(viewMenu));
 			indent(MenuFactory.addAllPeersMenuItem(viewMenu));
+			if (Constants.isCVSVersion()) {
+				indent(MenuFactory.addDetailedListMenuItem(viewMenu));
+			}
 
 			/*
 			 * These 2 menus resides on the Tools menu on non-OSX platforms;
