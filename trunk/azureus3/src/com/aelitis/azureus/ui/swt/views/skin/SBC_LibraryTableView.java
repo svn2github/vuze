@@ -78,6 +78,7 @@ public class SBC_LibraryTableView
 			iconBar = new IconBar((Composite)so.getControl());
 			iconBar.setLayoutData(Utils.getFilledFormData());
 			iconBar.getComposite().getParent().layout();
+			iconBar.setCurrentEnabler(view);
 		}
 		
 		return o;
@@ -101,6 +102,9 @@ public class SBC_LibraryTableView
 	public void updateUI() {
 		if (view != null) {
 			view.refresh();
+			if (iconBar != null) {
+				iconBar.setCurrentEnabler(view);
+			}
 		}
 	}
 }
