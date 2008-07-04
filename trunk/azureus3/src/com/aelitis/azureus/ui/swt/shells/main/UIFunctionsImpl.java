@@ -531,6 +531,22 @@ public class UIFunctionsImpl
 		}
 
 	}
+	
+	public void showDetailedListView() {
+		try {
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			if (uiFunctions == null) {
+				return;
+			}
+
+			mainWindow.switchToAdvancedTab();
+			uiFunctions.showDetailedListView();
+
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "showDetailedListView", e));
+		}
+
+	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#showMyTracker()
 	public void showMyTracker() {
