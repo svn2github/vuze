@@ -296,6 +296,18 @@ public class TorrentOpener {
   }
 
   private static void openTorrentWindow(final String path,
+			final String[] torrents, final boolean bOverrideStartModeToStopped)
+	{
+  	// loadVuzeFile takes a long time if it's fetching a URL, so prevent it
+  	// from blocking the calling thread (like the SWT Thread)
+  	new AEThread2("openTorrentWindow", true) {
+			public void run() {
+				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped);
+			}
+		}.start();
+	}
+
+  private static void _openTorrentWindow(final String path,
 			String[] torrents, final boolean bOverrideStartModeToStopped)
 	{
 	  		// this is a good place to trim out any .vuze files
