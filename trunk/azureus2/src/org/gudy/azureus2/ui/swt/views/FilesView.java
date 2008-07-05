@@ -524,9 +524,13 @@ public class FilesView
 	int linearCount = 0;
 
 
+	if(infos.length > 1)
+	{
+		
+	}
 	// This should hopefully reduce the number of "exists" checks.
 	File save_location = manager.getAbsoluteSaveLocation();
-	boolean root_exists = save_location.isDirectory();
+	boolean root_exists = save_location.isDirectory() || (infos.length <= 1 && save_location.exists());
 	
 	boolean type_has_been_changed = false;
 	boolean requires_pausing = false;
