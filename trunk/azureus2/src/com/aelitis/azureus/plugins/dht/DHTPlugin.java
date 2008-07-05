@@ -25,55 +25,35 @@ package com.aelitis.azureus.plugins.dht;
 
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-
-import org.gudy.azureus2.core3.util.Debug;
-
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
-
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
-
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.config.*;
-import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
-
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
-
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
-
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginContactImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImplAdapter;
-
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
@@ -817,7 +797,7 @@ DHTPlugin
 							
 							if ( MAIN_DHT_V6_ENABLE ){
 								
-								if ( NetworkAdmin.getSingleton().hasIPV6Potential()){
+								if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
 									
 									main_v6_dht = 
 										new DHTPluginImpl(

@@ -5,8 +5,11 @@ VUZE CHANGELOG
 
 FEATURE: UI   | Added "Column Setup" icon to the iconbar [amc1] 
 
+CHANGE: Core  | Improved handling of mixed IPv4 and IPv6 bindings [The 8472]
 CHANGE: UI    | The comment icon column now displays a blank icon if there is no comment (rather than no icon) [amc1]
 CHANGE: Plug  | Client ID plugin is removed [amc1]
+
+BUGFIX: Core  | Fixed DND deleting files in single-file torrents [The 8472]
 
 2008.07.01 | Vuze 3.1.1.0
 

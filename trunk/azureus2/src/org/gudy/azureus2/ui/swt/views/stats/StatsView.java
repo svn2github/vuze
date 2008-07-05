@@ -30,7 +30,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
@@ -119,7 +118,7 @@ public class StatsView extends AbstractIView {
     dhts.add( new DHTView( DHTView.DHT_TYPE_MAIN ));  
     vivaldis.add( new VivaldiView( VivaldiView.DHT_TYPE_MAIN ));  
 
-    if ( NetworkAdmin.getSingleton().hasIPV6Potential()){
+    if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
   
     	dhts.add(  new DHTView( DHTView.DHT_TYPE_MAIN_V6 ));
     	vivaldis.add(  new VivaldiView( VivaldiView.DHT_TYPE_MAIN_V6 ));

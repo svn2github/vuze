@@ -24,23 +24,10 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.io.PrintWriter;
-import java.net.Authenticator;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.PasswordAuthentication;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.*;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.UnsupportedAddressTypeException;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -49,16 +36,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -91,8 +69,9 @@ NetworkAdminImpl
 	
 	private static final boolean	FULL_INTF_PROBE	= false;
 	
-	private Set				old_network_interfaces;
-	private InetAddress[]	currentBindIPs = new InetAddress[] {null};
+	private Set							old_network_interfaces;
+	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
+	private boolean						nioSupportsIPv6		= true;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 		
@@ -228,6 +207,23 @@ NetworkAdminImpl
 			}
 			
 			if ( changed ){
+				
+				if(hasIPV6Potential(false)) // check overall v6 support since we're just determining the nio-part
+				{
+					ServerSocketChannel channel = ServerSocketChannel.open();
+					
+					try
+					{
+						channel.socket().bind(new InetSocketAddress(InetAddress.getByName("::"), 0));
+						nioSupportsIPv6 = true;
+					} catch (Exception e)
+					{
+						nioSupportsIPv6 = false;
+					}
+					
+					channel.close();
+				} else
+					nioSupportsIPv6 = false;
 					
 				if ( !first_time ){
 					
@@ -244,33 +240,82 @@ NetworkAdminImpl
 		}
 	}
 	
-	private int roundRobinCounter = 0; 
+	private int roundRobinCounterV4 = 0;
+	private int roundRobinCounterV6 = 0;
 	
-	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress()
+	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress(InetAddress target)
 	{
 		InetAddress[]	addresses = currentBindIPs;
-		roundRobinCounter++;
-		int next = ( roundRobinCounter %= addresses.length );
-		return addresses[next];
+		boolean v6 = target instanceof Inet6Address; 
+		int previous = (v6 ? roundRobinCounterV6 : roundRobinCounterV4) % addresses.length;
+		InetAddress toReturn = null;
+		
+		int i = previous;
+
+		do
+		{
+			i++;i%= addresses.length;
+			if (target == null || (v6 && addresses[i] instanceof Inet6Address) || (!v6 && addresses[i] instanceof Inet4Address))
+			{
+				toReturn = addresses[i];
+				break;
+			} else if(!v6 && addresses[i].isAnyLocalAddress())
+			{
+				toReturn = anyLocalAddressIPv4;
+				break;				
+			}
+		} while(i!=previous);
+			
+		if(v6)
+			roundRobinCounterV6 = i;
+		else
+			roundRobinCounterV4 = i;
+		return toReturn != null ? toReturn : (v6 ? localhostV6 : localhostV4);
 	}
 	
-	public InetAddress[] getMultiHomedServiceBindAddresses()
+	private static InetAddress anyLocalAddressIPv4;
+	private static InetAddress anyLocalAddressIPv6;
+	private static InetAddress localhostV4;
+	private static InetAddress localhostV6;
+	
+	static
+	{
+		try
+		{
+			anyLocalAddressIPv4 = InetAddress.getByAddress(new byte[] { 0,0,0,0 });
+			anyLocalAddressIPv6  = InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0});
+			localhostV4 = InetAddress.getByAddress(new byte[] {127,0,0,1});
+			localhostV6 = InetAddress.getByAddress(new byte[] {0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1});
+		} catch (UnknownHostException e)
+		{
+			e.printStackTrace();
+		}
+	}
+	
+	public InetAddress[] getMultiHomedServiceBindAddresses(boolean nio)
 	{
 		InetAddress[] bindIPs = currentBindIPs;
 		for(int i=0;i<bindIPs.length;i++)
 		{
-			if(bindIPs[i] == null)
-				return new InetAddress[] {null};
 			if(bindIPs[i].isAnyLocalAddress())
-				return new InetAddress[] {bindIPs[i]};
-			
+				return new InetAddress[] {nio && !nioSupportsIPv6 && bindIPs[i] instanceof Inet6Address ? anyLocalAddressIPv4 : bindIPs[i]};
 		}
 		return bindIPs;
 	}
 	
-	public InetAddress getSingleHomedServiceBindAddress()
+	public InetAddress getSingleHomedServiceBindAddress(int proto)
 	{
-		return currentBindIPs[0]; 
+		InetAddress[] addrs = currentBindIPs;
+		if(proto == IP_PROTOCOL_VERSION_AUTO)
+			return addrs[0];
+		else
+			for(int i = 0;i<addrs.length;i++)
+			{
+				if( (proto == IP_PROTOCOL_VERSION_REQUIRE_V4 && addrs[i] instanceof Inet4Address || addrs[i].isAnyLocalAddress()) ||
+					(proto == IP_PROTOCOL_VERSION_REQUIRE_V6 && addrs[i] instanceof Inet6Address) )
+				return addrs[i];
+			}
+		throw new UnsupportedAddressTypeException();
 	}
 	
 	public InetAddress[]
@@ -349,18 +394,8 @@ NetworkAdminImpl
 				}
 			}
 		
-		InetAddress localhost = null;
-		try
-		{
-			localhost = InetAddress.getByName("127.0.0.1");
-		} catch (UnknownHostException e)
-		{
-			e.printStackTrace();
-		}
-
-		
 		if(addrs.size() < 1)
-			return new InetAddress[] {enforceBind ? localhost : null};
+			return new InetAddress[] {enforceBind ? localhostV4 : (hasIPV6Potential() ? anyLocalAddressIPv6 : anyLocalAddressIPv4)};
 		return (InetAddress[])addrs.toArray(new InetAddress[0]);
 	}
 	
@@ -373,7 +408,7 @@ NetworkAdminImpl
 		InetAddress[] addrs = calcBindAddresses(bind_ip, enforceBind);
 		changed = !Arrays.equals(currentBindIPs, addrs);
 		if(changed){
-			currentBindIPs = addrs;					
+			currentBindIPs = addrs;
 			if (!first_time)
 			{
 				String logmsg = "NetworkAdmin: default bind ip has changed to '";
@@ -445,8 +480,11 @@ NetworkAdminImpl
 	}
 	
 	public boolean
-	hasIPV6Potential()
+	hasIPV6Potential(boolean nio)
 	{
+		if(nio && !nioSupportsIPv6)
+			return false;
+		
 		Set	interfaces = old_network_interfaces;
 		
 		if ( interfaces == null ){

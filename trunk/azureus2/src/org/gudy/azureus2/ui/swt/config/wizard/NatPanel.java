@@ -25,18 +25,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
-import org.gudy.azureus2.core3.util.*;
-
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -77,7 +70,7 @@ public class NatPanel extends AbstractWizardPanel {
       //if (lowPort <= highPort && (highPort-lowPort < 10)) {
         //for (int port = lowPort; port <= highPort && bContinue; port++) {
           printMessage(MessageText.getString("configureWizard.nat.testing") + " " + TCPListenPort + " ... ");
-          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(), TCPListenPort, false );
+          NatChecker checker = new NatChecker(wizard.getAzureusCore(), NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(null), TCPListenPort, false );
           switch (checker.getResult()) {
             case NatChecker.NAT_OK :
               String	additional_info = checker.getAdditionalInfo();

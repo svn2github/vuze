@@ -26,26 +26,21 @@ package com.aelitis.net.udp.uc.impl;
  *
  */
 
-import java.util.*;
 import java.io.*;
 import java.net.*;
+import java.nio.channels.UnsupportedAddressTypeException;
+import java.util.*;
 
-import org.gudy.azureus2.core3.logging.*;
+import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
-import com.aelitis.net.udp.uc.PRUDPPacket;
-import com.aelitis.net.udp.uc.PRUDPPacketHandler;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.uc.PRUDPPacketHandlerStats;
-import com.aelitis.net.udp.uc.PRUDPPacketReceiver;
-import com.aelitis.net.udp.uc.PRUDPPacketReply;
-import com.aelitis.net.udp.uc.PRUDPPacketRequest;
-import com.aelitis.net.udp.uc.PRUDPPrimordialHandler;
-import com.aelitis.net.udp.uc.PRUDPRequestHandler;
-
-import org.bouncycastle.util.encoders.Base64;
+import com.aelitis.net.udp.uc.*;
 
 public class 
 PRUDPPacketHandlerImpl
@@ -105,6 +100,9 @@ PRUDPPacketHandlerImpl
 	private AESemaphore destroy_sem = new AESemaphore("PRUDPPacketHandler:destroy");
 
 	private Throwable 	init_error;
+	
+	private PRUDPPacketHandlerImpl altProtocolDelegate; 
+	
 	
 	protected
 	PRUDPPacketHandlerImpl(
@@ -168,6 +166,10 @@ PRUDPPacketHandlerImpl
 		}
 		
 		primordial_handler	= handler;
+		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			delegate.setPrimordialHandler(handler);
 	}
 	
 	public void
@@ -187,6 +189,10 @@ PRUDPPacketHandlerImpl
 		}
 		
 		request_handler	= _request_handler;
+		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			delegate.setRequestHandler(_request_handler);
 	}
 	
 	public PRUDPRequestHandler
@@ -262,9 +268,42 @@ PRUDPPacketHandlerImpl
 	{
 		if ( explicit_bind_ip != null ){
 			
+			if(altProtocolDelegate != null)
+			{
+				altProtocolDelegate.destroy();
+				altProtocolDelegate = null;
+			}
+			
 			target_bind_ip = explicit_bind_ip;
 			
 		}else{
+			
+			InetAddress altAddress = null;
+			NetworkAdmin adm = NetworkAdmin.getSingleton();
+			try
+			{
+				if (default_bind_ip instanceof Inet6Address && !default_bind_ip.isAnyLocalAddress() && adm.hasIPV4Potential())
+					altAddress = adm.getSingleHomedServiceBindAddress(NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+				else if (default_bind_ip instanceof Inet4Address && adm.hasIPV6Potential())
+					altAddress = adm.getSingleHomedServiceBindAddress(NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6);
+			} catch (UnsupportedAddressTypeException e)
+			{
+			}
+			
+			if(altProtocolDelegate != null && !altProtocolDelegate.explicit_bind_ip.equals(altAddress))
+			{
+				altProtocolDelegate.destroy();
+				altProtocolDelegate = null;
+			}
+			
+			if(altAddress != null && altProtocolDelegate == null)
+			{
+				altProtocolDelegate = new PRUDPPacketHandlerImpl(port,altAddress);
+				altProtocolDelegate.stats = stats;
+				altProtocolDelegate.primordial_handler = primordial_handler;
+				altProtocolDelegate.request_handler = request_handler;
+			}
+				
 			
 			target_bind_ip = default_bind_ip;
 		}
@@ -480,6 +519,12 @@ PRUDPPacketHandlerImpl
 					Debug.printStackTrace(e);
 				}
 			}
+
+			// make sure we destroy the delegate too if something happend
+			PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+			if(delegate != null)
+				delegate.destroy();
+
 			
 			NetworkAdmin.getSingleton().removePropertyChangeListener( prop_listener );
 		}
@@ -855,6 +900,11 @@ PRUDPPacketHandlerImpl
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
 		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null && destination_address.getClass().isInstance(delegate.explicit_bind_ip))
+			return delegate.sendAndReceive(auth, request_packet, destination_address, receiver, timeout, priority);		
+
+		
 		try{
 			checkTargetAddress( destination_address );
 			
@@ -1152,6 +1202,14 @@ PRUDPPacketHandlerImpl
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
 		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null && destination_address.getClass().isInstance(delegate.explicit_bind_ip))
+		{
+			delegate.send(request_packet, destination_address);
+			return;
+		}
+
+		
 		try{
 			checkTargetAddress( destination_address );
 			
@@ -1224,6 +1282,12 @@ PRUDPPacketHandlerImpl
 			
 			queued_request_timeout = 5000;
 		}
+		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			delegate.setDelays(_send_delay, _receive_delay, _queued_request_timeout);
+		
+		
 	}
 	
 	public long
@@ -1233,13 +1297,22 @@ PRUDPPacketHandlerImpl
 		for (int i=0;i<send_queues.length;i++){
 			res += send_queues[i].size();
 		}
+
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			res += delegate.getSendQueueLength();
+
 		return(res);
 	}
 	
 	public long
 	getReceiveQueueLength()
 	{
-		return( recv_queue.size());
+		long size = recv_queue.size(); 
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			size += delegate.getReceiveQueueLength();
+		return size;
 	}
 	
 	public void
@@ -1258,6 +1331,14 @@ PRUDPPacketHandlerImpl
 			
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
+		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null && target.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
+		{
+			delegate.primordialSend(buffer, target);
+			return;
+		}
+
 		
 		try{
 			checkTargetAddress( target );
@@ -1292,6 +1373,10 @@ PRUDPPacketHandlerImpl
 	{
 		destroyed	= true;
 		
+		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
+		if(delegate != null)
+			delegate.destroy();
+
 		destroy_sem.reserve();
 	}
 }

@@ -33,7 +33,10 @@ import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxyConnection;
-import com.aelitis.azureus.core.proxy.socks.*;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyAddress;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyConnection;
+import com.aelitis.azureus.core.proxy.socks.AESocksProxyPlugableConnection;
 
 
 /**
@@ -157,7 +160,7 @@ AESocksProxyPlugableConnectionDefault
 			
 			target_channel = SocketChannel.open();
 			
-		    InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress();
+		    InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(address.getAddress());
 		    
 	        if ( bindIP != null ){
 	        	

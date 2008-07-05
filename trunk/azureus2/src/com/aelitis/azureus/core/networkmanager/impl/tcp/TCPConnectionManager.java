@@ -22,14 +22,24 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.net.*;
-import java.nio.channels.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
+import java.nio.channels.SocketChannel;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
@@ -287,9 +297,9 @@ public class TCPConnectionManager {
         	request.channel.socket().setReuseAddress( true );
         }
         
-        InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress();
+        InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
         if ( bindIP != null ) {
-        	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP));
+        	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
           request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
         }
         else if( local_bind_port > 0 ) {       

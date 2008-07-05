@@ -22,23 +22,37 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.net.*;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
+import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
+import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
-import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
+import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 
 
 /**
@@ -56,7 +70,7 @@ public class IncomingSocketChannelManager
   
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   
-  private InetAddress[] 	default_bind_addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses();
+  private InetAddress[] 	default_bind_addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true);
   private InetAddress 	explicit_bind_address;
   private boolean		explicit_bind_address_set;
   
@@ -119,7 +133,7 @@ public class IncomingSocketChannelManager
     		{
     			if ( property == NetworkAdmin.PR_DEFAULT_BIND_ADDRESS ){
     			
-			        InetAddress[] addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses();
+			        InetAddress[] addresses = NetworkAdmin.getSingleton().getMultiHomedServiceBindAddresses(true);
 			        
 			        if ( !Arrays.equals(addresses, default_bind_addresses)) {
 			        	
@@ -378,11 +392,18 @@ public class IncomingSocketChannelManager
 				{
 					InetSocketAddress address;
 					InetAddress[] bindAddresses = getEffectiveBindAddresses();
-					serverSelectors = new VirtualServerChannelSelector[bindAddresses.length];
+					
+					List tempSelectors = new ArrayList(bindAddresses.length);
+					
+					
 					listenFailCounts = new int[bindAddresses.length];
 					for (int i = 0; i < bindAddresses.length; i++)
 					{
 						InetAddress bindAddress = bindAddresses[i];
+
+						if(!NetworkAdmin.getSingleton().hasIPV6Potential(true) && bindAddress instanceof Inet6Address)
+							continue;
+						
 						if (bindAddress != null)
 							address = new InetSocketAddress(bindAddress, tcp_listen_port);
 						else
@@ -396,8 +417,13 @@ public class IncomingSocketChannelManager
 							serverSelector = VirtualServerChannelSelectorFactory.createNonBlocking(address, so_rcvbuf_size, selectListener);
 						serverSelector.start();
 						
-						serverSelectors[i] = serverSelector;
+						tempSelectors.add(serverSelector);
 					}
+					
+					if(tempSelectors.size() == 0)
+						Logger.log(new LogAlert(true,LogAlert.AT_WARNING,MessageText.getString("network.bindError")));
+					
+					serverSelectors = (VirtualServerChannelSelector[])tempSelectors.toArray(new VirtualServerChannelSelector[tempSelectors.size()]);
 				}
 			} else
 			{

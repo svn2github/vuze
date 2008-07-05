@@ -24,6 +24,7 @@
 package com.aelitis.azureus.core.networkmanager.admin;
 
 import java.net.InetAddress;
+import java.nio.channels.UnsupportedAddressTypeException;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -37,6 +38,10 @@ NetworkAdmin
 	public static final String PR_NETWORK_INTERFACES	= "Network Interfaces";
 	public static final String PR_DEFAULT_BIND_ADDRESS	= "Default Bind IP";
 	public static final String PR_AS					= "AS";
+	
+	public static final int			IP_PROTOCOL_VERSION_AUTO		= 0;
+	public static final int			IP_PROTOCOL_VERSION_REQUIRE_V4	= 1;
+	public static final int			IP_PROTOCOL_VERSION_REQUIRE_V6	= 2;
 	
 	public static final String[]	PR_NAMES = {
 		PR_NETWORK_INTERFACES,
@@ -54,15 +59,20 @@ NetworkAdmin
 		
 		return( singleton );
 	}
+
+	public InetAddress getSingleHomedServiceBindAddress() {return getSingleHomedServiceBindAddress(IP_PROTOCOL_VERSION_AUTO);}
 	
-	public abstract InetAddress
-	getSingleHomedServiceBindAddress();
+	/**
+	 * @throws UnsupportedAddressTypeException when no address matching the v4/v6 requirements is found, always returns an address when auto is selected
+	 */
+	public abstract InetAddress 
+	getSingleHomedServiceBindAddress(int protocolVersion) throws UnsupportedAddressTypeException;
 	
 	public abstract InetAddress[]
-	getMultiHomedServiceBindAddresses();
+	getMultiHomedServiceBindAddresses(boolean forNIO);
 	
 	public abstract InetAddress
-	getMultiHomedOutgoingRoundRobinBindAddress();
+	getMultiHomedOutgoingRoundRobinBindAddress(InetAddress target);
 	
 	public abstract String
 	getNetworkInterfacesAsString();
@@ -75,10 +85,12 @@ NetworkAdmin
 	
 	public abstract boolean
 	hasIPV4Potential();
+
+	public boolean hasIPV6Potential() {return hasIPV6Potential(false);}
 	
 	public abstract boolean
-	hasIPV6Potential();
-
+	hasIPV6Potential(boolean forNIO);
+	
 	public abstract NetworkAdminProtocol[]
 	getOutboundProtocols();
 	
