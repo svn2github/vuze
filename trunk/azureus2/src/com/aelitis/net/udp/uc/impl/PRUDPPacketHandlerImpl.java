@@ -901,7 +901,7 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null && destination_address.getClass().isInstance(delegate.explicit_bind_ip))
+		if(delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
 			return delegate.sendAndReceive(auth, request_packet, destination_address, receiver, timeout, priority);		
 
 		
@@ -1203,7 +1203,7 @@ PRUDPPacketHandlerImpl
 		}
 		
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
-		if(delegate != null && destination_address.getClass().isInstance(delegate.explicit_bind_ip))
+		if(delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip))
 		{
 			delegate.send(request_packet, destination_address);
 			return;

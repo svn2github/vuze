@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -141,12 +142,16 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.widthHint = 100;
 		bindip.setLayoutData(gridData);
 
-		Label lbind2 = new Label(gSocket, SWT.WRAP);
+		Text lbind2 = new Text(gSocket, SWT.READ_ONLY | SWT.MULTI);
+		lbind2.setTabs(8);
 		Messages.setLanguageText(
 				lbind2,
 				"ConfigView.label.bindip.details",
 				new String[] {NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
-		lbind2.setLayoutData(Utils.getWrappableLabelGridData(2, 0));
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		lbind2.setLayoutData(gridData);
+
 
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
