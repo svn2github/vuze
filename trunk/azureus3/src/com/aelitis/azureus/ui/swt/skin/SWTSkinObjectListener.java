@@ -39,6 +39,12 @@ public interface SWTSkinObjectListener
 	 * Skin Object was created.  All children are guaranteed to be created.
 	 */
 	public static int EVENT_CREATED = 4;
+	
+	/**
+	 * skinObject will be null, params will be an array { View ID, Config ID }
+	 * function who creates the object should return a SWTSkinObject 
+	 */
+	public static int EVENT_CREATE_REQUEST = 5;
 
 	
 	public static String[] NAMES = {

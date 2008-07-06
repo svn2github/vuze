@@ -97,7 +97,7 @@ public class SWTSkin
 	private List listenersLayoutComplete = new ArrayList();
 
 	private final ClassLoader classLoader;
-	
+
 	private boolean ourSkinProperties = false;
 
 	private int currentSkinObjectcreationCount = 0;
@@ -116,10 +116,11 @@ public class SWTSkin
 		ourSkinProperties = true;
 		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile));
 	}
-		
+
 	private void init(SWTSkinProperties skinProperties) {
 		this.skinProperties = skinProperties;
-		ImageLoaderFactory.createInstance(classLoader, Display.getDefault(), skinProperties);
+		ImageLoaderFactory.createInstance(classLoader, Display.getDefault(),
+				skinProperties);
 
 		ontopPaintListener = new Listener() {
 			public void handleEvent(Event event) {
@@ -195,7 +196,8 @@ public class SWTSkin
 				if (existingObjects[i] != null && existingObjects[i].equals(object)) {
 					bAlreadyPresent = true;
 					System.err.println("already present: " + key + "; " + object
-							+ "; existing: " + existingObjects[i] + " via " + Debug.getCompressedStackTrace());
+							+ "; existing: " + existingObjects[i] + " via "
+							+ Debug.getCompressedStackTrace());
 					break;
 				}
 			}
@@ -314,10 +316,46 @@ public class SWTSkin
 	public SWTSkinObject getSkinObject(String sViewID) {
 		SWTSkinObject[] objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(sViewID);
 		if (objects == null) {
-			return null;
+			return createUnattachedView(sViewID, null);
 		}
 
 		return objects[0];
+	}
+
+	/**
+	 * @param viewID
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	private SWTSkinObject createUnattachedView(String viewID, SWTSkinObject parent) {
+		String unattachedView = skinProperties.getStringValue("UnattachedView."
+				+ viewID);
+		if (unattachedView != null) {
+			if (unattachedView.indexOf(',') > 0) {
+				String[] split = unattachedView.split(",");
+				String parentID = split[1];
+				SWTSkinObject soParent = getSkinObjectByID(parentID, parent);
+				if (soParent != null) {
+					String configID = split[0];
+					return createSkinObject(configID, configID, soParent);
+				}
+			}
+
+			SWTSkinObjectListener[] listeners = getSkinObjectListeners(viewID);
+			for (int i = 0; i < listeners.length; i++) {
+				SWTSkinObjectListener l = listeners[i];
+				Object o = l.eventOccured(null,
+						SWTSkinObjectListener.EVENT_CREATE_REQUEST, new String[] {
+							viewID,
+							unattachedView
+						});
+				if (o instanceof SWTSkinObject) {
+					return (SWTSkinObject) o;
+				}
+			}
+		}
+		return null;
 	}
 
 	public SWTSkinObject getSkinObject(String sViewID, SWTSkinObject parent) {
@@ -325,13 +363,18 @@ public class SWTSkin
 			// XXX Search for parent is shell directly
 			return getSkinObject(sViewID);
 		}
-		
+
 		if (parent.getViewID().equals(sViewID)) {
 			return parent;
 		}
 
-		return (SWTSkinObject) getFromArrayMap(mapPublicViewIDsToControls, sViewID,
-				parent);
+		SWTSkinObject so = (SWTSkinObject) getFromArrayMap(
+				mapPublicViewIDsToControls, sViewID, parent);
+		if (so == null) {
+			so = createUnattachedView(sViewID, parent);
+		}
+
+		return so;
 	}
 
 	public SWTSkinTabSet getTabSet(String sID) {
@@ -342,9 +385,9 @@ public class SWTSkin
 		if (skinObjectInTab == null) {
 			return null;
 		}
-		
+
 		if (skinObjectInTab instanceof SWTSkinObjectTab) {
-			SWTSkinObjectTab tab = (SWTSkinObjectTab)skinObjectInTab;
+			SWTSkinObjectTab tab = (SWTSkinObjectTab) skinObjectInTab;
 			tab.getTabset().setActiveTab(tab);
 			return tab;
 		}
@@ -421,7 +464,7 @@ public class SWTSkin
 		FormLayout layout = new FormLayout();
 		shell.setLayout(layout);
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
-		
+
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				for (Iterator iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
@@ -433,7 +476,7 @@ public class SWTSkin
 				}
 			}
 		});
-		
+
 		Color bg = skinProperties.getColor(startID + ".color");
 		if (bg != null) {
 			shell.setBackground(bg);
@@ -443,7 +486,7 @@ public class SWTSkin
 		if (fg != null) {
 			shell.setForeground(fg);
 		}
-		
+
 		String[] sMainGroups = skinProperties.getStringArray(startID + ".widgets");
 		if (sMainGroups == null) {
 			System.out.println("NO " + startID + ".widgets!!");
@@ -456,7 +499,7 @@ public class SWTSkin
 			if (DEBUGLAYOUT) {
 				System.out.println("Container: " + sID);
 			}
-			
+
 			if (uiInitializer != null) {
 				uiInitializer.increaseProgress();
 			}
@@ -753,7 +796,8 @@ public class SWTSkin
 				newFormData.width);
 		if (!skinObject.getDefaultVisibility()) {
 			if (newFormData.width != 0 && newFormData.height != 0) {
-				controlToLayout.setData("oldSize", new Point(newFormData.width, newFormData.height));
+				controlToLayout.setData("oldSize", new Point(newFormData.width,
+						newFormData.height));
 			}
 			newFormData.width = 0;
 			newFormData.height = 0;
@@ -1001,10 +1045,9 @@ public class SWTSkin
 
 		return skinObject;
 	}
-	
-	private SWTSkinObject createSlider(SWTSkinProperties properties,
-			String sID, String sConfigID, String[] typeParams,
-			SWTSkinObject parentSkinObject) {
+
+	private SWTSkinObject createSlider(SWTSkinProperties properties, String sID,
+			String sConfigID, String[] typeParams, SWTSkinObject parentSkinObject) {
 		SWTSkinObject skinObject = new SWTSkinObjectSlider(this, properties, sID,
 				sConfigID, typeParams, parentSkinObject);
 		addToControlMap(skinObject);
@@ -1015,7 +1058,6 @@ public class SWTSkin
 
 		return skinObject;
 	}
-	
 
 	public Shell getShell() {
 		return shell;
@@ -1161,7 +1203,7 @@ public class SWTSkin
 			String sID, String sConfigID, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bAddView) {
 		currentSkinObjectcreationCount++;
-		
+
 		SWTSkinObject skinObject = null;
 		try {
 			String[] sTypeParams = properties.getStringArray(sConfigID + ".type");
@@ -1238,10 +1280,10 @@ public class SWTSkin
 				return null;
 			} else if (sType.equals("browser")) {
 				skinObject = createBrowser(properties, sID, sConfigID, parentSkinObject);
-			}  else if (sType.equals("separator")) {
+			} else if (sType.equals("separator")) {
 				skinObject = createSeparator(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
-			}else {
+			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
 
@@ -1260,7 +1302,7 @@ public class SWTSkin
 		} finally {
 			currentSkinObjectcreationCount--;
 		}
-		
+
 		if (skinObject != null) {
 			skinObject.triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
 		}
@@ -1296,8 +1338,8 @@ public class SWTSkin
 			System.err.println("XXXXXXXX " + sID + " has no config ID.."
 					+ Debug.getStackTrace(false, false));
 		}
-		
-				String[] sCloneParams;
+
+		String[] sCloneParams;
 		if (typeParams.length > 1) {
 			int size = typeParams.length - 1;
 			sCloneParams = new String[size];
@@ -1438,12 +1480,11 @@ public class SWTSkin
 		return skinObject;
 	}
 
-	
 	private SWTSkinObject createSeparator(SWTSkinProperties properties,
 			String sID, String sConfigID, String[] typeParams,
 			SWTSkinObject parentSkinObject) {
-		SWTSkinObject skinObject = new SWTSkinObjectSeparator(this, properties, sID,
-				sConfigID, parentSkinObject);
+		SWTSkinObject skinObject = new SWTSkinObjectSeparator(this, properties,
+				sID, sConfigID, parentSkinObject);
 		addToControlMap(skinObject);
 
 		if (bLayoutComplete) {
@@ -1452,8 +1493,7 @@ public class SWTSkin
 
 		return skinObject;
 	}
-	
-	
+
 	public SWTSkinProperties getSkinProperties() {
 		return skinProperties;
 	}
@@ -1519,7 +1559,7 @@ public class SWTSkin
 		System.out.println(d + ";" + then);
 
 	}
-	
+
 	public boolean isCreatingSO() {
 		return currentSkinObjectcreationCount > 0;
 	}
