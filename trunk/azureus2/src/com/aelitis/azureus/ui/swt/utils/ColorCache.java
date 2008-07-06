@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.utils;
 
 import java.util.*;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 
@@ -40,6 +41,25 @@ public class ColorCache
 	private final static boolean DEBUG = Constants.isCVSVersion();
 
 	private final static Map mapColors = new HashMap();
+	
+	private final static int SYSTEMCOLOR_INDEXSTART = 17;
+	private final static String[] systemColorNames = {
+		"COLOR_WIDGET_DARK_SHADOW",
+		"COLOR_WIDGET_NORMAL_SHADOW",
+		"COLOR_WIDGET_LIGHT_SHADOW",
+		"COLOR_WIDGET_HIGHLIGHT_SHADOW",
+		"COLOR_WIDGET_FOREGROUND",
+		"COLOR_WIDGET_BACKGROUND",
+		"COLOR_WIDGET_BORDER",
+		"COLOR_LIST_FOREGROUND",
+		"COLOR_LIST_BACKGROUND",
+		"COLOR_LIST_SELECTION",
+		"COLOR_LIST_SELECTION_TEXT",
+		"COLOR_INFO_FOREGROUND",
+		"COLOR_INFO_BACKGROUND",
+		"COLOR_TITLE_FOREGROUND",
+		"COLOR_TITLE_BACKGROUND",
+	};
 	
 	static {
 		AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
@@ -114,11 +134,28 @@ public class ColorCache
 				colors[0] = (int) ((l >> 16) & 255);
 				colors[1] = (int) ((l >> 8) & 255);
 				colors[2] = (int) (l & 255);
-			} else {
+			} else if (value.indexOf(',') > 0) {
 				StringTokenizer st = new StringTokenizer(value, ",");
 				colors[0] = Integer.parseInt(st.nextToken());
 				colors[1] = Integer.parseInt(st.nextToken());
 				colors[2] = Integer.parseInt(st.nextToken());
+			} else {
+				value = value.toUpperCase();
+				if (value.startsWith("COLOR_")) {
+					for (int i = 0; i < systemColorNames.length; i++) {
+						String name = systemColorNames[i];
+						if (name.equals(value)) {
+							return device.getSystemColor(i + SYSTEMCOLOR_INDEXSTART);
+						}
+					}
+				} else if (value.startsWith("BLUE.FADED.")) {
+					return Colors.faded[Integer.parseInt(value.substring(11))];
+				} else if (value.startsWith("BLUE.")) {
+					return Colors.blues[Integer.parseInt(value.substring(5))];
+				} else if (value.equals("ALTROW")) {
+					return Colors.colorAltRow;
+				}
+				return null;
 			}
 		} catch (Exception e) {
 			Debug.out(value, e);
