@@ -127,8 +127,12 @@ public class SideBar
 							event.gc.fillRectangle(1, event.y + 1, treeBounds.width - 2,
 									event.height - 2);
 						} else {
-							event.gc.setForeground(fg);
-							event.gc.setBackground(bg);
+							if (fg != null) {
+								event.gc.setForeground(fg);
+							}
+							if (bg != null) {
+								event.gc.setBackground(bg);
+							}
 							event.gc.fillRectangle(0, event.y, treeBounds.width, event.height);
 						}
 
@@ -154,8 +158,10 @@ public class SideBar
 		};
 
 		tree.addListener(SWT.MeasureItem, paintListener);
-		tree.addListener(SWT.PaintItem, paintListener);
-		tree.addListener(SWT.EraseItem, paintListener);
+		if (bg != null) {
+			tree.addListener(SWT.PaintItem, paintListener);
+			tree.addListener(SWT.EraseItem, paintListener);
+		}
 
 		tree.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
