@@ -114,13 +114,19 @@ public class FriendsList
 				Rectangle bounds = canvas.getBounds();
 				bounds.width -= 1;
 				bounds.height -= 1;
-				e.gc.setBackground(normalColor);
+				if (normalColor != null) {
+					e.gc.setBackground(normalColor);
+				}
 				e.gc.fillRectangle(bounds);
-				e.gc.setForeground(borderColor);
-				e.gc.drawRectangle(bounds);
+				if (borderColor != null) {
+					e.gc.setForeground(borderColor);
+					e.gc.drawRectangle(bounds);
+				}
 
 				if (friendsWidgets.size() < 1) {
-					e.gc.setForeground(textColor);
+					if (textColor != null) {
+						e.gc.setForeground(textColor);
+					}
 					int imageXOffset = 16;
 					if (null != default_prompt_image
 							&& false == default_prompt_image.isDisposed()) {
@@ -389,24 +395,32 @@ public class FriendsList
 
 					Rectangle innerBounds = friendCanvas.getClientArea();
 					if (true == isActive) {
-						e.gc.setBackground(activeColor);
+						if (activeColor != null) {
+							e.gc.setBackground(activeColor);
+						}
 						e.gc.fillRectangle(innerBounds);
 					} else {
-						e.gc.setBackground(normalColor);
+						if (normalColor != null) {
+							e.gc.setBackground(normalColor);
+						}
 						e.gc.fillRectangle(innerBounds);
 					}
 
 					/*
 					 * Paints the border
 					 */
-					e.gc.setForeground(borderColor);
-					e.gc.drawLine(0, innerBounds.height - 1, innerBounds.width,
-							innerBounds.height - 1);
+					if (borderColor != null) {
+  					e.gc.setForeground(borderColor);
+  					e.gc.drawLine(0, innerBounds.height - 1, innerBounds.width,
+  							innerBounds.height - 1);
+					}
 
 					/*
 					 * Paint the text
 					 */
-					e.gc.setForeground(textColor);
+					if (textColor != null) {
+						e.gc.setForeground(textColor);
+					}
 					VuzeBuddy vbuddy = FriendWidget.this.buddy;
 
 					Rectangle displayNameBounds = new Rectangle(textAreaBounds.x,
