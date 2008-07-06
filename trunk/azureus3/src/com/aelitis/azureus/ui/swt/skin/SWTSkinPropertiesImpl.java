@@ -39,8 +39,6 @@ public class SWTSkinPropertiesImpl
 {
 	private static Map colorMap = new HashMap();
 
-	private static Map mapFallBack = new HashMap();
-
 	/**
 	 * @param skinPath
 	 * @param mainSkinFile
@@ -69,19 +67,12 @@ public class SWTSkinPropertiesImpl
 				color = ColorCache.getColor(Display.getCurrent(), rgb[0], rgb[1],
 						rgb[2]);
 			} else {
-				color = null;
+				color = ColorCache.getColor(Display.getCurrent(), getStringValue(sID));
 			}
 		} catch (Exception e) {
 			//				IMP.getLogger().log(LoggerChannel.LT_ERROR,
 			//						"Failed loading color : color." + colorNames[i]);
 			color = null;
-		}
-
-		if (color == null) {
-			String sFallBackID = (String) mapFallBack.get(sID);
-			if (sFallBackID != null) {
-				color = getColor(sFallBackID);
-			}
 		}
 
 		colorMap.put(sID, color);
