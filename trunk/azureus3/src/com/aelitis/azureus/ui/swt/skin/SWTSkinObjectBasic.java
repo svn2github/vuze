@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -25,6 +24,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 
 /**
@@ -33,7 +33,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
  *
  */
 public class SWTSkinObjectBasic
-	implements SWTSkinObject
+	implements SWTSkinObject, PaintListener
 {
 	protected static final int BORDER_ROUNDED = 1;
 
@@ -69,9 +69,19 @@ public class SWTSkinObjectBasic
 
 	protected Color bgColor;
 
-	private int borderType;
+	private Color colorBorder;
+
+	private int[] colorBorderParams = null;
+
+	private int[] colorFillParams;
+
+	private int colorFillType;
 
 	private boolean initialized = false;
+
+	boolean paintListenerHooked = false;
+
+	boolean alwaysHookPaintListener = false;
 
 	/**
 	 * @param properties TODO
@@ -411,17 +421,32 @@ public class SWTSkinObjectBasic
 					return;
 				}
 
+				boolean needPaintHook = false;
+
 				Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 				if (color != null) {
 					bgColor = color;
 					String colorStyle = properties.getStringValue(sConfigID
 							+ ".color.style" + sSuffix);
 					if (colorStyle != null) {
-						if (colorStyle.equals("rounded")) {
-							borderType = BORDER_ROUNDED;
-						} else if (colorStyle.equals("rounded-fill")) {
-							borderType = BORDER_ROUNDED_FILL;
+						String[] split = colorStyle.split(",");
+						if (split[0].equals("rounded")) {
+							colorFillType = BORDER_ROUNDED;
+							needPaintHook = true;
+						} else if (split[0].equals("rounded-fill")) {
+							colorFillType = BORDER_ROUNDED_FILL;
+							needPaintHook = true;
 						}
+
+						if (split.length > 2) {
+							colorFillParams = new int[] {
+								Integer.parseInt(split[1]),
+								Integer.parseInt(split[2])
+							};
+						}
+
+						control.redraw();
+						control.setBackground(null);
 					} else {
 						control.setBackground(bgColor);
 					}
@@ -430,6 +455,24 @@ public class SWTSkinObjectBasic
 				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
 				if (fg != null) {
 					control.setForeground(fg);
+				}
+
+				// Color,[width]
+				String sBorderStyle = properties.getStringValue(sConfigID + ".border"
+						+ sSuffix);
+				colorBorder = null;
+				colorBorderParams = null;
+				if (sBorderStyle != null) {
+					String[] split = sBorderStyle.split(",");
+					colorBorder = ColorCache.getColor(control.getDisplay(), split[0]);
+					needPaintHook |= colorBorder != null;
+
+					if (split.length > 2) {
+						colorBorderParams = new int[] {
+							Integer.parseInt(split[1]),
+							Integer.parseInt(split[2])
+						};
+					}
 				}
 
 				setBackground(sConfigID + ".background", sSuffix);
@@ -448,6 +491,15 @@ public class SWTSkinObjectBasic
 						+ sSuffix);
 				if (sTooltip != null) {
 					setTooltipAndChildren(control, sTooltip);
+				}
+
+				if (!alwaysHookPaintListener && needPaintHook != paintListenerHooked) {
+					if (needPaintHook) {
+						control.addPaintListener(SWTSkinObjectBasic.this);
+					} else {
+						control.removePaintListener(SWTSkinObjectBasic.this);
+					}
+					paintListenerHooked = needPaintHook;
 				}
 
 			}
@@ -604,26 +656,64 @@ public class SWTSkinObjectBasic
 	}
 
 	public void paintControl(GC gc) {
+	}
+
+	// @see org.eclipse.swt.events.PaintListener#paintControl(org.eclipse.swt.events.PaintEvent)
+	public final void paintControl(PaintEvent e) {
 		if (bgColor != null) {
-			gc.setBackground(bgColor);
+			e.gc.setBackground(bgColor);
 		}
 
-		if (borderType > 0) {
-			try {
-				gc.setAdvanced(true);
-				gc.setAntialias(SWT.ON);
-			} catch (Exception e) {
+		paintControl(e.gc);
 
+		try {
+			e.gc.setAdvanced(true);
+			e.gc.setAntialias(SWT.ON);
+		} catch (Exception ex) {
+		}
+
+		if (colorFillType > 0) {
+
+			Rectangle bounds = (control instanceof Composite)
+					? ((Composite) control).getClientArea() : control.getBounds();
+			if (colorFillParams != null) {
+  			if (colorFillType == BORDER_ROUNDED_FILL) {
+  				e.gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, colorFillParams[0], colorFillParams[1]);
+  			} else {
+  				Color oldFG = e.gc.getForeground();
+  				e.gc.setForeground(bgColor);
+  				e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, colorFillParams[0],
+  						colorFillParams[1]);
+  				e.gc.setForeground(oldFG);
+  			}
 			}
-			Rectangle bounds = control.getBounds();
-			if (borderType == BORDER_ROUNDED_FILL) {
-				gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, 10, 8);
+		}
+
+		if (colorBorder != null) {
+			e.gc.setForeground(colorBorder);
+			Rectangle bounds = (control instanceof Composite)
+					? ((Composite) control).getClientArea() : control.getBounds();
+			bounds.width -= 1;
+			bounds.height -= 1;
+			if (colorBorderParams == null) {
+				System.out.println("MOO" + bounds);
+				e.gc.drawRectangle(bounds);
 			} else {
-				Color oldFG = gc.getForeground();
-				gc.setForeground(bgColor);
-				gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, 10, 8);
-				gc.setForeground(oldFG);
+				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width,
+						bounds.height, colorBorderParams[0], colorBorderParams[1]);
 			}
+		}
+	}
+
+	public boolean isAlwaysHookPaintListener() {
+		return alwaysHookPaintListener;
+	}
+
+	public void setAlwaysHookPaintListener(boolean alwaysHookPaintListener) {
+		this.alwaysHookPaintListener = alwaysHookPaintListener;
+		if (alwaysHookPaintListener && !paintListenerHooked) {
+			control.addPaintListener(SWTSkinObjectBasic.this);
+			paintListenerHooked = true;
 		}
 	}
 }

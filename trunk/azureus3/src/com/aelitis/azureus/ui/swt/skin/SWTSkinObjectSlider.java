@@ -24,9 +24,7 @@ import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -168,7 +166,7 @@ public class SWTSkinObjectSlider
 		canvas.setSize(SWT.DEFAULT, maxSize.y);
 		setControl(canvas);
 
-		canvas.addPaintListener(this);
+		setAlwaysHookPaintListener(true);
 		canvas.addMouseListener(this);
 		canvas.addMouseMoveListener(this);
 	}
@@ -190,8 +188,10 @@ public class SWTSkinObjectSlider
 		return maxSize;
 	}
 
-	// @see org.eclipse.swt.events.PaintListener#paintControl(org.eclipse.swt.events.PaintEvent)
-	public void paintControl(PaintEvent e) {
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#paintControl(org.eclipse.swt.graphics.GC)
+	public void paintControl(GC gc) {
+		super.paintControl(gc);
+
 		int fullWidth = maxSize.x == 0 || imageFGbounds == null
 				? canvas.getClientArea().width : imageFGbounds.width;
 
@@ -200,19 +200,19 @@ public class SWTSkinObjectSlider
 			int xDrawToSrc = xDrawTo > imageFGbounds.width ? imageFGbounds.width
 					: xDrawTo;
 			int y = (maxSize.y - imageFGbounds.height) / 2;
-			e.gc.drawImage(imageFG, 0, 0, xDrawToSrc, imageFGbounds.height, 0, y,
+			gc.drawImage(imageFG, 0, 0, xDrawToSrc, imageFGbounds.height, 0, y,
 					xDrawTo, imageFGbounds.height);
 		}
 		if (percent < 100 && imageBG != null) {
 			int xDrawFrom = (int) (imageBGbounds.width * percent);
 			int xDrawWidth = imageBGbounds.width - xDrawFrom;
-			e.gc.drawImage(imageBG, xDrawFrom, 0, xDrawWidth, imageFGbounds.height,
+			gc.drawImage(imageBG, xDrawFrom, 0, xDrawWidth, imageFGbounds.height,
 					xDrawFrom, 0, xDrawWidth, imageFGbounds.height);
 		}
 
 		int drawWidth = fullWidth - imageThumbBounds.width;
 		int xThumbPos = (int) ((mouseDown && !mouseMoveAdjusts ? draggingPercent : percent) * drawWidth);
-		e.gc.drawImage(imageThumb, xThumbPos, 0);
+		gc.drawImage(imageThumb, xThumbPos, 0);
 
 	}
 

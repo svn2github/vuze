@@ -80,7 +80,7 @@ public class SWTSkinObjectText2
 			final SWTSkinProperties skinProperties, String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
-
+		
 		style = SWT.WRAP;
 
 		String sAlign = skinProperties.getStringValue(sConfigID + ".align");
@@ -207,7 +207,8 @@ public class SWTSkinObjectText2
 					: sText;
 		}
 
-		canvas.addPaintListener(this);
+		setAlwaysHookPaintListener(true);
+
 		updateFont("");
 	}
 
@@ -441,30 +442,31 @@ public class SWTSkinObjectText2
 		});
 	}
 
-	public void paintControl(PaintEvent e) {
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#paintControl(org.eclipse.swt.graphics.GC)
+	public void paintControl(GC gc) {
 		if (sText == null || sText.length() == 0) {
 			return;
 		}
 		
-		super.paintControl(e.gc);
+		super.paintControl(gc);
 
-		Composite composite = (Composite) e.widget;
+		Composite composite = (Composite) control;
 		Rectangle clientArea = composite.getClientArea();
 
 		Font existingFont = (Font) canvas.getData("font");
 		Color existingColor = (Color) canvas.getData("color");
 
 		if (existingFont != null) {
-			e.gc.setFont(existingFont);
+			gc.setFont(existingFont);
 		}
 		
 		if (existingColor != null) {
-			e.gc.setForeground(existingColor);
+			gc.setForeground(existingColor);
 		}
 
 		if (antialiasMode != SWT.DEFAULT) {
 			try {
-				e.gc.setTextAntialias(antialiasMode);
+				gc.setTextAntialias(antialiasMode);
 			} catch (Exception ex) {
 				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 			}
@@ -474,17 +476,17 @@ public class SWTSkinObjectText2
 			Rectangle r = new Rectangle(clientArea.x + 1, clientArea.y + 1, clientArea.width,
 					clientArea.height);
 			
-			Color foreground = e.gc.getForeground();
-			Color color = ColorCache.getColor(e.gc.getDevice(), 0, 0, 0);
-			e.gc.setForeground(color);
-			e.gc.setAlpha(128);
-			GCStringPrinter.printString(e.gc, sDisplayText, r, true, false,
+			Color foreground = gc.getForeground();
+			Color color = ColorCache.getColor(gc.getDevice(), 0, 0, 0);
+			gc.setForeground(color);
+			gc.setAlpha(64);
+			GCStringPrinter.printString(gc, sDisplayText, r, true, false,
 					style);
-			e.gc.setAlpha(255);
-			e.gc.setForeground(foreground);
+			gc.setAlpha(255);
+			gc.setForeground(foreground);
 		}
 		
-		GCStringPrinter.printString(e.gc, sDisplayText, clientArea, true, false,
+		GCStringPrinter.printString(gc, sDisplayText, clientArea, true, false,
 				style);
 	}
 
