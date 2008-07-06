@@ -1,6 +1,6 @@
 /*
  * File    : ScaledGraphic.java
- * Created : 15 déc. 2003}
+ * Created : 15 dï¿½c. 2003}
  * By      : Olivier
  *
  * Azureus - a Java Bittorrent client
@@ -71,7 +71,7 @@ public class BackGroundGraphic implements Graphic {
       if(bufferBackground != null && ! bufferBackground.isDisposed())
         bufferBackground.dispose();
       
-      if(bounds.width > 2000 || bounds.height > 2000) return;
+      if(bounds.width > 10000 || bounds.height > 10000) return;
       
       bufferBackground = new Image(drawCanvas.getDisplay(),bounds);
       

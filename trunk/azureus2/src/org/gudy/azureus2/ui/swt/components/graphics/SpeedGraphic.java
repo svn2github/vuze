@@ -21,12 +21,14 @@
 package org.gudy.azureus2.ui.swt.components.graphics;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,7 +42,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class SpeedGraphic extends ScaledGraphic implements ParameterListener {    
   
-  private static final int	ENTRIES	= 2000;
+  private static final int	DEFAULT_ENTRIES	= 2000;
   
   public static final int COLOR_AVERAGE = 0;
   public static final int COLOR_MAINSPEED = 1;
@@ -62,11 +64,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   private Point oldSize;
   
   protected Image bufferImage;
-  
-  private int nbValues = 0;
-  
-  private int[][] all_values	= new int[1][ENTRIES];
-  private int currentPosition;
+
+	private int					nbValues		= 0;
+	private int					maxEntries		= DEFAULT_ENTRIES;
+	private int[][]				all_values		= new int[1][maxEntries];
+	private int					currentPosition;
   
   private int alpha = 255;
   
@@ -151,7 +153,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     		
     		for (int i=all_values.length;i<new_all_values.length; i++ ){
     			
-    			new_all_values[i] = new int[ENTRIES];
+    			new_all_values[i] = new int[maxEntries];
     		}
     		
     		all_values = new_all_values;
@@ -164,12 +166,12 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	  	
 	    currentPosition++;
 	    
-	    if(nbValues < ENTRIES){
+	    if(nbValues < maxEntries){
 	    	
 	      nbValues++;
 	    }
 	    
-	    currentPosition %= ENTRIES;
+	    currentPosition %= maxEntries;
 
 	    
     }finally{
@@ -187,8 +189,32 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       return;
     
     Rectangle bounds = drawCanvas.getClientArea();
-    if(bounds.height < 30 || bounds.width  < 100 || bounds.width > 2000 || bounds.height > 2000)
+    if(bounds.height < 30 || bounds.width  < 100 || bounds.width > 10000 || bounds.height > 10000)
       return;
+    
+    // inflate # of values only if necessary
+    if(bounds.width > maxEntries)
+    {
+    	try {
+    		this_mon.enter();
+    		
+    		while(maxEntries < bounds.width)
+    			maxEntries += 1000;
+    		
+    		for(int i=0;i<all_values.length;i++)
+    		{
+    			int[] newValues = new int[maxEntries];
+    			System.arraycopy(all_values[i], 0, newValues, 0, all_values[i].length);
+    			all_values[i] = newValues;
+    		}
+    		
+    	} finally {
+    		this_mon.exit();
+    	}
+    	
+    	    	
+    }
+    
     
     boolean sizeChanged = (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
     oldSize = new Point(bounds.width,bounds.height);
@@ -244,7 +270,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 				int position = currentPosition - x - 1;
 				if (position < 0)
 				{
-					position += 2000;
+					position += maxEntries;
 					if (position < 0)
 					{
 						position = 0;
@@ -301,7 +327,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 				int position = currentPosition - x - 1;
 				if (position < 0)
 				{
-					position += 2000;
+					position += maxEntries;
 					if (position < 0)
 					{
 						position = 0;
@@ -383,9 +409,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     long sum = 0;
     for(int i = -5 ; i < 6 ; i++) {
       int pos = position + i;
-      pos %= ENTRIES;
+      pos %= maxEntries;
       if (pos < 0)
-        pos += 2000;
+        pos += maxEntries;
       sum += all_values[0][pos];
     }
     return(int)(sum / 11);
