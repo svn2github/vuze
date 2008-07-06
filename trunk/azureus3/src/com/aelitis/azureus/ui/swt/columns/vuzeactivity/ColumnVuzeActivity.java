@@ -103,6 +103,8 @@ public class ColumnVuzeActivity
 
 	private Color colorNewsBG;
 
+	private Color colorHeaderBG;
+
 	private static Image imgDelete;
 
 	/** Default Constructor */
@@ -116,6 +118,7 @@ public class ColumnVuzeActivity
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");
 		colorHeaderFG = skinProperties.getColor("color.activity.row.header.fg");
+		colorHeaderBG = skinProperties.getColor("color.activity.row.header.bg");
 		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
 
@@ -342,7 +345,14 @@ public class ColumnVuzeActivity
 
 			if (isHeader) {
 				gc.setFont(headerFont);
-				gc.setForeground(colorHeaderFG);
+				if (colorHeaderFG != null) {
+					gc.setForeground(colorHeaderFG);
+				}
+				if (colorHeaderBG != null) {
+					ListRow row = (ListRow) cell.getTableRow();
+					row.setBackgroundColor(colorHeaderBG);
+					gc.setBackground(colorHeaderBG);
+				}
 
 				gc.fillRectangle(imgBounds);
 				height = height - 5;
