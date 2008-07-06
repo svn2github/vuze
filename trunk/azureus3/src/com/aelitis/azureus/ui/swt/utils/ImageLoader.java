@@ -31,6 +31,16 @@ import org.eclipse.swt.widgets.Display;
 import com.aelitis.azureus.ui.skin.SkinProperties;
 
 /**
+ * Loads images from skin.  
+ * <p>
+ * Will look for special suffixes (over, down, disabled) and try to
+ * load resources using base key and suffix. ie. loadImage("foo-over") when
+ * foo=image.png, will load image-over.png
+ * <p>
+ * Will also create own disabled images if base image found and no disabled
+ * image found.  Disabled opacity can be set via imageloader.disabled-opacity 
+ * key
+ * 
  * @author TuxPaper
  * @created Jun 7, 2006
  *
@@ -52,6 +62,8 @@ public class ImageLoader
 
 	private final ClassLoader classLoader;
 
+	private int disabledOpacity;
+
 	public ImageLoader(ClassLoader classLoader, Display display,
 			SkinProperties skinProperties) {
 		this.classLoader = classLoader;
@@ -59,6 +71,8 @@ public class ImageLoader
 		notFound = new ArrayList();
 		this.display = display;
 		this.skinProperties = skinProperties;
+		disabledOpacity = skinProperties.getIntValue(
+				"imageloader.disabled-opacity", -1);
 	}
 
 	private Image loadImage(Display display, String key) {
@@ -176,8 +190,15 @@ public class ImageLoader
 							ImageData imageData = imgToFade.getImageData();
 							// decrease alpha
 							if (imageData.alphaData != null) {
-								for (int i = 0; i < imageData.alphaData.length; i++) {
-									imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff) >> 3);
+								if (disabledOpacity == -1) {
+									for (int i = 0; i < imageData.alphaData.length; i++) {
+										imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff) >> 3);
+									}
+								} else {
+									for (int i = 0; i < imageData.alphaData.length; i++) {
+										imageData.alphaData[i] = (byte) ((imageData.alphaData[i] & 0xff)
+												* disabledOpacity / 100);
+									}
 								}
 								img = new Image(display, imageData);
 							}
