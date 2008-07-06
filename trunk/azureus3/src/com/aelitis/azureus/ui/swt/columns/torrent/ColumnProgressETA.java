@@ -187,8 +187,8 @@ public class ColumnProgressETA
 				cBorder = Colors.grey;
 			}
 			Color cText = skinProperties.getColor("color.progress.text");
-			if (cBorder == null) {
-				cBorder = Colors.black;
+			if (cText == null) {
+				cText = Colors.black;
 			}
 
 			int etaY0 = progressY2;
