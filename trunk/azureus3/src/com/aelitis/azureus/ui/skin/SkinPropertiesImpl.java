@@ -209,7 +209,7 @@ public class SkinPropertiesImpl
 		int[] colors = new int[3];
 		String value = getValue(name, null);
 
-		if (value == null || value.length() == 0) {
+		if (value == null || value.length() == 0 || value.startsWith("COLOR_")) {
 			colors[0] = colors[1] = colors[2] = -1;
 			return colors;
 		}
@@ -228,7 +228,7 @@ public class SkinPropertiesImpl
 				colors[2] = Integer.parseInt(st.nextToken());
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 			colors[0] = colors[1] = colors[2] = -1;
 		}
 
