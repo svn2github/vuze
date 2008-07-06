@@ -72,11 +72,15 @@ VuzeFileHandler
 				
 				URL	url = new URI( target ).toURL();
 				
-				ResourceDownloader rd = StaticUtilities.getResourceDownloaderFactory().create( url );
+				String	protocol = url.getProtocol().toLowerCase();
 				
-				return( getVuzeFile(rd.download()));
+				if ( protocol.equals( "http" ) || protocol.equals( "https" )){
+					
+					ResourceDownloader rd = StaticUtilities.getResourceDownloaderFactory().create( url );
+				
+					return( getVuzeFile(rd.download()));
+				}
 			}
-	
 		}catch( Throwable e ){
 		}
 		
