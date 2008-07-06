@@ -631,7 +631,7 @@ public class DefaultRankCalculator implements Comparable {
 					if(lastModifiedScrapeResultPeers > lastModifiedScrapeResultSeeds * 10)
 						newSR = 100 * lastModifiedScrapeResultPeers * 10;
 					else
-						newSR = 100 * lastModifiedScrapeResultPeers * lastModifiedScrapeResultPeers/(lastModifiedScrapeResultSeeds+1);
+						newSR = (int)((long)100 * lastModifiedScrapeResultPeers * lastModifiedScrapeResultPeers/(lastModifiedScrapeResultSeeds+1));
 				}				
 				else if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
 						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds))

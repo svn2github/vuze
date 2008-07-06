@@ -26,12 +26,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.Plugin;
-import org.gudy.azureus2.plugins.PluginConfig;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginListener;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.PluginManagerDefaults;
+import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -1628,7 +1623,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"maxCDrs=" + totals.maxSeeders,
 				"FP=" + boolDebug(isFP),
 				"nActCDing=" + totals.activelyCDing,
-				"ActCDing=" + boolDebug(dlData.getActivelySeeding())
+				"ActCDing=" + boolDebug(dlData.getActivelySeeding()),
+				"nSeeds=" + dlData.lastModifiedScrapeResultSeeds,
+				"nPeers=" + dlData.lastModifiedScrapeResultPeers
 			};
 		}
 
@@ -1943,7 +1940,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					"maxCDrs=" + totals.maxSeeders,
 					"FP=" + boolDebug(isFP),
 					"nActCDing=" + totals.activelyCDing,
-					"ActCDing=" + boolDebug(dlData.getActivelySeeding())
+					"ActCDing=" + boolDebug(dlData.getActivelySeeding()),
+					"nSeeds=" + dlData.lastModifiedScrapeResultSeeds,
+					"nPeers=" + dlData.lastModifiedScrapeResultPeers
 				};
 				printDebugChanges("", debugEntries, debugEntries2, sDebugLine, "  ",
 						true, dlData);
