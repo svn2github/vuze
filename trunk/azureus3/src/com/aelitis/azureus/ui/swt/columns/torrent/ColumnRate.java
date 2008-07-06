@@ -341,7 +341,7 @@ public class ColumnRate
 					}
 				}
 				Rectangle r = img.getBounds();
-				int bigTextStyle = SWT.RIGHT;
+				int bigTextStyle = SWT.TOP | SWT.RIGHT;
 				int smallTextStyle = SWT.RIGHT;
 				if (imgRate != null && (userRating >= 0 || userRating == -2)) {
 					//smallTextStyle = SWT.RIGHT;
@@ -394,12 +394,18 @@ public class ColumnRate
 						GlobalRatingUtils.getColor(torrent));
 				if (color1 == null) {
 					color1 = skinProperties.getColor("color.row.fg");
+					if (color1 == null) {
+						color1 = ColorCache.getColor(gcImage.getDevice(),
+								cell.getForeground());
+					}
 				}
 
 				r = img.getBounds();
 				r.width -= 2;
 				r.height -= 14;
-				gcImage.setForeground(color1);
+				if (color1 != null) {
+					gcImage.setForeground(color1);
+				}
 				GCStringPrinter.printString(gcImage, rating, r, true, false,
 						bigTextStyle);
 
@@ -423,6 +429,7 @@ public class ColumnRate
 					Rectangle rectDrawRatings = img.getBounds();
 					//rectDrawRatings.height -= 4;
 					rectDrawRatings.width -= 3;
+					rectDrawRatings.y = r.y + 20;
 					String sRatingInfo = count + " ratings";
 					Point ratingInfoExtent = gcImage.textExtent(sRatingInfo);
 					if (ratingInfoExtent.x > rectDrawRatings.width) {
@@ -434,7 +441,7 @@ public class ColumnRate
 						}
 					}
 					GCStringPrinter.printString(gcImage, sRatingInfo, rectDrawRatings,
-							true, false, SWT.BOTTOM | smallTextStyle);
+							true, false, SWT.TOP | smallTextStyle);
 				}
 
 				if (showRateActionIcon) {
