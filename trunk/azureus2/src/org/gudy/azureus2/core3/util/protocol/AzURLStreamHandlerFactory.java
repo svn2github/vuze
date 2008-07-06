@@ -28,6 +28,9 @@ public class AzURLStreamHandlerFactory implements URLStreamHandlerFactory {
 	private static final String	packageName	= AzURLStreamHandlerFactory.class.getPackage().getName();
 
 	public URLStreamHandler createURLStreamHandler(String protocol) {
+		// don't do classloading when called for protocols that are involved in classloading
+		if(protocol.equals("file") || protocol.equals("jar"))
+			return null;
 		String clsName = packageName + "." + protocol + ".Handler";
 		try
 		{
