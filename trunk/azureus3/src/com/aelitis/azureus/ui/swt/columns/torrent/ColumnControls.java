@@ -150,15 +150,15 @@ public class ColumnControls
 				}
 				
 
-				if (fontText == null) {
-					fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 15);
-				}
-				gcImage.setFont(fontText);
+//				if (fontText == null) {
+//					fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 15);
+//				}
+//				gcImage.setFont(fontText);
 				int[] fg = cell.getForeground();
 				gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
 
 				Rectangle bounds = image.getBounds();
-				GCStringPrinter.printString(gcImage, "" + position, bounds, true,
+				GCStringPrinter.printString(gcImage, "" + position + (dm.getAssumedComplete() ? "^" : "v"), bounds, true,
 						false, SWT.BOTTOM | SWT.CENTER);
 				gcImage.setFont(null);
 
