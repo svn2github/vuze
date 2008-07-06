@@ -107,7 +107,7 @@ DHTPlugin
 		
 	private PluginInterface		plugin_interface;
 	
-	private int					status		= STATUS_INITALISING;
+	private int					status		= STATUS_DISABLED;
 	private DHTPluginImpl[]		dhts;
 	private DHTPluginImpl		main_dht;
 	private DHTPluginImpl		cvs_dht;
@@ -151,6 +151,7 @@ DHTPlugin
 	initialize(
 		PluginInterface 	_plugin_interface )
 	{
+		status = STATUS_INITALISING;
 		plugin_interface	= _plugin_interface;
 				
 		dht_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
@@ -202,7 +203,6 @@ DHTPlugin
 		ipfilter_logging_param.addListener(new ParameterListener() {
 			public void parameterChanged(Parameter p) {
 				ipfilter_logging[0] = ipfilter_logging_param.getValue();
-				System.out.println("ipfilter logging is " + ipfilter_logging[0]);
 			}
 		});
 
@@ -900,6 +900,7 @@ DHTPlugin
 	public boolean
 	isEnabled()
 	{
+		if (plugin_interface == null) {return false;}
 		if ( plugin_interface.isInitialisationThread()){
 			
 			if ( !init_sem.isReleasedForever()){
