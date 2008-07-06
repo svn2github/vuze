@@ -39,11 +39,8 @@ import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
 
@@ -139,6 +136,10 @@ public class BuddiesViewer
 
 	private Chat chat;
 
+	private Color colorFileDragBorder;
+
+	private Color colorFileDragBG;
+
 	public BuddiesViewer() {
 
 		chat = new Chat();
@@ -230,6 +231,10 @@ public class BuddiesViewer
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
+		
+		SWTSkinProperties properties = skin.getSkinProperties();
+		colorFileDragBorder = properties.getColor("color.buddy.filedrag.bg.border");
+		colorFileDragBG = properties.getColor("color.buddy.filedrag.bg");
 
 		soNoBuddies = skin.getSkinObject("buddies-viewer-nobuddies-panel");
 
@@ -263,15 +268,11 @@ public class BuddiesViewer
 			/*
 			 * Specify avatar dimensions and attributes before creating the avatars
 			 */
-			textColor = skin.getSkinProperties().getColor("color.links.normal");
-			textLinkColor = skin.getSkinProperties().getColor("color.links.hover");
-			imageBorderColor = ColorCache.getColor(avatarsPanel.getDisplay(), 55, 55,
-					55);
-
-			selectedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 16, 16, 16);
-
-			highlightedColor = ColorCache.getColor(avatarsPanel.getDisplay(), 45, 45,
-					45);
+			textColor = properties.getColor("color.links.normal");
+			textLinkColor = properties.getColor("color.links.hover");
+			imageBorderColor = properties.getColor("color.buddy.bg.border");
+			selectedColor = properties.getColor("color.buddy.bg.selected");
+			highlightedColor = properties.getColor("color.buddy.bg.hover");
 
 			avatarHightLightBorder = 0;
 			avatarImageBorder = 1;
@@ -1024,5 +1025,23 @@ public class BuddiesViewer
 
 	public Chat getChat() {
 		return chat;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public Color getColorFileDragBorder() {
+		return colorFileDragBorder;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public Color getColorFileDragBG() {
+		return colorFileDragBG;
 	}
 }
