@@ -342,7 +342,7 @@ NetworkAdminImpl
 				{ // literal ipv4 or ipv6 address
 					if(currentAddress.indexOf('.') != -1 || currentAddress.indexOf(':') != -1)
 						parsedAddress = InetAddress.getByName(currentAddress);
-				} catch (UnknownHostException e)
+				} catch (Exception e)
 				{ // ignore, could be an interface name containing a ':'
 				}
 				
