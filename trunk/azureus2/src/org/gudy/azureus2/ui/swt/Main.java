@@ -130,7 +130,8 @@ Main
           
           if( 	filename.toUpperCase().startsWith( "HTTP:" ) || 
           		filename.toUpperCase().startsWith( "HTTPS:" ) || 
-          		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
+         		filename.toUpperCase().startsWith( "MAGNET:" ) ||
+       			filename.toUpperCase().startsWith( "DHT:" ) ) {
         	  
         	  if ( !another_instance ){
         		  

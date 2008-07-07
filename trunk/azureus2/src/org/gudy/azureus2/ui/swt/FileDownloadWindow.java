@@ -288,12 +288,13 @@ public class FileDownloadWindow
 	 */
 	private String getFileName(String url) {
 		try {
+			String	lc_url = url.toLowerCase();
 
 			/*
 			 * First try to retrieve the 'title' field if it has one
 			 */
 
-			int idx = url.indexOf("&title=");
+			int idx = lc_url.indexOf("&title=");
 			if (idx >= 0) {
 				String title = url.substring(idx + "&title=".length());
 				idx = title.indexOf('&');
@@ -316,9 +317,17 @@ public class FileDownloadWindow
 			 */
 
 			url = getShortURL(url);
+			
+			lc_url = url.toLowerCase();
+
+			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "dht:" )){
+				
+				return( url );
+			}
+			
 			String tmp = url.substring(url.lastIndexOf('/') + 1);
-			if (tmp.lastIndexOf(".torrent") > 0) {
-				tmp = tmp.substring(0, tmp.lastIndexOf(".torrent"));
+			if (tmp.toLowerCase().lastIndexOf(".torrent") > 0) {
+				tmp = tmp.substring(0, tmp.toLowerCase().lastIndexOf(".torrent"));
 			}
 			return tmp + ".torrent";
 		} catch (Exception t) {

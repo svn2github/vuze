@@ -456,6 +456,18 @@ PlatformManagerImpl
 			Debug.printStackTrace(e);
 		}
 		
+		try{
+				// always trigger magnet reg here if not owned so old users get it...
+			
+			if ( getAdditionalFileTypeRegistrationDetails( "DHT", ".dht" ) == RT_NONE ){
+		
+				registerDHT();
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	
 		if ( isAdditionalFileTypeRegistered( OLD_MAIN_ASS0C, ".torrent" )){
 			
 			unregisterAdditionalFileType( OLD_MAIN_ASS0C, ".torrent" );
@@ -613,6 +625,8 @@ PlatformManagerImpl
 	{
 		registerMagnet();
 		
+		registerDHT();
+		
 		registerAdditionalFileType( NEW_MAIN_ASSOC, Constants.APP_NAME + " Download", ".torrent", "application/x-bittorrent" );
 		
 		registerAdditionalFileType( VUZE_ASSOC, "Vuze File", ".vuze", "application/x-vuze" );
@@ -634,6 +648,24 @@ PlatformManagerImpl
 			Debug.printStackTrace(e);
 		}
 	}
+	
+	protected void
+	registerDHT()
+	{
+		try{
+			registerAdditionalFileType( 
+				"DHT", 
+				"DHT URI", 
+				".dht", 
+				"application/x-dht",
+				true );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
 	public void
 	registerAdditionalFileType(
 		String		name,				// e.g. "Azureus"

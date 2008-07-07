@@ -52,10 +52,11 @@ public class UrlUtils
 			"http://",
 			"https://",
 			"ftp://",
+			"dht://",
 			"magnet:?",
 			"magnet://?" };
 
-	private static int MAGNETURL_STARTS_AT = 3;
+	private static int MAGNETURL_STARTS_AT = 3;	// dht:// is a form of magnet URL
 	
 	private static final Object[] XMLescapes = new Object[] {
 		new String[] { "&", "&amp;" },

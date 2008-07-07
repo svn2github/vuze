@@ -29,6 +29,8 @@ package org.gudy.azureus2.core3.util.protocol.dht;
 import java.io.IOException;
 import java.net.*;
 
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 
@@ -38,12 +40,47 @@ Handler
 	public URLConnection 
 	openConnection(URL u)
 	{	
-		String	str = u.toString();
+			// format is dht://<hash>[.dht]/[params]
+			// treat as magnet magnet:?xt=urn:btih:<hash32>/params
 		
-		str = "http" + str.substring( 3 );
+		URL magnet_url;
 		
 		try{
-			return( new URL(str).openConnection());
+			String	str = u.toString();
+			
+			str = str.substring( 6 );
+			
+			int	param_pos = str.indexOf( '/' );
+			
+			String hash = param_pos==-1?str:str.substring( 0, param_pos );
+			
+			hash = hash.trim();
+			
+			int	dot_pos = hash.indexOf( '.' );
+			
+			if ( dot_pos != -1 ){
+				
+				hash = hash.substring( 0, dot_pos ).trim();
+			}
+			
+			if ( hash.length() == 40 ){
+				
+				hash = Base32.encode( ByteFormatter.decodeString( hash ));
+			}
+			
+			magnet_url = new URL( "magnet:?xt=urn:btih:" + hash + "/" + (param_pos==-1?"":str.substring(param_pos+1)));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to transform dht url '" + u + "'", e );
+			
+			return( null );
+		}
+		
+		System.out.println( "Transformed " + u + " -> " + magnet_url );
+		
+		try{
+			return( magnet_url.openConnection());
 			
 		}catch( MalformedURLException e ){
 			
