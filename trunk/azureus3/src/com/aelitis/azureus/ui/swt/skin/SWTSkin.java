@@ -316,7 +316,13 @@ public class SWTSkin
 
 	public SWTSkinObject getSkinObject(String sViewID) {
 		SWTSkinObject[] objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(sViewID);
-		if (objects == null && Utils.isThisThreadSWT()) {
+		if (objects == null) {
+			if (!Utils.isThisThreadSWT()) {
+				Debug.out("View "
+						+ sViewID
+						+ " does not exist.  Skipping unattach check because not in SWT thread");
+				return null;
+			}
 			return createUnattachedView(sViewID, null);
 		}
 
