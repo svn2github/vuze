@@ -206,12 +206,12 @@ public class UserAreaUtils
 	private void synchLoginStates(String userName, String displayName,
 			boolean isNewLoginID) {
 		updateLoginLabels(userName, displayName);
-		
+
 		if (firstLoginStateSync) {
-			firstLoginStateSync  = false;
+			firstLoginStateSync = false;
 			return;
 		}
-		
+
 		/*
 		 * Reset browser tabs if the login state has changed
 		 */
@@ -297,15 +297,14 @@ public class UserAreaUtils
 	 * Refreshes the embedded browser with the given viewID
 	 * @param targetViewID
 	 */
-	private void refreshBrowserPage(String targetViewID) {
-		final SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
-		if (skinObject instanceof SWTSkinObjectBrowser) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
+	private void refreshBrowserPage(final String targetViewID) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				final SWTSkinObject skinObject = skin.getSkinObject(targetViewID);
+				if (skinObject instanceof SWTSkinObjectBrowser) {
 					((SWTSkinObjectBrowser) skinObject).getBrowser().refresh();
 				}
-			});
-
-		}
+			}
+		});
 	}
 }
