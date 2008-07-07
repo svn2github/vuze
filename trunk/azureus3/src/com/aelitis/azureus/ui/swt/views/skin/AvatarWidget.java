@@ -494,7 +494,7 @@ public class AvatarWidget
 							decorator_remove_friend.height);
 				} else if (true == viewer.isShareMode()) {
 					e.gc.drawImage(add_to_share_Image, 0, 0,
-							removeImage.getBounds().width, removeImage.getBounds().height,
+							add_to_share_Image.getBounds().width, add_to_share_Image.getBounds().height,
 							decorator_add_to_share.x, decorator_add_to_share.y,
 							decorator_add_to_share.width, decorator_add_to_share.height);
 				}
