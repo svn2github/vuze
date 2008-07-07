@@ -77,7 +77,7 @@ Handler
 			return( null );
 		}
 		
-		System.out.println( "Transformed " + u + " -> " + magnet_url );
+			//	System.out.println( "Transformed " + u + " -> " + magnet_url );
 		
 		try{
 			return( magnet_url.openConnection());
