@@ -20,8 +20,8 @@
 package com.aelitis.azureus.core.messenger.browser.listeners;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.ui.swt.browser.msg.BrowserMessage;
 
 /**
  * Accepts and handles messages dispatched from {@link BrowserMessageDispatcher}.
@@ -53,8 +53,6 @@ public interface BrowserMessageListener
 	 * 
 	 * @param message holds all message information
 	 */
-	// TODO: Change to new BrowserMessage class after 3100 release
-	public void handleMessage(com.aelitis.azureus.core.messenger.browser.BrowserMessage message);
 	public void handleMessage(BrowserMessage message);
 
 	/**

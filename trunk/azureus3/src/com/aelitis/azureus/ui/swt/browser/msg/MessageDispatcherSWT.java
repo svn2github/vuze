@@ -55,7 +55,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
  * @todo Remove "extends MessageDispatcher" after EMP for 3100 is out
  */
 public class MessageDispatcherSWT
-	extends MessageDispatcher
 	implements StatusTextListener, TitleListener, BrowserMessageDispatcher
 {
 	public static final String LISTENER_ID = "dispatcher";

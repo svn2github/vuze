@@ -20,8 +20,6 @@
 
 package com.aelitis.azureus.core.messenger;
 
-import java.lang.reflect.Constructor;
-
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
@@ -30,7 +28,6 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -51,34 +48,6 @@ public abstract class ClientMessageContextImpl
 		this.id = id;
 		this.dispatcher = dispatcher;
 		this.txnManager = new BrowserTransactionManager(this);
-	}
-
-	/**
-	 * Legacy Support for old EMP
-	 * 
-	 * @param id
-	 */
-	public ClientMessageContextImpl(String id) {
-		this.id = id;
-		this.txnManager = new BrowserTransactionManager(this);
-
-		try {
-			Class c;
-			
-			c = Class.forName("com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT");
-
-			final Constructor constructor = c.getConstructor(new Class[] {
-				ClientMessageContext.class,
-			});
-			
-			if (constructor != null) {
-				dispatcher = (BrowserMessageDispatcher) constructor.newInstance(new Object[] {
-					this
-				});
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	public void addMessageListener(BrowserMessageListener listener) {
@@ -159,9 +128,5 @@ public abstract class ClientMessageContextImpl
 
 	public void setMessageDispatcher(BrowserMessageDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
-	}
-	
-	public MessageDispatcher getMessageDispatcher() {
-		return (MessageDispatcher) dispatcher;
 	}
 }

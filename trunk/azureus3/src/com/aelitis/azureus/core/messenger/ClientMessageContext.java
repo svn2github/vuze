@@ -27,7 +27,6 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher;
 
 /**
  * @author TuxPaper
@@ -107,11 +106,6 @@ public interface ClientMessageContext
 
 	public BrowserMessageDispatcher getDispatcher();
 	
-	// DO NOT USE. LEGACY
-	// TODO: Remove after EMP update for 3.1.0.0
-	// THIS IS THE ONLY REMAINING SWT DEPENDENCY LEFT in core.message
-	public MessageDispatcher getMessageDispatcher();
-
 	/**
 	 * @param key
 	 * @param op
