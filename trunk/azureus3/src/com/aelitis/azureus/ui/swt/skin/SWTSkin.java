@@ -1152,6 +1152,7 @@ public class SWTSkin
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
 					parentSkinObject, true, true);
 			if (b && skinObject != null) {
+				layout();
 				Control control = skinObject.getParent().getControl();
 				if (control instanceof Composite) {
 					((Composite) control).layout(true);
