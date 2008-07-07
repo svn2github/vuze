@@ -51,6 +51,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.skin.SkinProperties;
@@ -315,7 +316,7 @@ public class SWTSkin
 
 	public SWTSkinObject getSkinObject(String sViewID) {
 		SWTSkinObject[] objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(sViewID);
-		if (objects == null) {
+		if (objects == null && Utils.isThisThreadSWT()) {
 			return createUnattachedView(sViewID, null);
 		}
 
