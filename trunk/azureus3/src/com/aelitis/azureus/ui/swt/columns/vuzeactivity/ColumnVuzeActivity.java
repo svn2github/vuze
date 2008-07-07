@@ -761,12 +761,13 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		Comparable sortValue = event.cell.getSortValue();
-		if (sortValue instanceof VuzeActivitiesEntry) {
-			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) sortValue;
+		
+		Object ds = event.cell.getDataSource();
+		if (ds instanceof VuzeActivitiesEntry) {
+			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 			if (entry.urlInfo != null) {
 				//((ListView)((ListRow)event.cell.getTableRow()).getView()).getTableCellCursorOffset()
-				//System.out.println(entry.urlHitArea);
+				//System.out.println(entry.urlInfo);
 				URLInfo hitUrl = ((GCStringPrinter) entry.urlInfo).getHitUrl(event.x
 						- MARGIN_WIDTH, event.y);
 				int newCursor;
@@ -802,11 +803,7 @@ public class ColumnVuzeActivity
 					((TableCellSWT) event.cell).setCursorID(newCursor);
 				}
 			}
-		}
 
-		Object ds = event.cell.getDataSource();
-		if (ds instanceof VuzeActivitiesEntry) {
-			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 			boolean inHitArea = new Rectangle(0, 0, EVENT_INDENT, EVENT_INDENT).contains(
 					event.x, event.y);
 
