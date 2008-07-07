@@ -174,42 +174,6 @@ public class VuzeActivitiesEntry
 	public int compareTo(Object obj) {
 		if (obj instanceof VuzeActivitiesEntry) {
 			VuzeActivitiesEntry otherEntry = (VuzeActivitiesEntry) obj;
-			//System.out.println("EQ" + timestamp + ";" + text.substring(0, 8) + (int) (timestamp - ((VuzeNewsEntry) obj).timestamp));
-			if (VuzeActivitiesConstants.sortBy == VuzeActivitiesConstants.SORT_TYPE) {
-				String ourTypeID = getTypeID();
-				String theirTypeID = otherEntry.getTypeID();
-
-				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(ourTypeID);
-				boolean isOtherHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(theirTypeID);
-
-				if (isHeader) {
-					ourTypeID = getID();
-				}
-				if (isOtherHeader) {
-					theirTypeID = otherEntry.getID();
-				}
-
-				long ourIDpos = MapUtils.getMapLong(
-						VuzeActivitiesConstants.SORT_TYPE_ORDER, ourTypeID, 100);
-				long theirIDpos = MapUtils.getMapLong(
-						VuzeActivitiesConstants.SORT_TYPE_ORDER, theirTypeID, 100);
-				if (ourIDpos < theirIDpos) {
-					return 1;
-				}
-				if (ourIDpos > theirIDpos) {
-					return -1;
-				}
-
-				// same
-				if (isHeader) {
-					return 1;
-				}
-				if (isOtherHeader) {
-					return -1;
-				}
-
-				// FALLTHROUGH to date sort
-			}
 
 			long x = (timestamp - otherEntry.timestamp);
 			return x == 0 ? 0 : x > 0 ? 1 : -1;

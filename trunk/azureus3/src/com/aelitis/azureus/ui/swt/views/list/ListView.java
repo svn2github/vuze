@@ -1635,10 +1635,10 @@ public class ListView
 		addDataSources(dataSources, false);
 	}
 
-	public void addDataSources(final Object[] dataSources, boolean bImmediate) {
+	public void addDataSources(final Object[] _dataSources, boolean bImmediate) {
 		long lTimeStart = System.currentTimeMillis();
 
-		if (dataSources == null) {
+		if (_dataSources == null) {
 			return;
 		}
 
@@ -1654,9 +1654,9 @@ public class ListView
 				if (dataSourcesToAdd == null) {
 					dataSourcesToAdd = new ArrayList(4);
 				}
-				for (int i = 0; i < dataSources.length; i++) {
-					if (!mapDataSourceToRow.containsKey(dataSources[i])) {
-						dataSourcesToAdd.add(dataSources[i]);
+				for (int i = 0; i < _dataSources.length; i++) {
+					if (!mapDataSourceToRow.containsKey(_dataSources[i])) {
+						dataSourcesToAdd.add(_dataSources[i]);
 						if (DEBUGADDREMOVE) {
 							count++;
 						}
@@ -1678,6 +1678,31 @@ public class ListView
 			logADDREMOVE(sTableID + ": Add immediate via "
 					+ Debug.getCompressedStackTrace(3));
 		}
+		
+		final Object[] dataSources = new Object[_dataSources.length];
+		System.arraycopy(_dataSources, 0, dataSources, 0, _dataSources.length);
+
+		// Add datasources immediately to mapDataSourcesToRow
+		// Some code assumes calling getDataSources() right after calling 
+		// processDataSourceQueue() will get all the rows.  So adding to the map
+		// must be on the same thread.
+		try {
+			row_mon.enter();
+
+			for (int i = 0; i < dataSources.length; i++) {
+				Object datasource = dataSources[i];
+
+				if (datasource != null) {
+					if (mapDataSourceToRow.containsKey(datasource)) {
+						dataSources[i] = null;
+					} else {
+						mapDataSourceToRow.put(datasource, null);
+					}
+				}
+			}
+		} finally {
+			row_mon.exit();
+		}
 
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
@@ -1689,8 +1714,7 @@ public class ListView
 					for (int i = 0; i < dataSources.length; i++) {
 						Object datasource = dataSources[i];
 
-						if (datasource == null
-								|| mapDataSourceToRow.containsKey(datasource)) {
+						if (datasource == null) {
 							continue;
 						}
 
@@ -1894,6 +1918,7 @@ public class ListView
 
 							triggerListenerRowRemoved(row);
 						} else {
+							mapDataSourceToRow.remove(datasource);
 							//System.out.println("not found " + datasource);
 						}
 					}
@@ -3023,7 +3048,7 @@ public class ListView
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		//refreshTable(false);
+		refreshTable(false);
 	}
 
 	// XXX This gets called a lot.  Could store location and size on 

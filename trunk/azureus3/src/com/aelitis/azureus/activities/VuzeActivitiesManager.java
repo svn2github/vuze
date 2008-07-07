@@ -553,6 +553,7 @@ public class VuzeActivitiesManager
 			}
 
 			List entries = (List) value;
+			List entriesToAdd = new ArrayList(entries.size());
 			for (Iterator iter = entries.iterator(); iter.hasNext();) {
 				value = iter.next();
 				if (!(value instanceof Map)) {
@@ -567,11 +568,14 @@ public class VuzeActivitiesManager
 					}
 
 					if (entry.getTimestamp() > cutoffTime) {
-						addEntries(new VuzeActivitiesEntry[] {
-							entry
-						});
+						entriesToAdd.add(entry);
 					}
 				}
+			}
+
+			int num = entriesToAdd.size();
+			if (num > 0) {
+				addEntries((VuzeActivitiesEntry[]) entriesToAdd.toArray(new VuzeActivitiesEntry[num]));
 			}
 		} finally {
 			skipAutoSave = false;

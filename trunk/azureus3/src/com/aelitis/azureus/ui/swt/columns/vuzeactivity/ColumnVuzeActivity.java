@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
-import java.io.ByteArrayInputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -56,9 +55,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.list.*;
-import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DataSourceUtils;
-import com.aelitis.azureus.util.StringCompareUtils;
+import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -107,6 +104,8 @@ public class ColumnVuzeActivity
 
 	private static Image imgDelete;
 
+	private int sortBy = VuzeActivitiesConstants.SORT_DATE;
+
 	/** Default Constructor */
 	public ColumnVuzeActivity(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
@@ -123,6 +122,74 @@ public class ColumnVuzeActivity
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
 
 		//imgDelete = ImageRepository.getImage("progress_remove"); 
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#compare(java.lang.Object, java.lang.Object)
+	public int compare(Object arg1, Object arg0) {
+		VuzeActivitiesEntry c0;
+		VuzeActivitiesEntry c1;
+		if (arg0 instanceof VuzeActivitiesEntry) {
+			c0 = (VuzeActivitiesEntry) arg0;
+		} else {
+  		TableCellCore cell0 = ((TableRowCore) arg0).getTableCellCore(COLUMN_ID);
+  		c0 = (VuzeActivitiesEntry) ((cell0 == null) ? null
+  				: cell0.getDataSource());
+		}
+		if (arg1 instanceof VuzeActivitiesEntry) {
+			c1 = (VuzeActivitiesEntry) arg1;
+		} else {
+  		TableCellCore cell1 = ((TableRowCore) arg1).getTableCellCore(COLUMN_ID);
+  		c1 = (VuzeActivitiesEntry) ((cell1 == null) ? null
+  				: cell1.getDataSource());
+		}
+
+		boolean c0_is_null = c0 == null;
+		boolean c1_is_null = c1 == null;
+		if (c1_is_null) {
+			return (c0_is_null) ? 0 : -1;
+		} else if (c0_is_null) {
+			return 1;
+		}
+
+		//System.out.println("EQ" + timestamp + ";" + text.substring(0, 8) + (int) (timestamp - ((VuzeNewsEntry) obj).timestamp));
+		if (sortBy == VuzeActivitiesConstants.SORT_TYPE) {
+			String c0TypeID = c0.getTypeID();
+			String c1TypeID = c1.getTypeID();
+
+			boolean isC0Header = VuzeActivitiesConstants.TYPEID_HEADER.equals(c0TypeID);
+			boolean isC1Header = VuzeActivitiesConstants.TYPEID_HEADER.equals(c1TypeID);
+
+			if (isC0Header) {
+				c0TypeID = c0.getID();
+			}
+			if (isC1Header) {
+				c1TypeID = c1.getID();
+			}
+
+			long c0IDpos = MapUtils.getMapLong(
+					VuzeActivitiesConstants.SORT_TYPE_ORDER, c0TypeID, 100);
+			long c1IDpos = MapUtils.getMapLong(
+					VuzeActivitiesConstants.SORT_TYPE_ORDER, c1TypeID, 100);
+			if (c0IDpos < c1IDpos) {
+				return 1;
+			}
+			if (c0IDpos > c1IDpos) {
+				return -1;
+			}
+
+			// same
+			if (isC0Header) {
+				return 1;
+			}
+			if (isC1Header) {
+				return -1;
+			}
+
+			// FALLTHROUGH to date sort
+		}
+
+		long x = (c0.getTimestamp() - c1.getTimestamp());
+		return x == 0 ? 0 : x > 0 ? 1 : -1;
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -162,7 +229,6 @@ public class ColumnVuzeActivity
 		int width = cell.getWidth();
 		int height = cell.getHeight();
 		if (width <= 0 || height <= 0) {
-			cell.setSortValue(entry.getTimestamp());
 			return;
 		}
 
@@ -179,7 +245,7 @@ public class ColumnVuzeActivity
 		force |= imgBounds == null
 				|| !imgBounds.equals(new Rectangle(0, 0, width, height));
 
-		if (!cell.setSortValue(entry) && cell.isValid() && !force) {
+		if (cell.isValid() && !force) {
 			return;
 		}
 		((TableColumnCore) cell.getTableColumn()).setSortValueLive(false);
@@ -212,22 +278,21 @@ public class ColumnVuzeActivity
 
 		boolean isVuzeNewsEntry = !isHeader
 				&& VuzeActivitiesConstants.TYPEID_VUZENEWS.equalsIgnoreCase(entry.getTypeID());
-		
+
 		Image imgAvatar = null;
 		if (entry instanceof VuzeActivitiesEntryBuddy) {
 			VuzeActivitiesEntryBuddy entryBuddy = (VuzeActivitiesEntryBuddy) entry;
 			VuzeBuddy buddy = entryBuddy.getBuddy();
 			if (buddy instanceof VuzeBuddySWT) {
-				VuzeBuddySWT buddySWT = (VuzeBuddySWT) buddy; 
+				VuzeBuddySWT buddySWT = (VuzeBuddySWT) buddy;
 				imgAvatar = buddySWT.getAvatarImage();
 			}
 		}
-		
+
 		int avatarPos = x;
 		if (imgAvatar != null && !imgAvatar.isDisposed()) {
 			x += AVATAR_HEIGHT + AVATAR_PADDING;
 		}
-		
 
 		int style = SWT.WRAP;
 		Device device = Display.getDefault();
@@ -280,7 +345,7 @@ public class ColumnVuzeActivity
 				y = MARGIN_HEIGHT + 1;
 			}
 			style |= SWT.TOP;
-			
+
 			int minHeight = imgAvatar == null || imgAvatar.isDisposed() ? 30
 					: AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
 			if (height < minHeight) {
@@ -305,7 +370,7 @@ public class ColumnVuzeActivity
 				}
 				imgBounds = image.getBounds();
 			}
-			
+
 			drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
 			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), drawRect,
 					0, SWT.WRAP | SWT.TOP);
@@ -379,12 +444,12 @@ public class ColumnVuzeActivity
 							iconBounds.height, 0, MARGIN_HEIGHT, 16, 16);
 				}
 			}
-			
+
 			try {
 				gc.setInterpolation(SWT.HIGH);
 			} catch (Throwable t) {
 			}
-			
+
 			if (imgAvatar != null && !imgAvatar.isDisposed()) {
 				Rectangle bounds = imgAvatar.getBounds();
 				gc.drawImage(imgAvatar, 0, 0, bounds.width, bounds.height, avatarPos,
@@ -794,5 +859,13 @@ public class ColumnVuzeActivity
 		if (ratingCell != null) {
 			ratingCell.invokeVisibilityListeners(visibility, true);
 		}
+	}
+
+	public int getSortBy() {
+		return sortBy;
+	}
+
+	public void setSortBy(int sortBy) {
+		this.sortBy = sortBy;
 	}
 }

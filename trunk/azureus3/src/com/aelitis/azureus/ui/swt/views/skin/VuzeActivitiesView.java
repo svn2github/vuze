@@ -65,10 +65,14 @@ public class VuzeActivitiesView
 
 	private static final boolean TEST_ENTRIES = false;
 
+	private static final boolean DEBUG_DATE_SORT = false;
+
 	private static final String PREFIX = "vuzeevents-";
 
-	private static String TABLE_ID = "VuzeActivity";
-
+	//private static String TABLE_ID = "VuzeActivity";
+	
+	private String TABLE_ID;
+	
 	private ListView view;
 
 	private ArrayList headerEntries = new ArrayList();
@@ -96,17 +100,25 @@ public class VuzeActivitiesView
 	private SWTSkinButtonUtility btnSortByType;
 
 	private SWTSkinButtonUtility btnSortByDate;
-	
+
+	private ColumnVuzeActivity columnVuzeActivity;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		
+
+		/** In order for each instance of this class to have it's own usable
+		 * columnVuzeActivity, we must use a different TABLE_ID.  If the TABLE_ID
+		 * was the same, it would only use the first columnVuzeActivity added.
+		 */
+		TABLE_ID = soMain.getSkinObjectID();
 		soData = getSkinObject(PREFIX + "list");
 
 		soData.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, getCurrentlySelectedContent());
+					SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID,
+							getCurrentlySelectedContent());
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
 					SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, null);
 				}
@@ -163,8 +175,7 @@ public class VuzeActivitiesView
 
 		cData.layout();
 
-		final ColumnVuzeActivity columnVuzeActivity = new ColumnVuzeActivity(
-				TABLE_ID);
+		columnVuzeActivity = new ColumnVuzeActivity(TABLE_ID);
 		TableColumnCore[] columns = {
 			columnVuzeActivity
 		};
@@ -246,7 +257,7 @@ public class VuzeActivitiesView
 					}
 				}
 			}
-			
+
 			public void mouseExit(TableRowCore row) {
 				{
 					if (btnTag != null) {
@@ -258,17 +269,18 @@ public class VuzeActivitiesView
 			public void selected(TableRowCore[] row) {
 				selectionChanged();
 			}
-		
+
 			public void deselected(TableRowCore[] rows) {
 				selectionChanged();
 			}
-			
+
 			public void selectionChanged() {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (soData.isVisible()) {
-							SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID, contents);
+							SelectedContentManager.changeCurrentlySelectedContent(TABLE_ID,
+									contents);
 						}
 						if (btnShare != null) {
 							btnShare.setDisabled(contents.length != 1);
@@ -280,14 +292,13 @@ public class VuzeActivitiesView
 				});
 			}
 		}, true);
-		
-		
+
 		skinObject = getSkinObject(PREFIX + "sortby-date");
 		if (skinObject != null) {
 			btnSortByDate = new SWTSkinButtonUtility(skinObject);
 			btnSortByDate.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					VuzeActivitiesConstants.sortBy = VuzeActivitiesConstants.SORT_DATE;
+					columnVuzeActivity.setSortBy(VuzeActivitiesConstants.SORT_DATE);
 					view.removeDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
 					shiftVuzeNews();
 					btnSortByDate.getSkinObject().switchSuffix("-selected", 1, false);
@@ -304,7 +315,9 @@ public class VuzeActivitiesView
 			btnSortByType = new SWTSkinButtonUtility(skinObject);
 			btnSortByType.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					VuzeActivitiesConstants.sortBy = VuzeActivitiesConstants.SORT_TYPE;
+					view.removeDataSources(headerEntries.toArray());
+					columnVuzeActivity.setSortBy(VuzeActivitiesConstants.SORT_TYPE);
+					view.addDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
 					shiftVuzeNews();
 					btnSortByType.getSkinObject().switchSuffix("-selected", 1, false);
 					if (btnSortByDate != null) {
@@ -314,8 +327,6 @@ public class VuzeActivitiesView
 			});
 		}
 
-
-		
 		VuzeActivitiesEntry headerEntry;
 		headerEntry = new VuzeActivitiesEntry(0,
 				MessageText.getString("v3.activity.header.today"),
@@ -347,8 +358,6 @@ public class VuzeActivitiesView
 					}), VuzeActivitiesConstants.TYPEID_HEADER);
 			headerEntries.add(headerEntry);
 		}
-
-		VuzeActivitiesManager.addEntries((VuzeActivitiesEntry[]) headerEntries.toArray(new VuzeActivitiesEntry[headerEntries.size()]));
 
 		if (TEST_ENTRIES) {
 			String[] testIDs = {
@@ -482,68 +491,74 @@ public class VuzeActivitiesView
 		if (skipShift) {
 			return;
 		}
-		
-		if (VuzeActivitiesConstants.sortBy == VuzeActivitiesConstants.SORT_TYPE) {
-			VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-			for (int j = allEntries.length - 1; j >= 0; j--) {
-				VuzeActivitiesEntry entry = allEntries[j];
-				boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
-				if (isHeader) {
-					view.removeDataSource(entry);
+
+		if (columnVuzeActivity.getSortBy() == VuzeActivitiesConstants.SORT_TYPE) {
+
+		} else {
+
+			Calendar cal = Calendar.getInstance();
+			cal.setTimeInMillis(System.currentTimeMillis());
+			cal.roll(Calendar.DATE, true);
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+
+			view.processDataSourceQueue();
+			Object[] allEntries = view.getDataSources();
+			Arrays.sort(allEntries, columnVuzeActivity);
+			int allEntriesPos = 0;
+
+			lastShiftedOn = cal.getTimeInMillis();
+			for (int i = 0; i < headerEntries.size(); i++) {
+				VuzeActivitiesEntry headerEntry = (VuzeActivitiesEntry) headerEntries.get(i);
+				headerEntry.setTimestamp(lastShiftedOn);
+
+				long nextShiftOn = lastShiftedOn;
+				if (i < 7) {
+					nextShiftOn -= ONE_DAY_MS;
+				} else {
+					nextShiftOn -= ONE_WEEK_MS;
 				}
-			}
-			
-			view.addDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
-			view.refreshTable(true);
-			return;
-		}
-		
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		cal.roll(Calendar.DATE, true);
-		cal.set(Calendar.HOUR_OF_DAY, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		cal.set(Calendar.MILLISECOND, 0);
 
-		lastShiftedOn = cal.getTimeInMillis();
-		int i = 0;
-		for (Iterator iter = headerEntries.iterator(); iter.hasNext();) {
-			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
-			entry.setTimestamp(lastShiftedOn);
-			if (i < 7) {
-				lastShiftedOn -= ONE_DAY_MS;
-			} else {
-				lastShiftedOn -= ONE_WEEK_MS;
-			}
-		}
-
-		VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
-		Arrays.sort(allEntries);
-		boolean lastWasHeader = false;
-		VuzeActivitiesEntry lastEntry = null;
-		for (int j = allEntries.length - 1; j >= 0; j--) {
-			VuzeActivitiesEntry entry = allEntries[j];
-			boolean isHeader = VuzeActivitiesConstants.TYPEID_HEADER.equals(entry.getTypeID());
-			if (lastWasHeader && lastEntry != null) {
-				if (isHeader) {
-					TableRowCore row = view.getRow(lastEntry);
-					if (row != null) {
-						view.removeDataSource(lastEntry);
-						//System.out.println("hiding " + lastEntry.getTypeID() + "/" + lastEntry.text + "; cur = " + entry.getTypeID() + "/" + entry.text);
+				if (DEBUG_DATE_SORT) {
+					System.out.println("range = " + new Date(lastShiftedOn) + " to " + new Date(nextShiftOn) + " for " + headerEntry.getText());
+				}
+				if (allEntriesPos < allEntries.length) {
+					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) allEntries[allEntriesPos];
+					long timestamp = entry.getTimestamp();
+					if (DEBUG_DATE_SORT) {
+						System.out.println("entry = " + new Date(timestamp) + "--" + entry.getText());
+					}
+					if (timestamp > nextShiftOn) {
+						view.addDataSource(headerEntry);
+						if (DEBUG_DATE_SORT) {
+							System.out.println(" add " + headerEntry.getText());
+						}
+						while (++allEntriesPos < allEntries.length && timestamp > nextShiftOn) {
+							entry = (VuzeActivitiesEntry) allEntries[allEntriesPos];
+							if (DEBUG_DATE_SORT) {
+								System.out.println("skip.. now @ " + entry.getText());
+							}
+							timestamp = entry.getTimestamp();
+						}
+					} else {
+						view.removeDataSource(headerEntry);
 					}
 				} else {
-					TableRowCore row = view.getRow(lastEntry);
-					if (row == null) {
-						view.addDataSource(lastEntry);
-						//System.out.println("showing " + lastEntry.getTypeID() + ";" + lastEntry.text);
-					}
+					view.removeDataSource(headerEntry);
 				}
-			}
 
-			lastWasHeader = isHeader;
-			lastEntry = entry;
+				lastShiftedOn = nextShiftOn;
+			}
 		}
+
+		columnVuzeActivity.setLastSortValueChange(SystemTime.getCurrentTime());
+		// this makes it smooth (instead of header entries popping in after non
+		view.processDataSourceQueue();
+		// this makes it smooth (instead of the non header entries popping in
+		// after the header
+		view.refreshTable(true);
 	}
 
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesAdded(com.aelitis.azureus.util.VuzeNewsEntry[])
@@ -583,7 +598,7 @@ public class VuzeActivitiesView
 		List listContent = new ArrayList();
 		Object[] selectedDataSources = view.getSelectedDataSources(true);
 		for (int i = 0; i < selectedDataSources.length; i++) {
-			
+
 			VuzeActivitiesEntry ds = (VuzeActivitiesEntry) selectedDataSources[i];
 			if (ds != null) {
 				ISelectedContent currentContent;

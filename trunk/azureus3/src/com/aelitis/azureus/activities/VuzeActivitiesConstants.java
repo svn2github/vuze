@@ -60,8 +60,6 @@ public class VuzeActivitiesConstants
 
 	public static final Map SORT_TYPE_ORDER = new HashMap();
 
-	public static int sortBy = SORT_DATE;
-
 	public static VuzeActivitiesEntry[] HEADERS_SORTBY_TYPE;
 
 	static {
