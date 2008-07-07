@@ -416,8 +416,6 @@ public class AvatarWidget
 						|| (true == isSelected && selectedColor != null)) {
 					e.gc.setBackground(false == isActivated && highlightedColor != null
 							? highlightedColor : selectedColor);
-					e.gc.setBackground(e.gc.getDevice().getSystemColor(
-							SWT.COLOR_WIDGET_HIGHLIGHT_SHADOW));
 					Rectangle bounds = canvas.getBounds();
 					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
 							bounds.width - (2 * highlightBorder), bounds.height
