@@ -39,6 +39,8 @@ import java.util.Map;
  */
 public class BDecoder 
 {
+	private static final boolean TRACE	= false;
+	
 	private boolean recovery_mode;
 	
 	public static Map
@@ -193,6 +195,23 @@ public class BDecoder
 						key = StringInterner.intern( key );
 					}
 
+					if ( TRACE ){
+						System.out.println( key + "->" + value + ";" );
+					}
+					
+						// recover from some borked encodings that I have seen whereby the value has
+						// not been encoded. This results in, for example, 
+						// 18:azureus_propertiesd0:e
+						// we only get null back here if decoding has hit an 'e' or end-of-file
+						// that is, there is no valid way for us to get a null 'value' here
+					
+					if ( value == null ){
+						
+						Debug.out( "Invalid encoding - value not serialsied for '" + key + "' - ignoring" );
+						
+						break;
+					}
+				
 					tempMap.put( key, value);
 				}
 
@@ -958,7 +977,7 @@ public class BDecoder
 	main(
 			String[]	args )
 	{	  
-		print( 	new File( "C:\\Temp\\xxx.torrent" ),
-				new File( "C:\\Temp\\xxx.txt" ));
+		print( 	new File( "C:\\Temp\\b.torrent" ),
+				new File( "C:\\Temp\\b.txt" ));
 	}
 }
