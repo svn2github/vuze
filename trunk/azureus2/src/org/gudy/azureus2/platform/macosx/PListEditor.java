@@ -106,11 +106,11 @@ PListEditor
 		find.append("(?s).*?<key>" + key + "</key>\\s*" + "<array>");
 		for(int i = 0 ; i < values.length ; i++) {
 			find.append("\\s*<" + valueType + ">" + values[i] + "</" + valueType + ">");
-			value.append("\n\t\t\t\t<string>");
+			value.append("\n\t\t\t\t<" + valueType + ">");
 			value.append(values[i]);
-			value.append("</string>");
+			value.append("</" + valueType + ">");
 		}
-		find.append("\\s*</array>");
+		find.append("\\s*</array>.*");
 		value.append("\n\t\t\t");
 		
 		String match = "(?s)(<key>" + key + "</key>\\s*<array>)(.*?)(</array>)";
