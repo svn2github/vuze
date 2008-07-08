@@ -47,20 +47,6 @@ import com.aelitis.azureus.core.AzureusCore;
 public class FileDownloadWindow
 	implements TorrentDownloaderCallBackInterface, IProgressReportConstants
 {
-	AzureusCore azureus_core;
-
-	Display display;
-
-	Shell shell;
-
-	AZProgressBar progressBar;
-
-	Label status;
-
-	Button retry;
-
-	Button cancel;
-
 	TorrentDownloader downloader;
 
 	TorrentDownloaderCallBackInterface listener;
@@ -77,7 +63,6 @@ public class FileDownloadWindow
 
 	Map request_properties;
 
-	AzureusCore _azureus_core;
 
 	String dirName = null;
 
