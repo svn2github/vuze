@@ -42,7 +42,7 @@ public class TableColumnSWTUtils
 		return SWT.LEAD;
 	}
 	
-	public static int convertSWTAlignmentToColumn(int align) {
+    private static int convertSWTAlignmentToColumn(int align) {
 		if ((align & SWT.LEAD) > 0) {
 			return TableColumn.ALIGN_LEAD;
 		} else if ((align & SWT.CENTER) > 0) {
