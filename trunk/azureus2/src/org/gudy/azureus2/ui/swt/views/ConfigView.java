@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
@@ -80,6 +81,12 @@ public class ConfigView extends AbstractIView {
 	private Label lblX;
 	private Listener scResizeListener;
 
+  public 
+  ConfigView() 
+  {
+  	this(AzureusCoreFactory.getSingleton());
+  }
+  
   /**
    * Main Initializer
    * 

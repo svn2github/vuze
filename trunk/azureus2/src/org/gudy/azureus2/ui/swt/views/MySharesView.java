@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -88,7 +89,13 @@ implements ShareManagerListener,
 	private Menu			menuCategory;
 
 	private TableViewSWTImpl tv;
-	
+
+	public 
+	MySharesView()
+	{
+		this(AzureusCoreFactory.getSingleton());
+	}
+
 	public 
 	MySharesView(
 		AzureusCore	_azureus_core )

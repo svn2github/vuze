@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 /**
@@ -66,6 +67,11 @@ public class StatsView extends AbstractIView {
   IView[] viewVivaldis;
   UpdateThread updateThread;
   
+  public StatsView() {
+    this.core = AzureusCoreFactory.getSingleton();
+    this.manager = core.getGlobalManager();
+   }
+
   public StatsView(GlobalManager manager,AzureusCore core) {
    this.manager = manager;
    this.core = core;

@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -109,6 +110,10 @@ public class MyTrackerView
 	private Menu			menuCategory;
 
 	private TableViewSWT tv;
+
+	public MyTrackerView() {
+		this(AzureusCoreFactory.getSingleton());
+	}
 
 	public MyTrackerView(AzureusCore _azureus_core) {
 		tv = new TableViewSWTImpl(TableManager.TABLE_MYTRACKER, "MyTrackerView",

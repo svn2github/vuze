@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -49,6 +48,9 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 
 /**
+ * This class creates an IView that triggers UISWTViewEventListener 
+ * appropriately
+ * 
  * @author TuxPaper
  *
  */

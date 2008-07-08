@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.utils;
 
 import java.util.*;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 
