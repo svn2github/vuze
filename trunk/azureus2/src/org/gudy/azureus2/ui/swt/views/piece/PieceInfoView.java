@@ -99,8 +99,6 @@ public class PieceInfoView
 
 	Image img = null;
 
-	private Comparator compFindPEPiece;
-
 	private DownloadManager dlm;
 
 	/**
@@ -114,16 +112,6 @@ public class PieceInfoView
 			Colors.red,
 			Colors.fadedRed,
 			Colors.black
-		};
-
-		compFindPEPiece = new Comparator() {
-			public int compare(Object arg0, Object arg1) {
-				int arg0no = (arg0 instanceof PEPiece)
-						? ((PEPiece) arg0).getPieceNumber() : ((Long) arg0).intValue();
-				int arg1no = (arg1 instanceof PEPiece)
-						? ((PEPiece) arg1).getPieceNumber() : ((Long) arg1).intValue();
-				return arg1no - arg0no;
-			}
 		};
 	}
 
