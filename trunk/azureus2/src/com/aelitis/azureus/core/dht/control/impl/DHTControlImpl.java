@@ -1257,6 +1257,8 @@ DHTControlImpl
 			final String	this_description = 
 				div?("Diversification of [" + description + "]" ):description;						
 
+			boolean	is_stats_query = (flags & DHT.FLAG_STATS ) != 0;
+			
 			lookup( external_lookup_pool,
 					high_priority,
 					encoded_key, 
@@ -1264,7 +1266,7 @@ DHTControlImpl
 					flags,
 					true, 
 					timeout,
-					search_concurrency,
+					is_stats_query?search_concurrency*2:search_concurrency,
 					max_values,
 					router.getK(),
 					new lookupResultHandler( get_listener )
@@ -1660,7 +1662,9 @@ DHTControlImpl
 							{
 								contacts_to_query_mon.enter();
 
-								if (values_found >= max_values || value_replies >= 2)
+									// for stats queries the values returned are unique to target so don't assume 2 replies sufficient
+									
+								if (values_found >= max_values || (( flags & DHT.FLAG_STATS ) == 0 &&  value_replies >= 2 ))
 								{
 									// all hits should have the same values anyway...
 									terminate = true;
@@ -1818,10 +1822,20 @@ DHTControlImpl
 										DHTLog.log("findValueReply: " + DHTLog.getString(values) + ",mtc=" + more_to_come + ", dt=" + diversification_type);
 										try
 										{
-											if (!key_blocked && diversification_type != DHT.DT_NONE)
-												// diversification instruction									
-												handler.diversify(contact, diversification_type);
-
+											if (!key_blocked && diversification_type != DHT.DT_NONE){
+												
+													// diversification instruction
+												
+												if (( flags & DHT.FLAG_STATS ) == 0 ){
+												
+														// ignore for stats queries as we're after the 
+														// target key's stats, not the diversification
+														// thereof
+													
+													handler.diversify(contact, diversification_type);
+												}
+											}
+											
 											value_reply_received = true;
 											router.contactAlive(contact.getID(), new DHTControlContactImpl(contact));
 											int new_values = 0;
