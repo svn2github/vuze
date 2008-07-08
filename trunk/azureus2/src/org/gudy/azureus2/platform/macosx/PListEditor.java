@@ -93,6 +93,31 @@ PListEditor
 		setValue(find, match, value);
 	}
 	
+	public void
+	setArrayValues(
+		String key,
+		String valueType,
+		String[] values) 
+	
+		throws IOException
+	{
+		StringBuffer value = new StringBuffer();
+		StringBuffer find = new StringBuffer();
+		find.append("(?s).*?<key>" + key + "</key>\\s*" + "<array>");
+		for(int i = 0 ; i < values.length ; i++) {
+			find.append("\\s*<" + valueType + ">" + values[i] + "</" + valueType + ">");
+			value.append("\n\t\t\t\t<string>");
+			value.append(values[i]);
+			value.append("</string>");
+		}
+		find.append("\\s*</array>");
+		value.append("\n\t\t\t");
+		
+		String match = "(?s)(<key>" + key + "</key>\\s*<array>)(.*?)(</array>)";
+		
+		setValue(find.toString(),match,value.toString());
+	}
+	
 	private boolean 
 	isValuePresent(
 		String match )
@@ -105,6 +130,7 @@ PListEditor
 		return fileContent.matches(match);
 	}
 	
+
 	/**
 	 * 
 	 * @param find the regex expression to find if the value is already present
@@ -247,7 +273,7 @@ PListEditor
 			editor.setSimpleStringValue("CFBundleName", "Vuze");
 			editor.setSimpleStringValue("CFBundleTypeName", "Vuze Download");
 			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
-			
+			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] {"magnet","dht"});
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
