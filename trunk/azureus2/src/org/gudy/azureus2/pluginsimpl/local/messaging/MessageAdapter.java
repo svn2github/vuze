@@ -27,12 +27,6 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.*;
 
-import com.aelitis.azureus.core.peermanager.messaging.advanced.ADVMessage;
-
-
-
-
-
 /**
  *
  */
@@ -117,7 +111,7 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
   
   //core Message implementation
   
-  public String getFeatureID() {  return ADVMessage.PLUGIN_MESSAGE_FEATURE_ID;  }
+  public String getFeatureID() {  return "AZPLUGMSG";  }
   
   public int getFeatureSubID() {  return -1;  }  
   
