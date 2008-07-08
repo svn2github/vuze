@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
@@ -97,6 +98,8 @@ SSDPCore
 	private List			listeners	= new ArrayList();
 
 	private UTTimer			timer;
+	private List			timer_queue = new ArrayList();
+	
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
 
@@ -451,7 +454,46 @@ SSDPCore
 									perform(
 										UTTimerEvent		event )
 									{
-										task.run();
+											// only actually ever run of these at a time as they
+											// have been seen to back up and flood the timer pool
+										
+										boolean	run_now;
+										
+										synchronized( timer_queue ){
+											
+											timer_queue.add( task );
+											
+											run_now = timer_queue.size() == 1;
+										}
+										
+										if ( run_now ){
+											
+											while( true ){
+										
+												Runnable t = null;
+												
+												synchronized( timer_queue ){
+													
+													if ( timer_queue.size() > 0 ){
+														
+														t = (Runnable)timer_queue.remove(0);
+													}
+												}
+												
+												if ( t == null ){
+													
+													break;
+												}
+												
+												try{													
+													t.run();
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+										}
 									}
 								});
 					}
