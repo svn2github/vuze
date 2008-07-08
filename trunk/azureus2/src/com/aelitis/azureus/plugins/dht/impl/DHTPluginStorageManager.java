@@ -615,6 +615,13 @@ DHTPluginStorageManager
 				{
 					return( div );
 				}
+				
+				public String
+				getString()
+				{
+					return( "entries=" + getEntryCount() + ",size=" + getSize() + 
+								",rpm=" + getReadsPerMinute() + ",div=" + getDiversification());
+				}
 			});
 	}
 	
@@ -1838,23 +1845,37 @@ DHTPluginStorageManager
 			
 			return( keys );
 		}
-	
-		protected HashWrapper
-		diversifyKey(
-			HashWrapper		key_in,
-			int				offset )
-		{
-			byte[]	old_bytes	= key_in.getBytes();
-			
-			byte[]	bytes = new byte[old_bytes.length+1];
-			
-			System.arraycopy( old_bytes, 0, bytes, 0, old_bytes.length );
-			
-			bytes[old_bytes.length] = (byte)offset;
-			
-			return( new HashWrapper( new SHA1Simple().calculateHash( bytes )));
-		}
 	}
+	
+	public static HashWrapper
+	diversifyKey(
+		HashWrapper		key_in,
+		int				offset )
+	{	
+		return( new HashWrapper( diversifyKey( key_in.getBytes(), offset )));
+	}
+	
+	public static byte[]
+	diversifyKey(
+		byte[]			key_in,
+		int				offset )
+	{
+		return(new SHA1Simple().calculateHash( diversifyKeyLocal( key_in, offset )));
+	}
+	
+	public static byte[]
+   	diversifyKeyLocal(
+   		byte[]			key_in,
+   		int				offset )
+   	{
+   		byte[]	key_out = new byte[key_in.length+1];
+   		
+   		System.arraycopy( key_in, 0, key_out, 0, key_in.length );
+   		
+   		key_out[key_in.length] = (byte)offset;
+   		
+   		return( key_out );
+   	}
 	
 	protected static class
 	storageKey
