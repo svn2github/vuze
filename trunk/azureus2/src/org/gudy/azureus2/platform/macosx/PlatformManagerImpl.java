@@ -174,7 +174,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
 			editor.setSimpleStringValue("CFBundleShortVersionString",Constants.AZUREUS_VERSION);
 			editor.setSimpleStringValue("CFBundleVersion",Constants.AZUREUS_VERSION);
-    		
+			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] {"magnet","dht"});
+			
     	}catch( Throwable e ){
     		
     		Debug.out( "Failed to update plist", e );
