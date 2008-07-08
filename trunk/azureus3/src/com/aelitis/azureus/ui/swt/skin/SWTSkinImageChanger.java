@@ -39,13 +39,15 @@ public class SWTSkinImageChanger
 
 	public void handleEvent(Event event) {
 		Control control = (Control) event.widget;
-		
+
 		if (control == null) {
 			return;
 		}
 
 		try {
-			if (event.type == SWT.MouseExit && lastControl != null) {
+			boolean isExit = event.type == SWT.MouseExit
+					|| event.type == SWT.Deactivate;
+			if (isExit && lastControl != null) {
 				if (control.getParent() == lastControl) {
 					return;
 				}
@@ -53,8 +55,7 @@ public class SWTSkinImageChanger
 
 			SWTSkinObject skinObject = (SWTSkinObject) control.getData("SkinObject");
 
-			if (event.type == SWT.MouseExit
-					&& (skinObject instanceof SWTSkinObjectContainer)) {
+			if (isExit && (skinObject instanceof SWTSkinObjectContainer)) {
 				// check if exiting and going into child
 				SWTSkinObjectContainer soContainer = (SWTSkinObjectContainer) skinObject;
 				if (soContainer.getPropogation()) {
@@ -63,14 +64,15 @@ public class SWTSkinImageChanger
 					Point relPt = composite.toControl(pt);
 					Rectangle bounds = composite.getBounds();
 					if (relPt.x >= 0 && relPt.y >= 0 && relPt.x < bounds.width
-							&& relPt.y < bounds.height) {
+							&& relPt.y < bounds.height
+							&& composite.getDisplay().getActiveShell() != null) {
 						//System.out.println("skip " + skinObject + " because going into child");
 						return;
 					}
 				}
 			}
 
-			if (event.type == SWT.MouseExit) {
+			if (isExit && control.getParent() != null) {
 				// check if exiting and going into parent
 				Composite parent = control.getParent();
 				SWTSkinObject soParent = (SWTSkinObject) parent.getData("SkinObject");
@@ -81,7 +83,8 @@ public class SWTSkinImageChanger
 						Point relPt = container.getComposite().toControl(pt);
 						Rectangle bounds = parent.getBounds();
 						if (relPt.x >= 0 && relPt.y >= 0 && relPt.x < bounds.width
-								&& relPt.y < bounds.height) {
+								&& relPt.y < bounds.height
+								&& parent.getDisplay().getActiveShell() != null) {
 							//System.out.println("skip " + skinObject + " because going into parent");
 							return;
 						}
