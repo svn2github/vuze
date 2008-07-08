@@ -770,7 +770,7 @@ public class AvatarWidget
 						canvas.redraw();
 						lastActiveState = true;
 					}
-				}
+				} else 
 				if (chatAreaBounds != null && chatAreaBounds.contains(e.x, e.y)) {
 					canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				} else {
