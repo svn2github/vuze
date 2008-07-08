@@ -25,24 +25,35 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesListener;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.ViewIndicator.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
+import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
@@ -52,6 +63,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 public class SideBar
 	extends SkinView
+	implements UIUpdatable, ViewIndicatorListener
 {
 	private SWTSkin skin;
 
@@ -65,6 +77,8 @@ public class SideBar
 
 	private static Map mapIViewToSkinObject = new HashMap();
 
+	private static Map mapViewIndicatorToTreeItem = new HashMap();
+	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
@@ -73,6 +87,10 @@ public class SideBar
 		soSideBarList = skin.getSkinObject("sidebar-list");
 
 		setupList();
+
+		UIUpdaterFactory.getInstance().addUpdater(this);
+		
+		ViewIndicatorManager.addListener(this);
 
 		return null;
 	}
@@ -115,8 +133,9 @@ public class SideBar
 
 						event.gc.setClipping((Rectangle) null);
 
-						if (tree.getSelectionCount() == 1
-								&& tree.getSelection()[0].equals(item)) {
+						boolean selected = tree.getSelectionCount() == 1
+						&& tree.getSelection()[0].equals(item); 
+						if (selected) {
 							event.gc.setForeground(colorFocus);
 							event.gc.drawRectangle(0, event.y, treeBounds.width - 1,
 									event.height - 1);
@@ -146,6 +165,23 @@ public class SideBar
 							}
 						}
 
+						ViewIndicator viewIndicator = (ViewIndicator) item.getData("ViewIndicator");
+						if (viewIndicator != null) {
+							String textIndicator = viewIndicator.getTextIndicator();
+							if (textIndicator != null) {
+								Point textSize = event.gc.textExtent(textIndicator);
+								Rectangle itemBounds = tree.getClientArea();
+								int x = itemBounds.width - textSize.x - 10;
+								int y = event.y + 6;
+								event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
+								event.gc.setBackground(Colors.faded[Colors.BLUES_DARKEST]);
+								event.gc.setAntialias(SWT.ON);
+								event.gc.fillRoundRectangle(x - 5, y - 2, textSize.x + 10,
+										textSize.y + 4, 10, textSize.y + 4); 
+								event.gc.drawText(textIndicator, x, y);
+							}
+						}
+
 						break;
 					}
 					case SWT.EraseItem: {
@@ -170,55 +206,92 @@ public class SideBar
 			}
 		});
 
+		createTreeItems();
+
+		parent.getShell().layout(true, true);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void createTreeItems() {
 		TreeItem treeItem;
 
-		createSkinned_UISWTViewEventListener(skin, tree, "Dashboard_SB",
-				"main.area.events", "Dashboard");
+		final ViewIndicator viewIndicatorActivityView = new ViewIndicator() {
+			public String getTextIndicator() {
+				return "" + VuzeActivitiesManager.getNumEntries();
+			}
 
-		TreeItem itemLibrary = createSkinned_UISWTViewEventListener(skin, tree,
-				"Library_SB", "library", "Library");
-
-		treeItem = new TreeItem(itemLibrary, SWT.NONE);
-		treeItem.setText("Seeding");
-		treeItem.setData("IViewClass", MyTorrentsView.class);
-		treeItem.setData("IViewClassArgs", new Class[] {
-			AzureusCore.class,
-			boolean.class,
-			TableColumnCore[].class
+			public String getImageIDIndicator() {
+				return null;
+			}
+		};
+		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
+			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+			}
+		
+			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
+				ViewIndicatorManager.refreshViewIndicator(viewIndicatorActivityView);
+			}
+		
+			public void vuzeNewsEntriesAdded(VuzeActivitiesEntry[] entries) {
+				ViewIndicatorManager.refreshViewIndicator(viewIndicatorActivityView);
+			}
 		});
-		treeItem.setData(
-				"IViewClassVals",
+
+		final TreeItem itemActivity = createSkinned_UISWTViewEventListener(skin, tree, "Activity_SB",
+				"main.area.events", "Activity", viewIndicatorActivityView);
+
+		
+		TreeItem itemLibrary = createSkinned_UISWTViewEventListener(skin, tree,
+				"Library_SB", "library", "Library", null);
+
+		createTreeItem(
+				itemLibrary,
+				"Seeding",
+				MyTorrentsView.class,
+				new Class[] {
+					AzureusCore.class,
+					boolean.class,
+					TableColumnCore[].class
+				},
 				new Object[] {
 					AzureusCoreFactory.getSingleton(),
 					new Boolean(true),
 					TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE)
 				});
 
-		treeItem = new TreeItem(itemLibrary, SWT.NONE);
-		treeItem.setText("Downloading");
-		treeItem.setData("IViewClass", MyTorrentsView.class);
-		treeItem.setData("IViewClassArgs", new Class[] {
-			AzureusCore.class,
-			boolean.class,
-			TableColumnCore[].class
-		});
-		treeItem.setData("IViewClassVals", new Object[] {
-			AzureusCoreFactory.getSingleton(),
-			new Boolean(false),
-			TableColumnCreator.createIncompleteDM("AA")
-		});
+		createTreeItem(itemLibrary, "Downloading", MyTorrentsView.class,
+				new Class[] {
+					AzureusCore.class,
+					boolean.class,
+					TableColumnCore[].class
+				}, new Object[] {
+					AzureusCoreFactory.getSingleton(),
+					new Boolean(true),
+					TableColumnCreator.createIncompleteDM("AA")
+				});
 
 		createSkinned_UISWTViewEventListener(skin, tree, "Browse_SB",
-				"main.area.browsetab", "On Vuze");
+				"main.area.browsetab", "On Vuze", null);
 
 		createSkinned_UISWTViewEventListener(skin, tree, "Publish_SB",
-				"main.area.publishtab", "Publish");
+				"main.area.publishtab", "Publish", null);
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
-		treeItem = new TreeItem(tree, SWT.NONE);
-		treeItem.setText("All Peers");
-		treeItem.setData("IViewClass", PeerSuperView.class);
+		TreeItem itemTools = new TreeItem(tree, SWT.NONE);
+		itemTools.setText("Under The Hood");
+
+		createTreeItem(itemTools, "All Peers", PeerSuperView.class, null, null);
+		createTreeItem(itemTools, "Stats", StatsView.class, null, null);
+		createTreeItem(itemTools, "My Tracker", MyTrackerView.class, null, null);
+		createTreeItem(itemTools, "My Clasic-Shares", MySharesView.class, null,
+				null);
+		createTreeItem(itemTools, "Logger", LoggerView.class, null, null);
+		createTreeItem(itemTools, "Config", ConfigView.class, null, null);
 
 		TreeItem itemPlugins = new TreeItem(tree, SWT.NONE);
 		itemPlugins.setText("Plugins");
@@ -227,12 +300,42 @@ public class SideBar
 			IViewInfo viewInfo = pluginViewsInfo[i];
 			treeItem = new TreeItem(itemPlugins, SWT.NONE);
 			treeItem.setText(viewInfo.name);
-			//treeItem.setData("IView", viewInfo.view);
 			treeItem.setData("UISWTViewEventListener", viewInfo.event_listener);
 			treeItem.setData("Plugin.viewID", viewInfo.viewID);
 		}
+	}
 
-		parent.getShell().layout(true, true);
+	/**
+	 * @param title
+	 * @param iviewClass
+	 * @param iviewClassArgs
+	 * @param iviewClassVals
+	 * @return 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private TreeItem createTreeItem(TreeItem parent, String title,
+			Class iviewClass, Class[] iviewClassArgs, Object[] iviewClassVals) {
+		TreeItem treeItem = new TreeItem(parent, SWT.NONE);
+		return createTreeItem2(treeItem, title, iviewClass, iviewClassArgs,
+				iviewClassVals);
+	}
+
+	private TreeItem createTreeItem(Tree parent, String title, Class iviewClass,
+			Class[] iviewClassArgs, Object[] iviewClassVals) {
+		TreeItem treeItem = new TreeItem(parent, SWT.NONE);
+		return createTreeItem2(treeItem, title, iviewClass, iviewClassArgs,
+				iviewClassVals);
+	}
+
+	private TreeItem createTreeItem2(TreeItem treeItem, String title,
+			Class iviewClass, Class[] iviewClassArgs, Object[] iviewClassVals) {
+		treeItem.setText(title);
+		treeItem.setData("IViewClass", iviewClass);
+		treeItem.setData("IViewClassArgs", iviewClassArgs);
+		treeItem.setData("IViewClassVals", iviewClassVals);
+
+		return treeItem;
 	}
 
 	/**
@@ -261,7 +364,7 @@ public class SideBar
 				UISWTViewImpl view = null;
 				try {
 					String sViewID = (String) item.getData("Plugin.viewID");
-					view = new UISWTViewImpl("MOO", sViewID, l);
+					view = new UISWTViewImpl("SideBar.Plugins", sViewID, l);
 					Composite parent = (Composite) soSideBarContents.getControl();
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
@@ -350,11 +453,21 @@ public class SideBar
 			viewComposite.setForeground(parent.getDisplay().getSystemColor(
 					SWT.COLOR_WIDGET_FOREGROUND));
 			viewComposite.setLayoutData(Utils.getFilledFormData());
-			viewComposite.setLayout(new GridLayout());
+			GridLayout gridLayout = new GridLayout();
+			gridLayout.horizontalSpacing = 0;
+			gridLayout.verticalSpacing = 0;
+			viewComposite.setLayout(gridLayout);
 
 			mapIViewToSkinObject.put(iview, soContents);
 
 			iview.initialize(viewComposite);
+
+			Composite iviewComposite = iview.getComposite();
+			if (iviewComposite.getLayoutData() == null) {
+				GridData gridData = new GridData(GridData.FILL_BOTH);
+				iviewComposite.setLayoutData(gridData);
+			}
+
 			parent.layout(true, true);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -368,7 +481,9 @@ public class SideBar
 
 	public static TreeItem createSkinned_UISWTViewEventListener(
 			final SWTSkin skin, Tree tree, final String newID, final String configID,
-			String title) {
+			String title, ViewIndicator viewIndicator) {
+		TreeItem treeItem = null;
+		
 		UISWTViewEventListener l = new UISWTViewEventListenerFormLayout() {
 			private SWTSkinObject skinObject;
 
@@ -389,8 +504,8 @@ public class SideBar
 
 							skinObject = skin.createSkinObject(newID, configID, soParent);
 							skinObject.setVisible(true);
-							skin.layout();
 							skinObject.getControl().setLayoutData(Utils.getFilledFormData());
+							
 						} finally {
 							shell.setCursor(cursor);
 						}
@@ -401,17 +516,57 @@ public class SideBar
 			}
 		};
 		if (tree != null) {
-			TreeItem treeItem = new TreeItem(tree, SWT.NONE);
+			treeItem = new TreeItem(tree, SWT.NONE);
 			treeItem.setText(title);
 			treeItem.setData("UISWTViewEventListener", l);
 			treeItem.setData("Plugin.viewID", newID);
-			return treeItem;
+			treeItem.setData("ViewIndicator", viewIndicator);
+			
+			if (viewIndicator != null) {
+				mapViewIndicatorToTreeItem.put(viewIndicator, treeItem);
+			}
 		}
-		return null;
+		return treeItem;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		if (currentIView == null) {
+			return "Sidebar";
+		}
+		if (currentIView instanceof UIPluginView) {
+			UIPluginView uiPluginView = (UIPluginView) currentIView;
+			return uiPluginView.getViewID();
+		}
+
+		return currentIView.getFullTitle();
+	}
+
+	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
+	public void updateUI() {
+		if (currentIView == null) {
+			return;
+		}
+		currentIView.refresh();
 	}
 
 	public static interface UISWTViewEventListenerFormLayout
 		extends UISWTViewEventListener
 	{
+	}
+
+	// @see com.aelitis.azureus.ui.swt.ViewInidicator.ViewIndicatorListener#viewIndicatorRefresh(com.aelitis.azureus.ui.swt.ViewInidicator.ViewIndicator)
+	public void viewIndicatorRefresh(final ViewIndicator viewIndicator) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				TreeItem treeItem = (TreeItem) mapViewIndicatorToTreeItem.get(viewIndicator);
+				if (treeItem == null) {
+					return;
+				}
+				Rectangle bounds = treeItem.getBounds();
+				Rectangle treeBounds = tree.getBounds();
+				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+			}
+		});
 	}
 }
