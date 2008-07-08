@@ -165,6 +165,7 @@ AZInstanceManagerImpl
 	private AZMyInstanceImpl		my_instance;
 	private Map						other_instances	= new HashMap();
 	
+	private volatile boolean		initialised;
 	private volatile Map			tcp_lan_to_ext	= new HashMap();
 	private volatile Map			udp_lan_to_ext	= new HashMap();
 	private volatile Map			udp2_lan_to_ext	= new HashMap();
@@ -201,6 +202,8 @@ AZInstanceManagerImpl
 	initialize()
 	{		
 		try{
+			initialised = true;
+			
 			mc_group = 
 				MCGroupFactory.getSingleton(
 					this,
@@ -1061,22 +1064,29 @@ AZInstanceManagerImpl
 		
 		if ( force_send_alive || new_peer ){
 			
-				// take this off the current thread as there are potential deadlock issues
-				// regarding this during initialisation as sending the event attempts to
-				// get the external address, this may hit DHT and the current thread
-				// maybe initialising the DHT...
+				// if not yet initialised then we'll send out our details in a mo anyway.
+				// plus we need to wait for init to occur to ensure dht plugin initialised
+				// before trying to get external address
 			
-			new DelayedEvent(
-					"AZInstanceManagerImpl:delaySendAlive", 
-					0,
-					new AERunnable()
-					{
-						public void 
-						runSupport()
+			if ( initialised ){
+				
+					// take this off the current thread as there are potential deadlock issues
+					// regarding this during initialisation as sending the event attempts to
+					// get the external address, this may hit DHT and the current thread
+					// maybe initialising the DHT...
+				
+				new DelayedEvent(
+						"AZInstanceManagerImpl:delaySendAlive", 
+						0,
+						new AERunnable()
 						{
-							sendAlive( sad );
-						}
-					});
+							public void 
+							runSupport()
+							{
+								sendAlive( sad );
+							}
+						});
+			}
 		}
 		
 		return( new_peer );
