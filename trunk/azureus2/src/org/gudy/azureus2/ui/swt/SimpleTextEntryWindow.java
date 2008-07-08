@@ -42,12 +42,6 @@ import org.eclipse.swt.widgets.MessageBox;
  */
 public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	
-	/**
-	 * This is here just to make it more straight-forward for code that wants
-	 * to add a validator, without having to import a plugin API interface.
-	 */
-	public abstract static class Validator implements UIInputValidator {}
-	
 	private Display display;
 	
 	public SimpleTextEntryWindow(final Display display) {
