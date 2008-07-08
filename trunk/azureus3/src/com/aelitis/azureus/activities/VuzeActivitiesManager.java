@@ -750,6 +750,10 @@ public class VuzeActivitiesManager
 	public static VuzeActivitiesEntry[] getAllEntries() {
 		return (VuzeActivitiesEntry[]) allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
 	}
+	
+	public static int getNumEntries() {
+		return allEntries.size();
+	}
 
 	public static void log(String s) {
 		if (diag_logger != null) {
