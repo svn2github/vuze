@@ -462,6 +462,7 @@ public class ConfigurationDefaults {
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
     def.put( "network.max.simultaneous.connect.attempts", new Long( Constants.isWindows?8:24 ));
+    def.put( "network.tcp.max.connections.outstanding", new Long( 2048 ));
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "network.udp.mtu.size", new Long(1500) );
     def.put( "network.tcp.socket.SO_SNDBUF", ZERO );

@@ -95,7 +95,7 @@ public class TCPConnectionManager {
 				parameterChanged(
 					String name )
 				{
-					max_outbound_connections = COConfigurationManager.getIntParameter( "network.tcp.max.connections.outstanding", 2048 );
+					max_outbound_connections = COConfigurationManager.getIntParameter( "network.tcp.max.connections.outstanding" );
 				}
 			});
   }

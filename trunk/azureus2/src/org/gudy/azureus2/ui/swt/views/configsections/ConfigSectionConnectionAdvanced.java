@@ -120,6 +120,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		glayout.numColumns = 2;
 		gSocket.setLayout(glayout);
 
+			// max simultaneous
 		
 		Label lmaxout = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
@@ -132,7 +133,23 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.widthHint = 30;
 		max_connects.setLayoutData(gridData);
 
+			// // max pending
+		
+		Label lmaxpout = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lmaxpout, "ConfigView.section.connection.network.max.outstanding.connect.attempts");
+		gridData = new GridData();
+		lmaxpout.setLayoutData( gridData );
 
+		IntParameter max_pending_connects = new IntParameter(gSocket,
+				"network.tcp.max.connections.outstanding", 1, 65536 );    
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		max_pending_connects.setLayoutData(gridData);
+		
+		
+
+			// bind ip
+		
 		Label lbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lbind, "ConfigView.label.bindip" );
 		lbind.setLayoutData(new GridData());
