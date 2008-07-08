@@ -534,7 +534,7 @@ public class Utils
 		}
 	}
 
-	public static void alternateTableBackground(Table table) {
+    private static void alternateTableBackground(Table table) {
 		if (table == null || table.isDisposed())
 			return;
 
@@ -1188,18 +1188,18 @@ public class Utils
 		return ret;
 	}
 
-	public static int pixelsToPoint(double pixels, int dpi) {
+    private static int pixelsToPoint(double pixels, int dpi) {
 		int ret = (int) Math.round((pixels * 72.0) / dpi);
 		return ret;
 	}
 
-	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
+    private static boolean drawImage(GC gc, Image image, Rectangle dstRect,
 			Rectangle clipping, int hOffset, int vOffset, boolean clearArea) {
 		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
 				vOffset, clearArea);
 	}
 
-	public static boolean drawImage(GC gc, Image image, Rectangle dstRect,
+    private static boolean drawImage(GC gc, Image image, Rectangle dstRect,
 			Rectangle clipping, int hOffset, int vOffset) {
 		return drawImage(gc, image, new Point(0, 0), dstRect, clipping, hOffset,
 				vOffset, false);
@@ -1725,7 +1725,7 @@ public class Utils
 		return gridData;
 	}
 
-	public static Image createAlphaImage(Device device, int width, int height) {
+    private static Image createAlphaImage(Device device, int width, int height) {
 		return createAlphaImage(device, width, height, (byte) 0);
 	}
 
@@ -1742,7 +1742,7 @@ public class Utils
 		return image;
 	}
 
-	public static Image blitImage(Device device, Image srcImage,
+    private static Image blitImage(Device device, Image srcImage,
 			Rectangle srcArea, Image dstImage, Point dstPos) {
 		if (srcArea == null) {
 			srcArea = srcImage.getBounds();
@@ -2059,7 +2059,7 @@ public class Utils
 	 * @param y
 	 * @return the monitor if found; otherwise returns <code>null</code>
 	 */
-	public static Monitor getMonitor(int x, int y) {
+    private static Monitor getMonitor(int x, int y) {
 		return getMonitor(new Point(x, y));
 	}
 
