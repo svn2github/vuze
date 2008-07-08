@@ -464,7 +464,7 @@ public class SWTSkin
 		initialize(shell, startID, null);
 	}
 
-	public void initialize(Shell shell, String startID,
+	public void initialize(final Shell shell, String startID,
 			IUIIntializer uiInitializer) {
 
 		this.shell = shell;
@@ -480,6 +480,42 @@ public class SWTSkin
 				}
 				if (ourSkinProperties) {
 					//skinProperties.dispose();
+				}
+			}
+		});
+		
+
+		// When shell activates or deactivates, send a MouseEnter or MouseExit
+		// This fixes the problem where we are hovering over a skinobject with
+		// a "-over" state, we tab away, move the mouse, and tab back again.
+		// Without this code, the skinobject would still be in "-over" state
+		shell.addListener(SWT.Deactivate, new Listener() {
+			public void handleEvent(Event event) {
+				Control cursorControl = shell.getDisplay().getCursorControl();
+				if (cursorControl != null) {
+					while (cursorControl != null) {
+  					Event mouseExitEvent = new Event();
+  					mouseExitEvent.type = SWT.MouseExit;
+  					mouseExitEvent.widget = cursorControl;
+  					shell.getDisplay().post(mouseExitEvent);
+  					
+  					cursorControl = cursorControl.getParent();
+					}
+				}
+			}
+		});
+		shell.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				Control cursorControl = shell.getDisplay().getCursorControl();
+				if (cursorControl != null) {
+					while (cursorControl != null) {
+  					Event mouseExitEvent = new Event();
+  					mouseExitEvent.type = SWT.MouseEnter;
+  					mouseExitEvent.widget = cursorControl;
+  					shell.getDisplay().post(mouseExitEvent);
+  					
+  					cursorControl = cursorControl.getParent();
+					}
 				}
 			}
 		});
