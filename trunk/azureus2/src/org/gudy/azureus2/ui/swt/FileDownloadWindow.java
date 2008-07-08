@@ -47,6 +47,9 @@ import com.aelitis.azureus.core.AzureusCore;
 public class FileDownloadWindow
 	implements TorrentDownloaderCallBackInterface, IProgressReportConstants
 {
+	
+	AzureusCore _azureus_core;
+	
 	TorrentDownloader downloader;
 
 	TorrentDownloaderCallBackInterface listener;
