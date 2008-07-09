@@ -27,11 +27,9 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -48,9 +46,6 @@ CategoryItem
 	implements TableCellRefreshListener
 {
 		/** Default Constructor */
-	
-	protected static final TorrentAttribute	category_attribute = 
-		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
 	
 	protected static final AzureusCore	azureus_core = AzureusCoreFactory.getSingleton();
 	
