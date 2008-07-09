@@ -74,63 +74,75 @@ PluginInitializer
 		// plugin id
 		// plugin key for prefixing config data
 		// report if not present
+	// force re-enable if disabled by config
 	
   private String[][]	builtin_plugins = { 
    			{	 PluginManagerDefaults.PID_START_STOP_RULES, 
    					"com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", 
    					"azbpstartstoprules", 
    					"", 
-   					"true" },
+   					"true",
+   					"true"},
    			{	 PluginManagerDefaults.PID_REMOVE_RULES, 
    					"com.aelitis.azureus.plugins.removerules.DownloadRemoveRulesPlugin", 
    					"azbpremovalrules", 
    					"",
-					"true" },
+					"true",
+					"false"},
     		{	 PluginManagerDefaults.PID_SHARE_HOSTER, 
    					"com.aelitis.azureus.plugins.sharing.hoster.ShareHosterPlugin", 
    					"azbpsharehoster", 
    					"ShareHoster",
-					"true" },
+					"true",
+					"false"},
    			{	 PluginManagerDefaults.PID_PLUGIN_UPDATE_CHECKER, 
    					"org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", 
    					"azbppluginupdate", 
    					"PluginUpdate",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_UPNP, 
 				    "com.aelitis.azureus.plugins.upnp.UPnPPlugin", 
 				    "azbpupnp", 
 				    "UPnP",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_DHT, 
 					"com.aelitis.azureus.plugins.dht.DHTPlugin", 
 					"azbpdht", 
 					"DHT",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_DHT_TRACKER, 
 					"com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin", 
 					"azbpdhdtracker", 
 					"DHT Tracker",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_MAGNET, 
 					"com.aelitis.azureus.plugins.magnet.MagnetPlugin", 
 					"azbpmagnet", 
 					"Magnet URI Handler",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_CORE_UPDATE_CHECKER, 
    					"org.gudy.azureus2.update.CoreUpdateChecker", 
    					"azbpcoreupdater", 
    					"CoreUpdater",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_CORE_PATCH_CHECKER, 
    					"org.gudy.azureus2.update.CorePatchChecker", 
    					"azbpcorepatcher", 
    					"CorePatcher",
-					"true" },
+					"true",
+					"false"},
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
    					"org.gudy.azureus2.platform.PlatformManagerPluginDelegate", 
    					"azplatform2", 
    					"azplatform2",
-					"true" },
+					"true",
+					"false"},
 	   		//{	 PluginManagerDefaults.PID_JPC, 
 				//	"com.aelitis.azureus.plugins.jpc.JPCPlugin", 
 				//	"azjpc", 
@@ -140,31 +152,35 @@ PluginInitializer
 					"com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin", 
 					"azextseed", 
 					"azextseed",
-	   				"true" },
+	   				"true",
+	   				"false"},
 	   		{	 PluginManagerDefaults.PID_LOCAL_TRACKER, 
 	   				"com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin", 
 	   				"azlocaltracker", 
 	   				"azlocaltracker",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_NET_STATUS, 
 		   			"com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin", 
 		   			"aznetstat", 
 		   			"aznetstat",
-					"true" },
+					"true",
+					"false"},
 			{	 PluginManagerDefaults.PID_BUDDY, 
 					"com.aelitis.azureus.plugins.net.buddy.BuddyPlugin", 
 					"azbuddy", 
 					"azbuddy",
-					"true" },
+					"true",
+					"false"},
 			/* disable until we can get some tracker admins to work on this
 	   		{	 PluginManagerDefaults.PID_TRACKER_PEER_AUTH, 
 					"com.aelitis.azureus.plugins.tracker.peerauth.TrackerPeerAuthPlugin", 
 					"aztrackerpeerauth", 
 					"aztrackerpeerauth",
-					"true" },
+					"true",
+					"false" },
 			*/
-        };
- 
+        }; 
   
   	// these can be removed one day
   
@@ -248,7 +264,7 @@ PluginInitializer
 	  	}else{
 	  		
 	  		try{
-	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName());
+	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName(), false);
 	  			
 			}catch(PluginException e ){
 	  				
@@ -1191,7 +1207,7 @@ PluginInitializer
 									Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
 											+ builtin_plugins[idx][2] + "'" ));
 			
-								initializePluginFromClass(cla, id, key);
+								initializePluginFromClass(cla, id, key, "true".equals(builtin_plugins[idx][5]));
 			
 								if (Logger.isEnabled())
 								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -1199,7 +1215,7 @@ PluginInitializer
 							} catch (Throwable e) {
 								try {
 									// replace it with a "broken" plugin instance
-									initializePluginFromClass(FailedPlugin.class, id, key);
+									initializePluginFromClass(FailedPlugin.class, id, key, false);
 			
 								} catch (Throwable f) {
 								}
@@ -1244,7 +1260,7 @@ PluginInitializer
 								Class cla = (Class) entry;
 			
 								singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
-										.getName());
+										.getName(), false);
 			
 							} else {
 								Object[] x = (Object[]) entry;
@@ -1393,7 +1409,8 @@ PluginInitializer
   initializePluginFromClass(
   	Class 	plugin_class,
 	String	plugin_id,
-	String	plugin_config_key )
+	String	plugin_config_key,
+	boolean force_enabled)
   
   	throws PluginException
   {
@@ -1448,10 +1465,20 @@ PluginInitializer
 						plugin_id,
 						null );
 
-	      // Must use getPluginID() instead of pid, because they may differ
-	      boolean bEnabled = COConfigurationManager
-							.getBooleanParameter("PluginInfo."
-									+ plugin_interface.getPluginID() + ".enabled", true);
+	      // Must use getPluginID() instead of pid, because they may differ.
+  		String enabled_key = "PluginInfo." + plugin_interface.getPluginID() + ".enabled";
+	      boolean bEnabled = COConfigurationManager.getBooleanParameter(enabled_key, true);
+	      
+	      /**
+	       * For some plugins, override any config setting which disables the plugin.
+	       */
+	      if (force_enabled && !bEnabled) {
+	    	  COConfigurationManager.removeParameter(enabled_key);
+	    	  bEnabled = true;
+	    	  Logger.log(new LogAlert(false, LogAlert.AT_WARNING, MessageText.getString(
+	    	      "plugins.init.force_enabled", new String[] {plugin_id}
+	    	  )));
+	      }
 	      
 	      plugin_interface.setDisabled(!bEnabled);
   		
@@ -1610,7 +1637,7 @@ PluginInitializer
   		
   	}else{
   		
-  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key );
+  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key, false );
   	}
   }
  

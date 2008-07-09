@@ -196,21 +196,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		plugin_interface.getPluginProperties().setProperty("plugin.version", "1.0");
 		plugin_interface.getPluginProperties().setProperty("plugin.name", "Start/Stop Rules");
-		
-		// Check to see if the RunEverythingPlugin is setup to override and disable this
-		// one (it currently disables the plugin through PluginManagerDefaults). If not,
-		// but it is disabled through the config, then we need to do something...
-		if (PluginManager.getDefaults().isDefaultPluginEnabled(PluginManagerDefaults.PID_START_STOP_RULES)) {
-			String enabled_param = "PluginInfo." + plugin_interface.getPluginID() + ".enabled"; 
-			if (!plugin_interface.getPluginconfig().getUnsafeBooleanParameter(enabled_param, true)) {
-				plugin_interface.getLogger().getChannel("StartStopRulesInit").logAlert(LoggerChannel.LT_WARNING,
-					"The Start/Stop Rules plugin was disabled - it has been re-enabled to allow " + Constants.APP_NAME +
-					" work correctly."
-				);
-				plugin_interface.getPluginconfig().setUnsafeBooleanParameter(enabled_param, true);
-			}
-		}
-		
 	}
 	
 	public void initialize(PluginInterface _plugin_interface) {
@@ -238,20 +223,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		setupConfigModel(configModel);
 
 		pi.addListener(new PluginListener() {
-			public void initializationComplete() {
-				// CPU Intensive, delay until a little after all plugin initializations
-				// XXX Would be better if we could delay it until UI is done,
-				//     but there may be no UI..
-				new DelayedEvent("StartStop:initComp", 12000, new AERunnable() {
-					public void runSupport() {
-						download_manager.addListener(new StartStopDMListener());
-						SimpleTimer.addPeriodicEvent("StartStop:gross",
-								CHECK_FOR_GROSS_CHANGE_PERIOD, new ChangeCheckerTimerTask());
-						SimpleTimer.addPeriodicEvent("StartStop:check",
-								PROCESS_CHECK_PERIOD, new ChangeFlagCheckerTask());
-					}
-				});
-			}
+			public void initializationComplete() {}
 
 			public void closedownInitiated() {
 				closingDown = true;
@@ -264,6 +236,18 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			public void closedownComplete() { /* not implemented */
 			}
 		});
+
+		Runnable r = new Runnable() {
+			public void run() {
+				download_manager.addListener(new StartStopDMListener());
+				SimpleTimer.addPeriodicEvent("StartStop:gross",
+						CHECK_FOR_GROSS_CHANGE_PERIOD, new ChangeCheckerTimerTask());
+				SimpleTimer.addPeriodicEvent("StartStop:check",
+						PROCESS_CHECK_PERIOD, new ChangeFlagCheckerTask());
+			}
+		};
+		
+		pi.getUtilities().createDelayedTask(r).queue();
 
 		log = pi.getLogger().getChannel("StartStopRules");
 		log.log(LoggerChannel.LT_INFORMATION,
