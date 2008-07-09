@@ -207,4 +207,15 @@ public class InvitePage
 			});
 		}
 	}
+	
+	/**
+	 * Pre-select a friend or Friends by calling the preselect method in the browser
+	 * and passing on the specially formatted message
+	 * @param message
+	 */
+	public void preSelect(String message){
+		if(null != message && message.length()>0){
+			getMessageContext().executeInBrowser("preSelect(" + message + ")");
+		}
+	}
 }

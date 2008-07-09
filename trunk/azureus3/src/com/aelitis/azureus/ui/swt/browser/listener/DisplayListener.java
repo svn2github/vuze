@@ -25,6 +25,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.VuzeFriendUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 public class DisplayListener
@@ -50,6 +51,10 @@ public class DisplayListener
 	public static final String OP_REFRESH_TAB = "refresh-browser";
 
 	public static final String VZ_NON_ACTIVE = "vz-non-active";
+
+	public static final String OP_INVITE_FRIEND = "invite";
+
+	public static final String OP_INVITE_FRIEND_PARAM_MESSAGE = "message";
 
 	private Browser browser;
 
@@ -107,6 +112,11 @@ public class DisplayListener
 		} else if (OP_REFRESH_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
+		} else if (OP_INVITE_FRIEND.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			VuzeFriendUtils.getInstance().invite(
+					MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,
+							null));
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
 		}

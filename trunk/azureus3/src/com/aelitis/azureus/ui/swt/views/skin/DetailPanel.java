@@ -140,6 +140,7 @@ public class DetailPanel
 			public void controlResized(ControlEvent e) {
 				calculateLightBoxDimensions(lbShell);
 			}
+
 			public void controlMoved(ControlEvent e) {
 			}
 		});
@@ -199,7 +200,9 @@ public class DetailPanel
 		 * Create the Invite flow page
 		 */
 
-		addPage(new InvitePage(this));
+		InvitePage invitePage = new InvitePage(this);
+		VuzeFriendUtils.getInstance().setInvitePage(invitePage);
+		addPage(invitePage);
 	}
 
 	/**
