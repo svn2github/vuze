@@ -36,8 +36,6 @@ public class InvitePage
 
 	private ClientMessageContext context = null;
 
-	private RefreshListener refreshListener = null;
-
 	private AbstractBuddyPageListener buddyPageListener;
 
 	private ButtonBar buttonBar;
@@ -107,10 +105,8 @@ public class InvitePage
 					 * Setting inviteFromShare to false in the browser
 					 */
 					context.executeInBrowser("inviteFromShare(" + false + ")");
+					InvitePage.this.notifyRefreshListeners();
 
-					if (null != refreshListener) {
-						refreshListener.refreshCompleted();
-					}
 				}
 			});
 
@@ -171,8 +167,7 @@ public class InvitePage
 		return context;
 	}
 
-	public void refresh(RefreshListener refreshListener) {
-		this.refreshListener = refreshListener;
+	public void refresh() {
 		/*
 		 * Calling to init the browser if it's not been done already
 		 */
@@ -218,14 +213,26 @@ public class InvitePage
 	 * and passing on the specially formatted message
 	 * @param message
 	 */
-	public void inviteWithMessage(String message) {
+	public void inviteWithMessage(final String message) {
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.add_buddy_mode);
 		}
-		getDetailPanel().show(true, PAGE_ID);
+		addRefreshListener(new IDetailPage.RefreshListener() {
+			public boolean runOnlyOnce() {
+				return true;
+			}
 
-		if (null != message && message.length() > 0) {
-			getMessageContext().executeInBrowser("preSelect(" + message + ")");
-		}
+			public void refreshCompleted() {
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						getMessageContext().executeInBrowser(
+								"preSelect(\"" + message + "\")");
+					}
+				});
+
+			}
+		});
+
+		getDetailPanel().show(true, PAGE_ID);
 	}
 }

@@ -337,7 +337,8 @@ public class BlankDetailPage
 		return null;
 	}
 
-	public void refresh(RefreshListener refreshListener) {
+	public void refresh() {
+		//Does nothing
 	}
 
 	/**

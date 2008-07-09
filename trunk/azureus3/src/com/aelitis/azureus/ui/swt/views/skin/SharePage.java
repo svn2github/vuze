@@ -147,8 +147,6 @@ public class SharePage
 
 	private String referer;
 
-	private RefreshListener refreshListener;
-
 	private AbstractBuddyPageListener buddyPageListener;
 
 	private Font contentTitleFont = null;
@@ -703,9 +701,8 @@ public class SharePage
 					 */
 					context.executeInBrowser("inviteFromShare(" + true + ")");
 
-					if (null != refreshListener) {
-						refreshListener.refreshCompleted();
-					}
+					SharePage.this.notifyRefreshListeners();
+
 				}
 			});
 
@@ -872,9 +869,7 @@ public class SharePage
 		return shareItem;
 	}
 
-	public void refresh(RefreshListener refreshListener) {
-
-		this.refreshListener = refreshListener;
+	public void refresh() {
 		firstPanel.setEnabled(true);
 		/*
 		 * Init the browser if it was not done already

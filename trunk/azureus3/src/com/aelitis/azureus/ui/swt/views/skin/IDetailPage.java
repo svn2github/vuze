@@ -17,13 +17,21 @@ public interface IDetailPage
 
 	public ClientMessageContext getMessageContext();
 
-	public void refresh(RefreshListener refreshListener);
+	public void refresh();
 
 	public void setActivationListener(ActivationListener listener);
 
-	public interface RefreshListener
+	public void addRefreshListener(RefreshListener listener);
+
+	public void removeRefreshListener(RefreshListener listener);
+
+	public abstract class RefreshListener
 	{
-		public void refreshCompleted();
+		public boolean runOnlyOnce() {
+			return false;
+		}
+
+		public abstract void refreshCompleted();
 	}
 
 	public interface ActivationListener
