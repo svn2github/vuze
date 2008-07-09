@@ -100,7 +100,7 @@ PluginInitializer
    					"azbppluginupdate", 
    					"PluginUpdate",
 					"true",
-					"false"},
+					"true"},
 			{	 PluginManagerDefaults.PID_UPNP, 
 				    "com.aelitis.azureus.plugins.upnp.UPnPPlugin", 
 				    "azbpupnp", 
