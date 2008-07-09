@@ -26,6 +26,7 @@ import java.util.Iterator;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -69,7 +70,7 @@ VuzeCryptoManager
 		crypt_man.addPasswordHandler(
 			new CryptoManagerPasswordHandler()
 			{
-				private boolean	error_logged = false;
+				private boolean	error_logged = !Constants.isCVSVersion();
 				
 				public int
 				getHandlerType()
