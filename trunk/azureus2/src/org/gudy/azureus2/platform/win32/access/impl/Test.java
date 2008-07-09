@@ -115,7 +115,7 @@ Test
 			
 			//AEWin32AccessInterface.copyPermission( "C:\\temp\\fred", "C:\\temp\\bill" );
 			
-			
+			/*
 			AEWin32AccessImpl.getSingleton( false ).traceRoute(
 					InetAddress.getByName( "192.168.1.143" ),
 					InetAddress.getByName( "www.google.com"),
@@ -132,8 +132,15 @@ Test
 							return( true );
 						}
 					});
+			*/
 			
 			// AEWin32AccessInterface.ping( "www.google.com" );
+			
+			int res = AEWin32AccessImpl.getSingleton( false ).shellExecuteAndWait(
+				"c:\\temp\\3110\\Vuze_3.1.1.0_windows.exe",
+				"-VFORCE_LAUNCH=1" );
+			
+			System.out.println( "res=" + res );
 			
 		}catch( Throwable e ){
 			

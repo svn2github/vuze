@@ -230,7 +230,20 @@ AEWin32AccessInterface
 	
 		throws AEWin32AccessException;
 
-	public static native int shellExecute(String operation, String file,
-			String parameters, String directory, int sw_const)
-	throws AEWin32AccessExceptionImpl;
+	public static native int 
+	shellExecute(
+		String 		operation, 
+		String 		file,
+		String 		parameters, 
+		String 		directory, 
+		int 		sw_const )
+	
+		throws AEWin32AccessExceptionImpl;
+	
+	public static native int 
+	shellExecuteAndWait(
+		String 		file,
+		String 		parameters )
+	
+		throws AEWin32AccessExceptionImpl;
 }

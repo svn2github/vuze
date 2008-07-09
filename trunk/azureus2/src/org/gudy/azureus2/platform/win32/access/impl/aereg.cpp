@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.16"
+#define VERSION "1.17"
 
  
 HMODULE	application_module;
@@ -891,6 +891,70 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 };
 
 
+JNIEXPORT jint JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecAndWaitW(
+	JNIEnv*		env,
+	jclass		cla, 
+	jstring		_file,
+	jstring		_params )
+{
+	WCHAR		file[2048];
+	WCHAR		params[2048];
+
+	if ( !jstringToCharsW( env, _file, file, sizeof( file ))){
+
+		return(0);
+	}
+
+	if ( !jstringToCharsW( env, _params, params, sizeof( params ))){
+
+		return(0);
+	}
+
+    SHELLEXECUTEINFO shExecInfo;
+
+    shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+
+    shExecInfo.fMask		= SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_DDEWAIT;
+    shExecInfo.hwnd			= NULL;
+    shExecInfo.lpVerb		= L"runas";
+    shExecInfo.lpFile		= file;
+    shExecInfo.lpParameters = params;
+    shExecInfo.lpDirectory	= NULL;
+    shExecInfo.nShow		= SW_SHOWNORMAL;
+    shExecInfo.hInstApp		= NULL;
+
+    ShellExecuteExW(&shExecInfo);
+
+
+	int res = (int)shExecInfo.hInstApp;
+
+	if ( res <= 32 ){
+
+		throwException( env, "shellExec", "ShellExecW failed", res );
+
+		return( 0 );
+
+	}else{
+
+		HANDLE process = shExecInfo.hProcess;
+
+		WaitForSingleObject( process, INFINITE );
+
+		DWORD result;
+
+		if ( GetExitCodeProcess( process, &result ) == 0 ){
+
+			throwException( env, "shellExec", "GetExitCodeProcess failed", GetLastError());
+		}
+
+		CloseHandle( process );
+		
+		return((jint)result);
+	}
+};
+
+
 JNIEXPORT void JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinW(
 	JNIEnv *env, 
@@ -1563,6 +1627,68 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 	}
 };
 
+JNIEXPORT jint JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecAndWaitA(
+	JNIEnv*		env,
+	jclass		cla, 
+	jstring		_file,
+	jstring		_params )
+{
+	char		file[2048];
+	char		params[2048];
+
+	if ( !jstringToCharsA( env, _file, file, sizeof( file ))){
+
+		return(0);
+	}
+
+	if ( !jstringToCharsA( env, _params, params, sizeof( params ))){
+
+		return(0);
+	}
+
+    SHELLEXECUTEINFOA shExecInfo;
+
+    shExecInfo.cbSize = sizeof(SHELLEXECUTEINFOA);
+
+    shExecInfo.fMask		= SEE_MASK_NOCLOSEPROCESS | SEE_MASK_FLAG_DDEWAIT;
+    shExecInfo.hwnd			= NULL;
+    shExecInfo.lpVerb		= "runas";
+    shExecInfo.lpFile		= file;
+    shExecInfo.lpParameters = params;
+    shExecInfo.lpDirectory	= NULL;
+    shExecInfo.nShow		= SW_SHOWNORMAL;
+    shExecInfo.hInstApp		= NULL;
+
+    ShellExecuteExA(&shExecInfo);
+
+
+	int res = (int)shExecInfo.hInstApp;
+
+	if ( res <= 32 ){
+
+		throwException( env, "shellExec", "ShellExecA failed", res );
+
+		return( 0 );
+
+	}else{
+
+		HANDLE process = shExecInfo.hProcess;
+
+		WaitForSingleObject( process, INFINITE );
+
+		DWORD result;
+
+		if ( GetExitCodeProcess( process, &result ) == 0 ){
+
+			throwException( env, "shellExec", "GetExitCodeProcess failed", GetLastError());
+		}
+
+		CloseHandle( process );
+		
+		return((jint)result);
+	}
+};
 
 JNIEXPORT void JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinA(
@@ -1909,6 +2035,7 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_createP
 	}
 }
 
+
 JNIEXPORT void JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBin(
 	JNIEnv*		env,
@@ -1971,3 +2098,18 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellEx
 				env, cla, operation, file, parameters, directory, showCmd );
 	}
 }
+
+JNIEXPORT jint JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteAndWait(
+	JNIEnv*		env,
+	jclass		cla, 
+	jstring		_command_line, 
+	jstring		_params )
+{
+	if ( non_unicode ){
+		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecAndWaitA( env, cla, _command_line, _params ));
+	}else{
+		return( Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecAndWaitW( env, cla, _command_line, _params ));
+	}
+}
+

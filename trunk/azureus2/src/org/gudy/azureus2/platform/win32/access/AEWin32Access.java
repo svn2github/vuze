@@ -219,4 +219,11 @@ AEWin32Access
 		int SW_const)
 
 		throws AEWin32AccessException;
+	
+	public int
+	shellExecuteAndWait(
+		String		file,
+		String		params )
+
+		throws AEWin32AccessException;
 }

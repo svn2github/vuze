@@ -19,6 +19,14 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_QUERYENDSESSION 17L
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION 22L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_POWERBROADCAST
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_POWERBROADCAST 536L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMQUERYSUSPEND
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMQUERYSUSPEND 0L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMSUSPEND
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMSUSPEND 4L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_PBT_APMRESUMESUSPEND 7L
 /* Inaccessible static: enabled */
 /* Inaccessible static: enabled_set */
 /* Inaccessible static: cb */
@@ -141,6 +149,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
  */
 JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecute
   (JNIEnv *, jclass, jstring, jstring, jstring, jstring, jint);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    shellExecuteAndWait
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_shellExecuteAndWait
+  (JNIEnv *, jclass, jstring, jstring);
 
 #ifdef __cplusplus
 }

@@ -392,6 +392,16 @@ AEWin32AccessImpl
 				directory, SW_const);
 	}
 	
+	public int 
+	shellExecuteAndWait(
+		String file, 
+		String params )
+	
+		throws AEWin32AccessException 
+	{
+		return( AEWin32AccessInterface.shellExecuteAndWait(file, params ));
+	}
+	
 	public void
 	traceRoute(
 		InetAddress								source_address,
