@@ -534,7 +534,10 @@ public class Utils
 		}
 	}
 
-    private static void alternateTableBackground(Table table) {
+		// Yes, this is actually used by the RSSFeed plugin...
+		// so don't make private until this is fixed
+	
+    public static void alternateTableBackground(Table table) {
 		if (table == null || table.isDisposed())
 			return;
 
