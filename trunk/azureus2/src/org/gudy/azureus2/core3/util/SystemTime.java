@@ -64,6 +64,9 @@ public class SystemTime {
 		public long getTime();
 
 		public long getMonoTime();
+		
+		public long
+		getSteppedMonoTime();
 	}
 
 	protected static class SteppedProvider implements SystemTimeProvider {
@@ -76,6 +79,8 @@ public class SystemTime {
 		private volatile int		slice_access_count;
 		private volatile int		access_average_per_slice;
 		private volatile int		drift_adjusted_granularity;
+		
+		private volatile long		stepped_mono_time;
 
 		private SteppedProvider()
 		{
@@ -148,6 +153,8 @@ public class SystemTime {
 							tick_count = 0;
 						}
 						slice_access_count = 0;
+						
+						stepped_mono_time = stepped_time;
 						
 						// copy reference since we use unsynced COW semantics
 						List consumersRef = monotoneTimeConsumers;
@@ -222,8 +229,13 @@ public class SystemTime {
 				last_approximate_time = adjusted_time;
 			return adjusted_time;
 		}
-	}
+		
+		public long getSteppedMonoTime() {
 
+			return( stepped_mono_time );
+		}
+	}
+	
 	protected static class RawProvider implements SystemTimeProvider {
 		private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
 		private final Thread		updater;
@@ -308,6 +320,10 @@ public class SystemTime {
 		public long getMonoTime() {
 			return getTime() - adjustedTimeOffset;
 		}
+		
+		public long getSteppedMonoTime() {
+			return getMonoTime();
+		}
 	}
 
 	/**
@@ -337,6 +353,17 @@ public class SystemTime {
 		return instance.getMonoTime();
 	}
 
+		/**
+		 * Like getMonotonousTime but only updated at TIME_GRANULARITY_MILLIS intervals (not interopolated)
+		 * As such it is likely to be cheaper to obtain
+		 * @return
+		 */
+	
+	public static long getSteppedMonotonousTime() {
+		return instance.getSteppedMonoTime();
+	}
+
+	
 	public static long getOffsetTime(long offsetMS) {
 		return instance.getTime() + offsetMS;
 	}

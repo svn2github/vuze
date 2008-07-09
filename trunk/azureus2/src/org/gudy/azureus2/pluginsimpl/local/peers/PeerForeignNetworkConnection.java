@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.peers.Peer;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
@@ -129,6 +130,8 @@ PeerForeignNetworkConnection
 	tp
 		implements TransportBase
 	{	
+		private long	last_ready_for_read	= SystemTime.getSteppedMonotonousTime();
+		
 		public boolean 
 		isReadyForWrite( 
 			EventWaiter waiter )
@@ -136,11 +139,22 @@ PeerForeignNetworkConnection
 			return( false );
 		}
 		 
-		public boolean 
+		public long 
 		isReadyForRead( 
 			EventWaiter waiter )
 		{
-			return( peer.isTransferAvailable());
+			long	now = SystemTime.getSteppedMonotonousTime();
+			
+			if ( peer.isTransferAvailable()){
+				
+				last_ready_for_read = now;
+				
+				return( 0 );
+			}
+						
+			long	diff = now - last_ready_for_read + 1;	// make sure > 0
+						
+			return( diff );
 		}
 	
 		public boolean

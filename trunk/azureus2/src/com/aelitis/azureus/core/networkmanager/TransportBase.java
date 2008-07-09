@@ -37,10 +37,10 @@ TransportBase
 	  /**
 	   * Is the transport ready to read,
 	   * i.e. will a read request result in >0 bytes read.
-	   * @return true if the transport is read ready, false if not yet ready
+	   * @return 0 if the transport is read ready, ms since last ready or created if never ready
 	   */
 	
-	public boolean isReadyForRead( EventWaiter waiter );
+	public long isReadyForRead( EventWaiter waiter );
 	
 	public boolean isTCP();
 	

@@ -296,11 +296,11 @@ NetworkConnectionImpl
 			return( false );
 		}
 		  		
-		public boolean 
+		public long 
 		isReadyForRead( 
 			EventWaiter waiter )
 		{
-			return( false );
+			return( Long.MAX_VALUE );
 		}
 		
 		public boolean 

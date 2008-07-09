@@ -41,7 +41,7 @@ public class EntityHandler {
   private final HashMap upgraded_connections = new HashMap();
   private final AEMonitor lock = new AEMonitor( "EntityHandler" );
   private final MultiPeerUploader global_uploader;
-  private final MultiPeerDownloader global_downloader;
+  private final MultiPeerDownloader2 global_downloader;
   private boolean global_registered = false;
   private final int handler_type;
   
@@ -58,7 +58,7 @@ public class EntityHandler {
       global_downloader = null;
     }
     else {  //download type
-      global_downloader = new MultiPeerDownloader( rate_handler );
+      global_downloader = new MultiPeerDownloader2( rate_handler );
       global_uploader = null;
     }
   }

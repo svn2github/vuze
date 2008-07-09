@@ -47,7 +47,8 @@ public class SinglePeerDownloader implements RateControlledEntity {
   
 
   public boolean canProcess( EventWaiter waiter ) {
-    if( !connection.getTransportBase().isReadyForRead( waiter ) )  {
+
+    if( connection.getTransportBase().isReadyForRead( waiter ) != 0 )  {
       return false;  //underlying transport not ready
     }
     if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
@@ -57,7 +58,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
   }
     
   public boolean doProcessing( EventWaiter waiter ) {
-    if( !connection.getTransportBase().isReadyForRead(waiter) )  {
+    if( connection.getTransportBase().isReadyForRead(waiter) != 0 )  {
       return false;
     }
     
@@ -131,7 +132,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
   getReadyConnectionCount(
 	EventWaiter	waiter )
   {
-	  if ( connection.getTransportBase().isReadyForRead( waiter)){
+	  if ( connection.getTransportBase().isReadyForRead( waiter) == 0 ){
 		  
 		  return( 1 );
 	  }

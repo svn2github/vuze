@@ -30,6 +30,11 @@ EventWaiter
 	private boolean	sleeping;
 	private boolean	wakeup_outstanding;
 	
+	public
+	EventWaiter()
+	{
+	}
+	
 	public boolean
 	waitForEvent(
 		long	timeout )

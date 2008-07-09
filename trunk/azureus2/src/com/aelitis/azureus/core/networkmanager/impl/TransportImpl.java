@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
@@ -49,6 +50,8 @@ TransportImpl
 	private Throwable write_select_failure = null;
 	private Throwable read_select_failure = null;
 
+	private long	last_ready_for_read = SystemTime.getSteppedMonotonousTime();
+	
 	private boolean	trace;
 	
 	protected
@@ -160,10 +163,10 @@ TransportImpl
 	  /**
 	   * Is the transport ready to read,
 	   * i.e. will a read request result in >0 bytes read.
-	   * @return true if the transport is read ready, false if not yet ready
+	   * @return 0 if the transport is read ready, millis since last ready or -1 if never ready
 	   */
 	
-	public boolean 
+	public long 
 	isReadyForRead( 
 		EventWaiter waiter ) 
 	{
@@ -171,7 +174,22 @@ TransportImpl
 			read_waiter = waiter;
 		}
 	
-		return is_ready_for_read || data_already_read != null || ( filter != null && filter.hasBufferedRead());  
+		boolean ready = is_ready_for_read || 
+						data_already_read != null || 
+						( filter != null && filter.hasBufferedRead());
+		
+		long	now = SystemTime.getSteppedMonotonousTime();
+		
+		if ( ready ){
+			
+			last_ready_for_read = now;
+			
+			return( 0 );
+		}
+				
+		long	diff = now - last_ready_for_read + 1;	// make sure > 0
+					
+		return( diff );
 	}
 	    
 	protected boolean

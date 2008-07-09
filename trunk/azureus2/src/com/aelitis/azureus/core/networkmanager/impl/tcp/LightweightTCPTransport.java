@@ -88,7 +88,7 @@ public class LightweightTCPTransport implements Transport {
   
   public void setAlreadyRead( ByteBuffer bytes_already_read ){ 	throw new RuntimeException( "not implemented" );  }
   public boolean isReadyForWrite(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
-  public boolean isReadyForRead(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
+  public long isReadyForRead(EventWaiter waiter){  throw new RuntimeException( "not implemented" );  }  
   public void setReadyForRead(){ throw new RuntimeException( "not implemented" );  }  
   public void connectOutbound( ByteBuffer initial_data, ConnectListener listener, int priority ){ throw new RuntimeException( "not implemented" ); }  
   public void connectedInbound(){ throw new RuntimeException( "not implemented" ); }  
