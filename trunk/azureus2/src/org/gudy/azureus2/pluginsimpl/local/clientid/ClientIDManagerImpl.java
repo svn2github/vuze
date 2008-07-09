@@ -278,10 +278,6 @@ ClientIDManagerImpl
 		
 		if ( cl != null && cl != ClientIDManager.class.getClassLoader()){
 			
-				// if early in the day we can try to get the default one working here
-			
-			PluginManager.getDefaults().setDefaultPluginEnabled( PluginManagerDefaults.PID_CLIENT_ID, true );
-			
 			Debug.out( "Generator isn't trusted - " + gen );
 			
 			throw( new RuntimeException( "Generator isn't trusted" ));
