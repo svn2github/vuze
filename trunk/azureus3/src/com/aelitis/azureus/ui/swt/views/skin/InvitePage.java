@@ -40,12 +40,16 @@ public class InvitePage
 
 	private AbstractBuddyPageListener buddyPageListener;
 
+	private ButtonBar buttonBar;
+
 	public InvitePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
 
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
+		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
+
 		init();
 	}
 
@@ -207,14 +211,20 @@ public class InvitePage
 			});
 		}
 	}
-	
+
 	/**
-	 * Pre-select a friend or Friends by calling the preselect method in the browser
+	 * Opens the invite-friend page.
+	 * Pre-select a friend or Friends by calling the preSelect method in the browser
 	 * and passing on the specially formatted message
 	 * @param message
 	 */
-	public void preSelect(String message){
-		if(null != message && message.length()>0){
+	public void inviteWithMessage(String message) {
+		if (null != buttonBar) {
+			buttonBar.setActiveMode(BuddiesViewer.add_buddy_mode);
+		}
+		getDetailPanel().show(true, PAGE_ID);
+
+		if (null != message && message.length() > 0) {
 			getMessageContext().executeInBrowser("preSelect(" + message + ")");
 		}
 	}

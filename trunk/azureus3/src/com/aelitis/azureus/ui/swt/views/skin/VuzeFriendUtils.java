@@ -26,7 +26,7 @@ public class VuzeFriendUtils
 			SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 				public void loginComplete() {
 					try {
-						invitePage.preSelect(message);
+						invitePage.inviteWithMessage(message);
 					} catch (Exception e) {
 					}
 				}
