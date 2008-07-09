@@ -489,32 +489,21 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
 	public boolean showConfig(String string) {
 		try {
-			
+
 			/*
 			 * Show in pop-up in Vuze UI's
 			 */
-			if (false == COConfigurationManager.getStringParameter("ui", "az3").equals(
-					"az3")) {
-				UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-				if (uiFunctions == null) {
-					return false;
-				}
-				mainWindow.switchToAdvancedTab();
-				return uiFunctions.showConfig(string);
-			} else {
-
-				Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM
-						| SWT.APPLICATION_MODAL);
-				shell.setLayout(new GridLayout());
-				shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
-				Utils.setShellIcon(shell);
-				ConfigView cView = new ConfigView(AzureusCoreFactory.getSingleton());
-				cView.initialize(shell);
-				shell.setSize(800, 600);
-				Utils.centerWindowRelativeTo(shell, getMainShell());
-				shell.open();
-				return true;
-			}
+			Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM
+					| SWT.APPLICATION_MODAL);
+			shell.setLayout(new GridLayout());
+			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
+			Utils.setShellIcon(shell);
+			ConfigView cView = new ConfigView(AzureusCoreFactory.getSingleton());
+			cView.initialize(shell);
+			shell.setSize(800, 600);
+			Utils.centerWindowRelativeTo(shell, getMainShell());
+			shell.open();
+			return true;
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "showConfig", e));
