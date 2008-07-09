@@ -581,6 +581,7 @@ public class VuzeActivitiesView
 	// @see com.aelitis.azureus.util.VuzeNewsListener#vuzeNewsEntriesRemoved(com.aelitis.azureus.util.VuzeNewsEntry[])
 	public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
 		view.removeDataSources(entries);
+		view.processDataSourceQueue();
 	}
 
 	// @see com.aelitis.azureus.util.VuzeActivitiesListener#vuzeNewsEntryChanged(com.aelitis.azureus.util.VuzeActivitiesEntry)
