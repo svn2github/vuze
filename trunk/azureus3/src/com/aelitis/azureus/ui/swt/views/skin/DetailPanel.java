@@ -329,16 +329,21 @@ public class DetailPanel
 								}
 							} else {
 								/*
-								 * If the page is found call it's .refresh() method with a RefreshListener;
+								 * If the page is found call it's .refresh() method;
 								 * in the RefreshListener bring the page to the top and update the UI
 								 */
 								if (true == pages.containsKey(pageID)) {
 									currentPageID = pageID;
 									final IDetailPage page = ((IDetailPage) pages.get(pageID));
 									blankPage.showBusy(true, 0);
-									page.refresh(new IDetailPage.RefreshListener() {
+									
+									page.addRefreshListener(new IDetailPage.RefreshListener() {
+										public boolean runOnlyOnce() {
+											return true;
+										}
+
 										public void refreshCompleted() {
-											Utils.execSWTThread(new AERunnable() {
+											Utils.execSWTThreadLater(0, new AERunnable() {
 												public void runSupport() {
 													blankPage.showBusy(false);
 													//													Utils.relayout(detailPanel);
@@ -353,9 +358,10 @@ public class DetailPanel
 													}
 												}
 											});
-
 										}
 									});
+									
+									page.refresh();
 								}
 							}
 
