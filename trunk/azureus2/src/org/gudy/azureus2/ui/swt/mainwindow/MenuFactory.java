@@ -3,8 +3,21 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -13,7 +26,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -23,7 +35,14 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.BlockedIpsWindow;
+import org.gudy.azureus2.ui.swt.KeyBindings;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Tab;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
@@ -40,6 +59,7 @@ import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -550,7 +570,7 @@ public class MenuFactory
 			}
 		});
 	}
-	
+
 	public static MenuItem addAllPeersMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_ALL_PEERS, new Listener() {
 			public void handleEvent(Event e) {
@@ -698,25 +718,25 @@ public class MenuFactory
 	public static MenuItem addOptionsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_OPTIONS, new Listener() {
 			public void handleEvent(Event e) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.showConfig(null);
-				}
-
-				/* ==== Code for opening the Preferences in a pop-up dialog ===
-				Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM);
-				shell.setLayout(new GridLayout());
-				shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
-				Utils.setShellIcon(shell);
-				ConfigView cView = new ConfigView(getCore());
-				cView.initialize(shell);
-				shell.pack();
 				UIFunctionsSWT uiFunctions = getUIFunctionSWT();
 				if (uiFunctions != null) {
-					Utils.centerWindowRelativeTo(shell, uiFunctions.getMainShell());
+
+					if (false == COConfigurationManager.getStringParameter("ui", "az3").equals(
+							"az3")) {
+						uiFunctions.showConfig(null);
+					} else {
+						Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM
+								| SWT.APPLICATION_MODAL);
+						shell.setLayout(new GridLayout());
+						shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
+						Utils.setShellIcon(shell);
+						ConfigView cView = new ConfigView(getCore());
+						cView.initialize(shell);
+						shell.setSize(800, 600);
+						Utils.centerWindowRelativeTo(shell, uiFunctions.getMainShell());
+						shell.open();
+					}
 				}
-				shell.open();
-				*/
 			}
 		});
 	}
@@ -880,7 +900,7 @@ public class MenuFactory
 
 		Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
-				if ( !shell.isDisposed() && !item.isDisposed()) {
+				if (!shell.isDisposed() && !item.isDisposed()) {
 					if (false == Constants.isOSX) {
 						if (true == shell.getMaximized()) {
 							Messages.setLanguageText(
@@ -1335,22 +1355,54 @@ public class MenuFactory
 
 	private static TableRow wrapAsRow(final Object o, final String table_name) {
 		return new TableRow() {
-			  public Object getDataSource() {return o;}
-			  public String getTableID() {return table_name;}
-			  
-			  private void notSupported() {
-				  throw new RuntimeException("method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
-			  }
+			public Object getDataSource() {
+				return o;
+			}
 
-			  // Everything below is unsupported.
-			  public void setForeground(int red, int green, int blue) {notSupported();}
-			  public void setForeground(int[] rgb) {notSupported();}
-			  public void setForegroundToErrorColor() {notSupported();}
-			  public boolean isValid() {notSupported(); return false;}
-			  public TableCell getTableCell(String sColumnName) {notSupported(); return null;}
-			  public boolean isSelected()  {notSupported(); return false;}
-			  public void addMouseListener(TableRowMouseListener listener) {notSupported();}
-			  public void removeMouseListener(TableRowMouseListener listener) {notSupported();}
+			public String getTableID() {
+				return table_name;
+			}
+
+			private void notSupported() {
+				throw new RuntimeException(
+						"method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
+			}
+
+			// Everything below is unsupported.
+			public void setForeground(int red, int green, int blue) {
+				notSupported();
+			}
+
+			public void setForeground(int[] rgb) {
+				notSupported();
+			}
+
+			public void setForegroundToErrorColor() {
+				notSupported();
+			}
+
+			public boolean isValid() {
+				notSupported();
+				return false;
+			}
+
+			public TableCell getTableCell(String sColumnName) {
+				notSupported();
+				return null;
+			}
+
+			public boolean isSelected() {
+				notSupported();
+				return false;
+			}
+
+			public void addMouseListener(TableRowMouseListener listener) {
+				notSupported();
+			}
+
+			public void removeMouseListener(TableRowMouseListener listener) {
+				notSupported();
+			}
 		};
 	}
 
