@@ -652,7 +652,8 @@ DHTNATPuncherImpl
       										{}
       										
       										public void
-      										diversified()
+      										diversified(
+      											String		desc )
       										{
       										}
       										
@@ -701,7 +702,8 @@ DHTNATPuncherImpl
       										{}
       										
       										public void
-      										diversified()
+      										diversified(
+      											String		desc )
       										{
       										}
       										
@@ -753,7 +755,8 @@ DHTNATPuncherImpl
       									{}
       									
       									public void
-      									diversified()
+      									diversified(
+      										String		desc )
       									{
       									}
       									

@@ -482,7 +482,8 @@ Test
 									}
 									
 									public void
-									diversified()
+									diversified(
+										String		desc )
 									{
 									}
 									

@@ -40,7 +40,8 @@ DHTOperationListener
 		int					active_searches );
 	
 	public void
-	diversified();
+	diversified(
+		String				desc );
 	
 	public void
 	found(

@@ -683,7 +683,8 @@ outer:
 						}
 
 						public void
-						diversified()
+						diversified(
+							String		desc )
 						{
 						}
 						
@@ -776,7 +777,8 @@ outer:
 						}
 						
 						public void
-						diversified()
+						diversified(
+							String		desc )
 						{
 							if ( listener != null ){
 								
@@ -858,7 +860,8 @@ outer:
 							}
 
 							public void
-							diversified()
+							diversified(
+								String		desc )
 							{
 							}
 							
@@ -938,7 +941,8 @@ outer:
 							}
 
 							public void
-							diversified()
+							diversified(
+								String		desc )
 							{
 							}
 							

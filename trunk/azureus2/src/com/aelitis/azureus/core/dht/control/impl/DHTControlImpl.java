@@ -1160,9 +1160,10 @@ DHTControlImpl
 				}
 				
 				public void
-				diversified()
+				diversified(
+					String		desc )
 				{
-					lookup_listener.diversified();
+					lookup_listener.diversified( desc );
 				}
 				
 				public void
@@ -1205,7 +1206,7 @@ DHTControlImpl
 							DHTTransportContact	cause,
 							byte				diversification_type )
 						{
-							diversified();
+							diversified( "Diversification of [lookup]" );
 							
 							diversified[0] = true;
 						}
@@ -1249,14 +1250,14 @@ DHTControlImpl
 				
 			boolean	div = !Arrays.equals( encoded_key, initial_encoded_key );
 			
-			if ( div ){
-				
-				get_listener.diversified();
-			}
-			
 			final String	this_description = 
 				div?("Diversification of [" + description + "]" ):description;						
 
+			if ( div ){
+				
+				get_listener.diversified( this_description );
+			}
+			
 			boolean	is_stats_query = (flags & DHT.FLAG_STATS ) != 0;
 			
 			lookup( external_lookup_pool,
@@ -1278,7 +1279,7 @@ DHTControlImpl
 							DHTTransportContact	cause,
 							byte				diversification_type )
 						{
-							diversified();
+							diversified( "Diversification of [" + this_description + "]" );
 							
 								// we only want to follow one diversification
 							
@@ -3113,9 +3114,10 @@ DHTControlImpl
 		}
 		
 		public void
-		diversified()
+		diversified(
+			String		desc )
 		{
-			delegate.diversified();
+			delegate.diversified( desc );
 		}
 		
 		public void

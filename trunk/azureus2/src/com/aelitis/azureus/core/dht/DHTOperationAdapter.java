@@ -43,7 +43,8 @@ DHTOperationAdapter
 	}
 	
 	public void
-	diversified()
+	diversified(
+		String		desc )
 	{
 	}
 	
