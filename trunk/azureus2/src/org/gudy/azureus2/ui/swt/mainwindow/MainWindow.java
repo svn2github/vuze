@@ -235,6 +235,36 @@ public class MainWindow
 			Debug.printStackTrace(e);
 		}
 	}
+	
+	public MainWindow() {
+		bShowMainWindow = true;
+
+		try {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "MainWindow start"));
+
+			AEDiagnostics.addEvidenceGenerator(this);
+
+			azureus_core = AzureusCoreFactory.getSingleton();
+
+			globalManager = azureus_core.getGlobalManager();
+
+			display = SWTThread.getInstance().getDisplay();
+
+			window = this;
+
+		} catch (AzureusCoreException e) {
+
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public void init(Composite parent, UISWTInstanceImpl swtInstance) {
+		this.parent = parent;
+		this.shell = parent.getShell();
+		uiSWTInstanceImpl = swtInstance;
+	}
+
 
 	public void setShowMainWindow(boolean b) {
 		bShowMainWindow = b;
