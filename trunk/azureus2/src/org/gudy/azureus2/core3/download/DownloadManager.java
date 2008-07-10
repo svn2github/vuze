@@ -600,6 +600,18 @@ DownloadManager
 		LimitedRateGroup	group,
 		boolean				upload );
 	
+
+	/**
+	 * @param listener
+	 * @param triggerStateChange
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void
+	addListener(
+		DownloadManagerListener listener,
+		boolean triggerStateChange );
+
     public void
     addListener(
             DownloadManagerListener listener );

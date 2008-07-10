@@ -2270,6 +2270,14 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	listener )
 	{
+		addListener(listener, true);
+	}
+
+	public void
+	addListener(
+		DownloadManagerListener	listener,
+		boolean triggerStateChange )
+	{
 		if (listener == null) {
 			Debug.out("Warning: null listener");
 			return;
@@ -2280,7 +2288,9 @@ DownloadManagerImpl
 
 			listeners.addListener(listener);
 				
-			listener.stateChanged( this, getState());
+			if (triggerStateChange) {
+				listener.stateChanged( this, getState());
+			}
 
 				// we DON'T dispatch a downloadComplete event here as this event is used to mark the
 				// transition between downloading and seeding, NOT purely to inform of seeding status
