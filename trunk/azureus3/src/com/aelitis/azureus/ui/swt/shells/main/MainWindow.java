@@ -498,6 +498,7 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			menu = new MainMenu(skin, shell);
+			shell.setData("MainMenu", menu);
 
 			System.out.println("MainMenu init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -1293,6 +1294,7 @@ public class MainWindow
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG, SBC_LibraryListView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL, SBC_LibraryListView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD, SBC_LibraryTableView.class);
+		views.put("advanced", SBC_AdvancedView.class);
 
 		views.put("browse-area", Browse.class);
 
@@ -1953,7 +1955,7 @@ public class MainWindow
 			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
 			//        we can query (or is passed in)
 			if (newTabID.equals("maintabs.advanced")) {
-				createOldMainWindow();
+				//createOldMainWindow();
 			} else if (newTabID.equals("maintabs.home")
 					&& oldTabID.equals("maintabs.home")) {
 
@@ -2056,80 +2058,24 @@ public class MainWindow
 			return oldMainWindow;
 		}
 
-		if (uiSWTInstanceImpl == null) {
-			System.out.println("This will end only in disaster! "
-					+ Debug.getCompressedStackTrace());
+		SkinView skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
+		if (skinView instanceof SBC_AdvancedView) {
+			oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
+		} else {
+			skin.getSkinObject("advanced");
+
+			skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
+			if (skinView instanceof SBC_AdvancedView) {
+				oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
+			}
 		}
-
-		return (org.gudy.azureus2.ui.swt.mainwindow.MainWindow) Utils.execSWTThreadWithObject(
-				"createOldMainWindow", new AERunnableObject() {
-
-					public Object runSupport() {
-
-						SWTSkinObject skinObject = skin.getSkinObject("advanced");
-						if (skinObject != null) {
-							Composite cArea = (Composite) skinObject.getControl();
-
-							Label lblWait = new Label(cArea, SWT.CENTER);
-							FormData formData = new FormData();
-							formData.left = new FormAttachment(0, 0);
-							formData.right = new FormAttachment(100, 0);
-							formData.top = new FormAttachment(0, 0);
-							formData.bottom = new FormAttachment(100, 0);
-							lblWait.setLayoutData(formData);
-							lblWait.setForeground(skinObject.getProperties().getColor(
-									"color.row.fg"));
-							Messages.setLanguageText(lblWait, "v3.MainWindow.view.wait");
-							cArea.layout(true);
-							lblWait.update();
-
-							Color c = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-							if (Constants.isUnix) {
-								// Hack: For some reason, if we set the color of a Composite
-								// to the widget background color, it will use the color
-								// of the parent composite, even when backgroundmode is
-								// INHERIT_NONE
-								// The hack fix is to not use the exact color :(
-								if (c.getRed() > 0) {
-									c = ColorCache.getColor(display, c.getRed() - 1,
-											c.getGreen(), c.getBlue());
-								} else {
-									c = ColorCache.getColor(display, c.getRed() + 1,
-											c.getGreen(), c.getBlue());
-								}
-							}
-							cArea.setBackground(c);
-
-							oldMainWindow = new org.gudy.azureus2.ui.swt.mainwindow.MainWindow(
-									core, null, cArea.getShell(), cArea, uiSWTInstanceImpl);
-							oldMainWindow.setShowMainWindow(false);
-							oldMainWindow.runSupport();
-							if (isReady) {
-								oldMainWindow.postPluginSetup(-1, 0);
-							}
-
-							/*
-							 * KN: A hack to pass the old main menu to the old main window;
-							 * this whole old/new main window/menu must be redesigned to be more flexible :-(
-							 */
-							//							IMainMenu menu = uiFunctions.createMainMenu(cArea.getShell());
-							oldMainWindow.setMainMenu(menu);
-
-							uiFunctions.oldMainWindowInitialized(oldMainWindow);
-
-							lblWait.dispose();
-							cArea.layout(true);
-						}
-						return oldMainWindow;
-					}
-
-				}, 0);
+		return oldMainWindow;
 	}
 
 	public org.gudy.azureus2.ui.swt.mainwindow.MainWindow getOldMainWindow(
 			boolean bForceCreate) {
 		if (oldMainWindow == null && bForceCreate) {
-			createOldMainWindow();
+			return createOldMainWindow();
 		}
 		return oldMainWindow;
 	}

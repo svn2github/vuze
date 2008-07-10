@@ -26,7 +26,20 @@ package com.aelitis.azureus.ui.swt.ViewIndicator;
  */
 public interface ViewIndicator
 {
-	public String getTextIndicator();
+	public static int VIEWINDICATOR_TEXT = 0;
 	
-	public String getImageIDIndicator();
+	public static int VIEWINDICATOR_TEXTTOOLTIP = 1;
+	
+	public static int VIEWINIDICATOR_IMAGEID = 2;
+	
+	public static int VIEWINDICATOR_IMAGETOOLTIP = 3;
+
+	/**
+	 * 
+	 * @param propertyID VIEWINDICATOR_*
+	 * @return value, or null if you don't want to set it
+	 *
+	 * @since 3.1.1.1
+	 */
+	public String getStringProperty(int propertyID);
 }

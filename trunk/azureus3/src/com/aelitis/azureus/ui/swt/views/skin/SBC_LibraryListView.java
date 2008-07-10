@@ -102,25 +102,42 @@ public class SBC_LibraryListView
 
 	private boolean big;
 
+	private int torrentFilterMode;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		big = skinObject.getViewID().equals(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG);
+		big = skinObject.getViewID().equals(
+				SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG);
 
 		PREFIX = big ? "library-big-" : "library-small-";
 		ID = PREFIX.substring(0, PREFIX.length() - 1);
-		
+
+		Object data = skinObject.getParent().getControl().getData(
+				"TorrentFilterMode");
+		if (data instanceof Long) {
+			torrentFilterMode = (int) ((Long) data).longValue();
+		}
 		System.out.println("big? " + big + " ;" + skinObject);
-		
+
 		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
 		core = AzureusCoreFactory.getSingleton();
 
-		view = new TorrentListView(this, PREFIX, -1,
-				false, ID, true) {
+		view = new TorrentListView(this, PREFIX, -1, false, ID, true) {
 			public boolean isOurDownload(DownloadManager dm) {
 				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
 					return false;
 				}
+
+				if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE
+						&& !dm.getAssumedComplete()) {
+					return false;
+				}
+				if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE
+						&& dm.getAssumedComplete()) {
+					return false;
+				}
+
 				if (sLastSearch.length() == 0) {
 					return true;
 				}

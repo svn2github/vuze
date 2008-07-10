@@ -24,11 +24,17 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.ui.swt.IconBar;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * Classic My Torrents view with IconBar wrapped in a SkinView
@@ -42,15 +48,37 @@ public class SBC_LibraryTableView
 	implements UIUpdatable
 {
 	private final static String ID = "SBC_LibraryTableView";
-	
-	private MyTorrentsSuperView view;
+
+	private IView view;
+
 	private Composite viewComposite;
+
 	private IconBar iconBar;
+
+	private int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		view = new MyTorrentsSuperView();
-		
+		Object data = skinObject.getParent().getControl().getData(
+				"TorrentFilterMode");
+		if (data instanceof Long) {
+			torrentFilterMode = (int) ((Long) data).longValue();
+		}
+
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
+			view = new MyTorrentsView(
+					AzureusCoreFactory.getSingleton(),
+					true,
+					TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE));
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
+			view = new MyTorrentsView(
+					AzureusCoreFactory.getSingleton(),
+					false,
+					TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE));
+		} else {
+			view = new MyTorrentsSuperView();
+		}
+
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
 				skin.getSkinProperties(), ID, "", soMain);
 
@@ -63,27 +91,27 @@ public class SBC_LibraryTableView
 				SWT.COLOR_WIDGET_FOREGROUND));
 		viewComposite.setLayoutData(Utils.getFilledFormData());
 		viewComposite.setLayout(new GridLayout());
-		
+
 		view.initialize(viewComposite);
-		
+
 		return null;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		Object o = super.skinObjectShown(skinObject, params);
-		
+
 		SWTSkinObject so = skin.getSkinObject("library-list-bottom");
 		if (so != null && iconBar == null) {
-			iconBar = new IconBar((Composite)so.getControl());
+			iconBar = new IconBar((Composite) so.getControl());
 			iconBar.setLayoutData(Utils.getFilledFormData());
 			iconBar.getComposite().getParent().layout();
 			iconBar.setCurrentEnabler(view);
 		}
-		
+
 		return o;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#hide(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		if (iconBar != null) {
@@ -92,7 +120,7 @@ public class SBC_LibraryTableView
 		}
 		return null;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
 		return ID;

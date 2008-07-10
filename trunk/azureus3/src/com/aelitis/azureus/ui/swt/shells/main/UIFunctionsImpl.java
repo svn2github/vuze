@@ -680,7 +680,7 @@ public class UIFunctionsImpl
 		return true;
 	}
 
-	protected void oldMainWindowInitialized(MainWindow oldMainWindow) {
+	public void oldMainWindowInitialized(MainWindow oldMainWindow) {
 		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
 		if (uiFunctions == null) {
 			return;

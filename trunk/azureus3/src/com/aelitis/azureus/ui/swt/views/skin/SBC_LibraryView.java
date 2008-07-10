@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
@@ -41,6 +40,12 @@ public class SBC_LibraryView
 	private final static int MODE_SMALLTABLE = 1;
 
 	private final static int MODE_OLDTABLE = 2;
+
+	public static final int TORRENTS_ALL = 0;
+
+	public static final int TORRENTS_COMPLETE = 1;
+
+	public static final int TORRENTS_INCOMPLETE = 2;
 
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
@@ -64,13 +69,25 @@ public class SBC_LibraryView
 
 	private SWTSkinButtonUtility btnOldTable;
 
+	private int torrentFilterMode = TORRENTS_ALL;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		String torrentFilter = skinObject.getSkinObjectID();
+		if (torrentFilter.equalsIgnoreCase("LibraryDL_SB")) {
+			torrentFilterMode = TORRENTS_INCOMPLETE;
+		} else if (torrentFilter.equalsIgnoreCase("LibraryCD_SB")) {
+			torrentFilterMode = TORRENTS_COMPLETE;
+		}
+
 		soListArea = getSkinObject(ID + "-area");
-		
+
+		soListArea.getControl().setData("TorrentFilterMode",
+				new Long(torrentFilterMode));
+
 		setViewMode(COConfigurationManager.getIntParameter(ID + ".viewmode",
 				MODE_BIGTABLE));
-		
+
 		SWTSkinObject so;
 		so = getSkinObject(ID + "-button-smalltable");
 		if (so != null) {
@@ -91,7 +108,7 @@ public class SBC_LibraryView
 				}
 			});
 		}
-		
+
 		so = getSkinObject(ID + "-button-oldtable");
 		if (so != null) {
 			btnOldTable = new SWTSkinButtonUtility(so);
@@ -101,7 +118,6 @@ public class SBC_LibraryView
 				}
 			});
 		}
-		
 
 		return null;
 	}
@@ -114,21 +130,21 @@ public class SBC_LibraryView
 		if (viewMode >= modeViewIDs.length || viewMode < 0) {
 			return;
 		}
-		
+
 		int oldViewMode = this.viewMode;
 
 		this.viewMode = viewMode;
 
-		//SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
-		SWTSkinObject soOldViewArea = skin.getSkinObjectByID(modeIDs[oldViewMode]);
+		SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
+		//SWTSkinObject soOldViewArea = skin.getSkinObjectByID(modeIDs[oldViewMode]);
 		if (soOldViewArea != null) {
 			soOldViewArea.setVisible(false);
 		}
 
 		SWTSkinObject soViewArea = getSkinObject(modeViewIDs[viewMode]);
 		if (soViewArea == null) {
-			soViewArea = skin.createSkinObject(modeIDs[viewMode], modeIDs[viewMode],
-					soListArea);
+			soViewArea = skin.createSkinObject(modeIDs[viewMode] + torrentFilterMode,
+					modeIDs[viewMode], soListArea);
 			skin.layout();
 			soViewArea.setVisible(true);
 			soViewArea.getControl().setLayoutData(Utils.getFilledFormData());
