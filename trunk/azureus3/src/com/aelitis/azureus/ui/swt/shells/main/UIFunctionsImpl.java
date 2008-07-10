@@ -23,13 +23,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -37,15 +33,20 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
+import org.gudy.azureus2.ui.swt.views.ConfigShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -489,20 +490,10 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
 	public boolean showConfig(String string) {
 		try {
-
 			/*
 			 * Show in pop-up in Vuze UI's
 			 */
-			Shell shell = ShellFactory.createShell(SWT.RESIZE | SWT.DIALOG_TRIM
-					| SWT.APPLICATION_MODAL);
-			shell.setLayout(new GridLayout());
-			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
-			Utils.setShellIcon(shell);
-			ConfigView cView = new ConfigView(AzureusCoreFactory.getSingleton());
-			cView.initialize(shell);
-			shell.setSize(800, 600);
-			Utils.centerWindowRelativeTo(shell, getMainShell());
-			shell.open();
+			ConfigShell.getInstance().open();
 			return true;
 
 		} catch (Exception e) {
