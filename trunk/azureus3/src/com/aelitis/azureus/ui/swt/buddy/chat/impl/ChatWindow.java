@@ -21,8 +21,8 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -145,10 +145,11 @@ public class ChatWindow implements DiscussionListener {
 				String text = (String)label.getData("text");
 				if(text != null) {
 					Point p = label.getSize();
-					try { e.gc.setTextAntialias(SWT.ON); } catch(Exception e2) {}
+					try { e.gc.setTextAntialias(SWT.ON); e.gc.setAntialias(SWT.ON);} catch(Exception e2) {}
+					e.gc.setForeground(ColorCache.getColor(display, 93,93,93));
 					e.gc.setBackground(ColorCache.getColor(display, 208,208,208));
-					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 10, 10);
-					e.gc.drawText(text, 3, 0);
+					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 12, 12);
+					e.gc.drawText(text, 4, 0);
 				}
 			}
 		};
@@ -159,11 +160,11 @@ public class ChatWindow implements DiscussionListener {
 				String text = (String)label.getData("text");
 				if(text != null) {
 					Point p = label.getSize();
-					try { e.gc.setTextAntialias(SWT.ON); } catch(Exception e2) {}
+					try { e.gc.setTextAntialias(SWT.ON); e.gc.setAntialias(SWT.ON);} catch(Exception e2) {}
+					e.gc.setForeground(ColorCache.getColor(display, 93,93,93));
 					e.gc.setBackground(ColorCache.getColor(display, 192,204,220));
-					
-					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 10, 10);
-					e.gc.drawText(text, 3, 0);
+					e.gc.fillRoundRectangle(0, 0, p.x, p.y, 12, 12);
+					e.gc.drawText(text, 4, 0);
 				}
 			}
 		};
@@ -193,7 +194,7 @@ public class ChatWindow implements DiscussionListener {
 			} else {
 				fDatas[i].setHeight(12);
 			}
-			fDatas[i].setStyle(SWT.BOLD | SWT.ITALIC);
+			fDatas[i].setStyle(SWT.BOLD);
 		}
 		nameFont = new Font(display,fDatas);
 		
@@ -281,7 +282,7 @@ public class ChatWindow implements DiscussionListener {
 		avatarName.setBackground(mainPanel.getBackground());
 		avatarName.setFont(nameFont);
 		avatarName.setText(avatar.getVuzeBuddy().getDisplayName());
-		avatarName.setForeground(ColorCache.getColor(display,151,151,151));
+		avatarName.setForeground(ColorCache.getColor(display,97,97,97));
 		data = new FormData();
 		data.left = new FormAttachment(avatarPicture,spacing);
 		data.top = new FormAttachment(avatarPicture,-6,SWT.CENTER);
@@ -306,13 +307,11 @@ public class ChatWindow implements DiscussionListener {
 		messagesHolder.setExpandVertical(true);
 		
 		
+		
 		messages = new Composite(messagesHolder,SWT.NONE);
 		messages.setBackground(messagesHolder.getBackground());
-		RowLayout messagesLayout = new RowLayout(SWT.VERTICAL);
-		messagesLayout.fill = true;
-		//messagesLayout.pack = true;
-		messagesLayout.spacing = 5;
-		messagesLayout.type = SWT.VERTICAL;
+		GridLayout messagesLayout = new GridLayout();
+		messagesLayout.verticalSpacing=5;
 		messages.setLayout(messagesLayout);
 		messagesHolder.setContent(messages);
 		
@@ -422,17 +421,14 @@ public class ChatWindow implements DiscussionListener {
 		text.setBackground(ColorCache.getColor(display, 244,238,188));
 		text.setText(message);
 		
-		RowData rowData = new RowData();
-		rowData.width = 210;
-		messageHolder.setLayoutData(rowData);
-		
-		messageHolder.pack();
+		messageHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		messages.layout();
 
 	}
 	
 	private void renderMessage(ChatMessage message) {
-		Composite messageHolder = new Composite(messages,SWT.INHERIT_FORCE);
+		Composite messageHolder = new Composite(messages,SWT.NONE);
+		messageHolder.setBackgroundMode(SWT.INHERIT_FORCE);
 		messageHolder.setBackground(messagesHolder.getBackground());
 		messageHolder.setLayout(new FormLayout());
 		FormData data;
@@ -445,7 +441,6 @@ public class ChatWindow implements DiscussionListener {
 			if(!sender.equals(lastSender)) {
 				name = new Label(messageHolder,SWT.NONE);
 				name.setData("text",message.getSender());
-				//name.setForeground(ColorCache.getColor(display,80,80,80));
 				data = new FormData();
 				data.left = new FormAttachment(0,0);
 				data.right = new FormAttachment(100,0);
@@ -477,6 +472,7 @@ public class ChatWindow implements DiscussionListener {
 		
 		Link text = new Link(messageHolder,SWT.WRAP);
 		text.setBackground(messageHolder.getBackground());
+		text.setForeground(ColorCache.getColor(display,27,27,27));
 		text.setFont(textFont);
 		String msg = message.getMessage();
 		msg = msg.replaceAll("(?i)((?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\]))", "<a href=\"mailto:$1\">$0</a>");
@@ -491,11 +487,7 @@ public class ChatWindow implements DiscussionListener {
 		text.setLayoutData(data);
 		text.addListener(SWT.Selection, linkListener);
 		
-		RowData rowData = new RowData();
-		rowData.width = 210;
-		messageHolder.setLayoutData(rowData);
-		
-		messageHolder.pack();
+		messageHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		messages.layout();
 		
 		Rectangle r = messagesHolder.getClientArea();
