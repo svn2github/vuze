@@ -54,6 +54,8 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadHelper;
 import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 /**
@@ -95,6 +97,7 @@ DiskManagerCheckRequestListener, IPFilterListener
     private static boolean	udp_fallback_for_dropped_connection;  
     private static boolean	udp_probe_enabled;
     private static boolean	hide_a_piece;
+    private static boolean	prefer_udp_default;
     
 	static{
 		
@@ -110,6 +113,7 @@ DiskManagerCheckRequestListener, IPFilterListener
    				"peercontrol.udp.fallback.connect.drop",
    				"peercontrol.udp.probe.enable",
    				"peercontrol.hide.piece",
+   				"peercontrol.prefer.udp",
 			},
 			new ParameterListener()
 			{
@@ -132,6 +136,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 						
 						disconnect_seeds_when_seeding = false;
 					}
+					
+					prefer_udp_default						= COConfigurationManager.getBooleanParameter( "peercontrol.prefer.udp" );
 				}
 			});
 	}
@@ -276,6 +282,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private boolean	prefer_udp;
 
+	private static final int		PREFER_UDP_BLOOM_SIZE	= 10000;
+	private volatile BloomFilter	prefer_udp_bloom;
+	
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getUploadRateLimitBytesPerSecond();
@@ -691,7 +700,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		if( removed ) {
 			peer.closeConnection( reason );
-			peerRemoved(peer);  	//notify listeners
+			peerRemoved(peer);  	//notify listeners			
 		}
 		else {
 			if ( log_if_not_found ){
@@ -770,7 +779,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0;
 			boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0;
 			
-			if ( 	tcp_ok && !( prefer_udp && udp_ok )){
+			if ( 	tcp_ok && !( ( prefer_udp || prefer_udp_default ) && udp_ok )){
 
 				fail_reason = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, tcp_port, udp_port, true, use_crypto, crypto_level, user_data );  //directly inject the the imported peer
 
@@ -1322,6 +1331,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 		if (all_pieces_done)
 		{
 			seeding_mode	= true;
+			
+			prefer_udp_bloom = null;
+			
 			piecePicker.clearEndGameChunks();
 
 			if (!start_of_day)
@@ -2450,6 +2462,28 @@ DiskManagerCheckRequestListener, IPFilterListener
 	peerRemoved(
 			PEPeer pc) 
 	{
+		if ( 	is_running && 
+				!seeding_mode && 
+				( prefer_udp || prefer_udp_default )){
+							
+			int udp = pc.getUDPListenPort();
+			
+			if ( udp != 0 && udp == pc.getTCPListenPort()){
+				
+				BloomFilter filter = prefer_udp_bloom;
+				
+				if ( filter == null ){
+					
+					filter = prefer_udp_bloom = BloomFilterFactory.createAddOnly( PREFER_UDP_BLOOM_SIZE );				
+				}
+				
+				if ( filter.getEntryCount() < PREFER_UDP_BLOOM_SIZE / 10 ){
+											
+					filter.add( pc.getIp().getBytes());
+				}
+			}
+		}
+
 		final int piece = pc.getUniqueAnnounce();
 		if(piece != -1 && superSeedMode ) {
 			superSeedModeNumberOfAnnounces--;
@@ -3521,10 +3555,26 @@ DiskManagerCheckRequestListener, IPFilterListener
 							udp_port = tcp_port;
 						}
 						
+						boolean	prefer_udp_overall = prefer_udp || prefer_udp_default;
+						
+						if ( prefer_udp_overall && udp_port == 0 ){
+						
+								// see if we have previous record of this address as udp connectable
+							
+							byte[]	address = item.getIP().getBytes();
+							
+							BloomFilter	bloom = prefer_udp_bloom;
+							
+							if ( bloom != null && bloom.contains( address )){
+																
+								udp_port = tcp_port;
+							}
+						}
+						
 						boolean	tcp_ok = TCPNetworkManager.TCP_OUTGOING_ENABLED && tcp_port > 0 && tcp_remaining > 0;
 						boolean udp_ok = UDPNetworkManager.UDP_OUTGOING_ENABLED && udp_port > 0 && udp_remaining > 0;
 
-						if ( tcp_ok && !( prefer_udp && udp_ok )){
+						if ( tcp_ok && !( prefer_udp_overall && udp_ok )){
 
 							if ( makeNewOutgoingConnection( source, item.getAddressString(), tcp_port, udp_port, true, use_crypto, item.getCryptoLevel(), null) == null) {
 								

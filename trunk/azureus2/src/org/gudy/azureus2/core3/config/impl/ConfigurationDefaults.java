@@ -455,6 +455,7 @@ public class ConfigurationDefaults {
     def.put( "peercontrol.udp.probe.enable", FALSE );
     def.put( "peercontrol.hide.piece", FALSE );
     def.put( "peercontrol.scheduler.use.priorities", TRUE );
+    def.put( "peercontrol.prefer.udp", FALSE );
     	
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);

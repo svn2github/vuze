@@ -249,6 +249,15 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			}
 		}
 		
+		if ( userMode > 1 ){
+		
+			final BooleanParameter prefer_udp = 
+				new BooleanParameter(cMiniArea, "peercontrol.prefer.udp",	CFG_PREFIX + "prefer.udp");
+			gridData = new GridData();
+			prefer_udp.setLayoutData( gridData );
+			label = new Label(cMiniArea, SWT.NULL);
+		}
+		
 		if (userMode < 2) {
 			// wiki link
 			label = new Label(cSection, SWT.NULL);
