@@ -1099,7 +1099,7 @@ implements PEPeerTransport
 			DiskManagerPiece[] dmPieces = diskManager.getPieces();
 			boolean couldBeSeed = true;
 			
-			if(!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0 && piecesDone >= peerHavePieces.nbSet)
+			if(!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0)
 			{ /*
 				 * peer indicated upload-only, check if we can use any of the data, otherwise flag
 				 * as relative seed. Useful to disconnect not-useful pseudo-seeds during downloading  
@@ -3297,11 +3297,16 @@ implements PEPeerTransport
 
 
 
+	/**
+	 * this method might be called repeatedly since LTEP allows headers to be sent more than once
+	 * make sure that multiple invokations do not have unintended consequences
+	 */
 	private void doPostHandshakeProcessing() {
 		//peer exchange registration
 		if( manager.isPeerExchangeEnabled()) {
 			//try and register all connections for their peer exchange info
-			peer_exchange_item = manager.createPeerExchangeConnection( this );
+			if(peer_exchange_item == null)
+				peer_exchange_item = manager.createPeerExchangeConnection( this );
 			
 			if( peer_exchange_item != null ) {
 				//check for peer exchange support
