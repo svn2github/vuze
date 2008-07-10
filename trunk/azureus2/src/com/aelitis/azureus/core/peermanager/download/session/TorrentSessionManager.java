@@ -30,10 +30,6 @@ import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.*;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
-
-
 
 public class TorrentSessionManager {
   
@@ -57,34 +53,6 @@ public class TorrentSessionManager {
       public void connectionCreated( final AZPeerConnection connection ) {
         connection.getNetworkConnection().getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
           public boolean messageReceived( Message message ) {
-            if( message.getID().equals( AZMessage.ID_AZ_SESSION_SYN ) ) {
-              AZSessionSyn syn = (AZSessionSyn)message;
-
-              byte[] hash = syn.getInfoHash();
-
-              //check for valid session infohash
-              TorrentDownload download = null;
-                
-              try{ hashes_mon.enter();
-                download = (TorrentDownload)hashes.get( new HashWrapper( hash ) );
-              }
-              finally{ hashes_mon.exit();  }
-                
-              if( download == null ) {
-                System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
-                AZSessionEnd end = new AZSessionEnd( hash, "unknown session infohash", (byte)1 );
-                connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
-              }
-              else { //success
-                //TODO
-                //TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( download, connection, syn.getSessionID() );
-                //session.authenticate( syn.getSessionInfo() );  //init processing //TODO
-              }
-               
-              syn.destroy();
-              return true;
-            }
-            
             return false;
           }
 
