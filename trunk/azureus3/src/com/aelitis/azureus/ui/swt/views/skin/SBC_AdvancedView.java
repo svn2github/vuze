@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -85,11 +86,10 @@ public class SBC_AdvancedView
 					public Object runSupport() {
 
 						oldMainWindow = null;
-						Composite cArea = (Composite) soMain.getControl();
-						cArea.setVisible(false);
+						final Composite cArea = (Composite) soMain.getControl();
 						Display display = cArea.getDisplay();
 
-						Label lblWait = new Label(cArea, SWT.CENTER);
+						final Label lblWait = new Label(cArea, SWT.CENTER);
 						FormData formData = new FormData();
 						formData.left = new FormAttachment(0, 0);
 						formData.right = new FormAttachment(100, 0);
@@ -124,18 +124,23 @@ public class SBC_AdvancedView
 								cArea, (UISWTInstanceImpl) uiSWTInstance);
 						oldMainWindow.setShowMainWindow(false);
 						oldMainWindow.runSupport();
-						oldMainWindow.postPluginSetup(-1, 0);
+
+						Utils.execSWTThreadLater(10, new AERunnable() {
+							public void runSupport() {
+								oldMainWindow.postPluginSetup(-1, 0);
 
 
-						Object menu = cArea.getShell().getData("MainMenu");
-						if (menu instanceof IMainMenu) {
-							oldMainWindow.setMainMenu((IMainMenu) menu);
-						}
+								Object menu = cArea.getShell().getData("MainMenu");
+								if (menu instanceof IMainMenu) {
+									oldMainWindow.setMainMenu((IMainMenu) menu);
+								}
 
-						((UIFunctionsImpl) uiFunctions).oldMainWindowInitialized(oldMainWindow);
+								((UIFunctionsImpl) uiFunctions).oldMainWindowInitialized(oldMainWindow);
 
-						lblWait.dispose();
-						cArea.layout(true);
+								lblWait.dispose();
+								cArea.layout(true);
+							}
+						});
 
 						return oldMainWindow;
 					}

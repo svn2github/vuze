@@ -1126,7 +1126,7 @@ public class MainWindow
 
 	private void showMainWindow() {
 		if (oldMainWindow != null) {
-			oldMainWindow.postPluginSetup(-1, 0);
+			//oldMainWindow.postPluginSetup(-1, 0);
 		}
 
 		boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
@@ -2062,12 +2062,18 @@ public class MainWindow
 		if (skinView instanceof SBC_AdvancedView) {
 			oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
 		} else {
-			skin.getSkinObject("advanced");
+			SWTSkinObject skinObject = skin.getSkinObject("advanced");
+			// trigger creation of SBC_AdvancedView
+			skinObject.setVisible(true);
 
 			skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
 			if (skinView instanceof SBC_AdvancedView) {
 				oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
 			}
+		}
+		
+		if (oldMainWindow != null) {
+			switchToAdvancedTab();
 		}
 		return oldMainWindow;
 	}

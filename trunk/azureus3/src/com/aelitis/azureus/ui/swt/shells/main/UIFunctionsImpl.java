@@ -361,7 +361,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshIconBar()
 	public void refreshIconBar() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return;
 			}
@@ -377,7 +377,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshLanguage()
 	public void refreshLanguage() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return;
 			}
@@ -393,7 +393,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#removeManagerView(org.gudy.azureus2.core3.download.DownloadManager)
 	public void removeManagerView(DownloadManager dm) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return;
 			}
@@ -409,7 +409,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(java.lang.String)
 	public void removePluginView(String viewID) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				pluginViews_mon.enter();
 				try {
@@ -431,7 +431,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
 	public void removePluginView(UISWTPluginView view) {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				pluginViews_mon.enter();
 				try {
@@ -453,7 +453,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#requestShutdown()
 	public boolean requestShutdown() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return true;
 			}
@@ -672,7 +672,7 @@ public class UIFunctionsImpl
 	}
 
 	public void oldMainWindowInitialized(MainWindow oldMainWindow) {
-		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+		UIFunctionsSWT uiFunctions = oldMainWindow.getUIFunctions();
 		if (uiFunctions == null) {
 			return;
 		}
@@ -739,7 +739,7 @@ public class UIFunctionsImpl
 
 	public void refreshTorrentMenu() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return;
 			}
