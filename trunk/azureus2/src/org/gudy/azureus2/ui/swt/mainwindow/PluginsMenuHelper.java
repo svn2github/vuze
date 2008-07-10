@@ -211,6 +211,10 @@ public class PluginsMenuHelper
 		return (IViewInfo[])plugin_view_info_map.values().toArray(new IViewInfo[0]);
 	}
 
+	public IViewInfo[] getPluginLogViewsInfo() {
+		return (IViewInfo[])plugin_logs_view_info_map.values().toArray(new IViewInfo[0]);
+	}
+
 	public static class IViewInfo
 	{
 		public AbstractIView view;
