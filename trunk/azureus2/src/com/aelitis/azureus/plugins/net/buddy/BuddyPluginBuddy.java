@@ -119,6 +119,8 @@ BuddyPluginBuddy
 	private volatile long	last_connect_attempt	= SystemTime.getCurrentTime();
 	private volatile int	consec_connect_fails;
 	
+	private long last_auto_reconnect	= -1;
+	
 	private volatile boolean	closing;
 	private volatile boolean	destroyed;
 	
@@ -1167,32 +1169,50 @@ BuddyPluginBuddy
 				
 				if ( consec_connect_fails == 0 ){
 					
-						// delay a bit
+					long	now = SystemTime.getMonotonousTime();
 					
-					new DelayedEvent(
-							"BuddyPluginBuddy:recon",
-							new Random().nextInt( 3000 ),
-							new AERunnable()
-							{
-								public void
-								runSupport()
-								{
-									int	size;
-									
-									synchronized( this ){
-																				
-										size = connections.size();
-									}
-									
-									if ( consec_connect_fails == 0 && size == 0 ){
-			
-										log( "Attempting reconnect after dropped connection" );
-										
-										sendKeepAlive();
-									}
-								}
-							});
+					boolean do_it = false;
+					
+					synchronized( this ){
+					
+						if ( 	last_auto_reconnect == -1 || 
+								now - last_auto_reconnect > 30*1000 ){
+							
+							last_auto_reconnect = now;
+							
+							do_it = true;
+						}
+					}
+					
+					if ( do_it ){
 						
+							// delay a bit
+						
+						new DelayedEvent(
+								"BuddyPluginBuddy:recon",
+								new Random().nextInt( 3000 ),
+								new AERunnable()
+								{
+									public void
+									runSupport()
+									{
+										int	size;
+										
+										synchronized( BuddyPluginBuddy.this ){
+																					
+											size = connections.size();
+										}
+										
+										if ( consec_connect_fails == 0 && size == 0 ){
+				
+											log( "Attempting reconnect after dropped connection" );
+											
+											sendKeepAlive();
+										}
+									}
+								});
+					}
+							
 				}else{
 					
 					long	delay = 60*1000;
@@ -1802,7 +1822,7 @@ BuddyPluginBuddy
 	
 		throws BuddyPluginException
 	{
-		int	size;
+		//int	size;
 		
 		buddyConnection bc = new buddyConnection( _connection, false );
 		
@@ -1815,7 +1835,7 @@ BuddyPluginBuddy
 			
 			connections.add( bc );
 			
-			size = connections.size();
+			//size = connections.size();
 		}
 		
 		// logMessage( "Con " + bc.getString() + " added: num=" + size );
