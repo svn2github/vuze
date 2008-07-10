@@ -30,29 +30,83 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.views.configsections.*;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnection;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionAdvanced;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionEncryption;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionProxy;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFile;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileMove;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFilePerformance;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileTorrents;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileTorrentsDecoding;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionIPFilter;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterface;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceAlerts;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceColor;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceDisplay;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceLanguage;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceStart;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionLogging;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionMode;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionPlugins;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionSecurity;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionSharing;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionStats;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTracker;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTrackerClient;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTrackerServer;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransfer;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeed;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedBeta;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedSelect;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferLAN;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 
 /**
  * @author Olivier
@@ -783,11 +837,7 @@ public class ConfigView extends AbstractIView {
       public void widgetSelected(SelectionEvent event) {
 				// force focusout on osx
 				save.setFocus();
-				COConfigurationManager.setParameter("updated", 1);
-				COConfigurationManager.save();
-
-				for (int i = 0; i < pluginSections.size(); i++)
-					((ConfigSection) pluginSections.get(i)).configSectionSave();
+				save();
 			}
 		});
   }
@@ -869,4 +919,15 @@ public class ConfigView extends AbstractIView {
 		  }
 	  }
   }
+  
+  public void save() {
+		COConfigurationManager.setParameter("updated", 1);
+		COConfigurationManager.save();
+
+		if (null != pluginSections) {
+			for (int i = 0; i < pluginSections.size(); i++) {
+				((ConfigSection) pluginSections.get(i)).configSectionSave();
+			}
+		}
+	}
 }
