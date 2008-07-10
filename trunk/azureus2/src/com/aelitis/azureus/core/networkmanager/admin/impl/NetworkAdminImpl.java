@@ -71,7 +71,9 @@ NetworkAdminImpl
 	
 	private Set							old_network_interfaces;
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
-	private boolean						nioSupportsIPv6		= true;
+	private boolean						supportsIPv6withNIO		= true;
+	private boolean						supportsIPv6 = true;
+	private boolean						supportsIPv4 = true;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 		
@@ -208,22 +210,50 @@ NetworkAdminImpl
 			
 			if ( changed ){
 				
-				if(hasIPV6Potential(false)) // check overall v6 support since we're just determining the nio-part
+				
+				boolean newV6 = false;
+				boolean newV4 = false;
+				
+				Set interfaces = old_network_interfaces;
+				if (interfaces != null)
+				{
+					Iterator it = interfaces.iterator();
+					while (it.hasNext())
+					{
+						NetworkInterface ni = (NetworkInterface) it.next();
+						Enumeration addresses = ni.getInetAddresses();
+						while (addresses.hasMoreElements())
+						{
+							InetAddress ia = (InetAddress) addresses.nextElement();
+							if (ia.isLoopbackAddress())
+								continue;
+							if (ia instanceof Inet6Address && !ia.isLinkLocalAddress())
+								newV6 = true;
+							else if (ia instanceof Inet4Address)
+								newV4 = true;
+						}
+					}
+				}
+				
+				supportsIPv4 = newV4;
+				supportsIPv6 = newV6;
+				
+				if(newV6)
 				{
 					ServerSocketChannel channel = ServerSocketChannel.open();
 					
 					try
 					{
-						channel.socket().bind(new InetSocketAddress(InetAddress.getByName("::"), 0));
-						nioSupportsIPv6 = true;
+						channel.socket().bind(new InetSocketAddress(anyLocalAddressIPv6, 0));
+						supportsIPv6withNIO = true;
 					} catch (Exception e)
 					{
-						nioSupportsIPv6 = false;
+						supportsIPv6withNIO = false;
 					}
 					
 					channel.close();
 				} else
-					nioSupportsIPv6 = false;
+					supportsIPv6withNIO = false;
 					
 				if ( !first_time ){
 					
@@ -298,7 +328,7 @@ NetworkAdminImpl
 		for(int i=0;i<bindIPs.length;i++)
 		{
 			if(bindIPs[i].isAnyLocalAddress())
-				return new InetAddress[] {nio && !nioSupportsIPv6 && bindIPs[i] instanceof Inet6Address ? anyLocalAddressIPv4 : bindIPs[i]};
+				return new InetAddress[] {nio && !supportsIPv6withNIO && bindIPs[i] instanceof Inet6Address ? anyLocalAddressIPv4 : bindIPs[i]};
 		}
 		return bindIPs;
 	}
@@ -434,7 +464,7 @@ NetworkAdminImpl
 		{
 			NetworkInterface ni = (NetworkInterface) it.next();
 			Enumeration addresses = ni.getInetAddresses();
-			str+=ni.getName()+"\n";
+			str+=ni.getName()+"\t("+ni.getDisplayName()+")\n";
 			int i = 0;
 			while(addresses.hasMoreElements())
 				str+="\t"+ni.getName()+"["+(i++)+"]\t"+((InetAddress)addresses.nextElement()).getHostAddress()+"\n";
@@ -445,83 +475,13 @@ NetworkAdminImpl
 	public boolean
 	hasIPV4Potential()
 	{
-		Set	interfaces = old_network_interfaces;
-		
-		if ( interfaces == null ){
-			
-			return( false );
-		}
-		
-		Iterator	it = interfaces.iterator();
-				
-		while( it.hasNext()){
-			
-			NetworkInterface ni = (NetworkInterface)it.next();
-			
-			Enumeration addresses = ni.getInetAddresses();
-
-			while( addresses.hasMoreElements()){
-								
-				InetAddress	ia = (InetAddress)addresses.nextElement();
-				
-				if ( ia.isLoopbackAddress()){
-					
-					continue;
-				}
-				
-				if ( ia instanceof Inet4Address ){
-					
-					return( true );
-				}
-			}
-		}
-		
-		return( false );	
+		return supportsIPv4;
 	}
 	
 	public boolean
 	hasIPV6Potential(boolean nio)
 	{
-		if(nio && !nioSupportsIPv6)
-			return false;
-		
-		Set	interfaces = old_network_interfaces;
-		
-		if ( interfaces == null ){
-			
-			return( false );
-		}
-		
-		Iterator	it = interfaces.iterator();
-				
-		while( it.hasNext()){
-			
-			NetworkInterface ni = (NetworkInterface)it.next();
-			
-			Enumeration addresses = ni.getInetAddresses();
-
-			while( addresses.hasMoreElements()){
-								
-				InetAddress	ia = (InetAddress)addresses.nextElement();
-				
-				if ( ia.isLoopbackAddress()){
-					
-					continue;
-				}
-				
-				if ( ia instanceof Inet6Address ){
-					
-					Inet6Address v6 = (Inet6Address)ia;
-					
-					if ( !v6.isLinkLocalAddress()){
-	
-						return( true );
-					}
-				}
-			}
-		}
-		
-		return( false );			
+		return nio ? supportsIPv6withNIO : supportsIPv6;
 	}
 	
 	protected void

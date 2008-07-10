@@ -22,10 +22,8 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.SocketTimeoutException;
+import java.io.IOException;
+import java.net.*;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.*;
@@ -260,7 +258,11 @@ public class TCPConnectionManager {
     request.listener.connectAttemptStarted();
     
     try {
-      request.channel = SocketChannel.open();
+        // take a shortcut here to avoid binding problems
+        if(request.address.getAddress() instanceof Inet6Address && !NetworkAdmin.getSingleton().hasIPV6Potential(true))
+      	  throw new IOException("Address family not supported by protocol family: bind");
+        
+    	request.channel = SocketChannel.open();
       
       try {  //advanced socket options
         int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
