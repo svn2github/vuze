@@ -311,16 +311,28 @@ public class SideBar
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
 				if (dm.getAssumedComplete()) {
-					if (dm.getState() == DownloadManager.STATE_SEEDING) {
-						numSeeding++;
-					} else {
-						numSeeding--;
+					boolean isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
+					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
+					boolean wasSeeding = wasSeedingB == null ? false : wasSeedingB.booleanValue();
+					if (isSeeding != wasSeeding) {
+  					if (isSeeding) {
+  						numSeeding++;
+  					} else {
+  						numSeeding--;
+  					}
+  					dm.setUserData("wasSeeding", new Boolean(isSeeding));
 					}
 				} else {
-					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
-						numDownloading++;
-					} else {
-						numDownloading--;
+					boolean isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
+					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
+					boolean wasDownloading = wasDownloadingB == null ? false : wasDownloadingB.booleanValue();
+					if (isDownloading != wasDownloading) {
+  					if (isDownloading) {
+  						numDownloading++;
+  					} else {
+  						numDownloading--;
+  					}
+  					dm.setUserData("wasDownloading", new Boolean(isDownloading));
 					}
 				}
 				ViewIndicatorManager.refreshViewIndicator(viewIndicatorDownloading);
@@ -366,7 +378,10 @@ public class SideBar
 				} else {
 					numIncomplete++;
 					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
+  					dm.setUserData("wasDownloading", new Boolean(true));
 						numSeeding++;
+					} else {
+  					dm.setUserData("wasDownloading", new Boolean(false));
 					}
 				}
 			}
@@ -378,7 +393,10 @@ public class SideBar
 			if (dm.getAssumedComplete()) {
 				numComplete++;
 				if (dm.getState() == DownloadManager.STATE_SEEDING) {
+					dm.setUserData("wasSeeding", new Boolean(true));
 					numSeeding++;
+				} else {
+					dm.setUserData("wasSeeding", new Boolean(false));
 				}
 			} else {
 				numIncomplete++;
