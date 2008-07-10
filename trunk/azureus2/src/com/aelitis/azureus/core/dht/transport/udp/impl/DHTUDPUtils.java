@@ -331,15 +331,13 @@ DHTUDPUtils
 	
 		throws IOException, DHTTransportException
 	{
-		if ( contact instanceof DHTTransportUDPContactImpl ){
+		if ( contact.getTransport() instanceof DHTTransportUDP ){
 			
 			os.writeByte( CT_UDP );		// 1
 			
 			os.writeByte( contact.getProtocolVersion());	// 2
-			
-			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact;
-								
-			serialiseAddress( os, c.getExternalAddress() );	// 2 + address
+											
+			serialiseAddress( os, contact.getExternalAddress() );	// 2 + address
 			
 		}else{
 			

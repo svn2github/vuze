@@ -25,6 +25,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.*;
 
 import javax.crypto.Cipher;
@@ -734,7 +736,9 @@ DHTControlImpl
 		
 		byte[]	encoded_key = encodeKey( _unencoded_key );
 		
-		DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "put for " + DHTLog.getString( encoded_key ));
+		}
 		
 		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags );
 		
@@ -988,7 +992,9 @@ DHTControlImpl
 								byte[]				_diversifications )
 							{
 								try{
-									DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
+									if ( DHTLog.isOn()){
+										DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
+									}
 																
 									router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 								
@@ -1031,7 +1037,9 @@ DHTControlImpl
 								Throwable 				_error )
 							{
 								try{
-									DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+									if ( DHTLog.isOn()){
+										DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+									}
 																			
 									router.contactDead( _contact.getID(), false );
 									
@@ -1088,7 +1096,9 @@ DHTControlImpl
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-		DHTLog.log( "getLocalValue for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "getLocalValue for " + DHTLog.getString( encoded_key ));
+		}
 
 		DHTDBValue	res = database.get( new HashWrapper( encoded_key ));
 	
@@ -1113,7 +1123,9 @@ DHTControlImpl
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
+		}
 		
 		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, high_priority, new DHTOperationListenerDemuxer( get_listener ));
 	}
@@ -1135,7 +1147,9 @@ DHTControlImpl
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-		DHTLog.log( "lookup for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "lookup for " + DHTLog.getString( encoded_key ));
+		}
 
 		final AESemaphore	sem = new AESemaphore( "DHTControl:lookup" );
 
@@ -1380,7 +1394,9 @@ DHTControlImpl
 	{		
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-		DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+		}
 
 		DHTDBValue	res = database.remove( local_contact, new HashWrapper( encoded_key ));
 		
@@ -1416,7 +1432,9 @@ DHTControlImpl
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
-		DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "remove for " + DHTLog.getString( encoded_key ));
+		}
 
 		DHTDBValue	res = database.remove( local_contact, new HashWrapper( encoded_key ));
 		
@@ -1520,9 +1538,12 @@ DHTControlImpl
 						level_map.put(contact, new Integer(0));
 					}
 					
-					DHTLog.log("lookup for " + DHTLog.getString(lookup_id));
-					if (value_search && database.isKeyBlocked(lookup_id))
-					{
+					if ( DHTLog.isOn()){
+						DHTLog.log("lookup for " + DHTLog.getString(lookup_id));
+					}
+					
+					if (value_search && database.isKeyBlocked(lookup_id)){
+				
 						DHTLog.log("lookup: terminates - key blocked");
 						// bail out and pretend everything worked with zero results
 						terminateLookup(false);
@@ -1533,7 +1554,9 @@ DHTControlImpl
 					{
 						timeoutEvent = SimpleTimer.addEvent("DHT lookup timeout", SystemTime.getCurrentTime()+timeout, new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								DHTLog.log("lookup: terminates - timeout");
+								if ( DHTLog.isOn()){
+									DHTLog.log("lookup: terminates - timeout");
+								}
 								//System.out.println("timeout");
 								timeout_occurred = true;
 								terminateLookup(false);
@@ -1646,7 +1669,10 @@ DHTControlImpl
 								long remaining = timeout - (now - start);
 								if (remaining <= 0)
 								{
-									DHTLog.log("lookup: terminates - timeout");
+									if ( DHTLog.isOn()){
+										DHTLog.log("lookup: terminates - timeout");
+									}
+									
 									timeout_occurred = true;
 									terminate = true;
 									break;
@@ -1684,7 +1710,10 @@ DHTControlImpl
 								{
 									if (active_searches == 0)
 									{
-										DHTLog.log("lookup: terminates - no contacts left to query");
+										if ( DHTLog.isOn()){
+											DHTLog.log("lookup: terminates - no contacts left to query");
+										}
+										
 										terminate = true;
 										break;
 									}
@@ -1703,7 +1732,10 @@ DHTControlImpl
 									int distance = computeAndCompareDistances(furthest_ok.getID(), closest.getID(), lookup_id);
 									if (distance <= 0)
 									{
-										DHTLog.log("lookup: terminates - we've searched the closest " + search_accuracy + " contacts");
+										if ( DHTLog.isOn()){
+											DHTLog.log("lookup: terminates - we've searched the closest " + search_accuracy + " contacts");
+										}
+										
 										terminate = true;
 										break;
 									}
@@ -1755,7 +1787,10 @@ DHTControlImpl
 									public void findNodeReply(DHTTransportContact target_contact, DHTTransportContact[] reply_contacts) {
 										try
 										{
-											DHTLog.log("findNodeReply: " + DHTLog.getString(reply_contacts));
+											if ( DHTLog.isOn()){
+												DHTLog.log("findNodeReply: " + DHTLog.getString(reply_contacts));
+											}
+											
 											router.contactAlive(target_contact.getID(), new DHTControlContactImpl(target_contact));
 											for (int i = 0; i < reply_contacts.length; i++)
 											{
@@ -1787,7 +1822,10 @@ DHTControlImpl
 
 													if (contacts_queried.get(new HashWrapper(contact.getID())) == null && (!contacts_to_query.contains(contact)))
 													{
-														DHTLog.log("    new contact for query: " + DHTLog.getString(contact));
+														if ( DHTLog.isOn()){
+															DHTLog.log("    new contact for query: " + DHTLog.getString(contact));
+														}
+														
 														contacts_to_query.add(contact);
 														handler.found(contact);
 														level_map.put(contact, new Integer(search_level + 1));
@@ -1820,7 +1858,10 @@ DHTControlImpl
 									}
 
 									public void findValueReply(DHTTransportContact contact, DHTTransportValue[] values, byte diversification_type, boolean more_to_come) {
-										DHTLog.log("findValueReply: " + DHTLog.getString(values) + ",mtc=" + more_to_come + ", dt=" + diversification_type);
+										if ( DHTLog.isOn()){
+											DHTLog.log("findValueReply: " + DHTLog.getString(values) + ",mtc=" + more_to_come + ", dt=" + diversification_type);
+										}
+										
 										try
 										{
 											if (!key_blocked && diversification_type != DHT.DT_NONE){
@@ -1900,7 +1941,10 @@ DHTControlImpl
 											// a contact failure (just packet loss)
 											if (!value_reply_received)
 											{
-												DHTLog.log("findNode/findValue " + DHTLog.getString(target_contact) + " -> failed: " + error.getMessage());
+												if ( DHTLog.isOn()){
+													DHTLog.log("findNode/findValue " + DHTLog.getString(target_contact) + " -> failed: " + error.getMessage());
+												}
+												
 												router.contactDead(target_contact.getID(), false);
 											}
 										} finally
@@ -1976,7 +2020,9 @@ DHTControlImpl
 	pingRequest(
 		DHTTransportContact originating_contact )
 	{
-		DHTLog.log( "pingRequest from " + DHTLog.getString( originating_contact.getID()));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "pingRequest from " + DHTLog.getString( originating_contact.getID()));
+		}
 			
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	}
@@ -1987,7 +2033,9 @@ DHTControlImpl
 		byte[]				request,
 		byte[]				sig )
 	{
-		DHTLog.log( "keyBlockRequest from " + DHTLog.getString( originating_contact.getID()));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "keyBlockRequest from " + DHTLog.getString( originating_contact.getID()));
+		}
 			
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 		
@@ -2002,8 +2050,11 @@ DHTControlImpl
 	{
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 		
-		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact )+ ", keys = " + keys.length );
-
+		if ( DHTLog.isOn()){
+		
+			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact )+ ", keys = " + keys.length );
+		}
+		
 		byte[]	diverse_res = new byte[ keys.length];
 
 		Arrays.fill( diverse_res, DHT.DT_NONE );
@@ -2025,7 +2076,9 @@ DHTControlImpl
 			
 			DHTTransportValue[]	values 	= value_sets[i];
 		
-			DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
+			if ( DHTLog.isOn()){
+				DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
+			}
 			
 			diverse_res[i] = database.store( originating_contact, key, values );
 			
@@ -2053,8 +2106,10 @@ DHTControlImpl
 		DHTTransportContact originating_contact, 
 		byte[]				id )
 	{
-		DHTLog.log( "findNodeRequest from " + DHTLog.getString( originating_contact.getID()));
-
+		if ( DHTLog.isOn()){
+			DHTLog.log( "findNodeRequest from " + DHTLog.getString( originating_contact.getID()));
+		}
+		
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
 		List	l;
@@ -2089,7 +2144,9 @@ DHTControlImpl
 		int					max_values,
 		byte				flags )
 	{
-		DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
+		if ( DHTLog.isOn()){
+			DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
+		}
 		
 		DHTDBLookupResult	result	= database.get( originating_contact, new HashWrapper( key ), max_values, flags, true );
 					
@@ -2132,8 +2189,10 @@ DHTControlImpl
 					pingReply(
 						DHTTransportContact _contact )
 					{
-						DHTLog.log( "ping OK " + DHTLog.getString( _contact ));
-											
+						if ( DHTLog.isOn()){
+							DHTLog.log( "ping OK " + DHTLog.getString( _contact ));
+						}
+						
 						router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 					}	
 					
@@ -2142,7 +2201,9 @@ DHTControlImpl
 						DHTTransportContact 	_contact,
 						Throwable				_error )
 					{
-						DHTLog.log( "ping " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+						if ( DHTLog.isOn()){
+							DHTLog.log( "ping " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+						}
 									
 						router.contactDead( _contact.getID(), false );
 					}
@@ -2342,7 +2403,9 @@ DHTControlImpl
 												// in getting values from us, they need to get them from nodes 'near' to the 
 												// diversification targets or the originator
 											
-											DHTLog.log( "add store ok" );
+											if ( DHTLog.isOn()){
+												DHTLog.log( "add store ok" );
+											}
 											
 											router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 										}	
@@ -2354,7 +2417,9 @@ DHTControlImpl
 										{
 											// System.out.println( "nodeAdded: store Failed" );
 
-											DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+											if ( DHTLog.isOn()){
+												DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+											}
 																					
 											router.contactDead( _contact.getID(), false);
 										}
@@ -2380,7 +2445,9 @@ DHTControlImpl
 						{
 							// System.out.println( "nodeAdded: pre-store findNode Failed" );
 
-							DHTLog.log( "pre-store findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+							if ( DHTLog.isOn()){
+								DHTLog.log( "pre-store findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+							}
 																	
 							router.contactDead( _contact.getID(), false);
 						}
@@ -2439,7 +2506,9 @@ DHTControlImpl
 										keyBlockReply(
 											DHTTransportContact 	_contact )
 										{
-											DHTLog.log( "key block forward ok " + DHTLog.getString( _contact ));
+											if ( DHTLog.isOn()){
+												DHTLog.log( "key block forward ok " + DHTLog.getString( _contact ));
+											}
 											
 											key_block.sentTo( _contact );
 										}
@@ -2449,7 +2518,9 @@ DHTControlImpl
 											DHTTransportContact 	_contact,
 											Throwable				_error )
 										{
-											DHTLog.log( "key block forward failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+											if ( DHTLog.isOn()){
+												DHTLog.log( "key block forward failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+											}
 										}
 									},
 									key_block.getRequest(),
@@ -2480,7 +2551,9 @@ DHTControlImpl
 								{
 									// System.out.println( "nodeAdded: pre-store findNode Failed" );
 
-									DHTLog.log( "pre-kb findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+									if ( DHTLog.isOn()){
+										DHTLog.log( "pre-kb findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+									}
 																			
 									router.contactDead( _contact.getID(), false);
 								}
@@ -3216,6 +3289,27 @@ DHTControlImpl
 		{
 			dt		= _dt;
 			values	= _values;
+			
+			boolean	copied = false;
+			
+			for (int i=0;i<values.length;i++){
+				
+				DHTTransportValue	value = values[i];
+				
+				if ( ( value.getFlags() & DHT.FLAG_ANON ) != 0 ){
+					
+					if ( !copied ){
+						
+						values = new DHTTransportValue[ _values.length ];
+						
+						System.arraycopy( _values, 0, values, 0, values.length );
+						
+						copied = true;
+					}
+					
+					values[i] = new anonValue( value );
+				}
+			}
 		}
 		
 		protected
@@ -3274,6 +3368,275 @@ DHTControlImpl
 		getBlockedSignature()
 		{
 			return( blocked_sig );
+		}
+	}
+	
+	protected static class
+	anonValue
+		implements DHTTransportValue
+	{
+		private DHTTransportValue delegate;
+		
+		protected
+		anonValue(
+			DHTTransportValue		v )
+		{
+			delegate = v;
+		}
+		
+		public boolean
+		isLocal()
+		{
+			return( delegate.isLocal());
+		}
+		
+		public long
+		getCreationTime()
+		{
+			return( delegate.getCreationTime());
+		}
+		
+		public byte[]
+		getValue()
+		{
+			return( delegate.getValue());
+		}
+		
+		public int
+		getVersion()
+		{
+			return( delegate.getVersion());
+		}
+		
+		public DHTTransportContact
+		getOriginator()
+		{
+			return( new anonContact( delegate.getOriginator()));
+		}
+		
+		public int
+		getFlags()
+		{
+			return( delegate.getFlags());
+		}
+		
+		public String
+		getString()
+		{
+			return( delegate.getString());
+		}
+	}
+	
+	protected static class
+	anonContact
+		implements DHTTransportContact
+	{
+		private static InetSocketAddress anon_address;
+		
+		static{
+			try{
+				anon_address = new InetSocketAddress( InetAddress.getByName( "0.0.0.0" ), 0);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		private DHTTransportContact	delegate;
+		
+		protected
+		anonContact(
+			DHTTransportContact		c )
+		{
+			delegate = c;
+		}
+		
+		public int
+		getMaxFailForLiveCount()
+		{
+			return( delegate.getMaxFailForLiveCount());
+		}
+		
+		public int
+		getMaxFailForUnknownCount()
+		{
+			return( delegate.getMaxFailForUnknownCount());	
+		}
+		
+		public int
+		getInstanceID()
+		{
+			return( delegate.getInstanceID());	
+		}
+		
+		public byte[]
+		getID()
+		{
+			Debug.out( "hmm" );
+			
+			return( delegate.getID());	
+		}
+		
+		public byte
+		getProtocolVersion()
+		{
+			return( delegate.getProtocolVersion());
+		}
+		
+		public long
+		getClockSkew()
+		{
+			return( delegate.getClockSkew());	
+		}
+		
+		public void
+		setRandomID(
+			int	id )
+		{
+			delegate.setRandomID( id );
+		}
+		
+		public int
+		getRandomID()
+		{
+			return( delegate.getRandomID());
+		}
+		
+		public String
+		getName()
+		{
+			return( delegate.getName());
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			return( anon_address );
+		}
+		
+		public InetSocketAddress
+		getExternalAddress()
+		{
+			return( getAddress());
+		}
+		
+		public boolean
+		isAlive(
+			long		timeout )
+		{
+			return( delegate.isAlive( timeout ));
+		}
+
+		public boolean
+		isValid()
+		{
+			return( delegate.isValid());
+		}
+		
+		public void
+		sendPing(
+			DHTTransportReplyHandler	handler )
+		{
+			delegate.sendPing(handler);
+		}
+		
+		public void
+		sendImmediatePing(
+			DHTTransportReplyHandler	handler,
+			long						timeout )
+		{
+			delegate.sendImmediatePing(handler, timeout);
+		}
+
+		public void
+		sendStats(
+			DHTTransportReplyHandler	handler )
+		{
+			delegate.sendStats(handler);
+		}
+		
+		public void
+		sendStore(
+			DHTTransportReplyHandler	handler,
+			byte[][]					keys,
+			DHTTransportValue[][]		value_sets,
+			boolean						immediate )
+		{
+			delegate.sendStore(handler, keys, value_sets, immediate);
+		}
+		
+		public void
+		sendFindNode(
+			DHTTransportReplyHandler	handler,
+			byte[]						id )
+		{
+			delegate.sendFindNode(handler, id);
+		}
+			
+		public void
+		sendFindValue(
+			DHTTransportReplyHandler	handler,
+			byte[]						key,
+			int							max_values,
+			byte						flags )
+		{
+			delegate.sendFindValue(handler, key, max_values, flags);
+		}
+			
+		public void
+		sendKeyBlock(
+			DHTTransportReplyHandler	handler,
+			byte[]						key_block_request,
+			byte[]						key_block_signature )
+		{
+			delegate.sendKeyBlock(handler, key_block_request, key_block_signature);
+		}
+
+		public DHTTransportFullStats
+		getStats()
+		{
+			return( delegate.getStats());
+		}
+		
+		public void
+		exportContact(
+			DataOutputStream	os )
+		
+			throws IOException, DHTTransportException
+		{
+			delegate.exportContact( os );
+		}
+		
+		public void
+		remove()
+		{
+			delegate.remove();
+		}
+		
+		public DHTNetworkPosition[]
+		getNetworkPositions()
+		{
+			return( delegate.getNetworkPositions());
+		}
+		
+		public DHTNetworkPosition
+		getNetworkPosition(
+			byte	position_type )
+		{
+			return( delegate.getNetworkPosition( position_type ));
+		}
+
+		public DHTTransport
+		getTransport()
+		{
+			return( delegate.getTransport());
+		}
+		
+		public String
+		getString()
+		{
+			return( delegate.getString());
 		}
 	}
 	

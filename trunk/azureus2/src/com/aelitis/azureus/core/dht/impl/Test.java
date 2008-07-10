@@ -43,6 +43,7 @@ import java.security.spec.RSAPrivateKeySpec;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -403,7 +404,7 @@ Test
 										DHTTransportContact	contact,
 										DHTTransportValue	value )
 									{
-										System.out.println( "-> " + new String(value.getValue()));
+										System.out.println( "-> " + getString( value ));
 									}
 																	
 									public void
@@ -431,7 +432,7 @@ Test
 										DHTTransportContact	contact,
 										DHTTransportValue	value )
 									{
-										System.out.println( "-> " + new String(value.getValue()) + ", flags=" + value.getFlags());
+										System.out.println( "-> " + getString( value ));
 										
 										try{
 											DHTStorageKeyStats	stats = f_dht.getStorageAdapter().deserialiseStats( new DataInputStream( new ByteArrayInputStream( value.getValue())));
@@ -869,6 +870,15 @@ Test
 			
 			e.printStackTrace();
 		}
+	}
+	
+	protected String
+	getString(
+		DHTTransportValue		value )
+	{
+		return( new String( value.getValue()) + 
+				"; flags=" + Integer.parseInt(String.valueOf( value.getFlags()), 16 ) +
+				", orig=" + value.getOriginator().getAddress());
 	}
 	
 	protected void

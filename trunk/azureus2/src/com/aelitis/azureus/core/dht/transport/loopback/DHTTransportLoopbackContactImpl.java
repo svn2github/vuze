@@ -118,6 +118,12 @@ DHTTransportLoopbackContactImpl
 		return( null );
 	}
 	
+	public InetSocketAddress 
+	getExternalAddress() 
+	{
+		return null;
+	}
+	
 	public boolean
 	isAlive(
 		long		timeout )

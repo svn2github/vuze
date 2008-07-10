@@ -41,7 +41,9 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_2400					= 13;	
 	public static final byte PROTOCOL_VERSION_2402					= 14;	
 	public static final byte PROTOCOL_VERSION_2500					= 15;	
-	
+	public static final byte PROTOCOL_VERSION_2502					= 16;	
+	public static final byte PROTOCOL_VERSION_3111					= 17;	
+
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2402;
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -62,6 +64,7 @@ DHTTransportUDP
 
 	public static final byte PROTOCOL_VERSION_GENERIC_NETPOS		= 15;
 	public static final byte PROTOCOL_VERSION_VIVALDI_FINDVALUE		= 16;
+	public static final byte PROTOCOL_VERSION_ANON_VALUES			= 17;
 
 	
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation
@@ -71,9 +74,10 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VIVALDI_FINDVALUE;	
+		// current versions
 	
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_VIVALDI_FINDVALUE;
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_ANON_VALUES;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_ANON_VALUES;
 
 	public static final byte VENDOR_ID_AELITIS		= 0x00;
 	public static final byte VENDOR_ID_ShareNET		= 0x01;			// http://www.sharep2p.net/

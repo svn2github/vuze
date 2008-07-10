@@ -66,6 +66,9 @@ DHTTransportContact
 	public InetSocketAddress
 	getAddress();
 	
+	public InetSocketAddress
+	getExternalAddress();
+	
 	public boolean
 	isAlive(
 		long		timeout );
