@@ -408,7 +408,7 @@ public class ManagerUtils {
 					if (!f.isSilent()) {
 						Alerts.showErrorMessageBoxUsingResourceString(new Object[] {
 							dm
-						}, "globalmanager.download.remove.veto", f);
+						}, "globalmanager.download.remove.veto", f, 0 );
 					}
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();

@@ -46,6 +46,9 @@ public class LogAlert {
 	/** A list of events that this entry is related to */
 	public Object[] relatedTo;
 
+		// -1 -> default
+	public int	timeoutSecs	= -1;
+	
 	/**
 	 * @param type
 	 * @param text
@@ -57,6 +60,19 @@ public class LogAlert {
 		this.repeatable = repeatable;
 	}
 
+	/**
+	 * @param type
+	 * @param text
+	 * @param repeatable
+	 * @param timeoutSecs  -1 -> use defaults 0 -> no timeout
+	 */
+	public LogAlert(boolean repeatable, int type, String text, int timeoutSecs) {
+		entryType = type;
+		this.text = text;
+		this.repeatable = repeatable;
+		this.timeoutSecs = timeoutSecs;
+	}
+	
 	public LogAlert(Object[] relatedTo, boolean repeatable, int type, String text) {
 		this(repeatable, type, text);
 		this.relatedTo = relatedTo;

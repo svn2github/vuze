@@ -66,19 +66,19 @@ public class Alerts
 	private Alerts() {
 	}
 
-	private static void showWarningMessageBox(Object[] relatedTo, String message) {
+	private static void showWarningMessageBox(Object[] relatedTo, String message, int timeoutSecs) {
 		showMessageBoxUsingResourceString(relatedTo, SWT.ICON_WARNING,
-				"AlertMessageBox.warning", message);
+				"AlertMessageBox.warning", message, timeoutSecs);
 	}
 
 	private static void showMessageBoxUsingResourceString(Object[] relatedTo,
-			int type, String key, String message) {
-		showMessageBox(relatedTo, type, MessageText.getString(key), message, null);
+			int type, String key, String message, int timeoutSecs ) {
+		showMessageBox(relatedTo, type, MessageText.getString(key), message, null, timeoutSecs );
 	}
 
 	// All ShowMessageBox* functions should end up here..
 	private static void showMessageBox(Object[] relatedTo, final int type,
-			String title, String message, String details) {
+			String title, String message, String details, int timeoutSecs ) {
 		final Display display = SWTThread.getInstance().getDisplay();
 
 		if (stopping || display.isDisposed()) {
@@ -93,9 +93,9 @@ public class Alerts
 
 				alert_map.put("type", new Long(type));
 				alert_map.put("title", title);
-
 				alert_map.put("message", message);
-
+				alert_map.put("timeout", new Long( timeoutSecs));
+				
 				if (details != null) {
 					alert_map.put("details", details);
 				}
@@ -130,7 +130,7 @@ public class Alerts
 
 		// We'll add the message to the list and then force it to be displayed if necessary.
 		MessageSlideShell.recordMessage(type, title, message2 == null ? ""
-				: message2, details, relatedTo);
+				: message2, details, relatedTo, timeoutSecs );
 
 		
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
@@ -214,26 +214,26 @@ public class Alerts
 	} // end method
 
 	public static void showErrorMessageBoxUsingResourceString(Object[] relatedTo,
-			String title_key, Throwable error) {
-		showErrorMessageBox(relatedTo, MessageText.getString(title_key), error);
+			String title_key, Throwable error, int timeoutSecs ) {
+		showErrorMessageBox(relatedTo, MessageText.getString(title_key), error, timeoutSecs );
 	}
 
 	private static void showErrorMessageBox(Object[] relatedTo, String message,
-			Throwable error) {
+			Throwable error, int timeoutSecs ) {
 		String error_message = Debug.getStackTrace(error);
 		showMessageBox(relatedTo, SWT.ICON_ERROR,
 				MessageText.getString("AlertMessageBox.error"), message + "\n"
-						+ Debug.getExceptionMessage(error), error_message);
+						+ Debug.getExceptionMessage(error), error_message, timeoutSecs );
 	}
 
-	private static void showErrorMessageBox(Object[] relatedTo, String message) {
+	private static void showErrorMessageBox(Object[] relatedTo, String message, int timeoutSecs ) {
 		showMessageBoxUsingResourceString(relatedTo, SWT.ICON_ERROR,
-				"AlertMessageBox.error", message);
+				"AlertMessageBox.error", message, timeoutSecs );
 	}
 
-	private static void showCommentMessageBox(Object[] relatedTo, String message) {
+	private static void showCommentMessageBox(Object[] relatedTo, String message, int timeoutSecs) {
 		showMessageBoxUsingResourceString(relatedTo, SWT.ICON_INFORMATION,
-				"AlertMessageBox.information", message);
+				"AlertMessageBox.information", message, timeoutSecs );
 	}
 
 	/**
@@ -264,15 +264,15 @@ public class Alerts
 
 		if (alert.err == null) {
 			if (alert.entryType == LogAlert.AT_INFORMATION) {
-				showCommentMessageBox(alert.relatedTo, alert.text);
+				showCommentMessageBox(alert.relatedTo, alert.text, alert.timeoutSecs );
 			} else if (alert.entryType == LogAlert.AT_WARNING) {
-				showWarningMessageBox(alert.relatedTo, alert.text);
+				showWarningMessageBox(alert.relatedTo, alert.text, alert.timeoutSecs );
 			} else {
-				showErrorMessageBox(alert.relatedTo, alert.text);
+				showErrorMessageBox(alert.relatedTo, alert.text, alert.timeoutSecs );
 			}
 
 		} else {
-			showErrorMessageBox(alert.relatedTo, alert.text, alert.err);
+			showErrorMessageBox(alert.relatedTo, alert.text, alert.err, alert.timeoutSecs );
 		}
 
 	}
@@ -309,10 +309,17 @@ public class Alerts
 
 								byte[] details = (byte[]) alert_map.get("details");
 
-								showMessageBox(null, ((Long) alert_map.get("type")).intValue(),
-										new String((byte[]) alert_map.get("title")), intro
-												+ new String((byte[]) alert_map.get("message")),
-										details == null ? null : new String(details));
+								Long	l_timeout = (Long)alert_map.get( "timeout" );
+								
+								int timeout = l_timeout==null?-1:l_timeout.intValue();
+								
+								showMessageBox(
+									null, 
+									((Long) alert_map.get("type")).intValue(),
+									new String((byte[]) alert_map.get("title")), 
+									intro + new String((byte[]) alert_map.get("message")),
+									details == null ? null : new String(details),
+									timeout);
 
 							} catch (Throwable e) {
 

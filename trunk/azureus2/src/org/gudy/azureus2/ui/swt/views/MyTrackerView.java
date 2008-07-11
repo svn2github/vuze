@@ -418,8 +418,8 @@ public class MyTrackerView
       	}catch( TRHostTorrentRemovalVetoException f ){
       		
       		Alerts.showErrorMessageBoxUsingResourceString(
-							new Object[] { torrent },
-      				"globalmanager.download.remove.veto", f );
+					new Object[] { torrent },
+      				"globalmanager.download.remove.veto", f, 0 );
       	}
       }
     });

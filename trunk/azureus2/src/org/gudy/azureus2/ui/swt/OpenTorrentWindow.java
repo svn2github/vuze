@@ -1980,7 +1980,7 @@ public class OpenTorrentWindow
 									"OpenTorrentWindow.mb.openError", "", new String[] {
 										sOriginatingLocation,
 										"Not a File"
-									});
+									}, -1 );
 						else
 							Utils.openMessageBox(shell, SWT.OK,
 									"OpenTorrentWindow.mb.openError", new String[] {
@@ -2025,7 +2025,7 @@ public class OpenTorrentWindow
 								new String[] {
 									sOriginatingLocation,
 									e.getMessage()
-								});
+								}, -1 );
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.openError", new String[] {
@@ -2093,7 +2093,7 @@ public class OpenTorrentWindow
 									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								}, new Object[] {
 									fExistingDownload
-								}, true);
+								}, -1 );
 					else
 						Utils.openMessageBox(shell, SWT.OK, MSG_ALREADY_EXISTS,
 								new String[] {
@@ -2254,7 +2254,7 @@ public class OpenTorrentWindow
 							new String[] {
 								info.sOriginatingLocation,
 								e.getMessage()
-							});
+							}, -1 );
 				else
 					Utils.openMessageBox(shell, SWT.OK, "OpenTorrentWindow.mb.openError",
 							new String[] {

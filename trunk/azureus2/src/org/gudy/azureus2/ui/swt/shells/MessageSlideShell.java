@@ -135,9 +135,6 @@ public class MessageSlideShell
 
 	private Image imgPopup;
 
-	/** Forces the timer feature to be active; overriding the default behavior */
-	private boolean forceTimer = true;
-
 	protected Color colorURL;
 
 	private Color colorFG;
@@ -157,16 +154,9 @@ public class MessageSlideShell
 	 * @note Display moved to end to remove conflict in constructors
 	 */
 	public MessageSlideShell(Display display, int iconID, String keyPrefix,
-			String details, String[] textParams) {
+			String details, String[] textParams, int timeoutSecs ) {
 		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
-				MessageText.getString(keyPrefix + ".text", textParams), details);
-	}
-
-	public MessageSlideShell(Display display, int iconID, String keyPrefix,
-			String details, String[] textParams, Object[] relatedObjects) {
-		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
-				MessageText.getString(keyPrefix + ".text", textParams), details,
-				relatedObjects, false);
+				MessageText.getString(keyPrefix + ".text", textParams), details, timeoutSecs);
 	}
 
 	/**
@@ -177,19 +167,19 @@ public class MessageSlideShell
 	 * @param details
 	 * @param textParams
 	 * @param relatedObjects
-	 * @param forceTimer Forces the timer feature to be active; overriding the default logic
+	 * @param timeoutSecs = -1 -> use default timeout, 0 -> no timeout, other -> timeout in secs 
 	 */
 	public MessageSlideShell(Display display, int iconID, String keyPrefix,
 			String details, String[] textParams, Object[] relatedObjects,
-			boolean forceTimer) {
+			int timeoutSecs ) {
 		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
 				MessageText.getString(keyPrefix + ".text", textParams), details,
-				relatedObjects, forceTimer);
+				relatedObjects, timeoutSecs);
 	}
 
 	public MessageSlideShell(Display display, int iconID, String title,
-			String text, String details) {
-		this(display, iconID, title, text, details, null, false);
+			String text, String details, int timeoutSecs) {
+		this(display, iconID, title, text, details, null, timeoutSecs);
 	}
 
 	/**
@@ -201,17 +191,15 @@ public class MessageSlideShell
 	 * @param text Text to put in the body
 	 * @param details Text displayed when the Details button is pressed.  Null
 	 *                 for disabled Details button.
-	 * @param forceTimer Forces the timer feature to be active; overriding the default logic
+	 * @param timeoutSecs = -1 -> use default timeout, 0 -> no timeout, other -> timeout in secs 
 	 */
 	public MessageSlideShell(Display display, int iconID, String title,
-			String text, String details, Object[] relatedObjects, boolean forceTimer) {
+			String text, String details, Object[] relatedObjects, int timeoutSecs ) {
 		try {
 			monitor.enter();
 
-			this.forceTimer = forceTimer;
-
 			PopupParams popupParams = new PopupParams(iconID, title, text, details,
-					relatedObjects);
+					relatedObjects, timeoutSecs );
 			historyList.add(popupParams);
 			if (currentPopupIndex < 0) {
 				create(display, popupParams, true);
@@ -255,10 +243,10 @@ public class MessageSlideShell
 	 * @param relatedTo 
 	 */
 	public static void recordMessage(int iconID, String title, String text,
-			String details, Object[] relatedTo) {
+			String details, Object[] relatedTo, int timeoutSecs ) {
 		try {
 			monitor.enter();
-			historyList.add(new PopupParams(iconID, title, text, details, relatedTo));
+			historyList.add(new PopupParams(iconID, title, text, details, relatedTo, timeoutSecs));
 			if (firstUnreadMessage == -1) {
 				firstUnreadMessage = historyList.size() - 1;
 			}
@@ -344,14 +332,11 @@ public class MessageSlideShell
 		 * If forceTimer is true then we always show the counter for auto-closing the shell;
 		 * otherwise proceed to the more fine-grained logic
 		 */
-		if (true == forceTimer) {
-			bDelayPaused = false;
-		} else {
 			// if there's a link, or the info is non-information,
 			// disable timer and mouse watching
-			bDelayPaused = UrlUtils.parseHTMLforURL(popupParams.text) != null
-					|| popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
-		}
+
+		bDelayPaused = popupParams.iconID != SWT.ICON_INFORMATION || !bSlide;
+
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
 		final MouseTrackAdapter mouseAdapter = bDelayPaused ? null
@@ -766,7 +751,18 @@ public class MessageSlideShell
 			}
 		}
 
-		runPopup(endBounds, idxHistory, bSlide);
+		int	timeoutSecs;
+		
+		if ( popupParams.timeoutSecs < 0 ){
+		
+			timeoutSecs = COConfigurationManager.getIntParameter("Message Popup Autoclose in Seconds");
+			
+		}else{
+			
+			timeoutSecs = popupParams.timeoutSecs;
+		}
+		
+		runPopup(endBounds, idxHistory, bSlide, timeoutSecs );
 	}
 
 	/**
@@ -948,7 +944,7 @@ public class MessageSlideShell
 	 * @param bSlide Whether to slide in, or show immediately
 	 */
 	private void runPopup(final Rectangle endBounds, final int idx,
-			final boolean bSlide) {
+			final boolean bSlide, final int timeoutSecs ) {
 		if (shell == null || shell.isDisposed())
 			return;
 
@@ -976,7 +972,7 @@ public class MessageSlideShell
 					});
 				}
 
-				int delayLeft = COConfigurationManager.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
+				int delayLeft = timeoutSecs * 1000;
 				final boolean autohide = (delayLeft != 0);
 
 				long lastDelaySecs = 0;
@@ -1108,17 +1104,20 @@ public class MessageSlideShell
 
 		Object[] relatedTo;
 
+		int	timeoutSecs;
+		
 		/**
 		 * @param iconID
 		 * @param title
 		 * @param text
 		 * @param details
 		 */
-		public PopupParams(int iconID, String title, String text, String details) {
+		public PopupParams(int iconID, String title, String text, String details, int timeoutSecs ) {
 			this.iconID = iconID;
 			this.title = title;
 			this.text = text;
 			this.details = details;
+			this.timeoutSecs = timeoutSecs;
 			addedOn = System.currentTimeMillis();
 		}
 
@@ -1130,8 +1129,8 @@ public class MessageSlideShell
 		 * @param relatedTo
 		 */
 		public PopupParams(int iconID, String title, String text, String details,
-				Object[] relatedTo) {
-			this(iconID, title, text, details);
+				Object[] relatedTo, int timeoutSecs ) {
+			this(iconID, title, text, details, timeoutSecs );
 			this.relatedTo = relatedTo;
 		}
 	}
@@ -1187,24 +1186,24 @@ public class MessageSlideShell
 		//				MessagePopupShell.ICON_INFO, "Title", text, "Details");
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION,
-				"Simple. . . . . . . . . . . . . . . . . . .", "Simple", (String) null);
+				"Simple. . . . . . . . . . . . . . . . . . .", "Simple", (String) null, -1);
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, title + "1", text,
-				"Details: " + text);
+				"Details: " + text, -1);
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle2",
-				"ShortText", "Details");
+				"ShortText", "Details", -1);
 		MessageSlideShell.waitUntilClosed();
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle3",
-				"ShortText", (String) null);
+				"ShortText", (String) null, -1);
 		for (int x = 0; x < 10; x++)
 			text += "\n\n\n\n\n\n\n\nWow";
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, title + "4", text,
-				"Details");
+				"Details", -1);
 
 		new MessageSlideShell(display, SWT.ICON_ERROR, title + "5", text,
-				(String) null);
+				(String) null, -1);
 
 		MessageSlideShell.waitUntilClosed();
 	}

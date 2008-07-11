@@ -609,7 +609,7 @@ CoreUpdateChecker
 		
 						  plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
 		
-						  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text));
+						  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text, 0 ));
 						  
 						  completed = true;
 					  }
