@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -59,28 +60,12 @@ public class ViewUpSpeedGraph
 
 	SpeedGraphic upSpeedGraphic;
 
+	TimerEventPeriodic	timerEvent;
+	
 	public ViewUpSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
 		this.totalStats = StatsFactory.getStats();
-		
-		SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				periodicUpdate();
-			}
-		});
-	}
-
-	public void periodicUpdate() {
-
-		int swarms_peer_speed = (int) stats.getTotalSwarmsPeerRate(true, false);
-
-		upSpeedGraphic.addIntsValue(new int[] {
-			stats.getDataSendRate() + stats.getProtocolSendRate(),
-			stats.getProtocolSendRate(),
-			COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter(manager)) * 1024,
-			swarms_peer_speed
-		});
 	}
 
 	public void initialize(Composite composite) {
@@ -92,6 +77,28 @@ public class ViewUpSpeedGraph
 		upSpeedGraphic = SpeedGraphic.getInstance();
 		upSpeedGraphic.initialize(upSpeedCanvas);
 		//upSpeedGraphic.setAutoAlpha(true);
+		
+		timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				if ( upSpeedCanvas.isDisposed()){
+					timerEvent.cancel();
+				}else{
+					periodicUpdate();
+				}
+			}
+		});
+	}
+	
+	public void periodicUpdate() {
+
+		int swarms_peer_speed = (int) stats.getTotalSwarmsPeerRate(true, false);
+
+		upSpeedGraphic.addIntsValue(new int[] {
+			stats.getDataSendRate() + stats.getProtocolSendRate(),
+			stats.getProtocolSendRate(),
+			COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter(manager)) * 1024,
+			swarms_peer_speed
+		});
 	}
 
 	public void delete() {
