@@ -93,7 +93,7 @@ public class Browse
 		viewIndicator = new ViewIndicator() {
 			public String getStringProperty(int propertyID) {
 				if (propertyID == VIEWINDICATOR_TEXT) {
-					return browserSkinObject.isPageLoading() ? "*" : null;
+					return browserSkinObject.isPageLoading() ? "Loading..." : null;
 				}
 				return null;
 			}
