@@ -31,9 +31,11 @@ import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -495,7 +497,10 @@ DHTUDPUtils
 				public String
 				getString()
 				{
-					return( new String(getValue()));
+					long	now = SystemTime.getCurrentTime();
+					
+					return( DHTLog.getString( value_bytes ) + " - " + new String(value_bytes) + "{v=" + version + ",f=" + 
+							Integer.toHexString(flags) +",ca=" + (now - created ) + ",or=" + originator.getString() +"}" );
 				}
 			};
 			
