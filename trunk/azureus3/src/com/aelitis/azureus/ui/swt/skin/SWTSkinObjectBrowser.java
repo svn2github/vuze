@@ -213,4 +213,8 @@ public class SWTSkinObjectBrowser
 			browser.setData("StartURL", url);
 		}
 	}
+	
+	public boolean isPageLoading() {
+		return context == null ? false : context.isPageLoading();
+	}
 }

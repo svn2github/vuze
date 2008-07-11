@@ -72,7 +72,7 @@ public class BrowserContext
 	private TimerEventPeriodic checkURLEvent;
 
 	private Control widgetWaitIndicator;
-
+	
 	private MessageDispatcherSWT messageDispatcherSWT;
 
 	protected boolean wiggleBrowser = org.gudy.azureus2.core3.util.Constants.isOSX;
@@ -137,6 +137,7 @@ public class BrowserContext
 
 		final TimerEventPerformer hideIndicatorPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
+				pageLoading = false;
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
@@ -175,6 +176,7 @@ public class BrowserContext
 		if (forceVisibleAfterLoad) {
 			browser.setVisible(false);
 		}
+		pageLoading = false;
 		if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 			widgetWaitIndicator.setVisible(false);
 		}
@@ -283,6 +285,7 @@ public class BrowserContext
 					timerevent.cancel();
 				}
 				checkURLEventPerformer.perform(null);
+				pageLoading = false;
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					widgetWaitIndicator.setVisible(false);
 				}
@@ -325,6 +328,7 @@ public class BrowserContext
 							"Tried to open " + event.location + " but it's blocked");
 					browser.back();
 				} else {
+					pageLoading = true;
 					if(event.top) {
 						lastValidURL = event.location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
@@ -570,5 +574,9 @@ public class BrowserContext
 
 	public void setWiggleBrowser(boolean wiggleBrowser) {
 		this.wiggleBrowser = wiggleBrowser;
+	}
+
+	public boolean isPageLoading() {
+		return pageLoading;
 	}
 }
