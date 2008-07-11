@@ -25,36 +25,37 @@ import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.ConfigShell;
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.*;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicator;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.views.skin.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author TuxPaper
@@ -275,6 +276,24 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#openManagerView(org.gudy.azureus2.core3.download.DownloadManager)
 	public void openManagerView(DownloadManager dm) {
 		try {
+
+			String id = "ManagerView-";
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent != null) {
+				id += torrent.getHashWrapper().toBase32String();
+			}
+
+			if (createSideBarItem(id, dm.getDisplayName(), ManagerView.class,
+					new Class[] {
+						AzureusCore.class,
+						DownloadManager.class
+					}, new Object[] {
+						AzureusCoreFactory.getSingleton(),
+						dm
+					})) {
+				return;
+			}
+
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
 			if (uiFunctions == null) {
 				return;
@@ -288,15 +307,45 @@ public class UIFunctionsImpl
 		}
 
 	}
+	
+	private boolean createSideBarItem(String id, String title, Class iviewClass,
+			Class[] iviewClassArgs, Object[] iviewClassVals) {
+		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+		if (sideBarView instanceof SideBar) {
+			SideBar sideBar = (SideBar) sideBarView;
+
+			TreeItem treeItem = sideBar.createTreeItem(id, title, iviewClass,
+					iviewClassArgs, iviewClassVals, null);
+
+			if (treeItem != null) {
+				treeItem.getParent().select(treeItem);
+				treeItem.getParent().showItem(treeItem);
+				sideBar.itemSelected(treeItem);
+
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.views.AbstractIView, java.lang.String)
 	public void openPluginView(AbstractIView view, String name) {
 		try {
+			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+			if (sideBarView instanceof SideBar) {
+				SideBar sideBar = (SideBar) sideBarView;
+
+				if (sideBar.createAndShowTreeItem(view) != null) {
+					return;
+				}
+			}
+
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
 			if (uiFunctions == null) {
 				return;
 			}
-
+			
 			mainWindow.switchToAdvancedTab();
 			uiFunctions.openPluginView(view, name);
 
@@ -327,6 +376,15 @@ public class UIFunctionsImpl
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {
 		try {
+			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+			if (sideBarView instanceof SideBar) {
+				SideBar sideBar = (SideBar) sideBarView;
+
+				if (sideBar.showItemByID(sViewID)) {
+					return;
+				}
+			}
+
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
 			if (uiFunctions == null) {
 				return;

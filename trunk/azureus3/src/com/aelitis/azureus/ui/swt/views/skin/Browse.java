@@ -40,6 +40,8 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicator;
+import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicatorManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -63,6 +65,8 @@ public class Browse
 
 	private SWTSkinObject soMain;
 
+	private ViewIndicator viewIndicator;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
@@ -85,6 +89,22 @@ public class Browse
 			}
 		});
 		SelectedContentManager.changeCurrentlySelectedContent("browse", null);
+		
+		viewIndicator = new ViewIndicator() {
+			public String getStringProperty(int propertyID) {
+				if (propertyID == VIEWINDICATOR_TEXT) {
+					return browserSkinObject.isPageLoading() ? "*" : null;
+				}
+				return null;
+			}
+		
+			public Object getObjectProperty(int propertyID) {
+				if (propertyID == VIEWINDICATOR_SKINVIEW) {
+					return Browse.this;
+				}
+				return null;
+			}
+		};
 
 		Browser browser = browserSkinObject.getBrowser();
 		browser.addTitleListener(new TitleListener() {
@@ -99,11 +119,13 @@ public class Browse
 
 		browser.addLocationListener(new LocationListener() {
 			public void changing(LocationEvent event) {
+				ViewIndicatorManager.refreshViewIndicator(viewIndicator);
 			}
 
 			public void changed(LocationEvent event) {
 				SelectedContentManager.changeCurrentlySelectedContent("browse",
 						getCurrentlySelectedContent());
+				ViewIndicatorManager.refreshViewIndicator(viewIndicator);
 			}
 		});
 

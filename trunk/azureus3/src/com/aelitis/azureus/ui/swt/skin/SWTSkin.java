@@ -1166,6 +1166,12 @@ public class SWTSkin
 		return handCursorListener;
 	}
 
+
+	public SWTSkinObject createSkinObject(String sID, String sConfigID,
+			SWTSkinObject parentSkinObject) {
+		return createSkinObject(sID, sConfigID, parentSkinObject, null);
+	}
+
 	/**
 	 * Create a skin object based off an existing config "template"
 	 *  
@@ -1176,7 +1182,7 @@ public class SWTSkin
 	 * @return new skin object
 	 */
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
-			SWTSkinObject parentSkinObject) {
+			SWTSkinObject parentSkinObject, Object creationParams) {
 		SWTSkinObject skinObject = null;
 		Cursor cursor = shell.getCursor();
 		try {
@@ -1187,6 +1193,7 @@ public class SWTSkin
 
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
 					parentSkinObject, true, true);
+			skinObject.setData("CreationParams", creationParams);
 			if (b && skinObject != null) {
 				layout();
 				Control control = skinObject.getParent().getControl();

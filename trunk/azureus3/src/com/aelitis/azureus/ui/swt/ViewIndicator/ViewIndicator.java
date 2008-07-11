@@ -30,9 +30,14 @@ public interface ViewIndicator
 	
 	public static int VIEWINDICATOR_TEXTTOOLTIP = 1;
 	
-	public static int VIEWINIDICATOR_IMAGEID = 2;
+	public static int VIEWINDICATOR_IMAGEID = 2;
 	
 	public static int VIEWINDICATOR_IMAGETOOLTIP = 3;
+
+	/**
+	 * Retreive the skin object related to this view indicator
+	 */
+	public static int VIEWINDICATOR_SKINVIEW = 4;
 
 	/**
 	 * 
@@ -42,4 +47,6 @@ public interface ViewIndicator
 	 * @since 3.1.1.1
 	 */
 	public String getStringProperty(int propertyID);
+
+	public Object getObjectProperty(int propertyID);
 }
