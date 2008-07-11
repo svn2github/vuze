@@ -80,6 +80,8 @@ public class SWTSkinObjectSash
 
 	private int belowMin = 0;
 
+	private double sashPct;
+
 	public SWTSkinObjectSash(final SWTSkin skin,
 			final SWTSkinProperties properties, final String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent,
@@ -110,16 +112,16 @@ public class SWTSkinObjectSash
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".SplitAt", -1);
 		if (splitAt >= 0) {
-			double pct = splitAt / 10000.0;
-			sash.setData("PCT", new Double(pct));
+			sashPct = splitAt / 10000.0;
+			sash.setData("PCT", new Double(sashPct));
 		} else {
 			String sPos = properties.getStringValue(sConfigID + ".startpos");
 			if (sPos != null) {
 				try {
 					long l = NumberFormat.getInstance().parse(sPos).longValue();
 					if (sPos.endsWith("%")) {
-						double pct = (double) (100 - l) / 100;
-						sash.setData("PCT", new Double(pct));
+						sashPct = (double) (100 - l) / 100;
+						sash.setData("PCT", new Double(sashPct));
 					} else {
 						sash.setData("PX", new Long(l));
 					}
@@ -238,8 +240,8 @@ public class SWTSkinObjectSash
 						try {
 							long l = NumberFormat.getInstance().parse(sPos).longValue();
 							if (sPos.endsWith("%")) {
-								double pct = (double) (100 - l) / 100;
-								sash.setData("PCT", new Double(pct));
+								sashPct = (double) (100 - l) / 100;
+								sash.setData("PCT", new Double(sashPct));
 							} else {
 								sash.setData("PX", new Long(l));
 								sash.setData("PCT", null);
@@ -301,6 +303,7 @@ public class SWTSkinObjectSash
 					}
 					Double l = new Double(d);
 					l = ensureVisibilityStates(l, above, below, isVertical);
+					sashPct = l.doubleValue();
 					sash.setData("PCT", l);
 
 					if (e.detail != SWT.DRAG) {
@@ -374,6 +377,7 @@ public class SWTSkinObjectSash
 				}
 			}
 			if (pctBelow >= 0 && pctBelow <= 1.0) {
+				sashPct = pctBelow;
 				sash.setData("PCT", new Double(pctBelow));
 			}
 			ignoreContainerAboveMin = px.longValue() < resizeContainerAboveMin;
@@ -383,6 +387,15 @@ public class SWTSkinObjectSash
 			parentComposite.layout(true);
 		}
 
+	}
+
+	public void setPercent(double pct) {
+		setPercent(new Double(pct), sash, above, below, isVertical,
+				parentComposite, aboveMin, belowMin);
+	}
+	
+	public double getPercent() {
+		return sashPct;
 	}
 
 	/**
@@ -449,6 +462,7 @@ public class SWTSkinObjectSash
 
 		l = ensureVisibilityStates(l, above, below, bVertical);
 		sash.setData("PCT", l);
+		sashPct = l.doubleValue();
 		COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
 				(int) (l.doubleValue() * 10000));
 	}
