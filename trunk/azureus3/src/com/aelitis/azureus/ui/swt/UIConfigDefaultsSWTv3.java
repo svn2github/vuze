@@ -127,7 +127,7 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("Status Area Show NAT", false);
 			defaults.addParameter("Status Area Show IPF", false);
 			
-			defaults.addParameter("Message Popup Autoclose in Seconds", 5);
+			defaults.addParameter("Message Popup Autoclose in Seconds", 10 );
 
 			defaults.addParameter("window.maximized", true);
 
