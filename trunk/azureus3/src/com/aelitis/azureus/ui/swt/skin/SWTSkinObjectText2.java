@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -75,6 +76,10 @@ public class SWTSkinObjectText2
 	private boolean isItalic = false;
 
 	private static Font font = null;
+
+	private GCStringPrinter lastStringPrinter;
+	
+	private Color colorUrl;
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
@@ -203,9 +208,39 @@ public class SWTSkinObjectText2
 		if (typeParams.length > 1) {
 			bIsTextDefault = true;
 			sText = typeParams[1];
+			
+			for (int i = 2; i < typeParams.length; i++) {
+				sText += ", " + typeParams[i];
+			}
 			this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 					: sText;
 		}
+		
+		canvas.addMouseListener(new MouseListener() {
+			public void mouseUp(MouseEvent e) {
+				if (lastStringPrinter != null) {
+					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
+					if (hitUrl != null) {
+						Utils.launch(hitUrl.url);
+					}
+				}
+			}
+		
+			public void mouseDown(MouseEvent e) {
+			}
+		
+			public void mouseDoubleClick(MouseEvent e) {
+			}
+		});
+		
+		canvas.addMouseMoveListener(new MouseMoveListener() {
+			public void mouseMove(MouseEvent e) {
+				if (lastStringPrinter != null) {
+					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
+					canvas.setCursor(hitUrl == null ? null : canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+				}
+			}
+		});
 
 		setAlwaysHookPaintListener(true);
 
@@ -243,6 +278,11 @@ public class SWTSkinObjectText2
 
 	private void updateFont(String suffix) {
 		String sPrefix = sConfigID + ".text";
+
+		Color newColorURL = properties.getColor(sPrefix + ".urlcolor" + suffix);
+		if (newColorURL != null) {
+			colorUrl = newColorURL;
+		}
 
 		Color color = properties.getColor(sPrefix + ".color" + suffix);
 		//System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + text);
@@ -486,8 +526,12 @@ public class SWTSkinObjectText2
 			gc.setForeground(foreground);
 		}
 		
-		GCStringPrinter.printString(gc, sDisplayText, clientArea, true, false,
+		lastStringPrinter = new GCStringPrinter(gc, sDisplayText, clientArea, true, false,
 				style);
+		if (colorUrl != null) {
+			lastStringPrinter.setUrlColor(colorUrl);
+		}
+		lastStringPrinter.printString();
 	}
 
 	public void setTextID(String key) {
