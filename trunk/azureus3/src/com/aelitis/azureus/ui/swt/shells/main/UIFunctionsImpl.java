@@ -314,10 +314,11 @@ public class UIFunctionsImpl
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;
 
-			TreeItem treeItem = sideBar.createTreeItem(id, title, iviewClass,
-					iviewClassArgs, iviewClassVals, null);
+			TreeItem treeItem = sideBar.createTreeItem(
+					SideBar.SIDEBAR_SECTION_LIBRARY, id, title, iviewClass,
+					iviewClassArgs, iviewClassVals, null, true);
 
-			if (treeItem != null) {
+			if (treeItem != null && !treeItem.isDisposed()) {
 				treeItem.getParent().select(treeItem);
 				treeItem.getParent().showItem(treeItem);
 				sideBar.itemSelected(treeItem);

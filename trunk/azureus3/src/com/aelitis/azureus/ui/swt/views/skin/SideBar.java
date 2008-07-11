@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
@@ -70,6 +71,10 @@ public class SideBar
 	extends SkinView
 	implements UIUpdatable, ViewIndicatorListener
 {
+	public static final String SIDEBAR_SECTION_PLUGINS = "Plugins_SB";
+
+	public static final String SIDEBAR_SECTION_LIBRARY = "Library_SB";
+
 	private SWTSkin skin;
 
 	private SWTSkinObject soSideBarContents;
@@ -90,6 +95,8 @@ public class SideBar
 
 	private static List listTreeItemsNoViewIndicator = new ArrayList();
 
+	private static DisposeListener disposeTreeItemListener;
+
 	private int numSeeding = 0;
 
 	private int numDownloading = 0;
@@ -97,6 +104,35 @@ public class SideBar
 	private int numComplete = 0;
 
 	private int numIncomplete = 0;
+
+	static {
+		disposeTreeItemListener = new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				TreeItem treeItem = (TreeItem) e.widget;
+				String id = (String) treeItem.getData("Plugin.viewID");
+
+				if (id != null) {
+					mapIdToTreeItem.remove(id);
+					return;
+				}
+
+				IView iview = (IView) treeItem.getData("IView");
+				if (iview != null) {
+					mapIdToTreeItem.remove(iview.getClass().getName());
+					return;
+				}
+
+				for (Iterator iter = mapIdToTreeItem.keySet().iterator(); iter.hasNext();) {
+					id = (String) iter.next();
+					TreeItem item = (TreeItem) mapIdToTreeItem.get(id);
+					if (item == treeItem) {
+						iter.remove();
+					}
+				}
+
+			}
+		};
+	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -110,6 +146,30 @@ public class SideBar
 		UIUpdaterFactory.getInstance().addUpdater(this);
 
 		ViewIndicatorManager.addListener(this);
+
+		soSideBarList.getControl().getDisplay().addFilter(SWT.KeyDown,
+				new Listener() {
+					double lastPercent;
+
+					public void handleEvent(Event event) {
+						if (event.keyCode == SWT.F9 && event.stateMask == 0) {
+							event.doit = false;
+							Utils.execSWTThreadLater(0, new AERunnable() {
+								public void runSupport() {
+									SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
+									if (soSash.getPercent() == 100) {
+										if (lastPercent != 0) {
+											soSash.setPercent(lastPercent);
+										}
+									} else {
+										lastPercent = soSash.getPercent();
+										soSash.setPercent(100);
+									}
+								}
+							});
+						}
+					}
+				});
 
 		return null;
 	}
@@ -167,6 +227,7 @@ public class SideBar
 
 						boolean selected = tree.getSelectionCount() == 1
 								&& tree.getSelection()[0].equals(item);
+						Color curBG;
 						if (selected) {
 							event.gc.setForeground(colorFocus);
 							event.gc.drawRectangle(0, event.y, treeBounds.width - 1,
@@ -175,6 +236,7 @@ public class SideBar
 							event.gc.setBackground(bgSel);
 							event.gc.setBackground(ColorCache.getColor(event.gc.getDevice(),
 									"#607080"));
+							curBG = event.gc.getBackground();
 							event.gc.fillRectangle(0, event.y, Math.max(treeBounds.width,
 									event.width + event.x), event.height);
 						} else {
@@ -186,6 +248,7 @@ public class SideBar
 							}
 							event.gc.fillRectangle(0, event.y, Math.max(treeBounds.width,
 									event.width + event.x), event.height);
+							curBG = event.gc.getBackground();
 						}
 
 						if (item.getItemCount() > 0) {
@@ -197,6 +260,8 @@ public class SideBar
 							event.gc.setFont(fontHeader);
 						}
 
+						Rectangle itemBounds = tree.getClientArea();
+
 						event.gc.drawText(text, event.x, event.y + 6, true);
 
 						event.gc.setFont(tree.getFont());
@@ -206,7 +271,6 @@ public class SideBar
 							String textIndicator = viewIndicator.getStringProperty(ViewIndicator.VIEWINDICATOR_TEXT);
 							if (textIndicator != null) {
 								Point textSize = event.gc.textExtent(textIndicator);
-								Rectangle itemBounds = tree.getClientArea();
 								int x = itemBounds.width - textSize.x - 10;
 								int y = event.y + 6;
 								event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
@@ -216,6 +280,16 @@ public class SideBar
 										textSize.y + 4, 10, textSize.y + 4);
 								event.gc.drawText(textIndicator, x, y);
 							}
+						}
+
+						Boolean closeableObj = (Boolean) item.getData("closeable");
+						if (closeableObj != null && closeableObj.booleanValue()) {
+							Image imgClose = ImageRepository.getImage("smallx");
+							Rectangle closeArea = imgClose.getBounds();
+							closeArea.x = itemBounds.width - closeArea.width - 2;
+							closeArea.y = event.y + 4;
+							event.gc.drawImage(imgClose, closeArea.x, closeArea.y);
+							item.setData("closeArea", closeArea);
 						}
 
 						break;
@@ -244,6 +318,23 @@ public class SideBar
 			public void handleEvent(Event event) {
 				TreeItem item = (TreeItem) event.item;
 				itemSelected(item);
+			}
+		});
+
+		tree.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
+				TreeItem item = tree.getItem(new Point(event.x, event.y));
+				if (item == null) {
+					return;
+				}
+				Rectangle closeArea = (Rectangle) item.getData("closeArea");
+				if (closeArea != null && closeArea.contains(event.x, event.y)) {
+					IView iview = (IView) item.getData("IView");
+					if (iview != null) {
+						iview.delete();
+					}
+					item.dispose();
+				}
 			}
 		});
 
@@ -438,7 +529,8 @@ public class SideBar
 		}
 
 		TreeItem itemLibrary = createSkinned_UISWTViewEventListener(skin, tree,
-				"Library_SB", "library", "Library", viewIndicatorLibrary, null);
+				SIDEBAR_SECTION_LIBRARY, "library", "Library", viewIndicatorLibrary,
+				null);
 
 		createSkinned_UISWTViewEventListener(skin, itemLibrary, "LibraryDL_SB",
 				"library", "Downloading", viewIndicatorDownloading, null);
@@ -452,7 +544,7 @@ public class SideBar
 		createSkinned_UISWTViewEventListener(skin, itemOnVuze, "Rec_SB",
 				"main.area.rec", "Recommendations", null, null);
 
-		createSkinned_UISWTViewEventListener(skin, tree, "Publish_SB",
+		createSkinned_UISWTViewEventListener(skin, itemOnVuze, "Publish_SB",
 				"main.area.publishtab", "Publish", null, null);
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
@@ -471,12 +563,14 @@ public class SideBar
 		createTreeItem(itemTools, "Config", ConfigView.class, null, null, null);
 
 		TreeItem itemPlugins = createSkinned_UISWTViewEventListener(skin, tree,
-				"Plugins_SB", "main.area.plugins", "Plugins", null, null);
+				SIDEBAR_SECTION_PLUGINS, "main.area.plugins", "Plugins", null, null);
 
 		IViewInfo[] pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginViewsInfo();
 		for (int i = 0; i < pluginViewsInfo.length; i++) {
 			IViewInfo viewInfo = pluginViewsInfo[i];
 			treeItem = new TreeItem(itemPlugins, SWT.NONE);
+			treeItem.addDisposeListener(disposeTreeItemListener);
+
 			treeItem.setText(viewInfo.name);
 			treeItem.setData("UISWTViewEventListener", viewInfo.event_listener);
 			treeItem.setData("Plugin.viewID", viewInfo.viewID);
@@ -489,6 +583,8 @@ public class SideBar
 		for (int i = 0; i < pluginLogViewsInfo.length; i++) {
 			IViewInfo viewInfo = pluginLogViewsInfo[i];
 			treeItem = new TreeItem(itemPluginLogs, SWT.NONE);
+			treeItem.addDisposeListener(disposeTreeItemListener);
+
 			treeItem.setText(viewInfo.name);
 			treeItem.setData("UISWTViewEventListener", viewInfo.event_listener);
 			treeItem.setData("Plugin.viewID", viewInfo.viewID);
@@ -516,14 +612,15 @@ public class SideBar
 		}
 
 		TreeItem treeItem = new TreeItem(parent, SWT.NONE);
+
 		if (viewIndicator != null) {
 			treeItem.setData("ViewIndicator", viewIndicator);
 		} else {
 			listTreeItemsNoViewIndicator.add(treeItem);
 		}
 		mapIdToTreeItem.put(iviewClass.getName(), treeItem);
-		return createTreeItem2(treeItem, title, iviewClass, iviewClassArgs,
-				iviewClassVals);
+		return createTreeItem2(treeItem, iviewClass.getName(), title, iviewClass,
+				iviewClassArgs, iviewClassVals);
 	}
 
 	public TreeItem createAndShowTreeItem(IView view) {
@@ -531,54 +628,65 @@ public class SideBar
 		if (mapIdToTreeItem.containsKey(view.getClass().getName())) {
 			treeItem = (TreeItem) mapIdToTreeItem.get(view.getClass().getName());
 		} else {
-  		treeItem = new TreeItem(tree, SWT.NONE);
-  		mapIdToTreeItem.put(view.getClass().getName(), treeItem);
-  		createSideBarContentArea(view);
+			treeItem = new TreeItem(tree, SWT.NONE);
+			mapIdToTreeItem.put(view.getClass().getName(), treeItem);
+			createSideBarContentArea(view);
 		}
 
 		if (treeItem != null) {
-  		treeItem.getParent().select(treeItem);
-  		treeItem.getParent().showItem(treeItem);
-  		itemSelected(treeItem);
+			treeItem.getParent().select(treeItem);
+			treeItem.getParent().showItem(treeItem);
+			itemSelected(treeItem);
 		}
 
 		return treeItem;
 	}
-	
-	public TreeItem createTreeItem(String id, String title, Class iviewClass,
-			Class[] iviewClassArgs, Object[] iviewClassVals,
-			ViewIndicator viewIndicator) {
+
+	public TreeItem createTreeItem(String parent, String id, String title,
+			Class iviewClass, Class[] iviewClassArgs, Object[] iviewClassVals,
+			ViewIndicator viewIndicator, boolean closeable) {
 
 		if (mapIdToTreeItem.containsKey(id)) {
 			return (TreeItem) mapIdToTreeItem.get(id);
 		}
 
-		TreeItem treeItem = new TreeItem(tree, SWT.NONE);
+		TreeItem parentItem = (TreeItem) mapIdToTreeItem.get(parent);
+
+		TreeItem treeItem;
+		if (parentItem != null) {
+			treeItem = new TreeItem(parentItem, SWT.NONE);
+		} else {
+			treeItem = new TreeItem(tree, SWT.NONE);
+		}
+
+		treeItem.setData("closeable", new Boolean(closeable));
+
 		if (viewIndicator != null) {
 			treeItem.setData("ViewIndicator", viewIndicator);
 		} else {
 			listTreeItemsNoViewIndicator.add(treeItem);
 		}
 		mapIdToTreeItem.put(id, treeItem);
-		return createTreeItem2(treeItem, title, iviewClass, iviewClassArgs,
+		return createTreeItem2(treeItem, id, title, iviewClass, iviewClassArgs,
 				iviewClassVals);
 	}
 
-	private TreeItem createTreeItem2(TreeItem treeItem, String title,
+	private TreeItem createTreeItem2(TreeItem treeItem, String id, String title,
 			Class iviewClass, Class[] iviewClassArgs, Object[] iviewClassVals) {
 		treeItem.setText(title);
 		treeItem.setData("IViewClass", iviewClass);
 		treeItem.setData("IViewClassArgs", iviewClassArgs);
 		treeItem.setData("IViewClassVals", iviewClassVals);
+		treeItem.setData("Plugin.viewID", id);
 
 		return treeItem;
 	}
-	
+
 	public boolean showItemByID(String id) {
 		TreeItem treeItem = (TreeItem) mapIdToTreeItem.get(id);
 		if (treeItem != null) {
-  		treeItem.getParent().select(treeItem);
-  		treeItem.getParent().showItem(treeItem);
+			treeItem.getParent().select(treeItem);
+			treeItem.getParent().showItem(treeItem);
 			itemSelected(treeItem);
 			return true;
 		}
@@ -598,8 +706,7 @@ public class SideBar
 				Class[] cArgs = (Class[]) item.getData("IViewClassArgs");
 				Object[] cArgVals = (Object[]) item.getData("IViewClassVals");
 
-				iview = createSideBarContentArea(iviewClass, cArgs,
-						cArgVals);
+				iview = createSideBarContentArea(iviewClass, cArgs, cArgVals);
 
 				item.setData("IView", iview);
 				item.setText(iview.getFullTitle());
@@ -676,7 +783,8 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	public IView createSideBarContentArea(Class iviewClass, Class[] cArgs, Object[] cArgVals) {
+	public IView createSideBarContentArea(Class iviewClass, Class[] cArgs,
+			Object[] cArgVals) {
 		IView iview = null;
 		try {
 			if (cArgs == null) {
@@ -685,7 +793,7 @@ public class SideBar
 				Constructor constructor = iviewClass.getConstructor(cArgs);
 				iview = (IView) constructor.newInstance(cArgVals);
 			}
-			
+
 			createSideBarContentArea(iview);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -747,7 +855,7 @@ public class SideBar
 				title, viewIndicator, creationParams);
 	}
 
-	private static TreeItem createSkinned_UISWTViewEventListener(
+	private TreeItem createSkinned_UISWTViewEventListener(
 			final SWTSkin skin, Object parentTreeItem, final String newID,
 			final String configID, String title, ViewIndicator viewIndicator,
 			final Object params) {
@@ -796,6 +904,7 @@ public class SideBar
 			} else {
 				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
 			}
+			treeItem.addDisposeListener(disposeTreeItemListener);
 			treeItem.setText(title);
 			treeItem.setData("UISWTViewEventListener", l);
 			treeItem.setData("Plugin.viewID", newID);
@@ -869,7 +978,7 @@ public class SideBar
 						return;
 					}
 				}
-				
+
 				if (treeItem.isDisposed()) {
 					return;
 				}
