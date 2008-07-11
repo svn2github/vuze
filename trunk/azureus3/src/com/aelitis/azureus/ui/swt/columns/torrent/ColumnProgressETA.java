@@ -79,7 +79,7 @@ public class ColumnProgressETA
 
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
-			cell.setMarginHeight(1);
+			cell.setMarginHeight(0);
 			//cell.setFillCell(true);
 		}
 
@@ -169,7 +169,12 @@ public class ColumnProgressETA
 			if (progressY2 > 18) {
 				progressY2 = 18;
 			}
-			if (x2 < 10 || progressX2 < 10 || progressY2 < 3) {
+			boolean showSecondLine = progressY2 > 0;
+			if (!showSecondLine) {
+				progressY2 = newHeight;
+			}
+			
+			if (x2 < 10 || progressX2 < 10) {
 				return;
 			}
 
@@ -190,8 +195,6 @@ public class ColumnProgressETA
 			if (cText == null) {
 				cText = Colors.black;
 			}
-
-			int etaY0 = progressY2;
 
 			lastPercentDone = percentDone;
 			lastETA = eta;
@@ -285,23 +288,25 @@ public class ColumnProgressETA
 				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 12);
 			}
 
-			gcImage.setFont(fontText);
-			int[] fg = cell.getForeground();
-			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
-			gcImage.drawText(sETALine, 2, etaY0, true);
-			Point textExtent = gcImage.textExtent(sETALine);
-			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
-
+			if (showSecondLine) {
+  			gcImage.setFont(fontText);
+  			int[] fg = cell.getForeground();
+  			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
+  			gcImage.drawText(sETALine, 2, progressY2, true);
+  			Point textExtent = gcImage.textExtent(sETALine);
+  			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
+			}
+			int middleY = (progressY2 - 12) / 2;
 			if (percentDone == 1000) {
 				gcImage.setForeground(cText);
-				gcImage.drawText("Complete", 2, 2, true);
+				gcImage.drawText("Complete", 2, middleY, true);
 			} else if (bDrawProgressBar) {
 				gcImage.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gcImage.drawText(sSpeed, 50, 2, true);
-				gcImage.drawText(sPercent, 2, 2, true);
+				gcImage.drawText(sSpeed, 50, middleY, true);
+				gcImage.drawText(sPercent, 2, middleY, true);
 			}
-
+  
 			gcImage.setFont(null);
 
 			gcImage.dispose();
