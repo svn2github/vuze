@@ -27,6 +27,7 @@ import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -56,6 +57,8 @@ public class InitialisationFunctions
 		CacheDiscovery.initialise( dme );
 		
 		MetaSearchManagerFactory.preInitialise();
+		
+		SubscriptionManagerFactory.preInitialise();
 		
 		NavigationHelper.initialise();
 	}
