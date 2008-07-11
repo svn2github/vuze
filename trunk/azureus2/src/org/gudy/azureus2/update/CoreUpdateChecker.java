@@ -324,7 +324,7 @@ CoreUpdateChecker
 			if ( info_b != null ){
 			
 				try{
-					info = new String( info_b );
+					info = new String( info_b, "UTF-8" );
 				
 				}catch( Throwable e ){
 					
@@ -481,7 +481,15 @@ CoreUpdateChecker
 	
 			  if ( message_bytes != null && message_bytes.length > 0 ){
 	
-				  String  message = new String(message_bytes);
+				  String  message;
+				  
+				  try{
+					  message = new String(message_bytes, "UTF-8" );
+					  
+				  }catch( Throwable e ){
+					  
+					  message = new String( message_bytes );
+				  }
 	
 				  String sig_key;
 				  
