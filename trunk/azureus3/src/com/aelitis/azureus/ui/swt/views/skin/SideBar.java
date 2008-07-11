@@ -249,6 +249,11 @@ public class SideBar
 
 		createTreeItems();
 
+		TreeItem treeItem = tree.getItem(0);
+		treeItem.getParent().select(treeItem);
+		treeItem.getParent().showItem(treeItem);
+		itemSelected(treeItem);
+
 		parent.getShell().layout(true, true);
 	}
 
@@ -259,6 +264,9 @@ public class SideBar
 	 */
 	private void createTreeItems() {
 		TreeItem treeItem;
+
+		createSkinned_UISWTViewEventListener(skin, tree, "Welcome_SB",
+				"main.area.welcome", "Welcome", null, null);
 
 		// Put ViewIndicators in another class
 		final ViewIndicator viewIndicatorActivityView = new ViewIndicator() {
@@ -489,7 +497,6 @@ public class SideBar
 
 		createSkinned_UISWTViewEventListener(skin, tree, "Advanced_SB",
 				"main.area.advancedtab", "Advanced", null, null);
-
 	}
 
 	/**
@@ -835,6 +842,10 @@ public class SideBar
 	public void viewIndicatorRefresh(final ViewIndicator viewIndicator) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (tree.isDisposed()) {
+					return;
+				}
+
 				TreeItem treeItem = (TreeItem) mapViewIndicatorToTreeItem.get(viewIndicator);
 				if (treeItem == null) {
 					Object o = viewIndicator.getObjectProperty(ViewIndicator.VIEWINDICATOR_SKINVIEW);
@@ -857,6 +868,10 @@ public class SideBar
 					if (treeItem == null) {
 						return;
 					}
+				}
+				
+				if (treeItem.isDisposed()) {
+					return;
 				}
 
 				Rectangle bounds = treeItem.getBounds();
