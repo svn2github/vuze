@@ -812,7 +812,14 @@ public class FileUtil {
 	    }
 	}
   
-
+	public static void
+	deleteResilientConfigFile(
+		String		name )
+	{
+		new File( name ).delete();
+		new File( name + ".bak" ).delete();
+	}
+	
 	private static void
 	getReservedFileHandles()
 	{
