@@ -3,8 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -82,6 +81,8 @@ public class SWTSkinObjectBasic
 	boolean paintListenerHooked = false;
 
 	boolean alwaysHookPaintListener = false;
+	
+	private Map mapData = Collections.EMPTY_MAP;
 
 	/**
 	 * @param properties TODO
@@ -92,8 +93,8 @@ public class SWTSkinObjectBasic
 			SWTSkinObject parent) {
 		this(skin, properties, sID, sConfigID, type, parent);
 		setControl(control);
+		
 	}
-
 	public SWTSkinObjectBasic(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, String type, SWTSkinObject parent) {
 		this.skin = skin;
@@ -715,5 +716,18 @@ public class SWTSkinObjectBasic
 			control.addPaintListener(SWTSkinObjectBasic.this);
 			paintListenerHooked = true;
 		}
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#getData(java.lang.String)
+	public Object getData(String id) {
+		return mapData.get(id);
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setData(java.lang.String, java.lang.Object)
+	public void setData(String id, Object data) {
+		if (mapData == Collections.EMPTY_MAP) {
+			mapData = new HashMap(1);
+		}
+		mapData.put(id, data);
 	}
 }

@@ -133,4 +133,8 @@ public interface SWTSkinObject
 	 * @since 3.0.5.3
 	 */
 	boolean getDefaultVisibility();
+	
+	public Object getData(String id);
+	
+	public void setData(String id, Object data);
 }
