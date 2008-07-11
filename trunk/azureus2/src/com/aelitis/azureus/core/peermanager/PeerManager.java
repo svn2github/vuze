@@ -44,8 +44,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
-import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
-import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
@@ -519,7 +517,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		private HashWrapper 					hash;
 		private PeerManagerRegistrationAdapter	adapter;
 
-		private TorrentDownload					download;
+		private PEPeerControl					download;
 
 		private volatile PEPeerControl			active_control;
 
@@ -642,7 +640,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					Debug.out( "Already activated" );
 				}
 
-				download = TorrentDownloadFactory.getSingleton().createDownload( active_control );  //link legacy with new
+				download = _active_control;
 
 				connections = pending_connections;
 
@@ -679,8 +677,6 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					Debug.out( "Already deactivated" );
 
 				}else{
-
-					download.destroy();  //break legacy link
 
 					download	= null;
 				}
