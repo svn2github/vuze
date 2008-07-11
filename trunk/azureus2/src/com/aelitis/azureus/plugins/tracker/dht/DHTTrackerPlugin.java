@@ -2994,7 +2994,7 @@ DHTTrackerPlugin
 			loc_str += (j==0?"":",") + loc[j];
 		}
 		
-		TriangleSlicer slicer = new TriangleSlicer( 100 );
+		TriangleSlicer slicer = new TriangleSlicer( 25 );
 		
 		double	t1_x = loc[0];
 		double	t1_y = loc[1];
