@@ -20,6 +20,8 @@ package com.aelitis.azureus.activities;
 
 import java.util.*;
 
+import javax.management.modelmbean.RequiredModelMBean;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -29,7 +31,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
@@ -78,6 +80,8 @@ public class VuzeActivitiesManager
 
 	private static AEMonitor config_mon = new AEMonitor("ConfigMon");
 
+	private static boolean saveEventsOnClose = false;
+
 	static {
 		if (System.getProperty("debug.vuzenews", "0").equals("1")) {
 			diag_logger = AEDiagnostics.getLogger("v3.vuzenews");
@@ -99,6 +103,15 @@ public class VuzeActivitiesManager
 		if (diag_logger != null) {
 			diag_logger.log("Initialize Called");
 		}
+		
+		AzureusCoreFactory.getSingleton().addLifecycleListener(new AzureusCoreLifecycleAdapter() {
+		
+			public void stopping(AzureusCore core) {
+				if (saveEventsOnClose) {
+					saveEventsNow();
+				}
+			}
+		});
 
 		loadEvents();
 
@@ -515,6 +528,15 @@ public class VuzeActivitiesManager
 	/**
 	 * 
 	 *
+	 * @since 3.1.1.1
+	 */
+	private static void saveEvents() {
+		saveEventsOnClose  = true;
+	}
+
+	/**
+	 * 
+	 *
 	 * @since 3.0.4.3
 	 */
 	private static void loadEvents() {
@@ -582,7 +604,7 @@ public class VuzeActivitiesManager
 		}
 	}
 
-	private static void saveEvents() {
+	private static void saveEventsNow() {
 		if (skipAutoSave) {
 			return;
 		}
@@ -670,12 +692,11 @@ public class VuzeActivitiesManager
 			allEntries_mon.exit();
 		}
 
-		saveEvents();
-		//Collections.sort(allEntries);
-
 		VuzeActivitiesEntry[] newEntriesArray = (VuzeActivitiesEntry[]) newEntries.toArray(new VuzeActivitiesEntry[newEntries.size()]);
 
 		if (newEntriesArray.length > 0) {
+			saveEventsNow();
+
 			Object[] listenersArray = listeners.toArray();
 			for (int i = 0; i < listenersArray.length; i++) {
 				VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
@@ -684,6 +705,10 @@ public class VuzeActivitiesManager
 		}
 
 		if (existingEntries.size() > 0) {
+			if (newEntriesArray.length == 0) {
+				saveEvents();
+			}
+
   		for (Iterator iter = existingEntries.iterator(); iter.hasNext();) {
   			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) iter.next();
   			triggerEntryChanged(entry);
@@ -723,7 +748,7 @@ public class VuzeActivitiesManager
 			VuzeActivitiesListener l = (VuzeActivitiesListener) listenersArray[i];
 			l.vuzeNewsEntriesRemoved(entries);
 		}
-		saveEvents();
+		saveEventsNow();
 	}
 
 	public static VuzeActivitiesEntry getEntryByID(String id) {
