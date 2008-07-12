@@ -453,6 +453,14 @@ public class VuzeActivitiesEntry
 	}
 
 	public String getTorrentName() {
+		if (torrentName == null) {
+			if (dm != null) {
+				return PlatformTorrentUtils.getContentTitle2(dm);
+			}
+			if (torrent != null) {
+				return TorrentUtils.getLocalisedName(torrent);
+			}
+		}
 		return torrentName;
 	}
 
@@ -468,7 +476,7 @@ public class VuzeActivitiesEntry
 		SelectedContentV3 sc = new SelectedContentV3();
 		dm = getDownloadManger();
 		if (dm != null) {
-			sc.setDisplayName(dm.getDisplayName());
+			sc.setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
 			sc.setDM(dm);
 			return sc;
 		}
