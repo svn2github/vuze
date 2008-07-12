@@ -20,8 +20,6 @@ package com.aelitis.azureus.activities;
 
 import java.util.*;
 
-import javax.management.modelmbean.RequiredModelMBean;
-
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
