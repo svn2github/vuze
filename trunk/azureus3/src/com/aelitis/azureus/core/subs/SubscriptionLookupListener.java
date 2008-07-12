@@ -22,12 +22,13 @@
 package com.aelitis.azureus.core.subs;
 
 public interface 
-SubscriptionManager 
+SubscriptionLookupListener 
 {
 	public void
-	lookupAssociations(
-		byte[]						hash,
-		SubscriptionLookupListener	listener )
+	complete(
+		Subscription[]		subscriptions );
 	
-		throws SubscriptionException;
+	public void
+	failed(
+		SubscriptionException	error );
 }

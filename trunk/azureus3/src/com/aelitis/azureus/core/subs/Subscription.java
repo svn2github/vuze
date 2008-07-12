@@ -30,4 +30,10 @@ Subscription
 	public int
 	getVersion();
 	
+	public boolean
+	isSubscribed();
+	
+	public void
+	addAssociation(
+		byte[]		hash );
 }

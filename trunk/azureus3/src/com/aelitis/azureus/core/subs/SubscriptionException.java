@@ -21,13 +21,9 @@
 
 package com.aelitis.azureus.core.subs;
 
-public interface 
-SubscriptionManager 
+public class 
+SubscriptionException 
+	extends Exception
 {
-	public void
-	lookupAssociations(
-		byte[]						hash,
-		SubscriptionLookupListener	listener )
-	
-		throws SubscriptionException;
+
 }

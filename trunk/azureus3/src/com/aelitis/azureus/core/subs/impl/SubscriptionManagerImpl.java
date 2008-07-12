@@ -36,6 +36,9 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -96,6 +99,7 @@ SubscriptionManagerImpl
 			
 			singleton = new SubscriptionManagerImpl();
 		}
+		
 		return( singleton );
 	}
 	
@@ -108,6 +112,16 @@ SubscriptionManagerImpl
 	
 	protected
 	SubscriptionManagerImpl()
+	{
+		
+	}
+	
+	public void
+	lookupAssociations(
+		byte[] 							hash,
+		SubscriptionLookupListener		listener )
+	
+		throws SubscriptionException 
 	{
 		
 	}

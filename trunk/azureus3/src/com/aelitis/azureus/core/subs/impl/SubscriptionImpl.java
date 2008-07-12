@@ -23,21 +23,49 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import com.aelitis.azureus.core.subs.Subscription;
+
 public class 
 SubscriptionImpl 
+	implements Subscription 
 {
 	private byte[]			public_key;
+	private int				version;
+	private boolean			subscribed;
 	
 	protected
 	SubscriptionImpl(
-		byte[]			_public_key )
+		byte[]			_public_key,
+		int				_version,
+		boolean			_subscribed )
 	{
 		public_key		= _public_key;
+		version			= _version;
+		subscribed		= _subscribed;
 	}
 
 	public byte[]
 	getID()
 	{
 		return( public_key );
+	}
+	
+	public int
+	getVersion()
+	{
+		return( version );
+	}
+	
+	public boolean
+	isSubscribed()
+	{
+		return( subscribed );
+	}
+	
+	public void
+	addAssociation(
+		byte[]		hash )
+	{
+		
 	}
 }
