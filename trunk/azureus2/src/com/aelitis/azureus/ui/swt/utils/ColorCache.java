@@ -23,6 +23,8 @@ import java.util.*;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -188,5 +190,17 @@ public class ColorCache
 		}
 		int r = (int) (Math.random() * mapColors.size());
 		return (Color) mapColors.values().toArray()[r];
+	}
+
+	/**
+	 * @param display
+	 * @param hsb
+	 * @return 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public static Color getColor(Device device, float[] hsb) {
+		RGB rgb = new RGB(hsb[0], hsb[1], hsb[2]);
+		return getColor(device, rgb.red, rgb.green, rgb.blue);
 	}
 }
