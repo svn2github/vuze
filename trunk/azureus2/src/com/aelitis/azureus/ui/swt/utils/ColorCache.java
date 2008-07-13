@@ -110,6 +110,21 @@ public class ColorCache
 		Color color = (Color) mapColors.get(key);
 		if (color == null || color.isDisposed()) {
 			try {
+				if (red < 0) {
+					red = 0;
+				} else if (red > 255) {
+					red = 255;
+				}
+				if (green < 0) {
+					green = 0;
+				} else if (green > 255) {
+					green = 255;
+				}
+				if (blue < 0) {
+					blue = 0;
+				} else if (blue > 255) {
+					blue = 255;
+				}
 				color = new Color(device, red, green, blue);
 			} catch (IllegalArgumentException e) {
 				Debug.out("One Invalid: " + red + ";" + green + ";" + blue, e);
