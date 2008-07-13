@@ -34,6 +34,7 @@ import java.security.Signature;
 
 import org.bouncycastle.jce.provider.JCEECDHKeyAgreement;
 
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoSTSEngine;
 
@@ -47,8 +48,6 @@ CryptoSTSEngineImpl
 	implements CryptoSTSEngine
 {
 	public static final int	VERSION	= 1;
-
-	private CryptoHandlerECC	handler;
 
 	private KeyPair 	ephemeralKeyPair;
 	
@@ -65,17 +64,15 @@ CryptoSTSEngineImpl
 	 */
 	
 	CryptoSTSEngineImpl(
-		CryptoHandlerECC	_handler,
 		PublicKey			_myPub,
 		PrivateKey			_myPriv )
 		
 		throws CryptoManagerException
 	{
-		handler			= _handler;
 		myPublicKey		= _myPub;
 		myPrivateKey	= _myPriv;
 				
-		ephemeralKeyPair = handler.createKeys();
+		ephemeralKeyPair = CryptoECCUtils.createKeys();
 		
 		try{
 			ecDH = new InternalDH();
@@ -158,9 +155,9 @@ CryptoSTSEngineImpl
 				
 				final byte[] pad = getBytes( message, 65535 );
 				
-				remotePubKey = handler.rawdataToPubkey(rawRemoteOtherPubkey);
+				remotePubKey = CryptoECCUtils.rawdataToPubkey(rawRemoteOtherPubkey);
 				
-				Signature check = handler.getSignature(remotePubKey);
+				Signature check = CryptoECCUtils.getSignature(remotePubKey); 
 	
 				check.update(rawRemoteOtherPubkey);
 				
@@ -168,7 +165,7 @@ CryptoSTSEngineImpl
 				
 				if ( check.verify(remoteSig)){
 										
-					ecDH.doPhase(handler.rawdataToPubkey(rawRemoteEphemeralPubkey), true);
+					ecDH.doPhase(CryptoECCUtils.rawdataToPubkey(rawRemoteEphemeralPubkey), true);
 					
 					sharedSecret = ecDH.generateSecret();
 					
@@ -188,7 +185,7 @@ CryptoSTSEngineImpl
 				
 				final byte[] remoteSig = getBytes( message, 65535);
 							
-				Signature check = handler.getSignature( remotePubKey );
+				Signature check = CryptoECCUtils.getSignature( remotePubKey );
 				
 				check.update(IV);
 					
@@ -223,13 +220,13 @@ CryptoSTSEngineImpl
 						
 			SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
 
-			Signature sig = handler.getSignature(myPrivateKey);
+			Signature sig = CryptoECCUtils.getSignature(myPrivateKey);
 			
 			if ( keys ){
 								
-				final byte[] rawMyPubkey = handler.keyToRawdata(myPublicKey);
+				final byte[] rawMyPubkey = CryptoECCUtils.keyToRawdata(myPublicKey);
 				
-				final byte[] rawEphemeralPubkey = handler.keyToRawdata(ephemeralKeyPair.getPublic());
+				final byte[] rawEphemeralPubkey = CryptoECCUtils.keyToRawdata(ephemeralKeyPair.getPublic());
 				
 				sig.update(rawMyPubkey);
 					
@@ -303,7 +300,7 @@ CryptoSTSEngineImpl
 			throw( new CryptoManagerException( "key not yet available" ));
 		}
 		
-		return( handler.keyToRawdata( remotePubKey ));
+		return( CryptoECCUtils.keyToRawdata( remotePubKey ));
 	}
 	
 	protected int

@@ -57,6 +57,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerException;
@@ -67,9 +68,7 @@ import com.aelitis.azureus.core.security.CryptoSTSEngine;
 public class 
 CryptoHandlerECC
 	implements CryptoHandler
-{
-	private static final ECNamedCurveParameterSpec ECCparam = ECNamedCurveTable.getParameterSpec("prime192v2");
-	
+{	
 	private static final int	TIMEOUT_DEFAULT_SECS		= 60*60;
 
 	
@@ -152,7 +151,7 @@ CryptoHandlerECC
 	{
 		PrivateKey	priv = getMyPrivateKey( reason );
 		
-		Signature sig = getSignature( priv );
+		Signature sig = CryptoECCUtils.getSignature( priv );
 		
 		try{
 			sig.update( data );
@@ -173,9 +172,9 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		PublicKey	pub = rawdataToPubkey( public_key );
+		PublicKey	pub = CryptoECCUtils.rawdataToPubkey( public_key );
 		
-		Signature sig = getSignature( pub );
+		Signature sig = CryptoECCUtils.getSignature( pub );
 		
 		try{
 			sig.update( data );
@@ -197,7 +196,7 @@ CryptoHandlerECC
 		throws CryptoManagerException
 	{	        
 		try{
-			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( reason ), rawdataToPubkey( other_public_key ));
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey( reason ), CryptoECCUtils.rawdataToPubkey( other_public_key ));
 	 
 			byte[]	d = new byte[16];
 			byte[]	e = new byte[16];
@@ -240,7 +239,7 @@ CryptoHandlerECC
 		throws CryptoManagerException
 	{	        
 		try{
-			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey(  reason ), rawdataToPubkey( other_public_key ));
+			IEKeySpec   key_spec = new IEKeySpec( getMyPrivateKey(  reason ), CryptoECCUtils.rawdataToPubkey( other_public_key ));
 	 	
 			byte[]	d = new byte[16];
 			byte[]	e = new byte[16];
@@ -272,7 +271,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( new CryptoSTSEngineImpl( this, getMyPublicKey(  reason, true ), getMyPrivateKey( reason )));
+		return( new CryptoSTSEngineImpl( getMyPublicKey(  reason, true ), getMyPrivateKey( reason )));
 	}
 	
 	public byte[]
@@ -280,7 +279,7 @@ CryptoHandlerECC
 	{
 		try{
 		
-			return( keyToRawdata( getMyPublicKey( "peek", false )));
+			return( CryptoECCUtils.keyToRawdata( getMyPublicKey( "peek", false )));
 			
 		}catch( Throwable e ){
 			
@@ -294,7 +293,7 @@ CryptoHandlerECC
 	
 		throws CryptoManagerException
 	{
-		return( keyToRawdata( getMyPublicKey( reason, true )));
+		return( CryptoECCUtils.keyToRawdata( getMyPublicKey( reason, true )));
 	}
   
 	public byte[]
@@ -481,7 +480,7 @@ CryptoHandlerECC
 					boolean		ok = false;
 					
 					try{
-						use_method_private_key = rawdataToPrivkey( manager.decryptWithPBE( encoded, password_details.getPassword()));
+						use_method_private_key = CryptoECCUtils.rawdataToPrivkey( manager.decryptWithPBE( encoded, password_details.getPassword()));
 					
 						lock_change = true;
 						
@@ -539,7 +538,7 @@ CryptoHandlerECC
 	{
 		byte[]	test_data = "test".getBytes();
 		
-		return( verify( keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason )));
+		return( verify( CryptoECCUtils.keyToRawdata( getMyPublicKey( reason, true )), test_data,  sign( test_data, reason )));
 	}
 	
 	protected PublicKey
@@ -569,7 +568,7 @@ CryptoHandlerECC
 					}
 				}else{
 					
-					use_method_public_key = rawdataToPubkey( key_bytes );
+					use_method_public_key = CryptoECCUtils.rawdataToPubkey( key_bytes );
 				}
 			}
 			
@@ -630,7 +629,7 @@ CryptoHandlerECC
 					throw( new CryptoManagerException( "Private key not available" ));
 				}
 				
-				byte[]	priv_raw = keyToRawdata( use_method_private_key );
+				byte[]	priv_raw = CryptoECCUtils.keyToRawdata( use_method_private_key );
 				
 				byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
 				
@@ -677,7 +676,7 @@ CryptoHandlerECC
 				
 				if ( use_method_public_key == null || use_method_private_key == null ){
 					
-					KeyPair	keys = createKeys();
+					KeyPair	keys = CryptoECCUtils.createKeys();
 					
 					use_method_public_key	= keys.getPublic();
 					
@@ -685,9 +684,9 @@ CryptoHandlerECC
 					
 					last_unlock_time = SystemTime.getCurrentTime();
 					
-					COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", keyToRawdata( use_method_public_key ));
+					COConfigurationManager.setParameter( CONFIG_PREFIX + "publickey", CryptoECCUtils.keyToRawdata( use_method_public_key ));
 					
-					byte[]	priv_raw = keyToRawdata( use_method_private_key );
+					byte[]	priv_raw = CryptoECCUtils.keyToRawdata( use_method_private_key );
 					
 					byte[]	priv_enc = manager.encryptWithPBE( priv_raw, password_details.getPassword());
 					
@@ -708,139 +707,12 @@ CryptoHandlerECC
 		}
 	}
 	
-	
-	protected KeyPair 
-	createKeys()
-	
-		throws CryptoManagerException
-	{
-		try
-		{
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
-			
-			keyGen.initialize(ECCparam);
-
-			return keyGen.genKeyPair();
-			
-		}catch(Throwable e){
-			
-			throw( new CryptoManagerException( "Failed to create keys", e ));
-		}
-	}
-
-	public Signature 
-	getSignature(
-		Key key )
-	
-		throws CryptoManagerException
-	{
-		try
-		{
-			Signature ECCsig = Signature.getInstance("SHA1withECDSA", "BC");
-			
-			if( key instanceof ECPrivateKey ){
-				
-				ECCsig.initSign((ECPrivateKey)key);
-				
-			}else if( key instanceof ECPublicKey ){
-				
-				ECCsig.initVerify((ECPublicKey)key);
-
-			}else{
-				
-				throw new CryptoManagerException("Invalid Key Type, ECC keys required");
-			}
-			
-			return ECCsig;
-			
-		}catch( CryptoManagerException e ){
-		
-			throw( e );
-			
-		}catch( Throwable e ){
-			
-			throw( new CryptoManagerException( "Failed to create Signature", e ));
-		}
-	}
-
-	protected byte[] 
-	keyToRawdata( 
-		PrivateKey privkey )
-	
-		throws CryptoManagerException
-	{
-		if(!(privkey instanceof ECPrivateKey)){
-			
-			throw( new CryptoManagerException( "Invalid private key" ));
-		}
-		
-		return ((ECPrivateKey)privkey).getD().toByteArray();
-	}
-
-	protected PrivateKey 
-	rawdataToPrivkey(
-		byte[] input )
-	
-		throws CryptoManagerException
-	{
-		BigInteger D = new BigInteger(input);
-		
-		KeySpec keyspec = new ECPrivateKeySpec(D,(ECParameterSpec)ECCparam);
-		
-		PrivateKey privkey = null;
-		
-		try{
-			privkey = KeyFactory.getInstance("ECDSA","BC").generatePrivate(keyspec);
-			
-			return privkey;
-			
-		}catch( Throwable e ){
-	
-			throw( new CryptoManagerException( "Failed to decode private key" ));
-		}
-	}
-	
-	protected byte[] 
-	keyToRawdata(
-		PublicKey pubkey )
-	
-		throws CryptoManagerException
-	{
-		if(!(pubkey instanceof ECPublicKey)){
-			
-			throw( new CryptoManagerException( "Invalid public key" ));
-		}
-		
-		return ((ECPublicKey)pubkey).getQ().getEncoded();
-	}
-	
-	
-	protected PublicKey 
-	rawdataToPubkey(
-		byte[] input )
-	
-		throws CryptoManagerException
-	{
-		ECPoint W = ECCparam.getCurve().decodePoint(input);
-		
-		KeySpec keyspec = new ECPublicKeySpec(W,(ECParameterSpec)ECCparam);
-
-		try{
-			
-			return KeyFactory.getInstance("ECDSA", "BC").generatePublic(keyspec);
-			
-		}catch (Throwable e){
-		
-			throw( new CryptoManagerException( "Failed to decode public key" ));
-		}
-	}	
-	
 	public boolean
 	verifyPublicKey(
 		byte[]	encoded )
 	{
 		try{
-			rawdataToPubkey( encoded );
+			CryptoECCUtils.rawdataToPubkey( encoded );
 			
 				// we can't actually verify the key size as although it should be 192 bits
 				// it can be less due to leading bits being 0
