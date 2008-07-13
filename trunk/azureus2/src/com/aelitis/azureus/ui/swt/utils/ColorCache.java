@@ -214,6 +214,21 @@ public class ColorCache
 	 * @since 3.1.1.1
 	 */
 	public static Color getColor(Device device, float[] hsb) {
+		if (hsb[0] < 0) {
+			hsb[0] = 0;
+		} else if (hsb[0] > 360) {
+			hsb[0] = 360;
+		}
+		if (hsb[1] < 0) {
+			hsb[1] = 0;
+		} else if (hsb[1] > 1) {
+			hsb[1] = 1;
+		}
+		if (hsb[2] < 0) {
+			hsb[2] = 0;
+		} else if (hsb[2] > 1) {
+			hsb[2] = 1;
+		}
 		RGB rgb = new RGB(hsb[0], hsb[1], hsb[2]);
 		return getColor(device, rgb.red, rgb.green, rgb.blue);
 	}
