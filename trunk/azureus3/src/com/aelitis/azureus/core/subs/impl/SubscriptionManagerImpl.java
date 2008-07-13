@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 
-import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
@@ -44,7 +43,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
-import com.aelitis.azureus.util.Constants;
+
 
 public class 
 SubscriptionManagerImpl 
@@ -113,7 +112,39 @@ SubscriptionManagerImpl
 	protected
 	SubscriptionManagerImpl()
 	{
+		loadConfig();
 		
+		/*
+		if ( subscriptions.size() == 0 ){
+			
+			try{
+				create();
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		*/
+	}
+
+	public Subscription 
+	create() 
+	
+		throws SubscriptionException 
+	{
+		SubscriptionImpl result = new SubscriptionImpl();
+		
+		log( "Created new subscription: " + result.getString());
+		
+		synchronized( this ){
+			
+			subscriptions.add( result );
+			
+			saveConfig();
+		}
+		
+		return( result );
 	}
 	
 	public void
@@ -129,7 +160,7 @@ SubscriptionManagerImpl
 	protected void
 	loadConfig()
 	{
-		if ( !new File( CONFIG_FILE ).exists()){
+		if ( !FileUtil.resilientConfigFileExists( CONFIG_FILE )){
 			
 			return;
 		}
@@ -142,17 +173,18 @@ SubscriptionManagerImpl
 			
 			List	l_subs = (List)map.get( "subs" );
 			
-			if( l_subs != null ){
+			if ( l_subs != null ){
 				
 				for (int i=0;i<l_subs.size();i++){
 					
 					Map	m = (Map)l_subs.get(i);
 					
 					try{
-							// TODO:
+						SubscriptionImpl sub = new SubscriptionImpl( m );
 						
+						subscriptions.add( sub );
 						
-						//log( "    loaded " + e.getString());
+						log( "    loaded " + sub.getString());
 						
 					}catch( Throwable e ){
 						
@@ -210,6 +242,7 @@ SubscriptionManagerImpl
 				FileUtil.deleteResilientConfigFile( CONFIG_FILE );
 				
 			}else{
+				
 				Map map = new HashMap();
 				
 				List	l_subs = new ArrayList();
@@ -222,7 +255,7 @@ SubscriptionManagerImpl
 					
 					SubscriptionImpl sub = (SubscriptionImpl)it.next();
 									
-						// TODO
+					l_subs.add( sub.toMap());
 				}
 				
 				FileUtil.writeResilientConfigFile( CONFIG_FILE, map );

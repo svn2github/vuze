@@ -24,6 +24,11 @@ package com.aelitis.azureus.core.subs;
 public interface 
 SubscriptionManager 
 {
+	public Subscription
+	create()
+		
+		throws SubscriptionException;
+	
 	public void
 	lookupAssociations(
 		byte[]						hash,

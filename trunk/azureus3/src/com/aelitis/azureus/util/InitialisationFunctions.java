@@ -76,6 +76,8 @@ public class InitialisationFunctions
 				run() 
 				{
 					MetaSearchManagerFactory.getSingleton();
+					
+					SubscriptionManagerFactory.getSingleton();
 				}
 			}).queue();
 	}

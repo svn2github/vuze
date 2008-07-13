@@ -21,33 +21,108 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
+import java.security.KeyPair;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.SHA1Simple;
+
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionException;
 
 public class 
 SubscriptionImpl 
 	implements Subscription 
 {
 	private byte[]			public_key;
+	private byte[]			private_key;
+	
+	private byte[]			short_id;
+	
 	private int				version;
-	private boolean			subscribed;
+	
+	protected
+	SubscriptionImpl()
+	
+		throws SubscriptionException
+	{
+		try{
+			KeyPair	kp = CryptoECCUtils.createKeys();
+			
+			public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
+			private_key = CryptoECCUtils.keyToRawdata( kp.getPrivate());
+			
+			version		= 1;
+			
+			init();
+			
+		}catch( Throwable e ){
+			
+		}
+	}
 	
 	protected
 	SubscriptionImpl(
-		byte[]			_public_key,
-		int				_version,
-		boolean			_subscribed )
+		Map		map )
 	{
-		public_key		= _public_key;
-		version			= _version;
-		subscribed		= _subscribed;
+		fromMap( map );
+		
+		init();
 	}
 
+	protected Map
+	toMap()
+	{
+		Map	map = new HashMap();
+		
+		map.put( "public_key", public_key );
+		
+		if ( private_key != null ){
+			
+			map.put( "private_key", private_key );
+		}
+		
+		map.put( "version", new Long( version ));
+		
+		return( map );
+	}
+	
+	protected void
+	fromMap(
+		Map		map )
+	{
+		public_key	= (byte[])map.get( "public_key" );
+		private_key	= (byte[])map.get( "private_key" );
+		version		= ((Long)map.get( "version" )).intValue();
+	}
+	
+	protected void
+	init()
+	{
+		byte[]	hash = new SHA1Simple().calculateHash( public_key );
+		
+		short_id = new byte[10];
+		
+		System.arraycopy( hash, 0, short_id, 0, 10 );
+	}
+	
 	public byte[]
 	getID()
 	{
 		return( public_key );
+	}
+	
+	public byte[]
+	getShortID()
+	{
+		return( short_id );
+	}
+	
+	protected byte[]
+	getPrivateKey()
+	{
+		return( private_key );
 	}
 	
 	public int
@@ -59,7 +134,9 @@ SubscriptionImpl
 	public boolean
 	isSubscribed()
 	{
-		return( subscribed );
+			// TODO:
+		
+		return( false );
 	}
 	
 	public void
@@ -67,5 +144,13 @@ SubscriptionImpl
 		byte[]		hash )
 	{
 		
+	}
+	
+	protected String
+	getString()
+	{
+		return( "sid=" + ByteFormatter.encodeString( short_id ) + ",ver=" + version + 
+					",public=[" + public_key.length + "]" + 
+					",private=[" + (private_key==null?"<none>":String.valueOf( private_key.length)) + "]" ); 
 	}
 }
