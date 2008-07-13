@@ -490,6 +490,18 @@ public class FileUtil {
   	}
   }
   
+  	public static boolean
+  	resilientConfigFileExists(
+  		String		name )
+  	{
+ 		File parent_dir = new File(SystemProperties.getUserPath());
+
+ 		boolean use_backups = COConfigurationManager.getBooleanParameter("Use Config File Backups" );
+
+ 		return( new File( parent_dir, name ).exists() ||
+ 				( use_backups && new File( parent_dir, name + ".bak" ).exists()));
+  	}
+  
 	public static Map
 	readResilientConfigFile(
 		String		file_name )
