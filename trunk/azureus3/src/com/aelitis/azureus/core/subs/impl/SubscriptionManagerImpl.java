@@ -21,7 +21,6 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,6 +30,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -126,6 +126,13 @@ SubscriptionManagerImpl
 			}
 		}
 		*/
+		
+		/*
+		for (int i=0;i<subscriptions.size();i++){
+			
+			((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
+		}
+		*/
 	}
 
 	public Subscription 
@@ -133,7 +140,7 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
-		SubscriptionImpl result = new SubscriptionImpl();
+		SubscriptionImpl result = new SubscriptionImpl( this );
 		
 		log( "Created new subscription: " + result.getString());
 		
@@ -180,7 +187,7 @@ SubscriptionManagerImpl
 					Map	m = (Map)l_subs.get(i);
 					
 					try{
-						SubscriptionImpl sub = new SubscriptionImpl( m );
+						SubscriptionImpl sub = new SubscriptionImpl( this, m );
 						
 						subscriptions.add( sub );
 						

@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
@@ -35,6 +36,8 @@ public class
 SubscriptionImpl 
 	implements Subscription 
 {
+	private SubscriptionManagerImpl		manager;
+	
 	private byte[]			public_key;
 	private byte[]			private_key;
 	
@@ -42,11 +45,16 @@ SubscriptionImpl
 	
 	private int				version;
 	
+	private List			associations = new ArrayList();
+	
 	protected
-	SubscriptionImpl()
+	SubscriptionImpl(
+		SubscriptionManagerImpl		_manager )
 	
 		throws SubscriptionException
 	{
+		manager	= _manager;
+		
 		try{
 			KeyPair	kp = CryptoECCUtils.createKeys();
 			
@@ -64,8 +72,11 @@ SubscriptionImpl
 	
 	protected
 	SubscriptionImpl(
-		Map		map )
+		SubscriptionManagerImpl		_manager,
+		Map							map )
 	{
+		manager	= _manager;
+		
 		fromMap( map );
 		
 		init();
@@ -74,18 +85,39 @@ SubscriptionImpl
 	protected Map
 	toMap()
 	{
-		Map	map = new HashMap();
-		
-		map.put( "public_key", public_key );
-		
-		if ( private_key != null ){
+		synchronized( this ){
+			Map	map = new HashMap();
 			
-			map.put( "private_key", private_key );
+			map.put( "public_key", public_key );
+			
+			if ( private_key != null ){
+				
+				map.put( "private_key", private_key );
+			}
+			
+			map.put( "version", new Long( version ));
+			
+			if ( associations.size() > 0 ){
+				
+				List	l_assoc = new ArrayList();
+				
+				map.put( "assoc", l_assoc );
+				
+				for (int i=0;i<associations.size();i++){
+					
+					association assoc = (association)associations.get(i);
+					
+					Map m = new HashMap();
+					
+					l_assoc.add( m );
+					
+					m.put( "h", assoc.getHash());
+					m.put( "w", new Long( assoc.getWhen()));
+				}
+			}
+			
+			return( map );
 		}
-		
-		map.put( "version", new Long( version ));
-		
-		return( map );
 	}
 	
 	protected void
@@ -95,6 +127,21 @@ SubscriptionImpl
 		public_key	= (byte[])map.get( "public_key" );
 		private_key	= (byte[])map.get( "private_key" );
 		version		= ((Long)map.get( "version" )).intValue();
+		
+		List	l_assoc = (List)map.get( "assoc" );
+		
+		if ( l_assoc != null ){
+			
+			for (int i=0;i<l_assoc.size();i++){
+				
+				Map	m = (Map)l_assoc.get(i);
+				
+				byte[]		hash 	= (byte[])m.get("h");
+				long		when	= ((Long)m.get( "w" )).longValue();
+				
+				associations.add( new association( hash, when ));
+			}
+		}
 	}
 	
 	protected void
@@ -143,7 +190,22 @@ SubscriptionImpl
 	addAssociation(
 		byte[]		hash )
 	{
+		synchronized( this ){
+	
+			for (int i=0;i<associations.size();i++){
+				
+				association assoc = (association)associations.get(i);
+				
+				if ( Arrays.equals( assoc.getHash(), hash )){
+					
+					return;
+				}
+			}
+			
+			associations.add( new association( hash, SystemTime.getCurrentTime()));
+		}
 		
+		manager.configDirty();
 	}
 	
 	protected String
@@ -152,5 +214,33 @@ SubscriptionImpl
 		return( "sid=" + ByteFormatter.encodeString( short_id ) + ",ver=" + version + 
 					",public=[" + public_key.length + "]" + 
 					",private=[" + (private_key==null?"<none>":String.valueOf( private_key.length)) + "]" ); 
+	}
+	
+	protected static class
+	association
+	{
+		private byte[]	hash;
+		private long	when;
+		
+		protected
+		association(
+			byte[]		_hash,
+			long		_when )
+		{
+			hash		= _hash;
+			when		= _when;
+		}
+		
+		protected byte[]
+		getHash()
+		{
+			return( hash );
+		}
+		
+		protected long
+		getWhen()
+		{
+			return( when );
+		}
 	}
 }
