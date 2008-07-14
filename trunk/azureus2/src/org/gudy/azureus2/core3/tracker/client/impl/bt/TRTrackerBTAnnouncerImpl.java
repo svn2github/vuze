@@ -3207,7 +3207,8 @@ TRTrackerBTAnnouncerImpl
 			
 			List	l_peers = new ArrayList(ext_peers.length);
 				
-			boolean ps_enabled = announce_data_provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
+			boolean ps_enabled = 	announce_data_provider != null && 
+									announce_data_provider.isPeerSourceEnabled( PEPeerSource.PS_BT_TRACKER );
 						
 			for (int i=0;i<ext_peers.length;i++){
 				
