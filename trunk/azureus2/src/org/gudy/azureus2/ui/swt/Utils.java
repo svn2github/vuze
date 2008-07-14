@@ -2171,7 +2171,7 @@ public class Utils
 		List	to_do_now = null;
 		
 		synchronized( timerProcessDataSources ){
-			
+						
 			if ( timerEventProcessDS != null && !timerEventProcessDS.hasRun()){
 				
 					// Push timer forward, unless we've pushed it forward for over x seconds
@@ -2181,7 +2181,7 @@ public class Utils
 				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
 					
 					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
-					
+										
 					timerProcessDataSources.adjustAllBy( lNextTime - timerEventProcessDS.getWhen());
 					
 					if ( !processDataSourcesOutstanding.contains( callback )){
@@ -2189,7 +2189,7 @@ public class Utils
 						processDataSourcesOutstanding.add( callback );
 					}
 				}else{
-					
+										
 					timerEventProcessDS.cancel();
 					
 					timerEventProcessDS = null;
@@ -2202,6 +2202,11 @@ public class Utils
 				}
 			}else{
 				
+				if ( !processDataSourcesOutstanding.contains( callback )){
+					
+					processDataSourcesOutstanding.add( callback );
+				}
+
 				timerEventProcessDS = 
 					timerProcessDataSources.addEvent(
 						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
@@ -2212,7 +2217,7 @@ public class Utils
 								TimerEvent event ) 
 							{
 								List	to_do;
-								
+																
 								synchronized( timerProcessDataSources ){
 								
 									timerEventProcessDS = null;
@@ -2227,7 +2232,7 @@ public class Utils
 									try{
 										
 										addDataSourceCallback this_callback = (addDataSourceCallback)to_do.get(i);
-				
+														
 										if (TableViewSWT.DEBUGADDREMOVE && timerEventProcessDS != null) {
 											this_callback.debug("processDataSourceQueue after "
 													+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
