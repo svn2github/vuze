@@ -42,6 +42,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -60,13 +61,13 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterf
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.GUIUpdater;
-import org.gudy.azureus2.ui.swt.mainwindow.Refreshable;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 
 /**
  * Torrent Opener Window.
@@ -76,7 +77,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  * TODO Category Option
  */
 public class OpenTorrentWindow
-	implements TorrentDownloaderCallBackInterface, Refreshable
+	implements TorrentDownloaderCallBackInterface, UIUpdatable
 {
 
 	/**
@@ -683,7 +684,11 @@ public class OpenTorrentWindow
 			cSaveTo.setFocus();
 		}
 
-		GUIUpdater.addRefreshableItem(this);
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 	}
 
 	protected void okPressed() {
@@ -1016,6 +1021,12 @@ public class OpenTorrentWindow
 		// we are closing this one.
 		bClosed = true;
 
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		
 		if (dispose && shell != null && !shell.isDisposed()) {
 			// We won't be recalled by disposal hook because we set bClosed
 			shell.dispose();
@@ -2852,9 +2863,21 @@ public class OpenTorrentWindow
 
 	private volatile boolean diskFreeInfoRefreshRunning = false;
 
-	public void refresh() {
-		if (bClosed)
+	// @see com.aelitis.azureus.ui.swt.uiupdater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		return "OpenTorrentWindow";
+	}
+
+	// @see com.aelitis.azureus.ui.swt.uiupdater.UIUpdatable#updateUI()
+	public void updateUI() {
+		if (bClosed) {
+			try {
+				UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 			return;
+		}
 
 		if (diskFreeInfoRefreshPending && !diskFreeInfoRefreshRunning
 				&& FileUtil.getUsableSpaceSupported()) {

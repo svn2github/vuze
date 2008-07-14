@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -61,8 +62,11 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  * @author Olivier
  * 
  */
-public class ManagerView extends AbstractIView implements
-		DownloadManagerListener, ObfusticateTab, ObfusticateImage {
+public class ManagerView
+	extends AbstractIView
+	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
+	ViewTitleInfo
+{
 
   private AzureusCore		azureus_core;
   private DownloadManager 	manager;
@@ -466,5 +470,23 @@ public class ManagerView extends AbstractIView implements
 	}
 	
 	public DownloadManager getDownload() {return manager;}
-	
+
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getObjectProperty(int)
+	public Object getTitleInfoObjectProperty(int propertyID) {
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getStringProperty(int)
+	public String getTitleInfoStringProperty(int propertyID) {
+		if (manager == null) {
+			return null;
+		}
+		if (propertyID == TITLE_INDICATOR_TEXT) {
+	    int completed = manager.getStats().getCompleted();
+	    return (completed / 10) + "%";
+		} else if (propertyID == TITLE_TEXT) {
+			return manager.getDisplayName();
+		}
+		return null;
+	}
 }

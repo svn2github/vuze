@@ -25,13 +25,19 @@ import java.util.ListIterator;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
+
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 
 /**
  * @author Allan Crooks
  *
  */
-public class MiniBarManager {
+public class MiniBarManager
+implements UIUpdatable
+{
 
 	private boolean global;
 
@@ -72,6 +78,13 @@ public class MiniBarManager {
 	    } finally {
 	    	minibars_mon.exit();
 	    }
+	  if (minibars.size() == 1) {
+	  	try {
+		  	UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+	  }
 	}
 
 	public void unregister(MiniBar bar) {
@@ -81,6 +94,13 @@ public class MiniBarManager {
 	    	if (!global) {global_instance.unregister(bar);}
 	    } finally {
 	    	minibars_mon.exit();
+	    }
+	    if (minibars.isEmpty()) {
+		  	try {
+			  	UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 	    }
 	}
 	
@@ -157,19 +177,26 @@ public class MiniBarManager {
 				return this.getMiniBarForObject(context) != null;
 			}
 
-			public boolean refreshAll() {
+			// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+			public String getUpdateUIName() {
+				return "MiniBar-" + type;
+			}
+
+			// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+			public void updateUI() {
 				try {
 					minibars_mon.enter();
 
 					for (Iterator iter = minibars.iterator(); iter.hasNext();) {
 						MiniBar bar = (MiniBar) iter.next();
-						bar.refresh();
+						try {
+							bar.refresh();
+						} catch (Exception e) {
+							Debug.out(e);
+						}
 					}
 				} finally {
 					minibars_mon.exit();
 				}
-				return false;
 			}
-
-
 }

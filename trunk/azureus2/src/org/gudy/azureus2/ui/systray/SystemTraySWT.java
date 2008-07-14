@@ -20,10 +20,13 @@
  */
 package org.gudy.azureus2.ui.systray;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
@@ -37,16 +40,16 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import java.util.List;
 
 /**
  * @author Olivier Chalouhi
  *
  */
 public class SystemTraySWT
+	implements UIUpdatableAlways
 {
 
 	Display display;
@@ -126,7 +129,7 @@ public class SystemTraySWT
 			}
 		});
 
-		
+		uiFunctions.getUIUpdater().addUpdater(this);
 	}
 	
 	public void fillMenu(final Menu menu) {
@@ -279,6 +282,7 @@ public class SystemTraySWT
 	}
 
 	public void dispose() {
+		uiFunctions.getUIUpdater().removeUpdater(this);
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (trayItem != null && !trayItem.isDisposed()) {
@@ -288,9 +292,12 @@ public class SystemTraySWT
 		});
 	}
 
-	public void update() {
-		if (trayItem.isDisposed())
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+	public void updateUI() {
+		if (trayItem.isDisposed()) {
+			uiFunctions.getUIUpdater().removeUpdater(this);
 			return;
+		}
 		List managers = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
 		//StringBuffer toolTip = new StringBuffer("Azureus - ");//$NON-NLS-1$
 		StringBuffer toolTip = new StringBuffer();
@@ -353,7 +360,11 @@ public class SystemTraySWT
 			Messages.updateLanguageForControl(menu);
 		}
 
-		update();
+		updateUI();
 	}
 
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		return "SystemTraySWT";
+	}
 }

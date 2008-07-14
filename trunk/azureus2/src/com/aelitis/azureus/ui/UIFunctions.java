@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 
 /**
  * @author TuxPaper
@@ -160,4 +161,13 @@ public interface UIFunctions
 	public int promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
 			boolean bRememberByDefault, int autoCloseInMS);
+	
+	/**
+	 * Retrieves the class that handles periodically updating the UI
+	 * 
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public UIUpdater getUIUpdater();
 }

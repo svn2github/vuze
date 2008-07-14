@@ -148,4 +148,18 @@ public interface UIFunctionsSWT
 	public IMainMenu createMainMenu(Shell shell);
 
 	public IMainWindow getMainWindow();
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void closeAllDetails();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean hasDetailViews();
 }

@@ -28,13 +28,13 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -46,12 +46,8 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.sharing.ShareException;
-import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
-import org.gudy.azureus2.ui.swt.components.ColorUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
@@ -82,6 +78,10 @@ import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
+
 /**
  * @author Olivier
  * Runnable : so that GUI initialization is done via asyncExec(this)
@@ -97,8 +97,6 @@ public class MainWindow
 	private static MainWindow window;
 
 	private Initializer initializer;
-
-	private GUIUpdater updater;
 
 	private AzureusCore azureus_core;
 
@@ -119,8 +117,6 @@ public class MainWindow
 
 	private IconBar iconBar;
 
-	private boolean useCustomTab;
-
 	private Composite folder;
 
 	/** 
@@ -136,23 +132,23 @@ public class MainWindow
 
 	private AEMonitor downloadViews_mon = new AEMonitor("MainWindow:dlviews");
 
-	private Tab mytorrents;
+	private Item mytorrents;
 	
-	private Tab detailed_list;
+	private Item detailed_list;
 
-	private Tab all_peers;
+	private Item all_peers;
 
-	private Tab my_tracker_tab;
+	private Item my_tracker_tab;
 
-	private Tab my_shares_tab;
+	private Item my_shares_tab;
 
-	private Tab stats_tab;
+	private Item stats_tab;
 
-	private Tab console;
+	private Item console;
 
-	private Tab multi_options_tab;
+	private Item multi_options_tab;
 
-	private Tab config;
+	private Item config;
 
 	private ConfigView config_view;
 
@@ -169,6 +165,8 @@ public class MainWindow
 	private boolean bShowMainWindow;
 
 	private boolean bSettingVisibility = false;
+
+	private Tab mainTabSet;
 
 	public MainWindow(AzureusCore _azureus_core, Initializer _initializer,
 			ArrayList events) {
@@ -284,9 +282,6 @@ public class MainWindow
 			}
 
 			globalManager.loadExistingTorrentsNow(true);
-
-			useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
-			Tab.setUseCustomTab(useCustomTab);
 
 			COConfigurationManager.addParameterListener("config.style.useSIUnits",
 					this);
@@ -411,32 +406,8 @@ public class MainWindow
 				Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
 			}
 
-			if (!useCustomTab) {
-				folder = new TabFolder(parent, SWT.V_SCROLL);
-			} else {
-				folder = new CTabFolder(parent, SWT.CLOSE | SWT.BORDER);
-				final Color bg = ColorUtils.getShade(folder.getBackground(),
-						(Constants.isOSX) ? -25 : -6);
-				final Color fg = ColorUtils.getShade(folder.getForeground(),
-						(Constants.isOSX) ? 25 : 6);
-				folder.setBackground(bg);
-				folder.setForeground(fg);
-				//((CTabFolder)folder).setBorderVisible(false);
-				folder.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent event) {
-						bg.dispose();
-						fg.dispose();
-					}
-				});
-
-				((CTabFolder) folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
-					public void close(CTabFolderEvent event) {
-						if (!Tab.closed((Item) event.item)) {
-							event.doit = false;
-						}
-					}
-				});
-			}
+			mainTabSet = new Tab(this);
+			folder = mainTabSet.createFolderWidget(parent);
 
 			formData = new FormData();
 			if (controlAboveFolder == null) {
@@ -454,9 +425,7 @@ public class MainWindow
 			formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
 			folder.setLayoutData(formData);
 
-			Tab.initialize(this, folder);
-
-			folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+			display.addFilter(SWT.KeyDown, new Listener() {
 				public void handleEvent(Event event) {
 					// Another window has control, skip filter
 					Control focus_control = display.getFocusControl();
@@ -468,118 +437,13 @@ public class MainWindow
 							&& event.character > 0)
 						key += 'a' - 1;
 
-					// ESC or CTRL+F4 closes current Tab
-					if (key == SWT.ESC
-							|| (event.keyCode == SWT.F4 && event.stateMask == SWT.CTRL)) {
-						Tab.closeCurrent();
-						event.doit = false;
-					} else if (event.keyCode == SWT.F6
-							|| (event.character == SWT.TAB && (event.stateMask & SWT.CTRL) != 0)) {
-						// F6 or Ctrl-Tab selects next Tab
-						// On Windows the tab key will not reach this filter, as it is
-						// processed by the traversal TRAVERSE_TAB_NEXT.  It's unknown
-						// what other OSes do, so the code is here in case we get TAB
-						if ((event.stateMask & SWT.SHIFT) == 0) {
-							event.doit = false;
-							Tab.selectNextTab(true);
-							// Shift+F6 or Ctrl+Shift+Tab selects previous Tab
-						} else if (event.stateMask == SWT.SHIFT) {
-							Tab.selectNextTab(false);
-							event.doit = false;
-						}
-					} else if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
+					if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
 						// Ctrl-L: Open URL
 						OpenTorrentWindow.invokeURLPopup(shell, globalManager);
 						event.doit = false;
 					}
 				}
 			});
-
-			SelectionAdapter selectionAdapter = new SelectionAdapter() {
-				public void widgetSelected(final SelectionEvent event) {
-					if (display != null && !display.isDisposed())
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								if (useCustomTab) {
-									CTabItem item = (CTabItem) event.item;
-									if (item != null && !item.isDisposed()
-											&& !folder.isDisposed()) {
-										try {
-											((CTabFolder) folder).setSelection(item);
-											Control control = item.getControl();
-											if (control != null) {
-												control.setVisible(true);
-												control.setFocus();
-											}
-										} catch (Throwable e) {
-											Debug.printStackTrace(e);
-											//Do nothing
-										}
-									}
-								}
-								if (iconBar != null) {
-									iconBar.setCurrentEnabler(MainWindow.this);
-								}
-								refreshTorrentMenu();
-							}
-
-						});
-				}
-			};
-
-			if (!useCustomTab) {
-				((TabFolder) folder).addSelectionListener(selectionAdapter);
-			} else {
-				try {
-					((CTabFolder) folder).setMinimumCharacters(75);
-				} catch (Exception e) {
-					Logger.log(new LogEvent(LOGID, "Can't set MIN_TAB_WIDTH", e));
-				}
-				//try {
-				///  TabFolder2ListenerAdder.add((CTabFolder)folder);
-				//} catch (NoClassDefFoundError e) {
-				((CTabFolder) folder).addCTabFolderListener(new CTabFolderAdapter() {
-					public void itemClosed(CTabFolderEvent event) {
-						if (!event.doit) {
-							return;
-						}
-						Tab.closed((CTabItem) event.item);
-						event.doit = true;
-						((CTabItem) event.item).dispose();
-					}
-				});
-				//}
-
-				((CTabFolder) folder).addSelectionListener(selectionAdapter);
-
-				try {
-					((CTabFolder) folder).setSelectionBackground(new Color[] {
-						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-						display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
-					}, new int[] {
-						10,
-						90
-					}, true);
-				} catch (NoSuchMethodError e) {
-					/** < SWT 3.0M8 **/
-					((CTabFolder) folder).setSelectionBackground(new Color[] {
-						display.getSystemColor(SWT.COLOR_LIST_BACKGROUND)
-					}, new int[0]);
-				}
-				((CTabFolder) folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
-
-				try {
-					/* Pre 3.0M8 doesn't have Simple-mode (it's always simple mode)
-					   in 3.0M9, it was called setSimpleTab(boolean)
-					   in 3.0RC1, it's called setSimple(boolean)
-					   Prepare for the future, and use setSimple()
-					 */
-					((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
-				} catch (NoSuchMethodError e) {
-					/** < SWT 3.0RC1 **/
-				}
-			}
 
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
@@ -731,11 +595,6 @@ public class MainWindow
 			});
 		}
 
-		COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
-
-		updater = new GUIUpdater(this);
-		updater.start();
-
 		COConfigurationManager.addAndFireParameterListener("IconBar.enabled",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -871,15 +730,15 @@ public class MainWindow
 
 	protected void showMyTracker() {
 		if (my_tracker_tab == null) {
-			my_tracker_tab = new Tab(new MyTrackerView(azureus_core));
-			my_tracker_tab.getView().getComposite().addDisposeListener(
+			my_tracker_tab = mainTabSet.createTabItem(new MyTrackerView(azureus_core), true);
+			mainTabSet.getView(my_tracker_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							my_tracker_tab = null;
 						}
 					});
 		} else {
-			my_tracker_tab.setFocus();
+			mainTabSet.setFocus(my_tracker_tab);
 			refreshIconBar();
 			refreshTorrentMenu();
 		}
@@ -887,15 +746,15 @@ public class MainWindow
 
 	protected void showMyShares() {
 		if (my_shares_tab == null) {
-			my_shares_tab = new Tab(new MySharesView(azureus_core));
-			my_shares_tab.getView().getComposite().addDisposeListener(
+			my_shares_tab = mainTabSet.createTabItem(new MySharesView(azureus_core), true);
+			mainTabSet.getView(my_shares_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							my_shares_tab = null;
 						}
 					});
 		} else {
-			my_shares_tab.setFocus();
+			mainTabSet.setFocus(my_shares_tab);
 			refreshIconBar();
 			refreshTorrentMenu();
 		}
@@ -904,15 +763,15 @@ public class MainWindow
 	protected void showMyTorrents() {
 		if (mytorrents == null) {
 			MyTorrentsSuperView view = new MyTorrentsSuperView(azureus_core);
-			mytorrents = new Tab(view);
-			mytorrents.getView().getComposite().addDisposeListener(
+			mytorrents = mainTabSet.createTabItem(view, true);
+			mainTabSet.getView(mytorrents).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							mytorrents = null;
 						}
 					});
 		} else {
-			mytorrents.setFocus();
+			mainTabSet.setFocus(mytorrents);
 		}
 		refreshIconBar();
 		refreshTorrentMenu();
@@ -921,15 +780,15 @@ public class MainWindow
 	protected void showDetailedListView() {
 		if (detailed_list == null) {
 			DetailedListView view = new DetailedListView(azureus_core);
-			detailed_list = new Tab(view);
-			detailed_list.getView().getComposite().addDisposeListener(
+			detailed_list = mainTabSet.createTabItem(view, true);
+			mainTabSet.getView(detailed_list).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							detailed_list = null;
 						}
 					});
 		} else {
-			detailed_list.setFocus();
+			mainTabSet.setFocus(detailed_list);
 		}
 		refreshIconBar();
 		refreshTorrentMenu();
@@ -938,15 +797,15 @@ public class MainWindow
 	protected void showAllPeersView() {
 		if (all_peers == null) {
 			PeerSuperView view = new PeerSuperView(azureus_core.getGlobalManager());
-			all_peers = new Tab(view);
-			all_peers.getView().getComposite().addDisposeListener(
+			all_peers = mainTabSet.createTabItem(view, true);
+			mainTabSet.getView(all_peers).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							all_peers = null;
 						}
 					});
 		} else {
-			all_peers.setFocus();
+			mainTabSet.setFocus(all_peers);
 		}
 		refreshIconBar();
 		refreshTorrentMenu();
@@ -959,7 +818,7 @@ public class MainWindow
 
 		TorrentOptionsView view = new TorrentOptionsView(managers);
 
-		multi_options_tab = new Tab(view);
+		multi_options_tab = mainTabSet.createTabItem(view, true);
 
 		view.getComposite().addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
@@ -991,12 +850,8 @@ public class MainWindow
 		if (mainStatusBar != null)
 			mainStatusBar.refreshStatusText();
 
-		if (folder != null) {
-			if (useCustomTab) {
-				((CTabFolder) folder).update();
-			} else {
-				((TabFolder) folder).update();
-			}
+		if (mainTabSet != null) {
+			mainTabSet.update();
 		}
 	}
 
@@ -1033,12 +888,12 @@ public class MainWindow
 			downloadViews_mon.enter();
 
 			if (downloadViews.containsKey(downloadManager)) {
-				Tab tab = (Tab) downloadViews.get(downloadManager);
-				tab.setFocus();
+				mainTabSet.setFocus((Item) downloadViews.get(downloadManager));
 				refreshIconBar();
 				refreshTorrentMenu();
 			} else {
-				Tab tab = new Tab(new ManagerView(azureus_core, downloadManager));
+				Item tab = mainTabSet.createTabItem(new ManagerView(azureus_core,
+						downloadManager), true);
 				downloadViews.put(downloadManager, tab);
 			}
 		} finally {
@@ -1063,13 +918,13 @@ public class MainWindow
 			downloadViews_mon.enter();
 
 			if (downloadViews.containsKey(removed)) {
-				final Tab tab = (Tab) downloadViews.get(removed);
+				final Item tab = (Item) downloadViews.get(removed);
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (display == null || display.isDisposed())
 							return;
 
-						tab.dispose();
+						mainTabSet.dispose(tab);
 					}
 				});
 
@@ -1215,18 +1070,13 @@ public class MainWindow
 		}
 
 		// close all tabs
-		Tab.closeAllTabs();
+		mainTabSet.closeAllTabs();
 
 		isAlreadyDead = true; //NICO try to never die twice...
 		/*
 		if (this.trayIcon != null)
 		  SysTrayMenu.dispose();
 		*/
-
-		if (updater != null) {
-
-			updater.stopIt();
-		}
 
 		if (initializer != null) {
 			initializer.stopIt(for_restart, close_already_in_progress);
@@ -1240,7 +1090,6 @@ public class MainWindow
 		COConfigurationManager.removeParameterListener("config.style.useSIUnits",
 				this);
 		COConfigurationManager.removeParameterListener("Show Download Basket", this);
-		COConfigurationManager.removeParameterListener("GUI_SWT_bFancyTab", this);
 
 		UIExitUtilsSWT.uiShutdown();
 
@@ -1274,15 +1123,15 @@ public class MainWindow
 		try {
 			view = new UISWTViewImpl(sParentID, sViewID, l);
 		} catch (Exception e) {
-			Tab tab = (Tab) pluginTabs.get(sViewID);
+			Item tab = (Item) pluginTabs.get(sViewID);
 			if (tab != null) {
-				tab.setFocus();
+				mainTabSet.setFocus(tab);
 			}
 			return;
 		}
 		view.dataSourceChanged(dataSource);
 
-		Tab tab = new Tab(view, bSetFocus);
+		Item tab = mainTabSet.createTabItem(view, bSetFocus);
 
 		pluginTabs.put(sViewID, tab);
 	}
@@ -1293,28 +1142,9 @@ public class MainWindow
 	 * @param sViewID
 	 */
 	protected void closePluginViews(String sViewID) {
-		Item[] items;
-
-		if (folder instanceof CTabFolder)
-			items = ((CTabFolder) folder).getItems();
-		else if (folder instanceof TabFolder)
-			items = ((TabFolder) folder).getItems();
-		else
-			return;
-
-		for (int i = 0; i < items.length; i++) {
-			IView view = Tab.getView(items[i]);
-			if (view instanceof UISWTViewImpl) {
-				String sID = ((UISWTViewImpl) view).getViewID();
-				if (sID != null && sID.equals(sViewID)) {
-					try {
-						closePluginView(view);
-					} catch (Exception e) {
-						Debug.printStackTrace(e);
-					}
-				}
-			}
-		} // for
+		if (mainTabSet != null) {
+			mainTabSet.closePluginViews(sViewID);
+		}
 	}
 
 	/**
@@ -1323,23 +1153,17 @@ public class MainWindow
 	 * @return open plugin views
 	 */
 	protected UISWTView[] getPluginViews() {
-		Item[] items;
-
-		if (folder instanceof CTabFolder)
-			items = ((CTabFolder) folder).getItems();
-		else if (folder instanceof TabFolder)
-			items = ((TabFolder) folder).getItems();
-		else
-			return new UISWTView[0];
+		IView[] allViews = mainTabSet.getAllViews();
 
 		ArrayList views = new ArrayList();
 
-		for (int i = 0; i < items.length; i++) {
-			IView view = Tab.getView(items[i]);
+		for (int i = 0; i < allViews.length; i++) {
+			IView view = allViews[i];
+
 			if (view instanceof UISWTViewImpl) {
 				views.add(view);
 			}
-		} // for
+		}
 
 		return (UISWTView[]) views.toArray(new UISWTView[0]);
 	}
@@ -1347,11 +1171,11 @@ public class MainWindow
 	protected void openPluginView(final AbstractIView view, final String name) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				Tab tab = (Tab) pluginTabs.get(name);
+				Item tab = (Item) pluginTabs.get(name);
 				if (tab != null) {
-					tab.setFocus();
+					mainTabSet.setFocus(tab);
 				} else {
-					tab = new Tab(view);
+					tab = mainTabSet.createTabItem(view, true);
 					pluginTabs.put(name, tab);
 				}
 			}
@@ -1359,11 +1183,11 @@ public class MainWindow
 	}
 
 	protected void closePluginView(IView view) {
-		Item tab = Tab.getTab(view);
+		Item tab = mainTabSet.getTab(view);
 
 		if (tab != null) {
 
-			Tab.closed(tab);
+			mainTabSet.closed(tab);
 		}
 	}
 
@@ -1382,16 +1206,6 @@ public class MainWindow
 			} else if (downloadBasket != null) {
 				downloadBasket.setVisible(false);
 				downloadBasket = null;
-			}
-		}
-
-		if (parameterName.equals("GUI_SWT_bFancyTab")
-				&& folder instanceof CTabFolder && folder != null
-				&& !folder.isDisposed()) {
-			try {
-				((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
-			} catch (NoSuchMethodError e) {
-				/** < SWT 3.0RC1 **/
 			}
 		}
 
@@ -1433,18 +1247,10 @@ public class MainWindow
 	}
 
 	IView getCurrentView() {
-		try {
-			if (!useCustomTab) {
-				TabItem[] selection = ((TabFolder) folder).getSelection();
-				if (selection.length > 0) {
-					return Tab.getView(selection[0]);
-				}
-				return null;
-			}
-			return Tab.getView(((CTabFolder) folder).getSelection());
-		} catch (Exception e) {
-			return null;
+		if (mainTabSet != null) {
+			return mainTabSet.getCurrentView();
 		}
+		return null;
 	}
 
 	protected void refreshIconBar() {
@@ -1513,7 +1319,7 @@ public class MainWindow
 
 	protected void closeViewOrWindow() {
 		if (getCurrentView() != null)
-			Tab.closeCurrent();
+			mainTabSet.closeCurrent();
 		else
 			close();
 	}
@@ -1521,7 +1327,7 @@ public class MainWindow
 	protected ConfigView showConfig() {
 		if (config == null) {
 			config_view = new ConfigView(azureus_core);
-			config = new Tab(config_view);
+			config = mainTabSet.createTabItem(config_view, true);
 			config_view.getComposite().addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					config = null;
@@ -1529,7 +1335,7 @@ public class MainWindow
 				}
 			});
 		} else {
-			config.setFocus();
+			mainTabSet.setFocus(config);
 			refreshIconBar();
 			refreshTorrentMenu();
 		}
@@ -1556,15 +1362,15 @@ public class MainWindow
 
 	protected void showConsole() {
 		if (console == null) {
-			console = new Tab(new LoggerView(events));
-			console.getView().getComposite().addDisposeListener(
+			console = mainTabSet.createTabItem(new LoggerView(events), true);
+			mainTabSet.getView(console).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							console = null;
 						}
 					});
 		} else {
-			console.setFocus();
+			mainTabSet.setFocus(console);
 			refreshIconBar();
 			refreshTorrentMenu();
 		}
@@ -1572,15 +1378,15 @@ public class MainWindow
 
 	protected void showStats() {
 		if (stats_tab == null) {
-			stats_tab = new Tab(new StatsView(globalManager, azureus_core));
-			stats_tab.getView().getComposite().addDisposeListener(
+			stats_tab = mainTabSet.createTabItem(new StatsView(globalManager, azureus_core), true);
+			mainTabSet.getView(stats_tab).getComposite().addDisposeListener(
 					new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							stats_tab = null;
 						}
 					});
 		} else {
-			stats_tab.setFocus();
+			mainTabSet.setFocus(stats_tab);
 			refreshIconBar();
 			refreshTorrentMenu();
 		}
@@ -1591,7 +1397,10 @@ public class MainWindow
 		if (stats_tab == null) {
 			return;
 		}
-		((StatsView) stats_tab.getView()).showDHT();
+		IView view = mainTabSet.getView(stats_tab);
+		if (view instanceof StatsView) {
+			((StatsView) view).showDHT();
+		}
 	}
 
 	protected void showStatsTransfers() {
@@ -1599,7 +1408,10 @@ public class MainWindow
 		if (stats_tab == null) {
 			return;
 		}
-		((StatsView) stats_tab.getView()).showTransfers();
+		IView view = mainTabSet.getView(stats_tab);
+		if (view instanceof StatsView) {
+			((StatsView) view).showTransfers();
+		}
 	}
 
 	protected void setSelectedLanguageItem() {
@@ -1617,18 +1429,14 @@ public class MainWindow
 			}
 
 			if (folder != null) {
-				if (useCustomTab) {
-					((CTabFolder) folder).update();
-				} else {
-					((TabFolder) folder).update();
-				}
+				folder.update();
 			}
 
 			if (downloadBasket != null) {
 				downloadBasket.updateLanguage();
 			}
 
-			Tab.updateLanguage();
+			mainTabSet.updateLanguage();
 
 			if (mainStatusBar != null) {
 				mainStatusBar.updateStatusText();
@@ -1705,48 +1513,8 @@ public class MainWindow
 
 		try {
 			writer.indent();
-
-			writer.println("MyTorrents");
-
-			Tab t = mytorrents;
-			if (t != null) {
-				try {
-					writer.indent();
-
-					t.generateDiagnostics(writer);
-				} finally {
-
-					writer.exdent();
-				}
-			}
-
-			t = my_tracker_tab;
-			if (t != null) {
-				writer.println("MyTracker");
-
-				try {
-					writer.indent();
-
-					t.generateDiagnostics(writer);
-				} finally {
-
-					writer.exdent();
-				}
-			}
-
-			t = my_shares_tab;
-			if (t != null) {
-				writer.println("MyShares");
-
-				try {
-					writer.indent();
-
-					t.generateDiagnostics(writer);
-				} finally {
-
-					writer.exdent();
-				}
-			}
+			
+			mainTabSet.generateDiagnostics(writer);
 
 			TableColumnManager.getInstance().generateDiagnostics(writer);
 		} finally {
@@ -1841,12 +1609,12 @@ public class MainWindow
 	public Image generateObfusticatedImage() {
 		Image image;
 
-		IView[] allViews = Tab.getAllViews();
+		IView[] allViews = mainTabSet.getAllViews();
 		for (int i = 0; i < allViews.length; i++) {
 			IView view = allViews[i];
 
 			if (view instanceof ObfusticateTab) {
-				Item tab = Tab.getTab(view);
+				Item tab = mainTabSet.getTab(view);
 				tab.setText(((ObfusticateTab) view).getObfusticatedHeader());
 				folder.update();
 			}
@@ -2014,6 +1782,29 @@ public class MainWindow
 		}
 
 		return new Rectangle(0, 0, 0, 0);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void closeAllDetails() {
+		if (mainTabSet != null) {
+			mainTabSet.closeAllDetails();
+		}
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean hasDetailViews() {
+		if (mainTabSet != null) {
+			mainTabSet.hasDetails();
+		}
+		return false;
 	}
 
 }

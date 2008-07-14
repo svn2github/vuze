@@ -22,164 +22,320 @@ package org.gudy.azureus2.ui.swt;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.custom.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
 
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author Olivier
  * @author James Yeh Added Add/Remove event listeners
  */
-public class Tab {
+public class Tab implements ParameterListener, UIUpdatable {
+	private static final LogIDs LOGID = LogIDs.GUI;
+	
+	private static final String ID = "TabSet";
 
-  private static HashMap 	tabs;
-  private static AEMonitor  class_mon 	= new AEMonitor( "Tab:class" );
+  private HashMap 	tabs;
+  private AEMonitor  class_mon 	= new AEMonitor(ID);
 
-  private static boolean useCustomTab;
-
-  private static Composite _folder;
-
+  private boolean useCustomTab;
 
   private Composite folder;
 
 
-  private Item tabItem;
-  private static boolean eventCloseAllowed = true;
-  private static Item selectedItem = null;
+  private boolean eventCloseAllowed = true;
+  private Item selectedItem = null;
 
 
-  private IView view;
+	private MainWindow mainwindow;
 
-   // events
-   private static List tabAddListeners;
-   private static List tabRemoveListeners;
-	private static MainWindow mainwindow;
+	private Listener activateListener;
 
-  static {
-    tabs = new HashMap();
-    tabAddListeners = new LinkedList();
-    tabRemoveListeners = new LinkedList();
-  }
+  /**
+	 * 
+	 */
+	public Tab(MainWindow _mainWindow) {
+		mainwindow = _mainWindow;
 
+		tabs = new HashMap();
+		
+		COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
 
-  public Item getTabItem() {
-    return tabItem;
-  }
-
-  public Tab(IView _view) {
-  	this(_view, true);
-  }
-
-  public Tab(IView _view, boolean bFocus) {
-    this.view = _view;
-    this.folder = _folder;
-
-    if (folder.isDisposed()) {
-    	return;
-    }
-    
-    final MouseAdapter mouseListener;
-    
-    if (useCustomTab) {
-    	CTabFolder tabFolder = (CTabFolder) folder;
-      tabItem = new CTabItem(tabFolder, SWT.NULL,
-					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
-
-	    folder.addMouseListener(mouseListener = new MouseAdapter() {
-	      public void mouseDown(MouseEvent arg0) {
-	        if(arg0.button == 2) {
-	          if(eventCloseAllowed) { 
-	            Rectangle rectangle =((CTabItem)tabItem).getBounds(); 
-	            if(rectangle.contains(arg0.x, arg0.y)) {
-	              eventCloseAllowed = false;
-	              selectedItem = null;
-	              //folder.removeMouseListener(this);
-	              closed(tabItem);
-	            }
-	          }
-	        } else {          
-	          selectedItem = ((CTabFolder) folder).getSelection();	         
-	        }
-	      }
-	      
-	      public void mouseUp(MouseEvent arg0) {
-	        eventCloseAllowed = true;
-	        if(selectedItem != null) {
-	          if(_folder instanceof CTabFolder)
-	            ((CTabFolder) _folder).setSelection((CTabItem)selectedItem);	          
-	        }
-	      }
-	    });
-    }
-    else {
-    	mouseListener = null;
-    	TabFolder tabFolder = (TabFolder) folder;
-      tabItem = new TabItem(tabFolder, SWT.NULL,
-					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
-    }
-    
-    Listener activateListener = new Listener() {
+    activateListener = new Listener() {
 			public void handleEvent(Event event) {
 				IView view = null;
-				Composite parent = (Composite)event.widget;
+				Composite parent = (Composite) event.widget;
 				IView oldView = getView(selectedItem);
 				if (oldView instanceof IViewExtension) {
-					((IViewExtension)oldView).viewDeactivated();
+					((IViewExtension) oldView).viewDeactivated();
 				}
-				
+
 				while (parent != null && !parent.isDisposed() && view == null) {
 					if (parent instanceof CTabFolder) {
-						CTabFolder folder = (CTabFolder)parent;
+						CTabFolder folder = (CTabFolder) parent;
 						selectedItem = folder.getSelection();
 						view = getView(selectedItem);
 					} else if (parent instanceof TabFolder) {
-						TabFolder folder = (TabFolder)parent;
+						TabFolder folder = (TabFolder) parent;
 						TabItem[] selection = folder.getSelection();
 						if (selection.length > 0) {
 							selectedItem = selection[0];
 							view = getView(selectedItem);
 						}
 					}
-					
+
 					if (view == null)
 						parent = parent.getParent();
 				}
-				
+
 				if (view != null) {
 					if (view instanceof IViewExtension) {
-						((IViewExtension)view).viewActivated();
+						((IViewExtension) view).viewActivated();
 					}
 					view.refresh();
 				}
 			}
 		};
+		
+		mainwindow.getUIFunctions().getUIUpdater().addUpdater(this);
+	}
 
-    tabs.put(tabItem, view);
+	public Composite createFolderWidget(Composite parent) {
+		Display display = parent.getDisplay();
+
+		if (tabs == null) {
+			tabs = new HashMap();
+		}
+		if (folder != null && !folder.isDisposed()) {
+			return folder;
+		}
+
+		useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
+
+		if (!useCustomTab) {
+			folder = new TabFolder(parent, SWT.V_SCROLL);
+		} else {
+			folder = new CTabFolder(parent, SWT.CLOSE | SWT.BORDER);
+
+			float[] hsb = folder.getBackground().getRGB().getHSB();
+			hsb[2] *= (Constants.isOSX) ? 0.9 : 0.97;
+			folder.setBackground(ColorCache.getColor(parent.getDisplay(), hsb));
+
+			hsb = folder.getForeground().getRGB().getHSB();
+			hsb[2] *= (Constants.isOSX) ? 1.1 : 0.03;
+			folder.setForeground(ColorCache.getColor(parent.getDisplay(), hsb));
+
+			//((CTabFolder)folder).setBorderVisible(false);
+
+			((CTabFolder) folder).addCTabFolder2Listener(new CTabFolder2Adapter() {
+				public void close(CTabFolderEvent event) {
+					if (!closed((Item) event.item)) {
+						event.doit = false;
+					}
+				}
+			});
+
+			// I think this closes the tab on middle click
+			folder.addMouseListener(new MouseAdapter() {
+				public void mouseDown(MouseEvent arg0) {
+					CTabItem tabItem = ((CTabFolder) folder).getItem(new Point(arg0.x,
+							arg0.y));
+					if (arg0.button == 2) {
+						if (eventCloseAllowed) {
+							Rectangle rectangle = ((CTabItem) tabItem).getBounds();
+							if (rectangle.contains(arg0.x, arg0.y)) {
+								eventCloseAllowed = false;
+								selectedItem = null;
+								//folder.removeMouseListener(this);
+								closed(tabItem);
+							}
+						}
+					} else {
+						selectedItem = ((CTabFolder) folder).getSelection();
+					}
+				}
+
+				public void mouseUp(MouseEvent arg0) {
+					eventCloseAllowed = true;
+					if (selectedItem != null) {
+						((CTabFolder) folder).setSelection((CTabItem) selectedItem);
+					}
+				}
+			});
+		}
+
+		folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+			public void handleEvent(Event event) {
+				// Another window has control, skip filter
+				Control focus_control = folder.getDisplay().getFocusControl();
+				if (focus_control != null
+						&& focus_control.getShell() != folder.getShell()) {
+					return;
+				}
+
+				int key = event.character;
+				if ((event.stateMask & SWT.MOD1) != 0 && event.character <= 26
+						&& event.character > 0)
+					key += 'a' - 1;
+
+				// ESC or CTRL+F4 closes current Tab
+				if (key == SWT.ESC
+						|| (event.keyCode == SWT.F4 && event.stateMask == SWT.CTRL)) {
+					closeCurrent();
+					event.doit = false;
+				} else if (event.keyCode == SWT.F6
+						|| (event.character == SWT.TAB && (event.stateMask & SWT.CTRL) != 0)) {
+					// F6 or Ctrl-Tab selects next Tab
+					// On Windows the tab key will not reach this filter, as it is
+					// processed by the traversal TRAVERSE_TAB_NEXT.  It's unknown
+					// what other OSes do, so the code is here in case we get TAB
+					if ((event.stateMask & SWT.SHIFT) == 0) {
+						event.doit = false;
+						selectNextTab(true);
+						// Shift+F6 or Ctrl+Shift+Tab selects previous Tab
+					} else if (event.stateMask == SWT.SHIFT) {
+						selectNextTab(false);
+						event.doit = false;
+					}
+				}
+			}
+		});
+
+		SelectionAdapter selectionAdapter = new SelectionAdapter() {
+			public void widgetSelected(final SelectionEvent event) {
+				if (folder == null || folder.isDisposed()) {
+					return;
+				}
+
+				if (useCustomTab) {
+					CTabItem item = (CTabItem) event.item;
+					if (item != null && !item.isDisposed() && !folder.isDisposed()) {
+						try {
+							((CTabFolder) folder).setSelection(item);
+							Control control = item.getControl();
+							if (control != null) {
+								control.setVisible(true);
+								control.setFocus();
+							}
+						} catch (Throwable e) {
+							Debug.printStackTrace(e);
+							//Do nothing
+						}
+					}
+				}
+
+				mainwindow.getUIFunctions().refreshIconBar();
+				mainwindow.getUIFunctions().refreshTorrentMenu();
+			}
+		};
+
+		if (!useCustomTab) {
+			((TabFolder) folder).addSelectionListener(selectionAdapter);
+		} else {
+			try {
+				((CTabFolder) folder).setMinimumCharacters(75);
+			} catch (Exception e) {
+				Logger.log(new LogEvent(LOGID, "Can't set MIN_TAB_WIDTH", e));
+			}
+			//try {
+			///  TabFolder2ListenerAdder.add((CTabFolder)folder);
+			//} catch (NoClassDefFoundError e) {
+			((CTabFolder) folder).addCTabFolderListener(new CTabFolderAdapter() {
+				public void itemClosed(CTabFolderEvent event) {
+					if (!event.doit) {
+						return;
+					}
+					closed((CTabItem) event.item);
+					event.doit = true;
+					((CTabItem) event.item).dispose();
+				}
+			});
+			//}
+
+			((CTabFolder) folder).addSelectionListener(selectionAdapter);
+
+			try {
+				((CTabFolder) folder).setSelectionBackground(new Color[] {
+					display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+					display.getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+					display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
+				}, new int[] {
+					10,
+					90
+				}, true);
+			} catch (NoSuchMethodError e) {
+				/** < SWT 3.0M8 **/
+				((CTabFolder) folder).setSelectionBackground(new Color[] {
+					display.getSystemColor(SWT.COLOR_LIST_BACKGROUND)
+				}, new int[0]);
+			}
+			((CTabFolder) folder).setSelectionForeground(display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
+
+			try {
+				/* Pre 3.0M8 doesn't have Simple-mode (it's always simple mode)
+				   in 3.0M9, it was called setSimpleTab(boolean)
+				   in 3.0RC1, it's called setSimple(boolean)
+				   Prepare for the future, and use setSimple()
+				 */
+				((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+			} catch (NoSuchMethodError e) {
+				/** < SWT 3.0RC1 **/
+			}
+		}
+		
+
+		return folder;
+	}
+
+  
+
+	public Item createTabItem(IView _view, boolean bFocus) {
+		if (folder.isDisposed()) {
+			return null;
+		}
+
+		Item tabItem;
+
+		if (folder instanceof CTabFolder) {
+			CTabFolder tabFolder = (CTabFolder) folder;
+			tabItem = new CTabItem(tabFolder, SWT.NULL,
+					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
+
+		} else {
+			TabFolder tabFolder = (TabFolder) folder;
+			tabItem = new TabItem(tabFolder, SWT.NULL,
+					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
+		}
+
+
+		tabs.put(tabItem, _view);
 
 		try {
 			// Always create a composite around the IView, because a lot of them
@@ -191,8 +347,8 @@ public class Tab {
 			tabArea.setLayout(layout);
 
 			_view.initialize(tabArea);
-			tabItem.setText(escapeAccelerators(view.getShortTitle()));
-			
+			tabItem.setText(escapeAccelerators(_view.getShortTitle()));
+
 			Composite viewComposite = _view.getComposite();
 			if (viewComposite != null && !viewComposite.isDisposed()) {
 				viewComposite.addListener(SWT.Activate, activateListener);
@@ -204,29 +360,32 @@ public class Tab {
 				}
 
 				if (viewComposite != tabArea) {
-  				viewComposite.addDisposeListener(new DisposeListener() {
-  					boolean alreadyHere = false;
-  					public void widgetDisposed(DisposeEvent e) {
-  						if (alreadyHere) {
-  							return;
-  						}
-  						alreadyHere = true;
-  						Utils.disposeComposite(tabArea);
-  					}
-  				});
+					viewComposite.addDisposeListener(new DisposeListener() {
+						boolean alreadyHere = false;
+
+						public void widgetDisposed(DisposeEvent e) {
+							if (alreadyHere) {
+								return;
+							}
+							alreadyHere = true;
+							Utils.disposeComposite(tabArea);
+						}
+					});
 				}
 			}
 
-			if (useCustomTab) {
+			if (folder instanceof CTabFolder) {
 				((CTabItem) tabItem).setControl(tabArea);
-// Disabled for SWT 3.2RC5.. CTabItem tooltip doesn't always disappear
-//				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
+				// Disabled for SWT 3.2RC5.. CTabItem tooltip doesn't always disappear
+				//				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
 				if (bFocus)
 					((CTabFolder) folder).setSelection((CTabItem) tabItem);
 			} else {
 				((TabItem) tabItem).setControl(tabArea);
-				((TabItem) tabItem).setToolTipText(view.getFullTitle());
-				TabItem items[] = { (TabItem) tabItem };
+				((TabItem) tabItem).setToolTipText(_view.getFullTitle());
+				TabItem items[] = {
+					(TabItem) tabItem
+				};
 				if (bFocus)
 					((TabFolder) folder).setSelection(items);
 			}
@@ -234,42 +393,25 @@ public class Tab {
 			tabs.remove(tabItem);
 			Debug.printStackTrace(e);
 		}
-    
-    if (bFocus) {
-    	UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-    	if (uif != null) {
-    		uif.refreshIconBar();
-    		uif.refreshTorrentMenu();
-    	}
-    	selectedItem = tabItem;
-    }
 
-    // events
-    notifyListeners(tabAddListeners, tabItem);
-    tabItem.addDisposeListener(new DisposeListener() {
-        public void widgetDisposed(DisposeEvent event) {
-        	if (mouseListener != null) {
-        		folder.removeMouseListener(mouseListener);
-        	}
-            notifyListeners(tabRemoveListeners, tabItem);
-        }
-    });
-//    System.out.println("selected: "+selectedItem.getText());
-  }
+		if (bFocus) {
+			UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uif != null) {
+				uif.refreshIconBar();
+				uif.refreshTorrentMenu();
+			}
+			selectedItem = tabItem;
+		}
+		
+		return tabItem;
+	}
 
-  //public static IView getView(TabItem item) {
-  //public static IView getView(CTabItem item) {
-  public static IView getView(Item item) {
+
+  public IView getView(Item item) {
     return (IView) tabs.get(item);
   }
-
-  public IView
-  getView()
-  {
-	  return( view );
-  }
   
-  public static Item
+  public Item
   getTab(
 		IView	view )
   {
@@ -298,7 +440,7 @@ public class Tab {
 	   }
   }
   
-  public static Item[] getAllTabs() {
+  public Item[] getAllTabs() {
 		try {
 			class_mon.enter();
 
@@ -314,7 +456,7 @@ public class Tab {
 		}
 	}
   
-  public static IView[] getAllViews() {
+  public IView[] getAllViews() {
 		try {
 			class_mon.enter();
 
@@ -331,7 +473,7 @@ public class Tab {
 	}
 
   
-  public static void refresh() {
+  public void refresh() {
     try{
     	class_mon.enter();
     	
@@ -377,7 +519,7 @@ public class Tab {
     }
   }
 
-  public static void 
+  public void 
   updateLanguage() 
   {
   	IView[] views;
@@ -407,7 +549,7 @@ public class Tab {
   }
 
 
-  public static void 
+  public void 
   closeAllTabs() 
   {
   	Item[] tab_items;
@@ -428,7 +570,7 @@ public class Tab {
       }
   }
 
-  public static boolean hasDetails()
+  public boolean hasDetails()
   {
       boolean hasDetails = false;
       try
@@ -454,7 +596,7 @@ public class Tab {
       return hasDetails;
   }
 
-  public static void
+  public void
   closeAllDetails() 
   {
   	Item[] tab_items;
@@ -477,16 +619,16 @@ public class Tab {
       }
   }
 
-  public static void closeCurrent() {
-    if (_folder == null || _folder.isDisposed())
+  public void closeCurrent() {
+    if (folder == null || folder.isDisposed())
       return;
-    if(_folder instanceof TabFolder) {    
-      TabItem[] items =  ((TabFolder)_folder).getSelection();
+    if(folder instanceof TabFolder) {    
+      TabItem[] items =  ((TabFolder)folder).getSelection();
       if(items.length == 1) {
         closed(items[0]);		
       }
      } else {
-       closed(((CTabFolder)_folder).getSelection());
+       closed(((CTabFolder)folder).getSelection());
      }
   }
 
@@ -495,12 +637,12 @@ public class Tab {
    *
    * @author Rene Leonhardt
    */
-  public static void selectNextTab(boolean selectNext) {
-    if (_folder == null || _folder.isDisposed())
+  public void selectNextTab(boolean selectNext) {
+    if (folder == null || folder.isDisposed())
       return;
     final int nextOrPrevious = selectNext ? 1 : -1;
-    if(_folder instanceof TabFolder) {
-      TabFolder tabFolder = (TabFolder)_folder;
+    if(folder instanceof TabFolder) {
+      TabFolder tabFolder = (TabFolder)folder;
       int index = tabFolder.getSelectionIndex() + nextOrPrevious;
       if(index == 0 && selectNext || index == -2 || tabFolder.getItemCount() < 2)
         return;
@@ -510,7 +652,7 @@ public class Tab {
         index = tabFolder.getItemCount() - 1;
       tabFolder.setSelection(index);
     } else {
-      CTabFolder tabFolder = (CTabFolder)_folder;
+      CTabFolder tabFolder = (CTabFolder)folder;
       int index = tabFolder.getSelectionIndex() + nextOrPrevious;
       if(index == 0 && selectNext || index == -2 || tabFolder.getItemCount() < 2)
         return;
@@ -522,20 +664,13 @@ public class Tab {
     }
   }
 
-  //public static void setFolder(TabFolder folder) {
-  //public static void setFolder(CTabFolder folder) {
-  public static void initialize(MainWindow mainwindow, Composite folder) {
-    Tab.mainwindow = mainwindow;
-		_folder = folder;
-  }
-
-  public static boolean 
+  public boolean 
   closed(Item item) 
   {
   	return closed(item, false);
   }
   
-  public static boolean 
+  public boolean 
   closed(Item item, boolean bForceClose) 
   {
   	if (item == null) {
@@ -619,18 +754,24 @@ public class Tab {
       return true;
   }
 
-  public void setFocus() {
-    if (folder != null && !folder.isDisposed()) {
-      if(useCustomTab) {
-        ((CTabFolder)folder).setSelection((CTabItem)tabItem);
-      } else {
-        TabItem items[] = {(TabItem)tabItem};
-        ((TabFolder)folder).setSelection(items);    
-      }      
-    }
-  }
+  public void setFocus(Item item) {
+  	if (item == null || item.isDisposed()) {
+  		return;
+  	}
 
-  public void dispose() {
+		if (folder != null && !folder.isDisposed()) {
+			if (useCustomTab) {
+				((CTabFolder) folder).setSelection((CTabItem) item);
+			} else {
+				TabItem items[] = {
+					(TabItem) item
+				};
+				((TabFolder) folder).setSelection(items);
+			}
+		}
+	}
+
+  public void dispose(Item tabItem) {
     IView localView = null;
     try{
     	class_mon.enter();
@@ -663,71 +804,8 @@ public class Tab {
     catch (Exception e) {}
   }
 
-  public static void addTabAddedListener(Listener listener)
-  {
-      addListener(tabAddListeners, listener);
-  }
 
-  public static void removeTabAddedListener(Listener listener)
-  {
-      removeListener(tabAddListeners, listener);
-  }
-
-  public static void addTabRemovedListener(Listener listener)
-  {
-      addListener(tabRemoveListeners, listener);
-  }
-
-  public static void removeTabRemovedListener(Listener listener)
-  {
-      removeListener(tabRemoveListeners, listener);
-  }
-
-  private static void addListener(List listenerList, Listener listener)
-  {
-      try
-      {
-          class_mon.enter();
-          listenerList.add(listener);
-      }
-      finally
-      {
-          class_mon.exit();
-      }
-  }
-
-  private static void removeListener(List listenerList, Listener listener)
-  {
-      try
-      {
-          class_mon.enter();
-          listenerList.remove(listener);
-      }
-      finally
-      {
-          class_mon.exit();
-      }
-  }
-
-  private static void notifyListeners(List listenerList, Item sender)
-  {
-      try
-      {
-          class_mon.enter();
-
-          Iterator iter = listenerList.iterator();
-          for (int i = 0; i < listenerList.size(); i++)
-          {
-                ((Listener)iter.next()).handleEvent(getEvent(sender));
-          }
-      }
-      finally
-      {
-          class_mon.exit();
-      }
-  }
-
-  protected static String
+  protected String
   escapeAccelerators(
 	 String	str )
   {
@@ -739,21 +817,133 @@ public class Tab {
 	  return( str.replaceAll( "&", "&&" ));
   }
   
-  private static Event getEvent(Item sender)
-  {
-      Event e = new Event();
-      e.widget = sender;
-      return e;
-  }
-  
-  public void
-  generateDiagnostics(
-	IndentWriter	writer )
-  {
-	  view.generateDiagnostics( writer );
-  }
-  
-  public static void setUseCustomTab(boolean newUseCustomTab) {
-  	useCustomTab = newUseCustomTab;
-  }
+  public void generateDiagnostics(IndentWriter writer) {
+		Object[] views = tabs.values().toArray();
+		for (int i = 0; i < views.length; i++) {
+			IView view = (IView) views[i];
+
+			if (view != null) {
+				writer.println(view.getFullTitle());
+
+				try {
+					writer.indent();
+
+					view.generateDiagnostics(writer);
+				} catch (Exception e) {
+
+				} finally {
+
+					writer.exdent();
+				}
+			}
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void update() {
+		if (folder != null) {
+			if (useCustomTab) {
+				((CTabFolder) folder).update();
+			} else {
+				((TabFolder) folder).update();
+			}
+		}
+	}
+
+	/**
+	 * @param viewID
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void closePluginViews(String viewID) {
+		Item[] items;
+
+		if (folder instanceof CTabFolder)
+			items = ((CTabFolder) folder).getItems();
+		else if (folder instanceof TabFolder)
+			items = ((TabFolder) folder).getItems();
+		else
+			return;
+
+		for (int i = 0; i < items.length; i++) {
+			IView view = getView(items[i]);
+			if (view instanceof UISWTViewImpl) {
+				String sID = ((UISWTViewImpl) view).getViewID();
+				if (sID != null && sID.equals(viewID)) {
+					try {
+						Item tab = getTab(view);
+						if (tab != null) {
+							closed(tab);
+						}
+					} catch (Exception e) {
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		} // for
+	}
+
+	// @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
+	public void parameterChanged(String parameterName) {
+		if (parameterName.equals("GUI_SWT_bFancyTab")
+				&& folder instanceof CTabFolder && folder != null
+				&& !folder.isDisposed()) {
+			try {
+				((CTabFolder) folder).setSimple(!COConfigurationManager.getBooleanParameter("GUI_SWT_bFancyTab"));
+			} catch (NoSuchMethodError e) {
+				/** < SWT 3.0RC1 **/
+			}
+		}
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public IView getCurrentView() {
+		try {
+			if (!useCustomTab) {
+				TabItem[] selection = ((TabFolder) folder).getSelection();
+				if (selection.length > 0) {
+					return getView(selection[0]);
+				}
+				return null;
+			}
+			return getView(((CTabFolder) folder).getSelection());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		IView currentView = getCurrentView();
+		if (currentView != null) {
+			return ID + "-" + currentView.getFullTitle();
+		}
+		return ID;
+	}
+	
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+	public void updateUI() {
+		if (folder == null || folder.isDisposed()) {
+			return;
+		}
+
+		IView currentView = getCurrentView();
+		if (currentView != null) {
+			try {
+				currentView.refresh();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+		
+		refresh();
+	}
 }

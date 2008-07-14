@@ -39,21 +39,27 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 /**
- * Download Basket
+ * Download Basket.  For System Try, see {@link SystemTraySWT}
  * 
  * @author Olivier
  * 
  */
-public class TrayWindow implements GlobalManagerListener {
+public class TrayWindow
+	implements GlobalManagerListener, UIUpdatable
+{
+	private final static String ID = "DownloadBasket/TrayWindow"; 
 
   GlobalManager globalManager;
   List managers;
-  protected AEMonitor managers_mon 	= new AEMonitor( "TrayWindow:managers" );
+  protected AEMonitor managers_mon 	= new AEMonitor(ID);
 
 
   MainWindow main;
@@ -202,6 +208,16 @@ public class TrayWindow implements GlobalManagerListener {
       if (!visible)
         moving = false;
     }
+
+  	try {
+  		if (visible) {
+  			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+  		} else {
+  			UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+  		}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
   }
 
   public void dispose() {
@@ -218,7 +234,8 @@ public class TrayWindow implements GlobalManagerListener {
     moving = false;
   }
 
-  public void refresh() {
+  // @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+  public void updateUI() {
     if (minimized.isDisposed() || !minimized.isVisible())
       return;
 
@@ -298,4 +315,8 @@ public class TrayWindow implements GlobalManagerListener {
     this.moving = moving;
   }
 
+  // @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+  public String getUpdateUIName() {
+  	return ID;
+  }
 }

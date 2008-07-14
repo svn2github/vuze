@@ -13,7 +13,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -406,7 +405,7 @@ public class MenuFactory
 		final MenuItem item = addMenuItem(menu, MENU_ID_CLOSE_ALL_DETAIL,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Tab.closeAllDetails();
+						UIFunctionsManagerSWT.getUIFunctionsSWT().closeAllDetails();
 					}
 				});
 
@@ -414,16 +413,14 @@ public class MenuFactory
 			public void handleEvent(Event event) {
 				if (true == MenuFactory.isEnabledForCurrentMode(item)) {
 					if (false == item.isDisposed() && false == event.widget.isDisposed()) {
-						item.setEnabled(Tab.hasDetails());
+						boolean hasDetails = UIFunctionsManagerSWT.getUIFunctionsSWT().hasDetailViews();
+						item.setEnabled(hasDetails);
 					}
 				}
 			}
 		};
 
 		menu.addListener(SWT.Show, enableHandler);
-		//		shell.addListener(SWT.FocusIn, enableHandler);
-		Tab.addTabAddedListener(enableHandler);
-		Tab.addTabRemovedListener(enableHandler);
 
 		return item;
 	}

@@ -36,7 +36,9 @@ import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 /**
  * @author TuxPaper
@@ -426,4 +428,18 @@ public class UIFunctionsImpl
 		return mainwindow;
 	}
 
+	// @see com.aelitis.azureus.ui.UIFunctions#getUIUpdater()
+	public UIUpdater getUIUpdater() {
+		return UIUpdaterSWT.getInstance();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeAllDetails()
+	public void closeAllDetails() {
+		mainwindow.closeAllDetails();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
+	public boolean hasDetailViews() {
+		return mainwindow.hasDetailViews();
+	}
 }
