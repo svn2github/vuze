@@ -2233,9 +2233,9 @@ public class Utils
 										
 										addDataSourceCallback this_callback = (addDataSourceCallback)to_do.get(i);
 														
-										if (TableViewSWT.DEBUGADDREMOVE && timerEventProcessDS != null) {
+										if (TableViewSWT.DEBUGADDREMOVE ) {
 											this_callback.debug("processDataSourceQueue after "
-													+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
+													+ (SystemTime.getCurrentTime() - event.getCreatedTime())
 													+ "ms");
 										}
 										
