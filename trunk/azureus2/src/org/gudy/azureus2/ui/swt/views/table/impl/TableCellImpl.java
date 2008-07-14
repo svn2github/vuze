@@ -978,6 +978,9 @@ public class TableCellImpl
   // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean, boolean, boolean)
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
+  	if (tableColumn == null) {
+  		return false;
+  	}
 	  boolean ret = getVisuallyChangedSinceRefresh();
   	clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
