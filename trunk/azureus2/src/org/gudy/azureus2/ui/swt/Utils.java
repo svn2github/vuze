@@ -2159,7 +2159,7 @@ public class Utils
 
 	public static boolean
 	addDataSourceAggregated(
-		final addDataSourceCallback		callback )
+		addDataSourceCallback		callback )
 	{
 		if ( callback == null ){
 			
@@ -2167,35 +2167,50 @@ public class Utils
 		}
 		
 		boolean processQueueImmediately = false;
-
-		synchronized (timerProcessDataSources) {
-			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
-				// Push timer forward, unless we've pushed it forward for over x seconds
+		
+		List	to_do_now = null;
+		
+		synchronized( timerProcessDataSources ){
+			
+			if ( timerEventProcessDS != null && !timerEventProcessDS.hasRun()){
+				
+					// Push timer forward, unless we've pushed it forward for over x seconds
+				
 				long now = SystemTime.getCurrentTime();
+				
 				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
+					
 					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
-					timerProcessDataSources.adjustAllBy(lNextTime
-							- timerEventProcessDS.getWhen());
+					
+					timerProcessDataSources.adjustAllBy( lNextTime - timerEventProcessDS.getWhen());
 					
 					if ( !processDataSourcesOutstanding.contains( callback )){
 						
 						processDataSourcesOutstanding.add( callback );
 					}
-				} else {
-					timerEventProcessDS.cancel();
-					timerEventProcessDS = null;
-					if (TableViewSWT.DEBUGADDREMOVE) {
-						callback.debug("Over immediate delay limit, processing queue now");
-					}
+				}else{
 					
-					// process outside the synchronized block, otherwise we'll end up with deadlocks
+					timerEventProcessDS.cancel();
+					
+					timerEventProcessDS = null;
+
 					processQueueImmediately = true;
+					
+					to_do_now = processDataSourcesOutstanding;
+					
+					processDataSourcesOutstanding = new ArrayList();
 				}
-			} else {
-				timerEventProcessDS = timerProcessDataSources.addEvent(
+			}else{
+				
+				timerEventProcessDS = 
+					timerProcessDataSources.addEvent(
 						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
+						new TimerEventPerformer() 
+						{
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
 								List	to_do;
 								
 								synchronized( timerProcessDataSources ){
@@ -2211,15 +2226,15 @@ public class Utils
 									
 									try{
 										
-										addDataSourceCallback callback = (addDataSourceCallback)to_do.get(i);
+										addDataSourceCallback this_callback = (addDataSourceCallback)to_do.get(i);
 				
 										if (TableViewSWT.DEBUGADDREMOVE && timerEventProcessDS != null) {
-											callback.debug("processDataSourceQueue after "
+											this_callback.debug("processDataSourceQueue after "
 													+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
 													+ "ms");
 										}
 										
-										callback.process();
+										this_callback.process();
 										
 									}catch( Throwable e ){
 										
@@ -2228,6 +2243,32 @@ public class Utils
 								}
 							}
 						});
+			}
+			
+			if ( to_do_now != null ){
+								
+					// process outside the synchronized block, otherwise we'll end up with deadlocks
+
+				to_do_now.remove( callback );
+				
+				for (int i=0;i<to_do_now.size();i++){
+					
+					try{
+						
+						addDataSourceCallback this_callback = (addDataSourceCallback)to_do_now.get(i);
+
+						if ( TableViewSWT.DEBUGADDREMOVE ){
+							
+							this_callback.debug("Over immediate delay limit, processing queue now");
+						}
+						
+						this_callback.process();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
 			}
 		}
 		
