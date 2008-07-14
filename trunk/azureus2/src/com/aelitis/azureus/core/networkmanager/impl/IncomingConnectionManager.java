@@ -503,7 +503,7 @@ IncomingConnectionManager
 		{
 			IncomingConnection	ic = (IncomingConnection)attachment;
 			if (Logger.isEnabled()){
-				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 						"Incoming connection [" + transport_helper.getAddress()
 						+ "] socket select op failure: "
 						+ msg.getMessage()));
