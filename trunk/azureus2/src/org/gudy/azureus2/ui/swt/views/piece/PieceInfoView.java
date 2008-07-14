@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
@@ -100,6 +101,8 @@ public class PieceInfoView
 	Image img = null;
 
 	private DownloadManager dlm;
+	
+	BlockInfo[] oldBlockInfo;
 
 	/**
 	 * Initialize
@@ -117,6 +120,7 @@ public class PieceInfoView
 
 	public void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
+			oldBlockInfo = null;
 			if (dlm != null) {
 				dlm.removePieceListener(this);
 			}
@@ -268,9 +272,11 @@ public class PieceInfoView
 			return;
 		}
 		alreadyFilling = true;
-		Utils.execSWTThread(new AERunnable() {
-			// @see org.gudy.azureus2.core3.util.AERunnable#runSupport()
+		Utils.execSWTThreadLater(100, new AERunnable() {
 			public void runSupport() {
+				if (!alreadyFilling) {
+					return;
+				}
 				try {
   				if (imageLabel == null || imageLabel.isDisposed()) {
   					return;
@@ -281,7 +287,7 @@ public class PieceInfoView
   					imageLabel.setImage(null);
   					image.dispose();
   				}
-  
+
   				refreshInfoCanvas();
 				} finally {
 					alreadyFilling = false;
@@ -299,6 +305,11 @@ public class PieceInfoView
 	}
 
 	protected void refreshInfoCanvas() {
+		alreadyFilling = false;
+		
+		if (!pieceInfoCanvas.isVisible()) {
+			return;
+		}
 		pieceInfoCanvas.layout(true);
 		Rectangle bounds = pieceInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0) {
@@ -306,17 +317,12 @@ public class PieceInfoView
 			return;
 		}
 
-		if (img != null && !img.isDisposed()) {
-			img.dispose();
-			img = null;
-		}
-
 		if (dlm == null) {
 			GC gc = new GC(pieceInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
 			topLabel.setText("");
-
+			
 			return;
 		}
 
@@ -331,6 +337,18 @@ public class PieceInfoView
 			topLabel.setText("");
 
 			return;
+		}
+
+		int iNumCols = bounds.width / BLOCK_SIZE;
+		int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
+
+		if (img != null && !img.isDisposed()) {
+			Rectangle imgBounds = img.getBounds();
+			if (imgBounds.width != bounds.width || imgBounds.height != iNeededHeight) {
+				oldBlockInfo = null;
+				img.dispose();
+				img = null;
+			}
 		}
 
 		DiskManagerPiece[] dm_pieces = dm.getPieces();
@@ -356,8 +374,6 @@ public class PieceInfoView
 
 		}
 
-		int iNumCols = bounds.width / BLOCK_SIZE;
-		int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
 		if (sc.getMinHeight() != iNeededHeight) {
 			sc.setMinHeight(iNeededHeight);
 			sc.layout(true, true);
@@ -380,17 +396,23 @@ public class PieceInfoView
 			}
 		}
 
-		img = new Image(pieceInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
+		if (img == null) {
+			img = new Image(pieceInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
+		}
 		GC gcImg = new GC(img);
 		
-		
+
+		BlockInfo[] newBlockInfo = new BlockInfo[dm_pieces.length];
+
 		int iRow = 0;
 		try {
 			// use advanced capabilities for faster drawText
 			gcImg.setAdvanced(true);
 			
-			gcImg.setBackground(pieceInfoCanvas.getBackground());
-			gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
+			if (oldBlockInfo == null) {
+				gcImg.setBackground(pieceInfoCanvas.getBackground());
+				gcImg.fillRectangle(0, 0, bounds.width, iNeededHeight);
+			}
 			
 			gcImg.setFont(font);
 
@@ -400,61 +422,86 @@ public class PieceInfoView
 					iCol = 0;
 					iRow++;
 				}
-
+				
+				newBlockInfo[i] = new BlockInfo();
+				
 				int colorIndex;
 				boolean done = dm_pieces[i].isDone();
 				int iXPos = iCol * BLOCK_SIZE + 1;
 				int iYPos = iRow * BLOCK_SIZE + 1;
-
+				
 				if (done) {
 					colorIndex = BLOCKCOLOR_HAVE;
-
-					gcImg.setBackground(blockColors[colorIndex]);
-					gcImg.fillRectangle(iXPos, iYPos, BLOCK_FILLSIZE, BLOCK_FILLSIZE);
+					newBlockInfo[i].haveWidth = BLOCK_FILLSIZE;
 				} else {
 					// !done
 					boolean partiallyDone = dm_pieces[i].getNbWritten() > 0;
 
-					int x = iXPos;
 					int width = BLOCK_FILLSIZE;
 					if (partiallyDone) {
-						colorIndex = BLOCKCOLOR_HAVE;
-
-						gcImg.setBackground(blockColors[colorIndex]);
-
 						int iNewWidth = (int) (((float) dm_pieces[i].getNbWritten() / dm_pieces[i].getNbBlocks()) * width);
 						if (iNewWidth >= width)
 							iNewWidth = width - 1;
 						else if (iNewWidth <= 0)
 							iNewWidth = 1;
 
-						gcImg.fillRectangle(x, iYPos, iNewWidth, BLOCK_FILLSIZE);
-						width -= iNewWidth;
-						x += iNewWidth;
+						newBlockInfo[i].haveWidth = iNewWidth;
 					}
-
-					colorIndex = BLOCKCOLORL_NOHAVE;
-
-					gcImg.setBackground(blockColors[colorIndex]);
-					gcImg.fillRectangle(x, iYPos, width, BLOCK_FILLSIZE);
 				}
 
 				if (currentDLPieces[i] != null && currentDLPieces[i].hasUndownloadedBlock()) {
-					drawDownloadIndicator(gcImg, iXPos, iYPos, false);
+					newBlockInfo[i].downloadingIndicator = true;
 				}
 
-				if (uploadingPieces[i] > 0)
-					drawUploadIndicator(gcImg, iXPos, iYPos, uploadingPieces[i] < 2);
+				newBlockInfo[i].uploadingIndicator = uploadingPieces[i] > 0;
 
+				if (newBlockInfo[i].uploadingIndicator) {
+					newBlockInfo[i].uploadingIndicatorSmall = uploadingPieces[i] < 2;
+				}
 
 
 				if (availability != null) {
-					if (minAvailability == availability[i]) {
+					newBlockInfo[i].availNum = availability[i];
+					if (minAvailability2 == availability[i]) {
+						newBlockInfo[i].availDotted = true;
+					}
+				} else {
+					newBlockInfo[i].availNum = -1;
+				}
+
+				if (oldBlockInfo != null && i < oldBlockInfo.length
+						&& oldBlockInfo[i].equals(newBlockInfo[i])) {
+					iCol++;
+					continue;
+				}
+
+				gcImg.setBackground(pieceInfoCanvas.getBackground());
+				gcImg.fillRectangle(iCol * BLOCK_SIZE, iRow * BLOCK_SIZE, BLOCK_SIZE,
+						BLOCK_SIZE);
+				
+				colorIndex = BLOCKCOLOR_HAVE;
+				gcImg.setBackground(blockColors[colorIndex]);
+				gcImg.fillRectangle(iXPos, iYPos, newBlockInfo[i].haveWidth, BLOCK_FILLSIZE);
+
+				colorIndex = BLOCKCOLORL_NOHAVE;
+				gcImg.setBackground(blockColors[colorIndex]);
+				gcImg.fillRectangle(iXPos + newBlockInfo[i].haveWidth, iYPos, BLOCK_FILLSIZE - newBlockInfo[i].haveWidth, BLOCK_FILLSIZE);
+				
+				if (newBlockInfo[i].downloadingIndicator) {
+					drawDownloadIndicator(gcImg, iXPos, iYPos, false);
+				}
+
+				if (newBlockInfo[i].uploadingIndicator) {
+					drawUploadIndicator(gcImg, iXPos, iYPos, newBlockInfo[i].uploadingIndicatorSmall);
+				}
+
+				if (newBlockInfo[i].availNum != -1) {
+					if (minAvailability == newBlockInfo[i].availNum) {
 						gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
 						gcImg.drawRectangle(iXPos - 1, iYPos - 1, BLOCK_FILLSIZE + 1,
 								BLOCK_FILLSIZE + 1);
 					}
-					if (minAvailability2 == availability[i]) {
+					if (minAvailability2 == newBlockInfo[i].availNum) {
 						gcImg.setLineStyle(SWT.LINE_DOT);
 						gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
 						gcImg.drawRectangle(iXPos - 1, iYPos - 1, BLOCK_FILLSIZE + 1,
@@ -462,10 +509,10 @@ public class PieceInfoView
 						gcImg.setLineStyle(SWT.LINE_SOLID);
 					}
 
-					String sNumber = String.valueOf(availability[i]);
+					String sNumber = String.valueOf(newBlockInfo[i].availNum);
 					Point size = gcImg.stringExtent(sNumber);
 
-					if (availability[i] < 100) {
+					if (newBlockInfo[i].availNum < 100) {
 						int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
 						int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
 						gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
@@ -473,8 +520,10 @@ public class PieceInfoView
 					}
 				}
 
+
 				iCol++;
 			}
+			oldBlockInfo = newBlockInfo;
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LogIDs.GUI, "drawing piece map", e));
 		} finally {
@@ -589,5 +638,32 @@ public class PieceInfoView
 	// @see org.gudy.azureus2.core3.download.DownloadManagerPeerListener#pieceRemoved(org.gudy.azureus2.core3.peer.PEPiece)
 	public void pieceRemoved(PEPiece piece) {
 		fillPieceInfoSection();
+	}
+	
+	private static class BlockInfo {
+		public int haveWidth;
+		int availNum;
+		boolean availDotted;
+		boolean uploadingIndicator;
+		boolean uploadingIndicatorSmall;
+		boolean downloadingIndicator;
+		
+		/**
+		 * 
+		 */
+		public BlockInfo() {
+			haveWidth = -1;
+		}
+		
+		// @see java.lang.Object#equals(java.lang.Object)
+		public boolean equals(Object obj) {
+			BlockInfo otherBlockInfo = (BlockInfo) obj;
+			return haveWidth == otherBlockInfo.haveWidth
+					&& availNum == otherBlockInfo.availNum
+					&& availDotted == otherBlockInfo.availDotted
+					&& uploadingIndicator == otherBlockInfo.uploadingIndicator
+					&& uploadingIndicatorSmall == otherBlockInfo.uploadingIndicatorSmall
+					&& downloadingIndicator == otherBlockInfo.downloadingIndicator;
+		}
 	}
 }
