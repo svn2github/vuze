@@ -520,12 +520,22 @@ public class TableViewSWTImpl
 			public void minimize(CTabFolderEvent event) {
 				tabFolder.setMinimized(true);
 				tabFolderData.height = iFolderHeightAdj;
+				CTabItem[] items = tabFolder.getItems();
+				for (int i = 0; i < items.length; i++) {
+					CTabItem tabItem = items[i];
+					tabItem.getControl().setVisible(false);
+				}
 				form.layout();
 
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", true);
 			}
 
 			public void restore(CTabFolderEvent event) {
+				CTabItem[] items = tabFolder.getItems();
+				for (int i = 0; i < items.length; i++) {
+					CTabItem tabItem = items[i];
+					tabItem.getControl().setVisible(true);
+				}
 				tabFolder.setMinimized(false);
 				form.notifyListeners(SWT.Resize, null);
 
