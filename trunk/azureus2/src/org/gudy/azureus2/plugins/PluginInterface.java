@@ -41,8 +41,6 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.plugins.utils.ShortCuts;
 import org.gudy.azureus2.plugins.clientid.*;
@@ -112,32 +110,6 @@ public interface PluginInterface {
    *     parameters.
    */
   public void addConfigUIParameters(Parameter[] parameters, String displayName);
-  
-  /** (DEPRECATED) Adds a column to the peers table.
-   *
-   * @param columnName the key name of the column
-   * @param factory the factory responsible of creating items.
-   * Azureus will look-up for PeersView.<i>columnName</i> into the lang files
-   * in order to find the localized displayName. (see i18n)
-   *
-   * @since 2.0.6.0
-   *
-   * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
-   */
-  public void addColumnToPeersTable(String columnName,PluginPeerItemFactory factory);
-  
-  /** (DEPRECATED) Adds a column to the My Torrents table.
-   *
-   * @param columnName the key name of the column
-   * @param factory the factory responsible of creating items.
-   * Azureus will look-up for MyTorrentsView.<i>columnName</i> into the lang files
-   * in order to find the localized displayName. (see i18n)
-   *
-   * @since 2.0.8.0
-   *
-   * @deprecated use {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
-   */
-  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory factory);
 
   /**
    * adds a ConfigSection to the config view.<p>

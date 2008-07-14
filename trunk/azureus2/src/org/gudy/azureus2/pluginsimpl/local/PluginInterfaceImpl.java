@@ -56,8 +56,6 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
-import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -393,16 +391,6 @@ PluginInterfaceImpl
   	return( pluginConfigKey );
   }
   
-  /** @deprecated Use getUIManager().getTableManager().createColumn */
-  public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
-    Debug.out( "Method PluginInterface::addColumnToPeersTable deprecated. Use getUIManager().getTableManager().createColumn" );
-  }
-  
-  /** @deprecated Use getUIManager().getTableManager().createColumn */
-  public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory item) {
-	   Debug.out( "Method PluginInterface::addColumnToMyTorrentsTable deprecated. Use getUIManager().getTableManager().createColumn" );
- }
-
   public Tracker getTracker() {
   	return( TrackerImpl.getSingleton());
   }

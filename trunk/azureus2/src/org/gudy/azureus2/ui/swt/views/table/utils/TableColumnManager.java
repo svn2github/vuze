@@ -26,14 +26,11 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.OldMyTorrentsPluginItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.peers.OldPeerPluginItem;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 
 
 /** Holds a list of column definitions (TableColumnCore) for 
@@ -143,47 +140,6 @@ public class TableColumnManager {
       System.out.println("Error while adding Table Column Extension");
       Debug.printStackTrace( e );
     }
-  }
-
-  /**
-   *  Add an extension from the deprecated PluginMyTorrentsItemFactory
-   *  @deprecated
-   */
-  public void addExtension(String name, org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory item) {
-    String sAlign = item.getOrientation();
-    int iAlign;
-    if (sAlign.equals(PluginMyTorrentsItemFactory.ORIENT_RIGHT))
-      iAlign = TableColumnCore.ALIGN_TRAIL;
-    else
-      iAlign = TableColumnCore.ALIGN_LEAD;
-
-    int iVisibleIn = item.getTablesVisibleIn();
-    if ((iVisibleIn & PluginMyTorrentsItemFactory.TABLE_COMPLETE) != 0) {
-      TableColumnCore tci = 
-        new OldMyTorrentsPluginItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 
-                                    name, item);
-      tci.initialize(iAlign, item.getDefaultPosition(), item.getDefaultSize());
-      addColumn(tci);
-    }
-    if ((iVisibleIn & PluginMyTorrentsItemFactory.TABLE_INCOMPLETE) != 0) {
-      TableColumnCore tci = 
-        new OldMyTorrentsPluginItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, 
-                                    name, item);
-      tci.initialize(iAlign, item.getDefaultPosition(), item.getDefaultSize());
-      addColumn(tci);
-    }
-  }
-
-  /** 
-   * Add an extension from the deprecated PluginPeerItemFactory
-   * @deprecated
-   */
-  public void addExtension(String name, org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory item) {
-    TableColumnCore tci = new OldPeerPluginItem(TableManager.TABLE_TORRENT_PEERS,
-                                            name, item);
-    tci.initialize(TableColumnCore.ALIGN_LEAD, 
-                   TableColumnCore.POSITION_INVISIBLE, item.getDefaultSize());
-    addColumn(tci);
   }
 
   /** Retrieves TableColumnCore objects of a particular type.
