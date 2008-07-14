@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -231,10 +232,23 @@ public class ListView
 
 	protected int rowFocusStyle;
 
-	private Timer timerProcessDataSources = new Timer("Process Data Sources");
-
-	private TimerEvent timerEventProcessDS;
-
+	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
+		new Utils.addDataSourceCallback()
+		{
+			public void
+			process()
+			{
+				processDataSourceQueue();
+			}
+			
+			public void
+			debug(
+				String		str )
+			{
+				logADDREMOVE( str );
+			}
+		};
+		
 	private boolean syncColumnSizes = false;
 
 	static {
@@ -1529,45 +1543,16 @@ public class ListView
 	}
 
 	private void refreshenProcessDataSourcesTimer() {
-		if (timerProcessDataSources == null) {
-			// when timerProcessDataSources is null, we are disposing
+		if (processDataSourceQueueCallback == null) {
+			// when processDataSourceQueueCallback is null, we are disposing
 			return;
 		}
 
-		synchronized (timerProcessDataSources) {
-			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
-				// Push timer forward, unless we've pushed it forward for over x seconds
-				long now = SystemTime.getCurrentTime();
-				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
-					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
-					timerProcessDataSources.adjustAllBy(lNextTime
-							- timerEventProcessDS.getWhen());
-				} else {
-					timerEventProcessDS.cancel();
-					timerEventProcessDS = null;
-					if (DEBUGADDREMOVE) {
-						logADDREMOVE("Over immediate delay limit, processing queue now");
-					}
-
-					processDataSourceQueue();
-				}
-			} else {
-				timerEventProcessDS = timerProcessDataSources.addEvent(
-						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								if (DEBUGADDREMOVE && timerEventProcessDS != null) {
-									logADDREMOVE("processDataSourceQueue after "
-											+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
-											+ "ms");
-								}
-
-								timerEventProcessDS = null;
-
-								processDataSourceQueue();
-							}
-						});
-			}
+		boolean processQueueImmediately = Utils.addDataSourceAggregated( processDataSourceQueueCallback );
+		
+		if(processQueueImmediately){
+		
+			processDataSourceQueue();
 		}
 	}
 
@@ -3999,10 +3984,7 @@ public class ListView
 		}
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 
-		if (timerProcessDataSources != null) {
-			timerProcessDataSources.destroy();
-			timerProcessDataSources = null;
-		}
+		processDataSourceQueueCallback	= null;
 
 		Utils.disposeSWTObjects(new Object[] {
 			headerArea,
