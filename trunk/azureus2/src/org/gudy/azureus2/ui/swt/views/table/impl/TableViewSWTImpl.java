@@ -116,10 +116,6 @@ public class TableViewSWTImpl
 
 	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
-	private static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
-
-	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
-
 	private static final long BREAKOFF_ADDTOMAP = 1000;
 
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
@@ -233,10 +229,6 @@ public class TableViewSWTImpl
 	/** Queue removed datasources and add them on refresh */
 	private LightHashSet dataSourcesToRemove = new LightHashSet(4);
 
-	private Timer timerProcessDataSources = new Timer("Process Data Sources");
-
-	private TimerEvent timerEventProcessDS;
-
 	private boolean bReallyAddingDataSources = false;
 
 	/** TabViews */
@@ -269,6 +261,24 @@ public class TableViewSWTImpl
 	
 	private boolean columnVisibilitiesChanged = true;
 
+	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
+		new Utils.addDataSourceCallback()
+		{
+			public void
+			process()
+			{
+				processDataSourceQueue();
+			}
+			
+			public void
+			debug(
+				String		str )
+			{
+				TableViewSWTImpl.this.debug( str );
+			}
+		};
+	
+	
 	/**
 	 * Main Initializer
 	 * @param _sTableID Which table to handle (see 
@@ -1862,10 +1872,7 @@ public class TableViewSWTImpl
 		configMan.removeParameterListener("Graphics Update", this);
 		Colors.getInstance().removeColorsChangedListener(this);
 
-		if (timerProcessDataSources != null) {
-			timerProcessDataSources.destroy();
-			timerProcessDataSources = null;
-		}
+		processDataSourceQueueCallback = null;
 
 		//oldSelectedItems =  null;
 		Composite comp = getComposite();
@@ -1904,7 +1911,7 @@ public class TableViewSWTImpl
 		if (dataSources == null)
 			return;
 
-		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if ( Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyAddDataSources(dataSources);
 			return;
 		}
@@ -1939,52 +1946,15 @@ public class TableViewSWTImpl
 	}
 
 	private void refreshenProcessDataSourcesTimer() {
-		if (bReallyAddingDataSources || timerProcessDataSources == null) {
-			// when timerProcessDataSources is null, we are disposing
+		if (bReallyAddingDataSources || processDataSourceQueueCallback == null) {
+			// when processDataSourceQueueCallback is null, we are disposing
 			return;
 		}
 		
 		if(cellEditNotifier != null)
 			cellEditNotifier.sourcesChanged();
 		
-		boolean processQueueImmediately = false;
-
-		synchronized (timerProcessDataSources) {
-			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
-				// Push timer forward, unless we've pushed it forward for over x seconds
-				long now = SystemTime.getCurrentTime();
-				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
-					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
-					timerProcessDataSources.adjustAllBy(lNextTime
-							- timerEventProcessDS.getWhen());
-				} else {
-					timerEventProcessDS.cancel();
-					timerEventProcessDS = null;
-					if (DEBUGADDREMOVE) {
-						debug("Over immediate delay limit, processing queue now");
-					}
-					
-					// process outside the synchronized block, otherwise we'll end up with deadlocks
-					processQueueImmediately = true;
-				}
-			} else {
-				timerEventProcessDS = timerProcessDataSources.addEvent(
-						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								if (DEBUGADDREMOVE && timerEventProcessDS != null) {
-									debug("processDataSourceQueue after "
-											+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
-											+ "ms");
-								}
-
-								timerEventProcessDS = null;
-
-								processDataSourceQueue();
-							}
-						});
-			}
-		}
+		boolean processQueueImmediately = Utils.addDataSourceAggregated( processDataSourceQueueCallback );
 		
 		if(processQueueImmediately)
 			processDataSourceQueue();
@@ -2300,7 +2270,7 @@ public class TableViewSWTImpl
 			return;
 		}
 
-		if (IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyRemoveDataSources(dataSources);
 			return;
 		}

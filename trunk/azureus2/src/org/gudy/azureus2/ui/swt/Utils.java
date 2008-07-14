@@ -89,11 +89,15 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -2140,5 +2144,104 @@ public class Utils
 				}
 			}
 		});
+	}
+	
+	public static final long IMMEDIATE_ADDREMOVE_DELAY = 150;
+
+	private static final long IMMEDIATE_ADDREMOVE_MAXDELAY = 2000;
+
+	private static Timer timerProcessDataSources = new Timer("Process Data Sources");
+
+	private static TimerEvent timerEventProcessDS;
+
+	private static List processDataSourcesOutstanding = new ArrayList();
+	
+
+	public static boolean
+	addDataSourceAggregated(
+		final addDataSourceCallback		callback )
+	{
+		if ( callback == null ){
+			
+			return( true );
+		}
+		
+		boolean processQueueImmediately = false;
+
+		synchronized (timerProcessDataSources) {
+			if (timerEventProcessDS != null && !timerEventProcessDS.hasRun()) {
+				// Push timer forward, unless we've pushed it forward for over x seconds
+				long now = SystemTime.getCurrentTime();
+				if (now - timerEventProcessDS.getCreatedTime() < IMMEDIATE_ADDREMOVE_MAXDELAY) {
+					long lNextTime = now + IMMEDIATE_ADDREMOVE_DELAY;
+					timerProcessDataSources.adjustAllBy(lNextTime
+							- timerEventProcessDS.getWhen());
+					
+					if ( !processDataSourcesOutstanding.contains( callback )){
+						
+						processDataSourcesOutstanding.add( callback );
+					}
+				} else {
+					timerEventProcessDS.cancel();
+					timerEventProcessDS = null;
+					if (TableViewSWT.DEBUGADDREMOVE) {
+						callback.debug("Over immediate delay limit, processing queue now");
+					}
+					
+					// process outside the synchronized block, otherwise we'll end up with deadlocks
+					processQueueImmediately = true;
+				}
+			} else {
+				timerEventProcessDS = timerProcessDataSources.addEvent(
+						SystemTime.getCurrentTime() + IMMEDIATE_ADDREMOVE_DELAY,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								List	to_do;
+								
+								synchronized( timerProcessDataSources ){
+								
+									timerEventProcessDS = null;
+
+									to_do = processDataSourcesOutstanding;
+									
+									processDataSourcesOutstanding = new ArrayList();
+								}
+								
+								for (int i=0;i<to_do.size();i++){
+									
+									try{
+										
+										addDataSourceCallback callback = (addDataSourceCallback)to_do.get(i);
+				
+										if (TableViewSWT.DEBUGADDREMOVE && timerEventProcessDS != null) {
+											callback.debug("processDataSourceQueue after "
+													+ (SystemTime.getCurrentTime() - timerEventProcessDS.getCreatedTime())
+													+ "ms");
+										}
+										
+										callback.process();
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
+								}
+							}
+						});
+			}
+		}
+		
+		return( processQueueImmediately );
+	}
+	
+	public interface
+	addDataSourceCallback
+	{
+		public void
+		process();
+		
+		public void
+		debug(
+			String		str );
 	}
 }
