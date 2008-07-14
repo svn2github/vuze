@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -75,12 +76,13 @@ public class CommentIconItem
 		  if (comment!=null && comment.length()==0) {comment = null;}
 	  }
 	  
-	  if (comment == null) {
+	  Graphic oldGraphic = cell.getGraphic();
+	  if (comment == null && oldGraphic != noGraphicComment) {
 	  	cell.setGraphic(noGraphicComment);
 		  cell.setToolTip(null);
 		  cell.setSortValue(null);
 	  }
-	  else {
+	  else if (comment != null && oldGraphic != graphicComment) {
 	  	cell.setGraphic(graphicComment);
 		  cell.setToolTip(comment);
 		  cell.setSortValue(comment);
