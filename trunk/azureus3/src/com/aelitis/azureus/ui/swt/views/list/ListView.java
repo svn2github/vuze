@@ -51,8 +51,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -266,7 +268,11 @@ public class ListView
 		}
 		display = parent.getDisplay();
 		initialize(parent);
-		UIUpdaterFactory.getInstance().addUpdater(this);
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 	}
 
 	public ListView(String sTableID, int style) {
@@ -3986,7 +3992,11 @@ public class ListView
 		viewVisible = false;
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
-		UIUpdaterFactory.getInstance().removeUpdater(this);
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 
 		if (timerProcessDataSources != null) {

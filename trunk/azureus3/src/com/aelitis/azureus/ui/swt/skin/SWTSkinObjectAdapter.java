@@ -44,11 +44,11 @@ public class SWTSkinObjectAdapter
 		return null;
 	}
 
-	private Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 	
-	private Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 	

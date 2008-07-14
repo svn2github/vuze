@@ -51,11 +51,11 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
-import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
@@ -359,7 +359,11 @@ public class Initializer
 
 			//			Cursors.dispose();
 
-			UIUpdaterFactory.getInstance().stopIt();
+			try {
+				UIFunctionsManager.getUIFunctions().getUIUpdater().stopIt();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {

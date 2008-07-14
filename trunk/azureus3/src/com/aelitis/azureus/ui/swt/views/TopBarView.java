@@ -41,11 +41,11 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
-import com.aelitis.azureus.ui.swt.utils.UIUpdaterFactory;
 
 /**
  * @author TuxPaper
@@ -116,7 +116,7 @@ public class TopBarView
 				activeTopBar.getComposite().setVisible(true);
 			}
 
-			UIUpdaterFactory.getInstance().addUpdater(new UIUpdatable() {
+			final UIUpdatable updatable = new UIUpdatable() {
 				public void updateUI() {
 					Object[] views = topbarViews.toArray();
 					for (int i = 0; i < views.length; i++) {
@@ -134,10 +134,20 @@ public class TopBarView
 				public String getUpdateUIName() {
 					return "TopBar";
 				}
-			});
+			};
+			try {
+				UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(updatable);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 
 			skinObject.getControl().addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
+					try {
+						UIFunctionsManager.getUIFunctions().getUIUpdater().removeUpdater(updatable);
+					} catch (Exception ex) {
+						Debug.out(ex);
+					}
 					Object[] views = topbarViews.toArray();
 					topbarViews.clear();
 					for (int i = 0; i < views.length; i++) {

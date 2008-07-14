@@ -27,7 +27,6 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
@@ -75,6 +74,8 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesFP
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -1333,7 +1334,11 @@ public class MainWindow
 							
 							if (skinView instanceof UIUpdatable) {
 								UIUpdatable updateable = (UIUpdatable) skinView;
-								UIUpdaterFactory.getInstance().addUpdater(updateable);
+								try {
+									UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(updateable);
+								} catch (Exception e) {
+									Debug.out(e);
+								}
 							}
 						} catch (InstantiationException e) {
 							// TODO Auto-generated catch block
@@ -1560,21 +1565,6 @@ public class MainWindow
 					core.getGlobalManager(), display, cArea);
 
 			composite.setLayoutData(Utils.getFilledFormData());
-
-			UIUpdater uiUpdater = UIUpdaterFactory.getInstance();
-			// XXX Could just make MainStatusBar implement UIUpdatable
-			uiUpdater.addUpdater(new UIUpdatable() {
-				public String getUpdateUIName() {
-					return "StatusBar";
-				}
-
-				public void updateUI() {
-					statusBar.refreshStatusBar();
-					if (systemTraySWT != null) {
-						systemTraySWT.update();
-					}
-				}
-			});
 		}
 
 		skinObject = skin.getSkinObject("search-text");

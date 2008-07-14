@@ -30,9 +30,9 @@ import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
-import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 

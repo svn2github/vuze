@@ -37,12 +37,12 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.UIUpdatable;
 import com.aelitis.azureus.util.Constants;
 
 /**

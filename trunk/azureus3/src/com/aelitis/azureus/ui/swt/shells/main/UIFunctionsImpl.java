@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -47,10 +46,11 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicator;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -307,28 +307,19 @@ public class UIFunctionsImpl
 		}
 
 	}
-	
+
 	private boolean createSideBarItem(String id, String title, Class iviewClass,
 			Class[] iviewClassArgs, Object[] iviewClassVals) {
 		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;
 
-			TreeItem treeItem = sideBar.createTreeItem(
-					SideBar.SIDEBAR_SECTION_LIBRARY, id, title, iviewClass,
-					iviewClassArgs, iviewClassVals, null, true);
-
-			if (treeItem != null && !treeItem.isDisposed()) {
-				treeItem.getParent().select(treeItem);
-				treeItem.getParent().showItem(treeItem);
-				sideBar.itemSelected(treeItem);
-
-				return true;
-			}
+			sideBar.createTreeItemFromIViewClass(SideBar.SIDEBAR_SECTION_LIBRARY, id,
+					title, iviewClass, iviewClassArgs, iviewClassVals, null, true);
+			return sideBar.showItemByID(id);
 		}
 		return false;
 	}
-
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.views.AbstractIView, java.lang.String)
 	public void openPluginView(AbstractIView view, String name) {
@@ -346,7 +337,7 @@ public class UIFunctionsImpl
 			if (uiFunctions == null) {
 				return;
 			}
-			
+
 			mainWindow.switchToAdvancedTab();
 			uiFunctions.openPluginView(view, name);
 
@@ -854,4 +845,25 @@ public class UIFunctionsImpl
 		return mainWindow;
 	}
 
+	// @see com.aelitis.azureus.ui.UIFunctions#getUIUpdater()
+	public UIUpdater getUIUpdater() {
+		return UIUpdaterSWT.getInstance();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeAllDetails()
+	public void closeAllDetails() {
+		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+		if (uiFunctions != null) {
+			uiFunctions.closeAllDetails();
+		}
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
+	public boolean hasDetailViews() {
+		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+		if (uiFunctions != null) {
+			return uiFunctions.hasDetailViews();
+		}
+		return false;
+	}
 }

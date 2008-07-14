@@ -36,12 +36,12 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicator;
-import com.aelitis.azureus.ui.swt.ViewIndicator.ViewIndicatorManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -65,7 +65,7 @@ public class Browse
 
 	private SWTSkinObject soMain;
 
-	private ViewIndicator viewIndicator;
+	private ViewTitleInfo titleInfo;
 
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -90,16 +90,16 @@ public class Browse
 		});
 		SelectedContentManager.changeCurrentlySelectedContent("browse", null);
 		
-		viewIndicator = new ViewIndicator() {
-			public String getStringProperty(int propertyID) {
-				if (propertyID == VIEWINDICATOR_TEXT) {
+		titleInfo = new ViewTitleInfo() {
+			public String getTitleInfoStringProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT) {
 					return browserSkinObject.isPageLoading() ? "Loading..." : null;
 				}
 				return null;
 			}
 		
-			public Object getObjectProperty(int propertyID) {
-				if (propertyID == VIEWINDICATOR_SKINVIEW) {
+			public Object getTitleInfoObjectProperty(int propertyID) {
+				if (propertyID == TITLE_SKINVIEW) {
 					return Browse.this;
 				}
 				return null;
@@ -119,13 +119,13 @@ public class Browse
 
 		browser.addLocationListener(new LocationListener() {
 			public void changing(LocationEvent event) {
-				ViewIndicatorManager.refreshViewIndicator(viewIndicator);
+				ViewTitleInfoManager.refreshTitleInfo(titleInfo);
 			}
 
 			public void changed(LocationEvent event) {
 				SelectedContentManager.changeCurrentlySelectedContent("browse",
 						getCurrentlySelectedContent());
-				ViewIndicatorManager.refreshViewIndicator(viewIndicator);
+				ViewTitleInfoManager.refreshTitleInfo(titleInfo);
 			}
 		});
 
