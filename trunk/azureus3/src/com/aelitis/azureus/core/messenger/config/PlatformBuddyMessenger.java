@@ -175,7 +175,6 @@ public class PlatformBuddyMessenger
 						VuzeActivitiesEntryBuddyRequest inviteEntry = (VuzeActivitiesEntryBuddyRequest) entry;
 						if (inviteEntry.getBuddy() != null) {
 							existingInvites.add(entry);
-							System.out.println("should remove " + entry.getText());
 						}
 					}
 				}
