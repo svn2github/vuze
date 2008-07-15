@@ -704,7 +704,9 @@ public class SideBar
 			ViewTitleInfo titleInfo, String title) {
 		treeItem.addDisposeListener(disposeTreeItemListener);
 		treeItem.setData("Plugin.viewID", id);
-		treeItem.setData("TitleInfo", titleInfo);
+		if (titleInfo != null) {
+			treeItem.setData("TitleInfo", titleInfo);
+		}
 		treeItem.setText(title);
 		if (titleInfo != null) {
 			mapTitleInfoToTreeItem.put(titleInfo, treeItem);
@@ -770,6 +772,7 @@ public class SideBar
 				try {
 					String id = (String) treeItem.getData("Plugin.viewID");
 					iview = new UISWTViewImpl("SideBar.Plugins", id, l);
+					((UISWTViewImpl)iview).setTitle(treeItem.getText());
 					Composite parent = (Composite) soSideBarContents.getControl();
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
