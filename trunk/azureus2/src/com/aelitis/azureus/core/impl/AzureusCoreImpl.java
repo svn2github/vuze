@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
@@ -138,12 +139,12 @@ AzureusCoreImpl
 	private long create_time = SystemTime.getCurrentTime();
 
 
-	private boolean				started;
-	private boolean				stopped;
-	private boolean				restarting;
+	private volatile boolean				started;
+	private volatile boolean				stopped;
+	private volatile boolean				restarting;
 	
-	private List				listeners				= new ArrayList();
-	private List				lifecycle_listeners		= new ArrayList();
+	private CopyOnWriteList		listeners				= new CopyOnWriteList();
+	private CopyOnWriteList		lifecycle_listeners		= new CopyOnWriteList();
 	private List				operation_listeners		= new ArrayList();
 	
 	private AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
@@ -435,7 +436,7 @@ AzureusCoreImpl
 				
 				DownloadManager	dm = (DownloadManager)downloads.get(i);
 				
-				Long	last_announce_l = (Long)dm.getData( DM_ANNOUNCE_KEY );
+				Long	last_announce_l = (Long)dm.getUserData( DM_ANNOUNCE_KEY );
 				
 				long	last_announce	= last_announce_l==null?create_time:last_announce_l.longValue();
 				
@@ -450,7 +451,7 @@ AzureusCoreImpl
 							last_announce_response.getStatus() == TRTrackerAnnouncerResponse.ST_OFFLINE ||
 							force ){
 	
-						dm.setData( DM_ANNOUNCE_KEY, new Long( now ));
+						dm.setUserData( DM_ANNOUNCE_KEY, new Long( now ));
 						
 						Logger.log(	new LogEvent(LOGID, "    updating tracker for " + dm.getDisplayName()));
 	
@@ -635,10 +636,12 @@ AzureusCoreImpl
 	        	public void
 	        	run()
 	        	{
-	        		for (int i=0;i<lifecycle_listeners.size();i++){
+	        		Iterator	it = lifecycle_listeners.iterator();
+	        		
+	        		while( it.hasNext()){
 	        			
 	        			try{
-	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
+	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
 	        				
 	        				if ( !listener.requiresPluginInitCompleteBeforeStartedEvent()){
 	        				
@@ -652,10 +655,12 @@ AzureusCoreImpl
 	        		
 	        		pi.initialisationComplete();
 	        		
-	        		for (int i=0;i<lifecycle_listeners.size();i++){
+	        		it = lifecycle_listeners.iterator();
+	        		
+	        		while( it.hasNext()){
 	        			
 	        			try{
-	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
+	        				AzureusCoreLifecycleListener listener = (AzureusCoreLifecycleListener)it.next();
 	        				
 	        				if ( listener.requiresPluginInitCompleteBeforeStartedEvent()){
 	        				
@@ -765,11 +770,12 @@ AzureusCoreImpl
 	triggerLifeCycleComponentCreated(
 		AzureusCoreComponent component )
 	{
-		for (int i = 0; i < lifecycle_listeners.size(); i++) {
+		Iterator it = lifecycle_listeners.iterator();
+		
+		while( it.hasNext()){
 
 			try{
-				((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
-					.componentCreated(this, component);
+				((AzureusCoreLifecycleListener)it.next()).componentCreated(this, component);
 				
 			}catch( Throwable e ){
 				
@@ -894,9 +900,10 @@ AzureusCoreImpl
 		List	sync_listeners 	= new ArrayList();
 		List	async_listeners	= new ArrayList();
 		
-		for (int i=0;i<lifecycle_listeners.size();i++){
+		Iterator it = lifecycle_listeners.iterator();
 			
-			AzureusCoreLifecycleListener	l = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
+		while( it.hasNext()){
+			AzureusCoreLifecycleListener	l = (AzureusCoreLifecycleListener)it.next();
 			
 			if ( l.syncInvokeRequired()){
 				sync_listeners.add( l );
@@ -1052,9 +1059,11 @@ AzureusCoreImpl
 		runNonDaemon(new AERunnable() {
 			public void runSupport() {
 
-				for (int i = 0; i < lifecycle_listeners.size(); i++) {
+				Iterator it = lifecycle_listeners.iterator();
+				
+				while( it.hasNext()){
 
-					if (!((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
+					if (!((AzureusCoreLifecycleListener)it.next())
 							.stopRequested(AzureusCoreImpl.this)) {
 						if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -1103,9 +1112,10 @@ AzureusCoreImpl
             public void runSupport() {
                 checkRestartSupported();
 
-                for (int i = 0; i < lifecycle_listeners.size(); i++) {
-                    AzureusCoreLifecycleListener l = (AzureusCoreLifecycleListener) lifecycle_listeners
-                            .get(i);
+                Iterator it = lifecycle_listeners.iterator();
+                
+                while( it.hasNext()){
+                    AzureusCoreLifecycleListener l = (AzureusCoreLifecycleListener)it.next();
 
                     if (!l.restartRequested(AzureusCoreImpl.this)) {
 
@@ -1328,10 +1338,12 @@ AzureusCoreImpl
 			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
 		}
 		
-		for (int i=0;i<listeners.size();i++){
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
 			
 			try{
-				((AzureusCoreListener)listeners.get(i)).reportCurrentTask( op, currentTask );
+				((AzureusCoreListener)it.next()).reportCurrentTask( op, currentTask );
 				
 			}catch( Throwable e ){
 				
@@ -1350,10 +1362,12 @@ AzureusCoreImpl
 			PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
 		}
 
-		for (int i=0;i<listeners.size();i++){
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
 			
 			try{
-				((AzureusCoreListener)listeners.get(i)).reportPercent( op, percent );
+				((AzureusCoreListener)it.next()).reportPercent( op, percent );
 				
 			}catch( Throwable e ){
 				
