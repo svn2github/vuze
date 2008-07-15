@@ -36,6 +36,11 @@ public class
 SubscriptionImpl 
 	implements Subscription 
 {
+	protected static final int SIMPLE_ID_LENGTH				= 10;
+	
+	private static final int MAX_ASSOCIATIONS				= 256;
+	private static final int MIN_RECENT_ASSOC_TO_RETAIN		= 16;
+	
 	private SubscriptionManagerImpl		manager;
 	
 	private byte[]			public_key;
@@ -46,6 +51,8 @@ SubscriptionImpl
 	private int				version;
 	
 	private List			associations = new ArrayList();
+	
+	private int				fixed_random;
 	
 	protected
 	SubscriptionImpl(
@@ -61,7 +68,8 @@ SubscriptionImpl
 			public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
 			private_key = CryptoECCUtils.keyToRawdata( kp.getPrivate());
 			
-			version		= 1;
+			version			= 1;
+			fixed_random	= new Random().nextInt();
 			
 			init();
 			
@@ -96,6 +104,7 @@ SubscriptionImpl
 			}
 			
 			map.put( "version", new Long( version ));
+			map.put( "rand", new Long( fixed_random ));
 			
 			if ( associations.size() > 0 ){
 				
@@ -124,10 +133,11 @@ SubscriptionImpl
 	fromMap(
 		Map		map )
 	{
-		public_key	= (byte[])map.get( "public_key" );
-		private_key	= (byte[])map.get( "private_key" );
-		version		= ((Long)map.get( "version" )).intValue();
-		
+		public_key		= (byte[])map.get( "public_key" );
+		private_key		= (byte[])map.get( "private_key" );
+		version			= ((Long)map.get( "version" )).intValue();
+		fixed_random	= ((Long)map.get( "rand" )).intValue();
+
 		List	l_assoc = (List)map.get( "assoc" );
 		
 		if ( l_assoc != null ){
@@ -149,9 +159,9 @@ SubscriptionImpl
 	{
 		byte[]	hash = new SHA1Simple().calculateHash( public_key );
 		
-		short_id = new byte[10];
+		short_id = new byte[SIMPLE_ID_LENGTH];
 		
-		System.arraycopy( hash, 0, short_id, 0, 10 );
+		System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
 	}
 	
 	public byte[]
@@ -170,6 +180,12 @@ SubscriptionImpl
 	getPrivateKey()
 	{
 		return( private_key );
+	}
+	
+	protected int
+	getFixedRandom()
+	{
+		return( fixed_random );
 	}
 	
 	public int
@@ -203,9 +219,64 @@ SubscriptionImpl
 			}
 			
 			associations.add( new association( hash, SystemTime.getCurrentTime()));
+			
+			if ( associations.size() > MAX_ASSOCIATIONS ){
+				
+				associations.remove( new Random().nextInt( MAX_ASSOCIATIONS - MIN_RECENT_ASSOC_TO_RETAIN ));
+			}
 		}
 		
 		manager.configDirty();
+		
+		manager.associationAdded();
+	}
+	
+	protected association
+	getAssociationForPublish()
+	{
+		synchronized( this ){
+			
+			int	num_assoc = associations.size();
+			
+				// first set in order of most recent
+			
+			for (int i=num_assoc-1;i>=Math.max( 0, num_assoc-MIN_RECENT_ASSOC_TO_RETAIN);i--){
+				
+				association assoc = (association)associations.get(i);
+				
+				if ( !assoc.getPublished()){
+					
+					assoc.setPublished( true );
+					
+					return( assoc );
+				}
+			}
+			
+				// remaining randomised
+			
+			int	rem = associations.size() - MIN_RECENT_ASSOC_TO_RETAIN;
+			
+			if ( rem > 0 ){
+				
+				List l = new ArrayList( associations.subList( 0, rem ));
+				
+				Collections.shuffle( l );
+				
+				for (int i=0;i<l.size();i++){
+					
+					association assoc = (association)l.get(i);
+
+					if ( !assoc.getPublished()){
+						
+						assoc.setPublished( true );
+						
+						return( assoc );
+					}
+				}
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected String
@@ -221,6 +292,7 @@ SubscriptionImpl
 	{
 		private byte[]	hash;
 		private long	when;
+		private boolean	published;
 		
 		protected
 		association(
@@ -241,6 +313,25 @@ SubscriptionImpl
 		getWhen()
 		{
 			return( when );
+		}
+		
+		protected boolean
+		getPublished()
+		{
+			return( published );
+		}
+		
+		protected void
+		setPublished(
+			boolean		b )
+		{
+			published = b;
+		}
+		
+		protected String
+		getString()
+		{
+			return( ByteFormatter.encodeString( hash ));
 		}
 	}
 }

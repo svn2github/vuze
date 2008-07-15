@@ -21,11 +21,7 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
@@ -34,7 +30,11 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.PluginInterface;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
@@ -43,6 +43,10 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
+import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
 
 public class 
@@ -53,7 +57,7 @@ SubscriptionManagerImpl
 	private static final String	LOGGER_NAME = "Subscriptions";
 
 	private static SubscriptionManagerImpl		singleton;
-
+	
 	public static void
 	preInitialise()
 	{
@@ -102,9 +106,16 @@ SubscriptionManagerImpl
 		return( singleton );
 	}
 	
+	
+	private boolean		started;
+	
+	private volatile DHTPlugin	dht_plugin;
+	
 	private List		subscriptions	= new ArrayList();
 	
 	private boolean	config_dirty;
+	
+	private boolean	publish_active;
 	
 	private AEDiagnosticsLogger		logger;
 	
@@ -124,17 +135,59 @@ SubscriptionManagerImpl
 				
 				e.printStackTrace();
 			}
+
+		
+			for (int i=0;i<subscriptions.size();i++){
+			
+				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
+			}
 		}
 		*/
 		
-		/*
-		for (int i=0;i<subscriptions.size();i++){
-			
-			((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
+		AzureusCore	core = AzureusCoreFactory.getSingleton();
+		
+		core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public void
+				started(
+					AzureusCore		core )
+				{
+					core.removeLifecycleListener( this );
+					
+					startUp();
+				}
+			});
+		
+		if ( core.isStarted()){
+		
+			startUp();
 		}
-		*/
 	}
 
+	protected void
+	startUp()
+	{
+		synchronized( this ){
+			
+			if ( started ){
+				
+				return;
+			}
+			
+			started	= true;
+		}
+		
+		PluginInterface  pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+
+		if ( pi != null ){
+			
+			dht_plugin = (DHTPlugin)pi.getPlugin();
+			
+			publishAssociations();
+		}
+	}
+	
 	public Subscription 
 	create() 
 	
@@ -162,6 +215,230 @@ SubscriptionManagerImpl
 		throws SubscriptionException 
 	{
 		
+	}
+	
+	protected void
+	associationAdded()
+	{
+		if ( dht_plugin != null ){
+			
+			publishAssociations();
+		}
+	}
+	
+	protected void
+	publishAssociations()
+	{
+		List	 shuffled_subs;
+
+		synchronized( this ){
+			
+			if ( publish_active ){
+				
+				return;
+			}			
+			
+			shuffled_subs = new ArrayList( subscriptions );
+
+			publish_active = true;
+		}
+		
+		boolean	publish_initiated = false;
+		
+		try{
+			Collections.shuffle( shuffled_subs );
+						
+			for (int i=0;i<shuffled_subs.size();i++){
+				
+				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
+				
+				SubscriptionImpl.association  assoc = sub.getAssociationForPublish();
+				
+				if ( assoc != null ){
+					
+					publishAssociation( sub, assoc );
+					
+					publish_initiated = true;
+					
+					break;
+				}
+			}
+		}finally{
+			
+			if ( !publish_initiated ){
+				
+				log( "Publishing Complete" );
+				
+				synchronized( this ){
+
+					publish_active = false;
+				}
+			}
+		}
+	}
+	
+	protected void
+	publishAssociation(
+		final SubscriptionImpl					subs,
+		final SubscriptionImpl.association		assoc )
+	{
+		log( "Checking association '" + subs.getString() + "' -> '" + assoc.getString() + "'" );
+		
+		byte[]	sub_id 		= subs.getShortID();
+		int		sub_version	= subs.getVersion();
+		
+		byte[]	assoc_hash	= assoc.getHash();
+		
+		final String	key = "subscription:assoc:" + ByteFormatter.encodeString( assoc_hash ); 
+				
+		final byte[]	put_value = new byte[sub_id.length + 4];
+		
+		System.arraycopy( sub_id, 0, put_value, 4, sub_id.length );
+		
+		put_value[0]	= (byte)(sub_version>>16);
+		put_value[1]	= (byte)(sub_version>>8);
+		put_value[2]	= (byte)sub_version;
+		put_value[3]	= (byte)subs.getFixedRandom();
+		
+		dht_plugin.get(
+			key.getBytes(),
+			"Subscription association read: " + ByteFormatter.encodeString( assoc_hash ),
+			DHTPlugin.FLAG_SINGLE_VALUE,
+			30,
+			20*1000,
+			false,
+			false,
+			new DHTPluginOperationListener()
+			{
+				private int	hits	= 0;
+				private int	max_ver = 0;
+				
+				public void
+				diversified()
+				{
+				}
+				
+				public void
+				valueRead(
+					DHTPluginContact	originator,
+					DHTPluginValue		value )
+				{
+					byte[]	val = value.getValue();
+					
+					if ( val.length == put_value.length ){
+						
+						boolean	diff = false;
+						
+						for (int i=4;i<val.length;i++){
+							
+							if ( val[i] != put_value[i] ){
+								
+								diff = true;
+								
+								break;
+							}
+						}
+						
+						if ( !diff ){
+							
+							hits++;
+							
+							int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
+							
+							if ( ver > max_ver ){
+								
+								max_ver = ver;
+							}
+						}
+					}
+				}
+				
+				public void
+				valueWritten(
+					DHTPluginContact	target,
+					DHTPluginValue		value )
+				{
+				}
+				
+				public void
+				complete(
+					byte[]				original_key,
+					boolean				timeout_occurred )
+				{
+					if ( max_ver > subs.getVersion()){
+						
+						updateSubscription( subs, max_ver );
+					}
+					
+					if ( hits < 6 ){			
+			
+						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
+
+						dht_plugin.put(
+							key.getBytes(),
+							"Subscription association write: " + ByteFormatter.encodeString( assoc.getHash()) + " -> " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+							put_value,
+							DHTPlugin.FLAG_ANON,
+							new DHTPluginOperationListener()
+							{
+								public void
+								diversified()
+								{
+								}
+								
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+								}
+								
+								public void
+								complete(
+									byte[]				key,
+									boolean				timeout_occurred )
+								{
+									log( "        completed '" + subs.getString() + "' -> '" + assoc.getString() + "'" );
+				
+									publishNext();
+								}
+							});
+					}else{
+						
+						log( "    Not publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing =" + hits );
+
+						publishNext();
+					}
+				}
+				
+				protected void
+				publishNext()
+				{
+					synchronized( this ){
+						
+						publish_active = false;
+					}
+					
+					publishAssociations();
+				}
+			});
+	}
+	
+	protected void
+	updateSubscription(
+		SubscriptionImpl		subs,
+		int						new_version )
+	{
+		log( "Subscription " + subs.getString() + " - higher version found: " + new_version );
+		
+		// TODO:
 	}
 	
 	protected void
