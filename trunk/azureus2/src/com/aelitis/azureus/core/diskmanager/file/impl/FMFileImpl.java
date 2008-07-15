@@ -48,6 +48,10 @@ FMFileImpl
 	private static Map			file_map = new HashMap();
 	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
 	
+	// If there is an exception that occurs, which causes us to try and perform
+	// a reopen, setting this flag to true will print it to debug.
+	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = true; 
+	
 	static{
 		AEDiagnostics.addEvidenceGenerator(
 			new AEDiagnosticsEvidenceGenerator()
@@ -393,6 +397,8 @@ FMFileImpl
 			
 		}catch( FMFileManagerException e ){
 			
+			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
+			
 			try{
 				reopen();
 				
@@ -415,6 +421,8 @@ FMFileImpl
 			file_access.setLength( raf, length );
 			
 		}catch( FMFileManagerException e ){
+			
+			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 						
 			try{
 				reopen();
@@ -576,6 +584,8 @@ FMFileImpl
 			
 		}catch( FMFileManagerException e ){
 			
+			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
+			
 			try{
 				reopen();
 
@@ -610,6 +620,8 @@ FMFileImpl
 			file_access.write( raf, buffers, position );
 	
 		}catch( FMFileManagerException e ){
+			
+			if (OUTPUT_REOPEN_RELATED_ERRORS) {Debug.printStackTrace(e);}
 			
 			try{
 				reopen();
