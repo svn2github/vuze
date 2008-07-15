@@ -80,6 +80,7 @@ DHTPlugin
 	public static final byte		FLAG_SEEDING		= DHT.FLAG_SEEDING;
 	public static final byte		FLAG_MULTI_VALUE	= DHT.FLAG_MULTI_VALUE;
 	public static final byte		FLAG_STATS			= DHT.FLAG_STATS;
+	public static final byte		FLAG_ANON			= DHT.FLAG_ANON;
 	
 	public static final byte		DT_NONE				= DHT.DT_NONE;
 	public static final byte		DT_FREQUENCY		= DHT.DT_FREQUENCY;
