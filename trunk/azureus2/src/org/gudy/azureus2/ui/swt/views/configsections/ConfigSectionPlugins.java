@@ -133,7 +133,13 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 							+ if0.getPluginID() + ".enabled", true);
 					boolean b1 = COConfigurationManager.getBooleanParameter("PluginInfo."
 							+ if1.getPluginID() + ".enabled", true);
-					result = (b0 == b1 ? 0 : (b0 ? 1 : -1));
+					result = (b0 == b1 ? 0 : (b0 ? -1 : 1));
+					
+					// Use the plugin ID name to sort by instead.
+					if (result == 0) {
+						result = if0.getPluginID().compareToIgnoreCase(
+								if1.getPluginID());
+					}
 					break;
 				}
 
