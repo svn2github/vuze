@@ -24,8 +24,11 @@ package com.aelitis.azureus.core.subs;
 public interface 
 Subscription 
 {
+	public String
+	getName();
+	
 	public byte[]
-	getID();
+	getPublicKey();
 	
 	public int
 	getVersion();
@@ -36,4 +39,7 @@ Subscription
 	public void
 	addAssociation(
 		byte[]		hash );
+	
+	public String
+	getString();
 }

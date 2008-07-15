@@ -25,7 +25,8 @@ public interface
 SubscriptionManager 
 {
 	public Subscription
-	create()
+	create(
+		String		name )
 		
 		throws SubscriptionException;
 	

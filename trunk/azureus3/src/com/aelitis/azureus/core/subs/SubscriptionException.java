@@ -25,5 +25,18 @@ public class
 SubscriptionException 
 	extends Exception
 {
-
+	public
+	SubscriptionException(
+		String		str )
+	{
+		super( str );
+	}
+	
+	public
+	SubscriptionException(
+		String		str,
+		Throwable	e )
+	{
+		super( str, e );
+	}
 }
