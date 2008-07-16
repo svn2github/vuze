@@ -479,6 +479,7 @@ UISWTInstanceImpl
 
 	/** @deprecated */
 	public void addView(final UISWTPluginView view, boolean bAutoOpen) {
+		// Currently used by firefrog.
 		try {
 			uiFunctions.addPluginView(view);
 			if (bAutoOpen) {
