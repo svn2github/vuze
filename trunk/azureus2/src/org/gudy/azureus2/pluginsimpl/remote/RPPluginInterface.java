@@ -43,7 +43,6 @@ import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTManager;
 import org.gudy.azureus2.plugins.download.DownloadManager;
-import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.update.*;
@@ -287,14 +286,6 @@ RPPluginInterface
 		return( res );
 	}
 	
-	
-	public PeerProtocolManager
-	getPeerProtocolManager()
-	{
-		notSupported();
-		
-		return( null );
-	}
 	
 	public ShareManager
 	getShareManager()

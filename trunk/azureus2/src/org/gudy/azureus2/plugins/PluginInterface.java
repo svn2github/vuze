@@ -35,7 +35,6 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
-import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
 import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -172,16 +171,6 @@ public interface PluginInterface {
    */
   public DownloadManager
   getDownloadManager();
-  
-  /**
-   * Gives access to the peer protocol manager
-   * @return An object that allows management of Peer Protocols
-   * @decprecated 2307 If you want to handle extensions plugin into the announce protocol itself
-   * @since 2.0.7.0
-   */
-  
-  public PeerProtocolManager
-  getPeerProtocolManager();
   
   /**
    * Gives access to the sharing functionality

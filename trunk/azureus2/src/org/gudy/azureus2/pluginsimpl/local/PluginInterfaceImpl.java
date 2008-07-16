@@ -41,7 +41,6 @@ import org.gudy.azureus2.pluginsimpl.local.ipfilter.IPFilterImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.peers.protocol.*;
 import org.gudy.azureus2.pluginsimpl.local.sharing.ShareManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.*;
@@ -56,7 +55,6 @@ import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-import org.gudy.azureus2.plugins.peers.protocol.*;
 import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
@@ -459,12 +457,6 @@ PluginInterfaceImpl
   	return( UpdateManagerImpl.getSingleton( initialiser.getAzureusCore()));
   }
 
-  public PeerProtocolManager
-  getPeerProtocolManager()
-  {
-  	return( PeerProtocolManagerImpl.getSingleton());
-  }
-  
   public boolean
   isUnloadable()
   {
