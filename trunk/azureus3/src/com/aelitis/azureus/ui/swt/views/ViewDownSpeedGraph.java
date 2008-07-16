@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
@@ -61,16 +62,12 @@ public class ViewDownSpeedGraph
 
 	SpeedGraphic downSpeedGraphic;
 
+	TimerEventPeriodic	timerEvent;
+	
 	public ViewDownSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
 		this.totalStats = StatsFactory.getStats();
-		
-		SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				periodicUpdate();
-			}
-		});
 	}
 
 	public void periodicUpdate() {
@@ -105,6 +102,17 @@ public class ViewDownSpeedGraph
 				skinProperties.getColor("color.topbar.speed.value1"),
 				skinProperties.getColor("color.topbar.speed.value2plus"),
 				skinProperties.getColor("color.topbar.speed.trimmed"));
+		
+		
+		timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				if ( downSpeedCanvas.isDisposed()){
+					timerEvent.cancel();
+				}else{
+					periodicUpdate();
+				}
+			}
+		});
 	}
 
 	public void delete() {
