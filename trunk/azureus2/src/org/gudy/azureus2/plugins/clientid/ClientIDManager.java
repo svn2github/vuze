@@ -30,14 +30,6 @@ package org.gudy.azureus2.plugins.clientid;
 public interface 
 ClientIDManager 
 {
-		/**
-		 * <b>No longer supported - will be removed in future.</b>
-		 */
-	
-	public void
-	setGenerator(
-		ClientIDGenerator	generator,
-		boolean				use_http_filter );
 	
 	public ClientIDGenerator
 	getGenerator();
