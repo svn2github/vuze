@@ -167,12 +167,12 @@ public class TorrentOpener {
 		});
 	}
 
-  public static void openDroppedTorrents(AzureusCore azureus_core,
-			DropTargetEvent event, boolean bAllowShareAdd) {
+  public static void openDroppedTorrents(final AzureusCore azureus_core,
+			DropTargetEvent event,final  boolean bAllowShareAdd) {
 		if (event.data == null)
 			return;
 
-		boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
+		final boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
 
 		if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
@@ -189,29 +189,41 @@ public class TorrentOpener {
 				if (sURL != null && !source.exists()) {
 					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
 				} else if (source.isFile()) {
-					String filename = source.getAbsolutePath();
 					
-					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+						// go async as vuze file handling can require UI access which then blocks
+						// if this is happening during init
 					
-					if ( vfh.loadAndHandleVuzeFile( filename, VuzeFileComponent.COMP_TYPE_NONE ) != null ){
-						
-						return;
-					}
-					
-					
-					try {
-						if (!TorrentUtils.isTorrentFile(filename) && bAllowShareAdd) {
-							Logger.log(new LogEvent(LogIDs.GUI,
-											"openDroppedTorrents: file not a torrent file, sharing"));
-							ShareUtils.shareFile(azureus_core, filename);
-						} else {
-							openTorrentWindow(null, new String[] { filename },
-									bOverrideToStopped);
+					new AEThread2( "asyncOpen", true )
+					{
+						public void
+						run()
+						{
+							String filename = source.getAbsolutePath();
+							
+							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+							
+							if ( vfh.loadAndHandleVuzeFile( filename, VuzeFileComponent.COMP_TYPE_NONE ) != null ){
+								
+								return;
+							}
+							
+							
+							try {
+								if (!TorrentUtils.isTorrentFile(filename) && bAllowShareAdd) {
+									Logger.log(new LogEvent(LogIDs.GUI,
+													"openDroppedTorrents: file not a torrent file, sharing"));
+									ShareUtils.shareFile(azureus_core, filename);
+								} else {
+									openTorrentWindow(null, new String[] { filename },
+											bOverrideToStopped);
+								}
+							} catch (Exception e) {
+								Logger.log(new LogAlert(LogAlert.REPEATABLE,
+										"Torrent open fails for '" + filename + "'", e));
+							}
 						}
-					} catch (Exception e) {
-						Logger.log(new LogAlert(LogAlert.REPEATABLE,
-								"Torrent open fails for '" + filename + "'", e));
-					}
+					}.start();
+					
 				} else if (source.isDirectory()) {
 					
 					String dir_name = source.getAbsolutePath();
