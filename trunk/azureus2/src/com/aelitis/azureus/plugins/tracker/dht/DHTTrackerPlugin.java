@@ -88,8 +88,9 @@ DHTTrackerPlugin
 	private static final String	PLUGIN_NAME				= "Distributed Tracker";
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.dhttracker";
 	
-	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
-	private static final int	SCRAPE_TIMEOUT		= 30*1000;
+	private static final int	ANNOUNCE_TIMEOUT			= 2*60*1000;
+	private static final int	ANNOUNCE_DERIVED_TIMEOUT	= 60*1000;	// spend less time on these
+	private static final int	SCRAPE_TIMEOUT				= 30*1000;
 	
 	private static final int	ANNOUNCE_MIN_DEFAULT		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX				= 60*60*1000;
@@ -1553,7 +1554,7 @@ DHTTrackerPlugin
 					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
 					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
-					ANNOUNCE_TIMEOUT,
+					target.getType()==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
 					false, false,
 					new DHTPluginOperationListener()
 					{
