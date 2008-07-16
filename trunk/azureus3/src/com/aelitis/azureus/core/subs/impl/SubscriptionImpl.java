@@ -23,9 +23,11 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.io.IOException;
 import java.security.KeyPair;
+import java.security.Signature;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -64,12 +66,18 @@ SubscriptionImpl
 	
 	private int				version;
 	
+	private byte[]			hash;
+	private byte[]			sig;
+	private int				sig_data_size;
+	
+	
 	private byte[]			short_id;
 	
 	private List			associations = new ArrayList();
 	
 	private int				fixed_random;
 	
+	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
 	
 		// new subs constructor
@@ -97,7 +105,11 @@ SubscriptionImpl
 			
 			init();
 			
-			new SubscriptionBodyImpl( manager, name, public_key, version ).writeVuzeFile( this );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, public_key, version );
+			
+			body.writeVuzeFile( this );
+			
+			update( body );
 			
 		}catch( Throwable e ){
 			
@@ -141,6 +153,8 @@ SubscriptionImpl
 		init();
 		
 		_body.writeVuzeFile( this );
+		
+		update( _body );
 	}
 	
 	protected Map
@@ -157,6 +171,12 @@ SubscriptionImpl
 			map.put( "public_key", public_key );
 						
 			map.put( "version", new Long( version ));
+			
+				// body data
+			
+			map.put( "hash", hash );
+			map.put( "sig", sig );
+			map.put( "sig_data_size", new Long( sig_data_size ));
 			
 				// local data
 			
@@ -201,6 +221,10 @@ SubscriptionImpl
 		private_key		= (byte[])map.get( "private_key" );
 		version			= ((Long)map.get( "version" )).intValue();
 
+		hash			= (byte[])map.get( "hash" );
+		sig				= (byte[])map.get( "sig" );
+		sig_data_size	= ((Long)map.get( "sig_data_size" )).intValue();
+		
 		fixed_random	= ((Long)map.get( "rand" )).intValue();
 
 		List	l_assoc = (List)map.get( "assoc" );
@@ -228,6 +252,8 @@ SubscriptionImpl
 		version		= body.getVersion();
 		
 		body.writeVuzeFile( this );
+		
+		update( body );
 	}
 	
 	protected void
@@ -238,6 +264,15 @@ SubscriptionImpl
 		short_id = new byte[SIMPLE_ID_LENGTH];
 		
 		System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
+	}
+	
+	protected void
+	update(
+		SubscriptionBodyImpl		body )
+	{
+		hash 			= body.getHash();
+		sig				= body.getSig();
+		sig_data_size	= body.getSigDataSize();
 	}
 	
 	public String
@@ -280,6 +315,21 @@ SubscriptionImpl
 	isSubscribed()
 	{
 			// TODO:
+		
+		return( false );
+	}
+	
+	protected synchronized boolean
+	canAutoUpgradeCheck()
+	{
+		long	now = SystemTime.getMonotonousTime();
+		
+		if ( last_auto_upgrade_check == -1 || now - last_auto_upgrade_check > 4*60*60*1000 ){
+			
+			last_auto_upgrade_check = now;
+			
+			return( true );
+		}
 		
 		return( false );
 	}
@@ -372,6 +422,78 @@ SubscriptionImpl
 		boolean		b )
 	{
 		published = b;
+	}
+	
+	protected int
+	getVerifiedPublicationVersion(
+		byte[]		data )
+	{
+		if ( !verifyPublicationDetails( data )){
+			
+			return( -1 );
+		}
+
+		byte[]	version_bytes = new byte[4];
+	
+		System.arraycopy( data, 20, version_bytes, 0, 4 );
+		
+		return( bytesToInt( version_bytes ));
+	}
+	
+	protected byte[]
+	getPublicationHash(
+		byte[]		data )
+	{
+		byte[]	hash_bytes = new byte[20];
+	
+		System.arraycopy( data, 0, hash_bytes, 0, 20 );
+		
+		return( hash_bytes );
+	}
+	
+	protected int
+	getPublicationSize(
+		byte[]		data )
+	{
+		byte[]	size_bytes = new byte[4];
+	
+		System.arraycopy( data, 24, size_bytes, 0, 4 );
+		
+		return( bytesToInt( size_bytes ));
+	}
+	
+	protected byte[]
+	getPublicationDetails()
+	{
+		// <20 hash><4 ver><4 size><56? sig>
+		
+		byte[] details = new byte[20+4+4+sig.length];
+		
+		System.arraycopy( hash, 0, details, 0, 20 );
+		System.arraycopy( intToBytes(version), 0, details, 20, 4 );
+		System.arraycopy( intToBytes(sig_data_size), 0, details, 24, 4 );
+		System.arraycopy( sig, 0, details, 28, sig.length );
+				
+		return( details );
+	}
+	
+	protected boolean
+	verifyPublicationDetails(
+		byte[]		details )
+	{
+		try{
+			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
+	
+			signature.update( details, 0, 28 );
+	
+			return( signature.verify( details, 28, details.length - 28 ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}
 	}
 	
 	public String

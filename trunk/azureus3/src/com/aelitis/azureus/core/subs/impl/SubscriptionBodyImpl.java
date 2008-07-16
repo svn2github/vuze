@@ -48,6 +48,10 @@ SubscriptionBodyImpl
 	private byte[]	public_key;
 	private int		version;
 	
+	private byte[]	hash;
+	private byte[]	sig;
+	private int		sig_data_size;
+	
 	private Map		map;
 
 		// import constructor
@@ -62,8 +66,8 @@ SubscriptionBodyImpl
 		manager	= _manager;
 		map		= _map;
 		
-		byte[]	hash 	= (byte[])map.get( "hash" );
-		byte[]	sig	 	= (byte[])map.get( "sig" );
+		hash 	= (byte[])map.get( "hash" );
+		sig	 	= (byte[])map.get( "sig" );
 		Long	l_size	= (Long)map.get( "size" );
 		
 		Map	details = (Map)map.get( "details" );
@@ -73,7 +77,7 @@ SubscriptionBodyImpl
 			throw( new IOException( "Invalid subscription - details missing" ));
 		}
 		
-		int sig_data_size	= l_size.intValue();
+		sig_data_size	= l_size.intValue();
 		
 		name		= new String((byte[])details.get( "name" ), "UTF-8" );
 		public_key	= (byte[])details.get( "public_key" );
@@ -141,23 +145,9 @@ SubscriptionBodyImpl
 		
 		map			= new HashMap();
 		
-		writeDetails( map );
-	}
-	
-	protected void
-	writeDetails(
-		Map		map )
-	
-		throws IOException
-	{
-		Map details = (Map)map.get( "details" );
-		
-		if ( details == null ){
+		Map details = new HashMap();
 			
-			details = new HashMap();
-			
-			map.put( "details", details );
-		}
+		map.put( "details", details );
 		
 		details.put( "name", name.getBytes( "UTF-8" ));
 		details.put( "public_key", public_key );
@@ -182,7 +172,25 @@ SubscriptionBodyImpl
 		return( version );
 	}
 	
+		// derived data
+	
+	protected byte[]
+	getHash()
+	{
+		return( hash );
+	}
 
+	protected byte[]
+	getSig()
+	{
+		return( sig );
+	}
+	
+	protected int
+	getSigDataSize()
+	{
+		return( sig_data_size );
+	}
 	
 	/*
 	 * 			TOTorrentCreator creator = 
@@ -224,19 +232,19 @@ SubscriptionBodyImpl
 			map.put( "size", new Long( contents.length ));
 			
 			try{
-				Signature sig = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
+				Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
 				
 					// key for signature is hash + version + size so we have some
 					// control over auto-update process and prevent people from injecting
 					// potentially huge bogus updates
 				
-				sig.update( new_hash );
-				sig.update( SubscriptionImpl.intToBytes(version));
-				sig.update( SubscriptionImpl.intToBytes(contents.length));
+				signature.update( new_hash );
+				signature.update( SubscriptionImpl.intToBytes(version));
+				signature.update( SubscriptionImpl.intToBytes(contents.length));
 				
 				map.put( "hash", new_hash );
 				
-				map.put( "sig", sig.sign());
+				map.put( "sig", signature.sign());
 				
 			}catch( Throwable e ){
 				
@@ -265,6 +273,10 @@ SubscriptionBodyImpl
 			
 			vf.write( file );
 		
+			hash			= new_hash;
+			sig				= (byte[])map.get( "sig" );
+			sig_data_size	= contents.length;
+			
 		}catch( Throwable e ){
 			
 			if ( backup_file != null ){

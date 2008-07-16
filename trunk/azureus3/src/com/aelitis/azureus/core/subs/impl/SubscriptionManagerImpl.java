@@ -467,7 +467,7 @@ SubscriptionManagerImpl
 			"Subscription association read: " + ByteFormatter.encodeString( assoc_hash ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
-			20*1000,
+			60*1000,
 			false,
 			false,
 			new DHTPluginOperationListener()
@@ -527,7 +527,7 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					if ( max_ver > subs.getVersion()){
+					if ( max_ver >= subs.getVersion()){
 						
 						updateSubscription( subs, max_ver );
 					}
@@ -672,28 +672,18 @@ SubscriptionManagerImpl
 		int		sub_version	= subs.getVersion();
 				
 		final String	key = "subscription:pub:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
-				
-		final byte[]	put_value = new byte[sub_id.length + 4];
-		
-		System.arraycopy( sub_id, 0, put_value, 4, sub_id.length );
-		
-		put_value[0]	= (byte)(sub_version>>16);
-		put_value[1]	= (byte)(sub_version>>8);
-		put_value[2]	= (byte)sub_version;
-		put_value[3]	= (byte)subs.getFixedRandom();
-		
+						
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription read: " + ByteFormatter.encodeString( sub_id ),
+			"Subscription presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
-			30,
-			20*1000,
+			12,
+			60*1000,
 			false,
 			false,
 			new DHTPluginOperationListener()
 			{
 				private int	hits	= 0;
-				private int	max_ver = 0;
 				
 				public void
 				diversified()
@@ -705,33 +695,14 @@ SubscriptionManagerImpl
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
 				{
-					byte[]	val = value.getValue();
+						// if we change this format we simply need to update the publish KEY rather than
+						// worrying about versioning the VALUE
 					
-					if ( val.length == put_value.length ){
+					byte[]	val = value.getValue();
+										
+					if ( subs.getVerifiedPublicationVersion( val ) == subs.getVersion()){
 						
-						boolean	diff = false;
-						
-						for (int i=4;i<val.length;i++){
-							
-							if ( val[i] != put_value[i] ){
-								
-								diff = true;
-								
-								break;
-							}
-						}
-						
-						if ( !diff ){
-							
-							hits++;
-							
-							int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
-							
-							if ( ver > max_ver ){
-								
-								max_ver = ver;
-							}
-						}
+						hits++;
 					}
 				}
 				
@@ -747,21 +718,17 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					if ( max_ver > subs.getVersion()){
-						
-						updateSubscription( subs, max_ver );
-					}
-					
-					/*
 					if ( hits < 6 ){			
 			
-						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
+						log( "    Publishing subscription '" + subs.getString() + ", existing=" + hits );
 
+						byte[]	put_value = subs.getPublicationDetails();
+						
 						dht_plugin.put(
 							key.getBytes(),
-							"Subscription association write: " + ByteFormatter.encodeString( assoc.getHash()) + " -> " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+							"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
 							put_value,
-							DHTPlugin.FLAG_ANON,
+							DHTPlugin.FLAG_SINGLE_VALUE,
 							new DHTPluginOperationListener()
 							{
 								public void
@@ -788,18 +755,18 @@ SubscriptionManagerImpl
 									byte[]				key,
 									boolean				timeout_occurred )
 								{
-									log( "        completed '" + subs.getString() + "' -> '" + assoc.getString() + "'" );
+									log( "        completed '" + subs.getString() + "'" );
 				
 									publishNext();
 								}
 							});
+						
 					}else{
 						
-						log( "    Not publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing =" + hits );
+						log( "    Not publishing subscription '" + subs.getString() + "', existing =" + hits );
 
 						publishNext();
 					}
-					*/
 				}
 				
 				protected void
@@ -807,7 +774,7 @@ SubscriptionManagerImpl
 				{
 					synchronized( this ){
 						
-						publish_associations_active = false;
+						publish_subscription_active = false;
 					}
 					
 					publishSubscriptions();
@@ -817,12 +784,94 @@ SubscriptionManagerImpl
 	
 	protected void
 	updateSubscription(
-		SubscriptionImpl		subs,
-		int						new_version )
+		final SubscriptionImpl		subs,
+		final int					new_version )
 	{
 		log( "Subscription " + subs.getString() + " - higher version found: " + new_version );
 		
-		// TODO:
+		if ( !subs.canAutoUpgradeCheck()){
+			
+			log( "    Checked too recently, ignoring" );
+			
+			return;
+		}
+		
+		log( "Checking subscription '" + subs.getString() + "' upgrade to version " + new_version );
+			
+		byte[]	sub_id 		= subs.getShortID();
+				
+		final String	key = "subscription:pub:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
+						
+		dht_plugin.get(
+			key.getBytes(),
+			"Subscription presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + new_version,
+			DHTPlugin.FLAG_SINGLE_VALUE,
+			12,
+			60*1000,
+			false,
+			false,
+			new DHTPluginOperationListener()
+			{
+				private byte[]	verified_hash;
+				private int		verified_size;
+				
+				public void
+				diversified()
+				{
+				}
+				
+				public void
+				valueRead(
+					DHTPluginContact	originator,
+					DHTPluginValue		value )
+				{
+						// if we change this format we simply need to update the publish KEY rather than
+						// worrying about versioning the VALUE
+					
+					byte[]	val = value.getValue();
+											
+					if ( 	verified_hash == null && 
+							subs.getVerifiedPublicationVersion( val ) == new_version ){
+						
+						verified_hash 	= subs.getPublicationHash( val );
+						verified_size	= subs.getPublicationSize( val );
+					}
+				}
+				
+				public void
+				valueWritten(
+					DHTPluginContact	target,
+					DHTPluginValue		value )
+				{
+				}
+				
+				public void
+				complete(
+					byte[]				original_key,
+					boolean				timeout_occurred )
+				{
+					if ( verified_hash != null ){			
+			
+						log( "    Subscription '" + subs.getString() + " upgrade verified as authentic" );
+
+						updateSubscription( subs, verified_hash, verified_size );
+						
+					}else{
+						
+						log( "    Subscription '" + subs.getString() + " upgrade not verified" );
+					}
+				}
+			});
+	}
+	
+	protected void
+	updateSubscription(
+		SubscriptionImpl			subs,
+		byte[]						update_hash,
+		int							update_size )
+	{
+		log( "Subscription " + subs.getString() + " - update hash=" + ByteFormatter.encodeString( update_hash ) + ", size=" + update_size );
+
 	}
 	
 	protected void
