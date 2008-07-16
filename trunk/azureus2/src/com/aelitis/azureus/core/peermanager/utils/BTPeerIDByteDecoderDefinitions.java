@@ -238,6 +238,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("AT", "Artemis");
 		addAzStyle("BB", "BitBuddy", "1.234");
 		addAzStyle("BC", "BitComet", VER_AZ_SKIP_FIRST_ONE_MAJ_TWO_MIN);
+		addAzStyle("BE", "BitTorrent SDK");
 		addAzStyle("BF", "BitFlu", NO_VERSION);
 		addAzStyle("BG", "BTG", VER_AZ_FOUR_DIGITS);
 		addAzStyle("bk", "BitKitten (libtorrent)");
