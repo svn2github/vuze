@@ -578,6 +578,21 @@ public class BDecoder
 
 	public static void
 	print(
+		Object		obj )
+	{
+		StringWriter 	sw = new StringWriter();
+		
+		PrintWriter		pw = new PrintWriter( sw );
+		
+		print( pw, obj );
+		
+		pw.flush();
+		
+		System.out.println( sw.toString());
+	}
+	
+	public static void
+	print(
 		PrintWriter	writer,
 		Object		obj )
 	{
@@ -604,7 +619,7 @@ public class BDecoder
 			if ( b.length==20 ){
 				writer.println( use_indent + " { "+ ByteFormatter.nicePrint( b )+ " }" );
 			}else if ( b.length < 64 ){
-				writer.println( new String(b) );
+				writer.println( new String(b) + " [" + ByteFormatter.encodeString( b ) + "]" );
 			}else{
 				writer.println( "[byte array length " + b.length );
 			}
