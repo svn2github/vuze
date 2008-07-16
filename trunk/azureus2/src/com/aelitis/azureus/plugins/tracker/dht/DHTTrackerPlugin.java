@@ -1566,6 +1566,8 @@ DHTTrackerPlugin
 						int		seed_count;
 						int		leecher_count;
 						
+						boolean	complete;
+						
 						public void
 						diversified()
 						{
@@ -1576,84 +1578,92 @@ DHTTrackerPlugin
 							DHTPluginContact	originator,
 							DHTPluginValue		value )
 						{
-							try{										
-								String[]	tokens = new String(value.getValue()).split(";");
-							
-								String	tcp_part = tokens[0].trim();
+							synchronized( this ){
 								
-								int	sep = tcp_part.indexOf(':');
-								
-								String	ip_str		= null;
-								String	tcp_port_str;
-								
-								if ( sep == -1 ){
+								if ( complete ){
 									
-									tcp_port_str = tcp_part;
-									
-								}else{
-									
-									ip_str 			= tcp_part.substring( 0, sep );							
-									tcp_port_str	= tcp_part.substring( sep+1 );	
+									return;
 								}
+
+								try{										
+									String[]	tokens = new String(value.getValue()).split(";");
 								
-								int	tcp_port = Integer.parseInt( tcp_port_str );
+									String	tcp_part = tokens[0].trim();
 									
-								if ( tcp_port > 0 && tcp_port < 65536 ){
-	
-									String	flag_str	= null;
-									int		udp_port	= -1;
+									int	sep = tcp_part.indexOf(':');
 									
-									try{
-										for (int i=1;i<tokens.length;i++){
+									String	ip_str		= null;
+									String	tcp_port_str;
+									
+									if ( sep == -1 ){
 										
-											String	token = tokens[i].trim();
-											
-											if ( token.length() > 0 ){
-												
-												if ( Character.isDigit( token.charAt( 0 ))){
-													
-													udp_port = Integer.parseInt( token );
-													
-													if ( udp_port <= 0 || udp_port >=65536 ){
-														
-														udp_port = -1;
-													}
-												}else{
-													
-													flag_str = token;
-												}
-											}
-										}
-									}catch( Throwable e ){
-									}
-								
-									addresses.add( 
-											ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
-									
-									ports.add( new Integer( tcp_port ));
-									
-									udp_ports.add( new Integer( udp_port==-1?originator.getAddress().getPort():udp_port));
-									
-									flags.add( flag_str );
-									
-									if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+										tcp_port_str = tcp_part;
 										
-										leecher_count++;
-										
-										is_seeds.add( new Boolean( false ));
-	
 									}else{
 										
-										is_seeds.add( new Boolean( true ));
-										
-										seed_count++;
+										ip_str 			= tcp_part.substring( 0, sep );							
+										tcp_port_str	= tcp_part.substring( sep+1 );	
 									}
+									
+									int	tcp_port = Integer.parseInt( tcp_port_str );
+										
+									if ( tcp_port > 0 && tcp_port < 65536 ){
+		
+										String	flag_str	= null;
+										int		udp_port	= -1;
+										
+										try{
+											for (int i=1;i<tokens.length;i++){
+											
+												String	token = tokens[i].trim();
+												
+												if ( token.length() > 0 ){
+													
+													if ( Character.isDigit( token.charAt( 0 ))){
+														
+														udp_port = Integer.parseInt( token );
+														
+														if ( udp_port <= 0 || udp_port >=65536 ){
+															
+															udp_port = -1;
+														}
+													}else{
+														
+														flag_str = token;
+													}
+												}
+											}
+										}catch( Throwable e ){
+										}
+									
+										addresses.add( 
+												ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
+										
+										ports.add( new Integer( tcp_port ));
+										
+										udp_ports.add( new Integer( udp_port==-1?originator.getAddress().getPort():udp_port));
+										
+										flags.add( flag_str );
+										
+										if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+											
+											leecher_count++;
+											
+											is_seeds.add( new Boolean( false ));
+		
+										}else{
+											
+											is_seeds.add( new Boolean( true ));
+											
+											seed_count++;
+										}
+									}
+								
+								}catch( Throwable e ){
+									
+									// in case we get crap back (someone spamming the DHT) just
+									// silently ignore
 								}
-								
-							}catch( Throwable e ){
-								
-								// in case we get crap back (someone spamming the DHT) just
-								// silently ignore
 							}
 						}
 						
@@ -1669,6 +1679,16 @@ DHTTrackerPlugin
 							byte[]	key,
 							boolean	timeout_occurred )
 						{
+							synchronized( this ){
+								
+								if ( complete ){
+									
+									return;
+								}
+								
+								complete = true;
+							}
+							
 							if ( 	target.getType() == REG_TYPE_FULL ||
 									(	target.getType() == REG_TYPE_DERIVED && 
 										seed_count + leecher_count > 1 )){
