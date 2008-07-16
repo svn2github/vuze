@@ -1514,7 +1514,7 @@ DHTControlImpl
 				int value_replies;
 				final Set values_found_set = new HashSet();
 				boolean key_blocked;
-				long start = SystemTime.getMonotonousTime();
+				long start;
 				
 
 				// start the lookup
@@ -1527,6 +1527,8 @@ DHTControlImpl
 				
 				private void startLookup()
 				{
+					start = SystemTime.getMonotonousTime();
+
 					last_lookup = SystemTime.getCurrentTime();
 					handler.incrementCompletes();
 					
