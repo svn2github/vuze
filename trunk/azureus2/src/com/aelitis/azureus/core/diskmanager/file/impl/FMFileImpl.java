@@ -50,7 +50,7 @@ FMFileImpl
 	
 	// If there is an exception that occurs, which causes us to try and perform
 	// a reopen, setting this flag to true will print it to debug.
-	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = true; 
+	private static boolean OUTPUT_REOPEN_RELATED_ERRORS = false; 
 	
 	static{
 		AEDiagnostics.addEvidenceGenerator(
