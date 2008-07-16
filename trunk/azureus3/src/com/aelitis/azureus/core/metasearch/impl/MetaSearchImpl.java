@@ -318,7 +318,31 @@ MetaSearchImpl
 							public void
 							runSupport()
 							{
-								original_listener.resultsReceived( engine, results );
+								final int	CHUNK_SIZE 	= 25;
+								final int	CHUNK_DELAY	= 500;
+								
+								for (int i=0;i<results.length;i+=CHUNK_SIZE){
+									
+									int	to_do = Math.min( CHUNK_SIZE, results.length - i );
+									
+									Result[] chunk = new Result[to_do];
+									
+									System.out.println( "sending " + i + " to " + ( i+to_do ) + " of " + results.length );
+									
+									System.arraycopy(results, i, chunk, 0, to_do );
+									
+									original_listener.resultsReceived( engine, chunk );
+									
+									if ( results.length - i > CHUNK_SIZE ){
+										
+										try{
+											Thread.sleep(CHUNK_DELAY);
+											
+										}catch( Throwable e ){
+											
+										}
+									}
+								}
 							}
 						});
 				}
