@@ -64,7 +64,6 @@ import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
-import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1669,11 +1668,6 @@ DownloadImpl
   public void setMessagingEnabled( boolean enabled ) {
 	  throw new RuntimeException("setMessagingEnabled is in the process of being removed - if you are seeing this error, let the Azureus developers know that you need this method to stay!");
     //download_manager.setAZMessagingEnabled( enabled );
-  }
-  
-  
-  public void setSessionAuthenticator( SessionAuthenticator auth ) {
-    //TODO
   }
   
   

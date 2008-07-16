@@ -31,7 +31,6 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /**
@@ -900,13 +899,6 @@ Download extends DownloadEventNotifier
    */
   public void setMessagingEnabled( boolean enabled );
   
-  
-  /**
-   * Set the authenticator that will be used by this download to handle secure torrent session
-   * handshaking and data encryption/decryption.
-   * @param auth handler
-   */
-  public void setSessionAuthenticator( SessionAuthenticator auth );
   
   /**
    * Returns an array of size 2 indicating the appropriate locations for this
