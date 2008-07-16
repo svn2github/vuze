@@ -194,9 +194,12 @@ SubscriptionManagerImpl
 			
 			dht_plugin = (DHTPlugin)pi.getPlugin();
 			
-			publishAssociations();
+			if ( subscriptions.size() > 0 ){
+				
+				publishAssociations();
 			
-			publishSubscriptions();
+				publishSubscriptions();
+			}
 		}
 	}
 	
@@ -426,7 +429,7 @@ SubscriptionManagerImpl
 			
 			if ( !publish_initiated ){
 				
-				log( "Publishing Complete" );
+				log( "Publishing Associations Complete" );
 				
 				synchronized( this ){
 

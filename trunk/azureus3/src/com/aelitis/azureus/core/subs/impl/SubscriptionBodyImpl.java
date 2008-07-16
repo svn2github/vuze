@@ -23,8 +23,18 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Signature;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -52,10 +62,64 @@ SubscriptionBodyImpl
 		manager	= _manager;
 		map		= _map;
 		
-		name		= new String((byte[])map.get( "name" ), "UTF-8" );
+		byte[]	hash 	= (byte[])map.get( "hash" );
+		byte[]	sig	 	= (byte[])map.get( "sig" );
+		Long	l_size	= (Long)map.get( "size" );
 		
-		public_key	= (byte[])_map.get( "public_key" );
-		version		= ((Long)_map.get( "version" )).intValue();
+		Map	details = (Map)map.get( "details" );
+		
+		if ( details == null || hash == null || sig == null || l_size == null ){
+			
+			throw( new IOException( "Invalid subscription - details missing" ));
+		}
+		
+		int sig_data_size	= l_size.intValue();
+		
+		name		= new String((byte[])details.get( "name" ), "UTF-8" );
+		public_key	= (byte[])details.get( "public_key" );
+		version		= ((Long)details.get( "version" )).intValue();
+		
+			// verify
+		
+		byte[] contents = BEncoder.encode( details );
+		
+		byte[] actual_hash = new SHA1Simple().calculateHash( contents );
+
+		if ( !Arrays.equals( actual_hash, hash )){
+			
+			throw( new IOException( "Hash mismatch" ));
+		}
+		
+		if ( sig_data_size != contents.length ){
+			
+			throw( new IOException( "Signature data length mismatch" ));
+		}
+		
+		try{
+			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
+
+			signature.update( hash );
+			signature.update( SubscriptionImpl.intToBytes(version));
+			signature.update( SubscriptionImpl.intToBytes(sig_data_size));
+
+			if ( !signature.verify( sig )){
+				
+				throw( new IOException( "Signature verification failed" ));
+			}
+			
+			
+		}catch( Throwable e ){
+			
+			if ( e instanceof IOException ){
+				
+				throw((IOException)e);
+				
+			}else{
+				
+				throw( new IOException( "Crypto failed: " + Debug.getNestedExceptionMessage(e)));
+
+			}
+		}
 	}
 
 		// create constructor
@@ -66,6 +130,8 @@ SubscriptionBodyImpl
 		String					_name,
 		byte[]					_public_key,
 		int						_version )
+	
+		throws IOException
 	{
 		manager		= _manager;
 		
@@ -74,6 +140,28 @@ SubscriptionBodyImpl
 		version		= _version;
 		
 		map			= new HashMap();
+		
+		writeDetails( map );
+	}
+	
+	protected void
+	writeDetails(
+		Map		map )
+	
+		throws IOException
+	{
+		Map details = (Map)map.get( "details" );
+		
+		if ( details == null ){
+			
+			details = new HashMap();
+			
+			map.put( "details", details );
+		}
+		
+		details.put( "name", name.getBytes( "UTF-8" ));
+		details.put( "public_key", public_key );
+		details.put( "version", new Long( version ));
 	}
 	
 	protected String
@@ -94,24 +182,15 @@ SubscriptionBodyImpl
 		return( version );
 	}
 	
-	/*
-	protected void
-	sing()
-	{
-		version_key 	= new byte[20];
-		
-		RandomUtils.nextSecureBytes( version_key );
-		
-		Signature sig = CryptoECCUtils.getSignature( kp.getPrivate());
-		
-		sig.update( version_key );
-		sig.update( getVersionBytes( version ));
-		
-		version_sig	= sig.sign();
 
-	}
-	*/
 	
+	/*
+	 * 			TOTorrentCreator creator = 
+				TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+					file, 
+					TorrentUtils.getDecentralisedEmptyURL(),
+					256*1024 );
+	 */
 	protected void
 	writeVuzeFile(
 		SubscriptionImpl		subs )
@@ -124,18 +203,82 @@ SubscriptionBodyImpl
 	
 			readMap( file );
 		}
+						
+		byte[] old_hash	= (byte[])map.get( "hash" );
+				
+		Map	details = (Map)map.get( "details" );
 		
-		map.put( "name", name.getBytes( "UTF-8" ));
-		map.put( "public_key", public_key );
-		map.put( "version", new Long( version ));
+		byte[] contents = BEncoder.encode( details );
+				
+		byte[] new_hash = new SHA1Simple().calculateHash( contents );
 		
-		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+		if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
+			
+			byte[]	private_key = subs.getPrivateKey();
+			
+			if ( private_key == null ){
+				
+				throw( new IOException( "Only the originator of a subscription can modify it" ));
+			}
+						
+			map.put( "size", new Long( contents.length ));
+			
+			try{
+				Signature sig = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
+				
+					// key for signature is hash + version + size so we have some
+					// control over auto-update process and prevent people from injecting
+					// potentially huge bogus updates
+				
+				sig.update( new_hash );
+				sig.update( SubscriptionImpl.intToBytes(version));
+				sig.update( SubscriptionImpl.intToBytes(contents.length));
+				
+				map.put( "hash", new_hash );
+				
+				map.put( "sig", sig.sign());
+				
+			}catch( Throwable e ){
+				
+				throw( new IOException( "Crypto failed: " + Debug.getNestedExceptionMessage(e)));
+			}
+		}
 		
-		vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION, map );
+		File	backup_file	= null;
 		
-		vf.write( file );
+		if ( file.exists()){
+			
+			backup_file = new File( file.getParent(), file.getName() + ".bak" );
+			
+			backup_file.delete();
+			
+			if ( !file.renameTo( backup_file )){
+				
+				throw( new IOException( "Backup failed" ));
+			}
+		}
 		
-		map	= null;
+		try{
+			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+			
+			vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION, map );
+			
+			vf.write( file );
+		
+		}catch( Throwable e ){
+			
+			if ( backup_file != null ){
+				
+				backup_file.renameTo( file );
+			}
+			
+			if ( e instanceof IOException ){
+				
+				throw((IOException)e);
+			}
+			
+			throw( new IOException( "File write failed: " + Debug.getNestedExceptionMessage(e)));
+		}
 	}
 	
 	protected Map

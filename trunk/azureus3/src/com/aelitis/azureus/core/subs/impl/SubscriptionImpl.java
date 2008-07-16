@@ -21,23 +21,17 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
-import java.security.Signature;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
-import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
 public class 
 SubscriptionImpl 
@@ -49,14 +43,14 @@ SubscriptionImpl
 	private static final int MIN_RECENT_ASSOC_TO_RETAIN		= 16;
 	
 	protected static byte[]
-	getVersionBytes(
+	intToBytes(
 		int		version )
 	{
 		return( new byte[]{ (byte)(version>>24), (byte)(version>>16),(byte)(version>>8),(byte)version } );
 	}
 	
 	protected static int
-	getVersion(
+	bytesToInt(
 		byte[]		bytes )
 	{
 		return( (bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff );
