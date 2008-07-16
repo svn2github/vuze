@@ -245,6 +245,10 @@ UIManagerImpl
   }
 
   public SWTManager getSWTManager() {
+      // Currently used by:
+      //   - monitoringplugin
+      //   - ProgressBar
+      //   - safepeer
     return SWTManagerImpl.getSingleton();
   }
   
