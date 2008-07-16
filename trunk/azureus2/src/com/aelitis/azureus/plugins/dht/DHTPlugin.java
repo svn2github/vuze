@@ -971,10 +971,22 @@ DHTPlugin
 	
 	public void
 	put(
+		byte[]						key,
+		String						description,
+		byte[]						value,
+		byte						flags,
+		DHTPluginOperationListener	listener)
+	{
+		put( key, description, value, flags, true, listener );
+	}
+	
+	public void
+	put(
 		final byte[]						key,
 		final String						description,
 		final byte[]						value,
 		final byte							flags,
+		final boolean						high_priority,
 		final DHTPluginOperationListener	listener)
 	{
 		if ( !isEnabled()){
@@ -982,7 +994,7 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dhts[0].put( key, description, value, flags, listener );
+		dhts[0].put( key, description, value, flags, high_priority, listener );
 		
 		for (int i=1;i<dhts.length;i++){
 
@@ -993,7 +1005,7 @@ DHTPlugin
 				public void
 				run()
 				{
-					dhts[f_i].put( key, description, value, flags, 
+					dhts[f_i].put( key, description, value, flags, high_priority,
 							new DHTPluginOperationListener()
 							{
 								public void

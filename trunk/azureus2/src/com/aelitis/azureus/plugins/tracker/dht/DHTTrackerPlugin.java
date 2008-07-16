@@ -1479,6 +1479,7 @@ DHTTrackerPlugin
 					"Tracker registration of '" + download.getName() + "'" + target.getDesc() + " -> " + encoded,
 					encoded_bytes,
 					flags,
+					false,
 					new DHTPluginOperationListener()
 					{
 						public void

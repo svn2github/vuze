@@ -209,7 +209,19 @@ DHTImpl
 		byte					flags,
 		DHTOperationListener	listener )
 	{
-		control.put( key, description, value, flags, listener );
+		control.put( key, description, value, flags, true, listener );
+	}
+	
+	public void
+	put(
+		byte[]					key,
+		String					description,
+		byte[]					value,
+		byte					flags,
+		boolean					high_priority,
+		DHTOperationListener	listener )
+	{
+		control.put( key, description, value, flags, high_priority, listener );
 	}
 	
 	public DHTTransportValue

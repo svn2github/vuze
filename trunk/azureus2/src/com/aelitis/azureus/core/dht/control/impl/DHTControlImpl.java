@@ -723,6 +723,7 @@ DHTControlImpl
 		String					_description,
 		byte[]					_value,
 		byte					_flags,
+		boolean					_high_priority,
 		DHTOperationListener	_listener )
 	{
 			// public entry point for explicit publishes
@@ -743,6 +744,7 @@ DHTControlImpl
 		DHTDBValue	value = database.store( new HashWrapper( encoded_key ), _value, _flags );
 		
 		put( 	external_put_pool,
+				_high_priority,
 				encoded_key, 
 				_description,
 				value, 
@@ -763,6 +765,7 @@ DHTControlImpl
 		boolean				original_mappings )
 	{
 		put( 	internal_put_pool, 
+				false,
 				encoded_key, 
 				description, 
 				value, 
@@ -776,6 +779,7 @@ DHTControlImpl
 	protected void
 	put(
 		ThreadPool					thread_pool,
+		boolean						high_priority,
 		byte[]						initial_encoded_key,
 		String						description,
 		DHTTransportValue			value,
@@ -785,6 +789,7 @@ DHTControlImpl
 		DHTOperationListenerDemuxer	listener )
 	{
 		put( 	thread_pool, 
+				high_priority,
 				initial_encoded_key, 
 				description, 
 				new DHTTransportValue[]{ value }, 
@@ -797,6 +802,7 @@ DHTControlImpl
 	protected void
 	put(
 		final ThreadPool					thread_pool,
+		final boolean						high_priority,
 		final byte[]						initial_encoded_key,
 		final String						description,
 		final DHTTransportValue[]			values,
@@ -839,7 +845,8 @@ DHTControlImpl
 						description:
 						("Diversification of [" + description + "]" );
 			
-			lookup( thread_pool, false,
+			lookup( thread_pool, 
+					high_priority,
 					encoded_key,
 					this_description,
 					(byte)0,
@@ -863,6 +870,7 @@ DHTControlImpl
 							List				_closest )
 						{
 							put( 	thread_pool,
+									high_priority,
 									new byte[][]{ encoded_key }, 
 									"Store of [" + this_description + "]",
 									new DHTTransportValue[][]{ values }, 
@@ -889,6 +897,7 @@ DHTControlImpl
 			// publisher to diversify as required)
 		
 		put( 	internal_put_pool,
+				false,
 				encoded_keys, 
 				description,
 				value_sets, 
@@ -903,6 +912,7 @@ DHTControlImpl
 	protected void
 	put(
 		final ThreadPool						thread_pool,
+		final boolean							high_priority,
 		byte[][]								initial_encoded_keys,
 		final String							description,
 		final DHTTransportValue[][]				initial_value_sets,
@@ -1014,6 +1024,7 @@ DHTControlImpl
 												for (int k=0;k<diversified_keys.length;k++){
 												
 													put( 	thread_pool,
+															high_priority,
 															diversified_keys[k], 
 															"Diversification of [" + description + "]",
 															value_sets[j], 
@@ -1411,6 +1422,7 @@ DHTControlImpl
 				// we remove a key by pushing it back out again with zero length value 
 						
 			put( 	external_put_pool, 
+					false,
 					encoded_key, 
 					description, 
 					res,
@@ -1454,6 +1466,7 @@ DHTControlImpl
 			}
 			
 			put( 	external_put_pool,
+					true,
 					new byte[][]{ encoded_key }, 
 					"Store of [" + description + "]",
 					new DHTTransportValue[][]{{ res }}, 

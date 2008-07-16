@@ -59,6 +59,7 @@ DHTControl
 		String					description,
 		byte[]					value,
 		byte					flags,
+		boolean					high_priority,
 		DHTOperationListener	listener );
 	
 	public boolean

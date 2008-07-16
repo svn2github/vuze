@@ -82,6 +82,26 @@ DHT
 		DHTOperationListener	listener );
 	
 		/**
+		 * default is HIGH PRIORITY. if you change to low priority then do so consistently as
+		 * operations can get out of order otherwise
+		 * @param key
+		 * @param description
+		 * @param value
+		 * @param flags
+		 * @param high_priority
+		 * @param listener
+		 */
+	
+	public void
+	put(
+		byte[]					key,
+		String					description,
+		byte[]					value,
+		byte					flags,
+		boolean					high_priority,
+		DHTOperationListener	listener );
+	
+		/**
 		 * Returns value if originated from here for key
 		 * @param key
 		 * @return

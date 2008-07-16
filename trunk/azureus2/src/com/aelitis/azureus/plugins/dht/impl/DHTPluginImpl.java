@@ -654,16 +654,29 @@ outer:
 
 	public void
 	put(
+		byte[]						key,
+		String						description,
+		byte[]						value,
+		byte						flags,
+		DHTPluginOperationListener	listener)
+	{		
+		put( key, description, value, flags, true, listener );
+	}
+	
+	public void
+	put(
 		final byte[]						key,
 		final String						description,
 		final byte[]						value,
 		final byte							flags,
+		final boolean						high_priority,
 		final DHTPluginOperationListener	listener)
 	{		
 		dht.put( 	key, 
 					description,
 					value,
 					flags,
+					high_priority,
 					new DHTOperationListener()
 					{
 						public void
