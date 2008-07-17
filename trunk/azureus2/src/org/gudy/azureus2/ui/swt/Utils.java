@@ -730,7 +730,7 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(code);
 					} else {
-						display.timerExec(msLater, code);
+						display.timerExec(msLater, new timerExecWrapper( display, code ));
 					}
 				} else {
 					queue.add(code);
@@ -779,7 +779,7 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(runnableWrapper);
 					} else {
-						display.timerExec(msLater, runnableWrapper);
+						display.timerExec(msLater, new timerExecWrapper( display, runnableWrapper ));
 					}
 				}
 			} catch (NullPointerException e) {
@@ -794,6 +794,47 @@ public class Utils
 		return true;
 	}
 
+	private static class
+	timerExecWrapper
+		implements Runnable
+	{
+		private Display		display;
+		private Runnable	target;
+		
+		private
+		timerExecWrapper(
+			Display		_display,
+			Runnable	_target )
+		{
+			display	= _display;
+			target	= _target;
+		}
+		
+		public void
+		run()
+		{
+			if ( display.isDisposed()){
+				
+				try{
+					target.run();
+					
+				}catch( Throwable e ){
+				}
+				
+				return;
+			}
+			
+			if ( display.getThread() == Thread.currentThread()){
+				
+				target.run();
+				
+			}else{
+				
+				display.syncExec( target );
+			}
+		}
+	}
+	
 	/**
 	 * Execute code in the Runnable object using SWT's thread.  If current
 	 * thread it already SWT's thread, the code will run immediately.  If the
