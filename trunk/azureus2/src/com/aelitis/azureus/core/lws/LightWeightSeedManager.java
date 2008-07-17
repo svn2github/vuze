@@ -25,10 +25,18 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -61,6 +69,8 @@ LightWeightSeedManager
 	private boolean				borked;
 	private DHTTrackerPlugin	dht_tracker_plugin;
 	private DDBaseTTTorrent		tttorrent;
+	
+	private TimerEventPeriodic	timer;
 	
 	private AESemaphore			init_sem = new AESemaphore( "LWSM" );
 	
@@ -196,12 +206,50 @@ LightWeightSeedManager
 			
 			lws_map.put( hash, lws );
 			
-			System.out.println( "Added LWS: " + name + ", " + TorrentUtils.getMagnetURI( hash.getBytes()));
+			if ( timer == null ){
+				
+				timer = SimpleTimer.addPeriodicEvent(
+							"LWSManager:timer",
+							60*1000,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event )
+								{
+									processTimer();
+								}
+							});
+			}
+			
+			log( "Added LWS: " + name + ", " + TorrentUtils.getMagnetURI( hash.getBytes()));
 		}
 		
 		lws.start();
 		
 		return( lws );
+	}
+	
+	protected void
+	processTimer()
+	{
+		List	to_process;
+	
+		synchronized( this ){
+
+			to_process = new ArrayList( lws_map.values());
+		}
+		
+		for ( int i=0;i<to_process.size();i++){
+			
+			try{
+				((LightWeightSeed)to_process.get(i)).checkDeactivation();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	protected void
@@ -213,10 +261,19 @@ LightWeightSeedManager
 		synchronized( this ){
 
 			lws_map.remove( lws.getHash());
+			
+			if ( lws_map.size() == 0 ){
+				
+				if ( timer != null ){
+					
+					timer.cancel();
+					
+					timer = null;
+				}
+			}
 		}
 		
-		System.out.println( "Added LWS: " + lws.getName() + ", " + TorrentUtils.getMagnetURI( lws.getHash().getBytes()));
-
+		log( "Added LWS: " + lws.getName() + ", " + TorrentUtils.getMagnetURI( lws.getHash().getBytes()));
 	}
 	
 	protected void
@@ -289,5 +346,20 @@ LightWeightSeedManager
 			
 			tttorrent.removeDownload( download );
 		}
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		Logger.log(new LogEvent(LogIDs.CORE, str ));
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		Logger.log(new LogEvent(LogIDs.CORE, str, e ));
 	}
 }

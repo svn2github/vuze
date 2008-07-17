@@ -28,7 +28,10 @@ import java.net.URL;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
@@ -42,13 +45,12 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponsePeer;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
@@ -115,7 +117,7 @@ LightWeightSeed
 	protected String
 	getName()
 	{
-		return( name );
+		return( name + "/" + ByteFormatter.encodeString( hash.getBytes()));
 	}
 	
 	protected Torrent
@@ -226,7 +228,7 @@ LightWeightSeed
 	protected synchronized void
 	start()
 	{
-		trace( "Start" );
+		log( "Start" );
 				
 		if ( is_running ){
 			
@@ -279,7 +281,7 @@ LightWeightSeed
 		
 			is_running	= true;
 
-			last_activity_time = SystemTime.getCurrentTime();
+			last_activity_time = SystemTime.getMonotonousTime();
 			
 		}catch( Throwable e ){
 						
@@ -301,7 +303,7 @@ LightWeightSeed
 	protected synchronized void
 	stop()
 	{
-		trace( "Stop" );
+		log( "Stop" );
 		
 		try{
 			if ( disk_manager != null ){
@@ -356,19 +358,14 @@ LightWeightSeed
 		String		reason_str,
 		byte		activation_reason )
 	{
-		trace( "Activate" );
+		log( "Activate: " + activation_reason + "/" + reason_str );
 		
 		if ( activation_state != ACT_NONE ){
 			
 			return;
 		}
 		
-		try{
-			if ( announcer == null ){
-				
-				announcer = createAnnouncer();
-			}
-			
+		try{			
 			disk_manager = new LWSDiskManager( this, data_location );
 			
 			disk_manager.start();
@@ -395,7 +392,7 @@ LightWeightSeed
 							final PEPeerManager 	manager, 
 							final PEPeer 			peer )
 						{
-							last_activity_time = SystemTime.getCurrentTime();
+							last_activity_time = SystemTime.getMonotonousTime();
 						}
 						  
 
@@ -404,6 +401,7 @@ LightWeightSeed
 							PEPeerManager 	manager, 
 							PEPeer 			peer )
 						{
+							last_activity_time = SystemTime.getMonotonousTime();
 						}
 						
 						public void
@@ -418,7 +416,7 @@ LightWeightSeed
 											
 				activation_state	= activation_reason;
 				
-				last_activity_time = SystemTime.getCurrentTime();
+				last_activity_time = SystemTime.getMonotonousTime();
 			}
 			
 		}catch( Throwable e ){
@@ -440,7 +438,7 @@ LightWeightSeed
 	protected synchronized void
 	deactivate()
 	{
-		trace( "Deactivate" );
+		log( "Deactivate" );
 
 		try{
 			if ( disk_manager != null ){
@@ -459,8 +457,6 @@ LightWeightSeed
 		}finally{
 			
 			activation_state = ACT_NONE;
-			
-			// log( "De-activated " + getString());
 		}
 	}
 	
@@ -636,13 +632,8 @@ LightWeightSeed
 			return;
 		}
 		
-		long	now = SystemTime.getCurrentTime();
-		
-		if ( now < last_activity_time ){
-			
-			last_activity_time = now;
-		}
-		
+		long	now = SystemTime.getMonotonousTime();
+				
 		long	millis_since_last_act = now - last_activity_time;
 		
 		if ( peer_manager.hasPotentialConnections()){
@@ -714,25 +705,17 @@ LightWeightSeed
 	}
 	
 	protected void
-	trace(
-		String		str )
-	{
-		System.out.println( str );
-	}
-	
-	protected void
 	log(
 		String		str )
 	{
-		System.out.println( str );
+		Logger.log(new LogEvent(this, LogIDs.CORE, str ));
 	}
 	
 	protected void
 	log(
 		String		str,
-		Throwable 	e )
+		Throwable	e )
 	{
-		System.out.println( str );
-		e.printStackTrace();
+		Logger.log(new LogEvent(this, LogIDs.CORE, str, e ));
 	}
 }

@@ -411,7 +411,6 @@ LWSDownload
 		TorrentAttribute attr, 
 		int event_type) 
 	{
-		notSupported();
 	}
 	
 	public void 
@@ -420,7 +419,6 @@ LWSDownload
 		TorrentAttribute attr, 
 		int event_type) 
 	{
-		notSupported();
 	}
 	
 	public String 
@@ -510,25 +508,19 @@ LWSDownload
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{
-		notSupported();
+		announcer.setAnnounceResult( result );
 	}
 	
 	public void
 	setScrapeResult(
 		DownloadScrapeResult	result )
 	{
-		notSupported();
 	}
 	
 	public DownloadAnnounceResult
 	getLastAnnounceResult()
 	{
-		TRTrackerAnnouncer a = announcer;
-		
-		if ( a != null ){
-			
-			announce_result.setContent(  a.getLastResponse());
-		}
+		announce_result.setContent(  announcer.getLastResponse());
 		
 		return( announce_result );
 	}
@@ -536,12 +528,7 @@ LWSDownload
 	public DownloadScrapeResult
 	getLastScrapeResult()
 	{
-		TRTrackerAnnouncer a = announcer;
-		
-		if ( a != null ){
-			
-			announce_result.setContent(  a.getLastResponse());
-		}
+		announce_result.setContent(  announcer.getLastResponse());
 		
 		return( scrape_result );
 	}
@@ -700,14 +687,12 @@ LWSDownload
 	addListener(
 		DownloadListener	l )
 	{
-		notSupported();
 	}
 
 	public void
 	removeListener(
 		DownloadListener	l )
 	{
-		notSupported();
 	}
 
 	public void 
@@ -728,7 +713,6 @@ LWSDownload
 	addTrackerListener(
 		DownloadTrackerListener	l )
 	{
-		notSupported();
 	}
 
 	public void 
@@ -736,14 +720,12 @@ LWSDownload
 		DownloadTrackerListener l, 
 		boolean immediateTrigger)
 	{
-		notSupported();
 	}
   
 	public void
 	removeTrackerListener(
 		DownloadTrackerListener	l )
 	{
-		notSupported();
 	}
 
 	public void

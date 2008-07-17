@@ -73,8 +73,6 @@ LWSTorrent
 	notSupported()
 	{
 		Debug.out( "Not Supported" );
-		
-		throw( new RuntimeException( "Not Supported" ));
 	}
 	
 	private LightWeightSeed		lws;	
@@ -116,7 +114,7 @@ LWSTorrent
 	setComment(
 		String		comment )
 	{
-		notSupported();
+		getDelegate().setComment(comment);
 	}
 	
 	public long
@@ -129,7 +127,7 @@ LWSTorrent
 	setCreationDate(
 		long		date )
 	{
-		notSupported();
+		getDelegate().setCreationDate(date);
 	}
 	
 	public byte[]
@@ -180,7 +178,7 @@ LWSTorrent
 	
 		throws TOTorrentException
 	{
-		notSupported();
+		getDelegate().setPieces(pieces);
 	}
 	
 	public long
@@ -269,7 +267,7 @@ LWSTorrent
 		String		name,
 		String		value )
 	{
-		notSupported();
+		getDelegate().setAdditionalStringProperty(name, value);
 	}
 	
 	public String
@@ -284,7 +282,7 @@ LWSTorrent
 		String		name,
 		byte[]		value )
 	{
-		notSupported();
+		getDelegate().setAdditionalByteArrayProperty(name, value);
 	}
 	
 	public byte[]
@@ -299,7 +297,7 @@ LWSTorrent
 		String		name,
 		Long		value )
 	{
-		notSupported();
+		getDelegate().setAdditionalLongProperty(name, value);
 	}
 	
 	public Long
@@ -315,7 +313,7 @@ LWSTorrent
 		String		name,
 		List		value )
 	{
-		notSupported();
+		getDelegate().setAdditionalListProperty(name, value);
 	}
 	
 	public List
@@ -330,7 +328,7 @@ LWSTorrent
 		String		name,
 		Map			value )
 	{
-		notSupported();
+		getDelegate().setAdditionalMapProperty(name, value);
 	}
 	
 	public Map
@@ -357,20 +355,20 @@ LWSTorrent
 		String		name,
 		Object		value )
 	{
-		notSupported();
+		getDelegate().setAdditionalProperty(name, value);
 	}
 	
 	public void
 	removeAdditionalProperty(
 		String name )
 	{
-		notSupported();
+		getDelegate().removeAdditionalProperty(name);
 	}
 	
 	public void
 	removeAdditionalProperties()
 	{
-		notSupported();
+		getDelegate().removeAdditionalProperties();
 	}
 	
 	public void

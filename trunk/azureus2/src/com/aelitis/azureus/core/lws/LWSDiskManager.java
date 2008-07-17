@@ -243,7 +243,12 @@ LWSDiskManager
 	stop(
 		boolean	closing )
 	{
-		reader.stop();
+		if ( reader != null ){
+		
+			reader.stop();
+		
+			reader = null;
+		}
 		
 		if ( files != null ){
 			
