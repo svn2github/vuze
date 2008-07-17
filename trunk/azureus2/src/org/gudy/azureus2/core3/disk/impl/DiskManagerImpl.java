@@ -109,6 +109,12 @@ DiskManagerImpl
         }
     }
 
+    public static DiskAccessController
+    getDefaultDiskAccessController()
+    {
+        return( disk_access_controller );
+    }
+    
     private static DiskManagerRecheckScheduler      recheck_scheduler       = new DiskManagerRecheckScheduler();
     private static DiskManagerAllocationScheduler   allocation_scheduler    = new DiskManagerAllocationScheduler();
 
