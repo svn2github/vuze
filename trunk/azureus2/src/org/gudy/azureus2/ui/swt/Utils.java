@@ -88,6 +88,7 @@ import org.gudy.azureus2.core3.util.AERunnableWithCallback;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -730,7 +731,7 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(code);
 					} else {
-						display.timerExec(msLater, new timerExecWrapper( display, code ));
+						timerExec(display, msLater, code );
 					}
 				} else {
 					queue.add(code);
@@ -779,7 +780,7 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(runnableWrapper);
 					} else {
-						display.timerExec(msLater, new timerExecWrapper( display, runnableWrapper ));
+						timerExec( display, msLater, runnableWrapper );
 					}
 				}
 			} catch (NullPointerException e) {
@@ -794,44 +795,27 @@ public class Utils
 		return true;
 	}
 
-	private static class
-	timerExecWrapper
-		implements Runnable
+	private static void
+	timerExec(
+		final Display		display,
+		final int			delay,
+		final Runnable		target )
 	{
-		private Display		display;
-		private Runnable	target;
-		
-		private
-		timerExecWrapper(
-			Display		_display,
-			Runnable	_target )
-		{
-			display	= _display;
-			target	= _target;
-		}
-		
-		public void
-		run()
-		{
-			if ( display.isDisposed()){
-				
-				try{
-					target.run();
-					
-				}catch( Throwable e ){
-				}
-				
-				return;
-			}
+		if ( display.getThread() == Thread.currentThread()){
 			
-			if ( display.getThread() == Thread.currentThread()){
-				
-				target.run();
-				
-			}else{
-				
-				display.syncExec( target );
-			}
+			display.timerExec(delay, target);
+			
+		}else{
+		
+			display.syncExec(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						display.timerExec(delay, target);
+					}
+				});
 		}
 	}
 	
