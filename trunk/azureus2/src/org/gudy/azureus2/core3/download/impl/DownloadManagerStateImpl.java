@@ -3475,6 +3475,15 @@ DownloadManagerStateImpl
     		return( torrent_hash_wrapper );
     	}
 
+    	public void 
+    	setHashOverride(
+    		byte[] hash ) 
+    	
+    		throws TOTorrentException 
+    	{
+    		throw( new TOTorrentException( "Not supported", TOTorrentException.RT_HASH_FAILS ));
+    	}
+    	
     	public boolean
     	hasSameHashAs(
     		TOTorrent		other )

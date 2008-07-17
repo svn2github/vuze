@@ -83,7 +83,8 @@ TOTorrentXMLDeserialiser
 			
 			URL		announce_url 					= null;
 			
-			byte[]	torrent_hash = null;
+			byte[]	torrent_hash 			= null;
+			byte[]	torrent_hash_override 	= null;
 			
 			for (int i=0;i<kids.length;i++){
 				
@@ -146,8 +147,12 @@ TOTorrentXMLDeserialiser
 					torrent.setCreationDate( readGenericLong( kid ).longValue());
 						
 				}else if ( name.equalsIgnoreCase( "TORRENT_HASH")){
-										
+					
 					torrent_hash	= readGenericBytes( kid );
+						
+				}else if ( name.equalsIgnoreCase( "TORRENT_HASH_OVERRIDE")){
+					
+					torrent_hash_override	= readGenericBytes( kid );
 						
 				}else if ( name.equalsIgnoreCase( "INFO" )){
 					
@@ -167,6 +172,17 @@ TOTorrentXMLDeserialiser
 			}
 			
 			torrent.setAnnounceURL( announce_url );
+			
+			if ( torrent_hash_override != null ){
+				
+				try{
+					torrent.setHashOverride( torrent_hash_override );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
 			
 			if ( torrent_hash != null ){
 			

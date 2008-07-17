@@ -1704,6 +1704,15 @@ TorrentUtils
 			return( delegate.getHashWrapper());
 		}
 		
+	   	public void 
+    	setHashOverride(
+    		byte[] hash ) 
+    	
+    		throws TOTorrentException 
+    	{
+    		throw( new TOTorrentException( "Not supported", TOTorrentException.RT_HASH_FAILS ));
+    	}
+	   	
 		public boolean
 		getPrivate()
 		{
@@ -2342,5 +2351,12 @@ TorrentUtils
 				
 			}
 		}
+	}
+	
+	public static String
+	getMagnetURI(
+		byte[]		hash )
+	{
+		return( "magnet:?xt=urn:btih:" + Base32.encode( hash ));
 	}
 }

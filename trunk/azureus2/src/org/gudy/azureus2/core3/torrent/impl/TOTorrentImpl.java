@@ -60,6 +60,8 @@ TOTorrentImpl
 	protected static final String TK_WEBSEED_BT			= "httpseeds";
 	protected static final String TK_WEBSEED_GR			= "url-list";
 	
+	protected static final String TK_HASH_OVERRIDE		= "hash-override";
+	
 	protected static final List	TK_ADDITIONAL_OK_ATTRS = 
 		Arrays.asList(new String[]{ TK_COMMENT_UTF8, AZUREUS_PROPERTIES, TK_WEBSEED_BT, TK_WEBSEED_GR });
 	
@@ -73,6 +75,8 @@ TOTorrentImpl
 	private long		piece_length;
 	private byte[][]	pieces;
 	private int			number_of_pieces;
+	
+	private byte[]		torrent_hash_override;
 	
 	private byte[]		torrent_hash;
 	private HashWrapper	torrent_hash_wrapper;
@@ -384,6 +388,11 @@ TOTorrentImpl
 			info.put( TK_NAME_UTF8, torrent_name_utf8 );
 		}
 		
+		if ( torrent_hash_override != null ){
+			
+			info.put( TK_HASH_OVERRIDE, torrent_hash_override );
+		}
+		
 		if ( simple_torrent ){
 		
 			TOTorrentFile	file = files[0];
@@ -628,6 +637,7 @@ TOTorrentImpl
 		throws TOTorrentException
 	{
 		if ( torrent_hash_wrapper == null ){
+			
 			getHash();
 		}
 		
@@ -658,10 +668,17 @@ TOTorrentImpl
 		throws TOTorrentException
 	{	
 		try{
-			SHA1Hasher s = new SHA1Hasher();
+			if ( torrent_hash_override == null ){
 				
-			torrent_hash = s.calculateHash(BEncoder.encode(info));
-	
+				SHA1Hasher s = new SHA1Hasher();
+					
+				torrent_hash = s.calculateHash(BEncoder.encode(info));
+		
+			}else{
+				
+				torrent_hash = torrent_hash_override;	
+			}
+			
 			torrent_hash_wrapper = new HashWrapper( torrent_hash );
 			
 		}catch( Throwable e ){
@@ -669,6 +686,45 @@ TOTorrentImpl
 			throw( new TOTorrentException( 	"Failed to calculate hash: " + Debug.getNestedExceptionMessage(e),
 											TOTorrentException.RT_HASH_FAILS ));
 		}
+	}
+	
+	public void 
+	setHashOverride(
+		byte[] 	hash )
+	
+		throws TOTorrentException 
+	{
+		if ( torrent_hash_override != null ){
+			
+			if ( Arrays.equals( hash, torrent_hash_override )){
+				
+				return;
+				
+			}else{
+			
+				throw( new TOTorrentException( 	"Hash override can only be set once",
+								TOTorrentException.RT_HASH_FAILS ));
+			}
+		}
+		
+		if ( !TorrentUtils.isDecentralised( announce_url )){
+			
+			throw( new TOTorrentException( 
+						"Hash override can only be set on decentralised torrents",
+						TOTorrentException.RT_HASH_FAILS ));
+		}
+		
+		torrent_hash_override = hash;
+		
+		torrent_hash	= null;
+		
+		getHash();
+	}
+	
+	protected byte[]
+	getHashOverride()
+	{
+		return( torrent_hash_override );
 	}
 	
 	public void

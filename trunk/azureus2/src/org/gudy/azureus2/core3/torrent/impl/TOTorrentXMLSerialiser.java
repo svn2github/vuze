@@ -156,6 +156,13 @@ TOTorrentXMLSerialiser
 			
 			writeTag( "TORRENT_HASH", torrent.getHash());
 			
+			byte[]	hash_override = torrent.getHashOverride();
+			
+			if ( hash_override != null ){
+				
+				writeTag( "TORRENT_HASH_OVERRIDE", hash_override );
+			}
+			
 			writeInfo();
 			
 			Map additional_properties = torrent.getAdditionalProperties();

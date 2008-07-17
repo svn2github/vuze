@@ -33,5 +33,7 @@ LightWeightSeedAdapter
 	getTorrent(
 		byte[]		hash,
 		URL			announce_url,
-		File		data_location );
+		File		data_location )
+	
+		throws Exception;
 }

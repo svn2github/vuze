@@ -592,6 +592,17 @@ TOTorrentDeserialiseImpl
 				}
 			}
 
+			try{
+				byte[] ho = (byte[])info.get( TK_HASH_OVERRIDE );
+				
+				if ( ho != null ){
+					
+					setHashOverride( ho );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}catch( Throwable e ){
 			
 			if ( e instanceof TOTorrentException){

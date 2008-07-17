@@ -63,7 +63,7 @@ DDBaseImpl
 	
 	private static DDBaseTTTorrent	torrent_transfer;
 	
-	public static DistributedDatabase
+	public static DDBaseImpl
 	getSingleton(
 		AzureusCore	azureus_core )
 	{
@@ -97,6 +97,12 @@ DDBaseImpl
 		torrent_transfer =  new DDBaseTTTorrent( _azureus_core, this );
 		
 		grabDHT();
+	}
+	
+	public DDBaseTTTorrent
+	getTTTorrent()
+	{
+		return( torrent_transfer );
 	}
 	
 	protected DHTPlugin

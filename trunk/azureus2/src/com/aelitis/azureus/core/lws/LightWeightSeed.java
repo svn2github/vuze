@@ -134,7 +134,19 @@ LightWeightSeed
 				
 				if ( actual_torrent == null ){
 					
-					actual_torrent = adapter.getTorrent( hash.getBytes(), announce_url, data_location );
+					try{
+					
+						actual_torrent = adapter.getTorrent( hash.getBytes(), announce_url, data_location );
+						
+					}catch( Throwable e ){
+						
+						log( "Failed to get torrent", e );
+					}
+					
+					if ( actual_torrent == null ){
+						
+						throw( new RuntimeException( "Torrent not available" ));
+					}
 				}
 				
 				return( actual_torrent );
@@ -161,6 +173,12 @@ LightWeightSeed
 	getDataLocation()
 	{
 		return( data_location );
+	}
+	
+	protected long
+	getSize()
+	{
+		return( data_location.length());
 	}
 	
 	public boolean
@@ -257,7 +275,7 @@ LightWeightSeed
 				
 			pseudo_download = new LWSDownload( this, announcer );
 				
-			DownloadManagerImpl.getSingleton( AzureusCoreFactory.getSingleton()).addExternalDownload( pseudo_download );
+			manager.addToDHTTracker( pseudo_download );
 		
 			is_running	= true;
 
@@ -302,7 +320,7 @@ LightWeightSeed
 
 			if ( pseudo_download != null ){
 				
-				DownloadManagerImpl.getSingleton( AzureusCoreFactory.getSingleton()).removeExternalDownload( pseudo_download );
+				manager.removeFromDHTTracker( pseudo_download );
 				
 				pseudo_download = null;
 			}
@@ -692,7 +710,7 @@ LightWeightSeed
 	protected String
 	getString()
 	{
-		return( "" );
+		return( getName());
 	}
 	
 	protected void

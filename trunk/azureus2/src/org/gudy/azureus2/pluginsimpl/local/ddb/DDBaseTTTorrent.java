@@ -23,8 +23,10 @@
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.crypto.Cipher;
@@ -82,6 +84,8 @@ DDBaseTTTorrent
 	private boolean				crypto_tested;
 	private boolean				crypto_available;
 	
+	private List				external_downloads;
+	
 	private Map	data_cache = 
 		new LinkedHashMap(5,0.75f,true)
 		{
@@ -100,6 +104,39 @@ DDBaseTTTorrent
 	{
 		azureus_core		= _azureus_core;
 		ddb					= _ddb;
+	}
+	
+	public void
+	addDownload(
+		Download		download )
+	{
+		synchronized( this ){
+			
+			if ( external_downloads == null ){
+				
+				external_downloads = new ArrayList();
+			}
+			
+			external_downloads.add( download );
+		}
+	}
+	
+	public void
+	removeDownload(
+		Download		download )
+	{
+		synchronized( this ){
+			
+			if ( external_downloads != null ){
+				
+				external_downloads.remove( download );
+			}
+			
+			if ( external_downloads.size() == 0 ){
+				
+				external_downloads = null;
+			}
+		}
 	}
 	
 		// server side read
@@ -161,6 +198,42 @@ DDBaseTTTorrent
 				}
 			}
 				
+			if ( download == null ){
+				
+				synchronized( this ){
+					
+					if ( external_downloads != null ){
+						
+						for (int i=0;i<external_downloads.size();i++){
+							
+							Download	dl = (Download)external_downloads.get(i);
+							
+							if ( dl.getTorrent() == null ){
+								
+								continue;
+							}
+							
+							String	sha1 = dl.getAttribute( ta_sha1 );
+							
+							if ( sha1 == null ){
+								
+								sha1 = pi.getUtilities().getFormatters().encodeBytesToString( 
+											new SHA1Simple().calculateHash( dl.getTorrent().getHash()));
+								
+								dl.setAttribute( ta_sha1, sha1 );
+							}
+							
+							if ( sha1.equals( search_sha1 )){
+								
+								download	= dl;
+													
+								break;
+							}
+						}
+					}
+				}
+			}
+			
 			String	originator = contact.getName();
 			
 			if ( download == null ){

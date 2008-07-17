@@ -23,7 +23,8 @@ package com.aelitis.azureus.core.lws;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Map;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.Debug;
@@ -49,7 +50,6 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadAnnounceResultImpl;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 
 public class 
@@ -60,6 +60,9 @@ LWSDownload
 	private TRTrackerAnnouncer			announcer;
 	
 	private DownloadAnnounceResultImpl	announce_result;
+	
+	private Map	user_data			= new HashMap();
+	private Map	torrent_attributes 	= new HashMap();
 	
 	private DownloadScrapeResult	scrape_result = 
 		new DownloadScrapeResult()
@@ -336,7 +339,10 @@ LWSDownload
 	getAttribute(
 		TorrentAttribute		attribute )
 	{
-		return( null );
+		synchronized( torrent_attributes ){
+			
+			return((String)torrent_attributes.get( attribute ));
+		}
 	}
 	
 	public void
@@ -344,6 +350,10 @@ LWSDownload
 		TorrentAttribute		attribute,
 		String					value )
 	{
+		synchronized( torrent_attributes ){
+			
+			torrent_attributes.put( attribute, value );
+		}
 	}
 	
 	public String[]
@@ -360,6 +370,7 @@ LWSDownload
 			
 			return( new String[]{ "DHT" });
 		}
+		
 		return( null );
 	}
 	
@@ -834,15 +845,24 @@ LWSDownload
 	}
 	
 	public Object 
-	getUserData(Object key) 
+	getUserData(
+		Object key ) 
 	{
-		return null;
+		synchronized( user_data ){
+		
+			return( user_data.get( key ));
+		}
 	}
 	
 	public void 
-	setUserData(Object key, Object data) 
+	setUserData(
+		Object key, 
+		Object data ) 
 	{
-		notSupported();
+		synchronized( user_data ){
+		
+			user_data.put( key, data );
+		}
 	}
 	
 	public void 

@@ -141,7 +141,7 @@ LWSTorrent
 	public boolean
 	isCreated()
 	{
-		return( getDelegate().isCreated());
+		return( true );
 	}
 	
 	public URL
@@ -198,7 +198,7 @@ LWSTorrent
 	public long
 	getSize()
 	{
-		return( getDelegate().getSize());
+		return( lws.getSize());
 	}
 	
 	public TOTorrentFile[]
@@ -223,6 +223,15 @@ LWSTorrent
 		return( lws.getHash());
 	}
 	
+   	public void 
+	setHashOverride(
+		byte[] hash ) 
+	
+		throws TOTorrentException 
+	{
+		throw( new TOTorrentException( "Not supported", TOTorrentException.RT_HASH_FAILS ));
+	}
+   	
 	public boolean
 	hasSameHashAs(
 		TOTorrent		other )

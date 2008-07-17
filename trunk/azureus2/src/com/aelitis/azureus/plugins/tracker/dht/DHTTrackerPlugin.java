@@ -446,6 +446,12 @@ DHTTrackerPlugin
 		initialised_sem.reserve();
 	}
 	
+	public boolean
+	isRunning()
+	{
+		return( is_running );
+	}
+	
 	public void
 	addDownload(
 		final Download	download )
