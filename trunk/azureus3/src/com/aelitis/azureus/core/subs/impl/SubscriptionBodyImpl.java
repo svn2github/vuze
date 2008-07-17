@@ -26,13 +26,9 @@ import java.io.IOException;
 import java.security.Signature;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -192,13 +188,6 @@ SubscriptionBodyImpl
 		return( sig_data_size );
 	}
 	
-	/*
-	 * 			TOTorrentCreator creator = 
-				TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
-					file, 
-					TorrentUtils.getDecentralisedEmptyURL(),
-					256*1024 );
-	 */
 	protected void
 	writeVuzeFile(
 		SubscriptionImpl		subs )

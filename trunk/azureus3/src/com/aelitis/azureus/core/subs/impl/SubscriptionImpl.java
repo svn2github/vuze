@@ -21,16 +21,27 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.security.KeyPair;
 import java.security.Signature;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
+import com.aelitis.azureus.core.lws.LightWeightSeed;
+import com.aelitis.azureus.core.lws.LightWeightSeedAdapter;
+import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -79,6 +90,11 @@ SubscriptionImpl
 	
 	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
+	
+	private LightWeightSeed	lws;
+	
+	private boolean			destroyed;
+	
 	
 		// new subs constructor
 	
@@ -319,6 +335,83 @@ SubscriptionImpl
 		return( false );
 	}
 	
+	protected void
+	checkPublish()
+	{
+		synchronized( this ){
+			
+			if ( destroyed ){
+				
+				return;
+			}
+				
+			if ( hash != null ){
+				
+				boolean	create = false;
+
+				if ( lws == null ){
+					
+					create = true;
+					
+				}else{
+					
+					if ( !Arrays.equals( lws.getHash().getBytes(), hash )){
+			
+						lws.remove();
+						
+						create = true;
+					}
+				}
+				
+				if ( create ){
+										
+					try{
+						File data_location = manager.getVuzeFile( this );
+
+						if ( data_location.exists()){
+							
+							lws = LightWeightSeedManager.getSingleton().add(
+									getName(),
+									new HashWrapper( hash ),
+									TorrentUtils.getDecentralisedEmptyURL(),
+									data_location,
+									new LightWeightSeedAdapter()
+									{
+										public TOTorrent 
+										getTorrent(
+											byte[] 		hash,
+											URL 		announce_url, 
+											File 		data_location) 
+										
+											throws Exception
+										{
+											manager.log( getString() + " - generating torrent" );
+											
+											TOTorrentCreator creator = 
+												TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
+													manager.getVuzeFile( SubscriptionImpl.this ), 
+														TorrentUtils.getDecentralisedEmptyURL(),
+														256*1024 );
+									
+											
+											TOTorrent t = creator.create();
+											
+											t.setHashOverride( hash );
+											
+											return( t );
+										}
+									});
+						}
+								
+					}catch( Throwable e ){
+						
+						manager.log( "Failed to create light-weight-seed", e );
+					}
+				}
+			}
+		}
+	}
+	
 	protected synchronized boolean
 	canAutoUpgradeCheck()
 	{
@@ -493,6 +586,24 @@ SubscriptionImpl
 			Debug.out( e );
 			
 			return( false );
+		}
+	}
+	
+	protected void
+	destroy()
+	{
+		LightWeightSeed l;
+		
+		synchronized( this ){
+			
+			destroyed	= true;
+			
+			l = lws;
+		}
+		
+		if ( l != null ){
+			
+			l.remove();
 		}
 	}
 	

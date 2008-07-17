@@ -33,7 +33,11 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
@@ -118,6 +122,8 @@ SubscriptionManagerImpl
 	
 	private boolean		started;
 	
+	private TimerEventPeriodic	timer;
+	
 	private volatile DHTPlugin	dht_plugin;
 	
 	private List		subscriptions	= new ArrayList();
@@ -199,6 +205,8 @@ SubscriptionManagerImpl
 				publishAssociations();
 			
 				publishSubscriptions();
+				
+				checkTimer();
 			}
 		}
 	}
@@ -222,7 +230,48 @@ SubscriptionManagerImpl
 		
 		subscriptionAdded();
 		
+		checkTimer();
+		
 		return( result );
+	}
+	
+	protected void
+	checkTimer()
+	{
+		synchronized( this ){
+
+			if ( timer == null ){
+				
+				timer = SimpleTimer.addPeriodicEvent(
+						"SubscriptionChecker",
+						30*1000,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent event )
+							{
+								checkStuff();
+							}
+						});
+			}
+		}
+	}
+	
+	protected void
+	checkStuff()
+	{
+		List subs;
+		
+		synchronized( this ){
+			
+			subs = new ArrayList( subscriptions );
+		}
+		
+		for (int i=0;i<subs.size();i++){
+			
+			((SubscriptionImpl)subs.get(i)).checkPublish();
+		}
 	}
 	
 	public Subscription
