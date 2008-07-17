@@ -28,7 +28,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
@@ -160,7 +159,15 @@ DHTTrackerPlugin
 	
 	private Map					scrape_injection_map = new WeakHashMap();
 	
-	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
+	private Random				random = new Random();
+	private boolean				is_running;				
+	
+	private AEMonitor			this_mon	= new AEMonitor( "DHTTrackerPlugin" );
+	
+	private DHTNetworkPosition[]	current_network_positions;
+	private long					last_net_pos_time;
+	
+	private AESemaphore			initialised_sem = new AESemaphore( "DHTTrackerPlugin:init" );
 	
 	public static void
 	load(
@@ -269,68 +276,86 @@ DHTTrackerPlugin
 				public void
 				initializationComplete()
 				{
-					final PluginInterface dht_pi = 
-						plugin_interface.getPluginManager().getPluginInterfaceByClass(
-									DHTPlugin.class );
+					boolean	release_now = true;
 					
-					if ( dht_pi != null ){
+					try{
+						final PluginInterface dht_pi = 
+							plugin_interface.getPluginManager().getPluginInterfaceByClass(
+										DHTPlugin.class );
 						
-						dht = (DHTPlugin)dht_pi.getPlugin();
-						
-						final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable()
-							{
-								public void 
-								run() 
-								{
-									AEThread2	t = 
-										new AEThread2( "DHTTrackerPlugin:init", true )
+						if ( dht_pi != null ){
+							
+							dht = (DHTPlugin)dht_pi.getPlugin();
+							
+							final DelayedTask dt = 
+								plugin_interface.getUtilities().createDelayedTask(
+									new Runnable()
+									{
+									
+										public void 
+										run() 
 										{
-											public void
-											run()
-											{
-												try{
-												
-													if ( dht.isEnabled()){
-													
-														log.log( "DDB Available" );
+											AEThread2	t = 
+												new AEThread2( "DHTTrackerPlugin:init", true )
+												{
+													public void
+													run()
+													{
+														try{
+														
+															if ( dht.isEnabled()){
 															
-														model.getStatus().setText( "Running" );
-														
-														initialise();
-															
-													}else{
-														
-														log.log( "DDB Disabled" );
-														
-														model.getStatus().setText( "Disabled, Distributed database not available" );
-															
-														notRunning();
-													}
-												}catch( Throwable e ){
-														
-													log.log( "DDB Failed", e );
-														
-													model.getStatus().setText( "Failed" );
-														
-													notRunning();
-												}
-											}
-										};
+																log.log( "DDB Available" );
 																	
-										t.start();	
-										
-								}
-							});
-						
-						dt.queue();
-
-					}else{
-						
-						log.log( "DDB Plugin missing" );
-						
-						model.getStatus().setText( "Failed" );
-						
-						notRunning();
+																model.getStatus().setText( "Running" );
+																
+																initialise();
+																	
+															}else{
+																
+																log.log( "DDB Disabled" );
+																
+																model.getStatus().setText( "Disabled, Distributed database not available" );
+																	
+																notRunning();
+															}
+														}catch( Throwable e ){
+																
+															log.log( "DDB Failed", e );
+																
+															model.getStatus().setText( "Failed" );
+																
+															notRunning();
+															
+														}finally{
+															
+															initialised_sem.releaseForever();
+														}
+													}
+												};
+																			
+												t.start();
+										}
+									});
+							
+							dt.queue();
+	
+							release_now = false;
+							
+						}else{
+							
+							log.log( "DDB Plugin missing" );
+							
+							model.getStatus().setText( "Failed" );
+							
+							notRunning();
+						}
+					}finally{
+					
+						if ( release_now ){
+							
+							initialised_sem.releaseForever();
+						}
 					}
 				}
 				
@@ -358,166 +383,14 @@ DHTTrackerPlugin
 					downloadAdded(
 						final Download	download )
 					{
-						Torrent	torrent = download.getTorrent();
-						
-						if ( torrent != null && torrent.isDecentralised()){
-							
-							download.addListener(
-								new DownloadListener()
-								{
-									public void
-									stateChanged(
-										final Download		download,
-										int					old_state,
-										int					new_state )
-									{
-										int	state = download.getState();
-										
-										if ( 	state == Download.ST_DOWNLOADING ||
-												state == Download.ST_SEEDING ){
-											
-											download.setAnnounceResult(
-												new DownloadAnnounceResult()
-												{
-													public Download
-													getDownload()
-													{
-														return( download );
-													}
-																								
-													public int
-													getResponseType()
-													{
-														return( DownloadAnnounceResult.RT_ERROR );
-													}
-																							
-													public int
-													getReportedPeerCount()
-													{
-														return( 0 );
-													}
-													
-												
-													public int
-													getSeedCount()
-													{
-														return( 0 );
-													}
-													
-													public int
-													getNonSeedCount()
-													{
-														return( 0 );
-													}
-													
-													public String
-													getError()
-													{
-														return( "Distributed Database Offline" );
-													}
-																								
-													public URL
-													getURL()
-													{
-														return( download.getTorrent().getAnnounceURL());
-													}
-													
-													public DownloadAnnounceResultPeer[]
-													getPeers()
-													{
-														return( new DownloadAnnounceResultPeer[0] );
-													}
-													
-													public long
-													getTimeToWait()
-													{
-														return( 0 );
-													}
-													
-													public Map
-													getExtensions()
-													{
-														return( null );
-													}
-												});
-										}
-									}
-									
-									public void
-									positionChanged(
-										Download		download, 
-										int 			oldPosition,
-										int 			newPosition )
-									{
-										
-									}
-								});
-									
-							
-							download.setScrapeResult(
-								new DownloadScrapeResult()
-								{
-									public Download
-									getDownload()
-									{
-										return( download );
-									}
-									
-									public int
-									getResponseType()
-									{
-										return( RT_ERROR );
-									}
-									
-									public int
-									getSeedCount()
-									{
-										return( -1 );
-									}
-									
-									public int
-									getNonSeedCount()
-									{
-										return( -1 );
-									}
-
-									public long
-									getScrapeStartTime()
-									{
-										return( SystemTime.getCurrentTime());
-									}
-										
-									public void 
-									setNextScrapeStartTime(
-										long nextScrapeStartTime)
-									{
-									}
-
-									public long
-									getNextScrapeStartTime()
-									{
-										return( -1 );
-									}
-									
-									public String
-									getStatus()
-									{
-										return( "Distributed Database Offline" );
-									}
-
-									public URL
-									getURL()
-									{
-										return( download.getTorrent().getAnnounceURL());
-									}
-								});
-						}
+						addDownload( download );
 					}
 					
 					public void
 					downloadRemoved(
 						Download	download )
 					{
+						removeDownload( download );
 					}
 				});
 	}
@@ -525,103 +398,23 @@ DHTTrackerPlugin
 	protected void
 	initialise()
 	{
+		is_running	= true;
+		
 		plugin_interface.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
-					Random	random = new Random();
-					
-					public void
+					public void 
 					downloadAdded(
-						Download	download )
+						Download download ) 
 					{
-						String[]	networks = download.getListAttribute( ta_networks );
-						
-						Torrent	torrent = download.getTorrent();
-						
-						if ( torrent != null && networks != null ){
-							
-							boolean	public_net = false;
-							
-							for (int i=0;i<networks.length;i++){
-								
-								if ( networks[i].equalsIgnoreCase( "Public" )){
-										
-									public_net	= true;
-									
-									break;
-								}
-							}
-							
-							if ( public_net && !torrent.isPrivate()){
-	
-								boolean	our_download =  torrent.wasCreatedByUs();
-
-								long	delay;
-								
-								if ( our_download ){
-									
-									if ( download.getCreationTime() > start_time ){
-										
-										delay = 0;
-									
-									}else{
-									
-										delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
-												INTERESTING_INIT_MIN_OURS + 
-												random.nextInt( INTERESTING_INIT_RAND_OURS );
-
-									}
-								}else{
-									
-									delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
-												INTERESTING_INIT_MIN_OTHERS + 
-												random.nextInt( INTERESTING_INIT_RAND_OTHERS );
-								}
-								
-								try{
-									this_mon.enter();
-						
-									interesting_downloads.put( download, new Long( delay ));
-									
-								}finally{
-									
-									this_mon.exit();
-								}
-							}
-						}
-						
-						download.addAttributeListener(DHTTrackerPlugin.this, ta_networks, DownloadAttributeListener.WRITTEN);
-						download.addAttributeListener(DHTTrackerPlugin.this, ta_peer_sources, DownloadAttributeListener.WRITTEN);
-						
-						download.addTrackerListener( DHTTrackerPlugin.this );
-						
-						download.addListener( DHTTrackerPlugin.this );
-						
-						checkDownloadForRegistration( download, true );
+						addDownload( download );
 					}
 					
-					public void
+					public void 
 					downloadRemoved(
-						Download	download )
+						Download download ) 
 					{
-						
-						download.removeTrackerListener( DHTTrackerPlugin.this );
-
-						download.removeListener( DHTTrackerPlugin.this );
-						
-						try{
-							this_mon.enter();
-				
-							interesting_downloads.remove( download );
-							
-							running_downloads.remove( download );
-							
-							limited_online_tracking.remove( download );
-							
-						}finally{
-							
-							this_mon.exit();
-						}
+						removeDownload( download );
 					}
 				});
 		
@@ -645,6 +438,269 @@ DHTTrackerPlugin
 					}
 				}
 			});
+	}
+	
+	public void
+	waitUntilInitialised()
+	{
+		initialised_sem.reserve();
+	}
+	
+	public void
+	addDownload(
+		final Download	download )
+	{
+		if ( is_running ){
+			
+			String[]	networks = download.getListAttribute( ta_networks );
+			
+			Torrent	torrent = download.getTorrent();
+			
+			if ( torrent != null && networks != null ){
+				
+				boolean	public_net = false;
+				
+				for (int i=0;i<networks.length;i++){
+					
+					if ( networks[i].equalsIgnoreCase( "Public" )){
+							
+						public_net	= true;
+						
+						break;
+					}
+				}
+				
+				if ( public_net && !torrent.isPrivate()){
+	
+					boolean	our_download =  torrent.wasCreatedByUs();
+	
+					long	delay;
+					
+					if ( our_download ){
+						
+						if ( download.getCreationTime() > start_time ){
+							
+							delay = 0;
+						
+						}else{
+						
+							delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
+									INTERESTING_INIT_MIN_OURS + 
+									random.nextInt( INTERESTING_INIT_RAND_OURS );
+	
+						}
+					}else{
+						
+						delay = plugin_interface.getUtilities().getCurrentSystemTime() + 
+									INTERESTING_INIT_MIN_OTHERS + 
+									random.nextInt( INTERESTING_INIT_RAND_OTHERS );
+					}
+					
+					try{
+						this_mon.enter();
+			
+						interesting_downloads.put( download, new Long( delay ));
+						
+					}finally{
+						
+						this_mon.exit();
+					}
+				}
+			}
+			
+			download.addAttributeListener(DHTTrackerPlugin.this, ta_networks, DownloadAttributeListener.WRITTEN);
+			download.addAttributeListener(DHTTrackerPlugin.this, ta_peer_sources, DownloadAttributeListener.WRITTEN);
+			
+			download.addTrackerListener( DHTTrackerPlugin.this );
+			
+			download.addListener( DHTTrackerPlugin.this );
+			
+			checkDownloadForRegistration( download, true );
+			
+		}else{
+			
+			Torrent	torrent = download.getTorrent();
+			
+			if ( torrent != null && torrent.isDecentralised()){
+				
+				download.addListener(
+					new DownloadListener()
+					{
+						public void
+						stateChanged(
+							final Download		download,
+							int					old_state,
+							int					new_state )
+						{
+							int	state = download.getState();
+							
+							if ( 	state == Download.ST_DOWNLOADING ||
+									state == Download.ST_SEEDING ){
+								
+								download.setAnnounceResult(
+									new DownloadAnnounceResult()
+									{
+										public Download
+										getDownload()
+										{
+											return( download );
+										}
+																					
+										public int
+										getResponseType()
+										{
+											return( DownloadAnnounceResult.RT_ERROR );
+										}
+																				
+										public int
+										getReportedPeerCount()
+										{
+											return( 0 );
+										}
+										
+									
+										public int
+										getSeedCount()
+										{
+											return( 0 );
+										}
+										
+										public int
+										getNonSeedCount()
+										{
+											return( 0 );
+										}
+										
+										public String
+										getError()
+										{
+											return( "Distributed Database Offline" );
+										}
+																					
+										public URL
+										getURL()
+										{
+											return( download.getTorrent().getAnnounceURL());
+										}
+										
+										public DownloadAnnounceResultPeer[]
+										getPeers()
+										{
+											return( new DownloadAnnounceResultPeer[0] );
+										}
+										
+										public long
+										getTimeToWait()
+										{
+											return( 0 );
+										}
+										
+										public Map
+										getExtensions()
+										{
+											return( null );
+										}
+									});
+							}
+						}
+						
+						public void
+						positionChanged(
+							Download		download, 
+							int 			oldPosition,
+							int 			newPosition )
+						{
+							
+						}
+					});
+						
+				
+				download.setScrapeResult(
+					new DownloadScrapeResult()
+					{
+						public Download
+						getDownload()
+						{
+							return( download );
+						}
+						
+						public int
+						getResponseType()
+						{
+							return( RT_ERROR );
+						}
+						
+						public int
+						getSeedCount()
+						{
+							return( -1 );
+						}
+						
+						public int
+						getNonSeedCount()
+						{
+							return( -1 );
+						}
+
+						public long
+						getScrapeStartTime()
+						{
+							return( SystemTime.getCurrentTime());
+						}
+							
+						public void 
+						setNextScrapeStartTime(
+							long nextScrapeStartTime)
+						{
+						}
+
+						public long
+						getNextScrapeStartTime()
+						{
+							return( -1 );
+						}
+						
+						public String
+						getStatus()
+						{
+							return( "Distributed Database Offline" );
+						}
+
+						public URL
+						getURL()
+						{
+							return( download.getTorrent().getAnnounceURL());
+						}
+					});
+			}
+		}
+	}
+	
+	public void
+	removeDownload(
+		Download	download )
+	{
+		if ( is_running ){
+			download.removeTrackerListener( DHTTrackerPlugin.this );
+	
+			download.removeListener( DHTTrackerPlugin.this );
+			
+			try{
+				this_mon.enter();
+	
+				interesting_downloads.remove( download );
+				
+				running_downloads.remove( download );
+				
+				limited_online_tracking.remove( download );
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}else{
+			
+		}
 	}
 	
 	public void attributeEventOccurred(Download download, TorrentAttribute attr, int event_type) {
@@ -2085,13 +2141,13 @@ DHTTrackerPlugin
 		
 		if ( is_complete ){
 			
-			DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+			PeerManager pm = download.getPeerManager();
+						
+			if ( pm != null ){
 			
-			if ( core_dm != null ){
-			
-				PEPeerManager pm = core_dm.getPeerManager();
+				PEPeerManager core_pm = PluginCoreUtils.unwrap( pm );
 				
-				if ( pm != null && pm.getHiddenBytes() > 0 ){
+				if ( core_pm != null && core_pm.getHiddenBytes() > 0 ){
 					
 					is_complete = false;
 				}
@@ -2948,7 +3004,7 @@ DHTTrackerPlugin
     			previous_metric = metric.longValue();
     			
 	    		try{
-	    			DHTNetworkPosition[] positions = DHTNetworkPositionManager.getLocalPositions();
+	    			DHTNetworkPosition[] positions = getNetworkPositions();
 	    		
 	    			for (int i=0;i<positions.length;i++){
 	    				
@@ -3000,6 +3056,24 @@ DHTTrackerPlugin
     		
     		return( newly_active );
     	}
+	}
+	
+	protected DHTNetworkPosition[]
+	getNetworkPositions()
+	{
+		DHTNetworkPosition[] res = current_network_positions;
+		
+		long	now = SystemTime.getMonotonousTime();
+		
+		if ( 	res == null ||
+				now - last_net_pos_time >  30*60*1000 ){
+				
+			res = current_network_positions = DHTNetworkPositionManager.getLocalPositions();
+			
+			last_net_pos_time = now;
+		}
+		
+		return( res );
 	}
 	
 	public static List
