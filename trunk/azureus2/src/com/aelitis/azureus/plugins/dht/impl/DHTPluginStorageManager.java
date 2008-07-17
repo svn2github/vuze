@@ -1711,8 +1711,11 @@ DHTPluginStorageManager
 			
 			map.put( "fpo", offsets );
 			
-			manager.log.log( "SM: serialised div: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(expiry));
-
+			if ( Constants.isCVSVersion()){
+				
+				manager.log.log( "SM: serialised div: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(expiry));
+			}
+			
 			return( map );
 		}
 		
