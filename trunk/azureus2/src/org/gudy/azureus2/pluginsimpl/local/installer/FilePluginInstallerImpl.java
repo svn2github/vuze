@@ -29,12 +29,14 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
@@ -371,6 +373,34 @@ FilePluginInstallerImpl
 		installer.install( this, shared );
 	}	
 	
+	public void
+	install(
+		boolean		shared,
+		boolean		low_noise,
+		boolean		wait_until_done )
+	
+		throws PluginException
+	{
+		final AESemaphore sem = new AESemaphore( "FPI" );
+		
+		installer.install( 
+			new InstallablePlugin[]{ this }, 
+			shared,
+			low_noise,
+			new PluginInstallerImpl.installListener()
+			{
+				public void 
+				done() 
+				{
+					sem.release();
+				}
+			});
+		
+		if ( wait_until_done ){
+			
+			sem.reserve();
+		}
+	}	
 	
 	public void
 	uninstall()
