@@ -79,7 +79,7 @@ BuddyPluginBuddy
 	private int				udp_port;
 	private int				online_status	= BuddyPlugin.STATUS_ONLINE;	// default
 		
-	private int				version		= BuddyPlugin.VERSION_INITIAL;
+	private int				version		= BuddyPlugin.VERSION_CHAT;	// assume everyone now supports chat
 	
 	private boolean			online;
 	private long			last_time_online;
@@ -141,7 +141,7 @@ BuddyPluginBuddy
 		authorised			= _authorised;
 		public_key 			= _pk;
 		nick_name			= _nick_name;
-		version				= _version;
+		version				= Math.max( version, _version );
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
