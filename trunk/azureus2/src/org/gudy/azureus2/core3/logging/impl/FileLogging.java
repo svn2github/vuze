@@ -99,8 +99,16 @@ public class FileLogging implements ILogEventListener {
 			bLogToFile = bNewLogToFile;
 			if (bLogToFile)
 				Logger.addListener(this);
-			else
+			else{
 				Logger.removeListener(this);
+				
+				synchronized( Logger.class ){
+					
+						// close existing file
+					
+					checkAndSwapLog();
+				}
+			}
 		}
 	}
 
