@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
@@ -52,9 +53,12 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class PlayUtils
 {
+	
 	private static boolean triedLoadingEmpPluginClass = false;
 
 	private static Method methodIsExternallyPlayable;
+	
+	//private static Method methodIsExternalPlayerInstalled;
 
 	public static boolean prepareForPlay(DownloadManager dm) {
 		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
@@ -118,11 +122,13 @@ public class PlayUtils
 			return false;
 		}
 		TOTorrent torrent = dm.getTorrent();
-		if (!PlatformTorrentUtils.isContent(torrent, false)) {
-			return false;
+		if (PlatformTorrentUtils.isContent(torrent, false)) {
+			return dm.getAssumedComplete() || canUseEMP(torrent);
+		} else {
+			return canUseEMP(torrent);
 		}
 	
-		return dm.getAssumedComplete() || canUseEMP(torrent);
+		
 	}
 
 	private static boolean canPlay(TOTorrent torrent) {
@@ -242,7 +248,36 @@ public class PlayUtils
 		return null;
 	}
 	
-	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
+	/*
+	private static final boolean isExternalEMPInstalled() {
+		if(!loadEmpPluginClass()) {
+			return false;
+		}
+		
+		if (methodIsExternalPlayerInstalled == null) {
+			return false;
+		}
+		
+		try {
+
+			Object retObj = methodIsExternalPlayerInstalled.invoke(null, new Object[] {});
+			
+			if (retObj instanceof Boolean) {
+				return ((Boolean) retObj).booleanValue();
+			}
+		} catch (Throwable e) {
+			e.printStackTrace();
+			if (e.getMessage() == null
+					|| !e.getMessage().toLowerCase().endsWith("only")) {
+				Debug.out(e);
+			}
+		}
+
+		return false;
+		
+	}*/
+	
+	private static synchronized final boolean loadEmpPluginClass() {
 		if (!triedLoadingEmpPluginClass) {
 			triedLoadingEmpPluginClass = true;
 
@@ -261,9 +296,18 @@ public class PlayUtils
   				TOTorrent.class
   			});
   			
+  			//methodIsExternalPlayerInstalled = empPluginClass.getMethod("isExternalPlayerInstalled", new Class[] {});
+  			
   		} catch (Exception e1) {
   			return false;
   		}
+		}
+		return true;
+	}
+	
+	private static final boolean canPlayViaExternalEMP(TOTorrent torrent) {
+		if(!loadEmpPluginClass()) {
+			return false;
 		}
 
 		if (methodIsExternallyPlayable == null) {

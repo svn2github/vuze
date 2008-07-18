@@ -96,7 +96,7 @@ public class SelectedContentV3
 			}
   		setPlatformContent(PlatformTorrentUtils.isContent(dm.getTorrent(), true));
   		setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
-  		setCanPlay(isPlatformContent && PlayUtils.canUseEMP(dm.getTorrent()));
+  		setCanPlay(PlayUtils.canUseEMP(dm.getTorrent()));
   		setImageBytes(PlatformTorrentUtils.getContentThumbnail(dm.getTorrent()));
 		}
 	}
