@@ -519,74 +519,53 @@ SubscriptionImpl
 	
 	protected int
 	getVerifiedPublicationVersion(
-		byte[]		data )
+		Map		details )
 	{
-		if ( !verifyPublicationDetails( data )){
+		if ( !verifyPublicationDetails( details )){
 			
 			return( -1 );
 		}
 
-		byte[]	version_bytes = new byte[4];
-	
-		System.arraycopy( data, 20, version_bytes, 0, 4 );
-		
-		return( bytesToInt( version_bytes ));
+		return(((Long)details.get("v")).intValue());
 	}
 	
 	protected byte[]
 	getPublicationHash(
-		byte[]		data )
+		Map		details )
 	{
-		byte[]	hash_bytes = new byte[20];
-	
-		System.arraycopy( data, 0, hash_bytes, 0, 20 );
-		
-		return( hash_bytes );
+		return((byte[])details.get( "h" ));
 	}
 	
 	protected int
 	getPublicationSize(
-		byte[]		data )
+		Map		details )
 	{
-		byte[]	size_bytes = new byte[4];
-	
-		System.arraycopy( data, 24, size_bytes, 0, 4 );
-		
-		return( bytesToInt( size_bytes ));
+		return(((Long)details.get("z")).intValue());
 	}
 	
-	protected byte[]
+	protected Map
 	getPublicationDetails()
 	{
-		// <20 hash><4 ver><4 size><56? sig>
+		Map	result = new HashMap();
 		
-		byte[] details = new byte[20+4+4+sig.length];
-		
-		System.arraycopy( hash, 0, details, 0, 20 );
-		System.arraycopy( intToBytes(version), 0, details, 20, 4 );
-		System.arraycopy( intToBytes(sig_data_size), 0, details, 24, 4 );
-		System.arraycopy( sig, 0, details, 28, sig.length );
+		result.put( "h", hash );
+		result.put( "v", new Long( version ));
+		result.put( "z", new Long( sig_data_size ));
+		result.put( "s", sig );
 				
-		return( details );
+		return( result );
 	}
 	
 	protected boolean
 	verifyPublicationDetails(
-		byte[]		details )
+		Map		details )
 	{
-		try{
-			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
-	
-			signature.update( details, 0, 28 );
-	
-			return( signature.verify( details, 28, details.length - 28 ));
-			
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-			
-			return( false );
-		}
+		byte[]	hash 	= (byte[])details.get( "h" );
+		int		version	= ((Long)details.get( "v" )).intValue();
+		int		size	= ((Long)details.get( "z" )).intValue();
+		byte[]	sig		= (byte[])details.get( "s" );
+		
+		return( SubscriptionBodyImpl.verify( public_key, hash, version, size, sig ));
 	}
 	
 	protected void

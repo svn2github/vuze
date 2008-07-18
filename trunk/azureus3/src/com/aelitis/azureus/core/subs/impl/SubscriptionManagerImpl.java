@@ -21,14 +21,21 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipOutputStream;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -720,7 +727,7 @@ SubscriptionManagerImpl
 		byte[]	sub_id 		= subs.getShortID();
 		int		sub_version	= subs.getVersion();
 				
-		final String	key = "subscription:pub:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
+		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
 						
 		dht_plugin.get(
 			key.getBytes(),
@@ -743,15 +750,18 @@ SubscriptionManagerImpl
 				valueRead(
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
-				{
-						// if we change this format we simply need to update the publish KEY rather than
-						// worrying about versioning the VALUE
-					
-					byte[]	val = value.getValue();
-										
-					if ( subs.getVerifiedPublicationVersion( val ) == subs.getVersion()){
+				{					
+					byte[]	data = value.getValue();
 						
-						hits++;
+					try{
+						Map	details = decodeSubscriptionDetails( data );
+
+						if ( subs.getVerifiedPublicationVersion( details ) == subs.getVersion()){
+						
+							hits++;
+						}
+					}catch( Throwable e ){
+						
 					}
 				}
 				
@@ -771,44 +781,52 @@ SubscriptionManagerImpl
 			
 						log( "    Publishing subscription '" + subs.getString() + ", existing=" + hits );
 
-						byte[]	put_value = subs.getPublicationDetails();
-						
-						dht_plugin.put(
-							key.getBytes(),
-							"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
-							put_value,
-							DHTPlugin.FLAG_SINGLE_VALUE,
-							new DHTPluginOperationListener()
-							{
-								public void
-								diversified()
+						try{
+							byte[]	put_value = encodeSubscriptionDetails( subs );						
+							
+							dht_plugin.put(
+								key.getBytes(),
+								"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+								put_value,
+								DHTPlugin.FLAG_SINGLE_VALUE,
+								new DHTPluginOperationListener()
 								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{
-								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{
-								}
-								
-								public void
-								complete(
-									byte[]				key,
-									boolean				timeout_occurred )
-								{
-									log( "        completed '" + subs.getString() + "'" );
-				
-									publishNext();
-								}
-							});
+									public void
+									diversified()
+									{
+									}
+									
+									public void
+									valueRead(
+										DHTPluginContact	originator,
+										DHTPluginValue		value )
+									{
+									}
+									
+									public void
+									valueWritten(
+										DHTPluginContact	target,
+										DHTPluginValue		value )
+									{
+									}
+									
+									public void
+									complete(
+										byte[]				key,
+										boolean				timeout_occurred )
+									{
+										log( "        completed '" + subs.getString() + "'" );
+					
+										publishNext();
+									}
+								});
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+							
+							publishNext();
+						}
 						
 					}else{
 						
@@ -849,11 +867,11 @@ SubscriptionManagerImpl
 			
 		byte[]	sub_id 		= subs.getShortID();
 				
-		final String	key = "subscription:pub:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
+		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
 						
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + new_version,
+			"Subscription update read: " + ByteFormatter.encodeString( sub_id ) + ":" + new_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			12,
 			60*1000,
@@ -874,16 +892,20 @@ SubscriptionManagerImpl
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
 				{
-						// if we change this format we simply need to update the publish KEY rather than
-						// worrying about versioning the VALUE
-					
-					byte[]	val = value.getValue();
-											
-					if ( 	verified_hash == null && 
-							subs.getVerifiedPublicationVersion( val ) == new_version ){
+					byte[]	data = value.getValue();
+							
+					try{
+						Map	details = decodeSubscriptionDetails( data );
 						
-						verified_hash 	= subs.getPublicationHash( val );
-						verified_size	= subs.getPublicationSize( val );
+						if ( 	verified_hash == null && 
+								subs.getVerifiedPublicationVersion( details ) == new_version ){
+							
+							verified_hash 	= subs.getPublicationHash( details );
+							verified_size	= subs.getPublicationSize( details );
+						}
+						
+					}catch( Throwable e ){
+						
 					}
 				}
 				
@@ -911,6 +933,74 @@ SubscriptionManagerImpl
 					}
 				}
 			});
+	}
+	
+	protected byte[]
+	encodeSubscriptionDetails(
+		SubscriptionImpl		subs )
+	
+		throws IOException
+	{
+		Map		details = subs.getPublicationDetails();					
+		
+		byte[] encoded = BEncoder.encode( details );
+		
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				
+		GZIPOutputStream os = new GZIPOutputStream( baos );
+
+		os.write( encoded );
+		
+		os.close();
+		
+		byte[] compressed = baos.toByteArray();
+		
+		byte	header;
+		byte[]	data;
+		
+		if ( compressed.length < encoded.length ){
+			
+			header 	= 1;
+			data	= compressed; 
+		}else{
+			
+			header	= 0;
+			data	= encoded;
+		}
+				
+		byte[] result = new byte[data.length+1];
+		
+		result[0] = header;
+		
+		System.arraycopy( data, 0, result, 1, data.length );
+		
+		return( result );
+	}
+	
+	protected Map
+	decodeSubscriptionDetails(
+		byte[]			data )
+	
+		throws IOException
+	{
+		byte[]	to_decode;
+		
+		if ( data[0] == 0 ){
+			
+			to_decode = new byte[ data.length-1 ];
+			
+			System.arraycopy( data, 1, to_decode, 0, data.length - 1 );
+			
+		}else{
+			
+			GZIPInputStream is = new GZIPInputStream(new ByteArrayInputStream( data, 1, data.length - 1 ));
+			
+			to_decode = FileUtil.readInputStreamAsByteArray( is );
+			
+			is.close();
+		}
+		
+		return( BDecoder.decode( to_decode ));
 	}
 	
 	protected void

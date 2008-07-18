@@ -38,6 +38,66 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 public class 
 SubscriptionBodyImpl 
 {
+	protected static byte[]
+	encode(
+		byte[]		hash,
+		int			version,
+		int			size )
+	{
+		int hash_len = hash.length;
+		
+		byte[]	result = new byte[ hash_len + 4 + 4 ];
+		
+		System.arraycopy( hash, 0, result, 0, hash_len );
+		System.arraycopy( SubscriptionImpl.intToBytes(version), 0, result, hash_len, 4 );
+		System.arraycopy( SubscriptionImpl.intToBytes(size), 0, result, hash_len+4, 4 );
+
+		return( result );
+	}
+	
+	protected static byte[]
+	sign(
+		byte[]		private_key,
+		byte[]		hash,
+		int			version,
+		int			size )
+	
+		throws Exception
+	{
+		Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
+		
+		// key for signature is hash + version + size so we have some
+		// control over auto-update process and prevent people from injecting
+		// potentially huge bogus updates
+	
+		signature.update( encode( hash, version, size ));
+
+		return( signature.sign());
+	}
+	
+	protected static boolean
+	verify(
+		byte[]		public_key,
+		byte[]		hash,
+		int			version,
+		int			size,
+		byte[]		sig )
+	{
+		try{
+			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
+	
+			signature.update( encode( hash, version, size ));
+	
+			return( signature.verify( sig ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}
+	}
+	
 	private SubscriptionManagerImpl		manager;
 	
 	private String	name;
@@ -95,30 +155,9 @@ SubscriptionBodyImpl
 			throw( new IOException( "Signature data length mismatch" ));
 		}
 		
-		try{
-			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
-
-			signature.update( hash );
-			signature.update( SubscriptionImpl.intToBytes(version));
-			signature.update( SubscriptionImpl.intToBytes(sig_data_size));
-
-			if ( !signature.verify( sig )){
+		if ( !verify( public_key, hash, version, sig_data_size, sig )){
 				
-				throw( new IOException( "Signature verification failed" ));
-			}
-			
-			
-		}catch( Throwable e ){
-			
-			if ( e instanceof IOException ){
-				
-				throw((IOException)e);
-				
-			}else{
-				
-				throw( new IOException( "Crypto failed: " + Debug.getNestedExceptionMessage(e)));
-
-			}
+			throw( new IOException( "Signature verification failed" ));
 		}
 	}
 
@@ -220,20 +259,9 @@ SubscriptionBodyImpl
 						
 			map.put( "size", new Long( contents.length ));
 			
-			try{
-				Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
-				
-					// key for signature is hash + version + size so we have some
-					// control over auto-update process and prevent people from injecting
-					// potentially huge bogus updates
-				
-				signature.update( new_hash );
-				signature.update( SubscriptionImpl.intToBytes(version));
-				signature.update( SubscriptionImpl.intToBytes(contents.length));
-				
+			try{				
 				map.put( "hash", new_hash );
-				
-				map.put( "sig", signature.sign());
+				map.put( "sig", sign( private_key, new_hash, version, contents.length ));
 				
 			}catch( Throwable e ){
 				
