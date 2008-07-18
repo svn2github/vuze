@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 import java.util.List;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
@@ -40,9 +41,9 @@ import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
 
 public class 
 StandardPluginImpl 
-	implements StandardPlugin, InstallablePluginImpl
+	extends InstallablePluginImpl
+	implements StandardPlugin
 {
-	private PluginInstallerImpl	installer;
 	private SFPluginDetails		details;
 	private String				version;
 	
@@ -52,7 +53,8 @@ StandardPluginImpl
 		SFPluginDetails		_details,
 		String				_version )
 	{
-		installer	= _installer;
+		super( _installer );
+		
 		details		= _details;
 		version		= _version==null?"":_version;
 	}
@@ -99,58 +101,6 @@ StandardPluginImpl
 	getRelativeURLBase()
 	{
 		return( details.getRelativeURLBase());
-	}
-	
-		/**
-		 * Returns the plugin's interface if already installed, null if it isn't
-		 * @return
-		 */
-	
-	public PluginInterface
-	getAlreadyInstalledPlugin()
-	{
-		return( installer.getAlreadyInstalledPlugin( getId()));
-	}
-	
-	public boolean 
-	isAlreadyInstalled() 
-	{
-		PluginInterface pi = getAlreadyInstalledPlugin();
-		
-		if ( pi == null ){
-			
-			return( false );
-		}
-		
-		if ( version == null || version.length() == 0 ){
-			
-			return( false );
-		}
-		
-		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0);
-	}
-	
-	public void
-	install(
-		boolean		shared )
-	
-		throws PluginException
-	{
-		installer.install( this, shared );
-	}
-	
-	public void
-	uninstall()
-	
-		throws PluginException
-	{
-		installer.uninstall( this );
-	}
-	
-	public PluginInstaller
-	getInstaller()
-	{
-		return( installer );
 	}
 	
 	public void

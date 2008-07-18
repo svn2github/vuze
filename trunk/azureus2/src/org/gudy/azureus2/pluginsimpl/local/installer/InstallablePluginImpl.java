@@ -22,7 +22,11 @@
 
 package org.gudy.azureus2.pluginsimpl.local.installer;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 
@@ -31,10 +35,104 @@ import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
  *
  */
 
-public interface 
+public abstract class 
 InstallablePluginImpl 
+	implements InstallablePlugin
 {
+	private PluginInstallerImpl		installer;
+	
+	
+	protected
+	InstallablePluginImpl(
+		PluginInstallerImpl		_installer )
+	{
+		installer = _installer;
+	}
+	
+	/**
+	 * Returns the plugin's interface if already installed, null if it isn't
+	 * @return
+	 */
+	
+	public boolean 
+	isAlreadyInstalled() 
+	{
+		PluginInterface pi = getAlreadyInstalledPlugin();
+		
+		if ( pi == null ){
+			
+			return( false );
+		}
+		
+		String version = getVersion();
+		
+		if ( version == null || version.length() == 0 ){
+			
+			return( false );
+		}
+		
+		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0);
+	}
+	
+	public PluginInterface
+	getAlreadyInstalledPlugin()
+	{
+		return( installer.getAlreadyInstalledPlugin( getId()));
+	}
+	
 	public void
+	install(
+		boolean		shared )
+	
+		throws PluginException
+	{
+		installer.install( this, shared );
+	}	
+	
+	public void
+	install(
+		boolean		shared,
+		boolean		low_noise,
+		boolean		wait_until_done )
+	
+		throws PluginException
+	{
+		final AESemaphore sem = new AESemaphore( "FPI" );
+		
+		installer.install( 
+			new InstallablePlugin[]{ this }, 
+			shared,
+			low_noise,
+			new PluginInstallerImpl.installListener()
+			{
+				public void 
+				done() 
+				{
+					sem.release();
+				}
+			});
+		
+		if ( wait_until_done ){
+			
+			sem.reserve();
+		}
+	}	
+	
+	public void
+	uninstall()
+	
+		throws PluginException
+	{
+		installer.uninstall( this );
+	}	
+	
+	public PluginInstaller
+	getInstaller()
+	{
+		return( installer );
+	}
+	
+	public abstract void
 	addUpdate(
 			UpdateCheckInstance	inst,
 			PluginUpdatePlugin	plugin_update_plugin,

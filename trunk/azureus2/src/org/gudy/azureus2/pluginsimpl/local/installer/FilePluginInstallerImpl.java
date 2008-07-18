@@ -29,15 +29,11 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.FilePluginInstaller;
-import org.gudy.azureus2.plugins.installer.InstallablePlugin;
-import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
@@ -55,7 +51,8 @@ import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
 
 public class 
 FilePluginInstallerImpl
-	implements FilePluginInstaller, InstallablePluginImpl
+	extends InstallablePluginImpl
+	implements FilePluginInstaller
 {
 	protected PluginInstallerImpl		installer;
 	protected File						file;
@@ -71,6 +68,8 @@ FilePluginInstallerImpl
 
 		throws PluginException
 	{
+		super( _installer );
+		
 		installer	= _installer;
 		file		= _file;
 
@@ -340,82 +339,6 @@ FilePluginInstallerImpl
 		return( "" );
 	}
 
-	public PluginInterface
-	getAlreadyInstalledPlugin()
-	{
-		return( installer.getAlreadyInstalledPlugin( getId()));
-	}
-	
-	public boolean
-	isAlreadyInstalled()
-	{
-		PluginInterface pi = getAlreadyInstalledPlugin();
-		
-		if ( pi == null ){
-			
-			return( false );
-		}
-		
-		if ( version == null || version.length() == 0 ){
-			
-			return( false );
-		}
-		
-		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0 );
-	}
-	
-	public void
-	install(
-		boolean		shared )
-	
-		throws PluginException
-	{
-		installer.install( this, shared );
-	}	
-	
-	public void
-	install(
-		boolean		shared,
-		boolean		low_noise,
-		boolean		wait_until_done )
-	
-		throws PluginException
-	{
-		final AESemaphore sem = new AESemaphore( "FPI" );
-		
-		installer.install( 
-			new InstallablePlugin[]{ this }, 
-			shared,
-			low_noise,
-			new PluginInstallerImpl.installListener()
-			{
-				public void 
-				done() 
-				{
-					sem.release();
-				}
-			});
-		
-		if ( wait_until_done ){
-			
-			sem.reserve();
-		}
-	}	
-	
-	public void
-	uninstall()
-	
-		throws PluginException
-	{
-		installer.uninstall( this );
-	}	
-	
-	public PluginInstaller
-	getInstaller()
-	{
-		return( installer );
-	}
-	
 	public void
 	addUpdate(
 		UpdateCheckInstance	inst,

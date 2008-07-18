@@ -66,10 +66,27 @@ InstallablePlugin
 		throws PluginException;
 	
 		/**
+		 * Install with a few options to control process
+		 * @param shared
+		 * @param low_noise			don't prompt user
+		 * @param wait_until_done	if true blocks until process complete, otherwise it is async
+		 * @throws PluginException
+		 * @since 3.1.1.1
+		 */
+	
+	public void
+	install(
+		boolean		shared,
+		boolean		low_noise,
+		boolean		wait_until_done )
+	
+		throws PluginException;
+	
+		/**
 		 * uninstall this plugin
 		 * @throws PluginException
 		 */
-	
+
 	public void
 	uninstall()
 	
