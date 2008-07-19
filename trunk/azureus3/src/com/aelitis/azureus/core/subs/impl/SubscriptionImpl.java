@@ -25,15 +25,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.security.KeyPair;
-import java.security.Signature;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -366,15 +364,28 @@ SubscriptionImpl
 				if ( create ){
 										
 					try{
-						File data_location = manager.getVuzeFile( this );
+						File original_data_location = manager.getVuzeFile( this );
 
-						if ( data_location.exists()){
+						if ( original_data_location.exists()){
+							
+								// make a version based filename to avoid issues regarding multiple
+								// versions
+							
+							final File	versioned_data_location = new File( original_data_location.getParent(), original_data_location.getName() + "." + getVersion());
+							
+							if ( !versioned_data_location.exists()){
+								
+								if ( !FileUtil.copyFile( original_data_location, versioned_data_location )){
+									
+									throw( new Exception( "Failed to copy file to '" + versioned_data_location + "'" ));
+								}
+							}
 							
 							lws = LightWeightSeedManager.getSingleton().add(
 									getName(),
 									new HashWrapper( hash ),
 									TorrentUtils.getDecentralisedEmptyURL(),
-									data_location,
+									versioned_data_location,
 									new LightWeightSeedAdapter()
 									{
 										public TOTorrent 
@@ -389,11 +400,10 @@ SubscriptionImpl
 											
 											TOTorrentCreator creator = 
 												TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
-													manager.getVuzeFile( SubscriptionImpl.this ), 
-														TorrentUtils.getDecentralisedEmptyURL(),
+														data_location, 
+														announce_url,
 														256*1024 );
 									
-											
 											TOTorrent t = creator.create();
 											
 											t.setHashOverride( hash );

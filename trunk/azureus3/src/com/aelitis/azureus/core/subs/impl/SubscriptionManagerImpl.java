@@ -25,15 +25,18 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipOutputStream;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -65,6 +68,8 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
+import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
+import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 
 
 public class 
@@ -1005,12 +1010,100 @@ SubscriptionManagerImpl
 	
 	protected void
 	updateSubscription(
-		SubscriptionImpl			subs,
-		byte[]						update_hash,
-		int							update_size )
+		final SubscriptionImpl			subs,
+		final byte[]					update_hash,
+		final int						update_size )
 	{
 		log( "Subscription " + subs.getString() + " - update hash=" + ByteFormatter.encodeString( update_hash ) + ", size=" + update_size );
 
+		final MagnetPlugin	magnet_plugin = getMagnetPlugin();
+		
+		if ( magnet_plugin == null ){
+			
+			log( "    Can't update, no magnet plugin" );
+			
+			return;
+		}
+		
+		new AEThread2( "SubsUpdate", true )
+		{
+			public void
+			run()
+			{
+				try{
+					byte[] torrent_data = magnet_plugin.download(
+						new MagnetPluginProgressListener()
+						{
+							public void
+							reportSize(
+								long	size )
+							{
+							}
+							
+							public void
+							reportActivity(
+								String	str )
+							{
+								log( "    MagnetDownload: " + str );
+							}
+							
+							public void
+							reportCompleteness(
+								int		percent )
+							{
+							}
+						},
+						update_hash,
+						new InetSocketAddress[0],
+						300*1000 );
+					
+					log( "Subscription torrent downloaded" );
+					
+					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
+				
+						// update size is just that of signed content, torrent itself is .vuze file
+						// so take this into account
+					
+					if ( torrent.getSize() > update_size + 10*1024 ){
+					
+						log( "Subscription update abandoned, torrent size is " + torrent.getSize() + ", underlying data size is " + update_size );
+					}
+					
+					if ( torrent.getSize() > 4*1024*1024 ){
+						
+						log( "Subscription update abandoned, torrent size is too large (" + torrent.getSize() + ")" );
+					}
+					
+					updateSubscription( subs, torrent );
+					
+				}catch( Throwable e ){
+					
+					log( "    update failed", e );
+				}
+			}
+		}.start();
+	}
+	
+	protected void
+	updateSubscription(
+		SubscriptionImpl		subs,
+		TOTorrent				torrent )
+	{
+		log( "Subscription " + subs.getString() + " - update torrent: " + new String( torrent.getName()));
+
+	}
+	
+	protected MagnetPlugin
+	getMagnetPlugin()
+	{
+		PluginInterface  pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( MagnetPlugin.class );
+	
+		if ( pi == null ){
+			
+			return( null );
+		}
+		
+		return((MagnetPlugin)pi.getPlugin());
 	}
 	
 	protected void
