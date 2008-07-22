@@ -1629,7 +1629,7 @@ public class MainWindow
 
 		StyledText text = null;
 
-		text = new StyledText(cArea, SWT.NONE);
+		text = new StyledText(cArea, SWT.SINGLE);
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
