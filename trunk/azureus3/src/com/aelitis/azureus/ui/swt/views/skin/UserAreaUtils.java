@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -67,24 +68,6 @@ public class UserAreaUtils
 
 	private void hookListeners() {
 
-		/*
-		 * Opens LightBoxBrowserWindow pop-up for the Registration page
-		 */
-		//		skinObject = skin.getSkinObject("text-get-started");
-		//		if (skinObject != null) {
-		//			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-		//			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-		//				public void pressed(SWTSkinButtonUtility buttonUtility) {
-		//					if (null != uiFunctions) {
-		//						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
-		//								+ "?" + Constants.URL_SUFFIX;
-		//						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-		//								460, 577);
-		//					}
-		//
-		//				}
-		//			});
-		//		}
 		/*
 		 * Launch an external browser and load the FAQ page
 		 */
@@ -417,6 +400,60 @@ public class UserAreaUtils
 			item.setText(MessageText.getString("v3.MainWindow.text.my.profile"));
 			item.setEnabled(false);
 
+			item = new MenuItem(menu, SWT.SEPARATOR);
+
+			/*
+			 * Sign Up
+			 */
+
+			/*
+			 * KN: IMPORTANT!!!!!!
+			 * For the time being we're always showing the SignUp menu item when connecting to the 
+			 * default platform address; we will remove this once the production platform can
+			 * provide the already-registered flag
+			 */
+			if (Constants.URL_ADDRESS.equals(Constants.DEFAULT_ADDRESS)) {
+				item = new MenuItem(menu, SWT.PUSH);
+				item.setText(MessageText.getString("v3.MainWindow.text.get.started"));
+				item.addSelectionListener(new SelectionListener() {
+
+					public void widgetSelected(SelectionEvent e) {
+						if (null != uiFunctions) {
+							String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
+									+ "?" + Constants.URL_SUFFIX;
+							new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+									460, 577);
+						}
+
+					}
+
+					public void widgetDefaultSelected(SelectionEvent e) {
+						widgetSelected(e);
+					}
+				});
+			} else {
+				/*
+				 * NOTE: must check with platform whether this should be shown
+				 */
+				item = new MenuItem(menu, SWT.PUSH);
+				item.setText(MessageText.getString("v3.MainWindow.text.get.started"));
+				item.addSelectionListener(new SelectionListener() {
+
+					public void widgetSelected(SelectionEvent e) {
+						if (null != uiFunctions) {
+							String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
+									+ "?" + Constants.URL_SUFFIX;
+							new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+									460, 577);
+						}
+
+					}
+
+					public void widgetDefaultSelected(SelectionEvent e) {
+						widgetSelected(e);
+					}
+				});
+			}
 		}
 
 	}
