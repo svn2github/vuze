@@ -109,8 +109,7 @@ public class DateParserRegex extends DateParser {
 		
 		String s = input;
 		
-		Calendar calendar = new GregorianCalendar();
-		calendar.setTimeZone(timeZone);
+		Calendar calendar = new GregorianCalendar(timeZone);
 		
 		//Find if there is any time information in the date
 		Matcher matcher = getTimeComponent.matcher(s);
@@ -222,7 +221,12 @@ public class DateParserRegex extends DateParser {
 						calendar.set(Calendar.YEAR,year);
 					}
 					
-					//System.out.println(input + " > " + calendar.getTime());
+					calendar.set(Calendar.HOUR_OF_DAY,0);
+					calendar.set(Calendar.MINUTE,0);
+					calendar.set(Calendar.SECOND,0);
+					calendar.set(Calendar.MILLISECOND,0);
+
+					//System.out.println(input + " > " + calendar.getTime() + "( " + calendar.getTimeZone() + " )");
 					
 				} else {
 					System.err.println("Unparseable date : " + input);
@@ -285,6 +289,11 @@ public class DateParserRegex extends DateParser {
 							calendar.set(Calendar.DAY_OF_MONTH, day);
 						}
 					}
+					
+					calendar.set(Calendar.HOUR_OF_DAY,0);
+					calendar.set(Calendar.MINUTE,0);
+					calendar.set(Calendar.SECOND,0);
+					calendar.set(Calendar.MILLISECOND,0);
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -331,10 +340,18 @@ public class DateParserRegex extends DateParser {
 		}
 		
 		int nbBack = 0;
-		while(calendar.after(new GregorianCalendar()) && nbBack++ < 50) {
+		Calendar calendarCompare = new GregorianCalendar();
+		
+//		if(calendar.after(calendarCompare)) {
+//			System.err.println("maintenant ici: "+calendarCompare.getTimeInMillis()+"  --  "+calendarCompare.getTime()+"  --  "+calendarCompare);
+//			System.err.println("maintenant la bas: "+calendar.getTimeInMillis()+"  --  "+calendar.getTime()+"  --  "+calendar);
+//			System.err.println("CALENDARS: after? " + calendar.after(calendarCompare) + " // before? " + calendar.before(calendarCompare));
+//		}
+		while(calendar.after(calendarCompare) && nbBack++ < 50) {
 			calendar.add(Calendar.YEAR, -1);
 		}
 		
+		//calendar.setTimeZone(TimeZone.getDefault());
 		return calendar.getTime();
 	}
 	
