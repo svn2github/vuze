@@ -20,14 +20,23 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -48,7 +57,7 @@ public class UserAreaUtils
 
 	private boolean firstLoginStateSync = true;
 
-	public UserAreaUtils(SWTSkin skin, UIFunctionsSWT uiFunctions) {
+	public UserAreaUtils(final SWTSkin skin, UIFunctionsSWT uiFunctions) {
 		this.skin = skin;
 		this.uiFunctions = uiFunctions;
 
@@ -59,123 +68,27 @@ public class UserAreaUtils
 	private void hookListeners() {
 
 		/*
-		 * Opens LightBoxBrowserWindow pop-up for the Login page
-		 */
-
-		SWTSkinObject skinObject = skin.getSkinObject("text-log-in");
-		if (null != skinObject) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					SWTLoginUtils.openLoginWindow();
-
-				}
-			});
-		}
-
-		/*
-		 * Opens the On Vuze tab and load the Logout page
-		 */
-		skinObject = skin.getSkinObject("text-log-out");
-		if (skinObject != null) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-
-					/*
-					 * We log out by opening the following URL in a browser.  The page
-					 * that is loaded will send a 'status:login-update' message which the 
-					 * ILoginInfoListener will respond to and update the UI accordingly
-					 */
-					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
-							+ Constants.URL_SUFFIX;
-
-					/*
-					 * Loads the page without switching to the On Vuze tab
-					 */
-					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
-					if (skinObject instanceof SWTSkinObjectBrowser) {
-
-						/*
-						 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
-						 */
-						Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
-						if (null != browser) {
-							String existingURL = browser.getUrl();
-							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setStartURL(Constants.URL_PREFIX
-										+ Constants.URL_BIG_BROWSE + "?" + Constants.URL_SUFFIX);
-							}
-						}
-
-						((SWTSkinObjectBrowser) skinObject).setURL(url);
-					}
-				}
-			});
-		}
-
-		/*
 		 * Opens LightBoxBrowserWindow pop-up for the Registration page
 		 */
-		skinObject = skin.getSkinObject("text-get-started");
-		if (skinObject != null) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
-								+ "?" + Constants.URL_SUFFIX;
-						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-								460, 577);
-					}
-
-				}
-			});
-		}
-
-		/*
-		 * Opens the On Vuze tab and load the MyProfile page
-		 */
-		skinObject = skin.getSkinObject("text-user-name");
-		if (skinObject != null) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE + "?"
-								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-								true, true);
-					}
-
-				}
-			});
-		}
-
-		/*
-		 * Opens the On Vuze tab and load the MyAccount page
-		 */
-		skinObject = skin.getSkinObject("text-my-account");
-		if (skinObject != null) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
-								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-								true, true);
-					}
-
-				}
-			});
-		}
-
+		//		skinObject = skin.getSkinObject("text-get-started");
+		//		if (skinObject != null) {
+		//			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
+		//			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+		//				public void pressed(SWTSkinButtonUtility buttonUtility) {
+		//					if (null != uiFunctions) {
+		//						String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
+		//								+ "?" + Constants.URL_SUFFIX;
+		//						new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+		//								460, 577);
+		//					}
+		//
+		//				}
+		//			});
+		//		}
 		/*
 		 * Launch an external browser and load the FAQ page
 		 */
-		skinObject = skin.getSkinObject("help-button");
+		SWTSkinObject skinObject = skin.getSkinObject("help-button");
 		if (skinObject != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
@@ -188,11 +101,78 @@ public class UserAreaUtils
 		}
 
 		/*
+		 * New user-info (drop down arrow)
+		 */
+
+		skinObject = skin.getSkinObject("user-info-image");
+		final Control control = skinObject.getControl();
+		final Menu menu = new Menu(control.getShell(), SWT.POP_UP);
+		fillUserInfoMenu(menu);
+
+		menu.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event) {
+				MenuItem[] menuItems = menu.getItems();
+				for (int i = 0; i < menuItems.length; i++) {
+					menuItems[i].dispose();
+				}
+
+				fillUserInfoMenu(menu);
+			}
+		});
+
+		if (skinObject != null) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					Point point = control.getShell().toDisplay(
+							control.getParent().getLocation());
+					point.y += (control.getSize().y / 2) + 10;
+					menu.setLocation(point);
+					menu.setVisible(true);
+				}
+			});
+		}
+
+		/*
+		 * New user-info (name)
+		 */
+		skinObject = skin.getSkinObject("user-info-name");
+
+		if (skinObject != null) {
+			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
+			btnGo.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					if (true == LoginInfoManager.getInstance().isLoggedIn()) {
+						/*
+						 * If the user is logged in then go to profile page
+						 */
+						if (null != uiFunctions) {
+							String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE
+									+ "?" + Constants.URL_SUFFIX + "&rand="
+									+ SystemTime.getCurrentTime();
+							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
+									0, true, true);
+						}
+
+					} else {
+						/*
+						 * If the user it not logged in then go to SignIn
+						 */
+
+						SWTLoginUtils.openLoginWindow();
+
+					}
+
+				}
+			});
+		}
+
+		/*
 		 * Listens for changes in the login state and update the UI appropriately
 		 */
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
-				synchLoginStates(info.userName, info.displayName, isNewLoginID);
+				synchLoginStates(info, isNewLoginID);
 			}
 		});
 	}
@@ -203,9 +183,9 @@ public class UserAreaUtils
 	 * @param displayName
 	 * @param isNewLoginID
 	 */
-	private void synchLoginStates(String userName, String displayName,
-			boolean isNewLoginID) {
-		updateLoginLabels(userName, displayName);
+	private void synchLoginStates(LoginInfo info, boolean isNewLoginID) {
+
+		updateLoginLabels(info);
 
 		if (firstLoginStateSync) {
 			firstLoginStateSync = false;
@@ -219,7 +199,7 @@ public class UserAreaUtils
 			/*
 			 * If the user has logged out (user name is null) then reset all pages to their original URL's
 			 */
-			if (null == userName) {
+			if (null == info.userName) {
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
@@ -240,34 +220,28 @@ public class UserAreaUtils
 	 * @param userName
 	 * @param displayName
 	 */
-	private void updateLoginLabels(String userName, String displayName) {
-
-		SWTSkinObject skinObject = null;
-
-		if (null != userName) {
-			skinObject = skin.getSkinObject("user-area-logged-out");
-			skinObject.setVisible(false);
-			skinObject = skin.getSkinObject("user-area-logged-in");
-			skinObject.setVisible(true);
-
-			skinObject = skin.getSkinObject("text-user-name");
-			if (skinObject instanceof SWTSkinObjectText) {
-				if (displayName.equals(userName)) {
-					((SWTSkinObjectText) skinObject).setText(userName + " ");
-				} else {
-					((SWTSkinObjectText) skinObject).setText(userName + "\n"
-							+ displayName);
-				}
+	private void updateLoginLabels(LoginInfo info) {
+		if (null != info.userName) {
+			SWTSkinObject skinObjectName = skin.getSkinObject("user-info-name");
+			if (skinObjectName instanceof SWTSkinObjectText) {
+				((SWTSkinObjectText) skinObjectName).setText(info.userName);
 			}
 
 		} else {
-			skinObject = skin.getSkinObject("user-area-logged-in");
-			skinObject.setVisible(false);
-			skinObject = skin.getSkinObject("user-area-logged-out");
-			skinObject.setVisible(true);
-			skinObject = skin.getSkinObject("text-user-name");
-			if (skinObject instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) skinObject).setText("");
+			SWTSkinObject skinObjectName = skin.getSkinObject("user-info-name");
+			if (skinObjectName instanceof SWTSkinObjectText) {
+				((SWTSkinObjectText) skinObjectName).setTextID("v3.MainWindow.text.log.in");
+			}
+
+		}
+
+		/*
+		 * Make sure it's now visible since it was initialized as invisible
+		 */
+		SWTSkinObject skinObject = skin.getSkinObject("user-info");
+		if (null != skinObject) {
+			if (false == skinObject.isVisible()) {
+				skinObject.setVisible(true);
 			}
 		}
 
@@ -306,5 +280,144 @@ public class UserAreaUtils
 				}
 			}
 		});
+	}
+
+	/**
+	 * Fill the menu with the appropriate items for the user info drop down
+	 * @param menu
+	 */
+	private void fillUserInfoMenu(Menu menu) {
+		if (true == LoginInfoManager.getInstance().isLoggedIn()) {
+			/*
+			 * User name
+			 */
+			MenuItem item = new MenuItem(menu, SWT.PUSH);
+			item.setText(LoginInfoManager.getInstance().getUserInfo().displayName);
+			item = new MenuItem(menu, SWT.SEPARATOR);
+
+			/*
+			 * Account info
+			 */
+			item = new MenuItem(menu, SWT.PUSH);
+			item.setText(MessageText.getString("v3.MainWindow.text.my.account"));
+			item.addSelectionListener(new SelectionListener() {
+
+				public void widgetSelected(SelectionEvent e) {
+					if (null != uiFunctions) {
+						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
+								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
+						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
+								true, true);
+					}
+
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+					widgetSelected(e);
+				}
+			});
+
+			/*
+			 * Profile
+			 */
+
+			item = new MenuItem(menu, SWT.PUSH);
+			item.setText(MessageText.getString("v3.MainWindow.text.my.profile"));
+			item.addSelectionListener(new SelectionListener() {
+
+				public void widgetSelected(SelectionEvent e) {
+					if (true == LoginInfoManager.getInstance().isLoggedIn()) {
+						/*
+						 * If the user is logged in then go to profile page
+						 */
+						if (null != uiFunctions) {
+							String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE
+									+ "?" + Constants.URL_SUFFIX + "&rand="
+									+ SystemTime.getCurrentTime();
+							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
+									0, true, true);
+						}
+
+					} else {
+						/*
+						 * If the user it not logged in then go to SignIn
+						 */
+
+						SWTLoginUtils.openLoginWindow();
+
+					}
+
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+					widgetSelected(e);
+				}
+			});
+
+			item = new MenuItem(menu, SWT.SEPARATOR);
+
+			/*
+			 * Logout
+			 */
+			item = new MenuItem(menu, SWT.PUSH);
+			item.setText(MessageText.getString("v3.MainWindow.text.log.out"));
+			item.addSelectionListener(new SelectionListener() {
+
+				public void widgetSelected(SelectionEvent e) {
+					widgetDefaultSelected(e);
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+
+					/*
+					 * We log out by opening the following URL in a browser.  The page
+					 * that is loaded will send a 'status:login-update' message which the 
+					 * ILoginInfoListener will respond to and update the UI accordingly
+					 */
+					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
+							+ Constants.URL_SUFFIX;
+
+					/*
+					 * Loads the page without switching to the On Vuze tab
+					 */
+					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
+					if (skinObject instanceof SWTSkinObjectBrowser) {
+
+						/*
+						 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
+						 */
+						Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+						if (null != browser) {
+							String existingURL = browser.getUrl();
+							if (null == existingURL || existingURL.length() < 1) {
+								((SWTSkinObjectBrowser) skinObject).setStartURL(Constants.URL_PREFIX
+										+ Constants.URL_BIG_BROWSE + "?" + Constants.URL_SUFFIX);
+							}
+						}
+
+						((SWTSkinObjectBrowser) skinObject).setURL(url);
+					}
+				}
+			});
+
+		} else {
+
+			/*
+			 * Account info
+			 */
+			MenuItem item = new MenuItem(menu, SWT.PUSH);
+			item.setText(MessageText.getString("v3.MainWindow.text.my.account"));
+			item.setEnabled(false);
+
+			/*
+			 * Profile
+			 */
+
+			item = new MenuItem(menu, SWT.PUSH);
+			item.setText(MessageText.getString("v3.MainWindow.text.my.profile"));
+			item.setEnabled(false);
+
+		}
+
 	}
 }
