@@ -127,11 +127,12 @@ PlatformManagerImpl
 		}
 	}
 	
-	protected AEWin32Access		access;
+	private final AEWin32Access		access;
 
-	protected String			app_exe_name;
-	protected File				az_exe;
-	protected boolean			az_exe_checked;
+	private final String			app_name;
+	private final String			app_exe_name;
+	private File					az_exe;
+	private boolean					az_exe_checked;
 
 	protected
 	PlatformManagerImpl()
@@ -142,7 +143,9 @@ PlatformManagerImpl
 		
 		access.addListener( this );
 		
-		app_exe_name	= SystemProperties.getApplicationName() + ".exe";
+		app_name		= SystemProperties.getApplicationName();
+		
+		app_exe_name	= app_name + ".exe";
 		
         initializeCapabilities();
 	}
@@ -322,7 +325,7 @@ PlatformManagerImpl
 
 				if (!az_exe.exists()) {
 					try {
-						az_home = access.getApplicationInstallDir(SystemProperties.getApplicationName());
+						az_home = access.getApplicationInstallDir( app_name );
 
 						az_exe = new File(az_home + File.separator + app_exe_name).getAbsoluteFile();
 
@@ -337,7 +340,7 @@ PlatformManagerImpl
 								
 				if ( !az_exe.exists()){
 					
-					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install " + SystemProperties.getApplicationName();
+					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install " + app_name;
 					
 					az_exe = null;
 					
@@ -370,8 +373,7 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		try{
-			return access.getUserAppData() + SystemProperties.SEP
-					+ SystemProperties.APPLICATION_NAME + SystemProperties.SEP;
+			return access.getUserAppData() + SystemProperties.SEP + app_name + SystemProperties.SEP;
 			
 		}catch( Throwable e ){
 			
@@ -442,7 +444,12 @@ PlatformManagerImpl
 	{
 			// all this stuff needs the exe location so bail out early if unavailable
 		
-		getApplicationEXELocation();
+		File exe_loc = getApplicationEXELocation();
+		
+		if ( exe_loc.exists()){
+			
+			checkExeKey( exe_loc );
+		}
 		
 		try{
 				// always trigger magnet reg here if not owned so old users get it...
@@ -498,6 +505,38 @@ PlatformManagerImpl
 		}
 		
 		return( reg );
+	}
+	
+	protected void
+	checkExeKey(
+		File		exe )
+	{
+		checkExeKey( AEWin32Access.HKEY_CURRENT_USER, exe );
+		checkExeKey( AEWin32Access.HKEY_LOCAL_MACHINE, exe );
+	}
+	
+	protected void
+	checkExeKey(
+		int			hkey,
+		File		exe )
+	{
+		String	exe_str = exe.getAbsolutePath();
+		
+		String str = null;
+		
+		try{
+			str = access.readStringValue( hkey, "software\\" + app_name, "exec" );
+
+		}catch( Throwable e ){
+		}
+		
+		try{
+			if ( str == null || !str.equals( exe_str )){
+				
+				access.writeStringValue( hkey, "software\\" + app_name,	"exec",	exe_str );
+			}
+		}catch( Throwable e ){
+		}
 	}
 	
 	public boolean
@@ -1085,15 +1124,14 @@ PlatformManagerImpl
 		String cid = null;
 		try {
 			cid = access.readStringValue(AEWin32Access.HKEY_LOCAL_MACHINE,
-					"SOFTWARE\\Azureus", "CID");
+					"SOFTWARE\\" + app_name, "CID");
 		} catch (Exception e) {
 		}
 
 		if (cid == null || cid.length() == 0) {
 			needWrite = true;
 			try {
-				File commonPath = new File(access.getCommonAppData(),
-						SystemProperties.APPLICATION_NAME);
+				File commonPath = new File(access.getCommonAppData(),app_name);
 				if (commonPath.isDirectory()) {
 					File fCID = new File(commonPath, "azCID.txt");
 					if (fCID.exists()) {
@@ -1126,7 +1164,7 @@ PlatformManagerImpl
 	private void setAzComputerID(String cid) {
 		try {
 			access.writeStringValue(AEWin32Access.HKEY_LOCAL_MACHINE,
-					"SOFTWARE\\Azureus", "CID", cid);
+					"SOFTWARE\\" + app_name, "CID", cid);
 		} catch (Exception e) {
 			Debug.out("Could not write CID: " + e.getMessage());
 		}
@@ -1136,7 +1174,7 @@ PlatformManagerImpl
 			if (sCommonAppData != null && sCommonAppData.length() > 0) {
 				File commonPath = new File(sCommonAppData);
 				if (commonPath.isDirectory()) {
-					commonPath = new File(commonPath, SystemProperties.APPLICATION_NAME);
+					commonPath = new File(commonPath, app_name);
 					FileUtil.mkdirs(commonPath);
 
 					File fCID = new File(commonPath, "azCID.txt");
