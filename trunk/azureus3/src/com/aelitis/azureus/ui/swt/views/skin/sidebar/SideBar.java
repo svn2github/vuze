@@ -167,8 +167,12 @@ public class SideBar
 					double lastPercent;
 
 					public void handleEvent(Event event) {
-						if (event.keyCode == SWT.F9 && event.stateMask == 0) {
+						if (event.keyCode == SWT.F9
+								|| event.keyCode == SWT.F7
+								|| (event.keyCode == 116 && event.stateMask == (SWT.COMMAND | SWT.ALT))) {
 							event.doit = false;
+							event.keyCode = 0;
+							event.character = '\0';
 							Utils.execSWTThreadLater(0, new AERunnable() {
 								public void runSupport() {
 									SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
