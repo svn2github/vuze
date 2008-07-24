@@ -23,10 +23,10 @@ import java.io.InputStream;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
+
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinProperties;
 
@@ -201,6 +201,15 @@ public class ImageLoader
 									}
 								}
 								img = new Image(display, imageData);
+							} else {
+								Rectangle bounds = imgToFade.getBounds();
+								Image bg = Utils.createAlphaImage(display, bounds.width,
+										bounds.height, (byte) 0);
+
+								img = Utils.renderTransparency(display, bg, imgToFade,
+										new Point(0, 0), disabledOpacity == -1 ? 64
+												: disabledOpacity * 255 / 100);
+								bg.dispose();
 							}
 						}
 					}
