@@ -22,15 +22,75 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
+
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 CopyOnWriteList 
 {
-	private List	list = new ArrayList();
+	private static boolean LOG_STATS = false;
+
+	private List	list = Collections.EMPTY_LIST;
 	
 	private boolean	visible = false;
 	
+	private int initialCapacity;
+	
+	private static CopyOnWriteList stats;
+	
+	static {
+		if (LOG_STATS) {
+			stats = new CopyOnWriteList(10);
+			AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
+				public void generate(IndentWriter writer) {
+					writer.println("COWList Info");
+					writer.indent();
+					try {
+						long count = 0;
+						long size = 0;
+						for (Iterator iter = stats.iterator(); iter.hasNext();) {
+							WeakReference wf = (WeakReference) iter.next();
+							CopyOnWriteList cowList = (CopyOnWriteList) wf.get();
+							if (cowList != null) {
+								count++;
+								size += cowList.size();
+							}
+						}
+						writer.println(count + " lists with " + size + " total entries");
+						writer.println((size/count) + " avg size");
+					} catch (Throwable t) {
+					} finally {
+						writer.exdent();
+					}
+				}
+			});
+		}
+	}
+	
+	/**
+	 * @param i
+	 */
+	public CopyOnWriteList(int initialCapacity) {
+		this.initialCapacity = initialCapacity;
+		if (stats != null) {
+			stats.add(new WeakReference(this));
+		}
+	}
+
+	/**
+	 * 
+	 */
+	public CopyOnWriteList() {
+		// Smaller default initial capacity as most of our lists are small
+		// Last check on 7/24/2008: 444 lists with 456 total entries
+		this.initialCapacity = 1;
+		if (stats != null) {
+			stats.add(new WeakReference(this));
+		}
+	}
+
 	public void
 	add(
 		Object	obj )
@@ -48,6 +108,9 @@ CopyOnWriteList
 				visible = false;
 				
 			}else{
+				if (list == Collections.EMPTY_LIST) {
+					list = new ArrayList(initialCapacity);
+				}
 				
 				list.add( obj );
 			}
@@ -84,7 +147,7 @@ CopyOnWriteList
 	{
 		synchronized( this ){
 								
-			list	= new ArrayList();
+			list	= Collections.EMPTY_LIST;
 			
 			visible = false;
 		}
@@ -202,5 +265,13 @@ CopyOnWriteList
 			
 			CopyOnWriteList.this.remove( last );
 		}
+	}
+
+	public int getInitialCapacity() {
+		return initialCapacity;
+	}
+
+	public void setInitialCapacity(int initialCapacity) {
+		this.initialCapacity = initialCapacity;
 	}
 }
