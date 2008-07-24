@@ -79,21 +79,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableBoolean;
-import org.gudy.azureus2.core3.util.AERunnableObject;
-import org.gudy.azureus2.core3.util.AERunnableWithCallback;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DelayedEvent;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -611,15 +597,9 @@ public class Utils
 			return;
 
 		try {
-			ArrayList list = new ArrayList();
-			Image[] images = new Image[] {
-				ImageRepository.getImage("azureus"),
-				ImageRepository.getImage("azureus32"),
-				ImageRepository.getImage("azureus64"),
-				ImageRepository.getImage("azureus128")
-			};
+			ArrayList list = new ArrayList(sImageNames.length);
 
-			for (int i = 0; i < images.length; i++) {
+			for (int i = 0; i < sImageNames.length; i++) {
 				Image image = ImageRepository.getImage(sImageNames[i]);
 				if (image != null)
 					list.add(image);
@@ -628,7 +608,7 @@ public class Utils
 			if (list.size() == 0)
 				return;
 
-			shell.setImages((Image[]) list.toArray(new Image[0]));
+			shell.setImages((Image[]) list.toArray(new Image[list.size()]));
 		} catch (NoSuchMethodError e) {
 			// SWT < 3.0
 			Image image = ImageRepository.getImage(sImageNames[0]);
@@ -706,12 +686,13 @@ public class Utils
 	 * @since 3.0.4.3
 	 */
 	private static boolean execSWTThread(final Runnable code, final int msLater) {
-		Display display = getDisplay();
+		final Display display = getDisplay();
 		if (display == null || code == null) {
 			return false;
 		}
 
-		if (msLater < 0 && display.getThread() == Thread.currentThread()) {
+		boolean isSWTThread = display.getThread() == Thread.currentThread();
+		if (msLater < 0 && isSWTThread) {
 			if (queue == null) {
 				code.run();
 			} else {
@@ -731,7 +712,18 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(code);
 					} else {
-						timerExec(display, msLater, code );
+						if(isSWTThread) {
+							display.timerExec(msLater, code);
+						} else {
+  						SimpleTimer.addEvent("execSWTThreadLater",
+  								SystemTime.getOffsetTime(msLater), new TimerEventPerformer() {
+  									public void perform(TimerEvent event) {
+  										if (!display.isDisposed()) {
+  											display.asyncExec(code);
+  										}
+  									}
+  								});
+						}
 					}
 				} else {
 					queue.add(code);
@@ -780,7 +772,18 @@ public class Utils
 					if (msLater <= 0) {
 						display.asyncExec(runnableWrapper);
 					} else {
-						timerExec( display, msLater, runnableWrapper );
+						if(isSWTThread) {
+							display.timerExec(msLater, code);
+						} else {
+  						SimpleTimer.addEvent("execSWTThreadLater",
+  								SystemTime.getOffsetTime(msLater), new TimerEventPerformer() {
+  									public void perform(TimerEvent event) {
+  										if (!display.isDisposed()) {
+  											display.asyncExec(code);
+  										}
+  									}
+  								});
+						}
 					}
 				}
 			} catch (NullPointerException e) {
@@ -793,30 +796,6 @@ public class Utils
 		}
 
 		return true;
-	}
-
-	private static void
-	timerExec(
-		final Display		display,
-		final int			delay,
-		final Runnable		target )
-	{
-		if ( display.getThread() == Thread.currentThread()){
-			
-			display.timerExec(delay, target);
-			
-		}else{
-		
-			display.syncExec(
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						display.timerExec(delay, target);
-					}
-				});
-		}
 	}
 	
 	/**
