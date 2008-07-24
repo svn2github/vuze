@@ -19,20 +19,18 @@
  */
 package com.aelitis.azureus.ui.skin;
 
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.internat.IntegratedResourceBundle;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
- * Implementation of SkinProperties using a java.util.Properties loaded from
+ * Implementation of SkinProperties using a IntegratedResourceBundle loaded from
  * hard coded paths.
  * <P>
  * Three level lookup of keys:
@@ -57,72 +55,55 @@ public class SkinPropertiesImpl
 
 	private static final String FILE_SKIN_DEFS = "skin3.properties";
 
-	private static final String LOCATION_SKIN = "skin/display.properties";
-
 	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
 
 	private static final Pattern PAT_PARAM_NUM = Pattern.compile("\\{([0-9]+?)\\}");
 
-	private Properties properties;
-
-	private final ClassLoader classLoader;
+	private IntegratedResourceBundle rb;
 
 	public SkinPropertiesImpl() {
-		this(SkinPropertiesImpl.class.getClassLoader(), PATH_SKIN_DEFS, FILE_SKIN_DEFS);
+		this(SkinPropertiesImpl.class.getClassLoader(), PATH_SKIN_DEFS,
+				FILE_SKIN_DEFS);
 	}
 
-	public SkinPropertiesImpl(ClassLoader classLoader, String skinPath, String mainSkinFile) {
-		this.classLoader = classLoader;
-		properties = new Properties();
-		InputStream is;
-
-		is = classLoader.getResourceAsStream(skinPath + mainSkinFile);
-		if (is != null) {
-			try {
-				properties.load(is);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		} else {
-			Logger.log(new LogEvent(LOGID, skinPath + mainSkinFile + " not found"));
+	public SkinPropertiesImpl(ClassLoader classLoader, String skinPath,
+			String mainSkinFile) {
+		skinPath = skinPath.replaceAll("/", ".");
+		if (!skinPath.endsWith(".")) {
+			skinPath += ".";
 		}
-
-		is = classLoader.getResourceAsStream(LOCATION_SKIN);
-		if (is != null) {
-			try {
-				properties.load(is);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		if (mainSkinFile.endsWith(".properties")) {
+			mainSkinFile = mainSkinFile.substring(0, mainSkinFile.length() - 11);
 		}
+		ResourceBundle bundle = ResourceBundle.getBundle(skinPath + mainSkinFile,
+				Locale.getDefault(), classLoader);
+		rb = new IntegratedResourceBundle(bundle, Collections.EMPTY_MAP);
+		rb.setUseNullList(true);
 
-		String sFiles = properties.getProperty("skin.include");
+		String sFiles = rb.getString("skin.include");
 		if (sFiles != null) {
 			String[] sFilesArray = sFiles.split(",");
 			for (int i = 0; i < sFilesArray.length; i++) {
 				String sFile = (sFilesArray[i].startsWith("/")
-						? sFilesArray[i].substring(1) : skinPath + sFilesArray[i])
-						+ ".properties";
+						? sFilesArray[i].substring(1) : skinPath + sFilesArray[i]);
+				sFile = sFile.replaceAll("/", ".");
 				try {
-					is = classLoader.getResourceAsStream(sFile);
-					if (is != null) {
-						properties.load(is);
-					} else {
-						System.err.println("No Skin " + sFile + " found");
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
+					ResourceBundle subBundle = ResourceBundle.getBundle(sFile,
+							Locale.getDefault(), classLoader);
+					rb.addResourceMessages(subBundle);
+				} catch (Throwable t) {
+					Debug.out("Err loading skin include: " + sFile, t);
 				}
 			}
 		}
 	}
 
-	public Properties getProperties() {
-		return properties;
-	}
+	//	public Properties getProperties() {
+	//		return properties;
+	//	}
 
 	public void addProperty(String name, String value) {
-		properties.put(name, value);
+		rb.addString(name, value);
 	}
 
 	private String getValue(String name, String[] params) {
@@ -133,7 +114,9 @@ public class SkinPropertiesImpl
 			return null;
 		}
 
-		if (Constants.isOSX) {
+		if (Constants.isWindows) {
+			osName = name + "._windows";
+		} else if (Constants.isOSX) {
 			osName = name + "._mac";
 		} else if (Constants.isUnix) {
 			osName = name + "._unix";
@@ -143,16 +126,14 @@ public class SkinPropertiesImpl
 			osName = name + "._linux";
 		} else if (Constants.isSolaris) {
 			osName = name + "._solaris";
-		} else if (Constants.isWindows) {
-			osName = name + "._windows";
 		}
 
 		if (osName != null) {
-			value = properties.getProperty(osName);
+			value = rb.getString(osName, null);
 		}
 
 		if (value == null) {
-			value = properties.getProperty(name);
+			value = rb.getString(name, null);
 		}
 
 		if (value != null && value.indexOf('}') > 0) {
@@ -279,5 +260,9 @@ public class SkinPropertiesImpl
 			return def;
 		}
 		return s.toLowerCase().equals("true") || s.equals("1");
+	}
+	
+	public void clearCache() {
+		rb.clearUsedMessagesMap(1);
 	}
 }

@@ -19,7 +19,6 @@
  */
 package com.aelitis.azureus.ui.skin;
 
-import java.util.Properties;
 
 /**
  * Interface for reading Skin properties (might be better)
@@ -36,7 +35,7 @@ public interface SkinProperties
 	 * 
 	 * @return all the properties
 	 */
-	Properties getProperties();
+	//Properties getProperties();
 
 	/**
 	 * Add a property key/value pair to the list
@@ -76,4 +75,11 @@ public interface SkinProperties
 	int[] getColorValue(String name);
 
 	boolean getBooleanValue(String name, boolean def);
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	void clearCache();
 }

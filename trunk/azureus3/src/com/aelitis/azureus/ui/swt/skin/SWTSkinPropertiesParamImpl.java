@@ -63,10 +63,6 @@ public class SWTSkinPropertiesParamImpl
 		return properties.getIntValue(name, def);
 	}
 
-	public Properties getProperties() {
-		return properties.getProperties();
-	}
-
 	public String[] getStringArray(String name, String[] params) {
 		return properties.getStringArray(name, params);
 	}
@@ -98,5 +94,9 @@ public class SWTSkinPropertiesParamImpl
 
 	public String[] getParamValues() {
 		return sCloneParams;
+	}
+
+	public void clearCache() {
+		properties.clearCache();
 	}
 }

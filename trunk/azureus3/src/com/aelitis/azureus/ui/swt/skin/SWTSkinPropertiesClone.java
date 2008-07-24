@@ -144,10 +144,6 @@ public class SWTSkinPropertiesClone
 		return properties.getIntValue(sTemplateConfigID + name, def);
 	}
 
-	public Properties getProperties() {
-		return properties.getProperties();
-	}
-
 	public String[] getStringArray(String name) {
 		if (name == null) {
 			return null;
@@ -304,5 +300,10 @@ public class SWTSkinPropertiesClone
 			}
 		}
 		return properties.getBooleanValue(sTemplateConfigID + name, def);
+	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#clearCache()
+	public void clearCache() {
+		properties.clearCache();
 	}
 }

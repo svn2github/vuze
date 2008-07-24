@@ -19,11 +19,12 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -37,7 +38,7 @@ public class SWTSkinPropertiesImpl
 	extends SkinPropertiesImpl
 	implements SWTSkinProperties
 {
-	private static Map colorMap = new HashMap();
+	private static Map colorMap = new LightHashMap();
 
 	/**
 	 * @param skinPath
