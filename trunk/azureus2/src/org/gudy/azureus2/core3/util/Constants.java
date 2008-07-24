@@ -32,6 +32,7 @@ import java.util.StringTokenizer;
 public class 
 Constants 
 {
+	public static final String EMPTY_STRING = "";
   public static final String SF_WEB_SITE			= "http://azureus.sourceforge.net/";
   public static final String AELITIS_WEB_SITE   	= "http://azureus.aelitis.com/";
   public static final String GETAZUREUS_WEB_SITE	= "http://www.getazureus.com/";
