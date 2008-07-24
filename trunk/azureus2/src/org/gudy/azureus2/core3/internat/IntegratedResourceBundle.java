@@ -40,6 +40,8 @@ public class
 IntegratedResourceBundle 
 	extends ResourceBundle 
 {
+	private static final boolean DEBUG = false;
+
 	private static final Object	NULL_OBJECT = new Object();
 	
 	private static final Map	bundle_map = new WeakHashMap();
@@ -72,9 +74,16 @@ IntegratedResourceBundle
 					
 									IntegratedResourceBundle	rb = (IntegratedResourceBundle)it.next();
 					
+									if (DEBUG) {
+										System.out.println("Compact RB " + rb.getString());
+									}
+
 									if ( rb.compact()){
 					
 										did_something	= true;
+									}
+									if (DEBUG) {
+										System.out.println("        to " + rb.getString());
 									}
 								}
 					
@@ -95,10 +104,12 @@ IntegratedResourceBundle
 
 	private Map	messages 		= new LightHashMap();
 	private Map	used_messages;
+	private List null_values;
 	
 	private int		clean_count	= 0;
 	private File	scratch_file;
 	
+
 	
 	public 
 	IntegratedResourceBundle(
@@ -178,6 +189,31 @@ IntegratedResourceBundle
 		
 		return( m.keySet().iterator());
 	}
+
+	/**
+	 * Gets a string, using default if key doesn't exist.  Skips
+	 * throwing MissingResourceException when key doesn't exist, which saves
+	 * some CPU cycles
+	 * 
+	 * @param key
+	 * @param def
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+  public String getString(String key, String def) {
+		String s = (String) handleGetObject(key);
+		if (s == null) {
+			if (parent != null) {
+				s = parent.getString(key);
+			}
+			if (s == null) {
+				return def;
+			}
+		}
+		return s;
+	}
+
 	
 	protected Object 
 	handleGetObject(
@@ -188,6 +224,15 @@ IntegratedResourceBundle
 		synchronized( bundle_map ){
 		
 			res = used_messages.get( key );
+		}
+		
+		Integer keyHash = null;
+		if (null_values != null) {
+			keyHash = new Integer(key.hashCode());
+  		int index = Collections.binarySearch(null_values, keyHash);
+  		if (index >= 0) {
+  			return null;
+  		}
 		}
 		
 		if ( res == NULL_OBJECT ){
@@ -205,8 +250,23 @@ IntegratedResourceBundle
 					
 					res = messages.get( key );
 				}
-			
-				used_messages.put( key, res==null?NULL_OBJECT:res );
+
+				if (res == null && null_values != null) {
+
+		  		int index = Collections.binarySearch(null_values, keyHash);
+					if (index < 0) {
+						index = -1 * index - 1; // best guess
+					}
+
+					if (index > null_values.size()) {
+						index = null_values.size();
+					}
+					
+					null_values.add(index, keyHash);
+				} else {
+
+					used_messages.put( key, res==null?NULL_OBJECT:res );
+				}
 					
 				clean_count	= 0;
 				
@@ -404,6 +464,31 @@ IntegratedResourceBundle
 	protected String
 	getString()
 	{
-		return( locale + ": use=" + used_messages.size() + ",map=" + (messages==null?"":String.valueOf(messages.size())));
+		return( locale + ": use=" + used_messages.size() + ",map=" + (messages==null?"":String.valueOf(messages.size())) 
+				+ (null_values == null ? "" : ",null=" + null_values.size()));
+	}
+	
+	public void
+	addString(String key, String value) {
+		used_messages.put(key, value);
+	}
+
+	public boolean getUseNullList() {
+		return null_values != null;
+	}
+
+	public void setUseNullList(boolean useNullList) {
+		if (useNullList && null_values == null) {
+			null_values = new ArrayList(0);
+		} else if (!useNullList && null_values != null) {
+			null_values = null;
+		}
+	}
+	
+	public void clearUsedMessagesMap(int initialCapacity) {
+		used_messages = new LightHashMap(initialCapacity);
+		if (null_values != null) {
+			null_values = new ArrayList(0);
+		}
 	}
 }
