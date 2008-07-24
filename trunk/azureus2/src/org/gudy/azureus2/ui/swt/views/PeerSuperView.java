@@ -73,12 +73,6 @@ public class PeerSuperView
 
   public PeerSuperView() {
   	this(AzureusCoreFactory.getSingleton().getGlobalManager());
-  	if (basicItems == null) {
-  	  TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
-  	  basicItems = new TableColumnCore[items.length + 1];
-  	  System.arraycopy(items, 0, basicItems, 0, items.length);
-  	  basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
-  	}
   }
 
 	
@@ -87,7 +81,14 @@ public class PeerSuperView
    *
    */
   public PeerSuperView(GlobalManager gm) {
-		tv = new TableViewSWTImpl(TableManager.TABLE_ALL_PEERS, "AllPeersView",
+  	if (basicItems == null) {
+  	  TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
+  	  basicItems = new TableColumnCore[items.length + 1];
+  	  System.arraycopy(items, 0, basicItems, 0, items.length);
+  	  basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
+  	}
+
+  	tv = new TableViewSWTImpl(TableManager.TABLE_ALL_PEERS, "AllPeersView",
 				basicItems, "connected_time", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		setTableView(tv);
 		tv.setRowDefaultHeight(16);
