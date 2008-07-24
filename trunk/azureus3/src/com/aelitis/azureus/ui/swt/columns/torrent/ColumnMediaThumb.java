@@ -325,16 +325,21 @@ public class ColumnMediaThumb
 			} catch (Exception e) {
 				// may not be avail
 			}
-
 			//gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 40, 40, 40));
-			//gc.fillRoundRectangle(0, 0, cellWidth, h2, 7, 7);
+			int[] bg = cell.getBackground();
+			if (bg != null) {
+				gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
+				gc.fillRectangle(newImg.getBounds());
+			}
 
-			gc.setBackground(ColorCache.getColor(firstImage.getDevice(), 30, 30, 30));
+			gc.setBackground(ColorCache.getColor(firstImage.getDevice(),
+					"COLOR_WIDGET_LIGHT_SHADOW"));
+			gc.fillRoundRectangle(0, 0, cellWidth, h2, 11, 8);
 			//gc.fillRectangle(2, 2, (int) (h2 * 1.77f) - 4, h2 - 4);
-			gc.fillRectangle(newImg.getBounds());
+			//gc.fillRectangle(newImg.getBounds());
 
 			if (cellHasMouse && SET_ALPHA) {
-				int[] bg = cell.getBackground();
+				bg = cell.getBackground();
 				if (bg != null) {
 					gc.setBackground(ColorCache.getColor(firstImage.getDevice(), bg));
 					gc.fillRectangle(newImg.getBounds());

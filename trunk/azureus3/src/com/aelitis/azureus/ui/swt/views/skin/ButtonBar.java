@@ -1,6 +1,5 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -9,12 +8,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 
@@ -26,11 +23,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.ILoginInfoListener;
@@ -138,7 +131,7 @@ public class ButtonBar
 		if (!Constants.isCVSVersion()) {
 			return;
 		}
-		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_ACTIVITY_TAB);
+		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 		if (skinObject != null) {
 			Menu menu = new Menu(skinObject.getControl());
 			MenuItem menuItem;
@@ -185,21 +178,6 @@ public class ButtonBar
 							}
 						}
 					}
-				}
-			});
-
-			menuItem = new MenuItem(menu, SWT.PUSH);
-			menuItem.setText("slide");
-			menuItem.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					SearchResultsTabArea.openSearchResults(Collections.EMPTY_MAP);
-				}
-			});
-			menuItem = new MenuItem(menu, SWT.PUSH);
-			menuItem.setText("unslide");
-			menuItem.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					SearchResultsTabArea.closeSearchResults(Collections.EMPTY_MAP);
 				}
 			});
 

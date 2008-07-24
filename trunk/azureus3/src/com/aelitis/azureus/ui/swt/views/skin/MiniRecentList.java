@@ -22,11 +22,11 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 /**
  * @author TuxPaper
@@ -57,8 +57,10 @@ public class MiniRecentList
 			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 			btn.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					skin.setActiveTab(SkinConstants.TABSET_MAIN,
-							SkinConstants.VIEWID_LIBRARY_TAB);
+					SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+					if (sidebar != null) {
+						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+					}
 				}
 			});
 		}

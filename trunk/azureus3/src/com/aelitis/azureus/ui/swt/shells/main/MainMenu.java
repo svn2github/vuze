@@ -1,33 +1,24 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.ui.swt.mainwindow.DebugMenuHelper;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
-import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
 
 public class MainMenu
@@ -264,29 +255,29 @@ public class MainMenu
 	private void addViewMenuItems(Menu viewMenu) {
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN,
-						SkinConstants.VIEWID_HOME_TAB);
+				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN,
-						SkinConstants.VIEWID_BROWSE_TAB);
+				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN,
-						SkinConstants.VIEWID_LIBRARY_TAB);
+				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
-				skin.setActiveTab(SkinConstants.TABSET_MAIN,
-						SkinConstants.VIEWID_PUBLISH_TAB);
+				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
 
@@ -408,26 +399,6 @@ public class MainMenu
 				SWTSkinObject skinObject = skin.getSkinObject(viewID);
 				if (skinObject != null) {
 					boolean newVisibility = !skinObject.isVisible();
-
-					// total hack to remove black bar at top for advanced view
-					if (skinObject.getViewID().equals("tabbar")) {
-						try {
-							SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-							if (tabSetMain != null
-									&& tabSetMain.getActiveTab().getViewID().equals(
-											SkinConstants.VIEWID_ADVANCED_TAB)) {
-								skinObject = skin.getSkinObject("advanced");
-								if (skinObject != null) {
-									Object layoutData = skinObject.getControl().getLayoutData();
-									if (layoutData instanceof FormData) {
-										((FormData) layoutData).top.offset = newVisibility ? 4 : 0;
-									}
-								}
-							}
-						} catch (Throwable t) {
-							// ignore
-						}
-					}
 
 					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility,
 							true, fast);

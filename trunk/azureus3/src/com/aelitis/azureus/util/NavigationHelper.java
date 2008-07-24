@@ -218,7 +218,7 @@ NavigationHelper
 			
 			List	l_args1 = new ArrayList();
 			
-			l_args1.add( SkinConstants.VIEWID_HOME_TAB  );
+			//l_args1.add( SkinConstants.VIEWID_HOME_TAB  );
 			
 			command1.put( "type", new Long( COMMAND_SWITCH_TO_TAB ));
 			command1.put( "args", l_args1 );
@@ -231,7 +231,7 @@ NavigationHelper
 			
 			List	l_args2 = new ArrayList();
 			
-			l_args2.add( SkinConstants.VIEWID_ACTIVITY_TAB );
+			//l_args2.add( SkinConstants.VIEWID_ACTIVITY_TAB );
 			
 			command2.put( "type", new Long( COMMAND_SWITCH_TO_TAB ));
 			command2.put( "args", l_args2 );

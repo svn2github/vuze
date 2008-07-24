@@ -33,14 +33,13 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTab;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ExternalStimulusHandler;
 import com.aelitis.azureus.util.ExternalStimulusListener;
 import com.aelitis.azureus.util.MapUtils;
@@ -159,14 +158,9 @@ public class StimulusRPC
 						if (decodedMap.containsKey("tab")) {
 							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
 							if (tabID.length() > 0) {
-								SWTSkinTabSet tabSet = mainWindow.getSkin().getTabSet(
-										SkinConstants.TABSET_MAIN);
-								if (tabSet != null) {
-									SWTSkinObjectTab activeTab = tabSet.getActiveTab();
-									if (activeTab != null) {
-										return activeTab.getViewID().equals("tab-" + tabID);
-									}
-								}
+								// 3.2 TODO: Should we be checking for partial matches?
+								SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+								return sidebar.getCurrentViewID().equals(tabID);
 							}
 						}
 							

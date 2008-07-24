@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -41,8 +42,8 @@ import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
@@ -51,9 +52,9 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-import com.aelitis.azureus.ui.swt.views.skin.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -273,54 +274,6 @@ public class UIFunctionsImpl
 		return null;
 	}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#openManagerView(org.gudy.azureus2.core3.download.DownloadManager)
-	public void openManagerView(DownloadManager dm) {
-		try {
-
-			String id = "ManagerView-";
-			TOTorrent torrent = dm.getTorrent();
-			if (torrent != null) {
-				id += torrent.getHashWrapper().toBase32String();
-			}
-
-			if (createSideBarItem(id, dm.getDisplayName(), ManagerView.class,
-					new Class[] {
-						AzureusCore.class,
-						DownloadManager.class
-					}, new Object[] {
-						AzureusCoreFactory.getSingleton(),
-						dm
-					})) {
-				return;
-			}
-
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.openManagerView(dm);
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "openManagerView", e));
-		}
-
-	}
-
-	private boolean createSideBarItem(String id, String title, Class iviewClass,
-			Class[] iviewClassArgs, Object[] iviewClassVals) {
-		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-		if (sideBarView instanceof SideBar) {
-			SideBar sideBar = (SideBar) sideBarView;
-
-			sideBar.createTreeItemFromIViewClass(SideBar.SIDEBAR_SECTION_LIBRARY, id,
-					title, iviewClass, iviewClassArgs, iviewClassVals, null, true);
-			return sideBar.showItemByID(id);
-		}
-		return false;
-	}
-
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.views.AbstractIView, java.lang.String)
 	public void openPluginView(AbstractIView view, String name) {
 		try {
@@ -328,19 +281,10 @@ public class UIFunctionsImpl
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
 
-				if (sideBar.createAndShowTreeItem(view) != null) {
+				if (sideBar.createAndShowTreeItem(view, name, true) != null) {
 					return;
 				}
 			}
-
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.openPluginView(view, name);
-
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "openPluginView", e));
 		}
@@ -349,42 +293,18 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.plugins.PluginView)
 	public void openPluginView(PluginView view) {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.openPluginView(view);
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "openPluginView", e));
-		}
-
+		openPluginView(view, view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.Object, boolean)
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {
 		try {
-			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
-			if (sideBarView instanceof SideBar) {
-				SideBar sideBar = (SideBar) sideBarView;
+			SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
-				if (sideBar.showItemByID(sViewID)) {
-					return;
-				}
+			if (sideBar != null) {
+				sideBar.showItemByID(sViewID);
 			}
-
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.openPluginView(sParentID, sViewID, l, dataSource, bSetFocus);
-
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "openPluginView", e));
 		}
@@ -393,19 +313,7 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
 	public void openPluginView(UISWTPluginView view) {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.openPluginView(view);
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "openPluginView", e));
-		}
-
+		openPluginView(view, view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshIconBar()
@@ -536,7 +444,7 @@ public class UIFunctionsImpl
 	public MainStatusBar getMainStatusBar() {
 		return mainWindow.getMainStatusBar();
 	}
-
+	
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
 	public boolean showConfig(String string) {
 		try {
@@ -553,135 +461,66 @@ public class UIFunctionsImpl
 		return false;
 	}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#showMyShares()
-	public void showMyShares() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
+	public void openView(int viewID, Object data) {
+		switch (viewID) {
+			case VIEW_CONSOLE:
+				mainWindow.openView(LoggerView.class, null, data, true);
+				break;
 
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showMyShares();
+			case VIEW_ALLPEERS:
+				mainWindow.openView(PeerSuperView.class, null, data, true);
+				break;
 
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showMyShares", e));
-		}
+			case VIEW_CONFIG:
+				mainWindow.openView(ConfigView.class, null, data, true);
+				break;
 
-	}
+			case VIEW_DM_DETAILS:
+				String id = "DMDetails-"; 
+				if (data instanceof DownloadManager) {
+					DownloadManager dm = (DownloadManager) data;
+					TOTorrent torrent = dm.getTorrent();
+					if (torrent != null) {
+						try {
+							id += torrent.getHashWrapper().toBase32String();
+						} catch (TOTorrentException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#showMyTorrents()
-	public void showMyTorrents() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
+				mainWindow.openView(ManagerView.class, id, data, true);
+				break;
 
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showMyTorrents();
+			case VIEW_DM_MULTI_OPTIONS:
+				mainWindow.openView(TorrentOptionsView.class, null, data, true);
+				break;
 
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showMyTorrents", e));
-		}
+			case VIEW_MYSHARES:
+				mainWindow.openView(MySharesView.class, null, data, true);
+				break;
 
-	}
+			case VIEW_MYTORRENTS:
+				mainWindow.openView(MyTorrentsSuperView.class, null, data, true);
+				break;
 
-	public void showDetailedListView() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
+			case VIEW_MYTRACKER:
+				mainWindow.openView(MyTrackerView.class, null, data, true);
+				break;
 
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showDetailedListView();
+			case VIEW_STATS:
+				mainWindow.openView(StatsView.class, null, data, true);
+				break;
+				
+			case VIEW_DETAILED_LISTVIEW:
+				mainWindow.openView(DetailedListView.class, null, data, true);
+				break;
 
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showDetailedListView", e));
-		}
-
-	}
-
-	// @see com.aelitis.azureus.ui.UIFunctions#showMyTracker()
-	public void showMyTracker() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showMyTracker();
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showMyTracker", e));
-		}
-
-	}
-
-	// @see com.aelitis.azureus.ui.UIFunctions#showStats()
-	public void showStats() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showStats();
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showStats", e));
-		}
-
-	}
-
-	// @see com.aelitis.azureus.ui.UIFunctions#showStatsDHT()
-	public void showStatsDHT() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showStatsDHT();
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showStatsDHT", e));
+			default:
+				break;
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#showStatsTransfers()
-	public void showStatsTransfers() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showStatsTransfers();
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "", e));
-		}
-	}
-
-	// @see com.aelitis.azureus.ui.UIFunctions#showConsole()
-	public void showConsole() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showConsole();
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "ShowConsole", e));
-		}
-	}
 
 	public UISWTInstance getUISWTInstance() {
 		return mainWindow.getUISWTInstanceImpl();
@@ -798,34 +637,6 @@ public class UIFunctionsImpl
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "refreshTorrentMenu", e));
-		}
-	}
-
-	public void showAllPeersView() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-			mainWindow.switchToAdvancedTab();
-			uiFunctions.showAllPeersView();
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showAllPeersView", e));
-		}
-	}
-
-	public void showMultiOptionsView(DownloadManager[] dms) {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(true);
-			if (uiFunctions == null) {
-				return;
-			}
-
-			uiFunctions.showMultiOptionsView(dms);
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "showMultiOptionsView", e));
 		}
 	}
 

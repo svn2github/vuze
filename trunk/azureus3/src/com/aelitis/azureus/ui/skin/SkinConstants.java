@@ -27,9 +27,6 @@ package com.aelitis.azureus.ui.skin;
  */
 public class SkinConstants
 {
-
-	public static final String TABSET_MAIN = "maintabs";
-
 	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
 
 	public static final String VIEWID_BROWSER_BROWSE = "browse";
@@ -39,22 +36,22 @@ public class SkinConstants
 	public static final String VIEWID_BROWSER_MINI = "minibrowse";
 	
 	public static final String VIEWID_BROWSER_PUBLISH = "publish";
-
-	public static final String VIEWID_BROWSE_TAB = "tab-browse";
-
-	public static final String VIEWID_HOME_TAB = "tab-home";
-
-	public static final String VIEWID_LIBRARY_TAB = "tab-library";
-
-	public static final String VIEWID_PUBLISH_TAB = "tab-publish";
-
-	public static final String VIEWID_ADVANCED_TAB = "tab-advanced";
-
-	public static final String VIEWID_ACTIVITY_TAB = "tab-activities";
-
-	public static final String VIEWID_MINILIBRARY_TAB = "tab-minilibrary";
-
-	public static final String VIEWID_SEARCHRESULTS_TAB = "tab-searchresults";
+//
+//	public static final String VIEWID_BROWSE_TAB = "tab-browse";
+//
+//	public static final String VIEWID_HOME_TAB = "tab-home";
+//
+//	public static final String VIEWID_LIBRARY_TAB = "tab-library";
+//
+//	public static final String VIEWID_PUBLISH_TAB = "tab-publish";
+//
+//	public static final String VIEWID_ADVANCED_TAB = "tab-advanced";
+//
+//	public static final String VIEWID_ACTIVITY_TAB = "tab-activities";
+//
+//	public static final String VIEWID_MINILIBRARY_TAB = "tab-minilibrary";
+//
+//	public static final String VIEWID_SEARCHRESULTS_TAB = "tab-searchresults";
 	
 	public static final String VIEWID_BUTTON_BAR = "buttonbar";
 	
@@ -74,6 +71,8 @@ public class SkinConstants
 
 	public static final String VIEWID_ACTIVITIESVIEW = "vuzeevents-area";
 
+	public static final String VIEWID_TOOLBAR = "global-toolbar";
+	
 	public static final String VIEWID_SIDEBAR_LIBRARY = "sidebar-library-area";
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_BIG = "library-bigtable-area";

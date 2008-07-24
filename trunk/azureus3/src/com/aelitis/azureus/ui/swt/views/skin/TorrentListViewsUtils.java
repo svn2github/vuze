@@ -28,7 +28,6 @@ import java.util.Arrays;
 
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -60,12 +59,14 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
@@ -1063,19 +1064,16 @@ public class TorrentListViewsUtils
 				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					SWTSkin skin = SWTSkinFactory.getInstance();
-					SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-					if (tabSetMain != null
-							&& !tabSetMain.getActiveTab().getSkinObjectID().equals(
-									"maintabs.home")) {
-						Shell shell = tabSetMain.getActiveTab().getControl().getShell();
+					SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+					// 3.2 TODO: properly detect any library
+					if (sideBar != null && !sideBar.getCurrentViewID().equals(SideBar.SIDEBAR_SECTION_LIBRARY)) {
 						Display current = Display.getCurrent();
 						// checking focusControl for null doesn't really work
 						// Preferably, we'd check to see if the app has the OS' focus
 						// and not display the popup when it doesn't
 						if (current != null && current.getFocusControl() != null
 								&& !MessageBoxShell.isOpen()) {
-							int ret = MessageBoxShell.open(shell,
+							int ret = MessageBoxShell.open(Utils.findAnyShell(),
 									MessageText.getString("v3.HomeReminder.title"),
 									MessageText.getString("v3.HomeReminder.text", new String[] {
 										dm.getDisplayName()
@@ -1087,7 +1085,7 @@ public class TorrentListViewsUtils
 									false, 15000);
 
 							if (ret == 1) {
-								tabSetMain.setActiveTab(SkinConstants.VIEWID_HOME_TAB);
+								sideBar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 							}
 						}
 					}

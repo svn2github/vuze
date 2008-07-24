@@ -34,8 +34,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.browser.listener.BrowserRpcBuddyListener;
+import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
@@ -48,8 +49,6 @@ import com.aelitis.azureus.util.MapUtils;
 public class SearchResultsTabArea
 	extends SkinView
 {
-	public static boolean PULL_TABS = false;
-
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	private SWTSkin skin;
@@ -59,10 +58,12 @@ public class SearchResultsTabArea
 	 */
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
-		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(SkinConstants.VIEWID_BROWSER_SEARCHRESULTS);
+		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
+				SkinConstants.VIEWID_BROWSER_SEARCHRESULTS, skinObject);
 
 		createBrowseArea(browserSkinObject);
 
+/**
 		final SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
 		if (tabSetMain != null) {
 			final SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
@@ -79,7 +80,15 @@ public class SearchResultsTabArea
 				tab.addListener(l);
 			}
 		}
-
+**/
+		
+		if (browserSkinObject != null) {
+  		Object o = skinObject.getData("CreationParams");
+  		
+  		if (o instanceof String) {
+  			browserSkinObject.setURL((String) o);
+  		}
+		}
 		
 		return null;
 	}
@@ -89,6 +98,7 @@ public class SearchResultsTabArea
 	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;		
+		browserSkinObject.getContext().addMessageListener(new MetaSearchListener(this));
 	}
 
 
@@ -98,14 +108,7 @@ public class SearchResultsTabArea
 		}
 	}
 
-	public static void openSearchResults(final Map params) {
-  	SearchResultsTabArea view = ensureSearchTab();
-  	if (view != null) {
-  		view._openSearchResults(params);
-  	}
-	}
-
-	private void _openSearchResults(final Map params) {
+	public void openSearchResults(final Map params) {
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
@@ -168,32 +171,7 @@ public class SearchResultsTabArea
 		});
 	}
 
-	public static void closeSearchResults(final Map params) {
-  	SearchResultsTabArea view = ensureSearchTab();
-  	if (view != null) {
-  		view._closeSearchResults(params);
-  	}
-	}
-	
-	private static SearchResultsTabArea ensureSearchTab() {
-		SearchResultsTabArea view = null;
-		// not avail yet!
-		SWTSkin skin = SWTSkinFactory.getInstance();
-		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSetMain != null) {
-			SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
-			if (tab != null) {
-				tabSetMain.setActiveTab(tab);
-				view = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-				if (view == null) {
-					return null;
-				}
-			}
-		}
-		return view;
-	}
-		
-	private void _closeSearchResults(final Map params) {
+	public void closeSearchResults(final Map params) {
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {

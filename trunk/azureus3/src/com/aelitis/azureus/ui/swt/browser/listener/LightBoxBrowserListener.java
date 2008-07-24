@@ -11,6 +11,8 @@ import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTab;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 /**
  * A listener to requests from a LightBox browser window
@@ -64,21 +66,10 @@ public class LightBoxBrowserListener
 			 * Find the active browser (if any) and set it's URL to the RedirectURL
 			 */
 			if (uiFunctions instanceof UIFunctionsImpl) {
-				UIFunctionsImpl uiFunctionsV3 = (UIFunctionsImpl) uiFunctions;
-				SWTSkin skin = uiFunctionsV3.getSkin();
-				SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-				SWTSkinObjectTab tab = tabSet.getActiveTab();
-
-				if (null != tab.getViewID()) {
-					if (true == SkinConstants.VIEWID_BROWSE_TAB.equals(tab.getViewID())) {
-						uiFunctions.viewURL(browserWindow.getRedirectURL(),
-								SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, true, true);
-
-					} else if (true == SkinConstants.VIEWID_PUBLISH_TAB.equals(tab.getViewID())) {
-						uiFunctions.viewURL(browserWindow.getRedirectURL(),
-								SkinConstants.VIEWID_BROWSER_PUBLISH, 0, 0, true, true);
-					}
-				}
+				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				
+				// 3.2 TODO: Get active content area, check if has a browser, and set url
+				//           If that's still what we really want to do here..
 			}
 		}
 

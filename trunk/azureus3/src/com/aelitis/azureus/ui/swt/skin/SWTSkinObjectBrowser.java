@@ -67,6 +67,8 @@ public class SWTSkinObjectBrowser
 
 	private BrowserContext context;
 
+	private String urlToUse;
+
 	/**
 	 * @param skin
 	 * @param properties
@@ -79,9 +81,25 @@ public class SWTSkinObjectBrowser
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "browser", parent);
 
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-
 		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
+		
+		if (cArea.isVisible()) {
+			init();
+		} else {
+			addListener(new SWTSkinObjectListener() {
+				public Object eventOccured(SWTSkinObject skinObject, int eventType,
+						Object params) {
+					if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+						init();
+					}
+					return null;
+				}
+			});
+		}
+	}
+	
+	public void init() {
+		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		try {
 			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
@@ -115,16 +133,15 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
 		context.addMessageListener(new BrowserRpcBuddyListener());
-		context.addMessageListener(new MetaSearchListener());
 
 		PublishUtils.setupContext(context);
 
 		setControl(browser);
-		String url = properties.getStringValue(sConfigID + ".url", (String) null);
+		String url = urlToUse != null ? urlToUse : sStartURL != null ? sStartURL
+				: properties.getStringValue(sConfigID + ".url", (String) null);
 		if (url != null) {
 			setURL(url);
 		}
-		
 	}
 
 	public Browser getBrowser() {
@@ -132,6 +149,10 @@ public class SWTSkinObjectBrowser
 	}
 
 	public void setURL(final String url) {
+		urlToUse = url;
+		if (browser == null) {
+			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (url == null) {
@@ -146,11 +167,15 @@ public class SWTSkinObjectBrowser
 							urlToUse += "?" + Constants.URL_SUFFIX;
 						}
 					}
-					browser.setUrl(urlToUse);
+					if (browser != null) {
+						browser.setUrl(urlToUse);
+					}
 				}
 				if (sStartURL == null) {
 					sStartURL = url;
-					browser.setData("StartURL", url);
+					if (browser != null) {
+						browser.setData("StartURL", url);
+					}
 				}
 				//System.out.println(SystemTime.getCurrentTime() + "] Set URL: " + url);
 			}

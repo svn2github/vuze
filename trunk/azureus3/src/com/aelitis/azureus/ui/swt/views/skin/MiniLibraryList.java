@@ -18,16 +18,10 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
-import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 
 /**
  * @author TuxPaper
@@ -41,43 +35,12 @@ extends SkinView
 
 	private TorrentListView view;
 
-	private SWTSkinObjectText soTitle;
-
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 
 		view = new TorrentListView(this, PREFIX, TorrentListView.VIEW_MY_MEDIA,
 				true, true);
 		
-		if (Constants.isCVSVersion()) {
-  		SWTSkinObject skinObjectTab = getSkinObject(SkinConstants.VIEWID_MINILIBRARY_TAB);
-  		if (skinObjectTab instanceof SWTSkinObjectContainer){
-  			SWTSkinObjectContainer soTab = (SWTSkinObjectContainer) skinObjectTab;
-  			SWTSkinObject[] children = soTab.getChildren();
-  			for (int i = 0; i < children.length; i++) {
-  				SWTSkinObject child = children[i];
-  				if (child instanceof SWTSkinObjectText) {
-  					soTitle = (SWTSkinObjectText) child;
-  					break;
-  				}
-  			}
-  		}
-  
-  
-  		if (soTitle != null) {
-    		view.addListener(new TorrentListViewListener() {
-    			public void countChanged() {
-    				String s = MessageText.getString("v3.MainWindow.tab.minilibrary");
-    				int count = view.size(false);
-    				if (count > 0) {
-    					s += " - " + count;
-    				}
-    				soTitle.setText(s);
-    			}
-    		});
-  		}
-		}
-
 		return null;
 	}
 

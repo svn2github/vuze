@@ -52,6 +52,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -76,7 +77,6 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -92,6 +92,9 @@ import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.PublishUtils;
@@ -105,7 +108,7 @@ import org.gudy.azureus2.plugins.download.Download;
  *
  */
 public class MainWindow
-	implements SWTSkinTabSetListener, IMainWindow, ObfusticateShell
+	implements IMainWindow, ObfusticateShell, SideBarListener
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -119,6 +122,10 @@ public class MainWindow
 	private final IUIIntializer uiInitializer;
 
 	private SWTSkin skin;
+
+	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMW_tab;
+
+	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMW_SB;
 
 	private org.gudy.azureus2.ui.swt.mainwindow.MainWindow oldMainWindow;
 
@@ -265,7 +272,7 @@ public class MainWindow
 			public void downloadWillBeRemoved(DownloadManager dm,
 					boolean remove_torrent, boolean remove_data)
 
-			throws GlobalManagerDownloadRemovalVetoException {
+					throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
@@ -621,11 +628,6 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-			if (tabSet != null) {
-				tabSet.addListener(this);
-			}
-
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			System.out.println("pre SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -642,22 +644,13 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			if (tabSet != null) {
-
-				String startTab;
-
-				COConfigurationManager.setBooleanDefault("v3.Start Advanced", false);
-				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-					startTab = SkinConstants.VIEWID_ADVANCED_TAB;
-				} else {
-					startTab = SkinConstants.VIEWID_HOME_TAB;
+			SkinViewManager.addListener(new SkinViewManagerListener() {
+				public void skinViewAdded(SkinView skinview) {
+					if (skinview instanceof SideBar) {
+						setupSideBar((SideBar)skinview);
+					}
 				}
-				tabSet.setActiveTab(startTab);
-
-				System.out.println("Activate tab " + startTab + " took "
-						+ (SystemTime.getCurrentTime() - startTime) + "ms");
-				startTime = SystemTime.getCurrentTime();
-			}
+			});
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 
@@ -757,6 +750,8 @@ public class MainWindow
 					}
 				}
 			});
+		} catch (Throwable t) {
+			Debug.out(t);
 		} finally {
 
 			shell.layout(true, true);
@@ -785,22 +780,20 @@ public class MainWindow
 			 * KN: This code must be clened up once we decide what to do with show/hide of these elements
 			 * For now we're forcing then to be visible
 			 */
-//			configID = "Buttonbar.visible";
-//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-//					configID)) {
-//				COConfigurationManager.setBooleanDefault(configID, true);
-//			}
-			setVisible(WINDOW_ELEMENT_BUTTON_BAR,
-					true);
-//
-//			configID = "TabBar.visible";
-//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-//					configID)) {
-//				COConfigurationManager.setBooleanDefault(configID, true);
-//			}
-			setVisible(WINDOW_ELEMENT_TABBAR,
-					true);
-			
+			//			configID = "Buttonbar.visible";
+			//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+			//					configID)) {
+			//				COConfigurationManager.setBooleanDefault(configID, true);
+			//			}
+			setVisible(WINDOW_ELEMENT_BUTTON_BAR, true);
+			//
+			//			configID = "TabBar.visible";
+			//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
+			//					configID)) {
+			//				COConfigurationManager.setBooleanDefault(configID, true);
+			//			}
+			setVisible(WINDOW_ELEMENT_TABBAR, true);
+
 			showMainWindow();
 
 			//================
@@ -874,6 +867,29 @@ public class MainWindow
 				}
 			});
 		}
+	}
+
+	/**
+	 * @param skinview
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected void setupSideBar(SideBar sidebar) {
+		// 3.2 TODO: set default sidebar item
+		String startTab;
+		
+		if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+			startTab = SideBar.SIDEBAR_SECTION_ADVANCED;
+		} else {
+			startTab = SideBar.SIDEBAR_SECTION_WELCOME;
+		}
+		sidebar.showItemByID(startTab);
+		
+		sidebar.addListener(this);
+		
+//		System.out.println("Activate sidebar " + startTab + " took "
+//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+//		startTime = SystemTime.getCurrentTime();
 	}
 
 	/**
@@ -983,18 +999,12 @@ public class MainWindow
 
 	private String getUsageActiveTabID() {
 		try {
-			SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-			if (tabSetMain != null && tabSetMain.getActiveTab() != null) {
-				String id = tabSetMain.getActiveTab().getSkinObjectID();
-				if (id.equals("maintabs.home")) {
-					SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
-					if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
-						id += "-"
-								+ tabSetLeft.getActiveTab().getSkinObjectID().substring(8);
-					}
-				}
-				if (id.length() > 9) {
-					id = id.substring(9);
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sidebar != null) {
+				String id = sidebar.getCurrentViewID();
+				int i = id.indexOf(id, '_');
+				if (i > 0) {
+					id = id.substring(0, i);
 				}
 				return id;
 			}
@@ -1293,10 +1303,14 @@ public class MainWindow
 		views.put("minidownload-list", MiniDownloadList.class);
 		views.put("minirecent-list", MiniRecentList.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY, SBC_LibraryView.class);
-		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG, SBC_LibraryListView.class);
-		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL, SBC_LibraryListView.class);
-		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD, SBC_LibraryTableView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
+				SBC_LibraryListView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL,
+				SBC_LibraryListView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD,
+				SBC_LibraryTableView.class);
 		views.put("advanced", SBC_AdvancedView.class);
+		views.put(SkinConstants.VIEWID_TOOLBAR, ToolBarView.class);
 
 		views.put("browse-area", Browse.class);
 
@@ -1310,8 +1324,9 @@ public class MainWindow
 		views.put(SkinConstants.VIEWID_MINILIBRARY, MiniLibraryList.class);
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
-		
-		views.put("betatab-area", com.aelitis.azureus.ui.swt.views.skin.SideBar.class);
+
+		views.put("betatab-area",
+				com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.class);
 
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
@@ -1329,18 +1344,19 @@ public class MainWindow
 						try {
 							SkinView skinView = (SkinView) cla.newInstance();
 							skinView.setMainSkinObject(skinObject);
-							SkinViewManager.add(skinView);
 							skinObject.addListener(skinView);
 							skinView.eventOccured(skinObject, eventType, params);
-							
+
 							if (skinView instanceof UIUpdatable) {
 								UIUpdatable updateable = (UIUpdatable) skinView;
 								try {
-									UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(updateable);
+									UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
+											updateable);
 								} catch (Exception e) {
 									Debug.out(e);
 								}
 							}
+							SkinViewManager.add(skinView);
 						} catch (InstantiationException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -1719,9 +1735,6 @@ public class MainWindow
 			return;
 		}
 
-		// Switch to browse tab
-		SearchResultsTabArea.closeSearchResults(Collections.EMPTY_MAP);
-
 		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
 				+ SystemTime.getCurrentTime();
@@ -1731,248 +1744,11 @@ public class MainWindow
 					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 		}
 
-		System.out.println(sURL);
-
-		UIFunctions functions = UIFunctionsManager.getUIFunctions();
-		if (functions != null) {
-			functions.viewURL(sURL, SkinConstants.VIEWID_BROWSER_SEARCHRESULTS, 0, 0,
-					false, false);
-			return;
-		}
-
-		// below is the old impementation of search, which creates a new tab
-		// and browser for each search.
-		/*
-		// Get Search Results tab (which contains a tabset of searched terms),
-		// create if needed
-		SWTSkinObject skinObject = skin.getSkinObject("browse-tabs");
-		if (skinObject == null) {
-			System.err.println("no browse-tabs");
-			return;
-		}
-
-		SWTSkinTabSet tabSetSearch = skin.getTabSet(SWTSkinTabSet.getTabSetID(skin,
-				skinObject, "search-tab"));
-
-		SWTSkinObjectTab searchTab = null;
-		if (tabSetSearch != null) {
-			SWTSkinObjectTab[] tabs = tabSetSearch.getTabs();
-			if (tabs.length > 0) {
-				searchTab = tabs[tabs.length - 1];
-			}
-		}
-
-		String sTabID = "internal.tab.searchresults";
-		if (searchTab == null || !searchTab.getSkinObjectID().equals(sTabID)) {
-			// Create search results tab
-			searchTab = skin.createTab(sTabID, "search-tab", skinObject);
-
-			// Attach the new tab to the previous one
-			Control currentControl = searchTab.getControl();
-			FormData formData = (FormData) currentControl.getLayoutData();
-			if (formData == null) {
-				formData = new FormData();
-			}
-			formData.right = new FormAttachment(100, 0);
-			currentControl.setLayoutData(formData);
-
-			currentControl.getParent().layout(true);
-
-			tabSetSearch = searchTab.getTabset();
-		}
-
-		if (tabSetSearch != null) {
-			tabSetSearch.setActiveTabByID(sTabID);
-		}
-		SWTSkinObject searchResultsTabsView = skin.getSkinObject("search-results-tabs");
-		if (searchResultsTabsView == null) {
-			System.err.println("searchResultsTabs null");
-			return;
-		}
-
-		sTabID = "internal.tab.searchresults."
-				+ Integer.toHexString(sSearchText.hashCode());
-		SWTSkinObjectTab tabSearchResult = null;
-
-		String sTabSetID = SWTSkinTabSet.getTabSetID(skin, searchResultsTabsView,
-				"tab");
-		SWTSkinTabSet tabSetSearchResults = skin.getTabSet(sTabSetID);
-		SWTSkinObject lastTab = null;
-		if (tabSetSearchResults != null) {
-			SWTSkinObject[] tabs = tabSetSearchResults.getTabs();
-			if (tabs.length > 0) {
-				lastTab = tabs[tabs.length - 1];
-			}
-
-			tabSearchResult = tabSetSearchResults.getTab(sTabID);
-		}
-
-		if (tabSearchResult == null) {
-			// Create tab specifically for this search
-
-			tabSearchResult = skin.createTab(sTabID, "tab", searchResultsTabsView);
-
-			if (tabSetSearchResults == null) {
-				tabSetSearchResults = skin.getTabSet(sTabSetID);
-			}
-
-			Control currentControl = tabSearchResult.getControl();
-
-			// Attach the new tab to the previous one
-			if (lastTab != null) {
-				FormData formData = (FormData) currentControl.getLayoutData();
-				if (formData == null) {
-					formData = new FormData();
-				}
-				formData.left = new FormAttachment(lastTab.getControl(), 2);
-				currentControl.setLayoutData(formData);
-			}
-
-			// Set the new tab's text
-			SWTSkinObject tabText = skin.getSkinObject("search-result-tab-text",
-					tabSearchResult);
-			if (tabText instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) tabText).setText(sSearchText);
-			}
-
-			searchResultsTabsView.getControl().getParent().layout(true, true);
-
-			String[] activeWidgetIDs = tabSearchResult.getActiveWidgetIDs();
-			SWTSkinObject searchResultsView = skin.getSkinObject("search-results-view");
-			if (activeWidgetIDs.length == 1 && searchResultsView != null) {
-				String sContentConfigID = activeWidgetIDs[0];
-
-				String sContentID = "internal.tab.searchresults.content."
-						+ Integer.toHexString(sSearchText.hashCode());
-				SWTSkinObject searchResultsContent = skin.createSkinObject(sContentID,
-						sContentConfigID, searchResultsView);
-
-				tabSearchResult.setActiveWidgets(new SWTSkinObject[] {
-					searchResultsContent
-				});
-
-				SWTSkinObject searchResultsContentG = skin.getSkinObject(
-						"search-results-google", searchResultsContent);
-				if (searchResultsContentG != null) {
-					Composite cArea = (Composite) searchResultsContentG.getControl();
-
-					final Browser browser = new Browser(cArea, SWT.NONE);
-					final ClientMessageContext context = new BrowserContext("search",
-							browser, null, true);
-					context.addMessageListener(new TorrentListener(core));
-					browser.setLayoutData(Utils.getFilledFormData());
-					//					browser.setUrl("http://www.google.com/search?num=5&q="
-					//		+ UrlUtils.encode(sSearchText + " torrent"));
-					browser.setUrl(sURL);
-					cArea.layout(true, true);
-				}
-
-				SWTSkinObject searchResultsContentN = skin.getSkinObject(
-						"search-results-network", searchResultsContent);
-				if (searchResultsContentN != null) {
-					Composite cArea = (Composite) searchResultsContentN.getControl();
-
-					final Browser browser = new Browser(cArea, SWT.NONE);
-					new BrowserContext("search", browser, null, true);
-
-					browser.setLayoutData(Utils.getFilledFormData());
-
-					NetworkSearch.search(core, sSearchText, browser);
-
-					cArea.layout(true, true);
-				}
-			}
-		}
-
-		// activate!
-		if (tabSetSearchResults != null) {
-			tabSetSearchResults.setActiveTabByID(sTabID);
-		}
-		*/
-	}
-
-	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinTabSetListener#tabChanged(com.aelitis.azureus.ui.swt.skin.SWTSkinTabSet, java.lang.String, java.lang.String)
-	public void tabChanged(SWTSkinTabSet tabSet, String oldTabID, String newTabID) {
-
-		MenuFactory.isAZ3_ADV = newTabID.equals("maintabs.advanced");
-
-		boolean isDashboardTab = tabSet.getID().equals(
-				SkinConstants.TABSET_DASHBOARD_LEFT);
-		boolean isMainTab = tabSet.getID().equals(SkinConstants.TABSET_MAIN);
-		if (mapTrackUsage != null) {
-			String id = "";
-			if (isMainTab) {
-				id = oldTabID;
-			} else {
-				SWTSkinTabSet tabMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-				SWTSkinObjectTab tab = tabMain.getActiveTab();
-				if (tab != null) {
-					id = tab.getSkinObjectID();
-				}
-			}
-			if (id.length() > 9) {
-				id = id.substring(9);
-			}
-			String id2 = "";
-			if (isDashboardTab) {
-				id2 = oldTabID;
-			} else if (oldTabID.equals("maintabs.home")) {
-				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
-				if (tabSetLeft != null && tabSetLeft.getActiveTab() != null) {
-					id2 = tabSetLeft.getActiveTab().getSkinObjectID();
-				}
-			}
-			if (id2.length() > 8) {
-				id2 = "-" + id2.substring(8);
-			}
-
-			updateMapTrackUsage(id + id2);
-		}
-
-		if (isMainTab) {
-			// TODO: Don't use internal skin IDs.  Skin needs to provide an ViewID
-			//        we can query (or is passed in)
-			if (newTabID.equals("maintabs.advanced")) {
-				//createOldMainWindow();
-			} else if (newTabID.equals("maintabs.home")
-					&& oldTabID.equals("maintabs.home")) {
-
-				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
-			} else if (newTabID.equals("maintabs.browse")
-					&& oldTabID.equals("maintabs.browse")) {
-
-				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
-			} else if (newTabID.equals("maintabs.publish")
-					&& oldTabID.equals("maintabs.publish")) {
-
-				restartBrowser(tabSet.getActiveTab().getActiveWidgets(false));
-			}
-
-			if (newTabID.equals("maintabs.home")) {
-				SWTSkinTabSet tabSetLeft = skin.getTabSet(SkinConstants.TABSET_DASHBOARD_LEFT);
-				if (tabSetLeft != null && tabSetLeft.getActiveTab() == null) {
-					tabSetLeft.addListener(this);
-					String startTab = COConfigurationManager.getStringParameter("v3.home-tab.starttab");
-
-					if (!tabSetLeft.setActiveTab(startTab)) {
-						tabSetLeft.setActiveTab(SkinConstants.VIEWID_ACTIVITY_TAB);
-					}
-				}
-			}
-
-			/*
-			 * Updates the enablement states when ever a tab is selected
-			 */
-			MenuFactory.updateEnabledStates(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
-		} else if (isDashboardTab) {
-			String newTabViewID = tabSet.getActiveTab().getViewID();
-			if (newTabViewID.equals("tab-activities")) {
-				skin.getSkinObjectByID("main.area.events").setVisible(true);
-			} else {
-				skin.getSkinObjectByID("main.area.minilibrary").setVisible(true);
-			}
-			COConfigurationManager.setParameter("v3.home-tab.starttab", newTabViewID);
-		}
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		String id = "Search." + sSearchText;
+		sidebar.createTreeItemFromSkinRef(SideBar.SIDEBAR_SECTION_SEARCH, id,
+				"main.area.searchresultstab", sSearchText, null, sSearchText, true);
+		sidebar.showItemByID(id);
 	}
 
 	private void restartBrowser(SWTSkinObject[] search) {
@@ -2036,31 +1812,25 @@ public class MainWindow
 			return oldMainWindow;
 		}
 
+		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sideBar != null) {
+			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_ADVANCED);
+		}
+
 		SkinView skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
 		if (skinView instanceof SBC_AdvancedView) {
-			oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
-		} else {
-			SWTSkinObject skinObject = skin.getSkinObject("advanced");
-			// trigger creation of SBC_AdvancedView
-			skinObject.setVisible(true);
-
-			skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
-			if (skinView instanceof SBC_AdvancedView) {
-				oldMainWindow = ((SBC_AdvancedView)skinView).getOldMainWindow();
-			}
-		}
-		
-		if (oldMainWindow != null) {
-			switchToAdvancedTab();
+			oldMainWindow = ((SBC_AdvancedView) skinView).getOldMainWindow();
 		}
 		return oldMainWindow;
 	}
 
 	public org.gudy.azureus2.ui.swt.mainwindow.MainWindow getOldMainWindow(
 			boolean bForceCreate) {
-		if (oldMainWindow == null && bForceCreate) {
-			return createOldMainWindow();
+		if (oldMW_SB == null && bForceCreate) {
+			oldMainWindow = createOldMainWindow();
 		}
+		oldMainWindow = oldMW_SB;
+
 		return oldMainWindow;
 	}
 
@@ -2072,28 +1842,6 @@ public class MainWindow
 			return oldMainWindow.getUIFunctions();
 		}
 		return null;
-	}
-
-	private String getActiveTab() {
-		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSetMain == null) {
-			return "";
-		}
-		SWTSkinObjectTab activeTab = tabSetMain.getActiveTab();
-		if (activeTab == null) {
-			return "";
-		}
-		return activeTab.getViewID();
-	}
-
-	public void switchToAdvancedTab() {
-		SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSetMain == null) {
-			System.err.println(SkinConstants.TABSET_MAIN);
-			return;
-		}
-
-		tabSetMain.setActiveTab(SkinConstants.VIEWID_ADVANCED_TAB);
 	}
 
 	public UISWTInstance getUISWTInstanceImpl() {
@@ -2224,7 +1972,7 @@ public class MainWindow
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 			SWTSkinUtils.setVisibility(skin, "ButtonBar.visible",
 					SkinConstants.VIEWID_BUTTON_BAR, value, true, true);
-			
+
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 			SWTSkinUtils.setVisibility(skin, "TabBar.visible",
 					SkinConstants.VIEWID_TAB_BAR, value, true, true);
@@ -2300,10 +2048,7 @@ public class MainWindow
 	}
 
 	public Image generateObfusticatedImage() {
-		if (getActiveTab().equals(SkinConstants.VIEWID_ADVANCED_TAB)
-				&& oldMainWindow != null) {
-			return oldMainWindow.generateObfusticatedImage();
-		}
+		// 3.2 TODO: Obfusticate! (esp advanced view)
 
 		Image image;
 		Rectangle clientArea = shell.getClientArea();
@@ -2317,4 +2062,81 @@ public class MainWindow
 		}
 		return image;
 	}
+
+	/**
+	 * @param cla
+	 * @param data
+	 *
+	 * @since 3.1.1.1
+	 */
+	public IView openView(Class cla, final String id, final Object data,
+			final boolean closeable) {
+		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+
+		IView viewFromID = sideBar.getIViewFromID(id);
+		if (viewFromID != null) {
+			sideBar.showItemByID(id);
+			return viewFromID;
+		}
+		try {
+			final IView view = (IView) cla.newInstance();
+
+			Utils.execSWTThreadLater(0, new AERunnable() {
+
+				public void runSupport() {
+					if (sideBar != null) {
+						String currentViewID = sideBar.getCurrentViewID();
+						if (oldMainWindow != null && currentViewID != null
+								&& currentViewID.equals("Advanced_SB")) {
+							Tab mainTabSet = oldMainWindow.getMainTabSet();
+							mainTabSet.createTabItem(view, true);
+						} else {
+							// TODO: Need to parent it
+							if (sideBar.createAndShowTreeItem(view, id, closeable) == null) {
+								return;
+							}
+						}
+					}
+
+					view.dataSourceChanged(data);
+				}
+			});
+
+			return view;
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(org.gudy.azureus2.ui.swt.views.IView, java.lang.String, org.gudy.azureus2.ui.swt.views.IView, java.lang.String)
+	public void sidebarItemSelected(IView view, String id, IView oldView,
+			String oldID) {
+		if (id == null) {
+			return;
+		}
+
+		if (mapTrackUsage != null && oldID != null) {
+			String id2 = oldID;
+			int i = id2.indexOf(id, '_');
+			if (i > 0) {
+				id2 = id2.substring(0, i);
+			}
+			updateMapTrackUsage(id2);
+		}
+
+		if (id.equals("Advanced_SB") && oldMW_SB == null) {
+			SkinView[] advViews = SkinViewManager.getMultiByClass(SBC_AdvancedView.class);
+			if (advViews != null) {
+				for (int i = 0; i < advViews.length; i++) {
+					SBC_AdvancedView advView = (SBC_AdvancedView) advViews[i];
+					if (oldMW_tab == null || advView.getOldMainWindow() != oldMW_tab) {
+						oldMW_SB = advView.getOldMainWindow();
+					}
+				}
+			}
+			oldMainWindow = oldMW_SB;
+		}
+	}
+
 }

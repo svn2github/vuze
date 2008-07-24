@@ -20,8 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author TuxPaper
@@ -35,15 +34,32 @@ public class SkinViewManager
 
 	private static Map skinIDs = new HashMap();
 	
+	private static List listeners = new ArrayList();
+	
 	/**
 	 * @param key
 	 * @param skinView
 	 */
 	public static void add(SkinView skinView) {
-		skinViews.put(skinView.getClass(), skinView);
+		Object object = skinViews.get(skinView.getClass());
+		if (object instanceof SkinView[]) {
+			SkinView[] oldSkinViews = (SkinView[])object;
+			SkinView[] newSkinViews = new SkinView[oldSkinViews.length + 1];
+			System.arraycopy(oldSkinViews, 0, newSkinViews, 0, oldSkinViews.length);
+			newSkinViews[oldSkinViews.length] = skinView;
+			
+			skinViews.put(skinView.getClass(), newSkinViews);
+		} else if (object != null) {
+			Object[] newObjs = new SkinView[] { (SkinView) object, skinView };
+			skinViews.put(skinView.getClass(), newObjs);
+		} else {
+			skinViews.put(skinView.getClass(), skinView);
+		}
 		if (skinView.getMainSkinObject() != null) {
 			skinIDs.put(skinView.getMainSkinObject().getSkinObjectID(), skinView);
 		}
+		
+		triggerListeners(skinView);
 	}
 
 	/**
@@ -51,10 +67,40 @@ public class SkinViewManager
 	 * @return
 	 */
 	public static SkinView getByClass(Class cla) {
-		return (SkinView) skinViews.get(cla);
+		Object object = skinViews.get(cla);
+		if (object instanceof SkinView[]) {
+			return ((SkinView[]) object)[0];
+		}
+		return (SkinView) object;
+	}
+	
+	public static SkinView[] getMultiByClass(Class cla) {
+		Object object = skinViews.get(cla);
+		if (object instanceof Object[]) {
+			return (SkinView[]) ((Object[]) object);
+		}
+		return new SkinView[] {
+			(SkinView) object
+		};
 	}
 
 	public static SkinView getBySkinObjectID(String id) {
 		return (SkinView) skinIDs.get(id);
+	}
+	
+	public static void addListener(SkinViewManagerListener l) {
+		listeners.add(l);
+	}
+	
+	private static void triggerListeners(SkinView skinView) {
+		Object[] array = listeners.toArray();
+		for (int i = 0; i < array.length; i++) {
+			SkinViewManagerListener l = (SkinViewManagerListener) array[i];
+			l.skinViewAdded(skinView);
+		}
+	}
+	
+	public static interface SkinViewManagerListener {
+		public void skinViewAdded(SkinView skinview);
 	}
 }

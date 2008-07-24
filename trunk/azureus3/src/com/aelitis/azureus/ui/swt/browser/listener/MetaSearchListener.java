@@ -21,7 +21,6 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 
@@ -30,13 +29,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
@@ -80,10 +73,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 	public static final String OP_LOAD_TORRENT			= "load-torrent";
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
+
+	private final SearchResultsTabArea searchResultsArea;
 	
 	
-	public MetaSearchListener() {
+	public MetaSearchListener(SearchResultsTabArea searchResultsArea) {
 		super(LISTENER_ID);
+		this.searchResultsArea = searchResultsArea;
 	}
 	
 	public void handleMessage(BrowserMessage message) {
@@ -692,12 +688,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			SearchResultsTabArea.openSearchResults(decodedMap);
+			searchResultsArea.openSearchResults(decodedMap);
 		}else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			SearchResultsTabArea.closeSearchResults(decodedMap);
+			searchResultsArea.closeSearchResults(decodedMap);
 		}else if(OP_LOAD_TORRENT.equals(opid)) {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();

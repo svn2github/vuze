@@ -603,6 +603,8 @@ public class SWTSkin
 		if (DEBUGLAYOUT) {
 			System.out.println("==== End Apply Layout");
 		}
+		
+		skinProperties.clearCache();
 	}
 
 	/**
@@ -616,7 +618,7 @@ public class SWTSkin
 
 		Control controlToLayout = skinObject.getControl();
 
-		if (controlToLayout == null) {
+		if (controlToLayout == null || controlToLayout.isDisposed()) {
 			return;
 		}
 
@@ -1192,8 +1194,7 @@ public class SWTSkin
 			bLayoutComplete = false;
 
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
-					parentSkinObject, true, true);
-			skinObject.setData("CreationParams", creationParams);
+					parentSkinObject, true, true, creationParams);
 			if (b && skinObject != null) {
 				layout();
 				Control control = skinObject.getParent().getControl();
@@ -1253,6 +1254,13 @@ public class SWTSkin
 	private SWTSkinObject linkIDtoParent(SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bAddView) {
+		return linkIDtoParent(properties, sID, sConfigID, parentSkinObject,
+				bForceCreate, bAddView, null);
+	}
+
+	private SWTSkinObject linkIDtoParent(SWTSkinProperties properties,
+			String sID, String sConfigID, SWTSkinObject parentSkinObject,
+			boolean bForceCreate, boolean bAddView, Object creationParams) {
 		currentSkinObjectcreationCount++;
 
 		SWTSkinObject skinObject = null;
@@ -1337,6 +1345,8 @@ public class SWTSkin
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
+			
+			skinObject.setData("CreationParams", creationParams);
 
 			if (bAddView) {
 				String sViewID = skinObject.getViewID();

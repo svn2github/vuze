@@ -528,7 +528,6 @@ public class Initializer
 			clientMsgContext.addMessageListener(new LightBoxBrowserRequestListener());
 			clientMsgContext.addMessageListener(new StatusListener());
 			clientMsgContext.addMessageListener(new BrowserRpcBuddyListener());
-			clientMsgContext.addMessageListener(new MetaSearchListener());
 		}
 	}
 }

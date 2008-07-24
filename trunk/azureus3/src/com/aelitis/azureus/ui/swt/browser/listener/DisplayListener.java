@@ -7,13 +7,8 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -22,11 +17,20 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeFriendUtils;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.MapUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class DisplayListener
 	extends AbstractBrowserMessageListener
@@ -193,26 +197,14 @@ public class DisplayListener
 		 * Refreshes all except the currently active tab
 		 */
 		if (true == VZ_NON_ACTIVE.equals(tabID)) {
-			SWTSkinTabSet tabSet = skin.getTabSet(SkinConstants.TABSET_MAIN);
-			SWTSkinObjectTab activeTab = tabSet.getActiveTab();
+			SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+			
+			// 3.2 TODO: Need to fix this up
 
 			List browserViewIDs = new ArrayList();
-			if (null == activeTab
-					|| false == SkinConstants.VIEWID_BROWSE_TAB.equals(activeTab.getViewID())) {
-				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_BROWSE);
-			}
-			if (null == activeTab
-					|| false == SkinConstants.VIEWID_HOME_TAB.equals(activeTab.getViewID())) {
-				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_MINI);
-			}
-
-			//KN: The publish tab is left out on purpose; we may add it back in if it makes sense later
-			// Arbitrarily refreshing the Publish tab may erase whatever info the user may have entered
-			// but not committed yet
-			//			if (null == tab || false == SkinConstants.VIEWID_PUBLISH_TAB.equals(tab.getViewID())) {
-			//				browserViewIDs.add(SkinConstants.VIEWID_BROWSER_PUBLISH);
-			//			}
-
+			
+			// Check if not active view and refresh (personally, sounds dangerous)
+			
 			for (Iterator iterator = browserViewIDs.iterator(); iterator.hasNext();) {
 				refreshBrowser(iterator.next().toString());
 			}
