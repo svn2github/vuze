@@ -1747,7 +1747,7 @@ public class MainWindow
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		String id = "Search." + sSearchText;
 		sidebar.createTreeItemFromSkinRef(SideBar.SIDEBAR_SECTION_SEARCH, id,
-				"main.area.searchresultstab", sSearchText, null, sSearchText, true);
+				"main.area.searchresultstab", sSearchText, null, sURL, true);
 		sidebar.showItemByID(id);
 	}
 
