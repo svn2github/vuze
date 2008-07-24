@@ -18,11 +18,12 @@
 
 package com.aelitis.azureus.buddy.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
@@ -36,6 +37,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.Constants;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -62,14 +64,12 @@ public class VuzeBuddyImpl
 
 	private long createdOn;
 
-	private byte[] avatar;
-
 	private String avatarURL;
 
 	private CopyOnWriteList pluginBuddies = new CopyOnWriteList();
 
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
-	
+
 	private ArrayList listeners = new ArrayList(0);
 
 	protected VuzeBuddyImpl(String publicKey) {
@@ -111,9 +111,9 @@ public class VuzeBuddyImpl
 		if (newAvatar != null) {
 			setAvatar(newAvatar);
 		}
-		
+
 		String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
-		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || avatar == null) {
+		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || !hasAvatar()) {
 			avatarURL = newAvatarURL;
 			if (avatarURL != null) {
 				ImageDownloader.loadImage(avatarURL,
@@ -126,7 +126,6 @@ public class VuzeBuddyImpl
 			}
 		}
 
-		
 		setCode(MapUtils.getMapString(mapNewBuddy, "code", null));
 		setCreatedOn(MapUtils.getMapLong(mapNewBuddy, "created-on", 0));
 	}
@@ -142,7 +141,6 @@ public class VuzeBuddyImpl
 		map.put("pks", pks);
 
 		map.put("avatar.url", avatarURL);
-		map.put("avatar", avatar);
 
 		return map;
 	}
@@ -183,36 +181,57 @@ public class VuzeBuddyImpl
 	}
 
 	public byte[] getAvatar() {
-		return avatar;
+		try {
+			File file = getAvatarFile();
+			if (file.exists()) {
+				FileInputStream fis = new FileInputStream(file);
+				return FileUtil.readInputStreamAsByteArray(fis);
+			}
+		} catch (Throwable t) {
+		}
+
+		return null;
+	}
+	
+	private File getAvatarFile() {
+		// use hash of login id in case it has special chars
+		return new File(SystemProperties.getUserPath(), "friends"
+				+ File.separator + getLoginID().hashCode() + ".ico");
+	}
+
+	private boolean hasAvatar() {
+		return getAvatarFile().exists();
 	}
 
 	public void setAvatar(byte[] avatar) {
-		this.avatar = avatar;
+		File file = getAvatarFile();
+		FileUtil.writeBytesAsFile(file.getAbsolutePath(), avatar);
+
 		VuzeBuddyManager.triggerChangeListener(this);
 	}
 
-	public boolean isOnline( boolean is_connected ) {
+	public boolean isOnline(boolean is_connected) {
 		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
 			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-			if (pluginBuddy.isOnline( is_connected )) {
+			if (pluginBuddy.isOnline(is_connected)) {
 
-				if ( pluginBuddy.getOnlineStatus() != BuddyPlugin.STATUS_APPEAR_OFFLINE ){
+				if (pluginBuddy.getOnlineStatus() != BuddyPlugin.STATUS_APPEAR_OFFLINE) {
 
-					return( true );
+					return (true);
 				}
 			}
 		}
 
 		return false;
 	}
-	
+
 	public int getVersion() {
-		int	version = VERSION_INITIAL;
-		
+		int version = VERSION_INITIAL;
+
 		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
 			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-			
-			version = Math.max( pluginBuddy.getVersion(), version );
+
+			version = Math.max(pluginBuddy.getVersion(), version);
 		}
 
 		return version;
@@ -221,7 +240,7 @@ public class VuzeBuddyImpl
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#addPublicKey()
 	public void addPublicKey(String pk) {
 		// We add public keys by adding BuddyPluginBuddy
-		
+
 		BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze(pk);
 
 		mon_pluginBuddies.enter();
@@ -292,7 +311,7 @@ public class VuzeBuddyImpl
 		BuddyPluginBuddy[] buddies = (BuddyPluginBuddy[]) pluginBuddies.toArray(new BuddyPluginBuddy[0]);
 		VuzeBuddyManager.sendPayloadMap(map, buddies);
 	}
-	
+
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendPayloadMap(java.lang.String, java.util.Map)
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#sendBuddyMessageMap(java.lang.String, java.util.Map)
 	public void sendBuddyMessage(String namespace, Map map)
@@ -404,95 +423,96 @@ public class VuzeBuddyImpl
 	public long getCreatedOn() {
 		return createdOn;
 	}
-	
+
 	// @see com.aelitis.azureus.buddy.VuzeBuddy#toDebugString()
 	public String toDebugString() {
 		return "Buddy {" + loginID + "}";
 	}
-	
+
 	public void addListener(VuzeBuddyListener l) {
 		if (!listeners.contains(l)) {
 			listeners.add(l);
 		}
 	}
-	
+
 	public void removeListener(VuzeBuddyListener l) {
 		listeners.remove(l);
 	}
-	
+
 	public VuzeBuddyListener[] getListeners() {
 		return (VuzeBuddyListener[]) listeners.toArray(new VuzeBuddyListener[0]);
 	}
-	
+
 	public List
 	getStoredChatMessages()
 	{
 		Iterator it = pluginBuddies.iterator();
-		
-		List	result = new ArrayList();
-		
-		while( it.hasNext()){
-			
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy)it.next();
-			
-			List msgs = pluginBuddy.retrieveMessages( BuddyPlugin.MT_V3_CHAT );
-			
-			for (int i=0;i<msgs.size();i++){
-				
-				try{
-					BuddyPluginBuddyMessage	msg = (BuddyPluginBuddyMessage)msgs.get(i);
-					
-					ChatMessage cm = ChatMessage.deserialise( msg );
-					
-					if ( cm != null ){
-											
-						result.add( cm );
+
+		List result = new ArrayList();
+
+		while (it.hasNext()) {
+
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+
+			List msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
+
+			for (int i = 0; i < msgs.size(); i++) {
+
+				try {
+					BuddyPluginBuddyMessage msg = (BuddyPluginBuddyMessage) msgs.get(i);
+
+					ChatMessage cm = ChatMessage.deserialise(msg);
+
+					if (cm != null) {
+
+						result.add(cm);
 					}
-				}catch( Throwable e ){
-					
+				} catch (Throwable e) {
+
 				}
 			}
 		}
-		
-			// TODO: sort by timestamp
-		
-		return( result );
+
+		// TODO: sort by timestamp
+
+		return (result);
 	}
-	
+
 	public void
 	storeChatMessage(
 		ChatMessage		msg )
 	{
-		String	sender_pk = msg.getSenderPK();
-		
-		if ( sender_pk != null ){
-			
-			BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze( sender_pk );
-	
-			if ( pluginBuddy == null ){
-				
+		String sender_pk = msg.getSenderPK();
+
+		if (sender_pk != null) {
+
+			BuddyPluginBuddy pluginBuddy = VuzeBuddyManager.getBuddyPluginBuddyForVuze(sender_pk);
+
+			if (pluginBuddy == null) {
+
 				VuzeBuddyManager.log( "Can't persist message for " + sender_pk + ", buddy not found" );
-				
-			}else{
-			
-				BuddyPluginBuddyMessage pm = pluginBuddy.storeMessage( BuddyPlugin.MT_V3_CHAT, msg.toMap());
-				
-				if ( pm != null ){
-				
-					msg.setPersistentMessage( pm );
+
+			} else {
+
+				BuddyPluginBuddyMessage pm = pluginBuddy.storeMessage(
+						BuddyPlugin.MT_V3_CHAT, msg.toMap());
+
+				if (pm != null) {
+
+					msg.setPersistentMessage(pm);
 				}
 			}
 		}
 	}
-	
+
 	public void
 	deleteChatMessage(
 		ChatMessage		msg )
 	{
 		BuddyPluginBuddyMessage pm = msg.getPersistentMessage();
-		
-		if ( pm != null ){
-			
+
+		if (pm != null) {
+
 			pm.delete();
 		}
 	}
