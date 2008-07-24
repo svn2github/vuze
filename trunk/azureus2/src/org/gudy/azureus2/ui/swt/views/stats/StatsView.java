@@ -305,4 +305,15 @@ public class StatsView extends AbstractIView {
       Utils.disposeComposite(folder);
     }
   }
+  
+  // @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
+  public void dataSourceChanged(Object newDataSource) {
+  	if (newDataSource instanceof String) {
+  		if ("dht".equals(newDataSource)) {
+  			showDHT();
+  		} else if ("transfers".equals(newDataSource)) {
+  			showTransfers();
+  		}
+  	}
+  }
 }

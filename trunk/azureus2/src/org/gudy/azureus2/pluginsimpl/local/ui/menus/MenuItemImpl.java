@@ -20,14 +20,19 @@
  */
 package org.gudy.azureus2.pluginsimpl.local.ui.menus;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
 /**
@@ -46,12 +51,12 @@ public class MenuItemImpl implements MenuItem {
 
 	private Graphic graphic;
 
-	private List listeners = new ArrayList();
-	private List m_listeners = new ArrayList();
+	private CopyOnWriteList listeners = new CopyOnWriteList(1);
+	private CopyOnWriteList m_listeners = new CopyOnWriteList(1);
 
-	private List fill_listeners = new ArrayList();
+	private CopyOnWriteList fill_listeners = new CopyOnWriteList(1);
 
-	private List children = new ArrayList();
+	private CopyOnWriteList children = new CopyOnWriteList();
 
 	private MenuItemImpl parent = null;
 
@@ -118,10 +123,10 @@ public class MenuItemImpl implements MenuItem {
 	}
 
 	public void invokeMenuWillBeShownListeners(Object o) {
-		for (int i = 0; i < fill_listeners.size(); i++) {
+		for (Iterator iter = fill_listeners.iterator(); iter.hasNext();) {
 			try {
-				((MenuItemFillListener) (fill_listeners.get(i)))
-						.menuWillBeShown(this, o);
+				MenuItemFillListener l = (MenuItemFillListener) iter.next();
+				l.menuWillBeShown(this, o);
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);
 			}
@@ -211,11 +216,11 @@ public class MenuItemImpl implements MenuItem {
 		this.display_text = text;
 	}
 
-	protected void invokeListenersOnList(List listeners_to_notify, Object o) {
-		for (int i = 0; i < listeners_to_notify.size(); i++) {
+	protected void invokeListenersOnList(CopyOnWriteList listeners_to_notify, Object o) {
+		for (Iterator iter = listeners_to_notify.iterator(); iter.hasNext();) {
 			try {
-				((MenuItemListener) (listeners_to_notify.get(i))).selected(
-						this, o);
+				MenuItemListener l = (MenuItemListener) iter.next();
+				l.selected(this, o);
 			} catch (Throwable e) {
 				Debug.printStackTrace(e);
 			}

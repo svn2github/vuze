@@ -1807,4 +1807,8 @@ public class MainWindow
 		return false;
 	}
 
+	public Tab getMainTabSet() {
+		return mainTabSet;
+	}
+
 }

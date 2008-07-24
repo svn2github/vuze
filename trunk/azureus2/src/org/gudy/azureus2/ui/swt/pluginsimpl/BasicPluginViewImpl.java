@@ -187,7 +187,8 @@ BasicPluginViewImpl
     		public void widgetSelected(SelectionEvent e) {
        	 UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
       	 if (uiFunctions != null) {
-      		 uiFunctions.showConfig(model.getConfigSectionID());
+      		 uiFunctions.openView(UIFunctions.VIEW_CONFIG,
+								model.getConfigSectionID());
       	 }
     		}
     	});

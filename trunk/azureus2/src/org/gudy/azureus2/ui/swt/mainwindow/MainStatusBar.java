@@ -391,7 +391,7 @@ public class MainStatusBar
 
 		Listener lStats = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.showStats();
+				uiFunctions.openView(UIFunctions.VIEW_STATS, null);
 			}
 		};
 
@@ -406,7 +406,7 @@ public class MainStatusBar
 
 		Listener lDHT = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.showStatsDHT();
+				uiFunctions.openView(UIFunctions.VIEW_STATS, "dht");
 			}
 		};
 
@@ -415,7 +415,7 @@ public class MainStatusBar
 		Listener lSR = new Listener() {
 			public void handleEvent(Event e) {
 
-				uiFunctions.showStatsTransfers();
+				uiFunctions.openView(UIFunctions.VIEW_STATS, "transfers");
 
 				OverallStats stats = StatsFactory.getStats();
 
@@ -432,7 +432,8 @@ public class MainStatusBar
 
 		Listener lNAT = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.showConfig(ConfigSection.SECTION_CONNECTION);
+				uiFunctions.openView(UIFunctions.VIEW_CONFIG,
+						ConfigSection.SECTION_CONNECTION);
 
 				if (azureusCore.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK) {
 					Utils.launch(Constants.AZUREUS_WIKI + "NAT_problem");

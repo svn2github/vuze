@@ -61,6 +61,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -412,7 +413,9 @@ UISWTInstanceImpl
 				if (!(data instanceof String))
 					break;
 
-	    	event.setResult(new Boolean(uiFunctions.showConfig((String)data)));
+	    	event.setResult(Boolean.TRUE);
+	    	
+	    	uiFunctions.openView(UIFunctions.VIEW_CONFIG, data);
 
 				break;
 			}
@@ -800,7 +803,7 @@ UISWTInstanceImpl
 	public void openConfig(final BasicPluginConfigModel model) {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
-				uiFunctions.showConfig(model.getSection());
+	    	uiFunctions.openView(UIFunctions.VIEW_CONFIG, model.getSection());
 			}
 		});
 	}

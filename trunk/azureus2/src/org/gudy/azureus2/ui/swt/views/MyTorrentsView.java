@@ -123,9 +123,6 @@ public class MyTorrentsView
   private Text txtFilter = null;
   private Label lblX = null;
   
-  int userMode;
-  boolean isTrackerOn;
-
   private Category currentCategory;
 
   // table item index, where the drag has started
@@ -195,9 +192,9 @@ public class MyTorrentsView
     createDragDrop();
 
     COConfigurationManager.addAndFireParameterListeners(new String[] {
-				"DND Always In Incomplete",
-				"Confirm Data Delete",
-				"User Mode" }, this);
+			"DND Always In Incomplete",
+			"Confirm Data Delete",
+		}, this);
 
     if (currentCategory != null) {
     	currentCategory.addCategoryListener(this);
@@ -731,7 +728,7 @@ public class MyTorrentsView
     					public void handleEvent(Event event) {
     						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
  
-    						uiFunctions.showMultiOptionsView( dms );
+    						uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
     					}
     				});
 	        		
@@ -907,15 +904,18 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void defaultSelected(TableRowCore[] rows) {
-	Object[] dm_sources = tv.getSelectedDataSources();
-	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-	for (int i=0; i<dm_sources.length; i++) {
-		if (dm_sources[i] == null) {continue;}
-		if (uiFunctions != null) {
-	  		uiFunctions.openManagerView((DownloadManager)dm_sources[i]);
-	  	}
-    }
-  }
+		Object[] dm_sources = tv.getSelectedDataSources();
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		for (int i = 0; i < dm_sources.length; i++) {
+			if (dm_sources[i] == null) {
+				continue;
+			}
+			if (uiFunctions != null) {
+				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS,
+						(DownloadManager) dm_sources[i]);
+			}
+		}
+	}
 
 
 
@@ -1126,8 +1126,6 @@ public class MyTorrentsView
   public void tableRefresh() {
     if (tv.isDisposed())
       return;
-    
-    isTrackerOn = TRTrackerUtils.isTrackerEnabled();
     
     refreshTorrentMenu();
   }
@@ -1494,23 +1492,19 @@ public class MyTorrentsView
    * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
    */
   public void parameterChanged(String parameterName) {
-		if (parameterName == null || parameterName.equals("User Mode")) {
-			userMode = COConfigurationManager.getIntParameter("User Mode");
-		}
-
 		if (parameterName == null
 				|| parameterName.equals("DND Always In Incomplete")) {
 			bDNDalwaysIncomplete = COConfigurationManager.getBooleanParameter("DND Always In Incomplete");
 		}
 	}
 
-  private boolean top,bottom,up,down,run,host,publish,start,stop,remove;
+  private boolean top,bottom,up,down,run,start,stop,remove;
 
   private void computePossibleActions() {
     Object[] dataSources = tv.getSelectedDataSources();
     // enable up and down so that we can do the "selection rotate trick"
     up = down = run =  remove = (dataSources.length > 0);
-    top = bottom = start = stop = host = publish = false;
+    top = bottom = start = stop = false;
     for (int i = 0; i < dataSources.length; i++) {
       DownloadManager dm = (DownloadManager)dataSources[i];
 
@@ -1522,19 +1516,12 @@ public class MyTorrentsView
         top = true;
       if(!bottom && dm.getGlobalManager().isMoveableDown(dm))
         bottom = true;
-      
-      if(userMode>0 && isTrackerOn)
-    	  host = publish = true;
     }
   }
 
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("run"))
       return run;
-    if(itemKey.equals("host"))
-      return host;
-    if(itemKey.equals("publish"))
-      return publish;
     if(itemKey.equals("start"))
       return start;
     if(itemKey.equals("stop"))
@@ -1573,14 +1560,6 @@ public class MyTorrentsView
     }
     if(itemKey.equals("run")){
       TorrentUtil.runTorrents(tv.getSelectedDataSources());
-      return;
-    }
-    if(itemKey.equals("host")){
-    	TorrentUtil.hostTorrents(tv.getSelectedDataSources(), azureus_core, cTablePanel);
-      return;
-    }
-    if(itemKey.equals("publish")){
-    	TorrentUtil.publishTorrents(tv.getSelectedDataSources(), azureus_core, cTablePanel);
       return;
     }
     if(itemKey.equals("start")){

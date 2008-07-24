@@ -40,28 +40,18 @@ public interface UIFunctions
 
 	public static int STATUSICON_ERROR = 2;
 
-	/**
-	 * Display the stats view
-	 */
-	void showStats();
-
-	/**
-	 * Display the Stats View -> Transfer subview
-	 */
-	void showStatsTransfers();
-
-	/**
-	 * Display the Stats View -> HHT subview
-	 */
-	void showStatsDHT();
-
-	/**
-	 * Display the config window
-	 * 
-	 * @param string Section to show.  null for root 
-	 * @return true: section was found
-	 */
-	boolean showConfig(String string);
+	
+	public static final int VIEW_CONSOLE = 0;
+	public static final int VIEW_STATS = 1;
+	public static final int VIEW_CONFIG = 4;
+	public static final int VIEW_DM_DETAILS = 5;
+	public static final int VIEW_DM_MULTI_OPTIONS = 6;
+	public static final int VIEW_MYSHARES = 7;
+	public static final int VIEW_MYTORRENTS = 8;
+	public static final int VIEW_MYTRACKER = 9;
+	public static final int VIEW_ALLPEERS = 10;
+	public static final int VIEW_DETAILED_LISTVIEW = 11;
+	
 
 	/**
 	 * Bring main window to the front
@@ -91,35 +81,10 @@ public interface UIFunctions
 	void refreshLanguage();
 
 	/**
-	 * @param dm
-	 */
-	void openManagerView(DownloadManager dm);
-
-	/**
 	 * 
 	 */
 	void refreshIconBar();
 
-	/**
-	 * 
-	 */
-	void showMyTracker();
-
-	/**
-	 * 
-	 */
-	void showMyShares();
-
-	/**
-	 * 
-	 */
-	void showMyTorrents();
-	
-	void showDetailedListView();
-	
-	void showAllPeersView();
-
-	void showMultiOptionsView( DownloadManager[] dms );
 	
 	/**
 	 * @param manager
@@ -134,11 +99,6 @@ public interface UIFunctions
 	void setStatusText(int statustype, String string, UIStatusTextClickListener l);
 
 	boolean dispose(boolean for_restart, boolean close_already_in_progress);
-
-	/**
-	 * 
-	 */
-	void showConsole();
 
 	/**
 	 * @param url
@@ -170,4 +130,12 @@ public interface UIFunctions
 	 * @since 3.1.1.1
 	 */
 	public UIUpdater getUIUpdater();
+
+	/**
+	 * @param viewID
+	 * @param data
+	 *
+	 * @since 3.1.1.1
+	 */
+	void openView(int viewID, Object datasource);
 }

@@ -65,19 +65,34 @@ TorrentInfoView
 	
 	private Font 			headerFont;
 	private FakeTableCell[] cells;
+
+	private ScrolledComposite sc;
+
+	private Composite parent;
 	
 	protected
-	TorrentInfoView(
-		DownloadManager		_download_manager )
+	TorrentInfoView( )
 	{
-		download_manager	= _download_manager;
 	}
 	
 	public void 
 	initialize(
 		Composite composite) 
 	{
-		ScrolledComposite sc = new ScrolledComposite(composite, SWT.V_SCROLL | SWT.H_SCROLL );
+		this.parent = composite;
+		
+		if (download_manager == null) {
+			return;
+		}
+		
+		// cheap trick to allow datasource changes.  Normally we'd just
+		// refill the components with new info, but I didn't write this and
+		// I don't want to waste my time :) [tux]
+		if (sc != null && !sc.isDisposed()) {
+			sc.dispose();
+		}
+
+		sc = new ScrolledComposite(composite, SWT.V_SCROLL | SWT.H_SCROLL );
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
 		GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
@@ -400,6 +415,16 @@ TorrentInfoView
 				
 				cell.dispose();
 			}
+		}
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
+	public void dataSourceChanged(Object newDataSource) {
+		if (newDataSource instanceof DownloadManager) {
+			download_manager = (DownloadManager) newDataSource;
+		}
+		if (parent != null) {
+			initialize(parent);
 		}
 	}
 }

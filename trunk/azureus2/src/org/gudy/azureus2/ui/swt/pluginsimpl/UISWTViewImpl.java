@@ -86,7 +86,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
 				UISWTViewEvent.TYPE_CREATE, this)))
-			throw new Exception();
+			throw new UISWTViewEventCancelledException();
 	}
 
 	// UISWTPluginView implementation

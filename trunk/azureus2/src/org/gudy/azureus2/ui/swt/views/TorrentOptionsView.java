@@ -70,26 +70,38 @@ TorrentOptionsView
 	
 	private Composite 			panel;
 	private Font 				headerFont;
+
+	private Composite parent;
 	
 	public
-	TorrentOptionsView(
-		DownloadManager		_manager )
+	TorrentOptionsView()
 	{
-		managers	= new DownloadManager[]{ _manager };
 	}
 	
-	public
-	TorrentOptionsView(
-		DownloadManager[]		_managers )
-	{
-		managers	= _managers;
-		multi_view	= true;
+	/**
+	 * @param managers2
+	 */
+	public TorrentOptionsView(DownloadManager[] managers2) {
+		dataSourceChanged(managers2);
 	}
-	
+
 	public void 
 	initialize(
 		Composite composite) 
 	{
+		this.parent = composite;
+		
+		if (managers == null) {
+			return;
+		}
+
+		// cheap trick to allow datasource changes.  Normally we'd just
+		// refill the components with new info, but I didn't write this and
+		// I don't want to waste my time :) [tux]
+		if (panel != null && !panel.isDisposed()) {
+			panel.dispose();
+		}
+
 		panel = new Composite(composite, SWT.NULL);
 		
 		GridLayout layout = new GridLayout();
@@ -625,6 +637,20 @@ TorrentOptionsView
 					manager.getDownloadState().setBooleanParameter( key, value );
 				}
 			}
+		}
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
+	public void dataSourceChanged(Object newDataSource) {
+		if (newDataSource instanceof DownloadManager) {
+			multi_view = false;
+			managers = new DownloadManager[] { (DownloadManager) newDataSource };
+		} else if (newDataSource instanceof DownloadManager[]) {
+			multi_view = true;
+			managers = (DownloadManager[]) newDataSource;
+		}
+		if (parent != null) {
+			initialize(parent);
 		}
 	}
 }

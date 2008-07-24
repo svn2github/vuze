@@ -146,7 +146,7 @@ implements ShareManagerListener,
 
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					if (uiFunctions != null) {
-						uiFunctions.openManagerView(dm);
+						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
 					}
 
 					break;

@@ -290,7 +290,7 @@ public class CarbonUIEnhancer
 						case kHICommandPreferences: {
 							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 							if (uiFunctions != null) {
-								uiFunctions.showConfig(null);
+								uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
 							}
 							return OS.noErr;
 						}

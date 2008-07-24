@@ -66,8 +66,8 @@ public class ImageRepository {
     addPath("org/gudy/azureus2/ui/icons/a16.png", "azureus");
 		addPath("org/gudy/azureus2/ui/icons/a32.png", "azureus32");
 		addPath("org/gudy/azureus2/ui/icons/a64.png", "azureus64");
-		addPath("org/gudy/azureus2/ui/icons/a128.png", "azureus128");
-    addPath("org/gudy/azureus2/ui/splash/splash_frog.png", "azureus_splash");
+		addPath("org/gudy/azureus2/ui/icons/a128.jpg", "azureus128");
+    addPath("org/gudy/azureus2/ui/splash/splash_frog.jpg", "azureus_splash");
   }
 
   public static void loadImages(Display display) {
@@ -131,8 +131,6 @@ public class ImageRepository {
 		addPath("org/gudy/azureus2/ui/icons/toolbar/start.gif", "cb_start");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/stop.gif", "cb_stop");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/remove.gif", "cb_remove");
-		addPath("org/gudy/azureus2/ui/icons/toolbar/host.gif", "cb_host");
-		addPath("org/gudy/azureus2/ui/icons/toolbar/publish.gif", "cb_publish");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/switchui.png", "cb_switch");
 		addPath("org/gudy/azureus2/ui/icons/toolbar/editcolumns.gif", "cb_editcolumns");
 

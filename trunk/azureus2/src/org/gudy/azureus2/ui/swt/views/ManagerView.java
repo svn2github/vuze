@@ -48,9 +48,11 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -72,6 +74,13 @@ public class ManagerView
   private DownloadManager 	manager;
   private TabFolder folder;
   private ArrayList tabViews = new ArrayList();
+  
+  /**
+	 * 
+	 */
+	public ManagerView() {
+		azureus_core = AzureusCoreFactory.getSingleton();
+	}
   
   public 
   ManagerView(
@@ -117,6 +126,8 @@ public class ManagerView
 				}
 			}
 		}
+		
+		ViewTitleInfoManager.refreshTitleInfo(this);
   }
 
   /* (non-Javadoc)
@@ -172,6 +183,9 @@ public class ManagerView
    * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
    */
   public String getFullTitle() {
+  	if (manager == null) {
+  		return "";
+  	}
     int completed = manager.getStats().getCompleted();
     return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager.getDisplayName();
   }
@@ -193,8 +207,8 @@ public class ManagerView
   	iviews_to_use.add(new PeersGraphicView());
   	iviews_to_use.add(new PiecesView());
   	iviews_to_use.add(new FilesView());
-  	iviews_to_use.add(new TorrentInfoView(manager));
-  	iviews_to_use.add(new TorrentOptionsView(manager));
+  	iviews_to_use.add(new TorrentInfoView());
+  	iviews_to_use.add(new TorrentOptionsView());
   	if (Logger.isEnabled()) {
   		iviews_to_use.add(new LoggerView());
   	}
@@ -332,12 +346,6 @@ public class ManagerView
 		if (itemKey.equals("stop"))
 			return ManagerUtils.isStopable(manager);
 
-		if (itemKey.equals("host"))
-			return true;
-		
-		if (itemKey.equals("publish"))
-			return true;
-
 		if (itemKey.equals("remove"))
 			return true;
 		
@@ -364,24 +372,6 @@ public class ManagerView
 		
 		if (itemKey.equals("stop")) {
 			ManagerUtils.stop(manager, folder.getShell());
-			return;
-		}
-		
-		if (itemKey.equals("host")) {
-			ManagerUtils.host(azureus_core, manager, folder);
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.showMyTracker();
-			}
-			return;
-		}
-		
-		if (itemKey.equals("publish")) {
-			ManagerUtils.publish(azureus_core, manager, folder);
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.showMyTracker();
-			}
 			return;
 		}
 		
@@ -478,14 +468,16 @@ public class ManagerView
 
 	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getStringProperty(int)
 	public String getTitleInfoStringProperty(int propertyID) {
+		if (propertyID == TITLE_TEXT) {
+			return manager == null ? "" : manager.getDisplayName();
+		}
+
 		if (manager == null) {
 			return null;
 		}
 		if (propertyID == TITLE_INDICATOR_TEXT) {
 	    int completed = manager.getStats().getCompleted();
 	    return (completed / 10) + "%";
-		} else if (propertyID == TITLE_TEXT) {
-			return manager.getDisplayName();
 		}
 		return null;
 	}

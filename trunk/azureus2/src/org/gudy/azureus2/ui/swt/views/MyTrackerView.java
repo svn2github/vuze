@@ -80,27 +80,7 @@ public class MyTrackerView
 	implements TRHostListener, CategoryManagerListener, TableLifeCycleListener,
 	TableSelectionListener, TableViewSWTMenuFillListener, TableRefreshListener
 {
-  private static final TableColumnCore[] basicItems = {
-    new NameItem(),
-    new TrackerItem(),
-    new StatusItem(),
-    new CategoryItem(),
-    new PassiveItem(),
-    new SeedCountItem(),
-    new PeerCountItem(),
-    new BadNATCountItem(),
-	new AnnounceCountItem(),
-    new ScrapeCountItem(),
-    new CompletedCountItem(),
-    new UploadedItem(),
-    new DownloadedItem(),
-    new LeftItem(),
-    new TotalBytesInItem(),
-    new AverageBytesInItem(),
-    new TotalBytesOutItem(),
-    new AverageBytesOutItem(),
-    new DateAddedItem(),
-  };
+  private static TableColumnCore[] basicItems = null;
 
 	protected static final TorrentAttribute	category_attribute = 
 		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
@@ -116,6 +96,30 @@ public class MyTrackerView
 	}
 
 	public MyTrackerView(AzureusCore _azureus_core) {
+		if (basicItems == null) {
+			basicItems = new TableColumnCore[] {
+				new NameItem(),
+				new TrackerItem(),
+				new StatusItem(),
+				new CategoryItem(),
+				new PassiveItem(),
+				new SeedCountItem(),
+				new PeerCountItem(),
+				new BadNATCountItem(),
+				new AnnounceCountItem(),
+				new ScrapeCountItem(),
+				new CompletedCountItem(),
+				new UploadedItem(),
+				new DownloadedItem(),
+				new LeftItem(),
+				new TotalBytesInItem(),
+				new AverageBytesInItem(),
+				new TotalBytesOutItem(),
+				new AverageBytesOutItem(),
+				new DateAddedItem(),
+			};
+		}
+
 		tv = new TableViewSWTImpl(TableManager.TABLE_MYTRACKER, "MyTrackerView",
 				basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER
 						| SWT.VIRTUAL);
@@ -147,7 +151,7 @@ public class MyTrackerView
 		if (dm != null) {
 			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
-				uiFunctions.openManagerView(dm);
+				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
 			}
 		}
 	}

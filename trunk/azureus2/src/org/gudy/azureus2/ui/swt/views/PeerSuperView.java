@@ -61,13 +61,9 @@ public class PeerSuperView
 	implements GlobalManagerListener, DownloadManagerPeerListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
 {
-  private static final TableColumnCore[] basicItems;
-  static {
-	  TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
-	  basicItems = new TableColumnCore[items.length + 1];
-	  System.arraycopy(items, 0, basicItems, 0, items.length);
-	  basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
-  }  
+	// This was final and initialized in static code block, but it takes
+	// precious CPU at startup
+  private static TableColumnCore[] basicItems = null;
   
   private GlobalManager g_manager;
 	private TableViewSWT tv;
@@ -77,6 +73,12 @@ public class PeerSuperView
 
   public PeerSuperView() {
   	this(AzureusCoreFactory.getSingleton().getGlobalManager());
+  	if (basicItems == null) {
+  	  TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
+  	  basicItems = new TableColumnCore[items.length + 1];
+  	  System.arraycopy(items, 0, basicItems, 0, items.length);
+  	  basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
+  	}
   }
 
 	

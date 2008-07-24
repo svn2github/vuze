@@ -21,9 +21,9 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -39,6 +39,8 @@ import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+
+import org.gudy.azureus2.plugins.PluginView;
 
 /**
  * @author TuxPaper
@@ -98,7 +100,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showStats() {
+	private void showStats() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showStats();
@@ -106,7 +108,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showStatsDHT() {
+	private void showStatsDHT() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showStatsDHT();
@@ -114,7 +116,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showStatsTransfers() {
+	private void showStatsTransfers() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showStatsTransfers();
@@ -233,7 +235,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showMyTracker() {
+	private void showMyTracker() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showMyTracker();
@@ -315,7 +317,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showMyShares() {
+	private void showMyShares() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showMyShares();
@@ -323,7 +325,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showMyTorrents() {
+	private void showMyTorrents() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showMyTorrents();
@@ -331,7 +333,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showDetailedListView() {
+	private void showDetailedListView() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showDetailedListView();
@@ -339,7 +341,7 @@ public class UIFunctionsImpl
 		});
 	}
 	
-	public void showAllPeersView() {
+	private void showAllPeersView() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showAllPeersView();
@@ -347,7 +349,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showMultiOptionsView(final DownloadManager[] dms) {
+	private void showMultiOptionsView(final DownloadManager[] dms) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showMultiOptionsView(dms);
@@ -355,7 +357,7 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void showConsole() {
+	private void showConsole() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				mainwindow.showConsole();
@@ -441,5 +443,64 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
 	public boolean hasDetailViews() {
 		return mainwindow.hasDetailViews();
+	}
+
+	// @see com.aelitis.azureus.ui.UIFunctions#openView(int, java.lang.Object)
+	public void openView(int viewID, Object datasource) {
+		switch (viewID) {
+			case VIEW_CONSOLE:
+				showConsole();
+				break;
+
+			case VIEW_ALLPEERS:
+				showAllPeersView();
+				break;
+
+			case VIEW_CONFIG:
+				showConfig((datasource instanceof String) ? (String) datasource : null);
+				break;
+
+			case VIEW_DM_DETAILS:
+				if (datasource instanceof DownloadManager) {
+					openManagerView((DownloadManager) datasource);
+				}
+				break;
+
+			case VIEW_DM_MULTI_OPTIONS:
+				if (datasource instanceof DownloadManager[]) {
+					DownloadManager[] dms = (DownloadManager[]) datasource;
+					showMultiOptionsView(dms);
+				}
+				break;
+
+			case VIEW_MYSHARES:
+				showMyShares();
+				break;
+
+			case VIEW_MYTORRENTS:
+				showMyTorrents();
+				break;
+
+			case VIEW_MYTRACKER:
+				showMyTracker();
+				break;
+
+			case VIEW_STATS:
+				if ("dht".equals(datasource)) {
+					showStatsDHT();
+				} else if ("transfers".equals(datasource)) {
+					showStatsTransfers();
+				} else {
+					showStats();
+				}
+				break;
+
+			case VIEW_DETAILED_LISTVIEW:
+				showDetailedListView();
+				break;
+
+			default:
+				break;
+		}
 	}
 }

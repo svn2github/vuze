@@ -290,7 +290,7 @@ public class TorrentUtil {
 				public void run(DownloadManager dm) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					if (uiFunctions != null) {
-						uiFunctions.openManagerView(dm);
+						uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
 					}
 				}
 			});
@@ -842,7 +842,7 @@ public class TorrentUtil {
 				public void run(DownloadManager[] dms) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 					
-					uiFunctions.showMultiOptionsView( dms );
+					uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
 				}
 			});
 		}
@@ -1379,7 +1379,7 @@ public class TorrentUtil {
 		task.go();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			uiFunctions.showMyTracker();
+			uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
 		}
 	}
 
@@ -1393,7 +1393,7 @@ public class TorrentUtil {
 		task.go();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		if (uiFunctions != null) {
-			uiFunctions.showMyTracker();
+			uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
 		}
 	}
 

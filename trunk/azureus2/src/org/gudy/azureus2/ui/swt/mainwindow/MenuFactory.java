@@ -531,7 +531,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showMyTorrents();
+					uiFunctions.openView(UIFunctions.VIEW_MYTORRENTS, null);
 				}
 			}
 		});
@@ -542,7 +542,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showDetailedListView();
+					uiFunctions.openView(UIFunctions.VIEW_DETAILED_LISTVIEW, null);
 				}
 			}
 		});
@@ -553,7 +553,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showAllPeersView();
+					uiFunctions.openView(UIFunctions.VIEW_ALLPEERS, null);
 				}
 			}
 		});
@@ -564,7 +564,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showMyTracker();
+					uiFunctions.openView(UIFunctions.VIEW_MYTRACKER, null);
 				}
 			}
 		});
@@ -575,7 +575,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showMyShares();
+					uiFunctions.openView(UIFunctions.VIEW_MYSHARES, null);
 				}
 			}
 		});
@@ -651,7 +651,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showConsole();
+					uiFunctions.openView(UIFunctions.VIEW_CONSOLE, null);
 				}
 			}
 		});
@@ -662,7 +662,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showStats();
+					uiFunctions.openView(UIFunctions.VIEW_STATS, null);
 				}
 			}
 		});
@@ -697,7 +697,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.showConfig(null);
+					uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
 				}
 			}
 		});
