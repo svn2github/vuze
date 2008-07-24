@@ -44,6 +44,8 @@ public class VuzeBuddySWTImpl
 	implements VuzeBuddySWT
 {
 	private Image avatarImage;
+	
+	private boolean needsImageRebuilt = true;
 
 	private boolean ourAvatarImage;
 
@@ -58,50 +60,51 @@ public class VuzeBuddySWTImpl
 	}
 
 	public void setAvatar(byte[] avatar) {
-		disposeOldAvatarImage();
+		needsImageRebuilt = true;
 
-		if (avatar == null) {
-			avatarImage = null;
-			return;
-		}
-
-		Display display = Utils.getDisplay();
-		if (display == null) {
-			return;
-		}
-		InputStream is = new ByteArrayInputStream(avatar);
-		Image bigAvatarImage = new Image(display, is);
-		avatarImage = new Image(display, 40, 40);
-		GC gc = new GC(avatarImage);
-		try {
-			Rectangle bounds = bigAvatarImage.getBounds();
-			try {
-				gc.setInterpolation(SWT.HIGH);
-			} catch (Exception e) {
-			}
-			gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0, 40,
-					40);
-		} finally {
-			gc.dispose();
-		}
-		bigAvatarImage.dispose();
-		ourAvatarImage = true;
-
-		// triggers listener
 		super.setAvatar(avatar);
 	}
 
 	public Image getAvatarImage() {
-		if (avatarImage == null || avatarImage.isDisposed()) {
-			try {
-				avatarImage = ImageLoaderFactory.getInstance().getImage(
-						"image.buddy.default.avatar");
-			} catch (Exception e) {
-				avatarImage = ImageRepository.getImage("azureus64");
+		if (needsImageRebuilt) {
+			disposeOldAvatarImage();
+			
+			byte[] avatarBytes = getAvatar();
+			if (avatarBytes == null) {
+				try {
+					avatarImage = ImageLoaderFactory.getInstance().getImage(
+							"image.buddy.default.avatar");
+				} catch (Exception e) {
+					avatarImage = ImageRepository.getImage("azureus64");
+				}
+				ourAvatarImage = false;
+			} else {
+				Display display = Utils.getDisplay();
+				if (display == null) {
+					return null;
+				}
+				InputStream is = new ByteArrayInputStream(avatarBytes);
+				Image bigAvatarImage = new Image(display, is);
+				avatarImage = new Image(display, 40, 40);
+				GC gc = new GC(avatarImage);
+				try {
+					Rectangle bounds = bigAvatarImage.getBounds();
+					try {
+						gc.setInterpolation(SWT.HIGH);
+					} catch (Exception e) {
+					}
+					gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0, 40,
+							40);
+				} finally {
+					gc.dispose();
+				}
+				bigAvatarImage.dispose();
+				ourAvatarImage = true;
 			}
-			ourAvatarImage = false;
+			
+			needsImageRebuilt = false;
 		}
-
+		
 		return avatarImage;
 	}
 
