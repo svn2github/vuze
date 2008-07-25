@@ -88,7 +88,7 @@ public class SWTSkinObjectBrowser
 		cParent = parent == null ? skin.getShell() : (Composite) parent.getControl();
 		
 		cArea = cParent;
-		cArea = new Canvas(cParent, SWT.BORDER);
+		cArea = new Canvas(cParent, SWT.NO_BACKGROUND);
 		cArea.setLayout(new FormLayout());
 		
 		setControl(cArea);
