@@ -230,6 +230,16 @@ LightWeightSeedManager
 		return( lws );
 	}
 	
+	public LightWeightSeed	
+	get(
+		HashWrapper		hw )
+	{
+		synchronized( this ){
+
+			return((LightWeightSeed)lws_map.get( hw ));
+		}
+	}
+	
 	protected void
 	processTimer()
 	{
