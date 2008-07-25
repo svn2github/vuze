@@ -103,6 +103,7 @@ public class SWTSkinObjectBasic
 		this.sID = sID;
 		this.type = type;
 		this.parent = parent;
+		setViewID(properties.getStringValue(sConfigID + ".view"));
 	}
 
 	public void setControl(final Control control) {
@@ -115,8 +116,6 @@ public class SWTSkinObjectBasic
 			});
 			return;
 		}
-
-		setViewID(properties.getStringValue(sConfigID + ".view"));
 
 		this.control = control;
 		control.setData("ConfigID", sConfigID);
@@ -179,6 +178,9 @@ public class SWTSkinObjectBasic
 				}
 			}
 		});
+		if (skin.isLayoutComplete()) {
+			skin.attachControl(this);
+		}
 	}
 
 	/**

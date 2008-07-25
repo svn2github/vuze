@@ -611,7 +611,7 @@ public class SWTSkin
 	 * @param controlToLayout
 	 * @param id
 	 */
-	private void attachControl(SWTSkinObject skinObject) {
+	void attachControl(SWTSkinObject skinObject) {
 		if (skinObject == null) {
 			return;
 		}
