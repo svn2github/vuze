@@ -26,6 +26,8 @@ import java.net.URL;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
@@ -59,6 +61,8 @@ public class SWTSkinObjectBrowser
 
 	private Browser browser;
 
+	private Composite cParent;
+
 	private Composite cArea;
 
 	private String sStartURL;
@@ -81,9 +85,15 @@ public class SWTSkinObjectBrowser
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "browser", parent);
 
-		cArea = parent == null ? skin.getShell() : (Composite) parent.getControl();
+		cParent = parent == null ? skin.getShell() : (Composite) parent.getControl();
 		
-		if (cArea.isVisible()) {
+		cArea = cParent;
+		cArea = new Canvas(cParent, SWT.BORDER);
+		cArea.setLayout(new FormLayout());
+		
+		setControl(cArea);
+		
+		if (cParent.isVisible()) {
 			init();
 		} else {
 			addListener(new SWTSkinObjectListener() {
@@ -106,6 +116,8 @@ public class SWTSkinObjectBrowser
 
 		try {
 			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
+			
+			browser.setLayoutData(Utils.getFilledFormData());
 		} catch (SWTError e) {
 			System.err.println("Browser: " + e.toString());
 			return;
@@ -139,7 +151,6 @@ public class SWTSkinObjectBrowser
 
 		PublishUtils.setupContext(context);
 
-		setControl(browser);
 		String url = urlToUse != null ? urlToUse : sStartURL != null ? sStartURL
 				: properties.getStringValue(sConfigID + ".url", (String) null);
 		if (url != null) {
@@ -208,7 +219,7 @@ public class SWTSkinObjectBrowser
 	 * 
 	 */
 	public void layout() {
-		cArea.layout();
+		cParent.layout();
 	}
 
 	// @see com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster#hostFile(java.io.File)
