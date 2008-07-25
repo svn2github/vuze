@@ -72,6 +72,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
+import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
@@ -753,8 +754,7 @@ SubscriptionManagerImpl
 								
 							}else{
 								
-								// TODO:
-								
+								lookupSubscription( hash, sid, listener );
 							}
 						}
 					}
@@ -791,6 +791,21 @@ SubscriptionManagerImpl
 					listener.complete( hash, s );
 				}
 			});
+	}
+	
+	protected void
+	lookupSubscription(
+		byte[]						association_hash,
+		byte[]						sid,
+		SubscriptionLookupListener	listener )
+	{
+		try{
+			PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
+			
+		}catch( Throwable e ){
+			
+			log( "Subscription lookup via platform failed", e );
+		}
 	}
 	
 	protected void
