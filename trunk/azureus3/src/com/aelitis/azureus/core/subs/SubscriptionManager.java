@@ -30,6 +30,9 @@ SubscriptionManager
 		
 		throws SubscriptionException;
 	
+	public Subscription[]
+	getSubscriptions();
+	
 	public void
 	lookupAssociations(
 		byte[]						hash,
