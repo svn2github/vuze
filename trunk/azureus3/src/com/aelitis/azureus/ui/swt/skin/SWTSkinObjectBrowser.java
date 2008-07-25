@@ -99,6 +99,9 @@ public class SWTSkinObjectBrowser
 	}
 	
 	public void init() {
+		if (browser != null && !browser.isDisposed()) {
+			return;
+		}
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 
 		try {
@@ -145,6 +148,9 @@ public class SWTSkinObjectBrowser
 	}
 
 	public Browser getBrowser() {
+		if (browser == null) {
+			init();
+		}
 		return browser;
 	}
 
