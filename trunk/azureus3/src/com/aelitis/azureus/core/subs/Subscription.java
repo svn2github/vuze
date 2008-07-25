@@ -34,7 +34,10 @@ Subscription
 	getVersion();
 	
 	public boolean
-	isSubscribed();
+	isMine();
+	
+	public boolean
+	isPublic();
 	
 	public void
 	addAssociation(

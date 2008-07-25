@@ -79,6 +79,7 @@ SubscriptionImpl
 	private byte[]			sig;
 	private int				sig_data_size;
 	
+	private int				highest_prompted_version;
 	
 	private byte[]			short_id;
 	
@@ -201,6 +202,8 @@ SubscriptionImpl
 
 			map.put( "rand", new Long( fixed_random ));
 			
+			map.put( "hupv", new Long( highest_prompted_version ));
+			
 			if ( associations.size() > 0 ){
 				
 				List	l_assoc = new ArrayList();
@@ -241,6 +244,10 @@ SubscriptionImpl
 		
 		fixed_random	= ((Long)map.get( "rand" )).intValue();
 
+		Long	l_hupv = (Long)map.get( "hupv" );
+		
+		highest_prompted_version = l_hupv==null?version:l_hupv.intValue();
+		
 		List	l_assoc = (List)map.get( "assoc" );
 		
 		if ( l_assoc != null ){
@@ -325,12 +332,43 @@ SubscriptionImpl
 		return( version );
 	}
 	
+	protected void
+	setHighestUserPromptedVersion(
+		int		v )
+	{
+		if ( v < version ){
+			
+			v  = version;
+		}
+		
+		if ( highest_prompted_version != v ){
+			
+			highest_prompted_version = v;
+			
+			manager.configDirty();
+		}
+	}
+	
+	protected int
+	getHighestUserPromptedVersion()
+	{
+		return( highest_prompted_version );
+	}
+	
 	public boolean
-	isSubscribed()
+	isMine()
 	{
 			// TODO:
 		
 		return( false );
+	}
+	
+	public boolean
+	isPublic()
+	{
+			// TODO:
+		
+		return( true );
 	}
 	
 	protected void

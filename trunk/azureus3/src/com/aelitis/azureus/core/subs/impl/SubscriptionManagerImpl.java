@@ -43,15 +43,22 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
+import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -60,6 +67,7 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -105,7 +113,9 @@ SubscriptionManagerImpl
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
 								
 								try{
-									((SubscriptionManagerImpl)getSingleton()).importSubscription( comp.getContent());
+									((SubscriptionManagerImpl)getSingleton()).importSubscription(
+											comp.getContent(),
+											( expected_types & VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ) == 0 );
 									
 									comp.setProcessed();
 									
@@ -288,14 +298,15 @@ SubscriptionManagerImpl
 	
 	public Subscription
 	importSubscription(
-		Map		map )
+		Map			map,
+		boolean		warn_user )
 	
 		throws SubscriptionException
 	{
 		try{
 			SubscriptionBodyImpl body = new SubscriptionBodyImpl( this, map );
 					
-			SubscriptionImpl existing = getSubscription( body.getPublicKey());
+			SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
 			
 			if ( existing != null ){
 			
@@ -303,37 +314,42 @@ SubscriptionManagerImpl
 					
 					log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
 					
-					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-					
-					String details = MessageText.getString(
-							"subscript.add.dup.desc",
-							new String[]{ existing.getName()});
-					
-					ui_manager.showMessageBox(
-							"subscript.add.dup.title",
-							"!" + details + "!",
-							UIManagerEvent.MT_OK );
-					
+					if ( warn_user ){
+						
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+						
+						String details = MessageText.getString(
+								"subscript.add.dup.desc",
+								new String[]{ existing.getName()});
+						
+						ui_manager.showMessageBox(
+								"subscript.add.dup.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_OK );
+					}
 						// we have a newer one, ignore
 					
 					return( existing );
 					
 				}else{
 					
-					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-	
-					String details = MessageText.getString(
-							"subscript.add.upgrade.desc",
-							new String[]{ existing.getName()});
-					
-					long res = ui_manager.showMessageBox(
-							"subscript.add.upgrade.title",
-							"!" + details + "!",
-							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-					
-					if ( res != UIManagerEvent.MT_YES ){	
-					
-						throw( new SubscriptionException( "User declined upgrade" ));
+					if ( warn_user ){
+						
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+		
+						String details = MessageText.getString(
+								"subscript.add.upgrade.desc",
+								new String[]{ existing.getName()});
+						
+						long res = ui_manager.showMessageBox(
+								"subscript.add.upgrade.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+						
+						if ( res != UIManagerEvent.MT_YES ){	
+						
+							throw( new SubscriptionException( "User declined upgrade" ));
+						}
 					}
 					
 					log( "Upgrading subscription: " + existing.getString());
@@ -350,20 +366,23 @@ SubscriptionManagerImpl
 				
 				SubscriptionImpl new_subs = new SubscriptionImpl( this, body );
 	
-				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-	
-				String details = MessageText.getString(
-						"subscript.add.desc",
-						new String[]{ new_subs.getName()});
-				
-				long res = ui_manager.showMessageBox(
-						"subscript.add.title",
-						"!" + details + "!",
-						UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-				
-				if ( res != UIManagerEvent.MT_YES ){	
-				
-					throw( new SubscriptionException( "User declined addition" ));
+				if ( warn_user ){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+		
+					String details = MessageText.getString(
+							"subscript.add.desc",
+							new String[]{ new_subs.getName()});
+					
+					long res = ui_manager.showMessageBox(
+							"subscript.add.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+					
+					if ( res != UIManagerEvent.MT_YES ){	
+					
+						throw( new SubscriptionException( "User declined addition" ));
+					}
 				}
 				
 				log( "Imported new subscription: " + new_subs.getString());
@@ -390,7 +409,7 @@ SubscriptionManagerImpl
 	}
 	
 	public SubscriptionImpl
-	getSubscription(
+	getSubscriptionFromPublicKey(
 		byte[]		public_key )
 	{
 		synchronized( this ){
@@ -409,35 +428,183 @@ SubscriptionManagerImpl
 		return( null );
 	}
 	
+	public SubscriptionImpl
+	getSubscriptionFromSID(
+		byte[]		sid )
+	{
+		synchronized( this ){
+			
+			for (int i=0;i<subscriptions.size();i++){
+				
+				SubscriptionImpl s = (SubscriptionImpl)subscriptions.get(i);
+				
+				if ( Arrays.equals( s.getShortID(), sid )){
+					
+					return( s );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	protected File
+	getSubsDir()
+	
+		throws IOException
+	{
+		File dir = new File(SystemProperties.getUserPath());
+
+		dir = new File( dir, "subs" );
+ 		
+ 		if ( !dir.exists()){
+ 			
+ 			if ( !dir.mkdirs()){
+ 				
+ 				throw( new IOException( "Failed to create '" + dir + "'" ));
+ 			}
+ 		}	
+ 		
+ 		return( dir );
+	}
+	
 	protected File
 	getVuzeFile(
 		SubscriptionImpl 		subs )
 	
 		throws IOException
 	{
- 		File target = new File(SystemProperties.getUserPath());
-
- 		target = new File( target, "subs" );
+ 		File dir = getSubsDir();
  		
- 		if ( !target.exists()){
- 			
- 			if ( !target.mkdirs()){
- 				
- 				throw( new IOException( "Failed to create '" + target + "'" ));
- 			}
- 		}
- 		
- 		return( new File( target, ByteFormatter.encodeString( subs.getShortID()) + ".vuze" ));
+ 		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".vuze" ));
 	}
 	
 	public void
 	lookupAssociations(
-		byte[] 							hash,
-		SubscriptionLookupListener		listener )
+		final byte[] 							hash,
+		final SubscriptionLookupListener		listener )
 	
 		throws SubscriptionException 
 	{
+		log( "Looking up associations for '" + ByteFormatter.encodeString( hash ));
 		
+		final String	key = "subscription:assoc:" + ByteFormatter.encodeString( hash ); 
+						
+		dht_plugin.get(
+			key.getBytes(),
+			"Subscription association read: " + ByteFormatter.encodeString( hash ),
+			DHTPlugin.FLAG_SINGLE_VALUE,
+			30,
+			60*1000,
+			true,
+			true,
+			new DHTPluginOperationListener()
+			{
+				private Map	hits = new HashMap();
+				
+				private List	subscriptions = new ArrayList();
+				
+				private boolean	complete;
+				
+				public void
+				diversified()
+				{
+				}
+				
+				public void
+				valueRead(
+					DHTPluginContact	originator,
+					DHTPluginValue		value )
+				{
+					byte[]	val = value.getValue();
+					
+					if ( val.length > 4 ){
+						
+						int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
+
+						byte[]	sid = new byte[ val.length - 4 ];
+						
+						System.arraycopy( val, 4, sid, 0, sid.length );
+						
+						log( "    Found subscription " + ByteFormatter.encodeString( sid ) + " version " + ver );
+						
+						HashWrapper hw = new HashWrapper( sid );
+						
+						boolean	new_sid = false;
+						
+						synchronized( hits ){
+							
+							Integer v = (Integer)hits.get(hw);
+							
+							if ( v != null ){
+								
+								if ( ver > v.intValue()){
+									
+									hits.put( hw, new Integer( ver ));								
+								}
+							}else{
+								
+								new_sid = true;
+								
+								hits.put( hw, new Integer( ver ));
+							}
+						}
+						
+						if ( new_sid ){
+							
+								// check if already subscribed
+							
+							Subscription subs = getSubscriptionFromSID( sid );
+							
+							if ( subs != null ){
+								
+								synchronized( subscriptions ){
+
+									subscriptions.add( subs );
+								}
+								
+								listener.found( subs );
+								
+							}else{
+								
+								// TODO:
+								
+							}
+						}
+					}
+				}
+				
+				public void
+				valueWritten(
+					DHTPluginContact	target,
+					DHTPluginValue		value )
+				{
+				}
+				
+				public void
+				complete(
+					byte[]				original_key,
+					boolean				timeout_occurred )
+				{
+					log( "    Association lookup complete - " + hits.size() + " found" );
+					
+					Subscription[] s;
+					
+					synchronized( subscriptions ){
+						
+						if ( complete ){
+							
+							return;
+						}
+						
+						complete = true;
+						
+						s = (Subscription[])subscriptions.toArray( new Subscription[ subscriptions.size() ]);
+					}
+					
+					listener.complete( s );
+				}
+			});
 	}
 	
 	protected void
@@ -590,7 +757,10 @@ SubscriptionManagerImpl
 				{
 					if ( max_ver >= subs.getVersion()){
 						
-						updateSubscription( subs, max_ver );
+						if ( !subs.isMine()){
+						
+							updateSubscription( subs, max_ver );
+						}
 					}
 					
 					if ( hits < 6 ){			
@@ -698,7 +868,7 @@ SubscriptionManagerImpl
 				
 				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
 				
-				if ( !sub.getPublished()){
+				if ( sub.isPublic() && !sub.getPublished()){
 									
 					sub.setPublished( true );
 					
@@ -727,7 +897,7 @@ SubscriptionManagerImpl
 	publishSubscription(
 		final SubscriptionImpl					subs )
 	{
-		log( "Checking subscription '" + subs.getString() + "'" );
+		log( "Checking subscription publication '" + subs.getString() + "'" );
 		
 		byte[]	sub_id 		= subs.getShortID();
 		int		sub_version	= subs.getVersion();
@@ -868,6 +1038,13 @@ SubscriptionManagerImpl
 			return;
 		}
 		
+		if ( subs.getHighestUserPromptedVersion() >= new_version ){
+			
+			log( "    User has already been prompted for version " + new_version + " so ignoring" );
+			
+			//return;
+		}
+		
 		log( "Checking subscription '" + subs.getString() + "' upgrade to version " + new_version );
 			
 		byte[]	sub_id 		= subs.getShortID();
@@ -930,7 +1107,7 @@ SubscriptionManagerImpl
 			
 						log( "    Subscription '" + subs.getString() + " upgrade verified as authentic" );
 
-						updateSubscription( subs, verified_hash, verified_size );
+						updateSubscription( subs, new_version, verified_hash, verified_size );
 						
 					}else{
 						
@@ -1011,6 +1188,7 @@ SubscriptionManagerImpl
 	protected void
 	updateSubscription(
 		final SubscriptionImpl			subs,
+		final int						update_version,
 		final byte[]					update_hash,
 		final int						update_size )
 	{
@@ -1074,7 +1252,7 @@ SubscriptionManagerImpl
 						log( "Subscription update abandoned, torrent size is too large (" + torrent.getSize() + ")" );
 					}
 					
-					updateSubscription( subs, torrent );
+					updateSubscription( subs, update_version, torrent );
 					
 				}catch( Throwable e ){
 					
@@ -1086,11 +1264,138 @@ SubscriptionManagerImpl
 	
 	protected void
 	updateSubscription(
-		SubscriptionImpl		subs,
-		TOTorrent				torrent )
+		final SubscriptionImpl		subs,
+		int							new_version,
+		TOTorrent					torrent )
 	{
 		log( "Subscription " + subs.getString() + " - update torrent: " + new String( torrent.getName()));
 
+		subs.setHighestUserPromptedVersion( new_version );
+		
+		UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+		
+		String details = MessageText.getString(
+				"subscript.add.upgradeto.desc",
+				new String[]{ String.valueOf(new_version), subs.getName()});
+		
+		long res = ui_manager.showMessageBox(
+				"subscript.add.upgrade.title",
+				"!" + details + "!",
+				UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+		
+		if ( res != UIManagerEvent.MT_YES ){	
+		
+			log( "    User declined upgrade" );
+			
+			return;
+		}
+		
+		try{
+			String	sid = ByteFormatter.encodeString( subs.getShortID());
+			
+			File	dir = getSubsDir();
+			
+			dir = new File( dir, "temp" );
+			
+			if ( !dir.exists()){
+				
+				if ( !dir.mkdirs()){
+					
+					throw( new IOException( "Failed to create dir '" + dir + "'" ));
+				}
+			}
+			
+			final File	torrent_file 	= new File( dir, sid + "_" + new_version + ".torrent" );
+			final File	data_file 		= new File( dir, sid + "_" + new_version + ".vuze" );
+
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+		
+			DownloadManager dm = pi.getDownloadManager();
+			
+			Download download = dm.getDownload( torrent.getHash());
+			
+			if ( download == null ){
+				
+				PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + subs.getName() + "'" );
+				
+					// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
+					
+				TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
+				
+				Torrent t = new TorrentImpl( torrent );
+				
+				t.setDefaultEncoding();
+				
+				t.writeToFile( torrent_file );
+				
+				download = dm.addDownload( t, torrent_file, data_file );
+			}
+			
+			download.addCompletionListener(
+				new DownloadCompletionListener()
+				{
+					public void 
+					onCompletion(
+						Download d ) 
+					{
+						updateSubscription( subs, d, torrent_file, data_file );
+					}
+				});
+			
+			if ( download.isComplete()){
+				
+				updateSubscription( subs, download, torrent_file, data_file  );
+				
+			}else{
+							
+				download.setForceStart( true );
+			}
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to add download", e );
+		}
+	}
+	
+	protected void
+	updateSubscription(
+		SubscriptionImpl		subs,
+		Download				download,
+		File					torrent_file,
+		File					data_file )
+	{
+		try{
+			try{
+				download.stop();
+				
+			}catch( Throwable e ){
+			}
+			
+			download.remove( true, false );
+		
+			try{
+				VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+				
+				VuzeFile vf = vfh.loadVuzeFile( data_file.getAbsolutePath());
+							
+				vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
+				
+			}finally{
+				
+				if ( !data_file.delete()){
+					
+					log( "Failed to delete update file '" + data_file + "'" );
+				}
+				
+				if ( !torrent_file.delete()){
+					
+					log( "Failed to delete update torrent '" + torrent_file + "'" );
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to remove update download", e );
+		}
 	}
 	
 	protected MagnetPlugin

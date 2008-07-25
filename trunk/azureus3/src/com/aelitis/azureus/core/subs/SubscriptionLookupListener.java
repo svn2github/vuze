@@ -25,8 +25,12 @@ public interface
 SubscriptionLookupListener 
 {
 	public void
+	found(
+		Subscription			subscription );
+	
+	public void
 	complete(
-		Subscription[]		subscriptions );
+		Subscription[]			subscriptions );
 	
 	public void
 	failed(
