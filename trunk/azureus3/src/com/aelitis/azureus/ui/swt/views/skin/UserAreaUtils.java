@@ -207,7 +207,11 @@ public class UserAreaUtils
 		if (null != info.userName) {
 			SWTSkinObject skinObjectName = skin.getSkinObject("user-info-name");
 			if (skinObjectName instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) skinObjectName).setText(info.userName);
+				if (null != info.displayName) {
+					((SWTSkinObjectText) skinObjectName).setText(info.displayName);
+				} else {
+					((SWTSkinObjectText) skinObjectName).setText(info.userName);
+				}
 			}
 
 		} else {
@@ -271,17 +275,11 @@ public class UserAreaUtils
 	 */
 	private void fillUserInfoMenu(Menu menu) {
 		if (true == LoginInfoManager.getInstance().isLoggedIn()) {
-			/*
-			 * User name
-			 */
-			MenuItem item = new MenuItem(menu, SWT.PUSH);
-			item.setText(LoginInfoManager.getInstance().getUserInfo().displayName);
-			item = new MenuItem(menu, SWT.SEPARATOR);
 
 			/*
 			 * Account info
 			 */
-			item = new MenuItem(menu, SWT.PUSH);
+			MenuItem item = new MenuItem(menu, SWT.PUSH);
 			item.setText(MessageText.getString("v3.MainWindow.text.my.account"));
 			item.addSelectionListener(new SelectionListener() {
 
