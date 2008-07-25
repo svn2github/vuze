@@ -26,13 +26,16 @@ SubscriptionLookupListener
 {
 	public void
 	found(
+		byte[]					hash,
 		Subscription			subscription );
 	
 	public void
 	complete(
+		byte[]					hash,
 		Subscription[]			subscriptions );
 	
 	public void
 	failed(
+		byte[]					hash,
 		SubscriptionException	error );
 }

@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -57,12 +58,20 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.lws.LightWeightSeed;
+import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
@@ -164,17 +173,16 @@ SubscriptionManagerImpl
 		loadConfig();
 
 		/*
-		if ( subscriptions.size() == 0 ){
+		if ( subscriptions.size() == 1 ){
 			
 			try{
-				create( "Paul's test subs" );
+				create( "test subscription 2" );
 				
 			}catch( Throwable e ){
 				
 				e.printStackTrace();
 			}
-
-		
+	
 			for (int i=0;i<subscriptions.size();i++){
 			
 				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
@@ -216,11 +224,180 @@ SubscriptionManagerImpl
 			started	= true;
 		}
 		
-		PluginInterface  pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-
-		if ( pi != null ){
+		if ( Constants.isCVSVersion()){
 			
-			dht_plugin = (DHTPlugin)pi.getPlugin();
+			final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+			
+				// check assoc
+			
+			{
+				final TableContextMenuItem menu_item_itorrents = 
+					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.lookupassoc");
+				final TableContextMenuItem menu_item_ctorrents 	= 
+					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.lookupassoc");
+				
+				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
+				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
+		
+				MenuItemListener listener = 
+					new MenuItemListener()
+					{
+						public void 
+						selected(
+							MenuItem 	menu, 
+							Object 		target) 
+						{
+							TableRow[]	rows = (TableRow[])target;
+							
+							for (int i=0;i<rows.length;i++){
+								
+								Download download = (Download)rows[i].getDataSource();
+								
+								Torrent t = download.getTorrent();
+								
+								if ( t != null ){
+									
+									try{
+										lookupAssociations( 
+											t.getHash(),
+											new SubscriptionLookupListener()
+											{
+												public void
+												found(
+													byte[]					hash,
+													Subscription			subscription )
+												{
+													log( "    lookup: found " + ByteFormatter.encodeString( hash ) + " -> " + subscription.getName());
+												}
+												
+												public void
+												complete(
+													byte[]					hash,
+													Subscription[]			subscriptions )
+												{
+													log( "    lookup: complete " + ByteFormatter.encodeString( hash ) + " -> " +subscriptions.length );
+		
+												}
+												
+												public void
+												failed(
+													byte[]					hash,
+													SubscriptionException	error )
+												{
+													log( "    lookup: failed", error );
+												}
+											});
+										
+									}catch( Throwable e ){
+										
+										log( "Lookup failed", e );
+									}
+								}	
+							}
+						}
+					};
+				
+				menu_item_itorrents.addMultiListener( listener );
+				menu_item_ctorrents.addMultiListener( listener );	
+			}
+			
+				// make assoc
+			
+			{
+				final TableContextMenuItem menu_item_itorrents = 
+					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
+				final TableContextMenuItem menu_item_ctorrents 	= 
+					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.addassoc");
+				
+				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+				
+				MenuItemFillListener	menu_fill_listener = 
+					new MenuItemFillListener()
+					{
+						public void
+						menuWillBeShown(
+							MenuItem	menu,
+							Object		target )
+						{	
+							TableRow[]	rows;
+							
+							if ( target instanceof TableRow[] ){
+								
+								rows = (TableRow[])target;
+								
+							}else{
+								
+								rows = new TableRow[]{ (TableRow)target };
+							}
+							
+							final List	hashes = new ArrayList();
+							
+							for (int i=0;i<rows.length;i++){
+								
+								Download	download = (Download)rows[i].getDataSource();
+							
+								Torrent torrent = download.getTorrent();
+								
+								if ( torrent != null ){
+									
+									hashes.add( torrent.getHash());
+								}
+							}
+														
+							menu.removeAllChildItems();
+							
+							boolean enabled = hashes.size() > 0;
+							
+							if ( enabled ){
+							
+								Subscription[] subs = getSubscriptions();
+								
+								boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
+								
+								TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
+																
+								for (int i=0;i<subs.length;i++){
+									
+									final Subscription	sub = subs[i];
+									
+									TableContextMenuItem item =
+										default_pi.getUIManager().getTableManager().addContextMenuItem(
+											parent,
+											"!" + sub.getName() + "!");
+									
+									item.addListener(
+										new MenuItemListener()
+										{
+											public void 
+											selected(
+												MenuItem 	menu,
+												Object 		target ) 
+											{
+												for (int i=0;i<hashes.size();i++){
+													
+													sub.addAssociation( (byte[])hashes.get(i));
+												}
+											}
+										});
+								}
+							}
+							
+							menu.setEnabled( enabled );
+						}
+					};
+					
+				menu_item_itorrents.addFillListener( menu_fill_listener );
+				menu_item_ctorrents.addFillListener( menu_fill_listener );		
+					
+			}
+		}
+			
+		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+
+		if ( dht_plugin_pi != null ){
+			
+			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
 			
 			if ( subscriptions.size() > 0 ){
 				
@@ -408,6 +585,15 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	public Subscription[]
+	getSubscriptions()
+	{
+		synchronized( this ){
+			
+			return((Subscription[])subscriptions.toArray( new Subscription[subscriptions.size()]));
+		}
+	}
+	
 	public SubscriptionImpl
 	getSubscriptionFromPublicKey(
 		byte[]		public_key )
@@ -563,7 +749,7 @@ SubscriptionManagerImpl
 									subscriptions.add( subs );
 								}
 								
-								listener.found( subs );
+								listener.found( hash, subs );
 								
 							}else{
 								
@@ -602,7 +788,7 @@ SubscriptionManagerImpl
 						s = (Subscription[])subscriptions.toArray( new Subscription[ subscriptions.size() ]);
 					}
 					
-					listener.complete( s );
+					listener.complete( hash, s );
 				}
 			});
 	}
@@ -755,6 +941,8 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
+					log( "Checked association '" + subs.getString() + "' -> '" + assoc.getString() + "' - max_ver=" + max_ver + ",hits=" + hits );
+
 					if ( max_ver >= subs.getVersion()){
 						
 						if ( !subs.isMine()){
@@ -952,6 +1140,8 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
+					log( "Checked subscription publication '" + subs.getString() + "' - hits=" + hits );
+
 					if ( hits < 6 ){			
 			
 						log( "    Publishing subscription '" + subs.getString() + ", existing=" + hits );
@@ -1289,68 +1479,79 @@ SubscriptionManagerImpl
 			
 			return;
 		}
-		
+				
 		try{
-			String	sid = ByteFormatter.encodeString( subs.getShortID());
+				// testing purposes, see if local exists
 			
-			File	dir = getSubsDir();
-			
-			dir = new File( dir, "temp" );
-			
-			if ( !dir.exists()){
-				
-				if ( !dir.mkdirs()){
-					
-					throw( new IOException( "Failed to create dir '" + dir + "'" ));
-				}
-			}
-			
-			final File	torrent_file 	= new File( dir, sid + "_" + new_version + ".torrent" );
-			final File	data_file 		= new File( dir, sid + "_" + new_version + ".vuze" );
+			LightWeightSeed lws = LightWeightSeedManager.getSingleton().get( new HashWrapper( torrent.getHash()));
 
-			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
-		
-			DownloadManager dm = pi.getDownloadManager();
-			
-			Download download = dm.getDownload( torrent.getHash());
-			
-			if ( download == null ){
+			if ( lws != null ){
 				
-				PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + subs.getName() + "'" );
+				log( "Light weight seed found" );
 				
-					// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
-					
-				TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
-				
-				Torrent t = new TorrentImpl( torrent );
-				
-				t.setDefaultEncoding();
-				
-				t.writeToFile( torrent_file );
-				
-				download = dm.addDownload( t, torrent_file, data_file );
-			}
-			
-			download.addCompletionListener(
-				new DownloadCompletionListener()
-				{
-					public void 
-					onCompletion(
-						Download d ) 
-					{
-						updateSubscription( subs, d, torrent_file, data_file );
-					}
-				});
-			
-			if ( download.isComplete()){
-				
-				updateSubscription( subs, download, torrent_file, data_file  );
+				updateSubscription( subs, lws.getDataLocation());
 				
 			}else{
-							
-				download.setForceStart( true );
-			}
+				String	sid = ByteFormatter.encodeString( subs.getShortID());
+				
+				File	dir = getSubsDir();
+				
+				dir = new File( dir, "temp" );
+				
+				if ( !dir.exists()){
+					
+					if ( !dir.mkdirs()){
+						
+						throw( new IOException( "Failed to create dir '" + dir + "'" ));
+					}
+				}
+				
+				final File	torrent_file 	= new File( dir, sid + "_" + new_version + ".torrent" );
+				final File	data_file 		= new File( dir, sid + "_" + new_version + ".vuze" );
+	
+				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
 			
+				DownloadManager dm = pi.getDownloadManager();
+				
+				Download download = dm.getDownload( torrent.getHash());
+				
+				if ( download == null ){
+					
+					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + subs.getName() + "'" );
+					
+						// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
+						
+					TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
+					
+					Torrent t = new TorrentImpl( torrent );
+					
+					t.setDefaultEncoding();
+					
+					t.writeToFile( torrent_file );
+					
+					download = dm.addDownload( t, torrent_file, data_file );
+				}
+				
+				download.addCompletionListener(
+					new DownloadCompletionListener()
+					{
+						public void 
+						onCompletion(
+							Download d ) 
+						{
+							updateSubscription( subs, d, torrent_file, data_file );
+						}
+					});
+				
+				if ( download.isComplete()){
+					
+					updateSubscription( subs, download, torrent_file, data_file  );
+					
+				}else{
+								
+					download.setForceStart( true );
+				}
+			}
 		}catch( Throwable e ){
 			
 			log( "Failed to add download", e );
@@ -1373,13 +1574,9 @@ SubscriptionManagerImpl
 			
 			download.remove( true, false );
 		
-			try{
-				VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
-				
-				VuzeFile vf = vfh.loadVuzeFile( data_file.getAbsolutePath());
-							
-				vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
-				
+			try{				
+				updateSubscription( subs, data_file );
+											
 			}finally{
 				
 				if ( !data_file.delete()){
@@ -1396,6 +1593,20 @@ SubscriptionManagerImpl
 			
 			log( "Failed to remove update download", e );
 		}
+	}
+	
+	protected void
+	updateSubscription(
+		SubscriptionImpl		subs,
+		File					data_location )
+	{
+		log( "Updating subscription '" + subs.getString() + " using '" + data_location + "'" );
+		
+		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+			
+		VuzeFile vf = vfh.loadVuzeFile( data_location.getAbsolutePath());
+						
+		vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
 	}
 	
 	protected MagnetPlugin
