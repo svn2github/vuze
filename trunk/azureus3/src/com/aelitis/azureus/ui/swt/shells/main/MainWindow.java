@@ -1194,6 +1194,7 @@ public class MainWindow
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
 
+		System.out.println("---------READY AT " + SystemTime.getCurrentTime());
 		isReady = true;
 	}
 
@@ -1875,26 +1876,28 @@ public class MainWindow
 			Utils.launch(url);
 			return;
 		}
-
-		SWTSkinObject skinObject = skin.getSkinObject("tab-" + target);
-
-		if (skinObject == null) {
-			skinObject = skin.getSkinObject(target);
+		
+		if (target.startsWith("tab-")) {
+			target = target.substring(4);
 		}
+
+		SWTSkinObject skinObject = skin.getSkinObject(target);
 
 		if (skinObject == null) {
 			Utils.launch(url);
 			return;
 		}
+		
+		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (target.equals("publish")) {
+			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+		} else {
+			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);
+		}
 
 		setVisible(true);
-		skin.activateTab(skinObject);
 
 		skinObject = skin.getSkinObject(target);
-
-		if (skinObject == null && target.startsWith("tab-")) {
-			skinObject = skin.getSkinObject(target.substring(4));
-		}
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
 			((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
