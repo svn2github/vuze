@@ -551,6 +551,10 @@ public class SWTSkinObjectBasic
 		} finally {
 			listeners_mon.exit();
 		}
+		
+		if (initialized) {
+			listener.eventOccured(this, SWTSkinObjectListener.EVENT_CREATED, null);
+		}
 
 		if (isVisible && initialized) {
 			listener.eventOccured(this, SWTSkinObjectListener.EVENT_SHOW, null);
