@@ -18,8 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.toolbar;
 
-import org.eclipse.swt.graphics.Image;
-
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 
 /**
@@ -36,6 +34,8 @@ public abstract class ToolBarItem
 	private SWTSkinButtonUtility skinButton;
 	
 	boolean enabled = true;
+	
+	private String textID;
 
 	/**
 	 * @param id
@@ -45,6 +45,13 @@ public abstract class ToolBarItem
 		super();
 		this.id = id;
 		imageID = imageid;
+	}
+
+	public ToolBarItem(String id, String imageid, String textID) {
+		super();
+		this.id = id;
+		imageID = imageid;
+		this.textID = textID;
 	}
 
 	public abstract void triggerToolBarItem();
@@ -82,5 +89,19 @@ public abstract class ToolBarItem
 
 	public void setImageID(String imageID) {
 		this.imageID = imageID;
+	}
+
+	/**
+	 * @param textID the textID to set
+	 */
+	public void setTextID(String textID) {
+		this.textID = textID;
+	}
+
+	/**
+	 * @return the textID
+	 */
+	public String getTextID() {
+		return textID;
 	}
 }

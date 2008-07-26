@@ -34,6 +34,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 
@@ -60,7 +61,7 @@ public class ToolBarView
 
 		// ==NEW
 		ToolBarItem item;
-		item = new ToolBarItem("open", "image.toolbar.open") {
+		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -68,7 +69,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==OPEN
-		item = new ToolBarItem("new", "image.toolbar.new") {
+		item = new ToolBarItem("new", "image.toolbar.new", "iconBar.new") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -76,7 +77,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==TOP
-		item = new ToolBarItem("top", "image.toolbar.top") {
+		item = new ToolBarItem("top", "image.toolbar.top", "iconBar.top") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -84,7 +85,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==UP
-		item = new ToolBarItem("up", "image.toolbar.up") {
+		item = new ToolBarItem("up", "image.toolbar.up", "iconBar.up") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -92,7 +93,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==down
-		item = new ToolBarItem("down", "image.toolbar.down") {
+		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -100,7 +101,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==bottom
-		item = new ToolBarItem("bottom", "image.toolbar.bottom") {
+		item = new ToolBarItem("bottom", "image.toolbar.bottom", "iconBar.bottom") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -108,7 +109,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==run
-		item = new ToolBarItem("run", "image.toolbar.run") {
+		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -116,7 +117,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==start
-		item = new ToolBarItem("start", "image.toolbar.start") {
+		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -124,7 +125,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==stop
-		item = new ToolBarItem("stop", "image.toolbar.stop") {
+		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -132,7 +133,7 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		// ==remove
-		item = new ToolBarItem("remove", "image.toolbar.remove") {
+		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
 			public void triggerToolBarItem() {
 				Utils.openMessageBox(null, SWT.OK, "Hi", getId());
 			}
@@ -215,6 +216,12 @@ public class ToolBarView
 			btn.setImage(item.getImageID());
 			btn.addSelectionListener(buttonListener);
 			item.setSkinButton(btn);
+			
+			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
+			if (soTitle instanceof SWTSkinObjectText) {
+				((SWTSkinObjectText)soTitle).setTextID(item.getTextID());
+			}
+			
 			Utils.relayout(so.getControl().getParent());
 
 			lastItem = item;
