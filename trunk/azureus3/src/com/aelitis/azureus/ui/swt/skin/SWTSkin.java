@@ -371,7 +371,8 @@ public class SWTSkin
 			return getSkinObject(sViewID);
 		}
 
-		if (parent.getViewID().equals(sViewID)) {
+		String parentViewID = parent.getViewID();
+		if (parentViewID != null && parentViewID.equals(sViewID)) {
 			return parent;
 		}
 
