@@ -130,6 +130,8 @@ public class DisplayListener
 	 * @param string
 	 *
 	 * @since 3.0.0.7
+	 * 
+	 * 3.2 TODO: Switch to sidebar entry
 	 */
 	private void switchToTab(String tabID) {
 		SWTSkin skin = SWTSkinFactory.getInstance();

@@ -824,7 +824,7 @@ public class MainWindow
 							UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
-
+								// 3.2 TODO: Switch to sidebar entry
 								SWTSkin skin = SWTSkinFactory.getInstance();
 								SWTSkinObject skinObject = skin.getSkinObject(args[0]);
 								if (skinObject != null) {

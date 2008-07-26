@@ -144,27 +144,12 @@ public class SideBar
 			}
 		};
 	}
-
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		skin = skinObject.getSkin();
-
-		soSideBarContents = skin.getSkinObject("sidebar-contents");
-		soSideBarList = skin.getSkinObject("sidebar-list");
-
-		setupList();
-
-		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-
-		ViewTitleInfoManager.addListener(this);
-
-		soSideBarList.getControl().getDisplay().addFilter(SWT.KeyDown,
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		Display.getDefault().addFilter(SWT.KeyDown,
 				new Listener() {
-					double lastPercent;
+					double lastPercent = 0.8;
 
 					public void handleEvent(Event event) {
 						if (event.keyCode == SWT.F9
@@ -189,6 +174,27 @@ public class SideBar
 						}
 					}
 				});
+
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		skin = skinObject.getSkin();
+
+		soSideBarContents = skin.getSkinObject("sidebar-contents");
+		soSideBarList = skin.getSkinObject("sidebar-list");
+
+		setupList();
+
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		ViewTitleInfoManager.addListener(this);
+
 
 		return null;
 	}
@@ -262,8 +268,7 @@ public class SideBar
 									event.height - 1);
 							event.gc.setForeground(fgSel);
 							event.gc.setBackground(bgSel);
-							event.gc.setBackground(ColorCache.getColor(event.gc.getDevice(),
-									"#607080"));
+
 							curBG = event.gc.getBackground();
 							event.gc.fillRectangle(0, event.y, Math.max(treeBounds.width,
 									event.width + event.x), event.height);
