@@ -574,17 +574,24 @@ SubscriptionImpl
 			return( -1 );
 		}
 
+		return( getPublicationVersion( details ));
+	}
+	
+	protected static int
+	getPublicationVersion(
+		Map		details )
+	{
 		return(((Long)details.get("v")).intValue());
 	}
 	
-	protected byte[]
+	protected static byte[]
 	getPublicationHash(
 		Map		details )
 	{
 		return((byte[])details.get( "h" ));
 	}
 	
-	protected int
+	protected static int
 	getPublicationSize(
 		Map		details )
 	{

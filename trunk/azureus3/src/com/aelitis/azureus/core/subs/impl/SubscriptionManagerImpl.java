@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -394,6 +395,8 @@ SubscriptionManagerImpl
 			}
 		}
 			
+			// TODO: delete existing subs downloads
+		
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 
 		if ( dht_plugin_pi != null ){
@@ -687,9 +690,9 @@ SubscriptionManagerImpl
 			true,
 			new DHTPluginOperationListener()
 			{
-				private Map	hits = new HashMap();
-				
-				private List	subscriptions = new ArrayList();
+				private Map			hits 			= new HashMap();
+				private AESemaphore	hits_sem		= new AESemaphore( "Subs:lookup" );
+				private List		subscriptions 	= new ArrayList();
 				
 				private boolean	complete;
 				
@@ -719,7 +722,12 @@ SubscriptionManagerImpl
 						
 						boolean	new_sid = false;
 						
-						synchronized( hits ){
+						synchronized( this ){
+							
+							if ( complete ){
+								
+								return;
+							}
 							
 							Integer v = (Integer)hits.get(hw);
 							
@@ -745,16 +753,87 @@ SubscriptionManagerImpl
 							
 							if ( subs != null ){
 								
-								synchronized( subscriptions ){
+								synchronized( this ){
 
 									subscriptions.add( subs );
 								}
 								
-								listener.found( hash, subs );
+								try{
+									listener.found( hash, subs );
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+								
+								hits_sem.release();
 								
 							}else{
 								
-								lookupSubscription( hash, sid, listener );
+								lookupSubscription( 
+									hash, 
+									sid, 
+									ver,
+									new SubscriptionLookupListener()
+									{
+										private boolean sem_done = false;
+										
+										public void
+										found(
+											byte[]					hash,
+											Subscription			subscription )
+										{
+										}
+										
+										public void
+										complete(
+											byte[]					hash,
+											Subscription[]			subscriptions )
+										{
+											done( subscriptions );
+										}
+										
+										public void
+										failed(
+											byte[]					hash,
+											SubscriptionException	error )
+										{
+											done( new Subscription[0]);
+										}
+										
+										protected void
+										done(
+											Subscription[]			subs )
+										{
+											synchronized( this ){
+												
+												if ( sem_done ){
+													
+													return;
+												}
+												
+												sem_done = true;
+											}
+											
+											if ( subs.length > 0 ){
+												
+												synchronized( this ){
+	
+													subscriptions.add( subs[0] );
+												}
+												
+												try{
+													listener.found( hash, subs[0] );
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+											
+											hits_sem.release();
+										}
+									});
 							}
 						}
 					}
@@ -772,39 +851,194 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					log( "    Association lookup complete - " + hits.size() + " found" );
-					
-					Subscription[] s;
-					
-					synchronized( subscriptions ){
-						
-						if ( complete ){
+					new AEThread2( "Subs:lookup wait", true )
+					{
+						public void
+						run()
+						{
+							synchronized( this ){
+								
+								if ( complete ){
+									
+									return;
+								}
+								
+								complete = true;
+							}
 							
-							return;
+							for (int i=0;i<hits.size();i++){
+								
+								hits_sem.reserve();
+							}
+							
+							Subscription[] s;
+							
+							synchronized( this ){
+								
+								s = (Subscription[])subscriptions.toArray( new Subscription[ subscriptions.size() ]);
+							}
+							
+							log( "    Association lookup complete - " + s.length + " found" );
+							
+							listener.complete( hash, s );
 						}
-						
-						complete = true;
-						
-						s = (Subscription[])subscriptions.toArray( new Subscription[ subscriptions.size() ]);
-					}
-					
-					listener.complete( hash, s );
+					}.start();
 				}
 			});
 	}
 	
 	protected void
 	lookupSubscription(
-		byte[]						association_hash,
-		byte[]						sid,
-		SubscriptionLookupListener	listener )
+		final byte[]						association_hash,
+		final byte[]						sid,
+		final int							version,
+		final SubscriptionLookupListener	listener )
 	{
 		try{
 			PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
 			
+			Subscription subs = null; // TODO!
+			
+				// TODO: return subscription skeleton based on platform response
+			
+			listener.complete( association_hash, new Subscription[]{ subs });
+			
 		}catch( Throwable e ){
 			
 			log( "Subscription lookup via platform failed", e );
+			
+				// fall back to DHT
+			
+			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
+			
+			dht_plugin.get(
+				key.getBytes(),
+				"Subscription lookup read: " + ByteFormatter.encodeString( sid ) + ":" + version,
+				DHTPlugin.FLAG_SINGLE_VALUE,
+				12,
+				60*1000,
+				false,
+				false,
+				new DHTPluginOperationListener()
+				{
+					private boolean went_async;
+					
+					public void
+					diversified()
+					{
+					}
+					
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						DHTPluginValue		value )
+					{
+						byte[]	data = value.getValue();
+								
+						try{
+							final Map	details = decodeSubscriptionDetails( data );
+							
+							if ( SubscriptionImpl.getPublicationVersion( details ) == version ){
+								
+								synchronized( this ){
+									
+									if ( went_async  ){
+										
+										return;
+									}
+									
+									went_async = true;
+								}
+								
+								new AEThread2( "Subs:lookup download", true )
+								{
+									public void
+									run()
+									{
+										downloadSubscription( 
+											association_hash,
+											SubscriptionImpl.getPublicationHash( details ),
+											sid,
+											version,
+											SubscriptionImpl.getPublicationSize( details ),
+											listener );
+									}
+								}.start();
+							}
+						}catch( Throwable e ){
+							
+						}
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						DHTPluginValue		value )
+					{
+					}
+					
+					public void
+					complete(
+						byte[]				original_key,
+						boolean				timeout_occurred )
+					{
+						synchronized( this ){
+							
+							if ( !went_async ){
+						
+								listener.complete( association_hash, new Subscription[0] );
+							}
+						}
+					}
+				});
+		}
+	}
+	
+	protected void 
+	downloadSubscription(
+		final byte[]						association_hash,
+		byte[]								torrent_hash,
+		byte[]								sid,
+		int									version,
+		int									size,
+		final SubscriptionLookupListener 	listener )
+	{
+		try{
+			TOTorrent	torrent = downloadTorrent( torrent_hash, size );
+			
+			downloadSubscription(
+				torrent,
+				sid,
+				version,
+				"asdasdad",
+				new downloadListener()
+				{
+					public void
+					complete(
+						File		data_file )
+					{
+						System.out.println( "TODO!!!!" );
+					}
+					
+					public void
+					complete(
+						Download	download,	
+						File		torrent_file )
+					{
+						System.out.println( "TODO!!!!" );
+					}
+						
+					public void
+					failed(
+						Throwable	error )
+					{
+						listener.complete( association_hash, new Subscription[0] );
+					}
+				});
+				
+		}catch( Throwable e ){
+			
+			listener.complete( association_hash, new Subscription[0] );
 		}
 	}
 	
@@ -1287,8 +1521,8 @@ SubscriptionManagerImpl
 						if ( 	verified_hash == null && 
 								subs.getVerifiedPublicationVersion( details ) == new_version ){
 							
-							verified_hash 	= subs.getPublicationHash( details );
-							verified_size	= subs.getPublicationSize( details );
+							verified_hash 	= SubscriptionImpl.getPublicationHash( details );
+							verified_size	= SubscriptionImpl.getPublicationSize( details );
 						}
 						
 					}catch( Throwable e ){
@@ -1399,72 +1633,201 @@ SubscriptionManagerImpl
 	{
 		log( "Subscription " + subs.getString() + " - update hash=" + ByteFormatter.encodeString( update_hash ) + ", size=" + update_size );
 
-		final MagnetPlugin	magnet_plugin = getMagnetPlugin();
-		
-		if ( magnet_plugin == null ){
-			
-			log( "    Can't update, no magnet plugin" );
-			
-			return;
-		}
-		
 		new AEThread2( "SubsUpdate", true )
 		{
 			public void
 			run()
 			{
 				try{
-					byte[] torrent_data = magnet_plugin.download(
-						new MagnetPluginProgressListener()
-						{
-							public void
-							reportSize(
-								long	size )
-							{
-							}
-							
-							public void
-							reportActivity(
-								String	str )
-							{
-								log( "    MagnetDownload: " + str );
-							}
-							
-							public void
-							reportCompleteness(
-								int		percent )
-							{
-							}
-						},
-						update_hash,
-						new InetSocketAddress[0],
-						300*1000 );
+					TOTorrent	torrent = downloadTorrent( update_hash, update_size );
 					
-					log( "Subscription torrent downloaded" );
+					if ( torrent != null ){
 					
-					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
-				
-						// update size is just that of signed content, torrent itself is .vuze file
-						// so take this into account
-					
-					if ( torrent.getSize() > update_size + 10*1024 ){
-					
-						log( "Subscription update abandoned, torrent size is " + torrent.getSize() + ", underlying data size is " + update_size );
+						updateSubscription( subs, update_version, torrent );
 					}
-					
-					if ( torrent.getSize() > 4*1024*1024 ){
-						
-						log( "Subscription update abandoned, torrent size is too large (" + torrent.getSize() + ")" );
-					}
-					
-					updateSubscription( subs, update_version, torrent );
-					
 				}catch( Throwable e ){
 					
 					log( "    update failed", e );
 				}
 			}
 		}.start();
+	}
+	
+	protected TOTorrent
+	downloadTorrent(
+		byte[]		hash,
+		int			update_size )
+	{		
+		final MagnetPlugin	magnet_plugin = getMagnetPlugin();
+	
+		if ( magnet_plugin == null ){
+		
+			log( "    Can't download, no magnet plugin" );
+		
+			return( null );
+		}
+
+		try{
+			byte[] torrent_data = magnet_plugin.download(
+				new MagnetPluginProgressListener()
+				{
+					public void
+					reportSize(
+						long	size )
+					{
+					}
+					
+					public void
+					reportActivity(
+						String	str )
+					{
+						log( "    MagnetDownload: " + str );
+					}
+					
+					public void
+					reportCompleteness(
+						int		percent )
+					{
+					}
+				},
+				hash,
+				new InetSocketAddress[0],
+				300*1000 );
+			
+			log( "Subscription torrent downloaded" );
+			
+			TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
+		
+				// update size is just that of signed content, torrent itself is .vuze file
+				// so take this into account
+			
+			if ( torrent.getSize() > update_size + 10*1024 ){
+			
+				log( "Subscription download abandoned, torrent size is " + torrent.getSize() + ", underlying data size is " + update_size );
+				
+				return( null );
+			}
+			
+			if ( torrent.getSize() > 4*1024*1024 ){
+				
+				log( "Subscription download abandoned, torrent size is too large (" + torrent.getSize() + ")" );
+				
+				return( null );
+			}
+			
+			return( torrent );
+			
+		}catch( Throwable e ){
+			
+			log( "    download failed", e );
+			
+			return( null );
+		}
+	}
+	
+	protected void
+	downloadSubscription(
+		TOTorrent				torrent,
+		byte[]					subs_id,
+		int						version,
+		String					name,
+		final downloadListener	listener )
+	{
+		try{
+				// testing purposes, see if local exists
+			
+			LightWeightSeed lws = LightWeightSeedManager.getSingleton().get( new HashWrapper( torrent.getHash()));
+	
+			if ( lws != null ){
+				
+				log( "Light weight seed found" );
+				
+				listener.complete( lws.getDataLocation());
+				
+			}else{
+				String	sid = ByteFormatter.encodeString( subs_id );
+				
+				File	dir = getSubsDir();
+				
+				dir = new File( dir, "temp" );
+				
+				if ( !dir.exists()){
+					
+					if ( !dir.mkdirs()){
+						
+						throw( new IOException( "Failed to create dir '" + dir + "'" ));
+					}
+				}
+				
+				final File	torrent_file 	= new File( dir, sid + "_" + version + ".torrent" );
+				final File	data_file 		= new File( dir, sid + "_" + version + ".vuze" );
+	
+				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+			
+				DownloadManager dm = pi.getDownloadManager();
+				
+				Download download = dm.getDownload( torrent.getHash());
+				
+				if ( download == null ){
+					
+					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + name + "'" );
+					
+						// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
+						
+					TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
+					
+					Torrent t = new TorrentImpl( torrent );
+					
+					t.setDefaultEncoding();
+					
+					t.writeToFile( torrent_file );
+					
+					download = dm.addDownload( t, torrent_file, data_file );
+				}
+				
+				download.addCompletionListener(
+					new DownloadCompletionListener()
+					{
+						public void 
+						onCompletion(
+							Download d ) 
+						{
+							listener.complete( d, torrent_file );
+						}
+					});
+				
+				if ( download.isComplete()){
+					
+					listener.complete( download, torrent_file  );
+					
+				}else{
+								
+					download.setForceStart( true );
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to add download", e );
+			
+			listener.failed( e );
+		}
+	}
+	
+	protected interface
+	downloadListener
+	{
+		public void
+		complete(
+			File		data_file );
+		
+		public void
+		complete(
+			Download	download,	
+			File		torrent_file );
+			
+		public void
+		failed(
+			Throwable	error );
 	}
 	
 	protected void
@@ -1494,83 +1857,36 @@ SubscriptionManagerImpl
 			
 			return;
 		}
-				
-		try{
-				// testing purposes, see if local exists
 			
-			LightWeightSeed lws = LightWeightSeedManager.getSingleton().get( new HashWrapper( torrent.getHash()));
-
-			if ( lws != null ){
-				
-				log( "Light weight seed found" );
-				
-				updateSubscription( subs, lws.getDataLocation());
-				
-			}else{
-				String	sid = ByteFormatter.encodeString( subs.getShortID());
-				
-				File	dir = getSubsDir();
-				
-				dir = new File( dir, "temp" );
-				
-				if ( !dir.exists()){
-					
-					if ( !dir.mkdirs()){
-						
-						throw( new IOException( "Failed to create dir '" + dir + "'" ));
-					}
+		downloadSubscription(
+			torrent,
+			subs.getShortID(),
+			new_version,
+			subs.getName(),
+			new downloadListener()
+			{
+				public void
+				complete(
+					File		data_file )
+				{
+					updateSubscription( subs, data_file );
 				}
 				
-				final File	torrent_file 	= new File( dir, sid + "_" + new_version + ".torrent" );
-				final File	data_file 		= new File( dir, sid + "_" + new_version + ".vuze" );
-	
-				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
-			
-				DownloadManager dm = pi.getDownloadManager();
-				
-				Download download = dm.getDownload( torrent.getHash());
-				
-				if ( download == null ){
-					
-					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + subs.getName() + "'" );
-					
-						// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
-						
-					TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
-					
-					Torrent t = new TorrentImpl( torrent );
-					
-					t.setDefaultEncoding();
-					
-					t.writeToFile( torrent_file );
-					
-					download = dm.addDownload( t, torrent_file, data_file );
+				public void
+				complete(
+					Download	download,	
+					File		torrent_file )
+				{
+					updateSubscription( subs, download, torrent_file, new File( download.getSavePath()));
 				}
-				
-				download.addCompletionListener(
-					new DownloadCompletionListener()
-					{
-						public void 
-						onCompletion(
-							Download d ) 
-						{
-							updateSubscription( subs, d, torrent_file, data_file );
-						}
-					});
-				
-				if ( download.isComplete()){
 					
-					updateSubscription( subs, download, torrent_file, data_file  );
-					
-				}else{
-								
-					download.setForceStart( true );
+				public void
+				failed(
+					Throwable	error )
+				{
+					log( "Failed to download subscription", error );
 				}
-			}
-		}catch( Throwable e ){
-			
-			log( "Failed to add download", e );
-		}
+			});
 	}
 	
 	protected void
