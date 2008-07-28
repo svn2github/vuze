@@ -264,6 +264,12 @@ MagnetPlugin
 								{
 									muh_listener.reportCompleteness( percent );
 								}
+								
+								public void
+								reportContributor(
+									InetSocketAddress	address )
+								{
+								}
 							},
 							hash,
 							sources,
@@ -633,6 +639,8 @@ MagnetPlugin
 								timeout );
 										
 					if ( value != null ){
+						
+						listener.reportContributor( contact.getAddress());
 						
 						return( (byte[])value.getValue(byte[].class));
 					}

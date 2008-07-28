@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.plugins.magnet;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author parg
  *
@@ -41,4 +43,8 @@ MagnetPluginProgressListener
 	public void
 	reportCompleteness(
 		int		percent );
+	
+	public void
+	reportContributor(
+		InetSocketAddress	address );
 }
