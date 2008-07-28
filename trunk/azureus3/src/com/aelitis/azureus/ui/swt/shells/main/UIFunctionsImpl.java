@@ -281,7 +281,7 @@ public class UIFunctionsImpl
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
 
-				if (sideBar.createAndShowTreeItem(view, name, true) != null) {
+				if (sideBar.createAndShowTreeItem(null, view, name, true) != null) {
 					return;
 				}
 			}
@@ -303,7 +303,20 @@ public class UIFunctionsImpl
 			SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 			if (sideBar != null) {
-				sideBar.showItemByID(sViewID);
+				
+				String sidebarParentID = null;
+				
+				if (UISWTInstance.VIEW_MYTORRENTS.equals(sParentID)) {
+					sidebarParentID = SideBar.SIDEBAR_SECTION_LIBRARY;
+				} else if (!UISWTInstance.VIEW_MAIN.equals(sParentID)) {
+					System.err.println("Can't find parent " + sParentID + " for " + sViewID);
+				}
+				
+				sideBar.createTreeItemFromEventListener(sidebarParentID, null, l, sViewID,
+						true, dataSource);
+				if (bSetFocus) {
+					sideBar.showItemByID(sViewID);
+				}
 			}
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "openPluginView", e));
@@ -464,19 +477,21 @@ public class UIFunctionsImpl
 	public void openView(int viewID, Object data) {
 		switch (viewID) {
 			case VIEW_CONSOLE:
-				mainWindow.openView(LoggerView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, LoggerView.class,
+						null, data, true);
 				break;
 
 			case VIEW_ALLPEERS:
-				mainWindow.openView(PeerSuperView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, PeerSuperView.class,
+						null, data, true);
 				break;
 
 			case VIEW_CONFIG:
-				mainWindow.openView(ConfigView.class, null, data, true);
+				ConfigShell.getInstance().open();
 				break;
 
 			case VIEW_DM_DETAILS:
-				String id = "DMDetails-"; 
+				String id = "DMDetails-";
 				if (data instanceof DownloadManager) {
 					DownloadManager dm = (DownloadManager) data;
 					TOTorrent torrent = dm.getTorrent();
@@ -489,31 +504,49 @@ public class UIFunctionsImpl
 					}
 				}
 
-				mainWindow.openView(ManagerView.class, id, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY, ManagerView.class,
+						id, data, true);
 				break;
 
 			case VIEW_DM_MULTI_OPTIONS:
-				mainWindow.openView(TorrentOptionsView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY,
+						TorrentOptionsView.class, null, data, true);
 				break;
 
 			case VIEW_MYSHARES:
-				mainWindow.openView(MySharesView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_LIBRARY,
+						MySharesView.class, null, data, true);
 				break;
 
-			case VIEW_MYTORRENTS:
-				mainWindow.openView(MyTorrentsSuperView.class, null, data, true);
+			case VIEW_MYTORRENTS: {
+				if (mainWindow.isOnAdvancedView()) {
+					UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+					if (uiFunctions != null) {
+						uiFunctions.openView(VIEW_MYTORRENTS, null);
+						return;
+					}
+				}
+				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+
+				if (sideBar != null) {
+					sideBar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+				}
+			}
 				break;
 
 			case VIEW_MYTRACKER:
-				mainWindow.openView(MyTrackerView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, MyTrackerView.class,
+						null, data, true);
 				break;
 
 			case VIEW_STATS:
-				mainWindow.openView(StatsView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, StatsView.class,
+						null, data, true);
 				break;
-				
+
 			case VIEW_DETAILED_LISTVIEW:
-				mainWindow.openView(DetailedListView.class, null, data, true);
+				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS,
+						DetailedListView.class, null, data, true);
 				break;
 
 			default:

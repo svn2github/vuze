@@ -647,7 +647,7 @@ public class MainWindow
 			SkinViewManager.addListener(new SkinViewManagerListener() {
 				public void skinViewAdded(SkinView skinview) {
 					if (skinview instanceof SideBar) {
-						setupSideBar((SideBar)skinview);
+						setupSideBar((SideBar) skinview);
 					}
 				}
 			});
@@ -877,19 +877,19 @@ public class MainWindow
 	protected void setupSideBar(SideBar sidebar) {
 		// 3.2 TODO: set default sidebar item
 		String startTab;
-		
+
+		sidebar.addListener(this);
+
 		if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
 			startTab = SideBar.SIDEBAR_SECTION_ADVANCED;
 		} else {
 			startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 		}
 		sidebar.showItemByID(startTab);
-		
-		sidebar.addListener(this);
-		
-//		System.out.println("Activate sidebar " + startTab + " took "
-//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
-//		startTime = SystemTime.getCurrentTime();
+
+		//		System.out.println("Activate sidebar " + startTab + " took "
+		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+		//		startTime = SystemTime.getCurrentTime();
 	}
 
 	/**
@@ -1697,19 +1697,18 @@ public class MainWindow
 		});
 
 		text.addListener(SWT.KeyDown, new Listener() {
-		
+
 			public void handleEvent(Event event) {
 				StyledText text = (StyledText) event.widget;
-				if(event.keyCode == SWT.ESC){
+				if (event.keyCode == SWT.ESC) {
 					text.setText("");
 					return;
 				}
-				if(event.keyCode == SWT.CR){
+				if (event.keyCode == SWT.CR) {
 					doSearch(text.getText());
 				}
 			}
 		});
-
 
 		// must be done after layout
 		text.setText(sDefault);
@@ -1725,7 +1724,8 @@ public class MainWindow
 					doSearch(sSearchText);
 				}
 			});
-		}}
+		}
+	}
 
 	/**
 	 * @param searchText
@@ -1747,8 +1747,8 @@ public class MainWindow
 
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		String id = "Search." + sSearchText;
-		sidebar.createTreeItemFromSkinRef(SideBar.SIDEBAR_SECTION_SEARCH, id,
-				"main.area.searchresultstab", sSearchText, null, sURL, true);
+		sidebar.createTreeItemFromSkinRef(null, id, "main.area.searchresultstab",
+				MessageText.getString("Search: ") + sSearchText, null, sURL, true);
 		sidebar.showItemByID(id);
 	}
 
@@ -1876,7 +1876,7 @@ public class MainWindow
 			Utils.launch(url);
 			return;
 		}
-		
+
 		if (target.startsWith("tab-")) {
 			target = target.substring(4);
 		}
@@ -1887,7 +1887,7 @@ public class MainWindow
 			Utils.launch(url);
 			return;
 		}
-		
+
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (target.equals("publish")) {
 			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -2072,8 +2072,8 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	public IView openView(Class cla, final String id, final Object data,
-			final boolean closeable) {
+	public IView openView(final String parentID, Class cla, final String id,
+			final Object data, final boolean closeable) {
 		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 		IView viewFromID = sideBar.getIViewFromID(id);
@@ -2088,14 +2088,12 @@ public class MainWindow
 
 				public void runSupport() {
 					if (sideBar != null) {
-						String currentViewID = sideBar.getCurrentViewID();
-						if (oldMainWindow != null && currentViewID != null
-								&& currentViewID.equals("Advanced_SB")) {
+						if (isOnAdvancedView()) {
 							Tab mainTabSet = oldMainWindow.getMainTabSet();
 							mainTabSet.createTabItem(view, true);
 						} else {
 							// TODO: Need to parent it
-							if (sideBar.createAndShowTreeItem(view, id, closeable) == null) {
+							if (sideBar.createAndShowTreeItem(parentID, view, id, closeable) == null) {
 								return;
 							}
 						}
@@ -2110,6 +2108,19 @@ public class MainWindow
 			Debug.out(e);
 		}
 		return null;
+	}
+
+	public boolean isOnAdvancedView() {
+		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sideBar == null) {
+			return false;
+		}
+		String currentViewID = sideBar.getCurrentViewID();
+		if (oldMainWindow != null && currentViewID != null
+				&& currentViewID.equals("Advanced_SB")) {
+			return true;
+		}
+		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(org.gudy.azureus2.ui.swt.views.IView, java.lang.String, org.gudy.azureus2.ui.swt.views.IView, java.lang.String)

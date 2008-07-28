@@ -22,7 +22,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
-import org.gudy.azureus2.ui.swt.IconBar;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
@@ -45,15 +46,13 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 public class SBC_LibraryTableView
 	extends SkinView
-	implements UIUpdatable
+	implements UIUpdatable, IconBarEnabler
 {
 	private final static String ID = "SBC_LibraryTableView";
 
 	private IView view;
 
 	private Composite viewComposite;
-
-	private IconBar iconBar;
 
 	private int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
 
@@ -97,30 +96,6 @@ public class SBC_LibraryTableView
 		return null;
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
-		Object o = super.skinObjectShown(skinObject, params);
-
-		SWTSkinObject so = skin.getSkinObject("library-list-bottom");
-		if (so != null && iconBar == null) {
-			iconBar = new IconBar((Composite) so.getControl());
-			iconBar.setLayoutData(Utils.getFilledFormData());
-			iconBar.getComposite().getParent().layout();
-			iconBar.setCurrentEnabler(view);
-		}
-
-		return o;
-	}
-
-	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#hide(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		if (iconBar != null) {
-			iconBar.delete();
-			iconBar = null;
-		}
-		return null;
-	}
-
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
 		return ID;
@@ -130,9 +105,41 @@ public class SBC_LibraryTableView
 	public void updateUI() {
 		if (view != null) {
 			view.refresh();
-			if (iconBar != null) {
-				iconBar.setCurrentEnabler(view);
-			}
+		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
+	public boolean isEnabled(String itemKey) {
+		try {
+  		if (view != null) {
+  			return view.isEnabled(itemKey);
+  		}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
+	public boolean isSelected(String itemKey) {
+		try {
+  		if (view != null) {
+  			return view.isSelected(itemKey);
+  		}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
+	public void itemActivated(String itemKey) {
+		try {
+  		if (view != null) {
+  			view.itemActivated(itemKey);
+  		}
+		} catch (Throwable t) {
+			Debug.out(t);
 		}
 	}
 }
