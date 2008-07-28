@@ -1,10 +1,13 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -64,7 +67,16 @@ public class ConfigShell
 			 */
 			if (null == COConfigurationManager.getStringParameter(
 					"options.rectangle", null)) {
-				shell.setSize(800, 600);
+				Rectangle shellBounds = shell.getMonitor().getBounds();
+				Point size = new Point(shellBounds.width * 10 / 11,
+						shellBounds.height * 10 / 11);
+				if (size.x > 1400) {
+					size.x = 1400;
+				}
+				if (size.y > 700) {
+					size.y = 700;
+				}
+				shell.setSize(size);
 				Utils.centerWindowRelativeTo(shell, getMainShell());
 			}
 
