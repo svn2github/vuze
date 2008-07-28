@@ -363,6 +363,11 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 				return;
 			}
 
+			String thirdPartyImpressionUrl = (String) values.get("thirdPartyImp");
+			if( thirdPartyImpressionUrl == null ) {
+				thirdPartyImpressionUrl = "";
+			}
+			
 			//The vuzeId is used to keep impressions unique.
 			String vuzeId = (String) values.get("vuzeId");
 			if( vuzeId==null ){
@@ -414,8 +419,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 				debug("DM for Ad not found");
 			}
 
-			PlatformDCAdManager.saveImpresssion(impressionID,
-					SystemTime.getCurrentTime(), contentHash, torrentHash, adHash,
+			PlatformDCAdManager.saveImpression(impressionID,   // impressionID == doubleclick impression url
+					SystemTime.getCurrentTime(), contentHash, torrentHash, adHash, thirdPartyImpressionUrl,
 					5000);
 
 		} catch (Exception e) {
@@ -653,7 +658,10 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
   			replace(repBuffer,"<##-AD-PATH-##>",adFile.getAbsolutePath());
 			} catch (Exception e) {
 				debug("reokacASXParams: " + e.toString());
+	  			replace(repBuffer,"<##-AD-PATH-##>","http://www.vuze.com/img43/asx_noad.gif");
 			}
+		} else {
+  			replace(repBuffer,"<##-AD-PATH-##>","http://www.vuze.com/img43/asx_noad.gif");
 		}
 
 		//pass the params to the player via the download manager.

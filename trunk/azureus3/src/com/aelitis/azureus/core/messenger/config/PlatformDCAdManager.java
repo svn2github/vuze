@@ -302,22 +302,23 @@ public class PlatformDCAdManager
 
     /**
      * Send the impression information.
-     * @param trackingID -
+     * @param impressionUrl -
      * @param viewedOn -
      * @param contentHash -
      * @param torrentHash -
      * @param adHash      -
+     * @param thirdPartyImpressionUrl Array of thirdparty impression urls encoded as a json array of strings. 
      * @param maxDelayMS  -
      */
-    public static void saveImpresssion(String trackingID, long viewedOn,
-            String contentHash, String torrentHash, String adHash,
+    public static void saveImpression(String impressionUrl, long viewedOn,
+            String contentHash, String torrentHash, String adHash, String thirdPartyImpressionUrl,
             long maxDelayMS) {
         // pass in contentHash instead of DownloadManager in case the user removed
         // the DM (and we are retrying)
         try {
             Map ad = new HashMap();
 
-            ad.put("tracking-id", trackingID);
+            ad.put("tracking-id", impressionUrl);
             ad.put("viewed-on", new Long(viewedOn));
             ad.put("content-hash", contentHash);
             if (torrentHash != null) {
@@ -326,7 +327,9 @@ public class PlatformDCAdManager
             if (adHash != null) {
                 ad.put("hash", adHash);
             }
-
+            if( thirdPartyImpressionUrl != null ) {
+            	ad.put("thirdPartyImp", thirdPartyImpressionUrl);
+            }
 
             try {
                 mon_unsentImpressions.enter();
