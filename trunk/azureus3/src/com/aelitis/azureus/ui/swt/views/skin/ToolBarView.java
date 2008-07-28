@@ -49,6 +49,7 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 /**
  * @author TuxPaper
@@ -238,6 +239,20 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 		
+
+		// ==play
+		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
+			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+			public void triggerToolBarItem() {
+				DownloadManager[] dms = getDMSFromSelectedContent();
+				if (dms != null) {
+					TorrentListViewsUtils.playOrStreamDataSource(dms[0],
+							this.getSkinButton());
+				}
+			}
+		};
+		addToolBarItem(item);
+
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			public void currentlySectedContentChanged(
 					ISelectedContent[] currentContent) {
@@ -297,9 +312,16 @@ public class ToolBarView
 				if (item != null) {
 					item.setEnabled(canStop);
 				}
+				item = getToolBarItem("play");
+				if (item != null) {
+					item.setEnabled(has1Selection
+							&& PlayUtils.canPlayDS(currentContent[0].getDM()));
+				}
 
 			}
 		});
+		
+		
 
 		return null;
 	}
