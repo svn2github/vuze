@@ -142,7 +142,7 @@ public class ManagerView
   		manager.removeListener(this);
   	}
     
-    if ( !folder.isDisposed()){
+    if (folder != null && !folder.isDisposed()){
     	
     	folder.setSelection(0);
     }
@@ -477,7 +477,9 @@ public class ManagerView
 		}
 		if (propertyID == TITLE_INDICATOR_TEXT) {
 	    int completed = manager.getStats().getCompleted();
-	    return (completed / 10) + "%";
+	    if (completed != 1000) {
+	    	return (completed / 10) + "%";
+	    }
 		}
 		return null;
 	}
