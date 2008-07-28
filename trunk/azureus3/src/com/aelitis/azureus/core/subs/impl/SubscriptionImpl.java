@@ -96,6 +96,8 @@ SubscriptionImpl
 	
 	private int				fixed_random;
 	
+	private long			popularity				= -1;
+	
 	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
 	
@@ -226,6 +228,8 @@ SubscriptionImpl
 			
 			map.put( "subscribed", new Long( is_subscribed?1:0 ));
 			
+			map.put( "pop", new Long( popularity ));
+			
 			map.put( "rand", new Long( fixed_random ));
 			
 			map.put( "hupv", new Long( highest_prompted_version ));
@@ -281,6 +285,11 @@ SubscriptionImpl
 		Long	l_subs 	= (Long)map.get( "subscribed" );
 		
 		is_subscribed	= l_subs==null?true:l_subs.intValue()==1;
+		
+		Long	l_pop 	= (Long)map.get( "pop" );
+		
+		popularity		= l_pop==null?-1:l_pop.longValue();
+
 		
 		Long	l_hupv = (Long)map.get( "hupv" );
 		
@@ -429,10 +438,27 @@ SubscriptionImpl
 	
 	public long
 	getPopularity()
+	
+		throws SubscriptionException
 	{
-			// TODO:
-		
-		return( 0 );
+		try{
+			long	pop = manager.getPopularity( this );
+			
+			if ( pop != popularity ){
+				
+				popularity = pop;
+				
+				manager.configDirty();
+			}
+		}catch( Throwable e ){
+			
+			if ( popularity == -1 ){
+			
+				throw( new SubscriptionException( "Failed to read popularity", e ));
+			}
+		}
+
+		return( popularity );
 	}
 	
 	protected void
@@ -646,6 +672,12 @@ SubscriptionImpl
 		Map		details )
 	{
 		return(((Long)details.get("v")).intValue());
+	}
+	
+	protected byte[]
+	getPublicationHash()
+	{
+		return( hash );
 	}
 	
 	protected static byte[]

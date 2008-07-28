@@ -37,6 +37,7 @@ PlatformSubscriptionsMessenger
 	public static final String LISTENER_ID_TEMPLATE = "subscriptions";
 
 	public static final String OP_GET_SUBS_BY_SID				= "get-subs-by-sid";
+	public static final String OP_GET_POP_BY_SID				= "get-pop-by-sid";
 
 
 	public static subscriptionDetails 
@@ -55,6 +56,21 @@ PlatformSubscriptionsMessenger
 		
 		return( details );
 	}                       	
+	
+	public static long
+	getPopularityBySID(
+		byte[]		sid )
+	
+		throws PlatformMessengerException
+	{
+		Map parameters = new HashMap();
+		
+		parameters.put( "sid", sid );
+		
+		Map reply = syncInvoke(	OP_GET_POP_BY_SID, parameters ); 
+		
+		return( 0 ); // TODO
+	}
 	
 	protected static Map
 	syncInvoke(

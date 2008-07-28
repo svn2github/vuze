@@ -1,5 +1,5 @@
 /*
- * Created on Jul 11, 2008
+ * Created on Jul 28, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,22 +21,9 @@
 
 package com.aelitis.azureus.core.subs;
 
-public interface 
-SubscriptionManager 
+public interface
+SubscriptionAssociationLookup 
 {
-	public Subscription
-	create(
-		String		name )
-		
-		throws SubscriptionException;
-	
-	public Subscription[]
-	getSubscriptions();
-	
-	public SubscriptionAssociationLookup
-	lookupAssociations(
-		byte[]						hash,
-		SubscriptionLookupListener	listener )
-	
-		throws SubscriptionException;
+	public void
+	cancel();
 }

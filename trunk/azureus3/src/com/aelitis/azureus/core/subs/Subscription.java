@@ -47,7 +47,9 @@ Subscription
 		boolean		subscribed );
 	
 	public long
-	getPopularity();
+	getPopularity()
+	
+		throws SubscriptionException;
 	
 	public void
 	addAssociation(

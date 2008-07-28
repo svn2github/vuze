@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -46,6 +48,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -56,6 +59,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -73,10 +78,16 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
@@ -87,8 +98,10 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
+import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 
@@ -728,7 +741,7 @@ SubscriptionManagerImpl
  		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".vuze" ));
 	}
 	
-	public void
+	public SubscriptionAssociationLookup
 	lookupAssociations(
 		final byte[] 							hash,
 		final SubscriptionLookupListener		listener )
@@ -738,7 +751,9 @@ SubscriptionManagerImpl
 		log( "Looking up associations for '" + ByteFormatter.encodeString( hash ));
 		
 		final String	key = "subscription:assoc:" + ByteFormatter.encodeString( hash ); 
-						
+			
+		final boolean[]	cancelled = { false };
+		
 		dht_plugin.get(
 			key.getBytes(),
 			"Subscription association read: " + ByteFormatter.encodeString( hash ),
@@ -765,6 +780,11 @@ SubscriptionManagerImpl
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
 				{
+					if ( isCancelled2()){
+						
+						return;
+					}
+					
 					byte[]	val = value.getValue();
 					
 					if ( val.length > 4 ){
@@ -833,7 +853,7 @@ SubscriptionManagerImpl
 									hash, 
 									sid, 
 									ver,
-									new SubscriptionLookupListener()
+									new subsLookupListener()
 									{
 										private boolean sem_done = false;
 										
@@ -864,6 +884,11 @@ SubscriptionManagerImpl
 										done(
 											Subscription[]			subs )
 										{
+											if ( isCancelled()){
+												
+												return;
+											}
+											
 											synchronized( this ){
 												
 												if ( sem_done ){
@@ -891,6 +916,12 @@ SubscriptionManagerImpl
 											}
 											
 											hits_sem.release();
+										}
+										
+										public boolean 
+										isCancelled() 
+										{
+											return( isCancelled2());
 										}
 									});
 							}
@@ -925,11 +956,22 @@ SubscriptionManagerImpl
 								complete = true;
 							}
 							
+							
 							for (int i=0;i<hits.size();i++){
 								
+								if ( isCancelled2()){
+									
+									return;
+								}
+
 								hits_sem.reserve();
 							}
-							
+
+							if ( isCancelled2()){
+								
+								return;
+							}
+
 							Subscription[] s;
 							
 							synchronized( this ){
@@ -943,7 +985,126 @@ SubscriptionManagerImpl
 						}
 					}.start();
 				}
+				
+				protected boolean
+				isCancelled2()
+				{
+					synchronized( cancelled ){
+						
+						return( cancelled[0] );
+					}
+				}
 			});
+		
+		return( 
+			new SubscriptionAssociationLookup()
+			{
+				public void 
+				cancel() 
+				{
+					log( "    Association lookup cancelled" );
+
+					synchronized( cancelled ){
+						
+						cancelled[0] = true;
+					}
+				}
+			});
+	}
+	
+	interface 
+	subsLookupListener
+	extends
+		SubscriptionLookupListener
+	{
+		public boolean
+		isCancelled();
+	}
+	
+	protected long
+	getPopularity(
+		SubscriptionImpl	subs )
+	
+		throws SubscriptionException
+	{
+		try{
+			PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
+
+			return( 0 ); // TODO!
+			
+		}catch( Throwable e ){
+			
+			log( "Subscription lookup via platform failed", e );
+
+			byte[]	hash = subs.getPublicationHash();
+			
+			final AESemaphore sem = new AESemaphore( "SM:pop" );
+			
+			final long[] result = { -1 };
+			
+			final int timeout = 15*1000;
+			
+			dht_plugin.get(
+					hash,
+					"Popularity lookup for subscription " + subs.getName(),
+					DHT.FLAG_STATS,
+					5,
+					timeout,
+					false,
+					true,
+					new DHTPluginOperationListener()
+					{
+						private int	hits = 0;
+						
+						public void
+						diversified()
+						{
+							// TODO: maybe handle div somehow but quickly?
+						}
+						
+						public void
+						valueRead(
+							DHTPluginContact	originator,
+							DHTPluginValue		value )
+						{
+							DHTPluginKeyStats stats = dht_plugin.decodeStats( value );
+							
+							result[0] = Math.max( result[0], stats.getEntryCount());
+							
+							hits++;
+							
+							if ( hits >= 3 ){
+								
+								sem.release();
+							}
+						}
+						
+						public void
+						valueWritten(
+							DHTPluginContact	target,
+							DHTPluginValue		value )
+						{
+							
+						}
+						
+						public void
+						complete(
+							byte[]				key,
+							boolean				timeout_occurred )
+						{
+							sem.release();
+						}
+					});
+			
+			sem.reserve( timeout );
+			
+			if ( result[0] == -1 ){
+				
+				throw( new SubscriptionException( "Timeout" ));
+			}
+			
+			return( result[0] );
+		}
 	}
 	
 	protected void
@@ -951,7 +1112,7 @@ SubscriptionManagerImpl
 		final byte[]						association_hash,
 		final byte[]						sid,
 		final int							version,
-		final SubscriptionLookupListener	listener )
+		final subsLookupListener			listener )
 	{
 		try{
 			PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
@@ -963,6 +1124,11 @@ SubscriptionManagerImpl
 			listener.complete( association_hash, new Subscription[]{ subs });
 			
 		}catch( Throwable e ){
+			
+			if ( listener.isCancelled()){
+				
+				return;
+			}
 			
 			log( "Subscription lookup via platform failed", e );
 			
@@ -1049,6 +1215,11 @@ SubscriptionManagerImpl
 						byte[]				original_key,
 						boolean				timeout_occurred )
 					{
+						if ( listener.isCancelled()){
+							
+							return;
+						}
+						
 						synchronized( this ){
 							
 							if ( !went_async ){
@@ -1068,13 +1239,19 @@ SubscriptionManagerImpl
 		final byte[]						sid,
 		int									version,
 		int									size,
-		final SubscriptionLookupListener 	listener )
+		final subsLookupListener		 	listener )
 	{
 		try{
-			TOTorrent	torrent = downloadTorrent( torrent_hash, size );
+			Object[] res = downloadTorrent( torrent_hash, size );
+			
+			if ( listener.isCancelled()){
+				
+				return;
+			}
 			
 			downloadSubscription(
-				torrent,
+				(TOTorrent)res[0], 
+				(InetSocketAddress)res[1],
 				sid,
 				version,
 				"Subscription " + ByteFormatter.encodeString( sid ) + " for " + ByteFormatter.encodeString( association_hash ),
@@ -1087,6 +1264,11 @@ SubscriptionManagerImpl
 						boolean	reported = false;
 						
 						try{
+							if ( listener.isCancelled()){
+								
+								return;
+							}
+							
 							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 							
 							VuzeFile vf = vfh.loadVuzeFile( data_file.getAbsolutePath());
@@ -1138,9 +1320,7 @@ SubscriptionManagerImpl
 								}
 							}
 						}finally{
-							
-							data_file.delete();
-							
+														
 							if ( !reported ){
 								
 								listener.complete( association_hash, new Subscription[0] );
@@ -1153,6 +1333,8 @@ SubscriptionManagerImpl
 						Download	download,	
 						File		torrent_file )
 					{
+						File	data_file = new File( download.getSavePath());
+						
 						try{
 							download.stop();
 							
@@ -1162,13 +1344,19 @@ SubscriptionManagerImpl
 						try{
 							download.remove( true, false );
 
-							complete( new File( download.getSavePath()));
+							complete( data_file );
 							
 						}catch( Throwable e ){
 							
 							log( "Failed to remove download", e );
 							
 							listener.complete( association_hash, new Subscription[0] );
+							
+						}finally{
+							
+							torrent_file.delete();
+							
+							data_file.delete();
 						}
 					}
 						
@@ -1183,6 +1371,12 @@ SubscriptionManagerImpl
 					getRecoveryData()
 					{
 						return( null );
+					}
+					
+					public boolean
+					isCancelled()
+					{
+						return( listener.isCancelled());
 					}
 				});
 				
@@ -1814,11 +2008,11 @@ SubscriptionManagerImpl
 			run()
 			{
 				try{
-					TOTorrent	torrent = downloadTorrent( update_hash, update_size );
+					Object[] res = downloadTorrent( update_hash, update_size );
 					
-					if ( torrent != null ){
+					if ( res != null ){
 					
-						updateSubscription( subs, update_version, torrent );
+						updateSubscription( subs, update_version, (TOTorrent)res[0], (InetSocketAddress)res[1] );
 					}
 				}catch( Throwable e ){
 					
@@ -1828,7 +2022,7 @@ SubscriptionManagerImpl
 		}.start();
 	}
 	
-	protected TOTorrent
+	protected Object[]
 	downloadTorrent(
 		byte[]		hash,
 		int			update_size )
@@ -1843,6 +2037,8 @@ SubscriptionManagerImpl
 		}
 
 		try{
+			final InetSocketAddress[] sender = { null };
+			
 			byte[] torrent_data = magnet_plugin.download(
 				new MagnetPluginProgressListener()
 				{
@@ -1863,6 +2059,16 @@ SubscriptionManagerImpl
 					reportCompleteness(
 						int		percent )
 					{
+					}
+					
+					public void
+					reportContributor(
+						InetSocketAddress	address )
+					{
+						synchronized( sender ){
+						
+							sender[0] = address;
+						}
 					}
 				},
 				hash,
@@ -1890,7 +2096,10 @@ SubscriptionManagerImpl
 				return( null );
 			}
 			
-			return( torrent );
+			synchronized( sender ){
+			
+				return( new Object[]{ torrent, sender[0] });
+			}
 			
 		}catch( Throwable e ){
 			
@@ -1902,7 +2111,8 @@ SubscriptionManagerImpl
 	
 	protected void
 	downloadSubscription(
-		TOTorrent				torrent,
+		final TOTorrent			torrent,
+		final InetSocketAddress	peer,
 		byte[]					subs_id,
 		int						version,
 		String					name,
@@ -1939,11 +2149,13 @@ SubscriptionManagerImpl
 	
 				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
 			
-				DownloadManager dm = pi.getDownloadManager();
+				final DownloadManager dm = pi.getDownloadManager();
 				
 				Download download = dm.getDownload( torrent.getHash());
 				
 				if ( download == null ){
+					
+					log( "Adding download for subscription '" + new String(torrent.getName()) + "'" );
 					
 					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + name + "'" );
 					
@@ -1967,7 +2179,61 @@ SubscriptionManagerImpl
 						
 						download.setMapAttribute( ta_subs_download_rd, rd );
 					}
+				}else{
+					
+					log( "Existing download found for subscription '" + new String(torrent.getName()) + "'" );
 				}
+				
+				final Download f_download = download;
+				
+				final TimerEventPeriodic[] event = { null };
+				
+				event[0] = 
+					SimpleTimer.addPeriodicEvent(
+						"SM:cancelTimer",
+						10*1000,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent ev ) 
+							{
+								boolean	kill = false;
+								
+								try{						
+									if ( 	listener.isCancelled() ||
+											dm.getDownload( torrent.getHash()) == null ){
+										
+										kill = true;
+									}
+								}catch( Throwable e ){
+									
+									kill = true;
+								}
+								
+								if ( kill && event[0] != null ){
+									
+									event[0].cancel();
+									
+									if ( listener.isCancelled()){
+										
+										try{
+											f_download.stop();
+											
+										}catch( Throwable e ){
+										}
+										
+										try{
+											f_download.remove( true, true );
+											
+										}catch( Throwable e ){
+										}
+										
+										torrent_file.delete();
+									}
+								}
+							}
+						});
 				
 				download.addCompletionListener(
 					new DownloadCompletionListener()
@@ -1987,6 +2253,33 @@ SubscriptionManagerImpl
 				}else{
 								
 					download.setForceStart( true );
+					
+					if ( peer != null ){
+					
+						download.addPeerListener(
+							new DownloadPeerListener()
+							{
+								public void
+								peerManagerAdded(
+									Download		download,
+									PeerManager		peer_manager )
+								{									
+									InetSocketAddress tcp = AddressUtils.adjustTCPAddress( peer, true );
+									InetSocketAddress udp = AddressUtils.adjustUDPAddress( peer, true );
+									
+									log( "    Injecting peer into download: " + tcp );
+
+									peer_manager.addPeer( tcp.getAddress().getHostAddress(), tcp.getPort(), udp.getPort(), true );
+								}
+								
+								public void
+								peerManagerRemoved(
+									Download		download,
+									PeerManager		peer_manager )
+								{							
+								}
+							});
+					}
 				}
 			}
 		}catch( Throwable e ){
@@ -2015,13 +2308,17 @@ SubscriptionManagerImpl
 		
 		public Map
 		getRecoveryData();
+		
+		public boolean
+		isCancelled();
 	}
 	
 	protected void
 	updateSubscription(
 		final SubscriptionImpl		subs,
 		final int					new_version,
-		TOTorrent					torrent )
+		TOTorrent					torrent,
+		InetSocketAddress			peer )
 	{
 		log( "Subscription " + subs.getString() + " - update torrent: " + new String( torrent.getName()));
 
@@ -2047,6 +2344,7 @@ SubscriptionManagerImpl
 			
 		downloadSubscription(
 			torrent,
+			peer,
 			subs.getShortID(),
 			new_version,
 			subs.getName(),
@@ -2084,6 +2382,12 @@ SubscriptionManagerImpl
 					
 					return( rd );
 				}
+				
+				public boolean
+				isCancelled()
+				{
+					return( false );
+				}
 			});
 	}
 
@@ -2106,6 +2410,7 @@ SubscriptionManagerImpl
 		
 		downloadSubscription(
 				((TorrentImpl)download.getTorrent()).getTorrent(),
+				null,
 				subs.getShortID(),
 				version,
 				subs.getName(),
@@ -2137,6 +2442,12 @@ SubscriptionManagerImpl
 					getRecoveryData()
 					{
 						return( rd );
+					}
+					
+					public boolean
+					isCancelled()
+					{
+						return( false );
 					}
 				});
 		
