@@ -57,6 +57,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -65,6 +66,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
@@ -166,6 +168,9 @@ SubscriptionManagerImpl
 	private boolean	publish_associations_active;
 	private boolean publish_subscription_active;
 	
+	private TorrentAttribute		ta_subs_download;
+	private TorrentAttribute		ta_subs_download_rd;
+	
 	private AEDiagnosticsLogger		logger;
 	
 	
@@ -226,9 +231,9 @@ SubscriptionManagerImpl
 			started	= true;
 		}
 		
-		if ( Constants.isCVSVersion()){
-			
-			final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+		final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+
+		if ( Constants.isCVSVersion()){			
 			
 				// check assoc
 			
@@ -395,23 +400,77 @@ SubscriptionManagerImpl
 			}
 		}
 			
-			// TODO: delete existing subs downloads
+		ta_subs_download 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
+		ta_subs_download_rd = default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
 		
-		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+		DelayedTask dt = 
+			default_pi.getUtilities().createDelayedTask(
+					new Runnable()
+					{
+						public void 
+						run() 
+						{
+							Download[] downloads = default_pi.getDownloadManager().getDownloads();
+									
+							for (int i=0;i<downloads.length;i++){
+								
+								Download download = downloads[i];
+								
+								if ( download.getBooleanAttribute( ta_subs_download )){
+									
+									Map	rd = download.getMapAttribute( ta_subs_download_rd );
+									
+									boolean	delete_it;
+									
+									if ( rd == null ){
+										
+										delete_it = true;
+										
+									}else{
+										
+										delete_it = !recoverSubscriptionUpdate( download, rd );
+									}
+									
+									if ( delete_it ){
+										
+										try{
+											download.stop();
+											
+										}catch( Throwable e ){
+										}
+										
+										try{
+											download.remove( true, true );
+											
+											log( "Removed non-recoverable download '" + download.getName() + "'" );
 
-		if ( dht_plugin_pi != null ){
-			
-			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
-			
-			if ( subscriptions.size() > 0 ){
+										}catch( Throwable e ){
+											
+											log( "Failed to remove non-recoverable download '" + download.getName() + "'", e );
+										}
+									}
+								}
+							}
+							
+							PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 				
-				publishAssociations();
-			
-				publishSubscriptions();
-				
-				checkTimer();
-			}
-		}
+							if ( dht_plugin_pi != null ){
+								
+								dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
+								
+								if ( subscriptions.size() > 0 ){
+									
+									publishAssociations();
+								
+									publishSubscriptions();
+									
+									checkTimer();
+								}
+							}
+						}
+					});
+	
+		dt.queue();
 	}
 	
 	public Subscription 
@@ -545,7 +604,7 @@ SubscriptionManagerImpl
 				}
 			}else{
 				
-				SubscriptionImpl new_subs = new SubscriptionImpl( this, body );
+				SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
 	
 				if ( warn_user ){
 					
@@ -899,7 +958,7 @@ SubscriptionManagerImpl
 			
 			Subscription subs = null; // TODO!
 			
-				// TODO: return subscription skeleton based on platform response
+				// TODO: return subscription based on platform response (add as non-subscribed etc)
 			
 			listener.complete( association_hash, new Subscription[]{ subs });
 			
@@ -907,6 +966,14 @@ SubscriptionManagerImpl
 			
 			log( "Subscription lookup via platform failed", e );
 			
+			if ( getSubscriptionDownloadCount() > 8 ){
+				
+				log( "Too many existing subscription downloads" );
+				
+				listener.complete( association_hash, new Subscription[0]);
+
+				return;
+			}
 				// fall back to DHT
 			
 			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
@@ -918,7 +985,7 @@ SubscriptionManagerImpl
 				12,
 				60*1000,
 				false,
-				false,
+				true,
 				new DHTPluginOperationListener()
 				{
 					private boolean went_async;
@@ -998,7 +1065,7 @@ SubscriptionManagerImpl
 	downloadSubscription(
 		final byte[]						association_hash,
 		byte[]								torrent_hash,
-		byte[]								sid,
+		final byte[]						sid,
 		int									version,
 		int									size,
 		final SubscriptionLookupListener 	listener )
@@ -1010,14 +1077,75 @@ SubscriptionManagerImpl
 				torrent,
 				sid,
 				version,
-				"asdasdad",
+				"Subscription " + ByteFormatter.encodeString( sid ) + " for " + ByteFormatter.encodeString( association_hash ),
 				new downloadListener()
 				{
 					public void
 					complete(
 						File		data_file )
 					{
-						System.out.println( "TODO!!!!" );
+						boolean	reported = false;
+						
+						try{
+							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+							
+							VuzeFile vf = vfh.loadVuzeFile( data_file.getAbsolutePath());
+	
+							VuzeFileComponent[] comps = vf.getComponents();
+							
+							for (int j=0;j<comps.length;j++){
+								
+								VuzeFileComponent comp = comps[j];
+								
+								if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
+									
+									Map map = comp.getContent();
+									
+									try{
+										SubscriptionBodyImpl body = new SubscriptionBodyImpl( SubscriptionManagerImpl.this, map );
+										
+										SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
+										
+										if ( existing == null ){
+											
+											SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
+												
+											if ( Arrays.equals( new_subs.getShortID(), sid )){
+											
+												log( "Added temporary subscription: " + new_subs.getString());
+												
+												synchronized( SubscriptionManagerImpl.this ){
+													
+													subscriptions.add( new_subs );
+													
+													saveConfig();
+												}
+												
+												listener.complete( association_hash, new Subscription[]{ new_subs });
+												
+												reported = true;
+											}
+										}else{
+											
+											listener.complete( association_hash, new Subscription[]{ existing });
+											
+											reported = true;
+										}
+									}catch( Throwable e ){
+										
+										log( "Subscription decode failed", e );
+									}
+								}
+							}
+						}finally{
+							
+							data_file.delete();
+							
+							if ( !reported ){
+								
+								listener.complete( association_hash, new Subscription[0] );
+							}
+						}
 					}
 					
 					public void
@@ -1025,7 +1153,23 @@ SubscriptionManagerImpl
 						Download	download,	
 						File		torrent_file )
 					{
-						System.out.println( "TODO!!!!" );
+						try{
+							download.stop();
+							
+						}catch( Throwable e ){
+						}
+						
+						try{
+							download.remove( true, false );
+
+							complete( new File( download.getSavePath()));
+							
+						}catch( Throwable e ){
+							
+							log( "Failed to remove download", e );
+							
+							listener.complete( association_hash, new Subscription[0] );
+						}
 					}
 						
 					public void
@@ -1034,12 +1178,40 @@ SubscriptionManagerImpl
 					{
 						listener.complete( association_hash, new Subscription[0] );
 					}
+					
+					public Map
+					getRecoveryData()
+					{
+						return( null );
+					}
 				});
 				
 		}catch( Throwable e ){
 			
 			listener.complete( association_hash, new Subscription[0] );
 		}
+	}
+	
+	protected int
+	getSubscriptionDownloadCount()
+	{
+		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+		
+		Download[] downloads = pi.getDownloadManager().getDownloads();
+		
+		int	res = 0;
+		
+		for( int i=0;i<downloads.length;i++){
+			
+			Download	download = downloads[i];
+			
+			if ( download.getBooleanAttribute( ta_subs_download )){
+				
+				res++;
+			}
+		}
+		
+		return( res );
 	}
 	
 	protected void
@@ -1077,15 +1249,18 @@ SubscriptionManagerImpl
 				
 				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
 				
-				SubscriptionImpl.association  assoc = sub.getAssociationForPublish();
-				
-				if ( assoc != null ){
+				if ( sub.isSubscribed()){
 					
-					publishAssociation( sub, assoc );
+					SubscriptionImpl.association  assoc = sub.getAssociationForPublish();
 					
-					publish_initiated = true;
-					
-					break;
+					if ( assoc != null ){
+						
+						publishAssociation( sub, assoc );
+						
+						publish_initiated = true;
+						
+						break;
+					}
 				}
 			}
 		}finally{
@@ -1305,7 +1480,7 @@ SubscriptionManagerImpl
 				
 				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
 				
-				if ( sub.isPublic() && !sub.getPublished()){
+				if ( sub.isSubscribed() && sub.isPublic() && !sub.getPublished()){
 									
 					sub.setPublished( true );
 					
@@ -1762,7 +1937,7 @@ SubscriptionManagerImpl
 				final File	torrent_file 	= new File( dir, sid + "_" + version + ".torrent" );
 				final File	data_file 		= new File( dir, sid + "_" + version + ".vuze" );
 	
-				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+				PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
 			
 				DownloadManager dm = pi.getDownloadManager();
 				
@@ -1772,7 +1947,7 @@ SubscriptionManagerImpl
 					
 					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + name + "'" );
 					
-						// TODO PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
+						// PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
 						
 					TorrentUtils.setFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE, true );
 					
@@ -1783,6 +1958,15 @@ SubscriptionManagerImpl
 					t.writeToFile( torrent_file );
 					
 					download = dm.addDownload( t, torrent_file, data_file );
+					
+					download.setBooleanAttribute( ta_subs_download, true );
+					
+					Map rd = listener.getRecoveryData();
+					
+					if ( rd != null ){
+						
+						download.setMapAttribute( ta_subs_download_rd, rd );
+					}
 				}
 				
 				download.addCompletionListener(
@@ -1828,12 +2012,15 @@ SubscriptionManagerImpl
 		public void
 		failed(
 			Throwable	error );
+		
+		public Map
+		getRecoveryData();
 	}
 	
 	protected void
 	updateSubscription(
 		final SubscriptionImpl		subs,
-		int							new_version,
+		final int					new_version,
 		TOTorrent					torrent )
 	{
 		log( "Subscription " + subs.getString() + " - update torrent: " + new String( torrent.getName()));
@@ -1886,7 +2073,74 @@ SubscriptionManagerImpl
 				{
 					log( "Failed to download subscription", error );
 				}
+				
+				public Map
+				getRecoveryData()
+				{
+					Map	rd = new HashMap();
+					
+					rd.put( "sid", subs.getShortID());
+					rd.put( "ver", new Long( new_version ));
+					
+					return( rd );
+				}
 			});
+	}
+
+	protected boolean
+	recoverSubscriptionUpdate(
+		Download				download,
+		final Map				rd )
+	{
+		byte[]	sid 	= (byte[])rd.get( "sid" );
+		int		version = ((Long)rd.get( "ver" )).intValue();
+		
+		final SubscriptionImpl subs = getSubscriptionFromSID( sid );
+		
+		if ( subs == null ){
+		
+			log( "Can't recover '" + download.getName() + "' - subscription " + ByteFormatter.encodeString( sid ) +  " not found" );
+			
+			return( false );
+		}
+		
+		downloadSubscription(
+				((TorrentImpl)download.getTorrent()).getTorrent(),
+				subs.getShortID(),
+				version,
+				subs.getName(),
+				new downloadListener()
+				{
+					public void
+					complete(
+						File		data_file )
+					{
+						updateSubscription( subs, data_file );
+					}
+					
+					public void
+					complete(
+						Download	download,	
+						File		torrent_file )
+					{
+						updateSubscription( subs, download, torrent_file, new File( download.getSavePath()));
+					}
+						
+					public void
+					failed(
+						Throwable	error )
+					{
+						log( "Failed to download subscription", error );
+					}
+					
+					public Map
+					getRecoveryData()
+					{
+						return( rd );
+					}
+				});
+		
+		return( true );
 	}
 	
 	protected void

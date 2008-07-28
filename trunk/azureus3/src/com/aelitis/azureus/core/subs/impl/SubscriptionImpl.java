@@ -48,6 +48,10 @@ public class
 SubscriptionImpl 
 	implements Subscription 
 {
+	public static final int	ADD_TYPE_CREATE		= 1;
+	public static final int	ADD_TYPE_IMPORT		= 2;
+	public static final int	ADD_TYPE_LOOKUP		= 3;
+	
 	protected static final int SIMPLE_ID_LENGTH				= 10;
 	
 	private static final int MAX_ASSOCIATIONS				= 256;
@@ -78,6 +82,11 @@ SubscriptionImpl
 	private byte[]			hash;
 	private byte[]			sig;
 	private int				sig_data_size;
+	
+	private int				add_type;
+	private long			add_time;
+	
+	private boolean			is_subscribed;
 	
 	private int				highest_prompted_version;
 	
@@ -115,7 +124,12 @@ SubscriptionImpl
 			private_key = CryptoECCUtils.keyToRawdata( kp.getPrivate());
 			
 			version			= 1;
-							
+				
+			add_type			= ADD_TYPE_CREATE;
+			add_time			= SystemTime.getCurrentTime();
+			
+			is_subscribed		= true;
+			
 			fixed_random	= new Random().nextInt();
 			
 			init();
@@ -153,7 +167,9 @@ SubscriptionImpl
 	protected
 	SubscriptionImpl(
 		SubscriptionManagerImpl		_manager,
-		SubscriptionBodyImpl		_body )
+		SubscriptionBodyImpl		_body,
+		int							_add_type,
+		boolean						_is_subscribed )
 	
 		throws IOException
 	{
@@ -162,6 +178,11 @@ SubscriptionImpl
 		public_key		= _body.getPublicKey();
 		version			= _body.getVersion();
 		name			= _body.getName();
+		
+		add_type		= _add_type;
+		add_time		= SystemTime.getCurrentTime();
+		
+		is_subscribed	= _is_subscribed;
 		
 		fixed_random	= new Random().nextInt();
 		
@@ -200,6 +221,11 @@ SubscriptionImpl
 				map.put( "private_key", private_key );
 			}
 
+			map.put( "add_type", new Long( add_type ));
+			map.put( "add_time", new Long( add_time ));
+			
+			map.put( "subscribed", new Long( is_subscribed?1:0 ));
+			
 			map.put( "rand", new Long( fixed_random ));
 			
 			map.put( "hupv", new Long( highest_prompted_version ));
@@ -244,6 +270,18 @@ SubscriptionImpl
 		
 		fixed_random	= ((Long)map.get( "rand" )).intValue();
 
+		Long	l_add_type 	= (Long)map.get( "add_type" );
+		
+		add_type		= l_add_type==null?ADD_TYPE_CREATE:l_add_type.intValue();
+
+		Long	l_add_time 	= (Long)map.get( "add_time" );
+		
+		add_time		= l_add_time==null?SystemTime.getCurrentTime():l_add_time.longValue();
+
+		Long	l_subs 	= (Long)map.get( "subscribed" );
+		
+		is_subscribed	= l_subs==null?true:l_subs.intValue()==1;
+		
 		Long	l_hupv = (Long)map.get( "hupv" );
 		
 		highest_prompted_version = l_hupv==null?version:l_hupv.intValue();
@@ -369,6 +407,32 @@ SubscriptionImpl
 			// TODO:
 		
 		return( true );
+	}
+	
+	public boolean
+	isSubscribed()
+	{
+		return( is_subscribed );
+	}
+	
+	public void
+	setSubscribed(
+		boolean			s )
+	{
+		if ( is_subscribed != s ){
+			
+			is_subscribed = s;
+			
+			manager.configDirty();
+		}
+	}
+	
+	public long
+	getPopularity()
+	{
+			// TODO:
+		
+		return( 0 );
 	}
 	
 	protected void

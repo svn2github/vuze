@@ -39,6 +39,16 @@ Subscription
 	public boolean
 	isPublic();
 	
+	public boolean
+	isSubscribed();
+	
+	public void
+	setSubscribed(
+		boolean		subscribed );
+	
+	public long
+	getPopularity();
+	
 	public void
 	addAssociation(
 		byte[]		hash );
