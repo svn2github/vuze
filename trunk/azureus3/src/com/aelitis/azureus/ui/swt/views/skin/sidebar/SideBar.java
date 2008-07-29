@@ -868,14 +868,15 @@ public class SideBar
 			String oldID = currentIViewID;
 
 			// hide old
-			if (currentIView != null) {
-
-				SWTSkinObjectContainer container = (SWTSkinObjectContainer) sideBarInfo.skinObject;
-				if (container != null) {
-					Composite composite = container.getComposite();
-					if (composite != null && !composite.isDisposed()) {
-						composite.setVisible(false);
+			if (oldView != null) {
+				SideBarInfo oldSideBarInfo = getSideBarInfo(oldID);
+				if (oldSideBarInfo.skinObject != null) {
+					SWTSkinObjectContainer container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
+					if (container != null) {
+						container.setVisible(false);
 					}
+				} else if (oldView.getComposite() != null) {
+					oldView.getComposite().setVisible(false);
 				}
 			}
 
@@ -894,7 +895,7 @@ public class SideBar
 			triggerListener(currentIView, currentIViewID, oldView, oldID);
 		}
 	}
-
+	
 	/**
 	 * @param parentID 
 	 * @param l
