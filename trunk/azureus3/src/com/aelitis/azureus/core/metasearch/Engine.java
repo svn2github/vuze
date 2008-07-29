@@ -68,6 +68,8 @@ Engine
 	public static final int ENGINE_TYPE_REGEX		= 1;
 	public static final int ENGINE_TYPE_JSON		= 2;
 	public static final int ENGINE_TYPE_PLUGIN		= 3;
+	public static final int ENGINE_TYPE_RSS			= 4;
+	
 	
 	public static final int	ENGINE_SOURCE_UNKNOWN				= 0;
 	public static final int	ENGINE_SOURCE_VUZE					= 1;

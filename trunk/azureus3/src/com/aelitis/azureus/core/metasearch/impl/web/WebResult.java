@@ -76,6 +76,12 @@ public class WebResult extends Result {
 		return result.replaceAll(DUPLICATE_SPACES, " ").trim();
 	}
 	
+	public void setName(String name) {
+		if(name != null) {
+			this.name = name;
+		}
+	}
+	
 	public void setNameFromHTML(String name) {
 		if(name != null) {
 			name = removeHTMLTags(name);
@@ -151,6 +157,10 @@ public class WebResult extends Result {
 				//e.printStackTrace();
 			}
 		}
+	}
+	
+	public void setPublishedDate(Date date) {
+		this.publishedDate = date;
 	}
 	
 	public void setPublishedDateFromHTML(String publishedDate) {
