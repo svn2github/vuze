@@ -22,11 +22,15 @@
 
 package org.gudy.azureus2.plugins.utils;
 
+import java.io.InputStream;
+
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -66,6 +70,14 @@ public class StaticUtilities {
 	  return( AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface());
   }
   
+  public static RSSFeed
+  getRSSFeed(
+	InputStream		is )
+  
+  	throws SimpleXMLParserDocumentException
+  {
+	  return( getDefaultPluginInterface().getUtilities().getRSSFeed( is ));
+  }
   	/**
   	 * See UIInstance.promptUser
   	 * @param title
