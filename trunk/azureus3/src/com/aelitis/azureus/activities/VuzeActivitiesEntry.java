@@ -236,7 +236,7 @@ public class VuzeActivitiesEntry
 			}
 		}
 
-		if (torrent != null) {
+		if (torrent != null && (dm == null || assetHash == null)) {
 			try {
 				// make a copy of the torrent
 

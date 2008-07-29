@@ -132,6 +132,9 @@ public class VuzeActivitiesEntryContentShare
 	
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy#toMap()
 	public Map toMap() {
+		// ensure we write the torrent to the map
+		setDownloadManager(null);
+		
 		Map map = super.toMap();
 		
 		map.put("version", new Long(version));
