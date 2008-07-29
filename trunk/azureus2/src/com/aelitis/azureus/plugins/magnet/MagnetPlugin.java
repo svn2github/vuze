@@ -33,11 +33,13 @@ import java.util.Set;
 import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -460,7 +462,26 @@ MagnetPlugin
 					{
 						int	type = event.getType();
 	
-						if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
+						if ( type == DistributedDatabaseEvent.ET_OPERATION_STARTS ){
+
+								// give live results a chance before kicking in explicit ones
+							
+							if ( sources.length > 0 ){
+								
+								new DelayedEvent(
+									"MP:sourceAdd",
+									10*1000,
+									new AERunnable()
+									{
+										public void
+										runSupport()
+										{
+											addExplicitSources();
+										}
+									});
+							}
+							
+						}else if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
 													
 							contactFound( event.getValue().getContact());
 			
@@ -468,17 +489,8 @@ MagnetPlugin
 									type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
 								
 								// now inject any explicit sources
-							
-							for (int i=0;i<sources.length;i++){
-								
-								try{
-									contactFound( db.importContact(sources[i]));
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-								}
-							}
+
+							addExplicitSources();
 							
 							try{
 								potential_contacts_mon.enter();													
@@ -491,6 +503,21 @@ MagnetPlugin
 							}
 							
 							potential_contacts_sem.release();
+						}
+					}
+					
+					protected void
+					addExplicitSources()
+					{	
+						for (int i=0;i<sources.length;i++){
+							
+							try{
+								contactFound( db.importContact(sources[i]));
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
 						}
 					}
 					

@@ -679,20 +679,28 @@ outer:
 					high_priority,
 					new DHTOperationListener()
 					{
+						private boolean started;
+						
 						public void
 						searching(
 							DHTTransportContact	contact,
 							int					level,
 							int					active_searches )
 						{
-							String	indent = "";
-							
-							for (int i=0;i<level;i++){
+							if ( listener != null ){
 								
-								indent += "  ";
+								synchronized( this ){
+									
+									if ( started ){
+										
+										return;
+									}
+									
+									started = true;
+								}
+								
+								listener.starts( key );
 							}
-							
-							// log.log( indent + "Put: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
 						}
 
 						public void
@@ -771,22 +779,28 @@ outer:
 		dht.get( 	key, description, flags, max_values, timeout, exhaustive, high_priority, 
 					new DHTOperationListener()
 					{
+						private boolean	started = false;
+						
 						public void
 						searching(
 							DHTTransportContact	contact,
 							int					level,
 							int					active_searches )
 						{
-							/*
-							String	indent = "";
-							
-							for (int i=0;i<level;i++){
+							if ( listener != null ){
 								
-								indent += "  ";
+								synchronized( this ){
+									
+									if ( started ){
+										
+										return;
+									}
+									
+									started = true;
+								}
+								
+								listener.starts( key );
 							}
-							
-							log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
-							*/
 						}
 						
 						public void
@@ -850,22 +864,30 @@ outer:
 						description,
 						new DHTOperationListener()
 						{
+							private boolean started;
+							
 							public void
 							searching(
 								DHTTransportContact	contact,
 								int					level,
 								int					active_searches )
 							{
-								String	indent = "";
-								
-								for (int i=0;i<level;i++){
+								if ( listener != null ){
 									
-									indent += "  ";
-								}
-								
-								// log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+									synchronized( this ){
+										
+										if ( started ){
+											
+											return;
+										}
+										
+										started = true;
+									}
+									
+									listener.starts( key );
+								}							
 							}
-							
+		
 							public void
 							found(
 								DHTTransportContact	contact )
@@ -931,20 +953,28 @@ outer:
 						description,
 						new DHTOperationListener()
 						{
+							private boolean started;
+							
 							public void
 							searching(
 								DHTTransportContact	contact,
 								int					level,
 								int					active_searches )
 							{
-								String	indent = "";
-								
-								for (int i=0;i<level;i++){
+								if ( listener != null ){
 									
-									indent += "  ";
+									synchronized( this ){
+										
+										if ( started ){
+											
+											return;
+										}
+										
+										started = true;
+									}
+									
+									listener.starts( key );
 								}
-								
-								// log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
 							}
 							
 							public void

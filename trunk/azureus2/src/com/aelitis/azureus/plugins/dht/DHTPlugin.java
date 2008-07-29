@@ -255,6 +255,12 @@ DHTPlugin
 				{
 				}
 				
+				public void 
+				starts(
+					byte[] 				key) 
+				{
+				}
+				
 				public void
 				valueRead(
 					DHTPluginContact	originator,
@@ -1013,6 +1019,12 @@ DHTPlugin
 								{
 								}
 								
+								public void 
+								starts(
+									byte[] 				key ) 
+								{
+								}
+								
 								public void
 								valueRead(
 									DHTPluginContact	originator,
@@ -1098,6 +1110,12 @@ DHTPlugin
 					
 					public void
 					diversified()
+					{
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
 					{
 					}
 					
@@ -1235,6 +1253,12 @@ DHTPlugin
 								{
 								}
 								
+								public void 
+								starts(
+									byte[] 				key ) 
+								{
+								}
+								
 								public void
 								valueRead(
 									DHTPluginContact	originator,
@@ -1310,6 +1334,12 @@ DHTPlugin
 							{
 								public void
 								diversified()
+								{
+								}
+								
+								public void 
+								starts(
+									byte[] 				key ) 
 								{
 								}
 								
@@ -1411,6 +1441,12 @@ DHTPlugin
 						{
 							public void
 							diversified()
+							{
+							}
+							
+							public void 
+							starts(
+								byte[] 				key ) 
 							{
 							}
 							

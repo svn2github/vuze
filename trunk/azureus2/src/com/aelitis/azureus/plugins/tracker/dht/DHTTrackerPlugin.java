@@ -1549,6 +1549,12 @@ DHTTrackerPlugin
 						{
 						}
 						
+						public void 
+						starts(
+							byte[] 				key ) 
+						{
+						}
+						
 						public void
 						valueRead(
 							DHTPluginContact	originator,
@@ -1634,6 +1640,12 @@ DHTTrackerPlugin
 						
 						public void
 						diversified()
+						{
+						}
+						
+						public void 
+						starts(
+							byte[] 				key ) 
 						{
 						}
 						
@@ -2190,6 +2202,12 @@ DHTTrackerPlugin
 							{
 							}
 							
+							public void 
+							starts(
+								byte[] 				key ) 
+							{
+							}
+							
 							public void
 							valueRead(
 								DHTPluginContact	originator,
@@ -2241,6 +2259,12 @@ DHTTrackerPlugin
 					{
 						public void
 						diversified()
+						{
+						}
+						
+						public void 
+						starts(
+							byte[] 				key ) 
 						{
 						}
 						
@@ -2436,6 +2460,12 @@ DHTTrackerPlugin
 									diversified	= true;
 								}
 								
+								public void 
+								starts(
+									byte[] 				key ) 
+								{
+								}
+								
 								public void
 								valueRead(
 									DHTPluginContact	originator,
@@ -2501,6 +2531,12 @@ DHTTrackerPlugin
 												{
 													public void
 													diversified()
+													{
+													}
+													
+													public void 
+													starts(
+														byte[] 				key ) 
 													{
 													}
 													
@@ -2627,6 +2663,12 @@ DHTTrackerPlugin
 				{
 					public void
 					diversified()
+					{
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
 					{
 					}
 					

@@ -744,6 +744,13 @@ DDBaseImpl
 		{
 		}
 		
+		public void 
+		starts(
+			byte[] 	_key ) 
+		{
+			listener.event( new dbEvent( DistributedDatabaseEvent.ET_OPERATION_STARTS, key ));
+		}
+		
 		public void
 		valueRead(
 			DHTPluginContact	originator,

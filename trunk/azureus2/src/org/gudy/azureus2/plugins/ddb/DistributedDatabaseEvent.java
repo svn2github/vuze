@@ -41,6 +41,8 @@ DistributedDatabaseEvent
 
 	public static final int	ET_KEY_STATS_READ		= 6;
 
+	public static final int	ET_OPERATION_STARTS		= 7;
+
 		// ddb level
 	
 	public static final int	ET_LOCAL_CONTACT_CHANGED	= 10;
