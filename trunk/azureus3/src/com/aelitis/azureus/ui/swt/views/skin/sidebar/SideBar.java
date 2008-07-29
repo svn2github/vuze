@@ -889,8 +889,11 @@ public class SideBar
 					if (container != null) {
 						container.setVisible(false);
 					}
-				} else if (oldView.getComposite() != null) {
-					oldView.getComposite().setVisible(false);
+				} else {
+					Composite oldComposite = oldView.getComposite();
+					if (oldComposite != null && !oldComposite.isDisposed()) {
+						oldView.getComposite().setVisible(false);
+					}
 				}
 			}
 
