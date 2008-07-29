@@ -1,5 +1,5 @@
 /*
- * Created on Jul 11, 2008
+ * Created on Jul 29, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -22,47 +22,9 @@
 package com.aelitis.azureus.core.subs;
 
 public interface 
-SubscriptionManager 
+SubscriptionManagerListener 
 {
-	public Subscription
-	create(
-		String		name )
-		
-		throws SubscriptionException;
-	
-	public Subscription[]
-	getSubscriptions();
-	
-		/**
-		 * Full lookup
-		 * @param hash
-		 * @param listener
-		 * @return
-		 * @throws SubscriptionException
-		 */
-	
-	public SubscriptionAssociationLookup
-	lookupAssociations(
-		byte[]						hash,
-		SubscriptionLookupListener	listener )
-	
-		throws SubscriptionException;
-	
-		/**
-		 * Cached view of hash's subs
-		 * @param hash
-		 * @return
-		 */
-	
-	public Subscription[]
-	getKnownSubscriptions(
-		byte[]						hash );
-	
 	public void
-	addListener(
-		SubscriptionManagerListener	listener );
-	
-	public void
-	removeListener(
-		SubscriptionManagerListener	listener );
+	subscriptionsChanged(
+		byte[]		hash );
 }

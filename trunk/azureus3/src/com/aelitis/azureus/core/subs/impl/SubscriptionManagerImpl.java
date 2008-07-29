@@ -33,26 +33,7 @@ import java.util.zip.GZIPOutputStream;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.AddressUtils;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DelayedEvent;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.TimerEventPeriodic;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
@@ -86,7 +67,9 @@ import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
+import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -167,6 +150,10 @@ SubscriptionManagerImpl
 	
 	private TimerEventPeriodic	timer;
 	
+	private static final int	TIMER_PERIOD		= 30*1000;
+	private static final int	ASSOC_CHECK_PERIOD	= 5*60*1000;
+	private static final int	ASSOC_CHECK_TICKS	= ASSOC_CHECK_PERIOD/TIMER_PERIOD;
+	
 	private volatile DHTPlugin	dht_plugin;
 	
 	private List		subscriptions	= new ArrayList();
@@ -178,6 +165,12 @@ SubscriptionManagerImpl
 	
 	private TorrentAttribute		ta_subs_download;
 	private TorrentAttribute		ta_subs_download_rd;
+	private TorrentAttribute		ta_subscription_info;
+	
+	private boolean					periodic_lookup_in_progress;
+	
+	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	
 	
 	private AEDiagnosticsLogger		logger;
 	
@@ -409,11 +402,31 @@ SubscriptionManagerImpl
 				menu_item_itorrents.addFillListener( menu_fill_listener );
 				menu_item_ctorrents.addFillListener( menu_fill_listener );		
 					
+				addListener(
+					new SubscriptionManagerListener()
+					{
+						public void 
+						subscriptionsChanged(
+							byte[] hash )
+						{
+							/*
+							System.out.println( "Subscriptions changed: " + ByteFormatter.encodeString( hash ));
+							
+							Subscription[] subs = getKnownSubscriptions( hash );
+						
+							for (int i=0;i<subs.length;i++){
+								
+								System.out.println( "    " + subs[i].getString());
+							}
+							*/
+						}
+					});
 			}
 		}
 			
-		ta_subs_download 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
-		ta_subs_download_rd = default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
+		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
+		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
+		ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
 		
 		DelayedTask dt = 
 			default_pi.getUtilities().createDelayedTask(
@@ -518,14 +531,18 @@ SubscriptionManagerImpl
 				
 				timer = SimpleTimer.addPeriodicEvent(
 						"SubscriptionChecker",
-						30*1000,
+						TIMER_PERIOD,
 						new TimerEventPerformer()
 						{
+							private int	ticks;
+							
 							public void 
 							perform(
 								TimerEvent event )
 							{
-								checkStuff();
+								ticks++;
+								
+								checkStuff( ticks );
 							}
 						});
 			}
@@ -533,7 +550,8 @@ SubscriptionManagerImpl
 	}
 	
 	protected void
-	checkStuff()
+	checkStuff(
+		int		ticks )
 	{
 		List subs;
 		
@@ -545,6 +563,11 @@ SubscriptionManagerImpl
 		for (int i=0;i<subs.size();i++){
 			
 			((SubscriptionImpl)subs.get(i)).checkPublish();
+		}
+		
+		if ( ticks % ASSOC_CHECK_TICKS == 0 ){
+			
+			lookupAssociations();
 		}
 	}
 	
@@ -738,6 +761,183 @@ SubscriptionManagerImpl
  		File dir = getSubsDir();
  		
  		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".vuze" ));
+	}
+	
+	public Subscription[]
+	getKnownSubscriptions(
+		byte[]						hash )
+	{
+		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+
+		try{
+			Download download = pi.getDownloadManager().getDownload( hash );
+			
+			if ( download != null ){
+				
+				Map	m = download.getMapAttribute( ta_subscription_info );
+				
+				if ( m != null ){
+					
+					List s = (List)m.get("s");
+					
+					if ( s != null && s.size() > 0 ){
+						
+						List	result = new ArrayList( s.size());
+						
+						for (int i=0;i<s.size();i++){
+							
+							byte[]	sid = (byte[])s.get(i);
+							
+							Subscription subs = getSubscriptionFromSID(sid);
+							
+							if ( subs != null ){
+								
+								result.add( subs );
+							}
+						}
+						
+						return((Subscription[])result.toArray( new Subscription[result.size()]));
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to get known subscriptions", e );
+		}
+		
+		return( new Subscription[0] );
+	}
+	
+	protected void
+	lookupAssociations()
+	{
+		synchronized( this ){
+			
+			if ( periodic_lookup_in_progress ){
+				
+				return;
+			}
+			
+			periodic_lookup_in_progress  = true;
+		}
+		
+		try{
+			PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+			
+			Download[] downloads = pi.getDownloadManager().getDownloads();
+					
+			long	now = SystemTime.getCurrentTime();
+			
+			long		newest_time		= 0;
+			Download	newest_download	= null;
+			
+			
+			for( int i=0;i<downloads.length;i++){
+				
+				Download	download = downloads[i];
+				
+				if ( download.getTorrent() == null || !download.isPersistent()){
+					
+					continue;
+				}
+				
+				Map	map = download.getMapAttribute( ta_subscription_info );
+				
+				if ( map == null ){
+					
+					map = new LightHashMap();
+					
+				}else{
+					
+					map = new LightHashMap( map );
+				}	
+				
+				Long	l_last_check = (Long)map.get( "lc" );
+				
+				long	last_check = l_last_check==null?0:l_last_check.longValue();
+				
+				if ( last_check > now ){
+					
+					last_check = now;
+					
+					map.put( "lc", new Long( last_check ));
+					
+					download.setMapAttribute( ta_subscription_info, map );
+				}
+				
+				List	subs = (List)map.get( "s" );
+				
+				int	sub_count = subs==null?0:subs.size();
+				
+				if ( sub_count > 8 ){
+					
+					continue;
+				}
+				
+				long	create_time = download.getCreationTime();
+				
+				int	time_between_checks = (sub_count + 1) * 24*60*60*1000 + (int)(create_time%4*60*60*1000);
+				
+				if ( now - last_check >= time_between_checks ){
+					
+					if ( create_time > newest_time ){
+						
+						newest_time		= create_time;
+						newest_download	= download;
+					}
+				}
+			}
+			
+			if ( newest_download != null ){
+			
+				byte[] hash = newest_download.getTorrent().getHash();
+				
+				log( "Periodic lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
+
+				lookupAssociations( 
+					hash,
+					new	SubscriptionLookupListener()
+					{
+						public void
+						found(
+							byte[]					hash,
+							Subscription			subscription )
+						{							
+						}
+						
+						public void
+						failed(
+							byte[]					hash,
+							SubscriptionException	error )
+						{
+							synchronized( SubscriptionManagerImpl.this ){
+								
+								periodic_lookup_in_progress = false;
+							}
+						}
+						
+						public void 
+						complete(
+							byte[] 			hash,
+							Subscription[]	subs )
+						{
+							synchronized( SubscriptionManagerImpl.this ){
+								
+								periodic_lookup_in_progress = false;
+							}
+							
+							log( "Periodic lookup complete for " + ByteFormatter.encodeString( hash ));
+						}
+					});
+						
+			}
+		}catch( Throwable e ){
+			
+			synchronized( this ){
+				
+				periodic_lookup_in_progress = false;
+			}
+		}
 	}
 	
 	public SubscriptionAssociationLookup
@@ -977,16 +1177,22 @@ SubscriptionManagerImpl
 								return;
 							}
 
-							Subscription[] s;
+							SubscriptionImpl[] s;
 							
 							synchronized( this ){
 								
-								s = (Subscription[])subscriptions.toArray( new Subscription[ subscriptions.size() ]);
+								s = (SubscriptionImpl[])subscriptions.toArray( new SubscriptionImpl[ subscriptions.size() ]);
 							}
 							
 							log( "    Association lookup complete - " + s.length + " found" );
-							
-							listener.complete( hash, s );
+
+							try{						
+								recordAssociations( hash, s, true );
+								
+							}finally{
+								
+								listener.complete( hash, s );
+							}
 						}
 					}.start();
 				}
@@ -1019,8 +1225,7 @@ SubscriptionManagerImpl
 	
 	interface 
 	subsLookupListener
-	extends
-		SubscriptionLookupListener
+		extends SubscriptionLookupListener
 	{
 		public boolean
 		isCancelled();
@@ -1059,12 +1264,14 @@ SubscriptionManagerImpl
 					true,
 					new DHTPluginOperationListener()
 					{
+						private boolean	diversified;
+						
 						private int	hits = 0;
 						
 						public void
 						diversified()
 						{
-							// TODO: maybe handle div somehow but quickly?
+							diversified = true;
 						}
 						
 						public void 
@@ -1103,6 +1310,18 @@ SubscriptionManagerImpl
 							byte[]				key,
 							boolean				timeout_occurred )
 						{
+							if ( diversified ){
+								
+									// TODO: fix 
+								
+								result[0] *= 11;
+								
+								if ( result[0] == 0 ){
+									
+									result[0] = 10;
+								}
+							}
+							
 							sem.release();
 						}
 					});
@@ -1431,11 +1650,106 @@ SubscriptionManagerImpl
 	}
 	
 	protected void
-	associationAdded()
+	associationAdded(
+		SubscriptionImpl			subscription,
+		byte[]						association_hash )
 	{
+		recordAssociations( association_hash, new SubscriptionImpl[]{ subscription }, false );
+		
 		if ( dht_plugin != null ){
 			
 			publishAssociations();
+		}
+	}
+	
+	protected void
+	recordAssociations(
+		byte[]						association_hash,
+		SubscriptionImpl[]			subscriptions,
+		boolean						full_lookup )
+	{
+		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+
+		boolean	changed = false;
+		
+		try{
+			Download download = pi.getDownloadManager().getDownload( association_hash );
+			
+			if ( download != null ){
+				
+				Map	map = download.getMapAttribute( ta_subscription_info );
+				
+				if ( map == null ){
+					
+					map = new LightHashMap();
+					
+				}else{
+					
+					map = new LightHashMap( map );
+				}
+				
+				List	s = (List)map.get( "s" );
+				
+				for (int i=0;i<subscriptions.length;i++){
+				
+					byte[]	sid = subscriptions[i].getShortID();
+					
+					if ( s == null ){
+						
+						s = new ArrayList();
+						
+						s.add( sid );
+						
+						changed	= true;
+						
+						map.put( "s", s );
+						
+					}else{
+						
+						for (int j=0;j<s.size();j++){
+							
+							byte[]	existing = (byte[])s.get(j);
+							
+							if ( !Arrays.equals( sid, existing )){
+								
+								s.add( sid );
+								
+								changed	= true;
+							}
+						}
+					}
+				}
+				
+				if ( full_lookup ){
+				
+					map.put( "lc", new Long( SystemTime.getCurrentTime()));
+					
+					changed	= true;
+				}
+				
+				if ( changed ){
+				
+					download.setMapAttribute( ta_subscription_info, map );
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		if ( changed ){
+			
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				try{
+					((SubscriptionManagerListener)it.next()).subscriptionsChanged( association_hash );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 		}
 	}
 	
@@ -2718,5 +3032,19 @@ SubscriptionManagerImpl
 		AEDiagnosticsLogger diag_logger = getLogger();
 		
 		diag_logger.log( s );
+	}
+	
+	public void
+	addListener(
+		SubscriptionManagerListener	listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		SubscriptionManagerListener	listener )
+	{
+		listeners.remove( listener );
 	}
 }

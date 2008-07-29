@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -524,7 +525,7 @@ SubscriptionImpl
 										
 											throws Exception
 										{
-											manager.log( getString() + " - generating torrent" );
+											manager.log( getString() + " - generating torrent: " + Debug.getCompressedStackTrace());
 											
 											TOTorrentCreator creator = 
 												TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
@@ -591,7 +592,7 @@ SubscriptionImpl
 		
 		manager.configDirty();
 		
-		manager.associationAdded();
+		manager.associationAdded( this, hash);
 	}
 	
 	protected association
