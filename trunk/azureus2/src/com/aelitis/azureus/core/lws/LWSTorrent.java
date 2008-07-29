@@ -95,7 +95,7 @@ LWSTorrent
 	public byte[] 
 	getName() 
 	{
-		return( getDelegate().getName());
+		return( lws.getName().getBytes());
 	}
 	
 	public boolean
