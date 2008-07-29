@@ -73,6 +73,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -104,6 +105,7 @@ import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionListWindow;
 
 
 public class 
@@ -268,7 +270,11 @@ SubscriptionManagerImpl
 							Object 		target) 
 						{
 							TableRow[]	rows = (TableRow[])target;
-							
+							if(rows.length > 0) {
+								Download download = (Download)rows[0].getDataSource();
+								new SubscriptionListWindow(PluginCoreUtils.unwrap(download));
+							}
+							/*
 							for (int i=0;i<rows.length;i++){
 								
 								Download download = (Download)rows[i].getDataSource();
@@ -313,7 +319,7 @@ SubscriptionManagerImpl
 										log( "Lookup failed", e );
 									}
 								}	
-							}
+							}*/
 						}
 					};
 				

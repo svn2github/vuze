@@ -23,6 +23,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
@@ -57,9 +59,15 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		this.download = download;
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
-			shell = new Shell(functionsSWT.getMainShell(),SWT.APPLICATION_MODAL);
+			Shell mainShell = functionsSWT.getMainShell();
+			shell = new Shell(mainShell,SWT.TITLE | SWT.APPLICATION_MODAL);
+			shell.setSize(400,300);
+			Utils.centerWindowRelativeTo(shell, mainShell);
+			
 		} else {
 			shell = new Shell(SWT.TITLE | SWT.APPLICATION_MODAL);
+			shell.setSize(400,300);
+			Utils.centreWindow(shell);
 		}
 		
 		display = shell.getDisplay();
@@ -71,7 +79,6 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		Label separator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 		Button cancel = new Button(shell,SWT.PUSH);
 		action = new Button(shell,SWT.PUSH);
-		action.setText(MessageText.getString("Button.yes"));
 		cancel.setText(MessageText.getString("Button.cancel"));
 		
 		FormData data;
@@ -169,7 +176,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		if(autoCheck) {
 			startChecking();
 		} else {
-			
+			action.setText(MessageText.getString("Button.yes"));
 			Composite acceptPanel = new Composite(mainComposite,SWT.NONE);
 			acceptPanel.setLayout(new FormLayout());
 			
@@ -185,12 +192,10 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 			
 			action.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
+					action.removeListener(SWT.Selection,this);
 					COConfigurationManager.setParameter("subscriptions.autocheck",true);
 					startChecking();
-					mainComposite.layout();
-					action.setText(MessageText.getString("subscriptions.listwindow.subscribe"));
-					action.setEnabled(false);
-					action.removeListener(SWT.Selection,this);
+					mainComposite.layout();	
 				}
 			});
 			mainLayout.topControl = acceptPanel;
@@ -203,6 +208,8 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	}
 
 	private void startChecking() {
+		action.setText(MessageText.getString("subscriptions.listwindow.subscribe"));
+		action.setEnabled(false);
 		try {
 			if(download != null) {
 				lookup = SubscriptionManagerFactory.getSingleton().lookupAssociations(download.getTorrent().getHash(), this);
@@ -212,7 +219,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 					public void run() {
 						try {
 							Thread.sleep(1000);
-							Subscription[] subscriptions = new Subscription[5];
+							Subscription[] subscriptions = new Subscription[0];
 							for(int i = 0 ; i < subscriptions.length ; i++) {
 								final int index = i;
 								subscriptions[i] = new Subscription() {
@@ -291,39 +298,40 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	public void complete(final byte[] hash,final Subscription[] subscriptions) {
 		if( ! (subscriptions.length > 0) ) {
 			failed(hash, null);
-		}
-		if(display != null && !display.isDisposed()) {
-			display.asyncExec(new Runnable() {
-				public void run() {
-					animatedImage.stop();
-					
-					if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
-						for(int i = 0 ; i < subscriptions.length ; i++) {
-							populateSubscription(subscriptions[i]);
+		} else {
+			if(display != null && !display.isDisposed()) {
+				display.asyncExec(new Runnable() {
+					public void run() {
+						animatedImage.stop();
+						
+						if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
+							for(int i = 0 ; i < subscriptions.length ; i++) {
+								populateSubscription(subscriptions[i]);
+							}
 						}
-					}
-					
-					
-					
-					
-					mainLayout.topControl = listPanel;
-					mainComposite.layout();
-					action.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event arg0) {
-							if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
-								int selectedIndex = subscriptionsList.getSelectionIndex();
-								if(selectedIndex != -1) {
-									TableItem selectedItem = subscriptionsList.getItem(selectedIndex);
-									Subscription subscription = (Subscription) selectedItem.getData("subscription");
-									if(subscription != null) {
-										subscription.setSubscribed(true);
+						
+						
+						
+						
+						mainLayout.topControl = listPanel;
+						mainComposite.layout();
+						action.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event arg0) {
+								if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
+									int selectedIndex = subscriptionsList.getSelectionIndex();
+									if(selectedIndex != -1) {
+										TableItem selectedItem = subscriptionsList.getItem(selectedIndex);
+										Subscription subscription = (Subscription) selectedItem.getData("subscription");
+										if(subscription != null) {
+											subscription.setSubscribed(true);
+										}
 									}
 								}
 							}
-						}
-					});
-				}
-			});
+						});
+					}
+				});
+			}
 		}
 	}
 	
