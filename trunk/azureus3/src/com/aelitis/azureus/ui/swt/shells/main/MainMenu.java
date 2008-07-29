@@ -200,6 +200,17 @@ public class MainMenu
 			MenuFactory.addBlockedIPsMenuItem(advancedMenu);
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
+			
+			MenuFactory.addMenuItem(viewMenu, SWT.CHECK,
+					"v3.MainWindow.menu.view.sidebar",
+					new Listener() {
+				public void handleEvent(Event event) {
+					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+					if (sidebar != null) {
+						sidebar.flipSideBarVisibility();
+					}
+				}
+			});
 
 			/*
 			 * NOTE: The following menu items must be created on-demand because
@@ -210,6 +221,14 @@ public class MainMenu
 			viewMenu.addMenuListener(new MenuListener() {
 
 				public void menuShown(MenuEvent e) {
+					
+					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewMenu, "v3.MainWindow.menu.view.sidebar");
+					if (sidebarMenuItem != null) {
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						if (sidebar != null) {
+							sidebarMenuItem.setSelection(sidebar.isVisible());
+						}
+					}
 
 					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
 							+ SkinConstants.VIEWID_PLUGINBAR)) {
