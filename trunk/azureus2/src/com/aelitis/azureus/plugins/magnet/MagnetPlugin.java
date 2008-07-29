@@ -26,8 +26,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -443,12 +445,15 @@ MagnetPlugin
 			final AEMonitor		potential_contacts_mon	= new AEMonitor( "MagnetPlugin:liveones" );
 			
 			final int[]			outstanding		= {0};
-
+			final boolean[]		lookup_complete	= {false};
+			
 			listener.reportActivity(  getMessageText( "report.searching" ));
 			
 			DistributedDatabaseListener	ddb_listener = 
 				new DistributedDatabaseListener()
 				{
+					private Set	found_set = new HashSet();
+					
 					public void
 					event(
 						DistributedDatabaseEvent 		event )
@@ -475,6 +480,16 @@ MagnetPlugin
 								}
 							}
 							
+							try{
+								potential_contacts_mon.enter();													
+
+								lookup_complete[0] = true;
+								
+							}finally{
+								
+								potential_contacts_mon.exit();
+							}
+							
 							potential_contacts_sem.release();
 						}
 					}
@@ -483,9 +498,29 @@ MagnetPlugin
 					contactFound(
 						final DistributedDatabaseContact	contact )
 					{
+						String	key = contact.getAddress().toString();
+						
+						synchronized( found_set ){
+							
+							if ( found_set.contains( key )){
+								
+								return;
+							}
+							
+							found_set.add( key );
+						}
+						
 						listener.reportActivity( getMessageText( "report.found", contact.getName()));
 				
-						outstanding[0]++;
+						try{
+							potential_contacts_mon.enter();													
+
+							outstanding[0]++;
+							
+						}finally{
+							
+							potential_contacts_mon.exit();
+						}
 						
 						AEThread2 t = 
 							new AEThread2( "MagnetPlugin:HitHandler", true )
@@ -528,8 +563,6 @@ MagnetPlugin
 												potential_contacts.add( entry );	// dead at end
 											}
 												
-											potential_contacts_sem.release();
-												
 										}finally{
 												
 											potential_contacts_mon.exit();
@@ -545,6 +578,8 @@ MagnetPlugin
 											
 											potential_contacts_mon.exit();
 										}
+										
+										potential_contacts_sem.release();
 									}
 								}
 							};
@@ -563,6 +598,20 @@ MagnetPlugin
 			
 			while( remaining > 0 ){
 					
+				try{
+					potential_contacts_mon.enter();
+
+					if ( 	lookup_complete[0] && 
+							potential_contacts.size() == 0 &&
+							outstanding[0] == 0 ){
+						
+						break;
+					}
+				}finally{
+					
+					potential_contacts_mon.exit();
+				}
+				
 				long start = SystemTime.getCurrentTime();
 				
 				potential_contacts_sem.reserve( remaining );
@@ -574,6 +623,8 @@ MagnetPlugin
 				
 				try{
 					potential_contacts_mon.enter();
+					
+					System.out.println( "rem=" + remaining + ",pot=" + potential_contacts.size() + ",out=" + outstanding[0] );
 					
 					if ( potential_contacts.size() == 0 ){
 						
