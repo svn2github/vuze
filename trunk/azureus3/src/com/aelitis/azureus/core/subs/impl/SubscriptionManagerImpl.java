@@ -774,6 +774,12 @@ SubscriptionManagerImpl
 				{
 				}
 				
+				public void 
+				starts(
+					byte[] 				key ) 
+				{
+				}
+				
 				public void
 				valueRead(
 					DHTPluginContact	originator,
@@ -1061,6 +1067,12 @@ SubscriptionManagerImpl
 							// TODO: maybe handle div somehow but quickly?
 						}
 						
+						public void 
+						starts(
+							byte[] 				key ) 
+						{
+						}
+						
 						public void
 						valueRead(
 							DHTPluginContact	originator,
@@ -1157,6 +1169,12 @@ SubscriptionManagerImpl
 					
 					public void
 					diversified()
+					{
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
 					{
 					}
 					
@@ -1516,6 +1534,12 @@ SubscriptionManagerImpl
 				{
 				}
 				
+				public void 
+				starts(
+					byte[] 				key ) 
+				{
+				}
+				
 				public void
 				valueRead(
 					DHTPluginContact	originator,
@@ -1586,6 +1610,12 @@ SubscriptionManagerImpl
 							{
 								public void
 								diversified()
+								{
+								}
+								
+								public void 
+								starts(
+									byte[] 				key ) 
 								{
 								}
 								
@@ -1731,6 +1761,12 @@ SubscriptionManagerImpl
 				{
 				}
 				
+				public void 
+				starts(
+					byte[] 				key ) 
+				{
+				}
+				
 				public void
 				valueRead(
 					DHTPluginContact	originator,
@@ -1780,6 +1816,12 @@ SubscriptionManagerImpl
 								{
 									public void
 									diversified()
+									{
+									}
+									
+									public void 
+									starts(
+										byte[] 				key ) 
 									{
 									}
 									
@@ -1878,6 +1920,12 @@ SubscriptionManagerImpl
 				
 				public void
 				diversified()
+				{
+				}
+				
+				public void 
+				starts(
+					byte[] 				key ) 
 				{
 				}
 				
@@ -2078,6 +2126,13 @@ SubscriptionManagerImpl
 				hash,
 				new InetSocketAddress[0],
 				300*1000 );
+			
+			if ( torrent_data == null ){
+				
+				log( "    download failed - timeout" );
+				
+				return( null );
+			}
 			
 			log( "Subscription torrent downloaded" );
 			
