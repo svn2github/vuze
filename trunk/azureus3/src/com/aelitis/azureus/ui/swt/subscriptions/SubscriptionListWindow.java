@@ -202,7 +202,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		}
 		
 		
-		shell.setSize(400,300);
+		//shell.setSize(400,300);
 		shell.open();
 			
 	}
