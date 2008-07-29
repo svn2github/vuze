@@ -129,6 +129,8 @@ public class SideBar
 
 	private CopyOnWriteList listeners = new CopyOnWriteList();
 
+	double lastPercent = 0.8;
+
 	static {
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
@@ -154,8 +156,6 @@ public class SideBar
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		Display.getDefault().addFilter(SWT.KeyDown, new Listener() {
-			double lastPercent = 0.8;
-
 			public void handleEvent(Event event) {
 				if (event.keyCode == SWT.F9
 						|| event.keyCode == SWT.F7
@@ -163,24 +163,38 @@ public class SideBar
 					event.doit = false;
 					event.keyCode = 0;
 					event.character = '\0';
-					Utils.execSWTThreadLater(0, new AERunnable() {
-						public void runSupport() {
-							SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
-							if (soSash.getPercent() == 100) {
-								if (lastPercent != 0) {
-									soSash.setPercent(lastPercent);
-								}
-							} else {
-								lastPercent = soSash.getPercent();
-								soSash.setPercent(100);
-							}
-						}
-					});
+					flipSideBarVisibility();
 				}
 			}
 		});
 
 		return null;
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void flipSideBarVisibility() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
+				if (soSash.getPercent() == 100) {
+					if (lastPercent != 0) {
+						soSash.setPercent(lastPercent);
+					}
+				} else {
+					lastPercent = soSash.getPercent();
+					soSash.setPercent(100);
+				}
+			}
+		});
+	}
+	
+	public boolean isVisible() {
+		SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
+		return soSash.getPercent() != 1.0;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
