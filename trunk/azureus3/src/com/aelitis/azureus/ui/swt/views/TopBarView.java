@@ -27,7 +27,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Transform;
-import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -63,6 +63,8 @@ public class TopBarView
 	private final UISWTInstanceImpl uiSWTinstance;
 
 	private org.eclipse.swt.widgets.List listPlugins;
+
+	private Composite cPluginArea;
 	
 	/**
 	 * 
@@ -91,30 +93,7 @@ public class TopBarView
 				new VivaldiView(false)
 			};
 
-			final Composite composite = (Composite) skinObject.getControl();
-
-			Map pluginViews = null;
-			pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
-			if (pluginViews != null) {
-				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
-				for (int i = 0; i < sNames.length; i++) {
-					UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
-					if (l != null) {
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-									sNames[i], l);
-							addTopBarView(view, composite);
-						} catch (Exception e) {
-							// skip, plugin probably specifically asked to not be added
-						}
-					}
-				}
-			}
-
-			if (topbarViews.size() > 0) {
-				activeTopBar = (IView) topbarViews.get(0);
-				activeTopBar.getComposite().setVisible(true);
-			}
+			cPluginArea = (Composite) skinObject.getControl();
 
 			final UIUpdatable updatable = new UIUpdatable() {
 				public void updateUI() {
@@ -311,18 +290,50 @@ public class TopBarView
 				});
 			}
 
-			int viewIndex = COConfigurationManager.getIntParameter("topbar.viewindex", 0);
+			int toActiveView = COConfigurationManager.getIntParameter("topbar.viewindex", 0);
+			int viewIndex = toActiveView;
 			for (int i = 0; i < coreTopBarViews.length; i++) {
 				IView view = coreTopBarViews[i];
-				addTopBarView(view, composite);
-				if (i == viewIndex) {
+				addTopBarView(view, cPluginArea);
+				if (toActiveView-- == 0) {
 					activateTopBar(view);
 					if (listPlugins != null) {
-						listPlugins.setSelection(i);
+						listPlugins.setSelection(viewIndex);
 					}
 				}
 			}
 
+			Map pluginViews = null;
+			pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+			if (pluginViews != null) {
+				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
+				for (int i = 0; i < sNames.length; i++) {
+					UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
+					if (l != null) {
+						try {
+							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
+									sNames[i], l);
+							addTopBarView(view, cPluginArea);
+							if (toActiveView-- == 0) {
+								activateTopBar(view);
+								if (listPlugins != null) {
+									listPlugins.setSelection(viewIndex);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							// skip, plugin probably specifically asked to not be added
+						}
+					}
+				}
+			}
+
+			if (toActiveView >= 0 && topbarViews.size() > 0) {
+				activeTopBar = (IView) topbarViews.get(0);
+				activeTopBar.getComposite().setVisible(true);
+			}
+
+			
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -335,10 +346,18 @@ public class TopBarView
 	 */
 	protected void activateTopBar(IView view) {
 		if (activeTopBar != null) {
-			activeTopBar.getComposite().setVisible(false);
+			Composite c = activeTopBar.getComposite();
+			while (c.getParent() != cPluginArea) {
+				c = c.getParent();
+			}
+			c.setVisible(false);
 		}
 		activeTopBar = view;
-		activeTopBar.getComposite().setVisible(true);
+		Composite c = activeTopBar.getComposite();
+		while (c.getParent() != cPluginArea) {
+			c = c.getParent();
+		}
+		c.setVisible(true);
 
 		SWTSkinObject soTitle = skin.getSkinObject("topbar-plugin-title");
 		//System.out.println("Hello" + soTitle);
@@ -352,11 +371,32 @@ public class TopBarView
 	 *
 	 * @since 3.0.1.1
 	 */
-	private void addTopBarView(IView view, Composite c) {
-		view.initialize(c);
-		Composite composite = view.getComposite();
-		composite.setVisible(false);
-		composite.setLayoutData(Utils.getFilledFormData());
+	private void addTopBarView(IView view, Composite composite) {
+		Composite parent = new Composite(composite, SWT.None);
+		parent.setLayoutData(Utils.getFilledFormData());
+		parent.setLayout(new FormLayout());
+
+		view.initialize(parent);
+		parent.setVisible(false);
+
+		Control[] children = parent.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			Object ld = control.getLayoutData();
+			boolean useGridLayout = ld != null && (ld instanceof GridData);
+			if (useGridLayout) {
+				GridLayout gridLayout = new GridLayout();
+				gridLayout.horizontalSpacing = 0;
+				gridLayout.marginHeight = 0;
+				gridLayout.marginWidth = 0;
+				gridLayout.verticalSpacing = 0;
+				parent.setLayout(gridLayout);
+				break;
+			} else if (ld == null) {
+				control.setLayoutData(Utils.getFilledFormData());
+			}
+		}
+
 		topbarViews.add(view);
 		if (listPlugins != null) {
 			String s = view.getFullTitle();
