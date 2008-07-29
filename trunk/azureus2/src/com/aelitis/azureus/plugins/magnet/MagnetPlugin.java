@@ -624,7 +624,7 @@ MagnetPlugin
 				try{
 					potential_contacts_mon.enter();
 					
-					System.out.println( "rem=" + remaining + ",pot=" + potential_contacts.size() + ",out=" + outstanding[0] );
+					// System.out.println( "rem=" + remaining + ",pot=" + potential_contacts.size() + ",out=" + outstanding[0] );
 					
 					if ( potential_contacts.size() == 0 ){
 						
