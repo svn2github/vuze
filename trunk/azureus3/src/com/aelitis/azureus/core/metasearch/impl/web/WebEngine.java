@@ -103,12 +103,12 @@ WebEngine
 	{
 		super( meta_search, map );
 		
-		searchURLFormat 	= importString( map, "web.search_url_format" );
-		timeZone			= importString( map, "web.time_zone" );
-		userDateFormat		= importString( map, "web.date_format" );
-		downloadLinkCSS		= importString( map, "web.dl_link_css" );
+		searchURLFormat 	= ImportExportUtils.importString( map, "web.search_url_format" );
+		timeZone			= ImportExportUtils.importString( map, "web.time_zone" );
+		userDateFormat		= ImportExportUtils.importString( map, "web.date_format" );
+		downloadLinkCSS		= ImportExportUtils.importString( map, "web.dl_link_css" );
 		
-		automaticDateParser	= importBoolean( map, "web.auto_date", true );
+		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", true );
 
 		List	maps = (List)map.get( "web.maps" );
 		
@@ -120,7 +120,7 @@ WebEngine
 			
 			mappings[i] = 
 				new FieldMapping(
-					importString( m, "name" ),
+						ImportExportUtils.importString( m, "name" ),
 					((Long)m.get( "field")).intValue());
 		}
 		
@@ -135,10 +135,10 @@ WebEngine
 	{
 		super.exportToBencodedMap( map );
 		
-		exportString( map, "web.search_url_format", searchURLFormat );
-		exportString( map, "web.time_zone", 		timeZone );		
-		exportString( map, "web.date_format", 		userDateFormat );
-		exportString( map, "web.dl_link_css",		downloadLinkCSS );
+		ImportExportUtils.exportString( map, "web.search_url_format", searchURLFormat );
+		ImportExportUtils.exportString( map, "web.time_zone", 		timeZone );		
+		ImportExportUtils.exportString( map, "web.date_format", 		userDateFormat );
+		ImportExportUtils.exportString( map, "web.dl_link_css",		downloadLinkCSS );
 		
 		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
 
@@ -152,7 +152,7 @@ WebEngine
 			
 			Map m = new HashMap();
 			
-			exportString( m, "name", fm.getName());
+			ImportExportUtils.exportString( m, "name", fm.getName());
 			m.put( "field", new Long( fm.getField()));
 			
 			maps.add( m );
@@ -174,10 +174,10 @@ WebEngine
 	{
 		super( meta_search, type, id, last_updated, name, map );
 		
-		searchURLFormat 	= importString( map, "searchURL" );
-		timeZone			= importString( map, "timezone" );
-		userDateFormat		= importString( map, "time_format" );
-		downloadLinkCSS		= importString( map, "download_link" );
+		searchURLFormat 	= ImportExportUtils.importString( map, "searchURL" );
+		timeZone			= ImportExportUtils.importString( map, "timezone" );
+		userDateFormat		= ImportExportUtils.importString( map, "time_format" );
+		downloadLinkCSS		= ImportExportUtils.importString( map, "download_link" );
 
 		if ( downloadLinkCSS != null ){
 			
@@ -214,13 +214,13 @@ WebEngine
 				m = test;
 			}
 			
-			String	vuze_field 	= importString( m, "vuze_field" ).toUpperCase();
+			String	vuze_field 	= ImportExportUtils.importString( m, "vuze_field" ).toUpperCase();
 			
-			String	field_name	= importString( m, "group_nb" );	// regexp case
+			String	field_name	= ImportExportUtils.importString( m, "group_nb" );	// regexp case
 			
 			if ( field_name == null ){
 				
-				field_name = importString( m, "field_name" );	// json case
+				field_name = ImportExportUtils.importString( m, "field_name" );	// json case
 			}
 			
 			if ( vuze_field == null || field_name == null ){

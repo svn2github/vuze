@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
+import com.aelitis.azureus.core.metasearch.impl.ImportExportUtils;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -111,7 +112,7 @@ JSONEngine
 	{
 		super( meta_search, map );
 		
-		resultsEntryPath = importString( map, "json.path" );
+		resultsEntryPath = ImportExportUtils.importString( map, "json.path" );
 	}
 	
 		// json constructor
@@ -128,7 +129,7 @@ JSONEngine
 	{
 		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, name, map );
 				
-		resultsEntryPath = importString( map, "json_result_key" );
+		resultsEntryPath = ImportExportUtils.importString( map, "json_result_key" );
 	}
 	
 	public Map 
@@ -138,7 +139,7 @@ JSONEngine
 	{
 		Map	res = new HashMap();
 		
-		exportString( res, "json.path", resultsEntryPath );
+		ImportExportUtils.exportString( res, "json.path", resultsEntryPath );
 		
 		super.exportToBencodedMap( res );
 		

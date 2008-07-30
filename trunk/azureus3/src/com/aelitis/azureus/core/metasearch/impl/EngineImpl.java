@@ -51,6 +51,8 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
+import com.aelitis.azureus.core.metasearch.impl.ImportExportUtils;
+
 public abstract class 
 EngineImpl
 	implements Engine
@@ -162,14 +164,14 @@ EngineImpl
 		
 		type			= ((Long)map.get( "type" )).intValue();
 		id				= ((Long)map.get( "id")).longValue();
-		last_updated	= importLong( map, "last_updated" );
-		name			= importString( map, "name" );
+		last_updated	= ImportExportUtils.importLong( map, "last_updated" );
+		name			= ImportExportUtils.importString( map, "name" );
 		
-		selection_state	= (int)importLong( map, "selected", SEL_STATE_DESELECTED );
+		selection_state	= (int)ImportExportUtils.importLong( map, "selected", SEL_STATE_DESELECTED );
 		
-		selection_state_recorded = importBoolean(map,"select_rec", true );
+		selection_state_recorded = ImportExportUtils.importBoolean(map,"select_rec", true );
 		
-		source			= (int)importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
+		source			= (int)ImportExportUtils.importLong( map, "source", ENGINE_SOURCE_UNKNOWN );
 		
 		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
@@ -187,11 +189,11 @@ EngineImpl
 		map.put( "id", new Long( id ));
 		map.put( "last_updated", new Long( last_updated ));
 		
-		exportString( map, "name", name );
+		ImportExportUtils.exportString( map, "name", name );
 		
 		map.put( "selected", new Long( selection_state ));
 		
-		exportBoolean( map, "select_rec", selection_state_recorded );
+		ImportExportUtils.exportBoolean( map, "select_rec", selection_state_recorded );
 		
 		map.put( "source", new Long( source ));
 		
@@ -379,8 +381,8 @@ EngineImpl
 					
 					Map	entry2 = (Map)l2.get(j);
 					
-					String	from_str 	= importString( entry2, "from" );
-					String	to_str 		= importString( entry2, "to" );
+					String	from_str 	= ImportExportUtils.importString( entry2, "from" );
+					String	to_str 		= ImportExportUtils.importString( entry2, "to" );
 					
 					mappings[j] = new FieldRemapping( from_str, to_str );
 				}
@@ -429,8 +431,8 @@ EngineImpl
 				
 				l2.add( m2 );
 				
-				exportString( m2, "from", fr.getMatchString());
-				exportString( m2, "to", fr.getReplacement());
+				ImportExportUtils.exportString( m2, "from", fr.getMatchString());
+				ImportExportUtils.exportString( m2, "to", fr.getReplacement());
 			}
 		}
 	}
@@ -654,116 +656,7 @@ EngineImpl
 		
 		return( null );
 	}
-	
-	protected void
-	exportString(
-		Map		map,
-		String	key,
-		String	value )
-	
-		throws IOException
-	{
-		if ( value != null ){
-	
-			map.put( key, value.getBytes( "UTF-8" ));
-		}
-	}
-	
-	protected String
-	importString(
-		Map		map,
-		String	key )
-	
-		throws IOException
-	{
-		Object	obj = map.get( key );
-		
-		if ( obj instanceof String ){
-			
-			return((String)obj);
-			
-		}else if ( obj instanceof byte[]){
-			
-			return( new String((byte[])obj, "UTF-8" ));
-		}
-		
-		return( null );
-	}
-	
-	protected long
-	importLong(
-		Map		map,
-		String	key )
-	
-		throws IOException
-	{
-		return( importLong( map, key, 0 ));
-	}
-	
-	protected long
-	importLong(
-		Map		map,
-		String	key,
-		long	def )
-	
-		throws IOException
-	{
-		Object	obj = map.get( key );
-		
-		if ( obj instanceof Long){
-			
-			return(((Long)obj).longValue());
-			
-		}else if ( obj instanceof String ){
-			
-			return( Long.parseLong((String)obj));
-		}
-		
-		return( def );
-	}
 
-	protected void
-	exportBoolean(
-		Map		map,
-		String	key,
-		boolean	value )
-	
-		throws IOException
-	{
-		map.put( key, new Long( value?1:0 ));
-	}
-	
-	protected boolean
-	importBoolean(
-		Map		map,
-		String	key )
-	
-		throws IOException
-	{
-		return( importBoolean( map, key, false ));
-	}
-	
-	protected boolean
-	importBoolean(
-		Map		map,
-		String	key,
-		boolean	def )
-	
-		throws IOException
-	{
-		Object	obj = map.get( key );
-		
-		if ( obj instanceof Long){
-			
-			return(((Long)obj).longValue() == 1 );
-		}else if ( obj instanceof Boolean ){
-			
-			return(((Boolean)obj).booleanValue());
-		}
-		
-		return( def );
-	}
-	
 	public int
 	getType()
 	{

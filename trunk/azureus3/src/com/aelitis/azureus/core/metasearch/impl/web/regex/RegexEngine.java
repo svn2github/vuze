@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
+import com.aelitis.azureus.core.metasearch.impl.ImportExportUtils;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -108,7 +109,7 @@ RegexEngine
 	{
 		super( meta_search, map );
 		
-		String	resultPattern = importString( map, "regex.pattern" );
+		String	resultPattern = ImportExportUtils.importString( map, "regex.pattern" );
 
 		init( resultPattern );
 	}
@@ -127,7 +128,7 @@ RegexEngine
 	{
 		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
 		
-		String	resultPattern = importString( map, "regexp" );
+		String	resultPattern = ImportExportUtils.importString( map, "regexp" );
 
 		resultPattern = URLDecoder.decode( resultPattern, "UTF-8" );
 		
@@ -141,7 +142,7 @@ RegexEngine
 	{
 		Map	res = new HashMap();
 		
-		exportString( res, "regex.pattern", pattern_str );
+		ImportExportUtils.exportString( res, "regex.pattern", pattern_str );
 		
 		super.exportToBencodedMap( res );
 		
