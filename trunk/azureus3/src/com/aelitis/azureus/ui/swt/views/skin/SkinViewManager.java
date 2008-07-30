@@ -22,6 +22,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
 
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+
 /**
  * @author TuxPaper
  * @created Oct 6, 2006
@@ -85,7 +87,15 @@ public class SkinViewManager
 	}
 
 	public static SkinView getBySkinObjectID(String id) {
-		return (SkinView) skinIDs.get(id);
+		SkinView sv = (SkinView) skinIDs.get(id);
+		if (sv != null) {
+  		SWTSkinObject so = sv.getMainSkinObject();
+  		if (so != null && so.isDisposed()) {
+  			// TODO remove
+  			return null;
+  		}
+		}
+		return sv;
 	}
 	
 	public static void addListener(SkinViewManagerListener l) {
