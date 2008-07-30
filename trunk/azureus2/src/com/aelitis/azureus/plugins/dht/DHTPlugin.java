@@ -935,6 +935,12 @@ DHTPlugin
 	}
 	
 	public boolean
+	isInitialising()
+	{
+		return( !init_sem.isReleasedForever());
+	}
+	
+	public boolean
 	isExtendedUseAllowed()
 	{
 		if ( !isEnabled()){
