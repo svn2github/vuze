@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
+import com.aelitis.azureus.core.metasearch.impl.ResultsFilterImpl;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -73,6 +74,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 	public static final String OP_LOAD_TORRENT			= "load-torrent";
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
+	
+	public static final String OP_CREATE_SUBSCRIPTION   = "create-subscription";
 
 	private final SearchResultsTabArea searchResultsArea;
 	
@@ -727,6 +730,18 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map params = new HashMap();
 			params.put("result","1");
 			sendBrowserMessage("metasearch", "hasLoadTorrent",params);
+		}else if(OP_CREATE_SUBSCRIPTION.equals(opid)) {
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
+					: new HashMap();
+			final String name = (String) decodedMap.get("name");
+			final Boolean isPublic	= (Boolean) decodedMap.get( "is_public" );
+			final String engineId	= (String) decodedMap.get( "engine_id" );
+			final String searchTerm	= (String) decodedMap.get( "search_term" );
+			final Map filters = (Map) decodedMap.get("filters");
+			
+			ResultsFilter resultsFilter = new ResultsFilterImpl(filters);
+			
+			System.out.println("Create Subscription called, name : " + name + ", isPublic : " + isPublic + ", engineId : " + engineId + ", searchTerm : " + searchTerm + ", filters : " + filters);
 		}
 	}
 	
