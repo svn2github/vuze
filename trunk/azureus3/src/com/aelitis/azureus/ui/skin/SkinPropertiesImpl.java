@@ -128,11 +128,12 @@ public class SkinPropertiesImpl
 
 		boolean contains = false;
 		if (osName != null) {
-			contains = rb.containsKey(osName);
+			// can't use containsKey on IntegratedResourceBundle :(
+			contains = rb.getString(osName, null) != null;
 		}
 
 		if (!contains) {
-			contains = rb.containsKey(name);
+			contains = rb.getString(name, null) != null;
 		}
 		return contains;
 	}
