@@ -44,15 +44,8 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -81,7 +74,6 @@ import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionListWindow;
 
 
 public class 
@@ -234,175 +226,9 @@ SubscriptionManagerImpl
 		
 		final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
 
-		if ( Constants.isCVSVersion()){			
+		if ( Constants.isCVSVersion()){
 			
-				// check assoc
-			
-			{
-				final TableContextMenuItem menu_item_itorrents = 
-					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.lookupassoc");
-				final TableContextMenuItem menu_item_ctorrents 	= 
-					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.lookupassoc");
-				
-				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
-				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
-		
-				MenuItemListener listener = 
-					new MenuItemListener()
-					{
-						public void 
-						selected(
-							MenuItem 	menu, 
-							Object 		target) 
-						{
-							TableRow[]	rows = (TableRow[])target;
-							if(rows.length > 0) {
-								Download download = (Download)rows[0].getDataSource();
-								new SubscriptionListWindow(PluginCoreUtils.unwrap(download));
-							}
-							/*
-							for (int i=0;i<rows.length;i++){
-								
-								Download download = (Download)rows[i].getDataSource();
-								
-								Torrent t = download.getTorrent();
-								
-								if ( t != null ){
-									
-									try{
-										lookupAssociations( 
-											t.getHash(),
-											new SubscriptionLookupListener()
-											{
-												public void
-												found(
-													byte[]					hash,
-													Subscription			subscription )
-												{
-													log( "    lookup: found " + ByteFormatter.encodeString( hash ) + " -> " + subscription.getName());
-												}
-												
-												public void
-												complete(
-													byte[]					hash,
-													Subscription[]			subscriptions )
-												{
-													log( "    lookup: complete " + ByteFormatter.encodeString( hash ) + " -> " +subscriptions.length );
-		
-												}
-												
-												public void
-												failed(
-													byte[]					hash,
-													SubscriptionException	error )
-												{
-													log( "    lookup: failed", error );
-												}
-											});
-										
-									}catch( Throwable e ){
-										
-										log( "Lookup failed", e );
-									}
-								}	
-							}*/
-						}
-					};
-				
-				menu_item_itorrents.addMultiListener( listener );
-				menu_item_ctorrents.addMultiListener( listener );	
-			}
-			
-				// make assoc
-			
-			{
-				final TableContextMenuItem menu_item_itorrents = 
-					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
-				final TableContextMenuItem menu_item_ctorrents 	= 
-					default_pi.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.addassoc");
-				
-				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_MENU);
-				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_MENU);
-				
-				MenuItemFillListener	menu_fill_listener = 
-					new MenuItemFillListener()
-					{
-						public void
-						menuWillBeShown(
-							MenuItem	menu,
-							Object		target )
-						{	
-							TableRow[]	rows;
-							
-							if ( target instanceof TableRow[] ){
-								
-								rows = (TableRow[])target;
-								
-							}else{
-								
-								rows = new TableRow[]{ (TableRow)target };
-							}
-							
-							final List	hashes = new ArrayList();
-							
-							for (int i=0;i<rows.length;i++){
-								
-								Download	download = (Download)rows[i].getDataSource();
-							
-								Torrent torrent = download.getTorrent();
-								
-								if ( torrent != null ){
-									
-									hashes.add( torrent.getHash());
-								}
-							}
-														
-							menu.removeAllChildItems();
-							
-							boolean enabled = hashes.size() > 0;
-							
-							if ( enabled ){
-							
-								Subscription[] subs = getSubscriptions();
-								
-								boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
-								
-								TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
-																
-								for (int i=0;i<subs.length;i++){
-									
-									final Subscription	sub = subs[i];
-									
-									TableContextMenuItem item =
-										default_pi.getUIManager().getTableManager().addContextMenuItem(
-											parent,
-											"!" + sub.getName() + "!");
-									
-									item.addListener(
-										new MenuItemListener()
-										{
-											public void 
-											selected(
-												MenuItem 	menu,
-												Object 		target ) 
-											{
-												for (int i=0;i<hashes.size();i++){
-													
-													sub.addAssociation( (byte[])hashes.get(i));
-												}
-											}
-										});
-								}
-							}
-							
-							menu.setEnabled( enabled );
-						}
-					};
-					
-				menu_item_itorrents.addFillListener( menu_fill_listener );
-				menu_item_ctorrents.addFillListener( menu_fill_listener );		
-					
-				addListener(
+			addListener(
 					new SubscriptionManagerListener()
 					{
 						public void 
@@ -420,14 +246,14 @@ SubscriptionManagerImpl
 							}
 							*/
 						}
-					});
-			}
+					});	
 		}
-			
+
 		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
 		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
 		ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
-		
+
+
 		DelayedTask dt = 
 			default_pi.getUtilities().createDelayedTask(
 					new Runnable()

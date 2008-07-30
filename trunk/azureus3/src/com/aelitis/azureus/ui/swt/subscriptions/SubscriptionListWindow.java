@@ -1,13 +1,11 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -24,12 +22,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -38,6 +36,7 @@ import com.aelitis.azureus.ui.swt.widgets.AnimatedImage;
 public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
 	private DownloadManager download;
+	private boolean			useCachedSubs;
 	
 	private Display display;
 	private Shell shell;
@@ -55,8 +54,10 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	Table subscriptionsList;
 	StackLayout mainLayout;
 	
-	public SubscriptionListWindow(DownloadManager download) {
-		this.download = download;
+	public SubscriptionListWindow(DownloadManager download, boolean useCachedSubs ) {
+		this.download 		= download;
+		this.useCachedSubs	= useCachedSubs;
+		
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -212,7 +213,15 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		action.setEnabled(false);
 		try {
 			if(download != null) {
-				lookup = SubscriptionManagerFactory.getSingleton().lookupAssociations(download.getTorrent().getHash(), this);
+				byte[] hash = download.getTorrent().getHash();
+				
+				SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
+				if ( useCachedSubs ){
+					Subscription[] subs = subs_man.getKnownSubscriptions( hash );
+					complete(hash,subs);
+				}else{
+					lookup = subs_man.lookupAssociations(hash, this);
+				}
 			} else {
 				//Dummy
 				AEThread2 resultInjector = new AEThread2("test",true) {
@@ -351,7 +360,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	public static void main(String[] args) {
 		Display display = new Display();
 		ImageRepository.loadImages(display);
-		SubscriptionListWindow slw = new SubscriptionListWindow(null);
+		SubscriptionListWindow slw = new SubscriptionListWindow(null,false);
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
 				display.sleep();

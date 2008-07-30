@@ -55,6 +55,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.InitialisationFunctions;
@@ -313,6 +314,8 @@ public class Initializer
 
 		reportCurrentTaskByKey("splash.initializeCore");
 
+		new SubscriptionManagerUI( core );
+		
 		core.start();
 
 		reportPercent(50);
