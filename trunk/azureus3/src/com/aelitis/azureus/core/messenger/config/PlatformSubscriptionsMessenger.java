@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.json.simple.JSONArray;
 
 
 import com.aelitis.azureus.core.messenger.PlatformMessage;
@@ -34,10 +37,10 @@ import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 public class 
 PlatformSubscriptionsMessenger 
 {
-	public static final String LISTENER_ID_TEMPLATE = "subscriptions";
+	public static final String LISTENER_ID_TEMPLATE = "subscription";
 
 	public static final String OP_GET_SUBS_BY_SID				= "get-subs-by-sid";
-	public static final String OP_GET_POP_BY_SID				= "get-pop-by-sid";
+	public static final String OP_GET_POP_BY_SID				= "get-subscription-infos";
 
 
 	public static subscriptionDetails 
@@ -59,17 +62,39 @@ PlatformSubscriptionsMessenger
 	
 	public static long
 	getPopularityBySID(
-		byte[]		sid )
+		byte[]		sid,
+		int			version )
 	
 		throws PlatformMessengerException
 	{
 		Map parameters = new HashMap();
 		
-		parameters.put( "sid", sid );
+		List	sid_list = new JSONArray();
+		
+		sid_list.add( Base32.encode( sid ));
+			
+		List	version_list = new JSONArray();
+		
+		version_list.add( new Long( version ));
+		
+		parameters.put( "short_ids", sid_list );
+		parameters.put( "version_numbers", version_list );
 		
 		Map reply = syncInvoke(	OP_GET_POP_BY_SID, parameters ); 
 		
-		return( 0 ); // TODO
+		for (int i=0;i<sid_list.size();i++){
+			
+			Map	map = (Map)reply.get((String)sid_list.get(i));
+			
+			if ( map != null ){
+				
+				subscriptionInfo info = new subscriptionInfo( map );
+				
+				return( info.getPopularity());
+			}
+		}
+		
+		throw( new PlatformMessengerException( "Unknown sid '" + ByteFormatter.encodeString(sid) + "'" ));
 	}
 	
 	protected static Map
@@ -149,6 +174,25 @@ PlatformSubscriptionsMessenger
 		}
 		
 		return((Map)result[0]);
+	}
+	
+	public static class
+	subscriptionInfo
+	{
+		private Map		info;
+		
+		protected
+		subscriptionInfo(
+			Map		_info )
+		{
+			info	= _info;
+		}
+		
+		public long
+		getPopularity()
+		{
+			return(((Long)info.get( "popularity" )).intValue());
+		}
 	}
 	
 	public static class

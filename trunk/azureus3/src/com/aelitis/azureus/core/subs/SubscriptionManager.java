@@ -26,7 +26,9 @@ SubscriptionManager
 {
 	public Subscription
 	create(
-		String		name )
+		String		name,
+		boolean		is_public,
+		String		json )
 		
 		throws SubscriptionException;
 	

@@ -76,11 +76,12 @@ SubscriptionImpl
 		
 	private SubscriptionManagerImpl		manager;
 	
-	private String			name;
 	private byte[]			public_key;
 	private byte[]			private_key;
 	
+	private String			name;
 	private int				version;
+	private boolean			is_public;
 	
 	private byte[]			hash;
 	private byte[]			sig;
@@ -103,6 +104,7 @@ SubscriptionImpl
 	
 	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
+		
 	
 	private LightWeightSeed	lws;
 	
@@ -114,21 +116,24 @@ SubscriptionImpl
 	protected
 	SubscriptionImpl(
 		SubscriptionManagerImpl		_manager,
-		String						_name )
+		String						_name,
+		boolean						_public,
+		String						_json_content )
 	
 		throws SubscriptionException
 	{
 		manager	= _manager;
 		
-		name	= _name;
-		
+		name		= _name;
+		is_public	= _public;
+		version		= 1;
+
 		try{
 			KeyPair	kp = CryptoECCUtils.createKeys();
 			
 			public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
 			private_key = CryptoECCUtils.keyToRawdata( kp.getPrivate());
 			
-			version			= 1;
 				
 			add_type			= ADD_TYPE_CREATE;
 			add_time			= SystemTime.getCurrentTime();
@@ -139,11 +144,9 @@ SubscriptionImpl
 			
 			init();
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, public_key, version );
-			
-			body.writeVuzeFile( this );
-			
-			update( body );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, _json_content, public_key, version );
+						
+			syncToBody( body );
 			
 		}catch( Throwable e ){
 			
@@ -176,13 +179,11 @@ SubscriptionImpl
 		int							_add_type,
 		boolean						_is_subscribed )
 	
-		throws IOException
+		throws SubscriptionException
 	{
 		manager	= _manager;
 				
-		public_key		= _body.getPublicKey();
-		version			= _body.getVersion();
-		name			= _body.getName();
+		syncFromBody( _body );
 		
 		add_type		= _add_type;
 		add_time		= SystemTime.getCurrentTime();
@@ -192,10 +193,33 @@ SubscriptionImpl
 		fixed_random	= new Random().nextInt();
 		
 		init();
+				
+		syncToBody( _body );
+	}
+	
+	protected void
+	syncFromBody(
+		SubscriptionBodyImpl	body )
+	{
+		public_key		= body.getPublicKey();
+		version			= body.getVersion();
+		name			= body.getName();
+		is_public		= body.isPublic();
+	}
+	
+	protected void
+	syncToBody(
+		SubscriptionBodyImpl		body )
+	
+		throws SubscriptionException
+	{
+			// this picks up latest values of version, name + is_public from here
 		
-		_body.writeVuzeFile( this );
+		body.writeVuzeFile( this );
 		
-		update( _body );
+		hash 			= body.getHash();
+		sig				= body.getSig();
+		sig_data_size	= body.getSigDataSize();
 	}
 	
 	protected Map
@@ -212,6 +236,8 @@ SubscriptionImpl
 			map.put( "public_key", public_key );
 						
 			map.put( "version", new Long( version ));
+			
+			map.put( "is_public", new Long( is_public?1:0 ));
 			
 				// body data
 			
@@ -270,33 +296,22 @@ SubscriptionImpl
 		public_key		= (byte[])map.get( "public_key" );
 		private_key		= (byte[])map.get( "private_key" );
 		version			= ((Long)map.get( "version" )).intValue();
-
+		is_public		= ((Long)map.get( "is_public")).intValue() == 1;
+		
 		hash			= (byte[])map.get( "hash" );
 		sig				= (byte[])map.get( "sig" );
 		sig_data_size	= ((Long)map.get( "sig_data_size" )).intValue();
 		
 		fixed_random	= ((Long)map.get( "rand" )).intValue();
-
-		Long	l_add_type 	= (Long)map.get( "add_type" );
 		
-		add_type		= l_add_type==null?ADD_TYPE_CREATE:l_add_type.intValue();
-
-		Long	l_add_time 	= (Long)map.get( "add_time" );
+		add_type		= ((Long)map.get( "add_type" )).intValue();		
+		add_time		= ((Long)map.get( "add_time" )).longValue();
 		
-		add_time		= l_add_time==null?SystemTime.getCurrentTime():l_add_time.longValue();
-
-		Long	l_subs 	= (Long)map.get( "subscribed" );
+		is_subscribed	= ((Long)map.get( "subscribed" )).intValue()==1;
+				
+		popularity		= ((Long)map.get( "pop" )).longValue();
 		
-		is_subscribed	= l_subs==null?true:l_subs.intValue()==1;
-		
-		Long	l_pop 	= (Long)map.get( "pop" );
-		
-		popularity		= l_pop==null?-1:l_pop.longValue();
-
-		
-		Long	l_hupv = (Long)map.get( "hupv" );
-		
-		highest_prompted_version = l_hupv==null?version:l_hupv.intValue();
+		highest_prompted_version = ((Long)map.get( "hupv" )).intValue();
 		
 		List	l_assoc = (List)map.get( "assoc" );
 		
@@ -318,14 +333,18 @@ SubscriptionImpl
 	upgrade(
 		SubscriptionBodyImpl		body )
 	
-		throws IOException
+		throws SubscriptionException
 	{
-		version		= body.getVersion();
+			// pick up details from the body (excluding json that is maintained in body only)
 		
-		body.writeVuzeFile( this );
+		syncFromBody( body );
 		
-		update( body );
+			// write to file
+		
+		syncToBody(body);
 	}
+	
+
 	
 	protected void
 	init()
@@ -337,19 +356,158 @@ SubscriptionImpl
 		System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
 	}
 	
-	protected void
-	update(
-		SubscriptionBodyImpl		body )
-	{
-		hash 			= body.getHash();
-		sig				= body.getSig();
-		sig_data_size	= body.getSigDataSize();
-	}
-	
 	public String
 	getName()
 	{
 		return( name );
+	}
+	
+	public void
+	setName(
+		String		_name )
+	
+		throws SubscriptionException
+	{
+		if ( !name.equals( _name )){
+			
+			boolean	ok = false;
+			
+			String	old_name 	= name;
+			int		old_version	= version;
+			
+			try{
+				name	= _name;
+				
+				version++;
+				
+				if ( is_public ){
+	
+					manager.updatePublicSubscription( this );
+				}
+				
+				SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
+					
+				syncToBody( body );
+				
+				ok	= true;
+				
+			}finally{
+				
+				if ( !ok ){
+					
+					name 	= old_name;
+					version	= old_version;
+				}
+			}
+			
+			manager.configDirty();
+		}
+	}
+	
+	public boolean
+	isPublic()
+	{
+		return( is_public );
+	}
+	
+	public void
+	setPublic(
+		boolean		_is_public )
+	
+		throws SubscriptionException
+	{
+		if ( is_public != _is_public ){
+				
+			boolean	ok = false;
+			
+			boolean	old_public	= is_public;
+			int		old_version	= version;
+			
+			try{
+				is_public	= _is_public;
+				
+				version++;
+				
+				if ( is_public ){
+
+					manager.updatePublicSubscription( this );
+				}
+				
+				SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
+				
+				syncToBody( body );
+				
+				ok = true;
+				
+			}finally{
+				
+				if ( !ok ){
+				
+					version		= old_version;
+					is_public	= old_public;
+				}
+			}
+			
+			manager.configDirty();
+		}
+	}
+	
+	public String
+	getJSON()
+	
+		throws SubscriptionException
+	{
+		try{		
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
+
+			return( body.getJSON());
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to read subscription", e ));
+		}
+	}
+	
+	public void
+	setJSON(
+		String		json )
+	
+		throws SubscriptionException
+	{
+		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );		
+		
+		String	old_json = body.getJSON();
+		
+		if ( !json.equals( old_json )){
+			
+			boolean	ok = false;
+			
+			int		old_version	= version;
+			
+			try{				
+				version++;
+				
+				if ( is_public ){
+	
+					manager.updatePublicSubscription( this );
+				}
+									
+				body.setJSON( json );
+				
+				syncToBody( body );
+				
+				ok	= true;
+				
+			}finally{
+				
+				if ( !ok ){
+					
+					version	= old_version;
+				}
+			}
+			
+			manager.configDirty();
+		}
 	}
 	
 	public byte[]
@@ -408,17 +566,7 @@ SubscriptionImpl
 	public boolean
 	isMine()
 	{
-			// TODO:
-		
-		return( false );
-	}
-	
-	public boolean
-	isPublic()
-	{
-			// TODO:
-		
-		return( true );
+		return( private_key != null );
 	}
 	
 	public boolean

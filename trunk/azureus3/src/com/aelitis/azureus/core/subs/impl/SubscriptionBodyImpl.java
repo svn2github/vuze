@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
+import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -101,8 +102,12 @@ SubscriptionBodyImpl
 	private SubscriptionManagerImpl		manager;
 	
 	private String	name;
+	private boolean	is_public;
 	private byte[]	public_key;
 	private int		version;
+	private String	json;
+	
+	
 	
 	private byte[]	hash;
 	private byte[]	sig;
@@ -110,6 +115,35 @@ SubscriptionBodyImpl
 	
 	private Map		map;
 
+		// load constructor
+	
+	protected 
+	SubscriptionBodyImpl(
+		SubscriptionManagerImpl	_manager,
+		SubscriptionImpl		subs )
+			
+		throws SubscriptionException
+	{
+		manager	= _manager;
+
+		try{
+			File vuze_file = manager.getVuzeFile( subs );
+	
+			VuzeFile	vf = VuzeFileHandler.getSingleton().loadVuzeFile( vuze_file.getAbsolutePath());
+	
+			if ( vf == null ){
+				
+				throw( new IOException( "Failed to load vuze file '" + vuze_file + "'" ));
+			}
+					
+			load(  vf.getComponents()[0].getContent());
+			
+		}catch( Throwable e ){
+			
+			rethrow( e );
+		}
+	}
+	
 		// import constructor
 	
 	protected 
@@ -120,6 +154,16 @@ SubscriptionBodyImpl
 		throws IOException
 	{
 		manager	= _manager;
+
+		load( _map );
+	}
+
+	protected void
+	load(
+		Map		_map )
+	
+		throws IOException
+	{
 		map		= _map;
 		
 		hash 	= (byte[])map.get( "hash" );
@@ -138,6 +182,8 @@ SubscriptionBodyImpl
 		name		= new String((byte[])details.get( "name" ), "UTF-8" );
 		public_key	= (byte[])details.get( "public_key" );
 		version		= ((Long)details.get( "version" )).intValue();
+		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
+		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
 			// verify
 		
@@ -160,13 +206,15 @@ SubscriptionBodyImpl
 			throw( new IOException( "Signature verification failed" ));
 		}
 	}
-
+	
 		// create constructor
 	
 	protected
 	SubscriptionBodyImpl(
 		SubscriptionManagerImpl	_manager,
 		String					_name,
+		boolean					_is_public,
+		String					_json_content,
 		byte[]					_public_key,
 		int						_version )
 	
@@ -175,8 +223,10 @@ SubscriptionBodyImpl
 		manager		= _manager;
 		
 		name		= _name;
+		is_public	= _is_public;
 		public_key	= _public_key;
 		version		= _version;
+		json		= _json_content;
 		
 		map			= new HashMap();
 		
@@ -185,8 +235,27 @@ SubscriptionBodyImpl
 		map.put( "details", details );
 		
 		details.put( "name", name.getBytes( "UTF-8" ));
+		details.put( "is_public", new Long( is_public?1:0 ));
 		details.put( "public_key", public_key );
 		details.put( "version", new Long( version ));
+		details.put( "json", _json_content.getBytes( "UTF-8" ));
+	}
+	
+	protected void
+	updateDetails(
+		SubscriptionImpl		subs,
+		Map						details )
+	
+		throws IOException
+	{
+		details.put( "name", subs.getName().getBytes( "UTF-8" ));
+		details.put( "is_public", new Long( subs.isPublic()?1:0 ));
+		details.put( "version", new Long( subs.getVersion() ));
+		
+		if ( json != null ){
+		
+			details.put( "json", json.getBytes( "UTF-8" ));
+		}
 	}
 	
 	protected String
@@ -199,6 +268,25 @@ SubscriptionBodyImpl
 	getPublicKey()
 	{
 		return( public_key );
+	}
+	
+	protected boolean
+	isPublic()
+	{
+		return( is_public );
+	}
+	
+	protected String
+	getJSON()
+	{
+		return( json );
+	}
+	
+	protected void
+	setJSON(
+		String		_json )
+	{
+		json	= _json;
 	}
 	
 	protected int
@@ -231,98 +319,93 @@ SubscriptionBodyImpl
 	writeVuzeFile(
 		SubscriptionImpl		subs )
 	
-		throws IOException
+		throws SubscriptionException
 	{
-		File file = manager.getVuzeFile( subs );
-
-		if ( map == null ){
-	
-			readMap( file );
-		}
-						
-		byte[] old_hash	= (byte[])map.get( "hash" );
-				
-		Map	details = (Map)map.get( "details" );
-		
-		byte[] contents = BEncoder.encode( details );
-				
-		byte[] new_hash = new SHA1Simple().calculateHash( contents );
-		
-		if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
+		try{
+			File file = manager.getVuzeFile( subs );
+							
+			Map	details = (Map)map.get( "details" );
 			
-			byte[]	private_key = subs.getPrivateKey();
+			updateDetails( subs, details );
 			
-			if ( private_key == null ){
+			byte[] contents = BEncoder.encode( details );
+					
+			byte[] new_hash = new SHA1Simple().calculateHash( contents );
+			
+			byte[] old_hash	= (byte[])map.get( "hash" );
+			
+			if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
 				
-				throw( new IOException( "Only the originator of a subscription can modify it" ));
+				byte[]	private_key = subs.getPrivateKey();
+				
+				if ( private_key == null ){
+					
+					throw( new SubscriptionException( "Only the originator of a subscription can modify it" ));
+				}
+							
+				map.put( "size", new Long( contents.length ));
+				
+				try{				
+					map.put( "hash", new_hash );
+					map.put( "sig", sign( private_key, new_hash, version, contents.length ));
+					
+				}catch( Throwable e ){
+					
+					throw( new SubscriptionException( "Crypto failed: " + Debug.getNestedExceptionMessage(e)));
+				}
 			}
-						
-			map.put( "size", new Long( contents.length ));
 			
-			try{				
-				map.put( "hash", new_hash );
-				map.put( "sig", sign( private_key, new_hash, version, contents.length ));
+			File	backup_file	= null;
+			
+			if ( file.exists()){
+				
+				backup_file = new File( file.getParent(), file.getName() + ".bak" );
+				
+				backup_file.delete();
+				
+				if ( !file.renameTo( backup_file )){
+					
+					throw( new SubscriptionException( "Backup failed" ));
+				}
+			}
+			
+			try{
+				VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+				
+				vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION, map );
+				
+				vf.write( file );
+			
+				hash			= new_hash;
+				sig				= (byte[])map.get( "sig" );
+				sig_data_size	= contents.length;
 				
 			}catch( Throwable e ){
 				
-				throw( new IOException( "Crypto failed: " + Debug.getNestedExceptionMessage(e)));
-			}
-		}
-		
-		File	backup_file	= null;
-		
-		if ( file.exists()){
-			
-			backup_file = new File( file.getParent(), file.getName() + ".bak" );
-			
-			backup_file.delete();
-			
-			if ( !file.renameTo( backup_file )){
+				if ( backup_file != null ){
+					
+					backup_file.renameTo( file );
+				}
 				
-				throw( new IOException( "Backup failed" ));
+				throw( new SubscriptionException( "File write failed: " + Debug.getNestedExceptionMessage(e)));
 			}
-		}
-		
-		try{
-			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
-			
-			vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION, map );
-			
-			vf.write( file );
-		
-			hash			= new_hash;
-			sig				= (byte[])map.get( "sig" );
-			sig_data_size	= contents.length;
-			
 		}catch( Throwable e ){
 			
-			if ( backup_file != null ){
-				
-				backup_file.renameTo( file );
-			}
-			
-			if ( e instanceof IOException ){
-				
-				throw((IOException)e);
-			}
-			
-			throw( new IOException( "File write failed: " + Debug.getNestedExceptionMessage(e)));
+			rethrow( e );
 		}
 	}
 	
-	protected Map
-	readMap(
-		File	vuze_file )
+	protected void
+	rethrow(
+		Throwable e )
 	
-		throws IOException
+		throws SubscriptionException
 	{
-		VuzeFile	vf = VuzeFileHandler.getSingleton().loadVuzeFile( vuze_file.getAbsolutePath());
-
-		if ( vf == null ){
+		if ( e instanceof SubscriptionException ){
 			
-			throw( new IOException( "Failed to load vuze file '" + vuze_file + "'" ));
+			throw((SubscriptionException)e);
 		}
 		
-		return( vf.getComponents()[0].getContent());
+		throw( new SubscriptionException( "Operation failed", e ));
 	}
 }

@@ -171,11 +171,10 @@ SubscriptionManagerImpl
 	{
 		loadConfig();
 
-		/*
-		if ( subscriptions.size() == 1 ){
+		if ( subscriptions.size() == 0 ){
 			
 			try{
-				create( "test subscription 2" );
+				create( "test subscription 2", true, "blah blah" );
 				
 			}catch( Throwable e ){
 				
@@ -187,7 +186,6 @@ SubscriptionManagerImpl
 				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
 			}
 		}
-		*/
 		
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
@@ -337,13 +335,26 @@ SubscriptionManagerImpl
 
 	public Subscription 
 	create(
-		String			name )
+		String			name,
+		boolean			public_subs,
+		String			json_content )
 	
 		throws SubscriptionException 
 	{
-		SubscriptionImpl result = new SubscriptionImpl( this, name );
+		SubscriptionImpl result = new SubscriptionImpl( this, name, public_subs, json_content );
 		
 		log( "Created new subscription: " + result.getString());
+		
+		if ( result.isPublic()){
+			
+			try{
+				//PlatformSubscriptionsMessenger.createSubscription();
+				
+			}catch( Throwable e ){
+				
+				result.setPublic( false );
+			}
+		}
 		
 		synchronized( this ){
 			
@@ -355,6 +366,15 @@ SubscriptionManagerImpl
 		subscriptionAdded();
 				
 		return( result );
+	}
+	
+	protected void
+	updatePublicSubscription(
+		SubscriptionImpl		subs )
+	
+		throws SubscriptionException 
+	{
+		//PlatformSubscriptionsMessenger.updateSubscription();
 	}
 	
 	protected void
@@ -1112,7 +1132,7 @@ SubscriptionManagerImpl
 		throws SubscriptionException
 	{
 		try{
-			PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
+			PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID(), subs.getVersion());
 
 			listener.gotPopularity( 0 ); 	// TODO:
 			
