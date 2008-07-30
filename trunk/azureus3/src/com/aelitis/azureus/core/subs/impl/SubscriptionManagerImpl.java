@@ -171,6 +171,7 @@ SubscriptionManagerImpl
 	{
 		loadConfig();
 
+		/*
 		if ( subscriptions.size() == 0 ){
 			
 			try{
@@ -186,6 +187,7 @@ SubscriptionManagerImpl
 				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
 			}
 		}
+		*/
 		
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
