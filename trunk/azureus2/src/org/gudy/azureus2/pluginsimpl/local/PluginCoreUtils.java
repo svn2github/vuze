@@ -23,18 +23,24 @@
 
 package org.gudy.azureus2.pluginsimpl.local;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 
 public class 
 PluginCoreUtils 
@@ -80,6 +86,99 @@ PluginCoreUtils
 			
 			return( null );
 		}
+	}
+	
+	public static Object
+	convert(
+		Object datasource,
+		boolean toCore)
+	{
+		try {
+			if (toCore) {
+				if (datasource instanceof org.gudy.azureus2.core3.download.DownloadManager) {
+					return datasource;
+				}
+				if (datasource instanceof DownloadImpl) {
+					return ((DownloadImpl) datasource).getDownload();
+				}
+
+				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManager) {
+					return datasource;
+				}
+				if (datasource instanceof DiskManagerImpl) {
+					return ((DiskManagerImpl) datasource).getDiskmanager();
+				}
+
+				if (datasource instanceof PEPeerManager) {
+					return datasource;
+				}
+				if (datasource instanceof PeerManagerImpl) {
+					return ((PeerManagerImpl) datasource).getDelegate();
+				}
+
+				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+					return datasource;
+				}
+				if (datasource instanceof org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) {
+					((org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) datasource).getCore();
+				}
+
+				if (datasource instanceof TRHostTorrent) {
+					return datasource;
+				}
+				if (datasource instanceof TrackerTorrentImpl) {
+					((TrackerTorrentImpl) datasource).getHostTorrent();
+				}
+			} else { // to PI
+				if (datasource instanceof org.gudy.azureus2.core3.download.DownloadManager) {
+					return wrap((org.gudy.azureus2.core3.download.DownloadManager) datasource);
+				}
+				if (datasource instanceof DownloadImpl) {
+					return datasource;
+				}
+
+				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManager) {
+					return wrap((org.gudy.azureus2.core3.disk.DiskManager) datasource);
+				}
+				if (datasource instanceof DiskManagerImpl) {
+					return datasource;
+				}
+
+				if (datasource instanceof PEPeerManager) {
+					return wrap((PEPeerManager) datasource);
+				}
+				if (datasource instanceof PeerManagerImpl) {
+					return datasource;
+				}
+
+				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+					DiskManagerFileInfo fileInfo = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) datasource;
+					if (fileInfo != null) {
+						try {
+							return new org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl(
+									DownloadManagerImpl.getDownloadStatic(fileInfo.getDownloadManager()),
+									fileInfo);
+						} catch (DownloadException e) { /* Ignore */
+						}
+					}
+				}
+				if (datasource instanceof org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) {
+					return datasource;
+				}
+
+				if (datasource instanceof TRHostTorrent) {
+					TRHostTorrent item = (TRHostTorrent) datasource;
+					return new TrackerTorrentImpl(item);
+				}
+				if (datasource instanceof TrackerTorrentImpl) {
+					return datasource;
+				}
+			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+
+		return datasource;
 	}
 	
 	public static org.gudy.azureus2.core3.download.DownloadManager

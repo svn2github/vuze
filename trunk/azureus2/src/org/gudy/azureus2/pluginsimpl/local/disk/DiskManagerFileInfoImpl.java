@@ -148,7 +148,8 @@ public class DiskManagerFileInfoImpl
 		return( new DiskManagerChannelImpl( download, this ));
 	}
 	
-	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo
+	// not visible to plugin interface
+	public org.gudy.azureus2.core3.disk.DiskManagerFileInfo
 	getCore()
 	{
 		return( core );

@@ -52,7 +52,8 @@ TrackerTorrentImpl
 		host_torrent	= _host_torrent;
 	}
 	
-	protected TRHostTorrent
+	// not visible to plugins
+	public TRHostTorrent
 	getHostTorrent()
 	{
 		return( host_torrent );

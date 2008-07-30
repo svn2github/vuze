@@ -28,21 +28,8 @@ import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Table;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
+
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -50,10 +37,11 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 
 
@@ -346,56 +334,8 @@ public class TableRowImpl
 
 		if (pluginDataSource != null)
 			return pluginDataSource;
-
-		if ((coreDataSource instanceof DownloadManager)
-				|| sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE)
-				|| sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE)) {
-			DownloadManager dm = (DownloadManager) coreDataSource;
-			if (dm != null) {
-				try {
-					pluginDataSource = DownloadManagerImpl.getDownloadStatic(dm);
-				} catch (DownloadException e) { /* Ignore */
-				}
-			}
-		}
-		if ((coreDataSource instanceof PEPeer)
-				|| sTableID.equals(TableManager.TABLE_TORRENT_PEERS)) {
-			PEPeer peer = (PEPeer) coreDataSource;
-			if (peer != null)
-				pluginDataSource = PeerManagerImpl.getPeerForPEPeer(peer);
-		}
-
-		if ((coreDataSource instanceof PEPiece)
-				|| sTableID.equals(TableManager.TABLE_TORRENT_PIECES)) {
-			// XXX There is no Piece object for plugins yet
-			PEPiece piece = (PEPiece) coreDataSource;
-			if (piece != null)
-				pluginDataSource = null;
-		}
-
-		if ((coreDataSource instanceof DiskManagerFileInfo)
-				|| sTableID.equals(TableManager.TABLE_TORRENT_FILES)) {
-			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) coreDataSource;
-			if (fileInfo != null) {
-				try {
-					pluginDataSource = new DiskManagerFileInfoImpl(
-							DownloadManagerImpl.getDownloadStatic(fileInfo.getDownloadManager()),
-							fileInfo);
-				} catch (DownloadException e) { /* Ignore */
-				}
-			}
-		}
-
-		if (sTableID.equals(TableManager.TABLE_MYSHARES)) {
-			pluginDataSource = coreDataSource;
-		}
-
-		if ((coreDataSource instanceof TRHostTorrent)
-				|| sTableID.equals(TableManager.TABLE_MYTRACKER)) {
-			TRHostTorrent item = (TRHostTorrent) coreDataSource;
-			if (item != null)
-				pluginDataSource = new TrackerTorrentImpl(item);
-		}
+		
+		pluginDataSource = PluginCoreUtils.convert(coreDataSource, bCoreObject);
 
 		return pluginDataSource;
 	}
