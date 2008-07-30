@@ -47,6 +47,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+
 /**
  * This class creates an IView that triggers UISWTViewEventListener 
  * appropriately
@@ -58,6 +60,8 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	public static final String CFG_PREFIX = "Views.plugins.";
 
 	private Object dataSource = null;
+	
+	private boolean useCoreDataSource = false;
 
 	private final UISWTViewEventListener eventListener;
 
@@ -145,7 +149,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	// ============================
 
 	public void dataSourceChanged(Object newDataSource) {
-		dataSource = newDataSource;
+		dataSource = PluginCoreUtils.convert(newDataSource, useCoreDataSource);
 
 		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource);
 	}
@@ -268,5 +272,18 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	
 	public boolean requestClose() {
 		return triggerEvent2(UISWTViewEvent.TYPE_CLOSE, null);
+	}
+
+	public boolean useCoreDataSource() {
+		return useCoreDataSource;
+	}
+
+	public void setUseCoreDataSource(boolean useCoreDataSource) {
+		if (this.useCoreDataSource == useCoreDataSource) {
+			return;
+		}
+
+		this.useCoreDataSource = useCoreDataSource;
+		dataSourceChanged(dataSource);
 	}
 }
