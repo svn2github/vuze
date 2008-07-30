@@ -29,6 +29,7 @@ import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.widgets.AnimatedImage;
@@ -239,8 +240,8 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 									public String getName() {
 										return "Dummy subscription" + index;
 									}
-									public long getPopularity() {
-										return 325 + index * 50;
+									public void getPopularity( SubscriptionPopularityListener l ) {
+										l.gotPopularity( 325 + index * 50 );
 									}
 									public byte[] getPublicKey() {
 										// TODO Auto-generated method stub
@@ -287,11 +288,51 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	}
 	
 	private void populateSubscription(final Subscription subscription) {
-		TableItem item = new TableItem(subscriptionsList,SWT.NONE);
+		final TableItem item = new TableItem(subscriptionsList,SWT.NONE);
 		item.setData("subscription",subscription);
 		item.setText(0,subscription.getName());
 		try {
-			item.setText(1,subscription.getPopularity() + "");
+			item.setText(1,MessageText.getString("subscriptions.listwindow.popularity.reading"));
+			
+			subscription.getPopularity(
+				new SubscriptionPopularityListener()
+				{
+					public void
+					gotPopularity(
+						long		popularity )
+					{
+						update( popularity + "" );
+					}
+					
+					public void
+					failed(
+						SubscriptionException		error )
+					{
+						update( MessageText.getString("subscriptions.listwindow.popularity.unknown"));
+					}
+					
+					protected void
+					update(
+						final String	text )
+					{
+						if ( !item.isDisposed()){
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( !item.isDisposed()){
+										
+											item.setText(1, text );
+										}
+									}
+								});
+						}
+					}
+				});
+		
 		} catch(SubscriptionException e) {
 			item.setText(1,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
 		}

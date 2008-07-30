@@ -30,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -44,6 +45,7 @@ import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 
 public class 
 SubscriptionImpl 
@@ -437,29 +439,64 @@ SubscriptionImpl
 		}
 	}
 	
-	public long
-	getPopularity()
+	public void
+	getPopularity(
+		final SubscriptionPopularityListener	listener )
 	
 		throws SubscriptionException
 	{
-		try{
-			long	pop = manager.getPopularity( this );
-			
-			if ( pop != popularity ){
-				
-				popularity = pop;
-				
-				manager.configDirty();
+		new AEThread2( "subs:popwait", true )
+		{
+			public void
+			run()
+			{		
+				try{
+					manager.getPopularity( 
+						SubscriptionImpl.this,
+						new SubscriptionPopularityListener()
+						{
+							public void
+							gotPopularity(
+								long						pop )
+							{
+								if ( pop != popularity ){
+									
+									popularity = pop;
+									
+									manager.configDirty();
+								}
+								
+								listener.gotPopularity( popularity );
+							}
+							
+							public void
+							failed(
+								SubscriptionException		e )
+							{
+								if ( popularity == -1 ){
+									
+									listener.failed( new SubscriptionException( "Failed to read popularity", e ));
+									
+								}else{
+									
+									listener.gotPopularity( popularity );
+								}
+							}
+						});
+					
+				}catch( Throwable e ){
+					
+					if ( popularity == -1 ){
+					
+						listener.failed( new SubscriptionException( "Failed to read popularity", e ));
+						
+					}else{
+						
+						listener.gotPopularity( popularity );
+					}
+				}
 			}
-		}catch( Throwable e ){
-			
-			if ( popularity == -1 ){
-			
-				throw( new SubscriptionException( "Failed to read popularity", e ));
-			}
-		}
-
-		return( popularity );
+		}.start();
 	}
 	
 	protected void

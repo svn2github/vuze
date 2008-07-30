@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -139,9 +140,7 @@ SubscriptionManagerImpl
 	
 	
 	private boolean		started;
-	
-	private TimerEventPeriodic	timer;
-	
+		
 	private static final int	TIMER_PERIOD		= 30*1000;
 	private static final int	ASSOC_CHECK_PERIOD	= 5*60*1000;
 	private static final int	ASSOC_CHECK_TICKS	= ASSOC_CHECK_PERIOD/TIMER_PERIOD;
@@ -224,38 +223,44 @@ SubscriptionManagerImpl
 			started	= true;
 		}
 		
-		final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
-
-		if ( Constants.isCVSVersion()){
+		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+		
+		if ( dht_plugin_pi != null ){
 			
-			addListener(
-					new SubscriptionManagerListener()
-					{
-						public void 
-						subscriptionsChanged(
-							byte[] hash )
+			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
+
+			final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
+	
+			if ( Constants.isCVSVersion()){
+				
+				addListener(
+						new SubscriptionManagerListener()
 						{
-							/*
-							System.out.println( "Subscriptions changed: " + ByteFormatter.encodeString( hash ));
-							
-							Subscription[] subs = getKnownSubscriptions( hash );
-						
-							for (int i=0;i<subs.length;i++){
+							public void 
+							subscriptionsChanged(
+								byte[] hash )
+							{
+								/*
+								System.out.println( "Subscriptions changed: " + ByteFormatter.encodeString( hash ));
 								
-								System.out.println( "    " + subs[i].getString());
+								Subscription[] subs = getKnownSubscriptions( hash );
+							
+								for (int i=0;i<subs.length;i++){
+									
+									System.out.println( "    " + subs[i].getString());
+								}
+								*/
 							}
-							*/
-						}
-					});	
-		}
-
-		ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
-		ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
-		ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
-
-
-		DelayedTask dt = 
-			default_pi.getUtilities().createDelayedTask(
+						});	
+			}
+	
+			ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
+			ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
+			ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
+	
+	
+			DelayedTask dt = 
+				default_pi.getUtilities().createDelayedTask(
 					new Runnable()
 					{
 						public void 
@@ -302,28 +307,34 @@ SubscriptionManagerImpl
 									}
 								}
 							}
+																
+							publishAssociations();
 							
-							PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-				
-							if ( dht_plugin_pi != null ){
-								
-								dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
-								
-								if ( subscriptions.size() > 0 ){
-									
-									publishAssociations();
-								
-									publishSubscriptions();
-									
-									checkTimer();
-								}
-							}
+							publishSubscriptions();
+							
+							SimpleTimer.addPeriodicEvent(
+									"SubscriptionChecker",
+									TIMER_PERIOD,
+									new TimerEventPerformer()
+									{
+										private int	ticks;
+										
+										public void 
+										perform(
+											TimerEvent event )
+										{
+											ticks++;
+											
+											checkStuff( ticks );
+										}
+									});
 						}
 					});
-	
-		dt.queue();
+		
+			dt.queue();
+		}
 	}
-	
+
 	public Subscription 
 	create(
 		String			name )
@@ -342,37 +353,8 @@ SubscriptionManagerImpl
 		}
 		
 		subscriptionAdded();
-		
-		checkTimer();
-		
-		return( result );
-	}
-	
-	protected void
-	checkTimer()
-	{
-		synchronized( this ){
-
-			if ( timer == null ){
 				
-				timer = SimpleTimer.addPeriodicEvent(
-						"SubscriptionChecker",
-						TIMER_PERIOD,
-						new TimerEventPerformer()
-						{
-							private int	ticks;
-							
-							public void 
-							perform(
-								TimerEvent event )
-							{
-								ticks++;
-								
-								checkStuff( ticks );
-							}
-						});
-			}
-		}
+		return( result );
 	}
 	
 	protected void
@@ -720,7 +702,7 @@ SubscriptionManagerImpl
 				
 				log( "Periodic lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
 
-				lookupAssociations( 
+				lookupAssociationsSupport( 
 					hash,
 					new	SubscriptionLookupListener()
 					{
@@ -768,6 +750,71 @@ SubscriptionManagerImpl
 	
 	public SubscriptionAssociationLookup
 	lookupAssociations(
+		final byte[] 							hash,
+		final SubscriptionLookupListener		listener )
+	
+		throws SubscriptionException
+	{
+		if ( dht_plugin != null && !dht_plugin.isInitialising()){
+			
+			return( lookupAssociationsSupport( hash, listener ));
+		}
+		
+		final boolean[]	cancelled = { false };
+		
+		final SubscriptionAssociationLookup[]	actual_res = { null };
+		
+		final SubscriptionAssociationLookup res = 
+			new SubscriptionAssociationLookup()
+			{
+				public void 
+				cancel() 
+				{
+					log( "    Association lookup cancelled" );
+	
+					synchronized( actual_res ){
+						
+						cancelled[0] = true;
+						
+						if ( actual_res[0] != null ){
+							
+							actual_res[0].cancel();
+						}
+					}
+				}
+			};
+			
+		new AEThread2( "SM:initwait", true )
+		{
+			public void
+			run()
+			{
+				try{
+					SubscriptionAssociationLookup x = lookupAssociationsSupport( hash, listener );
+					
+					synchronized( actual_res ){
+
+						actual_res[0] = x;
+						
+						if ( cancelled[0] ){
+							
+							x.cancel();
+						}
+					}
+					
+				}catch( SubscriptionException e ){
+					
+					listener.failed( hash, e );
+				}
+				
+			}
+		}.start();
+		
+		return( res );
+	}
+	
+	protected SubscriptionAssociationLookup
+	lookupAssociationsSupport(
 		final byte[] 							hash,
 		final SubscriptionLookupListener		listener )
 	
@@ -1057,109 +1104,134 @@ SubscriptionManagerImpl
 		isCancelled();
 	}
 	
-	protected long
+	protected void
 	getPopularity(
-		SubscriptionImpl	subs )
+		final SubscriptionImpl					subs,
+		final SubscriptionPopularityListener	listener )
 	
 		throws SubscriptionException
 	{
 		try{
 			PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
 
-			return( 0 ); // TODO!
+			listener.gotPopularity( 0 ); 	// TODO:
 			
 		}catch( Throwable e ){
 			
 			log( "Subscription lookup via platform failed", e );
 
-			byte[]	hash = subs.getPublicationHash();
-			
-			final AESemaphore sem = new AESemaphore( "SM:pop" );
-			
-			final long[] result = { -1 };
-			
-			final int timeout = 15*1000;
-			
-			dht_plugin.get(
-					hash,
-					"Popularity lookup for subscription " + subs.getName(),
-					DHT.FLAG_STATS,
-					5,
-					timeout,
-					false,
-					true,
-					new DHTPluginOperationListener()
+			if ( dht_plugin != null && !dht_plugin.isInitialising()){
+
+				getPopularitySupport( subs, listener );
+				
+			}else{
+				
+				new AEThread2( "SM:popwait", true )
+				{
+					public void
+					run()
 					{
-						private boolean	diversified;
+						getPopularitySupport( subs, listener );
+					}
+				}.start();
+			}
+		}
+	}
+	
+	protected void
+	getPopularitySupport(
+		SubscriptionImpl					subs,
+		SubscriptionPopularityListener		listener )
+	{
+		byte[]	hash = subs.getPublicationHash();
+		
+		final AESemaphore sem = new AESemaphore( "SM:pop" );
+		
+		final long[] result = { -1 };
+		
+		final int timeout = 15*1000;
+		
+		dht_plugin.get(
+				hash,
+				"Popularity lookup for subscription " + subs.getName(),
+				DHT.FLAG_STATS,
+				5,
+				timeout,
+				false,
+				true,
+				new DHTPluginOperationListener()
+				{
+					private boolean	diversified;
+					
+					private int	hits = 0;
+					
+					public void
+					diversified()
+					{
+						diversified = true;
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
+					{
+					}
+					
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						DHTPluginValue		value )
+					{
+						DHTPluginKeyStats stats = dht_plugin.decodeStats( value );
 						
-						private int	hits = 0;
+						result[0] = Math.max( result[0], stats.getEntryCount());
 						
-						public void
-						diversified()
-						{
-							diversified = true;
-						}
+						hits++;
 						
-						public void 
-						starts(
-							byte[] 				key ) 
-						{
-						}
-						
-						public void
-						valueRead(
-							DHTPluginContact	originator,
-							DHTPluginValue		value )
-						{
-							DHTPluginKeyStats stats = dht_plugin.decodeStats( value );
-							
-							result[0] = Math.max( result[0], stats.getEntryCount());
-							
-							hits++;
-							
-							if ( hits >= 3 ){
-								
-								sem.release();
-							}
-						}
-						
-						public void
-						valueWritten(
-							DHTPluginContact	target,
-							DHTPluginValue		value )
-						{
-							
-						}
-						
-						public void
-						complete(
-							byte[]				key,
-							boolean				timeout_occurred )
-						{
-							if ( diversified ){
-								
-									// TODO: fix 
-								
-								result[0] *= 11;
-								
-								if ( result[0] == 0 ){
-									
-									result[0] = 10;
-								}
-							}
+						if ( hits >= 3 ){
 							
 							sem.release();
 						}
-					});
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						DHTPluginValue		value )
+					{
+						
+					}
+					
+					public void
+					complete(
+						byte[]				key,
+						boolean				timeout_occurred )
+					{
+						if ( diversified ){
+							
+								// TODO: fix 
+							
+							result[0] *= 11;
+							
+							if ( result[0] == 0 ){
+								
+								result[0] = 10;
+							}
+						}
+						
+						sem.release();
+					}
+				});
+		
+		sem.reserve( timeout );
+		
+		if ( result[0] == -1 ){
 			
-			sem.reserve( timeout );
+			listener.failed( new SubscriptionException( "Timeout" ));
 			
-			if ( result[0] == -1 ){
-				
-				throw( new SubscriptionException( "Timeout" ));
-			}
-			
-			return( result[0] );
+		}else{
+		
+			listener.gotPopularity( result[0] );
 		}
 	}
 	

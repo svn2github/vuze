@@ -191,11 +191,14 @@ SubscriptionManagerUI
 							
 							Download	download = (Download)rows[i].getDataSource();
 						
-							Torrent torrent = download.getTorrent();
-							
-							if ( torrent != null ){
+							if ( download != null ){
 								
-								hashes.add( torrent.getHash());
+								Torrent torrent = download.getTorrent();
+								
+								if ( torrent != null ){
+									
+									hashes.add( torrent.getHash());
+								}
 							}
 						}
 													
@@ -259,6 +262,11 @@ SubscriptionManagerUI
 					}
 					
 					Download	dl = (Download)cell.getDataSource();
+					
+					if ( dl == null ){
+						
+						return;
+					}
 					
 					Torrent	torrent = dl.getTorrent();
 					

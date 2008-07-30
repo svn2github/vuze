@@ -1,5 +1,5 @@
 /*
- * Created on Jul 11, 2008
+ * Created on Jul 29, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -22,40 +22,13 @@
 package com.aelitis.azureus.core.subs;
 
 public interface 
-Subscription 
+SubscriptionPopularityListener 
 {
-	public String
-	getName();
-	
-	public byte[]
-	getPublicKey();
-	
-	public int
-	getVersion();
-	
-	public boolean
-	isMine();
-	
-	public boolean
-	isPublic();
-	
-	public boolean
-	isSubscribed();
+	public void
+	gotPopularity(
+		long						popularity );
 	
 	public void
-	setSubscribed(
-		boolean		subscribed );
-	
-	public void
-	getPopularity(
-		SubscriptionPopularityListener	listener )
-	
-		throws SubscriptionException;
-	
-	public void
-	addAssociation(
-		byte[]		hash );
-	
-	public String
-	getString();
+	failed(
+		SubscriptionException		error );
 }
