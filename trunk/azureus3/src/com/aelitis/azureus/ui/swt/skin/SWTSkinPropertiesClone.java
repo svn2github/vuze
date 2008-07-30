@@ -19,8 +19,6 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.util.Properties;
-
 import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -305,5 +303,10 @@ public class SWTSkinPropertiesClone
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#clearCache()
 	public void clearCache() {
 		properties.clearCache();
+	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#contains(java.lang.String)
+	public boolean hasKey(String name) {
+		return properties.hasKey(name);
 	}
 }

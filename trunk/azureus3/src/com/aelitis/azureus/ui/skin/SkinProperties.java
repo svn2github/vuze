@@ -82,4 +82,12 @@ public interface SkinProperties
 	 * @since 3.1.1.1
 	 */
 	void clearCache();
+
+	/**
+	 * @param name
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	boolean hasKey(String name);
 }

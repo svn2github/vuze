@@ -105,6 +105,38 @@ public class SkinPropertiesImpl
 	public void addProperty(String name, String value) {
 		rb.addString(name, value);
 	}
+	
+	public boolean hasKey(String name) {
+		if (name == null) {
+			return false;
+		}
+
+		String osName = null;
+		if (Constants.isWindows) {
+			osName = name + "._windows";
+		} else if (Constants.isOSX) {
+			osName = name + "._mac";
+		} else if (Constants.isUnix) {
+			osName = name + "._unix";
+		} else if (Constants.isFreeBSD) {
+			osName = name + "._freebsd";
+		} else if (Constants.isLinux) {
+			osName = name + "._linux";
+		} else if (Constants.isSolaris) {
+			osName = name + "._solaris";
+		}
+
+		boolean contains = false;
+		if (osName != null) {
+			contains = rb.containsKey(osName);
+		}
+
+		if (!contains) {
+			contains = rb.containsKey(name);
+		}
+		return contains;
+	}
+
 
 	private String getValue(String name, String[] params) {
 		String value = null;
