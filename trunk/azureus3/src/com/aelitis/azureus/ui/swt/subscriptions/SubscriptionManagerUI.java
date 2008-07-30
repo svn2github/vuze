@@ -310,6 +310,7 @@ SubscriptionManagerUI
 		
 		subs_i_column.setAlignment(TableColumn.ALIGN_CENTER);
 		subs_i_column.setPosition(TableColumn.POSITION_LAST);
+		subs_i_column.setMinWidth(100);
 		subs_i_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		subs_i_column.setType(TableColumn.TYPE_GRAPHIC);
 		
@@ -327,6 +328,7 @@ SubscriptionManagerUI
 		
 		subs_c_column.setAlignment(TableColumn.ALIGN_CENTER);
 		subs_c_column.setPosition(TableColumn.POSITION_LAST);
+		subs_c_column.setMinWidth(100);
 		subs_c_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		subs_c_column.setType(TableColumn.TYPE_GRAPHIC);
 		
