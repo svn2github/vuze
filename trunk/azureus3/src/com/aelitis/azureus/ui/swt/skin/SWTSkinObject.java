@@ -137,4 +137,11 @@ public interface SWTSkinObject
 	public Object getData(String id);
 	
 	public void setData(String id, Object data);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	boolean isDisposed();
 }

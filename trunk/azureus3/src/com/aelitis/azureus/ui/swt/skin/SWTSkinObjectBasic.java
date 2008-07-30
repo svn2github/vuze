@@ -83,6 +83,8 @@ public class SWTSkinObjectBasic
 	boolean alwaysHookPaintListener = false;
 	
 	private Map mapData = Collections.EMPTY_MAP;
+	
+	private boolean disposed = false; 
 
 	/**
 	 * @param properties TODO
@@ -95,6 +97,7 @@ public class SWTSkinObjectBasic
 		setControl(control);
 		
 	}
+
 	public SWTSkinObjectBasic(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, String type, SWTSkinObject parent) {
 		this.skin = skin;
@@ -169,6 +172,7 @@ public class SWTSkinObjectBasic
 
 		control.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				disposed = true;
 				for (Iterator iter = listenersToRemove.iterator(); iter.hasNext();) {
 					Control control = (Control) iter.next();
 					if (control != null && !control.isDisposed()) {
@@ -176,6 +180,7 @@ public class SWTSkinObjectBasic
 						control.removeListener(SWT.Hide, lShowHide);
 					}
 				}
+				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
 		if (skin.isLayoutComplete()) {
@@ -642,13 +647,16 @@ public class SWTSkinObjectBasic
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#dispose()
 	public void dispose() {
+		if (disposed) {
+			return;
+		}
 		if (control != null && !control.isDisposed()) {
 			control.dispose();
 		}
 	}
 
 	public boolean isDisposed() {
-		return control == null || control.isDisposed();
+		return disposed;
 	}
 
 	public void setTooltipByID(final String id) {
