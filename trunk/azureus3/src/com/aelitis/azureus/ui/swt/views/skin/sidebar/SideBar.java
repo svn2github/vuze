@@ -757,12 +757,13 @@ public class SideBar
 		}
 
 		return createTreeItemFromIViewClass(parent, id, title, iviewClass, null,
-				null, null, null);
+				null, null, null, true);
 	}
 
 	public TreeItem createTreeItemFromIViewClass(String parent, String id,
 			String title, Class iviewClass, Class[] iviewClassArgs,
-			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo) {
+			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
+			boolean closeable) {
 
 		SideBarInfo sideBarInfo = getSideBarInfo(id);
 		if (sideBarInfo.treeItem != null) {
@@ -782,6 +783,7 @@ public class SideBar
 		sideBarInfo.iviewClass = iviewClass;
 		sideBarInfo.iviewClassArgs = iviewClassArgs;
 		sideBarInfo.iviewClassVals = iviewClassVals;
+		sideBarInfo.closeable = closeable;
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource);
 
 		return treeItem;
@@ -1433,8 +1435,8 @@ public class SideBar
 			try {
 				Class clazz = Class.forName(className);
 				if (clazz != null) {
-					createTreeItemFromIViewClass(null, id, null, clazz, null, null, null,
-							null);
+					createTreeItemFromIViewClass(null, id, id, clazz, null, null, null,
+							null, true);
 				}
 			} catch (Throwable e) {
 				Debug.out(e);

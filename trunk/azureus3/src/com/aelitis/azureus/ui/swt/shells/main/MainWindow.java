@@ -2105,7 +2105,7 @@ public class MainWindow
 						}
 					} else {
 						sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla, null,
-								null, data, null);
+								null, data, null, true);
 						sideBar.showItemByID(_id);
 					}
 				}
