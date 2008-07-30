@@ -131,7 +131,7 @@ public class ButtonBar
 		if (!Constants.isCVSVersion()) {
 			return;
 		}
-		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+		SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
 		if (skinObject != null) {
 			Menu menu = new Menu(skinObject.getControl());
 			MenuItem menuItem;
