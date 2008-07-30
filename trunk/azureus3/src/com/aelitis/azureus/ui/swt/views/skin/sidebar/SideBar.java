@@ -1425,6 +1425,7 @@ public class SideBar
 
 	public void loadCloseables() {
 		Map map = FileUtil.readResilientConfigFile("sidebarauto", true);
+		BDecoder.decodeStrings(map);
 		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
 			String className = (String) map.get(id);
