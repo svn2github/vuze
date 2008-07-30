@@ -1532,16 +1532,25 @@ SubscriptionManagerImpl
 						
 					}else{
 						
+						boolean found = false;
+						
 						for (int j=0;j<s.size();j++){
 							
 							byte[]	existing = (byte[])s.get(j);
 							
-							if ( !Arrays.equals( sid, existing )){
+							if ( Arrays.equals( sid, existing )){
 								
-								s.add( sid );
+								found = true;
 								
-								changed	= true;
+								break;
 							}
+						}
+						
+						if ( !found ){
+						
+							s.add( sid );
+								
+							changed	= true;
 						}
 					}
 				}
