@@ -2072,14 +2072,24 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	public void openView(final String parentID, final Class cla, final String id,
+	public void openView(final String parentID, final Class cla, String id,
 			final Object data, final boolean closeable) {
 		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+
+		if (id == null) {
+  		id = cla.getName();
+  		int i = id.lastIndexOf('.');
+  		if (i > 0) {
+  			id = id.substring(i + 1);
+  		}
+		}
 
 		IView viewFromID = sideBar.getIViewFromID(id);
 		if (viewFromID != null) {
 			sideBar.showItemByID(id);
 		}
+		
+		final String _id = id;
 		Utils.execSWTThreadLater(0, new AERunnable() {
 
 			public void runSupport() {
@@ -2094,8 +2104,9 @@ public class MainWindow
 							Debug.out(e);
 						}
 					} else {
-						sideBar.createTreeItemFromIViewClass(parentID, id, null, cla, null,
+						sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla, null,
 								null, data, null);
+						sideBar.showItemByID(_id);
 					}
 				}
 			}
