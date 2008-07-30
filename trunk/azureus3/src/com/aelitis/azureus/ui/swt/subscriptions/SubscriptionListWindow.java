@@ -1,5 +1,8 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.layout.FillLayout;
@@ -12,6 +15,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -46,6 +50,8 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
 	Button action;
 	Label loadingText;
+	ProgressBar loadingProgress;
+	boolean loadingDone = false;
 	
 	SubscriptionAssociationLookup lookup = null;
 	
@@ -55,6 +61,18 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	Table subscriptionsList;
 	StackLayout mainLayout;
 	
+	private class SubscriptionItemModel {
+		String name;
+		long popularity;
+		String popularityDisplay;
+		Subscription subscription;
+		boolean selected;
+	}
+	
+	SubscriptionItemModel subscriptionItems[];
+	
+	
+	
 	public SubscriptionListWindow(DownloadManager download, boolean useCachedSubs ) {
 		this.download 		= download;
 		this.useCachedSubs	= useCachedSubs;
@@ -62,12 +80,12 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE | SWT.APPLICATION_MODAL);
+			shell = new Shell(mainShell,SWT.TITLE);
 			shell.setSize(400,300);
 			Utils.centerWindowRelativeTo(shell, mainShell);
 			
 		} else {
-			shell = new Shell(SWT.TITLE | SWT.APPLICATION_MODAL);
+			shell = new Shell(SWT.TITLE);
 			shell.setSize(400,300);
 			Utils.centreWindow(shell);
 		}
@@ -130,7 +148,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		listPanel = new Composite(mainComposite,SWT.NONE);
 		listPanel.setLayout(new FillLayout());
 		
-		subscriptionsList = new Table(listPanel,SWT.V_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION);
+		subscriptionsList = new Table(listPanel,SWT.V_SCROLL | SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		subscriptionsList.setHeaderVisible(true);
 		
 		TableColumn name = new TableColumn(subscriptionsList,SWT.NONE);
@@ -143,14 +161,49 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		popularity.setWidth(70);
 		popularity.setResizable(false);
 		
+		subscriptionsList.addListener(SWT.SetData, new Listener() {
+			public void handleEvent(Event e) {
+				TableItem item = (TableItem) e.item;
+				int index = subscriptionsList.indexOf(item);
+				if(index >= 0 && index < subscriptionItems.length) {
+					SubscriptionItemModel subscriptionItem = subscriptionItems[index];
+					item.setText(0,subscriptionItem.name);
+					item.setText(1,subscriptionItem.popularityDisplay);
+				}
+			}
+		});
+		
+		subscriptionsList.setSortColumn(popularity);
+		subscriptionsList.setSortDirection(SWT.DOWN);
+		
 		subscriptionsList.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				action.setEnabled(subscriptionsList.getSelectionIndex() != -1);
 			}
 		});
 		
+		Listener sortListener = new Listener() {
+			public void handleEvent(Event e) {
+				// determine new sort column and direction
+				TableColumn sortColumn = subscriptionsList.getSortColumn();
+				TableColumn currentColumn = (TableColumn) e.widget;
+				int dir = subscriptionsList.getSortDirection();
+				if (sortColumn == currentColumn) {
+					dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+				} else {
+					subscriptionsList.setSortColumn(currentColumn);
+					dir = SWT.DOWN;
+				}
+				subscriptionsList.setSortDirection(dir);
+				sortAndRefresh();
+			}
+		};
+		name.addListener(SWT.Selection, sortListener);
+		popularity.addListener(SWT.Selection, sortListener);
+		
 		animatedImage = new AnimatedImage(loadingPanel);
 		loadingText = new Label(loadingPanel,SWT.WRAP | SWT.CENTER);
+		loadingProgress = new ProgressBar(loadingPanel,SWT.HORIZONTAL);
 		
 		animatedImage.setImageFromName("spinner_big");
 		String contentName = "Dummy";
@@ -158,6 +211,10 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 			contentName = download.getDisplayName();
 		}
 		loadingText.setText(MessageText.getString("subscriptions.listwindow.loadingtext", new String[] {contentName}));
+		
+		loadingProgress.setMinimum(0);
+		loadingProgress.setMaximum(300);
+		loadingProgress.setSelection(0);
 		
 		data = new FormData();
 		data.left = new FormAttachment(1,2,-16);
@@ -170,8 +227,14 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		data.left = new FormAttachment(0,5);
 		data.right = new FormAttachment(100,-5);
 		data.top = new FormAttachment(animatedImage.getControl(),10);
-		data.bottom = new FormAttachment(100,-5);
+		data.height = 50;
 		loadingText.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,5);
+		data.right = new FormAttachment(100,-5);
+		data.top = new FormAttachment(loadingText,5);
+		loadingProgress.setLayoutData(data);
 		
 		boolean autoCheck = COConfigurationManager.getBooleanParameter("subscriptions.autocheck");
 		
@@ -223,13 +286,14 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 				}else{
 					lookup = subs_man.lookupAssociations(hash, this);
 				}
+				
 			} else {
 				//Dummy
 				AEThread2 resultInjector = new AEThread2("test",true) {
 					public void run() {
 						try {
 							Thread.sleep(1000);
-							Subscription[] subscriptions = new Subscription[0];
+							Subscription[] subscriptions = new Subscription[10];
 							for(int i = 0 ; i < subscriptions.length ; i++) {
 								final int index = i;
 								subscriptions[i] = new Subscription() {
@@ -280,6 +344,41 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 				};
 				resultInjector.start();
 			}
+			loadingDone = false;
+			AEThread2 progressMover = new AEThread2("progressMover",true) {
+				public void run() {
+					final int[] waitTime = new int[1];
+					waitTime[0]= 100;
+					while(!loadingDone) {
+						if(display != null && ! display.isDisposed()) {
+							display.asyncExec(new Runnable() {
+								public void run() {
+									if(loadingProgress != null && !loadingProgress.isDisposed()) {
+										int currentSelection = loadingProgress.getSelection() +1;
+										loadingProgress.setSelection(currentSelection);
+										if(currentSelection > (loadingProgress.getMaximum()) * 80 / 100) {
+											waitTime[0] = 300;
+										}
+										if (currentSelection > (loadingProgress.getMaximum()) * 90 / 100) {
+											waitTime[0] = 1000;
+										}
+									} else {
+										loadingDone = true;
+									}
+								}
+							});
+						}
+						try {
+							Thread.sleep(waitTime[0]);
+							//Thread.sleep(100);
+						} catch (Exception e) {
+							loadingDone = true;
+						}
+					}
+				}
+			};
+			progressMover.start();
+			
 		} catch(Exception e) {
 			failed(null,null);
 		}
@@ -287,58 +386,19 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		mainLayout.topControl = loadingPanel;
 	}
 	
-	private void populateSubscription(final Subscription subscription) {
+	/*private void populateSubscription(final Subscription subscription) {
 		final TableItem item = new TableItem(subscriptionsList,SWT.NONE);
 		item.setData("subscription",subscription);
 		item.setText(0,subscription.getName());
 		try {
 			item.setText(1,MessageText.getString("subscriptions.listwindow.popularity.reading"));
 			
-			subscription.getPopularity(
-				new SubscriptionPopularityListener()
-				{
-					public void
-					gotPopularity(
-						long		popularity )
-					{
-						update( popularity + "" );
-					}
-					
-					public void
-					failed(
-						SubscriptionException		error )
-					{
-						update( MessageText.getString("subscriptions.listwindow.popularity.unknown"));
-					}
-					
-					protected void
-					update(
-						final String	text )
-					{
-						if ( !item.isDisposed()){
-							
-							Utils.execSWTThread(
-								new Runnable()
-								{
-									public void
-									run()
-									{
-										if ( !item.isDisposed()){
-										
-											item.setText(1, text );
-										}
-									}
-								});
-						}
-					}
-				});
+			
 		
-		} catch(SubscriptionException e) {
-			item.setText(1,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
-		}
-		subscriptionsList.setSelection(0);
+		
+		
 		action.setEnabled(true);
-	}
+	}*/
 	
 	public void found(byte[] hash, Subscription subscription) {
 		// TODO Auto-generated method stub
@@ -349,29 +409,60 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 		if( ! (subscriptions.length > 0) ) {
 			failed(hash, null);
 		} else {
+			subscriptionItems = new SubscriptionItemModel[subscriptions.length];
+			for(int i = 0 ; i < subscriptions.length ; i++) {
+				final SubscriptionItemModel subscriptionItem = new SubscriptionItemModel();
+				subscriptionItems[i] = subscriptionItem;
+				subscriptionItem.name = subscriptions[i].getName();
+				subscriptionItem.popularity = -1;
+				subscriptionItem.popularityDisplay = MessageText.getString("subscriptions.listwindow.popularity.reading");
+				subscriptionItem.subscription = subscriptions[i];
+				
+				try {
+				subscriptions[i].getPopularity(
+						new SubscriptionPopularityListener()
+						{
+							public void
+							gotPopularity(
+								long		popularity )
+							{
+								update(subscriptionItem,popularity, popularity + "" );
+							}
+							
+							public void
+							failed(
+								SubscriptionException		error )
+							{
+								update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
+							}
+							
+							
+						});
+				} catch(SubscriptionException e) {
+					
+					update(subscriptionItem,-2,MessageText.getString("subscriptions.listwindow.popularity.unknown"));
+				
+				}
+				
+			}
+			
 			if(display != null && !display.isDisposed()) {
 				display.asyncExec(new Runnable() {
 					public void run() {
 						animatedImage.stop();
-						
-						if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
-							for(int i = 0 ; i < subscriptions.length ; i++) {
-								populateSubscription(subscriptions[i]);
-							}
-						}
-						
-						
-						
-						
+
 						mainLayout.topControl = listPanel;
 						mainComposite.layout();
+						
+						sortAndRefresh();
+						subscriptionsList.setSelection(0);
+						
 						action.addListener(SWT.Selection, new Listener() {
 							public void handleEvent(Event arg0) {
 								if(subscriptionsList != null && !subscriptionsList.isDisposed()) {
 									int selectedIndex = subscriptionsList.getSelectionIndex();
-									if(selectedIndex != -1) {
-										TableItem selectedItem = subscriptionsList.getItem(selectedIndex);
-										Subscription subscription = (Subscription) selectedItem.getData("subscription");
+									if(selectedIndex >= 0 && selectedIndex < subscriptionItems.length) {
+										Subscription subscription = (Subscription) subscriptionItems[selectedIndex].subscription;
 										if(subscription != null) {
 											subscription.setSubscribed(true);
 										}
@@ -380,7 +471,63 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 							}
 						});
 					}
+
 				});
+			}
+		}
+	}
+	
+	protected void
+	update(
+		final SubscriptionItemModel subscriptionItem,
+		final long		popularity,
+		final String	text )
+	{
+		subscriptionItem.popularity = popularity;
+		subscriptionItem.popularityDisplay = text;
+	
+		display.asyncExec(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					sortAndRefresh();
+				}
+			});
+	}
+	
+	private void sortAndRefresh() {
+		
+		for(int i = 0 ; i < subscriptionItems.length ; i++) {
+			subscriptionItems[i].selected = false;
+		}
+		
+		int currentSelection = subscriptionsList.getSelectionIndex();
+		if(currentSelection >= 0 && currentSelection < subscriptionItems.length) {
+			subscriptionItems[currentSelection].selected = true;
+		}
+		
+		final int dir = subscriptionsList.getSortDirection() == SWT.DOWN ? 1 : -1;
+		final boolean nameSort = subscriptionsList.getColumn(0) == subscriptionsList.getSortColumn();
+		Arrays.sort(subscriptionItems,new Comparator() {
+			public int compare(Object arg0, Object arg1) {
+				SubscriptionItemModel item0 = (SubscriptionItemModel) arg0;
+				SubscriptionItemModel item1 = (SubscriptionItemModel) arg1;
+				if(nameSort) {
+					return dir * item0.name.compareTo(item1.name);
+				} else {
+					return dir * (int) (item1.popularity - item0.popularity);
+				}	
+			}
+		});
+		subscriptionsList.setItemCount(subscriptionItems.length);
+		subscriptionsList.clearAll();
+		if(currentSelection >= 0 && currentSelection < subscriptionItems.length) {
+			for(int i = 0 ; i < subscriptionItems.length ; i++) {
+				if(subscriptionItems[i].selected) {
+					subscriptionsList.setSelection(i);
+				}
 			}
 		}
 	}
@@ -391,6 +538,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 				public void run() {
 					animatedImage.stop();
 					animatedImage.dispose();
+					loadingProgress.dispose();
 					loadingText.setText(MessageText.getString("subscriptions.listwindow.failed"));
 				}
 			});
