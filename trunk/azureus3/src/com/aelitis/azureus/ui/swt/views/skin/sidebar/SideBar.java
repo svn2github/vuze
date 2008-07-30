@@ -400,7 +400,6 @@ public class SideBar
 						sideBarInfo.iview.delete();
 					}
 					if (sideBarInfo.skinObject != null) {
-						System.out.println("remove sk");
 						sideBarInfo.skinObject.getSkin().removeSkinObject(sideBarInfo.skinObject);
 					}
 					COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
@@ -928,7 +927,6 @@ public class SideBar
 		}
 
 		if (iview == null && sideBarInfo.eventListener != null) {
-			System.out.println("----------------------CREATGE");
 			iview = createTreeItemFromEventListener(null, treeItem,
 					sideBarInfo.eventListener, id, sideBarInfo.closeable, null);
 		}
@@ -1024,7 +1022,6 @@ public class SideBar
 
 		IView iview = null;
 		try {
-			System.out.println("new iview");
 			iview = new UISWTViewImpl("SideBar.Plugins", id, l);
 			((UISWTViewImpl) iview).setTitle(treeItem.getText());
 
