@@ -761,6 +761,15 @@ UISWTInstanceImpl
 		return (Map)views.get(sParentID);
 	}
 	
+	/**
+	 * @return  Map(key=parentid, value=Map(key=id, value=UISWTViewEventListener))
+	 *
+	 * @since 3.1.1.1
+	 */
+	public Map getAllViews() {
+		return views;
+	}
+	
 	public UIInputReceiver getInputReceiver() {
 		return new SimpleTextEntryWindow(getDisplay());
 	}
