@@ -281,7 +281,7 @@ public class UIFunctionsImpl
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
 
-				if (sideBar.createAndShowTreeItem(null, view, name, true) != null) {
+				if (sideBar.createTreeItemFromIView(null, view, name, null, true, true) != null) {
 					return;
 				}
 			}

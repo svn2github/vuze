@@ -1299,10 +1299,10 @@ public class MainWindow
 		//           object properties)
 
 		// List of all views ids we use
-		views.put("minibrowse-area", MiniBrowse.class);
+		//views.put("minibrowse-area", MiniBrowse.class);
 		views.put("searchresults-area", SearchResultsTabArea.class);
-		views.put("minidownload-list", MiniDownloadList.class);
-		views.put("minirecent-list", MiniRecentList.class);
+		//views.put("minidownload-list", MiniDownloadList.class);
+		//views.put("minirecent-list", MiniRecentList.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY, SBC_LibraryView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
 				SBC_LibraryListView.class);
@@ -2072,42 +2072,35 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	public IView openView(final String parentID, Class cla, final String id,
+	public void openView(final String parentID, final Class cla, final String id,
 			final Object data, final boolean closeable) {
 		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 		IView viewFromID = sideBar.getIViewFromID(id);
 		if (viewFromID != null) {
 			sideBar.showItemByID(id);
-			return viewFromID;
 		}
-		try {
-			final IView view = (IView) cla.newInstance();
+		Utils.execSWTThreadLater(0, new AERunnable() {
 
-			Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				if (sideBar != null) {
+					if (isOnAdvancedView()) {
+						try {
+							final IView view = (IView) cla.newInstance();
 
-				public void runSupport() {
-					if (sideBar != null) {
-						if (isOnAdvancedView()) {
 							Tab mainTabSet = oldMainWindow.getMainTabSet();
 							mainTabSet.createTabItem(view, true);
-						} else {
-							// TODO: Need to parent it
-							if (sideBar.createAndShowTreeItem(parentID, view, id, closeable) == null) {
-								return;
-							}
+						} catch (Exception e) {
+							Debug.out(e);
 						}
+					} else {
+						sideBar.createTreeItemFromIViewClass(parentID, id, null, cla, null,
+								null, data, null);
 					}
-
-					view.dataSourceChanged(data);
 				}
-			});
+			}
+		});
 
-			return view;
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-		return null;
 	}
 
 	public boolean isOnAdvancedView() {
