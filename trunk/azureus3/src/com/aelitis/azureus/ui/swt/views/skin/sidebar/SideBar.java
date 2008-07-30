@@ -917,6 +917,10 @@ public class SideBar
 				iview = createSideBarContentArea(id, sideBarInfo.iviewClass,
 						sideBarInfo.iviewClassArgs, sideBarInfo.iviewClassVals,
 						sideBarInfo.datasource, treeItem);
+				
+				if (iview == null) {
+					return;
+				}
 
 				ViewTitleInfo titleInfo = (iview instanceof ViewTitleInfo)
 						? (ViewTitleInfo) iview : null;
@@ -1131,6 +1135,9 @@ public class SideBar
 	 */
 	private IView createSideBarContentArea(String id, Class iviewClass,
 			Class[] cArgs, Object[] cArgVals, Object datasource, TreeItem treeItem) {
+		if (id == null) {
+			return null;
+		}
 		IView iview = null;
 		try {
 			if (cArgs == null) {
