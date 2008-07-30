@@ -431,8 +431,8 @@ public class SWTSkinObjectBasic
 
 				boolean needPaintHook = false;
 
-				Color color = properties.getColor(sConfigID + ".color" + sSuffix);
-				if (color != null) {
+				if (properties.hasKey(sConfigID + ".color" + sSuffix)) {
+					Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 					bgColor = color;
 					String colorStyle = properties.getStringValue(sConfigID
 							+ ".color.style" + sSuffix);
