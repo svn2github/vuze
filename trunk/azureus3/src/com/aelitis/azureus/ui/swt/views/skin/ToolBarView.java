@@ -26,6 +26,8 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -36,7 +38,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -65,12 +66,15 @@ public class ToolBarView
 	private static toolbarButtonListener buttonListener;
 
 	private Map items = new LinkedHashMap();
+	
+	private GlobalManager gm;
 
 	ToolBarItem lastItem = null;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		buttonListener = new toolbarButtonListener();
+		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 
 		// ==OPEN
 		ToolBarItem item;
@@ -86,7 +90,6 @@ public class ToolBarView
 			public void triggerToolBarItem() {
 				DownloadManager[] dms = getDMSFromSelectedContent();
 				if (dms != null) {
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					gm.moveTop(dms);
 				}
 			}
@@ -104,7 +107,6 @@ public class ToolBarView
 									- ((DownloadManager) b).getPosition();
 						}
 					});
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = (DownloadManager) dms[i];
 						if (gm.isMoveableUp(dm)) {
@@ -127,7 +129,6 @@ public class ToolBarView
 									- ((DownloadManager) a).getPosition();
 						}
 					});
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = (DownloadManager) dms[i];
 						if (gm.isMoveableDown(dm)) {
@@ -144,7 +145,6 @@ public class ToolBarView
 			public void triggerToolBarItem() {
 				DownloadManager[] dms = getDMSFromSelectedContent();
 				if (dms != null) {
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					gm.moveEnd(dms);
 				}
 			}
@@ -224,12 +224,11 @@ public class ToolBarView
 		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
-				if (dms != null) {
-					String hash = DataSourceUtils.getHash(dms[0]);
-
-					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS + hash
-							+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
+				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+				if (sc.length > 0 && sc[0].getHash() != null) {
+					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
+							+ sc[0].getHash() + ".html?" + Constants.URL_SUFFIX + "&rnd="
+							+ Math.random();
 
 					UIFunctions functions = UIFunctionsManager.getUIFunctions();
 					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
@@ -254,21 +253,27 @@ public class ToolBarView
 		addToolBarItem(item);
 
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
-			public void currentlySectedContentChanged(
-					ISelectedContent[] currentContent) {
+			public void currentlySelectedContentChanged(
+					ISelectedContent[] currentContent, String viewID) {
 				String[] itemsNeedingSelection = {
+				};
+
+				String[] itemsNeedingSelectionAndNotBrowse = {
+					"remove",
+					"run",
 					"up",
 					"down",
 					"top",
 					"bottom",
-					"run",
-					"remove",
 				};
 
 				String[] itemsRequiring1Selection = {
+					"comment",
+				};
+
+				String[] itemsRequiring1SelectionNotBrowse = {
 					"share",
 					"details",
-					"comment",
 				};
 				
 				int numSelection = currentContent.length;
@@ -283,12 +288,29 @@ public class ToolBarView
 						item.setEnabled(hasSelection);
 					}
 				}
+				boolean notBrowse = !"browse".equals(viewID);
+				for (int i = 0; i < itemsNeedingSelectionAndNotBrowse.length; i++) {
+					String itemID = itemsNeedingSelectionAndNotBrowse[i];
+					item = getToolBarItem(itemID);
+
+					if (item != null) {
+						item.setEnabled(hasSelection && notBrowse);
+					}
+				}
 				for (int i = 0; i < itemsRequiring1Selection.length; i++) {
 					String itemID = itemsRequiring1Selection[i];
 					item = getToolBarItem(itemID);
 
 					if (item != null) {
 						item.setEnabled(has1Selection);
+					}
+				}
+				for (int i = 0; i < itemsRequiring1SelectionNotBrowse.length; i++) {
+					String itemID = itemsRequiring1SelectionNotBrowse[i];
+					item = getToolBarItem(itemID);
+
+					if (item != null) {
+						item.setEnabled(has1Selection && notBrowse);
 					}
 				}
 
