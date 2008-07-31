@@ -112,13 +112,14 @@ public class SearchResultsTabArea
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
-				SWTSkinObject soSearchResults = skin.getSkinObject("searchresults-search-results");
+				SWTSkinObject soSearchResults = getSkinObject("searchresults-search-results");
 				if (soSearchResults == null) {
 					return;
 				}
 
-				Control browser = browserSkinObject.getControl();
-				Browser search = (Browser) soSearchResults.getControl();
+				Control controlTop = browserSkinObject.getControl();
+				Control controlBottom = soSearchResults.getControl();
+				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 				String url = MapUtils.getMapString(params, "url",
 						"http://google.com/search?q=" + Math.random());
 				if (PlatformConfigMessenger.urlCanRPC(url)) {
@@ -155,18 +156,20 @@ public class SearchResultsTabArea
 				
 				search.setUrl(url);
 
-				FormData gd = (FormData) search.getLayoutData();
-				gd.top = new FormAttachment(browser, 0);
+				FormData gd = (FormData) controlBottom.getLayoutData();
+				gd.top = new FormAttachment(controlTop, 0);
 				gd.height = SWT.DEFAULT;
-				search.setLayoutData(gd);
+				controlBottom.setLayoutData(gd);
 				soSearchResults.setVisible(true);
+				controlBottom.setVisible(true);
+				search.setVisible(true);
 
-				gd = (FormData) browser.getLayoutData();
+				gd = (FormData) controlTop.getLayoutData();
 				gd.bottom = null;
 				gd.height = MapUtils.getMapInt(params, "top-height", 120);
-				browser.setLayoutData(gd);
+				controlTop.setLayoutData(gd);
 
-				search.getParent().layout(true);
+				controlTop.getParent().layout(true);
 			}
 		});
 	}
@@ -180,21 +183,22 @@ public class SearchResultsTabArea
 					return;
 				}
 
-				Control browser = browserSkinObject.getControl();
-				Browser search = (Browser) soSearchResults.getControl();
+				Control controlTop = browserSkinObject.getControl();
+				Control controlBottom = soSearchResults.getControl();
+				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 
-				FormData gd = (FormData) search.getLayoutData();
+				FormData gd = (FormData) controlBottom.getLayoutData();
 				gd.top = null;
 				gd.height = 0;
-				search.setLayoutData(gd);
+				controlBottom.setLayoutData(gd);
 				soSearchResults.setVisible(false);
 
-				gd = (FormData) browser.getLayoutData();
-				gd.bottom = new FormAttachment(search, 0);
+				gd = (FormData) controlTop.getLayoutData();
+				gd.bottom = new FormAttachment(controlBottom, 0);
 				gd.height = SWT.DEFAULT;
-				browser.setLayoutData(gd);
+				controlTop.setLayoutData(gd);
 
-				search.getParent().layout(true);
+				controlBottom.getParent().layout(true);
 				search.setUrl("about:blank");
 			}
 		});
