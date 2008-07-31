@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.vuzefile;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -54,7 +55,6 @@ VuzeFileHandler
 	protected
 	VuzeFileHandler()
 	{
-		
 	}
 	
 	public VuzeFile
@@ -85,6 +85,20 @@ VuzeFileHandler
 		}
 		
 		return( null );
+	}
+	
+	public VuzeFile
+	loadVuzeFile(
+		byte[]		bytes )
+	{
+		return( loadVuzeFile( new ByteArrayInputStream( bytes )));
+	}
+	
+	public VuzeFile
+	loadVuzeFile(
+		InputStream 	is )
+	{
+		return( getVuzeFile( is ));
 	}
 	
 	protected VuzeFile

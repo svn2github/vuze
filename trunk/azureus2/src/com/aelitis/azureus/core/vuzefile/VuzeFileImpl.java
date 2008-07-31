@@ -90,9 +90,8 @@ VuzeFileImpl
 		return( comp );
 	}
 	
-	public void 
-	write(
-		File target )
+	public byte[] 
+	exportToBytes() 
 	
 		throws IOException 
 	{
@@ -118,11 +117,20 @@ VuzeFileImpl
 			
 			list.add( entry );
 		}
-		
+				
+		return( BEncoder.encode( map ));
+	}
+	
+	public void 
+	write(
+		File target )
+	
+		throws IOException 
+	{
 		FileOutputStream	fos = new FileOutputStream( target );
 		
 		try{
-			fos.write( BEncoder.encode( map ));
+			fos.write( exportToBytes());
 			
 		}finally{
 			

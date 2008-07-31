@@ -36,6 +36,11 @@ VuzeFile
 		int		type,
 		Map		content );
 	
+	public byte[]
+	exportToBytes()
+	
+		throws IOException;
+	
 	public void
 	write(
 		File	target )

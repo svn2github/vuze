@@ -1712,6 +1712,39 @@ public class FileUtil {
 		return( baos.toByteArray());
 	}
 	
+	public static byte[]
+   	readFileAsByteArray(
+   		File		file )
+   	
+   		throws IOException
+   	{
+   		ByteArrayOutputStream	baos = new ByteArrayOutputStream((int)file.length());
+   		
+   		byte[]	buffer = new byte[32*1024];
+   		
+   		InputStream is = new FileInputStream( file );
+   		
+   		try{
+	   		while( true ){
+	   			
+	   			int	len = is.read( buffer );
+	   			
+	   			if ( len <= 0 ){
+	   				
+	   				break;
+	   			}
+	   			
+	   			baos.write( buffer, 0, len );
+	   		}
+	   		
+	   		return( baos.toByteArray());
+	   		
+   		}finally{
+   			
+   			is.close();
+   		}
+   	}
+	
 	public final static boolean getUsableSpaceSupported()
 	{
 		return reflectOnUsableSpace != null;
