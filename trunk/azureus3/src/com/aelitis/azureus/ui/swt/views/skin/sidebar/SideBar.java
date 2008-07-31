@@ -954,11 +954,10 @@ public class SideBar
 					if (container != null) {
 						container.setVisible(false);
 					}
-				} else {
-					Composite oldComposite = oldView.getComposite();
-					if (oldComposite != null && !oldComposite.isDisposed()) {
-						oldView.getComposite().setVisible(false);
-					}
+				}
+				Composite oldComposite = oldView.getComposite();
+				if (oldComposite != null && !oldComposite.isDisposed()) {
+					oldView.getComposite().setVisible(false);
 				}
 			}
 
@@ -973,6 +972,10 @@ public class SideBar
 					composite.moveAbove(null);
 					composite.setFocus();
 				}
+			}
+			Composite c = currentIView.getComposite();
+			if (c != null && !c.isDisposed()) {
+				c.setVisible(true);
 			}
 
 			triggerListener(currentIView, currentIViewID, oldView, oldID);
