@@ -735,7 +735,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					: new HashMap();
 			final String name = (String) decodedMap.get("name");
 			final Boolean isPublic	= (Boolean) decodedMap.get( "is_public" );
-			final String engineId	= (String) decodedMap.get( "engine_id" );
+			final Long engineId	= (Long) decodedMap.get( "engine_id" );
 			final String searchTerm	= (String) decodedMap.get( "search_term" );
 			final Map filters = (Map) decodedMap.get("filters");
 			
