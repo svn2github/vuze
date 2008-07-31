@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -295,7 +296,24 @@ SubscriptionManagerImpl
 									}
 								}
 							}
-																
+								
+							default_pi.getDownloadManager().addListener(
+								new DownloadManagerListener()
+								{
+									public void
+									downloadAdded(
+										Download	download )
+									{
+										lookupAssociations();
+									}
+									
+									public void
+									downloadRemoved(
+										Download	download )
+									{
+									}
+								});
+							
 							publishAssociations();
 							
 							publishSubscriptions();
@@ -793,6 +811,9 @@ SubscriptionManagerImpl
 								
 								periodic_lookup_in_progress = false;
 							}
+							
+							log( "Periodic lookup failed for " + ByteFormatter.encodeString( hash ), error );
+
 						}
 						
 						public void 
@@ -816,6 +837,8 @@ SubscriptionManagerImpl
 				
 				periodic_lookup_in_progress = false;
 			}
+			
+			log( "Periodic update check failed", e );
 		}
 	}
 	
@@ -1371,7 +1394,9 @@ SubscriptionManagerImpl
 				return;
 			}
 			
-			log( "Subscription lookup via platform failed", e );
+			final String sid_str = ByteFormatter.encodeString( sid );
+			
+			log( "Subscription lookup via platform for " + sid_str + " failed", e );
 			
 			if ( getSubscriptionDownloadCount() > 8 ){
 				
@@ -1383,6 +1408,8 @@ SubscriptionManagerImpl
 			}
 				// fall back to DHT
 			
+			log( "Subscription lookup via DHT starts for " + sid_str, e );
+
 			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
 			
 			dht_plugin.get(
@@ -1420,6 +1447,8 @@ SubscriptionManagerImpl
 							
 							if ( SubscriptionImpl.getPublicationVersion( details ) == version ){
 								
+								log( "    found " + sid_str + ", verification ok" );
+								
 								synchronized( this ){
 									
 									if ( went_async  ){
@@ -1444,9 +1473,15 @@ SubscriptionManagerImpl
 											listener );
 									}
 								}.start();
+							}else{
+								
+								log( "    found " + sid_str + " but verification failed" );
+
 							}
 						}catch( Throwable e ){
 							
+							log( "    found " + sid_str + " but verification failed", e );
+
 						}
 					}
 					
@@ -1466,6 +1501,8 @@ SubscriptionManagerImpl
 							
 							return;
 						}
+						
+						log( "    " + sid_str + " complete" );
 						
 						synchronized( this ){
 							
@@ -1936,11 +1973,18 @@ SubscriptionManagerImpl
 			
 						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
 
+						byte flags = DHTPlugin.FLAG_ANON;
+						
+						if ( hits < 3 ){
+							
+							flags |= DHTPlugin.FLAG_PRECIOUS;
+						}
+						
 						dht_plugin.put(
 							key.getBytes(),
 							"Subscription association write: " + ByteFormatter.encodeString( assoc.getHash()) + " -> " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
 							put_value,
-							DHTPlugin.FLAG_ANON,
+							flags,
 							new DHTPluginOperationListener()
 							{
 								public void
@@ -2142,11 +2186,18 @@ SubscriptionManagerImpl
 						try{
 							byte[]	put_value = encodeSubscriptionDetails( subs );						
 							
+							byte	flags = DHTPlugin.FLAG_SINGLE_VALUE;
+							
+							if ( hits < 3 ){
+								
+								flags |= DHTPlugin.FLAG_PRECIOUS;
+							}
+							
 							dht_plugin.put(
 								key.getBytes(),
 								"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
 								put_value,
-								DHTPlugin.FLAG_SINGLE_VALUE,
+								flags,
 								new DHTPluginOperationListener()
 								{
 									public void
