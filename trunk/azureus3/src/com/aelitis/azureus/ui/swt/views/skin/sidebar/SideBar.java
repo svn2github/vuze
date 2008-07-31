@@ -971,6 +971,7 @@ public class SideBar
 				if (composite != null && !composite.isDisposed()) {
 					composite.setVisible(true);
 					composite.moveAbove(null);
+					composite.setFocus();
 				}
 			}
 
@@ -1053,7 +1054,9 @@ public class SideBar
 			if (l instanceof UISWTViewEventListenerFormLayout) {
 				viewComposite.setLayout(new FormLayout());
 			} else {
-				viewComposite.setLayout(new GridLayout());
+				GridLayout gridLayout = new GridLayout();
+				gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+				viewComposite.setLayout(gridLayout);
 			}
 
 			SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
@@ -1210,8 +1213,7 @@ public class SideBar
 					SWT.COLOR_WIDGET_FOREGROUND));
 			viewComposite.setLayoutData(Utils.getFilledFormData());
 			GridLayout gridLayout = new GridLayout();
-			gridLayout.horizontalSpacing = 0;
-			gridLayout.verticalSpacing = 0;
+			gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
 			viewComposite.setLayout(gridLayout);
 
 			SideBarInfo sideBarInfo = getSideBarInfo((String) item.getData("Plugin.viewID"));
