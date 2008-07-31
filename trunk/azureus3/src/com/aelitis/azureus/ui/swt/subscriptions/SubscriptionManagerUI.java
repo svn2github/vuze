@@ -352,6 +352,13 @@ SubscriptionManagerUI
 					UIAttached(
 						UIInstance		instance )
 					{
+						if ( instance instanceof UISWTInstance ){
+							
+							UISWTInstance	swt = (UISWTInstance)instance;
+							
+							icon_rss			= loadGraphic( swt, "rss.png" );
+						}
+
 						subs_man = SubscriptionManagerFactory.getSingleton();
 						
 						subs_man.addListener(
@@ -364,14 +371,7 @@ SubscriptionManagerUI
 									subs_i_column.invalidateCells();
 									subs_c_column.invalidateCells();
 								}
-							});
-						
-						if ( instance instanceof UISWTInstance ){
-							
-							UISWTInstance	swt = (UISWTInstance)instance;
-							
-							icon_rss			= loadGraphic( swt, "rss.png" );
-						}
+							});						
 					}
 					
 					public void
