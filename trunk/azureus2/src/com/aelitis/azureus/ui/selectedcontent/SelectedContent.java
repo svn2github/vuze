@@ -19,6 +19,11 @@
 package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.HashWrapper;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * Represents a piece of content (torrent) that is selected
@@ -69,6 +74,10 @@ public class SelectedContent implements ISelectedContent
 
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDM()
 	public DownloadManager getDM() {
+		if (dm == null && hash != null) {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			return gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+		}
 		return dm;
 	}
 
