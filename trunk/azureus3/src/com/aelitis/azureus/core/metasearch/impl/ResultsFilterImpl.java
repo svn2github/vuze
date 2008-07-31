@@ -19,7 +19,7 @@ public class ResultsFilterImpl implements ResultsFilter {
 	
 	public ResultsFilterImpl(Map filters) {
 		try {
-			String rawTextFilter = ImportExportUtils.importString(filters,"textFilter");
+			String rawTextFilter = ImportExportUtils.importString(filters,"text_filter");
 			if(rawTextFilter != null) {
 				StringTokenizer st = new StringTokenizer(rawTextFilter," ");
 				textFilters = new String[st.countTokens()];
@@ -28,9 +28,9 @@ public class ResultsFilterImpl implements ResultsFilter {
 				}
 			}
 			
-			minSize = ImportExportUtils.importLong(filters,"minSize",-1l);
+			minSize = ImportExportUtils.importLong(filters,"min_size",-1l);
 			
-			maxSize = ImportExportUtils.importLong(filters,"maxSize",-1l);
+			maxSize = ImportExportUtils.importLong(filters,"max_size",-1l);
 			
 			String rawCategory = ImportExportUtils.importString(filters,"category");
 			if(rawCategory != null) {
@@ -113,14 +113,14 @@ public class ResultsFilterImpl implements ResultsFilter {
 			rawTextFilters.append(textFilters[i]);
 			separator = " ";
 		}
-		ImportExportUtils.exportString(res, "textFilter", rawTextFilters.toString());
+		ImportExportUtils.exportString(res, "text_filter", rawTextFilters.toString());
 		
 		if(minSize > -1) {
-			res.put("minSize",new Long(minSize));
+			res.put("min_size",new Long(minSize));
 		}
 		
 		if(maxSize > -1) {
-			res.put("maxSize",new Long(maxSize));
+			res.put("max_size",new Long(maxSize));
 		}
 		
 		if(categoryFilter != null) {
