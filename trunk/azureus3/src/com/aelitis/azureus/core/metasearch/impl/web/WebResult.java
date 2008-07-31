@@ -189,18 +189,20 @@ public class WebResult extends Result {
 					//No unit
 				}
 				long multiplier = 1;
+				long KB_UNIT = 1024;
+				long KIB_UNIT = 1024;
 				if("mb".equals(unit)) {
-					multiplier = 1000*1000;
+					multiplier = KB_UNIT*KB_UNIT;
 				} else if("mib".equals(unit)) {
-					multiplier = 1024*1024;
+					multiplier = KIB_UNIT*KIB_UNIT;
 				} else if("gb".equals(unit)) {
-					multiplier = 1000*1000*1000;
+					multiplier = KB_UNIT*KB_UNIT*KB_UNIT;
 				} else if("gib".equals(unit)) {
-					multiplier = 1024*1024*1024;
+					multiplier = KIB_UNIT*KIB_UNIT*KIB_UNIT;
 				} else if("kb".equals(unit)) {
-					multiplier = 1000;
+					multiplier = KB_UNIT;
 				} else if("kib".equals(unit)) {
-					multiplier = 1024;
+					multiplier = KIB_UNIT;
 				}
 				
 				this.size = (long) (base * multiplier);
