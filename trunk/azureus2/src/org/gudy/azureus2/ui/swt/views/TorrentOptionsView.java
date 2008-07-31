@@ -460,8 +460,12 @@ TorrentOptionsView
 			headerFont.dispose();
 		}
 		
-		for (int i=0;i<managers.length;i++){
-			managers[i].getDownloadState().removeListener(this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
+		if (managers != null) {
+			for (int i = 0; i < managers.length; i++) {
+				managers[i].getDownloadState().removeListener(this,
+						DownloadManagerState.AT_PARAMETERS,
+						DownloadManagerStateAttributeListener.WRITTEN);
+			}
 		}
 	}
 	
