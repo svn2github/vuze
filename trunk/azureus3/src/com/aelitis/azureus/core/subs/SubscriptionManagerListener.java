@@ -25,6 +25,18 @@ public interface
 SubscriptionManagerListener 
 {
 	public void
-	subscriptionsChanged(
-		byte[]		hash );
+	subscriptionAdded(
+		Subscription		subscription );
+	
+	public void
+	subscriptionChanged(
+		Subscription		subscription );
+	
+	public void
+	subscriptionRemoved(
+		Subscription		subscription );
+	
+	public void
+	associationsChanged(
+		byte[]				association_hash );
 }

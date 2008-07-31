@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -111,6 +112,8 @@ SubscriptionImpl
 	private LightWeightSeed	lws;
 	
 	private boolean			destroyed;
+	
+	private Map				user_data = new LightHashMap();
 	
 	
 		// new subs constructor
@@ -964,6 +967,27 @@ SubscriptionImpl
 		if ( l != null ){
 			
 			l.remove();
+		}
+	}
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		data )
+	{
+		synchronized( user_data ){
+			
+			user_data.put( key, data );
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object		key )
+	{
+		synchronized( user_data ){
+
+			return( user_data.get( key ));
 		}
 	}
 	

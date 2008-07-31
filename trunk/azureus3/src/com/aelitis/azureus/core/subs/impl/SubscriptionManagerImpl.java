@@ -226,7 +226,25 @@ SubscriptionManagerImpl
 						new SubscriptionManagerListener()
 						{
 							public void 
-							subscriptionsChanged(
+							subscriptionAdded(
+								Subscription subscription ) 
+							{
+							}
+				
+							public void
+							subscriptionChanged(
+								Subscription		subscription )
+							{
+							}
+							
+							public void 
+							subscriptionRemoved(
+								Subscription subscription ) 
+							{
+							}
+							
+							public void 
+							associationsChanged(
 								byte[] hash )
 							{
 								/*
@@ -1801,7 +1819,7 @@ SubscriptionManagerImpl
 			while( it.hasNext()){
 				
 				try{
-					((SubscriptionManagerListener)it.next()).subscriptionsChanged( association_hash );
+					((SubscriptionManagerListener)it.next()).associationsChanged( association_hash );
 					
 				}catch( Throwable e ){
 					

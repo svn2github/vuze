@@ -56,6 +56,15 @@ Subscription
 	addAssociation(
 		byte[]		hash );
 	
+	public void
+	setUserData(
+		Object		key,
+		Object		data );
+	
+	public Object
+	getUserData(
+		Object		key );
+	
 	public String
 	getString();
 }

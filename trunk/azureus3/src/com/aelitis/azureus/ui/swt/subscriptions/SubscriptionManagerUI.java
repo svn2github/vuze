@@ -23,7 +23,11 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.util.*;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.TreeItem;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -44,20 +48,29 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 public class 
 SubscriptionManagerUI 
 {
+	private static final Object	SUB_IVIEW_KEY = new Object();
+	
 	private Graphic	icon_rss;
 	private List	icon_list	= new ArrayList();
 	
 	private SubscriptionManager	subs_man;
+	
+	private boolean		side_bar_setup;
 	
 	public
 	SubscriptionManagerUI(
@@ -357,21 +370,60 @@ SubscriptionManagerUI
 							UISWTInstance	swt = (UISWTInstance)instance;
 							
 							icon_rss			= loadGraphic( swt, "rss.png" );
-						}
 
-						subs_man = SubscriptionManagerFactory.getSingleton();
-						
-						subs_man.addListener(
-							new SubscriptionManagerListener()
-							{
-								public void 
-								subscriptionsChanged(
-									byte[] hash )
+							subs_man = SubscriptionManagerFactory.getSingleton();
+							
+							subs_man.addListener(
+								new SubscriptionManagerListener()
 								{
-									subs_i_column.invalidateCells();
-									subs_c_column.invalidateCells();
-								}
-							});						
+									public void 
+									subscriptionAdded(
+										Subscription subscription ) 
+									{
+									}
+									
+									public void
+									subscriptionChanged(
+										Subscription		subscription )
+									{
+									}
+									public void 
+									subscriptionRemoved(
+										Subscription subscription ) 
+									{
+									}
+									
+									public void 
+									associationsChanged(
+										byte[] hash )
+									{
+										subs_i_column.invalidateCells();
+										subs_c_column.invalidateCells();
+									}
+								});	
+							
+
+							SkinViewManager.addListener(
+								new SkinViewManagerListener() 
+								{
+									public void 
+									skinViewAdded(
+										SkinView skinview) 
+									{
+										if ( skinview instanceof SideBar ){
+											
+											setupSideBar((SideBar) skinview);
+										}
+									}
+								});
+							
+							SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+							
+							if ( sideBar != null ){
+								
+								setupSideBar( sideBar );
+							}
+						}
 					}
 					
 					public void
@@ -380,6 +432,116 @@ SubscriptionManagerUI
 					{
 					}
 				});
+		
+	}
+	
+	protected void
+	setupSideBar(
+		final SideBar		side_bar )
+	{
+		synchronized( this ){
+			
+			if ( side_bar_setup ){
+				
+				return;
+			}
+			
+			side_bar_setup = true;
+		}
+		
+		subs_man.addListener(
+			new SubscriptionManagerListener()
+			{
+				public void 
+				subscriptionAdded(
+					Subscription 		subscription ) 
+				{
+					addSubscription( side_bar, subscription );
+				}
+	
+				public void
+				subscriptionChanged(
+					Subscription		subscription )
+				{
+				}
+				
+				public void 
+				subscriptionRemoved(
+					Subscription 		subscription ) 
+				{
+					removeSubscription( side_bar, subscription );
+				}
+				
+				public void
+				associationsChanged(
+					byte[]		association_hash )
+				{
+					 
+				}
+			});
+		
+		Subscription[]	subs = subs_man.getSubscriptions();
+		
+		for (int i=0;i<subs.length;i++){
+			
+			addSubscription( side_bar, subs[i] );
+		}
+	}
+	
+	protected void
+	addSubscription(
+		SideBar				side_bar,
+		final Subscription	subs )
+	{
+		synchronized( this ){
+			
+			TreeItem ti = (TreeItem)subs.getUserData( SUB_IVIEW_KEY );
+			
+			if ( ti == null ){
+	
+				ti = side_bar.createTreeItemFromIView(
+						SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
+						new AbstractIView()
+						{
+							private Composite		parent_composite;
+							private Composite		composite;
+							
+							public void 
+							initialize(
+								Composite _parent_composite )
+							{  
+								parent_composite	= _parent_composite;
+								
+								composite = new Composite( parent_composite, SWT.NULL );
+							}
+							  
+							public Composite 
+							getComposite()
+							{ 
+								return( composite );
+							}
+							
+							public String 
+							getFullTitle() 
+							{
+								return( subs.getName());
+							}
+						}, 
+						ByteFormatter.encodeString(subs.getPublicKey()), 
+						null, 
+						false, 
+						true );
+				
+				subs.setUserData( SUB_IVIEW_KEY, ti );
+			}
+		}
+	}
+	
+	protected void
+	removeSubscription(
+		SideBar				side_bar,
+		final Subscription	subs )
+	{
 		
 	}
 	

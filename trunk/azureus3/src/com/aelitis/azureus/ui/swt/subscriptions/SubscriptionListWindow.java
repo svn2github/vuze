@@ -334,6 +334,19 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 									public void setSubscribed(boolean subscribed) {
 										System.out.println(getName() + " is now subscribed : " + subscribed);
 									}
+									public void
+									setUserData(
+										Object		key,
+										Object		data )
+									{
+									}
+									
+									public Object
+									getUserData(
+										Object		key )
+									{
+										return( null );
+									}
 								};
 							}
 							complete(null,subscriptions);
