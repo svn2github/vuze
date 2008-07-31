@@ -85,12 +85,12 @@ public class SideBar
 
 	public static final String SIDEBAR_SECTION_BROWSE = "Browse_SB";
 
-	//public static final String SIDEBAR_SECTION_SEARCH = "Search_SB";
-
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome_SB";
 
 	public static final String SIDEBAR_SECTION_PUBLISH = "Publish_SB";
 
+	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions_SB";
+	
 	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced_SB";
 
 	public static final boolean SHOW_ALL_PLUGINS = false;
@@ -616,6 +616,9 @@ public class SideBar
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH,
 				"main.area.publishtab", "Publish", null, null, false);
+
+		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
+				"main.area.subscriptions", "Subscriptions", null, null, false);
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
