@@ -43,7 +43,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -65,6 +64,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 
@@ -131,7 +131,7 @@ public class SideBar
 
 	double lastPercent = 0.8;
 
-	private Map mapAutoOpen = new HashMap();
+	private static Map mapAutoOpen = new HashMap();
 
 	static {
 		disposeTreeItemListener = new DisposeListener() {
@@ -140,6 +140,7 @@ public class SideBar
 				String id = (String) treeItem.getData("Plugin.viewID");
 
 				if (id != null) {
+					mapAutoOpen.remove(id);
 					mapIdToSideBarInfo.remove(id);
 					return;
 				}
@@ -400,7 +401,8 @@ public class SideBar
 						sideBarInfo.iview.delete();
 					}
 					if (sideBarInfo.skinObject != null) {
-						sideBarInfo.skinObject.getSkin().removeSkinObject(sideBarInfo.skinObject);
+						sideBarInfo.skinObject.getSkin().removeSkinObject(
+								sideBarInfo.skinObject);
 					}
 					COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
 					treeItem.dispose();
@@ -727,6 +729,7 @@ public class SideBar
 					iview.getFullTitle());
 
 			sideBarInfo.closeable = closeable;
+			sideBarInfo.parentID = parentID;
 
 			createSideBarContentArea(iview, treeItem, datasource);
 
@@ -784,6 +787,7 @@ public class SideBar
 		sideBarInfo.iviewClassArgs = iviewClassArgs;
 		sideBarInfo.iviewClassVals = iviewClassVals;
 		sideBarInfo.closeable = closeable;
+		sideBarInfo.parentID = parent;
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource);
 
 		return treeItem;
@@ -916,10 +920,8 @@ public class SideBar
 
 		if (iview == null) {
 			if (sideBarInfo.iviewClass != null) {
-				iview = createSideBarContentArea(id, sideBarInfo.iviewClass,
-						sideBarInfo.iviewClassArgs, sideBarInfo.iviewClassVals,
-						sideBarInfo.datasource, treeItem);
-				
+				iview = createSideBarContentArea(id, sideBarInfo);
+
 				if (iview == null) {
 					return;
 				}
@@ -1058,6 +1060,7 @@ public class SideBar
 
 			sideBarInfo.skinObject = soContents;
 			sideBarInfo.eventListener = l;
+			sideBarInfo.parentID = parentID;
 
 			ViewTitleInfo titleInfo = (iview instanceof ViewTitleInfo)
 					? (ViewTitleInfo) iview : null;
@@ -1135,23 +1138,39 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	private IView createSideBarContentArea(String id, Class iviewClass,
-			Class[] cArgs, Object[] cArgVals, Object datasource, TreeItem treeItem) {
+	private IView createSideBarContentArea(String id, SideBarInfo sideBarInfo) {
 		if (id == null) {
 			return null;
 		}
 		IView iview = null;
 		try {
-			if (cArgs == null) {
-				iview = (IView) iviewClass.newInstance();
+			if (sideBarInfo.iviewClassArgs == null) {
+				iview = (IView) sideBarInfo.iviewClass.newInstance();
 			} else {
-				Constructor constructor = iviewClass.getConstructor(cArgs);
-				iview = (IView) constructor.newInstance(cArgVals);
+				Constructor constructor = sideBarInfo.iviewClass.getConstructor(sideBarInfo.iviewClassArgs);
+				iview = (IView) constructor.newInstance(sideBarInfo.iviewClassVals);
 			}
 
-			createSideBarContentArea(iview, treeItem, datasource);
+			createSideBarContentArea(iview, sideBarInfo.treeItem,
+					sideBarInfo.datasource);
 
-			mapAutoOpen.put(id, iviewClass.getName());
+			Map autoOpenInfo = new HashMap();
+			if (sideBarInfo.parentID != null) {
+				autoOpenInfo.put("parentID", sideBarInfo.parentID);
+			}
+			autoOpenInfo.put("iviewClass", sideBarInfo.iviewClass.getName());
+			autoOpenInfo.put("title", sideBarInfo.iview.getFullTitle());
+			if (sideBarInfo.datasource instanceof DownloadManager) {
+				try {
+					autoOpenInfo.put(
+							"dm",
+							((DownloadManager) sideBarInfo.datasource).getTorrent().getHashWrapper().toBase32String());
+				} catch (Throwable t) { 
+				}
+			}
+			
+			
+			mapAutoOpen.put(id, autoOpenInfo);
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (iview != null) {
@@ -1221,7 +1240,7 @@ public class SideBar
 		return view;
 	}
 
-	public TreeItem createTreeItemFromSkinRef(String parentTreeID,
+	public TreeItem createTreeItemFromSkinRef(String parentID,
 			final String id, final String configID, String title,
 			ViewTitleInfo titleInfo, final Object params, boolean closeable) {
 
@@ -1266,8 +1285,10 @@ public class SideBar
 		};
 		sideBarInfo.eventListener = l;
 
-		SideBarInfo sideBarInfoParent = getSideBarInfo(parentTreeID);
+		SideBarInfo sideBarInfoParent = getSideBarInfo(parentID);
 		TreeItem parentTreeItem = sideBarInfoParent.treeItem;
+		
+		sideBarInfo.parentID = parentID;
 
 		treeItem = createTreeItem(parentTreeItem == null ? (Object) tree
 				: (Object) parentTreeItem, id, datasource, titleInfo, title);
@@ -1326,7 +1347,11 @@ public class SideBar
 								String treeItemID = (String) searchTreeItem.getData("Plugin.viewID");
 								if (treeItemID != null && treeItemID.equals(id)) {
 									SideBarInfo sideBarInfo = getSideBarInfo(treeItemID);
-									sideBarInfo.titleInfo = titleIndicator;
+									if (sideBarInfo.treeItem != null) {
+  									sideBarInfo.titleInfo = titleIndicator;
+  									treeItem = sideBarInfo.treeItem;
+  									mapTitleInfoToTreeItem.put(titleIndicator, treeItem);
+									}
 									break;
 								}
 							}
@@ -1353,6 +1378,7 @@ public class SideBar
 				Rectangle bounds = treeItem.getBounds();
 				Rectangle treeBounds = tree.getBounds();
 				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+				tree.update();
 			}
 		});
 	}
@@ -1386,6 +1412,8 @@ public class SideBar
 
 	private static class SideBarInfo
 	{
+		public String parentID;
+
 		public Object datasource;
 
 		public ViewTitleInfo titleInfo;
@@ -1430,14 +1458,26 @@ public class SideBar
 		BDecoder.decodeStrings(map);
 		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
-			String className = (String) map.get(id);
+			Object o = map.get(id);
 
 			try {
-				Class clazz = Class.forName(className);
-				if (clazz != null) {
-					createTreeItemFromIViewClass(null, id, id, clazz, null, null, null,
-							null, true);
-				}
+  			if (o instanceof Map) {
+  				Map mapStoredView = (Map) o;
+  				Class cla = Class.forName((String) mapStoredView.get("iviewClass"));
+  				if (cla != null) {
+  					String title = MapUtils.getMapString(mapStoredView, "title", id);
+  					String parentID = (String) mapStoredView.get("parentID");
+  					String dmHash = MapUtils.getMapString(mapStoredView, "dm", null);
+  					Object ds = null;
+  					if (dmHash != null) {
+  						HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
+  						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  						ds = gm.getDownloadManager(hw);
+  					}
+  					createTreeItemFromIViewClass(parentID, id, title, cla, null, null,
+								ds, null, true);
+  				}
+  			}
 			} catch (Throwable e) {
 				Debug.out(e);
 			}
