@@ -36,10 +36,14 @@ public class SelectedContentManager
 	
 	private static String viewID = null;
 
+	public static String getCurrentySelectedViewID() {
+		return viewID;
+	}
+
 	public static void addCurrentlySelectedContentListener(
 			SelectedContentListener l) {
 		listeners.add(l);
-		l.currentlySectedContentChanged(currentlySelectedContent);
+		l.currentlySelectedContentChanged(currentlySelectedContent, viewID);
 	}
 
 	public static void changeCurrentlySelectedContent(String viewID,
@@ -61,7 +65,7 @@ public class SelectedContentManager
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
 			SelectedContentListener l = (SelectedContentListener) listenerArray[i];
-			l.currentlySectedContentChanged(SelectedContentManager.currentlySelectedContent);
+			l.currentlySelectedContentChanged(SelectedContentManager.currentlySelectedContent, viewID);
 		}
 	}
 
