@@ -58,6 +58,7 @@ DHT
 	public static final byte		FLAG_MULTI_VALUE	= 0x04;
 	public static final byte		FLAG_STATS			= 0x08;
 	public static final byte		FLAG_ANON			= 0x10;
+	public static final byte		FLAG_PRECIOUS		= 0x20;
 
 	public static final int 	MAX_VALUE_SIZE		= 256;
 

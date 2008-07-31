@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -70,6 +70,8 @@ DHTDBImpl
 		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
 	
 	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
+	
+	private final int	PRECIOUS_CHECK_INTERVAL				= 2*60*60*1000;
 	
 	private int			cache_republish_interval;
 	
@@ -118,7 +120,19 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 				
-		
+		SimpleTimer.addPeriodicEvent(
+			"DHTDB:precious",
+			PRECIOUS_CHECK_INTERVAL/4,
+			true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	event )
+				{
+					checkPreciousStuff();
+				}
+			});
 		
 		SimpleTimer.addPeriodicEvent(
 			"DHTDB:op",
@@ -1220,6 +1234,81 @@ DHTDBImpl
 		}
 	}
 	
+	protected void
+	checkPreciousStuff()
+	{
+		long	 now = SystemTime.getCurrentTime();
+		
+		Map	republish = new HashMap();
+
+		try{
+
+			this_mon.enter();
+						
+			Iterator	it = stored_values.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				HashWrapper		key		= (HashWrapper)entry.getKey();
+				
+				DHTDBMapping	mapping	= (DHTDBMapping)entry.getValue();
+
+				Iterator	it2 = mapping.getValues();
+				
+				List	values = new ArrayList();
+
+				while( it2.hasNext()){
+					
+					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();				
+
+					if ( value.isLocal()){
+						
+						if (( value.getFlags() | DHT.FLAG_PRECIOUS ) != 0 ){
+							
+							if ( now - value.getCreationTime() > PRECIOUS_CHECK_INTERVAL ){
+								
+								value.setCreationTime();
+
+								values.add( value );
+							}
+						}
+					}
+				}
+				
+				if ( values.size() > 0 ){
+					
+					republish.put( key, values );
+					
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		
+		Iterator	it = republish.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry	entry = (Map.Entry)it.next();
+			
+			HashWrapper			key		= (HashWrapper)entry.getKey();
+			
+			List		values	= (List)entry.getValue();
+			
+				// no point in worry about multi-value puts here as it is extremely unlikely that
+				// > 1 value will locally stored, or > 1 value will go to the same contact
+			
+			for (int i=0;i<values.size();i++){
+								
+				control.putEncodedKey( key.getHash(), "Precious republish", (DHTDBValueImpl)values.get(i), 0, true );
+			}
+		}
+	}
+	
 	protected DHTTransportContact
 	getLocalContact()
 	{
@@ -1351,10 +1440,10 @@ DHTDBImpl
 		final DHTTransportContact	contact,
 		final String				reason )
 	{
-		new AEThread( "DHTDBImpl:delayed flood delete", true )
+		new AEThread2( "DHTDBImpl:delayed flood delete", true )
 		{
 			public void
-			runSupport()
+			run()
 			{
 					// delete their data on a separate thread so as not to 
 					// interfere with the current action
