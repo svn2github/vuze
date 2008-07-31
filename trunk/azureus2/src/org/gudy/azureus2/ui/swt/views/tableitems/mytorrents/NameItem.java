@@ -45,16 +45,8 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class NameItem extends CoreTableColumn implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
-	private static boolean bShowIcon;
+	private boolean bShowIcon;
 
-	static {
-		COConfigurationManager.addAndFireParameterListener(
-				"NameColumn.showProgramIcon", new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
-					}
-				});
-	}
 
 	/** Default Constructor */
 	public NameItem(String sTableID) {
@@ -63,6 +55,13 @@ public class NameItem extends CoreTableColumn implements
 		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);
 		setMinWidth(100);
+		
+		COConfigurationManager.addAndFireParameterListener(
+				"NameColumn.showProgramIcon", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
+					}
+				});
 	}
 
 	public void refresh(TableCell cell)
@@ -126,4 +125,19 @@ public class NameItem extends CoreTableColumn implements
 			}
 		}
 	}
+
+
+	/**
+	 * Overriding the normal behavior of reading this value from user preference by specically 
+	 * setting it.
+	 * @param showIcon
+	 */
+	public void setIconShown(boolean showIcon) {
+		bShowIcon = showIcon;
+	}
+	
+	public boolean isIconShown() {
+		return bShowIcon;
+	}
+
 }
