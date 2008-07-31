@@ -1231,22 +1231,37 @@ public class SWTSkin
 	public void removeSkinObject(SWTSkinObject skinObject) {
 		skinObject.triggerListeners(SWTSkinObjectListener.EVENT_DESTROY);
 
-		SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(skinObject.getSkinObjectID());
+		String id = skinObject.getSkinObjectID();
+		SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(id);
 		if (objects != null) {
+			int x = 0;
 			for (int i = 0; i < objects.length; i++) {
-				if (objects[i] == skinObject) {
-					objects[i] = null;
+				if (objects[i] != skinObject) {
+					if (x++ != i) {
+						objects[x] = objects[i];
+					}
 				}
 			}
+			
+			SWTSkinObject[] newObjects = new SWTSkinObject[x]; 
+			System.arraycopy(objects, 0, newObjects, 0, x);
+			mapIDsToControls.put(id, newObjects);
 		}
 
-		objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(skinObject.getViewID());
+		id = skinObject.getViewID();
+		objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(id);
 		if (objects != null) {
+			int x = 0;
 			for (int i = 0; i < objects.length; i++) {
-				if (objects[i] == skinObject) {
-					objects[i] = null;
+				if (objects[i] != skinObject) {
+					if (x++ != i) {
+						objects[x] = objects[i];
+					}
 				}
 			}
+			SWTSkinObject[] newObjects = new SWTSkinObject[x]; 
+			System.arraycopy(objects, 0, newObjects, 0, x);
+			mapPublicViewIDsToControls.put(id, newObjects);
 		}
 
 		skinObject.dispose();
