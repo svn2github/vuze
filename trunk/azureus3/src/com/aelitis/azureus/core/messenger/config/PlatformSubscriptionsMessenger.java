@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
+import java.security.Signature;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -33,17 +34,70 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 
 public class 
 PlatformSubscriptionsMessenger 
 {
 	public static final String LISTENER_ID_TEMPLATE = "subscription";
 
-	public static final String OP_GET_SUBS_BY_SID				= "get-subs-by-sid";
+	public static final String OP_CREATE_SUBS					= "create-subscription";
+	public static final String OP_UPDATE_SUBS					= "update-subscription";
+	public static final String OP_GET_SUBS_BY_SID				= "get-subscriptions";
 	public static final String OP_GET_POP_BY_SID				= "get-subscription-infos";
 
+	public static void
+	updateSubscription(
+		String		name,
+		byte[]		public_key,
+		byte[]		private_key,
+		byte[]		sid,
+		int			version,
+		String		content )
+	
+		throws PlatformMessengerException
+	{
+		Map parameters = new HashMap();
+		
+		String	sid_str = Base32.encode( sid );
+		String	pk_str	= Base32.encode(public_key) ;
+		
+		parameters.put( "name", name );
+		parameters.put( "subscription_id", sid_str );
+		parameters.put( "version_number", new Long( version ));
+		parameters.put( "content", content );				
+		
+		if ( version == 1 ){
+			
+			parameters.put( "public_key", pk_str );
+		}
+		
+		try{
+			Signature sig = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPrivkey( private_key ));
 
-	public static subscriptionDetails 
+			sig.update( ( name + pk_str + sid_str + version + content ).getBytes( "UTF-8" ));
+			
+			byte[]	sig_bytes = sig.sign();
+			
+			/*
+			Signature verify = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
+
+			verify.update( ( name + pk_str + sid_str + version + content ).getBytes( "UTF-8" ));
+			
+			boolean ok = verify.verify( sig_bytes );
+			*/
+			
+			parameters.put( "signature", Base32.encode( sig_bytes ));
+
+			syncInvoke(	version==1?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformMessengerException( "Failed to create/update subscription", e ));
+		}
+	}
+	
+	public static String 
 	getSubscriptionBySID(
 		byte[]		sid )
 	
@@ -51,19 +105,32 @@ PlatformSubscriptionsMessenger
 	{
 		Map parameters = new HashMap();
 		
-		parameters.put( "sid", sid );
+		List	sid_list = new JSONArray();
+
+		sid_list.add( Base32.encode( sid ));
+		
+		parameters.put( "subscription_ids", sid_list);
 		
 		Map reply = syncInvoke(	OP_GET_SUBS_BY_SID, parameters ); 
 
-		subscriptionDetails details = new subscriptionDetails( reply );
+		for (int i=0;i<sid_list.size();i++){
+			
+			Map	map = (Map)reply.get((String)sid_list.get(i));
+			
+			if ( map != null ){
+				
+				subscriptionDetails details = new subscriptionDetails( map );
+				
+				return( details.getContent());
+			}
+		}
 		
-		return( details );
+		throw( new PlatformMessengerException( "Unknown sid '" + ByteFormatter.encodeString(sid) + "'" ));
 	}                       	
 	
 	public static long
 	getPopularityBySID(
-		byte[]		sid,
-		int			version )
+		byte[]		sid )
 	
 		throws PlatformMessengerException
 	{
@@ -72,13 +139,8 @@ PlatformSubscriptionsMessenger
 		List	sid_list = new JSONArray();
 		
 		sid_list.add( Base32.encode( sid ));
-			
-		List	version_list = new JSONArray();
-		
-		version_list.add( new Long( version ));
-		
-		parameters.put( "short_ids", sid_list );
-		parameters.put( "version_numbers", version_list );
+					
+		parameters.put( "subscription_ids", sid_list );
 		
 		Map reply = syncInvoke(	OP_GET_POP_BY_SID, parameters ); 
 		
@@ -135,25 +197,34 @@ PlatformSubscriptionsMessenger
 					try{
 						if ( replyType.equals( PlatformMessenger.REPLY_EXCEPTION )){
 							
-							String		text 	= (String)reply.get( "text" );
-							
-							Throwable	e 		= (Throwable)reply.get( "Throwable" );
-							
-							if ( text == null && e == null ){
+							String		e_message 	= (String)reply.get( "message" );
+
+							if ( e_message != null ){
 								
-								result[0] = new PlatformMessengerException( "Unknown error" );
-								
-							}else if ( text == null ){
-								
-								result[0] = new PlatformMessengerException( "Failed to send RPC", e );
-								
-							}else if ( e == null ){
-								
-								result[0] = new PlatformMessengerException( text );
-								
+								result[0] = new PlatformMessengerException( e_message );
+
 							}else{
 								
-								result[0] = new PlatformMessengerException( text, e );
+								String		text 	= (String)reply.get( "text" );
+								
+								Throwable	e 		= (Throwable)reply.get( "Throwable" );
+								
+								if ( text == null && e == null ){
+									
+									result[0] = new PlatformMessengerException( "Unknown error" );
+									
+								}else if ( text == null ){
+									
+									result[0] = new PlatformMessengerException( "Failed to send RPC", e );
+									
+								}else if ( e == null ){
+									
+									result[0] = new PlatformMessengerException( text );
+									
+								}else{
+									
+									result[0] = new PlatformMessengerException( text, e );
+								}
 							}
 						}else{
 							
@@ -211,6 +282,12 @@ PlatformSubscriptionsMessenger
 		getName()
 		{
 			return( getString( "name" ));
+		}
+		
+		public String
+		getContent()
+		{
+			return( getString( "content" ));
 		}
 		
 		protected String

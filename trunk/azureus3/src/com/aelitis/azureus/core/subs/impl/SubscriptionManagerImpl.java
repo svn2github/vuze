@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -142,8 +143,13 @@ SubscriptionManagerImpl
 	private boolean		started;
 		
 	private static final int	TIMER_PERIOD		= 30*1000;
+	
 	private static final int	ASSOC_CHECK_PERIOD	= 5*60*1000;
 	private static final int	ASSOC_CHECK_TICKS	= ASSOC_CHECK_PERIOD/TIMER_PERIOD;
+	
+	private static final int	SERVER_PUB_CHECK_PERIOD	= 10*60*1000;
+	private static final int	SERVER_PUB_CHECK_TICKS	= SERVER_PUB_CHECK_PERIOD/TIMER_PERIOD;
+
 	
 	private volatile DHTPlugin	dht_plugin;
 	
@@ -171,7 +177,6 @@ SubscriptionManagerImpl
 	{
 		loadConfig();
 
-		/*
 		if ( subscriptions.size() == 0 ){
 			
 			try{
@@ -187,7 +192,6 @@ SubscriptionManagerImpl
 				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
 			}
 		}
-		*/
 		
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
@@ -339,44 +343,81 @@ SubscriptionManagerImpl
 	create(
 		String			name,
 		boolean			public_subs,
-		String			json_content )
+		String			json )
 	
 		throws SubscriptionException 
 	{
-		SubscriptionImpl result = new SubscriptionImpl( this, name, public_subs, json_content );
+		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, json );
 		
-		log( "Created new subscription: " + result.getString());
+		log( "Created new subscription: " + subs.getString());
 		
-		if ( result.isPublic()){
+		if ( subs.isPublic()){
 			
-			try{
-				//PlatformSubscriptionsMessenger.createSubscription();
-				
-			}catch( Throwable e ){
-				
-				result.setPublic( false );
-			}
+			updatePublicSubscription( subs, json );
 		}
 		
 		synchronized( this ){
 			
-			subscriptions.add( result );
+			subscriptions.add( subs );
 			
 			saveConfig();
 		}
 		
 		subscriptionAdded();
 				
-		return( result );
+		return( subs );
 	}
 	
 	protected void
 	updatePublicSubscription(
-		SubscriptionImpl		subs )
-	
-		throws SubscriptionException 
+		SubscriptionImpl		subs,
+		String					json )
 	{
-		//PlatformSubscriptionsMessenger.updateSubscription();
+		try{
+			if ( json == null ){
+				
+				json = subs.getJSON();
+			}
+						
+			File vf = getVuzeFile( subs );
+
+			byte[] bytes = FileUtil.readFileAsByteArray( vf );
+			
+			byte[]	encoded_subs = Base64.encode( bytes );
+
+			PlatformSubscriptionsMessenger.updateSubscription(
+					subs.getName(),
+					subs.getPublicKey(),
+					subs.getPrivateKey(),
+					subs.getShortID(),
+					subs.getVersion(),
+					new String( encoded_subs ));
+			
+			subs.setServerPublicationOutstanding( false );
+			
+			log( "    Updated public subscription " + subs.getString());
+			
+		}catch( Throwable e ){
+			
+			log( "    Failed to update public subscription " + subs.getString(), e );
+			
+			subs.setServerPublicationOutstanding( true );
+		}
+	}
+	
+	protected void
+	checkServerPublications(
+		List		subs )
+	{
+		for (int i=0;i<subs.size();i++){
+			
+			SubscriptionImpl	sub = (SubscriptionImpl)subs.get(i);
+			
+			if ( sub.getServerPublicationOutstanding()){
+				
+				updatePublicSubscription( sub, null );
+			}
+		}
 	}
 	
 	protected void
@@ -398,6 +439,11 @@ SubscriptionManagerImpl
 		if ( ticks % ASSOC_CHECK_TICKS == 0 ){
 			
 			lookupAssociations();
+		}
+		
+		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
+			
+			checkServerPublications( subs );
 		}
 	}
 	
@@ -1134,9 +1180,9 @@ SubscriptionManagerImpl
 		throws SubscriptionException
 	{
 		try{
-			PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID(), subs.getVersion());
+			long pop = PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
 
-			listener.gotPopularity( 0 ); 	// TODO:
+			listener.gotPopularity( pop );
 			
 		}catch( Throwable e ){
 			
@@ -1231,7 +1277,7 @@ SubscriptionManagerImpl
 					{
 						if ( diversified ){
 							
-								// TODO: fix 
+								// TODO: fix?
 							
 							result[0] *= 11;
 							
@@ -1265,13 +1311,55 @@ SubscriptionManagerImpl
 		final subsLookupListener			listener )
 	{
 		try{
-			PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
+			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
 			
-			Subscription subs = null; // TODO!
+			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 			
-				// TODO: return subscription based on platform response (add as non-subscribed etc)
+			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
+
+			VuzeFileComponent[] comps = vf.getComponents();
 			
-			listener.complete( association_hash, new Subscription[]{ subs });
+			for (int j=0;j<comps.length;j++){
+				
+				VuzeFileComponent comp = comps[j];
+				
+				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
+					
+					Map map = comp.getContent();
+					
+					try{
+						SubscriptionBodyImpl body = new SubscriptionBodyImpl( SubscriptionManagerImpl.this, map );
+						
+						SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
+						
+						if ( existing == null ){
+							
+							SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
+								
+							if ( Arrays.equals( new_subs.getShortID(), sid )){
+			
+								log( "Added temporary subscription: " + new_subs.getString());
+								
+								synchronized( SubscriptionManagerImpl.this ){
+									
+									subscriptions.add( new_subs );
+									
+									saveConfig();
+								}	
+								
+								listener.complete( association_hash, new Subscription[]{ new_subs });
+								
+								return;
+							}
+						}
+					}catch( Throwable e ){
+						
+						log( "Subscription decode failed", e );
+					}
+				}
+			}
+			
+			throw( new SubscriptionException( "Platform returned mis-matched, corrupt or missing subscription" ));
 			
 		}catch( Throwable e ){
 			

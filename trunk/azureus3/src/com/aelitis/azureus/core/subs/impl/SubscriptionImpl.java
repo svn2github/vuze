@@ -104,7 +104,7 @@ SubscriptionImpl
 	
 	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
-		
+	private boolean			server_publication_outstanding;
 	
 	private LightWeightSeed	lws;
 	
@@ -263,6 +263,8 @@ SubscriptionImpl
 			
 			map.put( "hupv", new Long( highest_prompted_version ));
 			
+			map.put( "spo", new Long( server_publication_outstanding?1:0 ));
+			
 			if ( associations.size() > 0 ){
 				
 				List	l_assoc = new ArrayList();
@@ -312,6 +314,8 @@ SubscriptionImpl
 		popularity		= ((Long)map.get( "pop" )).longValue();
 		
 		highest_prompted_version = ((Long)map.get( "hupv" )).intValue();
+		
+		server_publication_outstanding = ((Long)map.get( "spo" )).intValue()==1;
 		
 		List	l_assoc = (List)map.get( "assoc" );
 		
@@ -380,14 +384,15 @@ SubscriptionImpl
 				
 				version++;
 				
-				if ( is_public ){
-	
-					manager.updatePublicSubscription( this );
-				}
-				
+
 				SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
 					
 				syncToBody( body );
+				
+				if ( is_public ){
+					
+					manager.updatePublicSubscription( this, body.getJSON());
+				}
 				
 				ok	= true;
 				
@@ -427,16 +432,16 @@ SubscriptionImpl
 				is_public	= _is_public;
 				
 				version++;
-				
-				if ( is_public ){
-
-					manager.updatePublicSubscription( this );
-				}
-				
+								
 				SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
 				
 				syncToBody( body );
 				
+				if ( is_public ){
+
+					manager.updatePublicSubscription( this, body.getJSON());
+				}
+
 				ok = true;
 				
 			}finally{
@@ -448,6 +453,24 @@ SubscriptionImpl
 				}
 			}
 			
+			manager.configDirty();
+		}
+	}
+	
+	protected boolean
+	getServerPublicationOutstanding()
+	{
+		return( server_publication_outstanding );
+	}
+	
+	protected void
+	setServerPublicationOutstanding(
+		boolean		_server_publication_outstanding )
+	{
+		if ( _server_publication_outstanding != server_publication_outstanding ){
+			
+			server_publication_outstanding = _server_publication_outstanding;
+		
 			manager.configDirty();
 		}
 	}
@@ -486,16 +509,16 @@ SubscriptionImpl
 			
 			try{				
 				version++;
-				
-				if ( is_public ){
-	
-					manager.updatePublicSubscription( this );
-				}
-									
+													
 				body.setJSON( json );
 				
 				syncToBody( body );
 				
+				if ( is_public ){
+					
+					manager.updatePublicSubscription( this, body.getJSON());
+				}
+
 				ok	= true;
 				
 			}finally{
@@ -929,8 +952,11 @@ SubscriptionImpl
 		return( "name=" + name + 
 					",sid=" + ByteFormatter.encodeString( short_id ) + 
 					",ver=" + version + 
-					",public=[" + public_key.length + "]" + 
-					",private=[" + (private_key==null?"<none>":String.valueOf( private_key.length)) + "]" ); 
+					",pub=" + is_public +
+					",mine=" + isMine() +
+					",sub=" + is_subscribed +
+					",pop=" + popularity + 
+					(server_publication_outstanding?",spo=true":""));
 	}
 	
 	protected static class
