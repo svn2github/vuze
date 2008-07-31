@@ -48,6 +48,7 @@ PlatformSubscriptionsMessenger
 
 	public static void
 	updateSubscription(
+		boolean		create,
 		String		name,
 		byte[]		public_key,
 		byte[]		private_key,
@@ -89,7 +90,7 @@ PlatformSubscriptionsMessenger
 			
 			parameters.put( "signature", Base32.encode( sig_bytes ));
 
-			syncInvoke(	version==1?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
+			syncInvoke(	create?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
 			
 		}catch( Throwable e ){
 			

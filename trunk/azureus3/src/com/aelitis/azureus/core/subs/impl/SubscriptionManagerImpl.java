@@ -177,22 +177,6 @@ SubscriptionManagerImpl
 	{
 		loadConfig();
 
-		if ( subscriptions.size() == 0 ){
-			
-			try{
-				create( "test subscription 2", true, "blah blah" );
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
-			}
-	
-			for (int i=0;i<subscriptions.size();i++){
-			
-				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
-			}
-		}
-		
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
 		core.addLifecycleListener(
@@ -337,6 +321,24 @@ SubscriptionManagerImpl
 		
 			dt.queue();
 		}
+		
+		/*
+		if ( subscriptions.size() == 0 ){
+			
+			try{
+				create( "test subscription 2", true, "blah blah" );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+	
+			for (int i=0;i<subscriptions.size();i++){
+			
+				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
+			}
+		}
+		*/
 	}
 
 	public Subscription 
@@ -372,7 +374,7 @@ SubscriptionManagerImpl
 	updatePublicSubscription(
 		SubscriptionImpl		subs,
 		String					json )
-	{
+	{		
 		try{
 			if ( json == null ){
 				
@@ -386,6 +388,7 @@ SubscriptionManagerImpl
 			byte[]	encoded_subs = Base64.encode( bytes );
 
 			PlatformSubscriptionsMessenger.updateSubscription(
+					!subs.getServerPublished(),
 					subs.getName(),
 					subs.getPublicKey(),
 					subs.getPrivateKey(),
@@ -393,7 +396,7 @@ SubscriptionManagerImpl
 					subs.getVersion(),
 					new String( encoded_subs ));
 			
-			subs.setServerPublicationOutstanding( false );
+			subs.setServerPublished();
 			
 			log( "    Updated public subscription " + subs.getString());
 			
@@ -401,7 +404,7 @@ SubscriptionManagerImpl
 			
 			log( "    Failed to update public subscription " + subs.getString(), e );
 			
-			subs.setServerPublicationOutstanding( true );
+			subs.setServerPublicationOutstanding();
 		}
 	}
 	
@@ -1751,6 +1754,7 @@ SubscriptionManagerImpl
 			}
 		}catch( Throwable e ){
 			
+			log( "Failed to record associations", e );
 		}
 		
 		if ( changed ){

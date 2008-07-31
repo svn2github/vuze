@@ -104,6 +104,8 @@ SubscriptionImpl
 	
 	private long			last_auto_upgrade_check	= -1;
 	private boolean			published;
+	
+	private boolean			server_published;
 	private boolean			server_publication_outstanding;
 	
 	private LightWeightSeed	lws;
@@ -263,6 +265,7 @@ SubscriptionImpl
 			
 			map.put( "hupv", new Long( highest_prompted_version ));
 			
+			map.put( "sp", new Long( server_published?1:0 ));
 			map.put( "spo", new Long( server_publication_outstanding?1:0 ));
 			
 			if ( associations.size() > 0 ){
@@ -315,6 +318,7 @@ SubscriptionImpl
 		
 		highest_prompted_version = ((Long)map.get( "hupv" )).intValue();
 		
+		server_published = ((Long)map.get( "sp" )).intValue()==1;
 		server_publication_outstanding = ((Long)map.get( "spo" )).intValue()==1;
 		
 		List	l_assoc = (List)map.get( "assoc" );
@@ -464,15 +468,32 @@ SubscriptionImpl
 	}
 	
 	protected void
-	setServerPublicationOutstanding(
-		boolean		_server_publication_outstanding )
+	setServerPublicationOutstanding()	
 	{
-		if ( _server_publication_outstanding != server_publication_outstanding ){
+		if ( !server_publication_outstanding ){
 			
-			server_publication_outstanding = _server_publication_outstanding;
+			server_publication_outstanding = true;
 		
 			manager.configDirty();
 		}
+	}
+	
+	protected void
+	setServerPublished()
+	{
+		if ( !server_published ){
+			
+			server_published 				= true;
+			server_publication_outstanding	= false;
+			
+			manager.configDirty();
+		}
+	}
+	
+	protected boolean
+	getServerPublished()
+	{
+		return( server_published );
 	}
 	
 	public String
