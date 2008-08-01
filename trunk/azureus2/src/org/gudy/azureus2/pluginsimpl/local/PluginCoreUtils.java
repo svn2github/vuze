@@ -24,6 +24,7 @@
 package org.gudy.azureus2.pluginsimpl.local;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
@@ -31,6 +32,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
@@ -38,6 +40,7 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
@@ -115,6 +118,13 @@ PluginCoreUtils
 				if (datasource instanceof PeerManagerImpl) {
 					return ((PeerManagerImpl) datasource).getDelegate();
 				}
+				
+				if (datasource instanceof PEPeer) {
+					return datasource;
+				}
+				if (datasource instanceof PeerImpl) {
+					return ((PeerImpl)datasource).getPEPeer();
+				}
 
 				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
 					return datasource;
@@ -151,6 +161,13 @@ PluginCoreUtils
 					return datasource;
 				}
 
+				if (datasource instanceof PEPeer) {
+					return PeerManagerImpl.getPeerForPEPeer((PEPeer) datasource);
+				}
+				if (datasource instanceof Peer) {
+					return datasource;
+				}
+				
 				if (datasource instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
 					DiskManagerFileInfo fileInfo = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) datasource;
 					if (fileInfo != null) {
