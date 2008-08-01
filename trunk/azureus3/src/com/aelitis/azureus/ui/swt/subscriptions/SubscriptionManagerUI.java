@@ -69,6 +69,9 @@ SubscriptionManagerUI
 	private Graphic	icon_rss;
 	private List	icon_list	= new ArrayList();
 	
+	private TableColumn	subs_i_column;
+	private TableColumn	subs_c_column;
+	
 	private SubscriptionManager	subs_man;
 	
 	private boolean		side_bar_setup;
@@ -325,7 +328,7 @@ SubscriptionManagerUI
 			
 			// MyTorrents incomplete
 			
-		final TableColumn	subs_i_column = 
+		subs_i_column = 
 			table_manager.createColumn(
 					TableManager.TABLE_MYTORRENTS_INCOMPLETE,
 					"azsubs.ui.column.subs" );
@@ -343,7 +346,7 @@ SubscriptionManagerUI
 		
 			// MyTorrents complete
 
-		final TableColumn	subs_c_column = 
+		subs_c_column = 
 			table_manager.createColumn(
 					TableManager.TABLE_MYTORRENTS_COMPLETE,
 					"azsubs.ui.column.subs" );
@@ -388,6 +391,7 @@ SubscriptionManagerUI
 										Subscription		subscription )
 									{
 									}
+									
 									public void 
 									subscriptionRemoved(
 										Subscription subscription ) 
@@ -515,6 +519,8 @@ SubscriptionManagerUI
 			return;
 		}
 		
+		refreshColumns();
+		
 		synchronized( this ){
 						
 			if ( subs.getUserData( SUB_IVIEW_KEY ) == null ){
@@ -612,6 +618,15 @@ SubscriptionManagerUI
 						});
 			}
 		}
+		
+		refreshColumns();
+	}
+	
+	protected void
+	refreshColumns()
+	{
+		subs_i_column.invalidateCells();
+		subs_c_column.invalidateCells();
 	}
 	
 	protected Graphic
