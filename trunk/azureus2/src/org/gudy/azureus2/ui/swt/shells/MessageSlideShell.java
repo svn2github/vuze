@@ -20,7 +20,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -67,8 +66,6 @@ public class MessageSlideShell
 	private static boolean USE_SWT32_BG_SET = true;
 
 	private static final boolean DEBUG = false;
-
-	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
 
 	/** Slide until there's this much gap between shell and edge of screen */
 	private final static int EDGE_GAP = 0;
@@ -1069,11 +1066,6 @@ public class MessageSlideShell
 				shell.dispose();
 			}
 		});
-	}
-
-	public static String stripOutHyperlinks(String message) {
-		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
-				message).replaceAll("$2");
 	}
 
 	/**

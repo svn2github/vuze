@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.util.*;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
@@ -206,7 +207,7 @@ public class Alerts
 
 					MessageBox mb = new MessageBox(s, type | SWT.OK);
 					mb.setText(title2);
-					mb.setMessage(MessageSlideShell.stripOutHyperlinks(message2));
+					mb.setMessage(GeneralUtils.stripOutHyperlinks(message2));
 					mb.open();
 				}
 			});

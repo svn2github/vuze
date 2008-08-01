@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.util.regex.Pattern;
+
 public class 
 GeneralUtils 
 {
@@ -32,8 +34,9 @@ GeneralUtils
 		 * @param replacement
 		 * @return
 		 */
-	
-	public static String
+
+        // XXX: This doesn't appear to be used...
+    public static String
 	replaceAll(
 		String	str,
 		String	from_str,
@@ -143,4 +146,11 @@ GeneralUtils
 			}
 		}
 	}
+	
+	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
+	public static String stripOutHyperlinks(String message) {
+		return Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+				message).replaceAll("$2");
+	}
+		
 }
