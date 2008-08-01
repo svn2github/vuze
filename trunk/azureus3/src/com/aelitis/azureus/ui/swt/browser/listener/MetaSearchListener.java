@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.ResultsFilterImpl;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -740,7 +741,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			final Map filters = (Map) decodedMap.get("filters");
 			
 			ResultsFilter resultsFilter = new ResultsFilterImpl(filters);
-			
+			try {
+				SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), "");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			System.out.println("Create Subscription called, name : " + name + ", isPublic : " + isPublic + ", engineId : " + engineId + ", searchTerm : " + searchTerm + ", filters : " + filters);
 		}
 	}
