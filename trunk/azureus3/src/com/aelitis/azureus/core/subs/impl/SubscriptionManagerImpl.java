@@ -394,6 +394,16 @@ SubscriptionManagerImpl
 			updatePublicSubscription( subs, json );
 		}
 		
+		addSubscription( subs );
+				
+		return( subs );
+	}
+	
+	
+	protected void
+	addSubscription(
+		SubscriptionImpl		subs )
+	{
 		synchronized( this ){
 			
 			subscriptions.add( subs );
@@ -401,9 +411,53 @@ SubscriptionManagerImpl
 			saveConfig();
 		}
 		
-		subscriptionAdded();
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((SubscriptionManagerListener)it.next()).subscriptionAdded( subs );
+		}
+		
+		if ( dht_plugin != null ){
 				
-		return( subs );
+			publishSubscriptions();
+		}
+	}
+	
+	protected void
+	changeSubscription(
+		SubscriptionImpl		subs )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((SubscriptionManagerListener)it.next()).subscriptionChanged( subs );
+		}
+	}
+	
+	protected void
+	removeSubscription(
+		SubscriptionImpl		subs )
+	{
+		synchronized( this ){
+			
+			if ( subscriptions.remove( subs )){
+			
+				saveConfig();
+				
+			}else{
+			
+				return;
+			}
+		}
+		
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((SubscriptionManagerListener)it.next()).subscriptionRemoved( subs );
+		}
 	}
 	
 	protected void
@@ -577,14 +631,7 @@ SubscriptionManagerImpl
 				
 				log( "Imported new subscription: " + new_subs.getString());
 				
-				synchronized( this ){
-					
-					subscriptions.add( new_subs );
-					
-					saveConfig();
-				}
-				
-				subscriptionAdded();
+				addSubscription( new_subs );
 				
 				return( new_subs );
 			}
@@ -948,9 +995,9 @@ SubscriptionManagerImpl
 			true,
 			new DHTPluginOperationListener()
 			{
-				private Map			hits 			= new HashMap();
-				private AESemaphore	hits_sem		= new AESemaphore( "Subs:lookup" );
-				private List		subscriptions 	= new ArrayList();
+				private Map			hits 					= new HashMap();
+				private AESemaphore	hits_sem				= new AESemaphore( "Subs:lookup" );
+				private List		found_subscriptions 	= new ArrayList();
 				
 				private boolean	complete;
 				
@@ -1018,14 +1065,11 @@ SubscriptionManagerImpl
 							
 								// check if already subscribed
 							
-							Subscription subs = getSubscriptionFromSID( sid );
+							SubscriptionImpl subs = getSubscriptionFromSID( sid );
 							
 							if ( subs != null ){
 								
-								synchronized( this ){
-
-									subscriptions.add( subs );
-								}
+								found_subscriptions.add( subs );
 								
 								try{
 									listener.found( hash, subs );
@@ -1091,10 +1135,7 @@ SubscriptionManagerImpl
 											
 											if ( subs.length > 0 ){
 												
-												synchronized( this ){
-	
-													subscriptions.add( subs[0] );
-												}
+												found_subscriptions.add( subs[0] );
 												
 												try{
 													listener.found( hash, subs[0] );
@@ -1166,7 +1207,7 @@ SubscriptionManagerImpl
 							
 							synchronized( this ){
 								
-								s = (SubscriptionImpl[])subscriptions.toArray( new SubscriptionImpl[ subscriptions.size() ]);
+								s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
 							}
 							
 							log( "    Association lookup complete - " + s.length + " found" );
@@ -1384,12 +1425,7 @@ SubscriptionManagerImpl
 			
 								log( "Added temporary subscription: " + new_subs.getString());
 								
-								synchronized( SubscriptionManagerImpl.this ){
-									
-									subscriptions.add( new_subs );
-									
-									saveConfig();
-								}	
+								addSubscription( new_subs );
 								
 								listener.complete( association_hash, new Subscription[]{ new_subs });
 								
@@ -1603,12 +1639,7 @@ SubscriptionManagerImpl
 											
 												log( "Added temporary subscription: " + new_subs.getString());
 												
-												synchronized( SubscriptionManagerImpl.this ){
-													
-													subscriptions.add( new_subs );
-													
-													saveConfig();
-												}
+												addSubscription( new_subs );
 												
 												listener.complete( association_hash, new Subscription[]{ new_subs });
 												
@@ -2063,15 +2094,6 @@ SubscriptionManagerImpl
 	
 	protected void
 	subscriptionUpdated()
-	{
-		if ( dht_plugin != null ){
-			
-			publishSubscriptions();
-		}
-	}
-	
-	protected void
-	subscriptionAdded()
 	{
 		if ( dht_plugin != null ){
 			
@@ -3017,6 +3039,15 @@ SubscriptionManagerImpl
 				}
 			}
 		}
+	}
+	
+	protected void
+	configDirty(
+		SubscriptionImpl		subs )
+	{
+		changeSubscription( subs );
+		
+		configDirty();
 	}
 	
 	protected void

@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
@@ -463,6 +464,7 @@ SubscriptionManagerUI
 				subscriptionChanged(
 					Subscription		subscription )
 				{
+					changeSubscription( side_bar, subscription );
 				}
 				
 				public void 
@@ -489,50 +491,89 @@ SubscriptionManagerUI
 	}
 	
 	protected void
-	addSubscription(
+	changeSubscription(
 		SideBar				side_bar,
 		final Subscription	subs )
 	{
-		synchronized( this ){
+		if ( subs.isSubscribed()){
 			
-			TreeItem ti = (TreeItem)subs.getUserData( SUB_IVIEW_KEY );
+			addSubscription(side_bar, subs);
 			
-			if ( ti == null ){
+		}else{
+			
+			removeSubscription(side_bar, subs);
+		}
+	}
 	
-				ti = side_bar.createTreeItemFromIView(
-						SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
-						new AbstractIView()
-						{
-							private Composite		parent_composite;
-							private Composite		composite;
-							
-							public void 
-							initialize(
-								Composite _parent_composite )
-							{  
-								parent_composite	= _parent_composite;
-								
-								composite = new Composite( parent_composite, SWT.NULL );
-							}
-							  
-							public Composite 
-							getComposite()
-							{ 
-								return( composite );
-							}
-							
-							public String 
-							getFullTitle() 
-							{
-								return( subs.getName());
-							}
-						}, 
-						ByteFormatter.encodeString(subs.getPublicKey()), 
-						null, 
-						false, 
-						true );
+	protected void
+	addSubscription(
+		final SideBar			side_bar,
+		final Subscription		subs )
+	{
+		if ( !subs.isSubscribed()){
+			
+			return;
+		}
+		
+		synchronized( this ){
+						
+			if ( subs.getUserData( SUB_IVIEW_KEY ) == null ){
+	
+				final sideBarItem new_si = new sideBarItem();
 				
-				subs.setUserData( SUB_IVIEW_KEY, ti );
+				subs.setUserData( SUB_IVIEW_KEY, new_si );
+				
+				Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							synchronized( SubscriptionManagerUI.this ){
+
+								if ( new_si.isDestroyed()){
+									
+									return;
+								}
+								
+								TreeItem  tree_item = 
+									side_bar.createTreeItemFromIView(
+										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
+										new AbstractIView()
+										{
+											private Composite		parent_composite;
+											private Composite		composite;
+											
+											public void 
+											initialize(
+												Composite _parent_composite )
+											{  
+												parent_composite	= _parent_composite;
+												
+												composite = new Composite( parent_composite, SWT.NULL );
+											}
+											  
+											public Composite 
+											getComposite()
+											{ 
+												return( composite );
+											}
+											
+											public String 
+											getFullTitle() 
+											{
+												return( subs.getName());
+											}
+										}, 
+										ByteFormatter.encodeString(subs.getPublicKey()), 
+										null, 
+										false, 
+										true );
+								
+								new_si.setTreeItem( tree_item );
+							}
+						}
+					});
 			}
 		}
 	}
@@ -542,7 +583,35 @@ SubscriptionManagerUI
 		SideBar				side_bar,
 		final Subscription	subs )
 	{
-		
+		synchronized( this ){
+			
+			final sideBarItem existing = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
+			
+			if ( existing != null ){
+				
+				subs.setUserData( SUB_IVIEW_KEY, null );
+				
+				existing.destroy();
+				
+				Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								synchronized( SubscriptionManagerUI.this ){
+
+									TreeItem ti = existing.getTreeItem();
+									
+									if ( ti != null ){
+										
+										ti.dispose();
+									}
+								}
+							}
+						});
+			}
+		}
 	}
 	
 	protected Graphic
@@ -557,5 +626,42 @@ SubscriptionManagerUI
 		icon_list.add( graphic );
 		
 		return( graphic );
+	}
+	
+	protected static class
+	sideBarItem
+	{
+		private TreeItem	tree_item;
+		private boolean		destroyed;
+		
+		protected
+		sideBarItem()
+		{
+		}
+		
+		protected void
+		setTreeItem(
+			TreeItem		_tree_item )
+		{
+			tree_item	= _tree_item;
+		}
+		
+		protected TreeItem
+		getTreeItem()
+		{
+			return( tree_item );
+		}
+		
+		protected boolean
+		isDestroyed()
+		{
+			return( destroyed );
+		}
+		
+		protected void
+		destroy()
+		{
+			destroyed = true;
+		}
 	}
 }

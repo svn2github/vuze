@@ -412,7 +412,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -460,7 +460,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -477,7 +477,7 @@ SubscriptionImpl
 			
 			server_publication_outstanding = true;
 		
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -489,7 +489,7 @@ SubscriptionImpl
 			server_published 				= true;
 			server_publication_outstanding	= false;
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -553,7 +553,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -600,7 +600,7 @@ SubscriptionImpl
 			
 			highest_prompted_version = v;
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -630,7 +630,7 @@ SubscriptionImpl
 			
 			is_subscribed = s;
 			
-			manager.configDirty();
+			manager.configDirty( this );
 		}
 	}
 	
@@ -658,7 +658,7 @@ SubscriptionImpl
 									
 									popularity = pop;
 									
-									manager.configDirty();
+									manager.configDirty( SubscriptionImpl.this );
 								}
 								
 								listener.gotPopularity( popularity );
@@ -822,7 +822,7 @@ SubscriptionImpl
 			}
 		}
 		
-		manager.configDirty();
+		manager.configDirty( this );
 		
 		manager.associationAdded( this, hash);
 	}
