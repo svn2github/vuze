@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.pluginsimpl.local.logging;
 
+import org.gudy.azureus2.core3.logging.LogAlert;
+
 /**
  * @author parg
  *
