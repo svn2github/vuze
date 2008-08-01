@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.logging.impl.FileLoggingAdapter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.FileLoggerAdapter;
+import org.gudy.azureus2.plugins.logging.LogAlertListener;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerAlertListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -45,8 +46,9 @@ LoggerImpl
 {
 	private PluginInterface	pi;
 	
-	private List		channels 			= new ArrayList();
-	private Map			alert_listeners_map	= new HashMap();
+	private List		channels 			 = new ArrayList();
+	private Map			alert_listeners_map	 = new HashMap();
+	private Map			alert_listeners_map2 = new HashMap();
 	
 	public
 	LoggerImpl(
@@ -145,6 +147,28 @@ LoggerImpl
 			
 			org.gudy.azureus2.core3.logging.Logger.removeListener( lg_listener );
 		}
+	}
+	
+	public void addAlertListener(final LogAlertListener listener) {
+		ILogAlertListener lg_listener = new ILogAlertListener() {
+			private HashSet set = new HashSet();
+			public void alertRaised(LogAlert alert) {
+				if (!alert.repeatable) {
+					if (set.contains(alert.text)) {return;}
+					set.add(alert.text); 
+				}
+				listener.alertRaised(alert);
+			}
+		};
+		alert_listeners_map2.put(listener, lg_listener);
+		org.gudy.azureus2.core3.logging.Logger.addListener(lg_listener);
+	}
+	
+	public void removeAlertListener(LogAlertListener listener) {
+		ILogAlertListener lg_listener = (ILogAlertListener)alert_listeners_map2.remove(listener);
+		if (lg_listener != null){	
+			org.gudy.azureus2.core3.logging.Logger.removeListener(lg_listener);
+		}		
 	}
 
 	public void addFileLoggingListener(final FileLoggerAdapter listener) {

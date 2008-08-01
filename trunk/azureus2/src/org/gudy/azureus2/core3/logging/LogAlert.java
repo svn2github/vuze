@@ -19,11 +19,16 @@
  */
 package org.gudy.azureus2.core3.logging;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  * @author TuxPaper
  */
-public class LogAlert {
+public class LogAlert implements org.gudy.azureus2.plugins.logging.LogAlert {
 	// log types
 	public static final int AT_INFORMATION = LogEvent.LT_INFORMATION;
 
@@ -104,4 +109,40 @@ public class LogAlert {
 		this(repeatable, text, err);
 		this.relatedTo = new Object[] { relatedTo };
 	}
+	
+	// Plugin methods.
+	public int getGivenTimeoutSecs() {return timeoutSecs;}
+	public String getText() {return text;}
+	public Throwable getError() {return err;}
+	public int getType() {
+		switch (entryType) {
+			case AT_INFORMATION:
+				return LT_INFORMATION;
+			case AT_ERROR:
+				return LT_ERROR;
+			case AT_WARNING:
+				return LT_WARNING;
+			default:
+				return LT_INFORMATION;
+		}
+	}
+	
+	public Object[] getContext() {
+		if (this.relatedTo == null) {return null;}
+		ArrayList l = new ArrayList();
+		for (int i=0; i<this.relatedTo.length; i++) {
+			l.add(PluginCoreUtils.convert(this.relatedTo[i], false));
+		}
+		return l.toArray();
+	}
+	
+	public int getTimeoutSecs() {
+		if (this.timeoutSecs != -1) {return this.timeoutSecs;}
+		return COConfigurationManager.getIntParameter("Message Popup Autoclose in Seconds");
+	}
+	
+	public String getPlainText() {
+		return GeneralUtils.stripOutHyperlinks(text);
+	}
+	
 }

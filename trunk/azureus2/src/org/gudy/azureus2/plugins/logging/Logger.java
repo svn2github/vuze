@@ -84,22 +84,37 @@ public interface Logger {
 	public PluginInterface getPluginInterface();
 
 	/**
-	 * Add LoggerAlertListener for all alerts raised
+	 * Add LoggerAlertListener for all alerts raised. It might be a
+	 * better idea to use {@link #addAlertListener(LogAlertListener)},
+	 * as it is more flexible.
 	 * 
 	 * @param listener Listener to add
-	 * 
+	 * @see #addAlertListener(LogAlertListener)
 	 * @since 2.3.0.6
 	 */
 	public void addAlertListener(LoggerAlertListener listener);
 
 	/**
-	 * Remove previously added Alert Listener
+	 * Remove previously added AlertListener.
 	 * 
-	 * @param listener LoggerAltertListener to remove
-	 * 
+	 * @param listener LoggerAlertListener to remove
 	 * @since 2.3.0.6
 	 */
 	public void removeAlertListener(LoggerAlertListener listener);
+	
+	/**
+	 * Add a listener to be informed of any alerts to be displayed to users.
+	 * 
+	 * @since 3.1.1.1
+	 */
+	public void addAlertListener(LogAlertListener listener);
+
+	/**
+	 * Remove a previously added alert listener.
+	 * 
+	 * @since 3.1.1.1
+	 */
+	public void removeAlertListener(LogAlertListener listener);
 	
 	public void addFileLoggingListener(FileLoggerAdapter listener);
 	public void removeFileLoggingListener(FileLoggerAdapter listener);
