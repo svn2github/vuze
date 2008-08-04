@@ -84,6 +84,19 @@ FilePluginInstallerImpl
 			String	prefix = name.substring(0,pos);
 			String	suffix = name.substring(pos+1);
 			
+
+			// If the name part contains "_src" in it, then strip it out,
+			// it'll just cause us more hassle to deal with it later.
+			if (prefix.lastIndexOf("_src") != -1) {
+				if (prefix.endsWith("_src")) {
+					prefix = prefix.substring(0, prefix.length()-4);
+				}
+				else {
+					int src_bit_pos = prefix.lastIndexOf("_src");
+					prefix = prefix.substring(0, src_bit_pos) + prefix.substring(src_bit_pos+1);
+				}
+			}
+			
 			if ( 	suffix.toLowerCase().equals( "jar") ||
 					suffix.toLowerCase().equals( "zip" )){
 		
