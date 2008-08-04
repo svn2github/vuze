@@ -45,4 +45,9 @@ PluginException
 	{
 		super( str, e );
 	}
+	
+	public PluginException(Throwable e) {
+		super(e);
+	}
+	
 }
