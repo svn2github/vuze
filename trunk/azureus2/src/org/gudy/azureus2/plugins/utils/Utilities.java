@@ -336,22 +336,7 @@ Utilities
 		SearchProvider		provider )
 	
 		throws SearchException;
-	
-	/**
-	 * Equivalent of <tt>System.load</tt>, but uses the main classloader,
-	 * rather than the classloader used for plugins.
-	 * 
-	 * @since 3.1.1.1
-	 */
-	public void loadLibrary(String library_name);
-	
-	/**
-	 * Equivalent of <tt>System.loadLibrary</tt>, but uses the main classloader,
-	 * rather than the classloader used for plugins.
-	 * 
-	 * @since 3.1.1.1
-	 */
-	public void loadLibraryFromPath(String library_name);
+
 }
 
 

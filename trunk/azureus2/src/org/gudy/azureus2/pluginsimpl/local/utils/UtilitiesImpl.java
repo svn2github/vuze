@@ -892,14 +892,6 @@ UtilitiesImpl
 		}
 	}
 	
-	public void loadLibraryFromPath(String library_name) {
-		System.load(library_name);
-	}
-	
-	public void loadLibrary(String library_name) {
-		System.loadLibrary(library_name);
-	}
-	
 	public void 
 	registerSearchProvider(
 		SearchProvider 		provider )
