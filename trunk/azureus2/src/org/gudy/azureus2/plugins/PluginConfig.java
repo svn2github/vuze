@@ -33,6 +33,11 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.config.*;
 
 /**
+ * This class provides a way for a plugin to get and set configuration settings - both for the plugin
+ * itself and for core settings as well. 
+ * 
+ * <p>
+ * 
  * This class interface contains four different variations of <tt>get</tt> and <tt>set</tt> parameter methods:
  * <ul>
  *   <li>get<i>type</i>Parameter</li>
@@ -1325,8 +1330,10 @@ PluginConfig
 	public void save() throws PluginException;
 	
 		/**
-		 * Returns a file that can be used by the plugin to save user-specific state
-		 * This will be "azureus-user-dir"/plugins/<plugin name>/name 
+		 * Returns a file that can be used by the plugin to save user-specific state.
+		 * <p>
+		 * 
+		 * This will be <tt>azureus-user-dir/plugins/plugin-name/name</tt>. 
 		 * @param name
 		 * @return
 		 */

@@ -259,7 +259,9 @@ public interface PluginInterface {
   public Properties getPluginProperties();
   
   /**
-   * gives access to the plugin installation path
+   * Gives access to the plugin installation path - note, if you want to use this
+   * path to store data files in, it would be better for you to use
+   * {@link PluginConfig#getPluginUserFile(String)} instead.
    * @return the full path the plugin is installed in
    *
    * @since 2.0.4.0
@@ -316,7 +318,7 @@ public interface PluginInterface {
   
   
   /**
-   * gives acess to the plugin Config UI Factory
+   * gives access to the plugin Config UI Factory
    * @return the PluginConfigUIFactory associated with this plugin
    * 
    * @deprecated Use of this is discouraged - use {@link UIManager#getBasicPluginViewModel(String)}
@@ -394,6 +396,7 @@ public interface PluginInterface {
   setDisabled(
 	boolean	disabled );
   
+  // Internal?
   public boolean
   isDisabled();
   
