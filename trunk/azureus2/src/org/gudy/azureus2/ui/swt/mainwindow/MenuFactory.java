@@ -1060,7 +1060,13 @@ public class MenuFactory
 
 	public static final MenuItem addMenuItem(Menu menu, int style,
 			String localizationKey, Listener selListener) {
-		MenuItem menuItem = new MenuItem(menu, style);
+		return addMenuItem(menu, style, menu.getItemCount(), localizationKey,
+				selListener);
+	}
+
+	public static final MenuItem addMenuItem(Menu menu, int style, int index,
+			String localizationKey, Listener selListener) {
+		MenuItem menuItem = new MenuItem(menu, style, index);
 		Messages.setLanguageText(menuItem, localizationKey);
 		KeyBindings.setAccelerator(menuItem, localizationKey);
 		menuItem.addListener(SWT.Selection, selListener);
