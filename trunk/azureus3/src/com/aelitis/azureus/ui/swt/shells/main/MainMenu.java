@@ -281,7 +281,7 @@ public class MainMenu
 						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
-								SkinConstants.VIEWID_PLUGINBAR, true);
+								SkinConstants.VIEWID_PLUGINBAR, true, 0);
 					}
 
 //					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
@@ -294,7 +294,7 @@ public class MainMenu
 							+ SkinConstants.VIEWID_FOOTER)) {
 						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
-								SkinConstants.VIEWID_FOOTER, true);
+								SkinConstants.VIEWID_FOOTER, true, -1);
 					}
 
 //					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
@@ -451,14 +451,15 @@ public class MainMenu
 	 */
 	public static MenuItem createViewMenuItem(final SWTSkin skin, Menu viewMenu,
 			final String textID, final String configID, final String viewID,
-			final boolean fast) {
+			final boolean fast, int menuIndex) {
 		MenuItem item;
 
 		if (!ConfigurationDefaults.getInstance().doesParameterDefaultExist(configID)) {
 			COConfigurationManager.setBooleanDefault(configID, true);
 		}
 
-		item = MenuFactory.addMenuItem(viewMenu, SWT.CHECK, textID, new Listener() {
+		item = MenuFactory.addMenuItem(viewMenu, SWT.CHECK, menuIndex, textID,
+				new Listener() {
 			public void handleEvent(Event event) {
 				SWTSkinObject skinObject = skin.getSkinObject(viewID);
 				if (skinObject != null) {
