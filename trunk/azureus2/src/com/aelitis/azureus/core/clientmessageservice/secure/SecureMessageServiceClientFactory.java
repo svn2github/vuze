@@ -30,6 +30,10 @@ import com.aelitis.azureus.core.clientmessageservice.secure.impl.SecureMessageSe
 public class 
 SecureMessageServiceClientFactory 
 {
+	
+	/**
+	 * Used by the SMS plugin.
+	 */
 	public static SecureMessageServiceClient
 	create(
 		String					host,
