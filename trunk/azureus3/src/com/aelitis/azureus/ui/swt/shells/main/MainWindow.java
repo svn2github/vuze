@@ -549,7 +549,7 @@ public class MainWindow
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin.layout();
-
+			
 			System.out.println("skin layout took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -1326,9 +1326,6 @@ public class MainWindow
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
-		views.put("betatab-area",
-				com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.class);
-
 		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
 		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
 
@@ -1556,22 +1553,42 @@ public class MainWindow
 		 * Directly loading the buddies viewer since we need to access it
 		 * before it's even shown for the first time
 		 */
-		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
-		if (null != skinObject) {
-			BuddiesViewer skinView = new BuddiesViewer();
-			SkinViewManager.add(skinView);
-			skinObject.addListener(skinView);
-		}
-
-		/*
-		 * Directly loading the Button Bar since we need to access it
-		 * before it's even shown for the first time
-		 */
-		skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-		if (null != skinObject) {
-			ButtonBar skinView = new ButtonBar();
-			SkinViewManager.add(skinView);
-			skinObject.addListener(skinView);
+		Class[] forceInits = new Class[] {
+			BuddiesViewer.class,
+			ButtonBar.class,
+			SideBar.class
+		};
+		String[] forceInitsIDs = new String[] {
+			SkinConstants.VIEWID_BUDDIES_VIEWER,
+			SkinConstants.VIEWID_BUTTON_BAR,
+			SkinConstants.VIEWID_SIDEBAR
+		};
+		
+		for (int i = 0; i < forceInits.length; i++) {
+			Class cla = forceInits[i];
+			String id = forceInitsIDs[i];
+			
+			try {
+  			skinObject = skin.getSkinObject(id);
+  			if (null != skinObject) {
+  				SkinView skinView = (SkinView) cla.newInstance();
+  				skinView.setMainSkinObject(skinObject);
+  				skinObject.addListener(skinView);
+  
+  				if (skinView instanceof UIUpdatable) {
+  					UIUpdatable updateable = (UIUpdatable) skinView;
+  					try {
+  						UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
+  								updateable);
+  					} catch (Exception e) {
+  						Debug.out(e);
+  					}
+  				}
+  				SkinViewManager.add(skinView);
+  			}
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
 		}
 
 		skinObject = skin.getSkinObject("statusbar");
