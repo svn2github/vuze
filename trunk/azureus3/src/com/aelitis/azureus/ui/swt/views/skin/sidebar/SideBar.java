@@ -721,8 +721,10 @@ public class SideBar
 
 		loadCloseables();
 
-		//createTreeItemFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
-		//		"main.area.advancedtab", "Advanced", null, null, false);
+		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
+			createTreeItemFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
+				"main.area.advancedtab", "Advanced", null, null, false);
+		}
 	}
 
 	public TreeItem createTreeItemFromIView(String parentID, IView iview,
