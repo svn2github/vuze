@@ -1,6 +1,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridLayout;
@@ -89,6 +91,14 @@ public class ConfigShell
 				public void handleEvent(Event event) {
 					cView.save();
 					event.doit = true;
+				}
+			});
+			
+			shell.addTraverseListener(new TraverseListener() {
+				public void keyTraversed(TraverseEvent e) {
+					if (e.detail == SWT.TRAVERSE_ESCAPE) {
+						shell.dispose();
+					}
 				}
 			});
 
