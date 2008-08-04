@@ -1019,7 +1019,7 @@ public class MenuFactory
 		return new MenuItem(menuParent, SWT.SEPARATOR);
 	}
 
-	private static MenuItem createTopLevelMenuItem(Menu menuParent,
+	public static MenuItem createTopLevelMenuItem(Menu menuParent,
 			String localizationKey) {
 		Menu menu = new Menu(menuParent.getShell(), SWT.DROP_DOWN);
 		MenuItem menuItem = new MenuItem(menuParent, SWT.CASCADE);
