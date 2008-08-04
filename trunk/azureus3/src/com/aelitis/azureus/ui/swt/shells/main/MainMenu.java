@@ -14,9 +14,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
@@ -24,6 +22,10 @@ import com.aelitis.azureus.util.Constants;
 public class MainMenu
 	implements IMainMenu, IMenuConstants
 {
+	private static final boolean ALLOW_ACTIONBAR_HIDING = false;
+
+	private static final boolean ALLOW_SIDEBAR_HIDING = true;
+
 	final String PREFIX_V2 = "MainWindow.menu";
 
 	final String PREFIX_V3 = "v3.MainWindow.menu";
@@ -179,6 +181,8 @@ public class MainMenu
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
 			final Menu viewMenu = viewItem.getMenu();
 
+			addViewToolBarsMenu(viewMenu);
+			
 			addViewMenuItems(viewMenu);
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
@@ -199,18 +203,48 @@ public class MainMenu
 			MenuFactory.addAllPeersMenuItem(advancedMenu);
 			MenuFactory.addBlockedIPsMenuItem(advancedMenu);
 
-			MenuFactory.addSeparatorMenuItem(viewMenu);
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void addViewToolBarsMenu(Menu parent) {
+		try {
 			
-			MenuFactory.addMenuItem(viewMenu, SWT.CHECK,
-					"v3.MainWindow.menu.view.sidebar",
-					new Listener() {
-				public void handleEvent(Event event) {
-					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-					if (sidebar != null) {
-						sidebar.flipSideBarVisibility();
-					}
-				}
-			});
+			MenuItem viewToolBarsItem = MenuFactory.createTopLevelMenuItem(parent,
+					PREFIX_V3 + ".view.toolbars");
+			final Menu viewToolBarsMenu = viewToolBarsItem.getMenu();
+
+			if (ALLOW_SIDEBAR_HIDING) {
+  			MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK,
+  					PREFIX_V3 + ".view.sidebar", new Listener() {
+  						public void handleEvent(Event event) {
+  							SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+  							if (sidebar != null) {
+  								sidebar.flipSideBarVisibility();
+  							}
+  						}
+  					});
+			}
+
+			if (ALLOW_ACTIONBAR_HIDING) {
+  			MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK,
+  					PREFIX_V3 + ".view.actionbar", new Listener() {
+  						public void handleEvent(Event event) {
+  							if (skin != null) {
+  								SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
+  								if (so != null) {
+  									so.setVisible(!so.isVisible());
+  								}
+  							}
+  						}
+  					});
+			}
 
 			/*
 			 * NOTE: The following menu items must be created on-demand because
@@ -218,11 +252,12 @@ public class MainMenu
 			 * Adding these menus before the window is fully opened will result in improper
 			 * layout of the PluginBar and TabBar
 			 */
-			viewMenu.addMenuListener(new MenuListener() {
+			viewToolBarsMenu.addMenuListener(new MenuListener() {
 
 				public void menuShown(MenuEvent e) {
-					
-					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewMenu, "v3.MainWindow.menu.view.sidebar");
+
+					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewToolBarsMenu,
+							PREFIX_V3 + ".view.sidebar");
 					if (sidebarMenuItem != null) {
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 						if (sidebar != null) {
@@ -230,9 +265,20 @@ public class MainMenu
 						}
 					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+					MenuItem actionbarMenuItem = MenuFactory.findMenuItem(viewToolBarsMenu,
+							PREFIX_V3 + ".view.actionbar");
+					if (actionbarMenuItem != null) {
+						if (skin != null) {
+							SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
+							if (so != null) {
+								actionbarMenuItem.setSelection(so.isVisible());
+							}
+						}
+					}
+					
+					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3 + ".view."
 							+ SkinConstants.VIEWID_PLUGINBAR)) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
 								SkinConstants.VIEWID_PLUGINBAR, true);
@@ -244,9 +290,9 @@ public class MainMenu
 //								"TabBar.visible", SkinConstants.VIEWID_TAB_BAR, true);
 //					}
 
-					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
+					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3 + ".view."
 							+ SkinConstants.VIEWID_FOOTER)) {
-						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
+						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
 								SkinConstants.VIEWID_FOOTER, true);
 					}
@@ -265,7 +311,6 @@ public class MainMenu
 				}
 
 			});
-
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}
