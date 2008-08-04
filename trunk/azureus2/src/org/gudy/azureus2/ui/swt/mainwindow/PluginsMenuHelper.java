@@ -1,8 +1,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -30,6 +29,8 @@ public class PluginsMenuHelper
 	private Map plugin_view_info_map = new TreeMap();
 
 	private Map plugin_logs_view_info_map = new TreeMap();
+	
+	private List pluginAddedViewListener = new ArrayList();
 
 	private PluginsMenuHelper() {
 		//Making this private
@@ -111,6 +112,7 @@ public class PluginsMenuHelper
 		} finally {
 			plugin_helper_mon.exit();
 		}
+		triggerPluginAddedViewListeners(view_info);
 	}
 
 	private void removePluginViewsWithID(String sViewID, Map map) {
@@ -155,6 +157,7 @@ public class PluginsMenuHelper
 		} finally {
 			plugin_helper_mon.exit();
 		}
+		triggerPluginAddedViewListeners(view_info);
 	}
 
 	public void removePluginView(final AbstractIView view, final String name) {
@@ -234,5 +237,21 @@ public class PluginsMenuHelper
 			}
 		}
 
+	}
+	
+	public void addPluginAddedViewListener(PluginAddedViewListener l) {
+		pluginAddedViewListener.add(l);
+	}
+	
+	public void triggerPluginAddedViewListeners(IViewInfo viewInfo) {
+		Object[] listeners = pluginAddedViewListener.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			PluginAddedViewListener l = (PluginAddedViewListener) listeners[i];
+			l.pluginViewAdded(viewInfo);
+		}
+	}
+	
+	public static interface PluginAddedViewListener {
+		public void pluginViewAdded(IViewInfo viewInfo);
 	}
 }
