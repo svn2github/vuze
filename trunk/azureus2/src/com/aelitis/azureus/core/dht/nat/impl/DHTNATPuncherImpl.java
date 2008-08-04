@@ -1266,8 +1266,11 @@ DHTNATPuncherImpl
 	}
 	
 	
-	
-	protected int
+
+    /**
+     * XXX: unused
+     */
+    private int
 	sendQuery(
 		DHTTransportContact	target )
 	{
@@ -1310,7 +1313,8 @@ DHTNATPuncherImpl
 		DHTTransportUDPContact	originator,
 		Map						request,
 		Map						response )
-	{				trace( "received query request" );
+	{		
+		trace( "received query request" );
 					
 		InetSocketAddress	address = originator.getTransportAddress();
 		
