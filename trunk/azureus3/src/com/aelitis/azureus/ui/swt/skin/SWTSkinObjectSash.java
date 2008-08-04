@@ -113,6 +113,11 @@ public class SWTSkinObjectSash
 				+ ".SplitAt", -1);
 		if (splitAt >= 0) {
 			sashPct = splitAt / 10000.0;
+			if (sashPct > 1) {
+				sashPct = 1;
+			} else if (sashPct < 0) {
+				sashPct = 0;
+			}
 			sash.setData("PCT", new Double(sashPct));
 		} else {
 			String sPos = properties.getStringValue(sConfigID + ".startpos");
@@ -469,12 +474,18 @@ public class SWTSkinObjectSash
 
 	private Double ensureVisibilityStates(Double l, Composite above,
 			Composite below, boolean bVertical) {
-		Double ret = l;
+		double pct = l.doubleValue();
+		if (pct > 1) {
+			pct = 1;
+		} else if (pct < 0) {
+			pct = 0;
+		}
+		
+		Double ret = new Double(pct);
 		int sizeBelow = bVertical ? below.getSize().x : below.getSize().y;
 		int sizeAbove = bVertical ? above.getSize().x : above.getSize().y;
 
-		if ((l.doubleValue() == 0.0 || sizeBelow <= 1) && below != null
-				&& below.getVisible()) {
+		if ((pct == 0.0 || sizeBelow <= 1) && below != null && below.getVisible()) {
 			below.setVisible(false);
 			below.setData("SashSetVisibility", new Boolean(true));
 		} else if (below != null && !below.isVisible()
@@ -483,8 +494,7 @@ public class SWTSkinObjectSash
 			below.setData("SashSetVisibility", null);
 		}
 
-		if ((l.doubleValue() == 1.0 || sizeAbove <= 1) && above != null
-				&& above.getVisible()) {
+		if ((pct == 1.0 || sizeAbove <= 1) && above != null && above.getVisible()) {
 			above.setVisible(false);
 			above.setData("SashSetVisibility", new Boolean(true));
 		} else if (above != null && !above.isVisible()
