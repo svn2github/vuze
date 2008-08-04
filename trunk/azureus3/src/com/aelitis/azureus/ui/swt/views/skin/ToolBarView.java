@@ -197,7 +197,7 @@ public class ToolBarView
 		
 		
 		// ==share
-		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
+		item = new ToolBarItem("share", "image.button.sharewhite", "iconBar.share") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
