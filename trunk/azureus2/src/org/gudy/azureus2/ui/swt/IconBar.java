@@ -94,7 +94,7 @@ public class IconBar {
 				public void widgetSelected(SelectionEvent e) {
 					String uiOld = COConfigurationManager.getStringParameter("ui");
 					String uiNew = UISwitcherUtil.openSwitcherWindow(true);
-					if (!uiOld.equals(uiNew)) {
+					if (!uiOld.equals(uiNew) && !IconBar.this.parent.isDisposed()) {
   					int result = MessageBoxShell.open(IconBar.this.parent.getShell(),
   							MessageText.getString("dialog.uiswitcher.restart.title"),
   							MessageText.getString("dialog.uiswitcher.restart.text"),
