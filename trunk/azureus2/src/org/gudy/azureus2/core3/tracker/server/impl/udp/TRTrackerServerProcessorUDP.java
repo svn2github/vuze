@@ -252,11 +252,8 @@ TRTrackerServerProcessorUDP
 				}else{
 										
 					System.out.println( "UDP Tracker: replying 'disabled' to " + client_ip_address );
-					
-					//if ( client_ip_address.equals( "64.79.127.118" )){
-								
-						reply = new PRUDPPacketReplyError( request.getTransactionId(), "UDP Tracker disabled" );
-					//}
+													
+					reply = new PRUDPPacketReplyError( request.getTransactionId(), "UDP Tracker disabled" );
 				}
 			}
 			
