@@ -1607,23 +1607,6 @@ public class MainWindow
 			attachSearchBox(skinObject);
 		}
 
-		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
-		if (skinObject != null) {
-			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
-
-			MainMenu.createViewMenuItem(skin, topbarMenu, "v3.MainWindow.menu.view."
-					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
-					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true);
-
-			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
-
-			skinObject = skin.getSkinObject("tabbar");
-			if (skinObject != null) {
-				addMenuAndNonTextChildren((Composite) skinObject.getControl(),
-						topbarMenu);
-			}
-		}
-
 		/*
 		 * Init the user area for login/logout info
 		 */
