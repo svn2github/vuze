@@ -80,4 +80,6 @@ public class SkinConstants
 	public static final String VIEWID_SIDEBAR_LIBRARY_SMALL = "library-smalltable-area";
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
+
+	public static final String VIEWID_SIDEBAR = "sidebar";
 }

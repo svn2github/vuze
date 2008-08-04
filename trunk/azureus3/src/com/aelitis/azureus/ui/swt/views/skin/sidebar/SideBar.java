@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
+import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -158,6 +159,21 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		skin = skinObject.getSkin();
+
+		soSideBarContents = skin.getSkinObject("sidebar-contents");
+		soSideBarList = skin.getSkinObject("sidebar-list");
+
+		setupList();
+
+		try {
+			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		ViewTitleInfoManager.addListener(this);
+
 		Display.getDefault().addFilter(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
 				if (event.keyCode == SWT.F9
@@ -183,13 +199,13 @@ public class SideBar
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
-				if (soSash.getPercent() == 100) {
+				if (soSash.getPercent() == 1) {
 					if (lastPercent != 0) {
 						soSash.setPercent(lastPercent);
 					}
 				} else {
 					lastPercent = soSash.getPercent();
-					soSash.setPercent(100);
+					soSash.setPercent(1);
 				}
 			}
 		});
@@ -202,21 +218,9 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		skin = skinObject.getSkin();
-
-		soSideBarContents = skin.getSkinObject("sidebar-contents");
-		soSideBarList = skin.getSkinObject("sidebar-list");
-
-		setupList();
-
-		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
-		} catch (Exception e) {
-			Debug.out(e);
+		if (!isVisible()) {
+			flipSideBarVisibility();
 		}
-
-		ViewTitleInfoManager.addListener(this);
-
 		return null;
 	}
 
@@ -677,30 +681,43 @@ public class SideBar
 		}
 
 		UISWTInstanceImpl uiSWTInstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
-		Map allViews = uiSWTInstance.getAllViews();
-		Object[] parentIDs = allViews.keySet().toArray();
-		for (int i = 0; i < parentIDs.length; i++) {
-			String parentID = (String) parentIDs[i];
-			Map mapSubViews = (Map) allViews.get(parentID);
-			if (mapSubViews != null) {
-				Object[] viewIDs = mapSubViews.keySet().toArray();
-				for (int j = 0; j < viewIDs.length; j++) {
-					String viewID = (String) viewIDs[j];
-					UISWTViewEventListener l = (UISWTViewEventListener) mapSubViews.get(viewID);
-					if (l != null) {
-						// TODO: Datasource
-						// TODO: Multiple open
-
-						boolean open = COConfigurationManager.getBooleanParameter(
-								"SideBar.AutoOpen." + viewID, false);
-						if (open) {
-							createTreeItemFromEventListener(parentID, null, l, viewID, true,
-									null);
-						}
-					}
+		if (uiSWTInstance != null) {
+  		Map allViews = uiSWTInstance.getAllViews();
+  		Object[] parentIDs = allViews.keySet().toArray();
+  		for (int i = 0; i < parentIDs.length; i++) {
+  			String parentID = (String) parentIDs[i];
+  			Map mapSubViews = (Map) allViews.get(parentID);
+  			if (mapSubViews != null) {
+  				Object[] viewIDs = mapSubViews.keySet().toArray();
+  				for (int j = 0; j < viewIDs.length; j++) {
+  					String viewID = (String) viewIDs[j];
+  					UISWTViewEventListener l = (UISWTViewEventListener) mapSubViews.get(viewID);
+  					if (l != null) {
+  						// TODO: Datasource
+  						// TODO: Multiple open
+  
+  						boolean open = COConfigurationManager.getBooleanParameter(
+  								"SideBar.AutoOpen." + viewID, false);
+  						if (open) {
+  							createTreeItemFromEventListener(parentID, null, l, viewID, true,
+  									null);
+  						}
+  					}
+  				}
+  			}
+  		}
+		}
+		
+		PluginsMenuHelper.getInstance().addPluginAddedViewListener(new PluginAddedViewListener() {
+			// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
+			public void pluginViewAdded(IViewInfo viewInfo) {
+				System.out.println("PluginView Addded: " + viewInfo.viewID);
+				Object o = mapAutoOpen.get(viewInfo.viewID);
+				if (o instanceof Map) {
+					processAutoOpenMap(viewInfo.name, (Map) o);
 				}
 			}
-		}
+		});
 
 		loadCloseables();
 
@@ -1462,33 +1479,43 @@ public class SideBar
 	}
 
 	public void loadCloseables() {
-		Map map = FileUtil.readResilientConfigFile("sidebarauto", true);
-		BDecoder.decodeStrings(map);
-		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
+		mapAutoOpen = FileUtil.readResilientConfigFile("sidebarauto", true);
+		BDecoder.decodeStrings(mapAutoOpen);
+		for (Iterator iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
-			Object o = map.get(id);
+			Object o = mapAutoOpen.get(id);
 
-			try {
-  			if (o instanceof Map) {
-  				Map mapStoredView = (Map) o;
-  				Class cla = Class.forName((String) mapStoredView.get("iviewClass"));
-  				if (cla != null) {
-  					String title = MapUtils.getMapString(mapStoredView, "title", id);
-  					String parentID = (String) mapStoredView.get("parentID");
-  					String dmHash = MapUtils.getMapString(mapStoredView, "dm", null);
-  					Object ds = null;
-  					if (dmHash != null) {
-  						HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
-  						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-  						ds = gm.getDownloadManager(hw);
-  					}
-  					createTreeItemFromIViewClass(parentID, id, title, cla, null, null,
-								ds, null, true);
-  				}
-  			}
-			} catch (Throwable e) {
-				Debug.out(e);
+			if (o instanceof Map) {
+				processAutoOpenMap(id, (Map)o);
 			}
+		}
+	}
+
+	/**
+	 * @param o
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void processAutoOpenMap(String id, Map o) {
+		try {
+  		Map mapStoredView = (Map) o;
+  		Class cla = Class.forName((String) mapStoredView.get("iviewClass"));
+  		if (cla != null) {
+  			String title = MapUtils.getMapString(mapStoredView, "title", id);
+  			String parentID = (String) mapStoredView.get("parentID");
+  			String dmHash = MapUtils.getMapString(mapStoredView, "dm", null);
+  			Object ds = null;
+  			if (dmHash != null) {
+  				HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
+  				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  				ds = gm.getDownloadManager(hw);
+  			}
+  			System.out.println("autoopen " + id);
+  			createTreeItemFromIViewClass(parentID, id, title, cla, null, null,
+  					ds, null, true);
+  		}
+		} catch (Throwable e) {
+			Debug.out(e);
 		}
 	}
 }
