@@ -1060,12 +1060,14 @@ public class MenuFactory
 
 	public static final MenuItem addMenuItem(Menu menu, int style,
 			String localizationKey, Listener selListener) {
-		return addMenuItem(menu, style, menu.getItemCount(), localizationKey,
-				selListener);
+		return addMenuItem(menu, style, -1, localizationKey, selListener);
 	}
 
 	public static final MenuItem addMenuItem(Menu menu, int style, int index,
 			String localizationKey, Listener selListener) {
+		if (index < 0 || index > menu.getItemCount()) {
+			index = menu.getItemCount();
+		}
 		MenuItem menuItem = new MenuItem(menu, style, index);
 		Messages.setLanguageText(menuItem, localizationKey);
 		KeyBindings.setAccelerator(menuItem, localizationKey);
