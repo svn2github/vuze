@@ -327,9 +327,9 @@ DHTTransportStatsImpl
 	{
 		data[STAT_OK]++;
 	}
-	
-	public void
-	dayaFailed()
+
+    public void
+	dataFailed()
 	{
 		data[STAT_FAILED]++;
 	}
