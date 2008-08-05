@@ -89,7 +89,9 @@ public class SBC_LibraryTableView
 		viewComposite.setForeground(viewComposite.getDisplay().getSystemColor(
 				SWT.COLOR_WIDGET_FOREGROUND));
 		viewComposite.setLayoutData(Utils.getFilledFormData());
-		viewComposite.setLayout(new GridLayout());
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+		viewComposite.setLayout(gridLayout);
 
 		view.initialize(viewComposite);
 
