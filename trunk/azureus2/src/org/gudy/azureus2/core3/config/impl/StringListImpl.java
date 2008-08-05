@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.config.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -40,15 +41,15 @@ public class StringListImpl implements StringList {
 	public StringListImpl() {
 		this.list = new ArrayList();
 	}
-	
-	public StringListImpl(StringListImpl _list) {
+
+    public StringListImpl(StringListImpl _list) {
 		list = new ArrayList(_list.getList());
 	}
 	
 	/*
 	 * package accessor to load / save the list.
 	 */	
-	public StringListImpl(List _list) {
+	public StringListImpl(Collection _list) {
 		//Attempt to convert list to String List
 		this();		
 		Iterator iter = _list.iterator();
@@ -58,7 +59,7 @@ public class StringListImpl implements StringList {
 				list.add(obj);
 			} else if(obj instanceof byte[]) {
 				list.add(ConfigurationManager.bytesToString((byte[]) obj));
-			} else if(obj instanceof Object) {
+			} else if (obj != null) {
 				list.add(obj.toString());
 			}
 		}		
