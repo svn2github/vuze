@@ -175,6 +175,7 @@ public class UserAreaUtils
 			return;
 		}
 
+		// 3.2 TODO: These are different now that we have a sidebar
 		/*
 		 * Reset browser tabs if the login state has changed
 		 */
