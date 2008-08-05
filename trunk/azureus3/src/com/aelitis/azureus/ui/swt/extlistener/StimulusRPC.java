@@ -123,6 +123,14 @@ public class StimulusRPC
 							return TorrentListener.loadTorrentByB64(core, b64);
 						} else if (decodedMap.containsKey("url")) {
 							String url = MapUtils.getMapString(decodedMap, "url", null);
+
+							boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
+							// Security: Only allow torrents from whitelisted urls
+							if (blocked) {
+								Debug.out("stopped loading torrent URL because it's not in whitelist");
+								return false;
+							}
+
 							boolean playNow = MapUtils.getMapBoolean(decodedMap, "play-now",
 									false);
 							boolean playPrepare = MapUtils.getMapBoolean(decodedMap,

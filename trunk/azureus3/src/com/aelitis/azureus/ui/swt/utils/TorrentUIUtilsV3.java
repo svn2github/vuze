@@ -74,13 +74,6 @@ public class TorrentUIUtilsV3
 		final boolean bringToFront,
 		final boolean forceDRMtoCDP)
 	{
-		boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
-		// Security: Only allow torrents from whitelisted urls
-		if (blocked) {
-			Debug.out("stopped loading torrent URL because it's not in whitelist");
-			return;
-		}
-
 		try {
 			if (playNow || playPrepare ) {
   			Matcher m = hashPattern.matcher(url);
