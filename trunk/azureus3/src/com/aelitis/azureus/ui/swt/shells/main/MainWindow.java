@@ -1325,7 +1325,7 @@ public class MainWindow
 
 		views.put(SkinConstants.VIEWID_LIBRARY, MediaList.class);
 
-		views.put("publish-area", Publish.class);
+		views.put("publish", Publish.class);
 
 		views.put(SkinConstants.VIEWID_MINILIBRARY, MiniLibraryList.class);
 

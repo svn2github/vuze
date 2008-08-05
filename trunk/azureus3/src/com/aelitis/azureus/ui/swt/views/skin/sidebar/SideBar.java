@@ -236,7 +236,7 @@ public class SideBar
 	private void setupList() {
 		Composite parent = (Composite) soSideBarList.getControl();
 
-		tree = new Tree(parent, SWT.FULL_SELECTION);
+		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER);
 		tree.setHeaderVisible(false);
 
 		tree.setLayoutData(Utils.getFilledFormData());
@@ -619,7 +619,7 @@ public class SideBar
 				"main.area.rec", "Recommendations", null, null, false);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH,
-				"main.area.publishtab", "Publish", null, null, false);
+				"publishtab.area", "Publish", null, null, false);
 
 		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false);
