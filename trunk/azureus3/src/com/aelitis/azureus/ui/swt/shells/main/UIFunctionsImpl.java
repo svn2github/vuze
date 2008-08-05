@@ -475,6 +475,14 @@ public class UIFunctionsImpl
 	}
 
 	public void openView(int viewID, Object data) {
+		if (mainWindow.isOnAdvancedView()) {
+			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+			if (uiFunctions != null) {
+				uiFunctions.openView(viewID, data);
+				return;
+			}
+		}
+
 		switch (viewID) {
 			case VIEW_CONSOLE:
 				mainWindow.openView(SideBar.SIDEBAR_SECTION_TOOLS, LoggerView.class,
@@ -519,13 +527,6 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYTORRENTS: {
-				if (mainWindow.isOnAdvancedView()) {
-					UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-					if (uiFunctions != null) {
-						uiFunctions.openView(VIEW_MYTORRENTS, null);
-						return;
-					}
-				}
 				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 				if (sideBar != null) {
