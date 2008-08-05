@@ -39,14 +39,13 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
-import com.aelitis.azureus.core.metasearch.impl.ResultsFilterImpl;
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
 import com.aelitis.azureus.util.JSONUtils;
-
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
@@ -78,6 +77,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
 	
 	public static final String OP_CREATE_SUBSCRIPTION   = "create-subscription";
+	public static final String OP_READ_SUBSCRIPTION   	= "read-subscription";
 
 	private final SearchResultsTabArea searchResultsArea;
 	
@@ -729,12 +729,14 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 				
 		}else if(OP_HAS_LOAD_TORRENT.equals(opid)) {
+			
 			Map params = new HashMap();
 			params.put("result","1");
 			sendBrowserMessage("metasearch", "hasLoadTorrent",params);
+			
 		}else if(OP_CREATE_SUBSCRIPTION.equals(opid)) {
-			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
-					: new HashMap();
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
 			final String name = (String) decodedMap.get("name");
 			final Boolean isPublic	= (Boolean) decodedMap.get( "is_public" );
 			
@@ -757,6 +759,49 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage("metasearch", "createSubscriptionFailed",params);
+			}
+		}else if(OP_READ_SUBSCRIPTION.equals(opid)) {
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			final String sid = (String) decodedMap.get("id");
+			
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					Map params = new HashMap();
+
+					params.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+					
+				}else{
+					
+					Map result = new HashMap();
+					
+					result.put( "id", subs.getID());
+					result.put( "name", subs.getName());
+					result.put( "is_public", new Boolean( subs.isPublic()));
+					result.put( "is_author", new Boolean( subs.isMine()));
+					
+					String json = subs.getJSON();
+					
+					Map map = JSONUtils.decodeJSON( json );
+					
+					result.put( "engine_id", map.get( "engine_id" ));
+					result.put( "search_term", map.get( "search_term" ));
+					result.put( "filters", map.get( "filters" ));
+					
+					sendBrowserMessage( "metasearch", "readSubscriptionCompleted", result );
+				}
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
 			}
 		}
 	}

@@ -151,6 +151,10 @@ SubscriptionManagerImpl
 	private static final int	SERVER_PUB_CHECK_PERIOD	= 10*60*1000;
 	private static final int	SERVER_PUB_CHECK_TICKS	= SERVER_PUB_CHECK_PERIOD/TIMER_PERIOD;
 
+	private static final int	SET_SELECTED_PERIOD		= 23*60*60*1000;
+	private static final int	SET_SELECTED_FIRST_TICK	= 3*60*1000 /TIMER_PERIOD;
+	private static final int	SET_SELECTED_TICKS		= SET_SELECTED_PERIOD/TIMER_PERIOD;
+
 	
 	private volatile DHTPlugin	dht_plugin;
 	
@@ -423,6 +427,11 @@ SubscriptionManagerImpl
 			((SubscriptionManagerListener)it.next()).subscriptionAdded( subs );
 		}
 		
+		if ( subs.isSubscribed() && subs.isPublic()){
+			
+			setSelected( subs );
+		}
+		
 		if ( dht_plugin != null ){
 				
 			publishSubscriptions();
@@ -542,6 +551,12 @@ SubscriptionManagerImpl
 		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
 			
 			checkServerPublications( subs );
+		}
+		
+		if ( 	ticks == SET_SELECTED_FIRST_TICK ||
+				ticks % SET_SELECTED_TICKS == 0 ){
+			
+			setSelected( subs );
 		}
 	}
 	
@@ -679,7 +694,7 @@ SubscriptionManagerImpl
 		return( null );
 	}
 	
-	public SubscriptionImpl
+	protected SubscriptionImpl
 	getSubscriptionFromPublicKey(
 		byte[]		public_key )
 	{
@@ -699,7 +714,14 @@ SubscriptionManagerImpl
 		return( null );
 	}
 	
-	public SubscriptionImpl
+	public Subscription
+	getSubscriptionByID(
+		String		id )
+	{
+		return( getSubscriptionFromSID( Base32.decode( id )));
+	}
+	
+	protected SubscriptionImpl
 	getSubscriptionFromSID(
 		byte[]		sid )
 	{
@@ -929,6 +951,71 @@ SubscriptionManagerImpl
 			}
 			
 			log( "Periodic update check failed", e );
+		}
+	}
+	
+	protected void
+	setSelected(
+		List		subs )
+	{
+		List	sids = new ArrayList();
+		
+		for (int i=0;i<subs.size();i++){
+			
+			SubscriptionImpl	sub = (SubscriptionImpl)subs.get(i);
+			
+			if ( sub.isSubscribed() && sub.isPublic()){
+				
+				sids.add( sub.getShortID());
+			}
+		}
+		
+		if ( sids.size() > 0 ){
+			
+			try{
+				PlatformSubscriptionsMessenger.setSelected( sids );
+				
+				log( "Popularity update: updated " + sids.size());
+				
+			}catch( Throwable e ){
+				
+				log( "Popularity update: Failed to record selected subscriptions", e );
+			}
+		}else{
+			
+			log( "Popularity update: No selected, public subscriptions" );
+		}
+	}
+	
+	protected void
+	setSelected(
+		final SubscriptionImpl	sub )
+	{
+		if ( sub.isSubscribed() && sub.isPublic()){
+			
+			new DelayedEvent( 
+				"SM:setSelected",
+				0,
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							List	sids = new ArrayList();
+							
+							sids.add( sub.getShortID());
+						
+							PlatformSubscriptionsMessenger.setSelected( sids );
+							
+							log( "setSelected: " + sub.getName());
+							
+						}catch( Throwable e ){
+							
+							log( "setSelected: failed for " + sub.getName(), e );
+						}
+					}
+				});
 		}
 	}
 	

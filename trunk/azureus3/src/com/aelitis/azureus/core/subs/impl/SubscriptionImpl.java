@@ -634,6 +634,11 @@ SubscriptionImpl
 			
 			is_subscribed = s;
 			
+			if ( is_subscribed ){
+				
+				manager.setSelected( this );
+			}
+			
 			fireChanged();
 		}
 	}

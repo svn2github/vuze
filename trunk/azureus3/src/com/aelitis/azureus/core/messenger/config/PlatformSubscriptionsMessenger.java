@@ -45,6 +45,7 @@ PlatformSubscriptionsMessenger
 	public static final String OP_UPDATE_SUBS					= "update-subscription";
 	public static final String OP_GET_SUBS_BY_SID				= "get-subscriptions";
 	public static final String OP_GET_POP_BY_SID				= "get-subscription-infos";
+	public static final String OP_SET_SELECTED					= "set-selected";
 
 	public static void
 	updateSubscription(
@@ -159,6 +160,30 @@ PlatformSubscriptionsMessenger
 		
 		throw( new PlatformMessengerException( "Unknown sid '" + ByteFormatter.encodeString(sid) + "'" ));
 	}
+	
+	public static void 
+	setSelected(
+		List	sids )
+	
+		throws PlatformMessengerException
+	{
+		Map parameters = new HashMap();
+		
+		List	sid_list 	= new JSONArray();
+		List	user_list 	= new JSONArray();;
+		
+		for (int i=0;i<sids.size();i++){
+		
+			sid_list.add( Base32.encode( (byte[])sids.get(i) ));
+			
+			user_list.add( "whoever" );
+		}
+		
+		parameters.put( "subscription_ids", sid_list);
+		parameters.put( "user_ids", user_list);
+		
+		Map reply = syncInvoke(	OP_SET_SELECTED, parameters ); 
+	}   
 	
 	protected static Map
 	syncInvoke(

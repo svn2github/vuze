@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.subs;
 
+
 public interface 
 SubscriptionManager 
 {
@@ -34,6 +35,10 @@ SubscriptionManager
 	
 	public Subscription[]
 	getSubscriptions();
+	
+	public Subscription
+	getSubscriptionByID(
+		String			id );
 	
 		/**
 		 * Full lookup
