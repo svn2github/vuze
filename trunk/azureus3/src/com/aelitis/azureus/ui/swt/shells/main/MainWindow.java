@@ -644,13 +644,18 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
-			SkinViewManager.addListener(new SkinViewManagerListener() {
-				public void skinViewAdded(SkinView skinview) {
-					if (skinview instanceof SideBar) {
-						setupSideBar((SideBar) skinview);
-					}
-				}
-			});
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sidebar != null) {
+				setupSideBar(sidebar);
+			} else {
+  			SkinViewManager.addListener(new SkinViewManagerListener() {
+  				public void skinViewAdded(SkinView skinview) {
+  					if (skinview instanceof SideBar) {
+  						setupSideBar((SideBar) skinview);
+  					}
+  				}
+  			});
+			}
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 
