@@ -385,6 +385,11 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
+		if ( getSubscriptionFromName( name ) != null ){
+			
+			throw ( new SubscriptionException( "Subscription with name '" + name + "' already exists" ));
+		}
+		
 		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, json );
 		
 		log( "Created new subscription: " + subs.getString());
@@ -652,6 +657,26 @@ SubscriptionManagerImpl
 			
 			return((Subscription[])subscriptions.toArray( new Subscription[subscriptions.size()]));
 		}
+	}
+	
+	public SubscriptionImpl
+	getSubscriptionFromName(
+		String		name )
+	{
+		synchronized( this ){
+			
+			for (int i=0;i<subscriptions.size();i++){
+				
+				SubscriptionImpl s = (SubscriptionImpl)subscriptions.get(i);
+				
+				if ( s.getName().equalsIgnoreCase( name )){
+					
+					return( s );
+				}
+			}
+		}
+		
+		return( null );
 	}
 	
 	public SubscriptionImpl
@@ -2010,7 +2035,7 @@ SubscriptionManagerImpl
 				{
 					log( "Checked association '" + subs.getString() + "' -> '" + assoc.getString() + "' - max_ver=" + max_ver + ",hits=" + hits );
 
-					if ( max_ver >= subs.getVersion()){
+					if ( max_ver > subs.getVersion()){
 						
 						if ( !subs.isMine()){
 						
@@ -2322,7 +2347,7 @@ SubscriptionManagerImpl
 			
 			log( "    User has already been prompted for version " + new_version + " so ignoring" );
 			
-			//return;
+			return;
 		}
 		
 		log( "Checking subscription '" + subs.getString() + "' upgrade to version " + new_version );

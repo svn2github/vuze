@@ -327,6 +327,16 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										return false;
 									}
+									public String getJSON()
+											throws SubscriptionException {
+										// TODO Auto-generated method stub
+										return null;
+									}
+									public void setJSON(String json)
+											throws SubscriptionException {
+										// TODO Auto-generated method stub
+										
+									}
 									public boolean isSubscribed() {
 										// TODO Auto-generated method stub
 										return false;

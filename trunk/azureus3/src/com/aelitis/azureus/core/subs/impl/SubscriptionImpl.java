@@ -504,15 +504,9 @@ SubscriptionImpl
 	
 		throws SubscriptionException
 	{
-		try{		
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
+		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
 
-			return( body.getJSON());
-			
-		}catch( Throwable e ){
-			
-			throw( new SubscriptionException( "Failed to read subscription", e ));
-		}
+		return( body.getJSON());
 	}
 	
 	public void

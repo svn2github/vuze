@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
+import com.aelitis.azureus.util.JSONUtils;
 
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
@@ -736,17 +737,27 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					: new HashMap();
 			final String name = (String) decodedMap.get("name");
 			final Boolean isPublic	= (Boolean) decodedMap.get( "is_public" );
-			final Long engineId	= (Long) decodedMap.get( "engine_id" );
-			final String searchTerm	= (String) decodedMap.get( "search_term" );
-			final Map filters = (Map) decodedMap.get("filters");
 			
-			ResultsFilter resultsFilter = new ResultsFilterImpl(filters);
-			try {
-				SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), "");
-			} catch (Exception e) {
-				e.printStackTrace();
+			try{
+				JSONObject	payload = new JSONObject();
+				
+				payload.put( "engine_id", decodedMap.get( "engine_id" ));
+				payload.put( "search_term", decodedMap.get( "search_term" ));
+				payload.put( "filters", decodedMap.get( "filters" ));
+				
+				SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), payload.toString());
+				
+				Map params = new HashMap();
+				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", params );
+
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "createSubscriptionFailed",params);
 			}
-			System.out.println("Create Subscription called, name : " + name + ", isPublic : " + isPublic + ", engineId : " + engineId + ", searchTerm : " + searchTerm + ", filters : " + filters);
 		}
 	}
 	

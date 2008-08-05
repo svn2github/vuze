@@ -39,6 +39,17 @@ Subscription
 	public boolean
 	isPublic();
 	
+	public String
+	getJSON()
+	
+		throws SubscriptionException;
+	
+	public void
+	setJSON(
+		String		json )
+	
+		throws SubscriptionException;
+	
 	public boolean
 	isSubscribed();
 	
