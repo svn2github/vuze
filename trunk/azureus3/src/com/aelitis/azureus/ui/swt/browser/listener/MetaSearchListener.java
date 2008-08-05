@@ -747,10 +747,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				payload.put( "search_term", decodedMap.get( "search_term" ));
 				payload.put( "filters", decodedMap.get( "filters" ));
 				
-				SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), payload.toString());
+				Subscription subs = SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), payload.toString());
 				
-				Map params = new HashMap();
-				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", params );
+				Map result = new HashMap();
+				
+				result.put( "id", subs.getID());
+				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", result );
 
 			} catch( Throwable e ){
 				
