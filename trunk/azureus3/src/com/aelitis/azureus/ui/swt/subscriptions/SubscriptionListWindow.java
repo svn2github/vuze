@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -315,6 +316,14 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										return null;
 									}
+									public String getID() {
+										// TODO Auto-generated method stub
+										return null;
+									}
+									public void remove() {
+										// TODO Auto-generated method stub
+										
+									}
 									public int getVersion() {
 										// TODO Auto-generated method stub
 										return 0;
@@ -343,6 +352,28 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 									}
 									public void setSubscribed(boolean subscribed) {
 										System.out.println(getName() + " is now subscribed : " + subscribed);
+									}
+									public void addListener(
+											SubscriptionListener l) {
+										// TODO Auto-generated method stub
+										
+									}
+									public void removeListener(
+											SubscriptionListener l) {
+										// TODO Auto-generated method stub
+										
+									}
+									public int getAssociationCount() {
+										// TODO Auto-generated method stub
+										return 0;
+									}
+									public SubscriptionManager getManager() {
+										// TODO Auto-generated method stub
+										return null;
+									}
+									public long getCachedPopularity() { 
+										// TODO Auto-generated method stub
+										return 0;
 									}
 									public void
 									setUserData(

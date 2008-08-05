@@ -46,7 +46,10 @@ import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionListener;
+import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 SubscriptionImpl 
@@ -115,6 +118,7 @@ SubscriptionImpl
 	
 	private Map				user_data = new LightHashMap();
 	
+	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 		// new subs constructor
 	
@@ -412,7 +416,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -460,7 +464,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -477,7 +481,7 @@ SubscriptionImpl
 			
 			server_publication_outstanding = true;
 		
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -489,7 +493,7 @@ SubscriptionImpl
 			server_published 				= true;
 			server_publication_outstanding	= false;
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -547,7 +551,7 @@ SubscriptionImpl
 				}
 			}
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -561,6 +565,12 @@ SubscriptionImpl
 	getShortID()
 	{
 		return( short_id );
+	}
+	
+	public String
+	getID()
+	{
+		return( ByteFormatter.encodeString( getShortID()));
 	}
 	
 	protected byte[]
@@ -594,7 +604,7 @@ SubscriptionImpl
 			
 			highest_prompted_version = v;
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -624,7 +634,7 @@ SubscriptionImpl
 			
 			is_subscribed = s;
 			
-			manager.configDirty( this );
+			fireChanged();
 		}
 	}
 	
@@ -652,7 +662,7 @@ SubscriptionImpl
 									
 									popularity = pop;
 									
-									manager.configDirty( SubscriptionImpl.this );
+									fireChanged();
 								}
 								
 								listener.gotPopularity( popularity );
@@ -686,6 +696,12 @@ SubscriptionImpl
 				}
 			}
 		}.start();
+	}
+	
+	public long 
+	getCachedPopularity() 
+	{
+		return( popularity );
 	}
 	
 	protected void
@@ -816,9 +832,18 @@ SubscriptionImpl
 			}
 		}
 		
-		manager.configDirty( this );
+		fireChanged();
 		
 		manager.associationAdded( this, hash);
+	}
+	
+	public int
+	getAssociationCount()
+	{
+		synchronized( this ){
+			
+			return( associations.size());
+		}
 	}
 	
 	protected association
@@ -947,6 +972,45 @@ SubscriptionImpl
 	}
 	
 	protected void
+	fireChanged()
+	{
+		manager.configDirty( this );
+		
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((SubscriptionListener)it.next()).subscriptionChanged( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	addListener(
+		SubscriptionListener	l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		SubscriptionListener	l )
+	{
+		listeners.remove( l );
+	}
+	
+	public SubscriptionManager
+	getManager()
+	{
+		return( manager );
+	}
+	
+	protected void
 	destroy()
 	{
 		LightWeightSeed l;
@@ -962,6 +1026,14 @@ SubscriptionImpl
 			
 			l.remove();
 		}
+	}
+	
+	public void
+	remove()
+	{
+		destroy();
+		
+		manager.removeSubscription( this );
 	}
 	
 	public void

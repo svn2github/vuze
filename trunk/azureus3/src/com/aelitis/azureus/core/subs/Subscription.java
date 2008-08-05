@@ -27,6 +27,9 @@ Subscription
 	public String
 	getName();
 	
+	public String
+	getID();
+	
 	public byte[]
 	getPublicKey();
 	
@@ -63,9 +66,29 @@ Subscription
 	
 		throws SubscriptionException;
 	
+	public long
+	getCachedPopularity();
+	
 	public void
 	addAssociation(
 		byte[]		hash );
+	
+	public int
+	getAssociationCount();
+	
+	public void
+	remove();
+	
+	public SubscriptionManager
+	getManager();
+	
+	public void
+	addListener(
+		SubscriptionListener		l );
+	
+	public void
+	removeListener(
+		SubscriptionListener		l );
 	
 	public void
 	setUserData(

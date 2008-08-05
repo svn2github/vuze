@@ -24,8 +24,18 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -53,9 +63,11 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -545,32 +557,7 @@ SubscriptionManagerUI
 								TreeItem  tree_item = 
 									side_bar.createTreeItemFromIView(
 										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
-										new AbstractIView()
-										{
-											private Composite		parent_composite;
-											private Composite		composite;
-											
-											public void 
-											initialize(
-												Composite _parent_composite )
-											{  
-												parent_composite	= _parent_composite;
-												
-												composite = new Composite( parent_composite, SWT.NULL );
-											}
-											  
-											public Composite 
-											getComposite()
-											{ 
-												return( composite );
-											}
-											
-											public String 
-											getFullTitle() 
-											{
-												return( subs.getName());
-											}
-										}, 
+										new subscriptionView( subs ),
 										ByteFormatter.encodeString(subs.getPublicKey()), 
 										null, 
 										false, 
@@ -641,6 +628,156 @@ SubscriptionManagerUI
 		icon_list.add( graphic );
 		
 		return( graphic );
+	}
+	
+	protected static class
+	subscriptionView
+		extends AbstractIView
+	{
+		private Subscription	subs;
+		
+		private Composite		parent_composite;
+		private Composite		composite;
+				
+		private Label			info_lab;
+		private StyledText		json_area;
+		
+		protected
+		subscriptionView(
+			Subscription		_subs )
+		{
+			subs = _subs;
+		}
+		
+		public void 
+		initialize(
+			Composite _parent_composite )
+		{  
+			parent_composite	= _parent_composite;
+			
+			composite = new Composite( parent_composite, SWT.NULL );
+			
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			composite.setLayout(layout);
+			GridData grid_data = new GridData(GridData.FILL_BOTH );
+			composite.setLayoutData(grid_data);
+
+
+				// control area
+			
+			final Composite controls = new Composite(composite, SWT.NONE);
+			layout = new GridLayout();
+			layout.numColumns = 6;
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			controls.setLayout(layout);
+			grid_data = new GridData(GridData.FILL_HORIZONTAL );
+			controls.setLayoutData(grid_data);
+			
+			info_lab = new Label( controls, SWT.NULL );
+			
+				
+		
+			final Button delete_button = new Button( controls, SWT.NULL );
+			delete_button.setText( "Delete" );
+						
+			delete_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent e )
+					{
+						subs.remove();
+					}
+				});
+
+			final Button save_button = new Button( controls, SWT.NULL );
+			save_button.setText( "Save" );
+					
+			
+			json_area = new StyledText(composite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+			grid_data = new GridData(GridData.FILL_BOTH);
+			grid_data.horizontalSpan = 1;
+			grid_data.horizontalIndent = 4;
+			json_area.setLayoutData(grid_data);
+			json_area.setIndent( 4 );
+
+			save_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent event )
+					{
+						try{
+							subs.setJSON( json_area.getText());
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				});
+			
+			subs.addListener(
+				new SubscriptionListener()
+				{
+					public void 
+					subscriptionChanged(
+						Subscription subs ) 
+					{
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									updateInfo();
+								}
+							});
+					}
+				});
+			
+			updateInfo();
+		}
+		  
+		protected void
+		updateInfo()
+		{
+			info_lab.setText( 
+					" ID=" + subs.getID() +
+					", version=" + subs.getVersion() +
+					", subscribed=" + subs.isSubscribed() +
+					", public=" + subs.isPublic() +
+					", mine=" + subs.isMine() +
+					", popularity=" + subs.getCachedPopularity() +
+					", associations=" + subs.getAssociationCount());
+			
+			try{
+			
+				json_area.setText( subs.getJSON());
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		public Composite 
+		getComposite()
+		{ 
+			return( composite );
+		}
+		
+		public String 
+		getFullTitle() 
+		{
+			return( subs.getName());
+		}
 	}
 	
 	protected static class

@@ -248,9 +248,13 @@ SubscriptionBodyImpl
 	
 		throws IOException
 	{
-		details.put( "name", subs.getName().getBytes( "UTF-8" ));
-		details.put( "is_public", new Long( subs.isPublic()?1:0 ));
-		details.put( "version", new Long( subs.getVersion() ));
+		is_public	= subs.isPublic();
+		version		= subs.getVersion();
+		name		= subs.getName();
+		
+		details.put( "name",name.getBytes( "UTF-8" ));
+		details.put( "is_public", new Long( is_public?1:0 ));
+		details.put( "version", new Long( version ));
 		
 		if ( json != null ){
 		
