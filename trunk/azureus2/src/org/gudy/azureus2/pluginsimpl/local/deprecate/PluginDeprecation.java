@@ -68,6 +68,12 @@ public class PluginDeprecation {
 	}
 	
 	static {
+		
+		/**
+		 * Here is where we define all deprecated call definitions that we manage.
+		 */
+		register("property listener", IGNORE, NOTIFY_EVERY);
+		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(
 			COConfigurationManager.getStringListParameter(CONFIG_KEY).toArray()));

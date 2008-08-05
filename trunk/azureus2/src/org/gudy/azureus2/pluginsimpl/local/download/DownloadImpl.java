@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
@@ -1142,6 +1143,7 @@ DownloadImpl
 	addPropertyListener(
 		DownloadPropertyListener	l )
 	{
+		PluginDeprecation.call("property listener", l);
 		try{
 			tracker_listeners_mon.enter();
 	
