@@ -628,6 +628,19 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sidebar != null) {
+				setupSideBar(sidebar);
+			} else {
+  			SkinViewManager.addListener(new SkinViewManagerListener() {
+  				public void skinViewAdded(SkinView skinview) {
+  					if (skinview instanceof SideBar) {
+  						setupSideBar((SideBar) skinview);
+  					}
+  				}
+  			});
+			}
+
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			System.out.println("pre SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -643,19 +656,6 @@ public class MainWindow
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
-
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sidebar != null) {
-				setupSideBar(sidebar);
-			} else {
-  			SkinViewManager.addListener(new SkinViewManagerListener() {
-  				public void skinViewAdded(SkinView skinview) {
-  					if (skinview instanceof SideBar) {
-  						setupSideBar((SideBar) skinview);
-  					}
-  				}
-  			});
-			}
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 
