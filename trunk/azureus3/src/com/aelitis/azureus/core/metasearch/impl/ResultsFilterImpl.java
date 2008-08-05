@@ -13,24 +13,26 @@ import com.aelitis.azureus.core.metasearch.ResultsFilter;
 public class ResultsFilterImpl implements ResultsFilter {
 	
 	String[] textFilters;
+	String[] excludeTextFilters;
+	String regexFilter;
+	long minSeeds = -1;
 	long minSize = -1;
 	long maxSize = -1;
 	String categoryFilter = null;
 	
 	public ResultsFilterImpl(Map filters) {
 		try {
-			String rawTextFilter = ImportExportUtils.importString(filters,"text_filter");
-			if(rawTextFilter != null) {
-				StringTokenizer st = new StringTokenizer(rawTextFilter," ");
-				textFilters = new String[st.countTokens()];
-				for(int i = 0 ; i < textFilters.length ; i++) {
-					textFilters[i] = st.nextToken().toLowerCase();
-				}
-			}
+			textFilters = importStrings(filters,"text_filter"," ");
+			
+			excludeTextFilters = importStrings(filters,"exclude_text_filter"," ");
+			
+			regexFilter = ImportExportUtils.importString(filters, "regex_filter");
 			
 			minSize = ImportExportUtils.importLong(filters,"min_size",-1l);
 			
 			maxSize = ImportExportUtils.importLong(filters,"max_size",-1l);
+			
+			minSeeds = ImportExportUtils.importLong(filters, "min_seeds",-1l);
 			
 			String rawCategory = ImportExportUtils.importString(filters,"category");
 			if(rawCategory != null) {
@@ -40,6 +42,19 @@ public class ResultsFilterImpl implements ResultsFilter {
 		} catch(Exception e) {
 			//Invalid filters array
 		}
+	}
+
+	private String[] importStrings(Map filters,String key,String separator) throws IOException {
+		String rawStringFilter = ImportExportUtils.importString(filters,key);
+		if(rawStringFilter != null) {
+			StringTokenizer st = new StringTokenizer(rawStringFilter,separator);
+			String[] stringFilter = new String[st.countTokens()];
+			for(int i = 0 ; i < stringFilter.length ; i++) {
+				stringFilter[i] = st.nextToken().toLowerCase();
+			}
+			return stringFilter;
+		}
+		return new String[0];
 	}
 	
 	public Result[] filter(Result[] results) {
@@ -70,6 +85,21 @@ public class ResultsFilterImpl implements ResultsFilter {
 				continue;
 			}
 			
+			for(int j = 0 ; j < excludeTextFilters.length ; j++) {
+				
+				//If one of the text filters do not match, let's not keep testing the others
+				// and mark the result as not valid
+				if(name.indexOf(excludeTextFilters[j]) != -1) {
+					valid = false;
+					break;
+				}
+			}
+			
+			//if invalid after name check, let's get to the next result
+			if(!valid) {
+				continue;
+			}
+			
 			long size = result.getSize();
 			
 			if(minSize > -1) {
@@ -80,6 +110,12 @@ public class ResultsFilterImpl implements ResultsFilter {
 			
 			if(maxSize > -1) {
 				if(maxSize < size) {
+					continue;
+				}
+			}
+			
+			if(minSeeds > -1) {
+				if(minSeeds < result.getNbSeeds()) {
 					continue;
 				}
 			}
@@ -106,14 +142,11 @@ public class ResultsFilterImpl implements ResultsFilter {
 		
 		Map res = new HashMap();
 		
-		StringBuffer rawTextFilters = new StringBuffer();
-		String separator = "";
-		for(int i = 0 ; i < textFilters.length ; i++) {
-			rawTextFilters.append(separator);
-			rawTextFilters.append(textFilters[i]);
-			separator = " ";
-		}
-		ImportExportUtils.exportString(res, "text_filter", rawTextFilters.toString());
+		exportStrings(res, "text_filter", textFilters," ");
+		
+		exportStrings(res, "exclude_text_filter", excludeTextFilters," ");
+		
+		ImportExportUtils.exportString(res, "regex_filter", regexFilter);
 		
 		if(minSize > -1) {
 			res.put("min_size",new Long(minSize));
@@ -123,11 +156,26 @@ public class ResultsFilterImpl implements ResultsFilter {
 			res.put("max_size",new Long(maxSize));
 		}
 		
+		if(minSeeds > -1) {
+			res.put("min_seeds",new Long(minSeeds));
+		}
+		
 		if(categoryFilter != null) {
 			ImportExportUtils.exportString(res, "category", categoryFilter);
 		}
 		
 		return res;
+	}
+
+	private void exportStrings(Map res,String key,String[] strings,String separator) throws IOException {
+		StringBuffer rawStringFilters = new StringBuffer();
+		String sep = "";
+		for(int i = 0 ; i < strings.length ; i++) {
+			rawStringFilters.append(sep);
+			rawStringFilters.append(strings[i]);
+			sep = separator;
+		}
+		ImportExportUtils.exportString(res, key, rawStringFilters.toString());
 	}
 	
 
