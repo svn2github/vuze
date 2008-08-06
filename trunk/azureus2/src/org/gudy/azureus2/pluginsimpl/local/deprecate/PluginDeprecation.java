@@ -62,7 +62,7 @@ public class PluginDeprecation {
 	private static Set persistent_warnings = Collections.synchronizedSet(new HashSet());
 	private static Set instance_warnings = Collections.synchronizedSet(new HashSet());
 	private static void register(String identifier, int stable_behaviour, int beta_behaviour) {
-		behaviour_mapping.put(identifier, Integer.valueOf(
+		behaviour_mapping.put(identifier, new Integer(
 			Constants.isCVSVersion() ? beta_behaviour : stable_behaviour
 		));
 	}
