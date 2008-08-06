@@ -186,20 +186,8 @@ PluginInitializer
   
   private static String[][]default_version_details =
   {
-  		{ "org.gudy.azureus2.ui.webplugin.remoteui.servlet.RemoteUIServlet", 	
-  				"webui", 			"Swing Web Interface",	"1.2.3" },
-  		{ "org.ludo.plugins.azureus.AzureusIpFilterExporter", 					
-  				"safepeer", 		"SafePeer",				"1.2.4" },
-  		{ "org.gudy.azureus2.countrylocator.Plugin", 
-  				"CountryLocator", 	"Country Locator",		"1.0" },
-		{ "org.cneclipse.bdcc.BDCCPlugin", 
-  				"bdcc", 			"BitTorrent IRC Bot",	"2.1" },
 		{ "org.cneclipse.multiport.MultiPortPlugin", 
   				"multi-ports", 		"Mutli-Port Trackers",	"1.0" },
-		{ "i18nPlugin.i18nPlugin", 
-  				"i18nAZ", 			"i18nAZ",				"1.0" },
-		{ "info.baeker.markus.plugins.azureus.RSSImport", 
-  				"RSSImport", 		"RSS Importer", 		"1.0" },
   };
   
   private static PluginInitializer	singleton;
