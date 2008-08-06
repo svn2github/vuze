@@ -67,7 +67,10 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
+import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -743,6 +746,28 @@ SubscriptionManagerUI
 				});
 			
 			updateInfo();
+			
+			final Button browse_button = new Button( controls, SWT.NULL );
+			browse_button.setText( "Browser" );
+						
+			browse_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent e )
+					{
+						String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID();
+						
+						BrowserWindow browser = new BrowserWindow( 
+							UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+							url,
+							600, 800, true, false );
+						
+						browser.getContext().addMessageListener(
+							new MetaSearchListener( null ));
+					}
+				});
 		}
 		  
 		protected void

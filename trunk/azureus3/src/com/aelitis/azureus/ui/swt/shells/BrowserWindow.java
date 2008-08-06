@@ -46,6 +46,8 @@ public class BrowserWindow
 
 	private Shell shell;
 
+	private ClientMessageContext context;
+	
 	public BrowserWindow(Shell parent, String url, double wPct, double hPct,
 			boolean allowResize, boolean isModal) {
 		if (parent == null) {
@@ -97,7 +99,7 @@ public class BrowserWindow
 			return;
 		}
 
-		final ClientMessageContext context = new BrowserContext("browser-window"
+		context = new BrowserContext("browser-window"
 				+ Math.random(), browser, null, true);
 		context.addMessageListener(new TorrentListener());
 		context.addMessageListener(new DisplayListener(browser));
@@ -144,6 +146,12 @@ public class BrowserWindow
 		}
 	}
 
+	public ClientMessageContext
+	getContext()
+	{
+		return( context );
+	}
+	
 	public static void main(String[] args) {
 		Display display = new Display();
 		Shell shell = new Shell(display, SWT.DIALOG_TRIM);
