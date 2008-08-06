@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -570,7 +571,7 @@ SubscriptionImpl
 	public String
 	getID()
 	{
-		return( ByteFormatter.encodeString( getShortID()));
+		return( Base32.encode(getShortID()));
 	}
 	
 	protected byte[]
