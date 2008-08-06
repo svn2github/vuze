@@ -176,9 +176,7 @@ TCPNetworkManager
 		    					long	sleep = READ_SELECT_MIN_LOOP_TIME - duration;
 		    					
 		    					if ( sleep > 0 ){
-		    						
-		    						System.out.println( "sleeping " + sleep );
-		    						
+		    								    						
 		    						try{   							
 		    							Thread.sleep( sleep );
 		    							
@@ -227,9 +225,7 @@ TCPNetworkManager
 		    					long	sleep = WRITE_SELECT_MIN_LOOP_TIME - duration;
 		    					
 		    					if ( sleep > 0 ){
-		    						
-		    						System.out.println( "sleeping " + sleep );
-		    						
+		    								    						
 		    						try{   							
 		    							Thread.sleep( sleep );
 		    							
