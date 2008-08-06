@@ -489,7 +489,7 @@ SubscriptionImpl
 	protected void
 	setServerPublished()
 	{
-		if ( !server_published ){
+		if ( server_publication_outstanding || !server_published ){
 			
 			server_published 				= true;
 			server_publication_outstanding	= false;
