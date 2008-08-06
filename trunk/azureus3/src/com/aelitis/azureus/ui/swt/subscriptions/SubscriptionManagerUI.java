@@ -757,7 +757,7 @@ SubscriptionManagerUI
 					widgetSelected(
 						SelectionEvent e )
 					{
-						String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID();
+						String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
 						
 						BrowserWindow browser = new BrowserWindow( 
 							UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
