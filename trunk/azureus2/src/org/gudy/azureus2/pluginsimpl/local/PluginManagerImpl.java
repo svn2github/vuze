@@ -43,6 +43,8 @@ PluginManagerImpl
 {
 	protected static boolean	running		= false;
 	
+	private static final boolean GET_PI_METHODS_OPERATIONAL_FLAG_DEFAULT = true;
+	
 	protected static PluginManagerImpl	singleton;
 	protected static AEMonitor			class_mon	= new AEMonitor( "PluginManager");
 
@@ -214,10 +216,15 @@ PluginManagerImpl
 	{
 		PluginInitializer.queueRegistration( plugin, id );
 	}
+
+	public PluginInterface getPluginInterfaceByID(String id) {
+		return getPluginInterfaceByID(id, GET_PI_METHODS_OPERATIONAL_FLAG_DEFAULT);
+	}
 	
 	public PluginInterface
 	getPluginInterfaceByID(
-		String		id )
+		String		id,
+		boolean     operational)
 	{
 		PluginInterface[]	p = getPluginInterfaces();
 		
@@ -225,22 +232,7 @@ PluginManagerImpl
 			
 			if ( p[i].getPluginID().equalsIgnoreCase( id )){
 				
-				return( p[i]);
-			}
-		}
-		
-		return( null );
-	}
-	
-	public PluginInterface
-	getPluginInterfaceByClass(
-		Class		c )
-	{
-		PluginInterface[]	p = getPluginInterfaces();
-		
-		for (int i=0;i<p.length;i++){
-			
-			if ( p[i].getPlugin().getClass().equals( c )){
+				if (operational && !p[i].isOperational()) {return null;}
 				
 				return( p[i]);
 			}
@@ -248,16 +240,47 @@ PluginManagerImpl
 		
 		return( null );
 	}
+
+	public PluginInterface getPluginInterfaceByClass(Class c) {
+		return getPluginInterfaceByClass(c, GET_PI_METHODS_OPERATIONAL_FLAG_DEFAULT);
+	}
 	
 	public PluginInterface
 	getPluginInterfaceByClass(
-		String		class_name  )
+		Class		c,
+		boolean     operational)
+	{
+		PluginInterface[]	p = getPluginInterfaces();
+		
+		for (int i=0;i<p.length;i++){
+			
+			if ( p[i].getPlugin().getClass().equals( c )){
+				
+				if (operational && !p[i].isOperational()) {return null;}
+				
+				return( p[i]);
+			}
+		}
+		
+		return( null );
+	}
+
+	public PluginInterface getPluginInterfaceByClass(String class_name) {
+		return getPluginInterfaceByClass(class_name, GET_PI_METHODS_OPERATIONAL_FLAG_DEFAULT);
+	}
+	
+	public PluginInterface
+	getPluginInterfaceByClass(
+		String		class_name,
+		boolean     operational)
 	{
 		PluginInterface[]	p = getPluginInterfaces();
 		
 		for (int i=0;i<p.length;i++){
 			
 			if ( p[i].getPlugin().getClass().getName().equals( class_name )){
+				
+				if (operational && !p[i].isOperational()) {return null;}
 				
 				return( p[i]);
 			}

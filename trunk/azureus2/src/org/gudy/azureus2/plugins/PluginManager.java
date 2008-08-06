@@ -133,31 +133,34 @@ PluginManager
 	}
 	
 	/**
-	 * returns the plugin interface with a given id, or null if not found
+	 * Returns the plugin interface with a given id, or <tt>null</tt> if not found.
+	 * 
 	 * @param id
-	 * @return
-   *
-   * @since 2.1.0.0
+	 * @param operational If <tt>true</tt>, only return a PluginInterface if the plugin
+	 *   is operational (i.e. is running).
+     * @since 3.1.1.1
 	 */
-	
-	public abstract PluginInterface
-	getPluginInterfaceByID(
-		String		id );
+	public abstract PluginInterface getPluginInterfaceByID(String id, boolean operational);
 
-	
 	/**
-   *
-   * @since 2.1.0.0
-   */
-	
-	public abstract PluginInterface
-	getPluginInterfaceByClass(
-		String		class_name  );
+	 * Returns the plugin interface with a given class name, or <tt>null</tt> if not found.
+	 * 
+	 * @param class_name
+	 * @param operational If <tt>true</tt>, only return a PluginInterface if the plugin
+	 *   is operational (i.e. is running).
+     * @since 3.1.1.1
+	 */
+	public abstract PluginInterface getPluginInterfaceByClass(String class_name, boolean operational);
 
-	public abstract PluginInterface
-	getPluginInterfaceByClass(
-		Class		c );
-
+	/**
+	 * Returns the plugin interface with a given class, or <tt>null</tt> if not found.
+	 * 
+	 * @param class_object
+	 * @param operational If <tt>true</tt>, only return a PluginInterface if the plugin
+	 *   is operational (i.e. is running).
+     * @since 3.1.1.1
+	 */
+	public abstract PluginInterface getPluginInterfaceByClass(Class class_object, boolean operational);
 
 	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
@@ -205,4 +208,31 @@ PluginManager
 	
 	public abstract boolean
 	isSilentRestartEnabled();
+
+	/**
+	 * returns the plugin interface with a given id, or null if not found
+	 * @param id
+	 * @return
+   *
+   * @since 2.1.0.0
+	 */
+	
+	public abstract PluginInterface
+	getPluginInterfaceByID(
+		String		id );
+
+	
+	/**
+   *
+   * @since 2.1.0.0
+   */
+	
+	public abstract PluginInterface
+	getPluginInterfaceByClass(
+		String		class_name  );
+
+	public abstract PluginInterface
+	getPluginInterfaceByClass(
+		Class		c );
+
 }
