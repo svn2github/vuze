@@ -112,9 +112,9 @@ public class SideBar
 
 	private String currentIViewID;
 
-	private static Map mapTitleInfoToTreeItem = new HashMap();
+	private static Map mapTitleInfoToTreeItem = new LightHashMap();
 
-	private static Map mapIdToSideBarInfo = new HashMap();
+	private static Map mapIdToSideBarInfo = new LightHashMap();
 
 	private static List listTreeItemsNoTitleInfo = new ArrayList();
 
@@ -132,7 +132,7 @@ public class SideBar
 
 	double lastPercent = 0.8;
 
-	private static Map mapAutoOpen = new HashMap();
+	private static Map mapAutoOpen = new LightHashMap();
 
 	static {
 		disposeTreeItemListener = new DisposeListener() {
@@ -888,7 +888,7 @@ public class SideBar
 		sideBarInfo.pullTitleFromIView = pull;
 
 		if (closeable) {
-			Map autoOpenInfo = new HashMap();
+			Map autoOpenInfo = new LightHashMap();
 			if (sideBarInfo.parentID != null) {
 				autoOpenInfo.put("parentID", sideBarInfo.parentID);
 			}
@@ -1488,11 +1488,6 @@ public class SideBar
 		Class[] iviewClassArgs;
 
 		Object[] iviewClassVals;
-
-		public Map toMap() {
-			Map map = new HashMap();
-			return map;
-		}
 	}
 
 	public IView getIViewFromID(String id) {
@@ -1576,7 +1571,7 @@ public class SideBar
 				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
 						null, true);
 			}
-		} catch (ClassCastException ce) {
+		} catch (ClassNotFoundException ce) {
 			// ignore
 		} catch (Throwable e) {
 			Debug.out(e);
