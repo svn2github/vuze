@@ -553,6 +553,11 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
 	private void sortAndRefresh() {
 		
+		if ( subscriptionsList.isDisposed()){
+			
+			return;
+		}
+		
 		for(int i = 0 ; i < subscriptionItems.length ; i++) {
 			subscriptionItems[i].selected = false;
 		}
