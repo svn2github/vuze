@@ -879,18 +879,22 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected void setupSideBar(SideBar sidebar) {
+	protected void setupSideBar(final SideBar sidebar) {
 		// 3.2 TODO: set default sidebar item
-		String startTab;
 
 		sidebar.addListener(this);
 
-		if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-			startTab = SideBar.SIDEBAR_SECTION_ADVANCED;
-		} else {
-			startTab = SideBar.SIDEBAR_SECTION_WELCOME;
-		}
-		sidebar.showItemByID(startTab);
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				String startTab;
+				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+					startTab = SideBar.SIDEBAR_SECTION_ADVANCED;
+				} else {
+					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
+				}
+				sidebar.showItemByID(startTab);
+			}
+		});
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
