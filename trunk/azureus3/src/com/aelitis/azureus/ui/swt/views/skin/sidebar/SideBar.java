@@ -91,7 +91,7 @@ public class SideBar
 	public static final String SIDEBAR_SECTION_PUBLISH = "Publish_SB";
 
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions_SB";
-	
+
 	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced_SB";
 
 	public static final boolean SHOW_ALL_PLUGINS = false;
@@ -686,48 +686,49 @@ public class SideBar
 
 		UISWTInstanceImpl uiSWTInstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
 		if (uiSWTInstance != null) {
-  		Map allViews = uiSWTInstance.getAllViews();
-  		Object[] parentIDs = allViews.keySet().toArray();
-  		for (int i = 0; i < parentIDs.length; i++) {
-  			String parentID = (String) parentIDs[i];
-  			Map mapSubViews = (Map) allViews.get(parentID);
-  			if (mapSubViews != null) {
-  				Object[] viewIDs = mapSubViews.keySet().toArray();
-  				for (int j = 0; j < viewIDs.length; j++) {
-  					String viewID = (String) viewIDs[j];
-  					UISWTViewEventListener l = (UISWTViewEventListener) mapSubViews.get(viewID);
-  					if (l != null) {
-  						// TODO: Datasource
-  						// TODO: Multiple open
-  
-  						boolean open = COConfigurationManager.getBooleanParameter(
-  								"SideBar.AutoOpen." + viewID, false);
-  						if (open) {
-  							createTreeItemFromEventListener(parentID, null, l, viewID, true,
-  									null);
-  						}
-  					}
-  				}
-  			}
-  		}
-		}
-		
-		PluginsMenuHelper.getInstance().addPluginAddedViewListener(new PluginAddedViewListener() {
-			// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
-			public void pluginViewAdded(IViewInfo viewInfo) {
-				System.out.println("PluginView Addded: " + viewInfo.viewID);
-				Object o = mapAutoOpen.get(viewInfo.viewID);
-				if (o instanceof Map) {
-					processAutoOpenMap(viewInfo.name, (Map) o);
+			Map allViews = uiSWTInstance.getAllViews();
+			Object[] parentIDs = allViews.keySet().toArray();
+			for (int i = 0; i < parentIDs.length; i++) {
+				String parentID = (String) parentIDs[i];
+				Map mapSubViews = (Map) allViews.get(parentID);
+				if (mapSubViews != null) {
+					Object[] viewIDs = mapSubViews.keySet().toArray();
+					for (int j = 0; j < viewIDs.length; j++) {
+						String viewID = (String) viewIDs[j];
+						UISWTViewEventListener l = (UISWTViewEventListener) mapSubViews.get(viewID);
+						if (l != null) {
+							// TODO: Datasource
+							// TODO: Multiple open
+
+							boolean open = COConfigurationManager.getBooleanParameter(
+									"SideBar.AutoOpen." + viewID, false);
+							if (open) {
+								createTreeItemFromEventListener(parentID, null, l, viewID,
+										true, null);
+							}
+						}
+					}
 				}
 			}
-		});
+		}
+
+		PluginsMenuHelper.getInstance().addPluginAddedViewListener(
+				new PluginAddedViewListener() {
+					// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
+					public void pluginViewAdded(IViewInfo viewInfo) {
+						System.out.println("PluginView Addded: " + viewInfo.viewID);
+						Object o = mapAutoOpen.get(viewInfo.viewID);
+						if (o instanceof Map) {
+							processAutoOpenMap(viewInfo.viewID, (Map) o, viewInfo);
+						}
+					}
+				});
 
 		loadCloseables();
 
 		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
 			createTreeItemFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
-				"main.area.advancedtab", "Advanced", null, null, false);
+					"main.area.advancedtab", "Advanced", null, null, false);
 		}
 	}
 
@@ -752,12 +753,14 @@ public class SideBar
 			ViewTitleInfo titleInfo = (iview instanceof ViewTitleInfo)
 					? (ViewTitleInfo) iview : null;
 			treeItem = createTreeItem(parentTreeItem, id, datasource, titleInfo,
-					iview.getFullTitle());
+					iview.getFullTitle(), closeable);
 
-			sideBarInfo.closeable = closeable;
+			setupTreeItem(null, treeItem, id, titleInfo, iview.getFullTitle(), null,
+					datasource, closeable);
+
 			sideBarInfo.parentID = parentID;
 
-			createSideBarContentArea(iview, treeItem, datasource);
+			createSideBarContentArea(id, iview, treeItem, datasource);
 
 			iview.dataSourceChanged(datasource);
 		}
@@ -814,13 +817,15 @@ public class SideBar
 		sideBarInfo.iviewClassVals = iviewClassVals;
 		sideBarInfo.closeable = closeable;
 		sideBarInfo.parentID = parent;
-		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource);
+		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
+				closeable);
 
 		return treeItem;
 	}
 
 	private TreeItem createTreeItem(Object parentTreeItem, String id,
-			Object datasource, ViewTitleInfo titleInfo, String title) {
+			Object datasource, ViewTitleInfo titleInfo, String title,
+			boolean closeable) {
 		TreeItem treeItem;
 
 		if (parentTreeItem == null) {
@@ -833,14 +838,12 @@ public class SideBar
 			treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
 		}
 
-		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource);
-
 		return treeItem;
 	}
 
 	private void setupTreeItem(IView iview, TreeItem treeItem, String id,
 			ViewTitleInfo titleInfo, String title, Composite initializeView,
-			Object datasource) {
+			Object datasource, boolean closeable) {
 		boolean pull = true;
 		if (treeItem.getParentItem() != null) {
 			treeItem.getParentItem().setExpanded(true);
@@ -880,7 +883,35 @@ public class SideBar
 			sideBarInfo.datasource = datasource;
 		}
 
+		sideBarInfo.closeable = closeable;
+
 		sideBarInfo.pullTitleFromIView = pull;
+
+		if (closeable) {
+			Map autoOpenInfo = new HashMap();
+			if (sideBarInfo.parentID != null) {
+				autoOpenInfo.put("parentID", sideBarInfo.parentID);
+			}
+			if (sideBarInfo.iviewClass != null) {
+				autoOpenInfo.put("iviewClass", sideBarInfo.iviewClass.getName());
+			}
+			if (sideBarInfo.eventListener != null) {
+				autoOpenInfo.put("eventlistenerid", id);
+			}
+			if (sideBarInfo.iview != null) {
+				autoOpenInfo.put("title", sideBarInfo.iview.getFullTitle());
+			}
+			if (sideBarInfo.datasource instanceof DownloadManager) {
+				try {
+					autoOpenInfo.put(
+							"dm",
+							((DownloadManager) sideBarInfo.datasource).getTorrent().getHashWrapper().toBase32String());
+				} catch (Throwable t) {
+				}
+			}
+
+			mapAutoOpen.put(id, autoOpenInfo);
+		}
 
 		if (initializeView != null) {
 			iview.initialize(initializeView);
@@ -956,7 +987,7 @@ public class SideBar
 						? (ViewTitleInfo) iview : null;
 				setupTreeItem(iview, treeItem,
 						(String) treeItem.getData("Plugin.viewID"), titleInfo,
-						iview.getFullTitle(), null, null);
+						iview.getFullTitle(), null, null, sideBarInfo.closeable);
 			}
 		}
 
@@ -1028,6 +1059,9 @@ public class SideBar
 			sideBarInfo = getSideBarInfo(id);
 		}
 
+		String name = sideBarInfo.treeItem == null ? id
+				: sideBarInfo.treeItem.getText();
+
 		if (treeItem == null) {
 			SideBarInfo sideBarInfoParent = getSideBarInfo(parentID);
 			TreeItem parentTreeItem = sideBarInfoParent.treeItem;
@@ -1052,16 +1086,18 @@ public class SideBar
 				}
 			}
 
-			String name = foundViewInfo == null ? id : foundViewInfo.name;
+			name = foundViewInfo == null ? id : foundViewInfo.name;
 
-			treeItem = createTreeItem(parentTreeItem, id, datasource, null, name);
-			sideBarInfo.closeable = closeable;
+			sideBarInfo.eventListener = l;
+			sideBarInfo.parentID = parentID;
+			treeItem = createTreeItem(parentTreeItem, id, datasource, null, name,
+					closeable);
 		}
 
 		IView iview = null;
 		try {
 			iview = new UISWTViewImpl("SideBar.Plugins", id, l);
-			((UISWTViewImpl) iview).setTitle(treeItem.getText());
+			((UISWTViewImpl) iview).setTitle(name);
 
 			if (l instanceof UISWTViewEventListenerFormLayout) {
 				((UISWTViewImpl) iview).setUseCoreDataSource(true);
@@ -1097,7 +1133,7 @@ public class SideBar
 			ViewTitleInfo titleInfo = (iview instanceof ViewTitleInfo)
 					? (ViewTitleInfo) iview : null;
 			setupTreeItem(iview, treeItem, id, titleInfo, iview.getFullTitle(),
-					viewComposite, datasource);
+					viewComposite, datasource, closeable);
 
 			parent.layout(true, true);
 
@@ -1146,7 +1182,7 @@ public class SideBar
 				sideBarInfo.eventListener = l;
 
 				setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
-						viewComposite, datasource);
+						viewComposite, datasource, closeable);
 
 				parent.layout(true, true);
 			} catch (Exception e1) {
@@ -1183,26 +1219,8 @@ public class SideBar
 				iview = (IView) constructor.newInstance(sideBarInfo.iviewClassVals);
 			}
 
-			createSideBarContentArea(iview, sideBarInfo.treeItem,
+			createSideBarContentArea(id, iview, sideBarInfo.treeItem,
 					sideBarInfo.datasource);
-
-			Map autoOpenInfo = new HashMap();
-			if (sideBarInfo.parentID != null) {
-				autoOpenInfo.put("parentID", sideBarInfo.parentID);
-			}
-			autoOpenInfo.put("iviewClass", sideBarInfo.iviewClass.getName());
-			autoOpenInfo.put("title", sideBarInfo.iview.getFullTitle());
-			if (sideBarInfo.datasource instanceof DownloadManager) {
-				try {
-					autoOpenInfo.put(
-							"dm",
-							((DownloadManager) sideBarInfo.datasource).getTorrent().getHashWrapper().toBase32String());
-				} catch (Throwable t) { 
-				}
-			}
-			
-			
-			mapAutoOpen.put(id, autoOpenInfo);
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (iview != null) {
@@ -1217,13 +1235,14 @@ public class SideBar
 	/**
 	 * Take an already created IView and put it into a new Container Skin Object.
 	 * Doesn't add it to the tree
+	 * @param id 
 	 *  
 	 * @param view
 	 * @return
 	 *
 	 * @since 3.1.1.1
 	 */
-	private IView createSideBarContentArea(IView view, TreeItem item,
+	private IView createSideBarContentArea(String id, IView view, TreeItem item,
 			Object datasource) {
 		try {
 			Composite parent = (Composite) soSideBarContents.getControl();
@@ -1261,6 +1280,7 @@ public class SideBar
 			}
 
 			parent.layout(true, true);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (view != null) {
@@ -1271,9 +1291,9 @@ public class SideBar
 		return view;
 	}
 
-	public TreeItem createTreeItemFromSkinRef(String parentID,
-			final String id, final String configID, String title,
-			ViewTitleInfo titleInfo, final Object params, boolean closeable) {
+	public TreeItem createTreeItemFromSkinRef(String parentID, final String id,
+			final String configID, String title, ViewTitleInfo titleInfo,
+			final Object params, boolean closeable) {
 
 		// temp until we start passing ds
 		Object datasource = null;
@@ -1318,12 +1338,14 @@ public class SideBar
 
 		SideBarInfo sideBarInfoParent = getSideBarInfo(parentID);
 		TreeItem parentTreeItem = sideBarInfoParent.treeItem;
-		
+
 		sideBarInfo.parentID = parentID;
 
 		treeItem = createTreeItem(parentTreeItem == null ? (Object) tree
-				: (Object) parentTreeItem, id, datasource, titleInfo, title);
-		sideBarInfo.closeable = closeable;
+				: (Object) parentTreeItem, id, datasource, titleInfo, title, closeable);
+
+		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
+				closeable);
 
 		return treeItem;
 	}
@@ -1379,9 +1401,9 @@ public class SideBar
 								if (treeItemID != null && treeItemID.equals(id)) {
 									SideBarInfo sideBarInfo = getSideBarInfo(treeItemID);
 									if (sideBarInfo.treeItem != null) {
-  									sideBarInfo.titleInfo = titleIndicator;
-  									treeItem = sideBarInfo.treeItem;
-  									mapTitleInfoToTreeItem.put(titleIndicator, treeItem);
+										sideBarInfo.titleInfo = titleIndicator;
+										treeItem = sideBarInfo.treeItem;
+										mapTitleInfoToTreeItem.put(titleIndicator, treeItem);
 									}
 									break;
 								}
@@ -1481,45 +1503,81 @@ public class SideBar
 	}
 
 	public void saveCloseables() {
-		FileUtil.writeResilientConfigFile("sidebarauto", mapAutoOpen);
+		// update title
+		for (Iterator iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
+			String id = (String) iter.next();
+			Object o = mapAutoOpen.get(id);
+
+			if (o instanceof Map) {
+
+				SideBarInfo sideBarInfo = getSideBarInfo(id);
+				Map autoOpenInfo = (Map) o;
+
+				if (sideBarInfo.treeItem != null) {
+					autoOpenInfo.put("title", sideBarInfo.treeItem.getText());
+				}
+
+			}
+		}
+
+		FileUtil.writeResilientConfigFile("sidebarauto.config", mapAutoOpen);
 	}
 
 	public void loadCloseables() {
-		mapAutoOpen = FileUtil.readResilientConfigFile("sidebarauto", true);
+		mapAutoOpen = FileUtil.readResilientConfigFile("sidebarauto.config", true);
 		BDecoder.decodeStrings(mapAutoOpen);
 		for (Iterator iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
 			Object o = mapAutoOpen.get(id);
 
 			if (o instanceof Map) {
-				processAutoOpenMap(id, (Map)o);
+				processAutoOpenMap(id, (Map) o, null);
 			}
 		}
 	}
 
 	/**
+	 * @param viewInfo 
 	 * @param o
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void processAutoOpenMap(String id, Map o) {
+	private void processAutoOpenMap(String id, Map autoOpenInfo,
+			IViewInfo viewInfo) {
 		try {
-  		Map mapStoredView = (Map) o;
-  		Class cla = Class.forName((String) mapStoredView.get("iviewClass"));
-  		if (cla != null) {
-  			String title = MapUtils.getMapString(mapStoredView, "title", id);
-  			String parentID = (String) mapStoredView.get("parentID");
-  			String dmHash = MapUtils.getMapString(mapStoredView, "dm", null);
-  			Object ds = null;
-  			if (dmHash != null) {
-  				HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
-  				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-  				ds = gm.getDownloadManager(hw);
-  			}
-  			System.out.println("autoopen " + id);
-  			createTreeItemFromIViewClass(parentID, id, title, cla, null, null,
-  					ds, null, true);
-  		}
+			SideBarInfo sideBarInfo = getSideBarInfo(id);
+			if (sideBarInfo.treeItem != null) {
+				return;
+			}
+
+			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
+			String parentID = (String) autoOpenInfo.get("parentID");
+
+			if (viewInfo != null) {
+				if (viewInfo.view != null) {
+					createTreeItemFromIView(parentID, viewInfo.view, id, null, true,
+							false);
+				} else if (viewInfo.event_listener != null) {
+					createTreeItemFromEventListener(parentID, null,
+							viewInfo.event_listener, id, true, null);
+				}
+			}
+
+			Class cla = Class.forName(MapUtils.getMapString(autoOpenInfo,
+					"iviewClass", ""));
+			if (cla != null) {
+				String dmHash = MapUtils.getMapString(autoOpenInfo, "dm", null);
+				Object ds = null;
+				if (dmHash != null) {
+					HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
+					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+					ds = gm.getDownloadManager(hw);
+				}
+				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
+						null, true);
+			}
+		} catch (ClassCastException ce) {
+			// ignore
 		} catch (Throwable e) {
 			Debug.out(e);
 		}
