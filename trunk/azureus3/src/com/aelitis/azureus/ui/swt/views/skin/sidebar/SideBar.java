@@ -393,7 +393,11 @@ public class SideBar
 
 		tree.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event event) {
-				TreeItem treeItem = tree.getItem(new Point(event.x, event.y));
+				if (tree.getItemCount() == 0) {
+					return;
+				}
+				int indent = tree.getItem(0).getBounds().x;
+				TreeItem treeItem = tree.getItem(new Point(indent, event.y));
 				if (treeItem == null) {
 					return;
 				}
