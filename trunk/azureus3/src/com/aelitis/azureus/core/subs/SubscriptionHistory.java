@@ -27,6 +27,12 @@ SubscriptionHistory
 	public long
 	getLastScanTime();
 	
+	public int
+	getNumUnread();
+	
+	public int
+	getNumRead();
+	
 	public SubscriptionResult[]
 	getResults();
 }

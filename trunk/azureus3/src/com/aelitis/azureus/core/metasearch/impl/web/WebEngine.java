@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
 WebEngine 

@@ -139,7 +139,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					List resultsList = new ArrayList(results.length);
 					for(int i = 0 ; i < results.length ; i++) {
 						Result result = results[i];
-						resultsList.add(result.toMap());
+						resultsList.add(result.toJSONMap());
 					}
 					params.put("results", resultsList);
 					sendBrowserMessage("metasearch", "resultsReceived",params);

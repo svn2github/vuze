@@ -47,7 +47,9 @@ SubscriptionSchedulerImpl
 	
 		throws SubscriptionException 
 	{
-		new SubscriptionDownloader((SubscriptionImpl)subs );
+		SubscriptionDownloader downloader = new SubscriptionDownloader(manager, (SubscriptionImpl)subs );
+		
+		downloader.download();
 	}
 	
 	public void

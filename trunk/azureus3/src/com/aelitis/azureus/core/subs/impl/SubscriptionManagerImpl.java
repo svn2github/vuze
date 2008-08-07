@@ -781,6 +781,17 @@ SubscriptionManagerImpl
  		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".vuze" ));
 	}
 	
+	protected File
+	getResultsFile(
+		SubscriptionImpl 		subs )
+	
+		throws IOException
+	{
+ 		File dir = getSubsDir();
+ 		
+ 		return( new File( dir, ByteFormatter.encodeString( subs.getShortID()) + ".results" ));
+	}
+	
 	public Subscription[]
 	getKnownSubscriptions(
 		byte[]						hash )
@@ -3123,6 +3134,72 @@ SubscriptionManagerImpl
 		
 		return((MagnetPlugin)pi.getPlugin());
 	}
+	
+	protected SubscriptionResultImpl[]
+	loadResults(
+		SubscriptionImpl			subs )
+	{
+		List	results = new ArrayList();
+		
+		try{
+			File	f = getResultsFile( subs );
+			
+			Map	map = FileUtil.readResilientFile( f );
+			
+			List	list = (List)map.get( "results" );
+			
+			if ( list != null ){
+				
+				for (int i=0;i<list.size();i++){
+					
+					Map	result_map =(Map)list.get(i);
+					
+					try{
+						SubscriptionResultImpl result = new SubscriptionResultImpl( result_map );
+						
+						results.add( result );
+						
+					}catch( Throwable e ){
+						
+						log( "Failed to decode result '" + result_map + "'", e );
+					}
+				}
+			}
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to load results for '" + subs.getName() + "' - continuing with empty result set", e );
+		}
+		
+		return((SubscriptionResultImpl[])results.toArray( new SubscriptionResultImpl[results.size()] ));
+	}
+	
+	protected void
+ 	saveResults(
+ 		SubscriptionImpl			subs,
+ 		SubscriptionResultImpl[]	results )
+ 	{
+		try{
+			File	f = getResultsFile( subs );
+	
+			Map	map = new HashMap();
+			
+			List	list = new ArrayList( results.length );
+			
+			map.put( "results", list );
+			
+			for (int i=0;i<results.length;i++){
+				
+				list.add( results[i].toBEncodedMap());
+			}
+			
+			FileUtil.writeResilientFile( f, map );
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to save results for '" + subs.getName(), e );
+		}
+ 	}
 	
 	protected void
 	loadConfig()

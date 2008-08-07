@@ -33,12 +33,27 @@ import com.aelitis.azureus.util.JSONUtils;
 public class 
 SubscriptionDownloader 
 {
+	private SubscriptionManagerImpl		manager;
+	private SubscriptionImpl			subs;
+	
 	protected
 	SubscriptionDownloader(
-		SubscriptionImpl		subs )
+		SubscriptionManagerImpl	_manager,
+		SubscriptionImpl		_subs )
 	
 		throws SubscriptionException
 	{
+		manager	= _manager;
+		subs	= _subs;
+	}
+	
+	public SubscriptionResult[]
+	download()
+	
+		throws SubscriptionException
+	{
+		log( "Downloading" );
+		
 		Map map = JSONUtils.decodeJSON( subs.getJSON());
 		
 		Long 	engine_id 	= (Long)map.get( "engine_id" );
@@ -47,9 +62,16 @@ SubscriptionDownloader
 
 		Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( engine_id.intValue());
 		
+		if ( engine == null ){
+			
+			throw( new SubscriptionException( "Download failed, search engine " + engine_id + " not found" ));
+		}
+		
 		List	sps = new ArrayList();
 		
 		sps.add( new SearchParameter( "s", search_term ));
+		
+		log( "    Using search term '" + search_term + "' for engine " + engine.getString());
 		
 		/*
 		if ( mature != null ){
@@ -60,13 +82,57 @@ SubscriptionDownloader
 		
 		SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
 
-		try{
-		
+		try{			
 			Result[] results = engine.search( parameters );
+		
+			log( "    Got " + results.length + " results" );
+			
+			SubscriptionResultFilter result_filter = new SubscriptionResultFilter(filters );
+
+			results = result_filter.filter( results );
+			
+			log( "    Post-filter: " + results.length + " results" );
+
+			SubscriptionResultImpl[]	s_results = new SubscriptionResultImpl[results.length];
+			
+			for( int i=0;i<results.length;i++){
+				
+				SubscriptionResultImpl	s_result = new SubscriptionResultImpl( results[i] );
+				
+				s_results[i] = s_result;
+			}
+			
+			reconcileResults( s_results );
+			
+			return( s_results );
 			
 		}catch( Throwable e ){
 			
+			log( "    Download failed", e);
+			
 			throw( new SubscriptionException( "Search failed", e ));
 		}
+	}
+	
+	protected void
+	reconcileResults(
+		SubscriptionResultImpl[]		results )
+	{
+		((SubscriptionHistoryImpl)subs.getHistory()).reconcileResults( results );
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		manager.log( str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		manager.log( str, e );
 	}
 }

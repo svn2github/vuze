@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.metasearch.impl;
+package com.aelitis.azureus.core.subs.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +9,9 @@ import java.util.StringTokenizer;
 
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultsFilter;
+import com.aelitis.azureus.util.ImportExportUtils;
 
-public class ResultsFilterImpl implements ResultsFilter {
+public class SubscriptionResultFilter implements ResultsFilter {
 	
 	String[] textFilters;
 	String[] excludeTextFilters;
@@ -20,7 +21,7 @@ public class ResultsFilterImpl implements ResultsFilter {
 	long maxSize = -1;
 	String categoryFilter = null;
 	
-	public ResultsFilterImpl(Map filters) {
+	public SubscriptionResultFilter(Map filters) {
 		try {
 			textFilters = importStrings(filters,"text_filter"," ");
 			

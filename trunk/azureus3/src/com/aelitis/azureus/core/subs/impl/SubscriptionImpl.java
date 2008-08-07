@@ -118,6 +118,8 @@ SubscriptionImpl
 	
 	private boolean			destroyed;
 	
+	private Map				history_map;
+	
 	private Map				user_data = new LightHashMap();
 	
 	private final SubscriptionHistoryImpl	history;
@@ -143,6 +145,8 @@ SubscriptionImpl
 		is_public	= _public;
 		version		= 1;
 
+		history_map	= new HashMap();
+		
 		try{
 			KeyPair	kp = CryptoECCUtils.createKeys();
 			
@@ -179,11 +183,11 @@ SubscriptionImpl
 		throws IOException
 	{
 		manager	= _manager;
-		
-		history = new SubscriptionHistoryImpl( manager, this );
-		
+				
 		fromMap( map );
 		
+		history = new SubscriptionHistoryImpl( manager, this );
+
 		init();
 	}
 
@@ -200,6 +204,8 @@ SubscriptionImpl
 	{
 		manager	= _manager;
 			
+		history_map	= new HashMap();
+		
 		history = new SubscriptionHistoryImpl( manager, this );
 		
 		syncFromBody( _body );
@@ -304,6 +310,8 @@ SubscriptionImpl
 				}
 			}
 			
+			map.put( "history", history_map );
+			
 			return( map );
 		}
 	}
@@ -352,6 +360,28 @@ SubscriptionImpl
 				associations.add( new association( hash, when ));
 			}
 		}
+		
+		history_map = (Map)map.get( "history" );
+		
+		if ( history_map == null ){
+			
+			history_map = new HashMap();
+		}
+	}
+	
+	protected Map
+	getHistoryConfig()
+	{
+		return( history_map );
+	}
+	
+	protected void
+	updateHistoryConfig(
+		Map		_history_map )
+	{
+		history_map = _history_map;
+		
+		fireChanged();
 	}
 	
 	protected void

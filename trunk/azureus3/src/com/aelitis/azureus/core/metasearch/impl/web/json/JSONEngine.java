@@ -41,11 +41,11 @@ import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
-import com.aelitis.azureus.core.metasearch.impl.ImportExportUtils;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 JSONEngine 

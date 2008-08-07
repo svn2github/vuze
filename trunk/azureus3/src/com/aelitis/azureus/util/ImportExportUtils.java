@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.metasearch.impl;
+package com.aelitis.azureus.util;
 
 import java.io.IOException;
 import java.util.Map;

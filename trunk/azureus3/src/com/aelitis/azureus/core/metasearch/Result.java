@@ -134,7 +134,7 @@ public abstract class Result {
 		return rank;
 	}
 	
-	public Map toMap() {
+	public Map toJSONMap() {
 		Map object = new HashMap();
 		try {
 			object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
