@@ -1,5 +1,5 @@
 /*
- * $Id: JSONParser.java,v 1.1 2007-06-05 00:43:56 tuxpaper Exp $
+ * $Id: JSONParser.java,v 1.2 2008-08-07 01:18:55 parg Exp $
  * Created on 2006-4-15
  */
 package org.json.simple.parser;
@@ -7,6 +7,7 @@ package org.json.simple.parser;
 import java.io.Reader;
 import java.util.Stack;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -88,7 +89,8 @@ public class JSONParser {
 					case Yytoken.TYPE_RIGHT_BRACE:
 						if(valueStack.size()>1){
 							statusStack.pop();
-							valueStack.pop();
+							JSONObject map = (JSONObject)valueStack.pop();
+							map.compactify(-0.9f);
 							status=peekStatus(statusStack);
 						}
 						else{

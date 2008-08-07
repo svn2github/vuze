@@ -1,17 +1,18 @@
 /*
- * $Id: JSONObject.java,v 1.1 2007-06-05 00:43:56 tuxpaper Exp $
+ * $Id: JSONObject.java,v 1.2 2008-08-07 01:18:54 parg Exp $
  * Created on 2006-4-10
  */
 package org.json.simple;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import org.gudy.azureus2.core3.util.LightHashMap;
 
 /**
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JSONObject extends HashMap{
+public class JSONObject extends LightHashMap{
 	
 	public JSONObject() {
 		super();
