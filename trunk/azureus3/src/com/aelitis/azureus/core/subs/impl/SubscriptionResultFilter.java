@@ -25,9 +25,9 @@ public class SubscriptionResultFilter implements ResultsFilter {
 		try {
 			textFilters = importStrings(filters,"text_filter"," ");
 			
-			excludeTextFilters = importStrings(filters,"exclude_text_filter"," ");
+			excludeTextFilters = importStrings(filters,"text_filter_out"," ");
 			
-			regexFilter = ImportExportUtils.importString(filters, "regex_filter");
+			regexFilter = ImportExportUtils.importString(filters, "text_filter_regex");
 			
 			minSize = ImportExportUtils.importLong(filters,"min_size",-1l);
 			
