@@ -60,6 +60,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -640,6 +641,7 @@ SubscriptionManagerUI
 		private Composite		composite;
 				
 		private Label			info_lab;
+		private Label			info_lab2;
 		private StyledText		json_area;
 		
 		protected
@@ -670,7 +672,7 @@ SubscriptionManagerUI
 			
 			final Composite controls = new Composite(composite, SWT.NONE);
 			layout = new GridLayout();
-			layout.numColumns = 6;
+			layout.numColumns = 5;
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			controls.setLayout(layout);
@@ -678,7 +680,10 @@ SubscriptionManagerUI
 			controls.setLayoutData(grid_data);
 			
 			info_lab = new Label( controls, SWT.NULL );
-			
+			grid_data = new GridData(GridData.FILL_HORIZONTAL);
+			grid_data.horizontalIndent = 4;
+			info_lab.setLayoutData(grid_data);
+
 				
 		
 			final Button delete_button = new Button( controls, SWT.NULL );
@@ -742,8 +747,6 @@ SubscriptionManagerUI
 					}
 				});
 			
-			updateInfo();
-			
 			final Button browse_button = new Button( controls, SWT.NULL );
 			browse_button.setText( "Browser" );
 						
@@ -785,13 +788,21 @@ SubscriptionManagerUI
 						}
 					}
 				});
+			
+			info_lab2 = new Label( controls, SWT.NULL );
+			
+			grid_data = new GridData(GridData.FILL_HORIZONTAL);
+			grid_data.horizontalIndent = 4;
+			info_lab2.setLayoutData(grid_data);
+
+			updateInfo();
 		}
 		  
 		protected void
 		updateInfo()
 		{
 			info_lab.setText( 
-					" ID=" + subs.getID() +
+					"ID=" + subs.getID() +
 					", version=" + subs.getVersion() +
 					", subscribed=" + subs.isSubscribed() +
 					", public=" + subs.isPublic() +
@@ -799,6 +810,14 @@ SubscriptionManagerUI
 					", popularity=" + subs.getCachedPopularity() +
 					", associations=" + subs.getAssociationCount());
 			
+			SubscriptionHistory history = subs.getHistory();
+			
+			info_lab2.setText( 
+					"History: " + 
+					"scan=" + history.getLastScanTime() +
+					",read=" + history.getNumRead() +
+					",unread=" + history.getNumUnread());
+					
 			try{
 			
 				json_area.setText( subs.getJSON());

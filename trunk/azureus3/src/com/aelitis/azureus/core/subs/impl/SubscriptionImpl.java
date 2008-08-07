@@ -139,13 +139,13 @@ SubscriptionImpl
 	{
 		manager	= _manager;
 		
+		history_map	= new HashMap();
+
 		history = new SubscriptionHistoryImpl( manager, this );
 		
 		name		= _name;
 		is_public	= _public;
 		version		= 1;
-
-		history_map	= new HashMap();
 		
 		try{
 			KeyPair	kp = CryptoECCUtils.createKeys();

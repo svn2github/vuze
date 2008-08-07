@@ -40,7 +40,8 @@ SubscriptionResultImpl
 	
 	protected
 	SubscriptionResultImpl(
-		Result		result )
+		SubscriptionHistoryImpl		history,
+		Result						result )
 	{
 		Map	map = result.toJSONMap();
 		
@@ -60,7 +61,8 @@ SubscriptionResultImpl
 	
 	protected 
 	SubscriptionResultImpl(
-		Map		map )
+		SubscriptionHistoryImpl		history,
+		Map							map )
 	{
 		key			= (byte[])map.get( "key" );
 		read		= ((Long)map.get( "read")).intValue()==1;
@@ -72,6 +74,24 @@ SubscriptionResultImpl
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	protected byte[]
+	getKey()
+	{
+		return( key );
+	}
+	
+	protected boolean
+	getRead()
+	{
+		return( read );
+	}
+	
+	protected void
+	setRead()
+	{
+		read	= true;
 	}
 	
 	protected Map

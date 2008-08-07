@@ -82,6 +82,9 @@ SubscriptionDownloader
 		
 		SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
 
+		
+		SubscriptionHistoryImpl history = (SubscriptionHistoryImpl)subs.getHistory();
+		
 		try{			
 			Result[] results = engine.search( parameters );
 		
@@ -97,12 +100,12 @@ SubscriptionDownloader
 			
 			for( int i=0;i<results.length;i++){
 				
-				SubscriptionResultImpl	s_result = new SubscriptionResultImpl( results[i] );
+				SubscriptionResultImpl	s_result = new SubscriptionResultImpl( history, results[i] );
 				
 				s_results[i] = s_result;
 			}
 			
-			reconcileResults( s_results );
+			history.reconcileResults( s_results );
 			
 			return( s_results );
 			
@@ -112,13 +115,6 @@ SubscriptionDownloader
 			
 			throw( new SubscriptionException( "Search failed", e ));
 		}
-	}
-	
-	protected void
-	reconcileResults(
-		SubscriptionResultImpl[]		results )
-	{
-		((SubscriptionHistoryImpl)subs.getHistory()).reconcileResults( results );
 	}
 	
 	protected void

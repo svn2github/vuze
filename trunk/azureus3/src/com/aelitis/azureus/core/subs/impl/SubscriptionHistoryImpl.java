@@ -23,6 +23,9 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 
@@ -52,10 +55,62 @@ SubscriptionHistoryImpl
 	reconcileResults(
 		SubscriptionResultImpl[]		latest_results )
 	{
-		SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
+		boolean	changed;
 		
+		int	new_unread 	= 0;
+		int new_read	= 0;
 		
-		manager.saveResults( subs, latest_results );
+		synchronized( this ){
+			
+			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
+		
+			changed = latest_results.length != existing_results.length;
+			
+			ByteArrayHashMap	map = new ByteArrayHashMap();
+			
+			for (int i=0;i<existing_results.length;i++){
+				
+				SubscriptionResultImpl r = existing_results[i];
+				
+				map.put( r.getKey(), r );
+			}
+			
+			for (int i=0;i<latest_results.length;i++){
+
+				SubscriptionResultImpl r = existing_results[i];
+
+				SubscriptionResultImpl e = (SubscriptionResultImpl)map.get( r.getKey());
+				
+				if ( e == null ){
+					
+					changed = true;
+					
+				}else{
+					
+					latest_results[i] = e;
+				}
+				
+				if ( latest_results[i].getRead()){
+					
+					new_read++;
+					
+				}else{
+					
+					new_unread++;
+				}
+			}
+			
+			if ( changed ){
+				
+				manager.saveResults( subs, latest_results );
+			}
+		}
+		
+		last_scan 	= SystemTime.getCurrentTime();
+		num_unread	= new_unread;
+		num_read	= new_read;
+		
+			// always save config as we have a new scan time
 		
 		saveConfig();
 	}

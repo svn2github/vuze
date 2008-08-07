@@ -3149,13 +3149,15 @@ SubscriptionManagerImpl
 			List	list = (List)map.get( "results" );
 			
 			if ( list != null ){
+			
+				SubscriptionHistoryImpl	history = (SubscriptionHistoryImpl)subs.getHistory();
 				
 				for (int i=0;i<list.size();i++){
 					
 					Map	result_map =(Map)list.get(i);
 					
 					try{
-						SubscriptionResultImpl result = new SubscriptionResultImpl( result_map );
+						SubscriptionResultImpl result = new SubscriptionResultImpl( history, result_map );
 						
 						results.add( result );
 						
