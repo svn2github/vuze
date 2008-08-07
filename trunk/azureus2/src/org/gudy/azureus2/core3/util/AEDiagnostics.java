@@ -392,7 +392,7 @@ AEDiagnostics
 				if (!logger.isWrittenToThisSession()) {
 					logger.setWrittenToThisSession(true);
 					pw.println("\n\n[" + now.get(Calendar.YEAR)
-							+ "] Log File Opened for " + Constants.AZUREUS_NAME + " "
+							+ "] Log File Opened for " + Constants.APP_NAME + " "
 							+ Constants.AZUREUS_VERSION + "\n");
 				}
 			
