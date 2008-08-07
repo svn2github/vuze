@@ -35,12 +35,7 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
-import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -240,35 +235,15 @@ ShareHosterPlugin
 						new_download.setAttribute( ta,	resource.getAttribute( ta ));
 					}
 					
-						// OK, this is a hack to get around the new plugin deprecation warnings
-						// I don't have time to fix this up properly, maybe amc does
-					
-					org.gudy.azureus2.core3.download.DownloadManager dm = PluginCoreUtils.unwrap( new_download );
-					
-					if ( dm != null ){
-						
-						dm.getDownloadState().addListener(
-							new DownloadManagerStateListener()
-							{
-								public void 
-								stateChanged(
-									DownloadManagerState 		state,
-									DownloadManagerStateEvent 	event ) 
-								{
-									if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
-										
-										String	name = (String)event.getData();
-																				
-										TorrentAttribute	attr = DownloadImpl.convertAttribute( name );
-										
-										if ( attr != null ){
-											
-											resource.setAttribute( attr, f_new_download.getAttribute( attr ));
-										}
-									}
-								}
-							});
-					}
+					new_download.addAttributeListener(
+						new DownloadAttributeListener() {
+							public void attributeEventOccurred(Download d, TorrentAttribute attr, int event_type){
+								resource.setAttribute(attr, d.getAttribute(attr));
+							}
+						},
+						plugin_interface.getTorrentManager().getAttribute(TorrentAttribute.TA_CATEGORY),
+						DownloadAttributeListener.WRITTEN
+					);
 					
 					Torrent	dl_torrent = new_download.getTorrent();
 					
