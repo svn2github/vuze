@@ -36,6 +36,8 @@ import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 
+import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
+
 /*
  * @deprecated
  */
@@ -116,7 +118,8 @@ public class SWTManagerImpl
 	public PluginView
 	createPluginView(
 		PluginViewModel	model )
-	{		
+	{	
+		PluginDeprecation.call("createPluginView", model.getName());
 		return( new PluginViewWrapper(model));
 	
 	}

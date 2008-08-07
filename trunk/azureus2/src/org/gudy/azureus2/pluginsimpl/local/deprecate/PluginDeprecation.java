@@ -73,6 +73,7 @@ public class PluginDeprecation {
 		 * Here is where we define all deprecated call definitions that we manage.
 		 */
 		register("property listener", IGNORE, NOTIFY_EVERY);
+		register("createPluginView", IGNORE, NOTIFY_EVERY);
 		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(
