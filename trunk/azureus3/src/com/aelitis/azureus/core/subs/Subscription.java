@@ -66,6 +66,14 @@ Subscription
 	
 		throws SubscriptionException;
 	
+	public void
+	setDetails(
+		String		name,
+		boolean		is_public,
+		String		json )
+	
+		throws SubscriptionException;
+	
 	public long
 	getCachedPopularity();
 	
@@ -81,6 +89,9 @@ Subscription
 	
 	public SubscriptionManager
 	getManager();
+	
+	public SubscriptionHistory
+	getHistory();
 	
 	public void
 	addListener(

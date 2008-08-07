@@ -60,10 +60,12 @@ import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.subs.SubscriptionScheduler;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -173,6 +175,7 @@ SubscriptionManagerImpl
 	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	
+	private SubscriptionSchedulerImpl	scheduler = new SubscriptionSchedulerImpl( this );
 	
 	private AEDiagnosticsLogger		logger;
 	
@@ -381,6 +384,12 @@ SubscriptionManagerImpl
 		*/
 	}
 
+	public SubscriptionScheduler
+	getScheduler()
+	{
+		return( scheduler );
+	}
+	
 	public Subscription 
 	create(
 		String			name,

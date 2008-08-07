@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
+import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -76,8 +77,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_LOAD_TORRENT			= "load-torrent";
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
 	
-	public static final String OP_CREATE_SUBSCRIPTION   = "create-subscription";
-	public static final String OP_READ_SUBSCRIPTION   	= "read-subscription";
+	public static final String OP_CREATE_SUBSCRIPTION   		= "create-subscription";
+	public static final String OP_READ_SUBSCRIPTION   			= "read-subscription";
+	public static final String OP_UPDATE_SUBSCRIPTION   		= "update-subscription";
+	public static final String OP_READ_SUBSCRIPTION_RESULTS   	= "read-subscription-results";
 
 	private final SearchResultsTabArea searchResultsArea;
 	
@@ -743,6 +746,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			try{
 				JSONObject	payload = new JSONObject();
 				
+					// change this you need to change update too below
+				
 				payload.put( "engine_id", decodedMap.get( "engine_id" ));
 				payload.put( "search_term", decodedMap.get( "search_term" ));
 				payload.put( "filters", decodedMap.get( "filters" ));
@@ -796,6 +801,96 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "filters", map.get( "filters" ));
 					
 					sendBrowserMessage( "metasearch", "readSubscriptionCompleted", result );
+				}
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+			}
+		}else if (OP_UPDATE_SUBSCRIPTION.equals(opid)) {
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			
+			final String 	name 		= (String)decodedMap.get("name");
+			final Boolean 	isPublic	= (Boolean)decodedMap.get( "is_public" );
+			final String 	sid 		= (String)decodedMap.get("id");
+			
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					Map params = new HashMap();
+
+					params.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "updateSubscriptionFailed",params);
+					
+				}else{
+					
+					JSONObject	payload = new JSONObject();
+					
+						// change this you need to change create too above
+				
+					payload.put( "engine_id", decodedMap.get( "engine_id" ));
+					payload.put( "search_term", decodedMap.get( "search_term" ));
+					payload.put( "filters", decodedMap.get( "filters" ));
+				
+					subs.setDetails( name, isPublic.booleanValue(), payload.toString());
+					
+					Map result = new HashMap();
+					
+					result.put( "id", subs.getID());
+					
+					sendBrowserMessage( "metasearch", "updateSubscriptionCompleted", result );
+				}
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "updateSubscriptionCompleted",params);
+			}
+		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			final String sid = (String) decodedMap.get("id");
+			
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					Map params = new HashMap();
+
+					params.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "readSubscriptionResultsFailed",params);
+					
+				}else{
+					
+					Map result = new HashMap();
+					
+					result.put( "id", subs.getID());
+					
+					JSONArray	results_list = new JSONArray();
+					
+					SubscriptionResult[]	results = subs.getHistory().getResults();
+					
+					for(int i=0; i<results.length; i++){
+						
+						SubscriptionResult r = results[i];
+						
+						results_list.add( r.toJSONMap());
+					}
+					
+					result.put( "results", results_list );
+					
+					sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
 				

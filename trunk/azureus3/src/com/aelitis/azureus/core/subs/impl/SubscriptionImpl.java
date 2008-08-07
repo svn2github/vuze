@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
@@ -119,6 +120,8 @@ SubscriptionImpl
 	
 	private Map				user_data = new LightHashMap();
 	
+	private final SubscriptionHistoryImpl	history;
+	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 		// new subs constructor
@@ -133,6 +136,8 @@ SubscriptionImpl
 		throws SubscriptionException
 	{
 		manager	= _manager;
+		
+		history = new SubscriptionHistoryImpl( manager, this );
 		
 		name		= _name;
 		is_public	= _public;
@@ -175,6 +180,8 @@ SubscriptionImpl
 	{
 		manager	= _manager;
 		
+		history = new SubscriptionHistoryImpl( manager, this );
+		
 		fromMap( map );
 		
 		init();
@@ -192,7 +199,9 @@ SubscriptionImpl
 		throws SubscriptionException
 	{
 		manager	= _manager;
-				
+			
+		history = new SubscriptionHistoryImpl( manager, this );
+		
 		syncFromBody( _body );
 		
 		add_type		= _add_type;
@@ -549,6 +558,59 @@ SubscriptionImpl
 				if ( !ok ){
 					
 					version	= old_version;
+				}
+			}
+			
+			fireChanged();
+		}
+	}
+	
+	public void
+	setDetails(
+		String		_name,
+		boolean		_is_public,
+		String		_json )
+	
+		throws SubscriptionException
+	{
+		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );		
+		
+		String	old_json = body.getJSON();
+		
+		if ( 	!_name.equals( name ) ||
+				_is_public != is_public ||
+				!_json.equals( old_json )){
+			
+			boolean	ok = false;
+			
+			String	old_name	= name;
+			boolean	old_public	= is_public;
+			int		old_version	= version;
+			
+			try{
+				is_public	= _is_public;			
+				name		= _name;
+
+				body.setJSON( _json );
+				
+				version++;
+												
+				syncToBody( body );
+				
+				if ( is_public ){
+
+					manager.updatePublicSubscription( this, body.getJSON());
+				}
+
+				ok = true;
+				
+			}finally{
+				
+				if ( !ok ){
+				
+					version		= old_version;
+					is_public	= old_public;
+					name		= old_name;
 				}
 			}
 			
@@ -1008,6 +1070,12 @@ SubscriptionImpl
 		SubscriptionListener	l )
 	{
 		listeners.remove( l );
+	}
+	
+	public SubscriptionHistory 
+	getHistory() 
+	{
+		return( history );
 	}
 	
 	public SubscriptionManager

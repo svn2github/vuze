@@ -65,6 +65,9 @@ SubscriptionManager
 	getKnownSubscriptions(
 		byte[]						hash );
 	
+	public SubscriptionScheduler
+	getScheduler();
+	
 	public void
 	addListener(
 		SubscriptionManagerListener	listener );

@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
@@ -375,6 +376,16 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										return 0;
 									}
+									public SubscriptionHistory getHistory() {
+										// TODO Auto-generated method stub
+										return null;
+									}
+									public void setDetails(String name,
+											boolean is_public, String json)
+											throws SubscriptionException {
+										// TODO Auto-generated method stub
+										
+									} 
 									public void
 									setUserData(
 										Object		key,
