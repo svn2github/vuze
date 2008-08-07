@@ -65,8 +65,8 @@ public class PiecesItem
 	private final static int completionHeight = 2;
 
 	/** Default Constructor */
-	public PiecesItem() {
-		super("pieces", 100, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+	public PiecesItem(String sTableID) {
+		super("pieces", 100, sTableID);
 		initializeAsGraphic(POSITION_INVISIBLE, 100);
 		setMinWidth(100);
 	}

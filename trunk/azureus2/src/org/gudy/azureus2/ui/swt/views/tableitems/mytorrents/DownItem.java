@@ -40,8 +40,8 @@ public class DownItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public DownItem() {
-    super("down", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+  public DownItem(String sTableID) {
+    super("down", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

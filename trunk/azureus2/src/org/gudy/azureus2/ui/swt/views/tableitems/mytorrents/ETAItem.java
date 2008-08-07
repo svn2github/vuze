@@ -40,8 +40,8 @@ public class ETAItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public ETAItem() {
-    super("eta", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+  public ETAItem(String sTableID) {
+    super("eta", ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

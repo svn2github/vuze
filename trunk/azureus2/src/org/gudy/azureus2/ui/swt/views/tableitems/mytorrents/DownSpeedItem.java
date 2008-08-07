@@ -49,8 +49,8 @@ public class DownSpeedItem
        implements TableCellAddedListener
 {
   /** Default Constructor */
-  public DownSpeedItem() {
-    super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+  public DownSpeedItem(String sTableID) {
+    super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);

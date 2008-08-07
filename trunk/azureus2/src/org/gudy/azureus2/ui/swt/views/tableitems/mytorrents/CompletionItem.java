@@ -60,8 +60,8 @@ public class CompletionItem
 	private Map mapCellLastPercentDone = new HashMap();
 
 	/** Default Constructor */
-	public CompletionItem() {
-		super("completion", TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+	public CompletionItem(String sTableID) {
+		super("completion", sTableID);
 		initializeAsGraphic(POSITION_INVISIBLE, 200);
 		setMinWidth(100);
 	}

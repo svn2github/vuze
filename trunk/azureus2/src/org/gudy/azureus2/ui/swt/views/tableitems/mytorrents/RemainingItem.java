@@ -40,8 +40,8 @@ public class RemainingItem
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public RemainingItem() {
-    super("remaining", ALIGN_TRAIL, POSITION_INVISIBLE, 70, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+  public RemainingItem(String sTableID) {
+    super("remaining", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }
