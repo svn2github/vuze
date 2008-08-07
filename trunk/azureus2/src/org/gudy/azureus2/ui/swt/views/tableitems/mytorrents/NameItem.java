@@ -47,21 +47,36 @@ public class NameItem extends CoreTableColumn implements
 {
 	private boolean bShowIcon;
 
-
 	/** Default Constructor */
 	public NameItem(String sTableID) {
+		this(sTableID,false,false);
+	}
+
+	
+	/**
+	 * 
+	 * @param sTableID
+	 * @param overrideIconDisplay -- Overriding the normal behavior of reading this value from user preference by specifically setting it's value
+	 * @param iconDisplayValue -- the value to use if <code>overrideIconDisplay</code> is set to <code>true</code>
+	 */
+	public NameItem(String sTableID, boolean overrideIconDisplay,
+			boolean iconDisplayValue) {
 		super("name", POSITION_LAST, 250, sTableID);
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);
 		setMinWidth(100);
-		
-		COConfigurationManager.addAndFireParameterListener(
-				"NameColumn.showProgramIcon", new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
-					}
-				});
+
+		if (false == overrideIconDisplay) {
+			COConfigurationManager.addAndFireParameterListener(
+					"NameColumn.showProgramIcon", new ParameterListener() {
+						public void parameterChanged(String parameterName) {
+							bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
+						}
+					});
+		} else {
+			bShowIcon = iconDisplayValue;
+		}
 	}
 
 	public void refresh(TableCell cell)
@@ -124,20 +139,6 @@ public class NameItem extends CoreTableColumn implements
 				img.dispose();
 			}
 		}
-	}
-
-
-	/**
-	 * Overriding the normal behavior of reading this value from user preference by specically 
-	 * setting it.
-	 * @param showIcon
-	 */
-	public void setIconShown(boolean showIcon) {
-		bShowIcon = showIcon;
-	}
-	
-	public boolean isIconShown() {
-		return bShowIcon;
 	}
 
 }
