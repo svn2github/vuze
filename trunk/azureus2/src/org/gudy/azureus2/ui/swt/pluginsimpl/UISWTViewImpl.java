@@ -77,16 +77,23 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	
 	private String sTitle = null;
 
+	public UISWTViewImpl(String sParentID, String sViewID,
+			UISWTViewEventListener eventListener) throws Exception {
+		this(sParentID, sViewID, eventListener, null);
+	}
+	
 	/**
 	 * 
 	 * @param sViewID
 	 * @param eventListener
 	 */
-	public UISWTViewImpl(String sParentID, String sViewID, UISWTViewEventListener eventListener)
+	public UISWTViewImpl(String sParentID, String sViewID,
+			UISWTViewEventListener eventListener, Object datasource)
 			throws Exception {
 		this.sParentID = sParentID;
 		this.sViewID = sViewID;
 		this.eventListener = eventListener;
+		this.dataSource = datasource;
 
 		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
 				UISWTViewEvent.TYPE_CREATE, this)))
