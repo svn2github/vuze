@@ -379,6 +379,9 @@ public class TableRowImpl
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
 		boolean changed = super.setTableItem(newIndex, false, isVisible);
+		if (lastIndex != newIndex) {
+			lastIndex = newIndex;
+		}
 		setShown(tableView.isRowVisible(this), changed);
 		return changed; 
 	}
@@ -466,15 +469,9 @@ public class TableRowImpl
 	}
 
 	public String toString() {
-		String result = "TableRowImpl@" + Integer.toHexString(hashCode());
-		
-		// In the rare case that we are calling this outside of a SWT thread, this
-		// may break, so we will just ignore those exceptions.
-		String index = null;
-		try {index = String.valueOf(getIndex());}
-		catch (SWTException se) {/* do nothing */}
-		
-		return result + ((index == null) ? "" : ("/#" + index)); 		
+		String result = "TableRowImpl@" + Integer.toHexString(hashCode()) + "/#"
+				+ lastIndex;
+		return result;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#getView()
