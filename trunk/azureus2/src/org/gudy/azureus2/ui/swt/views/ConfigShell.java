@@ -57,7 +57,7 @@ public class ConfigShell
 			shell.forceActive();
 			shell.forceFocus();
 		} else {
-			shell = ShellFactory.createShell(SWT.SHELL_TRIM);
+			shell = ShellFactory.createMainShell(SWT.SHELL_TRIM & ~SWT.MIN);
 			shell.setLayout(new GridLayout());
 			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
 			Utils.setShellIcon(shell);

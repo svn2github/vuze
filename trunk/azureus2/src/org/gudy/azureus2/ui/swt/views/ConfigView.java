@@ -45,17 +45,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -495,7 +485,11 @@ public class ConfigView extends AbstractIView {
  
 
 
-    initSaveButton();
+    if (composite instanceof Shell) {
+    	initApplyCloseButton();
+    } else {
+    	initSaveButton();
+    }
 
     TreeItem[] items = { tree.getItems()[0] };
     tree.setSelection(items);
@@ -842,6 +836,45 @@ public class ConfigView extends AbstractIView {
 		});
   }
 
+  private void initApplyCloseButton() {
+  	Composite cButtons = new Composite(cConfig, SWT.NONE);
+  	GridLayout gridLayout = new GridLayout();
+		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = gridLayout.marginHeight = gridLayout.marginWidth = 0;
+		gridLayout.numColumns = 2;
+		cButtons.setLayout(gridLayout);
+		cButtons.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
+  	
+    GridData gridData;
+    final Button apply = new Button(cButtons, SWT.PUSH);
+    Messages.setLanguageText(apply, "Button.apply");
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+    gridData.widthHint = 80;
+    apply.setLayoutData(gridData);
+
+    apply.addSelectionListener(new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+				// force focusout on osx
+				apply.setFocus();
+				save();
+			}
+		});
+    
+    final Button close = new Button(cButtons, SWT.PUSH);
+    Messages.setLanguageText(close, "Button.close");
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
+    gridData.widthHint = 80;
+    close.setLayoutData(gridData);
+
+    close.addSelectionListener(new SelectionAdapter() {
+      public void widgetSelected(SelectionEvent event) {
+				// force focusout on osx
+				apply.setFocus();
+				save();
+				apply.getShell().dispose();
+			}
+		});
+  }
+  
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
    */
