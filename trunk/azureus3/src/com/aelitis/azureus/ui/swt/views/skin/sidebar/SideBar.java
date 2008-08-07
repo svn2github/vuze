@@ -1096,8 +1096,9 @@ public class SideBar
 
 		IView iview = null;
 		try {
-			iview = new UISWTViewImpl("SideBar.Plugins", id, l);
+			iview = new UISWTViewImpl("SideBar.Plugins", id, l, datasource);
 			((UISWTViewImpl) iview).setTitle(name);
+			iview.dataSourceChanged(datasource);
 
 			if (l instanceof UISWTViewEventListenerFormLayout) {
 				((UISWTViewImpl) iview).setUseCoreDataSource(true);
@@ -1162,7 +1163,7 @@ public class SideBar
 						return true;
 					}
 				};
-				iview = new UISWTViewImpl("SideBar.Plugins", id, l);
+				iview = new UISWTViewImpl("SideBar.Plugins", id, l, datasource);
 				((UISWTViewImpl) iview).setTitle(treeItem.getText());
 
 				Composite parent = (Composite) soSideBarContents.getControl();
