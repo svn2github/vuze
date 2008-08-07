@@ -35,7 +35,12 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateEvent;
+import org.gudy.azureus2.core3.download.DownloadManagerStateListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -235,25 +240,35 @@ ShareHosterPlugin
 						new_download.setAttribute( ta,	resource.getAttribute( ta ));
 					}
 					
-					new_download.addPropertyListener(
-						new DownloadPropertyListener()
-						{
-							public void
-							propertyChanged(
-								Download				download,
-								DownloadPropertyEvent	event )
-							{
-								if ( event.getType() == DownloadPropertyEvent.PT_TORRENT_ATTRIBUTE_WRITTEN ){
-									
-									TorrentAttribute	at = (TorrentAttribute)event.getData();
-									
-									// System.out.println( "sh: rs -> res " + at.getName() + "/" + download.getAttribute( at ));
-									
-									resource.setAttribute( at, download.getAttribute( at ));
+						// OK, this is a hack to get around the new plugin deprecation warnings
+						// I don't have time to fix this up properly, maybe amc does
+					
+					org.gudy.azureus2.core3.download.DownloadManager dm = PluginCoreUtils.unwrap( new_download );
+					
+					if ( dm != null ){
 						
+						dm.getDownloadState().addListener(
+							new DownloadManagerStateListener()
+							{
+								public void 
+								stateChanged(
+									DownloadManagerState 		state,
+									DownloadManagerStateEvent 	event ) 
+								{
+									if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
+										
+										String	name = (String)event.getData();
+																				
+										TorrentAttribute	attr = DownloadImpl.convertAttribute( name );
+										
+										if ( attr != null ){
+											
+											resource.setAttribute( attr, f_new_download.getAttribute( attr ));
+										}
+									}
 								}
-							}
-						});
+							});
+					}
 					
 					Torrent	dl_torrent = new_download.getTorrent();
 					

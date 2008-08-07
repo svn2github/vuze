@@ -611,7 +611,7 @@ DownloadImpl
 	  }
   }
   
-  protected String
+  public static String
   convertAttribute(
   	TorrentAttribute		attribute )
   {
@@ -661,7 +661,7 @@ DownloadImpl
   	}
   }
   
-  protected TorrentAttribute
+  public static TorrentAttribute
   convertAttribute(
   	String			name )
   {

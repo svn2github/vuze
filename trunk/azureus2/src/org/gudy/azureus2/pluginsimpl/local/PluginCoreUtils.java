@@ -202,7 +202,16 @@ PluginCoreUtils
 	unwrap(
 		Download		dm )
 	{
-		return(((DownloadImpl)dm).getDownload());
+		if ( dm instanceof DownloadImpl ){
+			
+			return(((DownloadImpl)dm).getDownload());
+			
+		}else{
+			
+			Debug.out( "Can't unwrap " + dm );
+			
+			return( null );
+		}
 	}
 	
 	public static PeerManager
