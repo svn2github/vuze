@@ -109,6 +109,8 @@ DownloadImpl
 	private CopyOnWriteList	activation_listeners = new CopyOnWriteList();
 	private DownloadActivationEvent	activation_state;
 	
+	private HashMap property_to_attribute_map = null;
+	
 	protected
 	DownloadImpl(
 		DownloadManager		_dm )
@@ -611,7 +613,7 @@ DownloadImpl
 	  }
   }
   
-  public static String
+  protected String
   convertAttribute(
   	TorrentAttribute		attribute )
   {
@@ -661,7 +663,7 @@ DownloadImpl
   	}
   }
   
-  public static TorrentAttribute
+  protected TorrentAttribute
   convertAttribute(
   	String			name )
   {
@@ -1143,6 +1145,21 @@ DownloadImpl
 	addPropertyListener(
 		DownloadPropertyListener	l )
 	{
+		
+		// Compatibility for the autostop plugin.
+		if ("com.aimedia.stopseeding.core.RatioWatcher".equals(l.getClass().getName())) {
+			
+			// Looking at the source code, this method doesn't actually appear to do anything,
+			// so we can avoid doing anything for now.
+			return;
+			/*
+			if (property_to_attribute_map == null) {property_to_attribute_map = new HashMap(1);}
+			DownloadAttributeListener dal = new PropertyListenerBridge(l);
+			property_to_attribute_map.put(l, dal);
+			this.addAttributeListener(dal, attr, event_type);
+			*/
+		}
+		
 		PluginDeprecation.call("property listener", l);
 		try{
 			tracker_listeners_mon.enter();
@@ -1167,6 +1184,15 @@ DownloadImpl
 	removePropertyListener(
 		DownloadPropertyListener	l )
 	{
+		
+		// Compatibility for the autostop plugin.
+		if ("com.aimedia.stopseeding.core.RatioWatcher".equals(l.getClass().getName())) {
+			
+			// Looking at the source code, this method doesn't actually appear to do anything,
+			// so we can avoid doing anything for now.
+			return;
+		}
+		
 		try{
 			tracker_listeners_mon.enter();
 			
@@ -1790,6 +1816,17 @@ DownloadImpl
 			 if (try_to_resume) {this.resume();}
 		 }
 			 
+	 }
+	 
+	 private static class PropertyListenerBridge implements DownloadAttributeListener {
+		 private DownloadPropertyListener l;
+		 public PropertyListenerBridge(DownloadPropertyListener l) {this.l = l;}
+		 public void attributeEventOccurred(Download d, final TorrentAttribute attr, final int event_type) {
+			 l.propertyChanged(d, new DownloadPropertyEvent() {
+				 public int getType() {return event_type;}
+				 public Object getData() {return attr;}
+			 });
+		 }
 	 }
 	 
 }
