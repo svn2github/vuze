@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -740,8 +741,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		}else if(OP_CREATE_SUBSCRIPTION.equals(opid)) {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
-			final String name = (String) decodedMap.get("name");
-			final Boolean isPublic	= (Boolean) decodedMap.get( "is_public" );
+			
+			final Long	 tid = (Long) decodedMap.get("tid");
+
+			
+			final String 	name 		= (String) decodedMap.get( "name" );
+			final Boolean 	isPublic	= (Boolean) decodedMap.get( "is_public" );
+			final Boolean 	isEnabled	= (Boolean) decodedMap.get( "is_enabled" );
 			
 			try{
 				JSONObject	payload = new JSONObject();
@@ -751,17 +757,25 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				payload.put( "engine_id", decodedMap.get( "engine_id" ));
 				payload.put( "search_term", decodedMap.get( "search_term" ));
 				payload.put( "filters", decodedMap.get( "filters" ));
+				payload.put( "schedule", decodedMap.get( "schedule" ));
 				
 				Subscription subs = SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), payload.toString());
+				
+				subs.getHistory().setEnabled( isEnabled==null?true:isEnabled.booleanValue());
 				
 				Map result = new HashMap();
 				
 				result.put( "id", subs.getID());
+				
+				if ( tid != null )result.put( "tid", tid );
+
 				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", result );
 
 			} catch( Throwable e ){
 				
 				Map params = new HashMap();
+
+				if ( tid != null )params.put( "tid", tid );
 
 				params.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -770,6 +784,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		}else if(OP_READ_SUBSCRIPTION.equals(opid)) {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			
+			final Long	 tid = (Long) decodedMap.get("tid");
+
 			final String sid = (String) decodedMap.get("id");
 			
 			try{
@@ -778,6 +795,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				if ( subs == null ){
 					
 					Map params = new HashMap();
+
+					if ( tid != null )params.put( "tid", tid );
 
 					params.put( "error", "Subscription not found" );
 
@@ -792,6 +811,14 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "is_public", new Boolean( subs.isPublic()));
 					result.put( "is_author", new Boolean( subs.isMine()));
 					
+					SubscriptionHistory history = subs.getHistory();
+					
+					result.put( "is_enabled", new Boolean( history.isEnabled()));
+					result.put( "last_scan", new Long( history.getLastScanTime()));
+					result.put( "last_new", new Long( history.getLastNewResultTime()));
+					result.put( "num_unread", new Long( history.getNumUnread()));
+					result.put( "num_read", new Long( history.getNumRead()));
+					
 					String json = subs.getJSON();
 					
 					Map map = JSONUtils.decodeJSON( json );
@@ -799,12 +826,17 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "engine_id", map.get( "engine_id" ));
 					result.put( "search_term", map.get( "search_term" ));
 					result.put( "filters", map.get( "filters" ));
+					result.put( "schedule", map.get( "schedule" ));
 					
+					if ( tid != null )result.put( "tid", tid );
+
 					sendBrowserMessage( "metasearch", "readSubscriptionCompleted", result );
 				}
 			} catch( Throwable e ){
 				
 				Map params = new HashMap();
+
+				if ( tid != null )params.put( "tid", tid );
 
 				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -814,8 +846,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
 			
+			final Long	 tid = (Long) decodedMap.get("tid");
+			
 			final String 	name 		= (String)decodedMap.get("name");
 			final Boolean 	isPublic	= (Boolean)decodedMap.get( "is_public" );
+			final Boolean 	isEnabled	= (Boolean) decodedMap.get( "is_enabled" );
 			final String 	sid 		= (String)decodedMap.get("id");
 			
 			try{
@@ -824,6 +859,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				if ( subs == null ){
 					
 					Map params = new HashMap();
+
+					if ( tid != null )params.put( "tid", tid );
 
 					params.put( "error", "Subscription not found" );
 
@@ -838,18 +875,25 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					payload.put( "engine_id", decodedMap.get( "engine_id" ));
 					payload.put( "search_term", decodedMap.get( "search_term" ));
 					payload.put( "filters", decodedMap.get( "filters" ));
+					payload.put( "schedule", decodedMap.get( "schedule" ));
 				
 					subs.setDetails( name, isPublic.booleanValue(), payload.toString());
 					
+					subs.getHistory().setEnabled( isEnabled==null?true:isEnabled.booleanValue());
+
 					Map result = new HashMap();
 					
 					result.put( "id", subs.getID());
 					
+					if ( tid != null )result.put( "tid", tid );
+
 					sendBrowserMessage( "metasearch", "updateSubscriptionCompleted", result );
 				}
 			} catch( Throwable e ){
 				
 				Map params = new HashMap();
+
+				if ( tid != null )params.put( "tid", tid );
 
 				params.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -858,6 +902,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			
+			final Long	 tid = (Long) decodedMap.get("tid");
+			
 			final String sid = (String) decodedMap.get("id");
 			
 			try{
@@ -867,6 +914,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					Map params = new HashMap();
 
+					if ( tid != null )params.put( "tid", tid );
+					
 					params.put( "error", "Subscription not found" );
 
 					sendBrowserMessage("metasearch", "readSubscriptionResultsFailed",params);
@@ -875,6 +924,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					Map result = new HashMap();
 					
+					if ( tid != null )result.put( "tid", tid );
+
 					result.put( "id", subs.getID());
 					
 					JSONArray	results_list = new JSONArray();
@@ -895,6 +946,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			} catch( Throwable e ){
 				
 				Map params = new HashMap();
+
+				if ( tid != null )params.put( "tid", tid );
 
 				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 

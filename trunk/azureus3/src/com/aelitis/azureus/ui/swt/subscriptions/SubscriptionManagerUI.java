@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -814,9 +815,11 @@ SubscriptionManagerUI
 			
 			info_lab2.setText( 
 					"History: " + 
-					"scan=" + history.getLastScanTime() +
-					",read=" + history.getNumRead() +
-					",unread=" + history.getNumUnread());
+					"enabled=" + history.isEnabled() +
+					", scan=" + new SimpleDateFormat().format(new Date( history.getLastScanTime())) +
+					", last_new=" + new SimpleDateFormat().format(new Date( history.getLastNewResultTime())) +
+					", read=" + history.getNumRead() +
+					" ,unread=" + history.getNumUnread());
 					
 			try{
 			

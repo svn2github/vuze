@@ -2,16 +2,14 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
 import com.aelitis.azureus.core.metasearch.Result;
-import com.aelitis.azureus.core.metasearch.ResultsFilter;
 import com.aelitis.azureus.util.ImportExportUtils;
 
-public class SubscriptionResultFilter implements ResultsFilter {
+public class SubscriptionResultFilter{
 	
 	String[] textFilters;
 	String[] excludeTextFilters;
@@ -138,46 +136,4 @@ public class SubscriptionResultFilter implements ResultsFilter {
 		
 		return fResults;
 	}
-	
-	public Map exportToBencodedMap() throws IOException {
-		
-		Map res = new HashMap();
-		
-		exportStrings(res, "text_filter", textFilters," ");
-		
-		exportStrings(res, "exclude_text_filter", excludeTextFilters," ");
-		
-		ImportExportUtils.exportString(res, "regex_filter", regexFilter);
-		
-		if(minSize > -1) {
-			res.put("min_size",new Long(minSize));
-		}
-		
-		if(maxSize > -1) {
-			res.put("max_size",new Long(maxSize));
-		}
-		
-		if(minSeeds > -1) {
-			res.put("min_seeds",new Long(minSeeds));
-		}
-		
-		if(categoryFilter != null) {
-			ImportExportUtils.exportString(res, "category", categoryFilter);
-		}
-		
-		return res;
-	}
-
-	private void exportStrings(Map res,String key,String[] strings,String separator) throws IOException {
-		StringBuffer rawStringFilters = new StringBuffer();
-		String sep = "";
-		for(int i = 0 ; i < strings.length ; i++) {
-			rawStringFilters.append(sep);
-			rawStringFilters.append(strings[i]);
-			sep = separator;
-		}
-		ImportExportUtils.exportString(res, key, rawStringFilters.toString());
-	}
-	
-
 }

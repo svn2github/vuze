@@ -36,7 +36,9 @@ SubscriptionHistoryImpl
 	private SubscriptionManagerImpl		manager;
 	private SubscriptionImpl			subs;
 	
+	private boolean		enabled;
 	private long		last_scan;
+	private long		last_new_result;
 	private int			num_unread;
 	private int			num_read;
 	
@@ -60,6 +62,8 @@ SubscriptionHistoryImpl
 		int	new_unread 	= 0;
 		int new_read	= 0;
 		
+		long	now = SystemTime.getCurrentTime();
+		
 		synchronized( this ){
 			
 			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
@@ -77,11 +81,13 @@ SubscriptionHistoryImpl
 			
 			for (int i=0;i<latest_results.length;i++){
 
-				SubscriptionResultImpl r = existing_results[i];
+				SubscriptionResultImpl r = latest_results[i];
 
 				SubscriptionResultImpl e = (SubscriptionResultImpl)map.get( r.getKey());
 				
 				if ( e == null ){
+					
+					last_new_result = now;
 					
 					changed = true;
 					
@@ -106,7 +112,7 @@ SubscriptionHistoryImpl
 			}
 		}
 		
-		last_scan 	= SystemTime.getCurrentTime();
+		last_scan 	= now;
 		num_unread	= new_unread;
 		num_read	= new_read;
 		
@@ -115,11 +121,34 @@ SubscriptionHistoryImpl
 		saveConfig();
 	}
 	
-
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
+	public void
+	setEnabled(
+		boolean		_enabled )
+	{
+		if ( _enabled != enabled ){
+			
+			enabled	= _enabled;
+		
+			saveConfig();
+		}
+	}
+	
 	public long
 	getLastScanTime()
 	{
 		return( last_scan );
+	}
+	
+	public long 
+	getLastNewResultTime() 
+	{
+		return( last_new_result );
 	}
 	
 	public int
@@ -145,8 +174,14 @@ SubscriptionHistoryImpl
 	{
 		Map	map = subs.getHistoryConfig();
 		
+		Long	l_enabled	= (Long)map.get( "enabled" );		
+		enabled				= l_enabled==null?true:l_enabled.longValue()==1;
+		
 		Long	l_last_scan = (Long)map.get( "last_scan" );		
 		last_scan			= l_last_scan==null?0:l_last_scan.longValue();
+		
+		Long	l_last_new 	= (Long)map.get( "last_new" );		
+		last_new_result		= l_last_new==null?0:l_last_new.longValue();
 		
 		Long	l_num_unread 	= (Long)map.get( "num_unread" );		
 		num_unread				= l_num_unread==null?0:l_num_unread.intValue();
@@ -160,7 +195,9 @@ SubscriptionHistoryImpl
 	{
 		Map	map = new HashMap();
 		
+		map.put( "enabled", new Long( enabled?1:0 ));
 		map.put( "last_scan", new Long( last_scan ));
+		map.put( "last_new", new Long( last_new_result ));
 		map.put( "num_unread", new Long( num_unread ));
 		map.put( "num_read", new Long( num_read ));
 		

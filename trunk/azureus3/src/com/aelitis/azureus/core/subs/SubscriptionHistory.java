@@ -24,8 +24,18 @@ package com.aelitis.azureus.core.subs;
 public interface 
 SubscriptionHistory 
 {
+	public boolean
+	isEnabled();
+	
+	public void
+	setEnabled(
+		boolean		enabled );
+	
 	public long
 	getLastScanTime();
+	
+	public long
+	getLastNewResultTime();
 	
 	public int
 	getNumUnread();
