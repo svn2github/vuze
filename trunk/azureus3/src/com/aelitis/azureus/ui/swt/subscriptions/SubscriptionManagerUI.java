@@ -816,6 +816,7 @@ SubscriptionManagerUI
 			info_lab2.setText( 
 					"History: " + 
 					"enabled=" + history.isEnabled() +
+					", auto=" + history.isAutoDownload() +
 					", scan=" + new SimpleDateFormat().format(new Date( history.getLastScanTime())) +
 					", last_new=" + new SimpleDateFormat().format(new Date( history.getLastNewResultTime())) +
 					", read=" + history.getNumRead() +

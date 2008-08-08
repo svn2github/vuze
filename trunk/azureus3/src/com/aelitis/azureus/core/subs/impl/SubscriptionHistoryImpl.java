@@ -37,6 +37,8 @@ SubscriptionHistoryImpl
 	private SubscriptionImpl			subs;
 	
 	private boolean		enabled;
+	private boolean		auto_dl;
+	
 	private long		last_scan;
 	private long		last_new_result;
 	private int			num_unread;
@@ -139,6 +141,38 @@ SubscriptionHistoryImpl
 		}
 	}
 	
+	public boolean
+	isAutoDownload()
+	{
+		return( auto_dl );
+	}
+	
+	public void
+	setAutoDownload(
+		boolean		_auto_dl )
+	{
+		if ( _auto_dl != auto_dl ){
+			
+			auto_dl	= _auto_dl;
+		
+			saveConfig();
+		}
+	}
+	
+	public void 
+	setDetails(
+		boolean 	_enabled, 
+		boolean 	_auto_dl ) 
+	{
+		if ( enabled != _enabled || auto_dl != _auto_dl ){
+			
+			enabled	= _enabled;
+			auto_dl	= _auto_dl;
+			
+			saveConfig();
+		}
+	}
+	
 	public long
 	getLastScanTime()
 	{
@@ -177,6 +211,9 @@ SubscriptionHistoryImpl
 		Long	l_enabled	= (Long)map.get( "enabled" );		
 		enabled				= l_enabled==null?true:l_enabled.longValue()==1;
 		
+		Long	l_auto_dl	= (Long)map.get( "auto_dl" );		
+		auto_dl				= l_auto_dl==null?true:l_auto_dl.longValue()==1;
+
 		Long	l_last_scan = (Long)map.get( "last_scan" );		
 		last_scan			= l_last_scan==null?0:l_last_scan.longValue();
 		
@@ -196,6 +233,7 @@ SubscriptionHistoryImpl
 		Map	map = new HashMap();
 		
 		map.put( "enabled", new Long( enabled?1:0 ));
+		map.put( "auto_dl", new Long( auto_dl?1:0 ));
 		map.put( "last_scan", new Long( last_scan ));
 		map.put( "last_new", new Long( last_new_result ));
 		map.put( "num_unread", new Long( num_unread ));

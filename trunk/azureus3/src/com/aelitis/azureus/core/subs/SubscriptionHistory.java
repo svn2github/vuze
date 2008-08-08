@@ -31,6 +31,18 @@ SubscriptionHistory
 	setEnabled(
 		boolean		enabled );
 	
+	public boolean
+	isAutoDownload();
+	
+	public void
+	setAutoDownload(
+		boolean		auto_dl );
+
+	public void
+	setDetails(
+		boolean		enabled,
+		boolean		auto_dl );
+	
 	public long
 	getLastScanTime();
 	

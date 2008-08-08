@@ -742,13 +742,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
 			
-			final Long	 tid = (Long) decodedMap.get("tid");
+			Long	 tid = (Long) decodedMap.get("tid");
 
+			String 		name 		= (String) decodedMap.get( "name" );
+			Boolean 	isPublic	= (Boolean) decodedMap.get( "is_public" );
+			Map			options		= (Map)decodedMap.get( "options" );
 			
-			final String 	name 		= (String) decodedMap.get( "name" );
-			final Boolean 	isPublic	= (Boolean) decodedMap.get( "is_public" );
-			final Boolean 	isEnabled	= (Boolean) decodedMap.get( "is_enabled" );
-			
+			Boolean 	isEnabled		= (Boolean)options.get( "is_enabled" );
+			Boolean 	autoDownload	= (Boolean)options.get( "auto_dl" );
+
 			try{
 				JSONObject	payload = new JSONObject();
 				
@@ -758,10 +760,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				payload.put( "search_term", decodedMap.get( "search_term" ));
 				payload.put( "filters", decodedMap.get( "filters" ));
 				payload.put( "schedule", decodedMap.get( "schedule" ));
+				payload.put( "options", decodedMap.get( "options" ));
 				
 				Subscription subs = SubscriptionManagerFactory.getSingleton().create(name, isPublic.booleanValue(), payload.toString());
 				
-				subs.getHistory().setEnabled( isEnabled==null?true:isEnabled.booleanValue());
+				subs.getHistory().setDetails(
+					isEnabled==null?true:isEnabled.booleanValue(),
+					autoDownload==null?false:autoDownload.booleanValue());
 				
 				Map result = new HashMap();
 				
@@ -813,11 +818,21 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					SubscriptionHistory history = subs.getHistory();
 					
-					result.put( "is_enabled", new Boolean( history.isEnabled()));
-					result.put( "last_scan", new Long( history.getLastScanTime()));
-					result.put( "last_new", new Long( history.getLastNewResultTime()));
-					result.put( "num_unread", new Long( history.getNumUnread()));
-					result.put( "num_read", new Long( history.getNumRead()));
+					Map	options = new HashMap();
+
+					result.put( "options", options );
+
+					options.put( "is_enabled", new Boolean( history.isEnabled()));
+					options.put( "auto_dl", new Boolean( history.isAutoDownload()));
+					
+					Map	info = new HashMap();
+
+					result.put( "info", info );
+					
+					info.put( "last_scan", new Long( history.getLastScanTime()));
+					info.put( "last_new", new Long( history.getLastNewResultTime()));
+					info.put( "num_unread", new Long( history.getNumUnread()));
+					info.put( "num_read", new Long( history.getNumRead()));
 					
 					String json = subs.getJSON();
 					
@@ -850,9 +865,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			final String 	name 		= (String)decodedMap.get("name");
 			final Boolean 	isPublic	= (Boolean)decodedMap.get( "is_public" );
-			final Boolean 	isEnabled	= (Boolean) decodedMap.get( "is_enabled" );
 			final String 	sid 		= (String)decodedMap.get("id");
 			
+			Map			options		= (Map)decodedMap.get( "options" );
+			
+			Boolean 	isEnabled		= (Boolean)options.get( "is_enabled" );
+			Boolean 	autoDownload	= (Boolean)options.get( "auto_dl" );
+
 			try{
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
@@ -876,10 +895,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					payload.put( "search_term", decodedMap.get( "search_term" ));
 					payload.put( "filters", decodedMap.get( "filters" ));
 					payload.put( "schedule", decodedMap.get( "schedule" ));
+					payload.put( "options", decodedMap.get( "options" ));
 				
 					subs.setDetails( name, isPublic.booleanValue(), payload.toString());
 					
-					subs.getHistory().setEnabled( isEnabled==null?true:isEnabled.booleanValue());
+					subs.getHistory().setDetails(
+							isEnabled==null?true:isEnabled.booleanValue(),
+							autoDownload==null?false:autoDownload.booleanValue());
 
 					Map result = new HashMap();
 					
