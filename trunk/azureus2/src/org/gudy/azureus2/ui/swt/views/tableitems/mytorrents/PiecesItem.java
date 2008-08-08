@@ -64,14 +64,29 @@ public class PiecesItem
 	// height of little completion bar above piece bar.
 	private final static int completionHeight = 2;
 
+	private int marginHeight = -1;
+	
 	/** Default Constructor */
 	public PiecesItem(String sTableID) {
+		this(sTableID,-1);
+	}
+	
+	/**
+	 * 
+	 * @param sTableID
+	 * @param marginHeight -- Margin height above and below the pieces graphic; used in cases where the row is very tall
+	 */
+	public PiecesItem(String sTableID, int marginHeight) {
 		super("pieces", 100, sTableID);
+		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 100);
 		setMinWidth(100);
 	}
 
 	public void cellAdded(TableCell cell) {
+		if (marginHeight != -1) {
+			cell.setMarginHeight(marginHeight);
+		}
 		cell.setFillCell(true);
 	}
 
@@ -81,12 +96,12 @@ public class PiecesItem
 		if (infoObj == null)
 			return;
 
-		Image img = (Image) infoObj.getData("PiecesImage");
+		Image img = (Image) infoObj.getUserData("PiecesImage");
 		if (img != null && !img.isDisposed())
 			img.dispose();
 
-		infoObj.setData("PiecesImageBuffer", null);
-		infoObj.setData("PiecesImage", null);
+		infoObj.setUserData("PiecesImageBuffer", null);
+		infoObj.setUserData("PiecesImage", null);
 	}
 
 	public void refresh(TableCell cell) {
@@ -99,7 +114,7 @@ public class PiecesItem
 		DownloadManager infoObj = (DownloadManager) cell.getDataSource();
 		long lCompleted = (infoObj == null) ? 0 : infoObj.getStats().getCompleted();
 
-		boolean bForce = infoObj != null && infoObj.getData("PiecesImage") == null;
+		boolean bForce = infoObj != null && infoObj.getUserData("PiecesImage") == null;
 
 		if (!cell.setSortValue(lCompleted) && cell.isValid() && !bForce) {
 			return;
@@ -122,13 +137,13 @@ public class PiecesItem
 		if (drawWidth < 10 || y1 < 3)
 			return;
 		boolean bImageBufferValid = true;
-		int[] imageBuffer = (int[]) infoObj.getData("PiecesImageBuffer");
+		int[] imageBuffer = (int[]) infoObj.getUserData("PiecesImageBuffer");
 		if (imageBuffer == null || imageBuffer.length != drawWidth) {
 			imageBuffer = new int[drawWidth];
 			bImageBufferValid = false;
 		}
 
-		Image image = (Image) infoObj.getData("PiecesImage");
+		Image image = (Image) infoObj.getUserData("PiecesImage");
 		GC gcImage;
 		boolean bImageChanged;
 		Rectangle imageBounds;
@@ -203,7 +218,6 @@ public class PiecesItem
 					index = imageBuffer[i - 1];
 				} else {
 					int nbAvailable = 0;
-					int nbCompleteThisColumn = 0;
 					for (int j = a0; j < a1; j++)
 						if (pieces != null && pieces[j].isDone())
 							nbAvailable++;
@@ -251,8 +265,8 @@ public class PiecesItem
 			} else {
 				cell.setGraphic(new UISWTGraphicImpl(image));
 			}
-			infoObj.setData("PiecesImage", image);
-			infoObj.setData("PiecesImageBuffer", imageBuffer);
+			infoObj.setUserData("PiecesImage", image);
+			infoObj.setUserData("PiecesImageBuffer", imageBuffer);
 		}
 	}
 }
