@@ -105,13 +105,37 @@ SubscriptionDownloader
 				s_results[i] = s_result;
 			}
 			
-			history.reconcileResults( s_results );
+			SubscriptionResultImpl[] all_results = history.reconcileResults( s_results );
 						
+			checkAutoDownload( all_results );
+			
 		}catch( Throwable e ){
 			
 			log( "    Download failed", e);
 			
 			throw( new SubscriptionException( "Search failed", e ));
+		}
+	}
+	
+	protected void
+	checkAutoDownload(
+		SubscriptionResultImpl[]	results )
+	{
+		if ( !subs.getHistory().isAutoDownload()){
+			
+			return;
+		}
+		
+		for (int i=0;i<results.length;i++){
+			
+			SubscriptionResultImpl	result = results[i];
+			
+			if ( result.isDeleted() || result.getRead()){
+				
+				continue;
+			}
+						
+			manager.getScheduler().download( subs, result );
 		}
 	}
 	

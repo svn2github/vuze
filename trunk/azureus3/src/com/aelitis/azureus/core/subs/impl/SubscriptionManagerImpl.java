@@ -2007,7 +2007,7 @@ SubscriptionManagerImpl
 				
 				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
 				
-				if ( sub.isSubscribed()){
+				if ( sub.isSubscribed() && sub.isPublic()){
 					
 					SubscriptionImpl.association  assoc = sub.getAssociationForPublish();
 					

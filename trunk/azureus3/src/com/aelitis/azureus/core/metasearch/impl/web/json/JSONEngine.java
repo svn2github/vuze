@@ -263,7 +263,7 @@ JSONEngine
 							listener.matchFound( this, groups );
 						}
 						
-						WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
+						WebResult result = new WebResult(this,getRootPage(),getBasePage(),getDateParser(),searchQuery);
 													
 						for(int j = 0 ; j < mappings.length ; j++) {
 							String fieldFrom = mappings[j].getName();

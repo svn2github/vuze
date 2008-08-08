@@ -36,9 +36,12 @@ PluginResult
 	
 	protected
 	PluginResult(
+		PluginEngine		_engine,
 		SearchResult		_result,
 		String				_search_term )
 	{
+		super( _engine );
+		
 		result			= _result;
 		search_term		= _search_term;
 	}

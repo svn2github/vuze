@@ -122,6 +122,17 @@ PluginEngine
 		return((String)provider.getProperty( SearchProvider.PR_ICON_URL ));
 	}
 	
+	public String 
+	getReferer() 
+	{
+		if ( provider == null ){
+			
+			return( null );
+		}
+		
+		return((String)provider.getProperty( SearchProvider.PR_REFERER ));
+	}
+	
 	protected Result[] 
 	searchSupport(
 		SearchParameter[] 	params, 
@@ -179,7 +190,7 @@ PluginEngine
 						SearchInstance 		search,
 						SearchResult 		result )
 					{
-						results.add( new PluginResult( result, f_term ));
+						results.add( new PluginResult( PluginEngine.this, result, f_term ));
 					}
 					
 					public void 

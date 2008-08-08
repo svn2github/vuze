@@ -25,6 +25,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.*;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.impl.DateParser;
 
@@ -64,7 +65,8 @@ public class WebResult extends Result {
 	
 	int votes = -1;
 	
-	public WebResult(String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
+	public WebResult(Engine engine, String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
+		super( engine );
 		this.rootPageURL = rootPageURL;
 		this.basePageURL = basePageURL;
 		this.dateParser = dateParser;

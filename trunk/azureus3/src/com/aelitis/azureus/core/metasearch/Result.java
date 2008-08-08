@@ -32,6 +32,8 @@ import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
 public abstract class Result {
 
+	private Engine		engine;
+	
 	public abstract Date getPublishedDate();
 	
 	public abstract String getCategory();
@@ -58,6 +60,19 @@ public abstract class Result {
 	
 	
 	public abstract String getSearchQuery();
+	
+	protected
+	Result(
+		Engine		_engine )
+	{
+		engine	= _engine;
+	}
+	
+	public Engine
+	getEngine()
+	{
+		return( engine );
+	}
 	
 	public String toString() {
 		return getName() + " : " + getNbSeeds() + " s, " + getNbPeers() + "p, "  ;
@@ -182,6 +197,9 @@ public abstract class Result {
 		if ( this.getCDPLink().length() > 0 ){
 			object.put("cdp", this.getCDPLink());
 		}
+		
+			// This is also used by subscription code to extract download link so if you
+			// change this you'll need to change that too...
 		
 		if ( this.getDownloadLink().length() > 0 ){
 			object.put("dl", this.getDownloadLink());

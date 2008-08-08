@@ -56,7 +56,7 @@ SubscriptionHistoryImpl
 		loadConfig();
 	}
 	
-	protected void
+	protected SubscriptionResultImpl[]
 	reconcileResults(
 		SubscriptionResultImpl[]		latest_results )
 	{
@@ -64,6 +64,8 @@ SubscriptionHistoryImpl
 		int new_read	= 0;
 		
 		long	now = SystemTime.getCurrentTime();
+		
+		SubscriptionResultImpl[] result;
 		
 		synchronized( this ){
 			
@@ -114,7 +116,13 @@ SubscriptionHistoryImpl
 			
 			if ( got_new_result ){
 				
-				manager.saveResults( subs, (SubscriptionResultImpl[])new_results.toArray( new SubscriptionResultImpl[new_results.size()]));
+				result = (SubscriptionResultImpl[])new_results.toArray( new SubscriptionResultImpl[new_results.size()]);
+				
+				manager.saveResults( subs, result );
+				
+			}else{
+				
+				result = existing_results;
 			}
 		
 			last_scan 	= now;
@@ -125,6 +133,8 @@ SubscriptionHistoryImpl
 			// always save config as we have a new scan time
 		
 		saveConfig();
+		
+		return( result );
 	}
 	
 	public boolean

@@ -29,4 +29,9 @@ SubscriptionScheduler
 		Subscription		subs )
 	
 		throws SubscriptionException;
+	
+	public void
+	download(
+		Subscription		subs,
+		SubscriptionResult	result );
 }

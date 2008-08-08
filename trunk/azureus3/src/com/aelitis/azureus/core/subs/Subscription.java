@@ -74,6 +74,9 @@ Subscription
 	
 		throws SubscriptionException;
 	
+	public String
+	getReferer();
+	
 	public long
 	getCachedPopularity();
 	

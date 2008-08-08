@@ -329,6 +329,12 @@ WebEngine
 		this.dateParser = new DateParserRegex(timeZone,automaticDateParser,userDateFormat);
 	}
 	
+	public String 
+	getReferer() 
+	{
+		return( getRootPage());
+	}
+	
 	protected String 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,

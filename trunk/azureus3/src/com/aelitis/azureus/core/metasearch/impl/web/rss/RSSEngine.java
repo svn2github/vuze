@@ -72,7 +72,7 @@ public class RSSEngine extends WebEngine {
 				RSSItem[] items = channels[i].getItems();
 				for(int j = 0 ; j < items.length ; j++) {
 					RSSItem item = items[j];
-					WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),"");
+					WebResult result = new WebResult(this,getRootPage(),getBasePage(),getDateParser(),"");
 					
 					result.setPublishedDate(item.getPublicationDate());
 					result.setNameFromHTML(item.getTitle());

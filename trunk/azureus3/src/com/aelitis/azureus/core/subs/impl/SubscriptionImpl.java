@@ -44,6 +44,8 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedAdapter;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -52,6 +54,7 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.util.JSONUtils;
 
 public class 
 SubscriptionImpl 
@@ -122,7 +125,9 @@ SubscriptionImpl
 	
 	private Map				user_data = new LightHashMap();
 	
-	private final SubscriptionHistoryImpl	history;
+	private final 			SubscriptionHistoryImpl	history;
+	
+	private String			referer;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
@@ -581,6 +586,8 @@ SubscriptionImpl
 					manager.updatePublicSubscription( this, body.getJSON());
 				}
 
+				referer = null;
+				
 				ok	= true;
 				
 			}finally{
@@ -802,6 +809,36 @@ SubscriptionImpl
 		return( popularity );
 	}
 	
+	public String
+	getReferer()
+	{
+		if ( referer == null ){
+			
+			try{
+				Map map = JSONUtils.decodeJSON( getJSON());
+				
+				Long 	engine_id 	= (Long)map.get( "engine_id" );
+		
+				Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( engine_id.intValue());
+				
+				if ( engine != null ){
+										
+					referer = engine.getReferer();
+				}
+			}catch( Throwable e ){
+				
+				log( "Failed to get referer", e );
+			}
+			
+			if ( referer == null ){
+				
+				referer = "";
+			}
+		}
+		
+		return( referer );
+	}
+	
 	protected void
 	checkPublish()
 	{
@@ -865,7 +902,7 @@ SubscriptionImpl
 										
 											throws Exception
 										{
-											manager.log( getString() + " - generating torrent: " + Debug.getCompressedStackTrace());
+											log( " - generating torrent: " + Debug.getCompressedStackTrace());
 											
 											TOTorrentCreator creator = 
 												TOTorrentFactory.createFromFileOrDirWithFixedPieceLength( 
@@ -884,7 +921,7 @@ SubscriptionImpl
 								
 					}catch( Throwable e ){
 						
-						manager.log( "Failed to create light-weight-seed", e );
+						log( "Failed to create light-weight-seed", e );
 					}
 				}
 			}
@@ -1159,6 +1196,21 @@ SubscriptionImpl
 
 			return( user_data.get( key ));
 		}
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		manager.log( getString() + ": " + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		manager.log( getString() + ": " + str, e );
 	}
 	
 	public String

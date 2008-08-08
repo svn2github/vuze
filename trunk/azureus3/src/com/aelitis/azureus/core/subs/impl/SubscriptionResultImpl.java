@@ -55,7 +55,7 @@ SubscriptionResultImpl
 		result_json 	= JSONUtils.encodeToJSON( map );
 		read			= false;
 		
-		String	key_str =  result.getName() + ":" + result.getSize() + ":" + result.getPublishedDate();
+		String	key_str =  result.getEngine().getId() + ":" + result.getName();
 		
 		try{
 			byte[] sha1 = new SHA1Simple().calculateHash( key_str.getBytes( "UTF-8" ));

@@ -347,6 +347,10 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										
 									}
+									public String getReferer() {
+										// TODO Auto-generated method stub
+										return null;
+									}
 									public boolean isSubscribed() {
 										// TODO Auto-generated method stub
 										return false;

@@ -278,7 +278,7 @@ RegexEngine
 								
 								debugLog( "Found match:" );
 								
-								WebResult result = new WebResult(getRootPage(),getBasePage(),getDateParser(),searchQuery);
+								WebResult result = new WebResult(RegexEngine.this,getRootPage(),getBasePage(),getDateParser(),searchQuery);
 								for(int i = 0 ; i < mappings.length ; i++) {
 									int group = -1;
 									try {

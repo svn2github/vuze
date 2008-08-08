@@ -146,6 +146,9 @@ Engine
 	setSource(
 		int		source );
 	
+	public String
+	getReferer();
+	
 	public Map 
 	exportToBencodedMap() 
 	
