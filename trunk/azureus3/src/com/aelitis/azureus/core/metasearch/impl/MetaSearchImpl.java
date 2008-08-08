@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 
+import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -187,6 +188,50 @@ MetaSearchImpl
 		}
 	}
 	
+	public Engine 
+	addEngine(
+		long 		id )
+	
+		throws MetaSearchException 
+	{
+		try{
+
+			PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+		
+			log( "Downloading definition of template " + id );
+			log( details.getValue());
+		
+			if ( details.isVisible()){
+			
+				Engine engine = 
+					importFromJSONString( 
+						details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
+						details.getId(),
+						details.getModifiedDate(),
+						details.getName(),
+						details.getValue());
+				
+				engine.setSource( Engine.ENGINE_SOURCE_VUZE );
+				engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
+				
+				addEngine( engine );
+				
+				return( engine );
+				
+			}else{
+				
+				throw( new MetaSearchException( "Search template is not visible" ));
+			}
+		}catch( MetaSearchException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+		
+			throw( new MetaSearchException( "Template load failed", e ));
+		}	
+	}
+			
 	public void 
 	removeEngine(
 		Engine 	engine )

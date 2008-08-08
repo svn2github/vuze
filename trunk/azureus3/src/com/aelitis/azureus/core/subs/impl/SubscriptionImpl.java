@@ -819,7 +819,7 @@ SubscriptionImpl
 				
 				Long 	engine_id 	= (Long)map.get( "engine_id" );
 		
-				Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( engine_id.intValue());
+				Engine engine = manager.getEngine( engine_id.longValue());
 				
 				if ( engine != null ){
 										

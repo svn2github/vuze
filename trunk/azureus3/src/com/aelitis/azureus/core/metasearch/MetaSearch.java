@@ -42,6 +42,12 @@ MetaSearch
 	addEngine( 
 		Engine 		engine );
 	
+	public Engine 
+	addEngine( 
+		long		id )
+	
+		throws MetaSearchException;
+	
 	public void 
 	removeEngine(
 		Engine 		engine );

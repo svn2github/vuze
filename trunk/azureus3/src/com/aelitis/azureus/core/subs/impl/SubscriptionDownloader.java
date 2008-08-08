@@ -60,7 +60,7 @@ SubscriptionDownloader
 		String	search_term	= (String)map.get( "search_term" );
 		Map		filters		= (Map)map.get( "filters" );
 
-		Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( engine_id.intValue());
+		Engine engine = manager.getEngine( engine_id.longValue());
 		
 		if ( engine == null ){
 			

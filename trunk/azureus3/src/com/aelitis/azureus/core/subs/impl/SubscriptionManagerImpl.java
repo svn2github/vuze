@@ -57,6 +57,8 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -1716,8 +1718,17 @@ SubscriptionManagerImpl
 	{
 		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 		
-		VuzeFile vf = vfh.loadVuzeFile(file.getAbsolutePath());
+		String	file_str = file.getAbsolutePath();
+		
+		VuzeFile vf = vfh.loadVuzeFile( file_str );
 
+		if ( vf == null ){
+			
+			log( "Failed to load vuze file from " + file_str );
+			
+			throw( new SubscriptionException( "Failed to load vuze file from " + file_str ));
+		}
+		
 		return( getSubscriptionFromVuzeFile( sid, add_type, vf ));
 	}
 	
@@ -1733,6 +1744,13 @@ SubscriptionManagerImpl
 		
 		VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
 
+		if ( vf == null ){
+			
+			log( "Failed to load vuze file from " + content );
+			
+			throw( new SubscriptionException( "Failed to load vuze file from content" ));
+		}
+	
 		return( getSubscriptionFromVuzeFile( sid, add_type, vf ));
 	}
 	
@@ -2844,6 +2862,8 @@ SubscriptionManagerImpl
 					
 					download = dm.addDownload( t, torrent_file, data_file );
 					
+					download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
+
 					download.setBooleanAttribute( ta_subs_download, true );
 					
 					Map rd = listener.getRecoveryData();
@@ -3189,6 +3209,41 @@ SubscriptionManagerImpl
 		}
 		
 		return((MagnetPlugin)pi.getPlugin());
+	}
+	
+	protected Engine
+	getEngine(
+		long		id )
+	
+		throws SubscriptionException
+	{
+		if ( id < Integer.MAX_VALUE ){
+			
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( id );
+			
+			if ( engine != null ){
+				
+				return( engine );
+			}
+				
+			log( "Engine " + id + " not present, loading" );
+				
+				// vuze template but user hasn't yet loaded it
+				
+			try{
+				engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().addEngine( id );
+							
+				return( engine );
+				
+			}catch( Throwable e ){
+			
+				throw( new SubscriptionException( "Failed to load engine '" + id + "'", e ));
+			}
+		}else{
+			
+			throw( new SubscriptionException( "Private templates not supported" ));
+
+		}
 	}
 	
 	protected SubscriptionResultImpl[]
