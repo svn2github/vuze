@@ -883,7 +883,9 @@ public class SideBar
 			}
 			listTreeItemsNoTitleInfo.remove(treeItem);
 		} else {
-			listTreeItemsNoTitleInfo.add(treeItem);
+			if (!listTreeItemsNoTitleInfo.contains(treeItem)) {
+				listTreeItemsNoTitleInfo.add(treeItem);
+			}
 		}
 
 		if (treeItem != null) {
