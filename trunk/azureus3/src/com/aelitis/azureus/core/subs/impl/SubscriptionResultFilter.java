@@ -121,7 +121,7 @@ public class SubscriptionResultFilter{
 			
 			if(categoryFilter != null) {
 				String category = result.getCategory();
-				if(category == null || !category.equals(categoryFilter)) {
+				if(category == null || !category.equalsIgnoreCase(categoryFilter)) {
 					continue;
 				}
 			}
