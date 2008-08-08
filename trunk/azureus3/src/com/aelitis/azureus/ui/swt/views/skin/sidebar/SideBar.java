@@ -164,6 +164,8 @@ public class SideBar
 		soSideBarContents = skin.getSkinObject("sidebar-contents");
 		soSideBarList = skin.getSkinObject("sidebar-list");
 
+		ViewTitleInfoManager.addListener(this);
+
 		setupList();
 
 		try {
@@ -171,8 +173,6 @@ public class SideBar
 		} catch (Exception e) {
 			Debug.out(e);
 		}
-
-		ViewTitleInfoManager.addListener(this);
 
 		Display.getDefault().addFilter(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
@@ -716,7 +716,7 @@ public class SideBar
 				new PluginAddedViewListener() {
 					// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
 					public void pluginViewAdded(IViewInfo viewInfo) {
-						System.out.println("PluginView Addded: " + viewInfo.viewID);
+						System.out.println("PluginView Added: " + viewInfo.viewID);
 						Object o = mapAutoOpen.get(viewInfo.viewID);
 						if (o instanceof Map) {
 							processAutoOpenMap(viewInfo.viewID, (Map) o, viewInfo);
@@ -750,17 +750,15 @@ public class SideBar
 		} else {
 			SideBarInfo sideBarInfoParent = getSideBarInfo(parentID);
 			TreeItem parentTreeItem = sideBarInfoParent.treeItem;
-			ViewTitleInfo titleInfo = (iview instanceof ViewTitleInfo)
-					? (ViewTitleInfo) iview : null;
-			treeItem = createTreeItem(parentTreeItem, id, datasource, titleInfo,
+			treeItem = createTreeItem(parentTreeItem, id, datasource, null,
 					iview.getFullTitle(), closeable);
 
-			setupTreeItem(null, treeItem, id, titleInfo, iview.getFullTitle(), null,
+			setupTreeItem(null, treeItem, id, null, iview.getFullTitle(), null,
 					datasource, closeable);
 
 			sideBarInfo.parentID = parentID;
 
-			createSideBarContentArea(id, iview, treeItem, datasource);
+			createSideBarContentArea(id, iview, treeItem, datasource, closeable);
 
 			iview.dataSourceChanged(datasource);
 		}
@@ -844,22 +842,41 @@ public class SideBar
 	private void setupTreeItem(IView iview, TreeItem treeItem, String id,
 			ViewTitleInfo titleInfo, String title, Composite initializeView,
 			Object datasource, boolean closeable) {
+		SideBarInfo sideBarInfo = getSideBarInfo(id);
+
 		boolean pull = true;
 		if (treeItem.getParentItem() != null) {
 			treeItem.getParentItem().setExpanded(true);
 		}
+		treeItem.removeDisposeListener(disposeTreeItemListener);
 		treeItem.addDisposeListener(disposeTreeItemListener);
 		treeItem.setData("Plugin.viewID", id);
+
+		if (iview != null) {
+			sideBarInfo.iview = iview;
+		}
+
 		if (title != null) {
 			treeItem.setText(title);
 		} else {
-			if (iview != null) {
-				treeItem.setText(iview.getFullTitle());
+			if (sideBarInfo.iview != null) {
+				treeItem.setText(sideBarInfo.iview.getFullTitle());
 			}
 		}
+
+		if (titleInfo == null) {
+			titleInfo = (sideBarInfo.iview instanceof ViewTitleInfo)
+			? (ViewTitleInfo) sideBarInfo.iview : null;
+		}
+
 		if (titleInfo != null) {
-			mapTitleInfoToTreeItem.put(titleInfo, treeItem);
-			String newText = titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_TEXT);
+			sideBarInfo.titleInfo = titleInfo;
+		}
+
+		
+		if (sideBarInfo.titleInfo != null) {
+			mapTitleInfoToTreeItem.put(sideBarInfo.titleInfo, treeItem);
+			String newText = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newText != null) {
 				pull = false;
 				treeItem.setText(newText);
@@ -869,13 +886,6 @@ public class SideBar
 			listTreeItemsNoTitleInfo.add(treeItem);
 		}
 
-		SideBarInfo sideBarInfo = getSideBarInfo(id);
-		if (titleInfo != null) {
-			sideBarInfo.titleInfo = titleInfo;
-		}
-		if (iview != null) {
-			sideBarInfo.iview = iview;
-		}
 		if (treeItem != null) {
 			sideBarInfo.treeItem = treeItem;
 		}
@@ -1221,7 +1231,7 @@ public class SideBar
 			}
 
 			createSideBarContentArea(id, iview, sideBarInfo.treeItem,
-					sideBarInfo.datasource);
+					sideBarInfo.datasource, sideBarInfo.closeable);
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (iview != null) {
@@ -1239,12 +1249,13 @@ public class SideBar
 	 * @param id 
 	 *  
 	 * @param view
+	 * @param closeable 
 	 * @return
 	 *
 	 * @since 3.1.1.1
 	 */
 	private IView createSideBarContentArea(String id, IView view, TreeItem item,
-			Object datasource) {
+			Object datasource, boolean closeable) {
 		try {
 			Composite parent = (Composite) soSideBarContents.getControl();
 
@@ -1264,15 +1275,8 @@ public class SideBar
 
 			SideBarInfo sideBarInfo = getSideBarInfo((String) item.getData("Plugin.viewID"));
 			sideBarInfo.skinObject = soContents;
-			sideBarInfo.treeItem = item;
-			sideBarInfo.iview = view;
-			sideBarInfo.datasource = datasource;
-
-			view.initialize(viewComposite);
-
-			if (sideBarInfo.datasource != null) {
-				view.dataSourceChanged(sideBarInfo.datasource);
-			}
+			
+			setupTreeItem(view, item, id, null, null, viewComposite, datasource, closeable);
 
 			Composite iviewComposite = view.getComposite();
 			if (iviewComposite.getLayoutData() == null) {
@@ -1557,6 +1561,9 @@ public class SideBar
 					createTreeItemFromEventListener(parentID, null,
 							viewInfo.event_listener, id, true, null);
 				}
+				if (sideBarInfo.iview == null) {
+					createSideBarContentArea(id, sideBarInfo);
+				}
 			}
 
 			Class cla = Class.forName(MapUtils.getMapString(autoOpenInfo,
@@ -1571,6 +1578,10 @@ public class SideBar
 				}
 				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
 						null, true);
+				
+				if (sideBarInfo.iview == null) {
+					createSideBarContentArea(id, sideBarInfo);
+				}
 			}
 		} catch (ClassNotFoundException ce) {
 			// ignore
