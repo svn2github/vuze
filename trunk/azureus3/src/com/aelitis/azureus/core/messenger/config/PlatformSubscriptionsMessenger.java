@@ -169,18 +169,13 @@ PlatformSubscriptionsMessenger
 	{
 		Map parameters = new HashMap();
 		
-		List	sid_list 	= new JSONArray();
-		List	user_list 	= new JSONArray();;
-		
+		List	sid_list 	= new JSONArray();		
 		for (int i=0;i<sids.size();i++){
 		
 			sid_list.add( Base32.encode( (byte[])sids.get(i) ));
-			
-			user_list.add( "whoever" );
 		}
 		
 		parameters.put( "subscription_ids", sid_list);
-		parameters.put( "user_ids", user_list);
 		
 		Map reply = syncInvoke(	OP_SET_SELECTED, parameters ); 
 		
