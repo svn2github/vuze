@@ -58,17 +58,33 @@ public class CompletionItem
 	private static Font fontText;
 
 	private Map mapCellLastPercentDone = new HashMap();
+	
+	private int marginHeight = -1;
 
 	/** Default Constructor */
 	public CompletionItem(String sTableID) {
+		this(sTableID, -1);
+	}
+	
+	/**
+	 * 
+	 * @param sTableID
+	 * @param marginHeight -- Margin height above and below the progress bar; used in cases where the row is very tall 
+	 */
+	public CompletionItem(String sTableID, int marginHeight) {
 		super("completion", sTableID);
+		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 200);
 		setMinWidth(100);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
-		cell.setMarginHeight(2);
+		if (marginHeight != -1) {
+			cell.setMarginHeight(marginHeight);
+		} else {
+			cell.setMarginHeight(2);
+		}
 		cell.setFillCell(true);
 	}
 
