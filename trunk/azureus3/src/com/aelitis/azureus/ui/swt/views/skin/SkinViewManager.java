@@ -69,11 +69,25 @@ public class SkinViewManager
 	 * @return
 	 */
 	public static SkinView getByClass(Class cla) {
+		SkinView sv;
 		Object object = skinViews.get(cla);
-		if (object instanceof SkinView[]) {
-			return ((SkinView[]) object)[0];
+		if (object == null) {
+			return null;
 		}
-		return (SkinView) object;
+
+		if (object instanceof SkinView[]) {
+			sv = ((SkinView[]) object)[0];
+		} else {
+			sv = (SkinView) object;
+		}
+		if (sv != null) {
+  		SWTSkinObject so = sv.getMainSkinObject();
+  		if (so != null && so.isDisposed()) {
+  			// TODO remove
+  			return null;
+  		}
+		}
+		return sv;
 	}
 	
 	public static SkinView[] getMultiByClass(Class cla) {
