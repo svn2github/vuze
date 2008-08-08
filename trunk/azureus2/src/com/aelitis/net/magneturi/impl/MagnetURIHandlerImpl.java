@@ -302,12 +302,12 @@ MagnetURIHandlerImpl
 				
 				if ( pos == -1 ){
 					
-					params.put( arg.trim(), "" );
+					params.put( arg.trim().toLowerCase(), "" );
 					
 				}else{
 										
 					try{
-						String	lhs = arg.substring( 0, pos ).trim();
+						String	lhs = arg.substring( 0, pos ).trim().toLowerCase();
 						
 						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
 
@@ -348,7 +348,7 @@ MagnetURIHandlerImpl
 
 			String urn = (String)params.get( "xt" );
 
-			if ( urn != null && urn.startsWith( "urn:btih:")){
+			if ( urn != null && urn.toLowerCase().startsWith( "urn:btih:")){
 			
 				for (int i=0;i<listeners.size();i++){
 					
@@ -419,11 +419,13 @@ MagnetURIHandlerImpl
 				
 			}else{
 					
+				String	lc_urn = urn.toLowerCase();
+				
 				try{
 				
 					URL	url;
 					
-					if ( urn.startsWith( "http:") || urn.startsWith( "https:" )){
+					if ( lc_urn.startsWith( "http:") || lc_urn.startsWith( "https:" )){
 						
 						url = new URL( urn );
 						
@@ -482,7 +484,7 @@ MagnetURIHandlerImpl
 			
 			String urn = (String)params.get( "xt" );
 			
-			if ( urn == null || !( urn.startsWith( "urn:sha1:") || urn.startsWith( "urn:btih:"))){
+			if ( urn == null || !( urn.toLowerCase().startsWith( "urn:sha1:") || urn.toLowerCase().startsWith( "urn:btih:"))){
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"MagnetURIHandler: " + "invalid command - '" + get + "'"));
