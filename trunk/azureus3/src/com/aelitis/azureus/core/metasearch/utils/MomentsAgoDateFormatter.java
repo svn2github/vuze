@@ -30,7 +30,6 @@ import java.util.SimpleTimeZone;
 /**
 * Improvement based on AZWEB-318.
 *
-* @author <a href="mailto:msoland@azureus-inc.com">Michael Soland</a>
 * @version 3.2.1.0 6/19/2007
 * @since 3.2.1.0 6/19/2007
 */
