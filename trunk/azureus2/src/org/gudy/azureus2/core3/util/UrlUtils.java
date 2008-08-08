@@ -399,6 +399,14 @@ public class UrlUtils
 	public static void
 	setBrowserHeaders(
 		ResourceDownloader		rd,
+		String					referer )
+	{
+		setBrowserHeaders( rd, null, referer );
+	}
+	
+	public static void
+	setBrowserHeaders(
+		ResourceDownloader		rd,
 		String					encoded_headers,
 		String					referer )
 	{
@@ -428,7 +436,7 @@ public class UrlUtils
 				}
 			}
 			
-			if ( referer != null ){
+			if ( referer != null && referer.length() > 0 ){
 				
 				rd.setProperty( "URL_Referer", referer );
 			}
@@ -477,7 +485,7 @@ public class UrlUtils
 				}
 			}
 			
-			if ( referer != null ){
+			if ( referer != null && referer.length() > 0 ){
 				
 				connection.setRequestProperty( "Referer", referer );
 			}
@@ -518,7 +526,7 @@ public class UrlUtils
 				}
 			}
 			
-			if ( referer != null ){
+			if ( referer != null && referer.length() > 0){
 				
 				result.put( "Referer", referer );
 			}
