@@ -40,6 +40,8 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
+import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
@@ -84,6 +86,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_READ_SUBSCRIPTION_RESULTS   	= "read-subscription-results";
 	public static final String OP_DELETE_SUBSCRIPTION_RESULTS   = "delete-subscription-results";
 	public static final String OP_MARK_SUBSCRIPTION_RESULTS	   	= "mark-subscription-results";
+	public static final String OP_DOWNLOAD_SUBSCRIPTION   		= "download-subscription";
 
 	private final SearchResultsTabArea searchResultsArea;
 	
@@ -753,6 +756,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Boolean 	isEnabled		= (Boolean)options.get( "is_enabled" );
 			Boolean 	autoDownload	= (Boolean)options.get( "auto_dl" );
 
+			Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
 			try{
 				JSONObject	payload = new JSONObject();
 				
@@ -769,26 +776,18 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				subs.getHistory().setDetails(
 					isEnabled==null?true:isEnabled.booleanValue(),
 					autoDownload==null?false:autoDownload.booleanValue());
-				
-				Map result = new HashMap();
-				
+								
 				result.put( "id", subs.getID());
 				
-				if ( tid != null )result.put( "tid", tid );
-
 				sendBrowserMessage( "metasearch", "createSubscriptionCompleted", result );
 
 			} catch( Throwable e ){
 				
-				Map params = new HashMap();
+				result.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
 
-				if ( tid != null )params.put( "tid", tid );
-
-				params.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
-
-				sendBrowserMessage("metasearch", "createSubscriptionFailed",params);
+				sendBrowserMessage( "metasearch", "createSubscriptionFailed", result );
 			}
-		}else if(OP_READ_SUBSCRIPTION.equals(opid)) {
+		}else if( OP_READ_SUBSCRIPTION.equals(opid)){
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
 			
@@ -796,23 +795,21 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 			final String sid = (String) decodedMap.get("id");
 			
+			Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
 			try{
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
 				if ( subs == null ){
 					
-					Map params = new HashMap();
+					result.put( "error", "Subscription not found" );
 
-					if ( tid != null )params.put( "tid", tid );
-
-					params.put( "error", "Subscription not found" );
-
-					sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+					sendBrowserMessage("metasearch", "readSubscriptionFailed",result);
 					
 				}else{
-					
-					Map result = new HashMap();
-					
+										
 					result.put( "id", subs.getID());
 					result.put( "name", subs.getName());
 					result.put( "is_public", new Boolean( subs.isPublic()));
@@ -845,19 +842,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "filters", map.get( "filters" ));
 					result.put( "schedule", map.get( "schedule" ));
 					
-					if ( tid != null )result.put( "tid", tid );
-
 					sendBrowserMessage( "metasearch", "readSubscriptionCompleted", result );
 				}
 			} catch( Throwable e ){
 				
-				Map params = new HashMap();
+				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
-				if ( tid != null )params.put( "tid", tid );
-
-				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
-
-				sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+				sendBrowserMessage("metasearch", "readSubscriptionFailed",result);
 			}
 		}else if (OP_UPDATE_SUBSCRIPTION.equals(opid)) {
 			
@@ -874,18 +865,18 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Boolean 	isEnabled		= (Boolean)options.get( "is_enabled" );
 			Boolean 	autoDownload	= (Boolean)options.get( "auto_dl" );
 
+			Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
 			try{
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
 				if ( subs == null ){
 					
-					Map params = new HashMap();
+					result.put( "error", "Subscription not found" );
 
-					if ( tid != null )params.put( "tid", tid );
-
-					params.put( "error", "Subscription not found" );
-
-					sendBrowserMessage("metasearch", "updateSubscriptionFailed",params);
+					sendBrowserMessage("metasearch", "updateSubscriptionFailed",result);
 					
 				}else{
 					
@@ -905,23 +896,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							isEnabled==null?true:isEnabled.booleanValue(),
 							autoDownload==null?false:autoDownload.booleanValue());
 
-					Map result = new HashMap();
-					
 					result.put( "id", subs.getID());
 					
-					if ( tid != null )result.put( "tid", tid );
-
 					sendBrowserMessage( "metasearch", "updateSubscriptionCompleted", result );
 				}
 			} catch( Throwable e ){
 				
-				Map params = new HashMap();
+				result.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
 
-				if ( tid != null )params.put( "tid", tid );
-
-				params.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
-
-				sendBrowserMessage("metasearch", "updateSubscriptionCompleted",params);
+				sendBrowserMessage("metasearch", "updateSubscriptionCompleted",result);
 			}
 		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
 			
@@ -931,51 +914,32 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			final String sid = (String) decodedMap.get("id");
 			
+			Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
 			try{
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
 				if ( subs == null ){
-					
-					Map params = new HashMap();
+								
+					result.put( "error", "Subscription not found" );
 
-					if ( tid != null )params.put( "tid", tid );
-					
-					params.put( "error", "Subscription not found" );
-
-					sendBrowserMessage("metasearch", "readSubscriptionResultsFailed",params);
+					sendBrowserMessage("metasearch", "readSubscriptionResultsFailed",result);
 					
 				}else{
-					
-					Map result = new HashMap();
-					
-					if ( tid != null )result.put( "tid", tid );
-
+										
 					result.put( "id", subs.getID());
 					
-					JSONArray	results_list = new JSONArray();
-					
-					SubscriptionResult[]	results = subs.getHistory().getResults( false );
-					
-					for(int i=0; i<results.length; i++){
-						
-						SubscriptionResult r = results[i];
-						
-						results_list.add( r.toJSONMap());
-					}
-					
-					result.put( "results", results_list );
+					encodeResults( subs, result );
 					
 					sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
 				
-				Map params = new HashMap();
+				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
-				if ( tid != null )params.put( "tid", tid );
-
-				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
-
-				sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+				sendBrowserMessage("metasearch", "readSubscriptionFailed",result);
 			}
 		}else if( OP_DELETE_SUBSCRIPTION_RESULTS.equals(opid)){
 			
@@ -1023,16 +987,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			List	rids	= (List)decodedMap.get( "rids" );
 			List	reads	= (List)decodedMap.get( "reads" );
 			
+			Map result = new HashMap();		
+
 			try{
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
 				if ( subs == null ){
 					
-					Map params = new HashMap();
-					
-					params.put( "error", "Subscription not found" );
+					result.put( "error", "Subscription not found" );
 
-					sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",params);
+					sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",result);
 					
 				}else{
 					
@@ -1046,20 +1010,91 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 					
 					subs.getHistory().markResults( rids_a, reads_a );
-					
-					Map result = new HashMap();
-					
+										
 					sendBrowserMessage( "metasearch", "markSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
 				
-				Map params = new HashMap();
+				result.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
 
-				params.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
+				sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",result);
+			}
+		}else if( OP_DOWNLOAD_SUBSCRIPTION.equals(opid)) {
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			
+			final Long	 tid = (Long) decodedMap.get("tid");
 
-				sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",params);
+			final String sid = (String) decodedMap.get("id");
+			
+			final Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					result.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "downloadSubscriptionFailed", result );
+					
+				}else{
+					
+					subs.getManager().getScheduler().download(
+						subs,
+						new SubscriptionDownloadListener()
+						{
+							public void
+							complete(
+								Subscription		subs )
+							{
+								result.put( "id", subs.getID());
+								
+								encodeResults( subs, result );
+								
+								sendBrowserMessage( "metasearch", "downloadSubscriptionCompleted", result );
+							}
+							
+							public void
+							failed(
+								Subscription			subs,
+								SubscriptionException	error )
+							{
+								result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+
+								sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
+
+							}
+						});
+				}
+			} catch( Throwable e ){
+				
+				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
 			}
 		}
+	}
+	
+	protected void
+	encodeResults(
+		Subscription	subs,
+		Map				result )
+	{
+		JSONArray	results_list = new JSONArray();
+		
+		SubscriptionResult[]	results = subs.getHistory().getResults( false );
+		
+		for(int i=0; i<results.length; i++){
+			
+			SubscriptionResult r = results[i];
+			
+			results_list.add( r.toJSONMap());
+		}
+		
+		result.put( "results", results_list );
 	}
 	
 	public boolean 

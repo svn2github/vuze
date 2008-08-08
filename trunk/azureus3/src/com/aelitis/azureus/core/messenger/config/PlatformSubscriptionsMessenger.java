@@ -161,7 +161,7 @@ PlatformSubscriptionsMessenger
 		throw( new PlatformMessengerException( "Unknown sid '" + ByteFormatter.encodeString(sid) + "'" ));
 	}
 	
-	public static void 
+	public static List 
 	setSelected(
 		List	sids )
 	
@@ -183,6 +183,22 @@ PlatformSubscriptionsMessenger
 		parameters.put( "user_ids", user_list);
 		
 		Map reply = syncInvoke(	OP_SET_SELECTED, parameters ); 
+		
+		List	versions = (List)reply.get( "version_numbers" );
+		
+		if ( versions == null ){
+			
+			// test
+			
+			versions = new ArrayList();
+			
+			for (int i=0;i<sids.size();i++){
+				
+				versions.add( new Long(1));
+			}
+		}
+		
+		return( versions );
 	}   
 	
 	protected static Map

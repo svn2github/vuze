@@ -1,5 +1,5 @@
 /*
- * Created on Aug 6, 2008
+ * Created on Aug 8, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,26 +21,15 @@
 
 package com.aelitis.azureus.core.subs;
 
-import com.aelitis.azureus.core.subs.impl.SubscriptionDownloader;
-
 public interface 
-SubscriptionScheduler 
+SubscriptionDownloadListener 
 {
 	public void
-	download(
-		Subscription		subs )
-	
-		throws SubscriptionException;
+	complete(
+		Subscription		subs );
 	
 	public void
-	download(
-		Subscription					subs,
-		SubscriptionDownloadListener	listener )
-	
-		throws SubscriptionException;
-	
-	public void
-	download(
-		Subscription		subs,
-		SubscriptionResult	result );
+	failed(
+		Subscription			subs,
+		SubscriptionException	error );
 }

@@ -60,7 +60,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
@@ -394,17 +393,24 @@ SubscriptionManagerImpl
 			updatePublicSubscription( subs, json );
 		}
 		
-		addSubscription( subs );
-				
-		return( subs );
+		return( addSubscription( subs ));
 	}
 	
 	
-	protected void
+	protected SubscriptionImpl
 	addSubscription(
 		SubscriptionImpl		subs )
 	{
 		synchronized( this ){
+			
+			SubscriptionImpl existing = getSubscriptionFromSID( subs.getShortID());
+			
+			if ( existing != null ){
+			
+				log( "Attempted to add subscription when already present: " + subs.getString());
+				
+				return( existing );
+			}
 			
 			subscriptions.add( subs );
 			
@@ -427,6 +433,8 @@ SubscriptionManagerImpl
 				
 			publishSubscriptions();
 		}
+		
+		return( subs );
 	}
 	
 	protected void
@@ -649,7 +657,7 @@ SubscriptionManagerImpl
 				
 				log( "Imported new subscription: " + new_subs.getString());
 				
-				addSubscription( new_subs );
+				new_subs = addSubscription( new_subs );
 				
 				return( new_subs );
 			}
@@ -967,13 +975,16 @@ SubscriptionManagerImpl
 	setSelected(
 		List		subs )
 	{
-		List	sids = new ArrayList();
+		List	sids 		= new ArrayList();
+		List	used_subs	= new ArrayList();
 		
 		for (int i=0;i<subs.size();i++){
 			
 			SubscriptionImpl	sub = (SubscriptionImpl)subs.get(i);
 			
 			if ( sub.isSubscribed() && sub.isPublic()){
+				
+				used_subs.add( sub );
 				
 				sids.add( sub.getShortID());
 			}
@@ -982,10 +993,21 @@ SubscriptionManagerImpl
 		if ( sids.size() > 0 ){
 			
 			try{
-				PlatformSubscriptionsMessenger.setSelected( sids );
+				List versions = PlatformSubscriptionsMessenger.setSelected( sids );
 				
 				log( "Popularity update: updated " + sids.size());
 				
+				for (int i=0;i<sids.size();i++){
+					
+					SubscriptionImpl sub = (SubscriptionImpl)used_subs.get(i);
+					
+					int	latest_version = ((Long)versions.get(i)).intValue();
+					
+					if ( latest_version > sub.getVersion()){
+						
+						updateSubscription( sub, latest_version );
+					}
+				}
 			}catch( Throwable e ){
 				
 				log( "Popularity update: Failed to record selected subscriptions", e );
@@ -1015,10 +1037,16 @@ SubscriptionManagerImpl
 							
 							sids.add( sub.getShortID());
 						
-							PlatformSubscriptionsMessenger.setSelected( sids );
+							List versions = PlatformSubscriptionsMessenger.setSelected( sids );
 							
 							log( "setSelected: " + sub.getName());
 							
+							int	latest_version = ((Long)versions.get(0)).intValue();
+							
+							if ( latest_version > sub.getVersion()){
+								
+								updateSubscription( sub, latest_version );
+							}
 						}catch( Throwable e ){
 							
 							log( "setSelected: failed for " + sub.getName(), e );
@@ -1517,50 +1545,15 @@ SubscriptionManagerImpl
 		final subsLookupListener			listener )
 	{
 		try{
-			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
-			
-			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
-			
-			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
+			SubscriptionImpl subs = getSubscriptionFromPlatform( sid,SubscriptionImpl.ADD_TYPE_LOOKUP );
 
-			VuzeFileComponent[] comps = vf.getComponents();
+			log( "Added temporary subscription: " + subs.getString());
 			
-			for (int j=0;j<comps.length;j++){
-				
-				VuzeFileComponent comp = comps[j];
-				
-				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
-					
-					Map map = comp.getContent();
-					
-					try{
-						SubscriptionBodyImpl body = new SubscriptionBodyImpl( SubscriptionManagerImpl.this, map );
-						
-						SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
-						
-						if ( existing == null ){
-							
-							SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
-								
-							if ( Arrays.equals( new_subs.getShortID(), sid )){
+			subs = addSubscription( subs );
 			
-								log( "Added temporary subscription: " + new_subs.getString());
-								
-								addSubscription( new_subs );
-								
-								listener.complete( association_hash, new Subscription[]{ new_subs });
-								
-								return;
-							}
-						}
-					}catch( Throwable e ){
-						
-						log( "Subscription decode failed", e );
-					}
-				}
-			}
+			listener.complete( association_hash, new Subscription[]{ subs });
 			
-			throw( new SubscriptionException( "Platform returned mis-matched, corrupt or missing subscription" ));
+			return;
 			
 		}catch( Throwable e ){
 			
@@ -1691,6 +1684,95 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	protected SubscriptionImpl
+	getSubscriptionFromPlatform(
+		byte[]		sid,
+		int			add_type )
+	
+		throws SubscriptionException
+	{
+		try{
+			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
+			
+			return( getSubscriptionFromVuzeFileContent( sid, add_type, content ));
+			
+		}catch( SubscriptionException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to read subscription from platform", e ));
+		}
+	}
+	
+	protected SubscriptionImpl
+	getSubscriptionFromVuzeFile(
+		byte[]		sid,
+		int			add_type,
+		File		file )
+	
+		throws SubscriptionException
+	{
+		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+		
+		VuzeFile vf = vfh.loadVuzeFile(file.getAbsolutePath());
+
+		return( getSubscriptionFromVuzeFile( sid, add_type, vf ));
+	}
+	
+	protected SubscriptionImpl
+	getSubscriptionFromVuzeFileContent(
+		byte[]		sid,
+		int			add_type,
+		String		content )
+	
+		throws SubscriptionException
+	{
+		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+		
+		VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
+
+		return( getSubscriptionFromVuzeFile( sid, add_type, vf ));
+	}
+	
+	protected SubscriptionImpl
+	getSubscriptionFromVuzeFile(
+		byte[]		sid,
+		int			add_type,
+		VuzeFile	vf )
+	
+		throws SubscriptionException
+	{
+		VuzeFileComponent[] comps = vf.getComponents();
+		
+		for (int j=0;j<comps.length;j++){
+			
+			VuzeFileComponent comp = comps[j];
+			
+			if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
+				
+				Map map = comp.getContent();
+				
+				try{
+					SubscriptionBodyImpl body = new SubscriptionBodyImpl( SubscriptionManagerImpl.this, map );
+												
+					SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, add_type, false );
+							
+					if ( Arrays.equals( new_subs.getShortID(), sid )){
+									
+						return( new_subs );
+					}
+				}catch( Throwable e ){
+					
+					log( "Subscription decode failed", e );
+				}
+			}
+		}
+		
+		throw( new SubscriptionException( "Subscription not found" ));
+	}
+	
 	protected void 
 	downloadSubscription(
 		final byte[]						association_hash,
@@ -1733,51 +1815,20 @@ SubscriptionManagerImpl
 								return;
 							}
 							
-							VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+							SubscriptionImpl subs = getSubscriptionFromVuzeFile( sid, SubscriptionImpl.ADD_TYPE_LOOKUP, data_file );
+						
+							log( "Added temporary subscription: " + subs.getString());
 							
-							VuzeFile vf = vfh.loadVuzeFile( data_file.getAbsolutePath());
+							subs = addSubscription( subs );
+							
+							listener.complete( association_hash, new Subscription[]{ subs });
+							
+							reported = true;
 	
-							VuzeFileComponent[] comps = vf.getComponents();
+						}catch( Throwable e ){
 							
-							for (int j=0;j<comps.length;j++){
-								
-								VuzeFileComponent comp = comps[j];
-								
-								if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
-									
-									Map map = comp.getContent();
-									
-									try{
-										SubscriptionBodyImpl body = new SubscriptionBodyImpl( SubscriptionManagerImpl.this, map );
-										
-										SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
-										
-										if ( existing == null ){
-											
-											SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
-												
-											if ( Arrays.equals( new_subs.getShortID(), sid )){
-											
-												log( "Added temporary subscription: " + new_subs.getString());
-												
-												addSubscription( new_subs );
-												
-												listener.complete( association_hash, new Subscription[]{ new_subs });
-												
-												reported = true;
-											}
-										}else{
-											
-											listener.complete( association_hash, new Subscription[]{ existing });
-											
-											reported = true;
-										}
-									}catch( Throwable e ){
-										
-										log( "Subscription decode failed", e );
-									}
-								}
-							}
+							log( "Subscription decode failed", e );
+							
 						}finally{
 														
 							if ( !reported ){
@@ -2445,11 +2496,27 @@ SubscriptionManagerImpl
 			
 			return;
 		}
+					
+		byte[]	sub_id 		= subs.getShortID();
+			
+		try{
+			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
+			
+			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+			
+			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
+							
+			vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
+			
+			return;
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to read subscription from platform, trying DHT" );
+		}
 		
 		log( "Checking subscription '" + subs.getString() + "' upgrade to version " + new_version );
-			
-		byte[]	sub_id 		= subs.getShortID();
-				
+
 		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
 						
 		dht_plugin.get(

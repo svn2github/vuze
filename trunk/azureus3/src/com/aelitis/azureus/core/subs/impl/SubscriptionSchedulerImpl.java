@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.download.Download;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
@@ -63,6 +65,33 @@ SubscriptionSchedulerImpl
 		manager.addListener( this );
 		
 		calculateSchedule();
+	}
+	
+	public void 
+	download(
+		final Subscription 					subs,
+		final SubscriptionDownloadListener 	listener )
+	{
+		new AEThread2( "SS:download", true )
+		{
+			public void
+			run()
+			{
+				try{
+					download( subs );
+					
+					listener.complete( subs );
+					
+				}catch( SubscriptionException e ){
+					
+					listener.failed( subs, e );
+					
+				}catch( Throwable e ){
+					
+					listener.failed( subs, new SubscriptionException( "Download failed", e ));
+				}
+			}
+		}.start();
 	}
 	
 	public void 
