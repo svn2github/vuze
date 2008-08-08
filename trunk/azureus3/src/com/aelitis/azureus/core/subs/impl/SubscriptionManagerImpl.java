@@ -364,24 +364,6 @@ SubscriptionManagerImpl
 		
 			dt.queue();
 		}
-		
-		/*
-		if ( subscriptions.size() == 0 ){
-			
-			try{
-				create( "test subscription 2", true, "blah blah" );
-				
-			}catch( Throwable e ){
-				
-				e.printStackTrace();
-			}
-	
-			for (int i=0;i<subscriptions.size();i++){
-			
-				((Subscription)subscriptions.get(i)).addAssociation( ByteFormatter.decodeString( "E02E5E117A5A9080D552A11FA675DE868A05FE71" ));
-			}
-		}
-		*/
 	}
 
 	public SubscriptionScheduler

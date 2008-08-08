@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
@@ -67,6 +68,8 @@ import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.impl.SubscriptionDownloader;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
@@ -536,8 +539,10 @@ SubscriptionManagerUI
 		refreshColumns();
 		
 		synchronized( this ){
-						
-			if ( subs.getUserData( SUB_IVIEW_KEY ) == null ){
+				
+			sideBarItem existing_si = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
+			
+			if (  existing_si == null ){
 	
 				final sideBarItem new_si = new sideBarItem();
 				
@@ -556,10 +561,14 @@ SubscriptionManagerUI
 									return;
 								}
 								
+								subscriptionView view = new subscriptionView( subs );
+								
+								new_si.setView( view );
+								
 								TreeItem  tree_item = 
 									side_bar.createTreeItemFromIView(
 										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
-										new subscriptionView( subs ),
+										view,
 										ByteFormatter.encodeString(subs.getPublicKey()), 
 										null, 
 										false, 
@@ -569,6 +578,9 @@ SubscriptionManagerUI
 							}
 						}
 					});
+			}else{
+				
+				ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
 			}
 		}
 	}
@@ -634,7 +646,8 @@ SubscriptionManagerUI
 	
 	protected static class
 	subscriptionView
-		extends AbstractIView
+		extends 	AbstractIView
+		implements 	ViewTitleInfo
 	{
 		private Subscription	subs;
 		
@@ -650,6 +663,25 @@ SubscriptionManagerUI
 			Subscription		_subs )
 		{
 			subs = _subs;
+		}
+		
+		public String 
+		getTitleInfoStringProperty(
+			int propertyID ) 
+		{
+			if ( propertyID == TITLE_INDICATOR_TEXT ){
+				
+				return( subs.getHistory().getNumUnread() + " : " + subs.getHistory().getNumRead());
+			}
+			
+			return null;
+		}
+
+		public Object 
+		getTitleInfoObjectProperty(
+			int propertyID )
+		{
+			return null;
 		}
 		
 		public void 
@@ -848,8 +880,9 @@ SubscriptionManagerUI
 	protected static class
 	sideBarItem
 	{
-		private TreeItem	tree_item;
-		private boolean		destroyed;
+		private subscriptionView	view;
+		private TreeItem			tree_item;
+		private boolean				destroyed;
 		
 		protected
 		sideBarItem()
@@ -867,6 +900,19 @@ SubscriptionManagerUI
 		getTreeItem()
 		{
 			return( tree_item );
+		}
+		
+		protected void
+		setView(
+			subscriptionView		_view )
+		{
+			view	= _view;
+		}
+		
+		protected subscriptionView
+		getView()
+		{
+			return( view );
 		}
 		
 		protected boolean
