@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 
@@ -34,15 +35,21 @@ public class
 SubscriptionResultImpl 
 	implements SubscriptionResult
 {
+	final private SubscriptionHistoryImpl	history;
+	
 	private byte[]		key;
 	private boolean		read;
+	private boolean		deleted;
+	
 	private String		result_json;
 	
 	protected
 	SubscriptionResultImpl(
-		SubscriptionHistoryImpl		history,
+		SubscriptionHistoryImpl		_history,
 		Result						result )
 	{
+		history = _history;
+		
 		Map	map = result.toJSONMap();
 		
 		result_json 	= JSONUtils.encodeToJSON( map );
@@ -51,7 +58,11 @@ SubscriptionResultImpl
 		String	key_str =  result.getName() + ":" + result.getSize() + ":" + result.getPublishedDate();
 		
 		try{
-			key = new SHA1Simple().calculateHash( key_str.getBytes( "UTF-8" ));
+			byte[] sha1 = new SHA1Simple().calculateHash( key_str.getBytes( "UTF-8" ));
+			
+			key = new byte[10];
+			
+			System.arraycopy( sha1, 0, key, 0, 10 );
 			
 		}catch( Throwable e ){
 			
@@ -61,19 +72,36 @@ SubscriptionResultImpl
 	
 	protected 
 	SubscriptionResultImpl(
-		SubscriptionHistoryImpl		history,
+		SubscriptionHistoryImpl		_history,
 		Map							map )
 	{
+		history = _history;
+		
 		key			= (byte[])map.get( "key" );
 		read		= ((Long)map.get( "read")).intValue()==1;
 		
-		try{
-			result_json	= new String((byte[])map.get( "result_json" ), "UTF-8" );
+		Long	l_deleted = (Long)map.get( "deleted" );
+		
+		if ( l_deleted != null ){
 			
-		}catch( Throwable e ){
+			deleted	= true;
 			
-			Debug.printStackTrace(e);
+		}else{
+		
+			try{
+				result_json	= new String((byte[])map.get( "result_json" ), "UTF-8" );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
+	}
+	
+	public String
+	getID()
+	{
+		return( Base32.encode( key ));
 	}
 	
 	protected byte[]
@@ -82,16 +110,52 @@ SubscriptionResultImpl
 		return( key );
 	}
 	
-	protected boolean
+	public boolean
 	getRead()
 	{
 		return( read );
 	}
 	
-	protected void
-	setRead()
+	public void
+	setRead(
+		boolean	_read )
 	{
-		read	= true;
+		if ( read != _read ){
+			
+			read	= _read;
+			
+			history.updateResult( this );
+		}
+	}
+	
+	protected void
+	setReadInternal(
+		boolean	_read )
+	{
+		read	= _read;
+	}
+	
+	public void
+	delete()
+	{
+		if ( !deleted ){
+			
+			deleted	= true;
+			
+			history.updateResult( this );
+		}
+	}
+	
+	protected void
+	deleteInternal()
+	{
+		deleted = true;
+	}
+	
+	public boolean
+	isDeleted()
+	{
+		return( deleted );
 	}
 	
 	protected Map
@@ -102,12 +166,19 @@ SubscriptionResultImpl
 		map.put( "key", key );
 		map.put( "read", new Long(read?1:0));
 		
-		try{
-			map.put( "result_json", result_json.getBytes( "UTF-8" ));
+		if ( deleted ){
 			
-		}catch( Throwable e ){
+			map.put( "deleted", new Long(1));
 			
-			Debug.printStackTrace(e);
+		}else{
+		
+			try{
+				map.put( "result_json", result_json.getBytes( "UTF-8" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		return( map );
@@ -118,7 +189,8 @@ SubscriptionResultImpl
 	{
 		Map	map = JSONUtils.decodeJSON( result_json );
 		
-			// TODO: augment with extra
+		map.put( "subs_is_read", new Boolean( read ));
+		map.put( "subs_id", getID());
 		
 		return( map );
 	}

@@ -43,6 +43,15 @@ SubscriptionHistory
 		boolean		enabled,
 		boolean		auto_dl );
 	
+	public void
+	deleteResults(
+		String[]		result_ids );
+	
+	public void
+	markResults(
+		String[]		result_ids,
+		boolean[]		read );
+	
 	public long
 	getLastScanTime();
 	
@@ -56,5 +65,6 @@ SubscriptionHistory
 	getNumRead();
 	
 	public SubscriptionResult[]
-	getResults();
+	getResults(
+		boolean		include_deleted );
 }

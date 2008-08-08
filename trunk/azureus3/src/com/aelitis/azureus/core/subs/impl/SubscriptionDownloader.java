@@ -47,7 +47,7 @@ SubscriptionDownloader
 		subs	= _subs;
 	}
 	
-	public SubscriptionResult[]
+	public void
 	download()
 	
 		throws SubscriptionException
@@ -106,9 +106,7 @@ SubscriptionDownloader
 			}
 			
 			history.reconcileResults( s_results );
-			
-			return( s_results );
-			
+						
 		}catch( Throwable e ){
 			
 			log( "    Download failed", e);

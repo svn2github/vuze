@@ -82,6 +82,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_READ_SUBSCRIPTION   			= "read-subscription";
 	public static final String OP_UPDATE_SUBSCRIPTION   		= "update-subscription";
 	public static final String OP_READ_SUBSCRIPTION_RESULTS   	= "read-subscription-results";
+	public static final String OP_DELETE_SUBSCRIPTION_RESULTS   = "delete-subscription-results";
+	public static final String OP_MARK_SUBSCRIPTION_RESULTS	   	= "mark-subscription-results";
 
 	private final SearchResultsTabArea searchResultsArea;
 	
@@ -952,7 +954,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					JSONArray	results_list = new JSONArray();
 					
-					SubscriptionResult[]	results = subs.getHistory().getResults();
+					SubscriptionResult[]	results = subs.getHistory().getResults( false );
 					
 					for(int i=0; i<results.length; i++){
 						
@@ -974,6 +976,88 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage("metasearch", "readSubscriptionFailed",params);
+			}
+		}else if( OP_DELETE_SUBSCRIPTION_RESULTS.equals(opid)){
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+						
+			String sid = (String)decodedMap.get("id");
+			
+			List	rids	= (List)decodedMap.get( "rids" );
+			
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					Map params = new HashMap();
+					
+					params.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
+					
+				}else{
+					
+					String[]	rids_a = (String[])rids.toArray( new String[rids.size()]);
+					
+					subs.getHistory().deleteResults( rids_a );
+					
+					Map result = new HashMap();
+					
+					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsFailed", result );
+				}
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
+			}
+		}else if( OP_MARK_SUBSCRIPTION_RESULTS.equals(opid)){
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+						
+			String sid = (String)decodedMap.get("id");
+			
+			List	rids	= (List)decodedMap.get( "rids" );
+			List	reads	= (List)decodedMap.get( "reads" );
+			
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					Map params = new HashMap();
+					
+					params.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
+					
+				}else{
+					
+					String[]	rids_a = (String[])rids.toArray( new String[rids.size()]);
+					
+					boolean[]	reads_a = new boolean[reads.size()];
+					
+					for (int i=0;i<reads.size();i++){
+						
+						reads_a[i] = ((Boolean)reads.get(i)).booleanValue();
+					}
+					
+					subs.getHistory().markResults( rids_a, reads_a );
+					
+					Map result = new HashMap();
+					
+					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsFailed", result );
+				}
+			} catch( Throwable e ){
+				
+				Map params = new HashMap();
+
+				params.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
 			}
 		}
 	}

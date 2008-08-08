@@ -451,6 +451,13 @@ SubscriptionManagerImpl
 			
 				saveConfig();
 				
+				try{
+					getResultsFile( subs ).delete();
+					
+				}catch( Throwable e ){
+					
+					log( "Failed to delete results file", e );
+				}
 			}else{
 			
 				return;

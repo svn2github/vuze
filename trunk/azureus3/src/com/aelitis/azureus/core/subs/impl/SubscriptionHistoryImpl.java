@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -59,8 +60,6 @@ SubscriptionHistoryImpl
 	reconcileResults(
 		SubscriptionResultImpl[]		latest_results )
 	{
-		boolean	changed;
-		
 		int	new_unread 	= 0;
 		int new_read	= 0;
 		
@@ -68,55 +67,60 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 			
-			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
-		
-			changed = latest_results.length != existing_results.length;
+			boolean	got_new_result	= false;
 			
+			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
+					
 			ByteArrayHashMap	map = new ByteArrayHashMap();
 			
+			List	new_results = new ArrayList();
+
 			for (int i=0;i<existing_results.length;i++){
 				
 				SubscriptionResultImpl r = existing_results[i];
 				
 				map.put( r.getKey(), r );
+				
+				new_results.add( r );
+				
+				if ( !r.isDeleted()){
+					
+					if ( r.getRead()){
+						
+						new_read++;
+						
+					}else{
+						
+						new_unread++;
+					}
+				}
 			}
-			
+						
 			for (int i=0;i<latest_results.length;i++){
 
 				SubscriptionResultImpl r = latest_results[i];
-
-				SubscriptionResultImpl e = (SubscriptionResultImpl)map.get( r.getKey());
 				
-				if ( e == null ){
+				if ( map.get( r.getKey()) == null ){
 					
 					last_new_result = now;
 					
-					changed = true;
+					new_results.add( r );
 					
-				}else{
-					
-					latest_results[i] = e;
-				}
+					got_new_result = true;
 				
-				if ( latest_results[i].getRead()){
-					
-					new_read++;
-					
-				}else{
-					
 					new_unread++;
 				}
 			}
 			
-			if ( changed ){
+			if ( got_new_result ){
 				
-				manager.saveResults( subs, latest_results );
+				manager.saveResults( subs, (SubscriptionResultImpl[])new_results.toArray( new SubscriptionResultImpl[new_results.size()]));
 			}
-		}
 		
-		last_scan 	= now;
-		num_unread	= new_unread;
-		num_read	= new_read;
+			last_scan 	= now;
+			num_unread	= new_unread;
+			num_read	= new_read;
+		}
 		
 			// always save config as we have a new scan time
 		
@@ -198,9 +202,189 @@ SubscriptionHistoryImpl
 	}
 	
 	public SubscriptionResult[]
-	getResults()
+	getResults(
+		boolean		include_deleted )
 	{
-		return( manager.loadResults( subs ));
+		SubscriptionResult[] results;
+		
+		synchronized( this ){
+			
+			results = manager.loadResults( subs );
+		}
+		
+		if ( include_deleted ){
+			
+			return( results );
+			
+		}else{
+			
+			List	l = new ArrayList( results.length );
+			
+			for (int i=0;i<results.length;i++){
+				
+				if ( !results[i].isDeleted()){
+					
+					l.add( results[i] );
+				}
+			}
+			
+			return((SubscriptionResult[])l.toArray( new SubscriptionResult[l.size()]));
+		}
+	}
+	
+	protected void
+	updateResult(
+		SubscriptionResultImpl 	result )
+	{
+		byte[]	key = result.getKey();
+		
+		boolean	changed = false;
+
+		synchronized( this ){
+			
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+						
+			for (int i=0;i<results.length;i++){
+				
+				if ( Arrays.equals( results[i].getKey(), key )){
+					
+					results[i] = result;
+					
+					changed	= true;
+				}
+			}
+			
+			if ( changed ){
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+
+	public void 
+	deleteResults(
+		String[] result_ids )
+	{
+		ByteArrayHashMap rids = new ByteArrayHashMap();
+		
+		for (int i=0;i<result_ids.length;i++){
+			
+			rids.put( Base32.decode( result_ids[i]), "" );
+		}
+	
+		boolean	changed = false;
+
+		synchronized( this ){
+				
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+
+			for (int i=0;i<results.length;i++){
+				
+				SubscriptionResultImpl result = results[i];
+				
+				if ( !result.isDeleted() && rids.containsKey( result.getKey())){
+					
+					changed = true;
+					
+					results[i].deleteInternal();
+				}
+			}
+			
+			if ( changed ){
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+	public void 
+	markResults(
+		String[] 		result_ids,
+		boolean[]		reads )
+	{
+		ByteArrayHashMap rids = new ByteArrayHashMap();
+		
+		for (int i=0;i<result_ids.length;i++){
+			
+			rids.put( Base32.decode( result_ids[i]), "" );
+		}
+	
+		boolean	changed = false;
+
+		synchronized( this ){
+						
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+
+			for (int i=0;i<results.length;i++){
+				
+				SubscriptionResultImpl result = results[i];
+				
+				if ( rids.containsKey( result.getKey())){
+					
+					if ( result.getRead() != reads[i] ){
+						
+						changed = true;
+					
+						results[i].setReadInternal( reads[i] );
+					}
+				}
+			}
+			
+			if ( changed ){
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+	protected void
+	updateReadUnread(
+		SubscriptionResultImpl[]	results )
+	{
+		int	new_unread	= 0;
+		int	new_read	= 0;
+		
+		for (int i=0;i<results.length;i++){
+			
+			SubscriptionResultImpl result = results[i];
+			
+			if ( !result.isDeleted()){
+				
+				if ( result.getRead()){
+					
+					new_read++;
+					
+				}else{
+					
+					new_unread++;
+				}
+			}
+		}
+		
+		num_read	= new_read;
+		num_unread	= new_unread;
 	}
 	
 	protected void

@@ -26,6 +26,22 @@ import java.util.Map;
 public interface 
 SubscriptionResult 
 {
+	public String
+	getID();
+	
 	public Map
 	toJSONMap();
+	
+	public void
+	setRead(
+		boolean		read );
+	
+	public boolean
+	getRead();
+	
+	public void
+	delete();
+	
+	public boolean
+	isDeleted();
 }
