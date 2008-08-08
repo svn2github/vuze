@@ -336,14 +336,26 @@ PlatformSubscriptionsMessenger
 		getString(
 			String	key )
 		{
-			byte[]	bytes = (byte[])details.get( key );
+			Object obj = details.get( key );
 			
-			try{
-				return( new String( bytes, "UTF-8" ));
+			if ( obj instanceof String ){
 				
-			}catch( Throwable e ){
+				return((String)obj);
 				
-				return( new String( bytes ));
+			}else if ( obj instanceof byte[] ){
+					
+				byte[]	bytes = (byte[])obj;
+				
+				try{
+					return( new String( bytes, "UTF-8" ));
+					
+				}catch( Throwable e ){
+					
+					return( new String( bytes ));
+				}
+			}else{
+				
+				return( null );
 			}
 		}
 	}
