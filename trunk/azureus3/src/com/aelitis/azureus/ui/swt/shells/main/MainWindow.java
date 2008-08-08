@@ -1745,19 +1745,16 @@ public class MainWindow
 			return;
 		}
 
-		String sURL = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
-				+ UrlUtils.encode(sSearchText) + "&" + Constants.URL_SUFFIX + "&rand="
-				+ SystemTime.getCurrentTime();
-
-		if (System.getProperty("metasearch", "1").equals("1")) {
-			sURL = Constants.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(sSearchText)
-					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
-		}
-
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		String id = "Search." + sSearchText;
-		sidebar.createTreeItemFromSkinRef(null, id, "main.area.searchresultstab",
-				MessageText.getString("Search: ") + sSearchText, null, sURL, true);
+		String id = "Search";
+		SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+		if (searchClass != null) {
+			searchClass.anotherSearch(sSearchText);
+		} else {
+			sidebar.createTreeItemFromSkinRef(null, id, "main.area.searchresultstab",
+					MessageText.getString("Search: ") + sSearchText, null, sSearchText,
+					true);
+		}
 		sidebar.showItemByID(id);
 	}
 

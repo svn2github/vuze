@@ -31,9 +31,14 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.listener.BrowserRpcBuddyListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
@@ -48,11 +53,14 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class SearchResultsTabArea
 	extends SkinView
+	implements ViewTitleInfo
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	private SWTSkin skin;
 
+	private String searchText;
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
@@ -85,9 +93,7 @@ public class SearchResultsTabArea
 		if (browserSkinObject != null) {
   		Object o = skinObject.getData("CreationParams");
   		
-  		if (o instanceof String) {
-  			browserSkinObject.setURL((String) o);
-  		}
+  		anotherSearch((String) o);
 		}
 		
 		return null;
@@ -202,5 +208,37 @@ public class SearchResultsTabArea
 				search.setUrl("about:blank");
 			}
 		});
+	}
+	
+	public void anotherSearch(String searchText) {
+		this.searchText = searchText;
+		String url = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
+				+ UrlUtils.encode(searchText) + "&" + Constants.URL_SUFFIX + "&rand="
+				+ SystemTime.getCurrentTime();
+
+		if (System.getProperty("metasearch", "1").equals("1")) {
+			url = Constants.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(searchText)
+					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
+		}
+
+		closeSearchResults(null);
+		browserSkinObject.setURL(url);
+		ViewTitleInfoManager.refreshTitleInfo(this);
+	}
+
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoObjectProperty(int)
+	public Object getTitleInfoObjectProperty(int propertyID) {
+		if (propertyID == TITLE_SKINVIEW) {
+			return this;
+		}
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoStringProperty(int)
+	public String getTitleInfoStringProperty(int propertyID) {
+		if (propertyID == TITLE_TEXT) {
+			return "Search: " + searchText;
+		}
+		return null;
 	}
 }
