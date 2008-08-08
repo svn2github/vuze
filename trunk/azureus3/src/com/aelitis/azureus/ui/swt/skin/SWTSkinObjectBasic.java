@@ -22,6 +22,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -743,5 +744,10 @@ public class SWTSkinObjectBasic
 			mapData = new HashMap(1);
 		}
 		mapData.put(id, data);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateShell#generateObfusticatedImage()
+	public Image generateObfusticatedImage() {
+		return null;
 	}
 }

@@ -1011,7 +1011,7 @@ public class MainWindow
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
 				String id = sidebar.getCurrentViewID();
-				int i = id.indexOf(id, '_');
+				int i = id.indexOf('_');
 				if (i > 0) {
 					id = id.substring(0, i);
 				}
@@ -2069,9 +2069,24 @@ public class MainWindow
 		GC gc = new GC(shell);
 		try {
 			gc.copyArea(image, clientArea.x, clientArea.y);
+		
+		
+		Control[] children = shell.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			SWTSkinObject so = (SWTSkinObject) control.getData("SkinObject");
+			if (so != null) {
+				Image obfusticatedImage = so.generateObfusticatedImage();
+				if (obfusticatedImage != null) {
+					Rectangle bounds = so.getControl().getBounds();
+					gc.drawImage(obfusticatedImage, bounds.x, bounds.y);
+				}
+			}
+		}
 		} finally {
 			gc.dispose();
 		}
+		
 		return image;
 	}
 
@@ -2145,7 +2160,7 @@ public class MainWindow
 
 		if (mapTrackUsage != null && oldID != null) {
 			String id2 = oldID;
-			int i = id2.indexOf(id, '_');
+			int i = id2.indexOf('_');
 			if (i > 0) {
 				id2 = id2.substring(0, i);
 			}
