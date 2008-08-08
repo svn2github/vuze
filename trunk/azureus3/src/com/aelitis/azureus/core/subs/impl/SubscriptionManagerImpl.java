@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
+import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
@@ -984,11 +985,18 @@ SubscriptionManagerImpl
 			
 			SubscriptionImpl	sub = (SubscriptionImpl)subs.get(i);
 			
-			if ( sub.isSubscribed() && sub.isPublic()){
+			if ( sub.isSubscribed()){
 				
-				used_subs.add( sub );
+				if ( sub.isPublic()){
 				
-				sids.add( sub.getShortID());
+					used_subs.add( sub );
+				
+					sids.add( sub.getShortID());
+					
+				}else{
+					
+					checkInitialDownload( sub );
+				}
 			}
 		}
 		
@@ -1008,6 +1016,10 @@ SubscriptionManagerImpl
 					if ( latest_version > sub.getVersion()){
 						
 						updateSubscription( sub, latest_version );
+						
+					}else{
+						
+						checkInitialDownload( sub );
 					}
 				}
 			}catch( Throwable e ){
@@ -1024,35 +1036,73 @@ SubscriptionManagerImpl
 	setSelected(
 		final SubscriptionImpl	sub )
 	{
-		if ( sub.isSubscribed() && sub.isPublic()){
+		if ( sub.isSubscribed()){
 			
-			new DelayedEvent( 
-				"SM:setSelected",
-				0,
-				new AERunnable()
+			if ( sub.isPublic()){
+			
+				new DelayedEvent( 
+					"SM:setSelected",
+					0,
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							try{
+								List	sids = new ArrayList();
+								
+								sids.add( sub.getShortID());
+							
+								List versions = PlatformSubscriptionsMessenger.setSelected( sids );
+								
+								log( "setSelected: " + sub.getName());
+								
+								int	latest_version = ((Long)versions.get(0)).intValue();
+								
+								if ( latest_version > sub.getVersion()){
+									
+									updateSubscription( sub, latest_version );
+									
+								}else{
+									
+									checkInitialDownload( sub );
+								}
+							}catch( Throwable e ){
+								
+								log( "setSelected: failed for " + sub.getName(), e );
+							}
+						}
+					});
+			}else{
+				
+				checkInitialDownload( sub );
+			}
+		}
+	}
+	
+	protected void
+	checkInitialDownload(
+		SubscriptionImpl		subs )
+	{
+		if ( subs.getHistory().getLastScanTime() == 0 ){
+			
+			scheduler.download( 
+				subs, 
+				new SubscriptionDownloadListener()
 				{
 					public void
-					runSupport()
+					complete(
+						Subscription		subs )
 					{
-						try{
-							List	sids = new ArrayList();
-							
-							sids.add( sub.getShortID());
-						
-							List versions = PlatformSubscriptionsMessenger.setSelected( sids );
-							
-							log( "setSelected: " + sub.getName());
-							
-							int	latest_version = ((Long)versions.get(0)).intValue();
-							
-							if ( latest_version > sub.getVersion()){
-								
-								updateSubscription( sub, latest_version );
-							}
-						}catch( Throwable e ){
-							
-							log( "setSelected: failed for " + sub.getName(), e );
-						}
+						log( "Initial download of " + subs + " complete" );
+					}
+					
+					public void
+					failed(
+						Subscription			subs,
+						SubscriptionException	error )
+					{
+						log( "Initial download of " + subs + " failed", error );
 					}
 				});
 		}
