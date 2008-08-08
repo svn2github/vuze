@@ -499,7 +499,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_DM_DETAILS:
-				String id = "DMDetails-";
+				String id = "DMDetails_";
 				if (data instanceof DownloadManager) {
 					DownloadManager dm = (DownloadManager) data;
 					TOTorrent torrent = dm.getTorrent();
