@@ -132,7 +132,7 @@ SpeedTestPanel
 
         final Label linkLabel = new Label(azWiki, SWT.NULL);
         linkLabel.setText( Constants.APP_NAME + " Wiki Speed Test" );
-        linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Speed_Test_FAQ");
+        linkLabel.setData("http://www.azureuswiki.com/index.php/Speed_Test_FAQ");
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);
         azwGridData = new GridData();

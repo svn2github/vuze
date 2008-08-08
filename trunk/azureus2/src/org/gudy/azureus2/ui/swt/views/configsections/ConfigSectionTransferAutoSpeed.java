@@ -87,7 +87,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		new LinkLabel(cSection, gridData, "ConfigView.label.please.visit.here",
-				"http://azureus.aelitis.com/wiki/index.php/Auto_Speed");
+				"http://www.azureuswiki.com/index.php/Auto_Speed");
 
 		
 		String[]	units = { DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB )};

@@ -269,7 +269,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			linkLabel.setText(MessageText
 					.getString(CFG_PREFIX + "serverport.wiki"));
 			linkLabel
-					.setData("http://azureus.aelitis.com/wiki/index.php?title=Why_ports_like_6881_are_no_good_choice");
+					.setData("http://www.azureuswiki.com/index.php?title=Why_ports_like_6881_are_no_good_choice");
 			linkLabel.setCursor(Cursors.handCursor);
 			linkLabel.setForeground(Colors.blue);
 			gridData = new GridData();
@@ -307,7 +307,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			new LinkLabel(
 					http_group, 
 					"ConfigView.label.please.visit.here",
-					"http://azureus.aelitis.com/wiki/index.php?title=HTTP_Seeding");
+					"http://www.azureuswiki.com/index.php?title=HTTP_Seeding");
 
 			final BooleanParameter enable_http = 
 				new BooleanParameter(http_group, "HTTP.Data.Listen.Port.Enable", CFG_PREFIX + "http.enable");

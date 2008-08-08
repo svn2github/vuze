@@ -62,10 +62,10 @@ public class WelcomePanel extends AbstractWizardPanel {
     		"ConfigView.section.mode.advanced.wiki.main",
     		"ConfigView.section.mode.intermediate.wiki.publish"
     };
-    final String[] links = {"http://azureus.aelitis.com/wiki/index.php/This_funny_word",
-    		"http://azureus.aelitis.com/wiki/index.php/HostingFiles",
-    		"http://azureus.aelitis.com/wiki/index.php/Main_Page",
-    		"http://azureus.aelitis.com/wiki/index.php/PublishingFiles"
+    final String[] links = {"http://www.azureuswiki.com/index.php/This_funny_word",
+    		"http://www.azureuswiki.com/index.php/HostingFiles",
+    		"http://www.azureuswiki.com/index.php/Main_Page",
+    		"http://www.azureuswiki.com/index.php/PublishingFiles"
     };
     
     Composite rootPanel = wizard.getPanel();

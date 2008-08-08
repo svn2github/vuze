@@ -116,7 +116,7 @@ public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		new LinkLabel(gCrypto, gridData, CFG_PREFIX
 				+ "encrypt.info.link",
-				"http://azureus.aelitis.com/wiki/index.php/Avoid_traffic_shaping");
+				"http://www.azureuswiki.com/index.php/Avoid_traffic_shaping");
 		
 		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();

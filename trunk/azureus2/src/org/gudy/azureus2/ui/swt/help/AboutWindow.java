@@ -172,7 +172,7 @@ public class AboutWindow {
 
     final String[][] link =
       { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
-          Constants.GETAZUREUS_WEB_SITE,
+          "http://www.vuze.com",
           "http://sourceforge.net/projects/azureus/",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
           Constants.isCVSVersion() ? "http://forum.vuze.com/forum.jspa?forumID=4" : "http://sourceforge.net/tracker/?atid=575154&group_id=84122&func=browse",

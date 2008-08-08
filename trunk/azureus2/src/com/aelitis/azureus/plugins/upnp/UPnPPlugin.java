@@ -147,7 +147,7 @@ UPnPPlugin
 					Parameter	param )
 				{
 					try{
-						plugin_interface.getUIManager().openURL( new URL( "http://azureus.aelitis.com/wiki/index.php/NATPMP" ));
+						plugin_interface.getUIManager().openURL( new URL( "http://www.azureuswiki.com/index.php/NATPMP" ));
 						
 					}catch( Throwable e ){
 						
@@ -177,7 +177,7 @@ UPnPPlugin
 			// UPNP
 		
 		upnp_config.addLabelParameter2( "upnp.info" );
-		upnp_config.addHyperlinkParameter2("upnp.wiki_link", "http://azureus.aelitis.com/wiki/index.php/UPnP");
+		upnp_config.addHyperlinkParameter2("upnp.wiki_link", "http://www.azureuswiki.com/index.php/UPnP");
 		
 		
 		upnp_enable_param = 
