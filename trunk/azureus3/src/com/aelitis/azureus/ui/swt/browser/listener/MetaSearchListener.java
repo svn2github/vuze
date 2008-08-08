@@ -1004,7 +1004,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					Map result = new HashMap();
 					
-					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsFailed", result );
+					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
 				
@@ -1032,7 +1032,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					params.put( "error", "Subscription not found" );
 
-					sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
+					sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",params);
 					
 				}else{
 					
@@ -1049,7 +1049,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					Map result = new HashMap();
 					
-					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsFailed", result );
+					sendBrowserMessage( "metasearch", "markSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
 				
@@ -1057,7 +1057,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 				params.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
 
-				sendBrowserMessage("metasearch", "deleteSubscriptionResultsFailed",params);
+				sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",params);
 			}
 		}
 	}
