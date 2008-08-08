@@ -158,6 +158,8 @@ SubscriptionSchedulerImpl
 							
 							subs.addAssociation( torrent.getHash());
 							
+							result.setRead( true );
+							
 							manager.log( subs.getName() + ": added download " + download.getName());
 							
 						}catch( Throwable e ){
