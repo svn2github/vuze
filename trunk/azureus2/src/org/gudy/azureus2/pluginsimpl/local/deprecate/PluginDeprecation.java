@@ -72,8 +72,9 @@ public class PluginDeprecation {
 		/**
 		 * Here is where we define all deprecated call definitions that we manage.
 		 */
-		register("property listener", IGNORE, NOTIFY_EVERY);
+		register("property listener", IGNORE, IGNORE); // wait until there is a new TeamSeeder plugin
 		register("createPluginView", IGNORE, NOTIFY_EVERY);
+		register("getSWTManager", IGNORE, NOTIFY_EVERY);
 		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(

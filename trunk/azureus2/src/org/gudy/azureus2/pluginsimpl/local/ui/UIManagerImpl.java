@@ -31,6 +31,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
@@ -124,7 +125,7 @@ UIManagerImpl
 			return( SWTManagerImpl.getSingleton().createPluginView( model ));
 	
 		}catch( Throwable e ){
-			
+			e.printStackTrace();
 			return( null );
 		}
 	}
@@ -245,10 +246,7 @@ UIManagerImpl
   }
 
   public SWTManager getSWTManager() {
-      // Currently used by:
-      //   - monitoringplugin
-      //   - ProgressBar
-      //   - safepeer
+	  PluginDeprecation.call("getSWTManager", pi.getPluginID());
     return SWTManagerImpl.getSingleton();
   }
   
