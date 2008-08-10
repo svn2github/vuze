@@ -275,6 +275,14 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
+
+		
+		// Test FP
+		if (dlData.bIsFirstPriority && !bIsFirstPriority)
+			return 1;
+		if (!dlData.bIsFirstPriority && bIsFirstPriority)
+			return -1;
+		
 		// Test Completeness
 		boolean aIsComplete = dlData.dl.isComplete();
 		boolean bIsComplete = dl.isComplete();
@@ -282,12 +290,6 @@ public class DefaultRankCalculator implements Comparable {
 			return -1;
 		if (!aIsComplete && bIsComplete)
 			return 1;
-
-		// Test FP
-		if (dlData.bIsFirstPriority && !bIsFirstPriority)
-			return 1;
-		if (!dlData.bIsFirstPriority && bIsFirstPriority)
-			return -1;
 
 		if (iRankType == StartStopRulesDefaultPlugin.RANK_NONE) {
 			return dl.getPosition() - dlData.dl.getPosition();
