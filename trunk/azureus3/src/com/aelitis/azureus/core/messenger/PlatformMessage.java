@@ -174,6 +174,10 @@ public class PlatformMessage
 		}
 	}
 
+	public void setRequiresAuthorizationNoCheck() {
+		this.requiresAuthorization = true;
+	}
+	
 	/**
 	 * @return the requiresAuthorization
 	 */
@@ -196,6 +200,7 @@ public class PlatformMessage
 	}
 	
 	public String toShortString() {
-		return getMessageID() + "." + getListenerID() + "."+ getOperationID();
+		return (requiresAuthorization ? "AUTH: " : "") + getMessageID() + "."
+				+ getListenerID() + "." + getOperationID();
 	}
 }
