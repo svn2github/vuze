@@ -1281,7 +1281,8 @@ public class SideBar
 			setupTreeItem(view, item, id, null, null, viewComposite, datasource, closeable);
 
 			Composite iviewComposite = view.getComposite();
-			if (iviewComposite.getLayoutData() == null) {
+			Object existingLayout = iviewComposite.getLayoutData();
+			if (existingLayout == null || (existingLayout instanceof GridData)) {
 				GridData gridData = new GridData(GridData.FILL_BOTH);
 				iviewComposite.setLayoutData(gridData);
 			}
