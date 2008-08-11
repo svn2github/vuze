@@ -474,18 +474,6 @@ public class SideBar
 				null, false);
 
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		final ViewTitleInfo titleInfoLibrary = new ViewTitleInfo() {
-			public String getTitleInfoStringProperty(int propertyID) {
-				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return "" + gm.getDownloadManagers().size();
-				}
-				return null;
-			}
-
-			public Object getTitleInfoObjectProperty(int propertyID) {
-				return null;
-			}
-		};
 		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
 			public String getTitleInfoStringProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
@@ -563,14 +551,12 @@ public class SideBar
 				} else {
 					numIncomplete--;
 				}
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoLibrary);
 				ViewTitleInfoManager.refreshTitleInfo(titleInfoDownloading);
 				ViewTitleInfoManager.refreshTitleInfo(titleInfoSeeding);
 				dm.removeListener(dmListener);
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoLibrary);
 				ViewTitleInfoManager.refreshTitleInfo(titleInfoDownloading);
 				ViewTitleInfoManager.refreshTitleInfo(titleInfoSeeding);
 				dm.addListener(dmListener, false);
@@ -612,7 +598,7 @@ public class SideBar
 		}
 
 		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
-				"Library", titleInfoLibrary, null, false);
+				"Library", null, null, false);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryDL_SB",
 				"library", "Downloading", titleInfoDownloading, null, false);
