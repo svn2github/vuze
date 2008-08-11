@@ -19,7 +19,7 @@ public abstract class AbstractStatusListener
 
 	public void handleMessage(BrowserMessage message) {
 		String opID = message.getOperationId();
-
+		System.out.println("\tLogin status message: " + message.getFullMessage());//KN: sysout
 		/*
 		 * When no parameter is supplied the BrowserMessage throws an exception;
 		 * it really should be returning a null.
@@ -84,6 +84,14 @@ public abstract class AbstractStatusListener
 	 * Default implementation does nothing; subclasses may override
 	 */
 	public void handlePageLoadCompleted() {
+	}
+
+	public boolean isRegistrationStillOpen() {
+		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_REGISTRATION_OPEN)) {
+			return MapUtils.getMapBoolean(decodedMap,
+					OP_LOGIN_UPDATE_PARAM_REGISTRATION_OPEN, true);
+		}
+		return true;
 	}
 
 }

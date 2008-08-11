@@ -275,6 +275,7 @@ public class UserAreaUtils
 	 * @param menu
 	 */
 	private void fillUserInfoMenu(Menu menu) {
+
 		if (true == LoginInfoManager.getInstance().isLoggedIn()) {
 
 			/*
@@ -384,6 +385,8 @@ public class UserAreaUtils
 
 		} else {
 
+			LoginInfo info = LoginInfoManager.getInstance().getUserInfo();
+
 			/*
 			 * Account info
 			 */
@@ -399,41 +402,12 @@ public class UserAreaUtils
 			item.setText(MessageText.getString("v3.MainWindow.text.my.profile"));
 			item.setEnabled(false);
 
-			item = new MenuItem(menu, SWT.SEPARATOR);
-
 			/*
-			 * Sign Up
+			 * Sign Up -- Only show if this client instance has not been registered already
 			 */
+			if (true == info.isRegistrationStillOpen) {
+				item = new MenuItem(menu, SWT.SEPARATOR);
 
-			/*
-			 * KN: IMPORTANT!!!!!!
-			 * For the time being we're always showing the SignUp menu item when connecting to the 
-			 * default platform address; we will remove this once the production platform can
-			 * provide the already-registered flag
-			 */
-			if (Constants.URL_ADDRESS.equals(Constants.DEFAULT_ADDRESS)) {
-				item = new MenuItem(menu, SWT.PUSH);
-				item.setText(MessageText.getString("v3.MainWindow.text.get.started"));
-				item.addSelectionListener(new SelectionListener() {
-
-					public void widgetSelected(SelectionEvent e) {
-						if (null != uiFunctions) {
-							String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
-									+ "?" + Constants.URL_SUFFIX;
-							new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
-									460, 577);
-						}
-
-					}
-
-					public void widgetDefaultSelected(SelectionEvent e) {
-						widgetSelected(e);
-					}
-				});
-			} else {
-				/*
-				 * NOTE: must check with platform whether this should be shown
-				 */
 				item = new MenuItem(menu, SWT.PUSH);
 				item.setText(MessageText.getString("v3.MainWindow.text.get.started"));
 				item.addSelectionListener(new SelectionListener() {

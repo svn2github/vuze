@@ -29,6 +29,8 @@ public class LoginInfoManager
 
 	private String pk = null;
 
+	private boolean isRegistrationStillOpen = false;
+	
 	private CopyOnWriteList listeners = new CopyOnWriteList();
 
 	private LoginInfoManager() {
@@ -108,6 +110,8 @@ public class LoginInfoManager
 		public final String displayName = LoginInfoManager.this.displayName == null
 				? LoginInfoManager.this.userName : LoginInfoManager.this.displayName;
 
+		public final boolean isRegistrationStillOpen = LoginInfoManager.this.isRegistrationStillOpen;
+		
 		/**
 		 * The public key that the webapp thinks we have
 		 */
