@@ -164,9 +164,11 @@ public class ColorCache
 						}
 					}
 				} else if (value.startsWith("BLUE.FADED.")) {
-					return Colors.faded[Integer.parseInt(value.substring(11))];
+					int idx = Integer.parseInt(value.substring(11));
+					return Colors.faded[idx];
 				} else if (value.startsWith("BLUE.")) {
-					return Colors.blues[Integer.parseInt(value.substring(5))];
+					int idx = Integer.parseInt(value.substring(5));
+					return Colors.blues[idx];
 				} else if (value.equals("ALTROW")) {
 					return Colors.colorAltRow;
 				}
