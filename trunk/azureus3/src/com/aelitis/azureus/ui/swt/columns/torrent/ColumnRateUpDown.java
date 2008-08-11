@@ -70,7 +70,7 @@ public class ColumnRateUpDown
 
 	private static Rectangle boundsRateMe;
 
-	private static int width;
+	private static int width = 60;
 
 	private boolean useButton = false;
 
@@ -82,29 +82,29 @@ public class ColumnRateUpDown
 		Image img = ImageLoaderFactory.getInstance().getImage("icon.rateme");
 		graphicRateMe = new UISWTGraphicImpl(img);
 		boundsRateMe = img.getBounds();
-		width = boundsRateMe.width;
+//		width = boundsRateMe.width;
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rateme-button");
 		graphicRateMeButtonEnabled = new UISWTGraphicImpl(img);
 		graphicRateMeButton = graphicRateMeButtonEnabled;
-		width = Math.max(width, img.getBounds().width);
+//		width = Math.max(width, img.getBounds().width);
 
 		img = ImageLoaderFactory.getInstance().getImage(
 				"icon.rateme-button-disabled");
 		graphicRateMeButtonDisabled = new UISWTGraphicImpl(img);
-		width = Math.max(width, img.getBounds().width);
+//		width = Math.max(width, img.getBounds().width);
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
 		graphicUp = new UISWTGraphicImpl(img);
-		width = Math.max(width, img.getBounds().width);
+//		width = Math.max(width, img.getBounds().width);
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.down");
 		graphicDown = new UISWTGraphicImpl(img);
-		width = Math.max(width, img.getBounds().width);
+//		width = Math.max(width, img.getBounds().width);
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
 		graphicWait = new UISWTGraphicImpl(img);
-		width = Math.max(width, img.getBounds().width);
+//		width = Math.max(width, img.getBounds().width);
 	}
 
 	/**
