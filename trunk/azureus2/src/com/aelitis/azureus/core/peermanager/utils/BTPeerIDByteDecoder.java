@@ -544,6 +544,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("BTuga Revolution 2.1", "BTM21abcdefghijklmno");
 		assertDecode("AllPeers 0.70rc30", "4150302E3730726333302D3E3EB87B31F241DBFE"); // AP0.70rc30->>-{1-A--]"
 		assertDecode("External Webseed", "45787420EC7CC30033D7801FEEB713FBB0557AC4");
+		assertDecode("QVOD (Build 0054)", "QVOD00541234567890AB"); // Based on description on wiki.theory.org.
 		System.out.println();
 		
 		// BitComet/Lord/Spirit

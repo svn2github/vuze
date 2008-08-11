@@ -246,6 +246,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("BS", "BTSlave");
 		addAzStyle("BW", "BitWombat");
 		addAzStyle("BX", "BittorrentX");
+		addAzStyle("CB", "Shareaza Plus");
 		addAzStyle("CD", "Enhanced CTorrent", VER_AZ_TWO_MAJ_TWO_MIN);      
 		addAzStyle("CT", "CTorrent", "1.2.34");
 		addAzStyle("DP", "Propogate Data Client");
@@ -260,6 +261,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("HL", "Halite", VER_AZ_THREE_DIGITS);
 		addAzStyle("HN", "Hydranode");
 		addAzStyle("KT", "KTorrent", VER_AZ_KTORRENT_STYLE);
+		addAzStyle("LC", "LeechCraft");
 		addAzStyle("LH", "LH-ABC");
 		addAzStyle("LK", "linkage", VER_AZ_THREE_DIGITS);
 		addAzStyle("LP", "Lphant", VER_AZ_TWO_MAJ_TWO_MIN);
@@ -275,6 +277,8 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("OT", "OmegaTorrent");
 		addAzStyle("PC", PeerClassifier.CACHE_LOGIC);
 		addAzStyle("PD", "Pando");
+		addAzStyle("PE", "PeerProject");
+		addAzStyle("pX", "pHoeniX");
 		addAzStyle("qB", "qBittorrent", VER_AZ_THREE_DIGITS);
 		addAzStyle("QD", "qqdownload");
 		addAzStyle("RT", "Retriever");
@@ -409,6 +413,9 @@ public class BTPeerIDByteDecoderDefinitions {
 		client = addSimpleClient("BitMagnet", "BM", 2);
 		addVersionedClient(client, VER_TWO_BYTE_THREE_PART, 2, 0);
 
+		client = addSimpleClient("QVOD", "QVOD");
+		addVersionedClient(client, VER_BLOCK, 4, " (Build %s)");
+		
 	}
 	
 	static class ClientData {
