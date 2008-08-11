@@ -59,7 +59,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
@@ -67,7 +66,6 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
-import com.aelitis.azureus.core.subs.impl.SubscriptionDownloader;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;

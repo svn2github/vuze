@@ -445,15 +445,11 @@ SubscriptionImpl
 				
 				version++;
 				
-
 				SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );
 					
 				syncToBody( body );
 				
-				if ( is_public ){
-					
-					manager.updatePublicSubscription( this, body.getJSON());
-				}
+				versionUpdated( body );
 				
 				ok	= true;
 				
@@ -498,10 +494,7 @@ SubscriptionImpl
 				
 				syncToBody( body );
 				
-				if ( is_public ){
-
-					manager.updatePublicSubscription( this, body.getJSON());
-				}
+				versionUpdated( body );
 
 				ok = true;
 				
@@ -563,7 +556,7 @@ SubscriptionImpl
 		return( body.getJSON());
 	}
 	
-	public void
+	public boolean
 	setJSON(
 		String		_json )
 	
@@ -588,10 +581,7 @@ SubscriptionImpl
 				
 				syncToBody( body );
 				
-				if ( is_public ){
-					
-					manager.updatePublicSubscription( this, body.getJSON());
-				}
+				versionUpdated( body );
 
 				referer = null;
 				
@@ -606,7 +596,11 @@ SubscriptionImpl
 			}
 			
 			fireChanged();
+			
+			return( true );
 		}
+		
+		return( false );
 	}
 	
 	protected String
@@ -701,10 +695,11 @@ SubscriptionImpl
 			long	id = ((Long)map.get( "engine_id" )).longValue();
 			
 			if ( id == engine.getId()){
-				
-				log( "Engine has been updated, saving" );
-				
-				setJSON( json );
+								
+				if ( setJSON( json )){
+					
+					log( "Engine has been updated, saved" );
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -712,7 +707,7 @@ SubscriptionImpl
 		}
 	}
 	
-	public void
+	public boolean
 	setDetails(
 		String		_name,
 		boolean		_is_public,
@@ -746,10 +741,7 @@ SubscriptionImpl
 												
 				syncToBody( body );
 				
-				if ( is_public ){
-
-					manager.updatePublicSubscription( this, body.getJSON());
-				}
+				versionUpdated( body );
 
 				ok = true;
 				
@@ -764,7 +756,31 @@ SubscriptionImpl
 			}
 			
 			fireChanged();
+			
+			return( true );
 		}
+		
+		return( false );
+	}
+	
+	protected void
+	versionUpdated(
+		SubscriptionBodyImpl		body )
+	{
+		if ( is_public ){
+			
+			manager.updatePublicSubscription( this, body.getJSON());
+			
+			setPublished( false );
+			
+			synchronized( this ){
+
+				for (int i=0;i<associations.size();i++){
+					
+					((association)associations.get(i)).setPublished( false );
+				}
+			}
+		}	
 	}
 	
 	public byte[]

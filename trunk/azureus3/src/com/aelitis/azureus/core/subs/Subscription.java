@@ -47,7 +47,7 @@ Subscription
 	
 		throws SubscriptionException;
 	
-	public void
+	public boolean
 	setJSON(
 		String		json )
 	
@@ -66,7 +66,7 @@ Subscription
 	
 		throws SubscriptionException;
 	
-	public void
+	public boolean
 	setDetails(
 		String		name,
 		boolean		is_public,
