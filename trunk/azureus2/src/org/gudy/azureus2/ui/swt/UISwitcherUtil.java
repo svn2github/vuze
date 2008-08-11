@@ -181,12 +181,7 @@ public class UISwitcherUtil
 			if (result[0] == 0) {
 				// Full AZ3UI
 				COConfigurationManager.setParameter("ui", "az3");
-				COConfigurationManager.setParameter("v3.Start Advanced", false);
 			} else if (result[0] == 1) {
-				// AZ3UI w/Advanced view default
-				COConfigurationManager.setParameter("ui", "az3");
-				COConfigurationManager.setParameter("v3.Start Advanced", true);
-			} else if (result[0] == 2) {
 				COConfigurationManager.setParameter("ui", "az2");
 			}
 
