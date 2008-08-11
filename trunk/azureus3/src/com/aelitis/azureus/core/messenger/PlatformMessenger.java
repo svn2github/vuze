@@ -96,6 +96,7 @@ public class PlatformMessenger
 
 	public static void setAuthorizedTransferListener(
 			PlatformAuthorizedSender authorizedSender) {
+		debug("set Authorized Sender");
 		PlatformMessenger.authorizedSender = authorizedSender;
 	}
 
@@ -196,6 +197,8 @@ public class PlatformMessenger
 	 * @since 3.0.5.3
 	 */
 	public static void pushMessageNow(PlatformMessage message, PlatformMessengerListener listener) {
+		debug("push " + message.toShortString() + ": " + message);
+
 		Map map = new HashMap(1);
 		map.put(message, listener);
 		processQueue(map, message.requiresAuthorization());
@@ -403,6 +406,9 @@ public class PlatformMessenger
 			sem_waitDL.reserve();
 			s = authorizedSender.getResults();
 		} else {
+			if (requiresAuthorization) {
+				debug("No Authorized Sender.. using non-auth request");
+			}
 			byte[] bytes = downloadURL(pi, url, sData);
 			s = new String(bytes, "UTF8");
 		}
