@@ -42,6 +42,11 @@ public interface ViewTitleInfo
 	public static int TITLE_SKINVIEW = 4;
 
 	/**
+	 * Boolean value, via getTitleInfoObjectProperty
+	 */
+	
+	public static int TITLE_HAS_VITALITY	= 6;	
+	/**
 	 * 
 	 * @param propertyID TITLE_*
 	 * @return value, or null if you don't want to set it
