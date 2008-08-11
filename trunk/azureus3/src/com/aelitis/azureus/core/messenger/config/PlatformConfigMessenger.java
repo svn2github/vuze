@@ -31,7 +31,9 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -135,6 +137,7 @@ public class PlatformConfigMessenger
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
+		message.setRequiresAuthorizationNoCheck();
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
@@ -193,6 +196,11 @@ public class PlatformConfigMessenger
 				} catch (Exception e) {
 					Debug.out(e);
 				}
+				
+				Map mapUserInfo = MapUtils.getMapMap(reply, "user-info", null);
+				if (mapUserInfo != null) {
+					LoginInfoManager.getInstance().setUserInfo(mapUserInfo);
+				}
 			}
 
 			public void messageSent(PlatformMessage message) {
@@ -200,7 +208,7 @@ public class PlatformConfigMessenger
 
 		};
 
-		PlatformMessenger.queueMessage(message, listener);
+		PlatformMessenger.pushMessageNow(message, listener);
 	}
 
 	public static void sendUsageStats(Map stats, long timestamp, String version,

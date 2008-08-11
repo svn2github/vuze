@@ -52,6 +52,7 @@ import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
@@ -113,6 +114,8 @@ public class Initializer
 			Constants.initialize(core);
 
 			initializePlatformClientMessageContext();
+
+			PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl());
 
 			PlatformConfigMessenger.login(0);
 			// typically the caller will call run() now 

@@ -471,9 +471,6 @@ public class MainWindow
 
 		shell = new Shell(display, SWT.SHELL_TRIM);
 
-		PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl(
-				shell));
-
 		try {
 			shell.setData("class", this);
 			shell.setText("Vuze");

@@ -22,6 +22,8 @@ import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -31,6 +33,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.Constants;
 
@@ -44,13 +48,12 @@ public class PlatformAuthorizedSenderImpl
 {
 	String s = null;
 
-	private final Shell shell;
+	private Shell shell = null;
 
 	/**
 	 * 
 	 */
-	public PlatformAuthorizedSenderImpl(Shell shell) {
-		this.shell = shell;
+	public PlatformAuthorizedSenderImpl() {
 	}
 
 	// @see com.aelitis.azureus.core.messenger.PlatformAuthorizedSender#startDownload(java.net.URL, java.lang.String, org.gudy.azureus2.core3.util.AESemaphore, boolean)
@@ -61,8 +64,31 @@ public class PlatformAuthorizedSenderImpl
 
 			public void runSupport() {
 				try {
+					boolean ourShell = false;
+					Shell shell = PlatformAuthorizedSenderImpl.this.shell;
+					if (shell == null) {
+						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						if (uiFunctions != null) {
+							shell = uiFunctions.getMainShell();
+						}
+						if (shell != null) {
+							PlatformAuthorizedSenderImpl.this.shell = shell;
+						} else {
+							shell = new Shell();
+							shell.setVisible(false);
+							ourShell= true;
+						}
+					}
 					final Browser browser = new Browser(shell, SWT.NONE);
 					browser.setVisible(false);
+					if (ourShell) {
+						final Shell shellFinal = shell; 
+						browser.addDisposeListener(new DisposeListener() {
+							public void widgetDisposed(DisposeEvent e) {
+								shellFinal.dispose();
+							}
+						});
+					}
 
 					// Safari doesn't return getText() when results aren't text/html
 					// IE removes /n when in text/html mode
@@ -70,8 +96,7 @@ public class PlatformAuthorizedSenderImpl
 					final String url = Constants.URL_AUTHORIZED_RPC + "?" + data
 							+ "&responseType=" + responseType;
 					PlatformMessenger.debug("Open Auth URL: "
-							+ Constants.URL_AUTHORIZED_RPC + " in " + responseType);
-					browser.setUrl(url);
+							+ Constants.URL_AUTHORIZED_RPC + " in " + responseType + "\n" + url);
 
 					browser.addProgressListener(new ProgressListener() {
 						public void completed(ProgressEvent event) {
@@ -83,6 +108,8 @@ public class PlatformAuthorizedSenderImpl
 						}
 					});
 					
+					browser.setUrl(url);
+
 				} catch (Throwable e) {
 
 					Debug.printStackTrace(e);

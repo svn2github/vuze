@@ -1,9 +1,13 @@
 package com.aelitis.azureus.util;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.UrlUtils;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.crypto.VuzeCryptoException;
+import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
@@ -51,6 +55,8 @@ public class LoginInfoManager
 	public void addListener(ILoginInfoListener listener) {
 		if (false == listeners.contains(listener)) {
 			listeners.add(listener);
+			
+			notifyListeners(false);
 		}
 
 	}
@@ -138,6 +144,20 @@ public class LoginInfoManager
 			buf.append(displayName);
 			buf.append("</A>");
 			return buf.toString();
+		}
+	}
+
+	/**
+	 * @param mapUserInfo
+	 *
+	 * @since 3.1.0.1
+	 */
+	public void setUserInfo(Map mapUserInfo) {
+		try {
+			setUserInfo(MapUtils.getMapString(mapUserInfo, "login-id", null),
+					MapUtils.getMapString(mapUserInfo, "display-name", null),
+					VuzeCryptoManager.getSingleton().getPublicKey(""));
+		} catch (VuzeCryptoException e) {
 		}
 	}
 
