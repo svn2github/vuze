@@ -35,11 +35,9 @@ public class SBC_LibraryView
 {
 	private final static String ID = "library-list";
 
-	private final static int MODE_BIGTABLE = 0;
+	public final static int MODE_BIGTABLE = 0;
 
-	private final static int MODE_SMALLTABLE = 1;
-
-	private final static int MODE_OLDTABLE = 2;
+	public final static int MODE_SMALLTABLE = 1;
 
 	public static final int TORRENTS_ALL = 0;
 
@@ -49,14 +47,12 @@ public class SBC_LibraryView
 
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
-		SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL,
-		SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD,
+		SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL
 	};
 
 	private final static String[] modeIDs = {
 		"library.table.big",
-		"library.table.small",
-		"library.table.old",
+		"library.table.small"
 	};
 
 	private int viewMode;
@@ -67,7 +63,6 @@ public class SBC_LibraryView
 
 	private SWTSkinObject soListArea;
 
-	private SWTSkinButtonUtility btnOldTable;
 
 	private int torrentFilterMode = TORRENTS_ALL;
 
@@ -105,16 +100,6 @@ public class SBC_LibraryView
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					setViewMode(MODE_BIGTABLE);
-				}
-			});
-		}
-
-		so = getSkinObject(ID + "-button-oldtable");
-		if (so != null) {
-			btnOldTable = new SWTSkinButtonUtility(so);
-			btnOldTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					setViewMode(MODE_OLDTABLE);
 				}
 			});
 		}

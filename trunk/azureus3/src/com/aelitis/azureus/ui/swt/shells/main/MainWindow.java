@@ -1297,11 +1297,10 @@ public class MainWindow
 		//views.put("minirecent-list", MiniRecentList.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY, SBC_LibraryView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
-				SBC_LibraryListView.class);
+				SBC_LibraryTableView_Big.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL,
-				SBC_LibraryListView.class);
-		views.put(SkinConstants.VIEWID_SIDEBAR_LIBRARY_OLD,
 				SBC_LibraryTableView.class);
+
 		views.put("advanced", SBC_AdvancedView.class);
 		views.put(SkinConstants.VIEWID_TOOLBAR, ToolBarView.class);
 

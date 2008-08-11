@@ -34,19 +34,19 @@ public class SkinConstants
 	public static final String VIEWID_BROWSER_SEARCHRESULTS = "searchresults";
 
 	public static final String VIEWID_BROWSER_MINI = "minibrowse";
-	
+
 	public static final String VIEWID_BROWSER_PUBLISH = "publish";
-	
+
 	public static final String VIEWID_BUTTON_BAR = "buttonbar";
-	
+
 	public static final String VIEWID_FOOTER = "footer";
-	
+
 	public static final String VIEWID_DETAIL_PANEL = "detail-panel";
-	
+
 	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
-	
+
 	public static final String VIEWID_PLUGINBAR = "pluginbar";
-	
+
 	public static final String VIEWID_TAB_BAR = "tabbar";
 
 	public static final String VIEWID_LIBRARY = "library-area";
@@ -56,12 +56,12 @@ public class SkinConstants
 	public static final String VIEWID_ACTIVITIESVIEW = "vuzeevents-area";
 
 	public static final String VIEWID_TOOLBAR = "global-toolbar";
-	
+
 	public static final String VIEWID_SIDEBAR_LIBRARY = "sidebar-library-area";
 
-	public static final String VIEWID_SIDEBAR_LIBRARY_BIG = "library-bigtable-area";
+	public static final String VIEWID_SIDEBAR_LIBRARY_BIG = "library-big-area";
 
-	public static final String VIEWID_SIDEBAR_LIBRARY_SMALL = "library-smalltable-area";
+	public static final String VIEWID_SIDEBAR_LIBRARY_SMALL = "library-small-area";
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
 

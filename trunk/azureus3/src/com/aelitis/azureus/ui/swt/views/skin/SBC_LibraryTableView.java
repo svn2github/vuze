@@ -21,24 +21,24 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-
 /**
- * Classic My Torrents view with IconBar wrapped in a SkinView
+ * Classic My Torrents view wrapped in a SkinView
  * 
  * @author TuxPaper
  * @created Jul 3, 2008
@@ -54,7 +54,7 @@ public class SBC_LibraryTableView
 
 	private Composite viewComposite;
 
-	private int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
+	protected int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
@@ -64,22 +64,43 @@ public class SBC_LibraryTableView
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
 
-		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
-			view = new MyTorrentsView(
-					AzureusCoreFactory.getSingleton(),
-					true,
-					TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE));
-		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
-			view = new MyTorrentsView(
-					AzureusCoreFactory.getSingleton(),
-					false,
-					TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE));
-		} else {
-			view = new MyTorrentsSuperView();
+		TableColumnCore[] columns = getColumns();
+
+		if (null != columns) {
+			TableColumnManager tcExtensions = TableColumnManager.getInstance();
+			for (int i = 0; i < columns.length; i++) {
+				tcExtensions.addColumn(columns[i]);
+			}
 		}
 
+		if (true == useBigTable()) {
+			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
+				view = new MyTorrentsView_Big(AzureusCoreFactory.getSingleton(), true,
+						columns);
+
+			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
+				view = new MyTorrentsView_Big(AzureusCoreFactory.getSingleton(), false,
+						columns);
+
+			} else {
+				view = new MyTorrentsSuperView_Big();
+			}
+
+		} else {
+			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
+				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), true,
+						columns);
+
+			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
+				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), false,
+						columns);
+
+			} else {
+				view = new MyTorrentsSuperView();
+			}
+		}
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
-				skin.getSkinProperties(), ID, "", soMain);
+				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
 
 		skin.layout();
 
@@ -113,9 +134,9 @@ public class SBC_LibraryTableView
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
 	public boolean isEnabled(String itemKey) {
 		try {
-  		if (view != null) {
-  			return view.isEnabled(itemKey);
-  		}
+			if (view != null) {
+				return view.isEnabled(itemKey);
+			}
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
@@ -125,9 +146,9 @@ public class SBC_LibraryTableView
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
 	public boolean isSelected(String itemKey) {
 		try {
-  		if (view != null) {
-  			return view.isSelected(itemKey);
-  		}
+			if (view != null) {
+				return view.isSelected(itemKey);
+			}
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
@@ -137,11 +158,44 @@ public class SBC_LibraryTableView
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
 	public void itemActivated(String itemKey) {
 		try {
-  		if (view != null) {
-  			view.itemActivated(itemKey);
-  		}
+			if (view != null) {
+				view.itemActivated(itemKey);
+			}
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
+	}
+
+	/**
+	 * Return either MODE_SMALLTABLE or MODE_BIGTABLE
+	 * Subclasses may override
+	 * @return
+	 */
+	protected int getTableMode() {
+		return SBC_LibraryView.MODE_SMALLTABLE;
+	}
+
+	/**
+	 * Returns whether the big version of the tables should be used
+	 * Subclasses may override
+	 * @return
+	 */
+	protected boolean useBigTable() {
+		return false;
+	}
+
+	/**
+	 * Returns the appropriate set of columns for the completed or incomplete torrents views
+	 * Subclasses may override to return different sets of columns
+	 * @return
+	 */
+	protected TableColumnCore[] getColumns() {
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
+			return TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE);
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
+			return TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+		}
+
+		return null;
 	}
 }
