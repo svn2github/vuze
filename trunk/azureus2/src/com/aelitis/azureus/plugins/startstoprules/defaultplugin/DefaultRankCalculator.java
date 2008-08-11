@@ -277,13 +277,13 @@ public class DefaultRankCalculator implements Comparable {
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
 
 		
-		// Test FP
+		// Test FP.  FP goes to top
 		if (dlData.bIsFirstPriority && !bIsFirstPriority)
 			return 1;
 		if (!dlData.bIsFirstPriority && bIsFirstPriority)
 			return -1;
 		
-		// Test Completeness
+		// Test Completeness.  Complete go to bottom
 		boolean aIsComplete = dlData.dl.isComplete();
 		boolean bIsComplete = dl.isComplete();
 		if (aIsComplete && !bIsComplete)
@@ -295,7 +295,7 @@ public class DefaultRankCalculator implements Comparable {
 			return dl.getPosition() - dlData.dl.getPosition();
 		}
 
-		// Check Rank
+		// Check Rank. Large to top
 		int value = dlData.dl.getSeedingRank() - dl.getSeedingRank();
 		if (value != 0)
 			return value;
