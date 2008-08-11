@@ -1067,7 +1067,7 @@ public class SideBar
 			if (sideBarInfo.eventListener == l) {
 				System.err.println("Already created view " + id);
 			}
-			id = id + SystemTime.getCurrentTime();
+			id = id + "_" + SystemTime.getCurrentTime();
 			sideBarInfo = getSideBarInfo(id);
 		}
 
