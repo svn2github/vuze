@@ -49,6 +49,9 @@ MetaSearchImpl
 	
 	private boolean config_dirty;
 	
+	private CopyOnWriteList 	listeners 	= new CopyOnWriteList();
+	
+	
 	protected 
 	MetaSearchImpl(
 		MetaSearchManagerImpl		_manager )
@@ -58,7 +61,7 @@ MetaSearchImpl
 		loadConfig();
 	}
 	
-	public EngineImpl
+	public Engine
 	importFromBEncodedMap(
 		Map		map )
 	
@@ -95,21 +98,12 @@ MetaSearchImpl
 			
 			if ( l_id == null ){
 				
-				Random random = new Random();
-				
-				while( true ){
-				
-					id = (long)Integer.MAX_VALUE + (long)Math.abs(random.nextInt());
-					
-					if ( getEngine( id ) == null ){
+				id = manager.getLocalTemplateID();
 						
-						plugin_map.put( pid, new Long( id ));
+				plugin_map.put( pid, new Long( id ));
 						
-						configDirty();
-						
-						break;
-					}
-				}
+				configDirty();
+
 			}else{
 				
 				id = l_id.longValue();
@@ -156,38 +150,6 @@ MetaSearchImpl
 		addEngine( engine, false );
 	}
 	
-	public void 
-	addEngine(
-		Engine 	engine,
-		boolean	loading )
-	{
-		synchronized( this ){
-			
-			Iterator	it = engines.iterator();
-			
-			while( it.hasNext()){
-				
-				Engine e = (Engine)it.next();
-				
-				if ( e.getId() == engine.getId()){
-					
-					log( "Removing old engine with same ID: " + e.getName());
-					
-					it.remove();
-				}
-			}
-			
-			engines.add( engine );
-		}
-		
-		if ( !loading ){
-			
-			log( "Engine '" + engine.getName() + "' added" );
-			
-			saveConfig();
-		}
-	}
-	
 	public Engine 
 	addEngine(
 		long 		id )
@@ -231,7 +193,64 @@ MetaSearchImpl
 			throw( new MetaSearchException( "Template load failed", e ));
 		}	
 	}
+		
+	public void 
+	addEngine(
+		Engine 	engine,
+		boolean	loading )
+	{
+		boolean	new_engine = true;
+		
+		synchronized( this ){
 			
+			Iterator	it = engines.iterator();
+			
+			while( it.hasNext()){
+				
+				Engine e = (Engine)it.next();
+				
+				if ( e.getId() == engine.getId()){
+					
+					log( "Removing old engine with same ID: " + e.getName());
+					
+					it.remove();
+					
+					new_engine = false;
+				}
+			}
+			
+			engines.add( engine );
+		}
+		
+		if ( !loading ){
+			
+			log( "Engine '" + engine.getName() + "' added" );
+			
+			saveConfig();
+		
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				MetaSearchListener listener = (MetaSearchListener)it.next();
+				
+				try{
+					if ( new_engine ){
+						
+						listener.engineAdded( engine );
+						
+					}else{
+						
+						listener.engineUpdated( engine );
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
 	public void 
 	removeEngine(
 		Engine 	engine )
@@ -241,6 +260,20 @@ MetaSearchImpl
 			log( "Engine '" + engine.getName() + "' removed" );
 			
 			saveConfig();
+			
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				try{
+	
+					((MetaSearchListener)it.next()).engineRemoved( engine );
+	
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 		}
 	}
 	
@@ -450,6 +483,20 @@ MetaSearchImpl
 			
 			se.search( engines[i], searchParameters, headers );
 		}
+	}
+	
+	public void
+	addListener(
+		MetaSearchListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		MetaSearchListener		listener )
+	{
+		listeners.remove( listener );
 	}
 	
 	protected void

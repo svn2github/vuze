@@ -89,10 +89,8 @@ MetaSearchManagerImpl
 								
 								try{
 									Engine e = 
-										getSingleton().addEngine(
-											-1, 
+										getSingleton().importEngine(
 											comp.getContent(), 
-											true,
 											(expected_types & VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE) == 0 );
 									
 									comp.setProcessed();
@@ -595,17 +593,7 @@ MetaSearchManagerImpl
 	{
 		if ( id == -1 ){
 			
-			Random random = new Random();
-			
-			while( true ){
-			
-				id = (long)Integer.MAX_VALUE + (long)Math.abs(random.nextInt());
-				
-				if ( meta_search.getEngine( id ) == null ){
-					
-					break;
-				}
-			}
+			id = getLocalTemplateID();
 		}
 		
 		try{
@@ -626,24 +614,24 @@ MetaSearchManagerImpl
 	}
 	
 	public Engine
-	addEngine(
-		long		id,
+	importEngine(
 		Map			map,
-		boolean		is_import,
 		boolean		warn_user )
 	
 		throws MetaSearchException
 	{
 		try{
-			EngineImpl engine = meta_search.importFromBEncodedMap(map);
+			EngineImpl engine = (EngineImpl)meta_search.importFromBEncodedMap(map);
 			
-			Engine existing = meta_search.getEngine( id==-1?engine.getId() : id );
+			long	id = engine.getId();
+			
+			Engine existing = meta_search.getEngine( id );
 			
 			if ( existing != null ){
 				
 				if ( existing.sameAs( engine )){
 					
-					if ( is_import && warn_user ){
+					if ( warn_user ){
 						
 						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 						
@@ -661,7 +649,7 @@ MetaSearchManagerImpl
 				}
 			}
 			
-			if ( is_import && warn_user ){
+			if ( warn_user ){
 				
 				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
@@ -679,25 +667,15 @@ MetaSearchManagerImpl
 					throw( new MetaSearchException( "User declined the template" ));
 				}
 			}
-				// already got one for this id but different - allocate a new id
+				// if local template then we try to use the id as is otherwise we emsure that
+				// it is a local one
 			
-			if ( id == -1 ){
+			if ( id >= 0 && id < Integer.MAX_VALUE ){
 				
-				Random random = new Random();
+				id = getLocalTemplateID();
 				
-				while( true ){
-				
-					id = Integer.MAX_VALUE + Math.abs(random.nextInt());
-					
-					if ( meta_search.getEngine( id ) == null ){
-						
-						break;
-					}
-				}
+				engine.setId( id );
 			}
-			
-			
-			engine.setId( id );
 			
 			engine.setSource( Engine.ENGINE_SOURCE_LOCAL );
 			
@@ -705,7 +683,7 @@ MetaSearchManagerImpl
 			
 			meta_search.addEngine( engine );
 			
-			if ( is_import && warn_user ){
+			if ( warn_user ){
 				
 				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
@@ -744,12 +722,31 @@ MetaSearchManagerImpl
 				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 					
 					try{
-						addEngine( -1, comp.getContent(), false, false );
+						importEngine( comp.getContent(), false );
 												
 					}catch( Throwable e ){
 						
 						Debug.printStackTrace(e);
 					}
+				}
+			}
+		}
+	}
+	
+	public long
+	getLocalTemplateID()
+	{
+		synchronized( this ){
+			
+			Random random = new Random();
+			
+			while( true ){
+			
+				long id = ((long)Integer.MAX_VALUE) + random.nextInt( Integer.MAX_VALUE );
+				
+				if ( meta_search.getEngine( id ) == null ){
+					
+					return( id );
 				}
 			}
 		}

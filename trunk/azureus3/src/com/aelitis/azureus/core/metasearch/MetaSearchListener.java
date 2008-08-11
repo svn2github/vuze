@@ -1,5 +1,5 @@
 /*
- * Created on May 6, 2008
+ * Created on Aug 11, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -18,54 +18,21 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  */
 
+
 package com.aelitis.azureus.core.metasearch;
 
-import java.io.IOException;
-import java.util.Map;
-
 public interface 
-MetaSearch 
-{	
-	public Engine
-	importFromBEncodedMap(
-		Map		map )
-	
-		throws IOException;
-	
-	public void 
-	search(
-		ResultListener 		listener,
-		SearchParameter[] 	searchParameters,
-		String				headers );
-	
-	public Engine[] 
-	getEngines(
-		boolean		active_only,
-		boolean		ensure_up_to_date );
-	
-	public Engine
-	getEngine(
-		long		id );
-	
-	public void 
-	addEngine( 
-		Engine 		engine );
-	
-	public Engine 
-	addEngine( 
-		long		id )
-	
-		throws MetaSearchException;
-	
-	public void 
-	removeEngine(
-		Engine 		engine );
+MetaSearchListener 
+{
+	public void
+	engineAdded(
+		Engine		engine );
 	
 	public void
-	addListener(
-		MetaSearchListener		listener );
+	engineUpdated(
+		Engine		engine );
 	
 	public void
-	removeListener(
-		MetaSearchListener		listener );
+	engineRemoved(
+		Engine		engine );
 }

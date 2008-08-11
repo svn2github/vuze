@@ -59,7 +59,7 @@ SubscriptionDownloader
 		String	search_term	= (String)map.get( "search_term" );
 		Map		filters		= (Map)map.get( "filters" );
 
-		Engine engine = manager.getEngine( engine_id.longValue());
+		Engine engine = manager.getEngine( subs, map );
 		
 		if ( engine == null ){
 			

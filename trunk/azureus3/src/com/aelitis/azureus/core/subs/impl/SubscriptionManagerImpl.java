@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
@@ -220,6 +221,42 @@ SubscriptionManagerImpl
 			
 			started	= true;
 		}
+		
+		MetaSearchManagerFactory.getSingleton().getMetaSearch().addListener(
+			new MetaSearchListener()
+			{
+				public void
+				engineAdded(
+					Engine		engine )
+				{
+					
+				}
+				
+				public void
+				engineUpdated(
+					Engine		engine )
+				{
+					synchronized( this ){
+						
+						for (int i=0;i<subscriptions.size();i++){
+							
+							SubscriptionImpl	subs = (SubscriptionImpl)subscriptions.get(i);
+							
+							if ( subs.isMine()){
+								
+								subs.engineUpdated( engine );
+							}
+						}
+					}
+				}
+				
+				public void
+				engineRemoved(
+					Engine		engine )
+				{
+					
+				}
+			});
 		
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 		
@@ -3263,37 +3300,50 @@ SubscriptionManagerImpl
 	
 	protected Engine
 	getEngine(
-		long		id )
+		SubscriptionImpl		subs,
+		Map						json_map )
 	
 		throws SubscriptionException
 	{
-		if ( id < Integer.MAX_VALUE ){
+		long id = ((Long)json_map.get( "engine_id" )).longValue();
+		
+		Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( id );
+		
+		if ( engine != null ){
 			
-			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( id );
-			
-			if ( engine != null ){
-				
-				return( engine );
-			}
-				
-			log( "Engine " + id + " not present, loading" );
-				
-				// vuze template but user hasn't yet loaded it
-				
-			try{
-				engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().addEngine( id );
-							
-				return( engine );
-				
-			}catch( Throwable e ){
-			
-				throw( new SubscriptionException( "Failed to load engine '" + id + "'", e ));
-			}
-		}else{
-			
-			throw( new SubscriptionException( "Private templates not supported" ));
-
+			return( engine );
 		}
+
+		try{
+			if ( id >= 0 && id < Integer.MAX_VALUE ){
+							
+				log( "Engine " + id + " not present, loading" );
+					
+					// vuze template but user hasn't yet loaded it
+					
+				try{
+					engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().addEngine( id );
+								
+					return( engine );
+					
+				}catch( Throwable e ){
+				
+					throw( new SubscriptionException( "Failed to load engine '" + id + "'", e ));
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to load search template", e );
+		}
+		
+		engine = subs.extractEngine( json_map, id );
+		
+		if ( engine != null ){
+			
+			return( engine );
+		}
+		
+		throw( new SubscriptionException( "Failed to extract engine id " + id ));
 	}
 	
 	protected SubscriptionResultImpl[]

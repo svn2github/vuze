@@ -120,14 +120,14 @@ SubscriptionBodyImpl
 	protected 
 	SubscriptionBodyImpl(
 		SubscriptionManagerImpl	_manager,
-		SubscriptionImpl		subs )
+		SubscriptionImpl		_subs )
 			
 		throws SubscriptionException
 	{
 		manager	= _manager;
 
 		try{
-			File vuze_file = manager.getVuzeFile( subs );
+			File vuze_file = manager.getVuzeFile( _subs );
 	
 			VuzeFile	vf = VuzeFileHandler.getSingleton().loadVuzeFile( vuze_file.getAbsolutePath());
 	
@@ -136,7 +136,7 @@ SubscriptionBodyImpl
 				throw( new IOException( "Failed to load vuze file '" + vuze_file + "'" ));
 			}
 					
-			load(  vf.getComponents()[0].getContent());
+			load(  vf.getComponents()[0].getContent(), false );
 			
 		}catch( Throwable e ){
 			
@@ -155,12 +155,13 @@ SubscriptionBodyImpl
 	{
 		manager	= _manager;
 
-		load( _map );
+		load( _map, true );
 	}
 
 	protected void
 	load(
-		Map		_map )
+		Map			_map,
+		boolean		_verify )
 	
 		throws IOException
 	{
@@ -185,25 +186,28 @@ SubscriptionBodyImpl
 		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
 		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
-			// verify
-		
-		byte[] contents = BEncoder.encode( details );
-		
-		byte[] actual_hash = new SHA1Simple().calculateHash( contents );
-
-		if ( !Arrays.equals( actual_hash, hash )){
+		if ( _verify ){
 			
-			throw( new IOException( "Hash mismatch" ));
-		}
-		
-		if ( sig_data_size != contents.length ){
+				// verify
 			
-			throw( new IOException( "Signature data length mismatch" ));
-		}
-		
-		if ( !verify( public_key, hash, version, sig_data_size, sig )){
+			byte[] contents = BEncoder.encode( details );
+			
+			byte[] actual_hash = new SHA1Simple().calculateHash( contents );
+	
+			if ( !Arrays.equals( actual_hash, hash )){
 				
-			throw( new IOException( "Signature verification failed" ));
+				throw( new IOException( "Hash mismatch" ));
+			}
+			
+			if ( sig_data_size != contents.length ){
+				
+				throw( new IOException( "Signature data length mismatch" ));
+			}
+			
+			if ( !verify( public_key, hash, version, sig_data_size, sig )){
+					
+				throw( new IOException( "Signature verification failed" ));
+			}
 		}
 	}
 	

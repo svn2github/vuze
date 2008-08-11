@@ -27,10 +27,13 @@ import java.net.URL;
 import java.security.KeyPair;
 import java.util.*;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -168,7 +171,9 @@ SubscriptionImpl
 			
 			init();
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, _json_content, public_key, version );
+			String json_content = embedEngines( _json_content );
+			
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, public_key, version );
 						
 			syncToBody( body );
 			
@@ -560,10 +565,12 @@ SubscriptionImpl
 	
 	public void
 	setJSON(
-		String		json )
+		String		_json )
 	
 		throws SubscriptionException
 	{
+		String json = embedEngines( _json );
+		
 		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );		
 		
 		String	old_json = body.getJSON();
@@ -602,6 +609,109 @@ SubscriptionImpl
 		}
 	}
 	
+	protected String
+	embedEngines(
+		String		json_in )
+	{
+			// see if we need to embed private search templates
+		
+		Map map = JSONUtils.decodeJSON( json_in );
+		
+		long 	engine_id 	= ((Long)map.get( "engine_id" )).longValue();
+
+		String	json_out	= json_in;
+		
+		if ( engine_id >= Integer.MAX_VALUE || engine_id < 0 ){
+			
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngine( engine_id );
+
+			if ( engine == null ){
+				
+				log( "Private search template with id '" + engine_id + "' not found!!!!" );
+				
+			}else{
+				
+				try{								
+					Map	engines = new HashMap();
+					
+					map.put( "engines", engines );
+					
+					Map	engine_map = new HashMap();
+					
+					String	engine_str = new String( Base64.encode( BEncoder.encode( engine.exportToBencodedMap())), "UTF-8" );
+					
+					engine_map.put( "content", engine_str );
+					
+					engines.put( String.valueOf( engine_id ), engine_map );
+					
+					json_out = JSONUtils.encodeToJSON( map );
+					
+					log( "Embedded private search template '" + engine.getName() + "'" );
+					
+				}catch( Throwable e ){
+					
+					log( "Failed to embed private search template", e );
+				}
+			}
+		}
+		
+		return( json_out );
+	}
+	
+	protected Engine
+	extractEngine(
+		Map		json_map,
+		long	id )
+	{
+		Map engines = (Map)json_map.get( "engines" );
+		
+		if ( engines != null ){
+			
+			Map	engine_map = (Map)engines.get( String.valueOf( id ));
+			
+			if ( engine_map != null ){
+				
+				String	engine_str = (String)engine_map.get( "content" );
+				
+				try{
+				
+					Map map = BDecoder.decode( Base64.decode( engine_str.getBytes( "UTF-8" )));
+						
+					return( MetaSearchManagerFactory.getSingleton().getMetaSearch().importFromBEncodedMap(map));
+					
+				}catch( Throwable e ){
+					
+					log( "failed to import engine", e );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	protected void
+	engineUpdated(
+		Engine		engine )
+	{
+		try{
+			String	json = getJSON();
+			
+			Map map = JSONUtils.decodeJSON( json );
+
+			long	id = ((Long)map.get( "engine_id" )).longValue();
+			
+			if ( id == engine.getId()){
+				
+				log( "Engine has been updated, saving" );
+				
+				setJSON( json );
+			}
+		}catch( Throwable e ){
+			
+			log( "Engine update failed", e );
+		}
+	}
+	
 	public void
 	setDetails(
 		String		_name,
@@ -610,6 +720,8 @@ SubscriptionImpl
 	
 		throws SubscriptionException
 	{
+		_json = embedEngines( _json );
+		
 		SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, this );		
 		
 		String	old_json = body.getJSON();
@@ -816,10 +928,8 @@ SubscriptionImpl
 			
 			try{
 				Map map = JSONUtils.decodeJSON( getJSON());
-				
-				Long 	engine_id 	= (Long)map.get( "engine_id" );
-		
-				Engine engine = manager.getEngine( engine_id.longValue());
+						
+				Engine engine = manager.getEngine( this, map );
 				
 				if ( engine != null ){
 										

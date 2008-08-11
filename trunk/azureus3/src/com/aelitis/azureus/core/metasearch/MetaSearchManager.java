@@ -49,10 +49,8 @@ MetaSearchManager
 		throws MetaSearchException;
 	
 	public Engine
-	addEngine(
-		long		id,
+	importEngine(
 		Map			map,
-		boolean		is_import,
 		boolean		warn_user )
 	
 		throws MetaSearchException;
