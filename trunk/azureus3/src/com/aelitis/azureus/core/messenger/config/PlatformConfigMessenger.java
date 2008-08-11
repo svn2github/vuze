@@ -203,7 +203,7 @@ public class PlatformConfigMessenger
 		PlatformMessenger.queueMessage(message, listener);
 	}
 
-	public static void sendUsageStats(Map stats, long timestamp,
+	public static void sendUsageStats(Map stats, long timestamp, String version,
 			PlatformMessengerListener l) {
 		if (!sendStats) {
 			return;
@@ -214,7 +214,7 @@ public class PlatformConfigMessenger
 						"stats",
 						stats,
 						"version",
-						org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
+						version,
 						"timestamp",
 						new Long(timestamp)
 					}, 5000);

@@ -995,9 +995,14 @@ public class MainWindow
 					}
 					updateMapTrackUsage(lastShellStatus);
 				}
+				
+				Map map = new HashMap();
+				map.put("version",
+						org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION);
+				map.put("statsmap", mapTrackUsage);
 
 				FileUtil.writeResilientFile(new File(SystemProperties.getUserPath(),
-						"timingstats.dat"), mapTrackUsage);
+						"timingstats.dat"), map);
 			}
 		} finally {
 			mapTrackUsage_mon.exit();
@@ -1035,39 +1040,17 @@ public class MainWindow
 
 				File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
 				if (f.exists()) {
-					final Map oldMapTrackUsage = FileUtil.readResilientFile(f);
-					PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
-							f.lastModified(), new PlatformMessengerListener() {
-
-								public void messageSent(PlatformMessage message) {
-								}
-
-								public void replyReceived(PlatformMessage message,
-										String replyType, Map reply) {
-									if (mapTrackUsage == null) {
-										return;
-									}
-									mapTrackUsage_mon.enter();
-									try {
-										if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
-											for (Iterator iterator = oldMapTrackUsage.keySet().iterator(); iterator.hasNext();) {
-												String key = (String) iterator.next();
-												Long value = (Long) oldMapTrackUsage.get(key);
-
-												Long oldValue = (Long) mapTrackUsage.get(key);
-												if (oldValue != null) {
-													value = new Long(value.longValue()
-															+ oldValue.longValue());
-												}
-												mapTrackUsage.put(key, value);
-											}
-										}
-									} finally {
-										mapTrackUsage_mon.exit();
-									}
-								}
-
-							});
+					Map oldMapTrackUsage = FileUtil.readResilientFile(f);
+					String version = org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION;
+					if (oldMapTrackUsage.containsKey("version")
+							&& oldMapTrackUsage.containsKey("statsmap")) {
+						version = MapUtils.getMapString(oldMapTrackUsage, "version",
+								version);
+						oldMapTrackUsage = MapUtils.getMapMap(oldMapTrackUsage, "statsmap",
+								oldMapTrackUsage);
+						PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
+								f.lastModified(), version, null);
+					}
 				}
 
 				SimpleTimer.addPeriodicEvent("UsageTracker", 1000,
