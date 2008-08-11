@@ -51,8 +51,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
 {
 	private static int SASH_WIDTH = 8;
 
-	final static TableColumnCore[] tableIncompleteItems = TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
-	final static TableColumnCore[] tableCompleteItems = TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE);
+	final TableColumnCore[] tableIncompleteItems = getIncompleteColumns();
+	final TableColumnCore[] tableCompleteItems = getCompleteColumns();
 	
 	private AzureusCore	azureus_core;
   
@@ -117,7 +117,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child1.setLayout(layout);
-    torrentview = new MyTorrentsView(azureus_core, false, tableIncompleteItems);
+    torrentview = createTorrentView(azureus_core, false, tableIncompleteItems);
     torrentview.initialize(child1);
 
     final Sash sash = new Sash(form, SWT.HORIZONTAL);
@@ -130,7 +130,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child2.setLayout(layout);
-    seedingview = new MyTorrentsView(azureus_core, true, tableCompleteItems);
+    seedingview = createTorrentView(azureus_core, true, tableCompleteItems);
     seedingview.initialize(child2);
 
     FormData formData;
@@ -341,5 +341,37 @@ public class MyTorrentsSuperView extends AbstractIView implements
     }
 
     SelectedContentManager.changeCurrentlySelectedContent(ID, null);
+	}
+	
+	/**
+	 * Returns the set of columns for the incomplete torrents view
+	 * Subclasses my override to return a different set of columns
+	 * @return
+	 */
+	protected TableColumnCore[] getIncompleteColumns(){
+		return TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
+	}
+	
+	/**
+	 * Returns the set of columns for the completed torrents view
+	 * Subclasses my override to return a different set of columns
+	 * @return
+	 */
+	protected TableColumnCore[] getCompleteColumns(){
+		return TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE);
+	}
+	
+	
+	/**
+	 * Returns an instance of <code>MyTorrentsView</code>
+	 * Subclasses my override to return a different instance of MyTorrentsView
+	 * @param _azureus_core
+	 * @param isSeedingView
+	 * @param columns
+	 * @return
+	 */
+	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
+			boolean isSeedingView, TableColumnCore[] columns) {
+		return new MyTorrentsView(_azureus_core, isSeedingView, columns);
 	}
 }

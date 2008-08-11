@@ -110,7 +110,7 @@ public class MyTorrentsView
 	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
-  private boolean isSeedingView;
+  protected boolean isSeedingView;
 
   private Composite cTablePanel;
   private Font fontButton = null;
@@ -147,25 +147,33 @@ public class MyTorrentsView
    */
   public 
   MyTorrentsView(
-  		AzureusCore			_azureus_core, 
-		boolean 			isSeedingView,
-        TableColumnCore[] 	basicItems) 
+  		AzureusCore				_azureus_core, 
+  		boolean 					isSeedingView,
+      TableColumnCore[]	basicItems) 
   {
+  	
+  	this.isSeedingView 	= isSeedingView;
+  	
   	if (EXPERIMENT) {
 //      tv = new ListView(isSeedingView ? TableManager.TABLE_MYTORRENTS_COMPLETE
 //  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, SWT.V_SCROLL);
 //      tv.setColumnList(basicItems, "#", false);
   	} else {
-      tv = new TableViewSWTImpl(isSeedingView
-  				? TableManager.TABLE_MYTORRENTS_COMPLETE
-  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MyTorrentsView",
-  				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+      tv = createTableView(basicItems);
   	}
     setTableView(tv);
     tv.setRowDefaultIconSize(new Point(16, 16));
+    
+    /*
+     * 'Big' table has taller row height
+     */
+    if (getRowDefaultHeight() > 0) {
+			tv.setRowDefaultHeight(getRowDefaultHeight());
+		}
+    
     azureus_core		= _azureus_core;
     this.globalManager 	= azureus_core.getGlobalManager();
-    this.isSeedingView 	= isSeedingView;
+    
 
     currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
     tv.addLifeCycleListener(this);
@@ -1821,5 +1829,27 @@ public class MyTorrentsView
 	
 	public Image obfusticatedImage(final Image image, Point shellOffset) {
 		return tv.obfusticatedImage(image, shellOffset);
+	}
+	
+	/**
+	 * Creates and return an <code>TableViewSWT</code>
+	 * Subclasses my override to return a different TableViewSWT if needed
+	 * @param basicItems
+	 * @return
+	 */
+	protected TableViewSWT createTableView(TableColumnCore[] 	basicItems){
+		return new TableViewSWTImpl(isSeedingView
+				? TableManager.TABLE_MYTORRENTS_COMPLETE
+	  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MyTorrentsView",
+	  				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+	}
+
+	/**
+	 * Returns the default row height for the table
+	 * Subclasses my override to return a different height if needed; a height of -1 means use default
+	 * @return
+	 */
+	protected int getRowDefaultHeight(){
+		return -1;
 	}
 }
