@@ -213,6 +213,7 @@ NetworkAdminImpl
 				
 				boolean newV6 = false;
 				boolean newV4 = false;
+				Inet6Address testAddr = null;
 				
 				Set interfaces = old_network_interfaces;
 				if (interfaces != null)
@@ -225,6 +226,9 @@ NetworkAdminImpl
 						while (addresses.hasMoreElements())
 						{
 							InetAddress ia = (InetAddress) addresses.nextElement();
+							if (ia instanceof Inet6Address)
+								testAddr = (Inet6Address) ia;
+
 							if (ia.isLoopbackAddress())
 								continue;
 							if (ia instanceof Inet6Address && !ia.isLinkLocalAddress())
@@ -244,7 +248,7 @@ NetworkAdminImpl
 					
 					try
 					{
-						channel.socket().bind(new InetSocketAddress(anyLocalAddressIPv6, 0));
+						channel.socket().bind(new InetSocketAddress(testAddr, 0));
 						supportsIPv6withNIO = true;
 					} catch (Exception e)
 					{
