@@ -43,7 +43,6 @@ import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 public class 
 SubscriptionSchedulerImpl 
@@ -185,7 +184,10 @@ SubscriptionSchedulerImpl
 					
 							Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().addDownload( torrent );
 							
-							subs.addAssociation( torrent.getHash());
+							if ( subs.isPublic()){
+							
+								subs.addAssociation( torrent.getHash());
+							}
 							
 							result.setRead( true );
 							

@@ -304,7 +304,7 @@ SubscriptionHistoryImpl
 					
 					changed = true;
 					
-					results[i].deleteInternal();
+					result.deleteInternal();
 				}
 			}
 			
@@ -327,11 +327,11 @@ SubscriptionHistoryImpl
 		String[] 		result_ids,
 		boolean[]		reads )
 	{
-		ByteArrayHashMap rids = new ByteArrayHashMap();
+		ByteArrayHashMap rid_map = new ByteArrayHashMap();
 		
 		for (int i=0;i<result_ids.length;i++){
 			
-			rids.put( Base32.decode( result_ids[i]), "" );
+			rid_map.put( Base32.decode( result_ids[i]), new Boolean( reads[i] ));
 		}
 	
 		boolean	changed = false;
@@ -344,13 +344,15 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl result = results[i];
 				
-				if ( rids.containsKey( result.getKey())){
+				Boolean	read = (Boolean)rid_map.get( result.getKey());
+				
+				if ( read != null ){
 					
-					if ( result.getRead() != reads[i] ){
+					if ( result.getRead() != read.booleanValue()){
 						
 						changed = true;
 					
-						results[i].setReadInternal( reads[i] );
+						result.setReadInternal( read.booleanValue());
 					}
 				}
 			}

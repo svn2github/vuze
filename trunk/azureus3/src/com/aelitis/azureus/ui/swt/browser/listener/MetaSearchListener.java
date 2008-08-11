@@ -1015,7 +1015,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				}
 			} catch( Throwable e ){
 				
-				result.put( "error", "delete failed: " + Debug.getNestedExceptionMessage(e));
+				result.put( "error", "mark failed: " + Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage("metasearch", "markSubscriptionResultsFailed",result);
 			}

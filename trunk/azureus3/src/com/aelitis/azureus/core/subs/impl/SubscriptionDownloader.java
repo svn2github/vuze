@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.subs.impl;
 import java.util.*;
 
 import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.subs.*;
