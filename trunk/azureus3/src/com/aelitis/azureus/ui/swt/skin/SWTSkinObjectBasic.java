@@ -461,9 +461,9 @@ public class SWTSkinObjectBasic
 					}
 				}
 
-				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
-				if (fg != null) {
-					control.setForeground(fg);
+				if (properties.hasKey(sConfigID + ".fgcolor" + sSuffix)) {
+  				Color fg = properties.getColor(sConfigID + ".fgcolor" + sSuffix);
+ 					control.setForeground(fg);
 				}
 
 				// Color,[width]
