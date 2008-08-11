@@ -72,7 +72,7 @@ public class PluginDeprecation {
 		/**
 		 * Here is where we define all deprecated call definitions that we manage.
 		 */
-		register("property listener", IGNORE, IGNORE); // wait until there is a new TeamSeeder plugin
+		register("property listener", IGNORE, NOTIFY_EVERY);
 		register("createPluginView", IGNORE, NOTIFY_EVERY);
 		register("getSWTManager", IGNORE, NOTIFY_EVERY);
 		
