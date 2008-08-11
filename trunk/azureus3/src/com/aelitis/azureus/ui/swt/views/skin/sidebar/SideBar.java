@@ -354,8 +354,12 @@ public class SideBar
 								event.gc.fillRectangle(x - 7, y - 2, textSize.x + 14,
 										textSize.y + 4);
 
+								Boolean b_vitality = (Boolean)sideBarInfo.titleInfo.getTitleInfoObjectProperty( ViewTitleInfo.TITLE_HAS_VITALITY );
+								
+								boolean vitality = b_vitality != null && b_vitality.booleanValue();
+								
 								event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
-								event.gc.setBackground(Colors.faded[Colors.BLUES_DARKEST]);
+								event.gc.setBackground(vitality?Colors.fadedRed:Colors.faded[Colors.BLUES_DARKEST]);
 								event.gc.fillRoundRectangle(x - 5, y - 2, textSize.x + 10,
 										textSize.y + 4, 10, textSize.y + 4);
 								event.gc.drawText(textIndicator, x, y);

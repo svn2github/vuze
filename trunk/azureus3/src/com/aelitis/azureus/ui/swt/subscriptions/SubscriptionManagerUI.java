@@ -672,14 +672,19 @@ SubscriptionManagerUI
 				return( subs.getHistory().getNumUnread() + " : " + subs.getHistory().getNumRead());
 			}
 			
-			return null;
+			return( null );
 		}
 
 		public Object 
 		getTitleInfoObjectProperty(
 			int propertyID )
 		{
-			return null;
+			if ( propertyID == TITLE_HAS_VITALITY ){
+				
+				return( new Boolean( subs.getHistory().getNumUnread() > 0 ));
+			}
+			
+			return( null );
 		}
 		
 		public void 
