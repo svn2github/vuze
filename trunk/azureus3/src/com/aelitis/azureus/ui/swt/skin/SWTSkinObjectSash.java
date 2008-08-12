@@ -312,7 +312,6 @@ public class SWTSkinObjectSash
 					}
 					Double l = new Double(d);
 					l = ensureVisibilityStates(l, above, below, isVertical);
-					System.out.println("after=" + l + ";" + d);
 					sashPct = l.doubleValue();
 					sash.setData("PCT", l);
 
