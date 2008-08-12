@@ -49,7 +49,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 public class MyTorrentsSuperView extends AbstractIView implements
 		ObfusticateImage, IViewExtension
 {
-	private static int SASH_WIDTH = 8;
+	private static int SASH_WIDTH = 5;
 
 	final TableColumnCore[] tableIncompleteItems = getIncompleteColumns();
 	final TableColumnCore[] tableCompleteItems = getCompleteColumns();
