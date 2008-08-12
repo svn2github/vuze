@@ -56,7 +56,9 @@ public class LoginInfoManager
 		if (false == listeners.contains(listener)) {
 			listeners.add(listener);
 			
-			notifyListeners(false);
+			if (isLoggedIn()) {
+				notifyListeners(false);
+			}
 		}
 
 	}
