@@ -41,7 +41,7 @@ public class DebugMenuHelper
 	 * @param mainWindow
 	 * @return
 	 */
-	public static MenuItem createDebugMenuItem(final Menu menu) {
+	public static Menu createDebugMenuItem(final Menu menu) {
 		MenuItem item;
 
 		final UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -160,90 +160,7 @@ public class DebugMenuHelper
 				}
 			}
 		});
-		
-		item = new MenuItem(menuDebug, SWT.CASCADE);
-		item.setText("Add Blah");
-		Menu menuSubscriptions = new Menu(menu.getParent(), SWT.DROP_DOWN);
-		item.setMenu(menuSubscriptions);
-		
 
-		item = new MenuItem(menuSubscriptions, SWT.NONE);
-		item.setText("Create Blah");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				final Shell shell = new Shell(uiFunctions.getMainShell());
-				shell.setLayout(new FormLayout());
-				
-				Label label = new Label(shell,SWT.NONE);
-				label.setText("RSS Feed URL :");
-				final Text urlText = new Text(shell,SWT.BORDER);
-				urlText.setText(Utils.getLinkFromClipboard(shell.getDisplay(),false));
-				Label separator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
-				Button cancel = new Button(shell,SWT.PUSH);
-				cancel.setText("Cancel");
-				Button ok = new Button(shell,SWT.PUSH);
-				ok.setText("Ok");
-				
-				FormData data;
-				
-				data = new FormData();
-				data.left = new FormAttachment(0,5);
-				data.right = new FormAttachment(100,-5);
-				data.top = new FormAttachment(0,5);
-				label.setLayoutData(data);
-				
-				data = new FormData();
-				data.left = new FormAttachment(0,5);
-				data.right = new FormAttachment(100,-5);
-				data.top = new FormAttachment(label);
-				data.width = 400;
-				urlText.setLayoutData(data);
-				
-				data = new FormData();
-				data.left = new FormAttachment(0,5);
-				data.right = new FormAttachment(100,-5);
-				data.top = new FormAttachment(urlText);
-				separator.setLayoutData(data);
-				
-				data = new FormData();
-				data.right = new FormAttachment(ok);
-				data.width = 100;
-				data.top = new FormAttachment(separator);
-				cancel.setLayoutData(data);
-				
-				data = new FormData();
-				data.right = new FormAttachment(100,-5);
-				data.width = 100;
-				data.top = new FormAttachment(separator);
-				ok.setLayoutData(data);
-				
-				cancel.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event arg0) {
-						shell.dispose();
-					}
-				});
-				
-				ok.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event arg0) {
-						String url = urlText.getText();
-						shell.dispose();
-					}
-				});
-				
-				shell.pack();
-				
-				
-				Utils.centerWindowRelativeTo(shell, uiFunctions.getMainShell());
-				
-				shell.open();
-				shell.setFocus();
-				urlText.setFocus();
-				
-				
-			}
-		});
-
-
-		return item;
+		return menuDebug;
 	}
 }

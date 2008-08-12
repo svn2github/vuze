@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -135,8 +136,8 @@ public class MenuFactory
 
 						menu_items = MenuItemManager.getInstance().getAllAsArray(
 								new String[] {
-									"torrentmenu",
-									"download_context"
+									MenuManager.MENU_TORRENT_MENU,
+									MenuManager.MENU_DOWNLOAD_CONTEXT
 								});
 
 						final Object[] plugin_dls = DownloadManagerImpl.getDownloadStatic(current_dls);
