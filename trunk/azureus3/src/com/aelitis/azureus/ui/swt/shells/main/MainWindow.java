@@ -826,12 +826,11 @@ public class MainWindow
 							UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
 							if (type == NavigationHelper.COMMAND_SWITCH_TO_TAB) {
-								// 3.2 TODO: Switch to sidebar entry
-								SWTSkin skin = SWTSkinFactory.getInstance();
-								SWTSkinObject skinObject = skin.getSkinObject(args[0]);
-								if (skinObject != null) {
-									skin.activateTab(skinObject);
+								SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+								if (sideBar == null) {
+									return;
 								}
+								sideBar.showItemByTabID(args[0]);
 
 								if (uif != null) {
 
@@ -1665,8 +1664,8 @@ public class MainWindow
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 
-		text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
-		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
+		//text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
+		//text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
 		text.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
@@ -1692,7 +1691,7 @@ public class MainWindow
 					text.setText("");
 					return;
 				}
-				if (event.keyCode == SWT.CR) {
+				if (event.character == SWT.CR) {
 					doSearch(text.getText());
 				}
 			}
@@ -1710,6 +1709,22 @@ public class MainWindow
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
 					String sSearchText = fText.getText().trim();
 					doSearch(sSearchText);
+				}
+			});
+		}
+		
+		SWTSkinObject so = skin.getSkinObject("sidebar-list");
+		if (so != null) {
+			so.getControl().addListener(SWT.Resize, new Listener() {
+				public void handleEvent(Event event) {
+					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");
+					if (soSearchArea != null) {
+						Control c = soSearchArea.getControl();
+						Rectangle bounds = ((Control)event.widget).getBounds();
+						FormData fd = (FormData) c.getLayoutData();
+						fd.width = bounds.width - 4;
+						Utils.relayout(c);
+					}
 				}
 			});
 		}
@@ -1732,7 +1747,7 @@ public class MainWindow
 		} else {
 			sidebar.createTreeItemFromSkinRef(null, id, "main.area.searchresultstab",
 					MessageText.getString("Search: ") + sSearchText, null, sSearchText,
-					true);
+					true, -1);
 		}
 		sidebar.showItemByID(id);
 	}
@@ -1865,7 +1880,14 @@ public class MainWindow
 		if (target.startsWith("tab-")) {
 			target = target.substring(4);
 		}
+		
+		// redirect any minibrowse targets to browse
+		if (target.equals(SkinConstants.VIEWID_BROWSER_MINI)) {
+			target = SkinConstants.VIEWID_BROWSER_BROWSE;
+		}
 
+		// This will create the skin object if we have UnattachedView.[target]
+		// in the skin
 		SWTSkinObject skinObject = skin.getSkinObject(target);
 
 		if (skinObject == null) {
@@ -1874,7 +1896,7 @@ public class MainWindow
 		}
 
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (target.equals("publish")) {
+		if (target.equals(SkinConstants.VIEWID_BROWSER_PUBLISH)) {
 			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 		} else {
 			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);

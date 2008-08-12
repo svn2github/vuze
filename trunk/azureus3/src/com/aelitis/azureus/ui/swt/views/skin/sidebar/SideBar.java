@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.List;
@@ -97,6 +98,8 @@ public class SideBar
 	public static final boolean SHOW_ALL_PLUGINS = false;
 
 	public static final boolean SHOW_TOOLS = false;
+
+	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity_SB";
 
 	private SWTSkin skin;
 
@@ -354,12 +357,14 @@ public class SideBar
 								event.gc.fillRectangle(x - 7, y - 2, textSize.x + 14,
 										textSize.y + 4);
 
-								Boolean b_vitality = (Boolean)sideBarInfo.titleInfo.getTitleInfoObjectProperty( ViewTitleInfo.TITLE_HAS_VITALITY );
-								
-								boolean vitality = b_vitality != null && b_vitality.booleanValue();
-								
+								Boolean b_vitality = (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_VITALITY);
+
+								boolean vitality = b_vitality != null
+										&& b_vitality.booleanValue();
+
 								event.gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
-								event.gc.setBackground(vitality?Colors.fadedRed:Colors.faded[Colors.BLUES_DARKEST]);
+								event.gc.setBackground(vitality ? Colors.fadedRed
+										: Colors.faded[Colors.BLUES_DARKEST]);
 								event.gc.fillRoundRectangle(x - 5, y - 2, textSize.x + 10,
 										textSize.y + 4, 10, textSize.y + 4);
 								event.gc.drawText(textIndicator, x, y);
@@ -440,8 +445,11 @@ public class SideBar
 	private void createTreeItems() {
 		TreeItem treeItem;
 
-		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
-				"main.area.welcome", "Welcome", null, null, false);
+		File file = new File(SystemProperties.getUserPath(), "sidebarauto.config");
+		if (!file.exists()) {
+			createTreeItemFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
+					"main.area.welcome", "Welcome", null, null, true, 0);
+		}
 
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
@@ -470,8 +478,8 @@ public class SideBar
 		});
 
 		final TreeItem itemActivity = createTreeItemFromSkinRef(null,
-				"Activity_SB", "main.area.events", "Activity", titleInfoActivityView,
-				null, false);
+				SIDEBAR_SECTION_ACTIVITIES, "main.area.events", "Activity",
+				titleInfoActivityView, null, false, -1);
 
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
@@ -598,31 +606,31 @@ public class SideBar
 		}
 
 		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
-				"Library", null, null, false);
+				"Library", null, null, false, -1);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryDL_SB",
-				"library", "Downloading", titleInfoDownloading, null, false);
+				"library", "Downloading", titleInfoDownloading, null, false, -1);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryCD_SB",
-				"library", "Seeding", titleInfoSeeding, null, false);
+				"library", "Seeding", titleInfoSeeding, null, false, -1);
 
 		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_BROWSE,
-				"main.area.browsetab", "On Vuze", null, null, false);
+				"main.area.browsetab", "On Vuze", null, null, false, -1);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_BROWSE, "Rec_SB",
-				"main.area.rec", "Recommendations", null, null, false);
+				"main.area.rec", "Recommendations", null, null, false, -1);
 
 		createTreeItemFromSkinRef(SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH,
-				"publishtab.area", "Publish", null, null, false);
+				"publishtab.area", "Publish", null, null, false, -1);
 
 		createTreeItemFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
-				"main.area.subscriptions", "Subscriptions", null, null, false);
+				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
 		if (SHOW_TOOLS) {
 			createTreeItemFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
-					"Under The Hood", null, null, false);
+					"Under The Hood", null, null, false, -1);
 
 			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "All Peers",
 					PeerSuperView.class);
@@ -641,7 +649,7 @@ public class SideBar
 		if (SHOW_ALL_PLUGINS) {
 			TreeItem itemPlugins = createTreeItemFromSkinRef(null,
 					SIDEBAR_SECTION_PLUGINS, "main.area.plugins", "Plugins", null, null,
-					false);
+					false, -1);
 
 			IViewInfo[] pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginViewsInfo();
 			for (int i = 0; i < pluginViewsInfo.length; i++) {
@@ -718,7 +726,7 @@ public class SideBar
 
 		if (System.getProperty("v3.sidebar.advanced", "0").equals("1")) {
 			createTreeItemFromSkinRef(null, SIDEBAR_SECTION_ADVANCED,
-					"main.area.advancedtab", "Advanced", null, null, false);
+					"main.area.advancedtab", "Advanced", null, null, false, -1);
 		}
 	}
 
@@ -741,7 +749,7 @@ public class SideBar
 			SideBarInfo sideBarInfoParent = getSideBarInfo(parentID);
 			TreeItem parentTreeItem = sideBarInfoParent.treeItem;
 			treeItem = createTreeItem(parentTreeItem, id, datasource, null,
-					iview.getFullTitle(), closeable);
+					iview.getFullTitle(), closeable, -1);
 
 			setupTreeItem(null, treeItem, id, null, iview.getFullTitle(), null,
 					datasource, closeable);
@@ -813,7 +821,7 @@ public class SideBar
 
 	private TreeItem createTreeItem(Object parentTreeItem, String id,
 			Object datasource, ViewTitleInfo titleInfo, String title,
-			boolean closeable) {
+			boolean closeable, int index) {
 		TreeItem treeItem;
 
 		if (parentTreeItem == null) {
@@ -821,9 +829,17 @@ public class SideBar
 		}
 
 		if (parentTreeItem instanceof Tree) {
-			treeItem = new TreeItem((Tree) parentTreeItem, SWT.NONE);
+			if (index >= 0) {
+				treeItem = new TreeItem((Tree) parentTreeItem, SWT.NONE, index);
+			} else {
+				treeItem = new TreeItem((Tree) parentTreeItem, SWT.NONE);
+			}
 		} else {
-			treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
+			if (index >= 0) {
+				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE, index);
+			} else {
+				treeItem = new TreeItem((TreeItem) parentTreeItem, SWT.NONE);
+			}
 		}
 
 		return treeItem;
@@ -856,14 +872,13 @@ public class SideBar
 
 		if (titleInfo == null) {
 			titleInfo = (sideBarInfo.iview instanceof ViewTitleInfo)
-			? (ViewTitleInfo) sideBarInfo.iview : null;
+					? (ViewTitleInfo) sideBarInfo.iview : null;
 		}
 
 		if (titleInfo != null) {
 			sideBarInfo.titleInfo = titleInfo;
 		}
 
-		
 		if (sideBarInfo.titleInfo != null) {
 			mapTitleInfoToTreeItem.put(sideBarInfo.titleInfo, treeItem);
 			String newText = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_TEXT);
@@ -950,7 +965,7 @@ public class SideBar
 		if (id.equals(SIDEBAR_SECTION_ADVANCED)) {
 			TreeItem treeItem = createTreeItemFromSkinRef(null,
 					SIDEBAR_SECTION_ADVANCED, "main.area.advancedtab", "Advanced", null,
-					null, false);
+					null, false, -1);
 			itemSelected(treeItem);
 			return true;
 		}
@@ -1093,7 +1108,7 @@ public class SideBar
 			sideBarInfo.eventListener = l;
 			sideBarInfo.parentID = parentID;
 			treeItem = createTreeItem(parentTreeItem, id, datasource, null, name,
-					closeable);
+					closeable, -1);
 		}
 
 		IView iview = null;
@@ -1267,8 +1282,9 @@ public class SideBar
 
 			SideBarInfo sideBarInfo = getSideBarInfo((String) item.getData("Plugin.viewID"));
 			sideBarInfo.skinObject = soContents;
-			
-			setupTreeItem(view, item, id, null, null, viewComposite, datasource, closeable);
+
+			setupTreeItem(view, item, id, null, null, viewComposite, datasource,
+					closeable);
 
 			Composite iviewComposite = view.getComposite();
 			Object existingLayout = iviewComposite.getLayoutData();
@@ -1291,7 +1307,7 @@ public class SideBar
 
 	public TreeItem createTreeItemFromSkinRef(String parentID, final String id,
 			final String configID, String title, ViewTitleInfo titleInfo,
-			final Object params, boolean closeable) {
+			final Object params, boolean closeable, int index) {
 
 		// temp until we start passing ds
 		Object datasource = null;
@@ -1340,7 +1356,8 @@ public class SideBar
 		sideBarInfo.parentID = parentID;
 
 		treeItem = createTreeItem(parentTreeItem == null ? (Object) tree
-				: (Object) parentTreeItem, id, datasource, titleInfo, title, closeable);
+				: (Object) parentTreeItem, id, datasource, titleInfo, title, closeable,
+				index);
 
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
 				closeable);
@@ -1518,6 +1535,9 @@ public class SideBar
 
 	public void loadCloseables() {
 		mapAutoOpen = FileUtil.readResilientConfigFile("sidebarauto.config", true);
+		if (mapAutoOpen.isEmpty()) {
+			return;
+		}
 		BDecoder.decodeStrings(mapAutoOpen);
 		for (Iterator iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
@@ -1541,6 +1561,11 @@ public class SideBar
 			SideBarInfo sideBarInfo = getSideBarInfo(id);
 			if (sideBarInfo.treeItem != null) {
 				return;
+			}
+
+			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
+				createTreeItemFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
+						"main.area.welcome", "Welcome", null, null, true, 0);
 			}
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
@@ -1571,7 +1596,7 @@ public class SideBar
 				}
 				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
 						null, true);
-				
+
 				if (sideBarInfo.iview == null) {
 					createSideBarContentArea(id, sideBarInfo);
 				}
@@ -1580,6 +1605,33 @@ public class SideBar
 			// ignore
 		} catch (Throwable e) {
 			Debug.out(e);
+		}
+	}
+
+	/**
+	 * @param tabID
+	 *
+	 * @since 3.1.0.1
+	 */
+	public void showItemByTabID(String tabID) {
+		if (tabID == null) {
+			return;
+		}
+		// if it matches an existing sidebar item, just use that
+		IView viewFromID = getIViewFromID(tabID);
+		if (viewFromID != null) {
+			showItemByID(tabID);
+		}
+
+		if (tabID.equals("library") || tabID.equals("minilibrary")) {
+			showItemByID(SIDEBAR_SECTION_LIBRARY);
+		} else if (tabID.equals("publish")) {
+			showItemByID(SIDEBAR_SECTION_PUBLISH);
+		} else if (tabID.equals("activities")) {
+			showItemByID(SIDEBAR_SECTION_ACTIVITIES);
+		} else {
+			// everything else can go to browse..
+			showItemByID(SIDEBAR_SECTION_BROWSE);
 		}
 	}
 }

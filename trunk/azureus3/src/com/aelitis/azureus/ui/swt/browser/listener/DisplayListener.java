@@ -134,11 +134,11 @@ public class DisplayListener
 	 * 3.2 TODO: Switch to sidebar entry
 	 */
 	private void switchToTab(String tabID) {
-		SWTSkin skin = SWTSkinFactory.getInstance();
-		SWTSkinObject skinObject = skin.getSkinObject("tab-" + tabID);
-		if (skinObject != null) {
-			skin.activateTab(skinObject);
+		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sideBar == null) {
+			return;
 		}
+		sideBar.showItemByTabID(tabID);
 	}
 
 	/**
