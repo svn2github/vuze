@@ -59,7 +59,9 @@ import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
+import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
@@ -436,6 +438,38 @@ SubscriptionManagerImpl
 		return( addSubscription( subs ));
 	}
 	
+	public Subscription 
+	createRSS(
+		String		url )
+	
+		throws SubscriptionException 
+	{
+		if ( getSubscriptionFromName( url ) != null ){
+			
+			throw ( new SubscriptionException( "Subscription with feed '" + url + "' already exists" ));
+		}
+		
+		try{
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( url );
+			
+			String	json = SubscriptionImpl.getSkeletonJSON( engine );
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, url, true, json );
+			
+			log( "Created new subscription: " + subs.getString());
+			
+			if ( subs.isPublic()){
+				
+				updatePublicSubscription( subs, json );
+			}
+			
+			return( addSubscription( subs ));
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to create subscription", e ));
+		}
+	}
 	
 	protected SubscriptionImpl
 	addSubscription(
@@ -510,6 +544,21 @@ SubscriptionManagerImpl
 			
 				return;
 			}
+		}
+		
+		try{
+			Engine engine = subs.getEngine( true );
+			
+			if ( engine.getType() == Engine.ENGINE_TYPE_RSS ){
+				
+				engine.delete();
+				
+				log( "Removed engine " + engine.getName() + " due to subscription removal" );
+			}
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to check for engine deletion", e );
 		}
 		
 		Iterator it = listeners.iterator();
@@ -3301,7 +3350,8 @@ SubscriptionManagerImpl
 	protected Engine
 	getEngine(
 		SubscriptionImpl		subs,
-		Map						json_map )
+		Map						json_map,
+		boolean					local_only )
 	
 		throws SubscriptionException
 	{
@@ -3314,26 +3364,29 @@ SubscriptionManagerImpl
 			return( engine );
 		}
 
-		try{
-			if ( id >= 0 && id < Integer.MAX_VALUE ){
-							
-				log( "Engine " + id + " not present, loading" );
-					
-					// vuze template but user hasn't yet loaded it
-					
-				try{
-					engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().addEngine( id );
-								
-					return( engine );
-					
-				}catch( Throwable e ){
-				
-					throw( new SubscriptionException( "Failed to load engine '" + id + "'", e ));
-				}
-			}
-		}catch( Throwable e ){
+		if ( !local_only ){
 			
-			log( "Failed to load search template", e );
+			try{
+				if ( id >= 0 && id < Integer.MAX_VALUE ){
+								
+					log( "Engine " + id + " not present, loading" );
+						
+						// vuze template but user hasn't yet loaded it
+						
+					try{
+						engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().addEngine( id );
+									
+						return( engine );
+						
+					}catch( Throwable e ){
+					
+						throw( new SubscriptionException( "Failed to load engine '" + id + "'", e ));
+					}
+				}
+			}catch( Throwable e ){
+				
+				log( "Failed to load search template", e );
+			}
 		}
 		
 		engine = subs.extractEngine( json_map, id );

@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedAdapter;
@@ -181,6 +182,19 @@ SubscriptionImpl
 			
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
+	}
+	
+	protected static String
+	getSkeletonJSON(
+		Engine		engine )
+	{
+		JSONObject	map = new JSONObject();
+		
+		map.put( "engine_id", new Long( engine.getId()));
+		
+		embedEngines( map, engine );
+		
+		return( JSONUtils.encodeToJSON( map ));
 	}
 	
 		// cache detail constructor
@@ -626,20 +640,11 @@ SubscriptionImpl
 			}else{
 				
 				try{								
-					Map	engines = new HashMap();
-					
-					map.put( "engines", engines );
-					
-					Map	engine_map = new HashMap();
-					
-					String	engine_str = new String( Base64.encode( BEncoder.encode( engine.exportToBencodedMap())), "UTF-8" );
-					
-					engine_map.put( "content", engine_str );
-					
-					engines.put( String.valueOf( engine_id ), engine_map );
+					embedEngines( map, engine );
 					
 					json_out = JSONUtils.encodeToJSON( map );
 					
+
 					log( "Embedded private search template '" + engine.getName() + "'" );
 					
 				}catch( Throwable e ){
@@ -652,6 +657,31 @@ SubscriptionImpl
 		return( json_out );
 	}
 	
+	protected static void
+	embedEngines(
+		Map			map,
+		Engine		engine )
+	{
+		Map	engines = new HashMap();
+		
+		map.put( "engines", engines );
+		
+		Map	engine_map = new HashMap();
+		
+		try{
+		
+			String	engine_str = new String( Base64.encode( BEncoder.encode( engine.exportToBencodedMap())), "UTF-8" );
+		
+			engine_map.put( "content", engine_str );
+		
+			engines.put( String.valueOf( engine.getId()), engine_map );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+
 	protected Engine
 	extractEngine(
 		Map		json_map,
@@ -681,6 +711,17 @@ SubscriptionImpl
 		}
 		
 		return( null );
+	}
+	
+	protected Engine
+	getEngine(
+		boolean		local_only )
+	
+		throws SubscriptionException
+	{
+		Map map = JSONUtils.decodeJSON( getJSON());
+					
+		return( manager.getEngine( this, map, local_only ));
 	}
 	
 	protected void
@@ -945,7 +986,7 @@ SubscriptionImpl
 			try{
 				Map map = JSONUtils.decodeJSON( getJSON());
 						
-				Engine engine = manager.getEngine( this, map );
+				Engine engine = manager.getEngine( this, map, false );
 				
 				if ( engine != null ){
 										

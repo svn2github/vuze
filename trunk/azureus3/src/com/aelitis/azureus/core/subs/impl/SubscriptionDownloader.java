@@ -59,7 +59,7 @@ SubscriptionDownloader
 		String	search_term	= (String)map.get( "search_term" );
 		Map		filters		= (Map)map.get( "filters" );
 
-		Engine engine = manager.getEngine( subs, map );
+		Engine engine = manager.getEngine( subs, map, false );
 		
 		if ( engine == null ){
 			
@@ -68,9 +68,12 @@ SubscriptionDownloader
 		
 		List	sps = new ArrayList();
 		
-		sps.add( new SearchParameter( "s", search_term ));
+		if ( search_term != null ){
+			
+			sps.add( new SearchParameter( "s", search_term ));
 		
-		log( "    Using search term '" + search_term + "' for engine " + engine.getString());
+			log( "    Using search term '" + search_term + "' for engine " + engine.getString());
+		}
 		
 		/*
 		if ( mature != null ){

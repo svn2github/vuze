@@ -80,8 +80,8 @@ WebEngine
 		String 			timeZone,
 		boolean 		automaticDateParser,
 		String 			userDateFormat, 
-		FieldMapping[] 	mappings ) {
-		
+		FieldMapping[] 	mappings ) 
+	{	
 		super( meta_search, type, id, last_updated, name );
 
 		this.searchURLFormat 		= searchURLFormat;

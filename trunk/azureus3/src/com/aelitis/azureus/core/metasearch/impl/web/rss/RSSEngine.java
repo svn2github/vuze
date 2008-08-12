@@ -3,7 +3,9 @@ package com.aelitis.azureus.core.metasearch.impl.web.rss;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -14,34 +16,117 @@ import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSItem;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
+import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
+import com.aelitis.azureus.util.ImportExportUtils;
 
-public class RSSEngine extends WebEngine {
+public class 
+RSSEngine 
+	extends WebEngine 
+{
+	public static EngineImpl
+	importFromBEncodedMap(
+		MetaSearchImpl		meta_search,
+		Map					map )
 	
-	public RSSEngine(
-			MetaSearchImpl		meta_search,
-			long 				id,
-			long 				last_updated,
-			String 				name,
-			String 				searchURLFormat
-			) 
-		{
-			super( meta_search, Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,"GMT",false,"EEE, d MMM yyyy HH:mm:ss Z",new FieldMapping[0]);
-			
+		throws IOException
+	{
+		return( new RSSEngine( meta_search, map ));
 	}
 	
-	protected Result[] searchSupport(SearchParameter[] searchParameters, int max_matches,
-			String headers, ResultListener listener) throws SearchException {
+	public static Engine
+	importFromJSONString(
+		MetaSearchImpl		meta_search,
+		long				id,
+		long				last_updated,
+		String				name,
+		JSONObject			map )
+	
+		throws IOException
+	{
+		return( new RSSEngine( meta_search, id, last_updated, name, map ));
+	}
+	
+		// explicit constructor
+	
+	public 
+	RSSEngine(
+		MetaSearchImpl		meta_search,
+		long 				id,
+		long 				last_updated,
+		String 				name,
+		String 				searchURLFormat ) 
+	{
+		super( 	meta_search, 
+				Engine.ENGINE_TYPE_RSS, 
+				id,
+				last_updated,
+				name,
+				searchURLFormat,
+				"GMT",
+				false,
+				"EEE, d MMM yyyy HH:mm:ss Z",
+				new FieldMapping[0]);		
+	}
+	
+	protected 
+	RSSEngine(
+		MetaSearchImpl		meta_search,
+		Map					map )
+	
+		throws IOException
+	{
+		super( meta_search, map );
+	}
+	
+		// json 
+	
+	protected 
+	RSSEngine(
+		MetaSearchImpl		meta_search,
+		long				id,
+		long				last_updated,
+		String				name,
+		JSONObject			map )
+	
+		throws IOException
+	{
+		super( meta_search, Engine.ENGINE_TYPE_REGEX, id, last_updated, name, map );
+	}
+	
+	
+	public Map 
+	exportToBencodedMap() 
+	
+		throws IOException
+	{
+		Map	res = new HashMap();
+				
+		super.exportToBencodedMap( res );
 		
+		return( res );
+	}
+	
+	protected Result[] 
+	searchSupport(
+		SearchParameter[] 	searchParameters, 
+		int 				max_matches,
+		String 				headers, 
+		ResultListener 		listener) 
+	
+		throws SearchException 
+	{
 		debugStart();
 		
 		String page = super.getWebPageContent( searchParameters, headers );
@@ -53,7 +138,7 @@ public class RSSEngine extends WebEngine {
 		
 		String searchQuery = null;
 		
-		for(int i = 0 ; i < searchParameters.length ; i++) {
+		for(int i = 0 ; i < searchParameters.length ; i++){
 			if(searchParameters[i].getMatchPattern().equals("s")) {
 				searchQuery = searchParameters[i].getValue();
 			}
@@ -144,11 +229,4 @@ public class RSSEngine extends WebEngine {
 			throw( new SearchException( "RSS matching failed", e ));
 		}
 	}
-	
-	public Map exportToBencodedMap() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	
 }

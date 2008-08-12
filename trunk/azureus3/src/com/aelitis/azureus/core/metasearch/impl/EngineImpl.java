@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -78,6 +79,10 @@ EngineImpl
 			
 			return( PluginEngine.importFromBEncodedMap( meta_search, map ));
 			
+		}else if ( type == Engine.ENGINE_TYPE_RSS ){
+			
+			return( RSSEngine.importFromBEncodedMap( meta_search, map ));
+			
 		}else{
 			
 			throw( new IOException( "Unknown engine type " + type ));
@@ -104,6 +109,10 @@ EngineImpl
 		}else if ( type == Engine.ENGINE_TYPE_REGEX ){
 			
 			return( RegexEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
+			
+		}else if ( type == Engine.ENGINE_TYPE_RSS ){
+			
+			return( RSSEngine.importFromJSONString( meta_search, id, last_updated, name, map ));
 			
 		}else{
 			
@@ -768,7 +777,7 @@ EngineImpl
 		
 		configDirty();
 	}
-	
+		
 	protected void
 	configDirty()
 	{

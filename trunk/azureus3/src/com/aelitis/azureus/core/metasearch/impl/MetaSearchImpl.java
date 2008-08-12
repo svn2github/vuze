@@ -29,11 +29,13 @@ import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -141,6 +143,21 @@ MetaSearchImpl
 			
 			return( engine );
 		}	
+	}
+	
+	public Engine 
+	createRSSEngine(
+		String 		url )
+	
+		throws MetaSearchException 
+	{
+		EngineImpl engine = new RSSEngine( this, manager.getLocalTemplateID(), SystemTime.getCurrentTime(), url, url );
+		
+		addEngine( engine, false );
+				
+		log( "Created RSS engine '" + url + "'" );
+		
+		return( engine );
 	}
 	
 	public void 

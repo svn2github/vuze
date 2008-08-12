@@ -57,6 +57,12 @@ MetaSearch
 	
 		throws MetaSearchException;
 	
+	public Engine
+	createRSSEngine(
+		String		url )
+	
+		throws MetaSearchException;
+	
 	public void 
 	removeEngine(
 		Engine 		engine );

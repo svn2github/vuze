@@ -33,6 +33,12 @@ SubscriptionManager
 		
 		throws SubscriptionException;
 	
+	public Subscription
+	createRSS(
+		String		url )
+		
+		throws SubscriptionException;
+	
 	public Subscription[]
 	getSubscriptions();
 	
