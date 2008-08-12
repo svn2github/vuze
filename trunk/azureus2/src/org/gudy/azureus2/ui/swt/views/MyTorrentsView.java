@@ -44,7 +44,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -1838,10 +1837,12 @@ public class MyTorrentsView
 	 * @return
 	 */
 	protected TableViewSWT createTableView(TableColumnCore[] 	basicItems){
+		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
 		return new TableViewSWTImpl(isSeedingView
 				? TableManager.TABLE_MYTORRENTS_COMPLETE
 	  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MyTorrentsView",
-	  				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+	  				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
 	}
 
 	/**

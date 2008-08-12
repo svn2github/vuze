@@ -123,5 +123,6 @@ public class UIConfigDefaultsSWT
 		
 		
 		def.addParameter("useNewStyleMessageBox", false);
+		def.addParameter("MyTorrentsView.table.style", 0);
 	}
 }
