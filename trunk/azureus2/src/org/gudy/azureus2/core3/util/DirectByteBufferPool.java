@@ -49,8 +49,21 @@ DirectByteBufferPool
 	
 	protected static final boolean				DEBUG_HANDOUT_SIZES		= false;
 	protected static final boolean				DEBUG_FREE_SIZES		= false;
-	protected static final boolean				DEBUG_USE_HEAP_BUFFERS	= false;
-
+	
+	
+	
+	//According to reports (from the http://mina.apache.org folks), hotspot vms actually
+	//work better with non-direct (heap) buffers for network and disk io these days.
+	
+	protected static boolean				USE_HEAP_BUFFERS	    = false;
+	
+	static {	
+		if( System.getProperty( "use.heap.buffers" ) != null ) {
+			USE_HEAP_BUFFERS = true;
+		}	
+	}
+	
+	
 	
 	  // There is no point in allocating buffers smaller than 4K,
 	  // as direct ByteBuffers are page-aligned to the underlying
@@ -186,7 +199,7 @@ DirectByteBufferPool
    */
   private ByteBuffer allocateNewBuffer(final int _size) {
     try {
-      return DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
+      return USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
     }
     catch (OutOfMemoryError e) {
        //Debug.out("Running garbage collector...");
@@ -196,7 +209,7 @@ DirectByteBufferPool
        runGarbageCollection();
 
        try {
-       		return DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
+       		return USE_HEAP_BUFFERS ? ByteBuffer.allocate(_size) : ByteBuffer.allocateDirect(_size);
        	
        }catch (OutOfMemoryError ex) {
        	
@@ -233,8 +246,16 @@ DirectByteBufferPool
         Debug.out("requested length [" +_length+ "] > MAX_SIZE [" +MAX_SIZE+ "]");
         return null;
     }
-
-    return pool.getBufferHelper(_allocator,_length);
+    
+    
+    if( USE_HEAP_BUFFERS ) {
+    	//bypass the pool management, as we (probably) don't want to pool at all for heap buffers
+    	//TODO BUT, should also compare the performace of actually using a pool with heap buffers...
+    	return new DirectByteBuffer( _allocator, ByteBuffer.allocate( _length ), pool );
+    }
+    else {
+    	return pool.getBufferHelper(_allocator,_length);
+    }
   }
   
   
@@ -374,6 +395,14 @@ DirectByteBufferPool
 	returnBuffer(
 		DirectByteBuffer ddb ) 
 	{
+		
+		if( USE_HEAP_BUFFERS ) {
+			//Since we bypassed the pool on allocation, no need to return anything back
+			//TODO remove this section when testing heap+pooling performance
+			return;
+		}
+		
+		
 		ByteBuffer	buff = ddb.getBufferInternal();
 		
 		int	capacity = buff.capacity();
@@ -786,7 +815,7 @@ DirectByteBufferPool
 					short	slice_entry_size 	= SLICE_ENTRY_SIZES[slice_index];
 					short	slice_entry_count	= SLICE_ENTRY_ALLOC_SIZES[slice_index];
 					
-					ByteBuffer	chunk = DEBUG_USE_HEAP_BUFFERS ? ByteBuffer.allocate(  slice_entry_size*slice_entry_count  ) : ByteBuffer.allocateDirect(  slice_entry_size*slice_entry_count  );
+					ByteBuffer	chunk = USE_HEAP_BUFFERS ? ByteBuffer.allocate(  slice_entry_size*slice_entry_count  ) : ByteBuffer.allocateDirect(  slice_entry_size*slice_entry_count  );
 					
 					my_allocs[slot] = true;
 					
