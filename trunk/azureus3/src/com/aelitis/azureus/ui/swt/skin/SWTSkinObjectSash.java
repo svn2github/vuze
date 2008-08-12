@@ -277,6 +277,9 @@ public class SWTSkinObjectSash
 					Rectangle area = parentComposite.getBounds();
 					FormData belowData = (FormData) below.getLayoutData();
 					if (isVertical) {
+						// Need to figure out if we have to use border width elsewhere
+						// in calculations (probably)
+						area.width -= below.getBorderWidth() * 2;
 						belowData.width = area.width - (e.x + e.width);
 						if (area.width - belowData.width - sash.getSize().x < aboveMin) {
 							belowData.width = area.width - aboveMin - sash.getSize().x;
@@ -287,6 +290,7 @@ public class SWTSkinObjectSash
 						int aboveWidth = area.width - belowData.width - sash.getSize().x;
 						ignoreContainerAboveMin = aboveWidth < resizeContainerAboveMin;
 					} else {
+						area.height -= below.getBorderWidth() * 2;
 						belowData.height = area.height - (e.y + e.height);
 						if (area.height - belowData.height < aboveMin) {
 							belowData.height = area.height - aboveMin;
@@ -308,6 +312,7 @@ public class SWTSkinObjectSash
 					}
 					Double l = new Double(d);
 					l = ensureVisibilityStates(l, above, below, isVertical);
+					System.out.println("after=" + l + ";" + d);
 					sashPct = l.doubleValue();
 					sash.setData("PCT", l);
 
@@ -418,6 +423,7 @@ public class SWTSkinObjectSash
 		double d = l.doubleValue();
 		boolean layoutNeeded = false;
 		if (bVertical) {
+			System.out.println("SP: " + l);
 			int parentWidth = parentComposite.getBounds().width;
 			int newWidth = (int) ((parentWidth - (sash.getSize().x / 2)) * d);
 			if (newWidth != belowData.width) {
