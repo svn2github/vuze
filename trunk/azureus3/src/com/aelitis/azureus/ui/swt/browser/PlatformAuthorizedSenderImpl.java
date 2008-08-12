@@ -85,7 +85,13 @@ public class PlatformAuthorizedSenderImpl
 						final Shell shellFinal = shell; 
 						browser.addDisposeListener(new DisposeListener() {
 							public void widgetDisposed(DisposeEvent e) {
-								shellFinal.dispose();
+								// better safe than sorry, don't dispose shell while
+								// the browser which is in the shell is being disposed
+								Utils.execSWTThreadLater(0, new AERunnable() {
+									public void runSupport() {
+										shellFinal.dispose();
+									}
+								});
 							}
 						});
 					}
@@ -171,7 +177,17 @@ public class PlatformAuthorizedSenderImpl
 				if (i > 0) {
 					s = s.substring(i);
 				}
-				browser.dispose();
+				// On PPC, we get a JVM crash on disposal, so maybe this delay will
+				// fix it.
+				if (Constants.isOSX) {
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							browser.dispose();
+						}
+					});
+				} else {
+					browser.dispose();
+				}
 			}
 		} finally {
 			
