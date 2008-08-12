@@ -192,6 +192,26 @@ SubscriptionImpl
 		
 		map.put( "engine_id", new Long( engine.getId()));
 		
+		map.put( "search_term", "" );
+
+		map.put( "filters", new HashMap());
+		
+		map.put( "options", new HashMap());
+		
+		Map schedule = new HashMap();
+		
+		schedule.put( "interval", new Long( 120 ));
+		
+		List	days = new ArrayList();
+		
+		for (int i=1;i<=7;i++){
+			
+			days.add( String.valueOf(i));
+		}
+		schedule.put( "days", days );
+		
+		map.put( "schedule", schedule );
+		
 		embedEngines( map, engine );
 		
 		return( JSONUtils.encodeToJSON( map ));

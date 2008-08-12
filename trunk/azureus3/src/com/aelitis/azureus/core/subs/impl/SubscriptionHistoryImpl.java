@@ -408,7 +408,7 @@ SubscriptionHistoryImpl
 		enabled				= l_enabled==null?true:l_enabled.longValue()==1;
 		
 		Long	l_auto_dl	= (Long)map.get( "auto_dl" );		
-		auto_dl				= l_auto_dl==null?true:l_auto_dl.longValue()==1;
+		auto_dl				= l_auto_dl==null?false:l_auto_dl.longValue()==1;
 
 		Long	l_last_scan = (Long)map.get( "last_scan" );		
 		last_scan			= l_last_scan==null?0:l_last_scan.longValue();
