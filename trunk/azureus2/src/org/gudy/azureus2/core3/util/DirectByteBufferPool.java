@@ -60,6 +60,7 @@ DirectByteBufferPool
 	static {	
 		if( System.getProperty( "use.heap.buffers" ) != null ) {
 			USE_HEAP_BUFFERS = true;
+			Debug.outNoStack( "******** USE_HEAP_BUFFERS MODE ENABLED ********" );
 		}	
 	}
 	
