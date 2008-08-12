@@ -84,7 +84,8 @@ public class MainMenu
 
 		// ===== Debug menu (development only)====
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-			DebugMenuHelper.createDebugMenuItem(menuBar);
+			Menu menuDebug = org.gudy.azureus2.ui.swt.mainwindow.DebugMenuHelper.createDebugMenuItem(menuBar);
+			DebugMenuHelper.createDebugMenuItem(menuDebug);
 		}
 
 		addHelpMenu(parent);
