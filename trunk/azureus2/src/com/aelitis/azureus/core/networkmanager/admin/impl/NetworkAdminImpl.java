@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.io.PrintWriter;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -242,16 +243,27 @@ NetworkAdminImpl
 				supportsIPv4 = newV4;
 				supportsIPv6 = newV6;
 				
+				Logger.log(new LogEvent(LOGID, "NetworkAdmin: ipv4 supported: "+supportsIPv4+"; ipv6: "+supportsIPv6+"; probing v6 functionality on "+testAddr));
+				
 				if(newV6)
 				{
 					ServerSocketChannel channel = ServerSocketChannel.open();
 					
 					try
 					{
+						channel.configureBlocking(false);
 						channel.socket().bind(new InetSocketAddress(testAddr, 0));
+						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio bind on "+testAddr+" successful"));
+						channel.accept();
+						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio accept attempt on "+testAddr+" successful"));
+						SocketChannel chan = SocketChannel.open(new InetSocketAddress(testAddr,channel.socket().getLocalPort()));
+						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio open on "+testAddr+" successful"));
+						chan.close();
+
 						supportsIPv6withNIO = true;
 					} catch (Exception e)
 					{
+						Logger.log(new LogEvent(LOGID, "nio test failed",e));
 						supportsIPv6withNIO = false;
 					}
 					
