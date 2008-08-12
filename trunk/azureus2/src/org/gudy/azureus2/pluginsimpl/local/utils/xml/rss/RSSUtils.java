@@ -38,7 +38,7 @@ public class
 RSSUtils 
 {
 	public static Date
-	parseDate(
+	parseRSSDate(
 		String	date_str )
 	{
 		try{
@@ -64,5 +64,31 @@ RSSUtils
 			
 			return( null );
 		}
+	}
+	
+	public static Date
+	parseAtomDate(
+		String	date_str )
+	{
+			// full-time from http://tools.ietf.org/html/rfc3339 with T and Z
+		
+		final String[]	formats = {
+				"yyyy-MM-dd'T'kk:mm:ss'Z'",
+				"yyyy-MM-dd'T'kk:mm:ssz", 
+				"yyyy-MM-dd'T'kk:mm:ss" };
+		
+		try{
+			for (int i=0;i<formats.length;i++){
+				
+				SimpleDateFormat format = new SimpleDateFormat( formats[i], Locale.US );
+							
+				return( format.parse( date_str ));
+			}
+		}catch( ParseException e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( null );
 	}
 }

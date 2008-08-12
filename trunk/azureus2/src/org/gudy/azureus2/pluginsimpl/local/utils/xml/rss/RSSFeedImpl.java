@@ -44,6 +44,8 @@ public class
 RSSFeedImpl
 	implements RSSFeed
 {
+	private boolean			is_atom;
+	
 	private RSSChannel[]	channels;
 	
 	public
@@ -66,17 +68,30 @@ RSSFeedImpl
 		try{
 			SimpleXMLParserDocument	doc = utilities.getSimpleXMLParserDocumentFactory().create( is );
 		
-			SimpleXMLParserDocumentNode[]	xml_channels = doc.getChildren();
+			String	doc_name = doc.getName();
 			
+			is_atom = doc_name != null && doc_name.equalsIgnoreCase( "feed" );
+									
 			List	chans = new ArrayList();
 			
-			for (int i=0;i<xml_channels.length;i++){
+			if ( is_atom ){
+						
+				chans.add( new RSSChannelImpl( doc, true ));
+
+			}else{
 				
-				SimpleXMLParserDocumentNode	xml_channel = xml_channels[i];
-				
-				if ( xml_channel.getName().equalsIgnoreCase("channel")){
+				SimpleXMLParserDocumentNode[]	xml_channels = doc.getChildren();
+
+				for (int i=0;i<xml_channels.length;i++){
 					
-					chans.add( new RSSChannelImpl( xml_channel ));
+					SimpleXMLParserDocumentNode	xml_channel = xml_channels[i];
+					
+					String	name = xml_channel.getName().toLowerCase();
+					
+					if ( name.equals("channel")){
+						
+						chans.add( new RSSChannelImpl( xml_channel, false ));	
+					}
 				}
 			}
 			
@@ -94,6 +109,12 @@ RSSFeedImpl
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+	
+	public boolean 
+	isAtomFeed() 
+	{
+		return( is_atom );
 	}
 	
 	public RSSChannel[]

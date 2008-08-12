@@ -37,7 +37,7 @@ public class
 SimpleXMLParserDocumentImpl
 	implements SimpleXMLParserDocument
 {
-	protected Document				document;
+	protected Document							document;
 	protected SimpleXMLParserDocumentNodeImpl	root_node;
 	
 	public

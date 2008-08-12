@@ -45,11 +45,15 @@ RSSChannelImpl
 	
 	private RSSItem[]	items;
 	
+	private boolean		is_atom;
+	
 	protected
 	RSSChannelImpl(
-		SimpleXMLParserDocumentNode	_node )
+		SimpleXMLParserDocumentNode	_node,
+		boolean						_is_atom )
 	{
 		node	= _node;
+		is_atom	= _is_atom;
 		
 		SimpleXMLParserDocumentNode[]	xml_items = node.getChildren();
 		
@@ -59,9 +63,9 @@ RSSChannelImpl
 			
 			SimpleXMLParserDocumentNode	xml_item = xml_items[i];
 			
-			if ( xml_item.getName().equalsIgnoreCase("item")){
+			if ( xml_item.getName().equalsIgnoreCase(is_atom?"entry":"item")){
 				
-				its.add( new RSSItemImpl( xml_item ));
+				its.add( new RSSItemImpl( xml_item, is_atom ));
 			}
 		}
 		
@@ -79,7 +83,7 @@ RSSChannelImpl
 	public String
 	getDescription()
 	{
-		return( node.getChild( "description" ).getValue());
+		return( node.getChild( is_atom?"summary":"description" ).getValue());
 	}
 	
 	public URL
@@ -101,14 +105,21 @@ RSSChannelImpl
 	{
 			// optional attribute
 		
-		SimpleXMLParserDocumentNode	pd = node.getChild( "pubdate" );
+		SimpleXMLParserDocumentNode	pd = node.getChild( is_atom?"updated":"pubdate" );
 		
 		if ( pd == null ){
 			
 			return( null );
 		}
 		
-		return( RSSUtils.parseDate( pd.getValue()));
+		if ( is_atom ){
+			
+			return( RSSUtils.parseAtomDate( pd.getValue()));
+
+		}else{
+		
+			return( RSSUtils.parseRSSDate( pd.getValue()));
+		}
 	}
 	
 	public RSSItem[]

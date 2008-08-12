@@ -31,6 +31,14 @@ public interface
 RSSFeed 
 {
 		/**
+		 * True if this is an Atom feed http://www.w3.org/2005/Atom, RSS otherwise
+		 * @return
+		 */
+	
+	public boolean
+	isAtomFeed();
+	
+		/**
 		 * A feed is composed of one (or more?) channels
 		 * @return
 		 */

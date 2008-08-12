@@ -39,12 +39,15 @@ public class
 RSSItemImpl
 	implements RSSItem
 {
+	private boolean							is_atom;
 	private SimpleXMLParserDocumentNode		node;
 	
 	protected
 	RSSItemImpl(
-		SimpleXMLParserDocumentNode	_node )
+		SimpleXMLParserDocumentNode		_node,
+		boolean							_is_atom )
 	{
+		is_atom	= _is_atom;
 		node	= _node;
 	}
 	
@@ -73,11 +76,19 @@ RSSItemImpl
 	public URL
 	getLink()
 	{
-		if ( node.getChild( "link" ) != null ){
+		SimpleXMLParserDocumentNode link_node = node.getChild( "link" );
+		
+		if ( link_node != null ){
 
 			try{
-				return( new URL( node.getChild("link").getValue()));
+				if ( is_atom ){
+					
+					return( new URL( link_node.getAttribute( "href" ).getValue()));
+
+				}else{
 				
+					return( new URL( link_node.getValue()));
+				}
 			}catch( MalformedURLException e ){
 			
 				Debug.printStackTrace(e);
@@ -92,9 +103,18 @@ RSSItemImpl
 	public Date
 	getPublicationDate()
 	{
-		if ( node.getChild( "pubdate" ) != null ){
+		SimpleXMLParserDocumentNode pd = node.getChild( is_atom?"published":"pubdate" );
+		
+		if ( pd != null ){
 
-			return( RSSUtils.parseDate( node.getChild( "pubdate" ).getValue()));
+			if ( is_atom ){
+				
+				return( RSSUtils.parseAtomDate( pd.getValue()));
+				
+			}else{
+				
+				return( RSSUtils.parseRSSDate( pd.getValue()));
+			}
 		}
 		
 		return( null );
