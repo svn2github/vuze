@@ -22,6 +22,8 @@ package com.aelitis.azureus.ui.swt;
 
 import java.io.File;
 
+import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
@@ -154,6 +156,7 @@ public class UIConfigDefaultsSWTv3
 		config.removeParameter("v3.home-tab.starttab");
 		defaults.addParameter("v3.topbar.height", 60);
 		defaults.addParameter("v3.Start Advanced", false);
+		defaults.addParameter("MyTorrentsView.table.style", SWT.BORDER);
 		
 		
 		//=== defaults used by MainWindow

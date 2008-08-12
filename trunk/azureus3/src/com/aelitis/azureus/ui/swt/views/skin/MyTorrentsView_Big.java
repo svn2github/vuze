@@ -21,7 +21,8 @@ public class MyTorrentsView_Big
 		return new TableViewSWTImpl(isSeedingView
 				? TableManager.TABLE_MYTORRENTS_COMPLETE_BIG
 				: TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, "MyTorrentsView_Big",
-				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL
+						| SWT.BORDER);
 	}
 
 	protected int getRowDefaultHeight() {
