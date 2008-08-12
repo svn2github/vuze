@@ -25,16 +25,23 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -60,6 +67,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
@@ -69,12 +77,19 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
+import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
+import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.util.MapUtils;
+import com.sun.tools.corba.se.idl.Factories;
 
 public class 
 SubscriptionManagerUI 
@@ -645,7 +660,7 @@ SubscriptionManagerUI
 	protected static class
 	subscriptionView
 		extends 	AbstractIView
-		implements 	ViewTitleInfo
+		implements 	ViewTitleInfo,OpenCloseSearchDetailsListener
 	{
 		private Subscription	subs;
 		
@@ -655,6 +670,9 @@ SubscriptionManagerUI
 		private Label			info_lab;
 		private Label			info_lab2;
 		private StyledText		json_area;
+		
+		private Browser			mainBrowser;
+		private Browser			detailsBrowser;
 		
 		protected
 		subscriptionView(
@@ -695,29 +713,32 @@ SubscriptionManagerUI
 			
 			composite = new Composite( parent_composite, SWT.NULL );
 			
-			GridLayout layout = new GridLayout();
-			layout.numColumns = 1;
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			composite.setLayout(layout);
-			GridData grid_data = new GridData(GridData.FILL_BOTH );
-			composite.setLayoutData(grid_data);
-
+			composite.setLayout(new FormLayout());
+			
+			//GridData grid_data = new GridData(GridData.FILL_BOTH );
+			//composite.setLayoutData(grid_data);
+			FormData data;
 
 				// control area
 			
 			final Composite controls = new Composite(composite, SWT.NONE);
-			layout = new GridLayout();
-			layout.numColumns = 5;
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 4;
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			controls.setLayout(layout);
-			grid_data = new GridData(GridData.FILL_HORIZONTAL );
-			controls.setLayoutData(grid_data);
+			
+			data = new FormData();
+			data.left = new FormAttachment(0,0);
+			data.right = new FormAttachment(100,0);
+			data.top = new FormAttachment(0,0);
+			controls.setLayoutData(data);
+			
+			GridData grid_data;
 			
 			info_lab = new Label( controls, SWT.NULL );
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			grid_data.horizontalIndent = 4;
+			//grid_data.horizontalSpan = 5;
 			info_lab.setLayoutData(grid_data);
 
 				
@@ -737,16 +758,25 @@ SubscriptionManagerUI
 				});
 
 			final Button save_button = new Button( controls, SWT.NULL );
-			save_button.setText( "Save" );
-					
+			save_button.setText( "Save" );		
 			
-			json_area = new StyledText(composite, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
-			grid_data = new GridData(GridData.FILL_BOTH);
-			grid_data.horizontalSpan = 1;
-			grid_data.horizontalIndent = 4;
+			final Button download_button = new Button( controls, SWT.NULL );
+			download_button.setText( "Download" );
+			
+			info_lab2 = new Label( controls, SWT.NULL );
+			
+			grid_data = new GridData(GridData.FILL_HORIZONTAL);
+			grid_data.horizontalSpan = 4;
+			info_lab2.setLayoutData(grid_data);
+			
+			json_area = new StyledText(controls,SWT.BORDER);
+			grid_data = new GridData(GridData.FILL_HORIZONTAL);
+			grid_data.horizontalSpan = 4;
+			grid_data.heightHint = 50;
 			json_area.setLayoutData(grid_data);
-			json_area.setIndent( 4 );
 
+			
+			
 			save_button.addSelectionListener(
 				new SelectionAdapter() 
 				{
@@ -783,7 +813,7 @@ SubscriptionManagerUI
 					}
 				});
 			
-			final Button browse_button = new Button( controls, SWT.NULL );
+			/*final Button browse_button = new Button( controls, SWT.NULL );
 			browse_button.setText( "Browser" );
 						
 			browse_button.addSelectionListener(
@@ -803,10 +833,9 @@ SubscriptionManagerUI
 						browser.getContext().addMessageListener(
 							new MetaSearchListener( null ));
 					}
-				});
+				});*/
 			
-			final Button download_button = new Button( controls, SWT.NULL );
-			download_button.setText( "Download" );
+			
 						
 			download_button.addSelectionListener(
 				new SelectionAdapter() 
@@ -825,15 +854,123 @@ SubscriptionManagerUI
 					}
 				});
 			
-			info_lab2 = new Label( controls, SWT.NULL );
-			
-			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			grid_data.horizontalIndent = 4;
-			info_lab2.setLayoutData(grid_data);
+			try {
+				mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+				BrowserContext context = new BrowserContext("browser-window"
+						+ Math.random(), mainBrowser, null, true);
+				context.addMessageListener(new TorrentListener());
+				context.addMessageListener(new DisplayListener(mainBrowser));
+				context.addMessageListener(new ConfigListener(mainBrowser));
+				context.addMessageListener(
+						new MetaSearchListener( this ));
+				String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
 
+				mainBrowser.setUrl(url);
+				mainBrowser.setData("StartURL", url);
+				
+				data = new FormData();
+				data.left = new FormAttachment(0,0);
+				data.right = new FormAttachment(100,0);
+				data.top = new FormAttachment(controls,0);
+				data.bottom = new FormAttachment(100,0);
+				mainBrowser.setLayoutData(data);
+				
+				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+				BrowserContext detailsContext = new BrowserContext("browser-window"
+						+ Math.random(), detailsBrowser, null, true);
+				detailsContext.addMessageListener(new TorrentListener());
+				detailsContext.addMessageListener(new DisplayListener(detailsBrowser));
+				detailsContext.addMessageListener(new ConfigListener(detailsBrowser));
+				url = "about:blank";
+				detailsBrowser.setUrl(url);
+				detailsBrowser.setData("StartURL", url);
+				
+				data = new FormData();
+				data.left = new FormAttachment(0,0);
+				data.right = new FormAttachment(100,0);
+				data.top = new FormAttachment(mainBrowser,0);
+				data.bottom = new FormAttachment(100,0);
+				detailsBrowser.setLayoutData(data);
+				
+				
+			} catch(Exception e) {
+				
+			}
+			
 			updateInfo();
 		}
 		  
+		public void closeSearchResults(final Map params) {
+			Utils.execSWTThread(new AERunnable() {
+
+				public void runSupport() {
+					detailsBrowser.setVisible(false);
+					
+					FormData gd = (FormData) mainBrowser.getLayoutData();
+					gd.bottom = new FormAttachment(100, 0);
+					mainBrowser.setLayoutData(gd);
+		
+					mainBrowser.getParent().layout(true);
+					detailsBrowser.setUrl("about:blank");
+				}
+			});
+		}
+		
+		public void openSearchResults(final Map params) {
+			Utils.execSWTThread(new AERunnable() {
+
+				public void runSupport() {
+					String url = MapUtils.getMapString(params, "url",
+							"http://google.com/search?q=" + Math.random());
+					if (PlatformConfigMessenger.urlCanRPC(url)) {
+						url = com.aelitis.azureus.util.Constants.appendURLSuffix(url);
+					}
+					
+					//Gudy, Not Tux, Listener Added
+					String listenerAdded = (String) detailsBrowser.getData("g.nt.la");
+					if(listenerAdded == null) {
+						detailsBrowser.setData("g.nt.la",null);
+						detailsBrowser.addProgressListener(new ProgressListener() {
+							public void changed(ProgressEvent event) {}
+							
+							public void completed(ProgressEvent event) {
+								Browser search = (Browser) event.widget;
+								String execAfterLoad = (String) search.getData("execAfterLoad");
+								//Erase it, so that it's only used once after the page loads
+								search.setData("execAfterLoad",null);
+								if(execAfterLoad != null && ! execAfterLoad.equals("")) {
+									//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
+									//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
+									boolean result = search.execute(execAfterLoad);
+									//System.out.println("Injection : " + execAfterLoad + " (" + result + ")");
+								}
+		
+							}
+						});
+					}
+					
+					
+					//Store the "css" match string in the search cdp browser object
+					String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad", null);
+					
+					detailsBrowser.setData("execAfterLoad",execAfterLoad);
+					
+					
+					detailsBrowser.setData("subscription_id",MapUtils.getMapString(params, "subs_id", null));
+					detailsBrowser.setUrl(url);
+					detailsBrowser.setVisible(true);
+		
+					FormData data = (FormData) mainBrowser.getLayoutData();
+					data.bottom = null;
+					data.height = MapUtils.getMapInt(params, "top-height", 120);
+					//mainBrowser.setLayoutData(data);
+		
+					mainBrowser.getParent().layout(true,true);
+				}
+			});
+				
+		}
+		
 		protected void
 		updateInfo()
 		{

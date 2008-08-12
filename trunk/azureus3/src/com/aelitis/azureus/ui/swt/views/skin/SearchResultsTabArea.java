@@ -40,6 +40,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.BrowserRpcBuddyListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -53,7 +54,7 @@ import com.aelitis.azureus.util.MapUtils;
  */
 public class SearchResultsTabArea
 	extends SkinView
-	implements ViewTitleInfo
+	implements ViewTitleInfo, OpenCloseSearchDetailsListener
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 

@@ -48,6 +48,7 @@ import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -88,12 +89,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_MARK_SUBSCRIPTION_RESULTS	   	= "mark-subscription-results";
 	public static final String OP_DOWNLOAD_SUBSCRIPTION   		= "download-subscription";
 
-	private final SearchResultsTabArea searchResultsArea;
+	private final OpenCloseSearchDetailsListener openCloseSearchDetailsListener;
 	
 	
-	public MetaSearchListener(SearchResultsTabArea searchResultsArea) {
+	public MetaSearchListener(OpenCloseSearchDetailsListener openCloseSearchDetailsListener) {
 		super(LISTENER_ID);
-		this.searchResultsArea = searchResultsArea;
+		this.openCloseSearchDetailsListener = openCloseSearchDetailsListener;
 	}
 	
 	public void handleMessage(BrowserMessage message) {
@@ -702,12 +703,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			searchResultsArea.openSearchResults(decodedMap);
+			openCloseSearchDetailsListener.openSearchResults(decodedMap);
 		}else if ( OP_CLOSE_SEARCH_RESULTS.equals(opid)){
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
-			searchResultsArea.closeSearchResults(decodedMap);
+			openCloseSearchDetailsListener.closeSearchResults(decodedMap);
 		}else if(OP_LOAD_TORRENT.equals(opid)) {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();

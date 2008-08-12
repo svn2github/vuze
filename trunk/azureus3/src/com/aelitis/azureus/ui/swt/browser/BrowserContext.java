@@ -400,7 +400,16 @@ public class BrowserContext
 								}catch( Throwable e ){
 								}
 								
+								String subscriptionId = (String) ((Browser)event.widget).getData("subscription_id");
+								
 								Map headers = UrlUtils.getBrowserHeaders( referer_str );
+								
+								
+								//TODO : parg please add code to handle the association of this torrent with the subscriptionId when not null
+								
+								if(subscriptionId != null) {
+									System.out.println("Subscription linked to download : " + subscriptionId);
+								}
 								
 								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 										new URL(event.location), headers );
