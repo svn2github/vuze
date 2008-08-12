@@ -1067,134 +1067,140 @@ TRTrackerBTAnnouncerImpl
 	{
    			// set context in case authentication dialog is required
     	
-    	TorrentUtils.setTLSTorrentHash( torrent_hash );
-    	
- 			// loop to possibly retry update on SSL certificate install
- 		
- 		for (int i=0;i<2;i++){	
- 		
-	  		String	failure_reason = null;
-	  	
-			try{  
-				String	protocol = reqUrl.getProtocol();
-				
-				if (Logger.isEnabled()){
-					Logger.log(new LogEvent(torrent, LOGID,
-							"Tracker Announcer is Requesting: " + reqUrl));
-				}
-				
-		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
-		  		
-		  		
-		  		URL udpAnnounceURL = null;
-		  		
-		  		boolean	udp_probe = false;
-		  		
-		  		if (protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled)
-				{
-					udpAnnounceURL = reqUrl;
-				} else if (protocol.equalsIgnoreCase("http") && !az_tracker
-					&& announceCount % autoUDPprobeEvery == 0 && udpAnnounceEnabled)
-				{
-					// if we don't know this tracker supports UDP then don't probe on
-					// first announce as we don't want a large delay on torrent startup
-					// also if we are stopping we don't want to initiate a probe as
-					// we want the stop instruction to get to tracker if possible
-					if ((stopped || announceCount == 0) && !TRTrackerUtils.isUDPProbeOK(reqUrl))
-					{
-						// skip probe
-					} else
-					{
-						udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
-						udp_probe = true;
-					}
-				}
-		  				
-		  		if (udpAnnounceURL != null)
-				{
-					failure_reason = announceUDP(reqUrl, message);
-					if ((failure_reason != null || message.size() == 0) && udp_probe)
-					{
-						// automatic UDP probe failed, use HTTP again
-						udpAnnounceURL = null;
-						if (autoUDPprobeEvery < 16)
-							autoUDPprobeEvery <<= 1;
-						else // unregister in case the tracker somehow changed its capabilities
-							TRTrackerUtils.setUDPProbeResult(reqUrl, false);
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp failed, will retry in " + autoUDPprobeEvery + " announces"));
-						
-					} else if (failure_reason == null && udp_probe)
-					{
-						TRTrackerUtils.setUDPProbeResult(reqUrl, true);
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp successful"));
-						autoUDPprobeEvery = 1;
-					}
-				}
-		  		
-		  		announceCount++;
-		  		
-		  		if ( udpAnnounceURL == null)
-		  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
-
-		  		// if we've got some kind of response then return it
-				if ( message.size() > 0 )
-					return( message.toByteArray());
-
+ 		try{
+	    	TorrentUtils.setTLSTorrentHash( torrent_hash );
+	    	
+	 			// loop to possibly retry update on SSL certificate install
+	 		
+	 		for (int i=0;i<2;i++){	
+	 		
+		  		String	failure_reason = null;
+		  	
+				try{  
+					String	protocol = reqUrl.getProtocol();
 					
-				if ( failure_reason == null ){
-					failure_reason = "No data received from tracker";
-				}
-				
+					if (Logger.isEnabled()){
+						Logger.log(new LogEvent(torrent, LOGID,
+								"Tracker Announcer is Requesting: " + reqUrl));
+					}
+					
+			  		ByteArrayOutputStream message = new ByteArrayOutputStream();
+			  		
+			  		
+			  		URL udpAnnounceURL = null;
+			  		
+			  		boolean	udp_probe = false;
+			  		
+			  		if (protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled)
+					{
+						udpAnnounceURL = reqUrl;
+					} else if (protocol.equalsIgnoreCase("http") && !az_tracker
+						&& announceCount % autoUDPprobeEvery == 0 && udpAnnounceEnabled)
+					{
+						// if we don't know this tracker supports UDP then don't probe on
+						// first announce as we don't want a large delay on torrent startup
+						// also if we are stopping we don't want to initiate a probe as
+						// we want the stop instruction to get to tracker if possible
+						if ((stopped || announceCount == 0) && !TRTrackerUtils.isUDPProbeOK(reqUrl))
+						{
+							// skip probe
+						} else
+						{
+							udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+							udp_probe = true;
+						}
+					}
+			  				
+			  		if (udpAnnounceURL != null)
+					{
+						failure_reason = announceUDP(reqUrl, message);
+						if ((failure_reason != null || message.size() == 0) && udp_probe)
+						{
+							// automatic UDP probe failed, use HTTP again
+							udpAnnounceURL = null;
+							if (autoUDPprobeEvery < 16)
+								autoUDPprobeEvery <<= 1;
+							else // unregister in case the tracker somehow changed its capabilities
+								TRTrackerUtils.setUDPProbeResult(reqUrl, false);
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp failed, will retry in " + autoUDPprobeEvery + " announces"));
+							
+						} else if (failure_reason == null && udp_probe)
+						{
+							TRTrackerUtils.setUDPProbeResult(reqUrl, true);
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp successful"));
+							autoUDPprobeEvery = 1;
+						}
+					}
+			  		
+			  		announceCount++;
+			  		
+			  		if ( udpAnnounceURL == null)
+			  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
 	
-			}catch( SSLException e ){
-				
-				// e.printStackTrace();
-								
-					// try and install certificate regardless of error (as this changed in JDK1.5
-					// and broke this...)
-				
-				if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
+			  		// if we've got some kind of response then return it
+					if ( message.size() > 0 )
+						return( message.toByteArray());
+	
+						
+					if ( failure_reason == null ){
+						failure_reason = "No data received from tracker";
+					}
 					
-					if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
+		
+				}catch( SSLException e ){
+					
+					// e.printStackTrace();
+									
+						// try and install certificate regardless of error (as this changed in JDK1.5
+						// and broke this...)
+					
+					if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
 						
-							// certificate has been installed
+						if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
+							
+								// certificate has been installed
+							
+							continue;	// retry with new certificate
+							
+						}
+							
+						failure_reason = exceptionToString( e );
 						
-						continue;	// retry with new certificate
+					}else{
+						
+						failure_reason = exceptionToString( e );
 						
 					}
-						
-					failure_reason = exceptionToString( e );
-					
-				}else{
-					
-					failure_reason = exceptionToString( e );
-					
+				}catch (Exception e){
+			  
+			  		// e.printStackTrace();
+			  
+			  		failure_reason = exceptionToString( e );
 				}
-			}catch (Exception e){
-		  
-		  		// e.printStackTrace();
-		  
-		  		failure_reason = exceptionToString( e );
-			}
-				
-			if ( failure_reason.indexOf("401" ) != -1 ){
 					
-				failure_reason = "Tracker authentication failed";
-			}
-		
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
-						"Exception while processing the Tracker Request for " + reqUrl + ": "
-								+ failure_reason));
+				if ( failure_reason.indexOf("401" ) != -1 ){
+						
+					failure_reason = "Tracker authentication failed";
+				}
 			
-			throw( new Exception( failure_reason));
- 		}
- 		
- 			// should never get here as second iteration of loop will always cause an exit
- 		
- 		throw( new Exception( "Internal Error: should never get here" ));
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+							"Exception while processing the Tracker Request for " + reqUrl + ": "
+									+ failure_reason));
+				
+				throw( new Exception( failure_reason));
+	 		}
+	 		
+	 			// should never get here as second iteration of loop will always cause an exit
+	 		
+	 		throw( new Exception( "Internal Error: should never get here" ));
+	 		
+		}finally{
+			
+			TorrentUtils.setTLSTorrentHash( null );
+		}
   	}
   
  	

@@ -458,9 +458,6 @@ public class TrackerStatus {
 				if (one_of_the_hashes == null)
 					return;
 
-				// set context in case authentication dialog is required
-				TorrentUtils.setTLSTorrentHash(one_of_the_hashes);
-
 				String	request = scrapeURL + info_hash;
 				
 				if ( az_tracker ){
@@ -494,32 +491,41 @@ public class TrackerStatus {
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 		  			
 		  		
-		  		if ( udpScrapeURL != null){
+		  		try{
+		  				// set context in case authentication dialog is required
 		  			
-		  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP );
-		  			
-		  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
-		  			{ // automatic UDP probe failed, use HTTP again
-		  				udpScrapeURL = null;
-		  				message.reset();
-		  				if(autoUDPscrapeEvery < 16)
-		  					autoUDPscrapeEvery <<= 1;
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp failed, will retry in "+autoUDPscrapeEvery+" scrapes"));
-		  			} else if(success && !protocol.equalsIgnoreCase("udp"))
-		  			{
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp successful"));
-		  				autoUDPscrapeEvery = 1;
-		  				TRTrackerUtils.setUDPProbeResult( reqUrl, true );
-		  			}
-		  				
-		  		}
-		  		
-		  		scrapeCount++;
-		  		
-		  		if(udpScrapeURL == null)
-		  			redirect_url = scrapeHTTP(reqUrl, message);
+					TorrentUtils.setTLSTorrentHash(one_of_the_hashes);
+
+			  		if ( udpScrapeURL != null){
+			  			
+			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP );
+			  			
+			  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
+			  			{ // automatic UDP probe failed, use HTTP again
+			  				udpScrapeURL = null;
+			  				message.reset();
+			  				if(autoUDPscrapeEvery < 16)
+			  					autoUDPscrapeEvery <<= 1;
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp failed, will retry in "+autoUDPscrapeEvery+" scrapes"));
+			  			} else if(success && !protocol.equalsIgnoreCase("udp"))
+			  			{
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_INFORMATION, "redirection of http scrape ["+scrapeURL+"] to udp successful"));
+			  				autoUDPscrapeEvery = 1;
+			  				TRTrackerUtils.setUDPProbeResult( reqUrl, true );
+			  			}
+			  				
+			  		}
+			  		
+			  		scrapeCount++;
+			  		
+			  		if(udpScrapeURL == null)
+			  			redirect_url = scrapeHTTP(reqUrl, message);
+				}finally{
+					
+					TorrentUtils.setTLSTorrentHash( null );
+				}
 				
 				scrape_reply = message.toByteArray();
 				
