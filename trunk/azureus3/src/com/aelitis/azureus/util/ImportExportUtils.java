@@ -26,6 +26,11 @@ public final class ImportExportUtils {
 	
 		throws IOException
 	{
+		if ( map == null ){
+			
+			return( null );
+		}
+		
 		Object	obj = map.get( key );
 		
 		if ( obj instanceof String ){
@@ -58,6 +63,11 @@ public final class ImportExportUtils {
 	
 		throws IOException
 	{
+		if ( map == null ){
+			
+			return( def );
+		}
+		
 		Object	obj = map.get( key );
 		
 		if ( obj instanceof Long){
@@ -101,11 +111,17 @@ public final class ImportExportUtils {
 	
 		throws IOException
 	{
+		if ( map == null ){
+			
+			return( def );
+		}
+		
 		Object	obj = map.get( key );
 		
 		if ( obj instanceof Long){
 			
 			return(((Long)obj).longValue() == 1 );
+			
 		}else if ( obj instanceof Boolean ){
 			
 			return(((Boolean)obj).booleanValue());
