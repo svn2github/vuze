@@ -162,26 +162,13 @@ public class DebugMenuHelper
 		});
 		
 		item = new MenuItem(menuDebug, SWT.CASCADE);
-		item.setText("Add Subscription");
+		item.setText("Add Blah");
 		Menu menuSubscriptions = new Menu(menu.getParent(), SWT.DROP_DOWN);
 		item.setMenu(menuSubscriptions);
 		
 
 		item = new MenuItem(menuSubscriptions, SWT.NONE);
-		item.setText("Import from File");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				FileDialog fd = new FileDialog(uiFunctions.getMainShell());
-				String file = fd.open();
-				if(file != null) {
-					//TODO : parg add code to load subscription from file
-				}
-			}
-		});
-		
-
-		item = new MenuItem(menuSubscriptions, SWT.NONE);
-		item.setText("Create From RSS Feed");
+		item.setText("Create Blah");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				final Shell shell = new Shell(uiFunctions.getMainShell());
@@ -240,7 +227,6 @@ public class DebugMenuHelper
 					public void handleEvent(Event arg0) {
 						String url = urlText.getText();
 						shell.dispose();
-						//TODO : parg add code to load / create an engine from the RSS url here
 					}
 				});
 				
