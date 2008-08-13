@@ -1043,13 +1043,10 @@ public class MainWindow
 				File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
 				if (f.exists()) {
 					Map oldMapTrackUsage = FileUtil.readResilientFile(f);
-					String version = org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION;
-					if (oldMapTrackUsage.containsKey("version")
-							&& oldMapTrackUsage.containsKey("statsmap")) {
-						version = MapUtils.getMapString(oldMapTrackUsage, "version",
-								version);
-						oldMapTrackUsage = MapUtils.getMapMap(oldMapTrackUsage, "statsmap",
-								oldMapTrackUsage);
+					String version = MapUtils.getMapString(oldMapTrackUsage, "version",
+							null);
+					Map map = MapUtils.getMapMap(oldMapTrackUsage, "statsmap", null);
+					if (version != null && map != null) {
 						PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
 								f.lastModified(), version, null);
 					}
