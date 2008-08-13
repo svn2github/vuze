@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
-import java.io.IOException;
 import java.net.*;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
@@ -258,10 +257,10 @@ public class TCPConnectionManager {
     request.listener.connectAttemptStarted();
     
     try {
-        // take a shortcut here to avoid binding problems
-        if(request.address.getAddress() instanceof Inet6Address && !NetworkAdmin.getSingleton().hasIPV6Potential(true))
-      	  throw new IOException("Address family not supported by protocol family: bind");
-        
+    	
+    	
+    	boolean ipv6problem = false;
+    	
     	request.channel = SocketChannel.open();
       
       try {  //advanced socket options
@@ -299,22 +298,35 @@ public class TCPConnectionManager {
         	request.channel.socket().setReuseAddress( true );
         }
         
-        InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
-        if ( bindIP != null ) {
-        	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
-          request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
-        }
-        else if( local_bind_port > 0 ) {       
-        	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
-        	request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
+        try {
+            InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
+            if ( bindIP != null ) {
+            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
+              request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
+            }
+            else if( local_bind_port > 0 ) {       
+            	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
+            	request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
+            }
+        } catch(SocketException e) {
+        	if(e.getMessage().equals("Address family not supported by protocol family: bind") && !NetworkAdmin.getSingleton().hasIPV6Potential(true));
+        		ipv6problem = true;
+        	throw e;
         }
 
       }
       catch( Throwable t ) {
-        String msg = "Error while processing advanced socket options.";
-        Debug.out( msg, t );
-        Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
-        //dont pass the exception outwards, so we will continue processing connection without advanced options set
+    	  if(!ipv6problem)
+    	  {
+  	        //dont pass the exception outwards, so we will continue processing connection without advanced options set
+    		  String msg = "Error while processing advanced socket options.";
+    	        Debug.out( msg, t );
+    	        Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
+    	  } else
+    	  {
+    		  // can't support NIO + ipv6 on this system, pass on and don't raise an alert
+    		  throw t;
+    	  }
       }
       
       request.channel.configureBlocking( false );

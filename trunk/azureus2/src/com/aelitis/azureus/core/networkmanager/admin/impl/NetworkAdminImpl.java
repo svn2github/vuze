@@ -26,7 +26,6 @@ package com.aelitis.azureus.core.networkmanager.admin.impl;
 import java.io.PrintWriter;
 import java.net.*;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
 import java.nio.channels.UnsupportedAddressTypeException;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -214,7 +213,6 @@ NetworkAdminImpl
 				
 				boolean newV6 = false;
 				boolean newV4 = false;
-				Inet6Address testAddr = null;
 				
 				Set interfaces = old_network_interfaces;
 				if (interfaces != null)
@@ -227,8 +225,6 @@ NetworkAdminImpl
 						while (addresses.hasMoreElements())
 						{
 							InetAddress ia = (InetAddress) addresses.nextElement();
-							if (ia instanceof Inet6Address)
-								testAddr = (Inet6Address) ia;
 
 							if (ia.isLoopbackAddress())
 								continue;
@@ -243,7 +239,7 @@ NetworkAdminImpl
 				supportsIPv4 = newV4;
 				supportsIPv6 = newV6;
 				
-				Logger.log(new LogEvent(LOGID, "NetworkAdmin: ipv4 supported: "+supportsIPv4+"; ipv6: "+supportsIPv6+"; probing v6 functionality on "+testAddr));
+				Logger.log(new LogEvent(LOGID, "NetworkAdmin: ipv4 supported: "+supportsIPv4+"; ipv6: "+supportsIPv6+"; probing v6+nio functionality"));
 				
 				if(newV6)
 				{
@@ -252,13 +248,8 @@ NetworkAdminImpl
 					try
 					{
 						channel.configureBlocking(false);
-						channel.socket().bind(new InetSocketAddress(testAddr, 0));
-						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio bind on "+testAddr+" successful"));
-						channel.accept();
-						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio accept attempt on "+testAddr+" successful"));
-						SocketChannel chan = SocketChannel.open(new InetSocketAddress(testAddr,channel.socket().getLocalPort()));
-						Logger.log(new LogEvent(LOGID, "NetworkAdmin: nio open on "+testAddr+" successful"));
-						chan.close();
+						channel.socket().bind(new InetSocketAddress(anyLocalAddressIPv6, 0));
+						Logger.log(new LogEvent(LOGID, "NetworkAdmin: testing nio + ipv6 bind successful"));
 
 						supportsIPv6withNIO = true;
 					} catch (Exception e)
