@@ -977,10 +977,6 @@ public class MainWindow
 			transfer_bar.forceSaveLocation();
 		}
 
-		if (!SWTThread.getInstance().isTerminated()) {
-			SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
-		}
-
 		mapTrackUsage_mon.enter();
 		try {
 			if (mapTrackUsage != null) {
@@ -1004,6 +1000,10 @@ public class MainWindow
 			mapTrackUsage_mon.exit();
 		}
 
+		if (!SWTThread.getInstance().isTerminated()) {
+			SWTThread.getInstance().getInitializer().stopIt(bForRestart, false);
+		}
+
 		return true;
 	}
 
@@ -1019,6 +1019,12 @@ public class MainWindow
 				return id;
 			}
 		} catch (Exception e) {
+			String name = e.getClass().getName();
+			int i = name.indexOf('.');
+			if (i > 0) {
+				return name.substring(i);
+			}
+			return name;
 		}
 		return "unknown";
 	}
