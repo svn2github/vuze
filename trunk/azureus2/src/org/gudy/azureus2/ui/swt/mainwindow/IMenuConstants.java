@@ -19,7 +19,7 @@ public interface IMenuConstants
 	 * The key used to store the enablement bit mask for a menu item
 	 */
 	public static final String KEY_ENABLEMENT = "key.enablement";
-	
+
 	/**
 	 * Bit mask for az2
 	 */
@@ -113,7 +113,7 @@ public interface IMenuConstants
 	public static final String MENU_ID_RESUME_TRANSFERS = "MainWindow.menu.transfers.resumetransfers";
 
 	public static final String MENU_ID_MY_TORRENTS = "MainWindow.menu.view.mytorrents";
-	
+
 	public static final String MENU_ID_DETAILED_LIST = "MainWindow.menu.view.detailedlist";
 
 	public static final String MENU_ID_ALL_PEERS = "MainWindow.menu.view.allpeers";
@@ -145,9 +145,9 @@ public interface IMenuConstants
 	public static final String MENU_ID_WINDOW_ALL_TO_FRONT = "MainWindow.menu.window.alltofront";
 
 	public static final String MENU_ID_WINDOW_ZOOM = "MainWindow.menu.window.zoom";
-	
+
 	public static final String MENU_ID_WINDOW_ZOOM_MAXIMIZE = "MainWindow.menu.window.zoom.maximize";
-	
+
 	public static final String MENU_ID_WINDOW_ZOOM_RESTORE = "MainWindow.menu.window.zoom.restore";
 
 	public static final String MENU_ID_ABOUT = "MainWindow.menu.help.about";
@@ -172,7 +172,15 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_ADVANCED = "v3.MainWindow.tab.advanced";
 
-	public static final String MENU_ID_SEARCH_BAR = "v3.MainWindow.menu.view.searchbar";  // dead
+	public static final String MENU_ID_SEARCH_BAR = "v3.MainWindow.menu.view.searchbar"; // dead
 
-	public static final String MENU_ID_TAB_BAR = "v3.MainWindow.menu.view.tabbar";               // dead
+	public static final String MENU_ID_TAB_BAR = "v3.MainWindow.menu.view.tabbar"; // dead
+
+	public static final String MENU_ID_COMMUNITY = "MainWindow.menu.community";
+
+	public static final String MENU_ID_COMMUNITY_BLOG = "MainWindow.menu.community.blog";
+
+	public static final String MENU_ID_COMMUNITY_FORUMS = "MainWindow.menu.community.forums";
+
+	public static final String MENU_ID_COMMUNITY_ADD_FRIENDS = "MainWindow.menu.community.add_friends";
 }
