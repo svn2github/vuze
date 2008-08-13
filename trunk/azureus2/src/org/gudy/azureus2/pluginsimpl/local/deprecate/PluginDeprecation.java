@@ -74,7 +74,9 @@ public class PluginDeprecation {
 		 */
 		register("property listener", IGNORE, NOTIFY_EVERY);
 		register("createPluginView", IGNORE, NOTIFY_EVERY);
-		register("getSWTManager", IGNORE, NOTIFY_EVERY);
+		register("getSWTManager", IGNORE, IGNORE); // MonitoringPlugin needs changing, progressbar might need changing too
+		register("openTorrentFile", IGNORE, NOTIFY_EVERY);
+		register("openTorrentURL", IGNORE, NOTIFY_EVERY);
 		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(
