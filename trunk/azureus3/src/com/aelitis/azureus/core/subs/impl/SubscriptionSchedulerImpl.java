@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -50,7 +51,7 @@ SubscriptionSchedulerImpl
 {
 	private SubscriptionManagerImpl		manager;
 	
-	private Set	active_subscription_downloaders = new HashSet();
+	private Map	active_subscription_downloaders = new HashMap();
 	private Set	active_result_downloaders		= new HashSet();
 	
 	private AsyncDispatcher	result_downloader = new AsyncDispatcher();
@@ -101,27 +102,48 @@ SubscriptionSchedulerImpl
 	{
 		SubscriptionDownloader downloader;
 		
+		AESemaphore	sem = null;
+		
 		synchronized( active_subscription_downloaders ){
 			
-			if ( active_subscription_downloaders.contains( subs )){
+			List	waiting = (List)active_subscription_downloaders.get( subs );
+			
+			if ( waiting != null ){
 				
-				return;
+				sem = new AESemaphore( "SS:waiter" );
+				
+				waiting.add( sem );
+				
+			}else{
+							
+				active_subscription_downloaders.put( subs, new ArrayList());
 			}
 	
 			downloader = new SubscriptionDownloader(manager, (SubscriptionImpl)subs );
-			
-			active_subscription_downloaders.add( subs );
 		}
 		
 		try{
+			if ( sem == null ){
 			
-			downloader.download();
-			
+				downloader.download();
+				
+			}else{
+				
+				sem.reserve();
+			}
 		}finally{
 			
 			synchronized( active_subscription_downloaders ){
 
-				active_subscription_downloaders.remove( subs );
+				List waiting = (List)active_subscription_downloaders.remove( subs );
+				
+				if ( waiting != null ){
+					
+					for (int i=0;i<waiting.size();i++){
+						
+						((AESemaphore)waiting.get(i)).release();
+					}
+				}
 			}
 		}
 	}
