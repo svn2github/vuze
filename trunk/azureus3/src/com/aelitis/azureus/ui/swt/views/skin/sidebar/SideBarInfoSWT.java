@@ -114,11 +114,11 @@ public class SideBarInfoSWT implements SideBarInfo
 		this.pullTitleFromIView = pullTitleFromIView;
 	}
 
-	public IView getIview() {
+	public IView getIView() {
 		return iview;
 	}
 
-	public void setIview(IView iview) {
+	public void setIView(IView iview) {
 		this.iview = iview;
 	}
 
@@ -138,27 +138,27 @@ public class SideBarInfoSWT implements SideBarInfo
 		this.eventListener = eventListener;
 	}
 
-	public Class getIviewClass() {
+	public Class getIViewClass() {
 		return iviewClass;
 	}
 
-	public void setIviewClass(Class iviewClass) {
+	public void setIViewClass(Class iviewClass) {
 		this.iviewClass = iviewClass;
 	}
 
-	public Class[] getIviewClassArgs() {
+	public Class[] getIViewClassArgs() {
 		return iviewClassArgs;
 	}
 
-	public void setIviewClassArgs(Class[] iviewClassArgs) {
+	public void setIViewClassArgs(Class[] iviewClassArgs) {
 		this.iviewClassArgs = iviewClassArgs;
 	}
 
-	public Object[] getIviewClassVals() {
+	public Object[] getIViewClassVals() {
 		return iviewClassVals;
 	}
 
-	public void setIviewClassVals(Object[] iviewClassVals) {
+	public void setIViewClassVals(Object[] iviewClassVals) {
 		this.iviewClassVals = iviewClassVals;
 	}
 
