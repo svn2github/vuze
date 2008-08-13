@@ -52,6 +52,8 @@ SubscriptionSchedulerImpl
 	private SubscriptionManagerImpl		manager;
 	
 	private Map	active_subscription_downloaders = new HashMap();
+	private boolean active_subs_download_is_auto;
+	
 	private Set	active_result_downloaders		= new HashSet();
 	
 	private AsyncDispatcher	result_downloader = new AsyncDispatcher();
@@ -70,6 +72,7 @@ SubscriptionSchedulerImpl
 	public void 
 	download(
 		final Subscription 					subs,
+		final boolean						is_auto,
 		final SubscriptionDownloadListener 	listener )
 	{
 		new AEThread2( "SS:download", true )
@@ -78,7 +81,7 @@ SubscriptionSchedulerImpl
 			run()
 			{
 				try{
-					download( subs );
+					download( subs, is_auto );
 					
 					listener.complete( subs );
 					
@@ -96,7 +99,8 @@ SubscriptionSchedulerImpl
 	
 	public void 
 	download(
-		Subscription subs )
+		Subscription 	subs,
+		boolean			is_auto )
 	
 		throws SubscriptionException 
 	{
@@ -114,9 +118,15 @@ SubscriptionSchedulerImpl
 				
 				waiting.add( sem );
 				
+				if ( !is_auto ){
+					
+					active_subs_download_is_auto = false;
+				}
 			}else{
 							
 				active_subscription_downloaders.put( subs, new ArrayList());
+				
+				active_subs_download_is_auto = is_auto;
 			}
 	
 			downloader = new SubscriptionDownloader(manager, (SubscriptionImpl)subs );
@@ -133,6 +143,8 @@ SubscriptionSchedulerImpl
 			}
 		}finally{
 			
+			boolean	was_auto;
+			
 			synchronized( active_subscription_downloaders ){
 
 				List waiting = (List)active_subscription_downloaders.remove( subs );
@@ -144,7 +156,11 @@ SubscriptionSchedulerImpl
 						((AESemaphore)waiting.get(i)).release();
 					}
 				}
+				
+				was_auto = active_subs_download_is_auto;
 			}
+			
+			((SubscriptionImpl)subs).fireDownloaded( was_auto );
 		}
 	}
 	

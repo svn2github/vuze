@@ -27,4 +27,9 @@ SubscriptionListener
 	public void
 	subscriptionChanged(
 		Subscription		subs );
+	
+	public void
+	subscriptionDownloaded(
+		Subscription		subs,
+		boolean				auto );
 }

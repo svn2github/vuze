@@ -26,13 +26,15 @@ SubscriptionScheduler
 {
 	public void
 	download(
-		Subscription		subs )
+		Subscription		subs,
+		boolean				is_auto )
 	
 		throws SubscriptionException;
 	
 	public void
 	download(
 		Subscription					subs,
+		boolean							is_auto,
 		SubscriptionDownloadListener	listener )
 	
 		throws SubscriptionException;

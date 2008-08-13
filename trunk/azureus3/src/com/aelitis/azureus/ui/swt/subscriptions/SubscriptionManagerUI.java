@@ -808,6 +808,17 @@ SubscriptionManagerUI
 								}
 							});
 					}
+					
+					public void
+					subscriptionDownloaded(
+						Subscription		subs,
+						boolean				auto )
+					{
+						if ( auto ){
+							
+							updateBrowser();
+						}
+					}
 				});
 			
 			/*final Button browse_button = new Button( controls, SWT.NULL );
@@ -842,7 +853,7 @@ SubscriptionManagerUI
 						SelectionEvent event )
 					{
 						try{
-							subs.getManager().getScheduler().download( subs );
+							subs.getManager().getScheduler().download( subs, false );
 							
 						}catch( Throwable e ){
 							
@@ -966,6 +977,15 @@ SubscriptionManagerUI
 				}
 			});
 				
+		}
+		
+		protected void
+		updateBrowser()
+		{
+			if ( mainBrowser != null ){
+				
+				mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
+			}
 		}
 		
 		protected void

@@ -46,7 +46,7 @@ SubscriptionDownloader
 		subs	= _subs;
 	}
 	
-	public void
+	protected void
 	download()
 	
 		throws SubscriptionException

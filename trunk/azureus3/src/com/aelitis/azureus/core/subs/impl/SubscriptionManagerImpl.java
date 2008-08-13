@@ -1210,6 +1210,7 @@ SubscriptionManagerImpl
 			
 			scheduler.download( 
 				subs, 
+				true,
 				new SubscriptionDownloadListener()
 				{
 					public void

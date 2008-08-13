@@ -1318,6 +1318,25 @@ SubscriptionImpl
 			}
 		}
 	}
+
+	protected void
+	fireDownloaded(
+		boolean	was_auto )
+	{
+
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((SubscriptionListener)it.next()).subscriptionDownloaded( this, was_auto );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
 	
 	public void
 	addListener(

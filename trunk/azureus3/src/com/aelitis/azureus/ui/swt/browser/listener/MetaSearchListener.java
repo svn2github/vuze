@@ -934,6 +934,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 						
 						subs.getManager().getScheduler().download(
 								subs,
+								false,
 								new SubscriptionDownloadListener()
 								{
 									public void
@@ -1076,6 +1077,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					subs.getManager().getScheduler().download(
 						subs,
+						false,
 						new SubscriptionDownloadListener()
 						{
 							public void
