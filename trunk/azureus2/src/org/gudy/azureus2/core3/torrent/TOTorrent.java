@@ -37,7 +37,13 @@ TOTorrent
 		 * deemed to be exportable to the world
 		 */
 	
-	public static final String	AZUREUS_PROPERTIES		= "azureus_properties";
+	public static final String	AZUREUS_PROPERTIES				= "azureus_properties";
+	
+		/**
+		 * These ones are *not* exportable to the world
+		 */
+	
+	public static final String	AZUREUS_PRIVATE_PROPERTIES		= "azureus_private_properties";
 	
 	/**
 	 * Get the name of the torrent

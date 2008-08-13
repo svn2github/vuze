@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.torrent.*;
  */
 public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader {
 
+  private String	original_url; 
   private String 	url_str;
   private String	referrer;
   private Map		request_properties;
@@ -89,6 +90,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		String								_file )
   {
     this.iface = _iface;
+    
+    original_url = _url;
     
     //clean up accidental left-facing slashes
     _url = _url.replace( (char)92, (char)47 );
@@ -553,6 +556,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	          	Debug.printStackTrace( e );
 	          }
 	          
+	          TorrentUtils.setObtainedFrom( file, original_url );
+
 	          this.state = STATE_FINISHED;
 	        }
 	        this.notifyListener();

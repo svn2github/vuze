@@ -31,7 +31,6 @@ import java.net.*;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -40,7 +39,6 @@ import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.plugins.PluginInterface;
 
 
 public class 
@@ -52,6 +50,7 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED	= "dht_backup_requested";
 	private static final String		TORRENT_AZ_PROP_TORRENT_FLAGS			= "torrent_flags";
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
+	private static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
 	
 	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
 	
@@ -990,6 +989,78 @@ TorrentUtils
 		}
 		
 		return( m );
+	}
+	
+	private static Map
+	getAzureusPrivateProperties(
+		TOTorrent	torrent )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES );
+		
+		if ( m == null ){
+			
+			m = new HashMap();
+			
+			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES, m );
+		}
+		
+		return( m );
+	}
+	
+	public static void
+	setObtainedFrom(
+		File			file,
+		String			str )
+	{
+		try{
+			TOTorrent	torrent = readFromFile( file, false, false );
+			
+			setObtainedFrom( torrent, str );
+			
+			writeToFile( torrent );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	public static void
+	setObtainedFrom(
+		TOTorrent		torrent,
+		String			str )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			m.put( TORRENT_AZ_PROP_OBTAINED_FROM, str.getBytes( "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public static String
+	getObtainedFrom(
+		TOTorrent		torrent )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+
+		byte[]	from = (byte[])m.get( TORRENT_AZ_PROP_OBTAINED_FROM );
+		
+		if ( from != null ){
+			
+			try{
+				return( new String( from, "UTF-8" ));
+				
+			}catch( Throwable e ){
+			
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( null );
 	}
 	
 	public static void
