@@ -184,6 +184,9 @@ public class Utils
 	}
 
 	public static void disposeSWTObjects(Object[] disposeList) {
+		if (disposeList == null) {
+			return;
+		}
 		boolean bResourceObjectExists = SWT.getVersion() >= 3129;
 
 		for (int i = 0; i < disposeList.length; i++) {
