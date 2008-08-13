@@ -534,7 +534,14 @@ SubscriptionManagerImpl
 		
 		if ( dht_plugin != null ){
 				
-			publishSubscriptions();
+			new AEThread2( "Publish check", true )
+			{
+				public void
+				run()
+				{
+					publishSubscriptions();
+				}
+			}.start();
 		}
 		
 		return( subs );

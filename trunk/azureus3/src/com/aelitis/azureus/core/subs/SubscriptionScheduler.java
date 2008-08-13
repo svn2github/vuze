@@ -21,8 +21,6 @@
 
 package com.aelitis.azureus.core.subs;
 
-import com.aelitis.azureus.core.subs.impl.SubscriptionDownloader;
-
 public interface 
 SubscriptionScheduler 
 {

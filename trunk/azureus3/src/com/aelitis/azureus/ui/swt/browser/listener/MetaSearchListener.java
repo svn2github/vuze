@@ -915,7 +915,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			final String sid = (String) decodedMap.get("id");
 			
-			Map result = new HashMap();
+			final Map result = new HashMap();
 
 			if ( tid != null )result.put( "tid", tid );
 
@@ -929,12 +929,43 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage("metasearch", "readSubscriptionResultsFailed",result);
 					
 				}else{
+						
+					if ( subs.getHistory().getLastScanTime() == 0 ){
+						
+						subs.getManager().getScheduler().download(
+								subs,
+								new SubscriptionDownloadListener()
+								{
+									public void
+									complete(
+										Subscription		subs )
+									{
+										result.put( "id", subs.getID());
 										
-					result.put( "id", subs.getID());
+										encodeResults( subs, result );
+										
+										sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+									}
+									
+									public void
+									failed(
+										Subscription			subs,
+										SubscriptionException	error )
+									{
+										result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+
+										sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
+
+									}
+								});
+					}else{
 					
-					encodeResults( subs, result );
-					
-					sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+						result.put( "id", subs.getID());
+						
+						encodeResults( subs, result );
+						
+						sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+					}
 				}
 			} catch( Throwable e ){
 				
@@ -1096,6 +1127,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		}
 		
 		result.put( "results", results_list );
+		
+		
 	}
 	
 	public boolean 
