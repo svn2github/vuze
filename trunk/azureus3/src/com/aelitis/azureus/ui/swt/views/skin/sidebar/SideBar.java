@@ -293,8 +293,8 @@ public class SideBar
 						Color curBG;
 						if (selected) {
 							event.gc.setForeground(colorFocus);
-							event.gc.drawRectangle(0, event.y, treeBounds.width - 1,
-									event.height - 1);
+							//event.gc.drawRectangle(0, event.y, treeBounds.width - 1,
+							//		event.height - 1);
 							event.gc.setForeground(fgSel);
 							event.gc.setBackground(bgSel);
 
@@ -313,12 +313,36 @@ public class SideBar
 							curBG = event.gc.getBackground();
 						}
 
-						if (treeItem.getItemCount() > 0) {
+						// OSX overrides the twisty, and we can't use the default twisty
+						// on Windows because it doesn't have transparency and looks ugly
+						if (!Constants.isOSX && treeItem.getItemCount() > 0) {
+							event.gc.setAntialias(SWT.ON);
+							Color oldBG = event.gc.getBackground();
+							event.gc.setBackground(event.gc.getForeground());
 							if (treeItem.getExpanded()) {
-								event.gc.drawText("V", event.x - 16, event.y + 6, true);
+								int xStart = 17;
+								int arrowSize = 8;
+								event.gc.fillPolygon(new int[] {
+									event.x - xStart,
+									event.y + 9,
+									event.x - xStart + arrowSize,
+									event.y + 9,
+									event.x - xStart + (arrowSize / 2),
+									event.y + 16,
+								});
 							} else {
-								event.gc.drawText(">", event.x - 16, event.y + 6, true);
+								int xStart = 17;
+								int arrowSize = 8;
+								event.gc.fillPolygon(new int[] {
+									event.x - xStart,
+									event.y + 8,
+									event.x - xStart + arrowSize,
+									event.y + 12,
+									event.x - xStart,
+									event.y + 16,
+								});
 							}
+							event.gc.setBackground(oldBG);
 							event.gc.setFont(fontHeader);
 						}
 
@@ -375,7 +399,7 @@ public class SideBar
 					}
 					case SWT.EraseItem: {
 						//event.detail &= ~SWT.FOREGROUND;
-						event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
+						//event.detail &= ~(SWT.FOREGROUND | SWT.BACKGROUND);
 						break;
 					}
 
