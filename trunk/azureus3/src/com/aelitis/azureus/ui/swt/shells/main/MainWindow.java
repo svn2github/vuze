@@ -1725,9 +1725,42 @@ public class MainWindow
 						Control c = soSearchArea.getControl();
 						Rectangle bounds = ((Control)event.widget).getBounds();
 						FormData fd = (FormData) c.getLayoutData();
-						fd.width = bounds.width - 4;
+						fd.width = bounds.width - 1 - c.getBounds().x ;
+						System.out.println("sidebar width is now " + bounds.width);
 						Utils.relayout(c);
 					}
+				}
+			});
+		}
+		
+		so = skin.getSkinObject("search-dropdown");
+		if (so != null) {
+			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
+			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility) {
+					final Menu menu = new Menu(shell, SWT.POP_UP);
+					menu.addMenuListener(new MenuListener() {
+						public void menuShown(MenuEvent e) {
+						}
+					
+						public void menuHidden(MenuEvent e) {
+							Utils.execSWTThreadLater(0, new AERunnable() {
+								public void runSupport() {
+									menu.dispose();
+								}
+							});
+						}
+					});
+					MenuItem menuItem;
+					menuItem = new MenuItem(menu, SWT.PUSH);
+					menuItem.setText("Menu 1");
+					menuItem = new MenuItem(menu, SWT.PUSH);
+					menuItem.setText("Menu 2");
+					menuItem = new MenuItem(menu, SWT.PUSH);
+					menuItem.setText("Menu 3");
+					
+					menu.setLocation(shell.getDisplay().getCursorLocation());
+					menu.setVisible(true);
 				}
 			});
 		}
@@ -1753,20 +1786,6 @@ public class MainWindow
 					true, -1);
 		}
 		sidebar.showItemByID(id);
-	}
-
-	private void restartBrowser(SWTSkinObject[] search) {
-		if (search == null) {
-			return;
-		}
-		for (int i = 0; i < search.length; i++) {
-			SWTSkinObject so = search[i];
-			if (so instanceof SWTSkinObjectBrowser) {
-				((SWTSkinObjectBrowser) so).restart();
-			} else if (so instanceof SWTSkinObjectContainer) {
-				restartBrowser(((SWTSkinObjectContainer) so).getChildren());
-			}
-		}
 	}
 
 	/**
