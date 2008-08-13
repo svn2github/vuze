@@ -18,8 +18,6 @@
  
 package org.gudy.azureus2.plugins.ui.sidebar;
 
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-
 /**
  * @author TuxPaper
  * @created Aug 13, 2008
@@ -34,13 +32,11 @@ public interface SideBarInfo
 
 	public boolean isCloseable();
 
-	public UISWTViewEventListener getEventListener();
+	public Class getIViewClass();
 
-	public Class getIviewClass();
+	public Class[] getIViewClassArgs();
 
-	public Class[] getIviewClassArgs();
-
-	public Object[] getIviewClassVals();
+	public Object[] getIViewClassVals();
 
 	public String getId();
 
