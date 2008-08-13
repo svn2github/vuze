@@ -48,8 +48,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedLimitItem;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRate;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRateUpDown;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRatingGlobal;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 
 /**
@@ -74,7 +74,7 @@ public class TableColumnCreatorV3
 			show(new DoneItem(tableID)),
 			show(new StatusItem(tableID)),
 			show(new ETAItem(tableID)),
-			show(new ColumnRate(tableID)),
+			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
 
 			/*
@@ -134,9 +134,8 @@ public class TableColumnCreatorV3
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
 			show(new StatusItem(tableID)),
-			show(new ColumnRate(tableID)),
+			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
-
 
 			/*
 			 * Initially hidden
