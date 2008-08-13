@@ -98,6 +98,10 @@ public class Constants
 
 	public static final String URL_RPC = "rpc/";
 
+	public static final String URL_BLOG = "http://blog.vuze.com/";
+	
+	public static final String URL_FORUMS = "http://forum.vuze.com/";
+	
 	public static String URL_RELAY_RPC = System.getProperty("relay_url",
 			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
 					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT)

@@ -1,20 +1,31 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
@@ -63,24 +74,21 @@ public class MainMenu
 		menuBar = new Menu(parent, SWT.BAR);
 		parent.setMenuBar(menuBar);
 
-		addFileMenu(parent);
-		addViewMenu(parent);
+		addFileMenu();
+		addViewMenu();
 
-		/*
-		 * There is no Tools menu for OSX
-		 */
-		if (false == Constants.isOSX) {
-			addToolsMenu(parent);
-		}
+		addCommunityMenu();
+
+		addToolsMenu();
 
 		/*
 		 * The Torrents menu is a user-configured option
 		 */
 		if (true == COConfigurationManager.getBooleanParameter("show_torrents_menu")) {
-			addTorrentMenu(parent);
+			addTorrentMenu();
 		}
 
-		addWindowMenu(parent);
+		addWindowMenu();
 
 		// ===== Debug menu (development only)====
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
@@ -88,7 +96,7 @@ public class MainMenu
 			DebugMenuHelper.createDebugMenuItem(menuDebug);
 		}
 
-		addHelpMenu(parent);
+		addHelpMenu();
 
 		/*
 		 * Enabled/disable menus based on what ui mode we're in; this method call controls
@@ -99,11 +107,8 @@ public class MainMenu
 
 	/**
 	 * Creates the File menu and all its children
-	 * @param parent
-	 * @param notMainWindow
-	 * @param isModal
 	 */
-	private void addFileMenu(final Shell parent) {
+	private void addFileMenu() {
 		MenuItem fileItem = MenuFactory.createFileMenuItem(menuBar);
 		final Menu fileMenu = fileItem.getMenu();
 		builFileMenu(fileMenu);
@@ -158,12 +163,8 @@ public class MainMenu
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.createTransfersMenuItem(fileMenu);
 
-		if (true == Constants.isOSX) {
-			MenuFactory.createPluginsMenuItem(fileMenu, true);
-		}
-
 		/*
-		 * No need for restart and exit on OS X
+		 * No need for restart and exit on OS X since it's already handled on the application menu
 		 */
 		if (false == Constants.isOSX) {
 			MenuFactory.addSeparatorMenuItem(fileMenu);
@@ -174,35 +175,15 @@ public class MainMenu
 
 	/**
 	 * Creates the View menu and all its children
-	 * @param parent
-	 * @param notMainWindow
 	 */
-	private void addViewMenu(final Shell parent) {
+	private void addViewMenu() {
 		try {
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
 			final Menu viewMenu = viewItem.getMenu();
 
 			addViewToolBarsMenu(viewMenu);
-			
+
 			addViewMenuItems(viewMenu);
-
-			MenuFactory.addSeparatorMenuItem(viewMenu);
-			MenuItem advancedMenuItem = MenuFactory.createAdvancedMenuItem(viewMenu);
-			Menu advancedMenu = advancedMenuItem.getMenu();
-
-			MenuFactory.addMyTorrentsMenuItem(advancedMenu);
-			MenuFactory.addMyTrackerMenuItem(advancedMenu);
-			MenuFactory.addMySharesMenuItem(advancedMenu);
-			MenuFactory.addConsoleMenuItem(advancedMenu);
-			MenuFactory.addStatisticsMenuItem(advancedMenu);
-
-			MenuFactory.setEnablementKeys(
-					MenuFactory.addViewToolbarMenuItem(advancedMenu), FOR_AZ2
-							| FOR_AZ3_ADV);
-
-			MenuFactory.addTransferBarToMenu(advancedMenu);
-			MenuFactory.addAllPeersMenuItem(advancedMenu);
-			MenuFactory.addBlockedIPsMenuItem(advancedMenu);
 
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
@@ -216,35 +197,35 @@ public class MainMenu
 	 */
 	private void addViewToolBarsMenu(Menu parent) {
 		try {
-			
+
 			MenuItem viewToolBarsItem = MenuFactory.createTopLevelMenuItem(parent,
 					PREFIX_V3 + ".view.toolbars");
 			final Menu viewToolBarsMenu = viewToolBarsItem.getMenu();
 
 			if (ALLOW_SIDEBAR_HIDING) {
-  			MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK,
-  					PREFIX_V3 + ".view.sidebar", new Listener() {
-  						public void handleEvent(Event event) {
-  							SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-  							if (sidebar != null) {
-  								sidebar.flipSideBarVisibility();
-  							}
-  						}
-  					});
+				MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK, PREFIX_V3
+						+ ".view.sidebar", new Listener() {
+					public void handleEvent(Event event) {
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						if (sidebar != null) {
+							sidebar.flipSideBarVisibility();
+						}
+					}
+				});
 			}
 
 			if (ALLOW_ACTIONBAR_HIDING) {
-  			MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK,
-  					PREFIX_V3 + ".view.actionbar", new Listener() {
-  						public void handleEvent(Event event) {
-  							if (skin != null) {
-  								SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
-  								if (so != null) {
-  									so.setVisible(!so.isVisible());
-  								}
-  							}
-  						}
-  					});
+				MenuFactory.addMenuItem(viewToolBarsMenu, SWT.CHECK, PREFIX_V3
+						+ ".view.actionbar", new Listener() {
+					public void handleEvent(Event event) {
+						if (skin != null) {
+							SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
+							if (so != null) {
+								so.setVisible(!so.isVisible());
+							}
+						}
+					}
+				});
 			}
 
 			/*
@@ -266,8 +247,8 @@ public class MainMenu
 						}
 					}
 
-					MenuItem actionbarMenuItem = MenuFactory.findMenuItem(viewToolBarsMenu,
-							PREFIX_V3 + ".view.actionbar");
+					MenuItem actionbarMenuItem = MenuFactory.findMenuItem(
+							viewToolBarsMenu, PREFIX_V3 + ".view.actionbar");
 					if (actionbarMenuItem != null) {
 						if (skin != null) {
 							SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
@@ -276,34 +257,21 @@ public class MainMenu
 							}
 						}
 					}
-					
-					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3 + ".view."
-							+ SkinConstants.VIEWID_PLUGINBAR)) {
+
+					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3
+							+ ".view." + SkinConstants.VIEWID_PLUGINBAR)) {
 						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_PLUGINBAR,
 								SkinConstants.VIEWID_PLUGINBAR + ".visible",
 								SkinConstants.VIEWID_PLUGINBAR, true, 0);
 					}
 
-//					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3
-//							+ ".view.tabbar")) {
-//						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view.tabbar",
-//								"TabBar.visible", SkinConstants.VIEWID_TAB_BAR, true);
-//					}
-
-					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3 + ".view."
-							+ SkinConstants.VIEWID_FOOTER)) {
+					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3
+							+ ".view." + SkinConstants.VIEWID_FOOTER)) {
 						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
 								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
 								SkinConstants.VIEWID_FOOTER, true, -1);
 					}
-
-//					if (null == MenuFactory.findMenuItem(viewMenu, PREFIX_V3 + ".view."
-//							+ SkinConstants.VIEWID_BUTTON_BAR)) {
-//						createViewMenuItem(skin, viewMenu, PREFIX_V3 + ".view."
-//								+ SkinConstants.VIEWID_BUTTON_BAR, "Buttonbar.visible",
-//								SkinConstants.VIEWID_BUTTON_BAR, true);
-//					}
 
 				}
 
@@ -318,30 +286,24 @@ public class MainMenu
 	}
 
 	private void addViewMenuItems(Menu viewMenu) {
-		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".home", new Listener() {
-			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
-			}
-		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
-				SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
@@ -350,20 +312,27 @@ public class MainMenu
 
 	/**
 	 * Creates the Tools menu and all its children
-	 * @param parent
-	 * @param isModal
 	 */
-	private void addToolsMenu(final Shell parent) {
+	private void addToolsMenu() {
 		MenuItem toolsItem = MenuFactory.createToolsMenuItem(menuBar);
 		Menu toolsMenu = toolsItem.getMenu();
 
-		MenuFactory.addConfigWizardMenuItem(toolsMenu);
-		MenuFactory.addNatTestMenuItem(toolsMenu);
-		MenuFactory.addSpeedTestMenuItem(toolsMenu);
+		MenuFactory.addMyTrackerMenuItem(toolsMenu);
+		MenuFactory.addMySharesMenuItem(toolsMenu);
+		MenuFactory.addConsoleMenuItem(toolsMenu);
+		MenuFactory.addStatisticsMenuItem(toolsMenu);
+
+		MenuFactory.addTransferBarToMenu(toolsMenu);
+		MenuFactory.addAllPeersMenuItem(toolsMenu);
+		MenuFactory.addBlockedIPsMenuItem(toolsMenu);
 
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
+		MenuFactory.createPluginsMenuItem(toolsMenu, true);
+
 		if (false == Constants.isOSX) {
-			MenuFactory.createPluginsMenuItem(toolsMenu, true);
+			/*
+			 * Options is on the application menu on OSX
+			 */
 			MenuFactory.addOptionsMenuItem(toolsMenu);
 		}
 
@@ -371,18 +340,26 @@ public class MainMenu
 
 	/**
 	 * Creates the Help menu and all its children
-	 * @param parent
-	 * @param isModal
 	 */
-	private void addHelpMenu(final Shell parent) {
+	private void addHelpMenu() {
 		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
 		Menu helpMenu = helpItem.getMenu();
 
 		if (false == Constants.isOSX) {
+			/*
+			 * The 'About' menu is on the application menu on OSX
+			 */
 			MenuFactory.addAboutMenuItem(helpMenu);
 		}
 
-		MenuFactory.addFAQMenuItem(helpMenu, Constants.URL_FAQ);
+		MenuFactory.addMenuItem(helpMenu, PREFIX_V3 + ".getting_started",
+				new Listener() {
+					public void handleEvent(Event event) {
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
+					}
+				});
+
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
 		if (false == SystemProperties.isJavaWebStartInstance()) {
@@ -390,12 +367,11 @@ public class MainMenu
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 		}
 
-		if (true == Constants.isOSX) {
-			MenuFactory.addSeparatorMenuItem(helpMenu);
-			MenuFactory.addConfigWizardMenuItem(helpMenu);
-			MenuFactory.addNatTestMenuItem(helpMenu);
-			MenuFactory.addSpeedTestMenuItem(helpMenu);
-		}
+		MenuFactory.addSeparatorMenuItem(helpMenu);
+		MenuFactory.addConfigWizardMenuItem(helpMenu);
+		MenuFactory.addNatTestMenuItem(helpMenu);
+		MenuFactory.addSpeedTestMenuItem(helpMenu);
+
 		MenuFactory.addSeparatorMenuItem(helpMenu);
 		MenuFactory.addDebugHelpMenuItem(helpMenu);
 
@@ -403,9 +379,8 @@ public class MainMenu
 
 	/**
 	 * Creates the Window menu and all its children
-	 * @param parent
 	 */
-	private void addWindowMenu(Shell parent) {
+	private void addWindowMenu() {
 		MenuItem menu_window = MenuFactory.createWindowMenuItem(menuBar);
 		Menu windowMenu = menu_window.getMenu();
 
@@ -420,9 +395,8 @@ public class MainMenu
 
 	/**
 	 * Creates the Torrent menu and all its children
-	 * @param parent
 	 */
-	private void addTorrentMenu(final Shell parent) {
+	private void addTorrentMenu() {
 		MenuFactory.setEnablementKeys(MenuFactory.createTorrentMenuItem(menuBar),
 				FOR_AZ2 | FOR_AZ3_ADV);
 	}
@@ -432,6 +406,38 @@ public class MainMenu
 			return menuBar;
 		}
 		return MenuFactory.findMenu(menuBar, id);
+	}
+
+	private void addCommunityMenu() {
+		MenuItem item = MenuFactory.createTopLevelMenuItem(menuBar,
+				MENU_ID_COMMUNITY);
+		Menu communityMenu = item.getMenu();
+
+		MenuFactory.addFAQMenuItem(communityMenu, Constants.URL_FAQ);
+
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
+				new Listener() {
+					public void handleEvent(Event e) {
+						Utils.launch(Constants.URL_BLOG);
+					}
+				});
+
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
+				new Listener() {
+					public void handleEvent(Event e) {
+						Utils.launch(Constants.URL_FORUMS);
+					}
+				});
+
+		MenuFactory.addSeparatorMenuItem(communityMenu);
+
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_ADD_FRIENDS,
+				new Listener() {
+					public void handleEvent(Event e) {
+						System.out.println(MENU_ID_COMMUNITY_ADD_FRIENDS);//KN: sysout
+
+					}
+				});
 	}
 
 	//====================================
@@ -461,16 +467,16 @@ public class MainMenu
 
 		item = MenuFactory.addMenuItem(viewMenu, SWT.CHECK, menuIndex, textID,
 				new Listener() {
-			public void handleEvent(Event event) {
-				SWTSkinObject skinObject = skin.getSkinObject(viewID);
-				if (skinObject != null) {
-					boolean newVisibility = !skinObject.isVisible();
+					public void handleEvent(Event event) {
+						SWTSkinObject skinObject = skin.getSkinObject(viewID);
+						if (skinObject != null) {
+							boolean newVisibility = !skinObject.isVisible();
 
-					SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility,
-							true, fast);
-				}
-			}
-		});
+							SWTSkinUtils.setVisibility(skin, configID, viewID, newVisibility,
+									true, fast);
+						}
+					}
+				});
 		SWTSkinUtils.setVisibility(skin, configID, viewID,
 				COConfigurationManager.getBooleanParameter(configID), false, true);
 
