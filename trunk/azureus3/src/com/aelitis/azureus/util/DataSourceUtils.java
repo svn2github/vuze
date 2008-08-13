@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 
 /**
  * @author TuxPaper
@@ -116,6 +117,8 @@ public class DataSourceUtils
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
 				return entry.getAssetHash();
+			} else if (ds instanceof ISelectedContent) {
+				return ((ISelectedContent)ds).getHash();
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
