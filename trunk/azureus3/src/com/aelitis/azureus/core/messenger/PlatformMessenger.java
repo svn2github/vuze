@@ -34,6 +34,7 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.*;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
@@ -683,6 +684,9 @@ public class PlatformMessenger
 		public boolean sendBrowserMessage(String key, String op, Collection params) {
 			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
 			return false;
+		}
+		public void setTorrentURLHandler(torrentURLHandler handler) {
+			log("setTorrentURLHandler - " + handler );
 		}
 	}
 

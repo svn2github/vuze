@@ -68,6 +68,7 @@ import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -155,6 +156,9 @@ SubscriptionManagerImpl
 	
 	private static final int	SERVER_PUB_CHECK_PERIOD	= 10*60*1000;
 	private static final int	SERVER_PUB_CHECK_TICKS	= SERVER_PUB_CHECK_PERIOD/TIMER_PERIOD;
+	
+	private static final int	TIDY_POT_ASSOC_PERIOD	= 30*60*1000;
+	private static final int	TIDY_POT_ASSOC_TICKS	= TIDY_POT_ASSOC_PERIOD/TIMER_PERIOD;
 
 	private static final int	SET_SELECTED_PERIOD		= 23*60*60*1000;
 	private static final int	SET_SELECTED_FIRST_TICK	= 3*60*1000 /TIMER_PERIOD;
@@ -682,6 +686,11 @@ SubscriptionManagerImpl
 		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
 			
 			checkServerPublications( subs );
+		}
+		
+		if ( ticks % TIDY_POT_ASSOC_TICKS == 0 ){
+			
+			tidyPotentialAssociations();
 		}
 		
 		if ( 	ticks == SET_SELECTED_FIRST_TICK ||
@@ -2125,13 +2134,14 @@ SubscriptionManagerImpl
 	protected void
 	addPotentialAssociation(
 		SubscriptionImpl			subs,
+		String						result_id,
 		String						key )
 	{
-		log( "Added potential association: " + subs.getName() + " -> " + key );
+		log( "Added potential association: " + subs.getName() + "/" + result_id + " -> " + key );
 		
 		synchronized( potential_associations ){
 			
-			potential_associations.add( new Object[]{ subs, key, new Long( System.currentTimeMillis())} );
+			potential_associations.add( new Object[]{ subs, result_id, key, new Long( System.currentTimeMillis())} );
 			
 			if ( potential_associations.size() > 512 ){
 				
@@ -2147,8 +2157,91 @@ SubscriptionManagerImpl
 	{
 		log( "Checking potential association: " + key + " -> " + ByteFormatter.encodeString( hash ));
 		
+		SubscriptionImpl 	subs 		= null;
+		String				result_id	= null;
+		
 		synchronized( potential_associations ){
 
+			Iterator it = potential_associations.iterator();
+			
+			while( it.hasNext()){
+				
+				Object[]	entry = (Object[])it.next();
+				
+				String	this_key = (String)entry[2];
+				
+					// startswith as actual URL may have had additional parameters added such as azid
+				
+				if ( key.startsWith( this_key )){
+					
+					subs		= (SubscriptionImpl)entry[0];
+					result_id	= (String)entry[1];
+					
+					log( "    key matched to subscription " + subs.getName() + "/" + result_id);
+
+					it.remove();
+					
+					break;
+				}
+			}
+		}
+		
+		if ( subs == null ){
+			
+			log( "    no potential associations found" );
+			
+		}else{
+			
+			SubscriptionResult	result = subs.getHistory().getResult( result_id );
+			
+			if ( result != null ){
+				
+				log( "    result found, marking as read" );
+
+				result.setRead( true );
+				
+			}else{
+				
+				log( "    result not found" );
+			}
+			
+			log( "    adding association" );
+			
+			subs.addAssociation( hash );
+		}
+	}
+	
+	protected void
+	tidyPotentialAssociations()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		synchronized( potential_associations ){
+			
+			Iterator it = potential_associations.iterator();
+			
+			while( it.hasNext() && potential_associations.size() > 16 ){
+				
+				Object[]	entry = (Object[])it.next();
+				
+				long	created = ((Long)entry[3]).longValue();
+				
+				if ( created > now ){
+					
+					entry[2] = new Long( now );
+					
+				}else if ( now - created > 60*60*1000 ){
+					
+					SubscriptionImpl 	subs = (SubscriptionImpl)entry[0];
+
+					String	result_id	= (String)entry[1];
+					String	key			= (String)entry[2];
+
+					log( "Removing expired potential association: " + subs.getName() + "/" + result_id + " -> " + key );
+					
+					it.remove();
+				}
+			}
 		}
 	}
 	

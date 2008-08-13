@@ -242,6 +242,23 @@ SubscriptionHistoryImpl
 		}
 	}
 	
+	public SubscriptionResult
+	getResult(
+		String		result_id )
+	{
+		SubscriptionResult[] results = getResults( true );
+		
+		for (int i=0;i<results.length;i++){
+			
+			if ( results[i].getID().equals( result_id )){
+				
+				return( results[i] );
+			}
+		}
+		
+		return( null );
+	}
+	
 	protected void
 	updateResult(
 		SubscriptionResultImpl 	result )

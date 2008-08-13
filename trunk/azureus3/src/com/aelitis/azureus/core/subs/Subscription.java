@@ -86,6 +86,7 @@ Subscription
 	
 	public void
 	addPotentialAssociation(
+		String		result_id,
 		String		key );
 
 	public int

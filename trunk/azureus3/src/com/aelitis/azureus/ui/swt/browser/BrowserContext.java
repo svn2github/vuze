@@ -38,6 +38,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
+import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
@@ -79,6 +80,8 @@ public class BrowserContext
 
 	protected boolean wiggleBrowser = org.gudy.azureus2.core3.util.Constants.isOSX;
 
+	private torrentURLHandler		torrentURLHandler;
+	
 	/**
 	 * Creates a context and registers the given browser.
 	 * 
@@ -401,21 +404,19 @@ public class BrowserContext
 
 								}catch( Throwable e ){
 								}
-								
-								String subscriptionId = (String) ((Browser)event.widget).getData("subscription_id");
-								
+																
 								Map headers = UrlUtils.getBrowserHeaders( referer_str );
-								
 													
 								String	url = event.location;
 								
-								if ( subscriptionId != null) {
+								if ( torrentURLHandler != null ){
 									
-									Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
-								
-									if ( subs != null ){
+									try{
+										torrentURLHandler.handleTorrentURL(url);
 										
-										subs.addPotentialAssociation( url );
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
 									}
 								}
 								
@@ -448,6 +449,13 @@ public class BrowserContext
 		this.display = browser.getDisplay();
 	}
 
+	public void 
+	setTorrentURLHandler(
+		torrentURLHandler handler) 
+	{
+		torrentURLHandler = handler;
+	}
+	
 	public void fillWithRetry(String s) {
 		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#1b1b1b text=#a0a0a0>"
 				+ "<br>Sorry, there was a problem loading this page.<br> "

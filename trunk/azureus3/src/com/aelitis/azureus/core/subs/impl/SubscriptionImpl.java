@@ -1161,9 +1161,10 @@ SubscriptionImpl
 	
 	public void
 	addPotentialAssociation(
+		String		result_id,
 		String		key )
 	{
-		manager.addPotentialAssociation( this, key );
+		manager.addPotentialAssociation( this, result_id, key );
 	}
 	
 	public int

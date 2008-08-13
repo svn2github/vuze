@@ -169,7 +169,7 @@ SubscriptionSchedulerImpl
 		final Subscription			subs,
 		final SubscriptionResult	result )
 	{
-		final String dl = (String)result.toJSONMap().get( "dl" );
+		final String dl = result.getDownloadLink();
 		
 		if ( dl == null ){
 			

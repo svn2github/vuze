@@ -369,7 +369,7 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										
 									}
 									public void addPotentialAssociation(
-											String key) {
+											String result_id, String key) {
 										// TODO Auto-generated method stub
 										
 									}

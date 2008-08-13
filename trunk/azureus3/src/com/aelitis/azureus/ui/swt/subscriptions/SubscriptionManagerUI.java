@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -67,6 +68,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
@@ -864,8 +866,9 @@ SubscriptionManagerUI
 			
 			try {
 				mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
-				BrowserContext context = new BrowserContext("browser-window"
-						+ Math.random(), mainBrowser, null, true);
+				BrowserContext context = 
+					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
+				
 				context.addMessageListener(new TorrentListener());
 				context.addMessageListener(new DisplayListener(mainBrowser));
 				context.addMessageListener(new ConfigListener(mainBrowser));
@@ -884,9 +887,50 @@ SubscriptionManagerUI
 				mainBrowser.setLayoutData(data);
 				
 				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
-				BrowserContext detailsContext = new BrowserContext("browser-window"
-						+ Math.random(), detailsBrowser, null, true);
-				detailsContext.addMessageListener(new TorrentListener());
+				BrowserContext detailsContext = 
+					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, true);
+				
+				ClientMessageContext.torrentURLHandler url_handler =
+					new ClientMessageContext.torrentURLHandler()
+					{
+						public void 
+						handleTorrentURL(
+							final String url ) 
+						{
+							Utils.execSWTThreadWithObject(
+								"SMUI",
+								new AERunnableObject()
+								{
+									public Object
+									runSupport()
+									{
+										String subscriptionId 		= (String)detailsBrowser.getData("subscription_id");
+										String subscriptionResultId = (String)detailsBrowser.getData("subscription_result_id");
+				
+										if ( subscriptionId != null && subscriptionResultId != null ){
+											
+											Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
+										
+											if ( subs != null ){
+												
+												subs.addPotentialAssociation( subscriptionResultId, url );
+											}
+										}
+										
+										return( null );
+									}
+								},
+								10*1000 );
+						}
+					};
+					
+				detailsContext.setTorrentURLHandler( url_handler );
+				
+				TorrentListener torrent_listener = new TorrentListener();
+				
+				torrent_listener.setTorrentURLHandler( url_handler );
+				
+				detailsContext.addMessageListener( torrent_listener );
 				detailsContext.addMessageListener(new DisplayListener(detailsBrowser));
 				detailsContext.addMessageListener(new ConfigListener(detailsBrowser));
 				url = "about:blank";
@@ -964,7 +1008,9 @@ SubscriptionManagerUI
 					detailsBrowser.setData("execAfterLoad",execAfterLoad);
 					
 					
-					detailsBrowser.setData("subscription_id",MapUtils.getMapString(params, "subs_id", null));
+					detailsBrowser.setData("subscription_id", MapUtils.getMapString(params, "subs_id", null));
+					detailsBrowser.setData("subscription_result_id", MapUtils.getMapString(params, "subs_rid", null));
+								
 					detailsBrowser.setUrl(url);
 					detailsBrowser.setVisible(true);
 		

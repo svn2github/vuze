@@ -32,6 +32,12 @@ SubscriptionResult
 	public Map
 	toJSONMap();
 	
+	public String
+	getDownloadLink();
+	
+	public String
+	getPlayLink();
+	
 	public void
 	setRead(
 		boolean		read );

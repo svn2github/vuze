@@ -122,4 +122,14 @@ public interface ClientMessageContext
 	 * @since 3.0.5.3
 	 */
 	void setMessageDispatcher(BrowserMessageDispatcher dispatcher);
+	
+	void setTorrentURLHandler( torrentURLHandler handler );
+	
+	public interface
+	torrentURLHandler
+	{
+		public void
+		handleTorrentURL(
+			String		url );
+	}
 }

@@ -67,4 +67,8 @@ SubscriptionHistory
 	public SubscriptionResult[]
 	getResults(
 		boolean		include_deleted );
+	
+	public SubscriptionResult
+	getResult(
+		String		result_id );
 }

@@ -13,6 +13,8 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
@@ -37,6 +39,8 @@ public class TorrentListener
 
 	private AzureusCore core;
 
+	private ClientMessageContext.torrentURLHandler		torrentURLHandler;
+	
 	public TorrentListener(AzureusCore core) {
 		this(DEFAULT_LISTENER_ID, core);
 	}
@@ -53,6 +57,13 @@ public class TorrentListener
 		this(AzureusCoreFactory.getSingleton());
 	}
 
+	public void 
+	setTorrentURLHandler(
+		torrentURLHandler handler) 
+	{
+		torrentURLHandler = handler;
+	}
+	
 	public void setShell(Shell shell) {
 	}
 
@@ -67,6 +78,16 @@ public class TorrentListener
 			boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
 					"bring-to-front", true);
 			if (url != null) {
+				if ( torrentURLHandler != null ){
+					
+					try{
+						torrentURLHandler.handleTorrentURL( url );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
 				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow,
 						playPrepare, bringToFront, false);
 			} else {

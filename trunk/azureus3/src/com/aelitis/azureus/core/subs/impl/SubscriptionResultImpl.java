@@ -194,4 +194,16 @@ SubscriptionResultImpl
 		
 		return( map );
 	}
+	
+	public String 
+	getDownloadLink() 
+	{
+		return((String)toJSONMap().get( "dl" ));
+	}
+	
+	public String 
+	getPlayLink() 
+	{
+		return((String)toJSONMap().get( "pl" ));
+	}
 }
