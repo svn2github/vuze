@@ -73,7 +73,7 @@ SubscriptionManager
 	
 	public SubscriptionScheduler
 	getScheduler();
-	
+			
 	public void
 	addListener(
 		SubscriptionManagerListener	listener );

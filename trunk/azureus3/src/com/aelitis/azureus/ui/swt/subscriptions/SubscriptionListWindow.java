@@ -368,6 +368,11 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										
 									}
+									public void addPotentialAssociation(
+											String key) {
+										// TODO Auto-generated method stub
+										
+									}
 									public int getAssociationCount() {
 										// TODO Auto-generated method stub
 										return 0;

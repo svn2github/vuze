@@ -59,9 +59,7 @@ import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
-import com.aelitis.azureus.core.metasearch.MetaSearchManager;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
-import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
@@ -182,6 +180,8 @@ SubscriptionManagerImpl
 	
 	private SubscriptionSchedulerImpl	scheduler = new SubscriptionSchedulerImpl( this );
 	
+	private List					potential_associations	= new ArrayList();
+	
 	private AEDiagnosticsLogger		logger;
 	
 	
@@ -262,6 +262,7 @@ SubscriptionManagerImpl
 		
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 		
+		
 		if ( dht_plugin_pi != null ){
 			
 			dht_plugin = (DHTPlugin)dht_plugin_pi.getPlugin();
@@ -309,6 +310,34 @@ SubscriptionManagerImpl
 						});	
 			}
 	
+			default_pi.getDownloadManager().addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						Torrent	torrent = download.getTorrent();
+						
+						if ( torrent != null ){
+							
+							String	obtained_from = TorrentUtils.getObtainedFrom(((TorrentImpl)torrent).getTorrent());
+							
+							if ( obtained_from != null ){
+								
+								checkPotentialAssociations( torrent.getHash(), obtained_from );
+							}
+						}
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{	
+					}
+				},
+				false );
+			
 			ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
 			ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
 			ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
@@ -2082,6 +2111,36 @@ SubscriptionManagerImpl
 		if ( dht_plugin != null ){
 			
 			publishAssociations();
+		}
+	}
+	
+	protected void
+	addPotentialAssociation(
+		SubscriptionImpl			subs,
+		String						key )
+	{
+		log( "Added potential association: " + subs.getName() + " -> " + key );
+		
+		synchronized( potential_associations ){
+			
+			potential_associations.add( new Object[]{ subs, key, new Long( System.currentTimeMillis())} );
+			
+			if ( potential_associations.size() > 512 ){
+				
+				potential_associations.remove(0);
+			}
+		}
+	}
+	
+	protected void
+	checkPotentialAssociations(
+		byte[]				hash,
+		String				key )
+	{
+		log( "Checking potential association: " + key + " -> " + ByteFormatter.encodeString( hash ));
+		
+		synchronized( potential_associations ){
+
 		}
 	}
 	

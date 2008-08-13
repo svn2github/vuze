@@ -84,6 +84,10 @@ Subscription
 	addAssociation(
 		byte[]		hash );
 	
+	public void
+	addPotentialAssociation(
+		String		key );
+
 	public int
 	getAssociationCount();
 	

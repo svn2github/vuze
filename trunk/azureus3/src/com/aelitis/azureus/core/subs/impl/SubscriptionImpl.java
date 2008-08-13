@@ -1159,6 +1159,13 @@ SubscriptionImpl
 		manager.associationAdded( this, hash);
 	}
 	
+	public void
+	addPotentialAssociation(
+		String		key )
+	{
+		manager.addPotentialAssociation( this, key );
+	}
+	
 	public int
 	getAssociationCount()
 	{

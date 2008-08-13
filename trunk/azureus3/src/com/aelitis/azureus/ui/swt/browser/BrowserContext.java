@@ -40,6 +40,8 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
@@ -404,15 +406,21 @@ public class BrowserContext
 								
 								Map headers = UrlUtils.getBrowserHeaders( referer_str );
 								
+													
+								String	url = event.location;
 								
-								//TODO : parg please add code to handle the association of this torrent with the subscriptionId when not null
+								if ( subscriptionId != null) {
+									
+									Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
 								
-								if(subscriptionId != null) {
-									System.out.println("Subscription linked to download : " + subscriptionId);
+									if ( subs != null ){
+										
+										subs.addPotentialAssociation( url );
+									}
 								}
 								
 								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-										new URL(event.location), headers );
+										new URL(url), headers );
 								
 							} catch(Exception e) {
 								e.printStackTrace();
