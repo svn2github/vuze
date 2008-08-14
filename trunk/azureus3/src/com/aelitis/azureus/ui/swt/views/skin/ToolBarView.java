@@ -246,7 +246,7 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 
-		// ==play
+		// ==download
 		item = new ToolBarItem("download", "image.button.download",
 				"v3.MainWindow.button.download") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
