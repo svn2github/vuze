@@ -31,6 +31,7 @@ import java.net.*;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -50,7 +51,8 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED	= "dht_backup_requested";
 	private static final String		TORRENT_AZ_PROP_TORRENT_FLAGS			= "torrent_flags";
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
-	private static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
+	
+	public static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
 	
 	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
 	
@@ -71,6 +73,8 @@ TorrentUtils
 	private static volatile Set		ignore_set;
 	
 	private static boolean bSaveTorrentBackup;
+	
+	private static CopyOnWriteList	torrent_attribute_listeners = new CopyOnWriteList();
 	
 	static {
 		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
@@ -1034,6 +1038,8 @@ TorrentUtils
 			
 		try{
 			m.put( TORRENT_AZ_PROP_OBTAINED_FROM, str.getBytes( "UTF-8" ));
+			
+			fireAttributeListener( torrent, TORRENT_AZ_PROP_OBTAINED_FROM, str );
 			
 		}catch( Throwable e ){
 			
@@ -2429,5 +2435,49 @@ TorrentUtils
 		byte[]		hash )
 	{
 		return( "magnet:?xt=urn:btih:" + Base32.encode( hash ));
+	}
+	
+	private static void
+	fireAttributeListener(
+		TOTorrent		torrent,	
+		String			attribute,
+		Object			value )
+	{
+		Iterator it = torrent_attribute_listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			try{
+				((torrentAttributeListener)it.next()).attributeSet(torrent, attribute, value);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+		
+	public static void
+	addTorrentAttributeListener(
+		torrentAttributeListener	listener )
+	{
+		torrent_attribute_listeners.add( listener );
+	}
+	
+	public static void
+	removeTorrentAttributeListener(
+		torrentAttributeListener	listener )
+	{
+		torrent_attribute_listeners.remove( listener );
+	}
+	
+	public interface
+	torrentAttributeListener
+	{
+		public void
+		attributeSet(
+			TOTorrent	torrent,
+			String		attribute,
+			Object		value );
 	}
 }
