@@ -24,7 +24,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
 /**
  * @author TuxPaper
@@ -32,7 +34,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
  *
  */
 public class SideBarToolTips
-implements Listener
+implements Listener, UIUpdatable
 {
 	Shell toolTipShell = null;
 
@@ -43,6 +45,8 @@ implements Listener
 	private final Tree tree;
 
 	private final SideBar sidebar;
+
+	private SideBarInfoSWT sideBarInfo;
 
 	/**
 	 * Initialize
@@ -75,7 +79,7 @@ implements Listener
 					return;
 				}
 				String id = (String) treeItem.getData("Plugin.viewID");
-				SideBarInfoSWT sideBarInfo = SideBar.getSideBarInfo(id);
+				sideBarInfo = SideBar.getSideBarInfo(id);
 				if (sideBarInfo.titleInfo == null) {
 					return;
 				}
@@ -141,6 +145,7 @@ implements Listener
 
 				toolTipShell.setBounds(pt.x, pt.y, size.x, size.y);
 				toolTipShell.setVisible(true);
+				UIUpdaterSWT.getInstance().addUpdater(this);
 
 				break;
 			}
@@ -148,6 +153,8 @@ implements Listener
 			case SWT.Dispose:
 				if (mainShell != null && !mainShell.isDisposed())
 					mainShell.removeListener(SWT.Deactivate, this);
+				UIUpdaterSWT.getInstance().removeUpdater(this);
+				
 				// fall through
 
 			default:
@@ -159,4 +166,25 @@ implements Listener
 				break;
 		} // switch
 	} // handlEvent()
+
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		return "SideBarToolTips";
+	}
+
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+	public void updateUI() {
+		if (toolTipLabel == null || toolTipLabel.isDisposed()) {
+			return;
+		}
+		if (sideBarInfo == null || sideBarInfo.titleInfo == null) {
+			return;
+		}
+		String sToolTip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		if (sToolTip == null) {
+			return;
+		}
+		
+		toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
+	}
 }
