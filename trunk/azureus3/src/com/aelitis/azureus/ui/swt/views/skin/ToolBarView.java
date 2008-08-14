@@ -248,7 +248,7 @@ public class ToolBarView
 
 		// ==play
 		item = new ToolBarItem("download", "image.button.download",
-				"iconBar.download") {
+				"v3.MainWindow.button.download") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
