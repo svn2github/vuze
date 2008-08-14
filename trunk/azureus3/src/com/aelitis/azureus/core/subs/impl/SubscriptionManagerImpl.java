@@ -273,6 +273,7 @@ SubscriptionManagerImpl
 
 			final PluginInterface default_pi = StaticUtilities.getDefaultPluginInterface();
 	
+			/*
 			if ( Constants.isCVSVersion()){
 				
 				addListener(
@@ -300,7 +301,6 @@ SubscriptionManagerImpl
 							associationsChanged(
 								byte[] hash )
 							{
-								/*
 								System.out.println( "Subscriptions changed: " + ByteFormatter.encodeString( hash ));
 								
 								Subscription[] subs = getKnownSubscriptions( hash );
@@ -309,11 +309,12 @@ SubscriptionManagerImpl
 									
 									System.out.println( "    " + subs[i].getString());
 								}
-								*/
 							}
 						});	
 			}
-	
+			*/
+			
+			/*
 			default_pi.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
@@ -341,6 +342,29 @@ SubscriptionManagerImpl
 					}
 				},
 				false );
+			*/
+			
+			TorrentUtils.addTorrentAttributeListener(
+				new TorrentUtils.torrentAttributeListener()
+				{
+					public void 
+					attributeSet(
+						TOTorrent 	torrent,
+						String 		attribute, 
+						Object 		value )
+					{
+						if ( attribute == TorrentUtils.TORRENT_AZ_PROP_OBTAINED_FROM ){
+							
+							try{
+								checkPotentialAssociations( torrent.getHash(), (String)value );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				});
 			
 			ta_subs_download 		= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl" );
 			ta_subs_download_rd 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_dl_rd" );
