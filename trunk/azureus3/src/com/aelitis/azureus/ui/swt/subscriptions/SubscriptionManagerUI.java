@@ -1047,7 +1047,7 @@ SubscriptionManagerUI
 					//Gudy, Not Tux, Listener Added
 					String listenerAdded = (String) detailsBrowser.getData("g.nt.la");
 					if(listenerAdded == null) {
-						detailsBrowser.setData("g.nt.la",null);
+						detailsBrowser.setData("g.nt.la","");
 						detailsBrowser.addProgressListener(new ProgressListener() {
 							public void changed(ProgressEvent event) {}
 							
