@@ -1001,6 +1001,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					Map result = new HashMap();
 					
+					result.put( "rids", rids);
+					
 					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
@@ -1043,6 +1045,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 					
 					subs.getHistory().markResults( rids_a, reads_a );
+					
+					result.put( "rids", rids);
+					result.put( "reads", reads);
 										
 					sendBrowserMessage( "metasearch", "markSubscriptionResultsCompleted", result );
 				}
