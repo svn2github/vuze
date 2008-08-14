@@ -716,7 +716,7 @@ SubscriptionManagerUI
 			parent_composite	= _parent_composite;
 			
 			parent_composite.addListener(
-				SWT.Activate,
+				SWT.Show,
 				new Listener()
 				{
 					public void 
@@ -728,7 +728,7 @@ SubscriptionManagerUI
 				});
 			
 			parent_composite.addListener(
-					SWT.Deactivate,
+					SWT.Hide,
 					new Listener()
 					{
 						public void 
@@ -1019,6 +1019,7 @@ SubscriptionManagerUI
 		
 					mainBrowser.getParent().layout(true);
 					detailsBrowser.setUrl("about:blank");
+					mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
 				}
 			});
 		}
