@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.browser.StatusTextEvent;
 import org.eclipse.swt.browser.StatusTextListener;
 
@@ -13,7 +17,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 
 public class ExternalLoginCookieListener
-implements StatusTextListener
+implements StatusTextListener,LocationListener,ProgressListener
 {
 	
 	private static final String AZCOOKIEMSG = "AZCOOKIEMSG;";
@@ -65,6 +69,39 @@ implements StatusTextListener
 	
 	public void stopListening() {
 		browser.removeStatusTextListener(this);
+	}
+	
+	public void hookOnPageLoaded() {
+		browser.addProgressListener(this);
+	}
+	
+	public void hookOnPageChanged() {
+		browser.addLocationListener(this);
+	}
+	
+	public void hook() {
+		hookOnPageChanged();
+		hookOnPageLoaded();
+	}
+	
+	public void unHook() {
+		
+	}
+	
+	public void changed(ProgressEvent arg0) {
+		
+	}
+	
+	public void completed(ProgressEvent arg0) {
+		getCookies();
+	}
+	
+	public void changed(LocationEvent arg0) {
+		getCookies();
+	}
+	
+	public void changing(LocationEvent arg0) {
+		
 	}
 
 }

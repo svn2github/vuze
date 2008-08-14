@@ -82,9 +82,11 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
+import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -970,6 +972,14 @@ SubscriptionManagerUI
 				url = "about:blank";
 				detailsBrowser.setUrl(url);
 				detailsBrowser.setData("StartURL", url);
+				
+				final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
+					public void cookiesFound(String cookies) {
+						detailsBrowser.setData("current-cookies", cookies);
+					}
+				},detailsBrowser);
+				
+				cookieListener.hook();
 				
 				data = new FormData();
 				data.left = new FormAttachment(0,0);

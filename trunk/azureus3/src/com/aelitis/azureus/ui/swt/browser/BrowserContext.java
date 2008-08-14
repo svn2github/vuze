@@ -406,7 +406,13 @@ public class BrowserContext
 								}
 																
 								Map headers = UrlUtils.getBrowserHeaders( referer_str );
-													
+											
+								
+								String cookies = (String) ((Browser)event.widget).getData("current-cookies");
+								if(cookies != null) {
+									headers.put("Cookie", cookies);
+								}
+								
 								String	url = event.location;
 								
 								if ( torrentURLHandler != null ){
