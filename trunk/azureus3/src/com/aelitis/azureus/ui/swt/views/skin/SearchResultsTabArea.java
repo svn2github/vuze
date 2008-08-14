@@ -23,9 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
@@ -37,11 +35,12 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
-import com.aelitis.azureus.ui.swt.browser.listener.BrowserRpcBuddyListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
@@ -61,7 +60,11 @@ public class SearchResultsTabArea
 	private SWTSkin skin;
 
 	private String searchText;
-	
+
+	private boolean searchResultsInitialized = false;
+
+	protected String title;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
@@ -72,31 +75,31 @@ public class SearchResultsTabArea
 
 		createBrowseArea(browserSkinObject);
 
-/**
-		final SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
-		if (tabSetMain != null) {
-			final SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
-			if (tab != null) {
-				SWTSkinObjectListener l = new SWTSkinObjectListener() {
-					public Object eventOccured(SWTSkinObject skinObject, int eventType,
-							Object params) {
-						if (eventType == SWTSkinObjectListener.EVENT_SELECT) {
-							tab.setVisible(tabSetMain.getActiveTab() == tab);
-						}
-						return null;
+		/**
+				final SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
+				if (tabSetMain != null) {
+					final SWTSkinObjectTab tab = tabSetMain.getTab(SkinConstants.VIEWID_SEARCHRESULTS_TAB);
+					if (tab != null) {
+						SWTSkinObjectListener l = new SWTSkinObjectListener() {
+							public Object eventOccured(SWTSkinObject skinObject, int eventType,
+									Object params) {
+								if (eventType == SWTSkinObjectListener.EVENT_SELECT) {
+									tab.setVisible(tabSetMain.getActiveTab() == tab);
+								}
+								return null;
+							}
+						};
+						tab.addListener(l);
 					}
-				};
-				tab.addListener(l);
-			}
-		}
-**/
-		
+				}
+		**/
+
 		if (browserSkinObject != null) {
-  		Object o = skinObject.getData("CreationParams");
-  		
-  		anotherSearch((String) o);
+			Object o = skinObject.getData("CreationParams");
+
+			anotherSearch((String) o);
 		}
-		
+
 		return null;
 	}
 
@@ -104,10 +107,10 @@ public class SearchResultsTabArea
 	 * 
 	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
-		this.browserSkinObject = browserSkinObject;		
-		browserSkinObject.getContext().addMessageListener(new MetaSearchListener(this));
+		this.browserSkinObject = browserSkinObject;
+		browserSkinObject.getContext().addMessageListener(
+				new MetaSearchListener(this));
 	}
-
 
 	public void restart() {
 		if (browserSkinObject != null) {
@@ -116,6 +119,61 @@ public class SearchResultsTabArea
 	}
 
 	public void openSearchResults(final Map params) {
+		if (!searchResultsInitialized) {
+			searchResultsInitialized = true;
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					SWTSkinObject soSearchResults = getSkinObject("searchresults-search-results");
+					if (soSearchResults != null) {
+						SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
+
+						browserSkinObject.addListener(new SWTSkinObjectListener() {
+							public Object eventOccured(SWTSkinObject skinObject,
+									final int eventType, Object params) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+											SelectedContentManager.changeCurrentlySelectedContent(
+													"searchresults", getCurrentlySelectedContent());
+										} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
+											SelectedContentManager.changeCurrentlySelectedContent(
+													"searchresults", null);
+										}
+									}
+								});
+								return null;
+							}
+						});
+						SelectedContentManager.changeCurrentlySelectedContent("searchresults",
+								null);
+
+						Browser browser = browserSkinObject.getBrowser();
+						browser.addTitleListener(new TitleListener() {
+							public void changed(TitleEvent event) {
+								title = event.title;
+								int i = title.toLowerCase().indexOf("details:");
+								if (i > 0) {
+									title = title.substring(i + 9);
+								}
+							}
+						});
+
+						browser.addLocationListener(new LocationListener() {
+							public void changing(LocationEvent event) {
+								//ViewTitleInfoManager.refreshTitleInfo(titleInfo);
+							}
+
+							public void changed(LocationEvent event) {
+								SelectedContentManager.changeCurrentlySelectedContent("searchresults",
+										getCurrentlySelectedContent());
+								//ViewTitleInfoManager.refreshTitleInfo(titleInfo);
+							}
+						});
+					}
+				}
+			});
+
+		}
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
@@ -132,20 +190,21 @@ public class SearchResultsTabArea
 				if (PlatformConfigMessenger.urlCanRPC(url)) {
 					url = Constants.appendURLSuffix(url);
 				}
-				
+
 				//Gudy, Not Tux, Listener Added
 				String listenerAdded = (String) search.getData("g.nt.la");
-				if(listenerAdded == null) {
-					search.setData("g.nt.la","");
+				if (listenerAdded == null) {
+					search.setData("g.nt.la", "");
 					search.addProgressListener(new ProgressListener() {
-						public void changed(ProgressEvent event) {}
-						
+						public void changed(ProgressEvent event) {
+						}
+
 						public void completed(ProgressEvent event) {
 							Browser search = (Browser) event.widget;
 							String execAfterLoad = (String) search.getData("execAfterLoad");
 							//Erase it, so that it's only used once after the page loads
-							search.setData("execAfterLoad",null);
-							if(execAfterLoad != null && ! execAfterLoad.equals("")) {
+							search.setData("execAfterLoad", null);
+							if (execAfterLoad != null && !execAfterLoad.equals("")) {
 								//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
 								//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
 								boolean result = search.execute(execAfterLoad);
@@ -155,12 +214,12 @@ public class SearchResultsTabArea
 						}
 					});
 				}
-				
-				
+
 				//Store the "css" match string in the search cdp browser object
-				String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad", null);
-				search.setData("execAfterLoad",execAfterLoad);
-				
+				String execAfterLoad = MapUtils.getMapString(params, "execAfterLoad",
+						null);
+				search.setData("execAfterLoad", execAfterLoad);
+
 				search.setUrl(url);
 
 				FormData gd = (FormData) controlBottom.getLayoutData();
@@ -181,6 +240,40 @@ public class SearchResultsTabArea
 		});
 	}
 
+	protected ISelectedContent[] getCurrentlySelectedContent() {
+		SWTSkinObject soSearchResults = getSkinObject("searchresults-search-results");
+		if (soSearchResults == null) {
+			return null;
+		}
+		
+		SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
+		Browser browser = browserSkinObject.getBrowser();
+		if (browser == null) {
+			return null;
+		}
+		String url = browser.getUrl();
+		int i = url.indexOf(Constants.URL_DETAILS);
+		if (i > 0) {
+			i += Constants.URL_DETAILS.length();
+			int end1 = url.indexOf("?", i);
+			int end2 = url.indexOf(".", i);
+			int end = end1 < 0 ? end2 : Math.min(end1, end2);
+
+			String hash;
+			if (end < 0 || end < i) {
+				hash = url.substring(i);
+			} else {
+				hash = url.substring(i, end);
+			}
+
+			return new SelectedContentV3[] {
+				new SelectedContentV3(hash, title, true, false)
+			};
+		}
+
+		return null;
+	}
+
 	public void closeSearchResults(final Map params) {
 		Utils.execSWTThread(new AERunnable() {
 
@@ -195,6 +288,9 @@ public class SearchResultsTabArea
 				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 
 				FormData gd = (FormData) controlBottom.getLayoutData();
+				if (gd == null) {
+					return;
+				}
 				gd.top = null;
 				gd.height = 0;
 				controlBottom.setLayoutData(gd);
@@ -210,7 +306,7 @@ public class SearchResultsTabArea
 			}
 		});
 	}
-	
+
 	public void anotherSearch(String searchText) {
 		this.searchText = searchText;
 		String url = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH

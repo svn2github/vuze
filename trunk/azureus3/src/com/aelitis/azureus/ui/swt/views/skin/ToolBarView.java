@@ -55,10 +55,6 @@ import com.aelitis.azureus.util.PlayUtils;
 /**
  * @author TuxPaper
  * @created Jul 20, 2008
- *
- * 3.2 TODO: Link in az3 buttons
- * 3.2 TODO: Implement az2 button actions
- * 3.2 TODO: Implement disabling
  */
 public class ToolBarView
 	extends SkinView
@@ -66,7 +62,7 @@ public class ToolBarView
 	private static toolbarButtonListener buttonListener;
 
 	private Map items = new LinkedHashMap();
-	
+
 	private GlobalManager gm;
 
 	ToolBarItem lastItem = null;
@@ -194,8 +190,7 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item);
-		
-		
+
 		// ==share
 		item = new ToolBarItem("share", "image.button.sharewhite", "iconBar.share") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
@@ -237,7 +232,6 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item);
-		
 
 		// ==play
 		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
@@ -252,11 +246,23 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 
+		// ==play
+		item = new ToolBarItem("download", "image.button.download",
+				"iconBar.download") {
+			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+			public void triggerToolBarItem() {
+				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+				if (sc != null && sc.length == 1 && sc[0].getHash() != null) {
+					TorrentListViewsUtils.downloadDataSource(sc[0], false, "ToolBar");
+				}
+			}
+		};
+		addToolBarItem(item);
+
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			public void currentlySelectedContentChanged(
 					ISelectedContent[] currentContent, String viewID) {
-				String[] itemsNeedingSelection = {
-				};
+				String[] itemsNeedingSelection = {};
 
 				String[] itemsNeedingSelectionAndNotBrowse = {
 					"remove",
@@ -275,7 +281,7 @@ public class ToolBarView
 					"share",
 					"details",
 				};
-				
+
 				int numSelection = currentContent.length;
 				boolean hasSelection = numSelection > 0;
 				boolean has1Selection = numSelection == 1;
@@ -339,11 +345,15 @@ public class ToolBarView
 					item.setEnabled(has1Selection
 							&& PlayUtils.canPlayDS(currentContent[0].getDM()));
 				}
+				item = getToolBarItem("download");
+				if (item != null) {
+					boolean enabled = has1Selection && currentContent[0].getDM() == null
+							&& currentContent[0].getHash() != null;
+					item.setEnabled(enabled);
+				}
 
 			}
 		});
-		
-		
 
 		return null;
 	}
