@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
@@ -64,6 +65,9 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -71,6 +75,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -883,7 +888,7 @@ public class SideBar
 				new PluginAddedViewListener() {
 					// @see org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener#pluginViewAdded(org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo)
 					public void pluginViewAdded(IViewInfo viewInfo) {
-						System.out.println("PluginView Added: " + viewInfo.viewID);
+						//System.out.println("PluginView Added: " + viewInfo.viewID);
 						Object o = mapAutoOpen.get(viewInfo.viewID);
 						if (o instanceof Map) {
 							processAutoOpenMap(viewInfo.viewID, (Map) o, viewInfo);
@@ -1110,6 +1115,11 @@ public class SideBar
 
 		if (initializeView != null) {
 			iview.initialize(initializeView);
+			initializeView.setVisible(false);
+			Composite composite = iview.getComposite();
+			if (composite != null && !composite.isDisposed()) {
+				composite.setVisible(false);
+			}
 			if (sideBarInfo.datasource != null) {
 				iview.dataSourceChanged(sideBarInfo.datasource);
 			}
@@ -1213,10 +1223,34 @@ public class SideBar
 					oldView.getComposite().setVisible(false);
 				}
 			}
+			
+			SelectedContentManager.changeCurrentlySelectedContent("", null);
 
 			// show new
 			currentIView = iview;
 			currentIViewID = (String) treeItem.getData("Plugin.viewID");
+
+			if (currentIView instanceof UISWTViewImpl) {
+				Object ds = ((UISWTViewImpl)currentIView).getDataSource();
+				DownloadManager dm = null;
+				if (ds instanceof DownloadManager) {
+					dm = (DownloadManager) ds;
+				} else if (ds instanceof Download) {
+					dm = PluginCoreUtils.unwrap((Download)ds);
+				}
+				if (dm != null) {
+					try {
+						SelectedContentManager.changeCurrentlySelectedContent(currentIViewID,
+								new ISelectedContent[] {
+									new SelectedContentV3(dm)
+								});
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+			
 			SWTSkinObjectContainer container = (SWTSkinObjectContainer) sideBarInfo.skinObject;
 			if (container != null) {
 				Composite composite = container.getComposite();
@@ -1516,7 +1550,6 @@ public class SideBar
 									SWT.CURSOR_WAIT));
 
 							skinObject = skin.createSkinObject(id, configID, soParent, params);
-							skinObject.setVisible(true);
 							skinObject.getControl().setLayoutData(Utils.getFilledFormData());
 						} finally {
 							shell.setCursor(cursor);
