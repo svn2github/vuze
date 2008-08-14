@@ -405,7 +405,7 @@ public class ToolBarView
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected ToolBarItem getToolBarItem(String itemID) {
+	public ToolBarItem getToolBarItem(String itemID) {
 		return (ToolBarItem) items.get(itemID);
 	}
 
