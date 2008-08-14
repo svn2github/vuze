@@ -39,12 +39,15 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -670,6 +673,8 @@ SubscriptionManagerUI
 		private Label			info_lab2;
 		private StyledText		json_area;
 		
+		private Composite 		controls;
+		
 		private Browser			mainBrowser;
 		private Browser			detailsBrowser;
 		
@@ -710,6 +715,30 @@ SubscriptionManagerUI
 		{  
 			parent_composite	= _parent_composite;
 			
+			parent_composite.addListener(
+				SWT.Activate,
+				new Listener()
+				{
+					public void 
+					handleEvent(
+						Event arg0 )
+					{
+						createBrowsers();
+					}				
+				});
+			
+			parent_composite.addListener(
+					SWT.Deactivate,
+					new Listener()
+					{
+						public void 
+						handleEvent(
+							Event arg0 )
+						{
+							destroyBrowsers();
+						}				
+					});
+			
 			composite = new Composite( parent_composite, SWT.NULL );
 			
 			composite.setLayout(new FormLayout());
@@ -720,7 +749,7 @@ SubscriptionManagerUI
 
 				// control area
 			
-			final Composite controls = new Composite(composite, SWT.NONE);
+			controls = new Composite(composite, SWT.NONE);
 			GridLayout layout = new GridLayout();
 			layout.numColumns = 4;
 			layout.marginHeight = 0;
@@ -773,8 +802,6 @@ SubscriptionManagerUI
 			grid_data.horizontalSpan = 4;
 			grid_data.heightHint = 50;
 			json_area.setLayoutData(grid_data);
-
-			
 			
 			save_button.addSelectionListener(
 				new SelectionAdapter() 
@@ -864,7 +891,14 @@ SubscriptionManagerUI
 					}
 				});
 			
-			try {
+			updateInfo();
+		}
+		  
+		
+		protected void
+		createBrowsers()
+		{
+			try{
 				mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 				BrowserContext context = 
 					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
@@ -875,11 +909,11 @@ SubscriptionManagerUI
 				context.addMessageListener(
 						new MetaSearchListener( this ));
 				String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
-
+	
 				mainBrowser.setUrl(url);
 				mainBrowser.setData("StartURL", url);
 				
-				data = new FormData();
+				FormData data = new FormData();
 				data.left = new FormAttachment(0,0);
 				data.right = new FormAttachment(100,0);
 				data.top = new FormAttachment(controls,0);
@@ -943,15 +977,36 @@ SubscriptionManagerUI
 				data.top = new FormAttachment(mainBrowser,0);
 				data.bottom = new FormAttachment(100,0);
 				detailsBrowser.setLayoutData(data);
+								
+				mainBrowser.setVisible( true );
+				detailsBrowser.setVisible( false );
 				
+				mainBrowser.getParent().layout(true,true);
 				
-			} catch(Exception e) {
+			}catch( Throwable e ){
+			
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		protected void
+		destroyBrowsers()
+		{
+			if ( mainBrowser != null ){
+			
+				mainBrowser.dispose();
 				
+				mainBrowser = null;
 			}
 			
-			updateInfo();
+			if ( detailsBrowser != null ){
+			
+				detailsBrowser.dispose();
+
+				detailsBrowser = null;
+			}
 		}
-		  
+		
 		public void closeSearchResults(final Map params) {
 			Utils.execSWTThread(new AERunnable() {
 
