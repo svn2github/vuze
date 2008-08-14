@@ -251,10 +251,25 @@ public class ToolBarView
 				"v3.MainWindow.button.download") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
-				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-				if (sc != null && sc.length == 1 && sc[0].getHash() != null) {
-					TorrentListViewsUtils.downloadDataSource(sc[0], false, "ToolBar");
+				ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+				if (tb != null) {
+					System.out.println("Found download Toolbar");
+					ToolBarItem dlItem = tb.getToolBarItem("download");
+					System.out.println("Download ToolBar Item is " + dlItem);
+					if (dlItem != null) {
+						SWTSkinObject so = dlItem.getSkinButton().getSkinObject();
+						System.out.println(so);
+						String url = (String) so.getData("dlurl");
+						System.out.println(url);
+					}
 				}
+
+				
+				// This is for our CDP pages
+				//ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+				//if (sc != null && sc.length == 1 && sc[0].getHash() != null) {
+				//	TorrentListViewsUtils.downloadDataSource(sc[0], false, "ToolBar");
+				//}
 			}
 		};
 		addToolBarItem(item);
