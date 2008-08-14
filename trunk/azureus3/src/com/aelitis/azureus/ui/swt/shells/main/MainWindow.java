@@ -1047,8 +1047,8 @@ public class MainWindow
 							null);
 					Map map = MapUtils.getMapMap(oldMapTrackUsage, "statsmap", null);
 					if (version != null && map != null) {
-						PlatformConfigMessenger.sendUsageStats(oldMapTrackUsage,
-								f.lastModified(), version, null);
+						PlatformConfigMessenger.sendUsageStats(map, f.lastModified(),
+								version, null);
 					}
 				}
 
