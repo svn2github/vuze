@@ -62,8 +62,7 @@ implements StatusTextListener,LocationListener,ProgressListener
 	
 	public void getCookies() {
 		if(browser != null) {
-			boolean result = browser.execute(getCookiesCode);
-			System.out.println(result);
+			browser.execute(getCookiesCode);
 		}
 	}
 	
