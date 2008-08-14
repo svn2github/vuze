@@ -1029,7 +1029,7 @@ SubscriptionManagerUI
 		
 					mainBrowser.getParent().layout(true);
 					detailsBrowser.setUrl("about:blank");
-					mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
+					//mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
 				}
 			});
 		}
@@ -1096,7 +1096,18 @@ SubscriptionManagerUI
 		{
 			if ( mainBrowser != null ){
 				
-				mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
+				Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							if ( mainBrowser.isVisible()){
+							
+								mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
+							}
+						}
+					});
 			}
 		}
 		
