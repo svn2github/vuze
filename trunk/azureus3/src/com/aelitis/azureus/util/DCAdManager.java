@@ -660,8 +660,6 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 				debug("reokacASXParams: " + e.toString());
 	  			replace(repBuffer,"<##-AD-PATH-##>","http://www.vuze.com/img43/asx_noad.gif");
 			}
-		} else {
-  			replace(repBuffer,"<##-AD-PATH-##>","http://www.vuze.com/img43/asx_noad.gif");
 		}
 
 		//pass the params to the player via the download manager.
