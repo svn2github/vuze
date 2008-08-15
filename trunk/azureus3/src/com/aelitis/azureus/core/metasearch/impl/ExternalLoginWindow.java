@@ -7,11 +7,15 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.CookieParser;
@@ -20,14 +24,15 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionListWindow;
 
 public class ExternalLoginWindow {
 	
 	Display display;
 	Shell shell;
 	
-	public ExternalLoginWindow(final WebEngine engine,final String loginUrl, final String[] requiredCookies) {
+	String cookies;
+	
+	public ExternalLoginWindow(final ExternalLoginListener listener,final String loginUrl,boolean captureMode) {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -47,17 +52,18 @@ public class ExternalLoginWindow {
 		shell.setLayout(new FormLayout());
 		
 		Label explain = new Label(shell,SWT.WRAP);
-		explain.setText(MessageText.getString("externalLogin.explanation"));
+		if(captureMode) {
+			explain.setText(MessageText.getString("externalLogin.explanation.capture"));
+		} else {
+			explain.setText(MessageText.getString("externalLogin.explanation"));
+		}
 		
 		Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies) {
-				System.out.println(cookies);
-				if(engine != null) {
-					engine.setCookies(cookies);
-				}
-				if(CookieParser.cookiesContain(requiredCookies, cookies)) {
-					//shell.dispose();
+				if(listener != null) {
+					ExternalLoginWindow.this.cookies = cookies;
+					listener.cookiesFound(cookies);
 				}
 			}
 		},browser);
@@ -73,6 +79,22 @@ public class ExternalLoginWindow {
 		
 		Button done = new Button(shell,SWT.PUSH);
 		done.setText(MessageText.getString("Button.done"));
+		
+		cancel.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				if(listener != null) {
+					listener.canceled();
+				}
+			}
+		});
+		
+		done.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				if(listener != null) {
+					listener.done(cookies);
+				}
+			}
+		});
 		
 		FormData data;
 		
@@ -111,10 +133,18 @@ public class ExternalLoginWindow {
 		shell.open();
 	}
 	
+	public void close() {
+		Utils.execSWTThread(new Runnable() {
+			public void run() {
+				shell.close();
+			}
+		});
+	}
+	
 	public static void main(String[] args) {
 		Display display = new Display();
 		ImageRepository.loadImages(display);
-		ExternalLoginWindow slw = new ExternalLoginWindow(null,"http://hdbits.org/login.php",new String[] {"pass"});
+		ExternalLoginWindow slw = new ExternalLoginWindow(null,"http://hdbits.org/login.php",false);
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
 				display.sleep();

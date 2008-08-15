@@ -39,7 +39,9 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
+import com.aelitis.azureus.core.metasearch.impl.ExternalLoginListener;
 import com.aelitis.azureus.core.metasearch.impl.ExternalLoginWindow;
+import com.aelitis.azureus.core.metasearch.impl.web.CookieParser;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
@@ -202,9 +204,26 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
 				if(engine instanceof WebEngine) {
-					WebEngine webEngine = (WebEngine) engine;
+					final WebEngine webEngine = (WebEngine) engine;
 					if(webEngine.getId() == engine_id && webEngine.requiresLogin()) {
-						new ExternalLoginWindow(webEngine,webEngine.getLoginPageUrl(),webEngine.getRequiredCookies());
+						new ExternalLoginWindow(new ExternalLoginListener() {
+							public void canceled() {
+								// TODO notify the page
+								
+							}
+							
+							public void cookiesFound(String cookies) {
+								if(CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)) {
+									webEngine.setCookies(cookies);
+									//TODO : do a search for this engine and notify the page
+								}
+							}
+							
+							public void done(String cookies) {
+								// TODO : force a search?
+								
+							}
+						},webEngine.getLoginPageUrl(),false);
 					}
 				}
 				
