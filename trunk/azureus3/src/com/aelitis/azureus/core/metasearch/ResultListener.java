@@ -32,5 +32,7 @@ public interface ResultListener {
 	public void resultsComplete(Engine engine);
 	
 	public void engineFailed(Engine engine, Throwable cause );
+	
+	public void engineRequiresLogin(Engine engine, Throwable cause );
 
 }

@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
+import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.json.JSONEngine;
@@ -519,8 +520,12 @@ EngineImpl
 			listener.resultsComplete( this );
 			
 		}catch( Throwable e ){
+			if(e instanceof SearchLoginException) {
+				listener.engineRequiresLogin(this, e);
+			} else {
+				listener.engineFailed( this, e);
+			}
 			
-			listener.engineFailed( this, e);
 		}
 	}
 	
@@ -588,6 +593,18 @@ EngineImpl
 							
 							if ( listener != null ){
 								listener.engineFailed(engine, cause);
+							}
+						}
+						
+						public void 
+						engineRequiresLogin(
+							Engine engine, 
+							Throwable cause )
+						{
+							log( "Search requires login", cause );
+							
+							if ( listener != null ){
+								listener.engineRequiresLogin(engine, cause);
 							}
 						}
 					});

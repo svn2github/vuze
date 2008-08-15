@@ -39,6 +39,8 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.metasearch.*;
+import com.aelitis.azureus.core.metasearch.impl.ExternalLoginWindow;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -80,6 +82,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 	public static final String OP_LOAD_TORRENT			= "load-torrent";
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
+	
+	public static final String OP_ENGINE_LOGIN			= "engine-login";
 	
 	public static final String OP_CREATE_SUBSCRIPTION   		= "create-subscription";
 	public static final String OP_READ_SUBSCRIPTION   			= "read-subscription";
@@ -136,6 +140,14 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage("metasearch", "engineFailed", params );
 				}
 				
+				public void engineRequiresLogin(Engine engine, Throwable e) {
+					Map params = getParams( engine );
+					
+					params.put( "error", Debug.getNestedExceptionMessage( e ));
+					
+					sendBrowserMessage("metasearch", "engineRequiresLogin", params );
+				}
+				
 				public void resultsComplete(Engine engine) {
 				
 					sendBrowserMessage("metasearch", "engineCompleted", getParams( engine ));
@@ -182,6 +194,23 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			metaSearchManager.getMetaSearch().search( listener, parameters, headers );
 
+		} else if(OP_ENGINE_LOGIN.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
+			
+			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false, true );
+			for(int i = 0 ; i < engines.length ; i++) {
+				Engine engine = engines[i];
+				if(engine instanceof WebEngine) {
+					WebEngine webEngine = (WebEngine) engine;
+					if(webEngine.getId() == engine_id && webEngine.requiresLogin()) {
+						new ExternalLoginWindow(webEngine,webEngine.getLoginPageUrl(),webEngine.getRequiredCookies());
+					}
+				}
+				
+			}
+			
+			
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
 			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true, true );
@@ -535,6 +564,19 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								if ( sid != null )params.put( "sid", sid );
 
 								sendBrowserMessage("metasearch", "testTemplateFailed",params);
+							}
+							
+							public void 
+							engineRequiresLogin(
+								Engine 		engine,
+								Throwable 	e )
+							{
+								Map params = new HashMap();
+								params.put( "id", new Long( id ));
+								params.put( "error", Debug.getNestedExceptionMessage( e ));
+								if ( sid != null )params.put( "sid", sid );
+
+								sendBrowserMessage("metasearch", "testTemplateRequiresLogin",params);
 							}
 						});
 

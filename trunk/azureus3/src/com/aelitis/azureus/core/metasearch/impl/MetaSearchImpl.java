@@ -480,6 +480,22 @@ MetaSearchImpl
 								}
 							});
 				}
+				
+				public void 
+				engineRequiresLogin(
+					final Engine 	engine,
+					final Throwable	e )
+				{
+					dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									original_listener.engineRequiresLogin( engine, e );
+								}
+							});
+				}
 			};
 			
 		SearchExecuter se = new SearchExecuter(listener);

@@ -38,6 +38,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.SearchException;
+import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -65,6 +66,12 @@ WebEngine
 	private String basePage;
 
 	private DateParser dateParser;
+	
+	private boolean needsAuth;
+	private String loginPageUrl;
+	private String[] requiredCookies;
+	
+	private String cookies;
 	
 
 		// manual test constructor
@@ -344,6 +351,11 @@ WebEngine
 	{
 		
 		try {
+			
+			if(requiresLogin()) {
+				throw new SearchLoginException("login required");
+			}
+			
 			String searchURL = searchURLFormat;
 			
 			String[]	from_strs 	= new String[ searchParameters.length ];
@@ -369,8 +381,12 @@ WebEngine
 			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 			
 			ResourceDownloader url_rd = rdf.create( url );
-						
+			
 			setHeaders( url_rd, headers );
+			
+			if(needsAuth && cookies != null) {
+				url_rd.setProperty( "URL_Cookie", cookies );
+			}
 			
 			/*if(cookieParameters!= null && cookieParameters.length > 0) {
 				String 	cookieString = "";
@@ -511,5 +527,29 @@ WebEngine
 		}
 		
 		return( downloadLinkCSS );
+	}
+	
+	public boolean requiresLogin() {
+		return needsAuth && ! CookieParser.cookiesContain(requiredCookies, cookies);
+	}
+	
+	public void setCookies(String cookies) {
+		this.cookies = cookies;
+	}
+
+	public String getLoginPageUrl() {
+		return loginPageUrl;
+	}
+
+	public void setLoginPageUrl(String loginPageUrl) {
+		this.loginPageUrl = loginPageUrl;
+	}
+
+	public String[] getRequiredCookies() {
+		return requiredCookies;
+	}
+
+	public void setRequiredCookies(String[] requiredCookies) {
+		this.requiredCookies = requiredCookies;
 	}
 }
