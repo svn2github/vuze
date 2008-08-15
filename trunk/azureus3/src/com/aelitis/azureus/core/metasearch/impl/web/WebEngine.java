@@ -481,7 +481,11 @@ WebEngine
 			
 			
 			return page;
-				
+			
+		}catch( SearchException e ){
+			
+			throw( e );
+			
 		}catch( Throwable e) {
 			
 			e.printStackTrace();
