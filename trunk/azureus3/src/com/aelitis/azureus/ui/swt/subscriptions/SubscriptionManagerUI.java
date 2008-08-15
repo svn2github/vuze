@@ -1102,7 +1102,7 @@ SubscriptionManagerUI
 						public void
 						run()
 						{
-							if ( mainBrowser.isVisible()){
+							if ( mainBrowser != null && mainBrowser.isVisible()){
 							
 								mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
 							}

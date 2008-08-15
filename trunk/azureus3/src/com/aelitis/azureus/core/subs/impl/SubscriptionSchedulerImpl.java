@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -30,6 +31,10 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -41,6 +46,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
@@ -49,6 +55,12 @@ public class
 SubscriptionSchedulerImpl 
 	implements SubscriptionScheduler, SubscriptionManagerListener
 {
+	private static final Object			SCHEDULER_NEXT_SCAN_KEY 	= new Object();
+	private static final Object			SCHEDULER_FAILED_SCAN_KEY 	= new Object();
+	
+	private static final int			FAIL_INIT_DELAY		= 10*60*1000;
+	private static final int			FAIL_MAX_DELAY		= 8*60*60*1000;
+	
 	private SubscriptionManagerImpl		manager;
 	
 	private Map	active_subscription_downloaders = new HashMap();
@@ -58,6 +70,11 @@ SubscriptionSchedulerImpl
 	
 	private AsyncDispatcher	result_downloader = new AsyncDispatcher();
 
+	private TimerEvent	schedule_event;
+	private boolean		schedule_in_progress;
+	private long		last_schedule;
+	
+	
 	protected
 	SubscriptionSchedulerImpl(
 		SubscriptionManagerImpl		_manager )
@@ -229,15 +246,17 @@ SubscriptionSchedulerImpl
 							
 							result.setRead( true );
 							
-							manager.log( subs.getName() + ": added download " + download.getName());
+							log( subs.getName() + ": added download " + download.getName());
 							
 						}catch( Throwable e ){
 							
-							manager.log( subs.getName() + ": Failed to download result " + dl, e );
+							log( subs.getName() + ": Failed to download result " + dl, e );
 							
 						}finally{
 							
 							active_result_downloaders.remove( key );
+							
+							calculateSchedule();
 						}
 					}
 				});
@@ -247,7 +266,249 @@ SubscriptionSchedulerImpl
 	protected void
 	calculateSchedule()
 	{
+		Subscription[]	subs = manager.getSubscriptions();
 		
+		synchronized( this ){
+			
+			if ( schedule_in_progress ){
+				
+				return;
+			}
+			
+			long	next_ready_time = Long.MAX_VALUE;
+			
+			for (int i=0;i<subs.length;i++){
+				
+				Subscription sub = subs[i];
+				
+				if ( !sub.isSubscribed()){
+					
+					continue;
+				}
+				
+				SubscriptionHistory history = sub.getHistory();
+				
+				if ( !history.isEnabled()){
+					
+					continue;
+				}
+				
+				long	next_scan = getNextScan( sub );
+				
+				sub.setUserData( SCHEDULER_NEXT_SCAN_KEY, new Long( next_scan ));
+				
+				if ( next_scan < next_ready_time ){
+					
+					next_ready_time = next_scan;
+				}
+			}
+		
+			long	 old_when = 0;
+			
+			if ( schedule_event != null ){
+				
+				old_when = schedule_event.getWhen();
+				
+				schedule_event.cancel();
+				
+				schedule_event = null;
+			}
+			
+			if ( next_ready_time < Long.MAX_VALUE ){
+				
+				long	now = SystemTime.getCurrentTime();
+				
+				if ( 	now < last_schedule ||
+						now - last_schedule < 30*1000 ){
+					
+					if ( next_ready_time - now < 30*1000 ){
+						
+						next_ready_time = now + 30*1000;
+					}
+				}
+						
+				log( "Calculate : " + 
+						"old_time=" + new SimpleDateFormat().format(new Date(old_when)) +
+						", new_time=" + new SimpleDateFormat().format(new Date(next_ready_time)));
+						
+				schedule_event = SimpleTimer.addEvent(
+					"SS:Scheduler",
+					next_ready_time,
+					new TimerEventPerformer()
+					{
+						public void 
+						perform(
+							TimerEvent event ) 
+						{
+							synchronized( SubscriptionSchedulerImpl.this ){
+								
+								if ( schedule_in_progress ){
+									
+									return;
+								}
+								
+								schedule_in_progress = true;
+								
+								last_schedule = SystemTime.getCurrentTime();
+								
+								schedule_event = null;
+							}
+							
+							new AEThread2( "SS:Sched", true )
+							{
+								public void
+								run()
+								{
+									try{
+										schedule();
+
+									}finally{
+										
+										synchronized( SubscriptionSchedulerImpl.this ){
+											
+											schedule_in_progress = false;
+										}
+										
+										calculateSchedule();
+									}
+								}
+							}.start();						
+						}
+					});
+			}
+		}
+	}
+	
+	protected void
+	schedule()
+	{
+		Subscription[]	subs = manager.getSubscriptions();
+		
+		long now = SystemTime.getCurrentTime();
+			
+		for (int i=0;i<subs.length;i++){
+			
+			Subscription sub = subs[i];
+			
+			if ( !sub.isSubscribed()){
+				
+				continue;
+			}
+			
+			SubscriptionHistory history = sub.getHistory();
+			
+			if ( !history.isEnabled()){
+				
+				continue;
+			}
+			
+			synchronized( this ){
+				
+				Long	scan_due = (Long)sub.getUserData( SCHEDULER_NEXT_SCAN_KEY );
+				
+				if ( scan_due == null ){
+					
+					continue;
+				}
+				
+				long diff = now - scan_due.longValue();
+				
+				if ( diff < -10*1000 ){
+				
+					continue;
+				}
+				
+				sub.setUserData( SCHEDULER_NEXT_SCAN_KEY, null );
+			}
+			
+			long	last_scan = history.getLastScanTime();
+
+			try{
+					
+				download( sub, true );
+				
+			}catch( Throwable e ){
+				
+			}finally{
+				
+				long	new_last_scan = history.getLastScanTime();
+
+				if ( new_last_scan == last_scan ){
+					
+					scanFailed( sub );
+				}
+			}
+		}
+	}
+	
+	protected long
+	getNextScan(
+		Subscription		sub )
+	{
+		SubscriptionHistory	history = sub.getHistory();
+		
+		long	last_scan	= history.getLastScanTime();
+		
+		long	next_scan 	=  last_scan + 120*60*1000;
+		
+		
+		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_KEY );
+		
+		if ( fail_count != null ){
+			
+			long	fails = fail_count.longValue();
+			
+			long	backoff = FAIL_INIT_DELAY;
+			
+			for (int i=1;i<fails;i++){
+				
+				backoff <<= 1;
+				
+				if ( backoff > FAIL_MAX_DELAY ){
+					
+					backoff = FAIL_MAX_DELAY;
+					
+					break;
+				}
+			}
+			
+			next_scan += backoff;
+		}
+		
+		return( next_scan );
+	}
+	
+	protected void
+	scanFailed(
+		Subscription		sub )
+	{
+		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_KEY );
+		
+		if ( fail_count == null ){
+			
+			fail_count = new Long(1);
+			
+		}else{
+			
+			fail_count = new Long(fail_count.longValue()+1);
+		}
+		
+		sub.setUserData( SCHEDULER_FAILED_SCAN_KEY, fail_count );
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		manager.log( "Scheduler: " + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable 	e )
+	{
+		manager.log( "Scheduler: " + str, e );
 	}
 	
 	public void

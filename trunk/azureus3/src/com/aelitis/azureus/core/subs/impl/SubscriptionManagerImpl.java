@@ -182,7 +182,7 @@ SubscriptionManagerImpl
 	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	
-	private SubscriptionSchedulerImpl	scheduler = new SubscriptionSchedulerImpl( this );
+	private SubscriptionSchedulerImpl	scheduler;
 	
 	private List					potential_associations	= new ArrayList();
 	
@@ -194,6 +194,8 @@ SubscriptionManagerImpl
 	{
 		loadConfig();
 
+		scheduler = new SubscriptionSchedulerImpl( this );
+		
 		AzureusCore	core = AzureusCoreFactory.getSingleton();
 		
 		core.addLifecycleListener(
