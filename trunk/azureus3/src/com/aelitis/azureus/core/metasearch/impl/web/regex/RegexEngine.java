@@ -87,9 +87,24 @@ RegexEngine
 		String 				timeZone,
 		boolean 			automaticDateFormat,
 		String 				userDateFormat,
-		FieldMapping[] 		mappings) 
+		FieldMapping[] 		mappings,
+		boolean				needs_auth,
+		String				login_url,
+		String[]			required_cookies )
 	{
-		super( meta_search, Engine.ENGINE_TYPE_REGEX, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat, mappings );
+		super( 	meta_search, 
+				Engine.ENGINE_TYPE_REGEX, 
+				id,
+				last_updated,
+				name,
+				searchURLFormat,
+				timeZone,
+				automaticDateFormat,
+				userDateFormat, 
+				mappings,
+				needs_auth,
+				login_url,
+				required_cookies );		
 
 		init( resultPattern );
 		
@@ -179,7 +194,7 @@ RegexEngine
 	{
 		debugStart();
 				
-		final String page = getWebPageContent( searchParameters, headers );
+		final String page = getWebPageContent( searchParameters, headers, false );
 			
 		if ( listener != null ){
 			

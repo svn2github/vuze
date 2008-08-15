@@ -87,7 +87,10 @@ WebEngine
 		String 			timeZone,
 		boolean 		automaticDateParser,
 		String 			userDateFormat, 
-		FieldMapping[] 	mappings ) 
+		FieldMapping[] 	mappings,
+		boolean			needs_auth,
+		String			login_url,
+		String[]		required_cookies )
 	{	
 		super( meta_search, type, id, last_updated, name );
 
@@ -96,6 +99,9 @@ WebEngine
 		this.automaticDateParser 	= automaticDateParser;
 		this.userDateFormat 		= userDateFormat;
 		this.mappings				= mappings;
+		this.needsAuth				= needs_auth;
+		this.loginPageUrl			= login_url;
+		this.requiredCookies		= required_cookies;
 		
 		init();
 	}
@@ -116,6 +122,10 @@ WebEngine
 		userDateFormat		= ImportExportUtils.importString( map, "web.date_format" );
 		downloadLinkCSS		= ImportExportUtils.importString( map, "web.dl_link_css" );
 		
+		needsAuth			= ImportExportUtils.importBoolean(map, "web.needs_auth", false );
+		loginPageUrl 		= ImportExportUtils.importString( map, "web.login_page" );
+		requiredCookies 	= ImportExportUtils.importStringArray( map, "web.required_cookies" );
+
 		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", true );
 
 		List	maps = (List)map.get( "web.maps" );
@@ -143,12 +153,16 @@ WebEngine
 	{
 		super.exportToBencodedMap( map );
 		
-		ImportExportUtils.exportString( map, "web.search_url_format", searchURLFormat );
-		ImportExportUtils.exportString( map, "web.time_zone", 		timeZone );		
-		ImportExportUtils.exportString( map, "web.date_format", 		userDateFormat );
-		ImportExportUtils.exportString( map, "web.dl_link_css",		downloadLinkCSS );
+		ImportExportUtils.exportString( map, "web.search_url_format", 		searchURLFormat );
+		ImportExportUtils.exportString( map, "web.time_zone", 				timeZone );		
+		ImportExportUtils.exportString( map, "web.date_format", 			userDateFormat );
+		ImportExportUtils.exportString( map, "web.dl_link_css",				downloadLinkCSS );
 		
-		map.put( "web.auto_date", new Long( automaticDateParser?1:0));
+		ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
+		ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
+		ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
+
+		ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
 
 		List	maps = new ArrayList();
 		
@@ -182,26 +196,16 @@ WebEngine
 	{
 		super( meta_search, type, id, last_updated, name, map );
 		
-		searchURLFormat 	= ImportExportUtils.importString( map, "searchURL" );
+		searchURLFormat 	= ImportExportUtils.importURL( map, "searchURL" );
 		timeZone			= ImportExportUtils.importString( map, "timezone" );
 		userDateFormat		= ImportExportUtils.importString( map, "time_format" );
-		downloadLinkCSS		= ImportExportUtils.importString( map, "download_link" );
+		downloadLinkCSS		= ImportExportUtils.importURL( map, "download_link" );
 
-		if ( downloadLinkCSS != null ){
-			
-			downloadLinkCSS = downloadLinkCSS.trim();
-			
-			if ( downloadLinkCSS.length() == 0 ){
-				
-				downloadLinkCSS = null;
-				
-			}else{
-				
-				downloadLinkCSS = URLDecoder.decode( downloadLinkCSS, "UTF-8" );
-			}
-		}
 		
-		searchURLFormat = URLDecoder.decode( searchURLFormat, "UTF-8" );
+		needsAuth			= ImportExportUtils.importBoolean( map, "needs_auth", false );
+		loginPageUrl 		= ImportExportUtils.importURL( map, "login_page" );
+		
+		requiredCookies 	= ImportExportUtils.importStringArray( map, "required_cookies" );
 		
 		automaticDateParser	= userDateFormat == null || userDateFormat.trim().length() == 0;
 
@@ -261,17 +265,22 @@ WebEngine
 	{		
 		super.exportToJSONObject( res );
 		
-		res.put( "searchURL", 	UrlUtils.encode( searchURLFormat));
-		res.put( "timezone", 	timeZone );	
+		ImportExportUtils.exportJSONURL( res, "searchURL", searchURLFormat );
+		
+		ImportExportUtils.exportJSONString( res, "timezone", 	timeZone );	
 		
 		if ( downloadLinkCSS != null ){
 			
-			res.put( "download_link", UrlUtils.encode( downloadLinkCSS ));
+			ImportExportUtils.exportJSONURL( res, "download_link", downloadLinkCSS );
 		}
 		
+		ImportExportUtils.exportJSONBoolean( res, "needs_auth",				needsAuth );
+		ImportExportUtils.exportJSONURL( res, "login_page",					loginPageUrl );
+		ImportExportUtils.exportJSONStringArray( res, "required_cookies",	requiredCookies );
+ 
 		if ( !automaticDateParser ){
 			
-			res.put( "time_format",	userDateFormat );
+			ImportExportUtils.exportJSONString( res, "time_format",	userDateFormat );
 		}
 		
 		JSONArray	maps = new JSONArray();
@@ -345,14 +354,16 @@ WebEngine
 	protected String 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,
-		String				headers )
+		String				headers,
+		boolean				only_if_modified )
 	
 		throws SearchException
 	{
 		
 		try {
 			
-			if(requiresLogin()) {
+			if( requiresLogin()){
+				
 				throw new SearchLoginException("login required");
 			}
 			

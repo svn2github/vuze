@@ -90,9 +90,24 @@ JSONEngine
 		boolean 			automaticDateFormat,
 		String 				userDateFormat,
 		String 				resultsEntryPath,
-		FieldMapping[] 		mappings) 
+		FieldMapping[] 		mappings,
+		boolean				needs_auth,
+		String				login_url,
+		String[]			required_cookies )
 	{
-		super( meta_search, Engine.ENGINE_TYPE_JSON, id,last_updated,name,searchURLFormat,timeZone,automaticDateFormat,userDateFormat,mappings);
+		super( 	meta_search, 
+				Engine.ENGINE_TYPE_JSON, 
+				id,
+				last_updated,
+				name,
+				searchURLFormat,
+				timeZone,
+				automaticDateFormat,
+				userDateFormat,
+				mappings,
+				needs_auth,
+				login_url,
+				required_cookies );		
 		
 		this.resultsEntryPath = resultsEntryPath;
 		
@@ -168,7 +183,7 @@ JSONEngine
 	{	
 		debugStart();
 		
-		String page = super.getWebPageContent( searchParameters, headers );
+		String page = super.getWebPageContent( searchParameters, headers, false );
 		
 		if ( listener != null ){
 			listener.contentReceived( this, page );

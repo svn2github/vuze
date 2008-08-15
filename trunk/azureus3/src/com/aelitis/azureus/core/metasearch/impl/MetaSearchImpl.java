@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
@@ -35,6 +36,8 @@ import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
+import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
+import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -61,6 +64,11 @@ MetaSearchImpl
 		manager	= _manager;
 		
 		loadConfig();
+	}
+	
+	protected 
+	MetaSearchImpl()
+	{
 	}
 	
 	public Engine
@@ -151,7 +159,16 @@ MetaSearchImpl
 	
 		throws MetaSearchException 
 	{
-		EngineImpl engine = new RSSEngine( this, manager.getLocalTemplateID(), SystemTime.getCurrentTime(), url, url );
+		EngineImpl engine = 
+			new RSSEngine( 
+					this, 
+					manager.getLocalTemplateID(), 
+					SystemTime.getCurrentTime(), 
+					url, 
+					url, 
+					false,
+					null,
+					new String[0] );
 		
 		addEngine( engine, false );
 				
@@ -658,5 +675,35 @@ MetaSearchImpl
 		Throwable 	e )
 	{
 		manager.log( "search :"  +  str, e );
+	}
+	
+	public static void
+	main(
+		String[]		args )
+	{
+		try{
+			MetaSearchImpl ms = new MetaSearchImpl();
+			
+			Engine e = new RegexEngine(
+					ms, 
+					999,
+					SystemTime.getCurrentTime(),
+					"Test",
+					"http://blah/",
+					"",
+					"GMT",
+					true,
+					null,
+					new FieldMapping[0],
+					true,
+					"http://wibble/",
+					new String[0] );
+					
+			e.exportToVuzeFile( new File( "C:\\temp\\tmp.vuze" ));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

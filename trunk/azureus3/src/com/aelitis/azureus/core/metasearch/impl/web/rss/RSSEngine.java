@@ -3,7 +3,6 @@ package com.aelitis.azureus.core.metasearch.impl.web.rss;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +27,6 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
-import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
-import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 RSSEngine 
@@ -66,7 +63,10 @@ RSSEngine
 		long 				id,
 		long 				last_updated,
 		String 				name,
-		String 				searchURLFormat ) 
+		String 				searchURLFormat,
+		boolean				needs_auth,
+		String				login_url,
+		String[]			required_cookies )
 	{
 		super( 	meta_search, 
 				Engine.ENGINE_TYPE_RSS, 
@@ -77,7 +77,10 @@ RSSEngine
 				"GMT",
 				false,
 				"EEE, d MMM yyyy HH:mm:ss Z",
-				new FieldMapping[0]);		
+				new FieldMapping[0],
+				needs_auth,
+				login_url,
+				required_cookies );		
 	}
 	
 	protected 
@@ -129,23 +132,12 @@ RSSEngine
 	{
 		debugStart();
 		
-		String page = super.getWebPageContent( searchParameters, headers );
+		String page = super.getWebPageContent( searchParameters, headers, true );
 		
 		if ( listener != null ){
 			listener.contentReceived( this, page );
 		}
-		
-		
-		String searchQuery = null;
-		
-		for(int i = 0 ; i < searchParameters.length ; i++){
-			if(searchParameters[i].getMatchPattern().equals("s")) {
-				searchQuery = searchParameters[i].getValue();
-			}
-		}
-		
-		FieldMapping[] mappings = getMappings();
-
+				
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(page.getBytes("UTF-8"));
 			RSSFeed rssFeed = StaticUtilities.getRSSFeed(bais);

@@ -53,7 +53,6 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
-import com.aelitis.azureus.ui.swt.views.skin.SearchResultsTabArea;
 import com.aelitis.azureus.util.JSONUtils;
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
