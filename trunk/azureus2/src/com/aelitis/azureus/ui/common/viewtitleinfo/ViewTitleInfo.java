@@ -46,6 +46,9 @@ public interface ViewTitleInfo
 	 */
 	
 	public static int TITLE_HAS_VITALITY	= 6;	
+
+	public static int TITLE_LOGID	= 7;
+
 	/**
 	 * 
 	 * @param propertyID TITLE_*

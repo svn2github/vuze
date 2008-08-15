@@ -65,6 +65,10 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 	private final UISWTViewEventListener eventListener;
 
+	public UISWTViewEventListener getEventListener() {
+		return eventListener;
+	}
+
 	private Composite composite;
 
 	private final String sViewID;
@@ -94,6 +98,9 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		this.sViewID = sViewID;
 		this.eventListener = eventListener;
 		this.dataSource = datasource;
+		if (eventListener instanceof UISWTViewCoreEventListener) {
+			useCoreDataSource = true;
+		}
 
 		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
 				UISWTViewEvent.TYPE_CREATE, this)))
@@ -158,7 +165,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	public void dataSourceChanged(Object newDataSource) {
 		dataSource = PluginCoreUtils.convert(newDataSource, useCoreDataSource);
 
-		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource);
+		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
 	}
 
 	public void delete() {

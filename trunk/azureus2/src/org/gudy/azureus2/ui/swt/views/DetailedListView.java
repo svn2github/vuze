@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
@@ -56,7 +58,7 @@ public class DetailedListView extends AbstractIView implements
 	private AzureusCore	azureus_core;
   
   private MyTorrentsView torrentview;
-  private ManagerView managerview;
+  private UISWTViewImpl managerview;
   private Composite managerview_parent;
 
 	private Composite form;
@@ -350,14 +352,20 @@ public class DetailedListView extends AbstractIView implements
 	  public void refreshDownloadView(DownloadManager[] dms) {
 		  System.out.println("refreshDownloadView change");
 		  if (dms.length != 1) return;
-		  boolean change = this.managerview == null || !dms[0].equals(this.managerview.getDownload());
+		  boolean change = this.managerview == null || !dms[0].equals(this.managerview.getDataSource());
 		  if (!change) {return;}
 		  
 		  if (this.managerview != null) {
 			  this.managerview.delete();
 		  }
-		  this.managerview = new ManagerView(this.azureus_core, dms[0]);
-		  this.managerview.initialize(this.managerview_parent);
-		  this.managerview_parent.layout();
+		  try {
+				this.managerview = new UISWTViewImpl(null, "DMView", new ManagerView(), dms[0]);
+				this.managerview.setUseCoreDataSource(true);
+			  this.managerview.initialize(this.managerview_parent);
+			  this.managerview_parent.layout();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 	  }
 }

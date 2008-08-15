@@ -260,7 +260,8 @@ public class UIFunctionsImpl
 			final boolean bSetFocus) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				mainwindow.openPluginView(sParentID, sViewID, l, dataSource, bSetFocus);
+				mainwindow.openPluginView(sParentID, sViewID, l, dataSource, bSetFocus,
+						false);
 			}
 		});
 	}

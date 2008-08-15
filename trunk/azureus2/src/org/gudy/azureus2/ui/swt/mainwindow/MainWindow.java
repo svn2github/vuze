@@ -892,8 +892,10 @@ public class MainWindow
 				refreshIconBar();
 				refreshTorrentMenu();
 			} else {
-				Item tab = mainTabSet.createTabItem(new ManagerView(azureus_core,
-						downloadManager), true);
+				Item tab = openPluginView(null, "DMView", new ManagerView(),
+						downloadManager, true, true);
+//				Item tab = mainTabSet.createTabItem(new ManagerView(azureus_core,
+//						downloadManager), true);
 				downloadViews.put(downloadManager, tab);
 			}
 		} finally {
@@ -1116,8 +1118,9 @@ public class MainWindow
 
 	Map pluginTabs = new HashMap();
 
-	protected void openPluginView(String sParentID, String sViewID,
-			UISWTViewEventListener l, Object dataSource, boolean bSetFocus) {
+	protected Item openPluginView(String sParentID, String sViewID,
+			UISWTViewEventListener l, Object dataSource, boolean bSetFocus,
+			boolean useCoreDS) {
 
 		UISWTViewImpl view = null;
 		try {
@@ -1127,13 +1130,15 @@ public class MainWindow
 			if (tab != null) {
 				mainTabSet.setFocus(tab);
 			}
-			return;
+			return tab;
 		}
+		view.setUseCoreDataSource(useCoreDS);
 		view.dataSourceChanged(dataSource);
 
 		Item tab = mainTabSet.createTabItem(view, bSetFocus);
 
 		pluginTabs.put(sViewID, tab);
+		return tab;
 	}
 
 	/**
@@ -1221,6 +1226,12 @@ public class MainWindow
 		if (itemKey.equals("new"))
 			return true;
 		IView currentView = getCurrentView();
+		if (currentView instanceof UISWTViewImpl) {
+			UISWTViewEventListener eventListener = ((UISWTViewImpl) currentView).getEventListener();
+			if (eventListener instanceof IconBarEnabler) {
+				return ((IconBarEnabler)eventListener).isEnabled(itemKey);
+			}
+		}
 		if (currentView != null)
 			return currentView.isEnabled(itemKey);
 		return false;
@@ -1242,6 +1253,13 @@ public class MainWindow
 			return;
 		}
 		IView currentView = getCurrentView();
+		if (currentView instanceof UISWTViewImpl) {
+			UISWTViewEventListener eventListener = ((UISWTViewImpl) currentView).getEventListener();
+			if (eventListener instanceof IconBarEnabler) {
+				((IconBarEnabler)eventListener).isSelected(itemKey);
+				return;
+			}
+		}
 		if (currentView != null)
 			currentView.itemActivated(itemKey);
 	}

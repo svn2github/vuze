@@ -37,18 +37,18 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -65,21 +65,21 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  * 
  */
 public class ManagerView
-	extends AbstractIView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo
+	ViewTitleInfo, UISWTViewCoreEventListener, IconBarEnabler
 {
 
-  private AzureusCore		azureus_core;
   private DownloadManager 	manager;
   private TabFolder folder;
   private ArrayList tabViews = new ArrayList();
+  
+  int lastCompleted = -1;
+	private UISWTView swtView;
   
   /**
 	 * 
 	 */
 	public ManagerView() {
-		azureus_core = AzureusCoreFactory.getSingleton();
 	}
   
   public 
@@ -87,14 +87,11 @@ public class ManagerView
   	AzureusCore		_azureus_core,
 	DownloadManager manager) 
   {
-  	azureus_core	= _azureus_core;
   	dataSourceChanged(manager);
     
   }
   
-  public void dataSourceChanged(Object newDataSource) {
-  	super.dataSourceChanged(newDataSource);
-
+  private void dataSourceChanged(Object newDataSource) {
     if (manager != null) {
     	manager.removeListener(this);
     }
@@ -127,13 +124,11 @@ public class ManagerView
 			}
 		}
 		
+		refreshTitle();		
 		ViewTitleInfoManager.refreshTitleInfo(this);
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
-  public void delete() {
+  private void delete() {
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.removeManagerView(manager);
@@ -172,28 +167,7 @@ public class ManagerView
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
-  public Composite getComposite() {
-    return folder;
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
-  public String getFullTitle() {
-  	if (manager == null) {
-  		return "";
-  	}
-    int completed = manager.getStats().getCompleted();
-    return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager.getDisplayName();
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-   */
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
 
   	if (folder == null) {
 			folder = new TabFolder(composite, SWT.LEFT);
@@ -277,11 +251,8 @@ public class ManagerView
 		return (IView) ti.getData("IView");
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#refresh()
-   */
-  public void refresh() {
-		if (getComposite() == null || getComposite().isDisposed())
+  private void refresh() {
+		if (folder == null || folder.isDisposed())
 			return;
 
 		try {
@@ -314,17 +285,36 @@ public class ManagerView
         }
       }
 	    
-        UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-        if (uiFunctions != null) {
-      	  uiFunctions.refreshIconBar(); // For edit columns view
-        }
+	    UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uiFunctions != null) {
+				uiFunctions.refreshIconBar(); // For edit columns view
+			}
+
+			refreshTitle();
 
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
 	}
 
-  protected static String
+  /**
+	 * 
+	 *
+	 * @since 3.1.0.1
+	 */
+	private void refreshTitle() {
+		if (swtView != null) {
+			int completed = manager == null ? -1
+					: manager.getStats().getCompleted();
+			if (lastCompleted != completed) {
+				swtView.setTitle(DisplayFormatters.formatPercentFromThousands(completed)
+						+ " : " + manager.getDisplayName());
+				ViewTitleInfoManager.refreshTitleInfo(this);
+			}
+		}
+	}
+
+	protected static String
   escapeAccelerators(
 	 String	str )
   {
@@ -480,7 +470,55 @@ public class ManagerView
 	    if (completed != 1000) {
 	    	return (completed / 10) + "%";
 	    }
+		} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
+			String s = "";
+	    int completed = manager.getStats().getCompleted();
+	    if (completed != 1000) {
+	    	s = (completed / 10) + "% Complete\n";
+	    }
+	    String eta	= DisplayFormatters.formatETA(manager.getStats().getETA());
+	    if (eta.length() > 0) {
+	    	s += MessageText.getString("TableColumn.header.eta") + ": " + eta + "\n";
+	    }
+	    
+	    return s;
 		}
 		return null;
+	}
+	
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(folder);
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
+
+	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
+	public boolean isSelected(String itemKey) {
+		return false;
 	}
 }

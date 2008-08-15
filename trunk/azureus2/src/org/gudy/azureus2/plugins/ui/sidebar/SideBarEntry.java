@@ -23,7 +23,7 @@ package org.gudy.azureus2.plugins.ui.sidebar;
  * @created Aug 13, 2008
  *
  */
-public interface SideBarInfo
+public interface SideBarEntry
 {
 
 	public String getParentID();
