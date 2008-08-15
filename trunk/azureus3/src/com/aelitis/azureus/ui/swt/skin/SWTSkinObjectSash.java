@@ -422,7 +422,6 @@ public class SWTSkinObjectSash
 		double d = l.doubleValue();
 		boolean layoutNeeded = false;
 		if (bVertical) {
-			System.out.println("SP: " + l);
 			int parentWidth = parentComposite.getBounds().width;
 			int newWidth = (int) ((parentWidth - (sash.getSize().x / 2)) * d);
 			if (newWidth != belowData.width) {

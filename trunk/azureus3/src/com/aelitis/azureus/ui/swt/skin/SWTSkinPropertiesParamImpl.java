@@ -102,4 +102,12 @@ public class SWTSkinPropertiesParamImpl
 	public boolean hasKey(String name) {
 		return properties.hasKey(name);
 	}
+
+	public Color getColor(String name, Color def) {
+		Color color = getColor(name);
+		if (color == null) {
+			return def;
+		}
+		return color;
+	}
 }

@@ -27,14 +27,14 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarInfo;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
  * @created Aug 13, 2008
  *
  */
-public class SideBarInfoSWT implements SideBarInfo
+public class SideBarEntrySWT implements SideBarEntry
 {
 	final public String id;
 	
@@ -50,7 +50,7 @@ public class SideBarInfoSWT implements SideBarInfo
 
 	boolean pullTitleFromIView;
 
-	IView iview;
+	public IView iview;
 
 	public boolean closeable;
 
@@ -166,7 +166,7 @@ public class SideBarInfoSWT implements SideBarInfo
 		return id;
 	}
 
-	public SideBarInfoSWT(String id) {
+	public SideBarEntrySWT(String id) {
 		this.id = id;
 	}
 }

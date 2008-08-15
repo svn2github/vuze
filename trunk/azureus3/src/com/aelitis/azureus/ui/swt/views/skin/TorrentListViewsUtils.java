@@ -67,6 +67,7 @@ import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.win32.Win32Utils;
@@ -1066,7 +1067,14 @@ public class TorrentListViewsUtils
 				public void runSupport() {
 					SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 					// 3.2 TODO: properly detect any library
-					if (sideBar != null && !sideBar.getCurrentViewID().equals(SideBar.SIDEBAR_SECTION_LIBRARY)) {
+					if (sideBar == null) {
+						return;
+					}
+					SideBarEntrySWT info = sideBar.getCurrentSideBarInfo();
+					if (info == null) {
+						return;
+					}
+					if (info.id.equals(SideBar.SIDEBAR_SECTION_LIBRARY)) {
 						Display current = Display.getCurrent();
 						// checking focusControl for null doesn't really work
 						// Preferably, we'd check to see if the app has the OS' focus

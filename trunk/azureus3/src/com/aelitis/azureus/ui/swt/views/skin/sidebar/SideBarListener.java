@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
-import org.gudy.azureus2.ui.swt.views.IView;
 
 /**
  * @author TuxPaper
@@ -27,6 +26,12 @@ import org.gudy.azureus2.ui.swt.views.IView;
  */
 public interface SideBarListener
 {
-	public void sidebarItemSelected(IView view, String id, IView oldView,
-			String oldID);
+	/**
+	 * @param newSideBarEntry
+	 * @param oldSideBarEntry
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
+			SideBarEntrySWT oldSideBarEntry);
 }

@@ -41,4 +41,6 @@ public interface SWTSkinProperties
 	 */
 	public Color getColor(String name);
 
+
+	public Color getColor(String name, Color def);
 }

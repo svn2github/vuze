@@ -18,12 +18,26 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 /**
  * @author TuxPaper
@@ -44,7 +58,9 @@ public class SBC_LibraryView
 	public static final int TORRENTS_COMPLETE = 1;
 
 	public static final int TORRENTS_INCOMPLETE = 2;
-
+	
+	public static List allViewTitles = new ArrayList(1);
+	
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_BIG,
 		SkinConstants.VIEWID_SIDEBAR_LIBRARY_SMALL
@@ -55,6 +71,14 @@ public class SBC_LibraryView
 		"library.table.small"
 	};
 
+	private static int numSeeding = 0;
+
+	private static int numDownloading = 0;
+
+	private static int numComplete = 0;
+
+	private static int numIncomplete = 0;
+
 	private int viewMode;
 
 	private SWTSkinButtonUtility btnSmallTable;
@@ -63,15 +87,16 @@ public class SBC_LibraryView
 
 	private SWTSkinObject soListArea;
 
-
 	private int torrentFilterMode = TORRENTS_ALL;
+
+	private String torrentFilter;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		String torrentFilter = skinObject.getSkinObjectID();
-		if (torrentFilter.equalsIgnoreCase("LibraryDL_SB")) {
+		torrentFilter = skinObject.getSkinObjectID();
+		if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_DL)) {
 			torrentFilterMode = TORRENTS_INCOMPLETE;
-		} else if (torrentFilter.equalsIgnoreCase("LibraryCD_SB")) {
+		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_CD)) {
 			torrentFilterMode = TORRENTS_COMPLETE;
 		}
 
@@ -80,8 +105,8 @@ public class SBC_LibraryView
 		soListArea.getControl().setData("TorrentFilterMode",
 				new Long(torrentFilterMode));
 
-		setViewMode(COConfigurationManager.getIntParameter(ID + ".viewmode",
-				MODE_BIGTABLE));
+		setViewMode(COConfigurationManager.getIntParameter(torrentFilter + ".viewmode",
+				MODE_BIGTABLE), false);
 
 		SWTSkinObject so;
 		so = getSkinObject(ID + "-button-smalltable");
@@ -89,7 +114,7 @@ public class SBC_LibraryView
 			btnSmallTable = new SWTSkinButtonUtility(so);
 			btnSmallTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					setViewMode(MODE_SMALLTABLE);
+					setViewMode(MODE_SMALLTABLE, true);
 				}
 			});
 		}
@@ -99,19 +124,19 @@ public class SBC_LibraryView
 			btnBigTable = new SWTSkinButtonUtility(so);
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					setViewMode(MODE_BIGTABLE);
+					setViewMode(MODE_BIGTABLE, true);
 				}
 			});
 		}
-
+		
 		return null;
 	}
-
+	
 	public int getViewMode() {
 		return viewMode;
 	}
 
-	public void setViewMode(int viewMode) {
+	public void setViewMode(int viewMode, boolean save) {
 		if (viewMode >= modeViewIDs.length || viewMode < 0) {
 			return;
 		}
@@ -137,5 +162,203 @@ public class SBC_LibraryView
 			soViewArea.setVisible(true);
 		}
 
+		if (save) {
+			COConfigurationManager.setParameter(torrentFilter + ".viewmode",
+					viewMode);
+		}
+	}
+
+	public static void setupViewTitle() {
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		
+		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
+			public String getTitleInfoStringProperty(int propertyID) {
+				if (propertyID == TITLE_LOGID) {
+					String id = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
+					int viewMode = COConfigurationManager.getIntParameter(id
+							+ ".viewmode", MODE_BIGTABLE);
+					return id + "-" + viewMode;
+				}
+
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+					return numDownloading + " of " + numIncomplete;
+				} 
+				
+				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
+					return "There are " + numIncomplete + " incomplete torrents, "
+							+ numDownloading + " of which are currently downloading";
+				}
+				return null;
+			}
+
+			public Object getTitleInfoObjectProperty(int propertyID) {
+				return null;
+			}
+		};
+		allViewTitles.add(titleInfoDownloading);
+		SideBarEntrySWT infoDL = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+		if (infoDL != null) {
+			infoDL.setTitleInfo(titleInfoDownloading);
+		}
+		
+		final ViewTitleInfo titleInfoSeeding = new ViewTitleInfo() {
+			public String getTitleInfoStringProperty(int propertyID) {
+				if (propertyID == TITLE_LOGID) {
+					String id = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
+					int viewMode = COConfigurationManager.getIntParameter(id
+							+ ".viewmode", MODE_BIGTABLE);
+					return id + "-" + viewMode;
+				}
+
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+					return numSeeding + " of " + numComplete;
+				} 
+				
+				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
+					return "There are " + numComplete + " complete torrents, "
+					+ numSeeding + " of which are currently seeding";
+				}
+				return null;
+			}
+
+			public Object getTitleInfoObjectProperty(int propertyID) {
+				return null;
+			}
+		};
+		allViewTitles.add(titleInfoSeeding);
+		SideBarEntrySWT infoCD = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		if (infoCD != null) {
+			infoCD.setTitleInfo(titleInfoSeeding);
+		}
+
+		SideBarEntrySWT infoLibrary = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY);
+		if (infoLibrary != null) {
+			infoLibrary.setTitleInfo(new ViewTitleInfo() {
+				public String getTitleInfoStringProperty(int propertyID) {
+					if (propertyID == TITLE_LOGID) {
+						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
+						int viewMode = COConfigurationManager.getIntParameter(id
+								+ ".viewmode", MODE_BIGTABLE);
+						return id + "-" + viewMode;
+					}
+					return null;
+				}
+			
+				public Object getTitleInfoObjectProperty(int propertyID) {
+					return null;
+				}
+			});
+		}
+		allViewTitles.add(titleInfoSeeding);
+		
+		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
+			public void stateChanged(DownloadManager dm, int state) {
+				if (dm.getAssumedComplete()) {
+					boolean isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
+					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
+					boolean wasSeeding = wasSeedingB == null ? false
+							: wasSeedingB.booleanValue();
+					if (isSeeding != wasSeeding) {
+						if (isSeeding) {
+							numSeeding++;
+						} else {
+							numSeeding--;
+						}
+						dm.setUserData("wasSeeding", new Boolean(isSeeding));
+					}
+				} else {
+					boolean isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
+					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
+					boolean wasDownloading = wasDownloadingB == null ? false
+							: wasDownloadingB.booleanValue();
+					if (isDownloading != wasDownloading) {
+						if (isDownloading) {
+							numDownloading++;
+						} else {
+							numDownloading--;
+						}
+						dm.setUserData("wasDownloading", new Boolean(isDownloading));
+					}
+				}
+				refreshAllLibraries();
+			}
+
+			public void completionChanged(DownloadManager dm, boolean completed) {
+				if (dm.getAssumedComplete()) {
+					numComplete++;
+					numIncomplete--;
+				} else {
+					numIncomplete++;
+					numComplete--;
+				}
+				refreshAllLibraries();
+			}
+		};
+		gm.addListener(new GlobalManagerAdapter() {
+			public void downloadManagerRemoved(DownloadManager dm) {
+				if (dm.getAssumedComplete()) {
+					numComplete--;
+				} else {
+					numIncomplete--;
+				}
+				refreshAllLibraries();
+				dm.removeListener(dmListener);
+			}
+
+			public void downloadManagerAdded(DownloadManager dm) {
+				refreshAllLibraries();
+				dm.addListener(dmListener, false);
+
+				if (dm.getAssumedComplete()) {
+					numComplete++;
+					if (dm.getState() == DownloadManager.STATE_SEEDING) {
+						numSeeding++;
+					}
+				} else {
+					numIncomplete++;
+					if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
+						dm.setUserData("wasDownloading", new Boolean(true));
+						numSeeding++;
+					} else {
+						dm.setUserData("wasDownloading", new Boolean(false));
+					}
+				}
+			}
+		}, false);
+		List downloadManagers = gm.getDownloadManagers();
+		for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
+			DownloadManager dm = (DownloadManager) iter.next();
+			dm.addListener(dmListener, false);
+			if (dm.getAssumedComplete()) {
+				numComplete++;
+				if (dm.getState() == DownloadManager.STATE_SEEDING) {
+					dm.setUserData("wasSeeding", new Boolean(true));
+					numSeeding++;
+				} else {
+					dm.setUserData("wasSeeding", new Boolean(false));
+				}
+			} else {
+				numIncomplete++;
+				if (dm.getState() == DownloadManager.STATE_DOWNLOADING) {
+					numSeeding++;
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected static void refreshAllLibraries() {
+		Object[] all = allViewTitles.toArray();
+		for (int i = 0; i < all.length; i++) {
+			ViewTitleInfo vti = (ViewTitleInfo) all[i];
+			
+			ViewTitleInfoManager.refreshTitleInfo(vti);
+		}
 	}
 }

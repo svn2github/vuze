@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import org.eclipse.swt.SWT;
@@ -34,7 +34,7 @@ import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
  *
  */
 public class SideBarToolTips
-implements Listener, UIUpdatable
+	implements Listener, UIUpdatable
 {
 	Shell toolTipShell = null;
 
@@ -46,7 +46,7 @@ implements Listener, UIUpdatable
 
 	private final SideBar sidebar;
 
-	private SideBarInfoSWT sideBarInfo;
+	private SideBarEntrySWT sideBarInfo;
 
 	/**
 	 * Initialize
@@ -67,94 +67,14 @@ implements Listener, UIUpdatable
 	public void handleEvent(Event event) {
 		switch (event.type) {
 			case SWT.MouseHover: {
-				if (toolTipShell != null && !toolTipShell.isDisposed())
-					toolTipShell.dispose();
-
-				if (tree.getItemCount() == 0) {
-					return;
-				}
-				int indent = tree.getItem(0).getBounds().x;
-				TreeItem treeItem = tree.getItem(new Point(indent, event.y));
-				if (treeItem == null) {
-					return;
-				}
-				String id = (String) treeItem.getData("Plugin.viewID");
-				sideBarInfo = SideBar.getSideBarInfo(id);
-				if (sideBarInfo.titleInfo == null) {
-					return;
-				}
-
-				String sToolTip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
-				if (sToolTip == null) {
-					return;
-				}
-				
-				Display d = tree.getDisplay();
-				if (d == null)
-					return;
-
-				// We don't get mouse down notifications on trim or borders..
-				toolTipShell = new Shell(tree.getShell(), SWT.ON_TOP);
-				FillLayout f = new FillLayout();
-				try {
-					f.marginWidth = 3;
-					f.marginHeight = 1;
-				} catch (NoSuchFieldError e) {
-					/* Ignore for Pre 3.0 SWT.. */
-				}
-				toolTipShell.setLayout(f);
-				toolTipShell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-
-				toolTipLabel = new Label(toolTipShell, SWT.WRAP);
-				toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-				toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
- 				toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
-				// compute size on label instead of shell because label
-				// calculates wrap, while shell doesn't
-				Point size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				if (size.x > 600) {
-					size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
-				}
-				size.x += toolTipShell.getBorderWidth() * 2 + 2;
-				size.y += toolTipShell.getBorderWidth() * 2;
-				try {
-					size.x += toolTipShell.getBorderWidth() * 2 + (f.marginWidth * 2);
-					size.y += toolTipShell.getBorderWidth() * 2 + (f.marginHeight * 2);
-				} catch (NoSuchFieldError e) {
-					/* Ignore for Pre 3.0 SWT.. */
-				}
-				Point pt = tree.toDisplay(event.x, event.y);
-				Rectangle displayRect;
-				try {
-					displayRect = tree.getMonitor().getClientArea();
-				} catch (NoSuchMethodError e) {
-					displayRect = tree.getDisplay().getClientArea();
-				}
-				if (pt.x + size.x > displayRect.x + displayRect.width) {
-					pt.x = displayRect.x + displayRect.width - size.x;
-				}
-
-				if (pt.y + size.y > displayRect.y + displayRect.height) {
-					pt.y -= size.y + 2;
-				} else {
-					pt.y += 21;
-				}
-
-				if (pt.y < displayRect.y)
-					pt.y = displayRect.y;
-
-				toolTipShell.setBounds(pt.x, pt.y, size.x, size.y);
-				toolTipShell.setVisible(true);
-				UIUpdaterSWT.getInstance().addUpdater(this);
-
+				handleHover(new Point(event.x, event.y));
 				break;
 			}
 
 			case SWT.Dispose:
-				if (mainShell != null && !mainShell.isDisposed())
+				if (mainShell != null && !mainShell.isDisposed()) {
 					mainShell.removeListener(SWT.Deactivate, this);
-				UIUpdaterSWT.getInstance().removeUpdater(this);
-				
+				}
 				// fall through
 
 			default:
@@ -166,6 +86,100 @@ implements Listener, UIUpdatable
 				break;
 		} // switch
 	} // handlEvent()
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void handleHover(Point mousePos) {
+		if (toolTipShell != null && !toolTipShell.isDisposed())
+			toolTipShell.dispose();
+
+		if (tree.getItemCount() == 0) {
+			return;
+		}
+		int indent = tree.getItem(0).getBounds().x;
+		TreeItem treeItem = tree.getItem(new Point(indent, mousePos.y));
+		if (treeItem == null) {
+			return;
+		}
+		String id = (String) treeItem.getData("Plugin.viewID");
+		sideBarInfo = SideBar.getSideBarInfo(id);
+		if (sideBarInfo.titleInfo == null) {
+			return;
+		}
+
+		String sToolTip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		if (sToolTip == null) {
+			return;
+		}
+
+		Display d = tree.getDisplay();
+		if (d == null)
+			return;
+
+		// We don't get mouse down notifications on trim or borders..
+		toolTipShell = new Shell(tree.getShell(), SWT.ON_TOP);
+		toolTipShell.addListener(SWT.Dispose, new Listener() {
+
+			public void handleEvent(Event event) {
+				UIUpdaterSWT.getInstance().removeUpdater(SideBarToolTips.this);
+			}
+		});
+		FillLayout f = new FillLayout();
+		try {
+			f.marginWidth = 3;
+			f.marginHeight = 1;
+		} catch (NoSuchFieldError e) {
+			/* Ignore for Pre 3.0 SWT.. */
+		}
+		toolTipShell.setLayout(f);
+		toolTipShell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+
+		toolTipLabel = new Label(toolTipShell, SWT.WRAP);
+		toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+		toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+		toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
+		// compute size on label instead of shell because label
+		// calculates wrap, while shell doesn't
+		Point size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		if (size.x > 600) {
+			size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
+		}
+		size.x += toolTipShell.getBorderWidth() * 2 + 2;
+		size.y += toolTipShell.getBorderWidth() * 2;
+		try {
+			size.x += toolTipShell.getBorderWidth() * 2 + (f.marginWidth * 2);
+			size.y += toolTipShell.getBorderWidth() * 2 + (f.marginHeight * 2);
+		} catch (NoSuchFieldError e) {
+			/* Ignore for Pre 3.0 SWT.. */
+		}
+		Point pt = tree.toDisplay(mousePos.x, mousePos.y);
+		Rectangle displayRect;
+		try {
+			displayRect = tree.getMonitor().getClientArea();
+		} catch (NoSuchMethodError e) {
+			displayRect = tree.getDisplay().getClientArea();
+		}
+		if (pt.x + size.x > displayRect.x + displayRect.width) {
+			pt.x = displayRect.x + displayRect.width - size.x;
+		}
+
+		if (pt.y + size.y > displayRect.y + displayRect.height) {
+			pt.y -= size.y + 2;
+		} else {
+			pt.y += 21;
+		}
+
+		if (pt.y < displayRect.y)
+			pt.y = displayRect.y;
+
+		toolTipShell.setBounds(pt.x, pt.y, size.x, size.y);
+		toolTipShell.setVisible(true);
+		UIUpdaterSWT.getInstance().addUpdater(this);
+
+	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
@@ -184,7 +198,7 @@ implements Listener, UIUpdatable
 		if (sToolTip == null) {
 			return;
 		}
-		
+
 		toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
 	}
 }

@@ -45,10 +45,13 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
-import org.gudy.azureus2.ui.swt.mainwindow.*;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
@@ -63,7 +66,8 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
@@ -81,8 +85,6 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
-import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
@@ -90,10 +92,12 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.views.PieceGraphView;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
@@ -648,6 +652,8 @@ public class MainWindow
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init(uiInitializer);
+			uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
+					"PieceGraphView", new PieceGraphView());
 
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			System.out.println("SWTInstance init took "
@@ -1011,11 +1017,7 @@ public class MainWindow
 		try {
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
-				String id = sidebar.getCurrentViewID();
-				int i = id.indexOf('_');
-				if (i > 0) {
-					id = id.substring(0, i);
-				}
+				String id = sidebar.getLogID(sidebar.getCurrentSideBarInfo());
 				return id;
 			}
 		} catch (Exception e) {
@@ -1781,7 +1783,7 @@ public class MainWindow
 		if (searchClass != null) {
 			searchClass.anotherSearch(sSearchText);
 		} else {
-			sidebar.createTreeItemFromSkinRef(null, id, "main.area.searchresultstab",
+			sidebar.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
 					MessageText.getString("Search: ") + sSearchText, null, sSearchText,
 					true, -1);
 		}
@@ -1792,6 +1794,7 @@ public class MainWindow
 	 * 
 	 */
 	private void updateMapTrackUsage(String sTabID) {
+		//System.out.println("UPDATE: " + sTabID);
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
@@ -2148,8 +2151,17 @@ public class MainWindow
 							Debug.out(e);
 						}
 					} else {
-						sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla, null,
-								null, data, null, true);
+						if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
+							try {
+								UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
+								sideBar.createTreeItemFromEventListener(parentID, null, l, _id, closeable, data);
+							} catch (Exception e) {
+								Debug.out(e);
+							}
+						} else {
+  						sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla, null,
+  								null, data, null, true);
+						}
 						sideBar.showItemByID(_id);
 					}
 				}
@@ -2163,31 +2175,38 @@ public class MainWindow
 		if (sideBar == null) {
 			return false;
 		}
-		String currentViewID = sideBar.getCurrentViewID();
-		if (oldMainWindow != null && currentViewID != null
-				&& currentViewID.equals("Advanced_SB")) {
+		SideBarEntrySWT currentSB = sideBar.getCurrentSideBarInfo();
+		if (currentSB == null) {
+			return false;
+		}
+		if (oldMainWindow != null && currentSB.id != null
+				&& currentSB.id.equals(SideBar.SIDEBAR_SECTION_ADVANCED)) {
 			return true;
 		}
 		return false;
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(org.gudy.azureus2.ui.swt.views.IView, java.lang.String, org.gudy.azureus2.ui.swt.views.IView, java.lang.String)
-	public void sidebarItemSelected(IView view, String id, IView oldView,
-			String oldID) {
-		if (id == null) {
+	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT, com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT)
+	public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
+			SideBarEntrySWT oldSideBarEntry) {
+		if (newSideBarEntry == null) {
 			return;
 		}
 
-		if (mapTrackUsage != null && oldID != null) {
-			String id2 = oldID;
-			int i = id2.indexOf('_');
-			if (i > 0) {
-				id2 = id2.substring(0, i);
+		if (mapTrackUsage != null && oldSideBarEntry != null) {
+			String id2;
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sidebar != null) {
+				id2 = sidebar.getLogID(oldSideBarEntry);
+			} else {
+				id2 = oldSideBarEntry.id;
 			}
+				
 			updateMapTrackUsage(id2);
 		}
 
-		if (id.equals("Advanced_SB") && oldMW_SB == null) {
+		if (newSideBarEntry.id.equals(SideBar.SIDEBAR_SECTION_ADVANCED)
+				&& oldMW_SB == null) {
 			SkinView[] advViews = SkinViewManager.getMultiByClass(SBC_AdvancedView.class);
 			if (advViews != null) {
 				for (int i = 0; i < advViews.length; i++) {

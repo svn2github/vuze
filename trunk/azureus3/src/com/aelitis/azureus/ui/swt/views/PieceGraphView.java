@@ -38,8 +38,13 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
@@ -51,11 +56,11 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  *
  */
 public class PieceGraphView
-	extends AbstractIView
+	implements UISWTViewCoreEventListener
 {
 	// TODO: Buffer
 
-	private boolean onePiecePerBlock = true;
+	private boolean onePiecePerBlock = false;
 
 	private int BLOCK_FILLSIZE = 21;
 
@@ -93,12 +98,14 @@ public class PieceGraphView
 
 	private double[] squareCache;
 
+	private UISWTView swtView;
+
 	public PieceGraphView() {
 		this.properties = SWTSkinFactory.getInstance().getSkinProperties();
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
-	public void initialize(Composite parent) {
+	private void initialize(Composite parent) {
 
 		blockColors = new Color[] {
 			properties.getColor("color.pieceview.alldone"),
@@ -143,13 +150,8 @@ public class PieceGraphView
 		});
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
-	public Composite getComposite() {
-		return canvas;
-	}
-
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
 			dlm = (DownloadManager) newDataSource;
 		} else {
@@ -159,7 +161,7 @@ public class PieceGraphView
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#refresh()
-	public void refresh() {
+	private void refresh() {
 		buildImage();
 	}
 
@@ -170,6 +172,9 @@ public class PieceGraphView
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (canvas == null || canvas.isDisposed()) {
+					return;
+				}
 				TOTorrent torrent = dlm == null ? null : dlm.getTorrent();
 				if (torrent == null) {
 					BLOCK_SIZE = 21 + BLOCK_SPACING;
@@ -213,7 +218,7 @@ public class PieceGraphView
 			return;
 		}
 
-		canvas.setBackground(ColorCache.getColor(canvas.getDisplay(), "#1b1b1b"));
+		//canvas.setBackground(ColorCache.getColor(canvas.getDisplay(), "#1b1b1b"));
 
 		Rectangle bounds = canvas.getClientArea();
 		if (bounds.isEmpty()) {
@@ -292,7 +297,7 @@ public class PieceGraphView
 			if (img != null && !img.isDisposed()) {
 				img.dispose();
 			}
-			System.out.println("clear " + img);
+			//System.out.println("clear " + img);
 			img = new Image(canvas.getDisplay(), bounds.width, bounds.height);
 			squareCache = null;
 		}
@@ -343,8 +348,9 @@ public class PieceGraphView
 			}
 
 			try {
+				gc.setAdvanced(true);
 				gc.setAntialias(SWT.ON);
-				gc.setInterpolation(SWT.NONE);
+				gc.setInterpolation(SWT.HIGH);
 			} catch (Exception e) {
 				// ignore
 			}
@@ -514,5 +520,46 @@ public class PieceGraphView
 			}
 		}
 		return (double) totalComplete / totalBlocks;
+	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(canvas);
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.0.1
+	 */
+	private void delete() {
+		// TODO Auto-generated method stub
+		
 	}
 }

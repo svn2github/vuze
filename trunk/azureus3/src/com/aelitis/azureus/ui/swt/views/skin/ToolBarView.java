@@ -26,13 +26,10 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -48,8 +45,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
 /**
@@ -406,9 +403,9 @@ public class ToolBarView
 	protected void activateViaSideBar(ToolBarItem toolBarItem) {
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			IView view = sidebar.getCurrentIView();
-			if (view instanceof IconBarEnabler) {
-				IconBarEnabler enabler = (IconBarEnabler) view;
+			SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
+			if (info.iview instanceof IconBarEnabler) {
+				IconBarEnabler enabler = (IconBarEnabler) info.iview;
 				enabler.itemActivated(toolBarItem.getId());
 			}
 		}
