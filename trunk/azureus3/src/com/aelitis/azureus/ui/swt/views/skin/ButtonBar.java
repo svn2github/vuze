@@ -6,13 +6,21 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -23,7 +31,11 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.ILoginInfoListener;
@@ -49,22 +61,14 @@ public class ButtonBar
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
-
+		
+		
 		hookBuddyCountLabel();
 		hookEditButton();
 		hookAddBuddyButon();
 		hookShareAllBuddiesButton();
 		hookTuxGoodies();
-
-		/*
-		 * Skip hooking the show/hide button unless a command line parameter is specified
-		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
-		 */
-		if (!com.aelitis.azureus.util.Constants.DISABLE_BUDDIES_BAR) {
-			hookShowHideButon();
-		} else {
-			disabledForEdit(true);
-		}
+		hookShowHideButon();
 
 		return null;
 	}
@@ -241,8 +245,8 @@ public class ButtonBar
 				/*
 				 * Force the Friend footer to be visible so the Friends can be edited
 				 */
-				SWTSkinUtils.setVisibility(skin, "Footer.visible",
-						SkinConstants.VIEWID_FOOTER, true, true, true);
+				SWTSkinUtils.setVisibility(skin, "Friends.visible",
+						SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
 
 			} else if (mode == BuddiesViewer.share_mode) {
 				disabledForShare(true);
@@ -252,8 +256,8 @@ public class ButtonBar
 				/*
 				 * Force the Friend footer to be visible so the Friends can be added to Share
 				 */
-				SWTSkinUtils.setVisibility(skin, "Footer.visible",
-						SkinConstants.VIEWID_FOOTER, true, true, true);
+				SWTSkinUtils.setVisibility(skin, "Friends.visible",
+						SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
 			} else {
 				disabledForEdit(true);
 			}
@@ -294,18 +298,18 @@ public class ButtonBar
 			/*
 			 * Change button display if the property changes
 			 */
-			COConfigurationManager.addParameterListener("Footer.visible",
+			COConfigurationManager.addParameterListener("Friends.visible",
 					new ParameterListener() {
 
 						public void parameterChanged(String parameterName) {
-							showFooterToggleButton(COConfigurationManager.getBooleanParameter("Footer.visible"));
+							showFooterToggleButton(COConfigurationManager.getBooleanParameter("Friends.visible"));
 						}
 					});
 
 			/*
 			 * Initial visibility state of the footer
 			 */
-			showFooterToggleButton(COConfigurationManager.getBooleanParameter("Footer.visible"));
+			showFooterToggleButton(COConfigurationManager.getBooleanParameter("Friends.visible"));
 
 			/*
 			 * Hook 'show' button
@@ -314,8 +318,8 @@ public class ButtonBar
 					showImageObject);
 			btnShow.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					SWTSkinUtils.setVisibility(skin, "Footer.visible",
-							SkinConstants.VIEWID_FOOTER, true, true, true);
+					SWTSkinUtils.setVisibility(skin, "Friends.visible",
+							"footer-buddies", true, true, true);
 				}
 			});
 
@@ -326,8 +330,8 @@ public class ButtonBar
 					hideImageObject);
 			btnHide.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					SWTSkinUtils.setVisibility(skin, "Footer.visible",
-							SkinConstants.VIEWID_FOOTER, false, true, true);
+					SWTSkinUtils.setVisibility(skin, "Friends.visible",
+							"footer-buddies", false, true, true);
 				}
 			});
 

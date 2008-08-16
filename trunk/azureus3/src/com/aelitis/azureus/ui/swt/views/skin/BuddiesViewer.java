@@ -12,8 +12,11 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -37,9 +40,11 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
-import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
@@ -116,7 +121,7 @@ public class BuddiesViewer
 	 */
 	private int pageWindowWidth = 0;
 
-	private DetailPanel detailPanel;
+//	private DetailPanel detailPanel;
 
 	private SharePage sharePage;
 
@@ -231,7 +236,7 @@ public class BuddiesViewer
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
-		
+
 		SWTSkinProperties properties = skin.getSkinProperties();
 		colorFileDragBorder = properties.getColor("color.buddy.filedrag.bg.border");
 		colorFileDragBG = properties.getColor("color.buddy.filedrag.bg");
@@ -242,19 +247,22 @@ public class BuddiesViewer
 
 		if (null != viewer) {
 
-			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
-			if (detailPanelView instanceof DetailPanel) {
-				detailPanel = ((DetailPanel) detailPanelView);
-				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
-
-			} else {
-				throw new IllegalArgumentException(
-						"Oops.. looks like the DetailPanel skin is not properly initialized");
-			}
+			//			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
+			//			if (detailPanelView instanceof DetailPanel) {
+			//				detailPanel = ((DetailPanel) detailPanelView);
+			//				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
+			//
+			//			} else {
+			//				throw new IllegalArgumentException(
+			//						"Oops.. looks like the DetailPanel skin is not properly initialized");
+			//			}
 
 			parent = (Composite) viewer.getControl();
+			parent.setBackground(parent.getDisplay().getSystemColor(
+					SWT.COLOR_LIST_BACKGROUND));
 
 			content = new Composite(parent, SWT.NONE);
+
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 0);
 			fd.bottom = new FormAttachment(100, 0);
@@ -262,8 +270,10 @@ public class BuddiesViewer
 			fd.right = new FormAttachment(100, 0);
 			content.setLayoutData(fd);
 
+			content.setLayout(new FillLayout());
+
 			avatarsPanel = new Composite(content, SWT.NONE);
-			avatarsPanel.setLocation(0, 0);
+			//			avatarsPanel.setLocation(0, 0);
 
 			/*
 			 * Specify avatar dimensions and attributes before creating the avatars
@@ -271,8 +281,10 @@ public class BuddiesViewer
 			textColor = properties.getColor("color.links.normal");
 			textLinkColor = properties.getColor("color.links.hover");
 			imageBorderColor = properties.getColor("color.buddy.bg.border");
-			selectedColor = properties.getColor("color.buddy.bg.selected");
-			highlightedColor = properties.getColor("color.buddy.bg.hover");
+//			selectedColor = properties.getColor("color.buddy.bg.selected");
+			selectedColor = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
+//			highlightedColor = properties.getColor("color.buddy.bg.hover");
+			highlightedColor = parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW);
 
 			avatarHightLightBorder = 0;
 			avatarImageBorder = 1;
@@ -288,16 +300,16 @@ public class BuddiesViewer
 
 			fillBuddies(avatarsPanel);
 
-			/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+			/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT*/
 			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
-			rLayout.wrap = false;
+			rLayout.wrap = true;
 			rLayout.spacing = hSpacing;
-			avatarsPanel.setLayout(rLayout);*/
+			avatarsPanel.setLayout(rLayout);
 
 			// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
-			rLayout.margin = hSpacing;
-			avatarsPanel.setLayout(rLayout);
+			//			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
+			//			rLayout.margin = hSpacing;
+			//			avatarsPanel.setLayout(rLayout);
 
 			avatarsPanel.pack();
 
@@ -314,9 +326,9 @@ public class BuddiesViewer
 			});
 
 			parent.layout(true);
-			calculatePagination();
-			hookPaginationWidget();
-			hookScrollers();
+			//			calculatePagination();
+			//			hookPaginationWidget();
+			//			hookScrollers();
 			hookFAQLink();
 		}
 
@@ -546,17 +558,17 @@ public class BuddiesViewer
 		avatarWidget.setSelectedColor(selectedColor);
 		avatarWidget.setHighlightedColor(highlightedColor);
 
-		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
+		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT*/
 		RowData rData = new RowData();
 		rData.width = avatarSize.x;
 		rData.height = avatarSize.y;
-		avatarWidget.getControl().setLayoutData(rData);*/
+		avatarWidget.getControl().setLayoutData(rData);
 
 		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-		SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
-		rData.width = avatarSize.x;
-		rData.height = avatarSize.y;
-		rData.position = (int) VuzeBuddyManager.getBuddyPosition(vuzeBuddy);
+		//		SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
+		//		rData.width = avatarSize.x;
+		//		rData.height = avatarSize.y;
+		//		rData.position = (int) VuzeBuddyManager.getBuddyPosition(vuzeBuddy);
 		avatarWidget.getControl().setLayoutData(rData);
 
 		avatarWidgets.add(avatarWidget);
@@ -785,10 +797,13 @@ public class BuddiesViewer
 					if (widget != null) {
 						Control control = widget.getControl();
 						if (control != null && !control.isDisposed()) {
-							SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
-							if (rData.position != i) {
-								rData.position = i;
-								changed = true;
+							Object data = widget.getControl().getLayoutData();
+							if (data instanceof SimpleReorderableListLayoutData) {
+								SimpleReorderableListLayoutData rData = (SimpleReorderableListLayoutData) widget.getControl().getLayoutData();
+								if (rData.position != i) {
+									rData.position = i;
+									changed = true;
+								}
 							}
 						}
 					}
@@ -860,6 +875,17 @@ public class BuddiesViewer
 	}
 
 	public void addToShare(AvatarWidget widget) {
+		if (null == sharePage) {
+			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
+			if (detailPanelView instanceof DetailPanel) {
+				DetailPanel detailPanel = ((DetailPanel) detailPanelView);
+				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
+
+			} else {
+				throw new IllegalArgumentException(
+						"Oops.. looks like the DetailPanel skin is not properly initialized");
+			}
+		}
 		sharePage.addBuddy(widget.getVuzeBuddy());
 		widget.setSharedAlready(true);
 	}

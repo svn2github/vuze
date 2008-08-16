@@ -267,10 +267,10 @@ public class MainMenu
 					}
 
 					if (null == MenuFactory.findMenuItem(viewToolBarsMenu, PREFIX_V3
-							+ ".view." + SkinConstants.VIEWID_FOOTER)) {
+							+ ".view." + SkinConstants.VIEWID_BUDDIES_VIEWER)) {
 						createViewMenuItem(skin, viewToolBarsMenu, PREFIX_V3 + ".view."
-								+ SkinConstants.VIEWID_FOOTER, "Footer.visible",
-								SkinConstants.VIEWID_FOOTER, true, -1);
+								+ SkinConstants.VIEWID_BUDDIES_VIEWER, "Friends.visible",
+								SkinConstants.VIEWID_BUDDIES_VIEWER, true, -1);
 					}
 
 				}

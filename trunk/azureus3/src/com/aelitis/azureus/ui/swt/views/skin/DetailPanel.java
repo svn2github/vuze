@@ -56,7 +56,7 @@ public class DetailPanel
 	private Composite content = null;
 
 	public DetailPanel() {
-
+System.err.println("\tDetailPanel created");//KN: sysout
 	}
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -161,7 +161,7 @@ public class DetailPanel
 
 			int offsetHeight = currentDetailPanelHeight;
 			offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-			SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
+			SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
 			if (null != footerObject) {
 				offsetHeight += footerObject.getControl().getSize().y;
 			}
@@ -294,11 +294,11 @@ public class DetailPanel
 							lbShell.close();
 						}
 
-						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
-								| LightBoxShell.RESIZE_VERTICAL);
-						lbShell.setAlphaLevel(200);
-						lbShell.open();
+//						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
+//						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
+//								| LightBoxShell.RESIZE_VERTICAL);
+//						lbShell.setAlphaLevel(200);
+//						lbShell.open();
 
 						/*
 						 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
@@ -409,7 +409,7 @@ public class DetailPanel
 		int heightHint = mainWindow.getMetrics(IMainWindow.WINDOW_CONTENT_DISPLAY_AREA).height;
 		currentDetailPanelHeight = heightHint > DETAIL_PANEL_HEIGHT
 				? DETAIL_PANEL_HEIGHT : heightHint;
-
+		currentDetailPanelHeight = DETAIL_PANEL_HEIGHT;
 	}
 
 	private void relayoutDetailPanel(UIFunctionsSWT uiFunctions) {

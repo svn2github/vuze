@@ -40,6 +40,7 @@ public class InvitePage
 
 	private ButtonBar buttonBar;
 
+	private FriendsToolbar friendsToolbar;
 	public InvitePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -47,7 +48,7 @@ public class InvitePage
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
 		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-
+		friendsToolbar= (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 		init();
 	}
 
@@ -122,6 +123,7 @@ public class InvitePage
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}
 
+					friendsToolbar.reset();
 					getDetailPanel().show(false);
 
 				}
@@ -131,6 +133,7 @@ public class InvitePage
 					if (null != buttonBar) {
 						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 					}
+					friendsToolbar.reset();
 					getDetailPanel().showBusy(true, 0);
 
 				}
@@ -217,6 +220,9 @@ public class InvitePage
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.add_buddy_mode);
 		}
+		
+		friendsToolbar.setAddFriendsMode();
+		
 		addRefreshListener(new IDetailPage.RefreshListener() {
 			public boolean runOnlyOnce() {
 				return true;

@@ -276,7 +276,7 @@ public class MainWindow
 			public void downloadWillBeRemoved(DownloadManager dm,
 					boolean remove_torrent, boolean remove_data)
 
-					throws GlobalManagerDownloadRemovalVetoException {
+			throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
@@ -550,7 +550,7 @@ public class MainWindow
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
 			skin.layout();
-			
+
 			System.out.println("skin layout took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
@@ -633,13 +633,13 @@ public class MainWindow
 			if (sidebar != null) {
 				setupSideBar(sidebar);
 			} else {
-  			SkinViewManager.addListener(new SkinViewManagerListener() {
-  				public void skinViewAdded(SkinView skinview) {
-  					if (skinview instanceof SideBar) {
-  						setupSideBar((SideBar) skinview);
-  					}
-  				}
-  			});
+				SkinViewManager.addListener(new SkinViewManagerListener() {
+					public void skinViewAdded(SkinView skinview) {
+						if (skinview instanceof SideBar) {
+							setupSideBar((SideBar) skinview);
+						}
+					}
+				});
 			}
 
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
@@ -776,30 +776,15 @@ public class MainWindow
 			setVisible(WINDOW_ELEMENT_SEARCHBAR,
 					COConfigurationManager.getBooleanParameter(configID));
 
-			configID = "Footer.visible";
+			configID = "Friends.visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 					configID)) {
 				COConfigurationManager.setBooleanDefault(configID, true);
 			}
-			setVisible(WINDOW_ELEMENT_FOOTER,
-					COConfigurationManager.getBooleanParameter(configID));
+			SWTSkinUtils.setVisibility(skin, configID,
+					SkinConstants.VIEWID_BUDDIES_VIEWER,
+					COConfigurationManager.getBooleanParameter(configID), true, true);
 
-			/*
-			 * KN: This code must be clened up once we decide what to do with show/hide of these elements
-			 * For now we're forcing then to be visible
-			 */
-			//			configID = "Buttonbar.visible";
-			//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-			//					configID)) {
-			//				COConfigurationManager.setBooleanDefault(configID, true);
-			//			}
-			setVisible(WINDOW_ELEMENT_BUTTON_BAR, true);
-			//
-			//			configID = "TabBar.visible";
-			//			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
-			//					configID)) {
-			//				COConfigurationManager.setBooleanDefault(configID, true);
-			//			}
 			setVisible(WINDOW_ELEMENT_TABBAR, true);
 
 			showMainWindow();
@@ -993,7 +978,7 @@ public class MainWindow
 					}
 					updateMapTrackUsage(lastShellStatus);
 				}
-				
+
 				Map map = new HashMap();
 				map.put("version",
 						org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION);
@@ -1318,8 +1303,7 @@ public class MainWindow
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
-		views.put(SkinConstants.VIEWID_FOOTER, Footer.class);
-		views.put(SkinConstants.VIEWID_DETAIL_PANEL, DetailPanel.class);
+//		views.put(SkinConstants.VIEWID_LIBRARY_TOOLBAR, LibraryToolbar.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1547,37 +1531,39 @@ public class MainWindow
 		 */
 		Class[] forceInits = new Class[] {
 			BuddiesViewer.class,
-			ButtonBar.class,
-			SideBar.class
+			SideBar.class,
+			DetailPanel.class,
+			FriendsToolbar.class
 		};
 		String[] forceInitsIDs = new String[] {
 			SkinConstants.VIEWID_BUDDIES_VIEWER,
-			SkinConstants.VIEWID_BUTTON_BAR,
-			SkinConstants.VIEWID_SIDEBAR
+			SkinConstants.VIEWID_SIDEBAR,
+			SkinConstants.VIEWID_DETAIL_PANEL,
+			SkinConstants.VIEWID_FRIENDS_TOOLBAR
 		};
-		
+
 		for (int i = 0; i < forceInits.length; i++) {
 			Class cla = forceInits[i];
 			String id = forceInitsIDs[i];
-			
+
 			try {
-  			skinObject = skin.getSkinObject(id);
-  			if (null != skinObject) {
-  				SkinView skinView = (SkinView) cla.newInstance();
-  				skinView.setMainSkinObject(skinObject);
-  				skinObject.addListener(skinView);
-  
-  				if (skinView instanceof UIUpdatable) {
-  					UIUpdatable updateable = (UIUpdatable) skinView;
-  					try {
-  						UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
-  								updateable);
-  					} catch (Exception e) {
-  						Debug.out(e);
-  					}
-  				}
-  				SkinViewManager.add(skinView);
-  			}
+				skinObject = skin.getSkinObject(id);
+				if (null != skinObject) {
+					SkinView skinView = (SkinView) cla.newInstance();
+					skinView.setMainSkinObject(skinObject);
+					skinObject.addListener(skinView);
+
+					if (skinView instanceof UIUpdatable) {
+						UIUpdatable updateable = (UIUpdatable) skinView;
+						try {
+							UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
+									updateable);
+						} catch (Exception e) {
+							Debug.out(e);
+						}
+					}
+					SkinViewManager.add(skinView);
+				}
 			} catch (Throwable t) {
 				Debug.out(t);
 			}
@@ -1717,7 +1703,7 @@ public class MainWindow
 				}
 			});
 		}
-		
+
 		SWTSkinObject so = skin.getSkinObject("sidebar-list");
 		if (so != null) {
 			so.getControl().addListener(SWT.Resize, new Listener() {
@@ -1725,16 +1711,16 @@ public class MainWindow
 					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");
 					if (soSearchArea != null) {
 						Control c = soSearchArea.getControl();
-						Rectangle bounds = ((Control)event.widget).getBounds();
+						Rectangle bounds = ((Control) event.widget).getBounds();
 						FormData fd = (FormData) c.getLayoutData();
-						fd.width = bounds.width - 1 - c.getBounds().x ;
+						fd.width = bounds.width - 1 - c.getBounds().x;
 						System.out.println("sidebar width is now " + bounds.width);
 						Utils.relayout(c);
 					}
 				}
 			});
 		}
-		
+
 		so = skin.getSkinObject("search-dropdown");
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
@@ -1744,7 +1730,7 @@ public class MainWindow
 					menu.addMenuListener(new MenuListener() {
 						public void menuShown(MenuEvent e) {
 						}
-					
+
 						public void menuHidden(MenuEvent e) {
 							Utils.execSWTThreadLater(0, new AERunnable() {
 								public void runSupport() {
@@ -1760,7 +1746,7 @@ public class MainWindow
 					menuItem.setText("Menu 2");
 					menuItem = new MenuItem(menu, SWT.PUSH);
 					menuItem.setText("Menu 3");
-					
+
 					menu.setLocation(shell.getDisplay().getCursorLocation());
 					menu.setVisible(true);
 				}
@@ -1905,7 +1891,7 @@ public class MainWindow
 		if (target.startsWith("tab-")) {
 			target = target.substring(4);
 		}
-		
+
 		// redirect any minibrowse targets to browse
 		if (target.equals(SkinConstants.VIEWID_BROWSER_MINI)) {
 			target = SkinConstants.VIEWID_BROWSER_BROWSE;
@@ -1967,11 +1953,6 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
-			if (skinObject != null) {
-				return skinObject.isVisible();
-			}
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
 			if (skinObject != null) {
@@ -1999,11 +1980,6 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
-
-			SWTSkinUtils.setVisibility(skin, "Footer.visible",
-					SkinConstants.VIEWID_FOOTER, value, true, true);
-
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 			SWTSkinUtils.setVisibility(skin, "ButtonBar.visible",
 					SkinConstants.VIEWID_BUTTON_BAR, value, true, true);
@@ -2051,20 +2027,12 @@ public class MainWindow
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_FOOTER).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_BUTTON_BAR).height;
 			return r;
 
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-			if (skinObject != null) {
-				return skinObject.getControl().getBounds();
-			}
-
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_FOOTER) {
-
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_FOOTER);
 			if (skinObject != null) {
 				return skinObject.getControl().getBounds();
 			}
@@ -2092,24 +2060,23 @@ public class MainWindow
 		GC gc = new GC(shell);
 		try {
 			gc.copyArea(image, clientArea.x, clientArea.y);
-		
-		
-		Control[] children = shell.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			Control control = children[i];
-			SWTSkinObject so = (SWTSkinObject) control.getData("SkinObject");
-			if (so != null) {
-				Image obfusticatedImage = so.generateObfusticatedImage();
-				if (obfusticatedImage != null) {
-					Rectangle bounds = so.getControl().getBounds();
-					gc.drawImage(obfusticatedImage, bounds.x, bounds.y);
+
+			Control[] children = shell.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				Control control = children[i];
+				SWTSkinObject so = (SWTSkinObject) control.getData("SkinObject");
+				if (so != null) {
+					Image obfusticatedImage = so.generateObfusticatedImage();
+					if (obfusticatedImage != null) {
+						Rectangle bounds = so.getControl().getBounds();
+						gc.drawImage(obfusticatedImage, bounds.x, bounds.y);
+					}
 				}
 			}
-		}
 		} finally {
 			gc.dispose();
 		}
-		
+
 		return image;
 	}
 
@@ -2124,18 +2091,18 @@ public class MainWindow
 		final SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 		if (id == null) {
-  		id = cla.getName();
-  		int i = id.lastIndexOf('.');
-  		if (i > 0) {
-  			id = id.substring(i + 1);
-  		}
+			id = cla.getName();
+			int i = id.lastIndexOf('.');
+			if (i > 0) {
+				id = id.substring(i + 1);
+			}
 		}
 
 		IView viewFromID = sideBar.getIViewFromID(id);
 		if (viewFromID != null) {
 			sideBar.showItemByID(id);
 		}
-		
+
 		final String _id = id;
 		Utils.execSWTThreadLater(0, new AERunnable() {
 
@@ -2154,13 +2121,14 @@ public class MainWindow
 						if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
 							try {
 								UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
-								sideBar.createTreeItemFromEventListener(parentID, null, l, _id, closeable, data);
+								sideBar.createTreeItemFromEventListener(parentID, null, l, _id,
+										closeable, data);
 							} catch (Exception e) {
 								Debug.out(e);
 							}
 						} else {
-  						sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla, null,
-  								null, data, null, true);
+							sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla,
+									null, null, data, null, true);
 						}
 						sideBar.showItemByID(_id);
 					}
@@ -2201,7 +2169,7 @@ public class MainWindow
 			} else {
 				id2 = oldSideBarEntry.id;
 			}
-				
+
 			updateMapTrackUsage(id2);
 		}
 

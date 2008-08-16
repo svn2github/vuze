@@ -66,4 +66,8 @@ public class SkinConstants
 	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
 
 	public static final String VIEWID_SIDEBAR = "sidebar";
+
+	public static final String VIEWID_FRIENDS_TOOLBAR = "toolbar-friends";
+	
+	public static final String VIEWID_LIBRARY_TOOLBAR = "library-list-tools";
 }
