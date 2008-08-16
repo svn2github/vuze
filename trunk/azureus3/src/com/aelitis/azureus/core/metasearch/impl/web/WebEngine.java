@@ -23,7 +23,6 @@ package com.aelitis.azureus.core.metasearch.impl.web;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.*;
@@ -71,7 +70,7 @@ WebEngine
 	private String loginPageUrl;
 	private String[] requiredCookies;
 	
-	private String cookies;
+	private String local_cookies;
 	
 
 		// manual test constructor
@@ -343,6 +342,8 @@ WebEngine
 		}
 		
 		this.dateParser = new DateParserRegex(timeZone,automaticDateParser,userDateFormat);
+		
+		local_cookies = getLocalString( LD_COOKIES );
 	}
 	
 	public String 
@@ -380,8 +381,7 @@ WebEngine
 				to_strs[i]		= URLEncoder.encode(parameter.getValue(),"UTF-8");
 			}
 			
-			searchURL = 
-					GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
+			searchURL = GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
 				
 			//System.out.println(searchURL);
 			
@@ -395,8 +395,21 @@ WebEngine
 			
 			setHeaders( url_rd, headers );
 			
-			if(needsAuth && cookies != null) {
-				url_rd.setProperty( "URL_Cookie", cookies );
+			if ( needsAuth && local_cookies != null ){
+				
+				url_rd.setProperty( "URL_Cookie", local_cookies );
+			}
+			
+			if ( only_if_modified ){
+				
+				String last_modified 	= getLocalString( LD_LAST_MODIFIED );
+				String etag				= getLocalString( LD_ETAG );
+
+				if ( last_modified != null && etag != null ){
+					
+					url_rd.setProperty( "URL_If-Modified-Since", last_modified );
+					url_rd.setProperty( "URL_If-None-Match", etag );
+				}
 			}
 			
 			/*if(cookieParameters!= null && cookieParameters.length > 0) {
@@ -417,6 +430,18 @@ WebEngine
 
 			InputStream is = mr_rd.download();
 
+			if ( only_if_modified ){
+			
+				String last_modified 	= (String)url_rd.getProperty( "URL_Last-Modified" );
+				String etag				= (String)url_rd.getProperty( "URL_ETag" );
+				
+				if ( last_modified != null && etag != null ){
+					
+					setLocalString( LD_LAST_MODIFIED, last_modified );
+					setLocalString( LD_ETAG, etag );
+				}
+			}
+			
 			List cts = (List)url_rd.getProperty( "URL_Content-Type" );
 			
 			String content_charset = "UTF-8";
@@ -545,11 +570,13 @@ WebEngine
 	}
 	
 	public boolean requiresLogin() {
-		return needsAuth && ! CookieParser.cookiesContain(requiredCookies, cookies);
+		return needsAuth && ! CookieParser.cookiesContain(requiredCookies, local_cookies);
 	}
 	
 	public void setCookies(String cookies) {
-		this.cookies = cookies;
+		this.local_cookies = cookies;
+		
+		setLocalString( LD_COOKIES, cookies );
 	}
 
 	public String getLoginPageUrl() {
@@ -573,6 +600,6 @@ WebEngine
 	}
 
 	public String getCookies() {
-		return cookies;
+		return local_cookies;
 	}
 }

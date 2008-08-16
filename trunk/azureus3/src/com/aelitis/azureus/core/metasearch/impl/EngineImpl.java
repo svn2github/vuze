@@ -29,6 +29,7 @@ import java.net.URLDecoder;
 import java.util.*;
 
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
@@ -120,6 +121,10 @@ EngineImpl
 			throw( new IOException( "Unknown engine type " + type ));
 		}	
 	}
+	
+	protected static final String		LD_COOKIES			= "cookies";
+	protected static final String		LD_ETAG				= "etag";
+	protected static final String		LD_LAST_MODIFIED	= "last_mod";
 	
 	private MetaSearchImpl	meta_search;
 	
@@ -817,6 +822,60 @@ EngineImpl
 			exportToBencodedMap());
 		
 		vf.write( target );
+	}
+	
+	private String
+	getLocalKey()
+	{
+		return( "metasearch.engine." + id + ".local" );
+	}
+	
+	protected void
+	setLocalString(
+		String		key,
+		String		value )
+	{
+		synchronized( this ){
+	
+			String	existing = getLocalString( key );
+			
+			if ( existing != null && value != null && existing.equals( value )){
+				
+				return;
+			}
+			
+			Map map = COConfigurationManager.getMapParameter( getLocalKey(), new HashMap());
+			
+			try{
+				ImportExportUtils.exportString(map, key, value);
+				
+				COConfigurationManager.setParameter( getLocalKey(), map );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	protected String
+	getLocalString(
+		String		key )
+	{
+		synchronized( this ){
+		
+			Map map = COConfigurationManager.getMapParameter( getLocalKey(), new HashMap());
+			
+			try{
+				return( ImportExportUtils.importString( map, key ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				return( null );
+			}
+		}
 	}
 	
 	protected File
