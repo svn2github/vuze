@@ -111,8 +111,14 @@ public class ChatWindow implements DiscussionListener {
 		display = avatarControl.getDisplay();
 		
 		
-		shell = new Shell(avatar.getControl().getShell(),SWT.NONE);
-		shell.setBackground(ColorCache.getColor(display, 42,42,42));
+		shell = new Shell(avatar.getControl().getShell(),SWT.CLOSE | SWT.TOOL );
+		shell.setText(MessageText.getString("v3.buddy.menu.chat"));
+		
+		shell.addListener(SWT.Close, new Listener() {
+			public void handleEvent(Event e) {
+					hide();
+			}
+		});
 		
 		shell.addListener(SWT.Traverse, new Listener() {
 			public void handleEvent(Event e) {
@@ -137,13 +143,13 @@ public class ChatWindow implements DiscussionListener {
 		formLayout.marginRight = 0;
 		
 		mainPanel.setLayout(formLayout);
-		mainPanel.setBackground(ColorCache.getColor(display, 18,18,18));
 		
 		myNameHighligther = new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Label label = (Label) e.widget;
 				String text = (String)label.getData("text");
 				if(text != null) {
+					System.out.println("\tPainting...");//KN: sysout
 					Point p = label.getSize();
 					try { e.gc.setTextAntialias(SWT.ON); e.gc.setAntialias(SWT.ON);} catch(Exception e2) {}
 					e.gc.setForeground(ColorCache.getColor(display, 93,93,93));
@@ -282,7 +288,6 @@ public class ChatWindow implements DiscussionListener {
 		avatarName.setBackground(mainPanel.getBackground());
 		avatarName.setFont(nameFont);
 		avatarName.setText(avatar.getVuzeBuddy().getDisplayName());
-		avatarName.setForeground(ColorCache.getColor(display,97,97,97));
 		data = new FormData();
 		data.left = new FormAttachment(avatarPicture,spacing);
 		data.top = new FormAttachment(avatarPicture,-6,SWT.CENTER);
@@ -301,7 +306,7 @@ public class ChatWindow implements DiscussionListener {
 		header.setLayoutData(data);*/
 		
 		messagesHolder = new ScrolledComposite(mainPanel,SWT.BORDER | SWT.V_SCROLL);
-		messagesHolder.setBackground(ColorCache.getColor(display,236,236,236));
+		messagesHolder.setBackground(mainPanel.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		messagesHolder.setAlwaysShowScrollBars(true);
 		messagesHolder.setExpandHorizontal(true);
 		messagesHolder.setExpandVertical(true);
