@@ -688,18 +688,29 @@ MetaSearchImpl
 					ms, 
 					999,
 					SystemTime.getCurrentTime(),
-					"Test",
-					"http://blah/",
-					"",
+					"HDBits",
+					"http://hdbits.org/browse.php?incldead=0&search=%s",
+					"<a href=\"\\?cat=([0-9]+)\">.*?<b><a.*?href=\"(details.php?[^\"]+)\">([^<]+)</a>.*?<a href=\"(download.php\\?id=[^\"]+)\">.*?\\s<td class='right'>(.*?)</td>\\s<td class='center'>(.*?)</td>\\s<td class=\"center\">(.*?)</td>\\s<td class='center'>(.*?)</td>\\s<td class=\"right\">(.*?)</td>\\s<td class='right'>(.*?)</td>\\s</tr>",
 					"GMT",
 					true,
 					null,
-					new FieldMapping[0],
+					new FieldMapping[] {
+						new FieldMapping("1",Engine.FIELD_CATEGORY),
+						new FieldMapping("2",Engine.FIELD_CDPLINK),
+						new FieldMapping("3",Engine.FIELD_NAME),
+						new FieldMapping("4",Engine.FIELD_TORRENTLINK),
+						new FieldMapping("5",Engine.FIELD_COMMENTS),
+						new FieldMapping("6",Engine.FIELD_DATE),
+						new FieldMapping("7",Engine.FIELD_SIZE),
+						new FieldMapping("8",Engine.FIELD_VOTES),
+						new FieldMapping("9",Engine.FIELD_SEEDS),
+						new FieldMapping("10",Engine.FIELD_PEERS),
+						},
 					true,
-					"http://wibble/",
-					new String[0] );
+					"http://hdbits.org/login.php",
+					new String[] {"pass","uid"} );
 					
-			e.exportToVuzeFile( new File( "C:\\temp\\tmp.vuze" ));
+			e.exportToVuzeFile( new File( "/hdbits.vuze" ));
 			
 		}catch( Throwable e ){
 			

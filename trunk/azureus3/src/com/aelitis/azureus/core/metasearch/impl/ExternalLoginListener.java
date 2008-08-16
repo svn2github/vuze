@@ -2,10 +2,10 @@ package com.aelitis.azureus.core.metasearch.impl;
 
 public interface ExternalLoginListener {
 
-	public void cookiesFound(String cookies);
+	public void cookiesFound(ExternalLoginWindow window,String cookies);
 	
-	public void canceled();
+	public void canceled(ExternalLoginWindow window);
 	
-	public void done(String cookies);
+	public void done(ExternalLoginWindow window,String cookies);
 	
 }

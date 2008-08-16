@@ -481,7 +481,7 @@ WebEngine
 			
 			
 			return page;
-			
+				
 		}catch( SearchException e ){
 			
 			throw( e );
@@ -566,5 +566,13 @@ WebEngine
 
 	public void setRequiredCookies(String[] requiredCookies) {
 		this.requiredCookies = requiredCookies;
+	}
+
+	public boolean isNeedsAuth() {
+		return needsAuth;
+	}
+
+	public String getCookies() {
+		return cookies;
 	}
 }

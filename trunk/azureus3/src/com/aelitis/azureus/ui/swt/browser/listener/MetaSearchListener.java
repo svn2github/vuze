@@ -199,36 +199,34 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map decodedMap = message.getDecodedMap();
 			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
 			
-			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false, true );
-			for(int i = 0 ; i < engines.length ; i++) {
-				Engine engine = engines[i];
-				if(engine instanceof WebEngine) {
-					final WebEngine webEngine = (WebEngine) engine;
-					if(webEngine.getId() == engine_id && webEngine.requiresLogin()) {
-						new ExternalLoginWindow(new ExternalLoginListener() {
-							public void canceled() {
-								// TODO notify the page
-								
-							}
-							
-							public void cookiesFound(String cookies) {
-								if(CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)) {
-									webEngine.setCookies(cookies);
-									//TODO : do a search for this engine and notify the page
+			Engine engine = getEngineFromId(engine_id);
+			if(engine != null && engine instanceof WebEngine) {
+				final WebEngine webEngine = (WebEngine) engine;
+					Utils.execSWTThread( new Runnable() {
+						public void run() {
+							new ExternalLoginWindow(new ExternalLoginListener() {
+								public void canceled(ExternalLoginWindow window) {
+									// TODO notify the page
+									
 								}
-							}
-							
-							public void done(String cookies) {
-								// TODO : force a search?
 								
-							}
-						},webEngine.getLoginPageUrl(),false);
-					}
-				}
-				
+								public void cookiesFound(ExternalLoginWindow window,String cookies) {
+									if(CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)) {
+										webEngine.setCookies(cookies);
+										window.close();
+										//TODO : do a search for this engine and notify the page
+									}
+								}
+								
+								public void done(ExternalLoginWindow window,String cookies) {
+									// TODO : force a search?
+									
+								}
+							},webEngine.getLoginPageUrl(),false);
+						}
+					});
 			}
-			
-			
+
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
 			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true, true );
@@ -773,12 +771,34 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();
 			final String id = (String) decodedMap.get("id");
+			
+			
+			
+			//long subs_id = ((Long)decodedMap.get("engine_id")).longValue();
+			
+			
 			final String torrentUrl	= (String) decodedMap.get( "torrent_url" );
 			final String referer_str	= (String) decodedMap.get( "referer_url" );
 			
 			try {
 			
 				Map headers = UrlUtils.getBrowserHeaders( referer_str );
+				
+				Long engineId = ((Long)decodedMap.get("engine_id"));
+				if(engineId != null) {
+					Engine engine = getEngineFromId(engineId.longValue());
+					if(engine != null && engine instanceof WebEngine) {
+						WebEngine webEngine = (WebEngine) engine;
+						if(webEngine.isNeedsAuth()) {
+							headers.put("Cookie",webEngine.getCookies());
+						}
+					}
+				}
+				
+				Long subscriptionId = ((Long)decodedMap.get("subs_id"));
+				if(subscriptionId != null) {
+					//TODO parg : create the subscription association ...
+				}
 				
 				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 						new URL(torrentUrl), headers );
@@ -1196,6 +1216,22 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		result.put( "results", results_list );
 		
 		
+	}
+	
+	protected Engine
+	getEngineFromId(
+			long id )
+	{
+		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
+		
+		Engine[] engines = metaSearchManager.getMetaSearch().getEngines( false, true );
+		for(int i = 0 ; i < engines.length ; i++) {
+			Engine engine = engines[i];
+			if(engine.getId() == id) {
+				return engine;
+			}	
+		}
+		return null;
 	}
 	
 	public boolean 

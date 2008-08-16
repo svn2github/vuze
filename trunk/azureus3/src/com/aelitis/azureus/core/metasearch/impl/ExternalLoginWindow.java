@@ -36,7 +36,7 @@ public class ExternalLoginWindow {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE);
+			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE);
 			shell.setSize(800,600);
 			Utils.centerWindowRelativeTo(shell, mainShell);
 			
@@ -63,7 +63,7 @@ public class ExternalLoginWindow {
 			public void cookiesFound(String cookies) {
 				if(listener != null) {
 					ExternalLoginWindow.this.cookies = cookies;
-					listener.cookiesFound(cookies);
+					listener.cookiesFound(ExternalLoginWindow.this,cookies);
 				}
 			}
 		},browser);
@@ -83,16 +83,18 @@ public class ExternalLoginWindow {
 		cancel.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				if(listener != null) {
-					listener.canceled();
+					listener.canceled(ExternalLoginWindow.this);
 				}
+				shell.dispose();
 			}
 		});
 		
 		done.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				if(listener != null) {
-					listener.done(cookies);
+					listener.done(ExternalLoginWindow.this,cookies);
 				}
+				shell.dispose();
 			}
 		});
 		
