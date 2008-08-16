@@ -405,9 +405,13 @@ WebEngine
 				String last_modified 	= getLocalString( LD_LAST_MODIFIED );
 				String etag				= getLocalString( LD_ETAG );
 
-				if ( last_modified != null && etag != null ){
+				if ( last_modified != null ){
 					
 					url_rd.setProperty( "URL_If-Modified-Since", last_modified );
+				}
+				
+				if ( etag != null ){
+					
 					url_rd.setProperty( "URL_If-None-Match", etag );
 				}
 			}
@@ -435,9 +439,13 @@ WebEngine
 				String last_modified 	= (String)url_rd.getProperty( "URL_Last-Modified" );
 				String etag				= (String)url_rd.getProperty( "URL_ETag" );
 				
-				if ( last_modified != null && etag != null ){
+				if ( last_modified != null ){
 					
 					setLocalString( LD_LAST_MODIFIED, last_modified );
+				}
+				
+				if ( etag != null ){
+					
 					setLocalString( LD_ETAG, etag );
 				}
 			}
