@@ -298,7 +298,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("WT", "Bitlet");
 		addAzStyle("WY", "Wyzo");
 		addAzStyle("VG", "\u54c7\u560E (Vagaa)", VER_AZ_FOUR_DIGITS);
-		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)");
+		addAzStyle("XL", "\u8FC5\u96F7\u5728\u7EBF (Xunlei)"); // Apparently, the English name of the client is "Thunderbolt".
 		addAzStyle("XT", "XanTorrent");
 		addAzStyle("XX", "XTorrent", "v1234");
 		addAzStyle("ZT", "ZipTorrent"); 
