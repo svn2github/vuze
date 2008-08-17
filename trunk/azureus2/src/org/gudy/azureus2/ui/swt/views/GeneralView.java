@@ -823,6 +823,17 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     
     TOTorrent	torrent = manager.getTorrent();
     
+    String creation_date = DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000);
+    byte[] created_by = torrent.getCreatedBy();
+    if (created_by != null) {
+    	try {
+    		creation_date = MessageText.getString("GeneralView.torrent_created_on_and_by", new String[] {
+    			creation_date, new String(created_by, Constants.DEFAULT_ENCODING)
+    		});
+    	}
+    	catch (java.io.UnsupportedEncodingException e) {/* forget it */}
+    }
+    
     setInfos(
       manager.getDisplayName(),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
@@ -832,9 +843,9 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       piecesDoneAndSum,
       manager.getPieceLength(),
       manager.getTorrentComment(),
-      DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000),
+      creation_date,
       manager.getDownloadState().getUserComment(),
-      MessageText.getString("GeneralView."+(manager.getTorrent().getPrivate()?"yes":"no"))
+      MessageText.getString("GeneralView."+(torrent.getPrivate()?"yes":"no"))
       );
     
     
