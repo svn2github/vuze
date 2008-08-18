@@ -2121,6 +2121,9 @@ public class MainWindow
 							Debug.out(e);
 						}
 					} else {
+						if (sideBar.showItemByID(_id)) {
+							return;
+						}
 						if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
 							try {
 								UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
