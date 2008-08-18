@@ -151,6 +151,8 @@ public class SharePage
 
 	private Font contentTitleFont = null;
 
+	private FriendsToolbar friendsToolbar;
+
 	public SharePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
@@ -166,7 +168,7 @@ public class SharePage
 
 		buddiesViewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-
+		friendsToolbar= (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 		createFirstPanel();
 		createBrowserPanel();
 	}
@@ -606,6 +608,10 @@ public class SharePage
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
 		}
+		
+		if (null != friendsToolbar) {
+			friendsToolbar.reset();
+		}
 		commentText.setText("");
 	}
 
@@ -861,6 +867,10 @@ public class SharePage
 			if (null != buttonBar) {
 				buttonBar.setActiveMode(BuddiesViewer.share_mode);
 			}
+			if (null != friendsToolbar) {
+				friendsToolbar.setShareMode();
+			}
+			
 			getDetailPanel().show(true, PAGE_ID);
 		}
 	}
@@ -886,7 +896,10 @@ public class SharePage
 		if (null != buttonBar) {
 			buttonBar.setActiveMode(BuddiesViewer.share_mode);
 		}
-
+		if (null != friendsToolbar) {
+			friendsToolbar.setShareMode();
+		}
+		
 		if (null != buddiesViewer) {
 			setBuddies(buddiesViewer.getSelection());
 			buddiesViewer.addSelectionToShare();

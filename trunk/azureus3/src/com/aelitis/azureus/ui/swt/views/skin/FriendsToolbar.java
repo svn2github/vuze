@@ -11,8 +11,10 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -50,7 +52,7 @@ public class FriendsToolbar
 
 	private Composite content;
 
-	//	private ToolItem shareWithAll;
+	private Composite shareWithAllPanel;
 
 	private ToolItem edit;
 
@@ -58,12 +60,20 @@ public class FriendsToolbar
 
 	private int currentMode;
 
+	private Label image;
+
+	private Label text;
+
 	static {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_down.png",
 				"button_collapse");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png",
 				"button_expand");
-
+		ImageRepository.addPath(
+				"com/aelitis/azureus/ui/images/buddy_add_to_share.png", "add_to_share");
+		ImageRepository.addPath(
+				"com/aelitis/azureus/ui/images/buddy_add_to_share_selected.png",
+				"add_to_share_selected");
 	}
 
 	public FriendsToolbar() {
@@ -106,7 +116,7 @@ public class FriendsToolbar
 		fd.right = new FormAttachment(100, 0);
 		content.setLayoutData(fd);
 
-		GridLayout layout = new GridLayout(3, false);
+		GridLayout layout = new GridLayout(4, false);
 		layout.marginHeight = 3;
 		layout.marginWidth = 3;
 		content.setLayout(layout);
@@ -154,6 +164,8 @@ public class FriendsToolbar
 			}
 
 		}, false);
+
+		createSharePanel();
 
 		toolbar = new ToolBar(content, SWT.HORIZONTAL);
 		toolbar.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
@@ -266,6 +278,58 @@ public class FriendsToolbar
 		});
 	}
 
+	private void createSharePanel() {
+		/*
+		 * This panel is initially not visible; it will be made visible as needed
+		 */
+		shareWithAllPanel = new Composite(content, SWT.NONE);
+		shareWithAllPanel.setVisible(false);
+		GridData gData = new GridData(SWT.END, SWT.CENTER, false, false);
+		gData.widthHint = 100;
+		gData.exclude = true;
+		shareWithAllPanel.setLayoutData(gData);
+		shareWithAllPanel.setLayout(new GridLayout(2, false));
+
+		image = new Label(shareWithAllPanel, SWT.NONE);
+		image.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		image.setImage(ImageRepository.getImage("add_to_share"));
+		text = new Label(shareWithAllPanel, SWT.NONE);
+		text.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		text.setText(MessageText.getString("v3.Share.add.buddy.all"));
+
+		hookShareListener();
+	}
+
+	private void hookShareListener() {
+		MouseAdapter listener = new MouseAdapter() {
+			boolean shareWithAll = false;
+
+			public void mouseUp(MouseEvent e) {
+				shareWithAll = !shareWithAll;
+				shareAllBuddies(shareWithAll);
+			}
+
+		};
+
+		shareWithAllPanel.addMouseListener(listener);
+		image.addMouseListener(listener);
+		text.addMouseListener(listener);
+	}
+
+	protected void shareAllBuddies(boolean value) {
+		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+		if (null != viewer) {
+			if (true == value) {
+				image.setImage(ImageRepository.getImage("add_to_share_selected"));
+				viewer.addAllToShare();
+				
+			} else {
+				image.setImage(ImageRepository.getImage("add_to_share"));
+				viewer.removeAllFromShare();
+			}
+		}
+	}
+
 	private void updateFriendsLabel() {
 		friendsLabel.setText(MessageText.getString("v3.buddies.count",
 				new String[] {
@@ -321,6 +385,8 @@ public class FriendsToolbar
 			return;
 		}
 		viewer.setMode(BuddiesViewer.none_active_mode);
+
+		showAddWithAll(false);
 		content.layout(true);
 
 	}
@@ -337,21 +403,48 @@ public class FriendsToolbar
 		showHideButton.setEnabled(false);
 		edit.setEnabled(false);
 
+		showAddWithAll(true);
+		content.layout(true);
+
 		SWTSkinUtils.setVisibility(skin, "Friends.visible", "footer-buddies", true,
 				true, true);
 	}
 
 	public void setAddFriendsMode() {
-		currentMode = BuddiesViewer.share_mode;
-		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
-		if (null == viewer) {
-			return;
-		}
-		viewer.setMode(BuddiesViewer.share_mode);
-		addFriends.setEnabled(false);
-		friendsLabel.setEnabled(false);
-		showHideButton.setEnabled(false);
-		edit.setEnabled(false);
+
+		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+
+			public void loginComplete() {
+				currentMode = BuddiesViewer.share_mode;
+				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+				if (null == viewer) {
+					return;
+				}
+				viewer.setMode(BuddiesViewer.share_mode);
+				addFriends.setEnabled(false);
+				friendsLabel.setEnabled(false);
+				showHideButton.setEnabled(false);
+				edit.setEnabled(false);
+
+				showAddWithAll(true);
+			}
+
+			public long getCancelDelay() {
+				return 0;
+			}
+
+			public void loginCanceled() {
+				reset();
+			}
+
+		});
+
+	}
+
+	private void showAddWithAll(boolean value) {
+		GridData gData = (GridData) shareWithAllPanel.getLayoutData();
+		gData.exclude = !value;
+		shareWithAllPanel.setVisible(value);
 	}
 
 	public void setEditMode() {
@@ -397,4 +490,5 @@ public class FriendsToolbar
 				? ImageRepository.getImage("button_collapse")
 				: ImageRepository.getImage("button_expand"));
 	}
+
 }
