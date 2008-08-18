@@ -56,7 +56,6 @@ public class DetailPanel
 	private Composite content = null;
 
 	public DetailPanel() {
-System.err.println("\tDetailPanel created");//KN: sysout
 	}
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -136,45 +135,7 @@ System.err.println("\tDetailPanel created");//KN: sysout
 			}
 		});
 
-		detailPanel.addControlListener(new ControlListener() {
-			public void controlResized(ControlEvent e) {
-				calculateLightBoxDimensions(lbShell);
-			}
-
-			public void controlMoved(ControlEvent e) {
-			}
-		});
-
 		return null;
-	}
-
-	private void calculateLightBoxDimensions(LightBoxShell shell) {
-		if (null != shell) {
-			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-
-			IMainWindow mainWindow = uiFunctions.getMainWindow();
-
-			/*
-			 * Calculate the offset from the bottom for the lightbox
-			 * We're subtracting the status bar, the footer, and the button bar
-			 */
-
-			int offsetHeight = currentDetailPanelHeight;
-			offsetHeight += mainWindow.getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-			SWTSkinObject footerObject = skin.getSkinObject(SkinConstants.VIEWID_BUDDIES_VIEWER);
-			if (null != footerObject) {
-				offsetHeight += footerObject.getControl().getSize().y;
-			}
-
-			SWTSkinObject buttonBarObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-			if (null != buttonBarObject) {
-				offsetHeight += buttonBarObject.getControl().getSize().y;
-			}
-
-			lbShell.setInsets(0, offsetHeight, 0, 0);
-
-		}
-
 	}
 
 	private void createDefaultPages() {
@@ -294,11 +255,11 @@ System.err.println("\tDetailPanel created");//KN: sysout
 							lbShell.close();
 						}
 
-//						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
-//						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
-//								| LightBoxShell.RESIZE_VERTICAL);
-//						lbShell.setAlphaLevel(200);
-//						lbShell.open();
+						//						lbShell = new LightBoxShell(uiFunctions.getMainShell(), false);
+						//						lbShell.setStyleMask(LightBoxShell.RESIZE_HORIZONTAL
+						//								| LightBoxShell.RESIZE_VERTICAL);
+						//						lbShell.setAlphaLevel(200);
+						//						lbShell.open();
 
 						/*
 						 * Hack into the SWTSkinUtils.setVisibility() behavior by overriding the height
@@ -336,7 +297,7 @@ System.err.println("\tDetailPanel created");//KN: sysout
 									currentPageID = pageID;
 									final IDetailPage page = ((IDetailPage) pages.get(pageID));
 									blankPage.showBusy(true, 0);
-									
+
 									page.addRefreshListener(new IDetailPage.RefreshListener() {
 										public boolean runOnlyOnce() {
 											return true;
@@ -360,7 +321,7 @@ System.err.println("\tDetailPanel created");//KN: sysout
 											});
 										}
 									});
-									
+
 									page.refresh();
 								}
 							}

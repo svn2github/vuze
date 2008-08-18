@@ -90,26 +90,28 @@ public class LibraryToolbar
 
 		viewTitle = new Label(content, SWT.NONE);
 		viewTitle.setText("This is where the title/description can be displayed... or can be left out completely!!!!!");
-		viewTitle.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true,
-				false));
+		viewTitle.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, true, false));
 	}
 
-	private void createToolItems() {
+	/**
+	 * Creates all the tool items for this toolbar.
+	 * Subclasses may override this method to implement a different set of tool items
+	 */
+	public void createToolItems() {
 		smallTabel = new ToolItem(toolbar, SWT.CHECK);
 		smallTabel.setImage(ImageRepository.getImage("button_small_table"));
 		smallTabel.addSelectionListener(new SelectionListener() {
 
 			public void widgetSelected(SelectionEvent e) {
 				System.out.println("Small is selected: " + smallTabel.getSelection());//KN: sysout
-				if(true == smallTabel.getSelection()){
+				if (true == smallTabel.getSelection()) {
 					largeTable.setSelection(false);
 					setTableMode(false);
-				}
-				else{
+				} else {
 					largeTable.setSelection(true);
 					setTableMode(true);
 				}
-				
+
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -123,11 +125,10 @@ public class LibraryToolbar
 
 			public void widgetSelected(SelectionEvent e) {
 				System.out.println("Large is selected: " + largeTable.getSelection());//KN: sysout
-				if(true == largeTable.getSelection()){
+				if (true == largeTable.getSelection()) {
 					smallTabel.setSelection(false);
 					setTableMode(true);
-				}
-				else{
+				} else {
 					smallTabel.setSelection(true);
 					setTableMode(false);
 				}
@@ -140,13 +141,13 @@ public class LibraryToolbar
 	}
 
 	private void setTableMode(boolean isLarge) {
-//		if (true == isLarge) {
-//			smallTabel.setSelection(false);
-//			largeTable.setSelection(true);
-//		} else {
-//			largeTable.setSelection(false);
-//			largeTable.setSelection(false);
-//		}
+		//		if (true == isLarge) {
+		//			smallTabel.setSelection(false);
+		//			largeTable.setSelection(true);
+		//		} else {
+		//			largeTable.setSelection(false);
+		//			largeTable.setSelection(false);
+		//		}
 
 		System.out.println("Table mode is large: " + isLarge);//KN: sysout
 	}

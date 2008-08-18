@@ -11,10 +11,8 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -27,6 +25,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
@@ -57,8 +56,6 @@ public class FriendsToolbar
 	private ToolItem edit;
 
 	private ToolItem addFriends;
-
-	private int currentMode;
 
 	private Label image;
 
@@ -197,8 +194,8 @@ public class FriendsToolbar
 				/*
 				 * Toggling the state
 				 */
-				SWTSkinUtils.setVisibility(skin, "Friends.visible", "footer-buddies",
-						!wasExpanded, true, true);
+				SWTSkinUtils.setVisibility(skin, "Friends.visible",
+						SkinConstants.VIEWID_BUDDIES_VIEWER, !wasExpanded, true, true);
 
 			}
 
@@ -207,27 +204,6 @@ public class FriendsToolbar
 	}
 
 	private void createToolItems() {
-		//		shareWithAll = new ToolItem(toolbar, SWT.CHECK);
-		//		shareWithAll.setText(MessageText.getString("v3.Share.add.buddy.all"));
-		//		shareWithAll.addSelectionListener(new SelectionListener() {
-		//
-		//			public void widgetSelected(SelectionEvent e) {
-		//				if (true == shareWithAll.getSelection()) {
-		//					shareWithAll.setText("Remove all from Share");
-		//				} else {
-		//					shareWithAll.setText(MessageText.getString("v3.Share.add.buddy.all"));
-		//				}
-		//				edit.setEnabled(false == shareWithAll.getSelection());
-		//				addFriends.setEnabled(false == shareWithAll.getSelection());
-		//				friendsLabel.setEnabled(false == shareWithAll.getSelection());
-		//				showHideButton.setEnabled(false == shareWithAll.getSelection());
-		//				content.layout(true);
-		//			}
-		//
-		//			public void widgetDefaultSelected(SelectionEvent e) {
-		//				widgetSelected(e);
-		//			}
-		//		});
 
 		edit = new ToolItem(toolbar, SWT.CHECK);
 		edit.setText(MessageText.getString("Button.bar.edit"));
@@ -249,7 +225,6 @@ public class FriendsToolbar
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
 				if (null == info.userName) {
-					currentMode = BuddiesViewer.none_active_mode;
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
 							edit.setText(MessageText.getString("Button.bar.edit"));
@@ -284,6 +259,7 @@ public class FriendsToolbar
 		 */
 		shareWithAllPanel = new Composite(content, SWT.NONE);
 		shareWithAllPanel.setVisible(false);
+
 		GridData gData = new GridData(SWT.END, SWT.CENTER, false, false);
 		gData.widthHint = 100;
 		gData.exclude = true;
@@ -316,13 +292,31 @@ public class FriendsToolbar
 		text.addMouseListener(listener);
 	}
 
+	public void enableShareButton(boolean value) {
+		shareWithAllPanel.setEnabled(value);
+		image.setEnabled(value);
+		text.setEnabled(value);
+
+		if (false == value) {
+			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+			if (null != viewer) {
+				viewer.setMode(BuddiesViewer.disabled_mode);
+			}
+		} else {
+			BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
+			if (null != viewer) {
+				viewer.setMode(BuddiesViewer.share_mode);
+			}
+		}
+	}
+
 	protected void shareAllBuddies(boolean value) {
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null != viewer) {
 			if (true == value) {
 				image.setImage(ImageRepository.getImage("add_to_share_selected"));
 				viewer.addAllToShare();
-				
+
 			} else {
 				image.setImage(ImageRepository.getImage("add_to_share"));
 				viewer.removeAllFromShare();
@@ -372,7 +366,6 @@ public class FriendsToolbar
 	}
 
 	public void reset() {
-		currentMode = BuddiesViewer.none_active_mode;
 		addFriends.setEnabled(true);
 		friendsLabel.setEnabled(true);
 		showHideButton.setEnabled(true);
@@ -392,7 +385,6 @@ public class FriendsToolbar
 	}
 
 	public void setShareMode() {
-		currentMode = BuddiesViewer.share_mode;
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null == viewer) {
 			return;
@@ -406,8 +398,8 @@ public class FriendsToolbar
 		showAddWithAll(true);
 		content.layout(true);
 
-		SWTSkinUtils.setVisibility(skin, "Friends.visible", "footer-buddies", true,
-				true, true);
+		SWTSkinUtils.setVisibility(skin, "Friends.visible",
+				SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
 	}
 
 	public void setAddFriendsMode() {
@@ -415,7 +407,6 @@ public class FriendsToolbar
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 
 			public void loginComplete() {
-				currentMode = BuddiesViewer.share_mode;
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 				if (null == viewer) {
 					return;
@@ -451,10 +442,8 @@ public class FriendsToolbar
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 
 			public void loginComplete() {
-				currentMode = BuddiesViewer.edit_mode;
-
-				SWTSkinUtils.setVisibility(skin, "Friends.visible", "footer-buddies",
-						true, true, true);
+				SWTSkinUtils.setVisibility(skin, "Friends.visible",
+						SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
 
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 				if (null == viewer) {

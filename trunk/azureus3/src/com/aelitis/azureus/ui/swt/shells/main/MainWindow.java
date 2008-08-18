@@ -1956,11 +1956,6 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-			if (skinObject != null) {
-				return skinObject.isVisible();
-			}
 		}
 
 		return false;
@@ -1983,11 +1978,7 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
-			SWTSkinUtils.setVisibility(skin, "ButtonBar.visible",
-					SkinConstants.VIEWID_BUTTON_BAR, value, true, true);
-
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+		}else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 			SWTSkinUtils.setVisibility(skin, "TabBar.visible",
 					SkinConstants.VIEWID_TAB_BAR, value, true, true);
 		}
@@ -2030,15 +2021,7 @@ public class MainWindow
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
-			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_BUTTON_BAR).height;
 			return r;
-
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_BUTTON_BAR) {
-
-			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BUTTON_BAR);
-			if (skinObject != null) {
-				return skinObject.getControl().getBounds();
-			}
 
 		}
 

@@ -38,17 +38,15 @@ public class InvitePage
 
 	private AbstractBuddyPageListener buddyPageListener;
 
-	private ButtonBar buttonBar;
-
 	private FriendsToolbar friendsToolbar;
+
 	public InvitePage(DetailPanel detailPanel) {
 		super(detailPanel, PAGE_ID);
 	}
 
 	public void createControls(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
-		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-		friendsToolbar= (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
+		friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 		init();
 	}
 
@@ -118,22 +116,18 @@ public class InvitePage
 			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
 
 				public void handleCancel() {
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-					if (null != buttonBar) {
-						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+					if (null != friendsToolbar) {
+						friendsToolbar.reset();
 					}
-
-					friendsToolbar.reset();
 					getDetailPanel().show(false);
 
 				}
 
 				public void handleClose() {
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-					if (null != buttonBar) {
-						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+
+					if (null != friendsToolbar) {
+						friendsToolbar.reset();
 					}
-					friendsToolbar.reset();
 					getDetailPanel().showBusy(true, 0);
 
 				}
@@ -217,12 +211,10 @@ public class InvitePage
 	 * @param message
 	 */
 	public void inviteWithMessage(final String message) {
-		if (null != buttonBar) {
-			buttonBar.setActiveMode(BuddiesViewer.add_buddy_mode);
+
+		if (null != friendsToolbar) {
+			friendsToolbar.setAddFriendsMode();
 		}
-		
-		friendsToolbar.setAddFriendsMode();
-		
 		addRefreshListener(new IDetailPage.RefreshListener() {
 			public boolean runOnlyOnce() {
 				return true;

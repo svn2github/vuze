@@ -143,8 +143,6 @@ public class SharePage
 
 	private MiniCloseButton miniCloseButton;
 
-	private ButtonBar buttonBar;
-
 	private String referer;
 
 	private AbstractBuddyPageListener buddyPageListener;
@@ -167,7 +165,6 @@ public class SharePage
 				"color.widget.container.bg");
 
 		buddiesViewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
-		buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
 		friendsToolbar= (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 		createFirstPanel();
 		createBrowserPanel();
@@ -440,8 +437,6 @@ public class SharePage
 
 		cancelButton.setText(MessageText.getString("v3.MainWindow.button.cancel"));
 
-		//		previewButton.setText(MessageText.getString("v3.MainWindow.button.preview"));
-		//		previewButton.setVisible(false);
 
 		sendNowButton.setText(MessageText.getString("v3.Share.send.now"));
 		sendNowButton.setEnabled(false);
@@ -459,8 +454,8 @@ public class SharePage
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				stackLayout.topControl = firstPanel;
+				friendsToolbar.enableShareButton(true);
 				adjustLayout();
-				buttonBar.enableShareButton(true);
 			}
 		});
 
@@ -471,8 +466,8 @@ public class SharePage
 		addBuddyButton.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				stackLayout.topControl = browserPanel;
+				friendsToolbar.enableShareButton(false);
 				content.layout(true, true);
-				buttonBar.enableShareButton(false);
 			}
 		});
 
@@ -605,9 +600,6 @@ public class SharePage
 	private void resetControls() {
 		buddyList.clear();
 		inviteeList.clear();
-		if (null != buttonBar) {
-			buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
-		}
 		
 		if (null != friendsToolbar) {
 			friendsToolbar.reset();
@@ -645,10 +637,8 @@ public class SharePage
 	private void adjustLayout() {
 
 		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
-			//			previewButton.setVisible(true);
 			sendNowButton.setEnabled(true);
 		} else {
-			//			previewButton.setVisible(false);
 			sendNowButton.setEnabled(false);
 		}
 		if (inviteeList.getContentCount() > 0) {
@@ -864,9 +854,6 @@ public class SharePage
 		}
 
 		if (null != shareItem) {
-			if (null != buttonBar) {
-				buttonBar.setActiveMode(BuddiesViewer.share_mode);
-			}
 			if (null != friendsToolbar) {
 				friendsToolbar.setShareMode();
 			}
@@ -889,13 +876,7 @@ public class SharePage
 		}
 		browser.refresh();
 
-		/*
-		 * Setting the button bar to Share mode
-		 */
-		ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-		if (null != buttonBar) {
-			buttonBar.setActiveMode(BuddiesViewer.share_mode);
-		}
+
 		if (null != friendsToolbar) {
 			friendsToolbar.setShareMode();
 		}

@@ -111,13 +111,12 @@ public class BlankDetailPage
 		listener = new Listener() {
 			public void handleEvent(Event event) {
 				if (event.keyCode == SWT.ESC) {
-					System.out.println("ESC pressed");//KN: sysout
 					showBusy(false, 0);
 
 					getDetailPanel().show(false);
-					ButtonBar buttonBar = (ButtonBar) SkinViewManager.getByClass(ButtonBar.class);
-					if (null != buttonBar) {
-						buttonBar.setActiveMode(BuddiesViewer.none_active_mode);
+					FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
+					if (null != friendsToolbar) {
+						friendsToolbar.reset();
 					}
 				}
 			}

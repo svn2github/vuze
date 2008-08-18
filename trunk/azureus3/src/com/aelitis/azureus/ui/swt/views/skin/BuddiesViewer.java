@@ -19,8 +19,6 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -28,7 +26,6 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.widgets.PaginationWidget;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
@@ -88,8 +85,6 @@ public class BuddiesViewer
 
 	private int hSpacing;
 
-	private int avatarWidthPlusSpacing;
-
 	private List avatarWidgets = new ArrayList();
 
 	private boolean isShareMode = false;
@@ -112,30 +107,9 @@ public class BuddiesViewer
 
 	private SWTSkinObject soNoBuddies;
 
-	private int currentPage = 0;
-
-	private int pageCount = 1;
-
-	/**
-	 * The width of the visible window for the avatarPanel
-	 */
-	private int pageWindowWidth = 0;
-
-//	private DetailPanel detailPanel;
-
 	private SharePage sharePage;
 
-	private PaginationWidget pWidget;
-
-	private int[] pageXOffsets = null;
-
-	private int avatarsPerPage = 1;
-
 	private List buddiesList;
-
-	private SWTSkinObject leftScroll;
-
-	private SWTSkinObject rightScroll;
 
 	private boolean reorder_outstanding;
 
@@ -247,16 +221,6 @@ public class BuddiesViewer
 
 		if (null != viewer) {
 
-			//			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
-			//			if (detailPanelView instanceof DetailPanel) {
-			//				detailPanel = ((DetailPanel) detailPanelView);
-			//				sharePage = (SharePage) detailPanel.getPage(SharePage.PAGE_ID);
-			//
-			//			} else {
-			//				throw new IllegalArgumentException(
-			//						"Oops.. looks like the DetailPanel skin is not properly initialized");
-			//			}
-
 			parent = (Composite) viewer.getControl();
 			parent.setBackground(parent.getDisplay().getSystemColor(
 					SWT.COLOR_LIST_BACKGROUND));
@@ -281,10 +245,10 @@ public class BuddiesViewer
 			textColor = properties.getColor("color.links.normal");
 			textLinkColor = properties.getColor("color.links.hover");
 			imageBorderColor = properties.getColor("color.buddy.bg.border");
-//			selectedColor = properties.getColor("color.buddy.bg.selected");
-			selectedColor = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
-//			highlightedColor = properties.getColor("color.buddy.bg.hover");
-			highlightedColor = parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_DARK_SHADOW);
+			selectedColor = parent.getDisplay().getSystemColor(
+					SWT.COLOR_LIST_SELECTION);
+			highlightedColor = parent.getDisplay().getSystemColor(
+					SWT.COLOR_WIDGET_DARK_SHADOW);
 
 			avatarHightLightBorder = 0;
 			avatarImageBorder = 1;
@@ -296,7 +260,6 @@ public class BuddiesViewer
 					+ (2 * (avatarHightLightBorder + avatarImageBorder));
 			avatarSize.y = avatarNameSize.y + avatarImageSize.y
 					+ (2 * (avatarHightLightBorder + avatarImageBorder) + 6);
-			avatarWidthPlusSpacing = hSpacing + avatarSize.x;
 
 			fillBuddies(avatarsPanel);
 
@@ -326,183 +289,12 @@ public class BuddiesViewer
 			});
 
 			parent.layout(true);
-			//			calculatePagination();
-			//			hookPaginationWidget();
-			//			hookScrollers();
+
 			hookFAQLink();
 		}
 
 		return null;
 
-	}
-
-	private void hookPaginationWidget() {
-		final SWTSkinObject paginationObject = skin.getSkinObject("panel-navigation-thumbnails");
-		if (null != paginationObject) {
-			Composite control = (Composite) paginationObject.getControl();
-			pWidget = new PaginationWidget(control);
-			pWidget.addPageSelectionListener(new PaginationWidget.PageSelectionListener() {
-				public void pageSelected(int pageNumber) {
-					setCurrentPage(pageNumber);
-				}
-			});
-		}
-	}
-
-	private void showPage(int pageNumber, boolean animateTransition) {
-		if (pageNumber > pageXOffsets.length - 1 || pageNumber < 0) {
-			pageNumber = Math.max(0, Math.min(pageXOffsets.length - 1, pageNumber));
-			Debug.out("BuddiesViewer.showPage(): " + pageNumber + " is out of bounds");
-		}
-
-		if (avatarsPanel.getLocation().x == -pageXOffsets[pageNumber]) {
-			//Do nothing if page is still the same
-			return;
-		}
-
-		if (false == animateTransition) {
-			avatarsPanel.setLocation(-pageXOffsets[pageNumber],
-					avatarsPanel.getLocation().y);
-		} else {
-			//No animation yet
-		}
-
-		enableScroll();
-	}
-
-	private void calculatePagination() {
-
-		Utils.execSWTThreadLater(0, new AERunnable() {
-
-			public void runSupport() {
-				pageWindowWidth = content.getClientArea().width;
-
-				int totalAvatars = avatarWidgets.size();
-
-				/*
-				 * Avoid divide by zero when the viewer is collapsed
-				 */
-				if (pageWindowWidth < 1) {
-					pageCount = 1;
-
-					/*
-					 * Single page offset
-					 */
-					pageXOffsets = new int[] {
-						0
-					};
-				} else {
-					avatarsPerPage = 0;
-					/*
-					 * If windowWidth can only fully show 1 avatar then the number of pages
-					 * would equal the number of avatars
-					 */
-					if (pageWindowWidth <= avatarWidthPlusSpacing) {
-						pageCount = avatarWidgets.size();
-						avatarsPerPage = 1;
-					} else {
-
-						avatarsPerPage = (pageWindowWidth / avatarWidthPlusSpacing);
-						pageCount = Math.max(1, avatarsPanel.getClientArea().width
-								/ (avatarsPerPage * avatarWidthPlusSpacing));
-
-						if (avatarsPerPage < totalAvatars
-								&& (totalAvatars % avatarsPerPage) != 0) {
-							pageCount++;
-						}
-					}
-
-					/*
-					 * Create the new offset array which is used for pagination
-					 */
-					pageXOffsets = new int[pageCount];
-
-					int xOffset = 0;
-					/*
-					 * First page has no offset
-					 */
-					pageXOffsets[0] = 0;
-
-					for (int i = 1; i < pageXOffsets.length; i++) {
-						xOffset += (avatarsPerPage * avatarWidthPlusSpacing);
-						pageXOffsets[i] = xOffset;
-					}
-				}
-				if (null != pWidget) {
-					pWidget.setPageCount(pageCount);
-					pWidget.setItemsPerPage(avatarsPerPage);
-					pWidget.setItemsTotal(totalAvatars);
-				}
-			}
-		});
-
-	}
-
-	private void hookScrollers() {
-		leftScroll = skin.getSkinObject("buddies-left-scroller");
-		if (null != leftScroll) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(leftScroll);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (getCurrentPage() > 0) {
-						setCurrentPage(getCurrentPage() - 1);
-					}
-				}
-			});
-		}
-
-		rightScroll = skin.getSkinObject("buddies-right-scroller");
-		if (null != rightScroll) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(rightScroll);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (getCurrentPage() < getPageCount() - 1) {
-						setCurrentPage(getCurrentPage() + 1);
-					}
-				}
-			});
-		}
-
-		enableScroll();
-		parent.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event event) {
-				calculatePagination();
-				enableScroll();
-			}
-		});
-
-	}
-
-	private void enableScroll() {
-		if (null == leftScroll || null == rightScroll) {
-			return;
-		}
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				if (avatarsPanel.getSize().x > parent.getSize().x
-						|| avatarsPanel.getLocation().x < 0) {
-					leftScroll.setVisible(true);
-					if (currentPage != 0) {
-						leftScroll.switchSuffix("");
-					} else {
-						leftScroll.switchSuffix("-disabled");
-					}
-					rightScroll.setVisible(true);
-					if (currentPage != pageCount - 1) {
-						rightScroll.switchSuffix("");
-					} else {
-						rightScroll.switchSuffix("-disabled");
-					}
-				} else {
-					if (true == leftScroll.isVisible()) {
-						leftScroll.setVisible(false);
-					}
-					if (true == rightScroll.isVisible()) {
-						rightScroll.setVisible(false);
-					}
-				}
-			}
-		});
 	}
 
 	public boolean isEditMode() {
@@ -1001,23 +793,6 @@ public class BuddiesViewer
 		}
 	}
 
-	public int getCurrentPage() {
-		return currentPage;
-	}
-
-	public void setCurrentPage(int currentPage) {
-		if (this.currentPage != currentPage) {
-			this.currentPage = currentPage;
-			showPage(currentPage, false);
-			pWidget.setCurrentPage(currentPage);
-
-		}
-	}
-
-	public int getPageCount() {
-		return pageCount;
-	}
-
 	public void hookFAQLink() {
 		SWTSkinObject FAQObject = skin.getSkinObject("buddies-viewer-nobuddies-link");
 		if (null != FAQObject) {
@@ -1043,10 +818,6 @@ public class BuddiesViewer
 			avatarsPanel.layout(true);
 
 		}
-	}
-
-	public int getAvatarsPerPage() {
-		return avatarsPerPage;
 	}
 
 	public Chat getChat() {
