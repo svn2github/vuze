@@ -145,7 +145,7 @@ public class SBC_LibraryView
 
 		this.viewMode = viewMode;
 
-		if (oldViewMode > 0 && oldViewMode < modeViewIDs.length) {
+		if (oldViewMode >= 0 && oldViewMode < modeViewIDs.length) {
   		SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
   		//SWTSkinObject soOldViewArea = skin.getSkinObjectByID(modeIDs[oldViewMode]);
   		if (soOldViewArea != null) {
