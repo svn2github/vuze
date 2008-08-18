@@ -126,9 +126,19 @@ public class SBC_LibraryTableView
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		if (view != null) {
-			view.refresh();
+		if (viewComposite == null || viewComposite.isDisposed() || !viewComposite.isVisible() || view == null) {
+			return;
 		}
+		view.refresh();
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		super.skinObjectShown(skinObject, params);
+
+		updateUI();
+
+		return null;
 	}
 
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
