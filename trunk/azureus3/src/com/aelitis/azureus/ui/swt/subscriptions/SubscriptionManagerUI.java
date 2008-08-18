@@ -586,7 +586,7 @@ SubscriptionManagerUI
 									side_bar.createTreeItemFromIView(
 										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
 										view,
-										ByteFormatter.encodeString(subs.getPublicKey()), 
+										"Subscription_" + ByteFormatter.encodeString(subs.getPublicKey()), 
 										null, 
 										false, 
 										true );
