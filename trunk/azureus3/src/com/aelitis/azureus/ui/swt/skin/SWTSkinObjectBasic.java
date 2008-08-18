@@ -135,24 +135,23 @@ public class SWTSkinObjectBasic
 
 		final Listener lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
-				boolean toBeVisible = event.type == SWT.Show;
-				if (event.widget == control) {
-					setIsVisible(toBeVisible);
-					return;
-				}
-
-				if (!toBeVisible || control.isVisible()) {
-					setIsVisible(toBeVisible);
-					return;
-				}
-
-				// container item.. check listCanvas.isVisible(), but only after
-				// events have been processed, so that the visibility is propogated
-				// to the listCanvas
-				control.getDisplay().asyncExec(new AERunnable() {
+				// wait until show or hide event is processed to guarantee
+				// isVisible will be correct for listener triggers
+				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						if (control == null || control.isDisposed()) {
 							setIsVisible(false);
+							return;
+						}
+
+						boolean toBeVisible = event.type == SWT.Show;
+						if (event.widget == control) {
+							setIsVisible(toBeVisible);
+							return;
+						}
+
+						if (!toBeVisible || control.isVisible()) {
+							setIsVisible(toBeVisible);
 							return;
 						}
 						setIsVisible(control.isVisible());
@@ -550,7 +549,7 @@ public class SWTSkinObjectBasic
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#addListener(com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener)
 	 */
-	public void addListener(SWTSkinObjectListener listener) {
+	public void addListener(final SWTSkinObjectListener listener) {
 		listeners_mon.enter();
 		try {
 			listeners.add(listener);
@@ -563,7 +562,12 @@ public class SWTSkinObjectBasic
 		}
 
 		if (isVisible && initialized) {
-			listener.eventOccured(this, SWTSkinObjectListener.EVENT_SHOW, null);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					listener.eventOccured(SWTSkinObjectBasic.this,
+							SWTSkinObjectListener.EVENT_SHOW, null);
+				}
+			});
 		}
 	}
 
