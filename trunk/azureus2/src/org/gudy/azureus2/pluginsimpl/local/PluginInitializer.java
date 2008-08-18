@@ -252,7 +252,7 @@ PluginInitializer
 	  	}else{
 	  		
 	  		try{
-	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName(), false);
+	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName(), false, false);
 	  			
 			}catch(PluginException e ){
 	  				
@@ -676,7 +676,7 @@ PluginInitializer
 	      
 	    try{
 	    
-	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded);
+	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded, true);
 	      	
 	    		// save details for later initialisation
 	    	
@@ -700,7 +700,8 @@ PluginInitializer
   private List 
   loadPluginFromDir(
   	File directory,
-  	boolean bSkipAlreadyLoaded)
+  	boolean bSkipAlreadyLoaded,
+  	boolean loading_for_startup)
   
   	throws PluginException
   {
@@ -1039,8 +1040,7 @@ PluginInitializer
 							pid,
 							plugin_version[0] );
 	      
-	      // Must use getPluginID() instead of pid, because they may differ
-	      boolean bEnabled = plugin_interface.isLoadedAtStartup();
+	      boolean bEnabled = (loading_for_startup) ? plugin_interface.isLoadedAtStartup() : true;
 	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
@@ -1061,6 +1061,7 @@ PluginInitializer
 	      if ( load_failure != null ){
 	      		  
 	    	  	// don't complain about our internal one
+	    	  plugin_interface.setAsFailed();
 	    	  
 	    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
 	    		  
@@ -1192,7 +1193,7 @@ PluginInitializer
 									Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
 											+ builtin_plugins[idx][2] + "'" ));
 			
-								initializePluginFromClass(cla, id, key, "true".equals(builtin_plugins[idx][5]));
+								initializePluginFromClass(cla, id, key, "true".equals(builtin_plugins[idx][5]), true);
 			
 								if (Logger.isEnabled())
 								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -1200,7 +1201,7 @@ PluginInitializer
 							} catch (Throwable e) {
 								try {
 									// replace it with a "broken" plugin instance
-									initializePluginFromClass(FailedPlugin.class, id, key, false);
+									initializePluginFromClass(FailedPlugin.class, id, key, false, false);
 			
 								} catch (Throwable f) {
 								}
@@ -1245,7 +1246,7 @@ PluginInitializer
 								Class cla = (Class) entry;
 			
 								singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
-										.getName(), false);
+										.getName(), false, true);
 			
 							} else {
 								Object[] x = (Object[]) entry;
@@ -1395,7 +1396,8 @@ PluginInitializer
   	Class 	plugin_class,
 	String	plugin_id,
 	String	plugin_config_key,
-	boolean force_enabled)
+	boolean force_enabled,
+	boolean loading_for_startup)
   
   	throws PluginException
   {
@@ -1450,8 +1452,7 @@ PluginInitializer
 						plugin_id,
 						null );
 
-	      // Must use getPluginID() instead of pid, because they may differ.
-	      boolean bEnabled = plugin_interface.isLoadedAtStartup(); 
+  		boolean bEnabled = (loading_for_startup) ? plugin_interface.isLoadedAtStartup() : true; 
 	      
 	      /**
 	       * For some plugins, override any config setting which disables the plugin.
@@ -1615,13 +1616,13 @@ PluginInitializer
   	
   	if ( key instanceof File ){
   		
-  		List	pis = loadPluginFromDir( (File)key, false );
+  		List	pis = loadPluginFromDir( (File)key, false, false );
   		
   		initialisePlugin( pis );
   		
   	}else{
   		
-  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key, false );
+  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key, false, false );
   	}
   }
  
