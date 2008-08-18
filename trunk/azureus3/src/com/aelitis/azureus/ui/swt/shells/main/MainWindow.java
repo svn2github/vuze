@@ -1713,8 +1713,11 @@ public class MainWindow
 						Control c = soSearchArea.getControl();
 						Rectangle bounds = ((Control) event.widget).getBounds();
 						FormData fd = (FormData) c.getLayoutData();
-						fd.width = bounds.width - 1 - c.getBounds().x;
-						System.out.println("sidebar width is now " + bounds.width);
+						int newWidth = bounds.width - 1 - c.getBounds().x;
+						if (bounds.width < 125) {
+							return;
+						}
+ 						fd.width = newWidth;
 						Utils.relayout(c);
 					}
 				}
