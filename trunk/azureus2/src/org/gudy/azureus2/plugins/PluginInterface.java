@@ -409,6 +409,13 @@ public interface PluginInterface {
    * @since 3.1.1.1
    */
   public void setLoadedAtStartup(boolean load_at_startup);
+  
+  /**
+   * Returns <tt>true</tt> if there was a problem loading or initialising the plugin. 
+   * 
+   * @since 3.1.1.1
+   */
+  public boolean hasFailed();
 
   /**
    *

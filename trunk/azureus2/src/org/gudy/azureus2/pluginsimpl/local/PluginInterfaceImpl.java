@@ -100,6 +100,7 @@ PluginInterfaceImpl
   private String				plugin_version;
   private boolean				operational;
   private boolean				disabled;
+  private boolean               failed;
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
@@ -806,6 +807,16 @@ PluginInterfaceImpl
 			return true; // Load at startup by default.
 		}
 		return COConfigurationManager.getBooleanParameter(param_name);
+	}
+	
+	public boolean hasFailed() {
+		return failed;
+	}
+	
+	// Not exposed in the interface.
+	void setAsFailed() {
+		setDisabled(true);
+		failed = true;
 	}
 	
   public void
