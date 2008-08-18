@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -478,18 +479,24 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				for (int i = 0; i < items.length; i++) {
 					int index = items[i];
 					if (index >= 0 && index < pluginIFs.size()) {
+						
 						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+						if (pluginIF.isOperational()) {continue;} // Already loaded. 
 
+						// Re-enable disabled plugins, as long as they haven't failed on
+						// initialise.
 						if (pluginIF.isDisabled()) {
-							try {
-								pluginIF.setLoadedAtStartup(true);
-								pluginIF.setDisabled( false );
-								pluginIF.reload();
-							} catch (PluginException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
-							}
+							if (pluginIF.hasFailed()) {continue;}
+							pluginIF.setDisabled(false);
 						}
+						
+						try {
+							pluginIF.reload();
+						} catch (PluginException e1) {
+							// TODO Auto-generated catch block
+							Debug.printStackTrace(e1);
+						}
+						
 						pluginIFs = rebuildPluginIFs();
 						table.setItemCount(pluginIFs.size());
 						Collections.sort(pluginIFs, comparator);
@@ -558,10 +565,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					pluginIF.setLoadedAtStartup(item.getChecked());
 				}
 				
-				btnUnload.setEnabled( pluginIF.isUnloadable());
-				boolean bEnabled = pluginIF.isLoadedAtStartup(); 
-				btnLoad.setEnabled(pluginIF.isDisabled() && pluginIF.isOperational()
-						&& !bEnabled);
+				btnUnload.setEnabled(pluginIF.isOperational() && pluginIF.isUnloadable()); 
+				btnLoad.setEnabled(!pluginIF.isOperational() && !pluginIF.hasFailed());
 			}
 		});
 
