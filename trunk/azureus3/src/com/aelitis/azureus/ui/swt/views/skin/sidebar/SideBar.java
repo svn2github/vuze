@@ -1045,6 +1045,7 @@ public class SideBar
 					SIDEBAR_SECTION_WELCOME, "main.area.welcome", "Welcome", null, null,
 					true, 0);
 			itemSelected(entry.treeItem);
+			return true;
 		}
 		return false;
 	}
