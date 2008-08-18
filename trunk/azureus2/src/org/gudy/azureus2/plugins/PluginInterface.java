@@ -371,14 +371,44 @@ public interface PluginInterface {
   getPlugin();
   
   /**
-   * If a plugin fails to load properly (i.e. the construction of the plugin object
-   * fails) it is marked as non-operational (rather than not being present at all) 
-   * @return whether or not the plugin is operational or not
+   * Returns <tt>true</tt> if the plugin is running, returns <tt>false</tt> if the
+   * plugin isn't running for some reason.
    *
    * @since 2.1.0.0
    */
   public boolean
   isOperational();
+  
+  /**
+   * Returns <tt>true</tt> if the plugin has been marked as disabled, and prevented
+   * from initialising.
+   */
+  public boolean
+  isDisabled();
+  
+  /**
+   * Sets whether the plugin can be loaded or not. If you are trying to affect if the plugin
+   * can be loaded at startup - use {@link #setLoadedAtStartup(boolean)} instead. This needs
+   * to be called prior to a plugin's initialisation to take effect.
+   * 
+   * @since 2.3.0.1
+   * @param disabled
+   */
+  public void setDisabled(boolean disabled);
+  
+  /**
+   * Returns <tt>true</tt> if the plugin is set to load at startup, <tt>false</tt> otherwise.
+   * 
+   * @since 3.1.1.1
+   */
+  public boolean isLoadedAtStartup();
+  
+  /**
+   * Sets whether the plugin is loaded at startup or not.
+   * 
+   * @since 3.1.1.1
+   */
+  public void setLoadedAtStartup(boolean load_at_startup);
 
   /**
    *
@@ -387,18 +417,8 @@ public interface PluginInterface {
   public boolean
   isUnloadable();
 
-  /**
-   * @since 2.3.0.1
-   * @param disabled
-   */
   
-  public void
-  setDisabled(
-	boolean	disabled );
-  
-  // Internal?
-  public boolean
-  isDisabled();
+
   
   /**
    * @since 2503/3005

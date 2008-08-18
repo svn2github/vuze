@@ -602,4 +602,6 @@ RPPluginInterface
 	}
 	
 	public MainlineDHTManager getMainlineDHTManager() {notSupported(); return null;}
+	public boolean isLoadedAtStartup() {notSupported(); return false;}
+	public void setLoadedAtStartup(boolean load_at_startup) {notSupported();}
 }

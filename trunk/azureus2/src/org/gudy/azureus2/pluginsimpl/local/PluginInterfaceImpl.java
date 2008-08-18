@@ -68,6 +68,7 @@ import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -792,6 +793,19 @@ PluginInterfaceImpl
 		String	plugin_dir = getPluginDirectoryName();
 				
 		return( plugin_dir.startsWith( shared_dir ));
+	}
+	
+	public void setLoadedAtStartup(boolean load_at_startup) {
+		String param_name = "PluginInfo." + getPluginID() + ".enabled";
+		COConfigurationManager.setParameter(param_name, load_at_startup);
+	}
+	
+	public boolean isLoadedAtStartup() {
+		String param_name = "PluginInfo." + getPluginID() + ".enabled";
+		if (!COConfigurationManager.hasParameter(param_name, false)) {
+			return true; // Load at startup by default.
+		}
+		return COConfigurationManager.getBooleanParameter(param_name);
 	}
 	
   public void
