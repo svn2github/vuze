@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.dht.mainline.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
 import org.gudy.azureus2.pluginsimpl.local.dht.mainline.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
@@ -220,6 +221,7 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentFile(String fileName) {
+	  PluginDeprecation.call("openTorrentFile", this.getPluginID());
 	  try{
 		  getDownloadManager().addDownload( new File(fileName));
 	  }catch( DownloadException e ){
@@ -231,6 +233,7 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentURL(String url) {
+	  PluginDeprecation.call("openTorrentURL", this.getPluginID());
 	  try{
 		  getDownloadManager().addDownload( new URL( url ));
 	  }catch( Throwable e ){
