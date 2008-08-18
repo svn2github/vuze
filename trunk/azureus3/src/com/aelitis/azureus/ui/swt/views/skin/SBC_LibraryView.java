@@ -79,7 +79,7 @@ public class SBC_LibraryView
 
 	private static int numIncomplete = 0;
 
-	private int viewMode;
+	private int viewMode = -1;
 
 	private SWTSkinButtonUtility btnSmallTable;
 
@@ -137,7 +137,7 @@ public class SBC_LibraryView
 	}
 
 	public void setViewMode(int viewMode, boolean save) {
-		if (viewMode >= modeViewIDs.length || viewMode < 0) {
+		if (viewMode >= modeViewIDs.length || viewMode < 0 || viewMode == this.viewMode) {
 			return;
 		}
 
@@ -145,10 +145,12 @@ public class SBC_LibraryView
 
 		this.viewMode = viewMode;
 
-		SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
-		//SWTSkinObject soOldViewArea = skin.getSkinObjectByID(modeIDs[oldViewMode]);
-		if (soOldViewArea != null) {
-			soOldViewArea.setVisible(false);
+		if (oldViewMode > 0 && oldViewMode < modeViewIDs.length) {
+  		SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
+  		//SWTSkinObject soOldViewArea = skin.getSkinObjectByID(modeIDs[oldViewMode]);
+  		if (soOldViewArea != null) {
+  			soOldViewArea.setVisible(false);
+  		}
 		}
 
 		SWTSkinObject soViewArea = getSkinObject(modeViewIDs[viewMode]);
