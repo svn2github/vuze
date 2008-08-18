@@ -533,7 +533,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				}
 
 				item.setGrayed(pluginIF.isMandatory());
-				boolean bEnabled = pluginIf.isLoadedAtStartup();
+				boolean bEnabled = pluginIF.isLoadedAtStartup();
 		    Utils.setCheckedInSetData(item, bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
 				Utils.alternateRowBackground(item);

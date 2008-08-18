@@ -1457,7 +1457,7 @@ PluginInitializer
 	       * For some plugins, override any config setting which disables the plugin.
 	       */
 	      if (force_enabled && !bEnabled) {
-	    	  COConfigurationManager.removeParameter(enabled_key);
+	    	  plugin_interface.setLoadedAtStartup(true);
 	    	  bEnabled = true;
 	    	  Logger.log(new LogAlert(false, LogAlert.AT_WARNING, MessageText.getString(
 	    	      "plugins.init.force_enabled", new String[] {plugin_id}
