@@ -163,7 +163,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				case FIELD_UNLOADABLE: {
 					boolean b0 = if0.isUnloadable();
 					boolean b1 = if1.isUnloadable();
-					result = (b0 == b1 ? 0 : (b0 ? 1 : -1));
+					result = (b0 == b1 ? 0 : (b0 ? -1 : 1));
 					break;
 				}
 			}
