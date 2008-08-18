@@ -436,7 +436,7 @@ public class SWTSkinObjectSash
 					&& d != 1.0) {
 				minAbove = Math.max(resizeContainerAboveMin, minAbove);
 			}
-			if (parentWidth - belowData.width - sash.getSize().x < minAbove) {
+			if (l != 1.0 && parentWidth - belowData.width - sash.getSize().x < minAbove) {
 				belowData.width = parentWidth - minAbove - sash.getSize().x;
 				layoutNeeded = true;
 
@@ -456,7 +456,7 @@ public class SWTSkinObjectSash
 				layoutNeeded = true;
 			}
 
-			if (parentHeight - belowData.height < minAbove
+			if (l != 1.0 && parentHeight - belowData.height < minAbove
 					&& parentHeight >= minAbove) {
 				belowData.height = parentHeight - minAbove;
 				layoutNeeded = true;
