@@ -402,7 +402,7 @@ public class SWTSkinObjectSash
 		setPercent(new Double(pct), sash, above, below, isVertical,
 				parentComposite, aboveMin, belowMin);
 	}
-	
+
 	public double getPercent() {
 		return sashPct;
 	}
@@ -436,7 +436,8 @@ public class SWTSkinObjectSash
 					&& d != 1.0) {
 				minAbove = Math.max(resizeContainerAboveMin, minAbove);
 			}
-			if (l != 1.0 && parentWidth - belowData.width - sash.getSize().x < minAbove) {
+			if (l.doubleValue() != 1.0
+					&& parentWidth - belowData.width - sash.getSize().x < minAbove) {
 				belowData.width = parentWidth - minAbove - sash.getSize().x;
 				layoutNeeded = true;
 
@@ -456,7 +457,7 @@ public class SWTSkinObjectSash
 				layoutNeeded = true;
 			}
 
-			if (l != 1.0 && parentHeight - belowData.height < minAbove
+			if (l.doubleValue() != 1.0 && parentHeight - belowData.height < minAbove
 					&& parentHeight >= minAbove) {
 				belowData.height = parentHeight - minAbove;
 				layoutNeeded = true;
@@ -484,7 +485,7 @@ public class SWTSkinObjectSash
 		} else if (pct < 0) {
 			pct = 0;
 		}
-		
+
 		Double ret = new Double(pct);
 		int sizeBelow = bVertical ? below.getSize().x : below.getSize().y;
 		int sizeAbove = bVertical ? above.getSize().x : above.getSize().y;
