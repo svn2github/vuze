@@ -875,7 +875,7 @@ public class MainWindow
 			public void runSupport() {
 				String startTab;
 				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-					startTab = SideBar.SIDEBAR_SECTION_ADVANCED;
+					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				}
