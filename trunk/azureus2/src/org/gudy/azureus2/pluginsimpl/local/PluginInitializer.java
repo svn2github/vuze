@@ -1040,10 +1040,7 @@ PluginInitializer
 							plugin_version[0] );
 	      
 	      // Must use getPluginID() instead of pid, because they may differ
-	      boolean bEnabled = COConfigurationManager
-							.getBooleanParameter("PluginInfo."
-									+ plugin_interface.getPluginID() + ".enabled", true);
-	      
+	      boolean bEnabled = plugin_interface.isLoadedAtStartup();
 	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
@@ -1454,8 +1451,7 @@ PluginInitializer
 						null );
 
 	      // Must use getPluginID() instead of pid, because they may differ.
-  		String enabled_key = "PluginInfo." + plugin_interface.getPluginID() + ".enabled";
-	      boolean bEnabled = COConfigurationManager.getBooleanParameter(enabled_key, true);
+	      boolean bEnabled = plugin_interface.isLoadedAtStartup(); 
 	      
 	      /**
 	       * For some plugins, override any config setting which disables the plugin.

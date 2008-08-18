@@ -129,10 +129,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 			switch (field) {
 				case FIELD_LOAD: {
-					boolean b0 = COConfigurationManager.getBooleanParameter("PluginInfo."
-							+ if0.getPluginID() + ".enabled", true);
-					boolean b1 = COConfigurationManager.getBooleanParameter("PluginInfo."
-							+ if1.getPluginID() + ".enabled", true);
+					boolean b0 = if0.isLoadedAtStartup();
+					boolean b1 = if1.isLoadedAtStartup();
 					result = (b0 == b1 ? 0 : (b0 ? -1 : 1));
 					
 					// Use the plugin ID name to sort by instead.
@@ -484,8 +482,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 						if (pluginIF.isDisabled()) {
 							try {
-								COConfigurationManager.setParameter("PluginInfo."
-										+ pluginIF.getPluginID() + ".enabled", true );
+								pluginIF.setLoadedAtStartup(true);
 								pluginIF.setDisabled( false );
 								pluginIF.reload();
 							} catch (PluginException e1) {
@@ -536,8 +533,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				}
 
 				item.setGrayed(pluginIF.isMandatory());
-				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
-						+ pluginIF.getPluginID() + ".enabled", true);
+				boolean bEnabled = pluginIf.isLoadedAtStartup();
 		    Utils.setCheckedInSetData(item, bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
 				Utils.alternateRowBackground(item);
@@ -559,13 +555,11 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					}
 
 					pluginIF.setDisabled(!item.getChecked());
-					COConfigurationManager.setParameter("PluginInfo."
-							+ item.getData("PluginID") + ".enabled", item.getChecked());
+					pluginIF.setLoadedAtStartup(item.getChecked());
 				}
 				
 				btnUnload.setEnabled( pluginIF.isUnloadable());
-				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
-						+ pluginIF.getPluginID() + ".enabled", true);
+				boolean bEnabled = pluginIF.isLoadedAtStartup(); 
 				btnLoad.setEnabled(pluginIF.isDisabled() && pluginIF.isOperational()
 						&& !bEnabled);
 			}

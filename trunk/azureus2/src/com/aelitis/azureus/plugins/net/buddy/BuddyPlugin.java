@@ -645,7 +645,7 @@ BuddyPlugin
 
 						if (promptUserOnDisable(ui) != 0) {
 							plugin_interface.setDisabled(false);
-							COConfigurationManager.setParameter(parameterName, true);
+							plugin_interface.setLoadedAtStartup(true);
 						} else {
 							fireEnabledStateChanged();
 						}
