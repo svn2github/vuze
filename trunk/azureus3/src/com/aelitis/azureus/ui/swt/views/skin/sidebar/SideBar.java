@@ -1092,7 +1092,7 @@ public class SideBar
 			SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
 
 			// hide old
-			if (oldSideBarInfo != null) {
+			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
 				if (oldSideBarInfo.skinObject != null) {
 					SWTSkinObjectContainer container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
 					if (container != null) {
