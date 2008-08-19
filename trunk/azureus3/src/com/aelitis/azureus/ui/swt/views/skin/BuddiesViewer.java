@@ -224,12 +224,14 @@ public class BuddiesViewer
 		if (null != viewer) {
 
 			parent = (Composite) skinObject.getControl();
+			parent.setBackgroundMode(SWT.INHERIT_FORCE);
+			parent.setBackground(parent.getDisplay().getSystemColor(
+					SWT.COLOR_LIST_BACKGROUND));
 			scrollable = new ScrolledComposite(parent, SWT.V_SCROLL);
 			scrollable.setExpandHorizontal(true);
 			scrollable.setExpandVertical(true);
 			scrollable.setBackgroundMode(SWT.INHERIT_FORCE);
-			scrollable.setBackground(parent.getDisplay().getSystemColor(
-					SWT.COLOR_LIST_BACKGROUND));
+			
 
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 0);
@@ -239,6 +241,7 @@ public class BuddiesViewer
 			scrollable.setLayoutData(fd);
 
 			avatarsPanel = new Composite(scrollable, SWT.NONE);
+			avatarsPanel.setBackgroundMode(SWT.INHERIT_FORCE);
 			scrollable.setContent(avatarsPanel);
 
 			scrollable.addListener(SWT.Resize, new Listener() {
