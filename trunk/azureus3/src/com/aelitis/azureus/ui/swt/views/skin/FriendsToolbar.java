@@ -84,7 +84,6 @@ public class FriendsToolbar
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 		parent = (Composite) skinObject.getControl();
-
 		init();
 		return null;
 	}
@@ -120,6 +119,7 @@ public class FriendsToolbar
 
 		createControls();
 
+		parent.getParent().layout(true);
 	}
 
 	private void createControls() {
