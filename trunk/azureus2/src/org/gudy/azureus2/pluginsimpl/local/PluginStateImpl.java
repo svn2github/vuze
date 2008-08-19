@@ -1,5 +1,5 @@
 /**
- * File: PluginState.java
+ * File: PluginStateImpl.java
  * Date: 19 Aug 2008
  * Author: Allan Crooks
  * 
@@ -20,14 +20,34 @@
  */
 package org.gudy.azureus2.pluginsimpl.local;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginState;
 
 public class PluginStateImpl implements PluginState {
 
 	private PluginInterface pi;
+	boolean failed;
 	public PluginStateImpl(PluginInterface pi) {
 		this.pi = pi;
 	}
+	
+	public void setLoadedAtStartup(boolean load_at_startup) {
+		String param_name = "PluginInfo." + pi.getPluginID() + ".enabled";
+		COConfigurationManager.setParameter(param_name, load_at_startup);
+	}
+	
+	public boolean isLoadedAtStartup() {
+		String param_name = "PluginInfo." + pi.getPluginID() + ".enabled";
+		if (!COConfigurationManager.hasParameter(param_name, false)) {
+			return true; // Load at startup by default.
+		}
+		return COConfigurationManager.getBooleanParameter(param_name);
+	}
+	
+	public boolean hasFailed() {
+		return failed;
+	}
+
 	
 }

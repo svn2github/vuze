@@ -645,7 +645,7 @@ BuddyPlugin
 
 						if (promptUserOnDisable(ui) != 0) {
 							plugin_interface.setDisabled(false);
-							plugin_interface.setLoadedAtStartup(true);
+							plugin_interface.getPluginState().setLoadedAtStartup(true);
 						} else {
 							fireEnabledStateChanged();
 						}

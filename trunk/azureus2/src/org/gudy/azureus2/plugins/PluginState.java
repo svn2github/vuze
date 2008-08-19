@@ -32,4 +32,19 @@ package org.gudy.azureus2.plugins;
  */
 public interface PluginState {
 
+	  /**
+	   * Returns <tt>true</tt> if the plugin is set to load at startup, <tt>false</tt> otherwise.
+	   */
+	  public boolean isLoadedAtStartup();
+	  
+	  /**
+	   * Sets whether the plugin is loaded at startup or not.
+	   */
+	  public void setLoadedAtStartup(boolean load_at_startup);
+	  
+	  /**
+	   * Returns <tt>true</tt> if there was a problem loading or initialising the plugin. 
+	   */
+	  public boolean hasFailed();
+	
 }

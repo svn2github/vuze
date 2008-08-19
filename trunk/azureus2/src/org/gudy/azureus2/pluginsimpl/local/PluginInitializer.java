@@ -1040,7 +1040,7 @@ PluginInitializer
 							pid,
 							plugin_version[0] );
 	      
-	      boolean bEnabled = (loading_for_startup) ? plugin_interface.isLoadedAtStartup() : true;
+	      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : true;
 	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
@@ -1060,9 +1060,10 @@ PluginInitializer
 	      
 	      if ( load_failure != null ){
 	      		  
-	    	  	// don't complain about our internal one
+	    	  	
 	    	  plugin_interface.setAsFailed();
 	    	  
+	    	// don't complain about our internal one
 	    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
 	    		  
 		      	String msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
@@ -1452,13 +1453,13 @@ PluginInitializer
 						plugin_id,
 						null );
 
-  		boolean bEnabled = (loading_for_startup) ? plugin_interface.isLoadedAtStartup() : true; 
+  		boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : true; 
 	      
 	      /**
 	       * For some plugins, override any config setting which disables the plugin.
 	       */
 	      if (force_enabled && !bEnabled) {
-	    	  plugin_interface.setLoadedAtStartup(true);
+	    	  plugin_interface.getPluginState().setLoadedAtStartup(true);
 	    	  bEnabled = true;
 	    	  Logger.log(new LogAlert(false, LogAlert.AT_WARNING, MessageText.getString(
 	    	      "plugins.init.force_enabled", new String[] {plugin_id}

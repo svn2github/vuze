@@ -394,27 +394,7 @@ public interface PluginInterface {
    * @param disabled
    */
   public void setDisabled(boolean disabled);
-  
-  /**
-   * Returns <tt>true</tt> if the plugin is set to load at startup, <tt>false</tt> otherwise.
-   * 
-   * @since 3.1.1.1
-   */
-  public boolean isLoadedAtStartup();
-  
-  /**
-   * Sets whether the plugin is loaded at startup or not.
-   * 
-   * @since 3.1.1.1
-   */
-  public void setLoadedAtStartup(boolean load_at_startup);
-  
-  /**
-   * Returns <tt>true</tt> if there was a problem loading or initialising the plugin. 
-   * 
-   * @since 3.1.1.1
-   */
-  public boolean hasFailed();
+
 
   /**
    *

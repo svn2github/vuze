@@ -68,7 +68,6 @@ import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -100,12 +99,11 @@ PluginInterfaceImpl
   private String				plugin_version;
   private boolean				operational;
   private boolean				disabled;
-  private boolean               failed;
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
   private List configSections = new ArrayList();
-  private PluginState           state;
+  private PluginStateImpl       state;
   
   /**
    * This is the plugin ID value we were given when we were created.
@@ -798,27 +796,11 @@ PluginInterfaceImpl
 		return( plugin_dir.startsWith( shared_dir ));
 	}
 	
-	public void setLoadedAtStartup(boolean load_at_startup) {
-		String param_name = "PluginInfo." + getPluginID() + ".enabled";
-		COConfigurationManager.setParameter(param_name, load_at_startup);
-	}
-	
-	public boolean isLoadedAtStartup() {
-		String param_name = "PluginInfo." + getPluginID() + ".enabled";
-		if (!COConfigurationManager.hasParameter(param_name, false)) {
-			return true; // Load at startup by default.
-		}
-		return COConfigurationManager.getBooleanParameter(param_name);
-	}
-	
-	public boolean hasFailed() {
-		return failed;
-	}
 	
 	// Not exposed in the interface.
 	void setAsFailed() {
 		setDisabled(true);
-		failed = true;
+		state.failed = true;
 	}
 	
   public void
