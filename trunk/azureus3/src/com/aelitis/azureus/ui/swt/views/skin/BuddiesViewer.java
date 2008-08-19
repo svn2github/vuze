@@ -7,18 +7,20 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -64,8 +66,6 @@ public class BuddiesViewer
 	public static final int add_buddy_mode = 4;
 
 	public static final int disabled_mode = 5;
-
-	private Composite content = null;
 
 	private Composite avatarsPanel = null;
 
@@ -118,6 +118,8 @@ public class BuddiesViewer
 	private Color colorFileDragBorder;
 
 	private Color colorFileDragBG;
+
+	private ScrolledComposite scrollable;
 
 	public BuddiesViewer() {
 
@@ -221,23 +223,31 @@ public class BuddiesViewer
 
 		if (null != viewer) {
 
-			parent = (Composite) viewer.getControl();
-			parent.setBackground(parent.getDisplay().getSystemColor(
+			parent = (Composite) skinObject.getControl();
+			scrollable = new ScrolledComposite(parent, SWT.V_SCROLL);
+			scrollable.setExpandHorizontal(true);
+			scrollable.setExpandVertical(true);
+			scrollable.setBackgroundMode(SWT.INHERIT_FORCE);
+			scrollable.setBackground(parent.getDisplay().getSystemColor(
 					SWT.COLOR_LIST_BACKGROUND));
-
-			content = new Composite(parent, SWT.NONE);
 
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 0);
 			fd.bottom = new FormAttachment(100, 0);
 			fd.left = new FormAttachment(0, 0);
 			fd.right = new FormAttachment(100, 0);
-			content.setLayoutData(fd);
+			scrollable.setLayoutData(fd);
 
-			content.setLayout(new FillLayout());
+			avatarsPanel = new Composite(scrollable, SWT.NONE);
+			scrollable.setContent(avatarsPanel);
 
-			avatarsPanel = new Composite(content, SWT.NONE);
-			//			avatarsPanel.setLocation(0, 0);
+			scrollable.addListener(SWT.Resize, new Listener() {
+
+				public void handleEvent(Event event) {
+					Rectangle r = scrollable.getClientArea();
+					scrollable.setMinHeight(avatarsPanel.computeSize(r.width, SWT.DEFAULT).y);
+				}
+			});
 
 			/*
 			 * Specify avatar dimensions and attributes before creating the avatars
@@ -282,13 +292,13 @@ public class BuddiesViewer
 				}
 			});
 
-			content.addMouseListener(new MouseAdapter() {
+			avatarsPanel.addMouseListener(new MouseAdapter() {
 				public void mouseDown(MouseEvent e) {
 					select(null, false, false);
 				}
 			});
 
-			parent.layout(true);
+			parent.layout();
 
 			hookFAQLink();
 		}
@@ -378,7 +388,7 @@ public class BuddiesViewer
 				&& false == avatarWidget.getControl().isDisposed()) {
 
 			Rectangle controlBounds = avatarWidget.getControl().getBounds();
-			if (controlBounds.x + controlBounds.width < content.getBounds().width
+			if (controlBounds.x + controlBounds.width < avatarsPanel.getBounds().width
 					- avatarsPanel.getBounds().x) {
 				return true;
 			}
