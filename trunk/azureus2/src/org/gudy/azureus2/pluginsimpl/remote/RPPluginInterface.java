@@ -605,4 +605,6 @@ RPPluginInterface
 	public boolean isLoadedAtStartup() {notSupported(); return false;}
 	public void setLoadedAtStartup(boolean load_at_startup) {notSupported();}
 	public boolean hasFailed() {notSupported(); return false;}
+	public PluginState getPluginState() {notSupported(); return null;}
+	
 }

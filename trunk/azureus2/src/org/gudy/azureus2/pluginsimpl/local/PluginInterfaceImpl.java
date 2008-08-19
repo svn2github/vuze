@@ -105,6 +105,7 @@ PluginInterfaceImpl
   private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
   private List configSections = new ArrayList();
+  private PluginState           state;
   
   /**
    * This is the plugin ID value we were given when we were created.
@@ -144,6 +145,7 @@ PluginInterfaceImpl
     given_plugin_id     = _plugin_id;
     plugin_version		= _plugin_version;
     ipc_interface		= new IPCInterfaceImpl( initialiser, plugin );
+    state               = new PluginStateImpl(this);
   }
   
   	public Plugin
@@ -889,6 +891,10 @@ PluginInterfaceImpl
 			
 			writer.exdent();
 		}
+	}
+	
+	public PluginState getPluginState() {
+		return this.state;
 	}
   
   

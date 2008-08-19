@@ -308,8 +308,7 @@ public interface PluginInterface {
   	 */
   
   public boolean
-  isBuiltIn();
-    
+  isBuiltIn();    
   /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
@@ -573,4 +572,13 @@ public interface PluginInterface {
    * @since 3.0.4.3
    */
   public MainlineDHTManager getMainlineDHTManager();
+  
+  /**
+   * Returns an object that provides information the current state of the plugin,
+   * and provides various mechanisms to query and control plugins and their
+   * integration with Azureus at a low-level.
+   * 
+   * @since 3.1.1.1
+   */
+  public PluginState getPluginState();
 }
