@@ -130,8 +130,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 			switch (field) {
 				case FIELD_LOAD: {
-					boolean b0 = if0.isLoadedAtStartup();
-					boolean b1 = if1.isLoadedAtStartup();
+					boolean b0 = if0.getPluginState().isLoadedAtStartup();
+					boolean b1 = if1.getPluginState().isLoadedAtStartup();
 					result = (b0 == b1 ? 0 : (b0 ? -1 : 1));
 					
 					// Use the plugin ID name to sort by instead.
@@ -486,7 +486,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 						// Re-enable disabled plugins, as long as they haven't failed on
 						// initialise.
 						if (pluginIF.isDisabled()) {
-							if (pluginIF.hasFailed()) {continue;}
+							if (pluginIF.getPluginState().hasFailed()) {continue;}
 							pluginIF.setDisabled(false);
 						}
 						
@@ -540,7 +540,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				}
 
 				item.setGrayed(pluginIF.isMandatory());
-				boolean bEnabled = pluginIF.isLoadedAtStartup();
+				boolean bEnabled = pluginIF.getPluginState().isLoadedAtStartup();
 		    Utils.setCheckedInSetData(item, bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
 				Utils.alternateRowBackground(item);
@@ -562,11 +562,11 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					}
 
 					pluginIF.setDisabled(!item.getChecked());
-					pluginIF.setLoadedAtStartup(item.getChecked());
+					pluginIF.getPluginState().setLoadedAtStartup(item.getChecked());
 				}
 				
 				btnUnload.setEnabled(pluginIF.isOperational() && pluginIF.isUnloadable()); 
-				btnLoad.setEnabled(!pluginIF.isOperational() && !pluginIF.hasFailed());
+				btnLoad.setEnabled(!pluginIF.isOperational() && !pluginIF.getPluginState().hasFailed());
 			}
 		});
 
