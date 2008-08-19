@@ -376,7 +376,7 @@ PluginUpdatePlugin
 				
 				PluginInterface	pi = plugins[i];
 				
-				if ( pi.isDisabled()){
+				if ( pi.getPluginState().isDisabled()){
 					
 					continue;
 				}

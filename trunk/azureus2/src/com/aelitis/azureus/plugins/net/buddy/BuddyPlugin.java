@@ -3064,7 +3064,7 @@ BuddyPlugin
 	protected void
  	fireEnabledStateChanged()
  	{
-		final boolean enabled = !plugin_interface.isDisabled() && isEnabled();
+		final boolean enabled = !plugin_interface.getPluginState().isDisabled() && isEnabled();
 
  		List	 listeners_ref = listeners.getList();
  		

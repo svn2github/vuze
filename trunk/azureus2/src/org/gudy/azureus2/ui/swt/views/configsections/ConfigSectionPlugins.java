@@ -485,9 +485,9 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 						// Re-enable disabled plugins, as long as they haven't failed on
 						// initialise.
-						if (pluginIF.isDisabled()) {
+						if (pluginIF.getPluginState().isDisabled()) {
 							if (pluginIF.getPluginState().hasFailed()) {continue;}
-							pluginIF.setDisabled(false);
+							pluginIF.getPluginState().setDisabled(false);
 						}
 						
 						try {
@@ -561,7 +561,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 						return;
 					}
 
-					pluginIF.setDisabled(!item.getChecked());
+					pluginIF.getPluginState().setDisabled(!item.getChecked());
 					pluginIF.getPluginState().setLoadedAtStartup(item.getChecked());
 				}
 				

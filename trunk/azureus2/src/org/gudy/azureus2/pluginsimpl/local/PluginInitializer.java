@@ -1041,7 +1041,7 @@ PluginInitializer
 							plugin_version[0] );
 	      
 	      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : true;
-	      plugin_interface.setDisabled(!bEnabled);
+	      plugin_interface.getPluginState().setDisabled(!bEnabled);
 
 	      try{
 	      
@@ -1331,7 +1331,7 @@ PluginInitializer
   	
   			PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
   			
-  			if (plugin_interface.isDisabled()) {
+  			if (plugin_interface.getPluginState().isDisabled()) {
   				
   				synchronized( s_plugin_interfaces ){
   				
@@ -1466,7 +1466,7 @@ PluginInitializer
 	    	  )));
 	      }
 	      
-	      plugin_interface.setDisabled(!bEnabled);
+	      plugin_interface.getPluginState().setDisabled(!bEnabled);
   		
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 

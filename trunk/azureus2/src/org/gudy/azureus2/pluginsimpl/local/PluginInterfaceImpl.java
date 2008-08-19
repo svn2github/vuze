@@ -98,7 +98,6 @@ PluginInterfaceImpl
   private PluginConfigImpl		config;
   private String				plugin_version;
   private boolean				operational;
-  private boolean				disabled;
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
   private List					children		= new ArrayList();
@@ -344,19 +343,7 @@ PluginInterfaceImpl
   		return( dir.length() == 0 || getPluginID().equals( "azupdater" ));
   }
   
-	public void
-	setDisabled(
-		boolean	_disabled )
-	{
-		disabled	= _disabled;
-	}
-	  
-	public boolean
-	isDisabled()
-	{
-		return( disabled );
-	}
-	
+
   public Properties getPluginProperties() 
   {
     return(props);
@@ -799,7 +786,7 @@ PluginInterfaceImpl
 	
 	// Not exposed in the interface.
 	void setAsFailed() {
-		setDisabled(true);
+		getPluginState().setDisabled(true);
 		state.failed = true;
 	}
 	
@@ -867,12 +854,22 @@ PluginInterfaceImpl
 				type = "built-in";
 			}
 			
-			writer.println( "type:" + type + ",enabled:" + !isDisabled() + ",operational:" + isOperational());
+			writer.println( "type:" + type + ",enabled:" + !getPluginState().isDisabled() + ",operational:" + isOperational());
 			
 		}finally{
 			
 			writer.exdent();
 		}
+	}
+	
+	public boolean isDisabled() {
+		PluginDeprecation.call("isDisabled", this.given_plugin_id);
+		return getPluginState().isDisabled();
+	}
+	
+	public void setDisabled(boolean disabled) {
+		PluginDeprecation.call("setDisabled", this.given_plugin_id);
+		getPluginState().setDisabled(disabled);
 	}
 	
 	public PluginState getPluginState() {

@@ -381,6 +381,8 @@ public interface PluginInterface {
   /**
    * Returns <tt>true</tt> if the plugin has been marked as disabled, and prevented
    * from initialising.
+   * 
+   * @deprecated Use {@link PluginState#isDisabled}.
    */
   public boolean
   isDisabled();
@@ -392,6 +394,7 @@ public interface PluginInterface {
    * 
    * @since 2.3.0.1
    * @param disabled
+   * @deprecated Use {@link PluginState#setDisabled(boolean)}.
    */
   public void setDisabled(boolean disabled);
 

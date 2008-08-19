@@ -78,6 +78,10 @@ public class PluginDeprecation {
 		register("openTorrentFile", IGNORE, NOTIFY_EVERY);
 		register("openTorrentURL", IGNORE, NOTIFY_EVERY);
 		
+		// PluginInterface -> PluginState transition.
+		register("setDisabled", IGNORE, NOTIFY_ONCE);
+		register("isDisabled", IGNORE, NOTIFY_ONCE);
+		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(
 			COConfigurationManager.getStringListParameter(CONFIG_KEY).toArray()));

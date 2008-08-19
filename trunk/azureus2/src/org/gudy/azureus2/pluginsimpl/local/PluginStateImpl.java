@@ -27,7 +27,9 @@ import org.gudy.azureus2.plugins.PluginState;
 public class PluginStateImpl implements PluginState {
 
 	private PluginInterface pi;
+	private boolean	disabled;
 	boolean failed;
+	
 	public PluginStateImpl(PluginInterface pi) {
 		this.pi = pi;
 	}
@@ -49,5 +51,17 @@ public class PluginStateImpl implements PluginState {
 		return failed;
 	}
 
+	public void
+	setDisabled(
+		boolean	_disabled )
+	{
+		disabled	= _disabled;
+	}
+	  
+	public boolean
+	isDisabled()
+	{
+		return( disabled );
+	}
 	
 }

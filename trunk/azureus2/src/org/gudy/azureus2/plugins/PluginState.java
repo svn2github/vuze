@@ -46,5 +46,21 @@ public interface PluginState {
 	   * Returns <tt>true</tt> if there was a problem loading or initialising the plugin. 
 	   */
 	  public boolean hasFailed();
+	  
+	  /**
+	   * Returns <tt>true</tt> if the plugin has been marked as disabled, and prevented
+	   * from initialising.
+	   */
+	  public boolean
+	  isDisabled();
+	  
+	  /**
+	   * Sets whether the plugin can be loaded or not. If you are trying to affect if the plugin
+	   * can be loaded at startup - use {@link #setLoadedAtStartup(boolean)} instead. This needs
+	   * to be called prior to a plugin's initialisation to take effect.
+	   * 
+	   * @param disabled
+	   */
+	  public void setDisabled(boolean disabled);
 	
 }
