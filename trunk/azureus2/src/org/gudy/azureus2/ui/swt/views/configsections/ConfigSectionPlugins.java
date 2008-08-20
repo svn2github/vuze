@@ -161,8 +161,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				}
 				
 				case FIELD_UNLOADABLE: {
-					boolean b0 = if0.isUnloadable();
-					boolean b1 = if1.isUnloadable();
+					boolean b0 = if0.getPluginState().isUnloadable();
+					boolean b1 = if1.getPluginState().isUnloadable();
 					result = (b0 == b1 ? 0 : (b0 ? -1 : 1));
 					break;
 				}
@@ -238,7 +238,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				
 				case FIELD_UNLOADABLE: {
 					return MessageText.getString("Button."
-							+ (pluginIF.isUnloadable() ? "yes" : "no")).replaceAll("&", "");
+							+ (pluginIF.getPluginState().isUnloadable() ? "yes" : "no")).replaceAll("&", "");
 				}
 			} // switch
 
@@ -450,10 +450,10 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					int index = items[i];
 					if (index >= 0 && index < pluginIFs.size()) {
 						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
-						if (pluginIF.isOperational()) {
-							if (pluginIF.isUnloadable()) {
+						if (pluginIF.getPluginState().isOperational()) {
+							if (pluginIF.getPluginState().isUnloadable()) {
 								try {
-									pluginIF.unload();
+									pluginIF.getPluginState().unload();
 								} catch (PluginException e1) {
 									// TODO Auto-generated catch block
 									e1.printStackTrace();
@@ -481,7 +481,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					if (index >= 0 && index < pluginIFs.size()) {
 						
 						PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
-						if (pluginIF.isOperational()) {continue;} // Already loaded. 
+						if (pluginIF.getPluginState().isOperational()) {continue;} // Already loaded. 
 
 						// Re-enable disabled plugins, as long as they haven't failed on
 						// initialise.
@@ -491,7 +491,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 						}
 						
 						try {
-							pluginIF.reload();
+							pluginIF.getPluginState().reload();
 						} catch (PluginException e1) {
 							// TODO Auto-generated catch block
 							Debug.printStackTrace(e1);
@@ -530,7 +530,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 				for (int i = 0; i < COLUMN_HEADERS.length; i++) {
 					if (i == FilterComparator.FIELD_NAME)
-						item.setImage(i, ImageRepository.getImage(pluginIF.isOperational()
+						item.setImage(i, ImageRepository.getImage(pluginIF.getPluginState().isOperational()
 								? "greenled" : "redled")); 
 					
 					String sText = comparator.getFieldValue(i, pluginIF);
@@ -539,7 +539,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					item.setText(i, sText);
 				}
 
-				item.setGrayed(pluginIF.isMandatory());
+				item.setGrayed(pluginIF.getPluginState().isMandatory());
 				boolean bEnabled = pluginIF.getPluginState().isLoadedAtStartup();
 		    Utils.setCheckedInSetData(item, bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
@@ -565,8 +565,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 					pluginIF.getPluginState().setLoadedAtStartup(item.getChecked());
 				}
 				
-				btnUnload.setEnabled(pluginIF.isOperational() && pluginIF.isUnloadable()); 
-				btnLoad.setEnabled(!pluginIF.isOperational() && !pluginIF.getPluginState().hasFailed());
+				btnUnload.setEnabled(pluginIF.getPluginState().isOperational() && pluginIF.getPluginState().isUnloadable()); 
+				btnLoad.setEnabled(!pluginIF.getPluginState().isOperational() && !pluginIF.getPluginState().hasFailed());
 			}
 		});
 

@@ -506,7 +506,7 @@ PluginInstallerImpl
 							{
 								try{
 								
-									dummy_plugin_interface.unload();
+									dummy_plugin_interface.getPluginState().unload();
 									
 								}catch( Throwable e ){
 									
@@ -523,7 +523,7 @@ PluginInstallerImpl
 								if ( pi != null && pi.getPlugin() instanceof FailedPlugin ){
 									
 									try{
-										pi.unload();
+										pi.getPluginState().unload();
 										
 									}catch( Throwable e ){
 										
@@ -568,7 +568,7 @@ PluginInstallerImpl
 			throw( new PluginException(" Plugin '" + standard_plugin.getId() + "' is not installed"));
 		}
 		
-		pi.uninstall();
+		pi.getPluginState().uninstall();
 	}
 	
 	public void
@@ -590,12 +590,12 @@ PluginInstallerImpl
 			
 			PluginInterface	pi = pis[i];
 			
-			if ( pi.isMandatory()){
+			if ( pi.getPluginState().isMandatory()){
 				
 				throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is mandatory, can't uninstall" ));
 			}
 			
-			if ( pi.isBuiltIn()){
+			if ( pi.getPluginState().isBuiltIn()){
 				
 				throw( new PluginException( "Plugin '" + pi.getPluginID() + "' is built-in, can't uninstall" ));
 			}
@@ -654,9 +654,9 @@ PluginInstallerImpl
 											InputStream			data )
 										{
 											try{
-												if ( pi.isUnloadable()){
+												if ( pi.getPluginState().isUnloadable()){
 											
-													pi.unload();
+													pi.getPluginState().unload();
 													
 													FileUtil.recursiveDelete( new File( plugin_dir ));
 												
@@ -723,7 +723,7 @@ PluginInstallerImpl
 									new String[]{ "Uninstall: " + plugin_dir},
 									pi.getPluginVersion(),
 									rd,
-									pi.isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+									pi.getPluginState().isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 									
 							}finally{
 								

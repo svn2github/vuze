@@ -138,7 +138,7 @@ public class PeerInfoView extends AbstractIView implements ObfusticateImage {
 					.getPluginManager().getPluginInterfaceByID("CountryLocator");
 			if (pi != null) {
 				countryLocator = pi.getPlugin();
-				if (!pi.isOperational()
+				if (!pi.getPluginState().isOperational()
 						|| pi.getUtilities().compareVersions(pi.getPluginVersion(), "1.6") < 0)
 					countryLocator = null;
 

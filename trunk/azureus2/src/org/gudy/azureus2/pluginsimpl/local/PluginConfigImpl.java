@@ -197,7 +197,7 @@ PluginConfigImpl
 			throw new RuntimeException("cannot modify key prefix - already in use");
 		}
 		
-		if (_key.length() > 0 || plugin_interface.isBuiltIn()) {
+		if (_key.length() > 0 || plugin_interface.getPluginState().isBuiltIn()) {
 			key = _key;
 		} else {
 			throw (new RuntimeException("Can't set Plugin Config Key Prefix to '"

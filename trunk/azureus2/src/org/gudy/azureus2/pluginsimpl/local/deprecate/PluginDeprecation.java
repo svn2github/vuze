@@ -81,6 +81,14 @@ public class PluginDeprecation {
 		// PluginInterface -> PluginState transition.
 		register("setDisabled", IGNORE, NOTIFY_ONCE);
 		register("isDisabled", IGNORE, NOTIFY_ONCE);
+		register("isBuiltIn", IGNORE, NOTIFY_ONCE);
+		register("isMandatory", IGNORE, NOTIFY_ONCE);
+		register("isOperational", IGNORE, NOTIFY_ONCE);
+		register("isShared", IGNORE, NOTIFY_ONCE);
+		register("unload", IGNORE, NOTIFY_ONCE);
+		register("reload", IGNORE, NOTIFY_ONCE);
+		register("uninstall", IGNORE, NOTIFY_ONCE);
+		register("isUnloadable", IGNORE, NOTIFY_ONCE);
 		
 		// Load up any values stored in the config.
 		persistent_warnings.addAll(Arrays.asList(

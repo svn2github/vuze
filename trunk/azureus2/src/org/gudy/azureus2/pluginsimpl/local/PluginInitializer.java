@@ -1343,7 +1343,7 @@ PluginInitializer
   	
   			Plugin	plugin = plugin_interface.getPlugin();
   			
-  			if (plugin_interface.isOperational())
+  			if (plugin_interface.getPluginState().isOperational())
   				continue;
   			
   			Throwable	load_failure = null;
@@ -1358,7 +1358,7 @@ PluginInitializer
       	  				
   				if (!(plugin instanceof FailedPlugin)){
   					
-  					plugin_interface.setOperational( true );
+  					plugin_interface.getPluginStateImpl().setOperational( true );
   				}
   			}catch( Throwable e ){
       	
@@ -1499,7 +1499,7 @@ PluginInitializer
 	  		
 	  		if (!(plugin instanceof FailedPlugin)){
 	  			
-	  			plugin_interface.setOperational( true );
+	  			plugin_interface.getPluginStateImpl().setOperational( true );
 	  		}
 		 }
   		
@@ -1552,7 +1552,7 @@ PluginInitializer
   		
   		if (!(plugin instanceof FailedPlugin)){
   			
-  			plugin_interface.setOperational( true );
+  			plugin_interface.getPluginStateImpl().setOperational( true );
   		}
   		
   		synchronized( s_plugin_interfaces ){

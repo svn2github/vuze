@@ -175,7 +175,7 @@ public class UIPWListPanel extends AbstractWizardPanel {
       	
       	PluginInterface	pi = (PluginInterface)pis.get(j);
       	
-      	if ( pi.isMandatory() || pi.isBuiltIn()){
+      	if ( pi.getPluginState().isMandatory() || pi.getPluginState().isBuiltIn()){
       		
       		skip = true;
       		

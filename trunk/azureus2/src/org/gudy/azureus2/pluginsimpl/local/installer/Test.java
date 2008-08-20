@@ -111,7 +111,7 @@ Test
 					
 					PluginInterface pi = manager.getPluginInterfaceByID("azshareexporter");
 					
-					pi.uninstall();
+					pi.getPluginState().uninstall();
 					
 				}catch( Throwable e ){
 					

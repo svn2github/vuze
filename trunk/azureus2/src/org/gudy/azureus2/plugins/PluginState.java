@@ -51,8 +51,7 @@ public interface PluginState {
 	   * Returns <tt>true</tt> if the plugin has been marked as disabled, and prevented
 	   * from initialising.
 	   */
-	  public boolean
-	  isDisabled();
+	  public boolean isDisabled();
 	  
 	  /**
 	   * Sets whether the plugin can be loaded or not. If you are trying to affect if the plugin
@@ -62,5 +61,33 @@ public interface PluginState {
 	   * @param disabled
 	   */
 	  public void setDisabled(boolean disabled);
+	  
+	  /**
+	   * Built-in plugins are those used internally by Azureus, for example
+	   * the UPnP plugin.
+	   */
+	  public boolean isBuiltIn();
+	  
+	  /**
+	   * Whether or not this is a mandatory plugin. Mandatory plugins take priority over update checks, for example,
+	   * over optional ones.
+	   */
+	  public boolean isMandatory();
+	  
+	  /**
+	   * Returns <tt>true</tt> if the plugin is running, returns <tt>false</tt> if the
+	   * plugin isn't running for some reason.
+	   */
+	  public boolean isOperational();
+	  
+	  /**
+	   * Uninstall this plugin if it has been loaded from a plugin directory.
+	   * Deletes the plugin directory.
+	   */
+	  public void uninstall() throws PluginException;
 	
+	  public boolean isShared();
+	  public boolean isUnloadable();
+	  public void unload() throws PluginException;
+	  public void reload() throws PluginException;
 }

@@ -297,6 +297,8 @@ public interface PluginInterface {
   	/**
   	 * Whether or not this is a mandatory plugin. Mandatory plugins take priority over update checks, for example,
   	 * over optional ones.
+  	 * 
+  	 * @deprecated Use {@link PluginState#isMandatory()}.
   	 */
   
   public boolean
@@ -304,11 +306,11 @@ public interface PluginInterface {
   
   	/**
   	 * Built-in plugins are those used internally by Azureus, for example the UPnP plugin
-  	 * @return
-  	 */
-  
+  	 * @deprecated Use {@link PluginState#isBuiltIn()}.
+  	 */ 
   public boolean
-  isBuiltIn();    
+  isBuiltIn();
+  
   /**
    * gives access to the plugin config interface
    * @return the PluginConfig object associated with this plugin
@@ -374,6 +376,7 @@ public interface PluginInterface {
    * plugin isn't running for some reason.
    *
    * @since 2.1.0.0
+   * @deprecated Use {@link PluginState#isOperational()}.
    */
   public boolean
   isOperational();
@@ -400,7 +403,7 @@ public interface PluginInterface {
 
 
   /**
-   *
+   * @deprecated Use {@link PluginState#isUnloadable()}.
    * @since 2.1.0.0
    */
   public boolean
@@ -411,14 +414,14 @@ public interface PluginInterface {
   
   /**
    * @since 2503/3005
-   * @return
+   * @deprecated Use {@link PluginState#isShared()}.
    */
   
   public boolean
   isShared();
   
   /**
-   *
+   * @deprecated Use {@link PluginState#unload()}.
    * @since 2.1.0.0
    */  
   public void
@@ -427,7 +430,7 @@ public interface PluginInterface {
   	throws PluginException;
 
   /**
-   *
+   * @deprecated Use {@link PluginState#reload()}.
    * @since 2.1.0.0
    */
   public void
@@ -437,7 +440,8 @@ public interface PluginInterface {
   
   	/**
   	 * Uninstall this plugin if it has been loaded from a plugin directory. Deletes the
-  	 * plugin directory 
+  	 * plugin directory
+     * @deprecated Use {@link PluginState#uninstall()}. 
   	 * @throws PluginException
   	 */
   

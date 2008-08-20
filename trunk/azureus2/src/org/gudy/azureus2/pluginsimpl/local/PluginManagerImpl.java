@@ -232,7 +232,7 @@ PluginManagerImpl
 			
 			if ( p[i].getPluginID().equalsIgnoreCase( id )){
 				
-				if (operational && !p[i].isOperational()) {return null;}
+				if (operational && !p[i].getPluginState().isOperational()) {return null;}
 				
 				return( p[i]);
 			}
@@ -256,7 +256,7 @@ PluginManagerImpl
 			
 			if ( p[i].getPlugin().getClass().equals( c )){
 				
-				if (operational && !p[i].isOperational()) {return null;}
+				if (operational && !p[i].getPluginState().isOperational()) {return null;}
 				
 				return( p[i]);
 			}
@@ -280,7 +280,7 @@ PluginManagerImpl
 			
 			if ( p[i].getPlugin().getClass().getName().equals( class_name )){
 				
-				if (operational && !p[i].isOperational()) {return null;}
+				if (operational && !p[i].getPluginState().isOperational()) {return null;}
 				
 				return( p[i]);
 			}
@@ -343,7 +343,7 @@ PluginManagerImpl
 		List loadedPlugins = pi.loadPlugins(pi.getAzureusCore(), true);
 		for (Iterator iter = loadedPlugins.iterator(); iter.hasNext();) {
 			PluginInterfaceImpl plugin = (PluginInterfaceImpl) iter.next();
-			if (!plugin.isOperational()) {
+			if (!plugin.getPluginState().isOperational()) {
 				try {
 					pi.reloadPlugin(plugin);
 				} catch (PluginException e) {

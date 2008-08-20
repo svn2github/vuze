@@ -88,7 +88,7 @@ PluginInterfaceImpl
   private Plugin				plugin;
   private PluginInitializer		initialiser;
   private Object				initialiser_key;
-  private ClassLoader			class_loader;
+  protected ClassLoader			class_loader;
   private CopyOnWriteList		listeners 		= new CopyOnWriteList();
   private CopyOnWriteList		event_listeners	= new CopyOnWriteList();
   private String				key;
@@ -97,10 +97,9 @@ PluginInterfaceImpl
   private String 				pluginDir;
   private PluginConfigImpl		config;
   private String				plugin_version;
-  private boolean				operational;
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
-  private List					children		= new ArrayList();
+  protected List				children		= new ArrayList();
   private List configSections = new ArrayList();
   private PluginStateImpl       state;
   
@@ -142,7 +141,7 @@ PluginInterfaceImpl
     given_plugin_id     = _plugin_id;
     plugin_version		= _plugin_version;
     ipc_interface		= new IPCInterfaceImpl( initialiser, plugin );
-    state               = new PluginStateImpl(this);
+    state               = new PluginStateImpl(this, initialiser);
   }
   
   	public Plugin
@@ -150,18 +149,10 @@ PluginInterfaceImpl
 	{
   		return( plugin );
 	}
-  
-  	protected void
-	setOperational(
-		boolean	b )
-	{
-  		operational	= b;
-  	}
   	
-    public boolean
-    isOperational()
-	{
-    	return( operational );
+    public boolean isOperational() {
+    	PluginDeprecation.call("isOperational", this.given_plugin_id);
+    	return getPluginState().isOperational();
     }
 
   	public Object
@@ -322,27 +313,15 @@ PluginInterfaceImpl
   	return plugin_id_to_use;
   }
 
-  public boolean
-  isMandatory()
-  {
-	String	mand = getPluginProperties().getProperty( "plugin.mandatory");
-	
-	return( mand != null && mand.trim().toLowerCase().equals("true"));
+  public boolean isMandatory() {
+	  PluginDeprecation.call("isMandatory", this.given_plugin_id);
+	  return getPluginState().isMandatory();
   }
   
-  public boolean
-  isBuiltIn()
-  {
-	  String	dir = getPluginDirectoryName();
-	  
-	  if ( dir == null ){
-		  
-		  return( PluginInitializer.isLoadingBuiltin());
-	  }
-	  
-  		return( dir.length() == 0 || getPluginID().equals( "azupdater" ));
-  }
-  
+  public boolean isBuiltIn() {
+	  PluginDeprecation.call("isBuiltIn", this.given_plugin_id);
+	  return getPluginState().isBuiltIn();
+  }  
 
   public Properties getPluginProperties() 
   {
@@ -450,116 +429,6 @@ PluginInterfaceImpl
   	return( UpdateManagerImpl.getSingleton( initialiser.getAzureusCore()));
   }
 
-  public boolean
-  isUnloadable()
-  {
-  	String dir = getPluginDirectoryName();
-  	
-  		// mechanism to override unloadability 
-  	
-   	boolean	disable_unload = getPluginProperties().getProperty( "plugin.unload.disabled", "" ).equalsIgnoreCase( "true" );
-  	
-  	if ( disable_unload ){
-  		
-  		return( false );
-  	}
-  	
-		// if not dir based then just test this one
-  	
-  	if ( dir == null || dir.length() == 0 ){
-  		
-  		return(getPlugin() instanceof UnloadablePlugin );
-  	}
-  	
- 	List	pis = PluginInitializer.getPluginInterfaces();
-  	
-  	for (int i=0;i<pis.size();i++){
-  		
-  		PluginInterface	pi = (PluginInterface)pis.get(i);
-  		
-  		String other_dir = pi.getPluginDirectoryName();
-  		
-  		if ( other_dir == null || other_dir.length() == 0 ){
-  			
-  			continue;
-  		}
-  		
-  		if ( dir.equals( other_dir )){
-  			
-  			if ( !(pi.getPlugin() instanceof UnloadablePlugin )){
-  		
-  				return( false );
-  			}  
-  		}
-  	}
-  	
-  	for (int i=0;i<children.size();i++){
-  		
-  		if ( !((PluginInterface)children.get(i)).isUnloadable()){
-  			
-  			return( false );
-  		}
-  	}
-  	
-  	return( true );
-  }
-  
-  public void
-  unload()
-  
-  	throws PluginException
-  {
-  	if ( !isUnloadable()){
-  		
-  		throw( new PluginException( "Plugin isn't unloadable" ));
-  	}
-  	
- 	String dir = getPluginDirectoryName();
-  	
-  		// if not dir based then just test this one
-  	
-  	if ( dir == null || dir.length() == 0 ){
-  		
-		((UnloadablePlugin)getPlugin()).unload();
-			
-		initialiser.unloadPlugin( this );
-		
-  	}else{
-  		
-  			// we must copy the list here as when we unload interfaces they will be
-  			// removed from the original list
-  		
-		List	pis = new ArrayList(PluginInitializer.getPluginInterfaces());
-		 
-		for (int i=0;i<pis.size();i++){
-	  		
-	  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)pis.get(i);
-	  		
-			String other_dir = pi.getPluginDirectoryName();
-	  		
-	  		if ( other_dir == null || other_dir.length() == 0 ){
-	  			
-	  			continue;
-	  		}
-	  		
-	  		if ( dir.equals( other_dir )){
-		  			
-	  			((UnloadablePlugin)pi.getPlugin()).unload();
-	  			
-	  			initialiser.unloadPlugin( pi );
-	  		}
-		}
-  	}
-  	
-  	for (int i=0;i<children.size();i++){
-  		
-  		((PluginInterface)children.get(i)).unload();
-  	}
-  	
-  	setOperational(false);
-
-  	class_loader = null;
-  }
   
   protected void
   unloadSupport()
@@ -567,29 +436,25 @@ PluginInterfaceImpl
 	  ipc_interface.unload();
   }
   
-  public void
-  reload()
-  
-  	throws PluginException
-  {
-	  	// we use the "reload" method to load disabled plugins regardless of whether they are
-	  	// unloadable. If currently disabled then no unloading to do anyway
-	  
-	if ( isUnloadable() || isOperational()){
-		
-	  unload();
-	}
-	  
-  	initialiser.reloadPlugin( this );
+  public boolean isUnloadable() {
+	  PluginDeprecation.call("unloadable", this.given_plugin_id);
+	  return getPluginState().isUnloadable();
+  }
+
+  public void reload() throws PluginException {
+	  PluginDeprecation.call("reload", this.given_plugin_id);
+	  getPluginState().reload();
   }
   
-	public void
-	uninstall()
-	
-		throws PluginException
-	{
-		PluginInstallerImpl.getSingleton(getPluginManager()).uninstall( this );
-	}
+  public void unload() throws PluginException {
+	  PluginDeprecation.call("unload", this.given_plugin_id);
+	  getPluginState().unload();
+  }
+  
+  public void uninstall() throws PluginException {
+	  PluginDeprecation.call("uninstall", this.given_plugin_id);
+	  getPluginState().uninstall();
+  }
 	
 	public boolean
 	isInitialisationThread()
@@ -773,14 +638,9 @@ PluginInterfaceImpl
 		 return( ipc_interface );
 	 }
 	 
-	public boolean
-	isShared()
-	{
-		String shared_dir 	= FileUtil.getApplicationFile( "plugins" ).toString(); 
-		   
-		String	plugin_dir = getPluginDirectoryName();
-				
-		return( plugin_dir.startsWith( shared_dir ));
+	public boolean isShared() {
+		PluginDeprecation.call("isShared", this.given_plugin_id);
+		return getPluginState().isShared();
 	}
 	
 	
@@ -854,7 +714,7 @@ PluginInterfaceImpl
 				type = "built-in";
 			}
 			
-			writer.println( "type:" + type + ",enabled:" + !getPluginState().isDisabled() + ",operational:" + isOperational());
+			writer.println( "type:" + type + ",enabled:" + !getPluginState().isDisabled() + ",operational:" + getPluginState().isOperational());
 			
 		}finally{
 			
@@ -876,6 +736,9 @@ PluginInterfaceImpl
 		return this.state;
 	}
   
+	PluginStateImpl getPluginStateImpl() {
+		return this.state;
+	}
   
   
   	// unfortunately we need to protect ourselves against the plugin itself trying to set

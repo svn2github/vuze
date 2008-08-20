@@ -163,7 +163,7 @@ PluginUpdatePlugin
 			
 			PluginInterface	pi = plugins[i];
 						
-			boolean	pi_mandatory = pi.isMandatory();
+			boolean	pi_mandatory = pi.getPluginState().isMandatory();
 						
 			if ( pi_mandatory ){
 					
@@ -501,7 +501,7 @@ PluginUpdatePlugin
 				
 				if ( !found ){
 					
-					if ( !pi_being_checked.isBuiltIn()){
+					if ( !pi_being_checked.getPluginState().isBuiltIn()){
 						
 						log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as not listed on web site");
 					}
@@ -666,7 +666,7 @@ PluginUpdatePlugin
 							
 							if ( pi.getPluginID().equals( plugin_id )){
 								
-								plugin_unloadable &= pi.isUnloadable();
+								plugin_unloadable &= pi.getPluginState().isUnloadable();
 							}
 						}
 						
@@ -1140,7 +1140,7 @@ PluginUpdatePlugin
 											
 											unloadable	= false;
 											
-											if ( plugin.isShared()){
+											if ( plugin.getPluginState().isShared()){
 												
 												origin_root		= prog_dir;
 												install_root 	= target_prog_dir;
@@ -1533,7 +1533,7 @@ PluginUpdatePlugin
 						
 						if ( pi.getPluginID().equals( plugin_id )){
 							
-							plugin_unloadable &= pi.isUnloadable();
+							plugin_unloadable &= pi.getPluginState().isUnloadable();
 						}
 					}
 					
@@ -1562,7 +1562,7 @@ PluginUpdatePlugin
 					
 					log.log( "Plugin initialising, please wait... " );
 					
-					plugin.reload();	// this will reload all if > 1 defined
+					plugin.getPluginState().reload();	// this will reload all if > 1 defined
 					
 					log.log( "... initialisation complete." );
 	
