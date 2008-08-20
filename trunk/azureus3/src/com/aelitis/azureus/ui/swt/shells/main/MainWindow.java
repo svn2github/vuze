@@ -781,9 +781,6 @@ public class MainWindow
 					configID)) {
 				COConfigurationManager.setBooleanDefault(configID, true);
 			}
-			SWTSkinUtils.setVisibility(skin, configID,
-					SkinConstants.VIEWID_BUDDIES_VIEWER,
-					COConfigurationManager.getBooleanParameter(configID), true, true);
 
 			setVisible(WINDOW_ELEMENT_TABBAR, true);
 
