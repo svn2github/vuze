@@ -28,7 +28,6 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -61,10 +60,6 @@ public class FriendsToolbar
 	private Label image;
 
 	private Label text;
-
-	private double lastPercent = 0.3;
-
-	private double minPercent = 0.05;
 
 	private int toolbarHeight = 27;
 
@@ -127,14 +122,17 @@ public class FriendsToolbar
 
 		createControls();
 
-		parent.getParent().layout(true);
+		/*
+		 * KN: Not sure why this must be done at the 'parent' level but without it
+		 * the toolbar is not visible at startup
+		 */
+		parent.getParent().layout(true, true);
 
-		SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
-		if (null != soSash) {
-			lastPercent = soSash.getPercent();
-			toolbarHeight = parent.getSize().y;
-		}
-
+		/*
+		 * This height is used to dynamically calculate the percentage of the sash
+		 * the toolbar will occupy
+		 */
+		toolbarHeight = parent.getSize().y;
 	}
 
 	private void createControls() {
@@ -189,7 +187,25 @@ public class FriendsToolbar
 		/*
 		 * Initial state from configuration
 		 */
-		showFooterToggleButton(COConfigurationManager.getBooleanParameter("Friends.visible"));
+		boolean isVisible = COConfigurationManager.getBooleanParameter("Friends.visible");
+		SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
+		if (null != soSash) {
+			/*
+			 * If it's visible then it may have a user-defined height so remember it;
+			 * we will use it later when the user expands the Friends area after a collapse
+			 */
+			if (true == isVisible) {
+
+				COConfigurationManager.setParameter("Friends.sash.percent",
+						(float) soSash.getPercent());
+
+			} else {
+
+				collapseToToolbar();
+
+			}
+		}
+		showFooterToggleButton(isVisible);
 
 		/*
 		 * Change button display if the property changes
@@ -198,7 +214,9 @@ public class FriendsToolbar
 				new ParameterListener() {
 
 					public void parameterChanged(String parameterName) {
-						showFooterToggleButton(COConfigurationManager.getBooleanParameter("Friends.visible"));
+						boolean isVisible = COConfigurationManager.getBooleanParameter("Friends.visible");
+						showFooterToggleButton(isVisible);
+						showFriends(isVisible);
 					}
 				});
 
@@ -410,8 +428,8 @@ public class FriendsToolbar
 		showAddWithAll(true);
 		content.layout(true);
 
-		SWTSkinUtils.setVisibility(skin, "Friends.visible",
-				SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
+		COConfigurationManager.setParameter("Friends.visible", true);
+
 	}
 
 	public void setAddFriendsMode() {
@@ -454,9 +472,7 @@ public class FriendsToolbar
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 
 			public void loginComplete() {
-				SWTSkinUtils.setVisibility(skin, "Friends.visible",
-						SkinConstants.VIEWID_BUDDIES_VIEWER, true, true, true);
-
+				COConfigurationManager.setParameter("Friends.visible", true);
 				BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 				if (null == viewer) {
 					return;
@@ -491,7 +507,6 @@ public class FriendsToolbar
 				? ImageRepository.getImage("button_collapse")
 				: ImageRepository.getImage("button_expand"));
 
-		showFriends(isExpanded);
 	}
 
 	/**
@@ -514,22 +529,34 @@ public class FriendsToolbar
 				SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
 
 				if (true == isExpanded) {
-					if (lastPercent != 0) {
-						soSash.setPercent(lastPercent);
-						soSash.setVisible(true);
-					}
-				} else {
-					lastPercent = soSash.getPercent();
 
-					SWTSkinObject soSidebar = skin.getSkinObject(SkinConstants.VIEWID_SIDEBAR);
-					if (null != soSidebar) {
-						minPercent = (double) toolbarHeight
-								/ (double) soSidebar.getControl().getSize().y;
-					}
-					soSash.setPercent(minPercent);
-					soSash.setVisible(false);
+					soSash.setPercent((double) COConfigurationManager.getFloatParameter("Friends.sash.percent"));
+					soSash.setVisible(true);
+
+				} else {
+
+					COConfigurationManager.setParameter("Friends.sash.percent",
+							(float) soSash.getPercent());
+
+					collapseToToolbar();
+
 				}
 			}
 		});
+	}
+
+	private void collapseToToolbar() {
+
+		SWTSkinObject soSidebar = skin.getSkinObject(SkinConstants.VIEWID_SIDEBAR);
+		if (null != soSidebar) {
+			SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
+			double minPercent = (double) toolbarHeight
+					/ (double) soSidebar.getControl().getSize().y;
+			soSash.setPercent(minPercent);
+			/*
+			 * Hide the sash if the Friends viewer is not visible
+			 */
+			soSash.setVisible(false);
+		}
 	}
 }
