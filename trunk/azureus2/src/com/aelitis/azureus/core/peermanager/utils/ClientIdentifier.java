@@ -323,11 +323,11 @@ public class ClientIdentifier {
 		  assertDecodeAZMP("Azureus 3.0.4.2", "-AZ3042-6ozMq5q6Q3NX", "Azureus", "3.0.4.2");
 		  assertDecodeAZMP("Azureus 3.0.4.3_B02", "-AZ3043-6ozMq5q6Q3NX", "Azureus", "3.0.4.3_B02");
 		  assertDecodeAZMP("BitTyrant 2.5.0.0 (Azureus Mod)", "AZ2500BTeyuzyabAfo6U", "AzureusBitTyrant", "2.5.0.0BitTyrant");
-		  //assertDecodeAZMP("", "2D425335 3832302D 6F79344C 61324D57 4745466A", "Bearshare Premium P2P", "5.8.2.0");
+		  //assertDecodeAZMP("", "-BS5820-oy4La2MWGEFj", "Bearshare Premium P2P", "5.8.2.0");
 		  //assertDecodeAZMP("", "-AR6360-6oZyyMWoOOBe", "Imesh Turbo", "6.3.6.0");
 		  assertDecodeAZMP("Azureus (Hacked) [FAKE: \"Azureus 2.4.0.2\" / \"Azureus 2.3.0.6\"]", "2D415A32 3430322D 2E414794 2C57D644 4989CA58", "Azureus", "2.3.0.6");
-		  //assertDecodeAZMP("", "2D414732 3038332D 73316869 46387647 41416730", "Ares", "2.0.8.3029");
-		  //assertDecodeAZMP("", "2D414733 3030332D 6C456C32 4D6D344E 454F346E", "Ares Destiny", "3.0.0.3805");
+		  //assertDecodeAZMP("", "-AG2083-s1hiF8vGAAg0", "Ares", "2.0.8.3029");
+		  //assertDecodeAZMP("", "-AG3003-lEl2Mm4NEO4n", "Ares Destiny", "3.0.0.3805");
 		  
 		  System.out.println("");
 		  
