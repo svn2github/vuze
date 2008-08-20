@@ -27,6 +27,7 @@ import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.ILoginInfoListener;
@@ -61,6 +62,12 @@ public class FriendsToolbar
 
 	private Label text;
 
+	private double lastPercent = 0.3;
+
+	private double minPercent = 0.05;
+
+	private int toolbarHeight = 27;
+
 	static {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_down.png",
 				"button_collapse");
@@ -84,6 +91,7 @@ public class FriendsToolbar
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		skin = skinObject.getSkin();
 		parent = (Composite) skinObject.getControl();
+
 		init();
 		return null;
 	}
@@ -120,6 +128,13 @@ public class FriendsToolbar
 		createControls();
 
 		parent.getParent().layout(true);
+
+		SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
+		if (null != soSash) {
+			lastPercent = soSash.getPercent();
+			toolbarHeight = parent.getSize().y;
+		}
+
 	}
 
 	private void createControls() {
@@ -190,15 +205,8 @@ public class FriendsToolbar
 		showHideButton.addMouseListener(new MouseAdapter() {
 			public void mouseUp(MouseEvent e) {
 				boolean wasExpanded = COConfigurationManager.getBooleanParameter("Friends.visible");
-
-				/*
-				 * Toggling the state
-				 */
-				SWTSkinUtils.setVisibility(skin, "Friends.visible",
-						SkinConstants.VIEWID_BUDDIES_VIEWER, !wasExpanded, true, true);
-
+				COConfigurationManager.setParameter("Friends.visible", !wasExpanded);
 			}
-
 		});
 
 	}
@@ -330,6 +338,10 @@ public class FriendsToolbar
 					VuzeBuddyManager.getAllVuzeBuddies().size() + ""
 				}));
 
+		/*
+		 * The text could be a different length now so do a relayout just in case
+		 */
+		content.layout(true);
 	}
 
 	protected void addBuddy() {
@@ -478,6 +490,46 @@ public class FriendsToolbar
 		showHideButton.setImage(isExpanded
 				? ImageRepository.getImage("button_collapse")
 				: ImageRepository.getImage("button_expand"));
+
+		showFriends(isExpanded);
 	}
 
+	/**
+	 * Here we collapse or expand the bottom sash of the sidebar
+	 * @param isExpanded
+	 */
+	public void showFriends(final boolean isExpanded) {
+
+		/*
+		 * To hide a sash we typically set it's percentage to 0 but since this bottom
+		 * sash has a toolbar that we want to always be visible we use the toolbar's height
+		 * then calculate that as a percentage of the total height of the side bar; we use this 
+		 * as the percentage when 'collapsed'
+		 * 
+		 * Additionally when collapsed we make the sash invisible and turn it back to visible when
+		 * it's expanded.
+		 */
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
+
+				if (true == isExpanded) {
+					if (lastPercent != 0) {
+						soSash.setPercent(lastPercent);
+						soSash.setVisible(true);
+					}
+				} else {
+					lastPercent = soSash.getPercent();
+
+					SWTSkinObject soSidebar = skin.getSkinObject(SkinConstants.VIEWID_SIDEBAR);
+					if (null != soSidebar) {
+						minPercent = (double) toolbarHeight
+								/ (double) soSidebar.getControl().getSize().y;
+					}
+					soSash.setPercent(minPercent);
+					soSash.setVisible(false);
+				}
+			}
+		});
+	}
 }
