@@ -174,7 +174,7 @@ public class IconBar {
     return bufferedToolItem;
   }  
   
-  public void addITemKeyToControl(String key, BufferedToolItem item) {
+  public void addItemKeyToControl(String key, BufferedToolItem item) {
   	itemKeyToControl.put(key, item);
   }
   
