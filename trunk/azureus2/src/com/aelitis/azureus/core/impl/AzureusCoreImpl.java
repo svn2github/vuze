@@ -502,6 +502,24 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
+		// If a user sets this property, it is an alias for the following settings.
+		if ("1".equals(System.getProperty("azureus.safemode"))) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Safe mode enabled"));
+			
+			Constants.isSafeMode = true;
+			System.setProperty("azureus.loadplugins", "0");
+			System.setProperty("azureus.disabledownloads", "1");
+			System.setProperty("azureus.skipSWTcheck", "1");
+			
+			// Not using localised text - not sure it's safe to this early.
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogEvent.LT_WARNING,
+				"You are running " + Constants.APP_NAME + " in safe mode - you " +
+					"can change your configuration, but any downloads added will " +
+					"not be remembered when you close " + Constants.APP_NAME + "."
+			));
+		}
+		
 
 		// run plugin loading in parallel to the global manager loading
 		AEThread2 pluginload = new AEThread2("PluginLoader",true)

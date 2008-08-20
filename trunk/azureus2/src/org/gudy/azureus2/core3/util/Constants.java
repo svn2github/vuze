@@ -97,6 +97,8 @@ Constants
   public static final boolean isWindows98		= OSName.equalsIgnoreCase("Windows 98");
   public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
   public static final boolean isWindows9598ME	= isWindows95 || isWindows98 || isWindowsME;
+  
+  public static boolean isSafeMode = false;
 
   public static final boolean isWindows	= OSName.toLowerCase().startsWith("windows");
   // If it isn't windows or osx, it's most likely an unix flavor
