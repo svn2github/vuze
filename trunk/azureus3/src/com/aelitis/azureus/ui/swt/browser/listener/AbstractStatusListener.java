@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Constants;
+
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.util.MapUtils;
@@ -19,7 +21,9 @@ public abstract class AbstractStatusListener
 
 	public void handleMessage(BrowserMessage message) {
 		String opID = message.getOperationId();
-		System.out.println("\tLogin status message: " + message.getFullMessage());//KN: sysout
+		if (true == Constants.isCVSVersion()) {
+			System.out.println("\tLogin status message: " + message.getFullMessage());//KN: sysout
+		}
 		/*
 		 * When no parameter is supplied the BrowserMessage throws an exception;
 		 * it really should be returning a null.

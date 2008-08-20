@@ -149,7 +149,6 @@ public class ChatWindow implements DiscussionListener {
 				Label label = (Label) e.widget;
 				String text = (String)label.getData("text");
 				if(text != null) {
-					System.out.println("\tPainting...");//KN: sysout
 					Point p = label.getSize();
 					try { e.gc.setTextAntialias(SWT.ON); e.gc.setAntialias(SWT.ON);} catch(Exception e2) {}
 					e.gc.setForeground(ColorCache.getColor(display, 93,93,93));
