@@ -23,10 +23,11 @@
 package com.aelitis.azureus.core.peermanager.utils;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
 
 import java.io.*;
 import java.util.HashSet;
@@ -44,14 +45,12 @@ public class BTPeerIDByteDecoder {
 		LOG_UNKNOWN = prop == null || prop.equals("1");
 	}
 
-	private static void logUnknownClient0(byte[] peer_id_bytes, Writer log) throws IOException {
+	private static String logUnknownClient0(byte[] peer_id_bytes) throws IOException {
 		String text = new String(peer_id_bytes, 0, 20, Constants.BYTE_ENCODING);
 		text = text.replace((char)12, (char)32);
 		text = text.replace((char)10, (char)32);
 
-		log.write("[" + text + "] "); // Readable
-		log.write(ByteFormatter.encodeString(peer_id_bytes) + " "); // Usable for assertion tests.
-		log.write("\n");
+		return "[" + text + "] " + ByteFormatter.encodeString(peer_id_bytes) + " ";
 	}
 	
 	private static String asUTF8ByteString(String text) {
@@ -92,21 +91,14 @@ public class BTPeerIDByteDecoder {
 		}
 		
 		if (!LOG_UNKNOWN) {return;}
-		FileWriter log = null;
-		File log_file = FileUtil.getUserFile("identification.log");
-		try {
-			log = new FileWriter(log_file, true);
-			log.write(line_to_log);
-			log.write("\n");
-		}
-		catch (Throwable e) {
-			Debug.printStackTrace(e);
-		}
-		finally {
-			try {if (log != null) log.close();}
-			catch (IOException ignore) {/*ignore*/}
-		}
-		
+		logClientDiscrepancyToFile(line_to_log);
+	}
+	
+	private static AEDiagnosticsLogger logger = null;
+	private synchronized static void logClientDiscrepancyToFile(String line_to_log) {
+		if (logger == null) {logger = AEDiagnostics.getLogger("clientid");}
+		try {logger.log(line_to_log);}
+		catch (Throwable e) {Debug.printStackTrace(e);}
 	}
 	
 	static boolean client_logging_allowed = true;
@@ -132,19 +124,9 @@ public class BTPeerIDByteDecoder {
 		}
 		
 		if (!LOG_UNKNOWN) {return;}
-		FileWriter log = null;
-		File log_file = FileUtil.getUserFile("identification.log");
-		try {
-			log = new FileWriter(log_file, true);
-			logUnknownClient0(peer_id_bytes, log);
-		}
-		catch (Throwable e) {
-			Debug.printStackTrace(e);
-		}
-		finally {
-			try {if (log != null) log.close();}
-			catch (IOException ignore) {/*ignore*/}
-		}
+		try {logClientDiscrepancyToFile(logUnknownClient0(peer_id_bytes));}
+		catch (Throwable t) {Debug.printStackTrace(t);}
+		
 	}
 
 	static void logUnknownClient(String peer_id) {
