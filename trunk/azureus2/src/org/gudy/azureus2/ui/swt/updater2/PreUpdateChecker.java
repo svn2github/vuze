@@ -42,7 +42,7 @@ public class PreUpdateChecker
 		AzureusCore		core,
 		String 			ui )
 	{
-		if ( ui.equals( "az3")){
+		if ( ui.equals( "az3") && !"0".equals(System.getProperty("azureus.loadplugins"))) {
 			
 			UpdaterUtils.ensurePluginPresent(
 				"azemp",
