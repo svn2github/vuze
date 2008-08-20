@@ -41,7 +41,7 @@ public class BTPeerIDByteDecoder {
 
 	static {
 		String	prop = System.getProperty("log.unknown.peerids");
-		LOG_UNKNOWN = prop != null && prop.equals("1");
+		LOG_UNKNOWN = prop == null || prop.equals("1");
 	}
 
 	private static void logUnknownClient0(byte[] peer_id_bytes, Writer log) throws IOException {
