@@ -740,7 +740,7 @@ public class MainWindow
 						});
 					}
 
-					ib.addITemKeyToControl(id, tiShare);
+					ib.addItemKeyToControl(id, tiShare);
 					tb.pack();
 					Point p = tb.getSize();
 					coolItem.setControl(tb);
