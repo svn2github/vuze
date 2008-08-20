@@ -155,7 +155,10 @@ public class GlobalManagerImpl
 	private GlobalManagerStatsImpl		stats;
     private long last_swarm_stats_calc_time		= 0;
     private long last_swarm_stats				= 0;
-	    
+    
+    // Set this flag to disable interaction with downloads.config.
+    // Do *NOT* change this - only the constructor should set it once.
+	private boolean cripple_downloads_config;
 
 	private TRTrackerScraper 			trackerScraper;
 	private GlobalManagerStatsWriter 	stats_writer;
@@ -308,8 +311,9 @@ public class GlobalManagerImpl
   	long 							existingTorrentLoadDelay)
   {
     //Debug.dumpThreadsLoop("Active threads");
-  	
 	progress_listener = listener;
+	
+	this.cripple_downloads_config = "1".equals(System.getProperty("azureus.disabledownloads"));
 	
   	AEDiagnostics.addEvidenceGenerator( this );
 	
@@ -1611,6 +1615,13 @@ public class GlobalManagerImpl
   
   private void loadDownloads() 
   {
+	  if (this.cripple_downloads_config) {
+		  loadingComplete = true;
+		  loadingSem.releaseForever();
+		  return;
+	  }
+
+	  
 	  try{
 		  DownloadManagerStateFactory.loadGlobalStateCache();
 		  
@@ -1862,6 +1873,9 @@ public class GlobalManagerImpl
     //    if(Boolean.getBoolean("debug")) return;
 
 	  needsSaving = false;
+	  if (this.cripple_downloads_config) {
+		  return;
+	  }
 	  
   	try{
   		managers_mon.enter();
