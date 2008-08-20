@@ -201,10 +201,14 @@ PluginManager
 	public abstract PluginInstaller
 	getPluginInstaller();
 
+	public final void refreshPluginList() {
+		refreshPluginList(true);
+	}
+	
 	/**
-	 * 
+	 * @since 3.1.1.1
 	 */
-	public abstract void refreshPluginList();
+	public abstract void refreshPluginList(boolean initialise);
 	
 	public abstract boolean
 	isSilentRestartEnabled();

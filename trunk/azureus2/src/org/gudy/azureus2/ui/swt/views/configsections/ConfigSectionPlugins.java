@@ -513,7 +513,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		Messages.setLanguageText(btnScan, "ConfigView.pluginlist.scan");
 		btnScan.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				azureusCore.getPluginManager().refreshPluginList();
+				azureusCore.getPluginManager().refreshPluginList(false);
 				pluginIFs = rebuildPluginIFs();
 				table.setItemCount(pluginIFs.size());
 				Collections.sort(pluginIFs, comparator);

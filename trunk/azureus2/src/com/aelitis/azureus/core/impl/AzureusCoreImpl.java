@@ -509,7 +509,7 @@ AzureusCoreImpl
 			public void run() {
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
-				pi.loadPlugins(AzureusCoreImpl.this, false);
+				pi.loadPlugins(AzureusCoreImpl.this, false, !"0".equals(System.getProperty("azureus.loadplugins")), true, true);
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
 			}

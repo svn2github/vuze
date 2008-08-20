@@ -339,16 +339,19 @@ PluginManagerImpl
 		return( PluginInstallerImpl.getSingleton(this));
 	}
 	
-	public void refreshPluginList() {
-		List loadedPlugins = pi.loadPlugins(pi.getAzureusCore(), true);
+	public void refreshPluginList(boolean initialise) {
+		List loadedPlugins = pi.loadPlugins(pi.getAzureusCore(), true, true, false, initialise);
 		for (Iterator iter = loadedPlugins.iterator(); iter.hasNext();) {
 			PluginInterfaceImpl plugin = (PluginInterfaceImpl) iter.next();
+			
+			// If the plugin is disabled, it will just get added to the list
+			// of plugins, but won't initialise.
 			if (!plugin.getPluginState().isOperational()) {
 				try {
-					pi.reloadPlugin(plugin);
+					pi.reloadPlugin(plugin, false, initialise);
 				} catch (PluginException e) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Debug.printStackTrace(e);
 				}
 			}
 		}

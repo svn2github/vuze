@@ -252,7 +252,7 @@ PluginInitializer
 	  	}else{
 	  		
 	  		try{
-	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName(), false, false);
+	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName(), false, false, true);
 	  			
 			}catch(PluginException e ){
 	  				
@@ -422,7 +422,10 @@ PluginInitializer
   	public List 
 	loadPlugins(
 		AzureusCore		core,
-		boolean bSkipAlreadyLoaded) 
+		boolean bSkipAlreadyLoaded,
+		boolean load_external_plugins,
+		boolean loading_for_startup,
+		boolean initialise_plugins) 
   	{
   		if ( bSkipAlreadyLoaded ){
   		
@@ -478,13 +481,20 @@ PluginInitializer
 	    
 	    	// user ones first so they override app ones if present
 	    
-	    pluginLoaded.addAll(loadPluginsFromDir(user_dir, 0, user_plugins
-				+ app_plugins, bSkipAlreadyLoaded));
-	    
-	    if ( !user_dir.equals( app_dir )){
-	    	
-	    	pluginLoaded.addAll(loadPluginsFromDir(app_dir, user_plugins,
-					user_plugins + app_plugins, bSkipAlreadyLoaded));
+	    if (load_external_plugins) {
+		    pluginLoaded.addAll(loadPluginsFromDir(user_dir, 0, user_plugins
+					+ app_plugins, bSkipAlreadyLoaded, loading_for_startup, initialise_plugins));
+		    
+		    if ( !user_dir.equals( app_dir )){
+		    	
+		    	pluginLoaded.addAll(loadPluginsFromDir(app_dir, user_plugins,
+						user_plugins + app_plugins, bSkipAlreadyLoaded, loading_for_startup, initialise_plugins));
+		    }
+	    }
+	    else {
+	    	if (Logger.isEnabled()) {
+	    		Logger.log(new LogEvent(LOGID, "Loading of external plugins skipped"));
+	    	}
 	    }
       
 	    if (Logger.isEnabled())
@@ -637,7 +647,9 @@ PluginInitializer
   	File	pluginDirectory,
 	int		plugin_offset,
 	int		plugin_total,
-	boolean bSkipAlreadyLoaded)
+	boolean bSkipAlreadyLoaded,
+	boolean loading_for_startup,
+	boolean initialise)
   {
   	List dirLoadedPIs = new ArrayList();
   	
@@ -676,7 +688,7 @@ PluginInitializer
 	      
 	    try{
 	    
-	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded, true);
+	    	List	loaded_pis = loadPluginFromDir(pluginsDirectory[i], bSkipAlreadyLoaded, loading_for_startup, initialise);
 	      	
 	    		// save details for later initialisation
 	    	
@@ -701,7 +713,8 @@ PluginInitializer
   loadPluginFromDir(
   	File directory,
   	boolean bSkipAlreadyLoaded,
-  	boolean loading_for_startup)
+  	boolean loading_for_startup,
+  	boolean initialise) // initialise setting is used if loading_for_startup isnt
   
   	throws PluginException
   {
@@ -1040,7 +1053,7 @@ PluginInitializer
 							pid,
 							plugin_version[0] );
 	      
-	      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : true;
+	      boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : initialise;
 	      plugin_interface.getPluginState().setDisabled(!bEnabled);
 
 	      try{
@@ -1059,8 +1072,6 @@ PluginInitializer
 	      loaded_pis.add( plugin_interface );
 	      
 	      if ( load_failure != null ){
-	      		  
-	    	  	
 	    	  plugin_interface.setAsFailed();
 	    	  
 	    	// don't complain about our internal one
@@ -1194,7 +1205,7 @@ PluginInitializer
 									Logger.log(new LogEvent(LOGID, "Initializing built-in plugin '"
 											+ builtin_plugins[idx][2] + "'" ));
 			
-								initializePluginFromClass(cla, id, key, "true".equals(builtin_plugins[idx][5]), true);
+								initializePluginFromClass(cla, id, key, "true".equals(builtin_plugins[idx][5]), true, true);
 			
 								if (Logger.isEnabled())
 								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
@@ -1202,7 +1213,7 @@ PluginInitializer
 							} catch (Throwable e) {
 								try {
 									// replace it with a "broken" plugin instance
-									initializePluginFromClass(FailedPlugin.class, id, key, false, false);
+									initializePluginFromClass(FailedPlugin.class, id, key, false, false, true);
 			
 								} catch (Throwable f) {
 								}
@@ -1247,7 +1258,7 @@ PluginInitializer
 								Class cla = (Class) entry;
 			
 								singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
-										.getName(), false, true);
+										.getName(), false, true, true);
 			
 							} else {
 								Object[] x = (Object[]) entry;
@@ -1334,7 +1345,6 @@ PluginInitializer
   			if (plugin_interface.getPluginState().isDisabled()) {
   				
   				synchronized( s_plugin_interfaces ){
-  				
   					s_plugin_interfaces.add( plugin_interface );
   				}
   				
@@ -1398,7 +1408,8 @@ PluginInitializer
 	String	plugin_id,
 	String	plugin_config_key,
 	boolean force_enabled,
-	boolean loading_for_startup)
+	boolean loading_for_startup,
+	boolean initialise)
   
   	throws PluginException
   {
@@ -1453,7 +1464,7 @@ PluginInitializer
 						plugin_id,
 						null );
 
-  		boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : true; 
+  		boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : initialise; 
 	      
 	      /**
 	       * For some plugins, override any config setting which disables the plugin.
@@ -1604,28 +1615,30 @@ PluginInitializer
   	}
   }
   
-  protected void
-  reloadPlugin(
-  	PluginInterfaceImpl		pi )
+  protected void reloadPlugin(PluginInterfaceImpl pi) throws PluginException {
+	  reloadPlugin(pi, false, true);
+  }
   
-  	throws PluginException
-  {
-  	unloadPlugin( pi );
+	protected void reloadPlugin(
+			PluginInterfaceImpl pi,
+			boolean loading_for_startup,
+			boolean initialise) throws PluginException {
   	
-  	Object key 			= pi.getInitializerKey();
-  	String config_key	= pi.getPluginConfigKey();
+	  unloadPlugin( pi );
   	
-  	if ( key instanceof File ){
+	  Object key 			= pi.getInitializerKey();
+	  String config_key	= pi.getPluginConfigKey();
+  	
+	  if ( key instanceof File ){
   		
-  		List	pis = loadPluginFromDir( (File)key, false, false );
+  		List	pis = loadPluginFromDir( (File)key, false, loading_for_startup, initialise);
   		
   		initialisePlugin( pis );
   		
-  	}else{
-  		
-  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key, false, false );
-  	}
-  }
+	  }else{
+  		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key, false, loading_for_startup, initialise );
+	  }
+	}
  
   protected AzureusCore
   getAzureusCore()
