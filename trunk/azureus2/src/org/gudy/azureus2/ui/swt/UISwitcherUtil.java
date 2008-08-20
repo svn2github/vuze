@@ -79,6 +79,14 @@ public class UISwitcherUtil
 		}
 
 		if (!bForceAsk) {
+			
+			// Can't use Constants.isSafeMode - it's not set by the time we
+			// get here.
+			if ("1".equals(System.getProperty("azureus.safemode"))) {
+				// If we are in safe-mode, prefer the classic UI - less likely to cause problems.
+				return "az2";
+			}
+			
 			String forceUI = System.getProperty("force.ui");
 			if (forceUI != null) {
 				COConfigurationManager.setParameter("ui", forceUI);
