@@ -33,7 +33,7 @@ public class SelectedContentManager
 	private static List listeners = new ArrayList();
 
 	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
-	
+
 	private static String viewID = null;
 
 	public static String getCurrentySelectedViewID() {
@@ -51,10 +51,12 @@ public class SelectedContentManager
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
 		}
+		//System.out.println("change CURSEL for '" +  viewID + "' to " + currentlySelectedContent.length + ";" + (currentlySelectedContent.length > 0 ? currentlySelectedContent[0]: ""));
 		if (currentlySelectedContent.length == 0
-				&& SelectedContentManager.viewID != null
+				&& SelectedContentManager.viewID != null && viewID != null
 				&& !viewID.equals(SelectedContentManager.viewID)) {
 			// don't allow clearing if someone else set the currently selected
+			//System.out.println("-->abort because it's not " + SelectedContentManager.viewID);
 			return;
 		}
 
@@ -65,7 +67,8 @@ public class SelectedContentManager
 		Object[] listenerArray = listeners.toArray();
 		for (int i = 0; i < listenerArray.length; i++) {
 			SelectedContentListener l = (SelectedContentListener) listenerArray[i];
-			l.currentlySelectedContentChanged(SelectedContentManager.currentlySelectedContent, viewID);
+			l.currentlySelectedContentChanged(
+					SelectedContentManager.currentlySelectedContent, viewID);
 		}
 	}
 
