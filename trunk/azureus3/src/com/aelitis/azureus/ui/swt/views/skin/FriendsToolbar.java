@@ -11,8 +11,10 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -133,6 +135,24 @@ public class FriendsToolbar
 		 * the toolbar will occupy
 		 */
 		toolbarHeight = parent.getSize().y;
+
+		/*
+		 * When the sidebar is resized we need to recalculate the percentage for the toolbar again
+		 */
+		SWTSkinObject soSidebar = skin.getSkinObject(SkinConstants.VIEWID_SIDEBAR);
+		if (null != soSidebar) {
+			soSidebar.getControl().addListener(SWT.Resize, new Listener() {
+				public void handleEvent(Event event) {
+					/*
+					 * This is only applicable when the Friends are not visible because when the 
+					 * Friends are visible the percentage for the toolbar is not in use
+					 */
+					if (false == COConfigurationManager.getBooleanParameter("Friends.visible")) {
+						collapseToToolbar();
+					}
+				}
+			});
+		}
 	}
 
 	private void createControls() {
