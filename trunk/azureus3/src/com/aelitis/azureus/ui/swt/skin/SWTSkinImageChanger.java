@@ -16,6 +16,8 @@ import org.eclipse.swt.widgets.*;
 public class SWTSkinImageChanger
 	implements Listener
 {
+	private final static boolean DEBUG = false;
+
 	private final String suffix;
 
 	private final int eventOn;
@@ -49,11 +51,17 @@ public class SWTSkinImageChanger
 					|| event.type == SWT.Deactivate;
 			if (isExit && lastControl != null) {
 				if (control.getParent() == lastControl) {
+					if (DEBUG) {
+						System.out.println("skip because parent is last control");
+					}
 					return;
 				}
 			}
 
 			SWTSkinObject skinObject = (SWTSkinObject) control.getData("SkinObject");
+			if (DEBUG) {
+				System.out.println("exit " + skinObject);
+			}
 
 			if (isExit && (skinObject instanceof SWTSkinObjectContainer)) {
 				// check if exiting and going into child
@@ -62,11 +70,14 @@ public class SWTSkinImageChanger
 					Point pt = control.toDisplay(event.x, event.y);
 					Composite composite = soContainer.getComposite();
 					Point relPt = composite.toControl(pt);
-					Rectangle bounds = composite.getBounds();
-					if (relPt.x >= 0 && relPt.y >= 0 && relPt.x < bounds.width
-							&& relPt.y < bounds.height
+					// mouse exit and enter happens on client area (not full widget area)
+					Rectangle bounds = composite.getClientArea();
+					if (bounds.contains(relPt)
 							&& composite.getDisplay().getActiveShell() != null) {
-						//System.out.println("skip " + skinObject + " because going into child");
+						if (DEBUG) {
+							System.out.println("skip " + skinObject
+									+ " because going into child");
+						}
 						return;
 					}
 				}
@@ -81,11 +92,13 @@ public class SWTSkinImageChanger
 					if (container.getPropogation()) {
 						Point pt = control.toDisplay(event.x, event.y);
 						Point relPt = container.getComposite().toControl(pt);
-						Rectangle bounds = parent.getBounds();
-						if (relPt.x >= 0 && relPt.y >= 0 && relPt.x < bounds.width
-								&& relPt.y < bounds.height
+						Rectangle bounds = parent.getClientArea();
+						if (bounds.contains(relPt)
 								&& parent.getDisplay().getActiveShell() != null) {
-							//System.out.println("skip " + skinObject + " because going into parent");
+							if (DEBUG) {
+								System.out.println("skip " + skinObject
+										+ " because going into parent");
+							}
 							return;
 						}
 					}
@@ -94,7 +107,10 @@ public class SWTSkinImageChanger
 
 			if (skinObject != null) {
 				String sSuffix = (event.type == eventOn) ? suffix : "";
-				//System.out.println(System.currentTimeMillis() + ": " + skinObject + "--" + sSuffix);
+				if (DEBUG) {
+					System.out.println(System.currentTimeMillis() + ": " + skinObject
+							+ "--" + sSuffix);
+				}
 
 				skinObject.switchSuffix(sSuffix, 2, true);
 			}
