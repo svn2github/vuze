@@ -1108,7 +1108,7 @@ public class SideBar
 				}
 			}
 
-			SelectedContentManager.changeCurrentlySelectedContent("", null);
+			SelectedContentManager.changeCurrentlySelectedContent(null, null);
 
 			// show new
 			currentSideBarEntry = newSideBarInfo;
