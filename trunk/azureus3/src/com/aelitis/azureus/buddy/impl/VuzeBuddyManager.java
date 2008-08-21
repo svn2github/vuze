@@ -528,7 +528,7 @@ public class VuzeBuddyManager
 					Plugin plugin = pi.getPlugin();
 					if (plugin instanceof BuddyPlugin) {
 						((BuddyPlugin) plugin).addListener(buddyPluginListener);
-						if (!pi.isDisabled()) {
+						if (!pi.getPluginState().isDisabled()) {
 							buddyPlugin = (BuddyPlugin) plugin;
 							newPluginEnabled = buddyPlugin.isEnabled();
 						}

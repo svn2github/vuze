@@ -47,7 +47,7 @@ public class NetworkSearch
 
 	protected NetworkSearch(AzureusCore core, String searchText, Browser browser) {
 		PluginInterface pi = core.getPluginManager().getPluginInterfaceByID(
-				"azsearch");
+				"azsearch", false);
 
 		if (pi == null) {
 
@@ -56,7 +56,7 @@ public class NetworkSearch
 			return;
 		}
 
-		if (!pi.isOperational()) {
+		if (!pi.getPluginState().isOperational()) {
 
 			Logger.log(new LogEvent(LOGID, "Search plugin not operational"));
 

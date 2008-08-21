@@ -213,14 +213,14 @@ public class PlayUtils
 		//TorrentListViewsUtils.debugDCAD("enter - getMediaServerContentURL");
 	
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav");
+		PluginInterface pi = pm.getPluginInterfaceByID("azupnpav", false);
 	
 		if (pi == null) {
 			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
 			return null;
 		}
 	
-		if (!pi.isOperational()) {
+		if (!pi.getPluginState().isOperational()) {
 			Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not operational"));
 			return null;
 		}

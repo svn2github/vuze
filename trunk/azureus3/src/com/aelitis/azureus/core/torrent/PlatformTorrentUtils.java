@@ -880,8 +880,8 @@ public class PlatformTorrentUtils
 
 		try {
 			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azemp");
-			if (pi != null && pi.isOperational() && !pi.isDisabled()) {
+					"azemp", true);
+			if (pi != null) {
 				embeddedPlayerAvail = true;
 			}
 		} catch (Throwable e1) {

@@ -387,11 +387,11 @@ DownloadManagerEnhancer
 			return( true );
 		}
 	
-		PluginInterface	ms_pi = core.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+		PluginInterface	ms_pi = core.getPluginManager().getPluginInterfaceByID( "azupnpav", true );
 		
 		if ( ms_pi != null ){
 			
-			progressive_enabled = ms_pi.isOperational();
+			progressive_enabled = true;
 		}
 		
 		return( progressive_enabled );
