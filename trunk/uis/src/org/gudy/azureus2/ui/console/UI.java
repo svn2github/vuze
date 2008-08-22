@@ -82,6 +82,7 @@ UI
     	  UserManager manager = UserManager.getInstance(pi);
     	  console.registerCommand(new UserCommand(manager));
       }
+      console.printwelcome();
       console.printconsolehelp();
     }
   }
