@@ -23,7 +23,9 @@ package org.gudy.azureus2.ui.swt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
@@ -2296,5 +2298,61 @@ public class Utils
 		public void
 		debug(
 			String		str );
+	}
+	
+	
+	private static Map truncatedTextCache = new HashMap();
+	
+	private static class TruncatedTextResult {
+		String text;
+		int maxWidth;
+		
+		public TruncatedTextResult() {
+		}
+	}
+	
+	public synchronized static String truncateText(GC gc,String text, int maxWidth,boolean cache) {
+		if(cache) {
+			TruncatedTextResult result = (TruncatedTextResult) truncatedTextCache.get(text);
+			if(result != null && result.maxWidth == maxWidth) {
+				return result.text;
+			}
+		}
+		StringBuffer sb = new StringBuffer(text);
+		String append = "...";
+		int appendWidth = gc.textExtent(append).x;
+		boolean needsAppend = false;
+		while(gc.textExtent(sb.toString()).x > maxWidth) {
+			//Remove characters until they fit into the maximum width
+			sb.deleteCharAt(sb.length()-1);
+			needsAppend = true;
+			if(sb.length() == 1) {
+				break;
+			}
+		}
+		
+		if(needsAppend) {
+			while(gc.textExtent(sb.toString()).x + appendWidth > maxWidth) {
+				//Remove characters until they fit into the maximum width
+				sb.deleteCharAt(sb.length()-1);
+				needsAppend = true;
+				if(sb.length() == 1) {
+					break;
+				}
+			}
+			sb.append(append);
+		}
+		
+		
+		
+		if(cache) {
+			TruncatedTextResult ttR = new TruncatedTextResult();
+			ttR.text = sb.toString();
+			ttR.maxWidth = maxWidth;
+			
+			truncatedTextCache.put(text, ttR);
+		}
+		
+		return sb.toString();
 	}
 }
