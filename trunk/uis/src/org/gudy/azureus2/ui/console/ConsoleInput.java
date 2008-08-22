@@ -59,6 +59,7 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
 import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.*;
+import org.gudy.azureus2.ui.console.util.TextWrap;
 import org.gudy.azureus2.update.CorePatchChecker;
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
@@ -436,44 +437,7 @@ public class ConsoleInput extends Thread {
 			cmd_lines.add(line_so_far.toString());
 		}
 		
-		StringBuffer command_line_so_far = new StringBuffer("  ");
-		Iterator cmd_itr = cmd_lines.iterator();
-		final String SPACE_BETWEEN_COMMANDS = "   ";
-		while (cmd_itr.hasNext()) {
-			String next_command = (String)cmd_itr.next();
-			int current_length = command_line_so_far.length();
-			if (current_length + next_command.length() + SPACE_BETWEEN_COMMANDS.length() > 79) {
-				os.println(command_line_so_far);
-				command_line_so_far.setLength(2);
-			}
-			command_line_so_far.append(next_command);
-			command_line_so_far.append(SPACE_BETWEEN_COMMANDS);
-		}
-		if (command_line_so_far.length() > 2) {
-			os.println(command_line_so_far);
-		}
-		
-		//os.println("Command\t\t\t\tShort\tDescription");
-		//os.println(".\t\t\t\t\tRepeats last command (Initially 'show torrents').");
-		
-		/*
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		
-		for (Iterator iter = helpItems.iterator(); iter.hasNext();) {
-			IConsoleCommand cmd = (IConsoleCommand) iter.next();
-			String cmddesc = cmd.getCommandDescriptions();
-			if( cmddesc != null )
-				os.println(cmddesc);
-			String extraHelp = ""; //cmd.getHelpExtra();
-			if( extraHelp != null )
-			{
-				pw.println();
-				pw.println(extraHelp);
-			}
-		}
-		os.println(sw.toString());
-		*/
+		TextWrap.printList(cmd_lines.iterator(), os, "   ");
 		os.println("> -----");
 	}
 	
