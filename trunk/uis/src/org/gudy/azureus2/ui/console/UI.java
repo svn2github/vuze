@@ -91,7 +91,7 @@ UI
 		  console.downloadRemoteTorrent(url);
 		  return;
 	  }
-	  System.out.println( "Downloading torrent from url: " + url );
+	  console.out.println( "Downloading torrent from url: " + url );
       TorrentDownloaderFactory.downloadManaged(url);
       return; 
   }
@@ -107,8 +107,8 @@ UI
   	{
 //  		System.out.println("NULL CONSOLE");
   	}
-    if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
-      System.out.println( "Downloading torrent from url: " + fileName );
+    if( fileName.toUpperCase().startsWith( "HTTP://" ) || fileName.toUpperCase().startsWith( "HTTPS://" )) {
+      console.out.println( "Downloading torrent from url: " + fileName );
       TorrentDownloaderFactory.downloadManaged( fileName );
       return;
     }
@@ -125,7 +125,7 @@ UI
     if (UIConst.getGlobalManager()!=null) {
       try {
       	String downloadDir = COConfigurationManager.getDirectoryParameter("Default save path");
-      	System.out.println( "Adding torrent: " + fileName + " and saving to " + downloadDir);
+      	console.out.println( "Adding torrent: " + fileName + " and saving to " + downloadDir);
         UIConst.getGlobalManager().addDownloadManager(fileName, downloadDir);
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.console").error("The torrent "+fileName+" could not be added.", e);
