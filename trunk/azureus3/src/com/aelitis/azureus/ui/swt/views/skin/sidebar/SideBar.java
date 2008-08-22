@@ -309,7 +309,9 @@ public class SideBar
 	private void createSideBar() {
 		Composite parent = (Composite) soSideBarList.getControl();
 
-		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL | SWT.NO_SCROLL);
+		// there isn't a SWT.NO_SCROLL in pre 3.4
+		final int NO_SCROLL = 1 << 4;
+		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL | NO_SCROLL);
 		tree.setHeaderVisible(false);
 
 		new SideBarToolTips(this, tree);
