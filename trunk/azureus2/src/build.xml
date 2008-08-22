@@ -1,5 +1,12 @@
 <?xml version="1.0"?>
 
+<!--
+	
+NOTE:  You may need to set the  ANT_OPTS="-Xmx512m"  env prop in order to compile this project successfully.
+
+-->
+
+	
 <project default="jar" name="Azureus" basedir=".">
 
    <property name="root.dir" value="." />  <!-- REMINDER: this needs to be "." for public source -->
