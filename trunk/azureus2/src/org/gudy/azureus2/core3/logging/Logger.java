@@ -110,10 +110,12 @@ public class Logger {
 		loggerImpl.logTextResource(event);
 	}
 
+    // dead
 	public static void logTextResource(LogEvent event, String params[]) {
 		loggerImpl.logTextResource(event, params);
 	}
 
+    // dead
 	public static void logTextResource(LogAlert alert) {
 		loggerImpl.logTextResource(alert);
 	}
@@ -182,4 +184,9 @@ public class Logger {
 	public static FileLogging getFileLoggingInstance() {
 		return fileLogging;
 	}
+	
+	public static void allowLoggingToStdErr(boolean allowed) {
+		loggerImpl.allowLoggingToStdErr(allowed);
+	}
+	
 }

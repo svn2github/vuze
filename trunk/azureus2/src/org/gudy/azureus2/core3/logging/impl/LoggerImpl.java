@@ -66,6 +66,8 @@ public class LoggerImpl {
 	private List alertListeners = new ArrayList();
 
 	private List alertHistory = new ArrayList();
+	
+	private boolean logToStdErrAllowed = true;
 
 	/**
 	 * Initializes the Logger and sets up a file logger.
@@ -204,7 +206,7 @@ public class LoggerImpl {
 					// more recursive horrors here if we try and log too early
 				Debug.outDiagLoggerOnly("[" + event.logID + "] " + event.text);
 			}
-			if (psOldErr != null && event.logID != LogIDs.STDERR) {
+			if (logToStdErrAllowed && psOldErr != null && event.logID != LogIDs.STDERR) {
 				psOldErr.println("[" + event.logID + "] " + event.text);
 			}
 		}
@@ -215,7 +217,7 @@ public class LoggerImpl {
 					if (listener instanceof ILogEventListener)
 						((ILogEventListener) listener).log(event);
 				} catch (Throwable e) {
-					if (psOldErr != null) {
+					if (logToStdErrAllowed && psOldErr != null) {
 						psOldErr.println("Error while logging: " + e.getMessage());
 						e.printStackTrace(psOldErr);
 					}
@@ -309,5 +311,9 @@ public class LoggerImpl {
 	
 	public PrintStream getOldStdErr() {
 		return psOldErr;
+	}
+	
+	public void allowLoggingToStdErr(boolean allowed) {
+		this.logToStdErrAllowed = allowed;
 	}
 }
