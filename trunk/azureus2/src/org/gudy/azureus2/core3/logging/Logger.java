@@ -50,8 +50,8 @@ public class Logger {
 			fileLogging.initialize();
 
 			if (loggerImpl.isEnabled()) {
-				log(new LogEvent(LOGID, "**** Logging starts: "
-					+ Constants.AZUREUS_VERSION + " ****"));
+				log(new LogEvent(LOGID, "**** Logging starts: " +
+						Constants.APP_NAME + " " + Constants.AZUREUS_VERSION + " ****"));
 
 				log(new LogEvent(LOGID, "java.home=" + System.getProperty("java.home")));
 
