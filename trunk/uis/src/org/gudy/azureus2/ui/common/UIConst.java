@@ -10,6 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 
 import com.aelitis.azureus.core.*;
+
+import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
@@ -27,17 +29,26 @@ UIConst
   public static HashMap 		UIS;
   
   private static AzureusCore	azureus_core;
+  private static boolean        must_init_core;
   
   public static void
   setAzureusCore(
   	AzureusCore		_azureus_core )
   {
   	azureus_core	= _azureus_core;
+  	must_init_core = !azureus_core.isStarted();
   }
   
-  public static AzureusCore
+  public static synchronized AzureusCore
   getAzureusCore()
   {
+	  if (must_init_core) {
+	        try {azureus_core.start();}
+	        catch( AzureusCoreException e ) {
+	      		Logger.getLogger("azureus2").error("Start fails", e);
+	        }
+	        must_init_core = false;
+	  }
   	return( azureus_core );
   }
   
