@@ -12,6 +12,7 @@ package org.gudy.azureus2.ui.console;
 
 
 import java.io.File;
+import java.io.PrintStream;
 import java.net.URL;
 
 import org.apache.log4j.Logger;
@@ -60,8 +61,35 @@ UI
   
   public void startUI() {
     super.startUI();
-    PluginInterface pi = UIConst.getAzureusCore().getPluginManager().getDefaultPluginInterface();
     
+    boolean created_console = false;
+    
+    if ((!isStarted()) || (console == null) || (!console.isAlive())) {
+//      ConsoleInput.printconsolehelp(System.out);
+      System.out.println();
+      
+      PrintStream this_out = System.out;
+
+      // Unless a system property tells us not to, we'll take stdout and stderr offline.
+      if (!"on".equals(System.getProperty("azureus.console.noisy"))) {
+  		// We'll hide any output to stdout or stderr - we don't want to litter our
+  		// view.
+  		PrintStream ps = new PrintStream(new java.io.OutputStream() {
+  			public void write(int c) {}
+  			public void write(byte[] b, int i1, int i2) {}
+  		});
+  		System.setOut(ps);
+  		System.setErr(ps);
+  		org.gudy.azureus2.core3.logging.Logger.allowLoggingToStdErr(false);
+      }
+      
+      console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, this_out, Boolean.TRUE);
+      console.printwelcome();
+      console.printconsolehelp();
+      created_console = true;
+    }
+
+    PluginInterface pi = UIConst.getAzureusCore().getPluginManager().getDefaultPluginInterface();
     UIManager	ui_manager = pi.getUIManager();
     
     ui_manager.addUIEventListener( this );
@@ -72,19 +100,12 @@ UI
     	e.printStackTrace();
     }
     TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true, COConfigurationManager.getStringParameter("Default save path") );
-    
-    if ((!isStarted()) || (console == null) || (!console.isAlive())) {
-//      ConsoleInput.printconsolehelp(System.out);
-      System.out.println();
-      console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, System.out, Boolean.TRUE);
-      if( System.getProperty("azureus.console.multiuser") != null)
-      {
-    	  UserManager manager = UserManager.getInstance(pi);
-    	  console.registerCommand(new UserCommand(manager));
-      }
-      console.printwelcome();
-      console.printconsolehelp();
+
+    if (created_console && System.getProperty("azureus.console.multiuser") != null) {
+     	  UserManager manager = UserManager.getInstance(pi);
+      	  console.registerCommand(new UserCommand(manager));
     }
+    
   }
   
   public void openRemoteTorrent(String url) {
