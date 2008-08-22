@@ -311,6 +311,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new CommandHelp());
 		registerCommand(new Alias());
 		registerCommand(new Priority());
+		registerCommand(new Plugin());
 	}
 
 	/**
