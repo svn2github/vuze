@@ -183,7 +183,7 @@ public class SBC_LibraryView
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return numDownloading + " of " + numIncomplete;
+					return numIncomplete + ""; // + " of " + numIncomplete;
 				} 
 				
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
@@ -194,6 +194,12 @@ public class SBC_LibraryView
 			}
 
 			public Object getTitleInfoObjectProperty(int propertyID) {
+				if(propertyID == TITLE_HAS_ACTIVITY) {
+					if(numDownloading > 0) {
+						return new Boolean(true);
+					}
+				}
+				
 				return null;
 			}
 		};
@@ -213,7 +219,7 @@ public class SBC_LibraryView
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return numSeeding + " of " + numComplete;
+					return null; //numSeeding + " of " + numComplete;
 				} 
 				
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {

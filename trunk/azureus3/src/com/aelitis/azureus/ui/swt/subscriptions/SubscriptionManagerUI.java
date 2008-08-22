@@ -691,9 +691,13 @@ SubscriptionManagerUI
 		getTitleInfoStringProperty(
 			int propertyID ) 
 		{
-			if ( propertyID == TITLE_INDICATOR_TEXT ){
-				
-				return( subs.getHistory().getNumUnread() + " : " + subs.getHistory().getNumRead());
+			switch(propertyID) {
+			case ViewTitleInfo.TITLE_TEXT :
+				return subs.getName();
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT :
+				if(subs.getHistory().getNumUnread() > 0) {
+					return ( "" + subs.getHistory().getNumUnread());
+				}
 			}
 			
 			return( null );
@@ -703,12 +707,9 @@ SubscriptionManagerUI
 		getTitleInfoObjectProperty(
 			int propertyID )
 		{
-			if ( propertyID == TITLE_HAS_VITALITY ){
-				
-				return( new Boolean( subs.getHistory().getNumUnread() > 0 ));
-			}
 			
-			return( null );
+			return new Boolean(false);
+			
 		}
 		
 		public void 

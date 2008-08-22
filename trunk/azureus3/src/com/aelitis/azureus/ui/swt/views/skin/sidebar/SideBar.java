@@ -90,6 +90,8 @@ public class SideBar
 	extends SkinView
 	implements UIUpdatable, ViewTitleInfoListener
 {
+	private static final int SIDEBAR_SPACING = 2;
+
 	public static final String SIDEBAR_SECTION_PLUGINS = "Plugins";
 
 	public static final String SIDEBAR_SECTION_LIBRARY = "Library";
@@ -499,7 +501,9 @@ public class SideBar
 	 */
 	protected void paintSideBar(Event event) {
 		TreeItem treeItem = (TreeItem) event.item;
-		String text = treeItem.getText(event.index);
+		String text = (String) treeItem.getData("text");
+		if(text == null) text = "";
+		
 		Point size = event.gc.textExtent(text);
 		Rectangle treeBounds = tree.getBounds();
 
@@ -532,26 +536,12 @@ public class SideBar
 
 		Rectangle itemBounds = tree.getClientArea();
 
-		gc.drawText(text, event.x, event.y + 6, true);
-
 		gc.setFont(tree.getFont());
 
 		String id = (String) treeItem.getData("Plugin.viewID");
 		SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
-		int xIndicatorOfs = 0;
+		int xIndicatorOfs = SIDEBAR_SPACING;
 
-		if (sideBarInfo.closeable) {
-			Image imgClose = ImageRepository.getImage("smallx");
-			Rectangle closeArea = imgClose.getBounds();
-			closeArea.x = itemBounds.width - closeArea.width;
-			closeArea.y = event.y + 4;
-			xIndicatorOfs = closeArea.width;
-
-			gc.fillRectangle(closeArea);
-
-			gc.drawImage(imgClose, closeArea.x, closeArea.y);
-			treeItem.setData("closeArea", closeArea);
-		}
 
 		if (sideBarInfo.titleInfo != null) {
 			String textIndicator = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
@@ -559,10 +549,26 @@ public class SideBar
 				gc.setAntialias(SWT.ON);
 
 				Point textSize = gc.textExtent(textIndicator);
-				int x = itemBounds.width - textSize.x - 7 - xIndicatorOfs;
-				int y = event.y + 6;
+				Point minTextSize = gc.textExtent("99");
+				int textOffsetX = 0;
+				if(textSize.x < minTextSize.x) {
+					textOffsetX = (minTextSize.x - textSize.x)/2;
+					textSize.x = minTextSize.x;
+				}
+				
+				int width = textSize.x + textSize.y/2+2;
+				xIndicatorOfs += width + SIDEBAR_SPACING;
+				int startX = itemBounds.width - xIndicatorOfs;
 
-				gc.fillRectangle(x - 7, y - 2, textSize.x + 14, textSize.y + 4);
+				textOffsetX += textSize.y/4 + 1;
+				
+				int textOffsetY = 1;
+				
+				int startY = event.y + 5;
+				int height = textSize.y + 3;
+				
+				
+				gc.fillRectangle(startX, startY, width, height);
 
 				Boolean b_vitality = (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_VITALITY);
 
@@ -571,12 +577,49 @@ public class SideBar
 				gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
 				gc.setBackground(vitality ? Colors.fadedRed
 						: Colors.faded[Colors.BLUES_DARKEST]);
-				gc.fillRoundRectangle(x - 5, y - 2, textSize.x + 10, textSize.y + 4,
-						10, textSize.y + 4);
-				gc.drawText(textIndicator, x, y);
+				gc.fillRoundRectangle(startX, startY, width, height,textSize.y+1, height);
+				gc.drawText(textIndicator, startX+textOffsetX, startY+textOffsetY);
 			}
 		}
+		
+		if (sideBarInfo.closeable) {
+			Image imgClose = ImageRepository.getImage("smallx");
+			Rectangle closeArea = imgClose.getBounds();
+			closeArea.x = itemBounds.width - closeArea.width - SIDEBAR_SPACING - xIndicatorOfs;
+			closeArea.y = event.y +- (itemBounds.y-closeArea.height)/2;
+			xIndicatorOfs = itemBounds.width - closeArea.x;
 
+			//gc.setBackground(treeItem.getBackground());
+			//gc.fillRectangle(closeArea);
+
+			gc.drawImage(imgClose, closeArea.x, closeArea.y);
+			treeItem.setData("closeArea", closeArea);
+		}
+		
+		if (sideBarInfo.titleInfo != null) {
+			Boolean hasActivity =  (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
+			if(hasActivity != null && hasActivity.booleanValue()) {
+				Image imgGreenLed = ImageRepository.getImage("greenled");
+				Rectangle ledArea = imgGreenLed.getBounds();
+				ledArea.x = itemBounds.width - ledArea.width - SIDEBAR_SPACING - xIndicatorOfs;
+				ledArea.y = event.y +- (itemBounds.y-ledArea.height)/2;
+				xIndicatorOfs = itemBounds.width - ledArea.x;
+	
+				//gc.setBackground(treeItem.getBackground());
+				//gc.fillRectangle(closeArea);
+	
+				gc.drawImage(imgGreenLed, ledArea.x, ledArea.y);
+			}
+		}
+		
+		gc.setForeground(Colors.black);
+		Rectangle clipping = new Rectangle(itemBounds.x,itemBounds.y,itemBounds.width-xIndicatorOfs-SIDEBAR_SPACING,itemBounds.height);
+		gc.setClipping(clipping);
+		String visibleText = Utils.truncateText(gc,text,clipping.width-event.x,true);
+		gc.drawText(visibleText, event.x, event.y + 6, true);
+
+		treeItem.setText(visibleText);
+		
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
 		if (!Constants.isOSX && treeItem.getItemCount() > 0) {
@@ -708,7 +751,8 @@ public class SideBar
 				treeItem = new TreeItem(pluginsEntry.treeItem, SWT.NONE);
 				treeItem.addDisposeListener(disposeTreeItemListener);
 
-				treeItem.setText(viewInfo.name);
+				//treeItem.setText(viewInfo.name);
+				treeItem.setData("text",viewInfo.name);
 				treeItem.setData("Plugin.viewID", viewInfo.viewID);
 				SideBarEntrySWT sideBarInfo = getSideBarInfo(viewInfo.viewID);
 				sideBarInfo.treeItem = treeItem;
@@ -724,7 +768,8 @@ public class SideBar
 				treeItem = new TreeItem(itemPluginLogs, SWT.NONE);
 				treeItem.addDisposeListener(disposeTreeItemListener);
 
-				treeItem.setText(viewInfo.name);
+				//treeItem.setText(viewInfo.name);
+				treeItem.setData("text",viewInfo.name);
 				treeItem.setData("Plugin.viewID", viewInfo.viewID);
 				SideBarEntrySWT sideBarInfo = getSideBarInfo(viewInfo.viewID);
 				sideBarInfo.treeItem = treeItem;
@@ -923,10 +968,12 @@ public class SideBar
 		}
 
 		if (title != null) {
-			treeItem.setText(title);
+			treeItem.setData("text", title);
+			//treeItem.setText(title);
 		} else {
 			if (sideBarInfo.iview != null) {
-				treeItem.setText(sideBarInfo.iview.getFullTitle());
+				treeItem.setData("text", sideBarInfo.iview.getFullTitle());
+				//treeItem.setText(sideBarInfo.iview.getFullTitle());
 			}
 		}
 
@@ -951,7 +998,8 @@ public class SideBar
 			String newText = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newText != null) {
 				pull = false;
-				treeItem.setText(newText);
+				//treeItem.setText(newText);
+				treeItem.setData("text", newText);
 			}
 			listTreeItemsNoTitleInfo.remove(treeItem);
 		} else {
@@ -1176,7 +1224,7 @@ public class SideBar
 		}
 
 		String name = sideBarInfo.treeItem == null ? id
-				: sideBarInfo.treeItem.getText();
+				: (String) sideBarInfo.treeItem.getData("text");
 
 		if (treeItem == null) {
 			SideBarEntrySWT sideBarInfoParent = getSideBarInfo(parentID);
@@ -1482,7 +1530,8 @@ public class SideBar
 		currentSideBarEntry.iview.refresh();
 		SideBarEntrySWT sidebarInfo = getSideBarInfo(currentSideBarEntry.id);
 		if (sidebarInfo.pullTitleFromIView && sidebarInfo.treeItem != null) {
-			sidebarInfo.treeItem.setText(currentSideBarEntry.iview.getFullTitle());
+			//sidebarInfo.treeItem.setText(currentSideBarEntry.iview.getFullTitle());
+			sidebarInfo.treeItem.setData("text",currentSideBarEntry.iview.getFullTitle());
 		}
 	}
 
@@ -1536,7 +1585,9 @@ public class SideBar
 					String id = (String) treeItem.getData("Plugin.viewID");
 					SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 					sideBarInfo.pullTitleFromIView = false;
-					treeItem.setText(newText);
+					//treeItem.setText(newText);
+					treeItem.setData("text",newText);
+					
 				}
 
 				Rectangle bounds = treeItem.getBounds();
