@@ -5,6 +5,7 @@ VUZE CHANGELOG
 
 FEATURE: UI   | Added "Column Setup" icon to the iconbar [amc1]
 FEATURE: UI   | New console command - "plugin". Displays plugin information and can toggle startup status [amc1]
+FEATURE: UI   | Console command "show" can now filter to list only torrents which are transferring [amc1]
 FEATURE: UIv3 | SideBar (F7 to Hide/Show) [TuxPaper]
 
 CHANGE: Core  | Improved handling of mixed IPv4 and IPv6 bindings [The 8472]
