@@ -412,6 +412,56 @@ public class FriendsToolbar
 		if (detailPanelView instanceof DetailPanel) {
 			DetailPanel detailPanel = ((DetailPanel) detailPanelView);
 			detailPanel.show(true, InvitePage.PAGE_ID);
+// KN: Work in progress for new SHare Wizard			
+//		SWTSkinObject soSidebar = skin.getSkinObject("sidebar-sash");//SkinConstants.VIEWID_SIDEBAR);
+//		if (null != soSidebar) {
+//			MultipageWizard shell = new MultipageWizard(
+//					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+//					SWT.DIALOG_TRIM | SWT.RESIZE);
+//			shell.setText("Vuze - Wizard");
+//			shell.setSize(500, 550);
+//
+//			/*
+//			 * TODO: below is the 2 possible ways to open this shell; must pick one before the product is release
+//			 */
+//			boolean useDocker = false;
+//
+//			if (true == useDocker) {
+//
+//				/*
+//				 * Use a shelldocker to 'dock' the shell; this is currently configured to dock on the right
+//				 * side of the main vertical sash.  Notice that if you move of resize the main application
+//				 * the docking behavior is adjusted accordingly
+//				 */
+//				ShellDocker docker = new ShellDocker(soSidebar.getControl(),
+//						shell.getShell());
+//				docker.setAnchorControlPosition(new DockPosition(
+//						DockPosition.BOTTOM_RIGHT, new Offset(1, -shell.getSize().y)));
+//				docker.openShell(true, false);
+//
+//			} else {
+//
+//				/*
+//				 * Opens a centered free-floating shell
+//				 */
+//
+//				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+//				if (null == uiFunctions) {
+//					/*
+//					 * Centers on the active monitor
+//					 */
+//					Utils.centreWindow(shell.getShell());
+//				} else {
+//					/*
+//					 * Centers on the main application window
+//					 */
+//					Utils.centerWindowRelativeTo(shell.getShell(),
+//							uiFunctions.getMainShell());
+//				}
+//
+//				shell.open();
+//			}
+//		}
 		}
 	}
 

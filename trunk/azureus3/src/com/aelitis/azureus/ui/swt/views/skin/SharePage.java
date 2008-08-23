@@ -53,12 +53,15 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
+import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -859,6 +862,33 @@ public class SharePage
 			}
 			
 			getDetailPanel().show(true, PAGE_ID);
+
+// KN: Work in progress for new Share wizard			
+//			ShareWizard shell = new ShareWizard(
+//					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+//					SWT.DIALOG_TRIM | SWT.RESIZE);
+//			shell.setText("Vuze - Wizard");
+//			shell.setSize(500, 550);
+//			
+//			/*
+//			 * Opens a centered free-floating shell
+//			 */
+//
+//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+//			if (null == uiFunctions) {
+//				/*
+//				 * Centers on the active monitor
+//				 */
+//				Utils.centreWindow(shell.getShell());
+//			} else {
+//				/*
+//				 * Centers on the main application window
+//				 */
+//				Utils.centerWindowRelativeTo(shell.getShell(),
+//						uiFunctions.getMainShell());
+//			}
+//
+//			shell.open();
 		}
 	}
 
