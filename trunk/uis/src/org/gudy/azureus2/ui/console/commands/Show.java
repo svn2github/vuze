@@ -89,6 +89,7 @@ public class Show extends IConsoleCommand {
 		out.println("nat\t\t\tn\tShow NAT status");
 		out.println("stats [pattern] [on|off]\ts\tShow stats [with a given pattern] [turn averages on/off]");
 		out.println("torrents [opts] [expr]\tt\tShow list of torrents. torrent options may be any (or none) of:");
+		out.println("\t\ttransferring\tx\tShow only transferring torrents.");
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
 		out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
@@ -128,6 +129,7 @@ public class Show extends IConsoleCommand {
 			boolean bShowOnlyActive = false;
 			boolean bShowOnlyComplete = false;
 			boolean bShowOnlyIncomplete = false;
+			boolean bShowOnlyTransferring = false;
 			for (Iterator iter = args.iterator(); iter.hasNext();) {
 				String arg = (String) iter.next();
 				if ("active".equalsIgnoreCase(arg) || "a".equalsIgnoreCase(arg)) {
@@ -139,7 +141,12 @@ public class Show extends IConsoleCommand {
 				} else if ("incomplete".equalsIgnoreCase(arg) || "i".equalsIgnoreCase(arg)) {
 					bShowOnlyIncomplete = true;
 					iter.remove();
+				} else if ("transferring".equalsIgnoreCase(arg) || "x".equalsIgnoreCase(arg)) {
+					bShowOnlyTransferring = true;
+					bShowOnlyActive = true;
+					iter.remove();
 				}
+				
 			}
 			
 			Iterator torrent;
@@ -165,6 +172,14 @@ public class Show extends IConsoleCommand {
 				if (bCanShow && bShowOnlyActive) {
 					int dmstate = dm.getState();
 					bCanShow = (dmstate == DownloadManager.STATE_SEEDING) || (dmstate == DownloadManager.STATE_DOWNLOADING) || (dmstate == DownloadManager.STATE_CHECKING) || (dmstate == DownloadManager.STATE_INITIALIZING) || (dmstate == DownloadManager.STATE_ALLOCATING);
+				}
+				
+				if (bCanShow && bShowOnlyTransferring) {
+					try {
+						ps = dm.getPeerManager().getStats();
+						bCanShow = ps.getDataSendRate() > 0 || ps.getDataReceiveRate() > 0;
+					}
+					catch (Exception e) {}
 				}
 
 				if (bCanShow) {
