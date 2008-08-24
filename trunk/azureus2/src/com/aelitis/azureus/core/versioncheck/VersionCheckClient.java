@@ -133,6 +133,8 @@ public class VersionCheckClient {
   private long last_feature_flag_cache;
   private long last_feature_flag_cache_time;
   
+  public static int azconst_avail = 2;
+  
   
   private 
   VersionCheckClient()
@@ -1189,6 +1191,11 @@ public class VersionCheckClient {
       }
     }
     
+    boolean const_avail = true;
+    try {Class.forName("com.aelitis.azureus.util.Constants");}
+    catch (ClassNotFoundException cnfe) {const_avail = false;}
+    azconst_avail = const_avail ? 1 : 0;
+    message.put("azconst_avail", new Long(azconst_avail));
     
     //swt stuff
     try {
