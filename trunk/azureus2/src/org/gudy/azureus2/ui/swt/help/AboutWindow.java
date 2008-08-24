@@ -20,6 +20,7 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MouseAdapter;
@@ -165,7 +166,8 @@ public class AboutWindow {
 				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + "\n"
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
-				+ System.getProperty("os.arch"));
+				+ System.getProperty("os.arch") + "\n"
+				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + " " + VersionCheckClient.azconst_avail);
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
