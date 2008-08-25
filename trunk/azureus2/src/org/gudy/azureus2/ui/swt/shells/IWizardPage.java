@@ -7,8 +7,6 @@ public interface IWizardPage
 {
 	public String getPageID();
 
-	public boolean isLastPage();
-
 	public boolean isComplete();
 
 	public boolean setComplete();
@@ -23,15 +21,16 @@ public interface IWizardPage
 
 	public String getWindowTitle();
 
-	public void createControls(Composite parent);
+	public Composite createControls(Composite parent);
 
 	public Control getControl();
 
 	public void performAboutToBeHidden();
 
 	public void performAboutToBeShown();
-	
+
 	public MultipageWizard getWizard();
 	
-	public void createCustomButtons();
+	public boolean isInitOnStartup();
+
 }
