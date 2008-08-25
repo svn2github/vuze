@@ -183,7 +183,8 @@ public class SBC_LibraryView
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return numIncomplete + ""; // + " of " + numIncomplete;
+					if(numIncomplete > 0)
+						return numIncomplete + ""; // + " of " + numIncomplete;
 				} 
 				
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
