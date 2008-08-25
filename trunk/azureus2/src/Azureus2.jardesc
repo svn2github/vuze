@@ -67,6 +67,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.extlistener"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.util.encoders"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.sidebar"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.ipchecker"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.services"/>
         <file path="/azureus2/ChangeLog.txt"/>

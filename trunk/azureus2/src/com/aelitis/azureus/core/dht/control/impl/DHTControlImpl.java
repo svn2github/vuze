@@ -1510,22 +1510,22 @@ DHTControlImpl
 				// contacts remaining to query
 				// closest at front
 
-				final Set contacts_to_query = getClosestContactsSet(lookup_id, false);
-				final AEMonitor contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
-				final Map level_map = new LightHashMap();
+				Set contacts_to_query;
+				AEMonitor contacts_to_query_mon;
+				Map level_map;
 
 				// record the set of contacts we've queried to avoid re-queries
-				final Map contacts_queried = new LightHashMap();
+				Map contacts_queried;
 				// record the set of contacts that we've had a reply from
 				// furthest away at front
-				final Set ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
+				Set ok_contacts;
 				// this handles the search concurrency
 				
 				int idle_searches;
 				int active_searches;
 				int values_found;
 				int value_replies;
-				final Set values_found_set = new HashSet();
+				Set values_found_set;
 				boolean key_blocked;
 				long start;
 				
@@ -1540,6 +1540,20 @@ DHTControlImpl
 				
 				private void startLookup()
 				{
+					contacts_to_query = getClosestContactsSet(lookup_id, false);
+					contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
+					level_map = new LightHashMap();
+
+					// record the set of contacts we've queried to avoid re-queries
+					contacts_queried = new LightHashMap();
+					// record the set of contacts that we've had a reply from
+					// furthest away at front
+					ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
+					// this handles the search concurrency
+					
+					values_found_set = new HashSet();
+
+					
 					start = SystemTime.getMonotonousTime();
 
 					last_lookup = SystemTime.getCurrentTime();
