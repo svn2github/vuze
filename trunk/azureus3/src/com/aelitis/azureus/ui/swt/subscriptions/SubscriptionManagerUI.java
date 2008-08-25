@@ -49,14 +49,18 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
@@ -71,6 +75,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.subs.Subscription;
@@ -107,6 +112,10 @@ SubscriptionManagerUI
 	private TableColumn	subs_c_column;
 	
 	private SubscriptionManager	subs_man;
+	
+	private MenuItemListener clearAllListener;
+	private MenuItemListener removeListener;
+	private MenuItemListener forceCheckListener;
 	
 	private boolean		side_bar_setup;
 	
@@ -488,6 +497,41 @@ SubscriptionManagerUI
 			side_bar_setup = true;
 		}
 		
+		clearAllListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					subs.getHistory().markAllResultsRead();
+				}
+			}
+		};
+		
+		removeListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					subs.remove();
+				}
+			}
+		};
+		
+		forceCheckListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					try {
+						subs.getManager().getScheduler().download(subs,false);
+					} catch (Exception e) {
+						// TODO: handle exception
+					}
+				}
+			}
+		};
+		
+		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
 			{
@@ -582,16 +626,38 @@ SubscriptionManagerUI
 								
 								new_si.setView( view );
 								
+								String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
+								
 								TreeItem  tree_item = 
 									side_bar.createTreeItemFromIView(
 										SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS, 
 										view,
-										"Subscription_" + ByteFormatter.encodeString(subs.getPublicKey()), 
-										null, 
+										key, 
+										subs, 
 										false, 
 										true );
 								
 								new_si.setTreeItem( tree_item );
+								
+								PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+								PluginInterface pi = pm.getDefaultPluginInterface();
+								UIManager uim = pi.getUIManager();
+								MenuManager menuManager = uim.getMenuManager();
+								
+								MenuItem menuItem;
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.forcecheck");
+								menuItem.addListener(forceCheckListener);
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
+								menuItem.addListener(clearAllListener);
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
+								menuItem.addListener(removeListener);
+								
+								
+								
+								
 							}
 						}
 					});
@@ -991,7 +1057,7 @@ SubscriptionManagerUI
 								
 				mainBrowser.setVisible( true );
 				detailsBrowser.setVisible( false );
-				
+				//detailsBrowser.set
 				mainBrowser.getParent().layout(true,true);
 				
 			}catch( Throwable e ){
