@@ -5,6 +5,7 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -35,6 +36,8 @@ public class AddFriendsPage
 	public static final String BUTTON_PREVIEW = "button.preview";
 
 	public static final String BUTTON_CONTINUE = "button.continue";
+	
+	
 
 	private Composite content;
 
@@ -89,6 +92,9 @@ public class AddFriendsPage
 				new SelectionListener() {
 					public void widgetSelected(SelectionEvent e) {
 						context.executeInBrowser("preview()");
+						showButton(BUTTON_BACK, true);
+						showButton(BUTTON_CONTINUE, false);
+						showButton(BUTTON_PREVIEW, false);
 					}
 
 					public void widgetDefaultSelected(SelectionEvent e) {
@@ -106,6 +112,19 @@ public class AddFriendsPage
 					}
 				});
 
+		createButton(BUTTON_BACK, MessageText.getString("wizard.previous"),
+				new SelectionListener() {
+					public void widgetSelected(SelectionEvent e) {
+						context.executeInBrowser("previewCancel()");
+						showButton(BUTTON_CONTINUE, true);
+						showButton(BUTTON_PREVIEW, true);
+						showButton(BUTTON_BACK, false);
+					}
+
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				});
+		showButton(BUTTON_BACK, false);
 	}
 
 	public Browser getBrowser() {
@@ -189,11 +208,11 @@ public class AddFriendsPage
 				}
 
 				public void handleResize() {
-					if (true == "maximize".equals(getWindowState())) {
-						fullScreen(true);
-					} else if (true == "restore".equals(getWindowState())) {
-						fullScreen(false);
-					}
+//					if (true == "maximize".equals(getWindowState())) {
+//						fullScreen(true);
+//					} else if (true == "restore".equals(getWindowState())) {
+//						fullScreen(false);
+//					}
 				}
 
 			};
