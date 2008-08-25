@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
@@ -68,6 +69,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -152,6 +154,8 @@ public class SideBar
 
 	private Color colorFocus;
 
+	private Image imgClose;
+
 	private static Map mapAutoOpen = new LightHashMap();
 
 	static {
@@ -183,6 +187,9 @@ public class SideBar
 
 		soSideBarContents = skin.getSkinObject("sidebar-contents");
 		soSideBarList = skin.getSkinObject("sidebar-list");
+
+		ImageLoader imageLoader = skin.getImageLoader(skinObject.getProperties());
+		imgClose = imageLoader.getImage("image.sidebar.closeitem");
 
 		addTestMenus();
 
@@ -311,7 +318,8 @@ public class SideBar
 
 		// there isn't a SWT.NO_SCROLL in pre 3.4
 		final int NO_SCROLL = 1 << 4;
-		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL | NO_SCROLL);
+		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL
+				| NO_SCROLL);
 		tree.setHeaderVisible(false);
 
 		new SideBarToolTips(this, tree);
@@ -395,23 +403,6 @@ public class SideBar
 						break;
 					}
 
-					case SWT.MouseMove: {
-						int indent = tree.getItem(0).getBounds().x;
-						TreeItem treeItem = tree.getItem(new Point(indent, event.y));
-						if (treeItem == null) {
-							return;
-						}
-						String id = (String) treeItem.getData("Plugin.viewID");
-						SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
-						if (sideBarInfo.titleInfo != null) {
-							String tooltip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
-							//tree.setToolTipText(tooltip);
-						} else {
-							//tree.setToolTipText(null);
-						}
-						break;
-					}
-
 					case SWT.Dispose: {
 						fontHeader.dispose();
 						saveCloseables();
@@ -431,7 +422,6 @@ public class SideBar
 
 		// For close icon
 		tree.addListener(SWT.MouseUp, treeListener);
-		tree.addListener(SWT.MouseMove, treeListener);
 
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
@@ -504,8 +494,9 @@ public class SideBar
 	protected void paintSideBar(Event event) {
 		TreeItem treeItem = (TreeItem) event.item;
 		String text = (String) treeItem.getData("text");
-		if(text == null) text = "";
-		
+		if (text == null)
+			text = "";
+
 		Point size = event.gc.textExtent(text);
 		Rectangle treeBounds = tree.getBounds();
 
@@ -536,14 +527,14 @@ public class SideBar
 					+ event.x), event.height);
 		}
 
-		Rectangle itemBounds = tree.getClientArea();
+		Rectangle treeArea = tree.getClientArea();
+		Rectangle itemBounds = treeItem.getBounds();
 
 		gc.setFont(tree.getFont());
 
 		String id = (String) treeItem.getData("Plugin.viewID");
 		SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 		int xIndicatorOfs = SIDEBAR_SPACING;
-
 
 		if (sideBarInfo.titleInfo != null) {
 			String textIndicator = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
@@ -553,23 +544,22 @@ public class SideBar
 				Point textSize = gc.textExtent(textIndicator);
 				Point minTextSize = gc.textExtent("99");
 				int textOffsetX = 0;
-				if(textSize.x < minTextSize.x) {
-					textOffsetX = (minTextSize.x - textSize.x)/2;
+				if (textSize.x < minTextSize.x) {
+					textOffsetX = (minTextSize.x - textSize.x) / 2;
 					textSize.x = minTextSize.x;
 				}
-				
-				int width = textSize.x + textSize.y/2+2;
-				xIndicatorOfs += width + SIDEBAR_SPACING;
-				int startX = itemBounds.width - xIndicatorOfs;
 
-				textOffsetX += textSize.y/4 + 1;
-				
-				int textOffsetY = 1;
-				
-				int startY = event.y + 5;
+				int width = textSize.x + textSize.y / 2 + 2;
+				xIndicatorOfs += width + SIDEBAR_SPACING;
+				int startX = treeArea.width - xIndicatorOfs;
+
+				textOffsetX += textSize.y / 4 + 1;
+
+				int textOffsetY = 0;
+
 				int height = textSize.y + 3;
-				
-				
+				int startY = itemBounds.y + (itemBounds.height - height) / 2;
+
 				gc.fillRectangle(startX, startY, width, height);
 
 				Boolean b_vitality = (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_VITALITY);
@@ -579,17 +569,19 @@ public class SideBar
 				gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
 				gc.setBackground(vitality ? Colors.fadedRed
 						: Colors.faded[Colors.BLUES_DARKEST]);
-				gc.fillRoundRectangle(startX, startY, width, height,textSize.y+1, height);
-				gc.drawText(textIndicator, startX+textOffsetX, startY+textOffsetY);
+				gc.fillRoundRectangle(startX, startY, width, height, textSize.y + 1,
+						height);
+				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
+						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
 		}
-		
+
 		if (sideBarInfo.closeable) {
-			Image imgClose = ImageRepository.getImage("smallx");
 			Rectangle closeArea = imgClose.getBounds();
-			closeArea.x = itemBounds.width - closeArea.width - SIDEBAR_SPACING - xIndicatorOfs;
-			closeArea.y = event.y +- (itemBounds.y-closeArea.height)/2;
-			xIndicatorOfs = itemBounds.width - closeArea.x;
+			closeArea.x = treeArea.width - closeArea.width - SIDEBAR_SPACING
+					- xIndicatorOfs;
+			closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height) / 2;
+			xIndicatorOfs += closeArea.width + SIDEBAR_SPACING;
 
 			//gc.setBackground(treeItem.getBackground());
 			//gc.fillRectangle(closeArea);
@@ -597,31 +589,32 @@ public class SideBar
 			gc.drawImage(imgClose, closeArea.x, closeArea.y);
 			treeItem.setData("closeArea", closeArea);
 		}
-		
+
 		if (sideBarInfo.titleInfo != null) {
-			Boolean hasActivity =  (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
-			if(hasActivity != null && hasActivity.booleanValue()) {
+			Boolean hasActivity = (Boolean) sideBarInfo.titleInfo.getTitleInfoObjectProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
+			if (hasActivity != null && hasActivity.booleanValue()) {
 				Image imgGreenLed = ImageRepository.getImage("greenled");
 				Rectangle ledArea = imgGreenLed.getBounds();
-				ledArea.x = itemBounds.width - ledArea.width - SIDEBAR_SPACING - xIndicatorOfs;
-				ledArea.y = event.y +- (itemBounds.y-ledArea.height)/2;
-				xIndicatorOfs = itemBounds.width - ledArea.x;
-	
+				ledArea.x = treeArea.width - ledArea.width - SIDEBAR_SPACING
+						- xIndicatorOfs;
+				ledArea.y = itemBounds.y + (itemBounds.height - ledArea.height) / 2;
+				xIndicatorOfs += ledArea.width + SIDEBAR_SPACING;
+
 				//gc.setBackground(treeItem.getBackground());
 				//gc.fillRectangle(closeArea);
-	
+
 				gc.drawImage(imgGreenLed, ledArea.x, ledArea.y);
 			}
 		}
-		
-		gc.setForeground(Colors.black);
-		Rectangle clipping = new Rectangle(itemBounds.x,itemBounds.y,itemBounds.width-xIndicatorOfs-SIDEBAR_SPACING,itemBounds.height);
-		gc.setClipping(clipping);
-		String visibleText = Utils.truncateText(gc,text,clipping.width-event.x,true);
-		gc.drawText(visibleText, event.x, event.y + 6, true);
 
-		treeItem.setText(visibleText);
-		
+		gc.setForeground(Colors.black);
+		Rectangle clipping = new Rectangle(itemBounds.x, itemBounds.y,
+				treeArea.width - itemBounds.x - xIndicatorOfs - SIDEBAR_SPACING,
+				itemBounds.height);
+		gc.setClipping(clipping);
+		GCStringPrinter.printString(gc, text, clipping, true, false, SWT.NONE);
+		gc.setClipping((Rectangle) null);
+
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
 		if (!Constants.isOSX && treeItem.getItemCount() > 0) {
@@ -753,8 +746,7 @@ public class SideBar
 				treeItem = new TreeItem(pluginsEntry.treeItem, SWT.NONE);
 				treeItem.addDisposeListener(disposeTreeItemListener);
 
-				//treeItem.setText(viewInfo.name);
-				treeItem.setData("text",viewInfo.name);
+				treeItem.setData("text", viewInfo.name);
 				treeItem.setData("Plugin.viewID", viewInfo.viewID);
 				SideBarEntrySWT sideBarInfo = getSideBarInfo(viewInfo.viewID);
 				sideBarInfo.treeItem = treeItem;
@@ -770,8 +762,7 @@ public class SideBar
 				treeItem = new TreeItem(itemPluginLogs, SWT.NONE);
 				treeItem.addDisposeListener(disposeTreeItemListener);
 
-				//treeItem.setText(viewInfo.name);
-				treeItem.setData("text",viewInfo.name);
+				treeItem.setData("text", viewInfo.name);
 				treeItem.setData("Plugin.viewID", viewInfo.viewID);
 				SideBarEntrySWT sideBarInfo = getSideBarInfo(viewInfo.viewID);
 				sideBarInfo.treeItem = treeItem;
@@ -971,11 +962,9 @@ public class SideBar
 
 		if (title != null) {
 			treeItem.setData("text", title);
-			//treeItem.setText(title);
 		} else {
 			if (sideBarInfo.iview != null) {
 				treeItem.setData("text", sideBarInfo.iview.getFullTitle());
-				//treeItem.setText(sideBarInfo.iview.getFullTitle());
 			}
 		}
 
@@ -1000,7 +989,6 @@ public class SideBar
 			String newText = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newText != null) {
 				pull = false;
-				//treeItem.setText(newText);
 				treeItem.setData("text", newText);
 			}
 			listTreeItemsNoTitleInfo.remove(treeItem);
@@ -1328,7 +1316,10 @@ public class SideBar
 					}
 				};
 				iview = new UISWTViewImpl("SideBar.Plugins", id, l, datasource);
-				((UISWTViewImpl) iview).setTitle(treeItem.getText());
+				String text = (String) treeItem.getData("text");
+				if (text != null) {
+					((UISWTViewImpl) iview).setTitle(text);
+				}
 
 				Composite parent = (Composite) soSideBarContents.getControl();
 				Composite viewComposite = new Composite(parent, SWT.NONE);
@@ -1532,8 +1523,8 @@ public class SideBar
 		currentSideBarEntry.iview.refresh();
 		SideBarEntrySWT sidebarInfo = getSideBarInfo(currentSideBarEntry.id);
 		if (sidebarInfo.pullTitleFromIView && sidebarInfo.treeItem != null) {
-			//sidebarInfo.treeItem.setText(currentSideBarEntry.iview.getFullTitle());
-			sidebarInfo.treeItem.setData("text",currentSideBarEntry.iview.getFullTitle());
+			sidebarInfo.treeItem.setData("text",
+					currentSideBarEntry.iview.getFullTitle());
 		}
 	}
 
@@ -1587,9 +1578,8 @@ public class SideBar
 					String id = (String) treeItem.getData("Plugin.viewID");
 					SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 					sideBarInfo.pullTitleFromIView = false;
-					//treeItem.setText(newText);
-					treeItem.setData("text",newText);
-					
+					treeItem.setData("text", newText);
+
 				}
 
 				Rectangle bounds = treeItem.getBounds();
@@ -1662,7 +1652,10 @@ public class SideBar
 				Map autoOpenInfo = (Map) o;
 
 				if (sideBarInfo.treeItem != null) {
-					autoOpenInfo.put("title", sideBarInfo.treeItem.getText());
+					String s = (String) sideBarInfo.treeItem.getData("text");
+					if (s != null) {
+						autoOpenInfo.put("title", s);
+					}
 				}
 
 			}

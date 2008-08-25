@@ -33,6 +33,19 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
+ * <p>
+ * Parameters:
+ * <dl>
+ * <dt>.startpos</dt>
+ * <dd>Position in % or pixels of where to start the sash by default</dd>
+ * <dt>.resize.container.min</dt>
+ * <dd></dd>
+ * <dt>.dblclick</dt>
+ * <dd></dd>
+ * <dt></dt>
+ * <dd></dd>
+ * </dl>
+ * 
  * @author TuxPaper
  * @created Oct 18, 2006
  *
