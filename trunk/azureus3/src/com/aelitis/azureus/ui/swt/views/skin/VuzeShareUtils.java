@@ -9,6 +9,9 @@ import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.Constants;
 
@@ -62,7 +65,39 @@ public class VuzeShareUtils
 				if (null != sharePage) {
 					try {
 						sharePage.setShareItem(currentContent, referer);
+						
+						
+//						ShareWizard wizard = new ShareWizard(
+//								UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+//								SWT.DIALOG_TRIM | SWT.RESIZE);
+//						wizard.setText("Vuze - Wizard");
+//						wizard.setSize(500, 550);
+//
+//						com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
+//						newSharePage.setShareItem(currentContent, referer);
+//
+//						/*
+//						 * Opens a centered free-floating shell
+//						 */
+//
+//						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+//						if (null == uiFunctions) {
+//							/*
+//							 * Centers on the active monitor
+//							 */
+//							Utils.centreWindow(wizard.getShell());
+//						} else {
+//							/*
+//							 * Centers on the main application window
+//							 */
+//							Utils.centerWindowRelativeTo(wizard.getShell(),
+//									uiFunctions.getMainShell());
+//						}
+//
+//						wizard.open();
+						
 					} catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 			}

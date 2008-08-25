@@ -52,8 +52,8 @@ public class FriendsList
 	private Color widgetBackgroundColor;
 
 	private Color borderColor;
-
-	private Color normalColor;
+//
+//	private Color normalColor;
 
 	private boolean isEmailDisplayOnly = false;
 
@@ -65,7 +65,7 @@ public class FriendsList
 
 	private Rectangle textBounds;
 
-	private Color textColor;
+//	private Color textColor;
 
 	public FriendsList(Composite parent) {
 		content = new Composite(parent, SWT.NONE);
@@ -83,14 +83,14 @@ public class FriendsList
 		canvas = new Canvas(scrollable, SWT.DOUBLE_BUFFERED);
 		borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 				"color.widget.border");
-		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-				"color.table.bg");
-		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-				"color.text.fg");
-
-		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
-				"color.widget.container.bg");
-
+//		normalColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+//				"color.table.bg");
+//		textColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+//				"color.text.fg");
+//
+//		widgetBackgroundColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
+//				"color.widget.container.bg");
+		widgetBackgroundColor = parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
 		scrollable.setContent(canvas);
 
 		init();
@@ -114,9 +114,9 @@ public class FriendsList
 				Rectangle bounds = canvas.getBounds();
 				bounds.width -= 1;
 				bounds.height -= 1;
-				if (normalColor != null) {
-					e.gc.setBackground(normalColor);
-				}
+//				if (normalColor != null) {
+//					e.gc.setBackground(normalColor);
+//				}
 				e.gc.fillRectangle(bounds);
 				if (borderColor != null) {
 					e.gc.setForeground(borderColor);
@@ -124,9 +124,9 @@ public class FriendsList
 				}
 
 				if (friendsWidgets.size() < 1) {
-					if (textColor != null) {
-						e.gc.setForeground(textColor);
-					}
+//					if (textColor != null) {
+//						e.gc.setForeground(textColor);
+//					}
 					int imageXOffset = 16;
 					if (null != default_prompt_image
 							&& false == default_prompt_image.isDisposed()) {
@@ -418,9 +418,9 @@ public class FriendsList
 					/*
 					 * Paint the text
 					 */
-					if (textColor != null) {
-						e.gc.setForeground(textColor);
-					}
+//					if (textColor != null) {
+//						e.gc.setForeground(textColor);
+//					}
 					VuzeBuddy vbuddy = FriendWidget.this.buddy;
 
 					Rectangle displayNameBounds = new Rectangle(textAreaBounds.x,
