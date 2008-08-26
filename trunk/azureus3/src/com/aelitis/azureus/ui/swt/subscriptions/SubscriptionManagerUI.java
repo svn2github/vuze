@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TreeItem;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -647,6 +648,7 @@ SubscriptionManagerUI
 								MenuItem menuItem;
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.forcecheck");
+								menuItem.setText(MessageText.getString("Subscription.menu.forcecheck",new String[] {subs.getName()}));
 								menuItem.addListener(forceCheckListener);
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
