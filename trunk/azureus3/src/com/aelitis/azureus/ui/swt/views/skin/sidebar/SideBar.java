@@ -353,7 +353,7 @@ public class SideBar
 							event.width = size.x + event.x; // tree.getClientArea().width;
 							event.x = 0;
 						}
-						event.height = Math.max(event.height, size.y + 12);
+						event.height = Math.max(event.height, size.y + 8);
 						break;
 					}
 					case SWT.PaintItem: {
@@ -627,24 +627,26 @@ public class SideBar
 			if (treeItem.getExpanded()) {
 				int xStart = 17;
 				int arrowSize = 8;
+				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
 					event.x - xStart,
-					event.y + 9,
+					event.y + yStart,
 					event.x - xStart + arrowSize,
-					event.y + 9,
+					event.y + yStart,
 					event.x - xStart + (arrowSize / 2),
 					event.y + 16,
 				});
 			} else {
 				int xStart = 17;
 				int arrowSize = 8;
+				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
 					event.x - xStart,
-					event.y + 8,
+					event.y + yStart,
 					event.x - xStart + arrowSize,
-					event.y + 12,
+					event.y + yStart + 4,
 					event.x - xStart,
-					event.y + 16,
+					event.y + yStart + 8,
 				});
 			}
 			gc.setBackground(oldBG);
