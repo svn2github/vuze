@@ -69,7 +69,7 @@ SubscriptionHistoryImpl
 		
 		synchronized( this ){
 			
-			boolean	got_new_result	= false;
+			boolean	got_new_or_changed_result	= false;
 			
 			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
 					
@@ -102,19 +102,28 @@ SubscriptionHistoryImpl
 
 				SubscriptionResultImpl r = latest_results[i];
 				
-				if ( map.get( r.getKey()) == null ){
+				SubscriptionResultImpl existing = (SubscriptionResultImpl)map.get( r.getKey());
+				
+				if ( existing == null ){
 					
 					last_new_result = now;
 					
 					new_results.add( r );
 					
-					got_new_result = true;
+					got_new_or_changed_result = true;
 				
 					new_unread++;
+					
+				}else{
+					
+					if ( existing.updateFrom( r )){
+						
+						got_new_or_changed_result = true;
+					}
 				}
 			}
 			
-			if ( got_new_result ){
+			if ( got_new_or_changed_result ){
 				
 				result = (SubscriptionResultImpl[])new_results.toArray( new SubscriptionResultImpl[new_results.size()]);
 				
@@ -343,7 +352,6 @@ SubscriptionHistoryImpl
 	markAllResultsRead()
 	{
 		boolean	changed = false;
-		Boolean	read = new Boolean(true);
 		
 		synchronized( this ){
 						
@@ -353,11 +361,11 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl result = results[i];
 				
-				if ( result.getRead() != read.booleanValue()){
+				if ( !result.getRead()){
 					
 					changed = true;
 				
-					result.setReadInternal( read.booleanValue());
+					result.setReadInternal( true );
 				}
 			}
 			

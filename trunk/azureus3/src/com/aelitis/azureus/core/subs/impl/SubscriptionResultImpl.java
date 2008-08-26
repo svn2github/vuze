@@ -98,6 +98,27 @@ SubscriptionResultImpl
 		}
 	}
 	
+	protected boolean
+	updateFrom(
+		SubscriptionResultImpl	other )
+	{
+		if ( deleted ){
+			
+			return( false );
+		}
+		
+		if ( getJSON().equals( other.getJSON())){
+			
+			return( false );
+			
+		}else{
+			
+			result_json = other.getJSON();
+			
+			return( true );
+		}
+	}
+	
 	public String
 	getID()
 	{
@@ -193,6 +214,12 @@ SubscriptionResultImpl
 		map.put( "subs_id", getID());
 		
 		return( map );
+	}
+	
+	protected String
+	getJSON()
+	{
+		return( result_json );
 	}
 	
 	public String 
