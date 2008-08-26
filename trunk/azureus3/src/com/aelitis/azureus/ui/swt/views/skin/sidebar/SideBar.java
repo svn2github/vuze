@@ -386,10 +386,11 @@ public class SideBar
 						if (treeItem == null) {
 							return;
 						}
+						String id = (String) treeItem.getData("Plugin.viewID");
+						SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+
 						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 						if (closeArea != null && closeArea.contains(event.x, event.y)) {
-							String id = (String) treeItem.getData("Plugin.viewID");
-							SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 							if (sideBarInfo.iview != null) {
 								sideBarInfo.iview.delete();
 							}
@@ -399,6 +400,8 @@ public class SideBar
 							}
 							COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
 							treeItem.dispose();
+						} else {
+							itemSelected(sideBarInfo.treeItem);
 						}
 						break;
 					}
