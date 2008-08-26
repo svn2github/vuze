@@ -702,6 +702,10 @@ DHTControlImpl
 						target = router.refreshRandom();
 					}
 					
+					protected void 
+					cancel() 
+					{
+					}
 					public byte[]
 					getTarget()
 					{
@@ -1138,7 +1142,66 @@ DHTControlImpl
 			DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 		}
 		
-		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, high_priority, new DHTOperationListenerDemuxer( get_listener ));
+		final DhtTaskSet[] task_set = { null };
+		
+		DHTOperationListenerDemuxer demuxer = 
+			new DHTOperationListenerDemuxer(
+				new DHTOperationListener()
+				{
+					public void
+					searching(
+						DHTTransportContact	contact,
+						int					level,
+						int					active_searches )
+					{
+						get_listener.searching(contact, level, active_searches);
+					}
+					
+					public void
+					diversified(
+						String				desc )
+					{
+						get_listener.diversified(desc);
+					}
+					
+					public void
+					found(
+						DHTTransportContact	contact )
+					{
+						get_listener.found(contact);
+					}
+					
+					public void
+					read(
+						DHTTransportContact	contact,
+						DHTTransportValue	value )
+					{
+						get_listener.read(contact, value);
+					}
+					
+					public void
+					wrote(
+						DHTTransportContact	contact,
+						DHTTransportValue	value )
+					{
+						get_listener.wrote(contact, value);
+					}
+					
+					public void
+					complete(
+						boolean				timeout )
+					{
+						get_listener.complete(timeout);
+						
+						if ( task_set[0] != null ){
+							
+							task_set[0].cancel();
+						}
+					}
+				});
+			
+
+		task_set[0] = getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, high_priority, demuxer );
 	}
 	
 	public boolean
@@ -1252,7 +1315,7 @@ DHTControlImpl
 		return( diversified[0] );
 	}
 	
-	protected void
+	protected DhtTaskSet
 	getSupport(
 		final byte[]						initial_encoded_key,
 		final String						description,
@@ -1263,6 +1326,8 @@ DHTControlImpl
 		final boolean						high_priority,
 		final DHTOperationListenerDemuxer	get_listener )
 	{
+		final DhtTaskSet result = new DhtTaskSet();
+		
 			// get the initial starting point for the get - may have previously been diversified
 		
 		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive );
@@ -1285,7 +1350,8 @@ DHTControlImpl
 			
 			boolean	is_stats_query = (flags & DHT.FLAG_STATS ) != 0;
 			
-			lookup( external_lookup_pool,
+			result.add(
+				lookup( external_lookup_pool,
 					high_priority,
 					encoded_key, 
 					this_description,
@@ -1318,12 +1384,19 @@ DHTControlImpl
 									
 									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type, exhaustive );
 									
-										// should return a max of 1 (0 if diversification refused)
-										// however, could change one day to search > 1 
-									
-									for (int j=0;j<diversified_keys.length;j++){
+									if ( diversified_keys.length > 0 ){
 										
-										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, exhaustive, high_priority, get_listener );
+											// should return a max of 1 (0 if diversification refused)
+											// however, could change one day to search > 1 
+										
+										for (int j=0;j<diversified_keys.length;j++){
+											
+											if ( !result.isCancelled()){
+												
+												result.add(
+													getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, exhaustive, high_priority, get_listener ));
+											}
+										}
 									}
 								}								
 							}
@@ -1393,8 +1466,10 @@ DHTControlImpl
 							}
 							*/
 						}
-					});
+					}));
 		}
+		
+		return( result );
 	}
 		
 	public byte[]
@@ -1488,9 +1563,21 @@ DHTControlImpl
 		 */
 
 	
-	protected void lookup(final ThreadPool thread_pool, boolean high_priority, final byte[] lookup_id, final String description, final byte flags, final boolean value_search, final long timeout, final int concurrency, final int max_values, final int search_accuracy, final lookupResultHandler handler)
+	protected DhtTask 
+	lookup(
+		final ThreadPool 			thread_pool, 
+		boolean 					high_priority, 
+		final byte[] 				lookup_id, 
+		final String 				description, 
+		final byte 					flags, 
+		final boolean 				value_search, 
+		final long 					timeout, 
+		final int 					concurrency, 
+		final int 					max_values, 
+		final int 					search_accuracy, 
+		final lookupResultHandler 	handler )
 	{
-		thread_pool.run(
+		DhtTask	task =
 			new DhtTask(thread_pool)
 			{
 				boolean timeout_occurred = false;
@@ -1529,6 +1616,13 @@ DHTControlImpl
 				boolean key_blocked;
 				long start;
 				
+				TimerEvent timeoutEvent;
+
+				private int runningState = 1; // -1 terminated, 0 waiting, 1 running
+				private int freeTasksCount = concurrency;
+				
+
+				private boolean	cancelled;
 
 				// start the lookup
 				public void	runSupport()
@@ -1536,7 +1630,6 @@ DHTControlImpl
 					startLookup();
 				}
 
-				TimerEvent timeoutEvent;
 				
 				private void startLookup()
 				{
@@ -1648,9 +1741,6 @@ DHTControlImpl
 					releaseToPool();
 				}
 				
-				private int runningState = 1; // -1 terminated, 0 waiting, 1 running
-				private int freeTasksCount = concurrency;
-				
 				private synchronized boolean reserve()
 				{
 					if(freeTasksCount <= 0 || runningState == -1)
@@ -1682,6 +1772,16 @@ DHTControlImpl
 					}
 				}
 				
+				protected synchronized void
+				cancel()
+				{
+					if ( runningState != -1 ){
+						
+						// System.out.println( "Task cancelled" );
+					}
+					
+					cancelled = true;
+				}
 				
 				// individual lookup steps
 				private void lookupSteps() {
@@ -1689,7 +1789,7 @@ DHTControlImpl
 					{
 						boolean terminate = false;
 						
-						while (true)
+						while ( !cancelled )
 						{
 							if (timeout > 0)
 							{
@@ -2019,10 +2119,12 @@ DHTControlImpl
 							}
 						}
 						
-						if(terminate)
+						if(terminate){
 							terminateLookup(false);
-
-					} catch (Exception e) {
+						}else if ( cancelled ){
+							terminateLookup( true );
+						}
+					} catch (Throwable e) {
 						Debug.printStackTrace(e);
 						terminateLookup(true);
 					}
@@ -2037,7 +2139,11 @@ DHTControlImpl
 				public String getDescription() {
 					return (description);
 				}
-			}, high_priority, true);
+			};
+			
+		thread_pool.run( task, high_priority, true);
+		
+		return( task );
 	}
 	
 
@@ -3777,11 +3883,141 @@ DHTControlImpl
 		{
 		}
 		
+		protected abstract void
+		cancel();
+		
 		public abstract byte[]
 		getTarget();
 		
 		public abstract String
 		getDescription();
+	}
+	
+	protected static class
+	DhtTaskSet
+	{
+		private boolean cancelled;
+		
+		private Object	things;
+		
+		private void
+		add(
+			DhtTask	task )
+		{
+			synchronized( this ){
+				
+				if ( cancelled ){
+					
+					task.cancel();
+					
+					return;
+				}
+				
+				addToThings( task );
+			}
+		}
+		
+		private void
+		add(
+			DhtTaskSet	task_set )
+		{
+			synchronized( this ){
+				
+				if ( cancelled ){
+					
+					task_set.cancel();
+					
+					return;
+				}
+				
+				addToThings( task_set );
+			}
+		}
+		
+		private void
+		addToThings(
+			Object	obj )
+		{
+			if ( things == null ){
+				
+				things = obj;
+				
+			}else{
+				
+				if ( things instanceof List ){
+					
+					((List)things).add( obj );
+					
+				}else{
+					
+					List	l = new ArrayList(2);
+					
+					l.add( things );
+					l.add( obj );
+					
+					things = l;
+				}
+			}
+		}
+		
+		private void
+		cancel()
+		{
+			Object	to_cancel;
+			
+			synchronized( this ){
+				
+				if ( cancelled ){
+					
+					return;
+				}
+				
+				cancelled = true;
+				
+				to_cancel = things;
+				
+				things = null;
+			}
+						
+			if ( to_cancel != null ){
+				
+				if ( to_cancel instanceof DhtTask ){
+					
+					((DhtTask)to_cancel).cancel();
+					
+				}else if ( to_cancel instanceof DhtTaskSet ){
+					
+					((DhtTaskSet)to_cancel).cancel();
+					
+				}else{
+					
+					List	l = (List)to_cancel;
+					
+					for (int i=0;i<l.size();i++){
+						
+						Object o = l.get(i);
+						
+						if ( o instanceof DhtTask ){
+							
+							((DhtTask)o).cancel();
+							
+						}else{
+							
+							((DhtTaskSet)o).cancel();
+						}
+					}
+				}
+			}
+		}
+		
+		private boolean
+		isCancelled()
+		{
+			synchronized( this ){
+
+				return( cancelled);
+			}
+		}
 	}
 	
 	protected class

@@ -782,6 +782,14 @@ DHTPluginStorageManager
 		byte				diversification_type,
 		boolean				exhaustive )
 	{
+		if ( suspendDivs()){
+
+			if ( put_operation ){
+				
+				return( new byte[0][] );
+			}
+		}
+		
 		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
 		
 		HashWrapper	wrapper = new HashWrapper( key );
