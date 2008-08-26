@@ -94,7 +94,7 @@ public class FileLogging implements ILogEventListener {
 	 */
 	protected void reloadLogToFileParam() {
 		final ConfigurationManager config = ConfigurationManager.getInstance();
-		boolean bNewLogToFile = config.getBooleanParameter(CFG_ENABLELOGTOFILE);
+		boolean bNewLogToFile = System.getProperty("azureus.overridelog") != null && config.getBooleanParameter(CFG_ENABLELOGTOFILE);
 		if (bNewLogToFile != bLogToFile) {
 			bLogToFile = bNewLogToFile;
 			if (bLogToFile)
@@ -121,7 +121,9 @@ public class FileLogging implements ILogEventListener {
 
 			boolean overrideLog = System.getProperty("azureus.overridelog") != null;
 			if (overrideLog) {
-				bLogToFile = true;
+				
+				// Don't set this - reloadLogToFileParam will do it.
+				//bLogToFile = true;
 				sLogDir = ".";
 				iLogFileMaxMB = 2;
 				timeStampFormat = "HH:mm:ss.SSS ";
@@ -129,6 +131,8 @@ public class FileLogging implements ILogEventListener {
 				for (int i = 0; i < ignoredComponents.length; i++) {
 					ignoredComponents[i].clear();
 				}
+				
+				reloadLogToFileParam();
 			} else {
 				reloadLogToFileParam();
 
