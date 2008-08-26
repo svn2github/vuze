@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
@@ -699,23 +700,18 @@ public class SideBar
 				"main.area.events", "Activity", titleInfoActivityView, null, false, -1);
 
 		SBC_LibraryView.setupViewTitle();
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library", "Library",
-				null, null, false, -1);
+		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
+				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
+				null, false, -1);
 
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryDL", "library",
-				"Incomplete", null, null, false, -1);
+				MessageText.getString("sidebar.LibraryDL"), null, null, false, -1);
 
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryCD", "library",
-				"Complete", null, null, false, -1);
+				MessageText.getString("sidebar.LibraryCD"), null, null, false, -1);
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
-				"On Vuze", null, null, false, -1);
-
-		createEntryFromSkinRef(SIDEBAR_SECTION_BROWSE, "Rec", "main.area.rec",
-				"Recommendations", null, null, false, -1);
-
-		createEntryFromSkinRef(SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH,
-				"publishtab.area", "Publish", null, null, false, -1);
+				"Vuze Network", null, null, false, -1);
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
