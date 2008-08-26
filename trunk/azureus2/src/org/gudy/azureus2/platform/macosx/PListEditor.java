@@ -21,11 +21,9 @@
 package org.gudy.azureus2.platform.macosx;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.CharBuffer;
 
 import org.gudy.azureus2.core3.util.FileUtil;
 
@@ -246,7 +244,7 @@ PListEditor
 		}
 	}
 	
-	private void 
+	public void 
 	touchFile()
 	{
 		File	file  = new File( plistFile );

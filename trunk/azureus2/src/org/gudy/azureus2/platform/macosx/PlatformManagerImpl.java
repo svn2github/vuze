@@ -158,16 +158,26 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     	return OSXAccess.getVersion();
     }
 
+    protected PListEditor
+    getPList()
+    
+    	throws IOException
+    {
+		String	plist = 
+			System.getProperty("user.dir") +
+			SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
+
+		PListEditor editor = new PListEditor( plist );
+	
+		return( editor );
+    }
+    
     protected void
     checkPList()
     {
     	try{
-			String	plist = 
-				System.getProperty("user.dir") +
-				SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
-
-    		PListEditor editor = new PListEditor( plist );
-		
+    		PListEditor editor = getPList();
+    		
     		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
     		editor.setSimpleStringValue("CFBundleName", "Vuze");
 			editor.setSimpleStringValue("CFBundleTypeName", "Vuze Download");
@@ -181,6 +191,20 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     		Debug.out( "Failed to update plist", e );
     	}
 	
+    }
+    
+    protected void
+    touchPList()
+    {
+       	try{
+    		PListEditor editor = getPList();
+  	
+    		editor.touchFile();
+    		
+       	}catch( Throwable e ){
+    		
+    		Debug.out( "Failed to touch plist", e );
+    	}
     }
     
     /**
@@ -294,12 +318,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	   throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
-    /**
-     * Not implemented; does nothing
-     */
     public void registerApplication() throws PlatformManagerException
     {
-        // handled by LaunchServices and/0r user interaction
+    	touchPList();
     }
 
     /**
