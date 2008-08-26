@@ -421,23 +421,6 @@ public class UIFunctionsImpl
 
 	}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#requestShutdown()
-	public boolean requestShutdown() {
-		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return true;
-			}
-
-			return uiFunctions.requestShutdown();
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "requestShutdown", e));
-		}
-
-		return false;
-	}
-
 	// @see com.aelitis.azureus.ui.UIFunctions#setStatusText(java.lang.String)
 	public void setStatusText(String string) {
 		// TODO Auto-generated method stub
