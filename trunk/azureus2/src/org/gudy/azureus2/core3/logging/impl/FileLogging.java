@@ -124,7 +124,7 @@ public class FileLogging implements ILogEventListener {
 				
 				// Don't set this - reloadLogToFileParam will do it.
 				//bLogToFile = true;
-				sLogDir = ".";
+				sLogDir = System.getProperty("azureus.overridelogdir", ".");
 				iLogFileMaxMB = 2;
 				timeStampFormat = "HH:mm:ss.SSS ";
 
