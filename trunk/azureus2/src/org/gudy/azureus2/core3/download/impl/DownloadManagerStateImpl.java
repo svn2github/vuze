@@ -1217,10 +1217,6 @@ DownloadManagerStateImpl
     public String getRelativeSavePath() {
     	return this.getStringAttribute(AT_RELATIVE_SAVE_PATH);
     }
-    
-	public void setRelativeSavePath(String path) {
-		this.setStringAttribute(AT_RELATIVE_SAVE_PATH, path);
-	}
 	
 	public String getPrimaryFile() {
 		String sPrimary = this.getStringAttribute(AT_PRIMARY_FILE);

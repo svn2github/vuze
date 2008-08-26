@@ -202,7 +202,6 @@ DownloadManagerState
 	public void setUserComment(String name);
 	
 	public String getRelativeSavePath();
-	public void setRelativeSavePath(String path);
 
 	public void setPrimaryFile(String fileFullPath);
 	public String getPrimaryFile();
