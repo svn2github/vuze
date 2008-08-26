@@ -94,19 +94,10 @@ DHTPlugin
 	private static final String	PLUGIN_NAME		= "Distributed DB";
 	private static final String	PLUGIN_CONFIGSECTION_ID	= "plugins.dht";
 	
-	private static final boolean	TRACE_NON_MAIN 		= false;
 	private static final boolean	MAIN_DHT_ENABLE		= true;
 	private static final boolean	CVS_DHT_ENABLE		= true;
 	private static final boolean	MAIN_DHT_V6_ENABLE	= true;
 	
-	
-	static{
-		
-		if ( TRACE_NON_MAIN ){
-			
-			System.out.println( "**** DHTPlugin - tracing non-main network actions ****" );
-		}
-	}
 		
 	private PluginInterface		plugin_interface;
 	
@@ -1007,64 +998,114 @@ DHTPlugin
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-				
-		dhts[0].put( key, description, value, flags, high_priority, listener );
-		
-		for (int i=1;i<dhts.length;i++){
-
-			final int f_i	= i;
 			
-			new AEThread2( "multi-dht: put", true )
-			{
-				public void
-				run()
+		if( dhts.length == 1 ){
+			
+			dhts[0].put( key, description, value, flags, high_priority, listener );
+			
+		}else{
+			
+			final int[]	completes_to_go = { dhts.length };
+			
+			DHTPluginOperationListener main_listener = 
+				new DHTPluginOperationListener()
 				{
-					dhts[f_i].put( key, description, value, flags, high_priority,
-							new DHTPluginOperationListener()
+					public void
+					diversified()
+					{
+						listener.diversified();
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
+					{
+						listener.starts(key);
+					}
+					
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						DHTPluginValue		value )
+					{
+						listener.valueRead(originator, value);
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						DHTPluginValue		value )
+					{
+						listener.valueWritten(target, value);
+					}
+					
+					public void
+					complete(
+						byte[]	key,
+						boolean	timeout_occurred )
+					{
+						synchronized( completes_to_go ){
+						
+							completes_to_go[0]--;
+							
+							if ( completes_to_go[0] == 0 ){
+								
+								listener.complete(key, timeout_occurred);
+							}
+						}
+					}
+				};
+				
+			dhts[0].put( key, description, value, flags, high_priority, main_listener );
+
+			for (int i=1;i<dhts.length;i++){
+
+				dhts[i].put( 
+						key, description, value, flags, high_priority,
+						new DHTPluginOperationListener()
+						{
+							public void
+							diversified()
 							{
-								public void
-								diversified()
-								{
-								}
-								
-								public void 
-								starts(
-									byte[] 				key ) 
-								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":put valueRead" );
+							}
+							
+							public void 
+							starts(
+								byte[] 				key ) 
+							{
+							}
+							
+							public void
+							valueRead(
+								DHTPluginContact	originator,
+								DHTPluginValue		value )
+							{
+							}
+							
+							public void
+							valueWritten(
+								DHTPluginContact	target,
+								DHTPluginValue		value )
+							{
+							}
+							
+							public void
+							complete(
+								byte[]	key,
+								boolean	timeout_occurred )
+							{
+								synchronized( completes_to_go ){
+									
+									completes_to_go[0]--;
+									
+									if ( completes_to_go[0] == 0 ){
+										
+										listener.complete(key, timeout_occurred);
 									}
 								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":put valueWritten - " + description + " " + target.getAddress() + " <- " + new String(value.getValue()));
-									}
-								}
-								
-								public void
-								complete(
-									byte[]	key,
-									boolean	timeout_occurred )
-								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":put complete - " + description + " -> timeout=" + timeout_occurred );
-									}
-								}
-							});
-				}
-			}.start();
+							}
+						});
+			}
 		}
 	}
 	
@@ -1131,11 +1172,7 @@ DHTPlugin
 					valueRead(
 						DHTPluginContact	originator,
 						DHTPluginValue		value )
-					{
-						if ( TRACE_NON_MAIN ){
-							System.out.println( "DHT_dual:get valueRead - " + description + " " + originator.getAddress() + " -> " + new String(value.getValue()));
-						}
-												
+					{												
 						synchronized( this ){
 
 							result_count++;
@@ -1164,20 +1201,12 @@ DHTPlugin
 					{
 							// we are guaranteed to come through here at least twice
 						
-						if ( TRACE_NON_MAIN ){
-							System.out.println( "DHT_dual:get complete - " + description + " -> timeout=" + timeout_occurred );
-						}
-						
 						synchronized( this ){
 							
 							complete_count++;
 							
 							if ( complete_count == 2 ){
 								
-								if ( TRACE_NON_MAIN ){
-									System.out.println( "    completion informed" );
-								}
-
 									// if we have reported any results then we can't report 
 									// timeout!
 								
@@ -1272,9 +1301,6 @@ DHTPlugin
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_CVS:get valueRead - " + description + " " + originator.getAddress() + " -> " + new String(value.getValue()));
-									}
 								}
 								
 								public void
@@ -1282,9 +1308,6 @@ DHTPlugin
 									DHTPluginContact	target,
 									DHTPluginValue		value )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_CVS:get valueWritten" );
-									}
 								}
 								
 								public void
@@ -1292,9 +1315,6 @@ DHTPlugin
 									byte[]	key,
 									boolean	timeout_occurred )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_CVS:get complete - " + description + " -> timeout=" + timeout_occurred );
-									}
 								}
 							});
 				}
@@ -1356,9 +1376,6 @@ DHTPlugin
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove valueRead" );
-									}
 								}
 								
 								public void
@@ -1366,9 +1383,6 @@ DHTPlugin
 									DHTPluginContact	target,
 									DHTPluginValue		value )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove valueWritten" );
-									}
 								}
 								
 								public void
@@ -1376,9 +1390,6 @@ DHTPlugin
 									byte[]	key,
 									boolean	timeout_occurred )
 								{
-									if ( TRACE_NON_MAIN ){
-										System.out.println( "DHT_" + f_i + ":remove complete, timeout=" + timeout_occurred );
-									}
 								}
 							});
 				}
