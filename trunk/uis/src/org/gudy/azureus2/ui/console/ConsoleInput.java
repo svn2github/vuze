@@ -19,9 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,6 +46,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -413,6 +412,8 @@ public class ConsoleInput extends Thread {
 	public void printwelcome()
 	{
 		out.println("Running " + Constants.APP_NAME + " " + Constants.AZUREUS_VERSION + "...");
+		out.println("Using configuration settings from:");
+		out.println("  " + SystemProperties.getUserPath());
 	}
 	
 	public void printconsolehelp()
