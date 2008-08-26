@@ -231,7 +231,8 @@ public class BuddiesViewer
 			scrollable.setExpandHorizontal(true);
 			scrollable.setExpandVertical(true);
 			scrollable.setBackgroundMode(SWT.INHERIT_FORCE);
-			
+			scrollable.getVerticalBar().setIncrement(10);
+			scrollable.getVerticalBar().setPageIncrement(65);
 
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0, 0);
