@@ -186,6 +186,8 @@ SubscriptionManagerImpl
 	
 	private List					potential_associations	= new ArrayList();
 	
+	private boolean					meta_search_listener_added;
+	
 	private AEDiagnosticsLogger		logger;
 	
 	
@@ -229,42 +231,6 @@ SubscriptionManagerImpl
 			
 			started	= true;
 		}
-		
-		MetaSearchManagerFactory.getSingleton().getMetaSearch().addListener(
-			new MetaSearchListener()
-			{
-				public void
-				engineAdded(
-					Engine		engine )
-				{
-					
-				}
-				
-				public void
-				engineUpdated(
-					Engine		engine )
-				{
-					synchronized( this ){
-						
-						for (int i=0;i<subscriptions.size();i++){
-							
-							SubscriptionImpl	subs = (SubscriptionImpl)subscriptions.get(i);
-							
-							if ( subs.isMine()){
-								
-								subs.engineUpdated( engine );
-							}
-						}
-					}
-				}
-				
-				public void
-				engineRemoved(
-					Engine		engine )
-				{
-					
-				}
-			});
 		
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 		
@@ -550,6 +516,11 @@ SubscriptionManagerImpl
 			saveConfig();
 		}
 		
+		if ( subs.isMine()){
+			
+			addMetaSearchListener();
+		}
+		
 		Iterator it = listeners.iterator();
 		
 		while( it.hasNext()){
@@ -575,6 +546,56 @@ SubscriptionManagerImpl
 		}
 		
 		return( subs );
+	}
+	
+	protected void
+	addMetaSearchListener()
+	{
+		synchronized( this ){
+			
+			if ( meta_search_listener_added ){
+				
+				return;
+			}
+			
+			meta_search_listener_added = true;
+		}
+		
+		MetaSearchManagerFactory.getSingleton().getMetaSearch().addListener(
+			new MetaSearchListener()
+			{
+				public void
+				engineAdded(
+					Engine		engine )
+				{
+					
+				}
+				
+				public void
+				engineUpdated(
+					Engine		engine )
+				{
+					synchronized( this ){
+						
+						for (int i=0;i<subscriptions.size();i++){
+							
+							SubscriptionImpl	subs = (SubscriptionImpl)subscriptions.get(i);
+							
+							if ( subs.isMine()){
+								
+								subs.engineUpdated( engine );
+							}
+						}
+					}
+				}
+				
+				public void
+				engineRemoved(
+					Engine		engine )
+				{
+					
+				}
+			});
 	}
 	
 	protected void
@@ -3663,6 +3684,8 @@ SubscriptionManagerImpl
 		
 		log( "Loading configuration" );
 		
+		boolean	some_are_mine = false;
+		
 		synchronized( this ){
 			
 			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
@@ -3680,6 +3703,11 @@ SubscriptionManagerImpl
 						
 						subscriptions.add( sub );
 						
+						if ( sub.isMine()){
+							
+							some_are_mine = true;
+						}
+						
 						log( "    loaded " + sub.getString());
 						
 					}catch( Throwable e ){
@@ -3688,6 +3716,11 @@ SubscriptionManagerImpl
 					}
 				}
 			}
+		}
+		
+		if ( some_are_mine ){
+							
+			addMetaSearchListener();
 		}
 	}
 	
