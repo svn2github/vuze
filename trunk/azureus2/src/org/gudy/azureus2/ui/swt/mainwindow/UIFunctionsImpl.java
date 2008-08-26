@@ -166,10 +166,6 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public boolean requestShutdown() {
-		return mainwindow.destroyRequest();
-	}
-
 	public void refreshLanguage() {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {

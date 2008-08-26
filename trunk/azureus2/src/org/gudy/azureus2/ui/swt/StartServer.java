@@ -223,7 +223,7 @@ StartServer
 	
 	  	    	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 	  	    	if (uiFunctions != null) {
-	  	    		uiFunctions.requestShutdown();
+	  	    		uiFunctions.dispose(false, false);
 	  	    	}
 	  	    	
 	  	    	return;

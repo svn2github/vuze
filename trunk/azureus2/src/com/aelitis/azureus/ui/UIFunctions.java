@@ -68,14 +68,6 @@ public interface UIFunctions
 	void bringToFront(boolean noTricks);
 	
 	/**
-	 * Request the UI be shut down.
-	 * 
-	 * @return true - request granted, UI is being shut down
-	 *         false - request denied (example: password entry failed)
-	 */
-	boolean requestShutdown();
-
-	/**
 	 * Change/Refresh the language of the UI
 	 */
 	void refreshLanguage();
@@ -98,6 +90,12 @@ public interface UIFunctions
 
 	void setStatusText(int statustype, String string, UIStatusTextClickListener l);
 
+	/**
+	 * Request the UI be shut down.
+	 * 
+	 * @return true - request granted, UI is being shut down
+	 *         false - request denied (example: password entry failed)
+	 */
 	boolean dispose(boolean for_restart, boolean close_already_in_progress);
 
 	/**

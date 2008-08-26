@@ -232,7 +232,7 @@ public class SystemTraySWT
 		
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				uiFunctions.requestShutdown();
+    		uiFunctions.dispose(false, false);
 			}
 		});
 	}

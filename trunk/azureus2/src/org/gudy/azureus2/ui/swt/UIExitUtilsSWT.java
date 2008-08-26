@@ -24,15 +24,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
  * @author TuxPaper
@@ -55,6 +61,17 @@ public class UIExitUtilsSWT
 		if (skipCloseCheck) {
 			return true;
 		}
+		
+		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+		if (mainShell != null
+				&& (!mainShell.isVisible() || mainShell.getMinimized())
+				&& COConfigurationManager.getBooleanParameter("Password enabled")) {
+
+			if (!PasswordWindow.showPasswordWindow(Display.getCurrent())) {
+				return false;
+			}
+		}
+		
 		
 		if (COConfigurationManager.getBooleanParameter("confirmationOnExit")) {
 			if (!getExitConfirmation(bForRestart)) {

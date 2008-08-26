@@ -855,26 +855,6 @@ public class MainWindow
 		}
 	}
 
-	protected boolean destroyRequest() {
-		Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
-
-		if (COConfigurationManager.getBooleanParameter("Password enabled")) {
-
-			if (!PasswordWindow.showPasswordWindow(display)) {
-				Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
-
-				return false;
-			}
-		}
-
-		Utils.execSWTThread(new Runnable() {
-			public void run() {
-				dispose(false, false);
-			}
-		});
-		return true;
-	}
-
 	private void downloadManagerAdded(DownloadManager created) {
 		created.addListener(new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager manager, int state) {
