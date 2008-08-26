@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -926,6 +927,21 @@ DHTPluginStorageManager
 	protected void
 	readDiversifications()
 	{
+		if ( network == DHT.NW_CVS ){
+			
+				// work around issue whereby puts to the CVS dht went out of control and
+				// diversified everything
+			
+			String key = "dht.plugin.sm.hack.kill.div.1";
+			
+			if ( !COConfigurationManager.getBooleanParameter( key, false )){
+				
+				COConfigurationManager.setParameter( key, true );
+				
+				return;
+			}
+		}
+		
 		try{
 			storage_mon.enter();
 			
@@ -953,6 +969,7 @@ DHTPluginStorageManager
 					}
 				}
 			}
+			
 			List	divs = (List)map.get("remote");
 			
 			if ( divs != null ){
