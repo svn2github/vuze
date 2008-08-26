@@ -1118,27 +1118,138 @@ DHTPlugin
 	
 	public void
 	get(
-		final byte[]								key,
+		final byte[]								original_key,
 		final String								description,
 		final byte									flags,
 		final int									max_values,
 		final long									timeout,
 		final boolean								exhaustive,
 		final boolean								high_priority,
-		final DHTPluginOperationListener			listener )
+		final DHTPluginOperationListener			original_listener )
 	{
 		if ( !isEnabled()){
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
+					
+		final DHTPluginOperationListener main_listener;
+		
+		if ( cvs_dht == null ){
 			
+			main_listener = original_listener;
+			
+		}else{
+			
+				// hook into CVS completion to prevent runaway CVS dht operations
+			
+			final int[]		completes_to_go = { 2 };
+			final boolean[]	main_timeout 	= { false };
+			
+			main_listener = 
+				new DHTPluginOperationListener()
+				{
+					public void
+					diversified()
+					{
+						original_listener.diversified();
+					}
+					
+					public void 
+					starts(
+						byte[] 				key ) 
+					{
+						original_listener.starts( original_key );
+					}
+					
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						DHTPluginValue		value )
+					{
+						original_listener.valueRead(originator, value);
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						DHTPluginValue		value )
+					{
+						original_listener.valueWritten(target, value);
+					}
+					
+					public void
+					complete(
+						byte[]	key,
+						boolean	timeout_occurred )
+					{
+						synchronized( completes_to_go ){
+						
+							completes_to_go[0]--;
+							
+							main_timeout[0] = timeout_occurred;
+							
+							if ( completes_to_go[0] == 0 ){
+								
+								original_listener.complete( original_key, timeout_occurred );
+							}
+						}
+					}
+				};
+			
+			cvs_dht.get( 
+					original_key, description, flags, max_values, timeout, exhaustive, high_priority,
+					new DHTPluginOperationListener()
+					{
+						public void
+						diversified()
+						{
+						}
+						
+						public void 
+						starts(
+							byte[] 				key ) 
+						{
+						}
+						
+						public void
+						valueRead(
+							DHTPluginContact	originator,
+							DHTPluginValue		value )
+						{
+						}
+						
+						public void
+						valueWritten(
+							DHTPluginContact	target,
+							DHTPluginValue		value )
+						{
+						}
+						
+						public void
+						complete(
+							byte[]	key,
+							boolean	timeout_occurred )
+						{
+							synchronized( completes_to_go ){
+								
+								completes_to_go[0]--;
+								
+								if ( completes_to_go[0] == 0 ){
+									
+									original_listener.complete( original_key, main_timeout[0] );
+								}
+							}
+						}
+					});
+		}
+		
 		if ( main_dht != null && main_v6_dht == null ){
 			
-			main_dht.get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
+			main_dht.get( original_key, description, flags, max_values, timeout, exhaustive, high_priority, main_listener );
 			
 		}else if ( main_dht == null && main_v6_dht != null ){
 			
-			main_v6_dht.get( key, description, flags, max_values, timeout, exhaustive, high_priority, listener );
+			main_v6_dht.get( original_key, description, flags, max_values, timeout, exhaustive, high_priority, main_listener );
 
 		}else{
 			
@@ -1146,14 +1257,16 @@ DHTPlugin
 				// don't want to be blocking the "get" operation waiting for V6 to timeout when V4 is
 				// returning hits 
 			
-			final	byte[]	v4_key	= key;
-			final	byte[]	v6_key	= (byte[])key.clone();
+			final	byte[]	v4_key	= original_key;
+			final	byte[]	v6_key	= (byte[])original_key.clone();
 			
 			DHTPluginOperationListener	dual_listener =
 				new DHTPluginOperationListener()
 				{
 					private long start_time = SystemTime.getCurrentTime();
 
+					private boolean	started;
+					
 					private int	complete_count 	= 0;
 					private int	result_count	= 0;
 					
@@ -1166,6 +1279,17 @@ DHTPlugin
 					starts(
 						byte[] 				key ) 
 					{
+						synchronized( this ){
+
+							if ( started ){
+								
+								return;
+							}
+							
+							started = true;
+						}
+						
+						main_listener.starts( original_key );
 					}
 					
 					public void
@@ -1181,7 +1305,7 @@ DHTPlugin
 							
 							if ( complete_count < 2 ){
 						
-								listener.valueRead( originator, value );
+								main_listener.valueRead( originator, value );
 							}
 						}
 					}
@@ -1210,7 +1334,7 @@ DHTPlugin
 									// if we have reported any results then we can't report 
 									// timeout!
 								
-								listener.complete( key, result_count>0?false:timeout_occurred );
+								main_listener.complete( original_key, result_count>0?false:timeout_occurred );
 								
 								return;
 								
@@ -1270,55 +1394,6 @@ DHTPlugin
 			main_dht.get( v4_key, description, flags, max_values, timeout, exhaustive, high_priority, dual_listener );
 			
 			main_v6_dht.get( v6_key, description, flags, max_values, timeout, exhaustive, high_priority, dual_listener );
-		}
-		
-			// we don't really care about cvs as this is just for load testing not results
-
-		if ( cvs_dht != null ){
-			
-			new AEThread2( "multi-dht: get", true )
-			{
-				public void
-				run()
-				{
-					cvs_dht.get( 
-							key, description, flags, max_values, timeout, exhaustive, high_priority,
-							new DHTPluginOperationListener()
-							{
-								public void
-								diversified()
-								{
-								}
-								
-								public void 
-								starts(
-									byte[] 				key ) 
-								{
-								}
-								
-								public void
-								valueRead(
-									DHTPluginContact	originator,
-									DHTPluginValue		value )
-								{
-								}
-								
-								public void
-								valueWritten(
-									DHTPluginContact	target,
-									DHTPluginValue		value )
-								{
-								}
-								
-								public void
-								complete(
-									byte[]	key,
-									boolean	timeout_occurred )
-								{
-								}
-							});
-				}
-			}.start();
 		}
 	}
 	

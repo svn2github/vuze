@@ -103,6 +103,8 @@ DHTPluginStorageManager
 	private BloomFilter					kb_verify_fail_bloom;
 	private long						kb_verify_fail_bloom_create_time;
 	
+	private long	suspend_divs_until;
+	
 	private static RSAPublicKey key_block_public_key;
 	
 	static{
@@ -129,6 +131,36 @@ DHTPluginStorageManager
 		network		= _network;
 		log			= _log;
 		data_dir	= _data_dir;
+		
+		if ( network == DHT.NW_CVS ){
+			
+				// work around issue whereby puts to the CVS dht went out of control and
+				// diversified everything
+			
+			String key = "dht.plugin.sm.hack.kill.div.2";
+			
+			long suspend_start = COConfigurationManager.getLongParameter( key, 0 );
+				
+			long now = SystemTime.getCurrentTime();
+			
+			if ( suspend_start == 0 ){
+				
+				suspend_start = now;
+				
+				COConfigurationManager.setParameter( key, suspend_start );
+			}
+			
+			suspend_divs_until = suspend_start + 3*24*60*60*1000;
+			
+			if ( suspendDivs()){
+				
+				writeMapToFile( new HashMap(), "diverse" );
+				
+			}else{
+				
+				suspend_divs_until = 0;
+			}
+		}
 		
 		FileUtil.mkdirs(data_dir);
 		
@@ -924,22 +956,18 @@ DHTPluginStorageManager
 		}
 	}
 	
+	protected boolean
+	suspendDivs()
+	{
+		return( suspend_divs_until > 0 && suspend_divs_until > SystemTime.getCurrentTime());
+	}
+	
 	protected void
 	readDiversifications()
 	{
-		if ( network == DHT.NW_CVS ){
+		if ( suspendDivs()){
 			
-				// work around issue whereby puts to the CVS dht went out of control and
-				// diversified everything
-			
-			String key = "dht.plugin.sm.hack.kill.div.1";
-			
-			if ( !COConfigurationManager.getBooleanParameter( key, false )){
-				
-				COConfigurationManager.setParameter( key, true );
-				
-				return;
-			}
+			return;
 		}
 		
 		try{
@@ -1002,6 +1030,11 @@ DHTPluginStorageManager
 	protected void
 	writeDiversifications()
 	{
+		if ( suspendDivs()){
+			
+			return;
+		}
+		
 		try{
 			storage_mon.enter();
 	
