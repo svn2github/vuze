@@ -739,6 +739,11 @@ DHTPluginStorageManager
 		boolean			put_operation,
 		boolean			exhaustive )
 	{
+		if ( suspendDivs()){
+		
+			return( new byte[][]{ key });
+		}
+		
 		//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 		
 		HashWrapper	wrapper = new HashWrapper( key );
