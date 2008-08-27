@@ -33,6 +33,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author Olivier Chalouhi
@@ -419,10 +420,6 @@ public class GCStringPrinter
 				}
 			}
 		} finally {
-			if (!skipClip && !noDraw) {
-				gc.setClipping(oldClipping);
-			}
-
 			if (lines.size() > 0) {
 				// rebuild full text to get the exact y-extent of the output
 				// this may be different (but shouldn't be!) than the height of each
@@ -462,6 +459,11 @@ public class GCStringPrinter
 					}
 				}
 			}
+
+			if (!skipClip && !noDraw) {
+				gc.setClipping(oldClipping);
+			}
+
 		}
 		
 
@@ -1140,6 +1142,8 @@ public class GCStringPrinter
 			}
 
 			private GCStringPrinter buildSP(GC gc) {
+				//gc.setFont(Utils.getFontWithHeight(shell.getFont(), gc, 15));
+				//gc.setTextAntialias(SWT.ON);
 				Rectangle bounds = cPaint.getClientArea();
 
 				int style = btnWrap.getSelection() ? SWT.WRAP : 0;
