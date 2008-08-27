@@ -221,7 +221,7 @@ public class ColumnRatingGlobal
 			}
 
 			r = img.getBounds();
-
+			
 			if (color1 != null) {
 				gcImage.setForeground(color1);
 			}
@@ -246,8 +246,7 @@ public class ColumnRatingGlobal
 				}
 
 				Rectangle rectDrawRatings = new Rectangle(0, 0, width, height);
-				rectDrawRatings.width -= 3;
-				rectDrawRatings.y = r.y + 20;
+				rectDrawRatings.y = r.y + 21;
 				String sRatingInfo = count + " ratings";
 				Point ratingInfoExtent = gcImage.textExtent(sRatingInfo);
 				if (ratingInfoExtent.x > rectDrawRatings.width) {
