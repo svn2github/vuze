@@ -1,32 +1,33 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Layout;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.InputShell;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
@@ -159,6 +160,8 @@ public class FriendsToolbar
 		friendsLabel = new Label(content, SWT.NONE);
 		friendsLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
 				false));
+
+		hookTuxGoodies(friendsLabel);
 
 		/*
 		 * Initial Friends count
@@ -629,4 +632,60 @@ public class FriendsToolbar
 			soSash.setVisible(false);
 		}
 	}
+
+	private void hookTuxGoodies(Control control) {
+		if (!org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+			return;
+		}
+		Menu menu = new Menu(control);
+		MenuItem menuItem;
+		menuItem = new MenuItem(menu, SWT.PUSH);
+		menuItem.setText("buddy sync up");
+		menuItem.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (!LoginInfoManager.getInstance().isLoggedIn()) {
+					Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+							"not logged in. no can do");
+					return;
+				}
+				try {
+					PlatformRelayMessenger.fetch(0);
+					PlatformBuddyMessenger.sync(null);
+					PlatformBuddyMessenger.getInvites();
+				} catch (NotLoggedInException e1) {
+				}
+			}
+		});
+
+		menuItem = new MenuItem(menu, SWT.PUSH);
+		menuItem.setText("send msg to all buddies");
+		menuItem.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (!LoginInfoManager.getInstance().isLoggedIn()) {
+					Utils.openMessageBox(null, SWT.ICON_ERROR, "No",
+							"not logged in. no can do");
+					return;
+				}
+				InputShell is = new InputShell("Moo", "Message:");
+				String txt = is.open();
+				if (txt != null) {
+					VuzeActivitiesEntry entry = new VuzeActivitiesEntry(
+							SystemTime.getCurrentTime(), txt, "Test");
+					List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+					for (Iterator iter = buddies.iterator(); iter.hasNext();) {
+						VuzeBuddy buddy = (VuzeBuddy) iter.next();
+						System.out.println("sending to " + buddy.getDisplayName());
+						try {
+							buddy.sendActivity(entry);
+						} catch (NotLoggedInException e1) {
+							Debug.out("Shouldn't Happen", e1);
+						}
+					}
+				}
+			}
+		});
+
+		control.setMenu(menu);
+	}
+
 }

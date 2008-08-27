@@ -18,6 +18,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
@@ -45,6 +46,8 @@ public class AvatarWidget
 {
 	private static final boolean SHOW_ONLINE_BORDER = System.getProperty(
 			"az.buddy.show_online", "1").equals("1");
+
+	protected static final boolean OLD_DRAWNAME = false;
 
 	private Canvas canvas = null;
 
@@ -402,7 +405,7 @@ public class AvatarWidget
 
 				try {
 					e.gc.setAntialias(SWT.ON);
-					e.gc.setTextAntialias(SWT.ON);
+					//e.gc.setTextAntialias(SWT.ON);
 					e.gc.setAlpha(getAlpha());
 					e.gc.setInterpolation(SWT.HIGH);
 				} catch (Exception ex) {
@@ -534,63 +537,69 @@ public class AvatarWidget
 				//					stringPrinter.printString(e.gc, avatarNameBounds, SWT.CENTER);
 				//					e.gc.setFont(null);
 				if (!isCreatingFile) {
-
 					e.gc.setFont(fontDisplayName);
-					int width = 0;
-					String displayName = vuzeBuddy.getDisplayName();
-					StringBuffer displayed = new StringBuffer();
 
-					Image icon = null;
+					if (OLD_DRAWNAME) {
+  					int width = 0;
+  					String displayName = vuzeBuddy.getDisplayName();
+  					StringBuffer displayed = new StringBuffer();
+  
+  					Image icon = null;
+  
+  					if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
+  						icon = ImageRepository.getImage("friend_online_icon");
+  						width += icon.getBounds().width + 3;
+  					}
+  
+  					int dotWidth = e.gc.getAdvanceWidth('.');
+  					int maxWidth = nameAreaBounds.width;
+  
+  					for (int i = 0; i < displayName.length() && width < maxWidth; i++) {
+  						char nextChar = displayName.charAt(i);
+  						int extraWidth = e.gc.getAdvanceWidth(nextChar);
+  						if (width + 2 * dotWidth >= maxWidth) {
+  							//We only have room for 2 dot characters, let's simply check if we're processing the last one,
+  							// and if it fits in
+  							if (i == displayName.length() - 1
+  									&& (width + extraWidth <= maxWidth)) {
+  								displayed.append(nextChar);
+  								width += extraWidth;
+  							} else {
+  								displayed.append("..");
+  								width += 2 * dotWidth;
+  							}
+  						} else {
+  							displayed.append(nextChar);
+  							width += extraWidth;
+  						}
+  					}
+  
+  					int offset = (maxWidth - width) / 2;
+  					if (icon != null) {
+  						e.gc.drawImage(icon, offset + nameAreaBounds.x,
+  								nameAreaBounds.y + 1);
+  						offset += icon.getBounds().width + 1;
+  					}
+  
+  					e.gc.drawText(displayed.toString(), offset + nameAreaBounds.x,
+  							nameAreaBounds.y + 1, true);
+  
+  					//e.gc.fillRectangle(nameAreaBounds);
+					} else {
 
-					if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
-						icon = ImageRepository.getImage("friend_online_icon");
-						width += icon.getBounds().width + 3;
-					}
-
-					int dotWidth = e.gc.getAdvanceWidth('.');
-					int maxWidth = nameAreaBounds.width;
-
-					for (int i = 0; i < displayName.length() && width < maxWidth; i++) {
-						char nextChar = displayName.charAt(i);
-						int extraWidth = e.gc.getAdvanceWidth(nextChar);
-						if (width + 2 * dotWidth >= maxWidth) {
-							//We only have room for 2 dot characters, let's simply check if we're processing the last one,
-							// and if it fits in
-							if (i == displayName.length() - 1
-									&& (width + extraWidth <= maxWidth)) {
-								displayed.append(nextChar);
-								width += extraWidth;
-							} else {
-								displayed.append("..");
-								width += 2 * dotWidth;
-							}
+						if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
+							GCStringPrinter stringPrinter = new GCStringPrinter(e.gc, "%0 "
+									+ vuzeBuddy.getDisplayName(), nameAreaBounds, false, false,
+									SWT.TOP | SWT.CENTER | SWT.WRAP);
+							stringPrinter.setImages(new Image[] {
+								ImageRepository.getImage("friend_online_icon")
+							});
+							stringPrinter.printString();
 						} else {
-							displayed.append(nextChar);
-							width += extraWidth;
+							GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
+									nameAreaBounds, false, false, SWT.TOP | SWT.CENTER | SWT.WRAP);
 						}
 					}
-
-					int offset = (maxWidth - width) / 2;
-					if (icon != null) {
-						e.gc.drawImage(icon, offset + nameAreaBounds.x,
-								nameAreaBounds.y + 1);
-						offset += icon.getBounds().width + 1;
-					}
-
-					e.gc.drawText(displayed.toString(), offset + nameAreaBounds.x,
-							nameAreaBounds.y + 1, true);
-
-					//e.gc.fillRectangle(nameAreaBounds);
-
-					/*if(SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
-						GCStringPrinter stringPrinter = new GCStringPrinter(e.gc,"%0 " + vuzeBuddy.getDisplayName(),
-								nameAreaBounds, false, true, SWT.CENTER);
-						stringPrinter.setImages(new Image[] {});
-						stringPrinter.printString();
-					} else {
-						GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
-								nameAreaBounds, false, true, SWT.CENTER);
-					}*/
 
 				} else {
 

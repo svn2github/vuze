@@ -1,9 +1,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -13,19 +10,13 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -40,13 +31,12 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.FAQTopics;
+
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 public class BuddiesViewer
 	extends SkinView
@@ -268,7 +258,7 @@ public class BuddiesViewer
 			avatarImageBorder = 1;
 			hSpacing = 1;
 			avatarImageSize = new Point(40, 40);
-			avatarNameSize = new Point(60, 16);
+			avatarNameSize = new Point(60, 26);
 			avatarSize = new Point(0, 0);
 			avatarSize.x = Math.max(avatarNameSize.x, avatarImageSize.x)
 					+ (2 * (avatarHightLightBorder + avatarImageBorder));
@@ -306,7 +296,7 @@ public class BuddiesViewer
 
 			hookFAQLink();
 		}
-
+		
 		return null;
 
 	}
