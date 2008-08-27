@@ -67,12 +67,12 @@ public class TableColumnCreatorV3
 			/*
 			 * Initially visible
 			 */
-			show(new ColumnThumbnail(tableID, 73, 5)),
+			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
-			show(new StatusItem(tableID)),
+			show(new StatusItem(tableID, false)),
 			show(new ETAItem(tableID)),
 			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
@@ -128,12 +128,12 @@ public class TableColumnCreatorV3
 			/*
 			 * Initially visible
 			 */
-			show(new ColumnThumbnail(tableID, 73, 5)),
+			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
-			show(new StatusItem(tableID)),
+			show(new StatusItem(tableID, false)),
 			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
 

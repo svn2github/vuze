@@ -428,7 +428,7 @@ public class SBC_LibraryListView
 			new ColumnRate(tableID, true),
 			new ColumnTitle(tableID),
 			new SizeItem(tableID),
-			new StatusItem(tableID),
+			new StatusItem(tableID, false),
 			new ColumnDateCompleted2Liner(tableID, true),
 			new ColumnDateAdded2Liner(tableID, true),
 			new ColumnProgressETA(tableID),

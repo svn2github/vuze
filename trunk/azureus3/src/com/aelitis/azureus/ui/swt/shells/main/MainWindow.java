@@ -1703,7 +1703,7 @@ public class MainWindow
 
 		SWTSkinObject so = skin.getSkinObject("sidebar-list");
 		if (so != null) {
-			so.getControl().addListener(SWT.Resize, new Listener() {
+			Listener l = new Listener() {
 				public void handleEvent(Event event) {
 					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");
 					if (soSearchArea != null) {
@@ -1718,7 +1718,8 @@ public class MainWindow
 						Utils.relayout(c);
 					}
 				}
-			});
+			};
+			so.getControl().addListener(SWT.Resize, l);
 		}
 
 		so = skin.getSkinObject("search-dropdown");

@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -177,7 +178,7 @@ public class ColumnThumbnail
 		if (null != thumbnailImage) {
 
 			int cellWidth = cell.getWidth();
-			int cellHeight = 40;//cell.getHeight(); KN HARDCODE!!!!: getHeight() is returning 4 so have to hardcode until fixed
+			int cellHeight = 32;//cell.getHeight(); KN HARDCODE!!!!: getHeight() is returning 4 so have to hardcode until fixed
 			Rectangle bounds = thumbnailImage.getBounds();
 
 			/*
@@ -190,6 +191,11 @@ public class ColumnThumbnail
 				Image resizedImage = new Image(Display.getDefault(), cellWidth,
 						cellHeight);
 				GC gc = new GC(resizedImage);
+				try {
+					gc.setAdvanced(true);
+					gc.setInterpolation(SWT.HIGH);
+				} catch (Exception e) {
+				}
 				gc.drawImage(thumbnailImage, 0, 0, bounds.width, bounds.height, 0, 0,
 						cellWidth, cellHeight);
 

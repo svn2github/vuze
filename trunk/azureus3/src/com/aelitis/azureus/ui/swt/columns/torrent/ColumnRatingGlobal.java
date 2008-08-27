@@ -100,7 +100,6 @@ public class ColumnRatingGlobal
 			PlatformRatingMessenger.addListener(this);
 			cell.addListeners(this);
 			cell.setMarginWidth(5);
-			cell.setMarginHeight(5);
 
 			dm = getDM(cell.getDataSource());
 			if (dm != null) {
@@ -177,7 +176,7 @@ public class ColumnRatingGlobal
 			}
 
 			int width = cell.getWidth();
-			int height = 50;//cell.getHeight(); KN: HARDCODE!!!
+			int height = 34;//cell.getHeight(); KN: HARDCODE!!!
 			if (width <= 0 || height <= 0) {
 				return;
 			}
@@ -185,12 +184,18 @@ public class ColumnRatingGlobal
 			/*
 			 * Creates a blank image to paint the rating on top of
 			 */
-			Image img = new Image(Display.getDefault(), width, height);
+			Graphic bgGraphic = cell.getBackgroundGraphic();
+			Image img;
+			if (bgGraphic instanceof UISWTGraphic) {
+				img = ((UISWTGraphic)bgGraphic).getImage();
+			} else {
+				img = new Image(Display.getDefault(), width, height);
+			}
 			GC gcImage = new GC(img);
 			Rectangle r = img.getBounds();
 
-			int bigTextStyle = SWT.TOP | SWT.RIGHT | SWT.DRAW_TRANSPARENT;
-			int smallTextStyle = SWT.RIGHT | SWT.DRAW_TRANSPARENT;
+			int bigTextStyle = SWT.TOP | SWT.RIGHT;
+			int smallTextStyle = SWT.RIGHT;
 
 			if (font == null) {
 				// no sync required, SWT is on single thread
@@ -257,20 +262,13 @@ public class ColumnRatingGlobal
 						true, false, SWT.TOP | smallTextStyle);
 			}
 
-			/*
-			 * Creates a new image so we can set it's transparency
-			 */
-			ImageData imageData = img.getImageData();
-			imageData.transparentPixel = imageData.getPixel(0, 0);
-			Graphic graphic = new UISWTGraphicImpl(new Image(Display.getDefault(),
-					imageData));
+			Graphic graphic = new UISWTGraphicImpl(img);
 
 			disposeOldImage(cell);
 
 			cell.setGraphic(graphic);
 
 			gcImage.dispose();
-			img.dispose();
 
 		}
 
