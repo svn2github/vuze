@@ -117,7 +117,6 @@ public class SBC_LibraryListView
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
-		System.out.println("big? " + big + " ;" + skinObject);
 
 		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
 

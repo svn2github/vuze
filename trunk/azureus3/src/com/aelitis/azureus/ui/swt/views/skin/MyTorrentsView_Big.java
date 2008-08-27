@@ -15,14 +15,16 @@ public class MyTorrentsView_Big
 	public MyTorrentsView_Big(AzureusCore _azureus_core, boolean isSeedingView,
 			TableColumnCore[] basicItems) {
 		super(_azureus_core, isSeedingView, basicItems);
+		setForceHeaderVisible(true);
 	}
 
 	protected TableViewSWT createTableView(TableColumnCore[] basicItems) {
-		return new TableViewSWTImpl(isSeedingView
+		TableViewSWTImpl tv = new TableViewSWTImpl(isSeedingView
 				? TableManager.TABLE_MYTORRENTS_COMPLETE_BIG
 				: TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, "MyTorrentsView_Big",
 				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL
 						| SWT.BORDER);
+		return tv;
 	}
 
 	protected int getRowDefaultHeight() {
