@@ -45,12 +45,18 @@ public class StatusItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-	/** Default Constructor */
-	public StatusItem(String sTableID) {
+	private final boolean changeRowFG;
+
+	public StatusItem(String sTableID, boolean changeRowFG) {
 		super("status", POSITION_LAST, 80, sTableID);
+		this.changeRowFG = changeRowFG;
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 
+	public StatusItem(String sTableID) {
+		this(sTableID, true);
+	}
+	
 	public void refresh(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 
@@ -68,7 +74,11 @@ public class StatusItem
 				} else {
 					color = null;
 				}
-				row.setForeground(Utils.colorToIntArray(color));
+				if (changeRowFG) {
+					row.setForeground(Utils.colorToIntArray(color));
+				} else {
+					cell.setForeground(Utils.colorToIntArray(color));
+				}
 			}
 		}
 
