@@ -925,6 +925,39 @@ TorrentUtils
 		return( null );
 	}
 	
+	public static void
+	setTLSDescription(
+		String		desc )
+	{
+		((Map)tls.get()).put( "desc", desc );
+	}
+	
+	public static String
+	getTLSDescription()
+	{
+		return((String)((Map)tls.get()).get( "desc" ));
+	}
+	
+		/**
+		 * get tls for cloning onto another thread
+		 * @return
+		 */
+	
+	public static Object
+	getTLS()
+	{
+		return( tls.get());
+	}
+	
+	public static void
+	setTLS(
+		Object	obj )
+	{
+		Map	m = (Map)obj;
+		
+		((Map)tls.get()).putAll(m);
+	}
+	
 	public static URL
 	getDecentralisedEmptyURL()
 	{

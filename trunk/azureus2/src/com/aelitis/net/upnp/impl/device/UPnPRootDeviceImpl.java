@@ -93,7 +93,7 @@ UPnPRootDeviceImpl
 		usn					= _usn;
 		location			= _location;
 		
-		SimpleXMLParserDocument	doc = upnp.downloadXML( location );
+		SimpleXMLParserDocument	doc = upnp.downloadXML( this, location );
 			
 		SimpleXMLParserDocumentNode url_base_node = doc.getChild("URLBase");
 		

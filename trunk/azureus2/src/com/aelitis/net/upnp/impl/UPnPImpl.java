@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ThreadPool;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
@@ -480,11 +481,12 @@ UPnPImpl
 	
 	public SimpleXMLParserDocument
 	downloadXML(
-		URL				url )
+		UPnPRootDeviceImpl	root,
+		URL					url )
 	
 		throws UPnPException
 	{
-		return( downloadXML( null, url ));
+		return( downloadXMLSupport( null, url ));
 	}
 	
 	public SimpleXMLParserDocument
@@ -502,7 +504,7 @@ UPnPImpl
 				device.restoreRelativeBaseURL();
 			}
 			
-			return( downloadXMLSupport( device, url ));
+			return( downloadXMLSupport( device.getFriendlyName(), url ));
 			
 		}catch( UPnPException e ){
 			
@@ -510,7 +512,7 @@ UPnPImpl
 				
 				device.clearRelativeBaseURL();
 				
-				return( downloadXMLSupport( device, url ));
+				return( downloadXMLSupport( device.getFriendlyName(), url ));
 			}
 			
 			throw( e );
@@ -519,12 +521,14 @@ UPnPImpl
 	
 	protected SimpleXMLParserDocument
 	downloadXMLSupport(
-		UPnPDeviceImpl	device,
+		String			friendly_name,
 		URL				url )
 	
 		throws UPnPException
 	{
 		try{
+			TorrentUtils.setTLSDescription( "UPnP Device" + ( friendly_name==null?"":( ": " + friendly_name )));
+			
 			ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
 				
 			ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url, true ), 3 );
@@ -550,7 +554,11 @@ UPnPImpl
 			}
 			
 			throw( new UPnPException( "Root device location '" + url + "' - data read failed", e ));
-		}	
+			
+		}finally{
+			
+			TorrentUtils.setTLSDescription( null );
+		}
 	}
 	
 	protected boolean
@@ -624,64 +632,71 @@ UPnPImpl
 		adapter.trace( "UPnP:Request: -> " + control + "," + request );
 
 		if (use_http_connection) {
-			HttpURLConnection	con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
-				
-			con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
-				
-			con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
-				
-			con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
-				
-			con.setRequestMethod( "POST" );
-				
-			con.setDoInput( true );
-			con.setDoOutput( true );
-				
-			OutputStream	os = con.getOutputStream();
-				
-			PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-							
-			pw.println( request );
-				
-			pw.flush();
-		
-			con.connect();
-				
-			if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+			
+			try{
+				TorrentUtils.setTLSDescription( "UPnP Device: " + service.getDevice().getFriendlyName());
+			
+				HttpURLConnection	con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
 					
-				// gotta retry with M-POST method
-									
-				con = (HttpURLConnection)control.openConnection();
+				con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 					
 				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
 					
-				con.setRequestMethod( "M-POST" );
+				con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
 					
-				con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-		
-				con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+				con.setRequestMethod( "POST" );
 					
 				con.setDoInput( true );
 				con.setDoOutput( true );
 					
-				os = con.getOutputStream();
+				OutputStream	os = con.getOutputStream();
 					
-				pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+				PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
 								
 				pw.println( request );
 					
 				pw.flush();
-		
+			
 				con.connect();
+					
+				if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+						
+					// gotta retry with M-POST method
+										
+					con = (HttpURLConnection)control.openConnection();
+						
+					con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+						
+					con.setRequestMethod( "M-POST" );
+						
+					con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+			
+					con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+						
+					con.setDoInput( true );
+					con.setDoOutput( true );
+						
+					os = con.getOutputStream();
+						
+					pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
+									
+					pw.println( request );
+						
+					pw.flush();
+			
+					con.connect();
+					
+					return( parseXML(con.getInputStream()));	
+						
+				}else{
+						
+					return( parseXML(con.getInputStream()));
+				}
+			}finally{
 				
-				return( parseXML(con.getInputStream()));	
-					
-			}else{
-					
-				return( parseXML(con.getInputStream()));
+				TorrentUtils.setTLSDescription( null );
 			}
-		}
-		else {
+		}else{
 			Socket	socket = new Socket(control.getHost(), control.getPort());
 			
 			try{

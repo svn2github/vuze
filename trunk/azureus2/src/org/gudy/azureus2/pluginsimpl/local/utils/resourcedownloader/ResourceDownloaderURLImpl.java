@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -356,17 +357,28 @@ ResourceDownloaderURLImpl
 	public void
 	asyncDownload()
 	{
+		final Object	parent_tls = TorrentUtils.getTLS();
+
 		AEThread2	t = 
 			new AEThread2( "ResourceDownloader:asyncDownload", true )
 			{
 				public void
 				run()
 				{
+					Object	child_tls = TorrentUtils.getTLS();
+					
+					TorrentUtils.setTLS( parent_tls );
+					
 					try{
 						download();
 						
 					}catch ( ResourceDownloaderException e ){
+						
+					}finally{
+						
+						TorrentUtils.setTLS( child_tls );
 					}
+					
 				}
 			};
 					

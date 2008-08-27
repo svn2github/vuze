@@ -299,7 +299,7 @@ AuthenticatorWindow
 	protected String[]
 	getAuthenticationDialog(
 		final String		realm,
-		final String		tracker )
+		final String		location )
 	{
 		final Display	display = SWTThread.getInstance().getDisplay();
 		
@@ -314,15 +314,19 @@ AuthenticatorWindow
 		
 		TOTorrent		torrent = TorrentUtils.getTLSTorrent();
 		
-		final	String	torrent_name;
+		final	boolean	is_tracker;
+		final	String	details;
 		
 		if ( torrent == null ){
 			
-			torrent_name	= null;
+			is_tracker 	= false;
+			
+			details		= TorrentUtils.getTLSDescription();
 			
 		}else{
 			
-			torrent_name	= TorrentUtils.getLocalisedName( torrent );
+			details		= TorrentUtils.getLocalisedName( torrent );
+			is_tracker	= true;
 		}
 		
 		try{
@@ -332,7 +336,7 @@ AuthenticatorWindow
 					public void
 					runSupport()
 					{
-						dialog[0] = new authDialog( sem, display, realm, tracker, torrent_name );
+						dialog[0] = new authDialog( sem, display, realm, is_tracker, location, details );
 					}
 				});
 		}catch( Throwable e ){
@@ -341,6 +345,7 @@ AuthenticatorWindow
 			
 			return( null );
 		}
+		
 		sem.reserve();
 		
 		String	user 	= dialog[0].getUsername();
@@ -359,7 +364,7 @@ AuthenticatorWindow
 	authDialog
 	{
 		private Shell			shell;
-		private AESemaphore	sem;
+		private AESemaphore		sem;
 		
 		private String		username;
 		private String		password;
@@ -370,8 +375,9 @@ AuthenticatorWindow
 			AESemaphore		_sem,
 			Display			display,
 			String			realm,
-			String			tracker,
-			String			torrent_name )
+			boolean			is_tracker,
+			String			target,
+			String			details )
 		{
 			sem	= _sem;
 			
@@ -408,33 +414,33 @@ AuthenticatorWindow
 			gridData.horizontalSpan = 2;
 			realm_value.setLayoutData(gridData);
 	    
-	    		// tracker
+	    		// target
 			
-			Label tracker_label = new Label(shell,SWT.NULL);
-			Messages.setLanguageText(tracker_label, "authenticator.tracker");
+			Label target_label = new Label(shell,SWT.NULL);
+			Messages.setLanguageText(target_label, is_tracker?"authenticator.tracker":"authenticator.location");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
-			tracker_label.setLayoutData(gridData);
+			target_label.setLayoutData(gridData);
 			
-			Label tracker_value = new Label(shell,SWT.NULL);
-			tracker_value.setText(tracker.replaceAll("&", "&&"));
+			Label target_value = new Label(shell,SWT.NULL);
+			target_value.setText(target.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
-			tracker_value.setLayoutData(gridData);
+			target_value.setLayoutData(gridData);
 	    		
-			if ( torrent_name != null ){
+			if ( details != null ){
 				
-				Label torrent_label = new Label(shell,SWT.NULL);
-				Messages.setLanguageText(torrent_label, "authenticator.torrent");
+				Label details_label = new Label(shell,SWT.NULL);
+				Messages.setLanguageText(details_label, is_tracker?"authenticator.torrent":"authenticator.details");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
-				torrent_label.setLayoutData(gridData);
+				details_label.setLayoutData(gridData);
 				
-				Label torrent_value = new Label(shell,SWT.NULL);
-				torrent_value.setText(torrent_name.replaceAll("&", "&&"));
+				Label details_value = new Label(shell,SWT.NULL);
+				details_value.setText(details.replaceAll("&", "&&"));
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
-				torrent_value.setLayoutData(gridData);
+				details_value.setLayoutData(gridData);
 			}
 	    		// user
 	    		

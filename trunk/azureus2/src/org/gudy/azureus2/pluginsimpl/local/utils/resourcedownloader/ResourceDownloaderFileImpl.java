@@ -25,9 +25,10 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderCancelledException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
@@ -142,11 +143,18 @@ ResourceDownloaderFileImpl
 								
 				informActivity( getLogIndent() + ( file.isDirectory()?"Processing: ":"Downloading: " ) + getName());
 				
-				Thread t = new AEThread( "ResourceDownloaderTimeout")
+				final Object	parent_tls = TorrentUtils.getTLS();
+				
+				AEThread2 t = 
+					new AEThread2( "ResourceDownloaderTimeout", true )
 					{
 						public void
-						runSupport()
+						run()
 						{
+							Object	child_tls = TorrentUtils.getTLS();
+							
+							TorrentUtils.setTLS( parent_tls );
+							
 							try{
 								
 									// download of a local dir -> null inputstream
@@ -165,12 +173,14 @@ ResourceDownloaderFileImpl
 								failed( ResourceDownloaderFileImpl.this, new ResourceDownloaderException( "Failed to read file", e ));
 								
 								Debug.printStackTrace( e );
+								
+							}finally{
+								
+								TorrentUtils.setTLS( child_tls );
 							}
 						}
 					};
-				
-				t.setDaemon(true);
-		
+						
 				t.start();
 			}
 		}finally{
