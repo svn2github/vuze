@@ -211,8 +211,11 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		
 		Image image = new Image(table.getDisplay(), bounds.width, bounds.height);
 		
-		GC gc = new GC(table);
-		gc.copyArea(image, bounds.x, bounds.y);
+		GC gc = new GC(image);
+		gc.setForeground(getBackground());
+		gc.setBackground(getBackground());
+		gc.fillRectangle(0, 0, bounds.width, bounds.height);
+		//gc.copyArea(image, bounds.x, bounds.y);
 		gc.dispose();
 		
 		return image;
