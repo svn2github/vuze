@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
@@ -321,4 +322,25 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   public void setOrientation(int orientation) {
   	this.orientation = orientation;
   }
+  
+  public Image getBackgroundImage() {
+		Table table = row.getTable();
+		
+		Rectangle bounds = getBounds();
+		
+		if (bounds.isEmpty()) {
+			return null;
+		}
+		
+		Image image = new Image(Display.getDefault(), bounds.width
+				- (marginWidth * 2), bounds.height - (marginHeight * 2));
+		
+		GC gc = new GC(image);
+		gc.setForeground(getBackground());
+		gc.setBackground(getBackground());
+		gc.fillRectangle(0, 0, bounds.width, bounds.height);
+		gc.dispose();
+		
+		return image;
+	}
 }
