@@ -211,9 +211,10 @@ SubscriptionManagerUI
 			menu_item_ctorrents.addMultiListener( listener );	
 		}
 		
-			// make assoc
+			// make assoc - CVS only as for testing purposes
 		
-		{
+		if ( Constants.isCVSVersion()){
+		
 			final TableContextMenuItem menu_item_itorrents = 
 				table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
 			final TableContextMenuItem menu_item_ctorrents 	= 
