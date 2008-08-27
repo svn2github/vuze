@@ -511,6 +511,9 @@ public class MyTorrentsView
 						curButton = (Button) controls[0];
 
 					for (int i = 0; i < controls.length; i++) {
+						if (!(controls[i] instanceof Button)) {
+							continue;
+						}
 						Button b = (Button) controls[i];
 						if (b != curButton && b.getSelection())
 							b.setSelection(false);
