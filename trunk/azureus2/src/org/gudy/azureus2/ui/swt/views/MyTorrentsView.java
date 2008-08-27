@@ -136,6 +136,8 @@ public class MyTorrentsView
 	private TableViewSWT tv;
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
+	private boolean forceHeaderVisible = false;
+	private Label lblFilter;
 
   /**
    * Initialize
@@ -319,12 +321,20 @@ public class MyTorrentsView
     cTablePanel.layout();
     return cTablePanel;
   }
+  
+  public void setForceHeaderVisible(boolean forceHeaderVisible) {
+		this.forceHeaderVisible  = forceHeaderVisible;
+		if (cTablePanel != null && !cTablePanel.isDisposed()) {
+			createTabs();
+		}
+  }
 
   private void createTabs() {
     GridData gridData;
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
     boolean showCat = sLastSearch.length() > 0;
+    boolean show = showCat || forceHeaderVisible;
     if (!showCat)
 	    for(int i = 0; i < categories.length; i++) {
 	        if(categories[i].getType() == Category.TYPE_USER) {
@@ -340,7 +350,9 @@ public class MyTorrentsView
           controls[i].dispose();
         }
     	}
-    } else {
+    }
+    
+    if (show) {
       if (cCategories == null) {
         Composite parent = cTableParentPanel;
 
@@ -354,6 +366,7 @@ public class MyTorrentsView
         rowLayout.marginRight = 0;
         rowLayout.spacing = 0;
         rowLayout.wrap = true;
+        new Label(cCategories, SWT.NONE);
         cCategories.setLayout(rowLayout);
 
         cHeader = new Composite(parent, SWT.NONE);
@@ -378,7 +391,7 @@ public class MyTorrentsView
         gridData.heightHint = 5;
         lblSep.setLayoutData(gridData);
         
-        Label lblFilter = new Label(cHeader, SWT.WRAP);
+        lblFilter = new Label(cHeader, SWT.WRAP);
         gridData = new GridData(GridData.BEGINNING);
         lblFilter.setLayoutData(gridData);
         Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
@@ -436,360 +449,386 @@ public class MyTorrentsView
           controls[i].dispose();
         }
       }
+      
+      txtFilter.setVisible(showCat);
+      lblX.setVisible(showCat);
+      lblFilter.setVisible(showCat);
 
-      int iFontPixelsHeight = 11;
-      int iFontPointHeight = (iFontPixelsHeight * 72) / cCategories.getDisplay().getDPI().y;
-      for (int i = 0; i < categories.length; i++) {
-    	final Category category = categories[i];
-    	
-        final Button catButton = new Button(cCategories, SWT.TOGGLE);
-        catButton.addKeyListener(this);
-        if (i == 0 && fontButton == null) {
-          Font f = catButton.getFont();
-          FontData fd = f.getFontData()[0];
-          fd.setHeight(iFontPointHeight);
-          fontButton = new Font(cCategories.getDisplay(), fd);
-        }
-        catButton.setText("|");
-        catButton.setFont(fontButton);
-        catButton.pack(true);
-        if (catButton.computeSize(100,SWT.DEFAULT).y > 0) {
-          RowData rd = new RowData();
-          rd.height = catButton.computeSize(100,SWT.DEFAULT).y - 2 + catButton.getBorderWidth() * 2;
-          catButton.setLayoutData(rd);
-        }
-
-        String name = category.getName();
-        if (category.getType() == Category.TYPE_USER)
-          catButton.setText(name);
-        else
-          Messages.setLanguageText(catButton, name);
-
-        catButton.setData("Category", category);
-        if (category == currentCategory) {
-          catButton.setSelection(true);
-        }
-
-        catButton.addSelectionListener(new SelectionAdapter() {
-          public void widgetSelected(SelectionEvent e) {
-            Button curButton = (Button)e.widget;
-            boolean isEnabled = curButton.getSelection();
-            Control[] controls = cCategories.getChildren();
-            if (!isEnabled)
-              curButton = (Button)controls[0];
-
-            for (int i = 0; i < controls.length; i++) {
-              Button b = (Button)controls[i];
-              if (b != curButton && b.getSelection())
-                b.setSelection(false);
-              else if (b == curButton && !b.getSelection())
-                b.setSelection(true);
-            }
-            activateCategory( (Category)curButton.getData("Category") );
-          }
-        });
-        
-        catButton.addListener(SWT.MouseHover, new Listener() {
-        	public void handleEvent(Event event) {
-            Button curButton = (Button)event.widget;
-            Category curCategory = (Category)curButton.getData("Category");
-            List dms = curCategory.getDownloadManagers(globalManager.getDownloadManagers());
-            
-            long ttlActive = 0;
-            long ttlSize = 0;
-            long ttlRSpeed = 0;
-            long ttlSSpeed = 0;
-            int count = 0;
-            for (Iterator iter = dms.iterator(); iter.hasNext();) {
-            	DownloadManager dm = (DownloadManager) iter.next();
-
-            	if (!isInCategory(dm, currentCategory ))
-            		continue;
-
-            	count++;
-            	if (dm.getState() == DownloadManager.STATE_DOWNLOADING
-            			|| dm.getState() == DownloadManager.STATE_SEEDING)
-            		ttlActive++;
-            	ttlSize += dm.getSize();
-            	ttlRSpeed += dm.getStats().getDataReceiveRate();
-            	ttlSSpeed += dm.getStats().getDataSendRate();
-            }
-
-            String 	up_details		= "";
-            String	down_details	= "";
-            
-		    if ( category.getType() != Category.TYPE_ALL ){
-		        	 
-	            String up_str 	= MessageText.getString( "GeneralView.label.maxuploadspeed" );
-	            String down_str = MessageText.getString( "GeneralView.label.maxdownloadspeed" );
-	            String unlimited_str = MessageText.getString( "MyTorrentsView.menu.setSpeed.unlimited" );
-	             
-	            int	up_speed 	= category.getUploadSpeed();
-	            int	down_speed 	= category.getDownloadSpeed();
-	            
-	            up_details 		= up_str + ": " + (up_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(up_speed));
-	            down_details 	= down_str + ": " + (down_speed==0?unlimited_str:DisplayFormatters.formatByteCountToKiBEtc(down_speed));
-		    }
-		    
-            if (count == 0) {
-            	curButton.setToolTipText( down_details + "\n" + up_details + "\nTotal: 0" );
-            	return;
-            }
-            
-            curButton.setToolTipText(
-            		(up_details.length()==0?"":( down_details + "\n" + up_details + "\n" )) +
-            		"Total: " + count + "\n"
-            		+ "Downloading/Seeding: " + ttlActive + "\n"
-            		+ "\n"
-            		+ "Speed: "
-            		+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlRSpeed / count) + "/" 
-            		+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlSSpeed / count) + "\n"
-            		+ "Size: " + DisplayFormatters.formatByteCountToKiBEtc(ttlSize));
-        	}
-        });
-
-        final DropTarget tabDropTarget = new DropTarget(catButton, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-        Transfer[] types = new Transfer[] { TextTransfer.getInstance()};
-        tabDropTarget.setTransfer(types);
-        tabDropTarget.addDropListener(new DropTargetAdapter() {
-          public void dragOver(DropTargetEvent e) {
-            if(drag_drop_line_start >= 0)
-              e.detail = DND.DROP_MOVE;
-            else
-              e.detail = DND.DROP_NONE;
-          }
-
-          public void drop(DropTargetEvent e) {
-            e.detail = DND.DROP_NONE;
-            //System.out.println("DragDrop on Button:" + drag_drop_line_start);
-            if(drag_drop_line_start >= 0) {
-              drag_drop_line_start = -1;
-              drag_drop_rows = null;
-
-              TorrentUtil.assignToCategory(tv.getSelectedDataSources(), (Category)catButton.getData("Category"));
-            }
-          }
-        });
-        
-        catButton.addDisposeListener(new DisposeListener() {
-					public void widgetDisposed(DisposeEvent e) {
-						if (tabDropTarget != null && !tabDropTarget.isDisposed()) {
-							tabDropTarget.dispose();
-						}
-					}
-        });
-
-    	final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
-
-        catButton.setMenu(menu);
-        
-    	menu.addMenuListener(
-    		new MenuListener() 
-    		{
-    	    	boolean bShown = false;
-    	    	
-    			public void 
-    			menuHidden(
-    				MenuEvent e )
-    			{
-    				bShown = false;
-
-    				if (Constants.isOSX)
-    					return;
-
-    				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
-    				// get fired (async workaround provided by Eclipse Bug #87678)
-
-    				e.widget.getDisplay().asyncExec(new AERunnable() {
-    					public void runSupport() {
-    						if (bShown || menu.isDisposed())
-    							return;
-    						MenuItem[] items = menu.getItems();
-    						for (int i = 0; i < items.length; i++) {
-    							items[i].dispose();
-    						}
-    					}
-    				});
-    			}
-
-    			public void 
-    			menuShown(
-    				MenuEvent e) 
-    			{
-    				MenuItem[] items = menu.getItems();
-    				for (int i = 0; i < items.length; i++)
-    					items[i].dispose();
-
-    				bShown = true;
-
-    		        if ( category.getType() == Category.TYPE_USER ){
-    		        	
-	    		        final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
-	    		       
-	    		        Messages.setLanguageText(itemDelete, "MyTorrentsView.menu.category.delete");
-	    		        
-	    		        menu.setDefaultItem(itemDelete);
-
-	       		        itemDelete.addListener(SWT.Selection, new Listener() {
-	    		        	public void handleEvent(Event event) {
-	    		        		Category catToDelete = (Category)catButton.getData("Category");
-	    		        		if (catToDelete != null) {
-	    		        			java.util.List managers = catToDelete.getDownloadManagers(globalManager.getDownloadManagers());
-	    		        			// move to array,since setcategory removed it from the category,
-	    		        			// which would mess up our loop
-	    		        			DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
-	    		        			for (int i = 0; i < dms.length; i++) {
-	    		        				dms[i].getDownloadState().setCategory(null);
-	    		        			}
-	    		        			if (currentCategory == catToDelete){
-
-	    		        				activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
-
-	    		        			}else{
-	    		        				// always activate as deletion of this one might have
-	    		        				// affected the current view 
-	    		        				activateCategory(  currentCategory );
-	    		        			}
-	    		        			CategoryManager.removeCategory(catToDelete);
-	    		        		}
-	    		        	}
-	    		        });
-    		        }
-    		        
-    		        if ( category.getType() != Category.TYPE_ALL ){
-
-	    				long maxDownload = COConfigurationManager.getIntParameter("Max Download Speed KBs", 0) * 1024;
-	    				long maxUpload = COConfigurationManager.getIntParameter("Max Upload Speed KBs", 0) * 1024;
-	
-	       				int	down_speed 	= category.getDownloadSpeed();
-	       				int	up_speed 	= category.getUploadSpeed();
-	       			        				
-	    		        ViewUtils.addSpeedMenu( 
-	    		        		menu.getShell(), menu, true, true, 
-	    		        		false, down_speed==0, down_speed, down_speed, maxDownload, 
-	    		        		false, up_speed==0, up_speed, up_speed, maxUpload, 
-	    		        		1, 
-	    		        		new SpeedAdapter()
-	    		        		{
-	    		        			public void 
-	    		        			setDownSpeed(int val) 
-	    		        			{
-	    		        				category.setDownloadSpeed( val );
-	    		        			}
-	    		        			public void 
-	    		        			setUpSpeed(int val) 
-	    		        			{
-	    		        				category.setUploadSpeed( val );
-	
-	    		        			}
-	    		        		});
-    		        }
-    		        
-	        		java.util.List managers = category.getDownloadManagers(globalManager.getDownloadManagers());
-
-	        		final DownloadManager dms[] = (DownloadManager [])managers.toArray(new DownloadManager[managers.size()]);
-
-	        		boolean	start 	= false;
-	        		boolean	stop	= false;
-	        		
-	        		for (int i=0;i<dms.length;i++){
-	        			
-	        			DownloadManager dm = dms[i];
-	        			
-	    				stop = stop || ManagerUtils.isStopable(dm);
-
-	    				start = start || ManagerUtils.isStartable(dm);
-
-	        		}
-	        		
-	        		// Queue
-	        		
-	        		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
-	        		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
-	        		Utils.setMenuItemImage(itemQueue, "start");
-	        		itemQueue.addListener(SWT.Selection, new Listener(){
-    					public void handleEvent(Event event) {
-    						TorrentUtil.queueTorrents(dms, menu.getShell());
-    					}
-    				});
-	        		itemQueue.setEnabled(start);
-	        		
-	        		// Stop
-	        		
-	        		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-	        		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
-	        		Utils.setMenuItemImage(itemStop, "stop");
-	        		itemStop.addListener(SWT.Selection, new Listener(){
-    					public void handleEvent(Event event) {
-    						TorrentUtil.stopTorrents(dms, menu.getShell());
-    					}
-    				});
-	        		itemStop.setEnabled(stop);
-	        		
-	        		// options
-	        		
-    				MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
-    				
-    				Messages.setLanguageText(itemOptions, "MainWindow.menu.view.configuration");
-    				itemOptions.addListener(SWT.Selection, new Listener(){
-    					public void handleEvent(Event event) {
-    						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
- 
-    						uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
-    					}
-    				});
-	        		
-    				if ( dms.length == 0 ){
-    					
-    					itemOptions.setEnabled( false );
-    				}
-    			}
-    		});
+      if (showCat) {
+      	buildCat(categories);
       }
-     
-
-      cCategories.layout();
-      getComposite().layout();
-
-      // layout hack - relayout
-			if (catResizeAdapter == null) {
-				catResizeAdapter = new ControlAdapter() {
-					public void controlResized(ControlEvent event) {
-						if (getComposite().isDisposed() || cCategories.isDisposed())
-							return;
-
-						GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-
-						int parentWidth = cCategories.getParent().getClientArea().width;
-						int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-						// give text a 5 pixel right padding
-						int textWidth = 5
-								+ cHeader.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
-								+ cHeader.getBorderWidth() * 2;
-
-						Object layoutData = cHeader.getLayoutData();
-						if (layoutData instanceof GridData) {
-							GridData labelGrid = (GridData) layoutData;
-							textWidth += labelGrid.horizontalIndent;
-						}
-
-						if (textWidth + catsWidth > parentWidth) {
-							gridData.widthHint = parentWidth - textWidth;
-						}
-						cCategories.setLayoutData(gridData);
-						cCategories.getParent().layout(true);
-
-					}
-				};
-
-				tv.getTableComposite().addControlListener(catResizeAdapter);
-			}
-
-      catResizeAdapter.controlResized(null);
     }
   }
   
-  private boolean isOurDownloadManager(DownloadManager dm) {
+  /**
+	 * 
+	 *
+	 * @param categories 
+   * @since 3.1.1.1
+	 */
+	private void buildCat(Category[] categories) {
+		int iFontPixelsHeight = 11;
+		int iFontPointHeight = (iFontPixelsHeight * 72)
+				/ cCategories.getDisplay().getDPI().y;
+		for (int i = 0; i < categories.length; i++) {
+			final Category category = categories[i];
+
+			final Button catButton = new Button(cCategories, SWT.TOGGLE);
+			catButton.addKeyListener(this);
+			if (i == 0 && fontButton == null) {
+				Font f = catButton.getFont();
+				FontData fd = f.getFontData()[0];
+				fd.setHeight(iFontPointHeight);
+				fontButton = new Font(cCategories.getDisplay(), fd);
+			}
+			catButton.setText("|");
+			catButton.setFont(fontButton);
+			catButton.pack(true);
+			if (catButton.computeSize(100, SWT.DEFAULT).y > 0) {
+				RowData rd = new RowData();
+				rd.height = catButton.computeSize(100, SWT.DEFAULT).y - 2
+						+ catButton.getBorderWidth() * 2;
+				catButton.setLayoutData(rd);
+			}
+
+			String name = category.getName();
+			if (category.getType() == Category.TYPE_USER)
+				catButton.setText(name);
+			else
+				Messages.setLanguageText(catButton, name);
+
+			catButton.setData("Category", category);
+			if (category == currentCategory) {
+				catButton.setSelection(true);
+			}
+
+			catButton.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					Button curButton = (Button) e.widget;
+					boolean isEnabled = curButton.getSelection();
+					Control[] controls = cCategories.getChildren();
+					if (!isEnabled)
+						curButton = (Button) controls[0];
+
+					for (int i = 0; i < controls.length; i++) {
+						Button b = (Button) controls[i];
+						if (b != curButton && b.getSelection())
+							b.setSelection(false);
+						else if (b == curButton && !b.getSelection())
+							b.setSelection(true);
+					}
+					activateCategory((Category) curButton.getData("Category"));
+				}
+			});
+
+			catButton.addListener(SWT.MouseHover, new Listener() {
+				public void handleEvent(Event event) {
+					Button curButton = (Button) event.widget;
+					Category curCategory = (Category) curButton.getData("Category");
+					List dms = curCategory.getDownloadManagers(globalManager.getDownloadManagers());
+
+					long ttlActive = 0;
+					long ttlSize = 0;
+					long ttlRSpeed = 0;
+					long ttlSSpeed = 0;
+					int count = 0;
+					for (Iterator iter = dms.iterator(); iter.hasNext();) {
+						DownloadManager dm = (DownloadManager) iter.next();
+
+						if (!isInCategory(dm, currentCategory))
+							continue;
+
+						count++;
+						if (dm.getState() == DownloadManager.STATE_DOWNLOADING
+								|| dm.getState() == DownloadManager.STATE_SEEDING)
+							ttlActive++;
+						ttlSize += dm.getSize();
+						ttlRSpeed += dm.getStats().getDataReceiveRate();
+						ttlSSpeed += dm.getStats().getDataSendRate();
+					}
+
+					String up_details = "";
+					String down_details = "";
+
+					if (category.getType() != Category.TYPE_ALL) {
+
+						String up_str = MessageText.getString("GeneralView.label.maxuploadspeed");
+						String down_str = MessageText.getString("GeneralView.label.maxdownloadspeed");
+						String unlimited_str = MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited");
+
+						int up_speed = category.getUploadSpeed();
+						int down_speed = category.getDownloadSpeed();
+
+						up_details = up_str
+								+ ": "
+								+ (up_speed == 0 ? unlimited_str
+										: DisplayFormatters.formatByteCountToKiBEtc(up_speed));
+						down_details = down_str
+								+ ": "
+								+ (down_speed == 0 ? unlimited_str
+										: DisplayFormatters.formatByteCountToKiBEtc(down_speed));
+					}
+
+					if (count == 0) {
+						curButton.setToolTipText(down_details + "\n" + up_details
+								+ "\nTotal: 0");
+						return;
+					}
+
+					curButton.setToolTipText((up_details.length() == 0 ? ""
+							: (down_details + "\n" + up_details + "\n"))
+							+ "Total: "
+							+ count
+							+ "\n"
+							+ "Downloading/Seeding: "
+							+ ttlActive
+							+ "\n"
+							+ "\n"
+							+ "Speed: "
+							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlRSpeed
+									/ count)
+							+ "/"
+							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlSSpeed
+									/ count)
+							+ "\n"
+							+ "Size: "
+							+ DisplayFormatters.formatByteCountToKiBEtc(ttlSize));
+				}
+			});
+
+			final DropTarget tabDropTarget = new DropTarget(catButton,
+					DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+			Transfer[] types = new Transfer[] {
+				TextTransfer.getInstance()
+			};
+			tabDropTarget.setTransfer(types);
+			tabDropTarget.addDropListener(new DropTargetAdapter() {
+				public void dragOver(DropTargetEvent e) {
+					if (drag_drop_line_start >= 0)
+						e.detail = DND.DROP_MOVE;
+					else
+						e.detail = DND.DROP_NONE;
+				}
+
+				public void drop(DropTargetEvent e) {
+					e.detail = DND.DROP_NONE;
+					//System.out.println("DragDrop on Button:" + drag_drop_line_start);
+					if (drag_drop_line_start >= 0) {
+						drag_drop_line_start = -1;
+						drag_drop_rows = null;
+
+						TorrentUtil.assignToCategory(tv.getSelectedDataSources(),
+								(Category) catButton.getData("Category"));
+					}
+				}
+			});
+
+			catButton.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					if (tabDropTarget != null && !tabDropTarget.isDisposed()) {
+						tabDropTarget.dispose();
+					}
+				}
+			});
+
+			final Menu menu = new Menu(getComposite().getShell(), SWT.POP_UP);
+
+			catButton.setMenu(menu);
+
+			menu.addMenuListener(new MenuListener() {
+				boolean bShown = false;
+
+				public void menuHidden(MenuEvent e) {
+					bShown = false;
+
+					if (Constants.isOSX)
+						return;
+
+					// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+					// get fired (async workaround provided by Eclipse Bug #87678)
+
+					e.widget.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							if (bShown || menu.isDisposed())
+								return;
+							MenuItem[] items = menu.getItems();
+							for (int i = 0; i < items.length; i++) {
+								items[i].dispose();
+							}
+						}
+					});
+				}
+
+				public void menuShown(MenuEvent e) {
+					MenuItem[] items = menu.getItems();
+					for (int i = 0; i < items.length; i++)
+						items[i].dispose();
+
+					bShown = true;
+
+					if (category.getType() == Category.TYPE_USER) {
+
+						final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+
+						Messages.setLanguageText(itemDelete,
+								"MyTorrentsView.menu.category.delete");
+
+						menu.setDefaultItem(itemDelete);
+
+						itemDelete.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event event) {
+								Category catToDelete = (Category) catButton.getData("Category");
+								if (catToDelete != null) {
+									java.util.List managers = catToDelete.getDownloadManagers(globalManager.getDownloadManagers());
+									// move to array,since setcategory removed it from the category,
+									// which would mess up our loop
+									DownloadManager dms[] = (DownloadManager[]) managers.toArray(new DownloadManager[managers.size()]);
+									for (int i = 0; i < dms.length; i++) {
+										dms[i].getDownloadState().setCategory(null);
+									}
+									if (currentCategory == catToDelete) {
+
+										activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+
+									} else {
+										// always activate as deletion of this one might have
+										// affected the current view 
+										activateCategory(currentCategory);
+									}
+									CategoryManager.removeCategory(catToDelete);
+								}
+							}
+						});
+					}
+
+					if (category.getType() != Category.TYPE_ALL) {
+
+						long maxDownload = COConfigurationManager.getIntParameter(
+								"Max Download Speed KBs", 0) * 1024;
+						long maxUpload = COConfigurationManager.getIntParameter(
+								"Max Upload Speed KBs", 0) * 1024;
+
+						int down_speed = category.getDownloadSpeed();
+						int up_speed = category.getUploadSpeed();
+
+						ViewUtils.addSpeedMenu(menu.getShell(), menu, true, true, false,
+								down_speed == 0, down_speed, down_speed, maxDownload, false,
+								up_speed == 0, up_speed, up_speed, maxUpload, 1,
+								new SpeedAdapter() {
+									public void setDownSpeed(int val) {
+										category.setDownloadSpeed(val);
+									}
+
+									public void setUpSpeed(int val) {
+										category.setUploadSpeed(val);
+
+									}
+								});
+					}
+
+					java.util.List managers = category.getDownloadManagers(globalManager.getDownloadManagers());
+
+					final DownloadManager dms[] = (DownloadManager[]) managers.toArray(new DownloadManager[managers.size()]);
+
+					boolean start = false;
+					boolean stop = false;
+
+					for (int i = 0; i < dms.length; i++) {
+
+						DownloadManager dm = dms[i];
+
+						stop = stop || ManagerUtils.isStopable(dm);
+
+						start = start || ManagerUtils.isStartable(dm);
+
+					}
+
+					// Queue
+
+					final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
+					Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
+					Utils.setMenuItemImage(itemQueue, "start");
+					itemQueue.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							TorrentUtil.queueTorrents(dms, menu.getShell());
+						}
+					});
+					itemQueue.setEnabled(start);
+
+					// Stop
+
+					final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
+					Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+					Utils.setMenuItemImage(itemStop, "stop");
+					itemStop.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							TorrentUtil.stopTorrents(dms, menu.getShell());
+						}
+					});
+					itemStop.setEnabled(stop);
+
+					// options
+
+					MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
+
+					Messages.setLanguageText(itemOptions,
+							"MainWindow.menu.view.configuration");
+					itemOptions.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+
+							uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
+						}
+					});
+
+					if (dms.length == 0) {
+
+						itemOptions.setEnabled(false);
+					}
+				}
+			});
+		}
+
+		cCategories.layout();
+		getComposite().layout();
+
+		// layout hack - relayout
+		if (catResizeAdapter == null) {
+			catResizeAdapter = new ControlAdapter() {
+				public void controlResized(ControlEvent event) {
+					if (getComposite().isDisposed() || cCategories.isDisposed())
+						return;
+
+					GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+
+					int parentWidth = cCategories.getParent().getClientArea().width;
+					int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+					// give text a 5 pixel right padding
+					int textWidth = 5 + cHeader.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
+							+ cHeader.getBorderWidth() * 2;
+
+					Object layoutData = cHeader.getLayoutData();
+					if (layoutData instanceof GridData) {
+						GridData labelGrid = (GridData) layoutData;
+						textWidth += labelGrid.horizontalIndent;
+					}
+
+					if (textWidth + catsWidth > parentWidth) {
+						gridData.widthHint = parentWidth - textWidth;
+					}
+					cCategories.setLayoutData(gridData);
+					cCategories.getParent().layout(true);
+
+				}
+			};
+
+			tv.getTableComposite().addControlListener(catResizeAdapter);
+		}
+
+		catResizeAdapter.controlResized(null);
+	}
+
+	private boolean isOurDownloadManager(DownloadManager dm) {
   	if (!isInCategory(dm, currentCategory)) {
   		return false;
   	}
@@ -1329,6 +1368,10 @@ public class MyTorrentsView
 			createTabs();
 
 		if (txtFilter != null && !txtFilter.isDisposed()) {
+			txtFilter.setVisible(true);
+			lblX.setVisible(true);
+			lblFilter.setVisible(true);
+
 			if (!sLastSearch.equals(txtFilter.getText())) { 
 				txtFilter.setText(sLastSearch);
 				txtFilter.setSelection(sLastSearch.length());
