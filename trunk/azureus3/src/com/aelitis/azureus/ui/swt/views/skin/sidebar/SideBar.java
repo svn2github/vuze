@@ -403,7 +403,7 @@ public class SideBar
 					}
 
 					case SWT.MouseUp: {
-						if (tree.getItemCount() == 0) {
+						if (tree.getItemCount() == 0 || event.button != 1) {
 							return;
 						}
 						int indent = tree.getItem(0).getBounds().x;
