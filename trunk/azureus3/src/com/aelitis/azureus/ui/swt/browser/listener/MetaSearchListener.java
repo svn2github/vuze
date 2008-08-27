@@ -123,15 +123,20 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			ResultListener listener = new ResultListener() {
 				
-				public void contentReceived(Engine engine, String content) {
-					// TODO Auto-generated method stub
-
+				public void 
+				contentReceived(
+					Engine engine, 
+					String content ) 
+				{
 				}
 				
-				public void matchFound(Engine engine, String[] fields) {
-					// TODO Auto-generated method stub
-					
+				public void 
+				matchFound(
+					Engine 		engine, 
+					String[] 	fields ) 
+				{
 				}
+				
 				public void engineFailed(Engine engine, Throwable e) {
 					
 					Map params = getParams( engine );
@@ -200,31 +205,70 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
 			
 			Engine engine = getEngineFromId(engine_id);
-			if(engine != null && engine instanceof WebEngine) {
+			
+			if( engine != null && engine instanceof WebEngine){
+				
 				final WebEngine webEngine = (WebEngine) engine;
-					Utils.execSWTThread( new Runnable() {
-						public void run() {
-							new ExternalLoginWindow(new ExternalLoginListener() {
-								public void canceled(ExternalLoginWindow window) {
-									// TODO notify the page
-									
-								}
+
+				Utils.execSWTThread( new Runnable() {
+					public void run() {
+						new ExternalLoginWindow(
+							new ExternalLoginListener() 
+							{
+								private String previous_cookies;
 								
-								public void cookiesFound(ExternalLoginWindow window,String cookies) {
-									if(CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)) {
-										webEngine.setCookies(cookies);
-										window.close();
-										//TODO : do a search for this engine and notify the page
+								public void 
+								canceled(
+									ExternalLoginWindow window) 
+								{
+									// TODO notify the page
+	
+								}
+	
+								public void 
+								cookiesFound(
+									ExternalLoginWindow 	window,
+									String 					cookies) 
+								{
+									if ( handleCookies(cookies)){
+										
+										window.close();									
 									}
 								}
-								
-								public void done(ExternalLoginWindow window,String cookies) {
-									// TODO : force a search?
-									
+	
+								public void 
+								done(
+									ExternalLoginWindow 	window,
+									String 					cookies )
+								{
+									handleCookies( cookies );
 								}
-							},webEngine.getLoginPageUrl(),false);
-						}
-					});
+								
+								private boolean
+								handleCookies(
+									String	cookies )
+								{
+									if ( CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)){
+											
+										webEngine.setCookies(cookies);
+										
+										if ( previous_cookies == null || !previous_cookies.equals( cookies )){
+											
+											previous_cookies = cookies;
+											
+											//TODO: re-search
+										}
+										
+										return( true );
+									}
+	
+									return( false );
+								}
+							},
+						webEngine.getLoginPageUrl(),
+						false );
+					}
+				});
 			}
 
 		} else if(OP_GET_ENGINES.equals(opid)) {
@@ -769,13 +813,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			openCloseSearchDetailsListener.closeSearchResults(decodedMap);
 		}else if(OP_LOAD_TORRENT.equals(opid)) {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
-					: new HashMap();
-			final String id = (String) decodedMap.get("id");
-			
-			
-			
-			//long subs_id = ((Long)decodedMap.get("engine_id")).longValue();
-			
+					: new HashMap();			
 			
 			final String torrentUrl	= (String) decodedMap.get( "torrent_url" );
 			final String referer_str	= (String) decodedMap.get( "referer_url" );
@@ -795,23 +833,29 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 				
-				Long subscriptionId = ((Long)decodedMap.get("subs_id"));
-				if(subscriptionId != null) {
-					//TODO parg : create the subscription association ...
+				String subscriptionId		= ((String)decodedMap.get("subs_id"));
+				String subscriptionResultId = ((String)decodedMap.get("subs_rid"));
+				
+				if ( subscriptionId != null && subscriptionResultId != null ){
+					
+					Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
+					
+					if ( subs != null ){
+						
+						subs.addPotentialAssociation( subscriptionResultId, torrentUrl );
+					}
 				}
 				
 				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 						new URL(torrentUrl), headers );
 				
 				Map params = new HashMap();
-				params.put("id",id);
 				params.put("torrent_url",torrentUrl);
 				params.put("referer_url",referer_str);
 				sendBrowserMessage("metasearch", "loadTorrentCompleted",params);
 				
 			} catch(Exception e) {
 				Map params = new HashMap();
-				params.put("id",id);
 				params.put("torrent_url",torrentUrl);
 				params.put("referer_url",referer_str);
 				params.put( "error", e.getMessage() );
