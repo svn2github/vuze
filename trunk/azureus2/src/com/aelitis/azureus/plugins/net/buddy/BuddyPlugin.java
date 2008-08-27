@@ -465,22 +465,25 @@ BuddyPlugin
 							
 							final BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
 							
-							TableContextMenuItem item =
-								plugin_interface.getUIManager().getTableManager().addContextMenuItem(
-									parent,
-									"!" + buddy.getName() + "!");
-							
-							item.addListener(
-								new MenuItemListener()
-								{
-									public void 
-									selected(
-										MenuItem 	menu,
-										Object 		target ) 
+							if ( buddy.isOnline( true )){
+								
+								TableContextMenuItem item =
+									plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+										parent,
+										"!" + buddy.getName() + "!");
+								
+								item.addListener(
+									new MenuItemListener()
 									{
-										az2_handler.sendAZ2Torrent( f_download.getTorrent(), buddy );
-									}
-								});
+										public void 
+										selected(
+											MenuItem 	menu,
+											Object 		target ) 
+										{
+											az2_handler.sendAZ2Torrent( f_download.getTorrent(), buddy );
+										}
+									});
+							}
 						}
 					}
 					
