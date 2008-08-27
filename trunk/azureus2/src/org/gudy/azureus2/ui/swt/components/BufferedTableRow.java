@@ -305,6 +305,10 @@ BufferedTableRow
 	{
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
+		
+		if (ourForeground == null && table.isSelected(table.indexOf(item))) {
+			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
+		}
 
 		return( item.getForeground());
 	}
@@ -406,8 +410,17 @@ BufferedTableRow
 	{
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
-		if (index >= foreground_colors.length)
-		  return item.getForeground();
+
+		if (index >= foreground_colors.length) {
+		  return getForeground();
+		}
+		
+		if (foreground_colors[index] == null && isSelected()) {
+			Color systemColor = table.getDisplay().getSystemColor(
+					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
+							: SWT.COLOR_WIDGET_FOREGROUND);
+			return systemColor;
+		}
 
 		return foreground_colors[index];
 	}
@@ -474,6 +487,12 @@ BufferedTableRow
   public Color getBackground() {
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
       return null;
+		
+		if (isSelected()) {
+			return table.getDisplay().getSystemColor(
+					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION
+							: SWT.COLOR_WIDGET_BACKGROUND);
+		}
     return item.getBackground();
   }
 
