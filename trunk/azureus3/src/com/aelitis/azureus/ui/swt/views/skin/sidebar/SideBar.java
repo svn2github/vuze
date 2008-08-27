@@ -26,9 +26,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -69,6 +67,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.*;
@@ -157,6 +156,10 @@ public class SideBar
 
 	private Image imgClose;
 
+	private SWTSkinObject soSideBarPopout;
+
+	private SelectionListener dropDownSelectionListener;
+
 	private static Map mapAutoOpen = new LightHashMap();
 
 	static {
@@ -188,6 +191,7 @@ public class SideBar
 
 		soSideBarContents = skin.getSkinObject("sidebar-contents");
 		soSideBarList = skin.getSkinObject("sidebar-list");
+		soSideBarPopout = skin.getSkinObject("sidebar-pop");
 
 		ImageLoader imageLoader = skin.getImageLoader(skinObject.getProperties());
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
@@ -283,9 +287,29 @@ public class SideBar
 					if (lastPercent != 0) {
 						soSash.setPercent(lastPercent);
 					}
+
+					if (soSideBarPopout != null) {
+						Object ld = soSideBarPopout.getControl().getLayoutData();
+						if (ld instanceof FormData) {
+							FormData fd = (FormData) ld;
+							fd.width = 0;
+						}
+						
+						Utils.relayout(soSideBarPopout.getControl());
+					}
 				} else {
+					// invisible
 					lastPercent = soSash.getPercent();
 					soSash.setPercent(1);
+					
+					if (soSideBarPopout != null) {
+						Object ld = soSideBarPopout.getControl().getLayoutData();
+						if (ld instanceof FormData) {
+							FormData fd = (FormData) ld;
+							fd.width = 20;
+						}
+						Utils.relayout(soSideBarPopout.getControl());
+					}
 				}
 			}
 		});
@@ -460,6 +484,105 @@ public class SideBar
 				fillMenu(menuTree);
 			}
 		});
+		
+		if (soSideBarPopout != null) {
+			SWTSkinObject soDropDown = skin.getSkinObject("sidebar-dropdown");
+			if (soDropDown != null) {
+				
+				final Menu menuDropDown = new Menu(soDropDown.getControl());
+
+				menuDropDown.addMenuListener(new MenuListener() {
+					boolean bShown = false;
+
+					public void menuHidden(MenuEvent e) {
+						bShown = false;
+
+						if (Constants.isOSX) {
+							return;
+						}
+
+						// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+						// get fired (async workaround provided by Eclipse Bug #87678)
+						Utils.execSWTThreadLater(0, new AERunnable() {
+							public void runSupport() {
+								if (bShown || menuDropDown.isDisposed()) {
+									return;
+								}
+								Utils.disposeSWTObjects(menuDropDown.getItems());
+							}
+						});
+					}
+
+					public void menuShown(MenuEvent e) {
+						Utils.disposeSWTObjects(menuDropDown.getItems());
+
+						bShown = true;
+
+						fillDropDownMenu(menuDropDown, tree.getItems(), 0);
+					}
+				});
+				
+				dropDownSelectionListener = new SelectionListener() {
+					public void widgetSelected(SelectionEvent e) {
+						String id = (String) e.widget.getData("Plugin.viewID");
+						showItemByID(id);
+					}
+				
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				};
+
+				
+				SWTSkinButtonUtility btnDropDown = new SWTSkinButtonUtility(soDropDown);
+				btnDropDown.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility) {
+						Control c = buttonUtility.getSkinObject().getControl();
+						menuDropDown.setLocation(c.getDisplay().getCursorLocation());
+						menuDropDown.setVisible(!menuDropDown.getVisible());
+					}
+				});
+			}
+			
+			SWTSkinObject soExpand = skin.getSkinObject("sidebar-expand");
+			if (soExpand != null) {
+				SWTSkinButtonUtility btnExpand = new SWTSkinButtonUtility(soExpand);
+				btnExpand.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility) {
+						flipSideBarVisibility();
+					}
+				});
+			}
+			
+		}
+	}
+
+	/**
+	 * @param menuDropDown
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected void fillDropDownMenu(Menu menuDropDown, TreeItem[] items, int indent) {
+		String s = "";
+		for (int i = 0; i < indent; i++) {
+			s += "   ";
+		}
+		for (int i = 0; i < items.length; i++) {
+			TreeItem treeItem = items[i];
+			
+			org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(menuDropDown, SWT.RADIO);
+			menuItem.setText(s + treeItem.getData("text"));
+			String id = (String) treeItem.getData("Plugin.viewID");
+			menuItem.setData("Plugin.viewID", id);
+			menuItem.addSelectionListener(dropDownSelectionListener);
+			if (currentSideBarEntry != null && currentSideBarEntry.id.equals(id)) {
+				menuItem.setSelection(true);
+			}
+
+			TreeItem[] subItems = treeItem.getItems();
+			if (subItems.length > 0) {
+				fillDropDownMenu(menuDropDown, subItems, ++indent);
+			}
+		}
 	}
 
 	/**
