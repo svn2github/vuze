@@ -111,97 +111,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		metaSearchManager.log( "BrowserListener: received " + message );
 		
 		if (OP_SEARCH.equals(opid)) {
+			
 			Map decodedMap = message.getDecodedMap();
 			
-			String searchText = (String) decodedMap.get("searchText");
-			
-			String headers = (String)decodedMap.get( "headers" );
-			
-			final Long	sid = (Long)decodedMap.get( "sid" );
 
-			Boolean	mature = (Boolean)decodedMap.get( "mature" );
-			
-			ResultListener listener = new ResultListener() {
-				
-				public void 
-				contentReceived(
-					Engine engine, 
-					String content ) 
-				{
-				}
-				
-				public void 
-				matchFound(
-					Engine 		engine, 
-					String[] 	fields ) 
-				{
-				}
-				
-				public void engineFailed(Engine engine, Throwable e) {
-					
-					Map params = getParams( engine );
-					
-					params.put( "error", Debug.getNestedExceptionMessage( e ));
-					
-					sendBrowserMessage("metasearch", "engineFailed", params );
-				}
-				
-				public void engineRequiresLogin(Engine engine, Throwable e) {
-					Map params = getParams( engine );
-					
-					params.put( "error", Debug.getNestedExceptionMessage( e ));
-					
-					sendBrowserMessage("metasearch", "engineRequiresLogin", params );
-				}
-				
-				public void resultsComplete(Engine engine) {
-				
-					sendBrowserMessage("metasearch", "engineCompleted", getParams( engine ));
-				}
-				
-				public void resultsReceived(Engine engine,Result[] results) {
-					Map params = getParams(engine);
-					List resultsList = new ArrayList(results.length);
-					for(int i = 0 ; i < results.length ; i++) {
-						Result result = results[i];
-						resultsList.add(result.toJSONMap());
-					}
-					params.put("results", resultsList);
-					sendBrowserMessage("metasearch", "resultsReceived",params);
-				}
-				
-				protected Map
-				getParams(
-					Engine	engine )
-				{
-					Map params = new HashMap();
-					params.put("id", new Long(engine.getId()));
-					params.put("name", engine.getName());
-					params.put("favicon", engine.getIcon());
-					params.put("dl_link_css", engine.getDownloadLinkCSS());
-					
-					if ( sid != null ){
-						params.put( "sid", sid );
-					}
-					return( params );
-				}
-			};
-			
-			List	sps = new ArrayList();
-						
-			sps.add( new SearchParameter( "s", searchText ));
-			
-			if ( mature != null ){
-				
-				sps.add( new SearchParameter( "m", mature.toString()));
-			}
-			
-			SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
-			
-			metaSearchManager.getMetaSearch().search( listener, parameters, headers );
+			search( decodedMap, null );
 
 		} else if(OP_ENGINE_LOGIN.equals(opid)) {
-			Map decodedMap = message.getDecodedMap();
+			
+			final Map decodedMap = message.getDecodedMap();
+			
 			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
 			
 			Engine engine = getEngineFromId(engine_id);
@@ -256,7 +175,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 											
 											previous_cookies = cookies;
 											
-											//TODO: re-search
+											search( decodedMap, webEngine );
 										}
 										
 										return( true );
@@ -822,27 +741,36 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 				Map headers = UrlUtils.getBrowserHeaders( referer_str );
 				
-				Long engineId = ((Long)decodedMap.get("engine_id"));
-				if(engineId != null) {
-					Engine engine = getEngineFromId(engineId.longValue());
-					if(engine != null && engine instanceof WebEngine) {
-						WebEngine webEngine = (WebEngine) engine;
-						if(webEngine.isNeedsAuth()) {
-							headers.put("Cookie",webEngine.getCookies());
-						}
-					}
-				}
-				
 				String subscriptionId		= ((String)decodedMap.get("subs_id"));
 				String subscriptionResultId = ((String)decodedMap.get("subs_rid"));
 				
-				if ( subscriptionId != null && subscriptionResultId != null ){
+				if ( subscriptionId != null ){
 					
 					Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
 					
 					if ( subs != null ){
+					
+						try{
+							Engine engine = subs.getEngine();
+							
+							if ( engine != null && engine instanceof WebEngine ){
+								
+								WebEngine webEngine = (WebEngine) engine;
+								
+								if ( webEngine.isNeedsAuth()){
+									
+									headers.put( "Cookie",webEngine.getCookies());
+								}
+							}
+						}catch( Throwable e ){
 						
-						subs.addPotentialAssociation( subscriptionResultId, torrentUrl );
+							Debug.out( e );
+						}
+						
+						if ( subscriptionResultId != null ){ 
+						
+							subs.addPotentialAssociation( subscriptionResultId, torrentUrl );
+						}
 					}
 				}
 				
@@ -1238,6 +1166,109 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 				sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
 			}
+		}
+	}
+	
+	protected void
+	search(
+		Map		decodedMap,
+		Engine	target )
+	{
+		String searchText = (String) decodedMap.get("searchText");
+		
+		String headers = (String)decodedMap.get( "headers" );
+		
+		final Long	sid = (Long)decodedMap.get( "sid" );
+
+		Boolean	mature = (Boolean)decodedMap.get( "mature" );
+		
+		ResultListener listener = new ResultListener() {
+			
+			public void 
+			contentReceived(
+				Engine engine, 
+				String content ) 
+			{
+			}
+			
+			public void 
+			matchFound(
+				Engine 		engine, 
+				String[] 	fields ) 
+			{
+			}
+			
+			public void engineFailed(Engine engine, Throwable e) {
+				
+				Map params = getParams( engine );
+				
+				params.put( "error", Debug.getNestedExceptionMessage( e ));
+				
+				sendBrowserMessage("metasearch", "engineFailed", params );
+			}
+			
+			public void engineRequiresLogin(Engine engine, Throwable e) {
+				Map params = getParams( engine );
+				
+				params.put( "error", Debug.getNestedExceptionMessage( e ));
+				
+				sendBrowserMessage("metasearch", "engineRequiresLogin", params );
+			}
+			
+			public void resultsComplete(Engine engine) {
+			
+				sendBrowserMessage("metasearch", "engineCompleted", getParams( engine ));
+			}
+			
+			public void resultsReceived(Engine engine,Result[] results) {
+				Map params = getParams(engine);
+				List resultsList = new ArrayList(results.length);
+				for(int i = 0 ; i < results.length ; i++) {
+					Result result = results[i];
+					resultsList.add(result.toJSONMap());
+				}
+				params.put("results", resultsList);
+				sendBrowserMessage("metasearch", "resultsReceived",params);
+			}
+			
+			protected Map
+			getParams(
+				Engine	engine )
+			{
+				Map params = new HashMap();
+				params.put("id", new Long(engine.getId()));
+				params.put("name", engine.getName());
+				params.put("favicon", engine.getIcon());
+				params.put("dl_link_css", engine.getDownloadLinkCSS());
+				
+				if ( sid != null ){
+					params.put( "sid", sid );
+				}
+				return( params );
+			}
+		};
+		
+		List	sps = new ArrayList();
+					
+		sps.add( new SearchParameter( "s", searchText ));
+		
+		if ( mature != null ){
+			
+			sps.add( new SearchParameter( "m", mature.toString()));
+		}
+		
+		SearchParameter[] parameters = (SearchParameter[])sps.toArray(new SearchParameter[ sps.size()] );
+		
+		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
+
+		if ( target == null ){
+		
+			metaSearchManager.getMetaSearch().search( listener, parameters, headers );
+			
+		}else{
+			
+			metaSearchManager.getMetaSearch().search( target, listener, parameters, headers );
+
 		}
 	}
 	

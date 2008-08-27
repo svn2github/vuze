@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.subs;
 
+import com.aelitis.azureus.core.metasearch.Engine;
+
 public interface 
 Subscription 
 {
@@ -91,6 +93,11 @@ Subscription
 
 	public int
 	getAssociationCount();
+	
+	public Engine
+	getEngine()
+	
+		throws SubscriptionException;
 	
 	public void
 	remove();

@@ -38,11 +38,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
-import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
@@ -394,8 +391,10 @@ public class BrowserContext
 							}
 						}
 						
-						if(isTorrent) {
+						if ( isTorrent ){
+							
 							event.doit = false;
+							
 							try {
 								String referer_str = null;
 
@@ -409,7 +408,9 @@ public class BrowserContext
 											
 								
 								String cookies = (String) ((Browser)event.widget).getData("current-cookies");
-								if(cookies != null) {
+								
+								if (cookies != null ){
+									
 									headers.put("Cookie", cookies);
 								}
 								

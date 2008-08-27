@@ -733,6 +733,14 @@ SubscriptionImpl
 		return( null );
 	}
 	
+	public Engine
+	getEngine()
+	
+		throws SubscriptionException
+	{
+		return( getEngine( true ));
+	}
+	
 	protected Engine
 	getEngine(
 		boolean		local_only )

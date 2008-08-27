@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -395,6 +396,10 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										// TODO Auto-generated method stub
 										return( false );
 									} 
+									public Engine getEngine() {
+										// TODO Auto-generated method stub
+										return null;
+									}
 									public void
 									setUserData(
 										Object		key,

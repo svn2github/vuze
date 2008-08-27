@@ -38,6 +38,13 @@ MetaSearch
 		SearchParameter[] 	searchParameters,
 		String				headers );
 	
+	public void 
+	search(
+		Engine				engine,
+		ResultListener 		listener,
+		SearchParameter[] 	searchParameters,
+		String				headers );
+	
 	public Engine[] 
 	getEngines(
 		boolean		active_only,

@@ -371,6 +371,16 @@ MetaSearchImpl
 		SearchParameter[] 		searchParameters,
 		String					headers )
 	{
+		search( null, original_listener, searchParameters, headers );
+	}
+	
+	public void 
+	search(
+		Engine					engine,
+		final ResultListener 	original_listener,
+		SearchParameter[] 		searchParameters,
+		String					headers )
+	{
 		String	param_str = "";
 		
 		for (int i=0;i<searchParameters.length;i++){
@@ -517,21 +527,29 @@ MetaSearchImpl
 			
 		SearchExecuter se = new SearchExecuter(listener);
 		
-		Engine[] engines = getEngines( true, true );
-
-		String	engines_str = "";
-		
-		for (int i=0;i<engines.length;i++){
+		if ( engine == null ){
 			
-			engines_str += (i==0?"":",") + engines[i].getId();
-		}
-		
-		log( "Search: params=" + param_str + "; engines=" + engines_str );
-		
-
-		for (int i=0;i<engines.length;i++){
+			Engine[] engines = getEngines( true, true );
+	
+			String	engines_str = "";
 			
-			se.search( engines[i], searchParameters, headers );
+			for (int i=0;i<engines.length;i++){
+				
+				engines_str += (i==0?"":",") + engines[i].getId();
+			}
+			
+			log( "Search: params=" + param_str + "; engines=" + engines_str );
+			
+	
+			for (int i=0;i<engines.length;i++){
+				
+				se.search( engines[i], searchParameters, headers );
+			}
+		}else{
+			
+			log( "Search: params=" + param_str + "; engine=" + engine.getId());
+
+			se.search( engine, searchParameters, headers );
 		}
 	}
 	
