@@ -150,7 +150,7 @@ DHTPluginStorageManager
 				COConfigurationManager.setParameter( key, suspend_start );
 			}
 			
-			suspend_divs_until = suspend_start + 3*24*60*60*1000;
+			suspend_divs_until = suspend_start + 4*24*60*60*1000;
 			
 			if ( suspendDivs()){
 				
