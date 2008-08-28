@@ -254,7 +254,12 @@ RegexEngine
 						throws Exception
 					{
 						int	max_matches = o_max_matches;
-											
+								
+						if ( max_matches < 0 || max_matches > 1024 ){
+							
+							max_matches = 1024;
+						}
+						
 						String searchQuery = null;
 						
 						for(int i = 0 ; i < searchParameters.length ; i++) {
