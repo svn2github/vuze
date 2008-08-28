@@ -81,14 +81,14 @@ public abstract class Result {
 	
 	public String getNameHTML() {
 		if(getName() != null) {
-			return Entities.HTML40.escape(getName());
+			return Entities.XML.escape(getName());
 		}
 		return null;
 	}
 	
 	public String getCategoryHTML() {
 		if(getCategory() != null) {
-			return Entities.HTML40.escape(getCategory());
+			return Entities.XML.escape(getCategory());
 		}
 		return null;
 	}
