@@ -385,21 +385,61 @@ WebEngine
 				
 			//System.out.println(searchURL);
 			
-			debugLog( "search_url: " + searchURL );
 			
-			URL url = new URL(searchURL);
+				// hack to support POST by encoding into URL
 			
+				// http://xxxx/index.php?main=search&azmethod=post_basic:SearchString1=%s&SearchString=&search=Search
+				
 			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+
+			ResourceDownloader url_rd;
+					
 			
-			ResourceDownloader url_rd = rdf.create( url );
+			int	post_pos = searchURL.indexOf( "azmethod=" );
+			
+			if ( post_pos > 0 ){
+				
+				String post_params = searchURL.substring( post_pos+9 );
+				
+				searchURL = searchURL.substring( 0, post_pos-1 );
+				
+				debugLog( "search_url: " + searchURL + ", post=" + post_params );
+
+				URL url = new URL(searchURL);
+
+				int	sep = post_params.indexOf( ':' );
+				
+				String	type = post_params.substring( 0, sep );
+				
+				if ( !type.equals( "post_basic" )){
+					
+					throw( new SearchException( "Only basic type supported" ));
+				}
+				
+				post_params = post_params.substring( sep+1 );
+				
+					// already URL encoded
+				
+				url_rd = rdf.create( url, post_params );
+
+				url_rd.setProperty( "URL_Content-Type", "application/x-www-form-urlencoded" );
+				
+			}else{
+			
+				debugLog( "search_url: " + searchURL );
+			
+				URL url = new URL(searchURL);
+			
+				url_rd = rdf.create( url );
+			}
 			
 			setHeaders( url_rd, headers );
-			
+				
 			if ( needsAuth && local_cookies != null ){
 				
 				url_rd.setProperty( "URL_Cookie", local_cookies );
 			}
-			
+				
 			if ( only_if_modified ){
 				
 				String last_modified 	= getLocalString( LD_LAST_MODIFIED );
@@ -416,26 +456,12 @@ WebEngine
 				}
 			}
 			
-			/*if(cookieParameters!= null && cookieParameters.length > 0) {
-				String 	cookieString = "";
-				String separator = "";
-				for(CookieParameter parameter : cookieParameters) {
-					cookieString += separator + parameter.getName() + "=" + parameter.getValue();
-					separator = "; ";
-				}				
-				url_rd.setProperty( "URL_Cookie", cookieString );
-			}*/
-			
 			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
 
-			StringBuffer sb = new StringBuffer();
-			
-			byte[] data = new byte[8192];
-
-			InputStream is = mr_rd.download();
-
+			InputStream	is = mr_rd.download();
+				
 			if ( only_if_modified ){
-			
+				
 				String last_modified 	= (String)url_rd.getProperty( "URL_Last-Modified" );
 				String etag				= (String)url_rd.getProperty( "URL_ETag" );
 				
@@ -451,6 +477,10 @@ WebEngine
 			}
 			
 			List cts = (List)url_rd.getProperty( "URL_Content-Type" );
+
+			StringBuffer sb = new StringBuffer();
+			
+			byte[] data = new byte[8192];			
 			
 			String content_charset = "UTF-8";
 			
