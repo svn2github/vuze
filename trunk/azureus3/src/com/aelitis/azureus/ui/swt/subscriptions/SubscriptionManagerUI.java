@@ -111,6 +111,8 @@ SubscriptionManagerUI
 	
 	private TableColumn	subs_i_column;
 	private TableColumn	subs_c_column;
+	private TableColumn	subs_ib_column;
+	private TableColumn	subs_cb_column;
 	
 	private SubscriptionManager	subs_man;
 	
@@ -337,6 +339,11 @@ SubscriptionManagerUI
 						Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
 											
 						cell.setGraphic( subs.length > 0?icon_rss:null );
+						
+						cell.setSortValue( subs.length );
+					}else{
+						
+						cell.setSortValue( 0 );
 					}
 				}
 			};
@@ -389,6 +396,23 @@ SubscriptionManagerUI
 		
 		table_manager.addColumn( subs_i_column );	
 		
+		subs_ib_column = 
+			table_manager.createColumn(
+					TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
+					"azsubs.ui.column.subs" );
+		
+		subs_ib_column.setAlignment(TableColumn.ALIGN_CENTER);
+		subs_ib_column.setPosition(TableColumn.POSITION_LAST);
+		subs_ib_column.setVisible( true );
+		subs_ib_column.setMinWidth(100);
+		subs_ib_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		subs_ib_column.setType(TableColumn.TYPE_GRAPHIC);
+		
+		subs_ib_column.addCellRefreshListener( refresh_listener );
+		subs_ib_column.addCellMouseListener( mouse_listener );
+		
+		table_manager.addColumn( subs_ib_column );	
+		
 			// MyTorrents complete
 
 		subs_c_column = 
@@ -407,6 +431,23 @@ SubscriptionManagerUI
 		
 		table_manager.addColumn( subs_c_column );	
 
+		subs_cb_column = 
+			table_manager.createColumn(
+					TableManager.TABLE_MYTORRENTS_COMPLETE_BIG,
+					"azsubs.ui.column.subs" );
+		
+		subs_cb_column.setAlignment(TableColumn.ALIGN_CENTER);
+		subs_cb_column.setPosition(TableColumn.POSITION_LAST);
+		subs_cb_column.setVisible( true );
+		subs_cb_column.setMinWidth(100);
+		subs_cb_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		subs_cb_column.setType(TableColumn.TYPE_GRAPHIC);
+		
+		subs_cb_column.addCellRefreshListener( refresh_listener );
+		subs_cb_column.addCellMouseListener( mouse_listener );
+		
+		table_manager.addColumn( subs_cb_column );	
+		
 		default_pi.getUIManager().addUIListener(
 				new UIManagerListener()
 				{
@@ -448,7 +489,9 @@ SubscriptionManagerUI
 										byte[] hash )
 									{
 										subs_i_column.invalidateCells();
+										subs_ib_column.invalidateCells();
 										subs_c_column.invalidateCells();
+										subs_cb_column.invalidateCells();
 									}
 								});	
 							
@@ -713,7 +756,9 @@ SubscriptionManagerUI
 	refreshColumns()
 	{
 		subs_i_column.invalidateCells();
+		subs_ib_column.invalidateCells();
 		subs_c_column.invalidateCells();
+		subs_cb_column.invalidateCells();
 	}
 	
 	protected Graphic
