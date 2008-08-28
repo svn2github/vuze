@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 
 import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -439,6 +440,46 @@ public class UrlUtils
 			if ( referer != null && referer.length() > 0 ){
 				
 				rd.setProperty( "URL_Referer", referer );
+			}
+		}catch( Throwable e ){	
+		}
+	}
+	
+	public static void
+	setBrowserHeaders(
+		ResourceUploader		ru,
+		String					encoded_headers,
+		String					referer )
+	{
+		String	headers_to_use = getBrowserHeadersToUse( encoded_headers );
+		
+		try{
+			String header_string = new String( Base64.decode( headers_to_use ), "UTF-8" );
+		
+			String[]	headers = header_string.split( "\n" );
+			
+			for (int i=0;i<headers.length;i++ ){
+			
+				String	header = headers[i];
+				
+				int	pos = header.indexOf( ':' );
+				
+				if ( pos != -1 ){
+					
+					String	lhs = header.substring(0,pos).trim();
+					String	rhs	= header.substring(pos+1).trim();
+					
+					if ( !( lhs.equalsIgnoreCase( "Host") || 
+							lhs.equalsIgnoreCase( "Referer" ))){
+						
+						ru.setProperty( "URL_" + lhs, rhs );
+					}
+				}
+			}
+			
+			if ( referer != null && referer.length() > 0 ){
+				
+				ru.setProperty( "URL_Referer", referer );
 			}
 		}catch( Throwable e ){	
 		}

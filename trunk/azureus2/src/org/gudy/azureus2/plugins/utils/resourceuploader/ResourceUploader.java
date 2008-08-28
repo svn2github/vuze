@@ -24,6 +24,8 @@ package org.gudy.azureus2.plugins.utils.resourceuploader;
 
 import java.io.InputStream;
 
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+
 public interface 
 ResourceUploader 
 {
@@ -31,4 +33,17 @@ ResourceUploader
 	upload()
 	
 		throws ResourceUploaderException;
+	
+	public void
+	setProperty(
+		String		name,
+		Object		value )
+	
+		throws ResourceDownloaderException;
+	
+	public Object
+	getProperty(
+		String		name )
+	
+		throws ResourceDownloaderException;
 }

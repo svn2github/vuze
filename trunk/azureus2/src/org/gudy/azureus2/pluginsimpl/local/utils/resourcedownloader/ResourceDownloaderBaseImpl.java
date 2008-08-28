@@ -49,7 +49,7 @@ ResourceDownloaderBaseImpl
 	
 	private boolean		download_cancelled;
 	
-	private Map			properties	= new HashMap();
+	private Map			lc_key_properties	= new HashMap();
 		
 	protected AEMonitor		this_mon	= new AEMonitor( "ResourceDownloader" );
 
@@ -98,20 +98,20 @@ ResourceDownloaderBaseImpl
 	getPropertySupport(
 		String	name )
 	{
-		return( properties.get( name ));
+		return( lc_key_properties.get( name.toLowerCase()));
 	}
 	
 	protected Map
-	getProperties()
+	getLCKeyProperties()
 	{
-		return( properties );
+		return( lc_key_properties );
 	}
 	
 	protected String
 	getStringPropertySupport(
 		String	name )
 	{
-		Object	 obj = properties.get( name );
+		Object	 obj = lc_key_properties.get( name.toLowerCase());
 		
 		if ( obj instanceof String ){
 			
@@ -134,7 +134,7 @@ ResourceDownloaderBaseImpl
 		String	name,
 		Object	value )
 	{
-		boolean already_set = properties.put( name, value ) == value;
+		boolean already_set = lc_key_properties.put( name.toLowerCase(), value ) == value;
 		
 		if ( parent != null && !already_set ){
 			
@@ -152,7 +152,7 @@ ResourceDownloaderBaseImpl
 	setProperties(
 		ResourceDownloaderBaseImpl	other )
 	{
-		Map p = other.properties;
+		Map p = other.lc_key_properties;
 		
 		Iterator it = p.keySet().iterator();
 		

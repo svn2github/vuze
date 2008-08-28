@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -35,6 +36,8 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourceuploader.*;
 
 public class 
@@ -45,6 +48,9 @@ ResourceUploaderURLImpl
 	private InputStream		data;
 	private String			user_name;
 	private String			password;
+	
+	private Map				properties = new HashMap();
+	
 	
 	protected
 	ResourceUploaderURLImpl(
@@ -57,6 +63,25 @@ ResourceUploaderURLImpl
 		data		= _data;
 		user_name	= _user_name;
 		password	= _password;
+	}
+	
+	public void
+	setProperty(
+		String		name,
+		Object		value )
+	
+		throws ResourceDownloaderException
+	{
+		properties.put( name, value );
+	}
+	
+	public Object
+	getProperty(
+		String		name )
+	
+		throws ResourceDownloaderException
+	{
+		return( properties.get( name ));
 	}
 	
 	public InputStream
@@ -155,6 +180,8 @@ ResourceUploaderURLImpl
 							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
+							setRequestProperties( con, false );
+							
 							con.setDoOutput( true );
 							con.setDoInput( true );
 							
@@ -183,7 +210,11 @@ ResourceUploaderURLImpl
 								throw( new ResourceUploaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 	
-							return( con.getInputStream());
+							InputStream is = con.getInputStream();
+							
+							getRequestProperties( con );
+							
+							return( is );
 							
 						}catch( SSLException e ){
 							
@@ -247,6 +278,65 @@ ResourceUploaderURLImpl
 				e.printStackTrace();
 			}
 			
+		}
+	}
+	
+	protected void
+	setRequestProperties(
+		HttpURLConnection		con,
+		boolean					use_compression )
+	{		
+		Iterator	it = properties.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry entry = (Map.Entry)it.next();
+			
+			String	key 	= (String)entry.getKey();
+			Object	value	= entry.getValue();
+			
+			if ( key.startsWith( "URL_" ) && value instanceof String ){
+			
+				key = key.substring(4);
+				
+				if ( key.equalsIgnoreCase( "Accept-Encoding" ) && !use_compression ){
+					
+					//skip
+					
+				}else{
+					
+					con.setRequestProperty(key,(String)value);
+				}
+			}
+		}
+	}
+	
+	protected void
+	getRequestProperties(
+		HttpURLConnection		con )
+	{
+		try{
+			setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );
+			
+			Map	headers = con.getHeaderFields();
+			
+			Iterator it = headers.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				String	key = (String)entry.getKey();
+				Object	val	= entry.getValue();
+				
+				if ( key != null ){
+					
+					setProperty( "URL_" + key, val );
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	

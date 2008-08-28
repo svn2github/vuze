@@ -508,6 +508,8 @@ ResourceDownloaderURLImpl
 					 			con.addRequestProperty( "Accept-Encoding", "gzip" );
 					 		}
 					 		
+							setRequestProperties( con, use_compression );
+							
 							if ( post_data != null ){
 								
 								con.setDoOutput(true);
@@ -521,8 +523,6 @@ ResourceDownloaderURLImpl
 								wr.flush();
 							}
 
-							setRequestProperties( con, use_compression );
-														
 							con.connect();
 				
 							int response = con.getResponseCode();
@@ -808,7 +808,7 @@ ResourceDownloaderURLImpl
 		HttpURLConnection		con,
 		boolean					use_compression )
 	{
-		Map properties = getProperties();
+		Map properties = getLCKeyProperties();
 		
 		Iterator	it = properties.entrySet().iterator();
 		
@@ -819,11 +819,11 @@ ResourceDownloaderURLImpl
 			String	key 	= (String)entry.getKey();
 			Object	value	= entry.getValue();
 			
-			if ( key.startsWith( "URL_" ) && value instanceof String ){
+			if ( key.startsWith( "url_" ) && value instanceof String ){
 			
 				key = key.substring(4);
 				
-				if ( key.equalsIgnoreCase( "Accept-Encoding" ) && !use_compression ){
+				if ( key.equals( "accept-encoding" ) && !use_compression ){
 					
 					//skip
 					

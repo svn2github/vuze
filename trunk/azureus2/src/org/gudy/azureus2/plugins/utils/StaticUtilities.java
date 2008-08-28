@@ -29,9 +29,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
@@ -62,6 +64,12 @@ public class StaticUtilities {
   getResourceDownloaderFactory()
   {
 	  return( ResourceDownloaderFactoryImpl.getSingleton());
+  }
+  
+  public static ResourceUploaderFactory 
+  getResourceUploaderFactory()
+  {
+	  return( ResourceUploaderFactoryImpl.getSingleton());
   }
   
   public static PluginInterface
