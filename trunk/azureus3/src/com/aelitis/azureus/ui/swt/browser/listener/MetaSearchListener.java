@@ -123,9 +123,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			long engine_id = ((Long)decodedMap.get("engine_id")).longValue();
 			
+			final Long	sid = (Long)decodedMap.get( "sid" );
+
 			Engine engine = getEngineFromId(engine_id);
 			
-			if( engine != null && engine instanceof WebEngine){
+			if ( engine != null && engine instanceof WebEngine){
 				
 				final WebEngine webEngine = (WebEngine) engine;
 
@@ -136,12 +138,22 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							{
 								private String previous_cookies;
 								
+								private boolean	outcome_informed;
+								
 								public void 
 								canceled(
 									ExternalLoginWindow window) 
 								{
-									// TODO notify the page
-	
+									if ( !outcome_informed ){
+										
+										outcome_informed = true;
+										
+										Map params = getParams( webEngine );
+										
+										params.put( "error", "operation cancelled" );
+										
+										sendBrowserMessage("metasearch", "engineFailed", params );
+									}
 								}
 	
 								public void 
@@ -161,6 +173,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									String 					cookies )
 								{
 									handleCookies( cookies );
+									
+									if ( !outcome_informed ){
+										
+										outcome_informed = true;
+										
+										Map params = getParams( webEngine );
+																				
+										sendBrowserMessage("metasearch", "engineCompleted", params );
+									}
 								}
 								
 								private boolean
@@ -175,6 +196,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 											
 											previous_cookies = cookies;
 											
+												// search operation will report outcome
+											
+											outcome_informed	= true;
+											
 											search( decodedMap, webEngine );
 										}
 										
@@ -183,13 +208,38 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
 									return( false );
 								}
+								
+								protected Map
+								getParams(
+									Engine	engine )
+								{
+									Map params = new HashMap();
+									params.put("id", new Long(engine.getId()));
+									params.put("name", engine.getName());
+									params.put("favicon", engine.getIcon());
+									params.put("dl_link_css", engine.getDownloadLinkCSS());
+									
+									if ( sid != null ){
+										params.put( "sid", sid );
+									}
+									return( params );
+								}
 							},
 						webEngine.getLoginPageUrl(),
 						false );
 					}
 				});
+			}else{
+				
+				Map params = new HashMap();
+				
+				if ( sid != null ){
+					params.put( "sid", sid );
+				}
+				params.put( "error", "engine not found or not a web engine" );
+				
+				sendBrowserMessage("metasearch", "engineFailed", params );
 			}
-
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
 			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true, true );
