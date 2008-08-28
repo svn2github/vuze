@@ -1619,9 +1619,7 @@ public class MainWindow
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
 
-		StyledText text = null;
-
-		text = new StyledText(cArea, SWT.SINGLE);
+		final StyledText text = new StyledText(cArea, SWT.SINGLE);
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
@@ -1671,6 +1669,30 @@ public class MainWindow
 			}
 		});
 
+		text.addKeyListener(
+			new KeyListener()
+			{
+				public void keyPressed(KeyEvent e) {
+				
+					if (e.stateMask == SWT.MOD1) {
+					
+						int key = e.character;
+						if (key <= 26 && key > 0){
+							key += 'a' - 1;
+						}
+						
+						if ( key == 'a' ){
+							text.selectAll();
+						}
+					}
+					
+				}
+				public void keyReleased(KeyEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+		
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
