@@ -223,4 +223,21 @@ public abstract class Result {
 		return object;
 	}
 	
+	public static void
+	adjustRelativeTerms(
+		Map		map )
+	{
+		String	ts = (String)map.get( "ts" );
+		
+		if ( ts != null ){
+			
+			long	l_ts = Long.parseLong(ts);
+			
+			if ( l_ts > 0 ){
+				
+				map.put("d", MomentsAgoDateFormatter.getMomentsAgoString(new Date( l_ts )));
+
+			}
+		}
+	}
 }

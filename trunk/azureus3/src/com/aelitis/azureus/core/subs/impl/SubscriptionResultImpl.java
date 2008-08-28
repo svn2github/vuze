@@ -213,10 +213,12 @@ SubscriptionResultImpl
 		map.put( "subs_is_read", new Boolean( read ));
 		map.put( "subs_id", getID());
 		
+		Result.adjustRelativeTerms( map );
+		
 		return( map );
 	}
 	
-	protected String
+	private String
 	getJSON()
 	{
 		return( result_json );
