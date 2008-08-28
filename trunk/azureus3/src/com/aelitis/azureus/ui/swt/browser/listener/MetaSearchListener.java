@@ -242,7 +242,39 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
-			Engine[] engines = metaSearchManager.getMetaSearch().getEngines( true, true );
+			final Map decodedMap = message.getDecodedMap();
+
+			String subscriptionId		= ((String)decodedMap.get("subs_id"));
+			
+			Engine[] engines = null;
+			
+			if ( subscriptionId != null ){
+				
+				engines = new Engine[0];
+				
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
+				
+				if ( subs != null ){
+				
+					try{
+						Engine engine = subs.getEngine();
+						
+						if ( engine != null ){
+							
+							engines = new Engine[]{ engine };
+						}
+					}catch( Throwable e ){
+					
+						Debug.out( e );
+					}
+				}
+			}
+			
+			if ( engines == null ){
+				
+				engines = metaSearchManager.getMetaSearch().getEngines( true, true );
+			}
+			
 			List params = new ArrayList();
 			for(int i = 0 ; i < engines.length ; i++) {
 				Engine engine = engines[i];
@@ -1231,6 +1263,33 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		final Long	sid = (Long)decodedMap.get( "sid" );
 
 		Boolean	mature = (Boolean)decodedMap.get( "mature" );
+		
+		if ( target == null ){
+		
+				// override engine selection for subscriptions
+			
+			String subscriptionId		= ((String)decodedMap.get("subs_id"));
+			
+			if ( subscriptionId != null ){
+				
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( subscriptionId );
+				
+				if ( subs != null ){
+				
+					try{
+						Engine engine = subs.getEngine();
+						
+						if ( engine != null ){
+							
+							target = engine;
+						}
+					}catch( Throwable e ){
+					
+						Debug.out( e );
+					}
+				}
+			}
+		}
 		
 		ResultListener listener = new ResultListener() {
 			

@@ -170,6 +170,8 @@ MetaSearchImpl
 					null,
 					new String[0] );
 		
+		engine.setSource( Engine.ENGINE_SOURCE_RSS );
+		
 		addEngine( engine, false );
 				
 		log( "Created RSS engine '" + url + "'" );

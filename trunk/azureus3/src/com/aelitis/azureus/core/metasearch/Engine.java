@@ -74,6 +74,7 @@ Engine
 	public static final int	ENGINE_SOURCE_UNKNOWN				= 0;
 	public static final int	ENGINE_SOURCE_VUZE					= 1;
 	public static final int	ENGINE_SOURCE_LOCAL					= 2;
+	public static final int	ENGINE_SOURCE_RSS					= 3;
 	
 	public static final int	SEL_STATE_DESELECTED			= 0;
 	public static final int	SEL_STATE_AUTO_SELECTED			= 1;
@@ -82,7 +83,7 @@ Engine
 		/**
 		 * don't change these as they are externalised
 		 */
-	public static final String[] ENGINE_SOURCE_STRS = { "unknown","vuze","local","unused","unused" };
+	public static final String[] ENGINE_SOURCE_STRS = { "unknown","vuze","local","rss","unused" };
 	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
 	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json", "plugin" };
 	
