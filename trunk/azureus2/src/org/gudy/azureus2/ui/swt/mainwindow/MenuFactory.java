@@ -99,6 +99,10 @@ public class MenuFactory
 		return createTopLevelMenuItem(menuParent, MENU_ID_VIEW);
 	}
 
+	public static MenuItem createPublishMenuItem(Menu menuParent) {
+		return createTopLevelMenuItem(menuParent, MENU_ID_PUBLISH);
+	}
+
 	public static MenuItem createAdvancedMenuItem(Menu menuParent) {
 		return createTopLevelMenuItem(menuParent, MENU_ID_ADVANCED);
 	}

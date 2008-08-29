@@ -183,4 +183,7 @@ public interface IMenuConstants
 	public static final String MENU_ID_COMMUNITY_FORUMS = "MainWindow.menu.community.forums";
 
 	public static final String MENU_ID_COMMUNITY_ADD_FRIENDS = "MainWindow.menu.community.add_friends";
+	
+	public static final String MENU_ID_PUBLISH = "v3.MainWindow.menu.publish";
+	
 }
