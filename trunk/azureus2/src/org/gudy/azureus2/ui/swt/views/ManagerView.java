@@ -451,13 +451,8 @@ public class ManagerView
 	
 	public DownloadManager getDownload() {return manager;}
 
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getObjectProperty(int)
-	public Object getTitleInfoObjectProperty(int propertyID) {
-		return null;
-	}
-
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getStringProperty(int)
-	public String getTitleInfoStringProperty(int propertyID) {
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
+	public Object getTitleInfoProperty(int propertyID) {
 		if (propertyID == TITLE_TEXT) {
 			return manager == null ? "" : manager.getDisplayName();
 		}

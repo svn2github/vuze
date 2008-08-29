@@ -59,7 +59,5 @@ public interface ViewTitleInfo
 	 *
 	 * @since 3.1.1.1
 	 */
-	public String getTitleInfoStringProperty(int propertyID);
-
-	public Object getTitleInfoObjectProperty(int propertyID);
+	public Object getTitleInfoProperty(int propertyID);
 }
