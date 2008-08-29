@@ -363,7 +363,7 @@ WebEngine
 		
 		try {
 			
-			if( requiresLogin()){
+			if ( requiresLogin()){
 				
 				throw new SearchLoginException("login required");
 			}
@@ -460,6 +460,42 @@ WebEngine
 
 			InputStream	is = mr_rd.download();
 				
+			if ( needsAuth ){
+				
+				List	cookies_list = (List)url_rd.getProperty( "URL_Set-Cookie" );
+				
+				List	cookies_set = new ArrayList();
+				
+				if ( cookies_list != null ){
+					
+					for (int i=0;i<cookies_list.size();i++){
+						
+						String[] cookies = ((String)cookies_list.get(i)).split(";");
+						
+						for (int j=0;j<cookies.length;j++){
+							
+							String	cookie = cookies[j].trim();
+							
+							if ( cookie.indexOf('=') != -1 ){
+								
+								cookies_set.add( cookie );
+							}
+						}
+					}
+				}
+				
+					// well, not much we can do with the cookies anyway as in general the ones
+					// set are the ones missing/expired, not the existing ones. That is, we can't
+					// deduce anything from the fact that a required cookie is not 'set' here
+					// the most we could do is catch a server that explicitly deleted invalid
+					// cookies by expiring it, but I doubt this is a common practice.
+				
+					// Also note the complexity of cookie syntax
+					// Set-Cookie: old standard using expires=, new using MaxAge
+					// Set-Cookie2:
+					// Maybe use http://jcookie.sourceforge.net/ if needed
+			}
+			
 			if ( only_if_modified ){
 				
 				String last_modified 	= (String)url_rd.getProperty( "URL_Last-Modified" );

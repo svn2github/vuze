@@ -8,7 +8,6 @@ public class CookieParser {
 	
 	public static boolean cookiesContain(String[] requiredCookies,String cookies) {
 		if(cookies == null) return false;
-		StringTokenizer st = new StringTokenizer(cookies,"; ");
 		boolean[] cookieFound = new boolean[requiredCookies.length];
 		
 		String[] names = getCookiesNames(cookies);
