@@ -185,6 +185,7 @@ SubscriptionManagerImpl
 	private SubscriptionSchedulerImpl	scheduler;
 	
 	private List					potential_associations	= new ArrayList();
+	private Map						potential_associations2	= new HashMap();
 	
 	private boolean					meta_search_listener_added;
 	
@@ -282,7 +283,6 @@ SubscriptionManagerImpl
 			}
 			*/
 			
-			/*
 			default_pi.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
@@ -294,11 +294,30 @@ SubscriptionManagerImpl
 						
 						if ( torrent != null ){
 							
-							String	obtained_from = TorrentUtils.getObtainedFrom(((TorrentImpl)torrent).getTorrent());
+							byte[]	hash = torrent.getHash();
 							
-							if ( obtained_from != null ){
+							Object[] entry;
+							
+							synchronized( potential_associations2 ){
 								
-								checkPotentialAssociations( torrent.getHash(), obtained_from );
+								entry = (Object[])potential_associations2.remove( new HashWrapper( hash ));
+							}
+							
+							if ( entry != null ){
+								
+								SubscriptionImpl[] subs = (SubscriptionImpl[])entry[0];
+								
+								String	subs_str = "";
+								for (int i=0;i<subs.length;i++){
+									subs_str += (i==0?"":",") + subs[i].getName();
+								}
+								
+								log( "Applying deferred asocciation for " + ByteFormatter.encodeString( hash ) + " -> " + subs_str );
+								
+								recordAssociationsSupport(
+									hash,
+									subs,
+									((Boolean)entry[1]).booleanValue());
 							}
 						}
 					}
@@ -310,7 +329,6 @@ SubscriptionManagerImpl
 					}
 				},
 				false );
-			*/
 			
 			TorrentUtils.addTorrentAttributeListener(
 				new TorrentUtils.torrentAttributeListener()
@@ -2275,7 +2293,7 @@ SubscriptionManagerImpl
 				
 				if ( created > now ){
 					
-					entry[2] = new Long( now );
+					entry[3] = new Long( now );
 					
 				}else if ( now - created > 60*60*1000 ){
 					
@@ -2290,6 +2308,41 @@ SubscriptionManagerImpl
 				}
 			}
 		}
+		
+		synchronized( potential_associations2 ){
+			
+			Iterator it = potential_associations2.entrySet().iterator();
+			
+			while( it.hasNext() && potential_associations2.size() > 16 ){
+				
+				Map.Entry	map_entry = (Map.Entry)it.next();
+				
+				byte[]		hash = ((HashWrapper)map_entry.getKey()).getBytes();
+				
+				Object[]	entry = (Object[])map_entry.getValue();
+				
+				long	created = ((Long)entry[2]).longValue();
+				
+				if ( created > now ){
+					
+					entry[2] = new Long( now );
+					
+				}else if ( now - created > 60*60*1000 ){
+					
+					SubscriptionImpl[] 	subs = (SubscriptionImpl[])entry[0];
+
+					String	subs_str = "";
+					
+					for (int i=0;i<subs.length;i++){
+						subs_str += (i==0?"":",") + subs[i].getName();
+					}
+					
+					log( "Removing expired potential association: " + ByteFormatter.encodeString(hash) + " -> " + subs_str );
+					
+					it.remove();
+				}
+			}
+		}
 	}
 	
 	protected void
@@ -2298,14 +2351,42 @@ SubscriptionManagerImpl
 		SubscriptionImpl[]			subscriptions,
 		boolean						full_lookup )
 	{
+		HashWrapper	hw = new HashWrapper( association_hash );
+		
+		synchronized( potential_associations2 ){
+			
+			potential_associations2.put( hw, new Object[]{ subscriptions, new Boolean( full_lookup ), new Long( SystemTime.getCurrentTime())});
+		}
+			
+		if ( recordAssociationsSupport( association_hash, subscriptions, full_lookup )){
+			
+			synchronized( potential_associations2 ){
+
+				potential_associations2.remove( hw );
+			}
+		}else{
+			
+			log( "Deferring association for " + ByteFormatter.encodeString( association_hash ));
+		}
+	}
+	
+	protected boolean
+	recordAssociationsSupport(
+		byte[]						association_hash,
+		SubscriptionImpl[]			subscriptions,
+		boolean						full_lookup )
+	{
 		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
 
-		boolean	changed = false;
+		boolean	download_found	= false;
+		boolean	changed 		= false;
 		
 		try{
 			Download download = pi.getDownloadManager().getDownload( association_hash );
 			
 			if ( download != null ){
+						
+				download_found = true;
 				
 				Map	map = download.getMapAttribute( ta_subscription_info );
 				
@@ -2391,6 +2472,8 @@ SubscriptionManagerImpl
 				}
 			}
 		}
+		
+		return( download_found );
 	}
 	
 	protected void
