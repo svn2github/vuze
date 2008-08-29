@@ -39,6 +39,7 @@ SearchResult
 	public static final int	PR_PLAY_LINK		= 13;
 	public static final int	PR_PRIVATE			= 14;
 	public static final int	PR_DRM_KEY			= 15;
+	public static final int	PR_DOWNLOAD_BUTTON_LINK = 16;
 	
 	public Object
 	getProperty(
