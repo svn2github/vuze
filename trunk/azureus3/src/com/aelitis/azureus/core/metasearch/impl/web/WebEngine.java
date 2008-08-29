@@ -618,7 +618,9 @@ WebEngine
 	}
 
 	public String getLoginPageUrl() {
-		return loginPageUrl;
+		//Let's try with no login page url
+		//return loginPageUrl;
+		return searchURLFormat.replaceAll("%s", "");
 	}
 
 	public void setLoginPageUrl(String loginPageUrl) {

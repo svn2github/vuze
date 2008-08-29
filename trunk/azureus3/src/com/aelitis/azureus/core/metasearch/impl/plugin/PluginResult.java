@@ -139,6 +139,12 @@ PluginResult
 	}
 	
 	public String 
+	getDownloadButtonLink()
+	{
+		return(getStringProperty( SearchResult.PR_DOWNLOAD_BUTTON_LINK ));
+	}
+	
+	public String 
 	getCDPLink()
 	{
 		return( getStringProperty( SearchResult.PR_DETAILS_LINK ));

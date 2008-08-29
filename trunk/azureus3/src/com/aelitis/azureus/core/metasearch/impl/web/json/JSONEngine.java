@@ -319,6 +319,9 @@ JSONEngine
 									case FIELD_PLAYLINK :
 										result.setPlayLink(fieldContent);
 										break;
+									case FIELD_DOWNLOADBTNLINK :
+										result.setDownloadButtonLink(fieldContent);
+										break;
 									case FIELD_VOTES :
 										result.setVotesFromHTML(fieldContent);
 										break;

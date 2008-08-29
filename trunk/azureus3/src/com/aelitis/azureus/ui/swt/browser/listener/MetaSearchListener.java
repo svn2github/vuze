@@ -85,6 +85,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_HAS_LOAD_TORRENT		= "has-load-torrent";
 	
 	public static final String OP_ENGINE_LOGIN			= "engine-login";
+	public static final String OP_GET_LOGIN_COOKIES		= "get-login-cookies";
 	
 	public static final String OP_CREATE_SUBSCRIPTION   		= "create-subscription";
 	public static final String OP_READ_SUBSCRIPTION   			= "read-subscription";
@@ -240,6 +241,31 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				
 				sendBrowserMessage("metasearch", "engineFailed", params );
 			}
+		} else if(OP_GET_LOGIN_COOKIES.equals(opid)) {
+			
+			final Map decodedMap = message.getDecodedMap();
+			
+			final String url = ((String) decodedMap.get("url")).replaceAll("%s", "");
+			
+			Utils.execSWTThread( new Runnable() {
+				public void run() {
+					new ExternalLoginWindow(
+						new ExternalLoginListener() 
+						{	
+						public void canceled(ExternalLoginWindow window) {};
+						public void cookiesFound(ExternalLoginWindow window, String cookies) {};
+						public void done(ExternalLoginWindow window, String cookies) {
+							String[] cookieNames = CookieParser.getCookiesNames(cookies);
+							Map params = new HashMap();
+							params.put("cookieNames", cookieNames);
+							params.put("currentCookie",cookies);
+							sendBrowserMessage("metasearch", "setCookies", params );
+						};
+						},url,true);
+				}
+			});
+			
+			
 		} else if(OP_GET_ENGINES.equals(opid)) {
 
 			final Map decodedMap = message.getDecodedMap();
@@ -533,6 +559,10 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			String searchText 	= (String) decodedMap.get("searchText");
 			String headers		= (String) decodedMap.get("headers");
 			
+			String cookie       = (String) decodedMap.get("cookie");
+			//TODO : parg : we need to use this if not null
+			
+			
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
 			Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
@@ -551,6 +581,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				SearchParameter parameter = new SearchParameter("s",searchText);
 				SearchParameter[] parameters = new SearchParameter[] {parameter};
 
+				
 				engine.search(
 						parameters, 
 						(int)match_count,

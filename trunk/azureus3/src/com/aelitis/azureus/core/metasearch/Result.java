@@ -55,6 +55,7 @@ public abstract class Result {
 	
 	//Links
 	public abstract String getDownloadLink();
+	public abstract String getDownloadButtonLink();
 	public abstract String getCDPLink();
 	public abstract String getPlayLink();
 	
@@ -203,6 +204,10 @@ public abstract class Result {
 		
 		if ( this.getDownloadLink().length() > 0 ){
 			object.put("dl", this.getDownloadLink());
+		}
+		
+		if ( this.getDownloadButtonLink().length() > 0 ){
+			object.put("dbl", this.getDownloadButtonLink());
 		}
 		
 		if ( this.getPlayLink().length() > 0 ){

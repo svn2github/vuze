@@ -341,6 +341,9 @@ RegexEngine
 										case FIELD_PLAYLINK :
 											result.setPlayLink(groupContent);
 											break;
+										case FIELD_DOWNLOADBTNLINK :
+											result.setDownloadButtonLink(groupContent);
+											break;
 										case FIELD_COMMENTS :
 											result.setCommentsFromHTML(groupContent);
 											break;

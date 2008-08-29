@@ -61,6 +61,7 @@ public class WebResult extends Result {
 	
 	String cdpLink;
 	String torrentLink;
+	String downloadButtonLink;
 	String playLink;
 	
 	int votes = -1;
@@ -244,6 +245,10 @@ public class WebResult extends Result {
 		this.cdpLink = cdpLink;
 	}
 	
+	public void setDownloadButtonLink(String downloadButtonLink) {
+		this.downloadButtonLink = downloadButtonLink;
+	}
+	
 	public void setTorrentLink(String torrentLink) {
 		this.torrentLink = torrentLink;
 	}
@@ -290,21 +295,7 @@ public class WebResult extends Result {
 
 	public String getCDPLink() {
 		
-		if(cdpLink != null) {
-			
-			if(cdpLink.startsWith("http://") || cdpLink.startsWith("https://")) {
-				return cdpLink;
-			}
-			
-			if(cdpLink.startsWith("/")) {
-				return rootPageURL + cdpLink;
-			}
-			
-			return basePageURL + cdpLink;
-		}
-		
-		return "";
-		
+		return reConstructLink(cdpLink);
 	}
 
 	public String getCategory() {
@@ -313,21 +304,37 @@ public class WebResult extends Result {
 
 	public String getDownloadLink() {
 
-		if(torrentLink != null) {
+		return reConstructLink(torrentLink);
+		
+	}
+	
+	public String getDownloadButtonLink() {
+
+		//If we don't have a download button link, but we do have a direct download link,
+		//then we should use the direct download link...
+		if(downloadButtonLink != null) {
+			return reConstructLink(downloadButtonLink);
+		} else {
+			return getDownloadLink();
+		}
+		
+	}
+	
+	private String reConstructLink(String link) {
+		if(link != null) {
 			
-			if(torrentLink.startsWith("http://") || torrentLink.startsWith("https://")) {
-				return torrentLink;
+			if(link.startsWith("http://") || link.startsWith("https://")) {
+				return link;
 			}
 			
-			if(torrentLink.startsWith("/")) {
-				return rootPageURL + torrentLink;
+			if(link.startsWith("/")) {
+				return rootPageURL + link;
 			}
 			
-			return basePageURL + torrentLink;
+			return basePageURL + link;
 		}
 		
 		return "";
-		
 	}
 
 	public String getName() {
