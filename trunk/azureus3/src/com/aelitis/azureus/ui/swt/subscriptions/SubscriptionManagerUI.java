@@ -801,8 +801,8 @@ SubscriptionManagerUI
 			subs = _subs;
 		}
 		
-		public String 
-		getTitleInfoStringProperty(
+		public Object 
+		getTitleInfoProperty(
 			int propertyID ) 
 		{
 			switch(propertyID) {
@@ -812,20 +812,13 @@ SubscriptionManagerUI
 				if(subs.getHistory().getNumUnread() > 0) {
 					return ( "" + subs.getHistory().getNumUnread());
 				}
+			case ViewTitleInfo.TITLE_HAS_VITALITY :
+				return new Boolean(false);
 			}
 			
 			return( null );
 		}
 
-		public Object 
-		getTitleInfoObjectProperty(
-			int propertyID )
-		{
-			
-			return new Boolean(false);
-			
-		}
-		
 		public void 
 		initialize(
 			Composite _parent_composite )

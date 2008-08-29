@@ -174,7 +174,7 @@ public class SBC_LibraryView
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		
 		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
-			public String getTitleInfoStringProperty(int propertyID) {
+			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_LOGID) {
 					String id = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
 					int viewMode = COConfigurationManager.getIntParameter(id
@@ -191,10 +191,7 @@ public class SBC_LibraryView
 					return "There are " + numIncomplete + " incomplete torrents, "
 							+ numDownloading + " of which are currently downloading";
 				}
-				return null;
-			}
 
-			public Object getTitleInfoObjectProperty(int propertyID) {
 				if(propertyID == TITLE_HAS_ACTIVITY) {
 					if(numDownloading > 0) {
 						return new Boolean(true);
@@ -211,7 +208,7 @@ public class SBC_LibraryView
 		}
 		
 		final ViewTitleInfo titleInfoSeeding = new ViewTitleInfo() {
-			public String getTitleInfoStringProperty(int propertyID) {
+			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_LOGID) {
 					String id = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
 					int viewMode = COConfigurationManager.getIntParameter(id
@@ -229,10 +226,6 @@ public class SBC_LibraryView
 				}
 				return null;
 			}
-
-			public Object getTitleInfoObjectProperty(int propertyID) {
-				return null;
-			}
 		};
 		allViewTitles.add(titleInfoSeeding);
 		SideBarEntrySWT infoCD = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
@@ -243,17 +236,13 @@ public class SBC_LibraryView
 		SideBarEntrySWT infoLibrary = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY);
 		if (infoLibrary != null) {
 			infoLibrary.setTitleInfo(new ViewTitleInfo() {
-				public String getTitleInfoStringProperty(int propertyID) {
+				public Object getTitleInfoProperty(int propertyID) {
 					if (propertyID == TITLE_LOGID) {
 						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
 						int viewMode = COConfigurationManager.getIntParameter(id
 								+ ".viewmode", MODE_BIGTABLE);
 						return id + "-" + viewMode;
 					}
-					return null;
-				}
-			
-				public Object getTitleInfoObjectProperty(int propertyID) {
 					return null;
 				}
 			});

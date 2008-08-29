@@ -323,16 +323,11 @@ public class SearchResultsTabArea
 		ViewTitleInfoManager.refreshTitleInfo(this);
 	}
 
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoObjectProperty(int)
-	public Object getTitleInfoObjectProperty(int propertyID) {
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
+	public Object getTitleInfoProperty(int propertyID) {
 		if (propertyID == TITLE_SKINVIEW) {
 			return this;
 		}
-		return null;
-	}
-
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoStringProperty(int)
-	public String getTitleInfoStringProperty(int propertyID) {
 		if (propertyID == TITLE_TEXT) {
 			return "Search: " + searchText;
 		}

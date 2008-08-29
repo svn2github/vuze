@@ -91,14 +91,7 @@ public class Browse
 		SelectedContentManager.changeCurrentlySelectedContent("browse", null);
 		
 		titleInfo = new ViewTitleInfo() {
-			public String getTitleInfoStringProperty(int propertyID) {
-				/*if (propertyID == TITLE_INDICATOR_TEXT) {
-					return browserSkinObject.isPageLoading() ? "Loading..." : null;
-				}*/
-				return null;
-			}
-		
-			public Object getTitleInfoObjectProperty(int propertyID) {
+			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_SKINVIEW) {
 					return Browse.this;
 				} else if(propertyID == TITLE_HAS_ACTIVITY) {

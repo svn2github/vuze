@@ -110,7 +110,7 @@ public class SideBarToolTips
 			return;
 		}
 
-		String sToolTip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		String sToolTip = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
 		if (sToolTip == null) {
 			return;
 		}
@@ -194,7 +194,7 @@ public class SideBarToolTips
 		if (sideBarInfo == null || sideBarInfo.titleInfo == null) {
 			return;
 		}
-		String sToolTip = sideBarInfo.titleInfo.getTitleInfoStringProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		String sToolTip = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
 		if (sToolTip == null) {
 			return;
 		}
