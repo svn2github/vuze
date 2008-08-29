@@ -334,14 +334,15 @@ public class MyTorrentsView
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
     boolean showCat = sLastSearch.length() > 0;
-    boolean show = showCat || forceHeaderVisible;
-    if (!showCat)
+    if (!showCat) {
 	    for(int i = 0; i < categories.length; i++) {
 	        if(categories[i].getType() == Category.TYPE_USER) {
 	            showCat = true;
 	            break;
 	        }
 	    }
+    }
+    boolean show = showCat || forceHeaderVisible;
 
     if (!showCat) {
     	if (cCategories != null && !cCategories.isDisposed()) {
