@@ -460,6 +460,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			String	json = (String)decodedMap.get( "value" );
 			
+			String	cookies = (String)decodedMap.get( "cookies" );
+			
+			
 			try{
 				Engine engine = 
 					metaSearchManager.addEngine( 
@@ -467,6 +470,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							type_str.equals( "json" )?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX, 
 							name, 
 							json );
+				
+				if(cookies!= null && engine instanceof WebEngine) {
+					WebEngine we = (WebEngine) engine;
+					we.setCookies(cookies);
+				}
 				
 				Map params = new HashMap();
 				params.put( "id", new Long( engine.getId() ));
