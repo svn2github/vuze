@@ -79,6 +79,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 
@@ -1271,6 +1272,19 @@ public class MainWindow
 				((ManagerView) currentView).getDownload(),
 			};
 			detailed_view = true;
+		} else if (currentView instanceof UISWTView) {
+			UISWTView current_swt_view = (UISWTView)currentView;
+			Object core_object = PluginCoreUtils.convert(current_swt_view.getDataSource(), true);
+			if (core_object instanceof DownloadManager) {
+				dm = new DownloadManager[] {(DownloadManager)core_object};
+				
+				// We should be using a constant somewhere!
+				detailed_view = "DMView".equals(current_swt_view.getViewID());
+			}
+			else {
+				dm = null;
+				detailed_view = false;
+			}
 		} else if (currentView instanceof MyTorrentsSuperView) {
 			dm = ((MyTorrentsSuperView) this.getCurrentView()).getSelectedDownloads();
 			detailed_view = false;
