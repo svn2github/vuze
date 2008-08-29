@@ -165,8 +165,8 @@ DHTPluginImpl
 						_ip,
 						storage_manager.getMostRecentAddress(),
 						_port, 
-						4,
-						2,
+						3,
+						1,
 						10000, 	// udp timeout - tried less but a significant number of 
 								// premature timeouts occurred
 						send_delay, recv_delay, 

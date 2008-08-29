@@ -173,6 +173,11 @@ DHTControl
 	public List
 	getContacts();
 	
+		// debug method only
+	
+	public void
+	pingAll();
+	
 	public void
 	addListener(
 		DHTControlListener	l );

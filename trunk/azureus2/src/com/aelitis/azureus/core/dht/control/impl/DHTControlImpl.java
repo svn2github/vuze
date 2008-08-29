@@ -3180,6 +3180,56 @@ DHTControlImpl
 	}
 	
 	public void
+	pingAll()
+	{
+		List	contacts = router.getAllContacts();
+			
+		final AESemaphore sem = new AESemaphore( "pingAll", 32 );
+		
+		final int[]	results = {0,0};
+		
+		for (int i=0;i<contacts.size();i++){
+			
+			sem.reserve();
+			
+			DHTRouterContact	rc = (DHTRouterContact)contacts.get(i);
+
+			((DHTControlContactImpl)rc.getAttachment()).getTransportContact().sendPing(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						pingReply(
+							DHTTransportContact _contact )
+						{
+							results[0]++;
+							
+							print();
+							
+							sem.release();
+						}	
+						
+						public void
+						failed(
+							DHTTransportContact 	_contact,
+							Throwable				_error )
+						{
+							results[1]++;
+							
+							print();
+							
+							sem.release();
+						}
+						
+						protected void
+						print()
+						{
+							System.out.println( "ok=" + results[0] + ",bad=" + results[1] );
+						}
+					});
+		}
+	}
+	
+	public void
 	print()
 	{
 		DHTNetworkPosition[]	nps = transport.getLocalContact().getNetworkPositions();

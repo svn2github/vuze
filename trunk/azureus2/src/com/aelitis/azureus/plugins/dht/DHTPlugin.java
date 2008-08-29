@@ -320,6 +320,13 @@ DHTPlugin
 										
 										dhts[i].logStats();
 										
+									}else if ( lc.equals( "pingall" )){
+										
+										if ( i == 1 ){
+											
+											dht.getControl().pingAll();
+										}
+										
 									}else if ( lc.equals( "testca" )){
 																
 										((DHTTransportUDPImpl)transport).testExternalAddressChange();
