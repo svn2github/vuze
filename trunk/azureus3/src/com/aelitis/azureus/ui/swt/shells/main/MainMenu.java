@@ -19,15 +19,16 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
 import com.aelitis.azureus.util.Constants;
 
 public class MainMenu
@@ -75,9 +76,11 @@ public class MainMenu
 		parent.setMenuBar(menuBar);
 
 		addFileMenu();
-		addViewMenu();
+		//addViewMenu();
 
 		addCommunityMenu();
+		
+		addPublishMenu();
 
 		addToolsMenu();
 
@@ -103,6 +106,23 @@ public class MainMenu
 		 * which menus are enabled when we're in Vuze vs. Vuze Advanced
 		 */
 		MenuFactory.updateEnabledStates(menuBar);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void addPublishMenu() {
+		try {
+			MenuItem publishItem = MenuFactory.createPublishMenuItem(menuBar);
+			final Menu publishMenu = publishItem.getMenu();
+
+			addPublishMenuItems(publishMenu);
+
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
 	}
 
 	/**
@@ -183,7 +203,7 @@ public class MainMenu
 
 			addViewToolBarsMenu(viewMenu);
 
-			addViewMenuItems(viewMenu);
+			//addViewMenuItems(viewMenu);
 
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
@@ -307,6 +327,71 @@ public class MainMenu
 				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
+
+	}
+	
+	private void addPublishMenuItems(Menu publishMenu) {
+		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
+				new Listener() {
+					public void handleEvent(Event event) {
+						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISHNEW + "?"
+						+ Constants.URL_SUFFIX;
+
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
+				if (entry.getIView() == null) {
+					entry = sidebar.createEntryFromSkinRef(
+							SideBar.SIDEBAR_SECTION_BROWSE,
+							SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
+							"Publish", null, sURL, true, -1);
+				} else {
+					UISWTViewEventListener eventListener = entry.getEventListener();
+					if (eventListener instanceof UISWTViewEventListenerSkinObject) {
+						SWTSkinObject so = ((UISWTViewEventListenerSkinObject)eventListener).getSkinObject();
+						if (so instanceof SWTSkinObjectBrowser) {
+							((SWTSkinObjectBrowser) so).setURL(sURL);
+						}
+					}
+				}
+				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+					}
+				});
+
+		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
+				new Listener() {
+					public void handleEvent(Event event) {
+						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISHED + "?"
+								+ Constants.URL_SUFFIX;
+
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
+						if (entry.getIView() == null) {
+							entry = sidebar.createEntryFromSkinRef(
+									SideBar.SIDEBAR_SECTION_BROWSE,
+									SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
+									"Publish", null, sURL, true, -1);
+						} else {
+							UISWTViewEventListener eventListener = entry.getEventListener();
+							if (eventListener instanceof UISWTViewEventListenerSkinObject) {
+								SWTSkinObject so = ((UISWTViewEventListenerSkinObject)eventListener).getSkinObject();
+								if (so instanceof SWTSkinObjectBrowser) {
+									((SWTSkinObjectBrowser) so).setURL(sURL);
+								}
+							}
+						}
+						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+					}
+				});
+
+		MenuFactory.addSeparatorMenuItem(publishMenu);
+
+		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
+				new Listener() {
+					public void handleEvent(Event event) {
+						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH_ABOUT;
+						Utils.launch(sURL);
+					}
+				});
 
 	}
 

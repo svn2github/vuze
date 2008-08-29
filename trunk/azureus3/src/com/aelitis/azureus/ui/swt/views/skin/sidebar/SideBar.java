@@ -1205,6 +1205,12 @@ public class SideBar
 					true, 0);
 			itemSelected(entry.treeItem);
 			return true;
+		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
+			SideBarEntrySWT entry = createEntryFromSkinRef(SIDEBAR_SECTION_BROWSE,
+					SIDEBAR_SECTION_PUBLISH, "publishtab.area", "Publish", null, null,
+					true, -1);
+			itemSelected(entry.treeItem);
+			return true;
 		}
 		return false;
 	}
@@ -1375,7 +1381,7 @@ public class SideBar
 			((UISWTViewImpl) iview).setTitle(name);
 			iview.dataSourceChanged(datasource);
 
-			if (l instanceof UISWTViewEventListenerFormLayout) {
+			if (l instanceof UISWTViewEventListenerSkinObject) {
 				((UISWTViewImpl) iview).setUseCoreDataSource(true);
 			}
 
@@ -1389,7 +1395,7 @@ public class SideBar
 					SWT.COLOR_WIDGET_BACKGROUND));
 			viewComposite.setForeground(parent.getDisplay().getSystemColor(
 					SWT.COLOR_WIDGET_FOREGROUND));
-			if (l instanceof UISWTViewEventListenerFormLayout) {
+			if (l instanceof UISWTViewEventListenerSkinObject) {
 				viewComposite.setLayout(new FormLayout());
 			} else {
 				GridLayout gridLayout = new GridLayout();
@@ -1578,9 +1584,7 @@ public class SideBar
 
 		TreeItem treeItem = null;
 
-		UISWTViewEventListener l = new UISWTViewEventListenerFormLayout() {
-			private SWTSkinObject skinObject;
-
+		UISWTViewEventListener l = new UISWTViewEventListenerSkinObject() {
 			public boolean eventOccurred(UISWTViewEvent event) {
 				switch (event.getType()) {
 					case UISWTViewEvent.TYPE_INITIALIZE: {
@@ -1649,9 +1653,15 @@ public class SideBar
 		}
 	}
 
-	public static interface UISWTViewEventListenerFormLayout
-		extends UISWTViewEventListener
+	public static abstract class UISWTViewEventListenerSkinObject
+		implements UISWTViewEventListener
 	{
+			protected SWTSkinObject skinObject;
+
+			public SWTSkinObject getSkinObject() {
+				return skinObject;
+			}
+
 	}
 
 	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener#viewTitleInfoRefresh(com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo)

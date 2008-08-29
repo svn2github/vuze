@@ -73,7 +73,13 @@ public class Constants
 	public static final String URL_MINI_BROWSE = "dashboard.start";
 
 	public static final String URL_PUBLISH = "publish.start";
+	
+	public static final String URL_PUBLISHED = "PublishedContent.html";
 
+	public static final String URL_PUBLISHNEW = "PublishNewContent.html";
+
+	public static final String URL_PUBLISH_ABOUT = "Publish.html";
+	
 	public static final String URL_DETAILS = "details/";
 
 	public static final String URL_COMMENTS = "comment/";

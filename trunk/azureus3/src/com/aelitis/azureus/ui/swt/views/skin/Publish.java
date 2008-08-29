@@ -38,10 +38,15 @@ public class Publish
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_PUBLISH, soMain);
-
-		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
-				+ Constants.URL_SUFFIX;
-		browserSkinObject.setURL(sURL);
+		
+		Object o = skinObject.getData("CreationParams");
+		if (o instanceof String) {
+			browserSkinObject.setURL((String) o);
+		} else {
+  		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
+  				+ Constants.URL_SUFFIX;
+  		browserSkinObject.setURL(sURL);
+		}
 
 		return null;
 	}
