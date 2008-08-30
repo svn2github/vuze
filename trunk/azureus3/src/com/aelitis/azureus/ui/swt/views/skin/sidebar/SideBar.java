@@ -796,7 +796,7 @@ public class SideBar
 
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
-			public String getTitleInfoProperty(int propertyID) {
+			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					return "" + VuzeActivitiesManager.getNumEntries();
 				}
