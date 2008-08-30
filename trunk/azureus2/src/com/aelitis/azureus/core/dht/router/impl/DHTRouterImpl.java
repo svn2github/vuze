@@ -26,14 +26,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -133,6 +138,19 @@ DHTRouterImpl
 		buckets.add( local_contact );
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
+		
+		SimpleTimer.addPeriodicEvent(
+			"DHTRouter:pinger",
+			10*1000,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					pingeroonies();
+				}
+			});
 	}
 	
 	protected void notifyAdded(DHTRouterContact contact) {
@@ -1076,6 +1094,78 @@ DHTRouterImpl
 		for (int i=0;i<pings.size();i++){
 			
 			adapter.requestPing((DHTRouterContactImpl)pings.get(i));
+		}
+	}
+	
+	protected void
+	pingeroonies()
+	{
+		try{
+			this_mon.enter();
+		
+			DHTRouterNodeImpl	node = root;
+			
+			LinkedList	stack = new LinkedList();
+			
+			while( true ){
+				
+				List	buckets = node.getBuckets();
+				
+				if ( buckets == null ){
+					
+					if ( random.nextBoolean()){
+						
+						stack.add( node.getRight());
+
+						node = node.getLeft();						
+						
+					}else{
+						
+						stack.add( node.getLeft());
+
+						node = node.getRight();						
+					}
+				}else{
+					
+					int 					max_fails 			= 0;
+					DHTRouterContactImpl	max_fails_contact	= null;
+					
+					for (int i=0;i<buckets.size();i++){
+						
+						DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+
+						if ( !contact.getPingOutstanding()){
+							
+							int	fails = contact.getFailCount();
+							
+							if ( fails > max_fails ){
+								
+								max_fails			= fails;
+								max_fails_contact	= contact;
+							}
+						}
+					}
+					
+					if ( max_fails_contact != null ){
+												
+						requestPing( max_fails_contact );
+						
+						return;
+					}
+					
+					if ( stack.size() == 0 ){
+						
+						break;
+					}
+					
+					node = (DHTRouterNodeImpl)stack.removeLast();
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+			
+			dispatchPings();
 		}
 	}
 	
