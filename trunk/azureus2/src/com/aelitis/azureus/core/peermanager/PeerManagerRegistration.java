@@ -31,12 +31,14 @@ PeerManagerRegistration
 	public TOTorrentFile
 	getLink(
 		String			link );
-	
-	public void
+
+    // XXX: Doesn't appear to be used.
+    public void
 	removeLink(
 		String			link );
-	
-	public void
+
+    // XXX: Doesn't appear to be used.
+    public void
 	addLink(
 		String			link,
 		TOTorrentFile	target )
@@ -52,7 +54,8 @@ PeerManagerRegistration
 	
 	public void
 	unregister();
-	
-	public String
+
+    // XXX: Doesn't appear to be used.
+    public String
 	getDescription();
 }
