@@ -1204,7 +1204,7 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-			// don't test for runnign here, the restart process calls this after terminating the core...
+			// don't test for running here, the restart process calls this after terminating the core...
 		
 		return( PluginInitializer.getDefaultInterface().getPluginManager());
 	}
