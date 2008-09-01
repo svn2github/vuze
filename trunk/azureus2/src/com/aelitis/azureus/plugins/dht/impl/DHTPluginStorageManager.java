@@ -137,10 +137,24 @@ DHTPluginStorageManager
 				// work around issue whereby puts to the CVS dht went out of control and
 				// diversified everything
 			
-			String key = "dht.plugin.sm.hack.kill.div.2";
+			String key_ver 	= "dht.plugin.sm.hack.kill.div.2.v";
+			String key 		= "dht.plugin.sm.hack.kill.div.2";
 			
-			long suspend_start = COConfigurationManager.getLongParameter( key, 0 );
+			long suspend_ver = COConfigurationManager.getLongParameter( key_ver, 0 );
+
+			long suspend_start;
+			
+			if ( suspend_ver == 0 ){
 				
+				suspend_start = 0;
+				
+				COConfigurationManager.setParameter( key_ver, 1 );
+				
+			}else{
+			
+				suspend_start = COConfigurationManager.getLongParameter( key, 0 );
+			}
+			
 			long now = SystemTime.getCurrentTime();
 			
 			if ( suspend_start == 0 ){

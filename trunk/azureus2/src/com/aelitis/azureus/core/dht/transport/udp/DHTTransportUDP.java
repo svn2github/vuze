@@ -64,7 +64,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_GENERIC_NETPOS		= 15;
 	public static final byte PROTOCOL_VERSION_VIVALDI_FINDVALUE		= 16;
 	public static final byte PROTOCOL_VERSION_ANON_VALUES			= 17;
-	public static final byte PROTOCOL_VERSION_CVS_FIX_OVERLOAD		= 18;
+	public static final byte PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V1	= 18;
+	public static final byte PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V2	= 19;
 
 	
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID_PORTS		= 32;	// introduced now (2403/V15) to support possible future change to id allocation
@@ -77,10 +78,10 @@ DHTTransportUDP
 		// current versions
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_ANON_VALUES;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_CVS_FIX_OVERLOAD;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V2;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2502;
-	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_CVS_FIX_OVERLOAD;
+	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_CVS_FIX_OVERLOAD_V2;
 	
 	
 	
