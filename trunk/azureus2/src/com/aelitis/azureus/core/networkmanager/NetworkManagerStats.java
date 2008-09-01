@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+/**
+ * XXX: This class seems to be unused. 
+ */
 public class 
 NetworkManagerStats 
 {
