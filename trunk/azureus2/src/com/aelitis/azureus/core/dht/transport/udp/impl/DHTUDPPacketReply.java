@@ -27,6 +27,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
@@ -111,11 +112,6 @@ DHTUDPPacketReply
 		
 		protocol_version			= is.readByte();
 					
-		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
-			
-			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
-		}
-		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
 	
 			vendor_id	= is.readByte();
@@ -125,6 +121,12 @@ DHTUDPPacketReply
 			
 			network	= is.readInt();
 		}
+
+		if ( protocol_version < ( network == DHT.NW_CVS?DHTTransportUDP.PROTOCOL_VERSION_MIN_CVS:DHTTransportUDP.PROTOCOL_VERSION_MIN )){
+			
+			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
+		
 
 			// we can only get the correct transport after decoding the network...
 		
