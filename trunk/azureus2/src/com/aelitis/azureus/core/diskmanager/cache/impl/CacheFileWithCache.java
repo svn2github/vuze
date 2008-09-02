@@ -1204,9 +1204,8 @@ CacheFileWithCache
 		}
 
 		try{
-			Iterator it = cache.subSet(new CacheEntry(first-1), new CacheEntry(last)).iterator();
-			
-			//cache.subSet(new CacheEntry())
+			Iterator it = cache.subSet(new CacheEntry(first-1-baseOffset), new CacheEntry(last-baseOffset)).iterator();
+			//Iterator it = cache.iterator();
 
 			while(it.hasNext())
 			{
