@@ -464,274 +464,309 @@ ResourceDownloaderURLImpl
 
 					boolean	use_compression = true;
 					
-					for (int i=0;i<2;i++){
-				
-						File					temp_file	= null;
-
-						try{
-							HttpURLConnection	con;
-							
-							if ( url.getProtocol().equalsIgnoreCase("https")){
-						      	
-									// see ConfigurationChecker for SSL client defaults
-				
-								HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
-				
-									// allow for certs that contain IP addresses rather than dns names
-				  	
-								ssl_con.setHostnameVerifier(
-										new HostnameVerifier()
-										{
-											public boolean
-											verify(
-													String		host,
-													SSLSession	session )
+					boolean	follow_redirect = true;
+					
+redirect_label:
+					for (int redirect_loop=0;redirect_loop<2&&follow_redirect; redirect_loop++ ){
+						
+						follow_redirect = false;
+					
+						for (int ssl_loop=0;ssl_loop<2;ssl_loop++){
+					
+							File					temp_file	= null;
+	
+							try{
+								HttpURLConnection	con;
+								
+								if ( url.getProtocol().equalsIgnoreCase("https")){
+							      	
+										// see ConfigurationChecker for SSL client defaults
+					
+									HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
+					
+										// allow for certs that contain IP addresses rather than dns names
+					  	
+									ssl_con.setHostnameVerifier(
+											new HostnameVerifier()
 											{
-												return( true );
-											}
-										});
-				  	
-								con = ssl_con;
-				  	
-							}else{
-				  	
-								con = (HttpURLConnection)openConnection(url);
-				  	
-							}
-							
-							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-				  
-					 		con.setRequestProperty( "Connection", "close" );
-
-					 		if ( use_compression ){
-							
-					 			con.addRequestProperty( "Accept-Encoding", "gzip" );
-					 		}
-					 		
-							setRequestProperties( con, use_compression );
-							
-							if ( post_data != null ){
+												public boolean
+												verify(
+														String		host,
+														SSLSession	session )
+												{
+													return( true );
+												}
+											});
+					  	
+									con = ssl_con;
+					  	
+								}else{
+					  	
+									con = (HttpURLConnection)openConnection(url);
+					  	
+								}
 								
-								con.setDoOutput(true);
+								con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+					  
+						 		con.setRequestProperty( "Connection", "close" );
+	
+						 		if ( use_compression ){
 								
-								con.setRequestMethod("POST");
+						 			con.addRequestProperty( "Accept-Encoding", "gzip" );
+						 		}
+						 		
+								setRequestProperties( con, use_compression );
 								
-								OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-								
-								wr.write(post_data);
-								
-								wr.flush();
-							}
-
-							con.connect();
-				
-							int response = con.getResponseCode();
-												
-							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-								
-								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
-							}
-								
-							getRequestProperties( con );
-							
-							boolean compressed = false;
-							
-							try{
-								this_mon.enter();
-								
-								input_stream = con.getInputStream();
-								
-								String encoding = con.getHeaderField( "content-encoding");
-				 				
-				 				if ( encoding != null ){
-				 					
-				 					if ( encoding.equalsIgnoreCase( "gzip"  )){
-
-						 				compressed = true;
-					 									 					
-					 					input_stream = new GZIPInputStream( input_stream );
-					 					
-				 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
-
-				 						compressed = true;
-				 						
-				 						input_stream = new InflaterInputStream( input_stream );
-				 					}
-				 				}
-							}finally{
-								
-								this_mon.exit();
-							}
-							
-							ByteArrayOutputStream	baos		= null;
-							FileOutputStream		fos			= null;
-							
-							try{
-								byte[] buf = new byte[BUFFER_SIZE];
-								
-								int	total_read	= 0;
-								
-									// unfortunately not all servers set content length
-								
-								/* From Apache's mod_deflate doc:
-								 * http://httpd.apache.org/docs/2.0/mod/mod_deflate.html
-										Note on Content-Length
-
-										If you evaluate the request body yourself, don't trust the
-										Content-Length header! The Content-Length header reflects 
-										the length of the incoming data from the client and not the
-										byte count of the decompressed data stream.
-								 */
-								int size = compressed ? -1 : con.getContentLength();					
-								
-								baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:size):new ByteArrayOutputStream();
-								
-								while( !cancel_download ){
+								if ( post_data != null ){
 									
-									int read = input_stream.read(buf);
+									con.setDoOutput(true);
+									
+									con.setRequestMethod("POST");
+									
+									OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+									
+									wr.write(post_data);
+									
+									wr.flush();
+								}
+	
+								con.connect();
+					
+								int response = con.getResponseCode();
+													
+								if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
+										response == HttpURLConnection.HTTP_MOVED_PERM ){
+									
+										// auto redirect doesn't work from http to https
+									
+									String	move_to = con.getHeaderField( "location" );
+									
+									if ( move_to != null && url.getProtocol().equalsIgnoreCase( "http" )){
 										
-									if ( read > 0 ){
-									
-										if ( total_read > MAX_IN_MEM_READ_SIZE ){
+										try{
+											URL	move_to_url = new URL( URLDecoder.decode( move_to, "UTF-8" ));
 											
-											if ( fos == null ){
+											if ( move_to_url.getProtocol().equalsIgnoreCase( "https" )){
 												
-												temp_file = AETemporaryFileHandler.createTempFile();
+												url = move_to_url;
 												
-												fos = new FileOutputStream( temp_file );
+												follow_redirect = true;
 												
-												fos.write( baos.toByteArray());
+												continue redirect_label;
+											}
+										}catch( Throwable e ){
+											
+										}
+									}
+								}
+								
+								if ( 	response != HttpURLConnection.HTTP_ACCEPTED && 
+										response != HttpURLConnection.HTTP_OK ) {
+									
+									throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+								}
+									
+								getRequestProperties( con );
+								
+								boolean compressed = false;
+								
+								try{
+									this_mon.enter();
+									
+									input_stream = con.getInputStream();
+									
+									String encoding = con.getHeaderField( "content-encoding");
+					 				
+					 				if ( encoding != null ){
+					 					
+					 					if ( encoding.equalsIgnoreCase( "gzip"  )){
+	
+							 				compressed = true;
+						 									 					
+						 					input_stream = new GZIPInputStream( input_stream );
+						 					
+					 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
+	
+					 						compressed = true;
+					 						
+					 						input_stream = new InflaterInputStream( input_stream );
+					 					}
+					 				}
+								}finally{
+									
+									this_mon.exit();
+								}
+								
+								ByteArrayOutputStream	baos		= null;
+								FileOutputStream		fos			= null;
+								
+								try{
+									byte[] buf = new byte[BUFFER_SIZE];
+									
+									int	total_read	= 0;
+									
+										// unfortunately not all servers set content length
+									
+									/* From Apache's mod_deflate doc:
+									 * http://httpd.apache.org/docs/2.0/mod/mod_deflate.html
+											Note on Content-Length
+	
+											If you evaluate the request body yourself, don't trust the
+											Content-Length header! The Content-Length header reflects 
+											the length of the incoming data from the client and not the
+											byte count of the decompressed data stream.
+									 */
+									int size = compressed ? -1 : con.getContentLength();					
+									
+									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:size):new ByteArrayOutputStream();
+									
+									while( !cancel_download ){
+										
+										int read = input_stream.read(buf);
+											
+										if ( read > 0 ){
+										
+											if ( total_read > MAX_IN_MEM_READ_SIZE ){
 												
-												baos = null;
+												if ( fos == null ){
+													
+													temp_file = AETemporaryFileHandler.createTempFile();
+													
+													fos = new FileOutputStream( temp_file );
+													
+													fos.write( baos.toByteArray());
+													
+													baos = null;
+												}
+												
+												fos.write( buf, 0, read );
+												
+											}else{
+												
+												baos.write(buf, 0, read);
 											}
 											
-											fos.write( buf, 0, read );
+											total_read += read;
+									        
+											informAmountComplete( total_read );
+											
+											if ( size > 0){
+												
+												informPercentDone(( 100 * total_read ) / size );
+											}
+										}else{
+											
+											break;
+										}
+									}
+									
+										// if we've got a size, make sure we've read all of it
+									
+									if ( size > 0 && total_read != size ){
+										
+										if ( total_read > size ){
+											
+												// this has been seen with UPnP linksys - more data is read than
+												// the content-length has us believe is coming (1 byte in fact...)
+											
+											Debug.outNoStack( "Inconsistent stream length for '" + original_url + "': expected = " + size + ", actual = " + total_read );
 											
 										}else{
 											
-											baos.write(buf, 0, read);
+											throw( new IOException( "Premature end of stream" ));
 										}
+									}
+								}finally{
+									
+									if ( fos != null ){
 										
-										total_read += read;
-								        
-										informAmountComplete( total_read );
+										fos.close();
+									}
+									
+									input_stream.close();
+								}
+					
+								InputStream	res;
+								
+								if ( temp_file != null ){
+								
+									res = new DeleteFileOnCloseInputStream( temp_file );
+									
+									temp_file = null;
+									
+								}else{
+									
+									res = new ByteArrayInputStream( baos.toByteArray());
+								}
+								
+								boolean	handed_over = false;
+								
+								try{
+									if ( informComplete( res )){
+												
+										handed_over = true;
 										
-										if ( size > 0){
-											
-											informPercentDone(( 100 * total_read ) / size );
-										}
-									}else{
+										return( res );
+									}
+								}finally{
+								
+									if ( !handed_over ){
 										
-										break;
+										res.close();
 									}
 								}
 								
-									// if we've got a size, make sure we've read all of it
+								throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
+		
+							}catch( SSLException e ){
 								
-								if ( size > 0 && total_read != size ){
+								if ( ssl_loop == 0 ){
 									
-									if ( total_read > size ){
+									if ( SESecurityManager.installServerCertificates( url ) != null ){
 										
-											// this has been seen with UPnP linksys - more data is read than
-											// the content-length has us believe is coming (1 byte in fact...)
+											// certificate has been installed
 										
-										Debug.outNoStack( "Inconsistent stream length for '" + original_url + "': expected = " + size + ", actual = " + total_read );
-										
-									}else{
-										
-										throw( new IOException( "Premature end of stream" ));
+										continue;	// retry with new certificate
 									}
 								}
-							}finally{
-								
-								if ( fos != null ){
-									
-									fos.close();
-								}
-								
-								input_stream.close();
-							}
-				
-							InputStream	res;
-							
-							if ( temp_file != null ){
-							
-								res = new DeleteFileOnCloseInputStream( temp_file );
-								
-								temp_file = null;
-								
-							}else{
-								
-								res = new ByteArrayInputStream( baos.toByteArray());
-							}
-							
-							boolean	handed_over = false;
-							
-							try{
-								if ( informComplete( res )){
-											
-									handed_over = true;
-									
-									return( res );
-								}
-							}finally{
-							
-								if ( !handed_over ){
-									
-									res.close();
-								}
-							}
-							
-							throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
 	
-						}catch( SSLException e ){
-							
-							if ( i == 0 ){
+								throw( e );
 								
-								if ( SESecurityManager.installServerCertificates( url ) != null ){
+							}catch( ZipException e ){
+								
+								if ( ssl_loop == 0 ){
 									
-										// certificate has been installed
+									use_compression = false;
 									
-									continue;	// retry with new certificate
+									continue;
 								}
-							}
-
-							throw( e );
-							
-						}catch( ZipException e ){
-							
-							if ( i == 0 ){
+							}catch( IOException e ){
 								
-								use_compression = false;
-								
-								continue;
-							}
-						}catch( IOException e ){
-							
-							if ( i == 0 ){
-								
-								String	msg = e.getMessage();
-								
-								if ( msg != null ){
+								if ( ssl_loop == 0 ){
 									
-									msg = msg.toLowerCase();
+									String	msg = e.getMessage();
 									
-									if ( msg.indexOf( "gzip" ) != -1 ){
-							
-										use_compression = false;
+									if ( msg != null ){
 										
-										continue;
+										msg = msg.toLowerCase();
+										
+										if ( msg.indexOf( "gzip" ) != -1 ){
+								
+											use_compression = false;
+											
+											continue;
+										}
 									}
 								}
-							}
-							
-							throw( e );
-							
-						}finally{
-							
-							if ( temp_file != null ){
 								
-								temp_file.delete();
+								throw( e );
+								
+							}finally{
+								
+								if ( temp_file != null ){
+									
+									temp_file.delete();
+								}
 							}
 						}
 					}
