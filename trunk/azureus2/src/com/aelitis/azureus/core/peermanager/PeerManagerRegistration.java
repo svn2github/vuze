@@ -32,12 +32,14 @@ PeerManagerRegistration
 	getLink(
 		String			link );
 
-    // XXX: Doesn't appear to be used.
+    // Used by the CDN
+	
     public void
 	removeLink(
 		String			link );
 
-    // XXX: Doesn't appear to be used.
+    // Used by the CDN
+    
     public void
 	addLink(
 		String			link,
