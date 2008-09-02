@@ -59,7 +59,7 @@ public class SWTSkinImageChanger
 			}
 
 			SWTSkinObject skinObject = (SWTSkinObject) control.getData("SkinObject");
-			if (DEBUG) {
+			if (skinObject != null && (DEBUG || skinObject.isDebug())) {
 				System.out.println("exit " + skinObject);
 			}
 
@@ -74,7 +74,7 @@ public class SWTSkinImageChanger
 					Rectangle bounds = composite.getClientArea();
 					if (bounds.contains(relPt)
 							&& composite.getDisplay().getActiveShell() != null) {
-						if (DEBUG) {
+						if (skinObject != null && (DEBUG || skinObject.isDebug())) {
 							System.out.println("skip " + skinObject
 									+ " because going into child");
 						}
@@ -95,11 +95,12 @@ public class SWTSkinImageChanger
 						Rectangle bounds = parent.getClientArea();
 						if (bounds.contains(relPt)
 								&& parent.getDisplay().getActiveShell() != null) {
-							if (DEBUG) {
+							if (skinObject != null && (DEBUG || skinObject.isDebug())) {
 								System.out.println("skip " + skinObject
-										+ " because going into parent");
+										+ " because going into parent " + bounds + ";" + relPt + ";" + parent.getDisplay().getActiveShell());
 							}
-							return;
+							// XXX Disabled for now as it doesn't always work
+							//return;
 						}
 					}
 				}
@@ -107,7 +108,7 @@ public class SWTSkinImageChanger
 
 			if (skinObject != null) {
 				String sSuffix = (event.type == eventOn) ? suffix : "";
-				if (DEBUG) {
+				if (skinObject != null && (DEBUG || skinObject.isDebug())) {
 					System.out.println(System.currentTimeMillis() + ": " + skinObject
 							+ "--" + sSuffix);
 				}
