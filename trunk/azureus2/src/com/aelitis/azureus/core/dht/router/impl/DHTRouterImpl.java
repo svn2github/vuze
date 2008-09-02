@@ -573,16 +573,17 @@ DHTRouterImpl
 	public List
 	findClosestContacts(
 		byte[]		node_id,
+		int			num_to_return,
 		boolean		live_only )
 	{
-			// find the K-ish closest nodes - consider all buckets, not just the closest
+			// find the num_to_return-ish closest nodes - consider all buckets, not just the closest
 
 		try{
 			this_mon.enter();
 		
 			List res = new ArrayList();
 				
-			findClosestContacts( node_id, 0, root, live_only, res );
+			findClosestContacts( node_id, num_to_return, 0, root, live_only, res );
 		
 			return( res );
 			
@@ -595,6 +596,7 @@ DHTRouterImpl
 	protected void
 	findClosestContacts(
 		byte[]					node_id,
+		int						num_to_return,
 		int						depth,
 		DHTRouterNodeImpl		current_node,
 		boolean					live_only,
@@ -637,11 +639,11 @@ DHTRouterImpl
 				worse_node = current_node.getLeft();
 			}
 	
-			findClosestContacts( node_id, depth+1, best_node, live_only, res  );
+			findClosestContacts( node_id, num_to_return, depth+1, best_node, live_only, res  );
 			
-			if ( res.size() < K ){
+			if ( res.size() < num_to_return ){
 				
-				findClosestContacts( node_id, depth+1, worse_node, live_only, res );
+				findClosestContacts( node_id, num_to_return, depth+1, worse_node, live_only, res );
 			}
 		}
 	}

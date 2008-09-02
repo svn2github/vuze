@@ -100,12 +100,13 @@ DHTRouter
 		byte[]	node_id );	
 
 		/**
-		 * Returns K or a few more closest contacts, unordered
+		 * Returns num_to_return or a few more closest contacts, unordered
 		 */
 	
 	public List
 	findClosestContacts(
 		byte[]		node_id,
+		int			num_to_return,
 		boolean		live_only );
 		
 	public void

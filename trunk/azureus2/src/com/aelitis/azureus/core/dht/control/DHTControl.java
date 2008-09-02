@@ -130,6 +130,12 @@ DHTControl
 		boolean		live_only );
 	
 	public List
+	getClosestContactsList(
+		byte[]		id,
+		int			num_to_return,
+		boolean		live_only );
+
+	public List
 	sortContactsByDistance(
 		List		contacts );
 	

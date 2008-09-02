@@ -301,6 +301,16 @@ DHTDBImpl
 		}
 	}
 	
+	private long store_ops;
+	private long store_ops_bad1;
+	private long store_ops_bad2;
+	
+	private void
+	logStoreOps()
+	{
+		System.out.println( "sops (" + control.getTransport().getNetwork() + ")=" + store_ops + ",bad1=" + store_ops_bad1 + ",bad2=" + store_ops_bad2 );
+	}
+	
 	public byte
 	store(
 		DHTTransportContact 	sender, 
@@ -324,10 +334,15 @@ DHTDBImpl
 			// the correct place to store a value. Part of this will in general have 
 			// needed them to query us for example. Therefore, limit values to those
 			// that are at least as close to us
+			// used to just use K here but this is a little too strict as we end up rejecting
+			// a fair few valid stores - widened to 2*K
 		
-		List closest_contacts = control.getClosestKContactsList( key.getHash(), true );
+		List closest_contacts = control.getClosestContactsList( key.getHash(), router.getK()*2, true );
 		
 		boolean	store_it	= false;
+		
+		
+		store_ops++;
 		
 		for (int i=0;i<closest_contacts.size();i++){
 			
@@ -343,6 +358,10 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
 
+			store_ops_bad1++;
+			
+			logStoreOps();
+			
 			return( DHT.DT_NONE );
 		}
 		
@@ -370,7 +389,7 @@ DHTDBImpl
 				
 			byte[]	my_id	= local_contact.getID();
 			
-			closest_contacts = control.getClosestKContactsList( my_id, true );
+			closest_contacts = control.getClosestContactsList( my_id, router.getK() * 2, true );
 			
 			DHTTransportContact	furthest = (DHTTransportContact)closest_contacts.get( closest_contacts.size()-1);
 						
@@ -384,8 +403,14 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
+			store_ops_bad2++;
+			
+			logStoreOps();
+			
 			return( DHT.DT_NONE );
 		}
+		
+		logStoreOps();
 		
 		try{
 			this_mon.enter();

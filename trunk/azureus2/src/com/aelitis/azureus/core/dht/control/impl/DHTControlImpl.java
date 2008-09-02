@@ -1633,7 +1633,7 @@ DHTControlImpl
 				
 				private void startLookup()
 				{
-					contacts_to_query = getClosestContactsSet(lookup_id, false);
+					contacts_to_query = getClosestContactsSet(lookup_id, K, false);
 					contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
 					level_map = new LightHashMap();
 
@@ -2702,9 +2702,10 @@ DHTControlImpl
 	protected Set
 	getClosestContactsSet(
 		byte[]		id,
+		int			num_to_return,
 		boolean		live_only )
 	{
-		List	l = router.findClosestContacts( id, live_only );
+		List	l = router.findClosestContacts( id, num_to_return, live_only );
 		
 		Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 
@@ -2721,13 +2722,22 @@ DHTControlImpl
 		byte[]		id,
 		boolean		live_only )
 	{
-		Set	sorted_set	= getClosestContactsSet( id, live_only );
+		return( getClosestContactsList( id, K, live_only ));
+	}
+	
+	public List
+	getClosestContactsList(
+		byte[]		id,
+		int			num_to_return,
+		boolean		live_only )
+	{
+		Set	sorted_set	= getClosestContactsSet( id, num_to_return, live_only );
 					
-		List	res = new ArrayList(K);
+		List	res = new ArrayList(num_to_return);
 		
 		Iterator	it = sorted_set.iterator();
 		
-		while( it.hasNext() && res.size() < K ){
+		while( it.hasNext() && res.size() < num_to_return ){
 			
 			res.add( it.next());
 		}
