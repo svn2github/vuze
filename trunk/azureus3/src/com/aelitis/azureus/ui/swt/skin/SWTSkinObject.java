@@ -146,4 +146,11 @@ public interface SWTSkinObject extends ObfusticateShell
 	 * @since 3.1.1.1
 	 */
 	boolean isDisposed();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	boolean isDebug();
 }

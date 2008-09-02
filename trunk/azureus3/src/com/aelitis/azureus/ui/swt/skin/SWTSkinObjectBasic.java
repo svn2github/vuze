@@ -7,22 +7,15 @@ import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -85,7 +78,9 @@ public class SWTSkinObjectBasic
 	
 	private Map mapData = Collections.EMPTY_MAP;
 	
-	private boolean disposed = false; 
+	private boolean disposed = false;
+	
+	protected boolean debug = false;
 
 	/**
 	 * @param properties TODO
@@ -108,6 +103,7 @@ public class SWTSkinObjectBasic
 		this.type = type;
 		this.parent = parent;
 		setViewID(properties.getStringValue(sConfigID + ".view"));
+		setDebug(properties.getBooleanValue(sConfigID + ".debug", false));
 	}
 
 	public void setControl(final Control control) {
@@ -753,5 +749,19 @@ public class SWTSkinObjectBasic
 	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateShell#generateObfusticatedImage()
 	public Image generateObfusticatedImage() {
 		return null;
+	}
+
+	/**
+	 * @param debug the debug to set
+	 */
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
+
+	/**
+	 * @return the debug
+	 */
+	public boolean isDebug() {
+		return debug;
 	}
 }
