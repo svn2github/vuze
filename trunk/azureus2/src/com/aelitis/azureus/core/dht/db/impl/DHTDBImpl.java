@@ -301,6 +301,7 @@ DHTDBImpl
 		}
 	}
 	
+	/*
 	private long store_ops;
 	private long store_ops_bad1;
 	private long store_ops_bad2;
@@ -310,6 +311,7 @@ DHTDBImpl
 	{
 		System.out.println( "sops (" + control.getTransport().getNetwork() + ")=" + store_ops + ",bad1=" + store_ops_bad1 + ",bad2=" + store_ops_bad2 );
 	}
+	*/
 	
 	public byte
 	store(
@@ -342,7 +344,7 @@ DHTDBImpl
 		boolean	store_it	= false;
 		
 		
-		store_ops++;
+		// store_ops++;
 		
 		for (int i=0;i<closest_contacts.size();i++){
 			
@@ -358,9 +360,8 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as key too far away" );
 
-			store_ops_bad1++;
-			
-			logStoreOps();
+			// store_ops_bad1++;
+			// logStoreOps();
 			
 			return( DHT.DT_NONE );
 		}
@@ -403,14 +404,13 @@ DHTDBImpl
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as cache forward and sender too far away" );
 			
-			store_ops_bad2++;
-			
-			logStoreOps();
+			// store_ops_bad2++;			
+			// logStoreOps();
 			
 			return( DHT.DT_NONE );
 		}
 		
-		logStoreOps();
+		// logStoreOps();
 		
 		try{
 			this_mon.enter();
