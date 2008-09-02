@@ -1377,7 +1377,7 @@ public class SideBar
 
 		IView iview = null;
 		try {
-			iview = new UISWTViewImpl("SideBar.Plugins", id, l, datasource);
+			iview = new UISWTViewImpl(parentID, id, l, datasource);
 			((UISWTViewImpl) iview).setTitle(name);
 			iview.dataSourceChanged(datasource);
 
@@ -1646,6 +1646,7 @@ public class SideBar
 			return;
 		}
 		currentSideBarEntry.iview.refresh();
+		
 		SideBarEntrySWT sidebarInfo = getSideBarInfo(currentSideBarEntry.id);
 		if (sidebarInfo.pullTitleFromIView && sidebarInfo.treeItem != null) {
 			sidebarInfo.treeItem.setData("text",
@@ -1827,7 +1828,7 @@ public class SideBar
 
 			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
 				createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
-						"main.area.welcome", "Welcome", null, null, true, 0);
+						"main.area.welcome", "Getting Started", null, null, true, 0);
 			}
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
