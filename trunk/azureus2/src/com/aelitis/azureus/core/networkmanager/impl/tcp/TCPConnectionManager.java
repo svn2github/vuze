@@ -256,10 +256,11 @@ public class TCPConnectionManager {
   private void addNewRequest( final ConnectionRequest request ) {
     request.listener.connectAttemptStarted();
     
+    
+	boolean ipv6problem = false;
+    
     try {
     	
-    	
-    	boolean ipv6problem = false;
     	
     	request.channel = SocketChannel.open();
       
@@ -383,12 +384,10 @@ public class TCPConnectionManager {
         msg += "\n channel=<null>";
       }
       
-      if ( t instanceof UnresolvedAddressException ){
-    	  Debug.outNoStack( msg );
-      }else{
-    	  Debug.out( msg, t );
-      }
-      
+      if (ipv6problem || t instanceof UnresolvedAddressException)
+    	  Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING,msg));
+      else
+    	  Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,msg,t));
       
       if( request.channel != null ) {
     	  closeConnection( request.channel );

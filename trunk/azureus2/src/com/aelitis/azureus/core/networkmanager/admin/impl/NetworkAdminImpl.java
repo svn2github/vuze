@@ -254,7 +254,7 @@ NetworkAdminImpl
 						supportsIPv6withNIO = true;
 					} catch (Exception e)
 					{
-						Logger.log(new LogEvent(LOGID, "nio test failed",e));
+						Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING, "nio + ipv6 test failed",e));
 						supportsIPv6withNIO = false;
 					}
 					
