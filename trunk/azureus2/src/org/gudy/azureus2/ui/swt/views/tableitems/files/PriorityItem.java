@@ -48,16 +48,20 @@ public class PriorityItem
 			tmp = "";
 		else
 		{
-			if (fileInfo.isSkipped())
+			if(fileInfo.getStorageType() == DiskManagerFileInfo.ST_COMPACT && fileInfo.isSkipped())
+			{
+				tmp = MessageText.getString("FileItem.delete");
+				sortval = 1;				
+			} else if (fileInfo.isSkipped())
 			{
 				tmp = MessageText.getString("FileItem.donotdownload");
-				sortval = 1;
+				sortval = 2;
 			} else if (fileInfo.isPriority()) {
 				tmp = MessageText.getString("FileItem.high");
-				sortval = 3;
+				sortval = 4;
 			} else {
 				tmp = MessageText.getString("FileItem.normal");
-				sortval = 2;
+				sortval = 3;
 			}
 				
 		}

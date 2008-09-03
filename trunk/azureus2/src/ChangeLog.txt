@@ -11,6 +11,7 @@ FEATURE: UIv3 | SideBar (F7 to Hide/Show) [TuxPaper]
 CHANGE: Core  | Improved handling of mixed IPv4 and IPv6 bindings [The 8472]
 CHANGE: UI    | Debug messages are no longer displayed by default when running the console UI [amc1]
 CHANGE: UI    | The comment icon column now displays a blank icon if there is no comment (rather than no icon) [amc1]
+CHANGE: UI    | Delete priority is now properly reflected in the Priority column [The 8472]
 CHANGE: Plug  | Essential plugins are now automatically re-enabled if previously disabled by user [amc1]
                  - the "Start / Stop Rules" plugin was disabled by users in the past, this was causing torrents to be stuck in "waiting" state
 CHANGE: Plug  | New command line option - "azureus.safemode", to disable lots of functionality when debugging problems [amc1]                 
