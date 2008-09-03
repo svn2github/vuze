@@ -267,10 +267,17 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			
 		} else if(OP_GET_ENGINES.equals(opid)) {
+			String subscriptionId  = null;
+			
+			try {
+				if(message.isParamObject()) {
+					final Map decodedMap = message.getDecodedMap();
 
-			final Map decodedMap = message.getDecodedMap();
-
-			String subscriptionId		= ((String)decodedMap.get("subs_id"));
+					subscriptionId		= ((String)decodedMap.get("subs_id"));
+				}
+			} catch(Exception e) {
+				//No parameters
+			}
 			
 			Engine[] engines = null;
 			
@@ -460,7 +467,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			String	json = (String)decodedMap.get( "value" );
 			
-			String	cookies = (String)decodedMap.get( "cookies" );
+			String	cookies = (String)decodedMap.get( "current_cookie" );
 			
 			
 			try{
@@ -566,11 +573,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			String searchText 	= (String) decodedMap.get("searchText");
 			String headers		= (String) decodedMap.get("headers");
-			
-			String cookie       = (String) decodedMap.get("cookie");
-			//TODO : parg : we need to use this if not null
-			
-			
+
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
 			Engine engine = metaSearchManager.getMetaSearch().getEngine( id );
