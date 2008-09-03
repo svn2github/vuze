@@ -944,6 +944,16 @@ public class MenuFactory
 		});
 	}
 
+	
+	public static MenuItem addHelpSupportMenuItem(Menu menu, final String support_url ) {
+		return addMenuItem(menu, MENU_ID_HELP_SUPPORT, new Listener() {
+			public void handleEvent(Event e) {
+				Utils.launch( support_url );
+			}
+		});
+	}
+	
+	
 	public static MenuItem addGetPluginsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_PLUGINS_HELP, new Listener() {
 			public void handleEvent(Event e) {
