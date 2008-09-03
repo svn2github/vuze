@@ -32,6 +32,8 @@ public class SWTSkinObjectBasic
 
 	protected static final int BORDER_ROUNDED_FILL = 2;
 
+	protected static final int BORDER_GRADIENT = 3;
+
 	protected Control control;
 
 	protected String type;
@@ -81,6 +83,10 @@ public class SWTSkinObjectBasic
 	private boolean disposed = false;
 	
 	protected boolean debug = false;
+
+	protected Color bgColor2;
+
+	private Image bgImage;
 
 	/**
 	 * @param properties TODO
@@ -440,13 +446,53 @@ public class SWTSkinObjectBasic
 						} else if (split[0].equals("rounded-fill")) {
 							colorFillType = BORDER_ROUNDED_FILL;
 							needPaintHook = true;
+						} else if (split[0].equals("gradient")) {
+							colorFillType = BORDER_GRADIENT;
+							bgColor2 = ColorCache.getColor(Display.getDefault(), split[1]);
+
+							control.addListener(SWT.Resize, new Listener() {
+								public void handleEvent(Event event) {
+									if (bgImage != null && !bgImage.isDisposed()) {
+										bgImage.dispose();
+									}
+									Rectangle bounds = control.getBounds();
+									if (bounds.height <= 0) {
+										return;
+									}
+									bgImage = new Image(control.getDisplay(), 5, bounds.height);
+									GC gc = new GC(bgImage);
+									try {
+  									try {
+  										gc.setAdvanced(true);
+  										gc.setInterpolation(SWT.HIGH);
+  										gc.setAntialias(SWT.ON);
+  									} catch (Exception ex) {
+  									}
+  									gc.setBackground(bgColor);
+  									gc.setForeground(bgColor2);
+  									gc.fillGradientRectangle(0, 0, 5, bounds.height, true);
+									} finally {
+										gc.dispose();
+									}
+									if (painter == null) {
+										painter = new SWTBGImagePainter(control, null, null,
+												bgImage, SWTSkinUtils.TILE_X);
+									} else {
+										painter.setImage(null, null, bgImage);
+									}
+								}
+							});
 						}
 
 						if (split.length > 2) {
-							colorFillParams = new int[] {
-								Integer.parseInt(split[1]),
-								Integer.parseInt(split[2])
-							};
+							try {
+  							colorFillParams = new int[] {
+  								Integer.parseInt(split[1]),
+  								Integer.parseInt(split[2])
+  							};
+							} catch (NumberFormatException e) {
+								//ignore
+							}
 						}
 
 						control.redraw();
@@ -695,7 +741,7 @@ public class SWTSkinObjectBasic
 			if (colorFillParams != null) {
   			if (colorFillType == BORDER_ROUNDED_FILL) {
   				e.gc.fillRoundRectangle(0, 0, bounds.width, bounds.height, colorFillParams[0], colorFillParams[1]);
-  			} else {
+  			} else if (colorFillType == BORDER_ROUNDED) {
   				Color oldFG = e.gc.getForeground();
   				e.gc.setForeground(bgColor);
   				e.gc.drawRoundRectangle(0, 0, bounds.width - 1, bounds.height - 1, colorFillParams[0],
@@ -703,6 +749,12 @@ public class SWTSkinObjectBasic
   				e.gc.setForeground(oldFG);
   			}
 			}
+//			if (colorFillType == BORDER_GRADIENT) {
+//				Color oldFG = e.gc.getForeground();
+//				e.gc.setForeground(bgColor2);
+//				e.gc.fillGradientRectangle(0, 0, bounds.width - 1, bounds.height - 1, true);
+//				e.gc.setForeground(oldFG);
+//			}			
 		}
 
 		if (colorBorder != null) {
