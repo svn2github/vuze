@@ -222,8 +222,8 @@ AuthenticatorWindow
 	
 			// System.out.println( "auth req for " + realm + " - " + tracker );
 			
-			if ( bind_ip == null){
-		
+			if ( bind_ip == null || bind_ip.isAnyLocalAddress()){
+
 				self_addr = "127.0.0.1";
 		
 			}else{

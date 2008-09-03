@@ -340,7 +340,7 @@ TRTrackerUtils
 		
 		InetAddress bad = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
 		
-		if ( bad == null ){
+		if ( bad == null || bad.isAnyLocalAddress()){
 			
 			bind_ip = "";
 			
