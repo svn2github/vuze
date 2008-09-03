@@ -877,6 +877,8 @@ redirect_label:
 		try{
 			setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );
 			
+			setProperty( "URL_URL", con.getURL());
+			
 			Map	headers = con.getHeaderFields();
 			
 			Iterator it = headers.entrySet().iterator();
