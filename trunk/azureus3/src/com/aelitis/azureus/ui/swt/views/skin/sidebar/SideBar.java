@@ -308,6 +308,7 @@ public class SideBar
 							FormData fd = (FormData) ld;
 							fd.width = 20;
 						}
+						soSideBarPopout.getControl().moveAbove(null);
 						Utils.relayout(soSideBarPopout.getControl());
 					}
 				}
@@ -344,7 +345,7 @@ public class SideBar
 		// there isn't a SWT.NO_SCROLL in pre 3.4
 		final int NO_SCROLL = 1 << 4;
 		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL
-				| NO_SCROLL);
+				| NO_SCROLL | SWT.NO_FOCUS);
 		tree.setHeaderVisible(false);
 
 		new SideBarToolTips(this, tree);
@@ -634,9 +635,10 @@ public class SideBar
 
 		boolean selected = tree.getSelectionCount() == 1
 				&& tree.getSelection()[0].equals(treeItem);
+		Color fgText = Colors.black;
 		if (selected) {
 			if (fgSel != null) {
-				gc.setForeground(fgSel);
+				fgText = fgSel;
 			}
 			if (bgSel != null) {
 				gc.setBackground(bgSel);
@@ -646,7 +648,7 @@ public class SideBar
 					+ event.x), event.height);
 		} else {
 			if (fg != null) {
-				gc.setForeground(fg);
+				fgText = fg;
 			}
 			if (bg != null) {
 				gc.setBackground(bg);
@@ -735,7 +737,7 @@ public class SideBar
 			}
 		}
 
-		gc.setForeground(Colors.black);
+		gc.setForeground(fgText);
 		Rectangle clipping = new Rectangle(itemBounds.x, itemBounds.y,
 				treeArea.width - itemBounds.x - xIndicatorOfs - SIDEBAR_SPACING,
 				itemBounds.height);

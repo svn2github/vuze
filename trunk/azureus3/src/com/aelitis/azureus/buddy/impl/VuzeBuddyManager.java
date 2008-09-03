@@ -348,6 +348,9 @@ public class VuzeBuddyManager
 		public void loginUpdate(final LoginInfo info, boolean isNewLoginID) {
 			loginUpdateTriggered(info, isNewLoginID);
 		}
+
+		public void avatarURLUpdated(String newAvatarURL) {
+		};
 	};
 
 	private static VuzeRelayListener vuzeRelayListener = new VuzeRelayListener() {

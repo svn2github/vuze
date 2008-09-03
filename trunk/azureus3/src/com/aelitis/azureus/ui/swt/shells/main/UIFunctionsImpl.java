@@ -51,10 +51,13 @@ import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -333,11 +336,14 @@ public class UIFunctionsImpl
 	public void refreshIconBar() {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
+			if (uiFunctions != null) {
+				uiFunctions.refreshIconBar();
 			}
 
-			uiFunctions.refreshIconBar();
+			ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+			if (tb != null) {
+				tb.refreshCoreToolBarItems();
+			}
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "refreshIconBar", e));

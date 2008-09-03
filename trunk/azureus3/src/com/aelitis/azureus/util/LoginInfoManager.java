@@ -37,6 +37,8 @@ public class LoginInfoManager
 	
 	private CopyOnWriteList listeners = new CopyOnWriteList();
 
+	private String avatarURL;
+
 	private LoginInfoManager() {
 		//Making this private
 	}
@@ -58,6 +60,11 @@ public class LoginInfoManager
 			
 			if (isLoggedIn()) {
 				notifyListeners(false);
+				if (avatarURL != null) {
+					for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+						((ILoginInfoListener) iterator.next()).avatarURLUpdated(avatarURL);
+					}
+				}
 			}
 		}
 
@@ -95,6 +102,17 @@ public class LoginInfoManager
 
 		if (changed) {
 			notifyListeners(isNewLoginID);
+		}
+	}
+	
+	public void setAvatarURL(String avatarURL) {
+		if (avatarURL.equals(this.avatarURL)) {
+			return;
+		}
+		this.avatarURL = avatarURL;
+		
+		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+			((ILoginInfoListener) iterator.next()).avatarURLUpdated(avatarURL);
 		}
 	}
 
@@ -159,6 +177,10 @@ public class LoginInfoManager
 			setUserInfo(MapUtils.getMapString(mapUserInfo, "login-id", null),
 					MapUtils.getMapString(mapUserInfo, "display-name", null),
 					VuzeCryptoManager.getSingleton().getPublicKey(""));
+			String avatarURL = MapUtils.getMapString(mapUserInfo, "avatar.url", null);
+			if (avatarURL != null) {
+				setAvatarURL(avatarURL);
+			}
 		} catch (VuzeCryptoException e) {
 		}
 	}

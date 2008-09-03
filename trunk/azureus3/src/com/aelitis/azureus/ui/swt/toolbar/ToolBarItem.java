@@ -104,4 +104,13 @@ public abstract class ToolBarItem
 	public String getTextID() {
 		return textID;
 	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean triggerToolBarItemHold() {
+		return false;
+	}
 }

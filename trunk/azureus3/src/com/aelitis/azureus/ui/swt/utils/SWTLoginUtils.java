@@ -65,6 +65,10 @@ public class SWTLoginUtils
 					Utils.execSWTThread(loginCompleteRunnable);
 				}
 			}
+
+			// @see com.aelitis.azureus.util.ILoginInfoListener#avatarURLUpdated()
+			public void avatarURLUpdated(String newAvatarURL) {
+			}
 		};
 
 		loginManager.addListener(loginInfoListener);

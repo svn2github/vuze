@@ -215,8 +215,6 @@ public class BuddiesViewer
 
 			parent = (Composite) skinObject.getControl();
 			parent.setBackgroundMode(SWT.INHERIT_FORCE);
-			parent.setBackground(parent.getDisplay().getSystemColor(
-					SWT.COLOR_LIST_BACKGROUND));
 			scrollable = new ScrolledComposite(parent, SWT.V_SCROLL);
 			scrollable.setExpandHorizontal(true);
 			scrollable.setExpandVertical(true);

@@ -8,7 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -26,6 +26,10 @@ public class SWTSkinButtonUtility
 	{
 		public void pressed(SWTSkinButtonUtility buttonUtility) {
 		}
+		
+		public boolean held(SWTSkinButtonUtility buttonUtility) {
+			return false;
+		}
 
 		public void disabledStateChanged(SWTSkinButtonUtility buttonUtility,
 				boolean disabled) {
@@ -36,13 +40,40 @@ public class SWTSkinButtonUtility
 		this.skinObject = skinObject;
 		Listener l = new Listener() {
 			boolean bDownPressed;
+			private TimerEvent timerEvent;
 
 			public void handleEvent(Event event) {
 				if (event.type == SWT.MouseDown) {
+					if (timerEvent == null) {
+						timerEvent = SimpleTimer.addEvent("MouseHold",
+								SystemTime.getOffsetTime(1000), new TimerEventPerformer() {
+									public void perform(TimerEvent event) {
+										timerEvent = null;
+
+										if (!bDownPressed) {
+											return;
+										}
+										bDownPressed = false;
+
+										boolean stillPressed = true;
+										for (Iterator iter = listeners.iterator(); iter.hasNext();) {
+											ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
+											stillPressed &= !l.held(SWTSkinButtonUtility.this);
+										}
+										bDownPressed = stillPressed;
+									}
+								});
+					}
 					bDownPressed = true;
 					return;
-				} else if (!bDownPressed) {
-					return;
+				} else {
+					if (timerEvent != null) {
+						timerEvent.cancel();
+						timerEvent = null;
+					}
+					if (!bDownPressed) {
+						return;
+					}
 				}
 
 				bDownPressed = false;

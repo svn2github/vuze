@@ -1410,17 +1410,6 @@ public class MainWindow
 					public void skinBeforeComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
 						if (skinnableObject instanceof MessageSlideShell) {
-							Color colorBG = skin.getSkinProperties().getColor(
-									"color.mainshell");
-							Color colorLink = skin.getSkinProperties().getColor(
-									"color.links.normal");
-							Color colorText = skin.getSkinProperties().getColor(
-									"color.text.fg");
-
-							composite.setBackground(colorBG);
-							composite.setForeground(colorText);
-							//bg = composite.getBackground(); // temp disable
-
 							final Image image = new Image(composite.getDisplay(), 250, 300);
 
 							TOTorrent torrent = null;
@@ -1434,16 +1423,13 @@ public class MainWindow
 							}
 
 							MessageSlideShell shell = (MessageSlideShell) skinnableObject;
-							shell.setUrlColor(colorLink);
-							shell.setColorFG(colorText);
 
 							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
 							GC gc = new GC(image);
 							try {
-								if (colorBG != null) {
-									gc.setBackground(colorBG);
-									gc.fillRectangle(image.getBounds());
-								}
+								gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+								gc.fillRectangle(image.getBounds());
+
 								if (contentThumbnail != null) {
 
 									try {
@@ -1724,7 +1710,7 @@ public class MainWindow
 		}
 
 		SWTSkinObject so = skin.getSkinObject("sidebar-list");
-		if (so != null) {
+		if (so != null && so.getProperties().getBooleanValue(so.getConfigID() + ".resizeSearch", false)) {
 			Listener l = new Listener() {
 				public void handleEvent(Event event) {
 					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");

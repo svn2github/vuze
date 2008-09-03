@@ -20,34 +20,30 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.ILoginInfoListener;
-import com.aelitis.azureus.util.LoginInfoManager;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 public class UserAreaUtils
@@ -57,6 +53,8 @@ public class UserAreaUtils
 	private UIFunctionsSWT uiFunctions = null;
 
 	private boolean firstLoginStateSync = true;
+
+	private SWTSkinObjectImage soImage;
 
 	public UserAreaUtils(final SWTSkin skin, UIFunctionsSWT uiFunctions) {
 		this.skin = skin;
@@ -134,6 +132,11 @@ public class UserAreaUtils
 				}
 			});
 		}
+		
+		skinObject = skin.getSkinObject("user-info-profile-image");
+		if (skinObject instanceof SWTSkinObjectImage) {
+			soImage = (SWTSkinObjectImage) skinObject;
+		}
 
 		/*
 		 * Listens for changes in the login state and update the UI appropriately
@@ -141,6 +144,46 @@ public class UserAreaUtils
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
 				synchLoginStates(info, isNewLoginID);
+			}
+			
+			// @see com.aelitis.azureus.util.ILoginInfoListener#avatarURLUpdated()
+			public void avatarURLUpdated(String newAvatarURL) {
+				ImageDownloader.loadImage(newAvatarURL,
+						new ImageDownloader.ImageDownloaderListener() {
+							public void imageDownloaded(final byte[] image) {
+								Utils.execSWTThread(new AERunnable() {
+
+									public void runSupport() {
+
+										VuzeBuddyManager.log("Got new login avatar! ");
+										if (soImage != null) {
+											Display display = Utils.getDisplay();
+											if (display == null) {
+												return;
+											}
+											InputStream is = new ByteArrayInputStream(image);
+											Image bigAvatarImage = new Image(display, is);
+											Image avatarImage = new Image(display, 40, 40);
+											GC gc = new GC(avatarImage);
+											try {
+												Rectangle bounds = bigAvatarImage.getBounds();
+												try {
+													gc.setInterpolation(SWT.HIGH);
+												} catch (Exception e) {
+												}
+												gc.drawImage(bigAvatarImage, 0, 0, bounds.width,
+														bounds.height, 0, 0, 40, 40);
+											} finally {
+												gc.dispose();
+											}
+											bigAvatarImage.dispose();
+
+											soImage.setImage(avatarImage);
+										}
+									}
+								});
+							}
+						});
 			}
 		});
 	}

@@ -285,6 +285,10 @@ public class FriendsToolbar
 
 				}
 			}
+			
+			// @see com.aelitis.azureus.util.ILoginInfoListener#avatarURLUpdated()
+			public void avatarURLUpdated(String newAvatarURL) {
+			}
 		});
 
 		addFriends = new ToolItem(toolbar, SWT.PUSH);
