@@ -92,8 +92,10 @@ public class Constants
 
 	public static final String URL_DOWNLOAD = "download/";
 
-	public static final String URL_FAQ = URL_PREFIX + "Support.html";
+	public static final String URL_SUPPORT = URL_PREFIX + "Support.html";
 
+	public static final String URL_FAQ = "http://faq.vuze.com/";
+	
 	/**
 	 * To use this append the topic number to the end or use a pre-defined topic constant found in
 	 * <code>FAQTopics</code>
@@ -107,6 +109,8 @@ public class Constants
 	public static final String URL_BLOG = "http://blog.vuze.com/";
 	
 	public static final String URL_FORUMS = "http://forum.vuze.com/";
+	
+	public static final String URL_WIKI = "http://wiki.vuze.com/";
 	
 	public static String URL_RELAY_RPC = System.getProperty("relay_url",
 			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)

@@ -69,25 +69,10 @@ public class UserAreaUtils
 	private void hookListeners() {
 
 		/*
-		 * Launch an external browser and load the FAQ page
-		 */
-		SWTSkinObject skinObject = skin.getSkinObject("help-button");
-		if (skinObject != null) {
-			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
-			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					if (null != uiFunctions) {
-						Utils.launch(Constants.URL_FAQ);
-					}
-				}
-			});
-		}
-
-		/*
 		 * New user-info (drop down arrow)
 		 */
 
-		skinObject = skin.getSkinObject("user-info-image");
+		SWTSkinObject skinObject = skin.getSkinObject("user-info-image");
 		final Control control = skinObject.getControl();
 		final Menu menu = new Menu(control.getShell(), SWT.POP_UP);
 		fillUserInfoMenu(menu);

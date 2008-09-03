@@ -435,6 +435,7 @@ public class MainMenu
 			 * The 'About' menu is on the application menu on OSX
 			 */
 			MenuFactory.addAboutMenuItem(helpMenu);
+			MenuFactory.addSeparatorMenuItem(helpMenu);
 		}
 
 		MenuFactory.addMenuItem(helpMenu, PREFIX_V3 + ".getting_started",
@@ -445,6 +446,8 @@ public class MainMenu
 					}
 				});
 
+		MenuFactory.addHelpSupportMenuItem( helpMenu, Constants.URL_SUPPORT );
+		
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
 		if (false == SystemProperties.isJavaWebStartInstance()) {
@@ -498,12 +501,17 @@ public class MainMenu
 				MENU_ID_COMMUNITY);
 		Menu communityMenu = item.getMenu();
 
-		MenuFactory.addFAQMenuItem(communityMenu, Constants.URL_FAQ);
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_BLOG);
+						Utils.launch(Constants.URL_FAQ);
+					}
+				});
+		
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
+				new Listener() {
+					public void handleEvent(Event e) {
+						Utils.launch(Constants.URL_WIKI);
 					}
 				});
 
@@ -513,6 +521,13 @@ public class MainMenu
 						Utils.launch(Constants.URL_FORUMS);
 					}
 				});
+		
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
+				new Listener() {
+					public void handleEvent(Event e) {
+						Utils.launch(Constants.URL_BLOG);
+					}
+				});	
 
 		MenuFactory.addSeparatorMenuItem(communityMenu);
 
