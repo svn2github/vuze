@@ -306,7 +306,7 @@ public class SideBar
 						Object ld = soSideBarPopout.getControl().getLayoutData();
 						if (ld instanceof FormData) {
 							FormData fd = (FormData) ld;
-							fd.width = 20;
+							fd.width = 22;
 						}
 						soSideBarPopout.getControl().moveAbove(null);
 						Utils.relayout(soSideBarPopout.getControl());
@@ -572,9 +572,19 @@ public class SideBar
 
 			org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
 					menuDropDown, SWT.RADIO);
-			menuItem.setText(s + treeItem.getData("text"));
 			String id = (String) treeItem.getData("Plugin.viewID");
 			menuItem.setData("Plugin.viewID", id);
+			SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+			ViewTitleInfo titleInfo = sideBarInfo.getTitleInfo();
+			String ind = "";
+			if (titleInfo != null) {
+				String o = (String) titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
+				if (o != null) {
+					ind = "  (" + o  + ")";
+					//ind = "\t" + o;
+				}
+			}
+			menuItem.setText(s + treeItem.getData("text") + ind);
 			menuItem.addSelectionListener(dropDownSelectionListener);
 			if (currentSideBarEntry != null && currentSideBarEntry.id.equals(id)) {
 				menuItem.setSelection(true);
