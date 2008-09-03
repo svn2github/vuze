@@ -45,7 +45,17 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -144,6 +154,21 @@ public class Browse
 		} else {
 			createBrowseArea(browserSkinObject);
 		}
+		
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+  		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+  		PluginInterface pi = pm.getDefaultPluginInterface();
+  		UIManager uim = pi.getUIManager();
+  		MenuManager menuManager = uim.getMenuManager();
+  		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+  				+ SideBar.SIDEBAR_SECTION_BROWSE, "Button.reset");
+  		menuItem.addListener(new MenuItemListener() {
+  			public void selected(MenuItem menu, Object target) {
+  				browserSkinObject.restart();
+  			}
+  		});
+		}
+
 		return null;
 	}
 
