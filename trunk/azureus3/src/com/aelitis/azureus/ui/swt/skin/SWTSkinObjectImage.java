@@ -23,6 +23,14 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 public class SWTSkinObjectImage
 	extends SWTSkinObjectBasic
 {
+	protected static final Long DRAW_SCALE = new Long(1);
+
+	protected static final Long DRAW_STRETCH = new Long(2);
+
+	protected static final Long DRAW_NORMAL = new Long(0);
+
+	protected static final Long DRAW_TILE = new Long(2);
+
 	private static boolean ALWAYS_USE_PAINT = false;
 
 	Label label;
@@ -31,12 +39,12 @@ public class SWTSkinObjectImage
 
 	private String customImageID;
 
-	private static PaintListener tilePaintListener;
+	private static PaintListener paintListener;
 
 	private boolean noSetLabelImage = false;
 
 	static {
-		tilePaintListener = new PaintListener() {
+		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				e.gc.setAdvanced(true);
 
@@ -47,36 +55,47 @@ public class SWTSkinObjectImage
 				}
 				Rectangle imgSrcBounds = imgSrc.getBounds();
 				Point size = label.getSize();
-
-				int x0 = 0;
-				int y0 = 0;
-				int x1 = size.x;
-				int y1 = size.y;
-
-				Image imgRight = (Image) label.getData("image-right");
-				if (imgRight != null) {
-					int width = imgRight.getBounds().width;
-
-					x1 -= width;
-				}
-
-				Image imgLeft = (Image) label.getData("image-left");
-				if (imgLeft != null) {
-					// TODO: Tile down
-					e.gc.drawImage(imgLeft, 0, 0);
-
-					x0 += imgLeft.getBounds().width;
-				}
-
-				for (int y = y0; y < y1; y += imgSrcBounds.height) {
-					for (int x = x0; x < x1; x += imgSrcBounds.width) {
-						e.gc.drawImage(imgSrc, x, y);
-					}
-				}
-
-				if (imgRight != null) {
-					// TODO: Tile down
-					e.gc.drawImage(imgRight, x1, 0);
+				
+				Long drawMode = (Long) label.getData("drawmode");
+				
+				if (drawMode == DRAW_STRETCH) {
+					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
+							0, 0, size.x, size.y);
+				} else if (drawMode == DRAW_SCALE) {
+					// TODO: real scale..
+					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
+							0, 0, size.x, size.y);
+				} else {
+  				int x0 = 0;
+  				int y0 = 0;
+  				int x1 = size.x;
+  				int y1 = size.y;
+  
+  				Image imgRight = (Image) label.getData("image-right");
+  				if (imgRight != null) {
+  					int width = imgRight.getBounds().width;
+  
+  					x1 -= width;
+  				}
+  
+  				Image imgLeft = (Image) label.getData("image-left");
+  				if (imgLeft != null) {
+  					// TODO: Tile down
+  					e.gc.drawImage(imgLeft, 0, 0);
+  
+  					x0 += imgLeft.getBounds().width;
+  				}
+  
+  				for (int y = y0; y < y1; y += imgSrcBounds.height) {
+  					for (int x = x0; x < x1; x += imgSrcBounds.width) {
+  						e.gc.drawImage(imgSrc, x, y);
+  					}
+  				}
+  
+  				if (imgRight != null) {
+  					// TODO: Tile down
+  					e.gc.drawImage(imgRight, x1, 0);
+  				}
 				}
 			}
 		};
@@ -201,29 +220,49 @@ public class SWTSkinObjectImage
 				}
 
 				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
+				
+				Long drawMode;
+				if (sDrawMode.equals("scale")) {
+					drawMode = DRAW_SCALE;
+				} else if (sDrawMode.equals("stretch")) {
+					drawMode = DRAW_STRETCH;
+				} else if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
+					drawMode = DRAW_TILE;
+				} else {
+					drawMode = DRAW_NORMAL;
+				}
+				label.setData("drawmode", drawMode);
 
-				if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
+				if (drawMode != DRAW_NORMAL) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
 					label.setSize(imgBounds.width, imgBounds.height);
 					label.setData("image", image);
 
-					// XXX Huh? A tile of one? :)
-					FormData fd = (FormData) label.getLayoutData();
-					if (fd == null) {
-						fd = new FormData(imgBounds.width, imgBounds.height);
-					} else {
-						fd.width = imgBounds.width;
-						fd.height = imgBounds.height;
+					if (drawMode == DRAW_TILE) {
+  					// XXX Huh? A tile of one? :)
+  					FormData fd = (FormData) label.getLayoutData();
+  					if (fd == null) {
+  						fd = new FormData(imgBounds.width, imgBounds.height);
+  					} else {
+  						fd.width = imgBounds.width;
+  						fd.height = imgBounds.height;
+  					}
+  					label.setLayoutData(fd);
 					}
-					label.setLayoutData(fd);
 
 					// remove in case already added
-					label.removePaintListener(tilePaintListener);
+					label.removePaintListener(paintListener);
 
-					label.addPaintListener(tilePaintListener);
+					label.addPaintListener(paintListener);
 
 					label.setImage(null);
+				} else if (sDrawMode.equals(("scale"))) {
+					noSetLabelImage = true;
+					Rectangle imgBounds = image.getBounds();
+					label.setSize(imgBounds.width, imgBounds.height);
+					label.setData("image", image);
+					
 				} else {
 					Image oldImage = label.getImage();
 					label.setImage(image);
@@ -276,11 +315,13 @@ public class SWTSkinObjectImage
 	public void setImage(Image image) {
 		customImage = true;
 		customImageID = null;
-		label.setData("Image", image);
+		label.setData("image", image);
 		label.setData("image-left", null);
 		label.setData("image-right", null);
 		if (!noSetLabelImage) {
 			label.setImage(image);
+		} else {
+			label.redraw();
 		}
 		Utils.relayout(label);
 	}
