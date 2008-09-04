@@ -352,7 +352,7 @@ WebEngine
 		return( getRootPage());
 	}
 	
-	protected String 
+	protected pageDetails 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,
 		String				headers,
@@ -392,7 +392,8 @@ WebEngine
 				
 			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 
-			ResourceDownloader url_rd;
+			URL					initial_url;
+			ResourceDownloader 	initial_url_rd;
 					
 			
 			int	post_pos = searchURL.indexOf( "azmethod=" );
@@ -405,7 +406,7 @@ WebEngine
 				
 				debugLog( "search_url: " + searchURL + ", post=" + post_params );
 
-				URL url = new URL(searchURL);
+				initial_url = new URL(searchURL);
 
 				int	sep = post_params.indexOf( ':' );
 				
@@ -420,24 +421,24 @@ WebEngine
 				
 					// already URL encoded
 				
-				url_rd = rdf.create( url, post_params );
+				initial_url_rd = rdf.create( initial_url, post_params );
 
-				url_rd.setProperty( "URL_Content-Type", "application/x-www-form-urlencoded" );
+				initial_url_rd.setProperty( "URL_Content-Type", "application/x-www-form-urlencoded" );
 				
 			}else{
 			
 				debugLog( "search_url: " + searchURL );
 			
-				URL url = new URL(searchURL);
+				initial_url = new URL(searchURL);
 			
-				url_rd = rdf.create( url );
+				initial_url_rd = rdf.create( initial_url );
 			}
 			
-			setHeaders( url_rd, headers );
+			setHeaders( initial_url_rd, headers );
 				
 			if ( needsAuth && local_cookies != null ){
 				
-				url_rd.setProperty( "URL_Cookie", local_cookies );
+				initial_url_rd.setProperty( "URL_Cookie", local_cookies );
 			}
 				
 			if ( only_if_modified ){
@@ -447,22 +448,22 @@ WebEngine
 
 				if ( last_modified != null ){
 					
-					url_rd.setProperty( "URL_If-Modified-Since", last_modified );
+					initial_url_rd.setProperty( "URL_If-Modified-Since", last_modified );
 				}
 				
 				if ( etag != null ){
 					
-					url_rd.setProperty( "URL_If-None-Match", etag );
+					initial_url_rd.setProperty( "URL_If-None-Match", etag );
 				}
 			}
 			
-			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
+			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
 
 			InputStream	is = mr_rd.download();
 				
 			if ( needsAuth ){
 				
-				List	cookies_list = (List)url_rd.getProperty( "URL_Set-Cookie" );
+				List	cookies_list = (List)mr_rd.getProperty( "URL_Set-Cookie" );
 				
 				List	cookies_set = new ArrayList();
 				
@@ -498,8 +499,8 @@ WebEngine
 			
 			if ( only_if_modified ){
 				
-				String last_modified 	= (String)url_rd.getProperty( "URL_Last-Modified" );
-				String etag				= (String)url_rd.getProperty( "URL_ETag" );
+				String last_modified 	= (String)mr_rd.getProperty( "URL_Last-Modified" );
+				String etag				= (String)mr_rd.getProperty( "URL_ETag" );
 				
 				if ( last_modified != null ){
 					
@@ -512,7 +513,7 @@ WebEngine
 				}
 			}
 			
-			List cts = (List)url_rd.getProperty( "URL_Content-Type" );
+			List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
 
 			StringBuffer sb = new StringBuffer();
 			
@@ -578,8 +579,14 @@ WebEngine
 				//No BASE tag in the page
 			}
 			
+			URL	final_url = (URL)mr_rd.getProperty( "URL_URL" );
+
+			if ( final_url == null ){
+				
+				final_url = initial_url;
+			}
 			
-			return page;
+			return( new pageDetails( initial_url, final_url, page ));
 				
 		}catch( SearchException e ){
 			
@@ -677,5 +684,42 @@ WebEngine
 
 	public String getCookies() {
 		return local_cookies;
+	}
+	
+	public static class
+	pageDetails
+	{
+		private URL			initial_url;
+		private URL			final_url;
+		private String		content;
+		
+		protected
+		pageDetails(
+			URL		_initial_url,
+			URL		_final_url,
+			String	_content )
+		{
+			initial_url		= _initial_url;
+			final_url		= _final_url;
+			content			= _content;
+		}
+
+		public URL
+		getInitialURL()
+		{
+			return( initial_url );
+		}
+
+		public URL
+		getFinalURL()
+		{
+			return( final_url );
+		}
+		
+		public String
+		getContent()
+		{
+			return( content );
+		}
 	}
 }

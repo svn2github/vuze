@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchException;
+import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.EngineImpl;
 import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
@@ -194,8 +195,10 @@ RegexEngine
 	{
 		debugStart();
 				
-		final String page = getWebPageContent( searchParameters, headers, false );
-			
+		final pageDetails page_details = getWebPageContent( searchParameters, headers, false );
+		
+		final String	page = page_details.getContent();
+		
 		if ( listener != null ){
 			
 			listener.contentReceived( this, page );
@@ -368,6 +371,18 @@ RegexEngine
 								results.add(result);
 							}
 								
+								// hack - if no results and redirected to https and auth required then
+								// assume we need to log in...
+							
+							if ( results.size() == 0 && isNeedsAuth()){
+								
+								if ( 	page_details.getInitialURL().getProtocol().equalsIgnoreCase( "http" ) &&
+										page_details.getFinalURL().getProtocol().equalsIgnoreCase( "https" )){
+									
+									throw new SearchLoginException("login possibly required");
+								}
+							}
+							
 							return (Result[]) results.toArray(new Result[results.size()]);
 									
 						}catch (Throwable e){

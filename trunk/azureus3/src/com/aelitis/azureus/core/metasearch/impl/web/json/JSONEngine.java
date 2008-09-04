@@ -183,7 +183,9 @@ JSONEngine
 	{	
 		debugStart();
 		
-		String page = super.getWebPageContent( searchParameters, headers, false );
+		pageDetails page_details = super.getWebPageContent( searchParameters, headers, false );
+		
+		String	page = page_details.getContent();
 		
 		if ( listener != null ){
 			listener.contentReceived( this, page );

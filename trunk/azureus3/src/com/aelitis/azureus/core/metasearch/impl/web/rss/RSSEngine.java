@@ -27,6 +27,7 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
 
 public class 
 RSSEngine 
@@ -132,7 +133,9 @@ RSSEngine
 	{
 		debugStart();
 		
-		String page = super.getWebPageContent( searchParameters, headers, true );
+		pageDetails page_details = super.getWebPageContent( searchParameters, headers, true );
+		
+		String	page = page_details.getContent();
 		
 		if ( listener != null ){
 			listener.contentReceived( this, page );
