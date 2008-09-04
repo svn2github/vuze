@@ -235,7 +235,7 @@ public class SWTSkinObjectText2
 		
 		canvas.addMouseMoveListener(new MouseMoveListener() {
 			public void mouseMove(MouseEvent e) {
-				if (lastStringPrinter != null) {
+				if (lastStringPrinter != null && lastStringPrinter.hasHitUrl()) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
 					canvas.setCursor(hitUrl == null ? null : canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				}
