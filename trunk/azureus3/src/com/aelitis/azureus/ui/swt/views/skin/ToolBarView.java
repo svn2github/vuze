@@ -62,7 +62,9 @@ public class ToolBarView
 
 	private GlobalManager gm;
 
-	ToolBarItem lastItem = null;
+	//ToolBarItem lastItem = null;
+	
+	Control lastControl = null;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -131,18 +133,21 @@ public class ToolBarView
 //			}
 //		};
 //		addToolBarItem(item);
+		
+		addNonToolBar("toolbar.area.sitem.left");
 
 		// ==details
-		item = new ToolBarItem("details", "image.button.details", "iconBar.details") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentListViewsUtils.viewDetails(dms[0], "Toolbar");
-				}
-			}
-		};
-		addToolBarItem(item);
+		//item = new ToolBarItem("details", "image.button.details", "iconBar.details") {
+		//	// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+		//	public void triggerToolBarItem() {
+		//		DownloadManager[] dms = getDMSFromSelectedContent();
+		//		if (dms != null) {
+		//			TorrentListViewsUtils.viewDetails(dms[0], "Toolbar");
+		//		}
+		//	}
+		//};
+		//addToolBarItem(item, "toolbar.area.sitem");
+		//addSeperator();
 
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
@@ -153,7 +158,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
 
 		
 		// ==UP
@@ -185,7 +191,9 @@ public class ToolBarView
 				return true;
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
+
 
 		// ==down
 		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
@@ -216,7 +224,9 @@ public class ToolBarView
 				return true;
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
+
 
 		// ==start
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
@@ -227,7 +237,9 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
+
 
 		// ==stop
 		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
@@ -238,7 +250,9 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
+
 
 		// ==remove
 		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
@@ -249,7 +263,11 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item);
+		addToolBarItem(item, "toolbar.area.sitem");
+
+		addNonToolBar("toolbar.area.sitem.right");
+		
+		skinObject.getControl().getParent().layout();
 
 //		// ==comment
 //		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
@@ -437,17 +455,21 @@ public class ToolBarView
 	}
 
 	public void addToolBarItem(final ToolBarItem item) {
+		addToolBarItem(item, "toolbar.area.item");
+	}
+
+	public void addToolBarItem(final ToolBarItem item, String templateID) {
 		SWTSkinObject so = skin.createSkinObject("toolbar:" + item.getId(),
-				"toolbar.area.item", soMain);
+				templateID, soMain);
 		if (so != null) {
-			if (lastItem != null) {
-				Control lastControl = lastItem.getSkinButton().getSkinObject().getControl();
+			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
 				fd.left = new FormAttachment(lastControl);
 			}
 
 			so.setData("toolbaritem", item);
-			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
+			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so,
+					"toolbar-item-image");
 			btn.setImage(item.getImageID());
 			btn.addSelectionListener(buttonListener);
 			item.setSkinButton(btn);
@@ -459,8 +481,34 @@ public class ToolBarView
 
 			Utils.relayout(so.getControl().getParent());
 
-			lastItem = item;
+			lastControl = item.getSkinButton().getSkinObject().getControl();
 			items.put(item.getId(), item);
+		}
+	}
+	
+	private void addSeperator() {
+		SWTSkinObject so = skin.createSkinObject("toolbar_sep" + Math.random(),
+				"toolbar.area.sitem.sep", soMain);
+		if (so != null) {
+			if (lastControl != null) {
+				FormData fd = (FormData) so.getControl().getLayoutData();
+				fd.left = new FormAttachment(lastControl, fd.left == null ? 0 : fd.left.offset);
+			}
+			
+			lastControl = so.getControl();
+		}
+	}
+	
+	private void addNonToolBar(String skinid) {
+		SWTSkinObject so = skin.createSkinObject("toolbar_d" + Math.random(),
+				skinid, soMain);
+		if (so != null) {
+			if (lastControl != null) {
+				FormData fd = (FormData) so.getControl().getLayoutData();
+				fd.left = new FormAttachment(lastControl, fd.left == null ? 0 : fd.left.offset);
+			}
+			
+			lastControl = so.getControl();
 		}
 	}
 
