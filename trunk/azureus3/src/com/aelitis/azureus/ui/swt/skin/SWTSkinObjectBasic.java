@@ -530,10 +530,12 @@ public class SWTSkinObjectBasic
 				String sCursor = properties.getStringValue(sConfigID + ".cursor");
 				if (sCursor != null && sCursor.length() > 0) {
 					if (sCursor.equalsIgnoreCase("hand")) {
-						control.addListener(SWT.MouseEnter,
-								skin.getHandCursorListener(control.getDisplay()));
-						control.addListener(SWT.MouseExit,
-								skin.getHandCursorListener(control.getDisplay()));
+						Listener handCursorListener = skin.getHandCursorListener(control.getDisplay());
+						control.removeListener(SWT.MouseEnter, handCursorListener);
+						control.removeListener(SWT.MouseExit, handCursorListener);
+						
+						control.addListener(SWT.MouseEnter, handCursorListener);
+						control.addListener(SWT.MouseExit, handCursorListener);
 					}
 				}
 
