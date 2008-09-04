@@ -873,31 +873,7 @@ public class TableViewSWTImpl
 					getRow((TableItem) event.item)
 				});
 
-				if (tabViews == null || tabViews.size() == 0)
-					return;
-
-				// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin
-				// Peer object, while Tabs of IView are sent the core PEPeer object.
-
-				// TODO: Send all datasources
-				Object[] dataSourcesCore = getSelectedDataSources(true);
-				Object[] dataSourcesPlugin = null;
-
-				for (int i = 0; i < tabViews.size(); i++) {
-					IView view = (IView) tabViews.get(i);
-					if (view != null) {
-						if (view instanceof UISWTViewImpl) {
-							if (dataSourcesPlugin == null)
-								dataSourcesPlugin = getSelectedDataSources(false);
-
-							((UISWTViewImpl) view).dataSourceChanged(dataSourcesPlugin.length == 0
-									? null : dataSourcesPlugin);
-						} else {
-							view.dataSourceChanged(dataSourcesCore.length == 0 ? null
-									: dataSourcesCore);
-						}
-					}
-				}
+				triggerTabViewsDataSourceChanged();
 			}
 
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -1018,6 +994,39 @@ public class TableViewSWTImpl
 		initializeTableColumns(table);
 	}
 	
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected void triggerTabViewsDataSourceChanged() {
+		if (tabViews == null || tabViews.size() == 0)
+			return;
+
+		// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin
+		// Peer object, while Tabs of IView are sent the core PEPeer object.
+
+		// TODO: Send all datasources
+		Object[] dataSourcesCore = getSelectedDataSources(true);
+		Object[] dataSourcesPlugin = null;
+
+		for (int i = 0; i < tabViews.size(); i++) {
+			IView view = (IView) tabViews.get(i);
+			if (view != null) {
+				if (view instanceof UISWTViewImpl) {
+					if (dataSourcesPlugin == null)
+						dataSourcesPlugin = getSelectedDataSources(false);
+
+					((UISWTViewImpl) view).dataSourceChanged(dataSourcesPlugin.length == 0
+							? null : dataSourcesPlugin);
+				} else {
+					view.dataSourceChanged(dataSourcesCore.length == 0 ? null
+							: dataSourcesCore);
+				}
+			}
+		}
+	}
+
 	private interface SourceReplaceListener
 	{
 		void sourcesChanged();
@@ -3788,6 +3797,8 @@ public class TableViewSWTImpl
 		if (table != null && !table.isDisposed()) {
 			ensureAllRowsHaveIndex();
 			table.selectAll();
+			triggerSelectionListeners(getSelectedRows());
+			triggerTabViewsDataSourceChanged();
 		}
 	}
 
