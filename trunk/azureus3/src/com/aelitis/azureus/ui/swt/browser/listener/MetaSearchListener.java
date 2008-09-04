@@ -521,6 +521,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
 				
+					params.put( "supports_direct_download", new Boolean( engine.supportsField( Engine.FIELD_TORRENTLINK )));
+					
 					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
 					
 				}catch( Throwable e ){
@@ -1081,7 +1083,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				
 				result.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
 
-				sendBrowserMessage("metasearch", "updateSubscriptionCompleted",result);
+				sendBrowserMessage("metasearch", "updateSubscriptionFailed",result);
 			}
 		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
 			

@@ -38,6 +38,27 @@ public class
 PluginEngine
 	extends EngineImpl
 {
+	private static int[][] FIELD_MAP = {
+		
+		{ SearchResult.PR_CATEGORY,				Engine.FIELD_CATEGORY },
+		{ SearchResult.PR_COMMENTS,				Engine.FIELD_COMMENTS },
+		{ SearchResult.PR_CONTENT_TYPE,			Engine.FIELD_CONTENT_TYPE },
+		{ SearchResult.PR_DETAILS_LINK,			Engine.FIELD_CDPLINK },
+		{ SearchResult.PR_DOWNLOAD_BUTTON_LINK,	Engine.FIELD_DOWNLOADBTNLINK },
+		{ SearchResult.PR_DOWNLOAD_LINK,		Engine.FIELD_TORRENTLINK },
+		{ SearchResult.PR_DRM_KEY,				Engine.FIELD_DRMKEY },
+		{ SearchResult.PR_LEECHER_COUNT,		Engine.FIELD_PEERS },
+		{ SearchResult.PR_NAME,					Engine.FIELD_NAME },
+		{ SearchResult.PR_PLAY_LINK,			Engine.FIELD_PLAYLINK },
+		{ SearchResult.PR_PRIVATE,				Engine.FIELD_PRIVATE },
+		{ SearchResult.PR_PUB_DATE,				Engine.FIELD_DATE },
+		{ SearchResult.PR_SEED_COUNT,			Engine.FIELD_SEEDS },
+		{ SearchResult.PR_SIZE,					Engine.FIELD_SIZE },
+		{ SearchResult.PR_SUPER_SEED_COUNT,		Engine.FIELD_SUPERSEEDS },
+		{ SearchResult.PR_VOTES,				Engine.FIELD_VOTES },
+	};
+		
+		
 	public static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
@@ -109,6 +130,43 @@ PluginEngine
 		}
 		
 		return((String)provider.getProperty( SearchProvider.PR_DOWNLOAD_LINK_LOCATOR ));
+	}
+	
+	public boolean 
+	supportsField(
+		int		field )
+	{
+		if ( provider == null ){
+			
+			return( false );
+		}
+		
+		int[] supports = (int[])provider.getProperty( SearchProvider.PR_SUPPORTS_RESULT_FIELDS );
+		
+		if ( supports == null ){
+			
+			return( true );
+		}
+		
+		for (int i=0;i<FIELD_MAP.length;i++){
+			
+			int[]	entry = FIELD_MAP[i];
+			
+			if ( entry[1] == field ){
+				
+				for (int j=0;j<supports.length;j++){
+					
+					if ( supports[j] == entry[0] ){
+						
+						return( true );
+					}
+				}
+				
+				break;
+			}
+		}
+		
+		return( false );
 	}
 	
 	public String 

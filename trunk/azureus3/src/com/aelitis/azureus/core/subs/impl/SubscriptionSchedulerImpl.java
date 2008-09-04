@@ -190,6 +190,8 @@ SubscriptionSchedulerImpl
 		
 		if ( dl == null ){
 			
+			log( subs.getName() + ": can't download " + result.getID() + " as no direct download link available" );
+			
 			return;
 		}
 
@@ -446,12 +448,9 @@ SubscriptionSchedulerImpl
 		Subscription		sub )
 	{
 		SubscriptionHistory	history = sub.getHistory();
-		
-		long	last_scan	= history.getLastScanTime();
-		
-		long	next_scan 	=  last_scan + 120*60*1000;
-		
-		
+				
+		long	next_scan 	=  history.getNextScanTime();
+			
 		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_KEY );
 		
 		if ( fail_count != null ){

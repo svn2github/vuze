@@ -621,6 +621,21 @@ WebEngine
 		return( mappings );
 	}
 	
+	public boolean
+	supportsField(
+		int		field_id )
+	{
+		for (int i=0;i<mappings.length;i++){
+			
+			if ( mappings[i].getField() == field_id ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	protected String
 	getRootPage()
 	{

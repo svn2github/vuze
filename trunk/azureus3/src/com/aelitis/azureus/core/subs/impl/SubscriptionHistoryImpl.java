@@ -208,6 +208,34 @@ SubscriptionHistoryImpl
 		return( last_new_result );
 	}
 	
+	public long
+	getNextScanTime()
+	{
+		Map	schedule = subs.getScheduleConfig();
+		
+		if ( schedule.size() == 0  ){
+			
+			log( "Schedule is empty!");
+			
+			return( Long.MAX_VALUE );
+			
+		}else{
+			
+			try{
+			
+				long	interval_min = ((Long)schedule.get( "interval" )).longValue();
+				
+				return( last_scan + interval_min*60*1000 );
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to decode schedule " + schedule, e );
+				
+				return( Long.MAX_VALUE );
+			}
+		}
+	}
+	
 	public int
 	getNumUnread()
 	{
@@ -497,5 +525,20 @@ SubscriptionHistoryImpl
 		map.put( "num_read", new Long( num_read ));
 		
 		subs.updateHistoryConfig( map );
+	}
+	
+	protected void
+	log(
+		String		str )
+	{
+		subs.log( "History: " + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		subs.log( "History: " + str, e );
 	}
 }

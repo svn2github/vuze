@@ -122,6 +122,27 @@ RSSEngine
 		return( res );
 	}
 	
+	public boolean
+	supportsField(
+		int		field_id )
+	{
+			// don't know about optional fields (such as direct download - be optimistic)
+		
+		switch( field_id ){
+			case FIELD_NAME:
+			case FIELD_DATE:
+			case FIELD_CATEGORY:
+			case FIELD_COMMENTS:
+			case FIELD_CDPLINK:
+			case FIELD_TORRENTLINK:
+			{
+				return( true );
+			}
+		}
+	
+		return( false );
+	}
+	
 	protected Result[] 
 	searchSupport(
 		SearchParameter[] 	searchParameters, 
@@ -183,7 +204,7 @@ RSSEngine
 								result.setCategory(child.getValue());
 							}
 							else if(child.getName().equals("comments")) {
-								result.setCDPLink(child.getValue());
+								result.setCommentsFromHTML(child.getValue());
 							}
 							else if(child.getName().equals("link") || child.getName().equals("guid")) {
 								try {

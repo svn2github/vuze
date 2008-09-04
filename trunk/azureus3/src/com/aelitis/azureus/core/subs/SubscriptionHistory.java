@@ -61,6 +61,9 @@ SubscriptionHistory
 	public long
 	getLastNewResultTime();
 	
+	public long
+	getNextScanTime();
+	
 	public int
 	getNumUnread();
 	

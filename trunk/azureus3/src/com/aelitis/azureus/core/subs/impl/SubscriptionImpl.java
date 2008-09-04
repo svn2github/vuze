@@ -126,6 +126,7 @@ SubscriptionImpl
 	private boolean			destroyed;
 	
 	private Map				history_map;
+	private Map				schedule_map;
 	
 	private Map				user_data = new LightHashMap();
 	
@@ -134,6 +135,42 @@ SubscriptionImpl
 	private String			referer;
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
+	
+	
+	protected static String
+	getSkeletonJSON(
+		Engine		engine )
+	{
+		JSONObject	map = new JSONObject();
+		
+		map.put( "engine_id", new Long( engine.getId()));
+		
+		map.put( "search_term", "" );
+
+		map.put( "filters", new HashMap());
+		
+		map.put( "options", new HashMap());
+		
+		Map schedule = new HashMap();
+		
+		schedule.put( "interval", new Long( 120 ));
+		
+		List	days = new ArrayList();
+		
+		for (int i=1;i<=7;i++){
+			
+			days.add( String.valueOf(i));
+		}
+		
+		schedule.put( "days", days );
+		
+		map.put( "schedule", schedule );
+		
+		embedEngines( map, engine );
+		
+		return( JSONUtils.encodeToJSON( map ));
+	}
+	
 	
 		// new subs constructor
 	
@@ -182,39 +219,6 @@ SubscriptionImpl
 			
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
-	}
-	
-	protected static String
-	getSkeletonJSON(
-		Engine		engine )
-	{
-		JSONObject	map = new JSONObject();
-		
-		map.put( "engine_id", new Long( engine.getId()));
-		
-		map.put( "search_term", "" );
-
-		map.put( "filters", new HashMap());
-		
-		map.put( "options", new HashMap());
-		
-		Map schedule = new HashMap();
-		
-		schedule.put( "interval", new Long( 120 ));
-		
-		List	days = new ArrayList();
-		
-		for (int i=1;i<=7;i++){
-			
-			days.add( String.valueOf(i));
-		}
-		schedule.put( "days", days );
-		
-		map.put( "schedule", schedule );
-		
-		embedEngines( map, engine );
-		
-		return( JSONUtils.encodeToJSON( map ));
 	}
 	
 		// cache detail constructor
@@ -414,6 +418,27 @@ SubscriptionImpl
 	}
 	
 	protected Map
+	getScheduleConfig()
+	{
+		if ( schedule_map == null ){
+			
+			try{		
+				Map map = JSONUtils.decodeJSON( getJSON());
+
+				schedule_map = (Map)map.get( "schedule" );
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to load schedule", e );
+				
+				schedule_map = new HashMap();
+			}
+		}
+		
+		return( schedule_map );
+	}
+	
+	protected Map
 	getHistoryConfig()
 	{
 		return( history_map );
@@ -483,7 +508,7 @@ SubscriptionImpl
 					
 				syncToBody( body );
 				
-				versionUpdated( body );
+				versionUpdated( body, false );
 				
 				ok	= true;
 				
@@ -528,7 +553,7 @@ SubscriptionImpl
 				
 				syncToBody( body );
 				
-				versionUpdated( body );
+				versionUpdated( body, false );
 
 				ok = true;
 				
@@ -615,7 +640,7 @@ SubscriptionImpl
 				
 				syncToBody( body );
 				
-				versionUpdated( body );
+				versionUpdated( body, true );
 
 				referer = null;
 				
@@ -790,9 +815,11 @@ SubscriptionImpl
 		
 		String	old_json = body.getJSON();
 		
+		boolean	json_changed = !_json.equals( old_json );
+		
 		if ( 	!_name.equals( name ) ||
 				_is_public != is_public ||
-				!_json.equals( old_json )){
+				json_changed ){
 			
 			boolean	ok = false;
 			
@@ -810,7 +837,7 @@ SubscriptionImpl
 												
 				syncToBody( body );
 				
-				versionUpdated( body );
+				versionUpdated( body, json_changed );
 
 				ok = true;
 				
@@ -834,8 +861,20 @@ SubscriptionImpl
 	
 	protected void
 	versionUpdated(
-		SubscriptionBodyImpl		body )
+		SubscriptionBodyImpl		body,
+		boolean						json_changed )
 	{
+		if ( json_changed ){
+			
+			try{		
+				Map map = JSONUtils.decodeJSON( body.getJSON());
+
+				schedule_map = (Map)map.get( "schedule" );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
 		if ( is_public ){
 			
 			manager.updatePublicSubscription( this, body.getJSON());

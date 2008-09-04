@@ -151,6 +151,10 @@ Engine
 	public String
 	getReferer();
 	
+	public boolean
+	supportsField(
+		int		field_id );
+	
 	public Map 
 	exportToBencodedMap() 
 	
