@@ -73,6 +73,8 @@ public class SWTSkinObjectContainer
 			createOn = (Composite) parent.getControl();
 		}
 
+		final int minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
+
 		Composite parentComposite;
 		if (SWTSkin.DEBUGLAYOUT) {
 			System.out.println("linkIDtoParent: Create Composite " + sID + " on "
@@ -98,6 +100,9 @@ public class SWTSkinObjectContainer
 						}
 						return new Point(1, 1);
 					}
+					if (minWidth > 0 && size.x < minWidth) {
+						size.x = minWidth;
+					}
 					return size;
 				}
 				
@@ -114,6 +119,9 @@ public class SWTSkinObjectContainer
 							}
 						}
 						return new Point(1, 1);
+					}
+					if (minWidth > 0 && size.x < minWidth) {
+						size.x = minWidth;
 					}
 					return size;
 				}
