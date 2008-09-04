@@ -22,6 +22,8 @@ public class SWTSkinButtonUtility
 
 	private final SWTSkinObject skinObject;
 
+	private final String imageViewID;
+
 	public static class ButtonListenerAdapter
 	{
 		public void pressed(SWTSkinButtonUtility buttonUtility) {
@@ -37,7 +39,12 @@ public class SWTSkinButtonUtility
 	}
 
 	public SWTSkinButtonUtility(SWTSkinObject skinObject) {
+		this(skinObject, null);
+	}
+
+	public SWTSkinButtonUtility(SWTSkinObject skinObject, String imageViewID) {
 		this.skinObject = skinObject;
+		this.imageViewID = imageViewID;
 		Listener l = new Listener() {
 			boolean bDownPressed;
 			private TimerEvent timerEvent;
@@ -148,6 +155,13 @@ public class SWTSkinButtonUtility
 	public void setImage(final String id) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (imageViewID != null) {
+					SWTSkinObject skinImageObject = skinObject.getSkin().getSkinObject(imageViewID, skinObject);
+					if (skinImageObject instanceof SWTSkinObjectImage) {
+						((SWTSkinObjectImage) skinImageObject).setImageByID(id, null);
+						return;
+					}
+				}
 				if (skinObject instanceof SWTSkinObjectImage) {
 					SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
 					skinImageObject.setImageByID(id, null);
