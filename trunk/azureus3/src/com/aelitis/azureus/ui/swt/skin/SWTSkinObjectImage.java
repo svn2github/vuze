@@ -29,7 +29,9 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_NORMAL = new Long(0);
 
-	protected static final Long DRAW_TILE = new Long(2);
+	protected static final Long DRAW_TILE = new Long(3);
+
+	protected static final Long DRAW_CENTER = new Long(4);
 
 	private static boolean ALWAYS_USE_PAINT = false;
 
@@ -42,6 +44,8 @@ public class SWTSkinObjectImage
 	private static PaintListener paintListener;
 
 	private boolean noSetLabelImage = false;
+
+	private int h_align;
 
 	static {
 		paintListener = new PaintListener() {
@@ -61,6 +65,9 @@ public class SWTSkinObjectImage
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
 							0, 0, size.x, size.y);
+				} else if (drawMode == DRAW_CENTER) {
+					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
+							(size.y - imgSrcBounds.height) / 2);
 				} else if (drawMode == DRAW_SCALE) {
 					// TODO: real scale..
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
@@ -118,12 +125,12 @@ public class SWTSkinObjectImage
 
 		String sAlign = properties.getStringValue(sConfigID + ".align");
 		if (sAlign != null) {
-			int align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
-			if (align != SWT.NONE) {
-				style |= align;
+			h_align = SWTSkinUtils.getAlignment(sAlign, SWT.NONE);
+			if (h_align != SWT.NONE) {
+				style |= h_align;
 			}
 		}
-
+		
 		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style |= SWT.BORDER;
 		}
@@ -226,6 +233,8 @@ public class SWTSkinObjectImage
 					drawMode = DRAW_SCALE;
 				} else if (sDrawMode.equals("stretch")) {
 					drawMode = DRAW_STRETCH;
+				} else if (sDrawMode.equals("center")) {
+					drawMode = DRAW_CENTER;
 				} else if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
 					drawMode = DRAW_TILE;
 				} else {
