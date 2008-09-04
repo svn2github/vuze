@@ -212,10 +212,22 @@ public class Colors implements ParameterListener {
 
 				int lum = hslColor.getLuminence();
 				if (lum > 127)
-					lum -= 10;
+					lum -= 16;
 				else
 					lum += 30; // it's usually harder to see difference in darkness
 				hslColor.setLuminence(lum);
+				
+				//HSLColor blueHSL = new HSLColor();
+				//RGB rgb = blues[BLUES_DARKEST].getRGB();
+				//blueHSL.initHSLbyRGB(rgb.red, rgb.green, rgb.blue);
+				//int blueHue = blueHSL.getHue();
+				//int altHue = hslColor.getHue();
+				//if (blueHue > altHue) {
+				//	altHue += 11;
+				//} else {
+				//	altHue -= 11;
+				//}
+				//hslColor.setHue(blueHue);
 				colorAltRow = new AllocateColor("altRow", new RGB(hslColor.getRed(),
 						hslColor.getGreen(), hslColor.getBlue()), colorAltRow).getColor();
 			}
