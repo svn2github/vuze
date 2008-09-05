@@ -629,7 +629,7 @@ MetaSearchManagerImpl
 			
 			if ( existing != null ){
 				
-				if ( existing.sameAs( engine )){
+				if ( existing.sameLogicAs( engine )){
 					
 					if ( warn_user ){
 						

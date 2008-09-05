@@ -32,7 +32,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -133,6 +135,8 @@ EngineImpl
 	private long		last_updated;
 	private String		name;
 	
+	private byte[]		uid;
+	private int			version;
 	
 	private int			selection_state				= SEL_STATE_DESELECTED;
 	private boolean		selection_state_recorded	= true;
@@ -164,6 +168,10 @@ EngineImpl
 		id				= _id;
 		last_updated	= _last_updated;
 		name			= _name;
+		
+		version			= 1;
+		
+		allocateUID( id );
 	}
 	
 		// bencoded constructor
@@ -190,6 +198,14 @@ EngineImpl
 		
 		first_level_mapping 	= importBEncodedMappings( map, "l1_map" );
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
+		
+		version = (int)ImportExportUtils.importLong( map, "version", 1 );
+		uid		= (byte[])map.get( "uid" );
+		
+		if ( uid == null ){
+			
+			allocateUID( id );
+		}
 	}
 	
 		// bencoded export
@@ -214,6 +230,9 @@ EngineImpl
 		
 		exportBEncodedMappings( map, "l1_map", first_level_mapping );
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
+		
+		map.put( "version", new Long( version ));
+		map.put( "uid", uid );
 	}
 	
 		// json constructor
@@ -233,6 +252,19 @@ EngineImpl
 		
 		first_level_mapping 	= importJSONMappings( map, "value_map", true );
 		second_level_mapping 	= importJSONMappings( map, "ctype_map", false );
+		
+		version = (int)ImportExportUtils.importLong( map, "version", 1 );
+		
+		String uid_str		= (String)map.get( "uid" );
+		
+		if ( uid_str == null ){
+			
+			allocateUID( id );
+			
+		}else{
+			
+			uid = Base32.decode( uid_str );
+		}
 	}
 	
 		// json export
@@ -245,6 +277,9 @@ EngineImpl
 	{
 		exportJSONMappings( res, "value_map", first_level_mapping, true );
 		exportJSONMappings( res, "ctype_map", second_level_mapping, false );
+		
+		res.put( "version", new Long( version ));
+		res.put( "uid", Base32.encode( uid ));
 	}
 	
 	protected List
@@ -464,16 +499,64 @@ EngineImpl
 		return( obj.toString());
 	}
 	
+	public int
+	getVersion()
+	{
+		return( version );
+	}
+	
+	protected void
+	setVersion(
+		int		_v )
+	{
+		version	= _v;
+	}
+	
+	public String
+	getUID()
+	{
+		return( Base32.encode( uid ));
+	}
+	
+	protected void
+	setUID(
+		String	str )
+	{
+		uid	= Base32.decode( str );
+	}
+	
+	protected void
+	allocateUID(
+		long		id )
+	{
+		uid = new byte[10];
+
+		if ( id >= 0 && id < Integer.MAX_VALUE ){
+		
+				// id is a vuze one, derive uid from it as already unique
+			
+			uid[0] 	= (byte)(version>>24);
+			uid[1]	= (byte)(version>>16);
+			uid[2]	= (byte)(version>>8);
+			uid[3]	= (byte)version;
+
+		}else{
+	
+			RandomUtils.nextSecureBytes( uid );
+			
+			configDirty();
+		}
+	}
 
 	public boolean
-	sameAs(
+	sameLogicAs(
 		Engine	other )
 	{
 		try{
 			Map	m1 = exportToBencodedMap();
 			Map	m2 = other.exportToBencodedMap();
 		
-			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source"};
+			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source", "version", "uid" };
 			
 			for (int i=0;i<to_remove.length;i++){
 				

@@ -421,7 +421,8 @@ SubscriptionManagerImpl
 										Download	download )
 									{
 									}
-								});
+								},
+								false );
 							
 							publishAssociations();
 							
@@ -1158,6 +1159,12 @@ SubscriptionManagerImpl
 						}
 					});
 						
+			}else{
+				
+				synchronized( this ){
+					
+					periodic_lookup_in_progress = false;
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -1610,7 +1617,9 @@ SubscriptionManagerImpl
 							
 							log( "    Association lookup complete - " + s.length + " found" );
 
-							try{						
+							try{	
+									// record zero assoc here for completeness
+								
 								recordAssociations( hash, s, true );
 								
 							}finally{

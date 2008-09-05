@@ -521,6 +521,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
 				
+					params.put("uid", engine.getUID());
+					
 					params.put( "supports_direct_download", new Boolean( engine.supportsField( Engine.FIELD_TORRENTLINK )));
 					
 					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );

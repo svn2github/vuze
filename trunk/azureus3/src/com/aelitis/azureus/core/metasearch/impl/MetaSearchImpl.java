@@ -183,7 +183,7 @@ MetaSearchImpl
 	addEngine(
 		Engine 	engine )
 	{
-		addEngine( engine, false );
+		addEngine( (EngineImpl)engine, false );
 	}
 	
 	public Engine 
@@ -232,10 +232,10 @@ MetaSearchImpl
 		
 	public void 
 	addEngine(
-		Engine 	engine,
-		boolean	loading )
-	{
-		boolean	new_engine = true;
+		EngineImpl 	new_engine,
+		boolean		loading )
+	{		
+		boolean	add_op = true;
 		
 		synchronized( this ){
 			
@@ -243,24 +243,37 @@ MetaSearchImpl
 			
 			while( it.hasNext()){
 				
-				Engine e = (Engine)it.next();
+				Engine existing_engine = (Engine)it.next();
 				
-				if ( e.getId() == engine.getId()){
+				if ( existing_engine.getId() == new_engine.getId()){
 					
-					log( "Removing old engine with same ID: " + e.getName());
+					log( "Updating engine with same ID " + existing_engine.getId() + ": " + existing_engine.getName() + "/" + existing_engine.getUID());
 					
 					it.remove();
 					
-					new_engine = false;
+					new_engine.setUID( existing_engine.getUID());
+					
+					if ( existing_engine.sameLogicAs( new_engine )){
+						
+						new_engine.setVersion( existing_engine.getVersion());
+
+					}else{
+						
+						new_engine.setVersion( existing_engine.getVersion() + 1 );
+						
+						log( "    new version=" + new_engine.getVersion());
+					}
+					 
+					add_op = false;
 				}
 			}
 			
-			engines.add( engine );
+			engines.add( new_engine );
 		}
 		
 		if ( !loading ){
 			
-			log( "Engine '" + engine.getName() + "' added" );
+			log( "Engine '" + new_engine.getName() + "' added" );
 			
 			saveConfig();
 		
@@ -271,13 +284,13 @@ MetaSearchImpl
 				MetaSearchListener listener = (MetaSearchListener)it.next();
 				
 				try{
-					if ( new_engine ){
+					if ( add_op ){
 						
-						listener.engineAdded( engine );
+						listener.engineAdded( new_engine );
 						
 					}else{
 						
-						listener.engineUpdated( engine );
+						listener.engineUpdated( new_engine );
 					}
 				}catch( Throwable e ){
 					
@@ -589,7 +602,7 @@ MetaSearchImpl
 					try{
 						Engine e = importFromBEncodedMap( m );
 						
-						addEngine( e, true );
+						addEngine( (EngineImpl)e, true );
 						
 						log( "    loaded " + e.getString());
 						

@@ -116,6 +116,12 @@ Engine
 	public long 
 	getId();
 	
+	public String
+	getUID();
+	
+	public int
+	getVersion();
+	            
 	public long 
 	getLastUpdated();
 	
@@ -178,7 +184,7 @@ Engine
 		 */
 	
 	public boolean
-	sameAs(
+	sameLogicAs(
 		Engine	other );
 	
 	public void
