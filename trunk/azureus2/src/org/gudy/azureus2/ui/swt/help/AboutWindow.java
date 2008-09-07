@@ -215,7 +215,6 @@ public class AboutWindow {
     txtSysInfo.setFocus();
     Utils.centreWindow(window);
     window.open();
-    System.out.println(window.getBounds());
 
     instance = window;
     window.addDisposeListener(new DisposeListener() {
