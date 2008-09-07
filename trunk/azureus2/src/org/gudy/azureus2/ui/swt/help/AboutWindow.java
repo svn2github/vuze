@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -167,7 +168,7 @@ public class AboutWindow {
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
 				+ System.getProperty("os.arch") + "\n"
-				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + " " + VersionCheckClient.azconst_avail);
+				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + " " + VersionCheckClient.azconst_avail + " " + COConfigurationManager.getStringParameter("ui"));
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
