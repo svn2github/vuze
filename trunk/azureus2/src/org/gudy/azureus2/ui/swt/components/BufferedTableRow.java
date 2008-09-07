@@ -313,10 +313,23 @@ BufferedTableRow
 		return( item.getForeground());
 	}
 	
+	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
+	private static void setForegroundDebug(String method_sig, Color c) {
+		if (DEBUG_SET_FOREGROUND && c != null) {
+			Debug.out("BufferedTableRow " + method_sig + " -> " + c);
+		}
+	}
+	private static void setForegroundDebug(String method_sig, int r, int g, int b) {
+		if (DEBUG_SET_FOREGROUND && (!(r == 0 && g == 0 && b == 0))) {
+			Debug.out("BufferedTableRow " + method_sig + " -> " + r + "," + g + "," + b);
+		}
+	}
+	
 	public void
 	setForeground(
 		Color	c )
 	{
+		setForegroundDebug("setForeground(Color)", c);
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return;
 
@@ -337,6 +350,7 @@ BufferedTableRow
 	}
 	
 	public void setForeground(int red, int green, int blue) {
+		setForegroundDebug("setForeground(r,g,b)", red, green, blue);
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
 			return;
 		}
@@ -367,6 +381,7 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
+		setForegroundDebug("setForeground(int,Color)", new_color);
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return false;
 				

@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -1338,6 +1339,8 @@ public class MenuFactory
 		}
 	}
 
+	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
+	
 	private static TableRow wrapAsRow(final Object o, final String table_name) {
 		return new TableRow() {
 			  public Object getDataSource() {return o;}
@@ -1346,11 +1349,17 @@ public class MenuFactory
 			  private void notSupported() {
 				  throw new RuntimeException("method is not supported - table row is a \"virtual\" one, only getDataSource and getTableID are supported.");
 			  }
+			  
+			  private void setForegroundDebug() {
+				  if (DEBUG_SET_FOREGROUND) {
+					  Debug.out("setForeground on fake TableRow");
+				  }
+			  }
 
 			  // Everything below is unsupported.
-			  public void setForeground(int red, int green, int blue) {notSupported();}
-			  public void setForeground(int[] rgb) {notSupported();}
-			  public void setForegroundToErrorColor() {notSupported();}
+			  public void setForeground(int red, int green, int blue) {setForegroundDebug(); notSupported();}
+			  public void setForeground(int[] rgb) {setForegroundDebug(); notSupported();}
+			  public void setForegroundToErrorColor() {setForegroundDebug(); notSupported();}
 			  public boolean isValid() {notSupported(); return false;}
 			  public TableCell getTableCell(String sColumnName) {notSupported(); return null;}
 			  public boolean isSelected()  {notSupported(); return false;}

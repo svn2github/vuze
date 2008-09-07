@@ -390,8 +390,21 @@ public class TableRowImpl
 		return setTableItem(newIndex,true);
 	}
 	
+	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
+	private static void setForegroundDebug(String method_sig, Color c) {
+		if (DEBUG_SET_FOREGROUND && c != null) {
+			Debug.out("BufferedTableRow " + method_sig + " -> " + c);
+		}
+	}
+	private static void setForegroundDebug(String method_sig, int r, int g, int b) {
+		if (DEBUG_SET_FOREGROUND && (!(r == 0 && g == 0 && b == 0))) {
+			Debug.out("BufferedTableRow " + method_sig + " -> " + r + "," + g + "," + b);
+		}
+	}
+	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(int, int, int)
 	public void setForeground(int r, int g, int b) {
+		setForegroundDebug("setForeground(r, g, b)", r, g, b);
 		// Don't need to set when not visible
 		if (!isVisible()) {
 			return;
@@ -402,18 +415,20 @@ public class TableRowImpl
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(org.eclipse.swt.graphics.Color)
 	public void setForeground(final Color c) {
+		setForegroundDebug("setForeground(Color)", c);
 		// Don't need to set when not visible
 		if (!isVisible())
 			return;
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				TableRowImpl.this.setForgroundInSWTThread(c);
+				TableRowImpl.this.setForegroundInSWTThread(c);
 			}
 		});
 	}
 	
-	private void setForgroundInSWTThread(Color c) {
+	private void setForegroundInSWTThread(Color c) {
+		setForegroundDebug("setForegroundInSWTThread(Color)", c);
 		if (!isVisible())
 			return;
 
