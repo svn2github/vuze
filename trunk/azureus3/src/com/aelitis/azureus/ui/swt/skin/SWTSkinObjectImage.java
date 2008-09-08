@@ -245,7 +245,9 @@ public class SWTSkinObjectImage
 				if (drawMode != DRAW_NORMAL) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
-					label.setSize(imgBounds.width, imgBounds.height);
+					if (drawMode != DRAW_CENTER && drawMode != DRAW_STRETCH) {
+						label.setSize(imgBounds.width, imgBounds.height);
+					}
 					label.setData("image", image);
 
 					if (drawMode == DRAW_TILE) {
@@ -308,7 +310,7 @@ public class SWTSkinObjectImage
 		String sImageID = (customImageID == null ? (sConfigID + ".image")
 				: customImageID)
 				+ suffix;
-
+		
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
 		if (image != ImageLoader.noImage) {
