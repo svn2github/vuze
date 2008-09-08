@@ -1465,6 +1465,15 @@ DHTDBImpl
 		final DHTTransportContact	contact,
 		final String				reason )
 	{
+			// CVS DHT can be significantly smaller than mainline (e.g. 1000) so will trigger\
+			// un-necessary banning which then obviously affects the main DHTs. So we disable
+			// banning for CVS
+		
+		if ( control.getTransport().getNetwork() == DHT.NW_CVS ){
+			
+			return;
+		}
+		
 		new AEThread2( "DHTDBImpl:delayed flood delete", true )
 		{
 			public void
@@ -1523,6 +1532,8 @@ DHTDBImpl
 			// assume NAT of up to 30 ports per address
 			// this gives 6 values per address
 			// with a factor of 10 error this is still only 60 per address
+		
+			// However, for CVS DHTs we can have sizes of 1000 or less. 
 		
 		int	hit_count = ip_count_bloom_filter.add( contact.getAddress().getAddress().getAddress());
 		
