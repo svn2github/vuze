@@ -864,9 +864,6 @@ public class SideBar
 			}
 		});
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES,
-				"main.area.events", "Activity", titleInfoActivityView, null, false, -1);
-
 		SBC_LibraryView.setupViewTitle();
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
@@ -880,6 +877,9 @@ public class SideBar
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
 				"Vuze Network", null, null, false, -1);
+
+		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES,
+				"main.area.events", "Activity", titleInfoActivityView, null, false, -1);
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
