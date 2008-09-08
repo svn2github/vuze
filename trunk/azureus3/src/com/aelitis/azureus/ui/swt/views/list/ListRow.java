@@ -838,4 +838,12 @@ public class ListRow
 	public Object getData(String id) {
 		return dataList == null ? null : dataList.get(id);
 	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getBounds()
+	public Rectangle getBounds() {
+		Rectangle area = view.getClientArea();
+		area.y = getBasicYPos();
+		area.height = getHeight();
+		return area;
+	}
 }
