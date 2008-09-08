@@ -53,6 +53,7 @@ public class FileLogging implements ILogEventListener {
 	private static final String CFG_ENABLELOGTOFILE = "Logging Enable";
 
 	private boolean bLogToFile = false;
+	private boolean bLogToFileErrorPrinted = false;
 
 	private String sLogDir = "";
 
@@ -94,7 +95,7 @@ public class FileLogging implements ILogEventListener {
 	 */
 	protected void reloadLogToFileParam() {
 		final ConfigurationManager config = ConfigurationManager.getInstance();
-		boolean bNewLogToFile = System.getProperty("azureus.overridelog") != null && config.getBooleanParameter(CFG_ENABLELOGTOFILE);
+		boolean bNewLogToFile = System.getProperty("azureus.overridelog") != null || config.getBooleanParameter(CFG_ENABLELOGTOFILE);
 		if (bNewLogToFile != bLogToFile) {
 			bLogToFile = bNewLogToFile;
 			if (bLogToFile)
@@ -154,8 +155,10 @@ public class FileLogging implements ILogEventListener {
 			}
 			
 			synchronized (Logger.class) {
-				checkAndSwapLog();
+				// Create the date format first *before* we do checkAndSwapLog,
+				// just in case we end up invoking logToFile...
 				format = new SimpleDateFormat(timeStampFormat);
+				checkAndSwapLog();
 			}
 			
 			
@@ -223,7 +226,20 @@ public class FileLogging implements ILogEventListener {
 				logFilePrinter = new PrintWriter(new FileWriter(logFile, true));
 			} catch (IOException e)
 			{
-				// don't log, would cause infinite recursion
+				if (!bLogToFileErrorPrinted) {
+					
+					// don't just log errors, as it would cause infinite recursion
+					bLogToFileErrorPrinted = true;
+					Debug.out("Unable to write to log file: " + logFile);
+					Debug.printStackTrace(e);
+
+					/*
+					java.io.PrintStream stderr = Logger.getOldStdErr();
+					stderr.println("Unable to write to log file: " + logFile);
+					e.printStackTrace(stderr);
+					*/
+				}
+				
 			}
 		}
 	}
