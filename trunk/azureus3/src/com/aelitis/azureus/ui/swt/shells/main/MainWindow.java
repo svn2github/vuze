@@ -1695,7 +1695,7 @@ public class MainWindow
 
 		// must be done after layout
 		text.setText(sDefault);
-		text.selectAll();
+		//text.selectAll();
 
 		final StyledText fText = text;
 		SWTSkinObject searchGo = skin.getSkinObject("search-go");

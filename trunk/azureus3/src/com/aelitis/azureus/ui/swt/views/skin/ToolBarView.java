@@ -114,18 +114,6 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 
-		// ==share
-		item = new ToolBarItem("share", "image.button.sharewhite", "iconBar.share") {
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-			public void triggerToolBarItem() {
-				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				if (contents.length > 0) {
-					VuzeShareUtils.getInstance().shareTorrent(contents[0], "ToolBar");
-				}
-			}
-		};
-		addToolBarItem(item);
-
 		// ==OPEN
 //		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
 //			public void triggerToolBarItem() {
@@ -149,6 +137,20 @@ public class ToolBarView
 		//addToolBarItem(item, "toolbar.area.sitem");
 		//addSeperator();
 
+		// ==share
+		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
+			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+			public void triggerToolBarItem() {
+				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				if (contents.length > 0) {
+					VuzeShareUtils.getInstance().shareTorrent(contents[0], "ToolBar");
+				}
+			}
+		};
+		addToolBarItem(item, "toolbar.area.sitem");
+		addSeperator();
+
+		
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
