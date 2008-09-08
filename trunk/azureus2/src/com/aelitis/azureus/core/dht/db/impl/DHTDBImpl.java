@@ -1125,6 +1125,11 @@ DHTDBImpl
 						continue;
 					}
 					
+					if ( router.isID( contact.getID())){
+						
+						continue;	// ignore ourselves
+					}
+
 					if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
 						
 						final Runnable task = 
