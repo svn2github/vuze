@@ -18,6 +18,7 @@
  
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -61,6 +62,8 @@ public class SideBarEntrySWT implements SideBarEntry
 	public Class[] iviewClassArgs;
 
 	public Object[] iviewClassVals;
+	
+	protected Image imageLeft;
 	
 	public String getParentID() {
 		return parentID;
