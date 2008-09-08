@@ -99,7 +99,7 @@ public class ColumnRatingGlobal
 			this.cell = cell;
 			PlatformRatingMessenger.addListener(this);
 			cell.addListeners(this);
-			cell.setMarginWidth(5);
+			cell.setMarginWidth(2);
 
 			dm = getDM(cell.getDataSource());
 			if (dm != null) {
