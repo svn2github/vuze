@@ -76,6 +76,7 @@ public class TableColumnCreatorV3
 			show(new ETAItem(tableID)),
 			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
+			show(new DateAddedItem(tableID)),
 
 			/*
 			 * Initially hidden
@@ -117,7 +118,6 @@ public class TableColumnCreatorV3
 			hide(new DownSpeedLimitItem(tableID)),
 			hide(new SwarmAverageSpeed(tableID)),
 			hide(new SwarmAverageCompletion(tableID)),
-			hide(new DateAddedItem(tableID)),
 			hide(new BadAvailTimeItem(tableID)),
 		};
 	}
@@ -136,6 +136,7 @@ public class TableColumnCreatorV3
 			show(new StatusItem(tableID, false)),
 			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
+			show(new DateCompletedItem(tableID)),
 
 			/*
 			 * Initially hidden
@@ -163,7 +164,6 @@ public class TableColumnCreatorV3
 			hide(new SwarmAverageSpeed(tableID)),
 			hide(new SwarmAverageCompletion(tableID)),
 			hide(new DateAddedItem(tableID)),
-			hide(new DateCompletedItem(tableID))
 		};
 	}
 
