@@ -298,6 +298,25 @@ PluginInitializer
   }
   
   public static void
+  checkAzureusVersion(
+	  String name,
+	  Properties props,
+	  boolean alert_on_fail
+  ) throws PluginException {
+	  
+	  String required_version = (String)props.get("plugin.azureus.min_version");
+	  if (required_version == null) {return;}
+	  if (Constants.compareVersions(Constants.AZUREUS_VERSION, required_version) < 0) {
+		  String plugin_name_bit = name.length() > 0 ? (name+" "):"";
+		  String msg = "Plugin " + plugin_name_bit + "requires " + Constants.APP_NAME + " version " + required_version + " or higher";
+		  if (alert_on_fail) {
+			  Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, msg));
+		  }
+		  throw new PluginException(msg);
+	  }
+  }
+  
+  public static void
   checkJDKVersion(
 	String		name,
 	Properties	props,
@@ -865,6 +884,7 @@ PluginInitializer
       }
 
       checkJDKVersion( pluginName, props, true );
+      checkAzureusVersion(pluginName, props, true);
       
       plugin_class_string = (String)props.get( "plugin.class");
       

@@ -211,6 +211,7 @@ FilePluginInstallerImpl
 					// unfortunately plugin.id isn't mandatory for the properties, and neither is plugin.version
 				
 					PluginInitializer.checkJDKVersion( "", properties, false );
+					PluginInitializer.checkAzureusVersion("", properties, false);
 					
 					id		= properties.getProperty( "plugin.id" );
 					version	= properties.getProperty( "plugin.version" );
