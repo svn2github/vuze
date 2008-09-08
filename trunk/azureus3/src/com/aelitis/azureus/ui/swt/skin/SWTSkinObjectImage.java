@@ -223,7 +223,8 @@ public class SWTSkinObjectImage
 
 				String sDrawMode = properties.getStringValue(sConfigID + ".drawmode");
 				if (sDrawMode == null) {
-					sDrawMode = "";
+					sDrawMode = properties.getStringValue(
+							SWTSkinObjectImage.this.sConfigID + ".drawmode", "");
 				}
 
 				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
