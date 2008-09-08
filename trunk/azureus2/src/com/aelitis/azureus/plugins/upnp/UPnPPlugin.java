@@ -32,10 +32,13 @@ import java.net.URL;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.network.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.utils.UTTimer;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
@@ -200,6 +203,27 @@ UPnPPlugin
 				}
 			});
 
+		// Auto-refresh mappings every minute when enabled.
+		final BooleanParameter auto_refresh_on_bad_nat_param = upnp_config.addBooleanParameter2( "upnp.refresh_on_bad_nat", "upnp.refresh_mappings_on_bad_nat", false);
+		plugin_interface.getUtilities().createTimer("upnp mapping auto-refresh", true).addPeriodicEvent(1*60*1000, new UTTimerEventPerformer() {
+			private long last_bad_nat = 0;
+			public void perform(UTTimerEvent event) {
+				if (upnp == null) {return;}
+				if (!auto_refresh_on_bad_nat_param.getValue()) {return;}
+				if (!upnp_enable_param.getValue()) {return;}
+				int status = plugin_interface.getConnectionManager().getNATStatus();
+				if (status == ConnectionManager.NAT_BAD) {
+					// Only try to refresh the mappings if this is the first bad NAT
+					// message we've been given in the last 15 minutes - we don't want
+					// to endlessly retry performing the mappings
+					long now = plugin_interface.getUtilities().getCurrentSystemTime();
+					if (last_bad_nat + (15*60*1000) < now ) {
+						log.log(LoggerChannel.LT_WARNING, "NAT status is firewalled - trying to refresh UPnP mappings");
+						refreshMappings();
+					}
+				}
+			}
+		});
 		
 		upnp_config.addLabelParameter2( "blank.resource" );
 		
