@@ -1162,6 +1162,9 @@ public class TableColumnImpl
 		//		+ " via " + Debug.getCompressedStackTrace());
 
 		bVisible = visible;
+		if (bVisible && iPosition == POSITION_INVISIBLE) {
+			iPosition = POSITION_LAST;
+		}
 		invalidateCells();
 	}
 
