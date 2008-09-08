@@ -27,6 +27,7 @@ import java.util.*;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 
 import org.gudy.azureus2.core3.util.*;
@@ -540,5 +541,16 @@ public class TableRowImpl
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#setDrawableHeight(int)
 	public boolean setDrawableHeight(int height) {
 		return setHeight(height);
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getBounds()
+	public Rectangle getBounds() {
+		Rectangle bounds = getBounds(1);
+		if (bounds == null) {
+			return new Rectangle(0, 0, 0, 0);
+		}
+		bounds.x = 0;
+		bounds.width = table.getSize().y;
+		return bounds;
 	}
 }

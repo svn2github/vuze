@@ -21,9 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.table;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 
 /**
  * @author TuxPaper
@@ -65,4 +63,6 @@ public interface TableRowSWT extends TableRowCore
 	 * @return
 	 */
 	public TableCellSWT getTableCellSWT(String cellName);
+	
+	public Rectangle getBounds();
 }
