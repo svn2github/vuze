@@ -41,6 +41,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -647,5 +648,17 @@ UIManagerImpl
  		}
  		return null;
  	}
+ 	
+	public BasicPluginViewModel createLoggingViewModel(
+			LoggerChannel channel, boolean use_plugin_name
+	) {
+		String log_view_name = (use_plugin_name) ? pi.getPluginName() : channel.getName();
+		BasicPluginViewModel model = createBasicPluginViewModel(log_view_name);
+		model.getActivity().setVisible(false);
+		model.getProgress().setVisible(false);
+		model.getStatus().setVisible(false);
+		model.attachLoggerChannel(channel);
+		return model;
+	}
  	 	
 }

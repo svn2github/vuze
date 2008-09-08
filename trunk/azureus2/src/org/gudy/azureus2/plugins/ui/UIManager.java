@@ -27,6 +27,7 @@ import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -107,6 +108,21 @@ UIManager
 	public BasicPluginViewModel
 	createBasicPluginViewModel(
 		String			name );
+	
+	/**
+	 * Creates a {@link BasicPluginViewModel} object primarily to be used for
+	 * storing logging output. This is just a shortcut way of creating a log
+	 * view for the logger channel.
+	 * 
+	 * @param channel The {@link LoggerChannel} to associate with.
+	 * @param use_plugin_name If set to <tt>true</tt>, the log view will be
+	 *   taken from the plugin name, if <tt>false</tt>, it will be taken from
+	 *   the channel name.
+	 * @since 3.1.1.1
+	 */
+	public BasicPluginViewModel createLoggingViewModel(
+		LoggerChannel channel, boolean use_plugin_name
+	);
 	
 	/**
 	 * 
