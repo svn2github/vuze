@@ -23,9 +23,16 @@ import java.util.*;
 
 
 /**
- * A lighter (on memory) hash map<br>
+ * A lighter (on memory) hash set<br>
  * 
- * Please note the following performance drawbacks:
+ * Advantages over HashSet:
+ * <ul>
+ * <li>Lower memory footprint
+ * <li>Everything is stored in a single array, this might improve cache performance (not verified)
+ * <li>Read-only operations on iterators should be concurrency-safe but they might return null values unexpectedly under concurrent modification (not verified)
+ * </ul>
+ * 
+ * Disadvantages:
  * <ul>
  * <li>removal is implemented with thombstone-keys, this can significantly increase the lookup time if many values are removed. Use compactify() for scrubbing
  * <li>entry set iterators and thus transfers to other maps are slower than compareable implementations
@@ -100,6 +107,7 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 	private class HashIterator implements Iterator {
 		private int	nextIdx		= -1;
 		private int	currentIdx	= -1;
+		private Object[] itData = data;
 
 		public HashIterator()
 		{
@@ -109,18 +117,20 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 		private void findNext() {
 			do
 				nextIdx++;
-			while (nextIdx < data.length && (data[nextIdx] == null || data[nextIdx] == THOMBSTONE));
+			while (nextIdx < itData.length && (itData[nextIdx] == null || itData[nextIdx] == THOMBSTONE));
 		}
 
 		public void remove() {
 			if (currentIdx == -1)
 				new IllegalStateException("No entry to delete, use next() first");
+			if (itData != data)
+				throw new ConcurrentModificationException("removal opperation not supported as concurrent structural modification occured");
 			LightHashSet.this.removeForIndex(currentIdx);
 			currentIdx = -1;
 		}
 
 		public boolean hasNext() {
-			return nextIdx < data.length;
+			return nextIdx < itData.length;
 		}
 
 		public Object next() {
@@ -128,7 +138,7 @@ public class LightHashSet extends AbstractSet implements Cloneable {
 				throw new IllegalStateException("No more entries");
 			currentIdx = nextIdx;
 			findNext();
-			final Object key = data[currentIdx];
+			final Object key = itData[currentIdx];
 			return key != NULLKEY ? key : null;
 		}
 

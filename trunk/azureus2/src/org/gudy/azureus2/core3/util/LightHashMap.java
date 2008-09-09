@@ -25,11 +25,19 @@ import java.util.*;
 /**
  * A lighter (on memory) hash map<br>
  * 
- * Please note the following performance drawbacks:
+ * Advantages over HashMap:
+ * <ul>
+ * <li>Lower memory footprint
+ * <li>Everything is stored in a single array, this might improve cache performance (not verified)
+ * <li>Read-only operations on Key and Value iterators should be concurrency-safe (Entry iterators are not) but they might return null values unexpectedly under concurrent modification (not verified)
+ * </ul>
+ * 
+ * Disadvantages:
  * <ul>
  * <li>removal is implemented with thombstone-keys, this can significantly increase the lookup time if many values are removed. Use compactify() for scrubbing
  * <li>entry set iterators and thus transfers to other maps are slower than compareable implementations
  * <li>the map does not store hashcodes and relies on either the key-objects themselves caching them (such as strings) or a fast computation of hashcodes
+ * <li>concurrent modification detection is not as fail-fast as HashMap as no modification counter is used and only structural differences are noted
  * </ul>
  * 
  * @author Aaron Grunthal
@@ -99,6 +107,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 	private abstract class HashIterator implements Iterator {
 		protected int	nextIdx		= -2;
 		protected int	currentIdx	= -2;
+		protected Object[] itData = data;
 
 		public HashIterator()
 		{
@@ -108,18 +117,20 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		private void findNext() {
 			do
 				nextIdx+=2;
-			while (nextIdx < data.length && (data[nextIdx] == null || data[nextIdx] == THOMBSTONE));
+			while (nextIdx < itData.length && (itData[nextIdx] == null || itData[nextIdx] == THOMBSTONE));
 		}
 
 		public void remove() {
 			if (currentIdx == -2)
-				new IllegalStateException("No entry to delete, use next() first");
+				throw new IllegalStateException("No entry to delete, use next() first");
+			if (itData != data)
+				throw new ConcurrentModificationException("removal opperation not supported as concurrent structural modification occured");
 			LightHashMap.this.removeForIndex(currentIdx);
 			currentIdx = -2;
 		}
 
 		public boolean hasNext() {
-			return nextIdx < data.length;
+			return nextIdx < itData.length;
 		}
 
 		public Object next() {
@@ -142,44 +153,44 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 			return size;
 		}
 
-		private final class Entry implements Map.Entry {
-			final int	entryIndex;
-
-			public Entry(final int idx)
-			{
-				entryIndex = idx;
-			}
-
-			public Object getKey() {
-				final Object key = data[entryIndex];
-				return key != NULLKEY ? key : null;
-			}
-
-			public Object getValue() {
-				return data[entryIndex+1];
-			}
-
-			public Object setValue(final Object value) {
-				final Object oldValue = data[entryIndex+1];
-				data[entryIndex+1] = value;
-				return oldValue;
-			}
-			
-			public boolean equals(Object o) {
-				if (!(o instanceof Map.Entry))
-					return false;
-				Map.Entry e = (Map.Entry) o;
-				return (getKey() == null ? e.getKey() == null : getKey().equals(e.getKey())) && (getValue() == null ? e.getValue() == null : getValue().equals(e.getValue()));
-			}
-
-			public int hashCode() {
-				return (getKey() == null ? 0 : getKey().hashCode()) ^ (getValue() == null ? 0 : getValue().hashCode());
-			}
-		}
-
 		private class EntrySetIterator extends HashIterator {
 			public Object nextIntern() {
 				return new Entry(currentIdx);
+			}
+			
+			private final class Entry implements Map.Entry {
+				final int	entryIndex;
+
+				public Entry(final int idx)
+				{
+					entryIndex = idx;
+				}
+
+				public Object getKey() {
+					final Object key = itData[entryIndex];
+					return key != NULLKEY ? key : null;
+				}
+
+				public Object getValue() {
+					return itData[entryIndex+1];
+				}
+
+				public Object setValue(final Object value) {
+					final Object oldValue = itData[entryIndex+1];
+					itData[entryIndex+1] = value;
+					return oldValue;
+				}
+				
+				public boolean equals(Object o) {
+					if (!(o instanceof Map.Entry))
+						return false;
+					Map.Entry e = (Map.Entry) o;
+					return (getKey() == null ? e.getKey() == null : getKey().equals(e.getKey())) && (getValue() == null ? e.getValue() == null : getValue().equals(e.getValue()));
+				}
+
+				public int hashCode() {
+					return (getKey() == null ? 0 : getKey().hashCode()) ^ (getValue() == null ? 0 : getValue().hashCode());
+				}
 			}
 		}
 	}
@@ -191,7 +202,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 
 		private class KeySetIterator extends HashIterator {
 			Object nextIntern() {
-				final Object key = data[currentIdx];
+				final Object key = itData[currentIdx];
 				return key != NULLKEY ? key : null;
 			}
 		}
@@ -208,7 +219,7 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 
 		private class ValueIterator extends HashIterator {
 			Object nextIntern() {
-				return data[currentIdx+1];
+				return itData[currentIdx+1];
 			}
 		}
 
