@@ -479,7 +479,7 @@ public class SideBar
 		tree.addListener(SWT.MouseUp, treeListener);
 
 		// to disable collapsing
-		tree.addListener(SWT.Collapse, treeListener);
+		//tree.addListener(SWT.Collapse, treeListener);
 		
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
@@ -818,6 +818,13 @@ public class SideBar
 				treeArea.width - x1IndicatorOfs - SIDEBAR_SPACING - x0IndicatorOfs,
 				itemBounds.height);
 		gc.setClipping(clipping);
+		
+		if (text.startsWith("\t")) {
+			text = text.substring(1);
+			clipping.x += 18;
+			clipping.width -= 18;
+		}
+		
 		GCStringPrinter.printString(gc, text, clipping, true, false, SWT.NONE);
 		gc.setClipping((Rectangle) null);
 
@@ -905,11 +912,13 @@ public class SideBar
 				null, false, -1);
 		entry.imageLeft = imageLoader.getImage("image.sidebar.library");
 
-		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryDL", "library",
-				MessageText.getString("sidebar.LibraryDL"), null, null, false, -1);
+		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_DL,
+				"library", "\t" + MessageText.getString("sidebar.LibraryDL"), null, null,
+				false, -1);
 
-		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryCD", "library",
-				MessageText.getString("sidebar.LibraryCD"), null, null, false, -1);
+		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_CD,
+				"library", "\t" + MessageText.getString("sidebar.LibraryCD"), null, null,
+				false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
 				"Vuze Network", null, null, false, -1);
