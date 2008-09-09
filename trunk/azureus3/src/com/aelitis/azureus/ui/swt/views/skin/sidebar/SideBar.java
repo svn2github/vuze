@@ -69,6 +69,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.*;
@@ -170,6 +171,8 @@ public class SideBar
 	private SelectionListener dropDownSelectionListener;
 
 	private ImageLoader imageLoader;
+
+	private int maxIndicatorWidth;
 
 	private static Map mapAutoOpen = new LightHashMap();
 
@@ -679,9 +682,11 @@ public class SideBar
 			if (bgSel != null) {
 				gc.setBackground(bgSel);
 			}
+			gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
+			gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
 
-			gc.fillRectangle(0, event.y, Math.max(treeBounds.width, event.width
-					+ event.x), event.height);
+			gc.fillGradientRectangle(0, event.y, Math.max(treeBounds.width, event.width
+					+ event.x), event.height, true);
 		} else {
 			if (fg != null) {
 				fgText = fg;
@@ -689,6 +694,7 @@ public class SideBar
 			if (bg != null) {
 				gc.setBackground(bg);
 			}
+
 			gc.fillRectangle(0, event.y, Math.max(treeBounds.width, event.width
 					+ event.x), event.height);
 		}
@@ -727,17 +733,26 @@ public class SideBar
 				int height = textSize.y + 3;
 				int startY = itemBounds.y + (itemBounds.height - height) / 2;
 
-				gc.fillRectangle(startX, startY, width, height);
+				//gc.fillRectangle(startX, startY, width, height);
 
 				Boolean b_vitality = (Boolean) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_HAS_VITALITY);
 
 				boolean vitality = b_vitality != null && b_vitality.booleanValue();
 
-				gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
-				gc.setBackground(vitality ? Colors.fadedRed
-						: Colors.faded[Colors.BLUES_DARKEST]);
+				if (!selected) {
+  				gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
+  				gc.setBackground(vitality ? Colors.fadedRed
+  						: Colors.faded[Colors.BLUES_DARKEST]);
+				} else {
+  				gc.setBackground(ColorCache.getColor(gc.getDevice(), 210, 210, 230));
+  				gc.setForeground(ColorCache.getColor(gc.getDevice(), 44, 44, 128));
+  				//gc.setForeground(Colors.blue);
+				}
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y + 1,
 						height);
+				if (maxIndicatorWidth > width) {
+					maxIndicatorWidth = width;
+				}
 				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
 						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
@@ -761,10 +776,13 @@ public class SideBar
 			Boolean hasActivity = (Boolean) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
 			if (hasActivity != null && hasActivity.booleanValue() && imgVitality != null) {
 				Rectangle ledArea = imgVitality.getBounds();
-				ledArea.x = treeArea.width - ledArea.width - SIDEBAR_SPACING
+				if (x1IndicatorOfs == SIDEBAR_SPACING) {
+					x1IndicatorOfs = maxIndicatorWidth == 0 ? 23 : maxIndicatorWidth + SIDEBAR_SPACING;
+				}
+				ledArea.x = treeArea.width - ledArea.width - 6
 						- x1IndicatorOfs;
 				ledArea.y = itemBounds.y + (itemBounds.height - ledArea.height) / 2;
-				x1IndicatorOfs += ledArea.width + SIDEBAR_SPACING;
+				x1IndicatorOfs += ledArea.width + 6;
 
 				//gc.setBackground(treeItem.getBackground());
 				//gc.fillRectangle(closeArea);
@@ -784,6 +802,8 @@ public class SideBar
 //					IMAGELEFT_SIZE);
 
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
+			
+			gc.setFont(fontHeader);
 		} else if (ALWAYS_IMAGE_GAP) {
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
 		}
