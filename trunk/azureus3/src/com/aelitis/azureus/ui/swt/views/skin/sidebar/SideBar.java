@@ -1474,6 +1474,16 @@ public class SideBar
 					break;
 				}
 			}
+			if (foundViewInfo == null) {
+				pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginLogViewsInfo();
+				for (int i = 0; i < pluginViewsInfo.length; i++) {
+					IViewInfo viewInfo = pluginViewsInfo[i];
+					if (viewInfo.event_listener == l) {
+						foundViewInfo = viewInfo;
+						break;
+					}
+				}
+			}
 			if (foundViewInfo != null) {
 				IViewInfo[] pluginLogViewsInfo = PluginsMenuHelper.getInstance().getPluginLogViewsInfo();
 				for (int i = 0; i < pluginLogViewsInfo.length; i++) {
