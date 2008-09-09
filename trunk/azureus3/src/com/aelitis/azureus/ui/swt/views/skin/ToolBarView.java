@@ -72,6 +72,8 @@ public class ToolBarView
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 
 		ToolBarItem item;
+		
+		SWTSkinObject so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
 
 		// ==download
 		item = new ToolBarItem("download", "image.button.download",
@@ -113,6 +115,8 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item);
+		
+		addSeperator("image.toolbar.spacer", soMain);
 
 		// ==OPEN
 //		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
@@ -122,7 +126,7 @@ public class ToolBarView
 //		};
 //		addToolBarItem(item);
 		
-		addNonToolBar("toolbar.area.sitem.left");
+		addNonToolBar("toolbar.area.sitem.left", so2nd);
 
 		// ==details
 		//item = new ToolBarItem("details", "image.button.details", "iconBar.details") {
@@ -135,7 +139,7 @@ public class ToolBarView
 		//	}
 		//};
 		//addToolBarItem(item, "toolbar.area.sitem");
-		//addSeperator();
+		//addSeperator(so2nd);
 
 		// ==share
 		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
@@ -147,8 +151,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 		
 		// ==run
@@ -160,8 +164,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 		
 		// ==UP
@@ -193,8 +197,8 @@ public class ToolBarView
 				return true;
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 
 		// ==down
@@ -226,8 +230,8 @@ public class ToolBarView
 				return true;
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 
 		// ==start
@@ -239,8 +243,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 
 		// ==stop
@@ -252,8 +256,8 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
-		addSeperator();
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addSeperator(so2nd);
 
 
 		// ==remove
@@ -265,9 +269,9 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem");
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 
-		addNonToolBar("toolbar.area.sitem.right");
+		addNonToolBar("toolbar.area.sitem.right", so2nd);
 		
 		skinObject.getControl().getParent().layout();
 
@@ -457,10 +461,11 @@ public class ToolBarView
 	}
 
 	public void addToolBarItem(final ToolBarItem item) {
-		addToolBarItem(item, "toolbar.area.item");
+		addToolBarItem(item, "toolbar.area.item", soMain);
 	}
 
-	public void addToolBarItem(final ToolBarItem item, String templateID) {
+	public void addToolBarItem(final ToolBarItem item, String templateID,
+			SWTSkinObject soMain) {
 		SWTSkinObject so = skin.createSkinObject("toolbar:" + item.getId(),
 				templateID, soMain);
 		if (so != null) {
@@ -487,10 +492,14 @@ public class ToolBarView
 			items.put(item.getId(), item);
 		}
 	}
-	
-	private void addSeperator() {
+
+	private void addSeperator(SWTSkinObject soMain) {
+		addSeperator("toolbar.area.sitem.sep", soMain);
+	}
+
+	private void addSeperator(String id, SWTSkinObject soMain) {
 		SWTSkinObject so = skin.createSkinObject("toolbar_sep" + Math.random(),
-				"toolbar.area.sitem.sep", soMain);
+				id, soMain);
 		if (so != null) {
 			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
@@ -501,7 +510,7 @@ public class ToolBarView
 		}
 	}
 	
-	private void addNonToolBar(String skinid) {
+	private void addNonToolBar(String skinid, SWTSkinObject soMain) {
 		SWTSkinObject so = skin.createSkinObject("toolbar_d" + Math.random(),
 				skinid, soMain);
 		if (so != null) {
