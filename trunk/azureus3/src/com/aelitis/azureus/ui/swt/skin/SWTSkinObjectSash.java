@@ -370,7 +370,12 @@ public class SWTSkinObjectSash
 
 		Double l = (Double) sash.getData("PCT");
 		Long px = (Long) sash.getData("PX");
-		if (l != null && !noresize) {
+		if (noresize && px == null &&  e.type != SWT.Show) {
+			Point size = createOn.getSize();
+			px = new Long((long) (size.x * (1 - l.doubleValue())));
+			sash.setData("PX", px);
+		}
+		if (l != null && (!noresize || e.type == SWT.Show)) {
 			Point size = createOn.getSize();
 			if (isVertical && size.x == lastSize.x) {
 				return;
