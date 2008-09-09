@@ -822,7 +822,18 @@ MetaSearchImpl
 			}
 		}
 		
-		checkUpdates();
+		if ( update_check_timer != null ){
+			
+			new AsyncDispatcher().dispatch(
+					new AERunnable()
+					{
+						public void 
+						runSupport() 
+						{
+							checkUpdates();
+						}
+					});
+		}
 	}
 	
 	protected void
@@ -922,7 +933,7 @@ MetaSearchImpl
 			
 			EngineImpl e = new RegexEngine(
 					ms, 
-					999,
+					Integer.MAX_VALUE + 9991,
 					SystemTime.getCurrentTime(),
 					"UpdateTest",
 					"http://localhost:1234/search=%s",
@@ -949,6 +960,8 @@ MetaSearchImpl
 			e.setUpdateURL( "http://localhost:5678/update" );
 			
 			e.setDefaultUpdateCheckSecs( 60 );
+			
+			e.setVersion( 2 );
 			
 			e.exportToVuzeFile( new File( "c:\\temp\\updatetest.vuze" ));
 			

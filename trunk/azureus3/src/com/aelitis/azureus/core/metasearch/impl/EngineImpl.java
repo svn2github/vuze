@@ -909,9 +909,12 @@ EngineImpl
 	setSource(
 		int		_source )
 	{
-		source	= _source;
+		if ( source != _source ){
 		
-		configDirty();
+			source	= _source;
+		
+			configDirty();
+		}
 	}
 	
 	protected String
