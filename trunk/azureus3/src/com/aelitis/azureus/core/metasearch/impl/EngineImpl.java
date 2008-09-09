@@ -250,7 +250,7 @@ EngineImpl
 		
 		if ( update_url != null ){
 		
-			ImportExportUtils.exportString( map, "update_url", name );
+			ImportExportUtils.exportString( map, "update_url", update_url );
 		}
 		
 		map.put( "update_url_check_secs", new Long( update_check_default_secs ));
@@ -307,7 +307,7 @@ EngineImpl
 		
 		if ( update_url != null ){
 			
-			ImportExportUtils.exportJSONString( res, "update_url", name );
+			ImportExportUtils.exportJSONString( res, "update_url", update_url );
 		}
 		
 		res.put( "update_url_check_secs", new Long( update_check_default_secs ));
