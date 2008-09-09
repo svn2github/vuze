@@ -21,16 +21,29 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
@@ -40,6 +53,8 @@ import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
 public class 
 MetaSearchImpl
@@ -56,6 +71,11 @@ MetaSearchImpl
 	
 	private CopyOnWriteList 	listeners 	= new CopyOnWriteList();
 	
+	private TimerEventPeriodic	update_check_timer;
+	
+	private static final int 	UPDATE_CHECK_PERIOD		= 15*60*1000;
+	
+	private Object				MS_UPDATE_CONSEC_FAIL_KEY = new Object();
 	
 	protected 
 	MetaSearchImpl(
@@ -179,6 +199,182 @@ MetaSearchImpl
 		return( engine );
 	}
 	
+	protected void
+	enableUpdateChecks()
+	{
+		synchronized( this ){
+			
+			if ( update_check_timer == null ){
+				
+				update_check_timer = SimpleTimer.addPeriodicEvent(
+						"MS:updater",
+						UPDATE_CHECK_PERIOD,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent event) 
+							{
+								checkUpdates();
+							}
+						});
+			}
+		}
+	}
+	
+	protected void
+	checkUpdates()
+	{
+		Iterator it = engines.iterator();
+		
+		while( it.hasNext()){
+				
+			EngineImpl	engine = (EngineImpl)it.next();
+				
+			String	update_url = engine.getUpdateURL();
+			
+			if ( update_url != null ){
+				
+				long	now				= SystemTime.getCurrentTime();
+				
+				long	last_check 		= engine.getLastUpdateCheck();
+				
+				if ( last_check > now ){
+					
+					last_check = now;
+					
+					engine.setLastUpdateCheck( now );
+				}
+				
+				long	check_millis	= engine.getUpdateCheckSecs()*1000;
+				
+				long	next_check		= last_check + check_millis;
+				
+				Object	consec_fails_o = engine.getUserData( MS_UPDATE_CONSEC_FAIL_KEY );
+				
+				int	consec_fails = consec_fails_o==null?0:((Integer)consec_fails_o).intValue();
+				
+				if ( consec_fails > 0 ){
+					
+					next_check += ( UPDATE_CHECK_PERIOD << consec_fails );
+				}
+				
+				if ( next_check < now ){
+				
+					if ( updateEngine( engine )){
+						
+						consec_fails	= 0;
+						
+						engine.setLastUpdateCheck( now );
+						
+					}else{
+						
+						consec_fails++;
+						
+						if ( consec_fails > 3 ){
+							
+							consec_fails	= 0;
+							
+								// skip to next scheduled update time
+							
+							engine.setLastUpdateCheck( now );
+						}
+					}
+					
+					engine.setUserData( MS_UPDATE_CONSEC_FAIL_KEY, consec_fails==0?null:new Integer( consec_fails ));
+				}
+			}
+		}
+	}
+	
+	protected boolean
+	updateEngine(
+		EngineImpl		engine )
+	{
+		String	update_url = engine.getUpdateURL();
+
+		int	pos = update_url.indexOf('?');
+		
+		if ( pos == -1 ){
+			
+			update_url += "?";
+			
+		}else{
+			
+			update_url += "&";
+		}
+		
+		update_url += 	"az_template_uid=" + engine.getUID() + 
+						"&az_template_version=" + engine.getVersion() +
+						"&az_version=" + Constants.AZUREUS_VERSION +
+					    "&az_locale=" + MessageText.getCurrentLocale().toString();
+		
+		log( "Engine " + engine.getName() + ": auto-update check via " + update_url );
+		
+		try{
+			ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+			
+			ResourceDownloader url_rd = rdf.create( new URL( update_url ));
+			
+			ResourceDownloader rd = rdf.getMetaRefreshDownloader( url_rd );
+			
+			InputStream is = rd.download();
+			
+			try{
+				Map map = BDecoder.decode( new BufferedInputStream( is ));
+				
+				log( "    update check reply: " + map );
+				
+					// reply is either "response" meaning "no update" and giving possibly changed update secs
+					// or Vuze file with updated template
+				
+				Map response = (Map)map.get( "response" );
+				
+				if ( response != null ){
+					
+					Long	update_secs = (Long)response.get( "update_url_check_secs" );
+					
+					if ( update_secs == null ){
+						
+						engine.setLocalUpdateCheckSecs( 0 );
+						
+					}else{
+						int	secs = update_secs.intValue();
+						
+						secs = Math.max( secs, 10*60 );
+							
+						engine.setLocalUpdateCheckSecs( secs );
+					}
+					
+					return( true );
+					
+				}else{
+					
+					VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( map );
+					
+					if ( vf == null ){
+						
+						log( "    failed to decode vuze file" );
+						
+						return( false );
+					}
+					
+					manager.loadFromVuzeFile( vf );
+					
+					return( true );
+				}
+			}finally{
+				
+				is.close();
+			}
+		}catch( Throwable e ){
+			
+			log( "    update check failed", e );
+			
+			return( false );
+		}
+	}
+	
 	public void 
 	addEngine(
 		Engine 	engine )
@@ -269,6 +465,11 @@ MetaSearchImpl
 			}
 			
 			engines.add( new_engine );
+		}
+		
+		if ( new_engine.getUpdateURL() != null ){
+			
+			enableUpdateChecks();
 		}
 		
 		if ( !loading ){
@@ -620,6 +821,8 @@ MetaSearchImpl
 				plugin_map = p_map;
 			}
 		}
+		
+		checkUpdates();
 	}
 	
 	protected void
@@ -717,13 +920,13 @@ MetaSearchImpl
 		try{
 			MetaSearchImpl ms = new MetaSearchImpl();
 			
-			Engine e = new RegexEngine(
+			EngineImpl e = new RegexEngine(
 					ms, 
 					999,
 					SystemTime.getCurrentTime(),
-					"HDBits",
-					"http://hdbits.org/browse.php?incldead=0&search=%s",
-					"<a href=\"\\?cat=([0-9]+)\">.*?<b><a.*?href=\"(details.php?[^\"]+)\">([^<]+)</a>.*?<a href=\"(download.php\\?id=[^\"]+)\">.*?\\s<td class='right'>(.*?)</td>\\s<td class='center'>(.*?)</td>\\s<td class=\"center\">(.*?)</td>\\s<td class='center'>(.*?)</td>\\s<td class=\"right\">(.*?)</td>\\s<td class='right'>(.*?)</td>\\s</tr>",
+					"UpdateTest",
+					"http://localhost:1234/search=%s",
+					"",
 					"GMT",
 					true,
 					null,
@@ -739,11 +942,15 @@ MetaSearchImpl
 						new FieldMapping("9",Engine.FIELD_SEEDS),
 						new FieldMapping("10",Engine.FIELD_PEERS),
 						},
-					true,
-					"http://hdbits.org/login.php",
-					new String[] {"pass","uid"} );
+					false,
+					"",
+					new String[] {""} );
 					
-			e.exportToVuzeFile( new File( "/hdbits.vuze" ));
+			e.setUpdateURL( "http://localhost:5678/update" );
+			
+			e.setDefaultUpdateCheckSecs( 60 );
+			
+			e.exportToVuzeFile( new File( "c:\\temp\\updatetest.vuze" ));
 			
 		}catch( Throwable e ){
 			

@@ -62,6 +62,8 @@ public abstract class
 EngineImpl
 	implements Engine
 {
+	private static final int DEFAULT_UPDATE_CHECK_SECS = 24*60*60;
+	
 	protected static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl		meta_search,
@@ -124,9 +126,11 @@ EngineImpl
 		}	
 	}
 	
-	protected static final String		LD_COOKIES			= "cookies";
-	protected static final String		LD_ETAG				= "etag";
-	protected static final String		LD_LAST_MODIFIED	= "last_mod";
+	protected static final String		LD_COOKIES				= "cookies";
+	protected static final String		LD_ETAG					= "etag";
+	protected static final String		LD_LAST_MODIFIED		= "last_mod";
+	protected static final String		LD_LAST_UPDATE_CHECK	= "last_update_check";
+	protected static final String		LD_UPDATE_CHECK_SECS	= "update_check_secs";
 	
 	private MetaSearchImpl	meta_search;
 	
@@ -146,13 +150,20 @@ EngineImpl
 		// first mappings used to canonicalise names and map field to same field
 		// typically used for categories (musak->music)
 	
-	List		first_level_mapping	= new ArrayList();
+	private List		first_level_mapping	= new ArrayList();
 	
 		// second mappings used to generate derived field values
 		// typically used to derive content_type from category (music->AUDIO)
 	
-	List		second_level_mapping	= new ArrayList();
+	private List		second_level_mapping	= new ArrayList();
 
+		// applicable to non-vuze hosted templates
+	
+	private String 		update_url;
+	private int			update_check_default_secs;
+	
+	private Map			user_data;
+	
 		// manual constructor
 	
 	protected
@@ -206,6 +217,9 @@ EngineImpl
 			
 			allocateUID( id );
 		}
+		
+		update_url 					= ImportExportUtils.importString( map, "update_url" );
+		update_check_default_secs	= (int)ImportExportUtils.importLong( map, "update_url_check_secs", DEFAULT_UPDATE_CHECK_SECS );
 	}
 	
 		// bencoded export
@@ -233,6 +247,13 @@ EngineImpl
 		
 		map.put( "version", new Long( version ));
 		map.put( "uid", uid );
+		
+		if ( update_url != null ){
+		
+			ImportExportUtils.exportString( map, "update_url", name );
+		}
+		
+		map.put( "update_url_check_secs", new Long( update_check_default_secs ));
 	}
 	
 		// json constructor
@@ -265,6 +286,9 @@ EngineImpl
 			
 			uid = Base32.decode( uid_str );
 		}
+		
+		update_url 					= ImportExportUtils.importString( map, "update_url" );
+		update_check_default_secs	= (int)ImportExportUtils.importLong( map, "update_url_check_secs", DEFAULT_UPDATE_CHECK_SECS );
 	}
 	
 		// json export
@@ -280,6 +304,13 @@ EngineImpl
 		
 		res.put( "version", new Long( version ));
 		res.put( "uid", Base32.encode( uid ));
+		
+		if ( update_url != null ){
+			
+			ImportExportUtils.exportJSONString( res, "update_url", name );
+		}
+		
+		res.put( "update_url_check_secs", new Long( update_check_default_secs ));
 	}
 	
 	protected List
@@ -882,7 +913,60 @@ EngineImpl
 		
 		configDirty();
 	}
+	
+	protected String
+	getUpdateURL()
+	{
+		return( update_url );
+	}
+	
+	protected void
+	setUpdateURL(
+		String	url )
+	{
+		update_url	= url;
+	}
+	
+	protected int
+	getUpdateCheckSecs()
+	{
+		long	l = getLocalLong( LD_UPDATE_CHECK_SECS, 0 );
 		
+		if ( l != 0 ){
+			
+			return((int)l);
+		}
+		
+		return( update_check_default_secs );
+	}
+	
+	protected void
+	setDefaultUpdateCheckSecs(
+		int		secs )
+	{
+		update_check_default_secs = secs;
+	}
+	
+	protected void
+	setLocalUpdateCheckSecs(
+		int		secs )
+	{
+		setLocalLong( LD_UPDATE_CHECK_SECS, secs );
+	}
+			
+	protected long
+	getLastUpdateCheck()
+	{
+		return( getLocalLong( LD_LAST_UPDATE_CHECK, 0 ));
+	}
+	
+	protected void
+	setLastUpdateCheck(
+		long		when )
+	{
+		setLocalLong( LD_LAST_UPDATE_CHECK, when );
+	}
+	
 	protected void
 	configDirty()
 	{
@@ -958,6 +1042,102 @@ EngineImpl
 				
 				return( null );
 			}
+		}
+	}
+	
+	protected void
+	setLocalLong(
+		String		key,
+		long		value )
+	{
+		synchronized( this ){
+	
+			long	existing = getLocalLong( key, 0 );
+			
+			if ( existing == value ){
+				
+				return;
+			}
+			
+			Map map = COConfigurationManager.getMapParameter( getLocalKey(), new HashMap());
+			
+			try{
+				map.put( key, new Long( value));
+				
+				COConfigurationManager.setParameter( getLocalKey(), map );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
+	
+	protected long
+	getLocalLong(
+		String		key,
+		long		def )
+	{
+		synchronized( this ){
+		
+			Map map = COConfigurationManager.getMapParameter( getLocalKey(), new HashMap());
+			
+			try{
+				return( ImportExportUtils.importLong( map, key, def ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				return( def );
+			}
+		}
+	}
+	
+	protected void
+	setUserData(
+		Object	key,
+		Object	value )
+	{
+		synchronized( this ){
+			
+			if ( user_data == null ){
+				
+				if ( key == null ){
+					
+					return;
+				}
+				
+				user_data = new HashMap(4);
+			}
+			
+			if ( key == null ){
+				
+				user_data.remove( key );
+				
+				if ( user_data.size() == 0 ){
+					
+					user_data = null;
+				}
+			}else{
+				
+				user_data.put( key, value );
+			}
+		}
+	}
+	
+	protected Object
+	getUserData(
+		Object		key )
+	{
+		synchronized( this ){
+			
+			if ( user_data == null ){
+
+				return( null );
+			}
+			
+			return( user_data.get( key ));
 		}
 	}
 	

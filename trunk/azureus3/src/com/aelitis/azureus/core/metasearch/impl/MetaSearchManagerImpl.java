@@ -713,21 +713,28 @@ MetaSearchManagerImpl
 		
 		if ( vf != null ){
 			
-			VuzeFileComponent[] comps = vf.getComponents();
+			loadFromVuzeFile( vf );
+		}
+	}
+	
+	public void
+	loadFromVuzeFile(
+		VuzeFile		vf )
+	{
+		VuzeFileComponent[] comps = vf.getComponents();
+		
+		for (int j=0;j<comps.length;j++){
 			
-			for (int j=0;j<comps.length;j++){
+			VuzeFileComponent comp = comps[j];
+			
+			if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 				
-				VuzeFileComponent comp = comps[j];
-				
-				if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+				try{
+					importEngine( comp.getContent(), false );
+											
+				}catch( Throwable e ){
 					
-					try{
-						importEngine( comp.getContent(), false );
-												
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
+					Debug.printStackTrace(e);
 				}
 			}
 		}
