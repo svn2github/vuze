@@ -28,10 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -119,6 +116,8 @@ public class TableViewSWTImpl
 	private static final long BREAKOFF_ADDTOMAP = 1000;
 
 	private static final long BREAKOFF_ADDROWSTOSWT = 800;
+
+	private static final boolean TRIGGER_PAINT_ON_SELECTIONS = false;
 
 	/** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
 	 * of the table this class is
@@ -678,7 +677,7 @@ public class TableViewSWTImpl
 					if (event.width == 0 || event.height == 0)
 						return;
 					visibleRowsChanged();
-					doPaint(event.gc);
+					doPaint(event.gc, new Rectangle(event.x, event.y, event.width, event.height));
 				}
 			});
 		}
@@ -868,7 +867,26 @@ public class TableViewSWTImpl
 		});
 
 		table.addSelectionListener(new SelectionListener() {
+			int[] wasSelected = new int[0];
+			
 			public void widgetSelected(SelectionEvent event) {
+				int[] nowSelected = table.getSelectionIndices();
+				Arrays.sort(nowSelected);
+				int x = 0;
+				for (int i = 0; x < wasSelected.length && i < nowSelected.length; i++) {
+					int index = nowSelected[i];
+					if (wasSelected[x] == index) {
+						x++;
+						continue;
+					} else {
+						triggerDeselectionListeners(new TableRowCore[] {
+							getRow(wasSelected[x])
+						});
+					}
+				}
+				
+				wasSelected = nowSelected;
+				
 				triggerSelectionListeners(new TableRowCore[] {
 					getRow((TableItem) event.item)
 				});
@@ -992,6 +1010,46 @@ public class TableViewSWTImpl
 		table.setHeaderVisible(true);
 
 		initializeTableColumns(table);
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerSelectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	protected void triggerSelectionListeners(TableRowCore[] rows) {
+		//System.out.println("triggerSelectionLis" + rows[0]);
+		if (TRIGGER_PAINT_ON_SELECTIONS) {
+  		GC gc = new GC(table);
+  		try {
+  			for (int i = 0; i < rows.length; i++) {
+  				TableRowCore row = rows[i];
+  				//row.invalidate();
+  				row.redraw();
+  				((TableRowSWT) row).doPaint(gc, true);
+  				table.update();
+  			}
+  		} finally {
+  			gc.dispose();
+  		}
+		}
+		//System.out.println("e triggerSelectionLis" + rows[0]);
+		super.triggerSelectionListeners(rows);
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerDeselectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	protected void triggerDeselectionListeners(TableRowCore[] rows) {
+		if (TRIGGER_PAINT_ON_SELECTIONS) {
+  		GC gc = new GC(table);
+  		try {
+  			for (int i = 0; i < rows.length; i++) {
+  				TableRowCore row = rows[i];
+  				//row.invalidate();
+  				row.redraw();
+  				((TableRowSWT) row).doPaint(gc, true);
+  				table.update();
+  			}
+  		} finally {
+  			gc.dispose();
+  		}
+		}
+		super.triggerDeselectionListeners(rows);
 	}
 	
 	/**
@@ -1734,7 +1792,7 @@ public class TableViewSWTImpl
 		// don't refresh while there's no table
 		if (table == null)
 			return;
-
+		
 		// XXX Try/Finally used to be there for monitor.enter/exit, however
 		//     this doesn't stop re-entry from the same thread while already in
 		//     process.. need a bAlreadyRefreshing variable instead
@@ -1852,13 +1910,32 @@ public class TableViewSWTImpl
 		});
 	}
 
-	private void doPaint(final GC gc) {
+	private void doPaint(final GC gc, final Rectangle dirtyArea) {
 		if (getComposite() == null || getComposite().isDisposed())
 			return;
 
 		runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
-				((TableRowSWT) row).doPaint(gc, true);
+				if (!(row instanceof TableRowSWT)) {
+					return;
+				}
+				TableRowSWT rowSWT = (TableRowSWT) row;
+				Rectangle bounds = rowSWT.getBounds();
+				if (bounds.intersects(dirtyArea)) {
+					//System.out.println("paint " + row);
+					Color oldBG = (Color) row.getData("bgColor");
+					Color newBG = rowSWT.getBackground();
+					if (oldBG == null || !oldBG.equals(newBG)) {
+						//System.out.println("redraw " + row + "; " + oldBG + ";" + newBG);
+						row.invalidate();
+						row.redraw();
+						// painting immediately reduces flicker a tiny bit
+						rowSWT.doPaint(gc, true);
+						row.setData("bgColor", newBG);
+					} else {
+						rowSWT.doPaint(gc, true);
+					}
+				}
 			}
 		});
 	}
