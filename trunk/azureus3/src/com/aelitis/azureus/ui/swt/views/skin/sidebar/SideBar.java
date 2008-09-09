@@ -126,7 +126,7 @@ public class SideBar
 
 	private static final int IMAGELEFT_GAP = 5;
 
-	private static final boolean ALWAYS_IMAGE_GAP = true;
+	private static final boolean ALWAYS_IMAGE_GAP = false;
 
 	private SWTSkin skin;
 
@@ -387,14 +387,22 @@ public class SideBar
 				switch (event.type) {
 					case SWT.MeasureItem: {
 						int clientWidth = tree.getClientArea().width;
-						TreeItem item = (TreeItem) event.item;
-						String text = item.getText(event.index);
+						TreeItem treeItem = (TreeItem) event.item;
+						String text = treeItem.getText(event.index);
 						Point size = event.gc.textExtent(text);
 						if (event.x + event.width < clientWidth) {
 							event.width = size.x + event.x; // tree.getClientArea().width;
 							event.x = 0;
 						}
-						event.height = Math.max(event.height, size.y + 8);
+						int padding = 12;
+						String id = (String) treeItem.getData("Plugin.viewID");
+						SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+						if (sideBarInfo.imageLeft != null) {
+							//padding += 4;
+						}
+
+						event.height = Math.max(event.height, size.y + padding);
+						
 						break;
 					}
 					case SWT.PaintItem: {
@@ -811,6 +819,10 @@ public class SideBar
 			gc.setFont(fontHeader);
 		} else if (ALWAYS_IMAGE_GAP) {
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
+		} else {
+			if (treeItem.getParentItem() != null) {
+				x0IndicatorOfs += 30 - 18;
+			}
 		}
 
 		gc.setForeground(fgText);
@@ -821,8 +833,8 @@ public class SideBar
 		
 		if (text.startsWith("\t")) {
 			text = text.substring(1);
-			clipping.x += 18;
-			clipping.width -= 18;
+			clipping.x += 30;
+			clipping.width -= 30;
 		}
 		
 		GCStringPrinter.printString(gc, text, clipping, true, false, SWT.NONE);
