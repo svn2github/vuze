@@ -682,8 +682,13 @@ public class SideBar
 			if (bgSel != null) {
 				gc.setBackground(bgSel);
 			}
-			gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
-			gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
+			if (Constants.isOSX) {
+				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
+				gc.setBackground(Colors.faded[Colors.BLUES_MIDDARK]);
+			} else {
+				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
+				gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
+			}
 
 			gc.fillGradientRectangle(0, event.y, Math.max(treeBounds.width, event.width
 					+ event.x), event.height, true);
