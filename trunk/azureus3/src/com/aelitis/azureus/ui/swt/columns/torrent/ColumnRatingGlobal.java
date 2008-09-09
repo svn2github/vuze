@@ -20,25 +20,13 @@
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -52,6 +40,9 @@ import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * A column that displays rating info like <code>ColumnRate</code> in a simple manner;
@@ -120,7 +111,7 @@ public class ColumnRatingGlobal
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 		public void refresh(TableCell cell) {
-			refresh(cell, true);
+			refresh(cell, false);
 		}
 
 		public void refresh(final TableCell cell, final boolean force) {
@@ -187,7 +178,7 @@ public class ColumnRatingGlobal
 			Graphic bgGraphic = cell.getBackgroundGraphic();
 			Image img;
 			if (bgGraphic instanceof UISWTGraphic) {
-				img = ((UISWTGraphic)bgGraphic).getImage();
+				img = ((UISWTGraphic) bgGraphic).getImage();
 			} else {
 				img = new Image(Display.getDefault(), width, height);
 			}
@@ -221,7 +212,7 @@ public class ColumnRatingGlobal
 			}
 
 			r = img.getBounds();
-			
+
 			if (color1 != null) {
 				gcImage.setForeground(color1);
 			}
