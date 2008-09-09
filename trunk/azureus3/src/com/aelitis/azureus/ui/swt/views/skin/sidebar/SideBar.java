@@ -831,7 +831,7 @@ public class SideBar
 				itemBounds.height);
 		gc.setClipping(clipping);
 		
-		if (text.startsWith("\t")) {
+		if (text.startsWith(" ")) {
 			text = text.substring(1);
 			clipping.x += 30;
 			clipping.width -= 30;
@@ -887,9 +887,7 @@ public class SideBar
 
 		File file = new File(SystemProperties.getUserPath(), "sidebarauto.config");
 		if (!file.exists()) {
-			SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
-					"main.area.welcome", "Welcome", null, null, true, 0);
-			entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
+			createWelcomeSection();
 		}
 
 		// Put TitleInfo in another class
@@ -925,11 +923,11 @@ public class SideBar
 		entry.imageLeft = imageLoader.getImage("image.sidebar.library");
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_DL,
-				"library", "\t" + MessageText.getString("sidebar.LibraryDL"), null, null,
+				"library", " " + MessageText.getString("sidebar.LibraryDL"), null, null,
 				false, -1);
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_CD,
-				"library", "\t" + MessageText.getString("sidebar.LibraryCD"), null, null,
+				"library", " " + MessageText.getString("sidebar.LibraryCD"), null, null,
 				false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
@@ -1056,6 +1054,19 @@ public class SideBar
 		itemSelected(treeItem);
 
 		parent.layout(true, true);
+	}
+
+	/**
+	 * 
+	 *
+	 * @return 
+	 * @since 3.1.1.1
+	 */
+	private SideBarEntrySWT createWelcomeSection() {
+		SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
+				"main.area.welcome", "Getting Started", null, null, true, 0);
+		entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
+		return entry;
 	}
 
 	public TreeItem createTreeItemFromIView(String parentID, IView iview,
@@ -1309,10 +1320,7 @@ public class SideBar
 			itemSelected(entry.treeItem);
 			return true;
 		} else if (id.equals(SIDEBAR_SECTION_WELCOME)) {
-			SideBarEntrySWT entry = createEntryFromSkinRef(null,
-					SIDEBAR_SECTION_WELCOME, "main.area.welcome", "Welcome", null, null,
-					true, 0);
-			entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
+			SideBarEntrySWT entry = createWelcomeSection();
 			itemSelected(entry.treeItem);
 			return true;
 		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
@@ -1943,9 +1951,7 @@ public class SideBar
 			}
 
 			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
-				SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
-						"main.area.welcome", "Getting Started", null, null, true, 0);
-				entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
+				createWelcomeSection();
 			}
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
