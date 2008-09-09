@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /** Draws an image at a column in a row of a table using direct paints to the 
@@ -173,25 +174,27 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
       return;
     }
     
-    if (orientation == SWT.FILL) {
-      if (imageBounds.width != bounds.width
-					|| imageBounds.height != bounds.height) {
+    boolean fits = (imageBounds.width == bounds.width
+				&& imageBounds.height == bounds.height);
+    if (orientation == SWT.FILL || fits) {
+      if (fits) {
         //System.out.println("doPaint() sizewrong #"+row.getIndex()+ ".  Image="+imageBounds +";us="+bounds);
 /**/
         // Enable this for semi-fast visual update with some flicker
         boolean ourGC = (gc == null);
-        if (ourGC)
+        if (ourGC) {
           gc = new GC(table);
+        }
         if (gc != null) {
           int iAdj = VerticalAligner.getTableAdjustVerticalBy(table);
           bounds.y += iAdj;
           iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
           bounds.x += iAdj;
 
-          gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
-                       bounds.x, bounds.y, bounds.width, bounds.height);
-          if (ourGC)
+          gc.drawImage(image, bounds.x, bounds.y);
+          if (ourGC) {
             gc.dispose();
+          }
         }
         // _OR_ enable refresh() for slower visual update with lots of flicker
         //refresh();
