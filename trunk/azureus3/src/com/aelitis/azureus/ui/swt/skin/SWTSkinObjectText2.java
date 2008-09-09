@@ -99,10 +99,12 @@ public class SWTSkinObjectText2
 		String sVAlign = skinProperties.getStringValue(sConfigID + ".v-align");
 		if (sVAlign != null) {
 			int align = SWTSkinUtils.getAlignment(sVAlign, SWT.NONE);
-			if (align != SWT.NONE) {
-				style |= align;
-			} else {
-				style |= SWT.TOP;
+			if (align != SWT.CENTER) {
+  			if (align != SWT.NONE) {
+  				style |= align;
+  			} else {
+  				style |= SWT.TOP;
+  			}
 			}
 		} else {
 			style |= SWT.TOP;
