@@ -56,6 +56,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils.RunDownloadManager;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -112,7 +113,8 @@ import org.gudy.azureus2.plugins.download.Download;
  *
  */
 public class MainWindow
-	implements IMainWindow, ObfusticateShell, SideBarListener
+	implements IMainWindow, ObfusticateShell, SideBarListener,
+	AEDiagnosticsEvidenceGenerator
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -176,6 +178,7 @@ public class MainWindow
 		this.core = core;
 		this.display = display;
 		this.uiInitializer = uiInitializer;
+		AEDiagnostics.addEvidenceGenerator(this);
 
 		disposedOrDisposing = false;
 
@@ -276,7 +279,7 @@ public class MainWindow
 			public void downloadWillBeRemoved(DownloadManager dm,
 					boolean remove_torrent, boolean remove_data)
 
-			throws GlobalManagerDownloadRemovalVetoException {
+					throws GlobalManagerDownloadRemovalVetoException {
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
@@ -1300,7 +1303,7 @@ public class MainWindow
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
-//		views.put(SkinConstants.VIEWID_LIBRARY_TOOLBAR, LibraryToolbar.class);
+		//		views.put(SkinConstants.VIEWID_LIBRARY_TOOLBAR, LibraryToolbar.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
@@ -1427,7 +1430,8 @@ public class MainWindow
 							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
 							GC gc = new GC(image);
 							try {
-								gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+								gc.setBackground(gc.getDevice().getSystemColor(
+										SWT.COLOR_WIDGET_BACKGROUND));
 								gc.fillRectangle(image.getBounds());
 
 								if (contentThumbnail != null) {
@@ -1655,30 +1659,29 @@ public class MainWindow
 			}
 		});
 
-		text.addKeyListener(
-			new KeyListener()
-			{
-				public void keyPressed(KeyEvent e) {
-				
-					if (e.stateMask == SWT.MOD1) {
-					
-						int key = e.character;
-						if (key <= 26 && key > 0){
-							key += 'a' - 1;
-						}
-						
-						if ( key == 'a' ){
-							text.selectAll();
-						}
+		text.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent e) {
+
+				if (e.stateMask == SWT.MOD1) {
+
+					int key = e.character;
+					if (key <= 26 && key > 0) {
+						key += 'a' - 1;
 					}
-					
+
+					if (key == 'a') {
+						text.selectAll();
+					}
 				}
-				public void keyReleased(KeyEvent arg0) {
-					// TODO Auto-generated method stub
-					
-				}
-			});
-		
+
+			}
+
+			public void keyReleased(KeyEvent arg0) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
@@ -1710,7 +1713,9 @@ public class MainWindow
 		}
 
 		SWTSkinObject so = skin.getSkinObject("sidebar-list");
-		if (so != null && so.getProperties().getBooleanValue(so.getConfigID() + ".resizeSearch", false)) {
+		if (so != null
+				&& so.getProperties().getBooleanValue(
+						so.getConfigID() + ".resizeSearch", false)) {
 			Listener l = new Listener() {
 				public void handleEvent(Event event) {
 					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");
@@ -1722,7 +1727,7 @@ public class MainWindow
 						if (bounds.width < 125) {
 							return;
 						}
- 						fd.width = newWidth;
+						fd.width = newWidth;
 						Utils.relayout(c);
 					}
 				}
@@ -1984,7 +1989,7 @@ public class MainWindow
 			//TODO:
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_MENU) {
 			//TODO:
-		}else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TABBAR) {
 			SWTSkinUtils.setVisibility(skin, "TabBar.visible",
 					SkinConstants.VIEWID_TAB_BAR, value, true, true);
 		}
@@ -2180,6 +2185,20 @@ public class MainWindow
 				}
 			}
 			oldMainWindow = oldMW_SB;
+		}
+	}
+
+	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	public void generate(IndentWriter writer) {
+		writer.println("SWT UI");
+
+		try {
+			writer.indent();
+
+			TableColumnManager.getInstance().generateDiagnostics(writer);
+		} finally {
+
+			writer.exdent();
 		}
 	}
 
