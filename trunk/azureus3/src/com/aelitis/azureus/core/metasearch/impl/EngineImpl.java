@@ -566,10 +566,10 @@ EngineImpl
 		
 				// id is a vuze one, derive uid from it as already unique
 			
-			uid[0] 	= (byte)(version>>24);
-			uid[1]	= (byte)(version>>16);
-			uid[2]	= (byte)(version>>8);
-			uid[3]	= (byte)version;
+			uid[0] 	= (byte)(id>>24);
+			uid[1]	= (byte)(id>>16);
+			uid[2]	= (byte)(id>>8);
+			uid[3]	= (byte)id;
 
 		}else{
 	

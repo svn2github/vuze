@@ -74,6 +74,7 @@ MetaSearchImpl
 	private TimerEventPeriodic	update_check_timer;
 	
 	private static final int 	UPDATE_CHECK_PERIOD		= 15*60*1000;
+	private static final int	MIN_UPDATE_CHECK_SECS	= 10*60;
 	
 	private Object				MS_UPDATE_CONSEC_FAIL_KEY = new Object();
 	
@@ -246,7 +247,16 @@ MetaSearchImpl
 					engine.setLastUpdateCheck( now );
 				}
 				
-				long	check_millis	= engine.getUpdateCheckSecs()*1000;
+				long	check_secs	= engine.getUpdateCheckSecs();
+				
+				if ( check_secs < MIN_UPDATE_CHECK_SECS ){
+					
+					log( "update check secs for to small, adjusting: " + engine.getName());
+					
+					check_secs = MIN_UPDATE_CHECK_SECS;
+				}
+				
+				long	check_millis	= check_secs*1000;
 				
 				long	next_check		= last_check + check_millis;
 				
@@ -307,7 +317,8 @@ MetaSearchImpl
 		update_url += 	"az_template_uid=" + engine.getUID() + 
 						"&az_template_version=" + engine.getVersion() +
 						"&az_version=" + Constants.AZUREUS_VERSION +
-					    "&az_locale=" + MessageText.getCurrentLocale().toString();
+					    "&az_locale=" + MessageText.getCurrentLocale().toString() +
+					    "&az_rand=" + Math.abs( new Random().nextLong());
 		
 		log( "Engine " + engine.getName() + ": auto-update check via " + update_url );
 		
@@ -339,11 +350,17 @@ MetaSearchImpl
 						engine.setLocalUpdateCheckSecs( 0 );
 						
 					}else{
-						int	secs = update_secs.intValue();
 						
-						secs = Math.max( secs, 10*60 );
+						int	check_secs = update_secs.intValue();
+						
+						if ( check_secs < MIN_UPDATE_CHECK_SECS ){
 							
-						engine.setLocalUpdateCheckSecs( secs );
+							log( "    update check secs for to small, min is " + MIN_UPDATE_CHECK_SECS);
+							
+							check_secs = MIN_UPDATE_CHECK_SECS;
+						}
+							
+						engine.setLocalUpdateCheckSecs( check_secs );
 					}
 					
 					return( true );
@@ -358,8 +375,43 @@ MetaSearchImpl
 						
 						return( false );
 					}
+										
+					Engine[] updated_engines = manager.loadFromVuzeFile( vf );
 					
-					manager.loadFromVuzeFile( vf );
+					if ( updated_engines.length > 0 ){
+						
+						String	existing_uid = engine.getUID();
+						
+						boolean	found = false;
+						
+						String	engine_str = "";
+						
+						for (int i=0;i<updated_engines.length;i++){
+							
+							Engine updated_engine = updated_engines[i];
+							
+							engine_str += (i==0?"":",") + updated_engine.getName() + ": uid=" + updated_engine.getUID() + ",version=" + updated_engine.getVersion();
+							
+							if ( updated_engine.getUID().equals( existing_uid )){
+								
+								found	= true;
+							}
+						}
+						
+						if ( !found ){
+							
+							log( "    existing engine not found in updated set, deleting" );
+							
+							engine.delete();
+							
+						}
+							
+						log( "    update complete: new engines=" + engine_str );
+						
+					}else{
+						
+						log( "    no engines found in vuze file" );
+					}
 					
 					return( true );
 				}
@@ -461,6 +513,12 @@ MetaSearchImpl
 					}
 					 
 					add_op = false;
+					
+				}else if ( existing_engine.getUID().equals( new_engine.getUID())){
+					
+					log( "Removing engine with same UID " + existing_engine.getUID() + "(" + existing_engine.getName() + ")" );
+					
+					it.remove();
 				}
 			}
 			

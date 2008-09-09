@@ -705,7 +705,7 @@ MetaSearchManagerImpl
 		}
 	}
 	
-	public void
+	public Engine[]
 	loadFromVuzeFile(
 		File		file )
 	{
@@ -713,14 +713,18 @@ MetaSearchManagerImpl
 		
 		if ( vf != null ){
 			
-			loadFromVuzeFile( vf );
+			return( loadFromVuzeFile( vf ));
 		}
+		
+		return( new Engine[0]);
 	}
 	
-	public void
+	public Engine[]
 	loadFromVuzeFile(
 		VuzeFile		vf )
 	{
+		List	result = new ArrayList();
+		
 		VuzeFileComponent[] comps = vf.getComponents();
 		
 		for (int j=0;j<comps.length;j++){
@@ -730,7 +734,7 @@ MetaSearchManagerImpl
 			if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
 				
 				try{
-					importEngine( comp.getContent(), false );
+					result.add( importEngine( comp.getContent(), false ));
 											
 				}catch( Throwable e ){
 					
@@ -738,6 +742,8 @@ MetaSearchManagerImpl
 				}
 			}
 		}
+		
+		return((Engine[])result.toArray(new Engine[result.size()]));
 	}
 	
 	public long
