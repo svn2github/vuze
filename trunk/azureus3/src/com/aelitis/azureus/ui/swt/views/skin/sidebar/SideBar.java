@@ -790,7 +790,7 @@ public class SideBar
 
 		gc.setForeground(fgText);
 		Rectangle clipping = new Rectangle(x0IndicatorOfs, itemBounds.y,
-				treeArea.width - itemBounds.x - x1IndicatorOfs - SIDEBAR_SPACING,
+				treeArea.width - x1IndicatorOfs - SIDEBAR_SPACING - x0IndicatorOfs,
 				itemBounds.height);
 		gc.setClipping(clipping);
 		GCStringPrinter.printString(gc, text, clipping, true, false, SWT.NONE);
