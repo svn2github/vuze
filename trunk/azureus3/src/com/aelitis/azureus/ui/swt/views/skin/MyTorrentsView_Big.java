@@ -8,6 +8,8 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.util.PlayUtils;
 
 public class MyTorrentsView_Big
 	extends MyTorrentsView
@@ -25,6 +27,19 @@ public class MyTorrentsView_Big
 				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL
 						| SWT.BORDER);
 		return tv;
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsView#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void defaultSelected(TableRowCore[] rows) {
+		if (rows == null || rows.length > 1) {
+			return;
+		}
+		Object ds = rows[0].getDataSource(true);
+		if (PlayUtils.canPlayDS(ds)) {
+			TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+		} else {
+			super.defaultSelected(rows);
+		}
 	}
 
 	protected int getRowDefaultHeight() {
