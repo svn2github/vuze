@@ -75,8 +75,8 @@ DHTPluginStorageManager
 	private static final long		DIV_EXPIRY_RAND			= 1*24*60*60*1000L;
 	private static final long		KEY_BLOCK_TIMEOUT_SECS	= 7*24*60*60;
 	
-	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 4096;
-	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= 512;
+	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 16*1024;
+	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= LOCAL_DIVERSIFICATION_SIZE_LIMIT/8;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES	= 3;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN			= 30;
 	
@@ -97,6 +97,9 @@ DHTPluginStorageManager
 	
 	private Map					remote_diversifications	= new HashMap();
 	private Map					local_storage_keys		= new HashMap();
+	private int					remote_freq_div_count;
+	private int					remote_size_div_count;
+	
 	
 	private volatile ByteArrayHashMap	key_block_map_cow		= new ByteArrayHashMap();
 	private volatile DHTStorageBlock[]	key_blocks_direct_cow	= new DHTStorageBlock[0];
@@ -140,15 +143,18 @@ DHTPluginStorageManager
 			String key_ver 	= "dht.plugin.sm.hack.kill.div.2.v";
 			String key 		= "dht.plugin.sm.hack.kill.div.2";
 			
+			final int 	HACK_VER 	= 2;
+			final long 	HACK_PERIOD = 2*24*60*60*1000L;
+			
 			long suspend_ver = COConfigurationManager.getLongParameter( key_ver, 0 );
 
 			long suspend_start;
 			
-			if ( suspend_ver == 0 ){
+			if ( suspend_ver < HACK_VER ){
 				
 				suspend_start = 0;
 				
-				COConfigurationManager.setParameter( key_ver, 1 );
+				COConfigurationManager.setParameter( key_ver, HACK_VER );
 				
 			}else{
 			
@@ -164,7 +170,7 @@ DHTPluginStorageManager
 				COConfigurationManager.setParameter( key, suspend_start );
 			}
 			
-			suspend_divs_until = suspend_start + 4*24*60*60*1000;
+			suspend_divs_until = suspend_start + HACK_PERIOD;
 			
 			if ( suspendDivs()){
 				
@@ -1039,7 +1045,14 @@ DHTPluginStorageManager
 
 					if ( time_left > 0 ){
 					
-						remote_diversifications.put( d.getKey(), d );
+						diversification existing = (diversification)remote_diversifications.put( d.getKey(), d );
+						
+						if ( existing != null ){
+							
+							divRemoved( existing );
+						}
+						
+						divAdded( d );
 						
 					}else{
 						
@@ -1120,6 +1133,8 @@ DHTPluginStorageManager
 
 				remote_diversifications.remove( wrapper );
 				
+				divRemoved( div );
+				
 				div = null;
 			}
 		}
@@ -1134,11 +1149,58 @@ DHTPluginStorageManager
 	{
 		diversification	div = new diversification( this, wrapper, type );
 			
-		remote_diversifications.put( wrapper, div );
+		diversification existing = (diversification)remote_diversifications.put( wrapper, div );
+		
+		if ( existing != null ){
+			
+			divRemoved( existing );
+		}
+	
+		divAdded( div );
 		
 		writeDiversifications();
 		
 		return( div );
+	}
+	
+	protected void
+	divAdded(
+		diversification	div )
+	{
+		if ( div.getType() == DHT.DT_FREQUENCY ){
+			
+			remote_freq_div_count++;
+			
+		}else{
+			
+			remote_size_div_count++;
+		}
+	}
+	
+	protected void
+	divRemoved(
+		diversification	div )
+	{
+		if ( div.getType() == DHT.DT_FREQUENCY ){
+			
+			remote_freq_div_count--;
+			
+		}else{
+			
+			remote_size_div_count--;
+		}
+	}
+	
+	public int
+	getRemoteFreqDivCount()
+	{
+		return( remote_freq_div_count );
+	}
+	
+	public int
+	getRemoteSizeDivCount()
+	{
+		return( remote_size_div_count );
 	}
 	
 	protected static String
@@ -1829,6 +1891,12 @@ DHTPluginStorageManager
 		getExpiry()
 		{
 			return( expiry );
+		}
+		
+		protected byte
+		getType()
+		{
+			return( type );
 		}
 		
 		protected List

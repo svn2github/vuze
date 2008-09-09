@@ -56,6 +56,7 @@ PluginUpdatePlugin
 	implements Plugin
 {
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.update";
+	private static final String PLUGIN_RESOURCE_ID		= "ConfigView.section.plugins.update";
 
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
@@ -81,8 +82,7 @@ PluginUpdatePlugin
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
 		final BasicPluginViewModel model = 
-			ui_manager.createBasicPluginViewModel( 
-					"Plugin Update");
+			ui_manager.createBasicPluginViewModel( PLUGIN_RESOURCE_ID );
 		
 		final PluginConfig	plugin_config = plugin_interface.getPluginconfig();
 		

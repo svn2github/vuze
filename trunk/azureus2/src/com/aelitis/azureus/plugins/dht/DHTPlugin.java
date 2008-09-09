@@ -90,9 +90,10 @@ DHTPlugin
 	
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 
-	private static final String	PLUGIN_VERSION	= "1.0";
-	private static final String	PLUGIN_NAME		= "Distributed DB";
+	private static final String	PLUGIN_VERSION			= "1.0";
+	private static final String	PLUGIN_NAME				= "Distributed DB";
 	private static final String	PLUGIN_CONFIGSECTION_ID	= "plugins.dht";
+	private static final String PLUGIN_RESOURCE_ID		= "ConfigView.section.plugins.dht";
 	
 	private static final boolean	MAIN_DHT_ENABLE		= true;
 	private static final boolean	CVS_DHT_ENABLE		= true;
@@ -155,7 +156,7 @@ DHTPlugin
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
-			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
+			ui_manager.createBasicPluginViewModel( PLUGIN_RESOURCE_ID );
 
 		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		

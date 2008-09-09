@@ -86,6 +86,7 @@ DHTTrackerPlugin
 {
 	private static final String	PLUGIN_NAME				= "Distributed Tracker";
 	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.dhttracker";
+	private static final String PLUGIN_RESOURCE_ID		= "ConfigView.section.plugins.dhttracker";
 	
 	private static final int	ANNOUNCE_TIMEOUT			= 2*60*1000;
 	private static final int	ANNOUNCE_DERIVED_TIMEOUT	= 60*1000;	// spend less time on these
@@ -191,7 +192,7 @@ DHTTrackerPlugin
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
-			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
+			ui_manager.createBasicPluginViewModel( PLUGIN_RESOURCE_ID );
 		
 		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		

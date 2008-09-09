@@ -672,6 +672,18 @@ DHTDBImpl
 		return( (int)total_keys );
 	}
 	
+	public int
+	getValueCount()
+	{
+		return( (int)total_values );
+	}
+	
+	public int
+	getSize()
+	{
+		return( (int)total_size );
+	}
+	
 	public int[]
 	getValueDetails()
 	{
@@ -1989,6 +2001,18 @@ DHTDBImpl
 			String	key )
 		{
 			return( delegate.getStorageForKey(key));
+		}
+		
+		public int
+		getRemoteFreqDivCount()
+		{
+			return( delegate.getRemoteFreqDivCount());
+		}
+		
+		public int
+		getRemoteSizeDivCount()
+		{
+			return( delegate.getRemoteSizeDivCount());
 		}
 	}
 }

@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlListener;
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
@@ -78,7 +79,7 @@ public class DHTView extends AbstractIView {
   Label lblNodes,lblLeaves;
   Label lblContacts,lblReplacements,lblLive,lblUnknown,lblDying;
   Label lblSkew, lblRendezvous, lblReachable;
-  Label lblKeys,lblValues;
+  Label lblKeys,lblValues,lblSize;
   Label lblLocal,lblDirect,lblIndirect;
   Label lblDivFreq,lblDivSize;
   
@@ -282,8 +283,10 @@ public class DHTView extends AbstractIView {
     lblValues.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gDB,SWT.NONE);
-    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"TableColumn.header.size");    
     
+    lblSize = new Label(gDB,SWT.NONE);
+    lblSize.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));    
     
     label = new Label(gDB,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.db.local");    
@@ -619,11 +622,26 @@ public class DHTView extends AbstractIView {
       lblKeys.setText("" + dbStats.getKeyCount());  
       int[] stats = dbStats.getValueDetails();
       lblValues.setText("" + stats[DHTDBStats.VD_VALUE_COUNT]);
-      lblDirect.setText("" + stats[DHTDBStats.VD_DIRECT_SIZE]);
-      lblIndirect.setText("" + stats[DHTDBStats.VD_INDIRECT_SIZE]);
-      lblLocal.setText("" + stats[DHTDBStats.VD_LOCAL_SIZE]);
-      lblDivFreq.setText("" + stats[DHTDBStats.VD_DIV_FREQ]);
-      lblDivSize.setText("" + stats[DHTDBStats.VD_DIV_SIZE]);
+      lblSize.setText(DisplayFormatters.formatByteCountToKiBEtc(dbStats.getSize()));
+      lblDirect.setText(DisplayFormatters.formatByteCountToKiBEtc( stats[DHTDBStats.VD_DIRECT_SIZE]));
+      lblIndirect.setText(DisplayFormatters.formatByteCountToKiBEtc( stats[DHTDBStats.VD_INDIRECT_SIZE]));
+      lblLocal.setText(DisplayFormatters.formatByteCountToKiBEtc( stats[DHTDBStats.VD_LOCAL_SIZE]));
+      
+      DHTStorageAdapter sa = dht.getStorageAdapter();
+      
+      String rem_freq;
+      String rem_size;
+      
+      if ( sa == null ){
+    	  rem_freq = "?";
+    	  rem_size = "?";
+      }else{
+    	  rem_freq = "" + sa.getRemoteFreqDivCount();
+    	  rem_size = "" + sa.getRemoteSizeDivCount(); 
+      }
+      
+      lblDivFreq.setText("" + stats[DHTDBStats.VD_DIV_FREQ] + " (" + rem_freq + ")");
+      lblDivSize.setText("" + stats[DHTDBStats.VD_DIV_SIZE] + " (" + rem_size + ")");
     } else {
       refreshIter++;
       if(refreshIter == 100) refreshIter = 0;

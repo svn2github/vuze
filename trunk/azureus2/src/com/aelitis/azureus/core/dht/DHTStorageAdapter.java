@@ -130,4 +130,10 @@ DHTStorageAdapter
 	public byte[]
 	getStorageForKey(
 		String	key );
+	
+	public int
+	getRemoteFreqDivCount();
+	
+	public int
+	getRemoteSizeDivCount();
 }

@@ -772,6 +772,15 @@ DHTUDPUtils
 			os.writeLong( stats.getDBKeysBlocked());
 			os.writeLong( stats.getTotalKeyBlocksReceived());
 		}
+		
+		if ( version >= DHTTransportUDP.PROTOCOL_VERSION_MORE_STATS ){
+			
+			os.writeLong( stats.getDBKeyCount());
+			os.writeLong( stats.getDBValueCount());
+			os.writeLong( stats.getDBStoreSize());
+			os.writeLong( stats.getDBKeyDivFreqCount());
+			os.writeLong( stats.getDBKeyDivSizeCount());
+		}
 	}
 	
 	protected static DHTTransportFullStats
@@ -815,8 +824,31 @@ DHTUDPUtils
 			db_keys_blocked				= is.readLong();
 			total_key_blocks_received	= is.readLong();
 		}else{
-			db_keys_blocked				= 0;
-			total_key_blocks_received	= 0;
+			db_keys_blocked				= -1;
+			total_key_blocks_received	= -1;
+		}
+		
+		final long db_key_count;
+		final long db_value_count;
+		final long db_store_size;
+		final long db_freq_divs;
+		final long db_size_divs;
+		
+		if ( version >= DHTTransportUDP.PROTOCOL_VERSION_MORE_STATS ){
+			
+			db_key_count 	= is.readLong();
+			db_value_count	= is.readLong();
+			db_store_size	= is.readLong();
+			db_freq_divs	= is.readLong();
+			db_size_divs	= is.readLong();
+			
+		}else{
+			
+			db_key_count 	= -1;
+			db_value_count	= -1;
+			db_store_size	= -1;
+			db_freq_divs	= -1;
+			db_size_divs	= -1;
 		}
 		
 		DHTTransportFullStats	res = 
@@ -832,6 +864,36 @@ DHTUDPUtils
 				getDBKeysBlocked()
 				{
 					return( db_keys_blocked );
+				}
+				
+				public long
+				getDBValueCount()
+				{
+					return( db_value_count );
+				}
+				
+				public long
+				getDBKeyCount()
+				{
+					return( db_key_count );
+				}
+								
+				public long
+				getDBKeyDivSizeCount()
+				{
+					return( db_size_divs );
+				}
+				
+				public long
+				getDBKeyDivFreqCount()
+				{
+					return( db_freq_divs );
+				}
+
+				public long
+				getDBStoreSize()
+				{
+					return( db_store_size );
 				}
 				
 					// Router
@@ -980,8 +1042,13 @@ DHTUDPUtils
 							getRouterLeaves() + "," +
 							getRouterContacts() + 
 							",database:" +
-							getDBValuesStored()+ "," +
-							getDBKeysBlocked()+
+							getDBKeyCount() + ","+
+							getDBValueCount() + ","+
+							getDBValuesStored() + ","+
+							getDBStoreSize() + ","+
+							getDBKeyDivFreqCount() + ","+
+							getDBKeyDivSizeCount() + ","+
+							getDBKeysBlocked()+ 
 							",version:" + getVersion()+","+
 							getRouterUptime() + ","+
 							getRouterCount());
