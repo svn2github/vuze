@@ -121,9 +121,9 @@ public class SideBar
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
-	private static final int IMAGELEFT_SIZE = 12;
+	private static final int IMAGELEFT_SIZE = 20;
 
-	private static final int IMAGELEFT_GAP = 3;
+	private static final int IMAGELEFT_GAP = 5;
 
 	private static final boolean ALWAYS_IMAGE_GAP = true;
 
@@ -163,9 +163,13 @@ public class SideBar
 
 	private Image imgClose;
 
+	private Image imgVitality;
+
 	private SWTSkinObject soSideBarPopout;
 
 	private SelectionListener dropDownSelectionListener;
+
+	private ImageLoader imageLoader;
 
 	private static Map mapAutoOpen = new LightHashMap();
 
@@ -200,8 +204,9 @@ public class SideBar
 		soSideBarList = skin.getSkinObject("sidebar-list");
 		soSideBarPopout = skin.getSkinObject("sidebar-pop");
 
-		ImageLoader imageLoader = skin.getImageLoader(skinObject.getProperties());
+		imageLoader = skin.getImageLoader(skinObject.getProperties());
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
+		imgVitality = imageLoader.getImage("image.sidebar.vitality");
 
 		addTestMenus();
 
@@ -754,9 +759,8 @@ public class SideBar
 
 		if (sideBarInfo.titleInfo != null) {
 			Boolean hasActivity = (Boolean) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
-			if (hasActivity != null && hasActivity.booleanValue()) {
-				Image imgGreenLed = ImageRepository.getImage("greenled");
-				Rectangle ledArea = imgGreenLed.getBounds();
+			if (hasActivity != null && hasActivity.booleanValue() && imgVitality != null) {
+				Rectangle ledArea = imgVitality.getBounds();
 				ledArea.x = treeArea.width - ledArea.width - SIDEBAR_SPACING
 						- x1IndicatorOfs;
 				ledArea.y = itemBounds.y + (itemBounds.height - ledArea.height) / 2;
@@ -765,16 +769,19 @@ public class SideBar
 				//gc.setBackground(treeItem.getBackground());
 				//gc.fillRectangle(closeArea);
 
-				gc.drawImage(imgGreenLed, ledArea.x, ledArea.y);
+				gc.drawImage(imgVitality, ledArea.x, ledArea.y);
 			}
 		}
 
 		if (sideBarInfo.imageLeft != null) {
 			Rectangle bounds = sideBarInfo.imageLeft.getBounds();
-			gc.drawImage(sideBarInfo.imageLeft, 0, 0, bounds.width, bounds.height,
-					x0IndicatorOfs, itemBounds.y
-							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
-					IMAGELEFT_SIZE);
+			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - bounds.width) / 2);
+			int y = itemBounds.y + ((itemBounds.height - bounds.height) / 2);
+			gc.drawImage(sideBarInfo.imageLeft, x, y); 
+//			0, 0, bounds.width, bounds.height,
+//					x0IndicatorOfs, itemBounds.y
+//							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
+//					IMAGELEFT_SIZE);
 
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
 		} else if (ALWAYS_IMAGE_GAP) {
@@ -836,8 +843,9 @@ public class SideBar
 
 		File file = new File(SystemProperties.getUserPath(), "sidebarauto.config");
 		if (!file.exists()) {
-			createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
+			SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
 					"main.area.welcome", "Welcome", null, null, true, 0);
+			entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
 		}
 
 		// Put TitleInfo in another class
@@ -846,7 +854,7 @@ public class SideBar
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					return "" + VuzeActivitiesManager.getNumEntries();
 				} else if (propertyID == TITLE_IMAGEID) {
-					//return "image.toolbar.up";
+					return "image.sidebar.activity";
 				}
 				return null;
 			}
@@ -865,9 +873,12 @@ public class SideBar
 		});
 
 		SBC_LibraryView.setupViewTitle();
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
+		SideBarEntrySWT entry;
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
 				null, false, -1);
+		entry.imageLeft = imageLoader.getImage("image.sidebar.library");
 
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryDL", "library",
 				MessageText.getString("sidebar.LibraryDL"), null, null, false, -1);
@@ -875,14 +886,18 @@ public class SideBar
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, "LibraryCD", "library",
 				MessageText.getString("sidebar.LibraryCD"), null, null, false, -1);
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
+		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
 				"Vuze Network", null, null, false, -1);
+		entry.imageLeft = imageLoader.getImage("image.sidebar.vuze");
+
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES,
 				"main.area.events", "Activity", titleInfoActivityView, null, false, -1);
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
+		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
+		entry.imageLeft = imageLoader.getImage("image.sidebar.subscriptions");
+
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
@@ -1251,6 +1266,7 @@ public class SideBar
 			SideBarEntrySWT entry = createEntryFromSkinRef(null,
 					SIDEBAR_SECTION_WELCOME, "main.area.welcome", "Welcome", null, null,
 					true, 0);
+			entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
 			itemSelected(entry.treeItem);
 			return true;
 		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
@@ -1763,8 +1779,10 @@ public class SideBar
 				}
 
 				String imageID = (String) titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_IMAGEID);
-				sideBarInfo.imageLeft = imageID == null ? null
-						: ImageLoaderFactory.getInstance().getImage(imageID);
+				if (imageID != null) {
+					sideBarInfo.imageLeft = imageID.length() == 0 ? null
+							: ImageLoaderFactory.getInstance().getImage(imageID);
+				}
 
 				Rectangle bounds = treeItem.getBounds();
 				Rectangle treeBounds = tree.getBounds();
@@ -1879,8 +1897,9 @@ public class SideBar
 			}
 
 			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
-				createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
+				SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
 						"main.area.welcome", "Getting Started", null, null, true, 0);
+				entry.imageLeft = imageLoader.getImage("image.sidebar.welcome");
 			}
 
 			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
