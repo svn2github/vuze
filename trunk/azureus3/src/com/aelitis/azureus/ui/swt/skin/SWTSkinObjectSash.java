@@ -95,6 +95,8 @@ public class SWTSkinObjectSash
 
 	private double sashPct;
 
+	private boolean noresize = false;
+
 	public SWTSkinObjectSash(final SWTSkin skin,
 			final SWTSkinProperties properties, final String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent,
@@ -161,6 +163,8 @@ public class SWTSkinObjectSash
 				Debug.out(e);
 			}
 		}
+		
+		noresize = properties.getBooleanValue(sConfigID + ".noresize", false);
 
 		SWTSkinObject soInitializeSashAfterCreated = parent == null ? this : parent;
 		soInitializeSashAfterCreated.addListener(new SWTSkinObjectListener() {
@@ -316,17 +320,23 @@ public class SWTSkinObjectSash
 					parentComposite.layout(true);
 
 					double d;
+					double nw;
 					if (isVertical) {
-						d = (double) (below.getBounds().width + (sash.getSize().x / 2))
-								/ parentComposite.getBounds().width;
+						nw = below.getBounds().width + (sash.getSize().x / 2.0);
+						d = nw / parentComposite.getBounds().width;
+						nw = parentComposite.getBounds().width - nw;
 					} else {
-						d = (double) (below.getBounds().height + (sash.getSize().y / 2))
-								/ parentComposite.getBounds().height;
+						nw = below.getBounds().height + (sash.getSize().y / 2.0);
+						d = nw / parentComposite.getBounds().height;
+						nw = parentComposite.getBounds().height - nw;
 					}
 					Double l = new Double(d);
 					l = ensureVisibilityStates(l, above, below, isVertical);
 					sashPct = l.doubleValue();
 					sash.setData("PCT", l);
+					if (noresize) {
+						sash.setData("PX", new Long((long)nw));
+					}
 
 					if (e.detail != SWT.DRAG) {
 						COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
@@ -360,7 +370,7 @@ public class SWTSkinObjectSash
 
 		Double l = (Double) sash.getData("PCT");
 		Long px = (Long) sash.getData("PX");
-		if (l != null) {
+		if (l != null && !noresize) {
 			Point size = createOn.getSize();
 			if (isVertical && size.x == lastSize.x) {
 				return;
