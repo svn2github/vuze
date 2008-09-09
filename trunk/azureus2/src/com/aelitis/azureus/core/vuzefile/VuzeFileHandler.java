@@ -111,16 +111,25 @@ VuzeFileHandler
 			try{
 				Map	map = BDecoder.decode(bis);
 				
-				if ( map.containsKey( "vuze" ) && !map.containsKey( "info" )){
-					
-					return( new VuzeFileImpl( this, (Map)map.get( "vuze" )));
-				}
+				return( loadVuzeFile( map ));
 				
 			}finally{
 				
 				is.close();
 			}
 		}catch( Throwable e ){
+		}
+		
+		return( null );
+	}
+	
+	public VuzeFile
+	loadVuzeFile(
+		Map	map )
+	{
+		if ( map.containsKey( "vuze" ) && !map.containsKey( "info" )){
+					
+			return( new VuzeFileImpl( this, (Map)map.get( "vuze" )));
 		}
 		
 		return( null );
