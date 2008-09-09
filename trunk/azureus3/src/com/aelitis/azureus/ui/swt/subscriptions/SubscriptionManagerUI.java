@@ -1019,7 +1019,7 @@ SubscriptionManagerUI
 				context.addMessageListener(new ConfigListener(mainBrowser));
 				context.addMessageListener(
 						new MetaSearchListener( this ));
-				String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
+				String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/index.html?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
 	
 				mainBrowser.setUrl(url);
 				mainBrowser.setData("StartURL", url);
