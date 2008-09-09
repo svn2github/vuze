@@ -116,7 +116,7 @@ public class ToolBarView
 		};
 		addToolBarItem(item);
 		
-		addSeperator("image.toolbar.spacer", soMain);
+		addSeperator("toolbar.area.item.sep", soMain);
 
 		// ==OPEN
 //		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
