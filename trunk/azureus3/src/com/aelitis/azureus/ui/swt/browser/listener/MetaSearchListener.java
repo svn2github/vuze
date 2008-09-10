@@ -313,7 +313,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				Engine engine = engines[i];
 				
 				if ( !engine.isActive() || engine.getSource() == Engine.ENGINE_SOURCE_UNKNOWN ){
-					continue;
+					
+						// don't skip if this is an explicit get
+					
+					if ( subscriptionId == null ){
+					
+						continue;
+					}
 				}
 				Map engineMap = new HashMap();
 				engineMap.put("id", new Long(engine.getId()));
