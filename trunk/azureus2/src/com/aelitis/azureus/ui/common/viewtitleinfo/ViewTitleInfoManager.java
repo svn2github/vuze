@@ -35,6 +35,9 @@ public class ViewTitleInfoManager
 	}
 	
 	public static void refreshTitleInfo(ViewTitleInfo titleinfo) {
+		if (titleinfo == null) {
+			return;
+		}
 		Object[] array = listeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			ViewTitleInfoListener l = (ViewTitleInfoListener) array[i];
