@@ -27,6 +27,7 @@ import java.util.*;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 
@@ -550,7 +551,7 @@ public class TableRowImpl
 			return new Rectangle(0, 0, 0, 0);
 		}
 		bounds.x = 0;
-		bounds.width = table.getSize().y;
+		bounds.width = table.getSize().x;
 		return bounds;
 	}
 }
