@@ -846,4 +846,7 @@ public class ListRow
 		area.height = getHeight();
 		return area;
 	}
+	
+	public void setBackgroundImage(Image image) {
+	}
 }
