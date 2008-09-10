@@ -70,6 +70,8 @@ BufferedTableRow
 	protected Color     ourForeground;
 	
 	private Point ptIconSize = null;
+
+	private Image imageBG;
 	
 	
 	static {
@@ -728,5 +730,16 @@ BufferedTableRow
 		Rectangle r = item.getBounds(0);
 
 		table.redraw(0, r.y, table.getClientArea().width, r.height, true);
+  }
+  
+  public void setBackgroundImage(Image image) {
+  	if (imageBG != null && !imageBG.isDisposed()) {
+  		imageBG.dispose();
+  	}
+  	imageBG = image;
+  }
+  
+  public Image getBackgroundImage() {
+  	return imageBG;
   }
 }

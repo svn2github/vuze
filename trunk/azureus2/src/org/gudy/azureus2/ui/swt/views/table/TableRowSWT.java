@@ -65,4 +65,6 @@ public interface TableRowSWT extends TableRowCore
 	public TableCellSWT getTableCellSWT(String cellName);
 	
 	public Rectangle getBounds();
+	
+	public void setBackgroundImage(Image image);
 }

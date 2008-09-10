@@ -1922,6 +1922,13 @@ public class TableViewSWTImpl
 				TableRowSWT rowSWT = (TableRowSWT) row;
 				Rectangle bounds = rowSWT.getBounds();
 				if (bounds.intersects(dirtyArea)) {
+					
+					if (Constants.isWindowsVista) {
+  					Image imgBG = new Image(gc.getDevice(), bounds.width, bounds.height);
+  					gc.copyArea(imgBG, bounds.x, bounds.y);
+  					rowSWT.setBackgroundImage(imgBG);
+					}
+					
 					//System.out.println("paint " + row);
 					Color oldBG = (Color) row.getData("bgColor");
 					Color newBG = rowSWT.getBackground();

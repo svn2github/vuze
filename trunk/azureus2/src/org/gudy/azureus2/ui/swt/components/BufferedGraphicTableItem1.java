@@ -327,6 +327,21 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   }
   
   public Image getBackgroundImage() {
+  	Image imageRowBG = row.getBackgroundImage();
+  	if (imageRowBG != null) {
+  		Rectangle bounds = getBounds();
+  		
+  		int wInside = bounds.width - (marginWidth * 2);
+  		int hInside = bounds.height - (marginHeight * 2);
+  		Image imageCellBG = new Image(Display.getDefault(), wInside, hInside);
+  		GC gc = new GC(imageCellBG);
+  		gc.drawImage(imageRowBG, bounds.x + marginWidth, 0 + marginHeight,
+					wInside, hInside, 0, 0, wInside, hInside);
+  		gc.dispose();
+  		
+  		return imageCellBG;
+  	}
+  	
 		Table table = row.getTable();
 		
 		Rectangle bounds = getBounds();
