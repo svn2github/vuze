@@ -1795,6 +1795,9 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener#viewTitleInfoRefresh(com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo)
 	public void viewTitleInfoRefresh(final ViewTitleInfo titleIndicator) {
+		if (titleIndicator == null) {
+			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (tree.isDisposed()) {
