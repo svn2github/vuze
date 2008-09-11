@@ -38,14 +38,10 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.Constants;
 
@@ -55,7 +51,6 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -69,7 +64,9 @@ public class Browse
 
 	private SWTSkinObjectBrowser browserSkinObject;
 
-	protected String title;
+	public SWTSkinObjectBrowser getBrowserSkinObject() {
+		return browserSkinObject;
+	}
 
 	private SWTSkin skin;
 
@@ -86,20 +83,6 @@ public class Browse
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_BROWSE, soMain);
 
-		browserSkinObject.addListener(new SWTSkinObjectListener() {
-			public Object eventOccured(SWTSkinObject skinObject, int eventType,
-					Object params) {
-				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-					SelectedContentManager.changeCurrentlySelectedContent("browse",
-							getCurrentlySelectedContent());
-				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent("browse", null);
-				}
-				return null;
-			}
-		});
-		SelectedContentManager.changeCurrentlySelectedContent("browse", null);
-		
 		titleInfo = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_SKINVIEW) {
@@ -112,15 +95,6 @@ public class Browse
 		};
 
 		Browser browser = browserSkinObject.getBrowser();
-		browser.addTitleListener(new TitleListener() {
-			public void changed(TitleEvent event) {
-				title = event.title;
-				int i = title.toLowerCase().indexOf("details:");
-				if (i > 0) {
-					title = title.substring(i + 9);
-				}
-			}
-		});
 
 		browser.addLocationListener(new LocationListener() {
 			public void changing(LocationEvent event) {
@@ -128,8 +102,6 @@ public class Browse
 			}
 
 			public void changed(LocationEvent event) {
-				SelectedContentManager.changeCurrentlySelectedContent("browse",
-						getCurrentlySelectedContent());
 				ViewTitleInfoManager.refreshTitleInfo(titleInfo);
 			}
 		});
@@ -171,43 +143,7 @@ public class Browse
 
 		return null;
 	}
-
-	/**
-	 * @return
-	 *
-	 * @since 3.0.5.3
-	 */
-	protected ISelectedContent[] getCurrentlySelectedContent() {
-		if (browserSkinObject == null) {
-			return null;
-		}
-		Browser browser = browserSkinObject.getBrowser();
-		if (browser == null) {
-			return null;
-		}
-		String url = browser.getUrl();
-		int i = url.indexOf(Constants.URL_DETAILS);
-		if (i > 0) {
-			i += Constants.URL_DETAILS.length();
-			int end1 = url.indexOf("?", i);
-			int end2 = url.indexOf(".", i);
-			int end = end1 < 0 ? end2 : Math.min(end1, end2);
-
-			String hash;
-			if (end < 0 || end < i) {
-				hash = url.substring(i);
-			} else {
-				hash = url.substring(i, end);
-			}
-
-			return new SelectedContentV3[] {
-				new SelectedContentV3(hash, title, true, false)
-			};
-		}
-
-		return null;
-	}
-
+	
 	/**
 	 * 
 	 */
