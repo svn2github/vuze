@@ -259,4 +259,18 @@ public class SWTSkinObjectBrowser
 	public boolean isPageLoading() {
 		return context == null ? false : context.isPageLoading();
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setVisible(boolean)
+	public void setVisible(final boolean visible) {
+		super.setVisible(visible);
+
+		// notify browser after we've fully processed visibility 
+		Utils.execSWTThreadLater(0, new AERunnable(){
+			public void runSupport() {
+				if (!isDisposed() && context != null) {
+					context.sendBrowserMessage("browser", visible ? "shown" : "hidden");
+				}
+			}
+		});
+	}
 }
