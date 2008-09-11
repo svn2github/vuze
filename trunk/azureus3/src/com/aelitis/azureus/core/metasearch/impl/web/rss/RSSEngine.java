@@ -170,7 +170,8 @@ RSSEngine
 			List results = new ArrayList();
 			
 			for(int i = 0 ; i < channels.length ; i++) {
-				RSSItem[] items = channels[i].getItems();
+				RSSChannel channel = channels[i];
+				RSSItem[] items = channel.getItems();
 				for(int j = 0 ; j < items.length ; j++) {
 					RSSItem item = items[j];
 					WebResult result = new WebResult(this,getRootPage(),getBasePage(),getDateParser(),"");
@@ -184,38 +185,82 @@ RSSEngine
 						SimpleXMLParserDocumentNode[] children = node.getChildren();
 						for(int k = 0 ; k < children.length ; k++) {
 							SimpleXMLParserDocumentNode child = children[k];
-							if(child.getName().equals("enclosure")) {
+							
+							String	lc_child_name = child.getName().toLowerCase();
+							
+							if (lc_child_name.equals( "enclosure" )){
+								
 								SimpleXMLParserDocumentAttribute typeAtt = child.getAttribute("type");
-								if(typeAtt != null && typeAtt.getValue().equals("application/x-bittorrent")) {
+								
+								if( typeAtt != null && typeAtt.getValue().equalsIgnoreCase( "application/x-bittorrent")) {
 									
 									SimpleXMLParserDocumentAttribute urlAtt = child.getAttribute("url");
-									if(urlAtt != null) {
+									
+									if( urlAtt != null ){
+										
 										result.setTorrentLink(urlAtt.getValue());
 									}
 									
 									SimpleXMLParserDocumentAttribute lengthAtt = child.getAttribute("length");
-									if(lengthAtt != null) {	
+									
+									if (lengthAtt != null){
+										
 										result.setSizeFromHTML(lengthAtt.getValue());
 									}
-									
 								}
-							}
-							else if(child.getName().equals("category")) {
+							}else if(lc_child_name.equals( "category" )) {
+								
 								result.setCategory(child.getValue());
-							}
-							else if(child.getName().equals("comments")) {
+								
+							}else if(lc_child_name.equals( "comments" )){
+								
 								result.setCommentsFromHTML(child.getValue());
-							}
-							else if(child.getName().equals("link") || child.getName().equals("guid")) {
-								try {
+								
+							}else if(lc_child_name.equals( "link" ) || lc_child_name.equals( "guid" )) {
+								
+								try{
 									String value = child.getValue();
-									if(value.endsWith(".torrent")) {
-										URL url = new URL(value);
+									
+									if (value.toLowerCase().endsWith( ".torrent" )){
+										
+										new URL(value);
+										
 										result.setTorrentLink(value);
 									}
+								} catch (Throwable e){
+								}
+							}else if ( lc_child_name.equals( "content" ) && rssFeed.isAtomFeed()){
+								
+								SimpleXMLParserDocumentAttribute srcAtt = child.getAttribute( "src" );
+								
+								String	src = srcAtt==null?null:srcAtt.getValue();
+											
+								if ( src != null ){
 									
-								} catch (Exception e) {
-									//Do nothing, apparently, the url is not valid
+									boolean	is_dl_link = false;
+									
+									SimpleXMLParserDocumentAttribute typeAtt = child.getAttribute( "type" );
+									
+									if ( typeAtt != null && typeAtt.getValue().equalsIgnoreCase("application/x-bittorrent")) {
+
+										is_dl_link = true;
+									}
+									
+									if ( !is_dl_link ){
+									
+										is_dl_link = src.toLowerCase().indexOf( ".torrent" ) != -1;
+									}
+										
+									if ( is_dl_link ){
+										
+										try{
+											new URL( src );
+										
+											result.setTorrentLink( src );
+											
+										}catch( Throwable e ){
+										}
+									}
 								}
 							}
 						}
