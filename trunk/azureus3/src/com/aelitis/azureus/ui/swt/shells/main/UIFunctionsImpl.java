@@ -51,13 +51,11 @@ import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -354,6 +352,8 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshLanguage()
 	public void refreshLanguage() {
 		try {
+			mainWindow.setSelectedLanguageItem();
+			
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 			if (uiFunctions == null) {
 				return;

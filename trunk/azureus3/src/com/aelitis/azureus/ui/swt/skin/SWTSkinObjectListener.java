@@ -46,13 +46,17 @@ public interface SWTSkinObjectListener
 	 */
 	public static int EVENT_CREATE_REQUEST = 5;
 
+	public static int EVENT_LANGUAGE_CHANGE = 6;
+
 	
 	public static String[] NAMES = {
 		"Show",
 		"Hide",
 		"Select",
 		"Destroy",
-		"Created"
+		"Created",
+		"Create Request",
+		"Lang Change"
 	};
 
 	/**

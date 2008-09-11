@@ -45,9 +45,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -86,6 +84,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
+import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
@@ -2202,4 +2201,27 @@ public class MainWindow
 		}
 	}
 
+	protected void setSelectedLanguageItem() {
+		Messages.updateLanguageForControl(shell);
+
+		if (systemTraySWT != null) {
+			systemTraySWT.updateLanguage();
+		}
+
+		if (statusBar != null) {
+			statusBar.refreshStatusText();
+		}
+		
+		// download basket
+		
+		skin.triggerLanguageChange();
+
+		if (statusBar != null) {
+			statusBar.updateStatusText();
+		}
+
+		if (menu != null) {
+			MenuFactory.updateMenuText(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
+		}
+	}
 }

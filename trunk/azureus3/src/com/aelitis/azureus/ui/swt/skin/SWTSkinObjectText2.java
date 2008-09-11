@@ -589,4 +589,14 @@ public class SWTSkinObjectText2
 			}
 		});
 	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#triggerListeners(int, java.lang.Object)
+	public void triggerListeners(int eventType, Object params) {
+		if (eventType == SWTSkinObjectListener.EVENT_LANGUAGE_CHANGE) {
+			if (sKey != null) {
+				setTextID(sKey);
+			}
+		}
+		super.triggerListeners(eventType, params);
+	}
 }

@@ -1640,4 +1640,23 @@ public class SWTSkin
 	public boolean isCreatingSO() {
 		return currentSkinObjectcreationCount > 0;
 	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void triggerLanguageChange() {
+		Object[] values = mapIDsToControls.values().toArray();
+		for (int i = 0; i < values.length; i++) {
+			Object value = values[i];
+			if (value instanceof SWTSkinObject[]) {
+				SWTSkinObject[] skinObjects = (SWTSkinObject[]) value;
+				for (int j = 0; j < skinObjects.length; j++) {
+					SWTSkinObject so = skinObjects[j];
+					so.triggerListeners(SWTSkinObjectListener.EVENT_LANGUAGE_CHANGE);
+				}
+			}
+		}
+	}
 }
