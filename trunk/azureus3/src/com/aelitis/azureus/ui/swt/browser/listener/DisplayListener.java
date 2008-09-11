@@ -17,6 +17,9 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -57,6 +60,8 @@ public class DisplayListener
 	public static final String VZ_NON_ACTIVE = "vz-non-active";
 
 	public static final String OP_INVITE_FRIEND = "invite";
+
+	public static final String OP_SET_SELECTED_CONTENT = "set-selected-content";
 
 	public static final String OP_INVITE_FRIEND_PARAM_MESSAGE = "message";
 
@@ -121,8 +126,41 @@ public class DisplayListener
 			VuzeFriendUtils.getInstance().invite(
 					MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,
 							null));
+		} else if (OP_SET_SELECTED_CONTENT.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			if (decodedMap != null) {
+				setSelectedContent(decodedMap);
+			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
+		}
+	}
+
+	/**
+	 * @param decodedMap
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void setSelectedContent(Map decodedMap) {
+		String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
+		String displayName = MapUtils.getMapString(decodedMap, "display-name",
+				null);
+		String urlDL = MapUtils.getMapString(decodedMap, "download-url", null);
+		if ((hash != null || urlDL != null) && displayName != null) {
+			String referer = MapUtils.getMapString(decodedMap, "referer",
+					"displaylistener");
+			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
+			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap, "is-vuze-content", true);
+			SelectedContentV3 content = new SelectedContentV3(hash,
+					displayName, isVuzeContent, canPlay);
+			content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
+					null));
+			content.setDownloadURL(urlDL);
+			
+			SelectedContentManager.changeCurrentlySelectedContent(referer,
+					new ISelectedContent[] {
+						content
+					});
 		}
 	}
 
