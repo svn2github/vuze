@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
@@ -51,8 +50,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.PlayUtils;
-
-import org.gudy.azureus2.plugins.torrent.TorrentManager;
 
 /**
  * @author TuxPaper
@@ -79,7 +76,6 @@ public class TorrentUIUtilsV3
   			Matcher m = hashPattern.matcher(url);
   			if (m.find()) {
   				String hash = m.group(1);
-  				System.out.println("HASH? " + hash);
   				GlobalManager gm = core.getGlobalManager();
   				final DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
   				if (dm != null) {
@@ -105,9 +101,10 @@ public class TorrentUIUtilsV3
 			
 			
 			// If it's going to our URLs, add some extra authenication
-			if (url.indexOf("azid=") < 0) {
-				url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
+			if (PlatformConfigMessenger.urlCanRPC(url)) {
+				url = Constants.appendURLSuffix(url);
 			}
+
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
 				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
@@ -142,7 +139,8 @@ public class TorrentUIUtilsV3
 											return;
 										}
 										// Security: Only allow torrents from whitelisted trackers
-										if (!PlatformTorrentUtils.isPlatformTracker(torrent)) {
+										if (playNow
+												&& !PlatformTorrentUtils.isPlatformTracker(torrent)) {
 											Debug.out("stopped loading torrent because it's not in whitelist");
 											return;
 										}
