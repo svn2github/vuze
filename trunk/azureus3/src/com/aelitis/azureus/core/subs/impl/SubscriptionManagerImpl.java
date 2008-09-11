@@ -86,6 +86,7 @@ import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 
 public class 
@@ -495,6 +496,10 @@ SubscriptionManagerImpl
 		return( addSubscription( subs ));
 	}
 	
+		/**
+		 * DOESN'T ADD SUBSCRIPTION!!!!
+		 */
+	
 	public Subscription
 	createSingletonRSS(
 		String		name,
@@ -512,19 +517,46 @@ SubscriptionManagerImpl
 			
 			singleton_details.put( "key", url.toExternalForm().getBytes( "UTF-8" ));
 						
+			String	name2 = name.length() > 64?name.substring(0,64):name;
+			
+			singleton_details.put( "name", name2 );
+			
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine );
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json );
 			
-			log( "Created new singelton subscription: " + subs.getString());
+			log( "Created new singleton subscription: " + subs.getString());
 			
 			return( subs );
 			
 		}catch( Throwable e ){
 			
 			throw( new SubscriptionException( "Failed to create subscription", e ));
+		}
+	}
+	
+	protected SubscriptionImpl
+	createSingletonSubscription(
+		Map		singleton_details )
+	{
+		try{
+			String name = ImportExportUtils.importString( singleton_details, "name", "(Anonymous)" );
+			
+			URL	url = new URL( ImportExportUtils.importString( singleton_details, "key" ));
+			
+				// only defined type is singleton rss
+			
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSS( name, url );
+			
+			return( s );
+			
+		}catch( Throwable e ){
+			
+			log( "Creation of singleton from " + singleton_details + " failed", e );
+			
+			return( null );
 		}
 	}
 	
@@ -571,20 +603,27 @@ SubscriptionManagerImpl
 	addSubscription(
 		SubscriptionImpl		subs )
 	{
+		SubscriptionImpl existing;
+		
 		synchronized( this ){
 			
-			SubscriptionImpl existing = getSubscriptionFromSID( subs.getShortID());
+			existing = getSubscriptionFromSID( subs.getShortID());
 			
-			if ( existing != null ){
+			if ( existing == null ){
+
+				subscriptions.add( subs );
 			
-				log( "Attempted to add subscription when already present: " + subs.getString());
-				
-				return( existing );
+				saveConfig();
 			}
+		}
+		
+		if ( existing != null ){
 			
-			subscriptions.add( subs );
+			log( "Attempted to add subscription when already present: " + subs.getString());
 			
-			saveConfig();
+			subs.destroy();
+			
+			return( existing );
 		}
 		
 		if ( subs.isMine()){
@@ -1979,6 +2018,9 @@ SubscriptionManagerImpl
 		try{
 			SubscriptionImpl subs = getSubscriptionFromPlatform( sid,SubscriptionImpl.ADD_TYPE_LOOKUP );
 
+			if ( subs.isSingleton()){
+				throw( new Exception( "blah" ));
+			}
 			log( "Added temporary subscription: " + subs.getString());
 			
 			subs = addSubscription( subs );
@@ -2023,7 +2065,7 @@ SubscriptionManagerImpl
 				true,
 				new DHTPluginOperationListener()
 				{
-					private boolean went_async;
+					private boolean listener_handled;
 					
 					public void
 					diversified()
@@ -2050,30 +2092,64 @@ SubscriptionManagerImpl
 								
 								log( "    found " + sid_str + ", verification ok" );
 								
-								synchronized( this ){
-									
-									if ( went_async  ){
-										
-										return;
-									}
-									
-									went_async = true;
-								}
+								Map	singleton_details = (Map)details.get( "x" );
 								
-								new AEThread2( "Subs:lookup download", true )
-								{
-									public void
-									run()
-									{
-										downloadSubscription( 
-											association_hash,
-											SubscriptionImpl.getPublicationHash( details ),
-											sid,
-											version,
-											SubscriptionImpl.getPublicationSize( details ),
-											listener );
+								if ( singleton_details == null ){
+									
+									synchronized( this ){
+										
+										if ( listener_handled  ){
+											
+											return;
+										}
+										
+										listener_handled = true;
 									}
-								}.start();
+									
+									new AEThread2( "Subs:lookup download", true )
+									{
+										public void
+										run()
+										{
+											downloadSubscription( 
+												association_hash,
+												SubscriptionImpl.getPublicationHash( details ),
+												sid,
+												version,
+												SubscriptionImpl.getPublicationSize( details ),
+												listener );
+										}
+									}.start();
+									
+								}else{
+									
+									SubscriptionImpl subs = createSingletonSubscription( singleton_details );
+									
+									if ( subs == null ){
+										
+										log( "    found " + sid_str + " but singleton decode failed" );
+
+									}else{
+										
+										synchronized( this ){
+											
+											if ( listener_handled  ){
+												
+												subs.destroy();
+												
+												return;
+											}
+											
+											listener_handled = true;
+										}
+										
+										subs.setSubscribed( false );
+										
+										subs = addSubscription( subs );
+										
+										listener.complete( association_hash, new Subscription[]{ subs });
+									}
+								}
 							}else{
 								
 								log( "    found " + sid_str + " but verification failed" );
@@ -2107,8 +2183,10 @@ SubscriptionManagerImpl
 						
 						synchronized( this ){
 							
-							if ( !went_async ){
+							if ( !listener_handled ){
 						
+								listener_handled = true;
+								
 								listener.complete( association_hash, new Subscription[0] );
 							}
 						}
@@ -2242,6 +2320,8 @@ SubscriptionManagerImpl
 			if ( res == null ){
 				
 				listener.complete( association_hash, new Subscription[0] );
+				
+				return;
 			}
 
 			downloadSubscription(
@@ -2340,6 +2420,8 @@ SubscriptionManagerImpl
 				});
 				
 		}catch( Throwable e ){
+			
+			log( "Subscription download failed",e );
 			
 			listener.complete( association_hash, new Subscription[0] );
 		}

@@ -42,6 +42,24 @@ public final class ImportExportUtils {
 	public final static String
 	importString(
 		Map		map,
+		String	key,
+		String	def )
+	
+		throws IOException
+	{
+		String	res = importString( map, key );
+		
+		if ( res == null ){
+			
+			res = def;
+		}
+		
+		return( res );
+	}
+	
+	public final static String
+	importString(
+		Map		map,
 		String	key )
 	
 		throws IOException
