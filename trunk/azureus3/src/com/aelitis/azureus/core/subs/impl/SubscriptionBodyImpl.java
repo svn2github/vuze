@@ -108,7 +108,7 @@ SubscriptionBodyImpl
 	private byte[]	public_key;
 	private int		version;
 	private String	json;
-	private byte[]	singleton_key;
+	private Map		singleton_details;
 	
 	
 	
@@ -189,7 +189,7 @@ SubscriptionBodyImpl
 		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
 		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
-		singleton_key = (byte[])details.get( "sin_key" );
+		singleton_details = (Map)details.get( "sin_details" );
 		
 		if ( _verify ){
 			
@@ -226,7 +226,7 @@ SubscriptionBodyImpl
 		String					_json_content,
 		byte[]					_public_key,
 		int						_version,
-		byte[]					_singleton_key )
+		Map						_singleton_details )
 	
 		throws IOException
 	{
@@ -238,7 +238,7 @@ SubscriptionBodyImpl
 		version		= _version;
 		json		= _json_content;
 		
-		singleton_key	= _singleton_key;
+		singleton_details	= _singleton_details;
 		
 		map			= new HashMap();
 		
@@ -252,9 +252,9 @@ SubscriptionBodyImpl
 		details.put( "version", new Long( version ));
 		details.put( "json", _json_content.getBytes( "UTF-8" ));
 		
-		if ( singleton_key != null ){
+		if ( singleton_details != null ){
 			
-			details.put( "sin_key", singleton_key );
+			details.put( "sin_details", singleton_details );
 		}
 	}
 	
@@ -278,9 +278,9 @@ SubscriptionBodyImpl
 			details.put( "json", json.getBytes( "UTF-8" ));
 		}
 		
-		if ( singleton_key != null ){
+		if ( singleton_details != null ){
 			
-			details.put( "sin_key", singleton_key );
+			details.put( "sin_details", singleton_details );
 		}
 	}
 	
@@ -308,10 +308,10 @@ SubscriptionBodyImpl
 		return( json );
 	}
 	
-	protected byte[]
-	getSingletonKey()
+	protected Map
+	getSingletonDetails()
 	{
-		return( singleton_key );
+		return( singleton_details );
 	}
 	
 	protected void

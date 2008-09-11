@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.security.KeyPair;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -43,6 +44,7 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -61,6 +63,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
@@ -482,7 +485,7 @@ SubscriptionManagerImpl
 		
 		if ( subs.isPublic()){
 			
-			updatePublicSubscription( subs, json );
+			updatePublicSubscription( subs );
 		}
 		
 		return( addSubscription( subs ));
@@ -496,17 +499,15 @@ SubscriptionManagerImpl
 		throws SubscriptionException
 	{
 		try{
-			Map	singleton_map = new HashMap();
+			Map	singleton_details = new HashMap();
 			
-			singleton_map.put( "u", url.toExternalForm().getBytes( "UTF-8" ));
-			
-			byte[]	singleton_key = BEncoder.encode( singleton_map );
-			
+			singleton_details.put( "key", url.toExternalForm().getBytes( "UTF-8" ));
+						
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_key, json );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json );
 			
 			log( "Created new singelton subscription: " + subs.getString());
 			
@@ -541,7 +542,7 @@ SubscriptionManagerImpl
 			
 			if ( subs.isPublic()){
 				
-				updatePublicSubscription( subs, json );
+				updatePublicSubscription( subs );
 			}
 			
 			return( addSubscription( subs ));
@@ -714,15 +715,9 @@ SubscriptionManagerImpl
 	
 	protected void
 	updatePublicSubscription(
-		SubscriptionImpl		subs,
-		String					json )
+		SubscriptionImpl		subs )
 	{		
-		try{
-			if ( json == null ){
-				
-				json = subs.getJSON();
-			}
-						
+		try{		
 			File vf = getVuzeFile( subs );
 
 			byte[] bytes = FileUtil.readFileAsByteArray( vf );
@@ -751,6 +746,53 @@ SubscriptionManagerImpl
 	}
 	
 	protected void
+	checkSingletonPublish(
+		SubscriptionImpl		subs )
+	
+		throws SubscriptionException
+	{
+		if ( subs.getSingletonPublishAttempted()){
+			
+			throw( new SubscriptionException( "Singleton publish already attempted" ));
+		}
+		
+		subs.getSingletonPublishAttempted();
+		
+		try{
+			File vf = getVuzeFile( subs );
+	
+			byte[] bytes = FileUtil.readFileAsByteArray( vf );
+			
+			byte[]	encoded_subs = Base64.encode( bytes );
+			
+				// use a transient key-pair as underlying current one is generic
+				// and will violate unique constraint if used
+			
+				// as it is singleton the keys will never be used anyway 
+			
+			KeyPair	kp = CryptoECCUtils.createKeys();
+			
+			byte[] public_key 		= CryptoECCUtils.keyToRawdata( kp.getPublic());
+			byte[] private_key 		= CryptoECCUtils.keyToRawdata( kp.getPrivate());
+	
+			PlatformSubscriptionsMessenger.updateSubscription(
+					true,
+					subs.getName(),
+					public_key,
+					private_key,
+					subs.getShortID(),
+					1,
+					new String( encoded_subs ));
+			
+			log( "    created singleton public subscription " + subs.getString());
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to publish singleton", e ));
+		}
+	}
+	
+	protected void
 	checkServerPublications(
 		List		subs )
 	{
@@ -760,7 +802,7 @@ SubscriptionManagerImpl
 			
 			if ( sub.getServerPublicationOutstanding()){
 				
-				updatePublicSubscription( sub, null );
+				updatePublicSubscription( sub );
 			}
 		}
 	}
@@ -1315,7 +1357,13 @@ SubscriptionManagerImpl
 								
 								int	latest_version = ((Long)versions.get(0)).intValue();
 								
-								if ( latest_version > sub.getVersion()){
+								if ( latest_version == 0 ){
+									
+									if ( sub.isSingleton()){
+									
+										checkSingletonPublish( sub );
+									}
+								}else if ( latest_version > sub.getVersion()){
 									
 									updateSubscription( sub, latest_version );
 									
@@ -1727,27 +1775,51 @@ SubscriptionManagerImpl
 		try{
 			long pop = PlatformSubscriptionsMessenger.getPopularityBySID( subs.getShortID());
 
-			listener.gotPopularity( pop );
+			if ( pop >= 0 ){	
+				
+				listener.gotPopularity( pop );
+
+				return;
+				
+			}else{
+				
+					// unknown sid - if singleton try to register for popularity tracking purposes
+				
+				if ( subs.isSingleton()){
+					
+					try{
+						checkSingletonPublish( subs );
+						
+						listener.gotPopularity( subs.isSubscribed()?1:0 );
+						
+						return;
+						
+					}catch( Throwable e ){
+						
+						log( "    failed to create singleton public subscription " + subs.getString(), e );
+					}
+				}
+			}
 			
 		}catch( Throwable e ){
 			
 			log( "Subscription lookup via platform failed", e );
+		}
+		
+		if ( dht_plugin != null && !dht_plugin.isInitialising()){
 
-			if ( dht_plugin != null && !dht_plugin.isInitialising()){
-
-				getPopularitySupport( subs, listener );
-				
-			}else{
-				
-				new AEThread2( "SM:popwait", true )
+			getPopularitySupport( subs, listener );
+			
+		}else{
+			
+			new AEThread2( "SM:popwait", true )
+			{
+				public void
+				run()
 				{
-					public void
-					run()
-					{
-						getPopularitySupport( subs, listener );
-					}
-				}.start();
-			}
+					getPopularitySupport( subs, listener );
+				}
+			}.start();
 		}
 	}
 	
@@ -1885,9 +1957,10 @@ SubscriptionManagerImpl
 
 				return;
 			}
+			
 				// fall back to DHT
 			
-			log( "Subscription lookup via DHT starts for " + sid_str, e );
+			log( "Subscription lookup via DHT starts for " + sid_str );
 
 			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
 			
@@ -2087,7 +2160,9 @@ SubscriptionManagerImpl
 					SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, add_type, false );
 							
 					if ( Arrays.equals( new_subs.getShortID(), sid )){
-									
+							
+						new_subs.verifyShortID( sid );
+						
 						return( new_subs );
 					}
 				}catch( Throwable e ){

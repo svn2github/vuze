@@ -158,7 +158,7 @@ PlatformSubscriptionsMessenger
 			}
 		}
 		
-		throw( new PlatformMessengerException( "Unknown sid '" + ByteFormatter.encodeString(sid) + "'" ));
+		return( -1 );
 	}
 	
 	public static List 

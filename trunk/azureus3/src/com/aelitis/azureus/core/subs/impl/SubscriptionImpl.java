@@ -100,7 +100,7 @@ SubscriptionImpl
 	private String			name;
 	private int				version;
 	private boolean			is_public;
-	private byte[]			singleton_key;
+	private Map				singleton_details;
 	
 	private byte[]			hash;
 	private byte[]			sig;
@@ -126,6 +126,8 @@ SubscriptionImpl
 	
 	private boolean			server_published;
 	private boolean			server_publication_outstanding;
+	
+	private boolean			singleton_sp_attempted;
 	
 	private LightWeightSeed	lws;
 	
@@ -185,7 +187,7 @@ SubscriptionImpl
 		SubscriptionManagerImpl		_manager,
 		String						_name,
 		boolean						_public,
-		byte[]						_singleton_key,
+		Map							_singleton_details,
 		String						_json_content )
 	
 		throws SubscriptionException
@@ -196,14 +198,14 @@ SubscriptionImpl
 
 		history = new SubscriptionHistoryImpl( manager, this );
 		
-		name			= _name;
-		is_public		= _public;
-		singleton_key	= _singleton_key;
+		name				= _name;
+		is_public			= _public;
+		singleton_details	= _singleton_details;
 		
 		version		= 1;
 		
 		try{
-			if ( singleton_key == null ){
+			if ( singleton_details == null ){
 				
 				KeyPair	kp = CryptoECCUtils.createKeys();
 				
@@ -215,11 +217,7 @@ SubscriptionImpl
 				
 			}else{
 				
-				byte[] 	explicit_sid = new SHA1Simple().calculateHash( singleton_key );
-
-				byte[]	sid = new byte[SIMPLE_ID_LENGTH];
-				
-				System.arraycopy( explicit_sid, 0, sid, 0, 10 );
+				byte[] sid = getSIDForSingleton();
 				
 				encoded_public_key = new byte[ SIMPLE_ID_LENGTH + GENERIC_PUBLIC_KEY.length ];
 				
@@ -240,7 +238,7 @@ SubscriptionImpl
 			
 			String json_content = embedEngines( _json_content );
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, encoded_public_key, version, singleton_key );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, encoded_public_key, version, singleton_details );
 						
 			syncToBody( body );
 			
@@ -329,7 +327,7 @@ SubscriptionImpl
 		version				= body.getVersion();
 		name				= body.getName();
 		is_public			= body.isPublic();
-		singleton_key		= body.getSingletonKey();
+		singleton_details	= body.getSingletonDetails();
 	}
 	
 	protected void
@@ -364,9 +362,10 @@ SubscriptionImpl
 			
 			map.put( "is_public", new Long( is_public?1:0 ));
 			
-			if ( singleton_key != null ){
+			if ( singleton_details != null ){
 				
-				map.put( "sin_key", singleton_key );
+				map.put( "sin_details", singleton_details );
+				map.put( "spa", new Long( singleton_sp_attempted?1:0 ));
 			}
 			
 				// body data
@@ -395,7 +394,7 @@ SubscriptionImpl
 			
 			map.put( "sp", new Long( server_published?1:0 ));
 			map.put( "spo", new Long( server_publication_outstanding?1:0 ));
-			
+						
 			if ( associations.size() > 0 ){
 				
 				List	l_assoc = new ArrayList();
@@ -432,7 +431,7 @@ SubscriptionImpl
 		private_key			= (byte[])map.get( "private_key" );
 		version				= ((Long)map.get( "version" )).intValue();
 		is_public			= ((Long)map.get( "is_public")).intValue() == 1;
-		singleton_key		= (byte[])map.get( "sin_key" );
+		singleton_details	= (Map)map.get( "sin_details" );
 		
 		hash			= (byte[])map.get( "hash" );
 		sig				= (byte[])map.get( "sig" );
@@ -451,6 +450,12 @@ SubscriptionImpl
 		
 		server_published = ((Long)map.get( "sp" )).intValue()==1;
 		server_publication_outstanding = ((Long)map.get( "spo" )).intValue()==1;
+		
+		Long	l_spa = (Long)map.get( "spa" );
+		
+		if ( l_spa != null ){
+			singleton_sp_attempted = l_spa.longValue()==1; 
+		}
 		
 		List	l_assoc = (List)map.get( "assoc" );
 		
@@ -545,6 +550,27 @@ SubscriptionImpl
 		}
 	}
 	
+	protected byte[]
+	getSIDForSingleton()
+	{
+		byte[] 	explicit_sid = new SHA1Simple().calculateHash((byte[])singleton_details.get( "key" ));
+
+		byte[]	sid = new byte[SIMPLE_ID_LENGTH];
+		
+		System.arraycopy( explicit_sid, 0, sid, 0, 10 );
+		
+		return( sid );
+	}
+	
+	protected void
+	verifyShortID(
+		byte[]		sid )
+	
+		throws SubscriptionException
+	{
+		
+	}
+	
 	protected static byte[]
 	getRealPublicKey(
 		byte[]		encoded_public_key )
@@ -575,7 +601,30 @@ SubscriptionImpl
 	protected boolean
 	isSingleton()
 	{
-		return( singleton_key != null );
+		return( singleton_details != null );
+	}
+	
+	protected Map
+	getSingletonDetails()
+	{
+		return( singleton_details );
+	}
+	
+	protected boolean
+	getSingletonPublishAttempted()
+	{
+		return( singleton_sp_attempted );
+	}
+	
+	protected void
+	setSingletonPublishAttempted()
+	{
+		if ( !singleton_sp_attempted ){
+			
+			singleton_sp_attempted = true;
+		
+			manager.configDirty( this );
+		}
 	}
 	
 	public String
@@ -975,7 +1024,7 @@ SubscriptionImpl
 		
 		if ( is_public ){
 			
-			manager.updatePublicSubscription( this, body.getJSON());
+			manager.updatePublicSubscription( this );
 			
 			setPublished( false );
 			
@@ -1443,9 +1492,9 @@ SubscriptionImpl
 		result.put( "z", new Long( sig_data_size ));
 		result.put( "s", sig );
 			
-		if ( singleton_key != null ){
+		if ( singleton_details != null ){
 			
-			result.put( "x", singleton_key );
+			result.put( "x", singleton_details );
 		}
 		
 		return( result );
