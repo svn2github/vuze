@@ -39,6 +39,8 @@ public class SelectedContent implements ISelectedContent
 	private DownloadManager dm;
 
 	private String displayName;
+	
+	private String urlDL;
 
 	/**
 	 * @param dm2
@@ -101,5 +103,15 @@ public class SelectedContent implements ISelectedContent
 	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDisplayName(java.lang.String)
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
+	}
+	
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDownloadURL()
+	public String getDownloadURL() {
+		return urlDL;
+	}
+	
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadURL(java.lang.String)
+	public void setDownloadURL(String urlDL) {
+		this.urlDL = urlDL;
 	}
 }

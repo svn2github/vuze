@@ -40,4 +40,13 @@ public interface ISelectedContent
 
 	public abstract void setDisplayName(String displayName);
 
+	/**
+	 * @since 3.1.1.1
+	 */
+	public abstract String getDownloadURL();
+
+	/**
+	 * @since 3.1.1.1
+	 */
+	public abstract void setDownloadURL(String urlDL);
 }
