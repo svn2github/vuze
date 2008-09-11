@@ -40,6 +40,9 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -150,6 +153,7 @@ public class PlayUtils
 		if (ds == null) {
 			return false;
 		}
+		
 	
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm != null) {
@@ -162,6 +166,12 @@ public class PlayUtils
 		if (ds instanceof VuzeActivitiesEntry) {
 			return ((VuzeActivitiesEntry) ds).isPlayable();
 		}
+		
+		if (ds instanceof SelectedContentV3) {
+			SelectedContentV3 sel = (SelectedContentV3) ds;
+			return sel.canPlay();
+		}
+		
 		return false;
 	}
 

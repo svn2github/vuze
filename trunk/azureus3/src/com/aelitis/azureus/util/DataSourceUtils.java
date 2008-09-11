@@ -57,6 +57,8 @@ public class DataSourceUtils
 			} else if (ds instanceof TOTorrent) {
 				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 				return gm.getDownloadManager((TOTorrent) ds);
+			} else if (ds instanceof ISelectedContent) {
+				return getDM(((ISelectedContent)ds).getDM()); 
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -85,6 +87,10 @@ public class DataSourceUtils
 				}
 			}
 			return torrent;
+		}
+
+		if (ds instanceof ISelectedContent) {
+			return getTorrent(((ISelectedContent)ds).getDM());
 		}
 
 		return null;
@@ -122,6 +128,18 @@ public class DataSourceUtils
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
+		}
+		return null;
+	}
+
+	/**
+	 * @param ds
+	 *
+	 * @since 3.1.1.1
+	 */
+	public static String getDownloadURL(Object ds) {
+		if (ds instanceof ISelectedContent) {
+			return ((ISelectedContent)ds).getDownloadURL();
 		}
 		return null;
 	}
