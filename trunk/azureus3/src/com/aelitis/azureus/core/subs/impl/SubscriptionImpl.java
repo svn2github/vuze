@@ -329,6 +329,7 @@ SubscriptionImpl
 		version				= body.getVersion();
 		name				= body.getName();
 		is_public			= body.isPublic();
+		singleton_key		= body.getSingletonKey();
 	}
 	
 	protected void
