@@ -64,6 +64,8 @@ public class SideBarEntrySWT implements SideBarEntry
 	public Object[] iviewClassVals;
 	
 	protected Image imageLeft;
+
+	public boolean disableCollapse;
 	
 	public String getParentID() {
 		return parentID;

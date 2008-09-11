@@ -34,9 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -84,6 +82,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -384,10 +384,11 @@ public class SideBar
 
 		Listener treeListener = new Listener() {
 			public void handleEvent(final Event event) {
+				TreeItem treeItem = (TreeItem) event.item;
+
 				switch (event.type) {
 					case SWT.MeasureItem: {
 						int clientWidth = tree.getClientArea().width;
-						TreeItem treeItem = (TreeItem) event.item;
 						String text = treeItem.getText(event.index);
 						Point size = event.gc.textExtent(text);
 						if (event.x + event.width < clientWidth) {
@@ -421,8 +422,7 @@ public class SideBar
 					}
 
 					case SWT.Selection: {
-						TreeItem item = (TreeItem) event.item;
-						itemSelected(item);
+						itemSelected(treeItem);
 						break;
 					}
 
@@ -431,7 +431,7 @@ public class SideBar
 							return;
 						}
 						int indent = tree.getItem(0).getBounds().x;
-						TreeItem treeItem = tree.getItem(new Point(indent, event.y));
+						treeItem = tree.getItem(new Point(indent, event.y));
 						if (treeItem == null) {
 							return;
 						}
@@ -464,12 +464,18 @@ public class SideBar
 
 					case SWT.Collapse: {
 						tree.setRedraw(false);
-						Display.getDefault().asyncExec(new Runnable() {
-							public void run() {
-								((TreeItem) event.item).setExpanded(true);
-								tree.setRedraw(true);
-							}
-						});
+
+						String id = (String) treeItem.getData("Plugin.viewID");
+						SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+						
+						if (sideBarInfo.disableCollapse) {
+  						Display.getDefault().asyncExec(new Runnable() {
+  							public void run() {
+  								((TreeItem) event.item).setExpanded(true);
+  								tree.setRedraw(true);
+  							}
+  						});
+						}
 						break;
 					}
 				}
@@ -487,7 +493,7 @@ public class SideBar
 		tree.addListener(SWT.MouseUp, treeListener);
 
 		// to disable collapsing
-		//tree.addListener(SWT.Collapse, treeListener);
+		tree.addListener(SWT.Collapse, treeListener);
 		
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
@@ -921,13 +927,14 @@ public class SideBar
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
 				null, false, -1);
 		entry.imageLeft = imageLoader.getImage("image.sidebar.library");
+		entry.disableCollapse = true;
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_DL,
-				"library", " " + MessageText.getString("sidebar.LibraryDL"), null, null,
+		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_DL,
+				"library", MessageText.getString("sidebar.LibraryDL"), null, null,
 				false, -1);
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY_CD,
-				"library", " " + MessageText.getString("sidebar.LibraryCD"), null, null,
+		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_CD,
+				"library", MessageText.getString("sidebar.LibraryCD"), null, null,
 				false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE, "main.area.browsetab",
