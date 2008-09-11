@@ -364,6 +364,8 @@ public class TorrentListViewsUtils
 			referal = "playdashboardactivity";
 		} else if (ds instanceof DownloadManager) {
 			referal = "playdownloadmanager";
+		} else if (ds instanceof ISelectedContent) {
+			referal = "selectedcontent";
 		} else {
 			referal = "unknown";
 		}
@@ -408,6 +410,13 @@ public class TorrentListViewsUtils
 				AzureusCore core = AzureusCoreFactory.getSingleton();
 				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true,
 						true);
+			} else {
+				String downloadURL = DataSourceUtils.getDownloadURL(ds);
+				if (downloadURL != null) {
+					AzureusCore core = AzureusCoreFactory.getSingleton();
+					TorrentUIUtilsV3.loadTorrent(core, downloadURL, null, playNow, false,
+							true, true);
+				}
 			}
 		}
 	}
