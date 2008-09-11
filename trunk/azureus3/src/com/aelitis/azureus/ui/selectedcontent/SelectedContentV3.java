@@ -44,6 +44,8 @@ public class SelectedContentV3
 	private String thumbURL;
 	
 	private byte[] imageBytes;
+	
+	private String urlDL;
 
 	public SelectedContentV3(SelectedContent content) {
 		this.content = content;
@@ -147,5 +149,16 @@ public class SelectedContentV3
 	 */
 	public byte[] getImageBytes() {
 		return imageBytes;
+	}
+
+	
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDownloadURL()
+	public String getDownloadURL() {
+		return urlDL;
+	}
+	
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadURL(java.lang.String)
+	public void setDownloadURL(String urlDL) {
+		this.urlDL = urlDL;
 	}
 }
