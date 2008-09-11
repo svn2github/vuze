@@ -186,7 +186,8 @@ SubscriptionImpl
 		String						_name,
 		boolean						_public,
 		Map							_singleton_details,
-		String						_json_content )
+		String						_json_content,
+		int							_add_type )
 	
 		throws SubscriptionException
 	{
@@ -200,18 +201,18 @@ SubscriptionImpl
 		is_public			= _public;
 		singleton_details	= _singleton_details;
 		
-		version		= 1;
+		version				= 1;
+		add_type			= _add_type;
+		add_time			= SystemTime.getCurrentTime();
 		
+		is_subscribed		= true;
+
 		try{
 			KeyPair	kp = CryptoECCUtils.createKeys();
 				
-			public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
+			public_key 			= CryptoECCUtils.keyToRawdata( kp.getPublic());
 			private_key 		= CryptoECCUtils.keyToRawdata( kp.getPrivate());
 						
-			add_type			= ADD_TYPE_CREATE;
-			add_time			= SystemTime.getCurrentTime();
-			
-			is_subscribed		= true;
 			
 			fixed_random	= new Random().nextInt();
 			

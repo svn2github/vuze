@@ -484,7 +484,7 @@ SubscriptionManagerImpl
 			throw ( new SubscriptionException( "Subscription with name '" + name + "' already exists" ));
 		}
 		
-		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, null, json );
+		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 		
 		log( "Created new subscription: " + subs.getString());
 		
@@ -507,6 +507,17 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
+		return( createSingletonRSS( name, url, SubscriptionImpl.ADD_TYPE_CREATE ));
+	}
+	
+	public Subscription
+	createSingletonRSS(
+		String		name,
+		URL			url,
+		int			add_type )
+		
+		throws SubscriptionException
+	{
 		if ( url.getHost().trim().length() == 0 ){
 			
 			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
@@ -525,7 +536,7 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json, add_type );
 			
 			log( "Created new singleton subscription: " + subs.getString());
 			
@@ -539,7 +550,8 @@ SubscriptionManagerImpl
 	
 	protected SubscriptionImpl
 	createSingletonSubscription(
-		Map		singleton_details )
+		Map		singleton_details,
+		int		add_type )
 	{
 		try{
 			String name = ImportExportUtils.importString( singleton_details, "name", "(Anonymous)" );
@@ -548,7 +560,7 @@ SubscriptionManagerImpl
 			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSS( name, url );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSS( name, url, add_type );
 			
 			return( s );
 			
@@ -582,7 +594,7 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			log( "Created new subscription: " + subs.getString());
 			
@@ -2016,11 +2028,8 @@ SubscriptionManagerImpl
 		final subsLookupListener			listener )
 	{
 		try{
-			SubscriptionImpl subs = getSubscriptionFromPlatform( sid,SubscriptionImpl.ADD_TYPE_LOOKUP );
+			SubscriptionImpl subs = getSubscriptionFromPlatform( sid, SubscriptionImpl.ADD_TYPE_LOOKUP );
 
-			if ( subs.isSingleton()){
-				throw( new Exception( "blah" ));
-			}
 			log( "Added temporary subscription: " + subs.getString());
 			
 			subs = addSubscription( subs );
@@ -2123,7 +2132,7 @@ SubscriptionManagerImpl
 									
 								}else{
 									
-									SubscriptionImpl subs = createSingletonSubscription( singleton_details );
+									SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP );
 									
 									if ( subs == null ){
 										
@@ -4206,7 +4215,7 @@ SubscriptionManagerImpl
 		String[]	args )
 	{
 		final String 	NAME 	= "lalalal";
-		final String	URL_STR	= "http://www.vuze.com/feed/publisher/ALL/4";
+		final String	URL_STR	= "http://www.vuze.com/feed/publisher/ALL/1";
 		
 		try{
 			//AzureusCoreFactory.create();
