@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -118,7 +119,7 @@ SubscriptionManagerImpl
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
 								
 								try{
-									((SubscriptionManagerImpl)getSingleton()).importSubscription(
+									((SubscriptionManagerImpl)getSingleton( false )).importSubscription(
 											comp.getContent(),
 											( expected_types & VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ) == 0 );
 									
@@ -136,11 +137,12 @@ SubscriptionManagerImpl
 	}
 		
 	public static synchronized SubscriptionManager
-	getSingleton()
+	getSingleton(
+		boolean		stand_alone )
 	{
 		if ( singleton == null ){
 			
-			singleton = new SubscriptionManagerImpl();
+			singleton = new SubscriptionManagerImpl( stand_alone );
 		}
 		
 		return( singleton );
@@ -193,30 +195,34 @@ SubscriptionManagerImpl
 	
 	
 	protected
-	SubscriptionManagerImpl()
+	SubscriptionManagerImpl(
+		boolean	stand_alone )
 	{
-		loadConfig();
-
-		scheduler = new SubscriptionSchedulerImpl( this );
-		
-		AzureusCore	core = AzureusCoreFactory.getSingleton();
-		
-		core.addLifecycleListener(
-			new AzureusCoreLifecycleAdapter()
-			{
-				public void
-				started(
-					AzureusCore		core )
+		if ( !stand_alone ){
+			
+			loadConfig();
+	
+			scheduler = new SubscriptionSchedulerImpl( this );
+			
+			AzureusCore	core = AzureusCoreFactory.getSingleton();
+			
+			core.addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
 				{
-					core.removeLifecycleListener( this );
-					
-					startUp();
-				}
-			});
-		
-		if ( core.isStarted()){
-		
-			startUp();
+					public void
+					started(
+						AzureusCore		core )
+					{
+						core.removeLifecycleListener( this );
+						
+						startUp();
+					}
+				});
+			
+			if ( core.isStarted()){
+			
+				startUp();
+			}
 		}
 	}
 
@@ -470,7 +476,7 @@ SubscriptionManagerImpl
 			throw ( new SubscriptionException( "Subscription with name '" + name + "' already exists" ));
 		}
 		
-		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, json );
+		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, null, json );
 		
 		log( "Created new subscription: " + subs.getString());
 		
@@ -482,23 +488,54 @@ SubscriptionManagerImpl
 		return( addSubscription( subs ));
 	}
 	
-	public Subscription 
-	createRSS(
-		String		url )
-	
-		throws SubscriptionException 
-	{
-		if ( getSubscriptionFromName( url ) != null ){
-			
-			throw ( new SubscriptionException( "Subscription with feed '" + url + "' already exists" ));
-		}
+	public Subscription
+	createSingletonRSS(
+		String		name,
+		URL			url )
 		
+		throws SubscriptionException
+	{
 		try{
-			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( url );
+			Map	singleton_map = new HashMap();
+			
+			singleton_map.put( "u", url.toExternalForm().getBytes( "UTF-8" ));
+			
+			byte[]	singleton_key = BEncoder.encode( singleton_map );
+			
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, url, true, json );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_key, json );
+			
+			log( "Created new singelton subscription: " + subs.getString());
+			
+			return( subs );
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to create subscription", e ));
+		}
+	}
+	
+	public Subscription 
+	createRSS(
+		String		name,
+		URL			url )
+	
+		throws SubscriptionException 
+	{
+		try{
+			if ( getSubscriptionFromName( name ) != null ){
+				
+				throw ( new SubscriptionException( "Subscription with feed '" + url + "' already exists" ));
+			}
+		
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
+			
+			String	json = SubscriptionImpl.getSkeletonJSON( engine );
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json );
 			
 			log( "Created new subscription: " + subs.getString());
 			
@@ -774,100 +811,116 @@ SubscriptionManagerImpl
 		throws SubscriptionException
 	{
 		try{
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( this, map );
-					
-			SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
+			try{
+				SubscriptionBodyImpl body = new SubscriptionBodyImpl( this, map );
+						
+				SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
+				
+				if ( existing != null ){
+				
+					if ( existing.getVersion() <= body.getVersion()){
+						
+						log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
+						
+						if ( warn_user ){
+							
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+							
+							String details = MessageText.getString(
+									"subscript.add.dup.desc",
+									new String[]{ existing.getName()});
+							
+							ui_manager.showMessageBox(
+									"subscript.add.dup.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_OK );
+						}
+							// we have a newer one, ignore
+						
+						return( existing );
+						
+					}else{
+						
+						if ( warn_user ){
+							
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 			
-			if ( existing != null ){
-			
-				if ( existing.getVersion() <= body.getVersion()){
-					
-					log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
-					
-					if ( warn_user ){
+							String details = MessageText.getString(
+									"subscript.add.upgrade.desc",
+									new String[]{ existing.getName()});
+							
+							long res = ui_manager.showMessageBox(
+									"subscript.add.upgrade.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+							
+							if ( res != UIManagerEvent.MT_YES ){	
+							
+								throw( new SubscriptionException( "User declined upgrade" ));
+							}
+						}
 						
-						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+						log( "Upgrading subscription: " + existing.getString());
+		
+						existing.upgrade( body );
 						
-						String details = MessageText.getString(
-								"subscript.add.dup.desc",
-								new String[]{ existing.getName()});
+						saveConfig();
 						
-						ui_manager.showMessageBox(
-								"subscript.add.dup.title",
-								"!" + details + "!",
-								UIManagerEvent.MT_OK );
+						subscriptionUpdated();
+						
+						return( existing );
 					}
-						// we have a newer one, ignore
-					
-					return( existing );
-					
 				}else{
 					
+					SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
+		
 					if ( warn_user ){
 						
 						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-		
+			
 						String details = MessageText.getString(
-								"subscript.add.upgrade.desc",
-								new String[]{ existing.getName()});
+								"subscript.add.desc",
+								new String[]{ new_subs.getName()});
 						
 						long res = ui_manager.showMessageBox(
-								"subscript.add.upgrade.title",
+								"subscript.add.title",
 								"!" + details + "!",
 								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
 						
 						if ( res != UIManagerEvent.MT_YES ){	
 						
-							throw( new SubscriptionException( "User declined upgrade" ));
+							throw( new SubscriptionException( "User declined addition" ));
 						}
 					}
 					
-					log( "Upgrading subscription: " + existing.getString());
-	
-					existing.upgrade( body );
+					log( "Imported new subscription: " + new_subs.getString());
 					
-					saveConfig();
+					new_subs = addSubscription( new_subs );
 					
-					subscriptionUpdated();
-					
-					return( existing );
+					return( new_subs );
 				}
-			}else{
-				
-				SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
-	
-				if ( warn_user ){
 					
-					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-		
-					String details = MessageText.getString(
-							"subscript.add.desc",
-							new String[]{ new_subs.getName()});
-					
-					long res = ui_manager.showMessageBox(
-							"subscript.add.title",
-							"!" + details + "!",
-							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-					
-					if ( res != UIManagerEvent.MT_YES ){	
-					
-						throw( new SubscriptionException( "User declined addition" ));
-					}
-				}
+			}catch( Throwable e ){
 				
-				log( "Imported new subscription: " + new_subs.getString());
-				
-				new_subs = addSubscription( new_subs );
-				
-				return( new_subs );
+				throw( new SubscriptionException( "Subscription import failed", e ));
 			}
 		}catch( SubscriptionException e ){
-				
-			throw( e );
-				
-		}catch( Throwable e ){
 			
-			throw( new SubscriptionException( "Subscription import failed", e ));
+			if ( warn_user ){
+				
+				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+				
+				String details = MessageText.getString(
+						"subscript.import.fail.desc",
+						new String[]{ Debug.getNestedExceptionMessage(e)});
+				
+				ui_manager.showMessageBox(
+						"subscript.import.fail.title",
+						"!" + details + "!",
+						UIManagerEvent.MT_OK );
+			}
+			
+			throw( e );
 		}
 	}
 	
@@ -2938,7 +2991,7 @@ SubscriptionManagerImpl
 		
 		if ( !subs.canAutoUpgradeCheck()){
 			
-			log( "    Checked too recently, ignoring" );
+			log( "    Checked too recently or not updateable, ignoring" );
 			
 			return;
 		}
@@ -3942,5 +3995,25 @@ SubscriptionManagerImpl
 		SubscriptionManagerListener	listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			//AzureusCoreFactory.create();
+			
+			Subscription subs = 
+				getSingleton(true).createSingletonRSS(
+						"lalalal",
+						new URL( "http://www.vuze.com/feed/publisher/ALL/3" ));
+			
+			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.widgets.AnimatedImage;
@@ -397,6 +398,11 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 										return( false );
 									} 
 									public Engine getEngine() {
+										// TODO Auto-generated method stub
+										return null;
+									}
+									public VuzeFile getVuzeFile()
+											throws SubscriptionException {
 										// TODO Auto-generated method stub
 										return null;
 									}

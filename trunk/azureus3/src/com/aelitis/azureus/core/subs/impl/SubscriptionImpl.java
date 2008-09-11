@@ -58,6 +58,8 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.util.JSONUtils;
 
 public class 
@@ -68,11 +70,14 @@ SubscriptionImpl
 	public static final int	ADD_TYPE_IMPORT		= 2;
 	public static final int	ADD_TYPE_LOOKUP		= 3;
 	
-	protected static final int SIMPLE_ID_LENGTH				= 10;
+	private static final int SIMPLE_ID_LENGTH				= 10;
 	
 	private static final int MAX_ASSOCIATIONS				= 256;
 	private static final int MIN_RECENT_ASSOC_TO_RETAIN		= 16;
-	
+		
+	private static final byte[] GENERIC_PUBLIC_KEY 		= {(byte)0x04,(byte)0xd0,(byte)0x1a,(byte)0xd9,(byte)0xb9,(byte)0x99,(byte)0xd8,(byte)0x49,(byte)0x15,(byte)0x5f,(byte)0xe9,(byte)0x6b,(byte)0x3c,(byte)0xd8,(byte)0x18,(byte)0x81,(byte)0xf7,(byte)0x92,(byte)0x15,(byte)0x3f,(byte)0x24,(byte)0xaa,(byte)0x35,(byte)0x6f,(byte)0x52,(byte)0x01,(byte)0x79,(byte)0x2e,(byte)0x93,(byte)0xf6,(byte)0xf1,(byte)0x57,(byte)0x13,(byte)0x2a,(byte)0x3c,(byte)0x31,(byte)0x66,(byte)0xa5,(byte)0x34,(byte)0x9f,(byte)0x79,(byte)0x62,(byte)0x04,(byte)0x31,(byte)0x68,(byte)0x37,(byte)0x8f,(byte)0x77,(byte)0x5c};
+	private static final byte[] GENERIC_PRIVATE_KEY 	= {(byte)0x71,(byte)0xc3,(byte)0xe8,(byte)0x6c,(byte)0x56,(byte)0xbb,(byte)0x30,(byte)0x14,(byte)0x9e,(byte)0x19,(byte)0xa5,(byte)0x3d,(byte)0xcb,(byte)0x47,(byte)0xbb,(byte)0x6d,(byte)0x57,(byte)0x57,(byte)0xd3,(byte)0x59,(byte)0xce,(byte)0x8f,(byte)0x79,(byte)0xe5};
+
 	protected static byte[]
 	intToBytes(
 		int		version )
@@ -89,12 +94,13 @@ SubscriptionImpl
 		
 	private SubscriptionManagerImpl		manager;
 	
-	private byte[]			public_key;
+	private byte[]			encoded_public_key;
 	private byte[]			private_key;
 	
 	private String			name;
 	private int				version;
 	private boolean			is_public;
+	private byte[]			singleton_key;
 	
 	private byte[]			hash;
 	private byte[]			sig;
@@ -179,6 +185,7 @@ SubscriptionImpl
 		SubscriptionManagerImpl		_manager,
 		String						_name,
 		boolean						_public,
+		byte[]						_singleton_key,
 		String						_json_content )
 	
 		throws SubscriptionException
@@ -189,17 +196,39 @@ SubscriptionImpl
 
 		history = new SubscriptionHistoryImpl( manager, this );
 		
-		name		= _name;
-		is_public	= _public;
+		name			= _name;
+		is_public		= _public;
+		singleton_key	= _singleton_key;
+		
 		version		= 1;
 		
 		try{
-			KeyPair	kp = CryptoECCUtils.createKeys();
-			
-			public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
-			private_key = CryptoECCUtils.keyToRawdata( kp.getPrivate());
-			
+			if ( singleton_key == null ){
 				
+				KeyPair	kp = CryptoECCUtils.createKeys();
+				
+				encoded_public_key 	= CryptoECCUtils.keyToRawdata( kp.getPublic());
+				private_key 		= CryptoECCUtils.keyToRawdata( kp.getPrivate());
+			
+				// System.out.println( "pub=" + xxx( public_key ));
+				// System.out.println( "pri=" +  xxx( private_key ));
+				
+			}else{
+				
+				byte[] 	explicit_sid = new SHA1Simple().calculateHash( singleton_key );
+
+				byte[]	sid = new byte[SIMPLE_ID_LENGTH];
+				
+				System.arraycopy( explicit_sid, 0, sid, 0, 10 );
+				
+				encoded_public_key = new byte[ SIMPLE_ID_LENGTH + GENERIC_PUBLIC_KEY.length ];
+				
+				System.arraycopy( GENERIC_PUBLIC_KEY, 0, encoded_public_key, 0, GENERIC_PUBLIC_KEY.length );
+				System.arraycopy( sid, 0, encoded_public_key, GENERIC_PUBLIC_KEY.length, SIMPLE_ID_LENGTH );
+				
+				private_key = GENERIC_PRIVATE_KEY;
+			}
+			
 			add_type			= ADD_TYPE_CREATE;
 			add_time			= SystemTime.getCurrentTime();
 			
@@ -211,7 +240,7 @@ SubscriptionImpl
 			
 			String json_content = embedEngines( _json_content );
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, public_key, version );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, encoded_public_key, version, singleton_key );
 						
 			syncToBody( body );
 			
@@ -220,6 +249,28 @@ SubscriptionImpl
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
 	}
+	
+	/*
+	private String
+	xxx(
+		byte[]	b )
+	{
+		String	str = "";
+		
+		for (int i=0;i<b.length;i++){
+			
+			String g = Integer.toHexString(b[i]&0xff);
+			
+			if ( g.length()==1){
+				
+				g = "0" + g;
+			}
+			str += (i==0?"":",") + "(byte)0x" + g;
+		}
+		
+		return( str );
+	}
+	*/
 	
 		// cache detail constructor
 	
@@ -274,10 +325,10 @@ SubscriptionImpl
 	syncFromBody(
 		SubscriptionBodyImpl	body )
 	{
-		public_key		= body.getPublicKey();
-		version			= body.getVersion();
-		name			= body.getName();
-		is_public		= body.isPublic();
+		encoded_public_key	= body.getPublicKey();
+		version				= body.getVersion();
+		name				= body.getName();
+		is_public			= body.isPublic();
 	}
 	
 	protected void
@@ -306,11 +357,16 @@ SubscriptionImpl
 			
 			map.put( "name", name.getBytes( "UTF-8" ));
 			
-			map.put( "public_key", public_key );
+			map.put( "public_key", encoded_public_key );
 						
 			map.put( "version", new Long( version ));
 			
 			map.put( "is_public", new Long( is_public?1:0 ));
+			
+			if ( singleton_key != null ){
+				
+				map.put( "sin_key", singleton_key );
+			}
 			
 				// body data
 			
@@ -370,11 +426,12 @@ SubscriptionImpl
 	
 		throws IOException
 	{
-		name			= new String((byte[])map.get( "name"), "UTF-8" );
-		public_key		= (byte[])map.get( "public_key" );
-		private_key		= (byte[])map.get( "private_key" );
-		version			= ((Long)map.get( "version" )).intValue();
-		is_public		= ((Long)map.get( "is_public")).intValue() == 1;
+		name				= new String((byte[])map.get( "name"), "UTF-8" );
+		encoded_public_key	= (byte[])map.get( "public_key" );
+		private_key			= (byte[])map.get( "private_key" );
+		version				= ((Long)map.get( "version" )).intValue();
+		is_public			= ((Long)map.get( "is_public")).intValue() == 1;
+		singleton_key		= (byte[])map.get( "sin_key" );
 		
 		hash			= (byte[])map.get( "hash" );
 		sig				= (byte[])map.get( "sig" );
@@ -468,16 +525,56 @@ SubscriptionImpl
 		syncToBody(body);
 	}
 	
-
-	
 	protected void
 	init()
 	{
-		byte[]	hash = new SHA1Simple().calculateHash( public_key );
+			// if we have explicit ID then always immediately after the generic pub key
 		
 		short_id = new byte[SIMPLE_ID_LENGTH];
 		
-		System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
+		if ( isSingleton()){
+				
+			System.arraycopy( encoded_public_key, GENERIC_PUBLIC_KEY.length, short_id, 0, SIMPLE_ID_LENGTH );
+				
+		}else{
+		
+			byte[]	hash = new SHA1Simple().calculateHash( encoded_public_key );
+				
+			System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
+		}
+	}
+	
+	protected static byte[]
+	getRealPublicKey(
+		byte[]		encoded_public_key )
+	{
+		if ( encoded_public_key.length == GENERIC_PUBLIC_KEY.length + SIMPLE_ID_LENGTH ){
+			
+			boolean	match = true;
+			
+			for (int i=0;i<GENERIC_PUBLIC_KEY.length;i++){
+				
+				if ( encoded_public_key[i] != GENERIC_PUBLIC_KEY[i] ){
+					
+					match = false;
+					
+					break;
+				}
+			}
+			
+			if ( match ){
+				
+				return( GENERIC_PUBLIC_KEY );
+			}
+		}
+		
+		return( encoded_public_key );
+	}
+	
+	protected boolean
+	isSingleton()
+	{
+		return( singleton_key != null );
 	}
 	
 	public String
@@ -894,7 +991,7 @@ SubscriptionImpl
 	public byte[]
 	getPublicKey()
 	{
-		return( public_key );
+		return( encoded_public_key );
 	}
 	
 	public byte[]
@@ -1083,6 +1180,13 @@ SubscriptionImpl
 				return;
 			}
 				
+				// singleton's not available for upgrade
+			
+			if ( isSingleton()){
+				
+				return;
+			}
+			
 			if ( hash != null ){
 				
 				boolean	create = false;
@@ -1165,6 +1269,11 @@ SubscriptionImpl
 	protected synchronized boolean
 	canAutoUpgradeCheck()
 	{
+		if ( isSingleton()){
+			
+			return( false );
+		}
+		
 		long	now = SystemTime.getMonotonousTime();
 		
 		if ( last_auto_upgrade_check == -1 || now - last_auto_upgrade_check > 4*60*60*1000 ){
@@ -1332,7 +1441,12 @@ SubscriptionImpl
 		result.put( "v", new Long( version ));
 		result.put( "z", new Long( sig_data_size ));
 		result.put( "s", sig );
-				
+			
+		if ( singleton_key != null ){
+			
+			result.put( "x", singleton_key );
+		}
+		
 		return( result );
 	}
 	
@@ -1345,7 +1459,7 @@ SubscriptionImpl
 		int		size	= ((Long)details.get( "z" )).intValue();
 		byte[]	sig		= (byte[])details.get( "s" );
 		
-		return( SubscriptionBodyImpl.verify( public_key, hash, version, size, sig ));
+		return( SubscriptionBodyImpl.verify( encoded_public_key, hash, version, size, sig ));
 	}
 	
 	protected void
@@ -1410,6 +1524,20 @@ SubscriptionImpl
 	getManager()
 	{
 		return( manager );
+	}
+	
+	public VuzeFile 
+	getVuzeFile() 
+	
+		throws SubscriptionException
+	{
+		try{
+			return( VuzeFileHandler.getSingleton().loadVuzeFile( manager.getVuzeFile( this ).getAbsolutePath()));
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to get Vuze file", e ));
+		}
 	}
 	
 	protected void

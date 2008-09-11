@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -40,8 +41,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -72,6 +75,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
@@ -85,6 +89,7 @@ import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -117,6 +122,7 @@ SubscriptionManagerUI
 	private SubscriptionManager	subs_man;
 	
 	private MenuItemListener clearAllListener;
+	private MenuItemListener exportListener;
 	private MenuItemListener removeListener;
 	private MenuItemListener forceCheckListener;
 	
@@ -552,6 +558,66 @@ SubscriptionManagerUI
 			}
 		};
 		
+		exportListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					final Subscription subs = (Subscription) info.getDatasource();
+					
+					final Shell shell = Utils.findAnyShell();
+					
+					shell.getDisplay().asyncExec(
+						new AERunnable() 
+						{
+							public void 
+							runSupport()
+							{
+								FileDialog dialog = 
+									new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+								
+								dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+														
+								dialog.setText(MessageText.getString("subscript.export.select.template.file"));
+								
+								dialog.setFilterExtensions(new String[] {
+										"*.vuze",
+										"*.vuz",
+										Constants.FILE_WILDCARD
+									});
+								dialog.setFilterNames(new String[] {
+										"*.vuze",
+										"*.vuz",
+										Constants.FILE_WILDCARD
+									});
+								
+								String path = TorrentOpener.setFilterPathData( dialog.open());
+			
+								if ( path != null ){
+									
+									String lc = path.toLowerCase();
+									
+									if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+										
+										path += ".vuze";
+									}
+									
+									try{
+										VuzeFile vf = subs.getVuzeFile();
+										
+										vf.write( new File( path ));
+										
+
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						});
+				}
+			}
+		};
+		
 		removeListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
@@ -697,6 +763,9 @@ SubscriptionManagerUI
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
 								menuItem.addListener(clearAllListener);
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
+								menuItem.addListener(exportListener);
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
 								menuItem.addListener(removeListener);

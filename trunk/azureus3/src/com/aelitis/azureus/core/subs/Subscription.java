@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.subs;
 
 import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
 Subscription 
@@ -99,6 +100,11 @@ Subscription
 	
 		throws SubscriptionException;
 	
+	public VuzeFile
+	getVuzeFile()
+	
+		throws SubscriptionException;
+		
 	public void
 	remove();
 	

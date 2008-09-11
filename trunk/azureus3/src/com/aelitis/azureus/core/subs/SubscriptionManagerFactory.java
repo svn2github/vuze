@@ -36,6 +36,13 @@ SubscriptionManagerFactory
 	public static SubscriptionManager
 	getSingleton()
 	{
-		return( SubscriptionManagerImpl.getSingleton());
+		return( SubscriptionManagerImpl.getSingleton( false ));
+	}
+	
+	public static SubscriptionManager
+	getStandaloneSingleton(
+		boolean		stand_alone )
+	{
+		return( SubscriptionManagerImpl.getSingleton( true ));
 	}
 }

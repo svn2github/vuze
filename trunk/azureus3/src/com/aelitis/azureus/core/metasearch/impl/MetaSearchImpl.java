@@ -176,7 +176,8 @@ MetaSearchImpl
 	
 	public Engine 
 	createRSSEngine(
-		String 		url )
+		String		name,
+		URL 		url )
 	
 		throws MetaSearchException 
 	{
@@ -185,8 +186,8 @@ MetaSearchImpl
 					this, 
 					manager.getLocalTemplateID(), 
 					SystemTime.getCurrentTime(), 
-					url, 
-					url, 
+					name, 
+					url.toExternalForm(), 
 					false,
 					null,
 					new String[0] );

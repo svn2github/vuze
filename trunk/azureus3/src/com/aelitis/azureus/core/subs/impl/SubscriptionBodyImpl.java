@@ -78,12 +78,14 @@ SubscriptionBodyImpl
 	
 	protected static boolean
 	verify(
-		byte[]		public_key,
+		byte[]		encoded_public_key,
 		byte[]		hash,
 		int			version,
 		int			size,
 		byte[]		sig )
 	{
+		byte[]	public_key = SubscriptionImpl.getRealPublicKey(encoded_public_key);
+		
 		try{
 			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
 	
@@ -106,6 +108,7 @@ SubscriptionBodyImpl
 	private byte[]	public_key;
 	private int		version;
 	private String	json;
+	private byte[]	singleton_key;
 	
 	
 	
@@ -186,6 +189,8 @@ SubscriptionBodyImpl
 		is_public	= ((Long)details.get( "is_public" )).intValue()==1; 
 		json		= new String((byte[])details.get( "json"), "UTF-8" );
 		
+		singleton_key = (byte[])details.get( "sin_key" );
+		
 		if ( _verify ){
 			
 				// verify
@@ -220,7 +225,8 @@ SubscriptionBodyImpl
 		boolean					_is_public,
 		String					_json_content,
 		byte[]					_public_key,
-		int						_version )
+		int						_version,
+		byte[]					_singleton_key )
 	
 		throws IOException
 	{
@@ -231,6 +237,8 @@ SubscriptionBodyImpl
 		public_key	= _public_key;
 		version		= _version;
 		json		= _json_content;
+		
+		singleton_key	= _singleton_key;
 		
 		map			= new HashMap();
 		
@@ -243,6 +251,11 @@ SubscriptionBodyImpl
 		details.put( "public_key", public_key );
 		details.put( "version", new Long( version ));
 		details.put( "json", _json_content.getBytes( "UTF-8" ));
+		
+		if ( singleton_key != null ){
+			
+			details.put( "sin_key", singleton_key );
+		}
 	}
 	
 	protected void
@@ -263,6 +276,11 @@ SubscriptionBodyImpl
 		if ( json != null ){
 		
 			details.put( "json", json.getBytes( "UTF-8" ));
+		}
+		
+		if ( singleton_key != null ){
+			
+			details.put( "sin_key", singleton_key );
 		}
 	}
 	
@@ -288,6 +306,12 @@ SubscriptionBodyImpl
 	getJSON()
 	{
 		return( json );
+	}
+	
+	protected byte[]
+	getSingletonKey()
+	{
+		return( singleton_key );
 	}
 	
 	protected void

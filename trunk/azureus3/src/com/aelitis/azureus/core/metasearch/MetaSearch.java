@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.metasearch;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 public interface 
@@ -66,7 +67,8 @@ MetaSearch
 	
 	public Engine
 	createRSSEngine(
-		String		url )
+		String	name,
+		URL		url )
 	
 		throws MetaSearchException;
 	

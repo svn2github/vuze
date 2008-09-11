@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.subs;
 
+import java.net.URL;
+
 
 public interface 
 SubscriptionManager 
@@ -35,7 +37,18 @@ SubscriptionManager
 	
 	public Subscription
 	createRSS(
-		String		url )
+		String		name,
+		URL			url )
+		
+		throws SubscriptionException;
+	
+		// creates a subscription that will always have the same identity for the given parameters
+		// and can't be updated
+	
+	public Subscription
+	createSingletonRSS(
+		String		name,
+		URL			url )
 		
 		throws SubscriptionException;
 	

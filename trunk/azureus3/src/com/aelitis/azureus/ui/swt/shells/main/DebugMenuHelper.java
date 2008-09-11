@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -115,12 +117,13 @@ public class DebugMenuHelper
 				
 				ok.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event arg0) {
-						String url = urlText.getText();
+						String url_str = urlText.getText();
 						shell.dispose();
 						
 						try{
-						
-							SubscriptionManagerFactory.getSingleton().createRSS( url );
+							URL	url = new URL( url_str );
+							
+							SubscriptionManagerFactory.getSingleton().createRSS( url_str, url );
 							
 						}catch( Throwable e ){
 							
