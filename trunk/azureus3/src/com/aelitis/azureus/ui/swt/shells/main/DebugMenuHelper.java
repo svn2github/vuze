@@ -1,6 +1,8 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -8,25 +10,18 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.views.skin.Browse;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * A convenience class for creating the Debug menu
@@ -145,6 +140,66 @@ public class DebugMenuHelper
 			}
 		});
 
+
+		item = new MenuItem(menuDebug, SWT.CASCADE);
+		item.setText("BrowserTB");
+		Menu menuBrowserTB = new Menu(menuDebug.getParent(), SWT.DROP_DOWN);
+		item.setMenu(menuBrowserTB);
+
+		item = new MenuItem(menuBrowserTB, SWT.NONE);
+		item.setText("browser TB control ext");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
+				Map map = new HashMap();
+				map.put("download-url",
+						"http://beta.legaltorrents.com/get/98-story-of-stuff");
+				map.put("display-name", "control ext");
+				map.put("referer", "cvs");
+				map.put("is-vuze-content", new Boolean(false));
+				BrowserMessage message = new BrowserMessage(
+						"AZMSG;0;display;set-selected-content;"
+								+ JSONUtils.encodeToJSON(map));
+				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
+				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
+						message);
+			}
+		});
+		item = new MenuItem(menuBrowserTB, SWT.NONE);
+		item.setText("browser TB control int");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
+				Map map = new HashMap();
+				map.put("torrent-hash", "6EF6QUWI6IGNLX4MV37JGXQH7HOONEJL");
+				map.put("display-name", "control int");
+				map.put("referer", "cvs");
+				BrowserMessage message = new BrowserMessage(
+						"AZMSG;0;display;set-selected-content;"
+								+ JSONUtils.encodeToJSON(map));
+				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
+				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
+						message);
+			}
+		});
+		item = new MenuItem(menuBrowserTB, SWT.NONE);
+		item.setText("browser TB control int canplay");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
+				Map map = new HashMap();
+				map.put("torrent-hash", "6EF6QUWI6IGNLX4MV37JGXQH7HOONEJL");
+				map.put("display-name", "control int play");
+				map.put("referer", "cvs");
+				map.put("can-play", new Boolean(true));
+				BrowserMessage message = new BrowserMessage(
+						"AZMSG;0;display;set-selected-content;"
+								+ JSONUtils.encodeToJSON(map));
+				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
+				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
+						message);
+			}
+		});
 
 		return item;
 	}
