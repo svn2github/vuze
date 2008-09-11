@@ -39,6 +39,8 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 public class 
 SubscriptionBodyImpl 
 {
+	private static final int SIMPLE_ID_LENGTH				= 10;
+
 	protected static byte[]
 	encode(
 		byte[]		hash,
@@ -78,14 +80,12 @@ SubscriptionBodyImpl
 	
 	protected static boolean
 	verify(
-		byte[]		encoded_public_key,
+		byte[]		public_key,
 		byte[]		hash,
 		int			version,
 		int			size,
 		byte[]		sig )
 	{
-		byte[]	public_key = SubscriptionImpl.getRealPublicKey(encoded_public_key);
-		
 		try{
 			Signature signature = CryptoECCUtils.getSignature( CryptoECCUtils.rawdataToPubkey( public_key ));
 	
@@ -99,6 +99,29 @@ SubscriptionBodyImpl
 			
 			return( false );
 		}
+	}
+	
+	protected static byte[]
+	deriveShortID(
+		byte[]		public_key,
+		Map			singleton_details )
+	{
+		byte[]	short_id = new byte[SIMPLE_ID_LENGTH];
+
+		if ( singleton_details != null ){
+			
+			byte[] 	explicit_sid = new SHA1Simple().calculateHash((byte[])singleton_details.get( "key" ));
+			
+			System.arraycopy( explicit_sid, 0, short_id, 0, SIMPLE_ID_LENGTH );
+							
+		}else{
+		
+			byte[]	hash = new SHA1Simple().calculateHash( public_key );
+				
+			System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
+		}
+		
+		return( short_id );
 	}
 	
 	private SubscriptionManagerImpl		manager;
@@ -160,7 +183,7 @@ SubscriptionBodyImpl
 
 		load( _map, true );
 	}
-
+	
 	protected void
 	load(
 		Map			_map,
@@ -294,6 +317,12 @@ SubscriptionBodyImpl
 	getPublicKey()
 	{
 		return( public_key );
+	}
+	
+	public byte[]
+	getShortID()
+	{
+		return( deriveShortID( public_key, singleton_details ));
 	}
 	
 	protected boolean

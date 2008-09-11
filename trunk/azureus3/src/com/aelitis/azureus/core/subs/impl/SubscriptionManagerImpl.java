@@ -44,7 +44,6 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -119,12 +118,17 @@ SubscriptionManagerImpl
 							
 							VuzeFileComponent comp = comps[j];
 							
-							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ){
+							int	type = comp.getType();
+							
+							if ( 	type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ||
+									type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON ){
 								
 								try{
 									((SubscriptionManagerImpl)getSingleton( false )).importSubscription(
+											type,
 											comp.getContent(),
-											( expected_types & VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ) == 0 );
+											( expected_types & 
+												( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION | VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON )) == 0 );
 									
 									comp.setProcessed();
 									
@@ -498,6 +502,11 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
+		if ( url.getHost().trim().length() == 0 ){
+			
+			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
+		}
+		
 		try{
 			Map	singleton_details = new HashMap();
 			
@@ -526,6 +535,11 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
+		if ( url.getHost().trim().length() == 0 ){
+			
+			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
+		}
+		
 		try{
 			if ( getSubscriptionFromName( name ) != null ){
 				
@@ -765,10 +779,7 @@ SubscriptionManagerImpl
 			
 			byte[]	encoded_subs = Base64.encode( bytes );
 			
-				// use a transient key-pair as underlying current one is generic
-				// and will violate unique constraint if used
-			
-				// as it is singleton the keys will never be used anyway 
+				// use a transient key-pair as we won't have the private key in general
 			
 			KeyPair	kp = CryptoECCUtils.createKeys();
 			
@@ -847,6 +858,7 @@ SubscriptionManagerImpl
 	
 	public Subscription
 	importSubscription(
+		int			type,
 		Map			map,
 		boolean		warn_user )
 	
@@ -854,15 +866,17 @@ SubscriptionManagerImpl
 	{
 		try{
 			try{
-				SubscriptionBodyImpl body = new SubscriptionBodyImpl( this, map );
-						
-				SubscriptionImpl existing = getSubscriptionFromPublicKey( body.getPublicKey());
-				
-				if ( existing != null ){
-				
-					if ( existing.getVersion() <= body.getVersion()){
-						
-						log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
+				if ( type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON ){
+					
+					String	name = new String((byte[])map.get( "name" ));
+					
+					URL	url = new URL( new String((byte[])map.get( "url" )));
+					
+					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url );
+					
+					SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
+
+					if ( existing != null ){
 						
 						if ( warn_user ){
 							
@@ -877,7 +891,6 @@ SubscriptionManagerImpl
 									"!" + details + "!",
 									UIManagerEvent.MT_OK );
 						}
-							// we have a newer one, ignore
 						
 						return( existing );
 						
@@ -886,62 +899,118 @@ SubscriptionManagerImpl
 						if ( warn_user ){
 							
 							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-			
+				
 							String details = MessageText.getString(
-									"subscript.add.upgrade.desc",
-									new String[]{ existing.getName()});
+									"subscript.add.desc",
+									new String[]{ new_subs.getName()});
 							
 							long res = ui_manager.showMessageBox(
-									"subscript.add.upgrade.title",
+									"subscript.add.title",
 									"!" + details + "!",
 									UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
 							
 							if ( res != UIManagerEvent.MT_YES ){	
 							
-								throw( new SubscriptionException( "User declined upgrade" ));
+								throw( new SubscriptionException( "User declined addition" ));
 							}
 						}
 						
-						log( "Upgrading subscription: " + existing.getString());
-		
-						existing.upgrade( body );
+						log( "Imported new singleton subscription: " + new_subs.getString());
 						
-						saveConfig();
+						new_subs = addSubscription( new_subs );
 						
-						subscriptionUpdated();
-						
-						return( existing );
+						return( new_subs );
 					}
 				}else{
 					
-					SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
-		
-					if ( warn_user ){
-						
-						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					SubscriptionBodyImpl body = new SubscriptionBodyImpl( this, map );
+							
+					SubscriptionImpl existing = getSubscriptionFromSID( body.getShortID());
+					
+					if ( existing != null ){
+					
+						if ( existing.getVersion() <= body.getVersion()){
+							
+							log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
+							
+							if ( warn_user ){
+								
+								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+								
+								String details = MessageText.getString(
+										"subscript.add.dup.desc",
+										new String[]{ existing.getName()});
+								
+								ui_manager.showMessageBox(
+										"subscript.add.dup.title",
+										"!" + details + "!",
+										UIManagerEvent.MT_OK );
+							}
+								// we have a newer one, ignore
+							
+							return( existing );
+							
+						}else{
+							
+							if ( warn_user ){
+								
+								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+				
+								String details = MessageText.getString(
+										"subscript.add.upgrade.desc",
+										new String[]{ existing.getName()});
+								
+								long res = ui_manager.showMessageBox(
+										"subscript.add.upgrade.title",
+										"!" + details + "!",
+										UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+								
+								if ( res != UIManagerEvent.MT_YES ){	
+								
+									throw( new SubscriptionException( "User declined upgrade" ));
+								}
+							}
+							
+							log( "Upgrading subscription: " + existing.getString());
 			
-						String details = MessageText.getString(
-								"subscript.add.desc",
-								new String[]{ new_subs.getName()});
-						
-						long res = ui_manager.showMessageBox(
-								"subscript.add.title",
-								"!" + details + "!",
-								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-						
-						if ( res != UIManagerEvent.MT_YES ){	
-						
-							throw( new SubscriptionException( "User declined addition" ));
+							existing.upgrade( body );
+							
+							saveConfig();
+							
+							subscriptionUpdated();
+							
+							return( existing );
 						}
+					}else{
+						
+						SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
+			
+						if ( warn_user ){
+							
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+				
+							String details = MessageText.getString(
+									"subscript.add.desc",
+									new String[]{ new_subs.getName()});
+							
+							long res = ui_manager.showMessageBox(
+									"subscript.add.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+							
+							if ( res != UIManagerEvent.MT_YES ){	
+							
+								throw( new SubscriptionException( "User declined addition" ));
+							}
+						}
+						
+						log( "Imported new subscription: " + new_subs.getString());
+						
+						new_subs = addSubscription( new_subs );
+						
+						return( new_subs );
 					}
-					
-					log( "Imported new subscription: " + new_subs.getString());
-					
-					new_subs = addSubscription( new_subs );
-					
-					return( new_subs );
 				}
-					
 			}catch( Throwable e ){
 				
 				throw( new SubscriptionException( "Subscription import failed", e ));
@@ -986,26 +1055,6 @@ SubscriptionManagerImpl
 				SubscriptionImpl s = (SubscriptionImpl)subscriptions.get(i);
 				
 				if ( s.getName().equalsIgnoreCase( name )){
-					
-					return( s );
-				}
-			}
-		}
-		
-		return( null );
-	}
-	
-	protected SubscriptionImpl
-	getSubscriptionFromPublicKey(
-		byte[]		public_key )
-	{
-		synchronized( this ){
-			
-			for (int i=0;i<subscriptions.size();i++){
-				
-				SubscriptionImpl s = (SubscriptionImpl)subscriptions.get(i);
-				
-				if ( Arrays.equals( s.getPublicKey(), public_key )){
 					
 					return( s );
 				}
@@ -2160,9 +2209,7 @@ SubscriptionManagerImpl
 					SubscriptionImpl new_subs = new SubscriptionImpl( SubscriptionManagerImpl.this, body, add_type, false );
 							
 					if ( Arrays.equals( new_subs.getShortID(), sid )){
-							
-						new_subs.verifyShortID( sid );
-						
+													
 						return( new_subs );
 					}
 				}catch( Throwable e ){
@@ -4076,16 +4123,31 @@ SubscriptionManagerImpl
 	main(
 		String[]	args )
 	{
+		final String 	NAME 	= "lalalal";
+		final String	URL_STR	= "http://www.vuze.com/feed/publisher/ALL/4";
+		
 		try{
 			//AzureusCoreFactory.create();
 			
 			Subscription subs = 
 				getSingleton(true).createSingletonRSS(
-						"lalalal",
-						new URL( "http://www.vuze.com/feed/publisher/ALL/3" ));
+						NAME,
+						new URL( URL_STR ));
 			
 			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
 			
+			
+			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+			
+			Map	map = new HashMap();
+			
+			map.put( "name", NAME );
+			map.put( "url", URL_STR );
+			
+			vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON, map );
+			
+			vf.write( new File( "C:\\temp\\srss_2.vuze" ) );
+
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
