@@ -689,6 +689,7 @@ public class NetworkAdminSpeedTesterBTImpl
             int i = findIndexPeak(numStats);
 
             List deltas = new ArrayList(numStats);
+            if (i == 0) {return deltas;}
             long prevSumDownload = autoboxLong(sumHistory.get(i-1));
             long currSumDownload;
             while(i<numStats){
