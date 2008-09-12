@@ -13,8 +13,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 
+import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.*;
@@ -143,8 +146,13 @@ public class DisplayListener
 		String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
 		String displayName = MapUtils.getMapString(decodedMap, "display-name",
 				null);
-		String urlDL = MapUtils.getMapString(decodedMap, "download-url", null);
-		if ((hash != null || urlDL != null) && displayName != null) {
+		String dlURL = MapUtils.getMapString(decodedMap, "download-url", null);
+
+		if ((hash != null || dlURL != null) && displayName != null) {
+			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer", null);
+			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies", null);
+			Map dlHeader = MapUtils.getMapMap(decodedMap, "download-header", null);
+
 			String referer = MapUtils.getMapString(decodedMap, "referer",
 					"displaylistener");
 			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
@@ -153,8 +161,32 @@ public class DisplayListener
 					displayName, isVuzeContent, canPlay);
 			content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 					null));
-			DownloadUrlInfo dlInfo = new DownloadUrlInfo(urlDL);
+			
+			
+			DownloadUrlInfo dlInfo = new DownloadUrlInfo(dlURL);
+			dlInfo.setReferer(dlReferer);
+			if (dlCookies != null) {
+				if (dlHeader == null) {
+					dlHeader = new HashMap();
+				}
+				dlHeader.put("Cookie", dlCookies);
+			}
+			dlInfo.setRequestProperties(dlHeader);
+
+			String subID = MapUtils.getMapString(decodedMap, "subscription-id", null);
+			String subresID = MapUtils.getMapString(decodedMap, "subscription-results-id", null);
+			
+			if (subID != null && subresID != null) {
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID(subID);
+				if (subs != null) {
+					subs.addPotentialAssociation(subresID, dlURL);
+				}
+			}
+			
+			// pass decodeMap down to TorrentUIUtilsV3.loadTorrent in case
+			// is needs some other params
 			dlInfo.setAdditionalProperties(decodedMap);
+
 			content.setDownloadInfo(dlInfo);
 			
 			SelectedContentManager.changeCurrentlySelectedContent(referer,
