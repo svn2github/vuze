@@ -88,6 +88,9 @@ Engine
 	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
 	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json", "plugin" };
 	
+	public static final String	SC_SOURCE	= "azsrc";
+	public static final String	SC_AZID		= "azid";
+	
 	public int getType();
 	
 	public Result[]
@@ -96,6 +99,13 @@ Engine
   	
   		throws SearchException;
 	
+	public Result[]
+   	search(
+   		SearchParameter[] 	searchParameters,
+   		Map					searchContext )
+	
+   		throws SearchException;
+
 	public Result[]
 	search(
 		SearchParameter[] 	searchParameters,
@@ -160,6 +170,10 @@ Engine
 	public boolean
 	supportsField(
 		int		field_id );
+	
+	public boolean
+	supportsContext(
+		String	context_key );
 	
 	public Map 
 	exportToBencodedMap() 
