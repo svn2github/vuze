@@ -303,7 +303,8 @@ TRTrackerServerTCP
 		URL					absolute_url,
 		String				header,
 		InputStream			is,
-		OutputStream		os )
+		OutputStream		os,
+		AsyncController		async )
 		
 		throws IOException
 	{
@@ -326,7 +327,7 @@ TRTrackerServerTCP
 				this_mon.exit();
 			}
 			
-			if (listener.handleExternalRequest( client_address, user, url, absolute_url, header, is, os )){
+			if ( listener.handleExternalRequest( client_address, user, url, absolute_url, header, is, os, async )){
 				
 				return( true );
 			}

@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.*;
@@ -273,7 +274,8 @@ public class MyTrackerView
 		URL					absolute_url,
 		String				header,
 		InputStream			is,
-		OutputStream		os )
+		OutputStream		os,
+		AsyncController		async )
 	
 		throws IOException
 	{

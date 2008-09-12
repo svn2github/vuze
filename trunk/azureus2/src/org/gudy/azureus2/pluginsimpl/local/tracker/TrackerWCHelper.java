@@ -39,6 +39,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.tracker.host.TRHostAuthenticationListener;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerAuthenticationListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.Tracker;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
@@ -77,14 +78,15 @@ TrackerWCHelper
 		URL					_absolute_url,
 		String				_header,
 		InputStream			_is,
-		OutputStream		_os )
+		OutputStream		_os,
+		AsyncController		_async )
 
 		throws IOException
 	{
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 
 		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, this, _client_address, _user, _url, _absolute_url, _header, _is );
-		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os , request);
+		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os , request, _async );
 
 		for (int i=0;i<generators.size();i++){
 

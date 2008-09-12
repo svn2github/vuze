@@ -33,6 +33,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.tracker.server.impl.TRTrackerServerImpl;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorTCP;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
@@ -196,15 +197,45 @@ TRNonBlockingServerProcessor
 									
 			url = url.substring(0,pos);
 				
+			final boolean[]					went_async 		= { false };
+			final ByteArrayOutputStream[]	async_stream	= { null };
+			
+			AsyncController	async_control = 
+				new AsyncController()
+				{
+					public void
+					setAsyncStart()
+					{
+						went_async[0] = true;
+					}
+					
+					public void
+					setAsyncComplete()
+					{
+						asyncProcessComplete( async_stream[0] );
+					}
+				};
+			
 			ByteArrayOutputStream	response = 
 				process( 	request_header,
 							request_header.toLowerCase(),
 							url, 
 							(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
 							TRTrackerServerImpl.restrict_non_blocking_requests,
-							new ByteArrayInputStream(new byte[0]));
+							new ByteArrayInputStream(new byte[0]),
+							async_control );
+			
+				// two ways of going async
+				//	1) return is null and something else will call asyncProcessComplete later
+				//	2) return is 'not-yet-filled' os and async controller is managing things
 			
 			if ( response == null ){
+				
+				async = true;
+				
+			}else if ( went_async[0] ){
+				
+				async_stream[0] = response;
 				
 				async = true;
 				
@@ -231,7 +262,8 @@ TRNonBlockingServerProcessor
 		String				url_path,
 		InetSocketAddress	client_address,
 		boolean				announce_and_scrape_only,
-		InputStream			is )
+		InputStream			is,
+		AsyncController		async )
 	
 		throws IOException;
 	

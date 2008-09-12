@@ -304,7 +304,8 @@ TRBlockingServerProcessor
 										(InetSocketAddress)socket.getRemoteSocketAddress(),
 										false,
 										post_is,
-										head_response );
+										head_response,
+										null );
 						
 						byte[]	head_data = head_response.toByteArray();
 						
@@ -337,7 +338,8 @@ TRBlockingServerProcessor
 										(InetSocketAddress)socket.getRemoteSocketAddress(),
 										false,
 										post_is,
-										socket.getOutputStream() );
+										socket.getOutputStream(),
+										null );
 					}
 				}finally{
 					

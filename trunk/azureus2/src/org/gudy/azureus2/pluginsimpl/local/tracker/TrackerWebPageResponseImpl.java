@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
+import org.gudy.azureus2.core3.util.AsyncController;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -61,27 +62,31 @@ public class
 TrackerWebPageResponseImpl
 	implements TrackerWebPageResponse
 {
-	protected static final String	NL			= "\r\n";
+	private static final String	NL			= "\r\n";
 
-	protected OutputStream		os;
+	private OutputStream		os;
 
-	protected ByteArrayOutputStream	baos = new ByteArrayOutputStream(2048);
+	private ByteArrayOutputStream	baos = new ByteArrayOutputStream(2048);
 
-	protected String				content_type = "text/html";
+	private String				content_type = "text/html";
 
-	protected int					reply_status	= 200;
+	private int					reply_status	= 200;
 
-	protected Map		header_map 	= new LinkedHashMap();
+	private Map		header_map 	= new LinkedHashMap();
 
-	protected TrackerWebPageRequest request;
-
+	private TrackerWebPageRequest 	request;
+	private AsyncController			async_control;
+	private boolean					is_async;
+	
 	protected
 	TrackerWebPageResponseImpl(
-		OutputStream		_os,
-		TrackerWebPageRequest _request)
+		OutputStream			_os,
+		TrackerWebPageRequest 	_request,
+		AsyncController			_async_control )
 	{
-		os	= _os;
-		request = _request;
+		os				= _os;
+		request 		= _request;
+		async_control	= _async_control;
 
 		String	formatted_date_now		 = TimeFormatter.getHTTPDate( SystemTime.getCurrentTime());
 
@@ -169,6 +174,11 @@ TrackerWebPageResponseImpl
 
 		throws IOException
 	{
+		if ( is_async ){
+			
+			return;
+		}
+		
 		byte[]	reply_bytes = baos.toByteArray();
 
 		// System.out.println( "TrackerWebPageResponse::complete: data = " + reply_bytes.length );
@@ -405,6 +415,33 @@ TrackerWebPageResponseImpl
 			Debug.printStackTrace( e );
 
 			throw( new IOException( e.toString()));
+		}
+	}
+	
+	public void 
+	setAsynchronous(
+		boolean a ) 
+	
+		throws IOException
+	{
+		if ( async_control == null ){
+			
+			throw( new IOException( "Request is not non-blocking" ));
+		}
+		
+		if ( a ){
+			
+			is_async	= true;
+			
+			async_control.setAsyncStart();
+			
+		}else{
+			
+			is_async	= false;
+			
+			complete();
+			
+			async_control.setAsyncComplete();
 		}
 	}
 }

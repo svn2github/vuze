@@ -108,7 +108,8 @@ TRTrackerServerProcessorTCP
 		InetSocketAddress	client_address,
 		boolean				announce_and_scrape_only,
 		InputStream			is,
-		OutputStream		os )
+		OutputStream		os,
+		AsyncController		async )
 		
 		throws IOException
 	{
@@ -176,7 +177,7 @@ TRTrackerServerProcessorTCP
 							return;
 						}
 						
-						if ( handleExternalRequest( client_address, user, str, input_header, is, os )){
+						if ( handleExternalRequest( client_address, user, str, input_header, is, os, async )){
 						
 							return;
 						}
@@ -927,12 +928,13 @@ TRTrackerServerProcessorTCP
 		String				url,
 		String				header,
 		InputStream			is,
-		OutputStream		os )
+		OutputStream		os,
+		AsyncController		async )
 		
 		throws IOException
 	{
 		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
 			
-		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os));
+		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os, async));
 	}
 }

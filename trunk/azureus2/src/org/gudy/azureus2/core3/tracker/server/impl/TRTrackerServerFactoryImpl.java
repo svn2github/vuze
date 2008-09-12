@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlocking
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking.TRNonBlockingServerProcessorFactory;
 import org.gudy.azureus2.core3.tracker.server.impl.udp.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AsyncController;
 
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
@@ -276,13 +277,14 @@ TRTrackerServerFactoryImpl
 			String 				url_path, 
 			InetSocketAddress 	client_address, 
 			boolean 			announce_and_scrape_only, 
-			InputStream 		is ) 
+			InputStream 		is,
+			AsyncController		async )
 		
 			throws IOException 
 		{
 			ByteArrayOutputStream	os = new ByteArrayOutputStream( 1024 );
 			
-			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, is, os );
+			processRequest(input_header, lowercase_input_header, url_path, client_address, announce_and_scrape_only, is, os, async );
 			
 			return( os );
 		}

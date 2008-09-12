@@ -30,6 +30,8 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URL;
 
+import org.gudy.azureus2.core3.util.AsyncController;
+
 public interface 
 TRHostListener 
 {
@@ -53,7 +55,8 @@ TRHostListener
 		URL					absolute_url,
 		String				header,
 		InputStream			is,
-		OutputStream		os )
+		OutputStream		os,
+		AsyncController		async )
 	
 		throws IOException;
 }

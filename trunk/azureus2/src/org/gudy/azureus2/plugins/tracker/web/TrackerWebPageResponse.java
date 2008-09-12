@@ -86,4 +86,16 @@ TrackerWebPageResponse
 		TrackerTorrent	torrent )
 	
 		throws IOException;
+	
+		/**
+		 * For a non-blocking tracker the construction of the response can be completed asynchronously
+		 * by setting async=true and then, when complete, setting it to false
+		 * @param async
+		 */
+	
+	public void
+	setAsynchronous(
+		boolean		async )
+	
+		throws IOException;
 }

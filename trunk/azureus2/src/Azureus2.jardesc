@@ -184,6 +184,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.networkmanager.impl.tcp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.webplugin"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.custom.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.installer"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.dht"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.resourceuploader"/>
@@ -477,6 +478,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.selectedcontent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.asn1.teletrust"/>
         <file path="/azureus3/PreferencesJavaCodeStyleFormatter.xml"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.custom"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.util"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.netcoords"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrent.impl"/>
