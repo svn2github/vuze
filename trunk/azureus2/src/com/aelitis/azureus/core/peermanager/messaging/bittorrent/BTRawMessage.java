@@ -72,7 +72,7 @@ BTRawMessage
 	public String 
 	getDescription()
 	{
-		return( "" );
+		return( "<raw bt data>" );
 	}
 	
 	public byte
