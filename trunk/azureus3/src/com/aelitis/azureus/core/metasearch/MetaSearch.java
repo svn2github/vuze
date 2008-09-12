@@ -76,6 +76,9 @@ MetaSearch
 	removeEngine(
 		Engine 		engine );
 	
+	public int
+	getEngineCount();
+	
 	public void
 	addListener(
 		MetaSearchListener		listener );

@@ -191,7 +191,9 @@ MetaSearchManagerImpl
 	protected void
 	ensureEnginesUpToDate()
 	{
-		if ( !initial_refresh_sem.reserve( 10*1000 )){
+		long timeout = meta_search.getEngineCount() == 0?(30*1000):(10*1000);
+		
+		if ( !initial_refresh_sem.reserve( timeout )){
 			
 			log( "Timeout waiting for initial refresh to complete, continuing" );
 		}
@@ -469,7 +471,7 @@ MetaSearchManagerImpl
 	public boolean
 	isAutoMode()
 	{
-		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", false ));
+		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", true ));
 	}
 	
 	public void

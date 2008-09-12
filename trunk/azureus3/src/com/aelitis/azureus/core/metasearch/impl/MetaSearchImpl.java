@@ -640,6 +640,12 @@ MetaSearchImpl
 		return( null );
 	}
 	
+	public int
+	getEngineCount()
+	{
+		return( engines.size());
+	}
+	
 	public void 
 	search(
 		final ResultListener 	original_listener,
