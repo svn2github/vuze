@@ -23,6 +23,7 @@ CHANGE: UIv3  | Reduced UI memory footprint [TuxPaper]
 
 BUGFIX: Core  | Fixed DND deleting files in single-file torrents [The 8472]
 BUGFIX: Core  | Fixed occasional deadlocks on startup under linux [The 8472]
+BUGFIX: Core  | Fixed rare situation where user was prompted for authentication to connect to trackers which didn't need it [amc1]
 BUGFIX: Core  | Made the load and unload buttons on the plugin page behave properly [amc1]
 
 2008.07.01 | Vuze 3.1.1.0

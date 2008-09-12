@@ -498,7 +498,7 @@ public class TrackerStatus {
 
 			  		if ( udpScrapeURL != null){
 			  			
-			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP );
+			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP, true );
 			  			
 			  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
 			  			{ // automatic UDP probe failed, use HTTP again
@@ -1140,7 +1140,7 @@ public class TrackerStatus {
 	  return( redirect_url );
   }
   
-  protected boolean scrapeUDP(URL reqUrl, ByteArrayOutputStream message, List hashes) throws Exception {
+  protected boolean scrapeUDP(URL reqUrl, ByteArrayOutputStream message, List hashes, boolean do_auth_test) throws Exception {
 		Map rootMap = new HashMap();
 		Map files = new ByteEncodedKeyHashMap();
 		rootMap.put("files", files);
@@ -1184,8 +1184,7 @@ public class TrackerStatus {
 	boolean					auth_ok	= false;
 	
 	try{
-		if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
-					
+		if (do_auth_test && UrlUtils.queryHasParameter(reqUrl.getQuery(), "auth", false)) {
 			auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
 		}		
 	

@@ -608,4 +608,19 @@ public class UrlUtils
 		
 		return( headers_to_use );
 	}
+	
+	public static boolean queryHasParameter(String query_string, String param_name, boolean case_sensitive) {
+		if (!case_sensitive) {
+			query_string = query_string.toLowerCase();
+			param_name = param_name.toLowerCase();
+		}
+		if (query_string.charAt(0) == '?') {
+			query_string = '&' + query_string.substring(1);
+		}
+		else if (query_string.charAt(0) != '&') {
+			query_string = '&' + query_string;
+		}
+		
+		return query_string.indexOf("&" + param_name + "=") != -1;
+	}
 }

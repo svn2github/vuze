@@ -1113,7 +1113,7 @@ TRTrackerBTAnnouncerImpl
 			  				
 			  		if (udpAnnounceURL != null)
 					{
-						failure_reason = announceUDP(reqUrl, message);
+						failure_reason = announceUDP(reqUrl, message, true);
 						if ((failure_reason != null || message.size() == 0) && udp_probe)
 						{
 							// automatic UDP probe failed, use HTTP again
@@ -1418,7 +1418,8 @@ TRTrackerBTAnnouncerImpl
  	protected String
  	announceUDP(
  		URL						reqUrl,
-		ByteArrayOutputStream	message )
+		ByteArrayOutputStream	message,
+		boolean                 do_auth_test)
  	
  		throws IOException
  	{
@@ -1429,8 +1430,7 @@ TRTrackerBTAnnouncerImpl
  		PasswordAuthentication	auth = null;	
  		
  		try{
- 			if ( reqUrl.getQuery().toLowerCase().indexOf("auth") != -1 ){
- 				
+ 			if (do_auth_test && UrlUtils.queryHasParameter(reqUrl.getQuery(), "auth", false)) {
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
