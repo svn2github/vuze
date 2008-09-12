@@ -218,12 +218,9 @@ UPnPPlugin
 					// to endlessly retry performing the mappings
 					long now = plugin_interface.getUtilities().getCurrentSystemTime();
 					if (last_bad_nat + (15*60*1000) < now ) {
-						
 						last_bad_nat = now;
-						
 						log.log(LoggerChannel.LT_WARNING, "NAT status is firewalled - trying to refresh UPnP mappings");
-						
-						refreshMappings();
+						refreshMappings(true);
 					}
 				}
 			}
@@ -1472,6 +1469,19 @@ UPnPPlugin
 	 * Provided for use by other plugins.
 	 */
 	public void refreshMappings() {
-		this.upnp.reset();
+		refreshMappings(false);
+	}
+
+	/**
+	 * Provided for use by other plugins.
+	 */
+	public void refreshMappings(boolean force) {
+		if (force) {
+			closeDown(true);
+			startUp();
+		}
+		else {
+			this.upnp.reset();
+		}
 	}
 }
