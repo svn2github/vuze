@@ -43,10 +43,10 @@ public interface ISelectedContent
 	/**
 	 * @since 3.1.1.1
 	 */
-	public abstract String getDownloadURL();
+	public abstract DownloadUrlInfo getDownloadInfo();
 
 	/**
 	 * @since 3.1.1.1
 	 */
-	public abstract void setDownloadURL(String urlDL);
+	public abstract void setDownloadInfo(DownloadUrlInfo downloadInfo);
 }
