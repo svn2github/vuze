@@ -1138,7 +1138,7 @@ PRUDPPacketHandlerImpl
 				}else{
 					
 					request.sent();
-					
+					if (dg_packet == null) {throw new NullPointerException("dg_packet is null");}
 					socket.send( dg_packet );
 					
 					// System.out.println( "sent:" + buffer.length );
@@ -1177,6 +1177,12 @@ PRUDPPacketHandlerImpl
 			throw( e );
 			
 		}catch( Throwable e ){
+			
+			// AMC: I've seen this in debug logs - just wonder where it's
+			// coming from.
+			if (e instanceof NullPointerException) {
+				Debug.out(e);
+			}
 			
 			Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,
 					"PRUDPPacketHandler: sendAndReceive to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e))); 
