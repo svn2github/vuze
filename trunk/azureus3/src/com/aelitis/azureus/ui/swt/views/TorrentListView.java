@@ -40,9 +40,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
@@ -294,8 +292,9 @@ public class TorrentListView
 							if (contentHash != null && contentHash.length() > 0) {
 								String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD
 										+ contentHash + ".torrent?referal=coq";
-								TorrentUIUtilsV3.loadTorrent(core, url, null, false, false,
-										true, false);
+								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,
+										false);
 							}
 
 						}

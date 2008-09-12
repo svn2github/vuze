@@ -17,9 +17,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -155,7 +153,9 @@ public class DisplayListener
 					displayName, isVuzeContent, canPlay);
 			content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 					null));
-			content.setDownloadURL(urlDL);
+			DownloadUrlInfo dlInfo = new DownloadUrlInfo(urlDL);
+			dlInfo.setAdditionalProperties(decodedMap);
+			content.setDownloadInfo(dlInfo);
 			
 			SelectedContentManager.changeCurrentlySelectedContent(referer,
 					new ISelectedContent[] {

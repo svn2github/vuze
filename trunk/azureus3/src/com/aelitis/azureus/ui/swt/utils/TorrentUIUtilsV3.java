@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.Constants;
@@ -63,14 +64,14 @@ public class TorrentUIUtilsV3
 
 	public static void 
 	loadTorrent(
-		final AzureusCore core, 
-		String url,
-		String referer, 
+		final AzureusCore core,
+		DownloadUrlInfo downloadInfo,
 		final boolean playNow,			// open player
 		final boolean playPrepare,		// as for open player but don't actually open it
 		final boolean bringToFront,
 		final boolean forceDRMtoCDP)
 	{
+		String url = downloadInfo.getDownloadURL();
 		try {
 			if (playNow || playPrepare ) {
   			Matcher m = hashPattern.matcher(url);
@@ -115,7 +116,8 @@ public class TorrentUIUtilsV3
 
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {
-					new FileDownloadWindow(core, shell, url, referer, null, 
+					new FileDownloadWindow(core, shell, url, downloadInfo.getReferer(),
+							downloadInfo.getRequestProperties(), 
 							new TorrentDownloaderCallBackInterface() {
 
 								public void TorrentDownloaderEvent(int state,

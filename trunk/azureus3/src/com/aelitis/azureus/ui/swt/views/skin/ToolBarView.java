@@ -88,7 +88,7 @@ public class ToolBarView
 				// This is for our CDP pages
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 				if (sc != null && sc.length == 1
-						&& (sc[0].getHash() != null || sc[0].getDownloadURL() != null)) {
+						&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
 					TorrentListViewsUtils.downloadDataSource(sc[0], false, "ToolBar");
 				}
 			}
@@ -391,7 +391,7 @@ public class ToolBarView
 		if (item != null) {
 			boolean enabled = has1Selection
 					&& currentContent[0].getDM() == null
-					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadURL() != null);
+					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);
 		}
 	}

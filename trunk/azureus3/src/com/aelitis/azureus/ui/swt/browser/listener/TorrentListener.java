@@ -19,6 +19,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
@@ -88,8 +89,11 @@ public class TorrentListener
 						Debug.printStackTrace(e);
 					}
 				}
-				TorrentUIUtilsV3.loadTorrent(core, url, message.getReferer(), playNow,
-						playPrepare, bringToFront, false);
+				DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+				dlInfo.setReferer(message.getReferer());
+				
+				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,
+						bringToFront, false);
 			} else {
 				loadTorrentByB64(core, message, MapUtils.getMapString(decodedMap,
 						"b64", null));

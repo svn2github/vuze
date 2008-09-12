@@ -45,7 +45,7 @@ public class SelectedContentV3
 	
 	private byte[] imageBytes;
 	
-	private String urlDL;
+	private DownloadUrlInfo downloadInfo;
 
 	public SelectedContentV3(SelectedContent content) {
 		this.content = content;
@@ -152,13 +152,13 @@ public class SelectedContentV3
 	}
 
 	
-	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDownloadURL()
-	public String getDownloadURL() {
-		return urlDL;
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#getDownloadInfo()
+	public DownloadUrlInfo getDownloadInfo() {
+		return downloadInfo;
 	}
 	
-	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadURL(java.lang.String)
-	public void setDownloadURL(String urlDL) {
-		this.urlDL = urlDL;
+	// @see com.aelitis.azureus.ui.selectedcontent.ISelectedContent#setDownloadInfo(com.aelitis.azureus.ui.selectedcontent.SelectedContentDownloadInfo)
+	public void setDownloadInfo(DownloadUrlInfo info) {
+		this.downloadInfo = info;
 	}
 }

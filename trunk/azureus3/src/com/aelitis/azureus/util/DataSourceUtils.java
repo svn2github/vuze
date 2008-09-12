@@ -29,6 +29,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 
 /**
  * @author TuxPaper
@@ -137,9 +138,9 @@ public class DataSourceUtils
 	 *
 	 * @since 3.1.1.1
 	 */
-	public static String getDownloadURL(Object ds) {
+	public static DownloadUrlInfo getDownloadInfo(Object ds) {
 		if (ds instanceof ISelectedContent) {
-			return ((ISelectedContent)ds).getDownloadURL();
+			return ((ISelectedContent)ds).getDownloadInfo();
 		}
 		return null;
 	}

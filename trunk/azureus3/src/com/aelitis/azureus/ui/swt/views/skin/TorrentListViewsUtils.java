@@ -55,6 +55,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -408,13 +409,13 @@ public class TorrentListViewsUtils
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				AzureusCore core = AzureusCoreFactory.getSingleton();
-				TorrentUIUtilsV3.loadTorrent(core, url, null, playNow, false, true,
-						true);
+				DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
 			} else {
-				String downloadURL = DataSourceUtils.getDownloadURL(ds);
-				if (downloadURL != null) {
+				DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
+				if (dlInfo != null) {
 					AzureusCore core = AzureusCoreFactory.getSingleton();
-					TorrentUIUtilsV3.loadTorrent(core, downloadURL, null, playNow, false,
+					TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
 							true, true);
 				}
 			}

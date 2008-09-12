@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -87,7 +88,7 @@ public class StimulusRPC
 					context.debug("Received External message: " + browserMsg);
 					String opId = browserMsg.getOperationId();
 					String lId = browserMsg.getListenerId();
-										
+
 					if (opId.equals(DisplayListener.OP_OPEN_URL)) {
 						Map decodedMap = browserMsg.getDecodedMap();
 						String url = MapUtils.getMapString(decodedMap, "url", null);
@@ -113,7 +114,7 @@ public class StimulusRPC
 							} else {
 								context.debug("No dispatcher for StimulusRPC" + opId);
 							}
-														
+
 							return true;
 						}
 
@@ -139,8 +140,11 @@ public class StimulusRPC
 							boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
 									"bring-to-front", true);
 
-							TorrentUIUtilsV3.loadTorrent(core, url, MapUtils.getMapString(
-									decodedMap, "referer", null), playNow, playPrepare,
+							DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+							dlInfo.setReferer(MapUtils.getMapString(decodedMap, "referer",
+									null));
+
+							TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,
 									bringToFront, false);
 
 							return true;
@@ -156,8 +160,8 @@ public class StimulusRPC
 							String version = MapUtils.getMapString(decodedMap, "version", "");
 							if (id.equals("client")) {
 								return org.gudy.azureus2.core3.util.Constants.compareVersions(
-												org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
-												version) >= 0;
+										org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
+										version) >= 0;
 							}
 						}
 						return false;
@@ -168,16 +172,16 @@ public class StimulusRPC
 							String tabID = MapUtils.getMapString(decodedMap, "tab", "");
 							if (tabID.length() > 0) {
 								// 3.2 TODO: Should we be checking for partial matches?
-								SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
+								SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 								SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
 								if (info != null) {
 									return info.id.equals(tabID);
 								}
 							}
 						}
-							
+
 						return false;
-					
+
 					} else if (ConfigListener.DEFAULT_LISTENER_ID.equals(lId)) {
 						if (ConfigListener.OP_NEW_INSTALL.equals(opId)) {
 							return COConfigurationManager.isNewInstall();
@@ -189,16 +193,18 @@ public class StimulusRPC
 							return true;
 						}
 					}
-											
-					if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
+
+					if (System.getProperty(
+							"browser.route.all.external.stimuli.for.testing", "false").equalsIgnoreCase(
+							"true")) {
 
 						BrowserMessageDispatcher dispatcher = context.getDispatcher();
 						if (dispatcher != null) {
 							dispatcher.dispatch(browserMsg);
 						}
-					}else{
-							
-						System.err.println( "Unhandled external stimulus: " + browserMsg );
+					} else {
+
+						System.err.println("Unhandled external stimulus: " + browserMsg);
 					}
 				} catch (Exception e) {
 					Debug.out(e);
@@ -207,7 +213,7 @@ public class StimulusRPC
 			}
 
 			public int query(String name, Map values) {
-				return (Integer.MIN_VALUE );
+				return (Integer.MIN_VALUE);
 			}
 		});
 	}
