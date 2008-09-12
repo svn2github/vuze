@@ -635,6 +635,10 @@ outer:
 	{
 		try{
 			return( InetAddress.getByName( v6?SEED_ADDRESS_V6:SEED_ADDRESS_V4 ));
+		}
+		catch (java.net.UnknownHostException e) {
+			Debug.out("Could not get DHT seed address: " + e);
+			return null;
 			
 		}catch( Throwable e ){
 				
