@@ -69,6 +69,7 @@ PluginConfigImpl
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_TORRENTS_START_AS_STOPPED,     "Default Start Torrents Stopped");
 		external_to_internal_key_map.put( CORE_PARAM_INT_INCOMING_TCP_PORT, "TCP.Listen.Port");
 		external_to_internal_key_map.put( CORE_PARAM_INT_INCOMING_UDP_PORT, "UDP.Listen.Port");
+		external_to_internal_key_map.put( CORE_PARAM_STRING_DEFAULT_SAVE_PATH, "Default save path");
 		
 		// Note: Not in PluginConfig.java because it's an UI option and
 		//       not applicable to all UIs

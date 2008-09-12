@@ -109,7 +109,10 @@ PluginConfig
 	 */
 	public static final String CORE_PARAM_INT_INCOMING_UDP_PORT = "Incoming UDP Port";
 
-	
+	/**
+	 * @since 3.1.1.1
+	 */
+	public static final String CORE_PARAM_STRING_DEFAULT_SAVE_PATH = "Default save path";
 	
 
   /**
