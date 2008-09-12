@@ -169,6 +169,13 @@ PluginEngine
 		return( false );
 	}
 	
+	public boolean
+	supportsContext(
+		String	context_key )
+	{
+		return( false );
+	}
+	
 	public String 
 	getIcon() 
 	{
@@ -194,6 +201,7 @@ PluginEngine
 	protected Result[] 
 	searchSupport(
 		SearchParameter[] 	params, 
+		Map					searchContext,
 		int 				max_matches,
 		String 				headers, 
 		ResultListener 		listener )

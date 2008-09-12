@@ -146,6 +146,7 @@ RSSEngine
 	protected Result[] 
 	searchSupport(
 		SearchParameter[] 	searchParameters, 
+		Map					searchContext,
 		int 				max_matches,
 		String 				headers, 
 		ResultListener 		listener) 
@@ -154,7 +155,7 @@ RSSEngine
 	{
 		debugStart();
 		
-		pageDetails page_details = super.getWebPageContent( searchParameters, headers, true );
+		pageDetails page_details = super.getWebPageContent( searchParameters, searchContext, headers, true );
 		
 		String	page = page_details.getContent();
 		

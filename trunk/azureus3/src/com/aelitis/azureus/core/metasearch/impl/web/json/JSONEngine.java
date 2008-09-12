@@ -175,6 +175,7 @@ JSONEngine
 	protected Result[]
 	searchSupport(
 		SearchParameter[] 	searchParameters,
+		Map					searchContext,
 		int					max_matches,
 		String				headers, 
 		ResultListener		listener )
@@ -183,7 +184,7 @@ JSONEngine
 	{	
 		debugStart();
 		
-		pageDetails page_details = super.getWebPageContent( searchParameters, headers, false );
+		pageDetails page_details = super.getWebPageContent( searchParameters, searchContext, headers, false );
 		
 		String	page = page_details.getContent();
 		

@@ -87,8 +87,12 @@ SubscriptionDownloader
 		
 		SubscriptionHistoryImpl history = (SubscriptionHistoryImpl)subs.getHistory();
 		
-		try{			
-			Result[] results = engine.search( parameters );
+		try{	
+			Map	context = new HashMap();
+			
+			context.put( Engine.SC_SOURCE, 	"subscription" );
+			
+			Result[] results = engine.search( parameters, context );
 		
 			log( "    Got " + results.length + " results" );
 			

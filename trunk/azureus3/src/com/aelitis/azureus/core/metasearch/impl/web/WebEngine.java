@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.metasearch.impl.web;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -41,6 +42,7 @@ import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
@@ -352,9 +354,40 @@ WebEngine
 		return( getRootPage());
 	}
 	
+	public boolean
+	supportsContext(
+		String	context_key )
+	{
+		try{
+			URL	url = new URL( searchURLFormat );
+			
+			String	host = url.getHost();
+			
+			if ( org.gudy.azureus2.core3.util.Constants.isAzureusDomain( host )){
+				
+				return( true );
+			}
+			
+				// allow local addresses for testing purposes
+			
+			InetAddress iad = InetAddress.getByName(host);
+			
+			if ( 	iad.isLoopbackAddress() ||
+					iad.isLinkLocalAddress() ||
+					iad.isSiteLocalAddress()){
+				
+				return( true );
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( false );
+	}
+	
 	protected pageDetails 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,
+		Map					searchContext,
 		String				headers,
 		boolean				only_if_modified )
 	
@@ -383,6 +416,30 @@ WebEngine
 			
 			searchURL = GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
 				
+			Iterator	it = searchContext.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				String	key 	= (String)entry.getKey();
+				String	value 	= (String)entry.getValue();
+				
+				if ( supportsContext( key )){
+					
+					if ( searchURL.indexOf('?') == -1 ){
+						
+						searchURL += "?";
+						
+					}else{
+						
+						searchURL += "&";
+					}
+					
+					searchURL += key + "=" + URLEncoder.encode( value, "UTF-8" );
+				}
+			}
+			
 			//System.out.println(searchURL);
 			
 			

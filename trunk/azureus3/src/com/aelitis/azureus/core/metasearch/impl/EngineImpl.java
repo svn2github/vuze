@@ -611,8 +611,18 @@ EngineImpl
 	
 		throws SearchException
 	{
-		return( searchAndMap( params, -1, null, null ));
+		return( searchAndMap( params, new HashMap(), -1, null, null ));
 	}
+	
+	public Result[]
+  	search(
+  		SearchParameter[] 	params,
+  		Map					context )
+  	
+  		throws SearchException
+  	{
+  		return( searchAndMap( params, context, -1, null, null ));
+  	}
 	
 	public Result[]
   	search(
@@ -621,7 +631,7 @@ EngineImpl
   	
   		throws SearchException
   	{
-		return( searchAndMap( params, -1, headers, null ));
+		return( searchAndMap( params, new HashMap(), -1, headers, null ));
   	}
 	
 	public void
@@ -632,34 +642,48 @@ EngineImpl
 		ResultListener		listener )
 	{
 		try{
-			Result[] results = searchAndMap( params, max_matches, headers, listener) ;
+			Result[] results = searchAndMap( params, new HashMap(), max_matches, headers, listener) ;
 			
 			listener.resultsReceived( this, results );
 			
 			listener.resultsComplete( this );
 			
 		}catch( Throwable e ){
-			if(e instanceof SearchLoginException) {
+			
+			if( e instanceof SearchLoginException ){
+				
 				listener.engineRequiresLogin(this, e);
-			} else {
+				
+			}else{
+				
 				listener.engineFailed( this, e);
 			}
-			
 		}
 	}
 	
 	protected Result[]
 	searchAndMap(
 		SearchParameter[] 			params,
+		Map							context,
 		int							max_matches,
 		String						headers,
 		final ResultListener		listener )
 	
 		throws SearchException
 	{
-		 Result[] results = 
+			// default values
+		
+		context.put( Engine.SC_AZID, 	Constants.AZID );
+
+		if ( context.get( Engine.SC_SOURCE ) == null ){
+			
+			context.put( Engine.SC_SOURCE, "search" );
+		}
+		
+		Result[] results = 
 			 searchSupport( 
 					params, 
+					context,
 					max_matches, 
 					headers, 
 					new ResultListener()
@@ -760,6 +784,7 @@ EngineImpl
 	protected abstract Result[]
 	searchSupport(
 		SearchParameter[] 	params,
+		Map					searchContext,
 		int					max_matches,
 		String				headers,
 		ResultListener		listener )

@@ -187,6 +187,7 @@ RegexEngine
 	protected Result[] 
 	searchSupport(
 		final SearchParameter[] 	searchParameters,
+		Map							searchContext,
 		final int					o_max_matches,
 		final String				headers,
 		final ResultListener		listener )
@@ -195,7 +196,7 @@ RegexEngine
 	{
 		debugStart();
 				
-		final pageDetails page_details = getWebPageContent( searchParameters, headers, false );
+		final pageDetails page_details = getWebPageContent( searchParameters, searchContext, headers, false );
 		
 		final String	page = page_details.getContent();
 		
