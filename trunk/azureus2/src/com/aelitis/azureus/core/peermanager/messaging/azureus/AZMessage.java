@@ -39,7 +39,7 @@ public interface AZMessage extends Message {
   public static final int SUBID_AZ_PEER_EXCHANGE		= 1;
   
   public static final String ID_AZ_GENERIC_MAP    		= "AZ_GENERIC_MAP";
-  public static final byte[] ID_AZ_GENERIC_MAP_BYTES    = ID_AZ_GENERIC_MAP.getBytes();;
+  public static final byte[] ID_AZ_GENERIC_MAP_BYTES    = ID_AZ_GENERIC_MAP.getBytes();
   public static final int SUBID_AZ_GENERIC_MAP			= 2;
   
   public static final String ID_AZ_REQUEST_HINT    		= "AZ_REQUEST_HINT";
