@@ -786,6 +786,7 @@ BuddyPlugin
 	public boolean
 	isEnabled()
 	{
+		if (enabled_param == null) {return false;}
 		return( enabled_param.getValue());
 	}
 	
@@ -793,6 +794,7 @@ BuddyPlugin
 	setEnabled(
 		boolean		enabled )
 	{
+		if (enabled_param == null) {return;}
 		enabled_param.setValue( enabled );
 	}
 	
