@@ -335,7 +335,7 @@ public class ToolBarView
 		}
 		
 		DownloadManager[] dms = getDMSFromSelectedContent();
-		boolean isDMSelection = dms != null && dms.length == 0;
+		boolean isDMSelection = dms != null && dms.length > 0;
 		
 		for (int i = 0; i < itemsNeedingDMSelection.length; i++) {
 			String itemID = itemsNeedingDMSelection[i];
