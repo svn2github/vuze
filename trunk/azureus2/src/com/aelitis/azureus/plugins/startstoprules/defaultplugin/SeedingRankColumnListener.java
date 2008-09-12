@@ -134,8 +134,8 @@ public class SeedingRankColumnListener implements
 	 */
 	public void configurationSaved() {
 		minTimeAlive = pluginConfig
-				.getIntParameter("StartStopManager_iMinSeedingTime") * 1000;
-		iRankType = pluginConfig.getIntParameter("StartStopManager_iRankType");
-		bDebugLog = pluginConfig.getBooleanParameter("StartStopManager_bDebugLog");
+				.getUnsafeIntParameter("StartStopManager_iMinSeedingTime") * 1000;
+		iRankType = pluginConfig.getUnsafeIntParameter("StartStopManager_iRankType");
+		bDebugLog = pluginConfig.getUnsafeBooleanParameter("StartStopManager_bDebugLog");
 	}
 }

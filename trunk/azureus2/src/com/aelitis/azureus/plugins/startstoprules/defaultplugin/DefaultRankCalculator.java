@@ -228,42 +228,42 @@ public class DefaultRankCalculator implements Comparable {
 	public static void reloadConfigParams(PluginConfig cfg) {
 		final String PREFIX = "StartStopManager_";
 
-		iRankType = cfg.getIntParameter(PREFIX + "iRankType");
+		iRankType = cfg.getUnsafeIntParameter(PREFIX + "iRankType");
 
-		minPeersToBoostNoSeeds = cfg.getIntParameter(PREFIX
+		minPeersToBoostNoSeeds = cfg.getUnsafeIntParameter(PREFIX
 				+ "iMinPeersToBoostNoSeeds");
-		minSpeedForActiveDL = cfg.getIntParameter(PREFIX + "iMinSpeedForActiveDL");
-		minSpeedForActiveSeeding = cfg.getIntParameter(PREFIX
+		minSpeedForActiveDL = cfg.getUnsafeIntParameter(PREFIX + "iMinSpeedForActiveDL");
+		minSpeedForActiveSeeding = cfg.getUnsafeIntParameter(PREFIX
 				+ "iMinSpeedForActiveSeeding");
 
-		iRankTypeSeedFallback = cfg.getIntParameter(PREFIX
+		iRankTypeSeedFallback = cfg.getUnsafeIntParameter(PREFIX
 				+ "iRankTypeSeedFallback");
-		bPreferLargerSwarms = cfg.getBooleanParameter(PREFIX
+		bPreferLargerSwarms = cfg.getUnsafeBooleanParameter(PREFIX
 				+ "bPreferLargerSwarms");
-		minTimeAlive = cfg.getIntParameter(PREFIX + "iMinSeedingTime") * 1000;
-		bAutoStart0Peers = cfg.getBooleanParameter(PREFIX + "bAutoStart0Peers");
+		minTimeAlive = cfg.getUnsafeIntParameter(PREFIX + "iMinSeedingTime") * 1000;
+		bAutoStart0Peers = cfg.getUnsafeBooleanParameter(PREFIX + "bAutoStart0Peers");
 
 		// Ignore torrent if seed count is at least..
-		iIgnoreSeedCount = cfg.getIntParameter(PREFIX + "iIgnoreSeedCount");
-		bIgnore0Peers = cfg.getBooleanParameter(PREFIX + "bIgnore0Peers");
+		iIgnoreSeedCount = cfg.getUnsafeIntParameter(PREFIX + "iIgnoreSeedCount");
+		bIgnore0Peers = cfg.getUnsafeBooleanParameter(PREFIX + "bIgnore0Peers");
 		iIgnoreShareRatio = (int) (1000 * cfg.getFloatParameter("Stop Ratio"));
-		iIgnoreShareRatio_SeedStart = cfg.getIntParameter(PREFIX
+		iIgnoreShareRatio_SeedStart = cfg.getUnsafeIntParameter(PREFIX
 				+ "iIgnoreShareRatioSeedStart");
 		iIgnoreRatioPeers = cfg.getIntParameter("Stop Peers Ratio", 0);
-		iIgnoreRatioPeers_SeedStart = cfg.getIntParameter(PREFIX
+		iIgnoreRatioPeers_SeedStart = cfg.getUnsafeIntParameter(PREFIX
 				+ "iIgnoreRatioPeersSeedStart", 0);
 
-		minQueueingShareRatio = cfg.getIntParameter(PREFIX
+		minQueueingShareRatio = cfg.getUnsafeIntParameter(PREFIX
 				+ "iFirstPriority_ShareRatio");
-		iFirstPriorityType = cfg.getIntParameter(PREFIX + "iFirstPriority_Type");
-		iFirstPrioritySeedingMinutes = cfg.getIntParameter(PREFIX
+		iFirstPriorityType = cfg.getUnsafeIntParameter(PREFIX + "iFirstPriority_Type");
+		iFirstPrioritySeedingMinutes = cfg.getUnsafeIntParameter(PREFIX
 				+ "iFirstPriority_SeedingMinutes");
-		iFirstPriorityActiveMinutes = cfg.getIntParameter(PREFIX
+		iFirstPriorityActiveMinutes = cfg.getUnsafeIntParameter(PREFIX
 				+ "iFirstPriority_DLMinutes");
 		// Ignore FP
-		iFirstPriorityIgnoreSPRatio = cfg.getIntParameter(PREFIX
+		iFirstPriorityIgnoreSPRatio = cfg.getUnsafeIntParameter(PREFIX
 				+ "iFirstPriority_ignoreSPRatio");
-		bFirstPriorityIgnore0Peer = cfg.getBooleanParameter(PREFIX
+		bFirstPriorityIgnore0Peer = cfg.getUnsafeBooleanParameter(PREFIX
 				+ "bFirstPriority_ignore0Peer");
 	}
 
