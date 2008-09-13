@@ -416,6 +416,12 @@ public class BTPeerIDByteDecoderDefinitions {
 		client = addSimpleClient("QVOD", "QVOD");
 		addVersionedClient(client, VER_BLOCK, 4, " (Build %s)");
 		
+		// Top-BT - based on BitTornado, but doesn't quite stick
+		// to Shadow's naming conventions - so we'll use substring
+		// matching instead.
+		client = addSimpleClient("Top-BT", "TB");
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
+		
 	}
 	
 	static class ClientData {
