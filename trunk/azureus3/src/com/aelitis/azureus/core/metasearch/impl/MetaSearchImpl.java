@@ -646,16 +646,16 @@ MetaSearchImpl
 		return( engines.size());
 	}
 	
-	public void 
+	public Engine[] 
 	search(
 		final ResultListener 	original_listener,
 		SearchParameter[] 		searchParameters,
 		String					headers )
 	{
-		search( null, original_listener, searchParameters, headers );
+		return( search( null, original_listener, searchParameters, headers ));
 	}
 	
-	public void 
+	public Engine[] 
 	search(
 		Engine					engine,
 		final ResultListener 	original_listener,
@@ -826,11 +826,16 @@ MetaSearchImpl
 				
 				se.search( engines[i], searchParameters, headers );
 			}
+			
+			return( engines );
+			
 		}else{
 			
 			log( "Search: params=" + param_str + "; engine=" + engine.getId());
 
 			se.search( engine, searchParameters, headers );
+			
+			return( new Engine[]{ engine });
 		}
 	}
 	

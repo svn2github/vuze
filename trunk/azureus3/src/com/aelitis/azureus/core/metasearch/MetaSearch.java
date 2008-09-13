@@ -33,13 +33,13 @@ MetaSearch
 	
 		throws IOException;
 	
-	public void 
+	public Engine[] 
 	search(
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters,
 		String				headers );
 	
-	public void 
+	public Engine[] 
 	search(
 		Engine				engine,
 		ResultListener 		listener,
