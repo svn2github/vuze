@@ -444,4 +444,10 @@ TrackerWebPageResponseImpl
 			async_control.setAsyncComplete();
 		}
 	}
+	
+	public boolean
+	getAsynchronous()
+	{
+		return( is_async );
+	}
 }

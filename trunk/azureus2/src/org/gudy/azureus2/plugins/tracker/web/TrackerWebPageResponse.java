@@ -98,4 +98,7 @@ TrackerWebPageResponse
 		boolean		async )
 	
 		throws IOException;
+	
+	public boolean
+	getAsynchronous();
 }
