@@ -532,11 +532,17 @@ implements PEPeerTransport
 		ByteBuffer	initial_outbound_data = null;
 
 		if ( use_crypto ){
+			
+			BTHandshake handshake = new BTHandshake( manager.getHash(),
+					manager.getPeerId(),
+                    manager.isExtendedMessagingEnabled(), other_peer_handshake_version );
+			
+			if (Logger.isEnabled())
+			    Logger.log(new LogEvent(this, LOGID,
+			    		"Sending encrypted handshake with reserved bytes: " +
+			    			ByteFormatter.nicePrint(handshake.getReserved(), false)));
 
-			DirectByteBuffer[] ddbs = 
-				new BTHandshake( manager.getHash(),
-						manager.getPeerId(),
-                                 manager.isExtendedMessagingEnabled(), other_peer_handshake_version ).getRawData();
+			DirectByteBuffer[] ddbs = handshake.getRawData();
 
 			int	handshake_len = 0;
 
@@ -932,6 +938,11 @@ implements PEPeerTransport
 			BTHandshake handshake =	new BTHandshake( manager.getHash(),
 					manager.getPeerId(),
                     manager.isExtendedMessagingEnabled(), other_peer_handshake_version );
+			
+			if (Logger.isEnabled())
+			    Logger.log(new LogEvent(this, LOGID,
+			    		"Sending handshake with reserved bytes: " +
+			    			ByteFormatter.nicePrint(handshake.getReserved(), false)));
 
 			/**
 			 * AMC's hopefully temporary debug code - some Az clients out there appear to be be
@@ -2023,6 +2034,12 @@ implements PEPeerTransport
 	}
 
 	protected void decodeBTHandshake( BTHandshake handshake ) {
+
+		if (Logger.isEnabled())
+		    Logger.log(new LogEvent(this, LOGID,
+		    		"Received handshake with reserved bytes: " +
+		    			ByteFormatter.nicePrint(handshake.getReserved(), false)));
+		
 		PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
 		
 		if(getConnectionState() == CONNECTION_FULLY_ESTABLISHED)
