@@ -371,7 +371,7 @@ ShareResourceImpl
 				}
 			}else{
 				
-				throw( new ShareException( "ShareResource::getFingetPrint: '" + file.toString() + "' doesn't exist" ));
+				throw( new ShareException( "ShareResource::getFingerPrint: '" + file.toString() + "' doesn't exist" ));
 			}
 			
 		}catch( Throwable e ){
