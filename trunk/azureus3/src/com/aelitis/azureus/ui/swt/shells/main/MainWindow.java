@@ -1571,6 +1571,52 @@ public class MainWindow
 			attachSearchBox(skinObject);
 		}
 
+		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
+		if (skinObject != null) {
+			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
+
+			MainMenu.createViewMenuItem(skin, topbarMenu, "v3.MainWindow.menu.view."
+					+ SkinConstants.VIEWID_PLUGINBAR, SkinConstants.VIEWID_PLUGINBAR
+					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true, -1);
+			
+			MenuItem itemShowText = new MenuItem(topbarMenu, SWT.PUSH);
+			Messages.setLanguageText(itemShowText, "v3.MainWindow.menu.showActionBarText");
+			itemShowText.addSelectionListener(new SelectionAdapter() {
+				// @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+				public void widgetSelected(SelectionEvent e) {
+					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					if (tb != null) {
+						boolean showText = !tb.getShowText();
+						tb.setShowText(showText);
+						
+						SWTSkinObject skinObject = skin.getSkinObject("tabbar");
+						if (skinObject != null) {
+							Control control = skinObject.getControl();
+							FormData fd = (FormData) control.getLayoutData();
+							fd.height = showText ? -1 : 28;
+							//Utils.relayout(control);
+						}
+						skinObject = skin.getSkinObject("topgap");
+						if (skinObject != null) {
+							Control control = skinObject.getControl();
+							FormData fd = (FormData) control.getLayoutData();
+							fd.height = showText ? 6 : 0;
+							Utils.relayout(control);
+						}
+					}
+				}
+			});
+			
+
+			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
+
+			skinObject = skin.getSkinObject("tabbar");
+			if (skinObject != null) {
+				addMenuAndNonTextChildren((Composite) skinObject.getControl(),
+						topbarMenu);
+			}
+		}
+
 		/*
 		 * Init the user area for login/logout info
 		 */

@@ -359,7 +359,7 @@ public class SideBar
 
 		// there isn't a SWT.NO_SCROLL in pre 3.4
 		final int NO_SCROLL = 1 << 4;
-		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.V_SCROLL
+		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.V_SCROLL
 				| NO_SCROLL | SWT.NO_FOCUS);
 		tree.setHeaderVisible(false);
 

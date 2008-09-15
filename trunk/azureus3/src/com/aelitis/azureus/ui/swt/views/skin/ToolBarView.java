@@ -60,6 +60,8 @@ public class ToolBarView
 	//ToolBarItem lastItem = null;
 	
 	Control lastControl = null;
+	
+	private boolean showText = true;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -517,6 +519,27 @@ public class ToolBarView
 			
 			lastControl = so.getControl();
 		}
+	}
+
+	/**
+	 * @param showText the showText to set
+	 */
+	public void setShowText(boolean showText) {
+		this.showText = showText;
+		ToolBarItem[] allToolBarItems = getAllToolBarItems();
+		for (int i = 0; i < allToolBarItems.length; i++) {
+			ToolBarItem tbi = allToolBarItems[i];
+			SWTSkinObject so = tbi.getSkinButton().getSkinObject();
+			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
+			soTitle.setVisible(showText);
+		}
+	}
+
+	/**
+	 * @return the showText
+	 */
+	public boolean getShowText() {
+		return showText;
 	}
 
 	private static class toolbarButtonListener
