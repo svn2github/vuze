@@ -1180,7 +1180,7 @@ TRTrackerBTAnnouncerImpl
 			  		failure_reason = exceptionToString( e );
 				}
 					
-				if ( failure_reason.indexOf("401" ) != -1 ){
+				if ( failure_reason != null && failure_reason.indexOf("401" ) != -1 ){
 						
 					failure_reason = "Tracker authentication failed";
 				}
