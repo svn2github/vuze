@@ -39,7 +39,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
