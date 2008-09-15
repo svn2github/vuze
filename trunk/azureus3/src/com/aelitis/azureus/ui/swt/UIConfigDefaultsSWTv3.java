@@ -122,8 +122,8 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("Use default data dir", true);
 			defaults.addParameter("Add URL Silently", true);
 			defaults.addParameter("add_torrents_silently", true);
-			defaults.addParameter("Popup Download Finished", true);
-			defaults.addParameter("Popup Download Added", true);
+			defaults.addParameter("Popup Download Finished", false);
+			defaults.addParameter("Popup Download Added", false);
 
 			defaults.addParameter("Status Area Show SR", false);
 			defaults.addParameter("Status Area Show NAT", false);
