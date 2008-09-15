@@ -1372,9 +1372,13 @@ public class Utils
 			return;
 		}
 
+		int fixedWidth = -1;
+		int fixedHeight = -1;
 		Object layoutData = control.getLayoutData();
 		if (layoutData instanceof FormData) {
 			FormData fd = (FormData) layoutData;
+			fixedHeight = fd.height;
+			fixedWidth = fd.width;
 			if (fd.width != SWT.DEFAULT && fd.height != SWT.DEFAULT) {
 				parent.layout();
 				return;
@@ -1394,7 +1398,8 @@ public class Utils
 
 			//System.out.println("new=" + newSize + ";target=" + targetSize);
 
-			if (newSize.y >= targetSize.y && newSize.x >= targetSize.x) {
+			if ((fixedHeight > -1 || (newSize.y >= targetSize.y))
+					&& (fixedWidth > -1 || (newSize.x >= targetSize.x))) {
 				break;
 			}
 		}
