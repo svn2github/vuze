@@ -35,6 +35,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.ChatWindow;
+import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
@@ -84,6 +85,8 @@ public class AvatarWidget
 	private boolean nameLinkActive = false;
 
 	private Color textColor = null;
+	
+	private Color selectedTextColor = null;
 
 	private Color textLinkColor = null;
 
@@ -141,6 +144,8 @@ public class AvatarWidget
 
 	private ChatDiscussion discussion;
 
+	private SharePage sharePage = null;
+	
 	static {
 		ImageRepository.addPath(
 				"com/aelitis/azureus/ui/images/friend_online_icon.png",
@@ -399,15 +404,17 @@ public class AvatarWidget
 					return;
 				}
 
-				if (fontDisplayName == null || fontDisplayName.isDisposed()) {
-					fontDisplayName = Utils.getFontWithHeight(canvas.getFont(), e.gc, 10);
-				}
+				/*if (fontDisplayName == null || fontDisplayName.isDisposed()) {
+					fontDisplayName = Utils.getFontWithHeight(canvas.getFont(), e.gc, 12);
+					e.gc.setFont(fontDisplayName);
+				}*/
 
 				try {
 					e.gc.setAntialias(SWT.ON);
-					//e.gc.setTextAntialias(SWT.ON);
+					
 					e.gc.setAlpha(getAlpha());
 					e.gc.setInterpolation(SWT.HIGH);
+					//e.gc.setTextAntialias(SWT.ON);
 				} catch (Exception ex) {
 					// ignore.. some of these may not be avail
 				}
@@ -415,10 +422,8 @@ public class AvatarWidget
 				/*
 				 * Draw background if the widget is activated or selected
 				 */
-				if ((true == isActivated && highlightedColor != null)
-						|| (true == isSelected && selectedColor != null)) {
-					e.gc.setBackground(false == isActivated && highlightedColor != null
-							? highlightedColor : selectedColor);
+				if (true == isSelected && selectedColor != null) {
+					e.gc.setBackground(selectedColor);
 					Rectangle bounds = canvas.getBounds();
 					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
 							bounds.width - (2 * highlightBorder), bounds.height
@@ -587,6 +592,11 @@ public class AvatarWidget
   					//e.gc.fillRectangle(nameAreaBounds);
 					} else {
 
+						if(isSelected) {
+							e.gc.setForeground(selectedTextColor);
+						} else {
+							e.gc.setForeground(textColor);
+						}
 						if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
 							GCStringPrinter stringPrinter = new GCStringPrinter(e.gc, "%0 "
 									+ vuzeBuddy.getDisplayName(), nameAreaBounds, false, false,
@@ -655,30 +665,30 @@ public class AvatarWidget
 			}
 		});
 
-		canvas.addMouseTrackListener(new MouseTrackListener() {
-
-			public void mouseHover(MouseEvent e) {
-
-			}
-
-			public void mouseExit(MouseEvent e) {
-				if (false == isFullyVisible()) {
-					return;
-				}
-				isActivated = false;
-				canvas.redraw();
-			}
-
-			public void mouseEnter(MouseEvent e) {
-				if (false == isFullyVisible()) {
-					return;
-				}
-				if (false == isActivated) {
-					isActivated = true;
-					canvas.redraw();
-				}
-			}
-		});
+//		canvas.addMouseTrackListener(new MouseTrackListener() {
+//
+//			public void mouseHover(MouseEvent e) {
+//
+//			}
+//
+//			public void mouseExit(MouseEvent e) {
+//				if (false == isFullyVisible()) {
+//					return;
+//				}
+//				isActivated = false;
+//				canvas.redraw();
+//			}
+//
+//			public void mouseEnter(MouseEvent e) {
+//				if (false == isFullyVisible()) {
+//					return;
+//				}
+//				if (false == isActivated) {
+//					//isActivated = true;
+//					canvas.redraw();
+//				}
+//			}
+//		});
 
 		canvas.addMouseListener(new MouseListener() {
 
@@ -705,7 +715,7 @@ public class AvatarWidget
 						doRemoveBuddy();
 					}
 				} else if (decorator_add_to_share.contains(e.x, e.y)) {
-
+					
 				} else {
 					if ((e.stateMask & SWT.MOD1) == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
@@ -1132,6 +1142,14 @@ public class AvatarWidget
 	public void setTextColor(Color textColor) {
 		this.textColor = textColor;
 	}
+	
+	public Color getSelectedTextColor() {
+		return selectedTextColor;
+	}
+
+	public void setSelectedTextColor(Color selectedTextColor) {
+		this.selectedTextColor = selectedTextColor;
+	}
 
 	public Color getTextLinkColor() {
 		return textLinkColor;
@@ -1297,5 +1315,9 @@ public class AvatarWidget
 	public interface AfterDisposeListener
 	{
 		public void disposed();
+	}
+	
+	public void setSharePage(SharePage sharePage) {
+		this.sharePage = sharePage;
 	}
 }

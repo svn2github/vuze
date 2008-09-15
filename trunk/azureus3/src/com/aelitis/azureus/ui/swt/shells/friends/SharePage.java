@@ -125,6 +125,12 @@ public class SharePage
 		buddiesViewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 
+		getWizard().getShell().addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event arg0) {
+				resetBuddyViewer();
+			}
+		});
+		
 //		content.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
 		content.setBackgroundMode(SWT.INHERIT_FORCE);
 		
@@ -327,31 +333,31 @@ public class SharePage
 			//			getDetailPanel().show(true, PAGE_ID);
 			//
 			//// KN: Work in progress for new Share wizard			
-			//			ShareWizard shell = new ShareWizard(
-			//					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
-			//					SWT.DIALOG_TRIM | SWT.RESIZE);
-			//			shell.setText("Vuze - Wizard");
-			//			shell.setSize(500, 550);
-			//			
-			//			/*
-			//			 * Opens a centered free-floating shell
-			//			 */
-			//
-			//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-			//			if (null == uiFunctions) {
-			//				/*
-			//				 * Centers on the active monitor
-			//				 */
-			//				Utils.centreWindow(shell.getShell());
-			//			} else {
-			//				/*
-			//				 * Centers on the main application window
-			//				 */
-			//				Utils.centerWindowRelativeTo(shell.getShell(),
-			//						uiFunctions.getMainShell());
-			//			}
-			//
-			//			shell.open();
+//						ShareWizard shell = new ShareWizard(
+//								UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+//								SWT.DIALOG_TRIM | SWT.RESIZE);
+//						shell.setText("Vuze - Wizard");
+//						shell.setSize(500, 550);
+//						
+//						/*
+//						 * Opens a centered free-floating shell
+//						 */
+//			
+//						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+//						if (null == uiFunctions) {
+//							/*
+//							 * Centers on the active monitor
+//							 */
+//							Utils.centreWindow(shell.getShell());
+//						} else {
+//							/*
+//							 * Centers on the main application window
+//							 */
+//							Utils.centerWindowRelativeTo(shell.getShell(),
+//									uiFunctions.getMainShell());
+//						}
+//			
+//						shell.open();
 		}
 	}
 
@@ -365,8 +371,45 @@ public class SharePage
 
 	public void performCancel() {
 		super.performCancel();
+		resetBuddyViewer();
+	}
+	
+	private void resetBuddyViewer() {
+		buddiesViewer.setShareMode(false,null);
+		friendsToolbar.reset();
 	}
 
+	public void addBuddy(VuzeBuddySWT vuzeBuddy) {
+		if (null == buddyList.findWidget(vuzeBuddy)) {
+			buddyList.addFriend((VuzeBuddy) vuzeBuddy);
+			adjustLayout();
+		}
+	}
+
+	public void removeBuddy(VuzeBuddySWT vuzeBuddy) {
+		if (null != buddyList.findWidget(vuzeBuddy)) {
+			buddyList.removeFriend((VuzeBuddy) vuzeBuddy);
+			adjustLayout();
+		}
+	}
+	private void adjustLayout() {
+/*
+		if (buddyList.getContentCount() > 0 || inviteeList.getContentCount() > 0) {
+			sendNowButton.setEnabled(true);
+		} else {
+			sendNowButton.setEnabled(false);
+		}
+		if (inviteeList.getContentCount() > 0) {
+			showInviteeList(true);
+			addBuddyButton.setText(MessageText.getString("v3.Share.add.edit.buddy"));
+		} else {
+			showInviteeList(false);
+			addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
+		}*/
+
+		content.layout(true, true);
+	}
+	
 	public String getPageID() {
 		return ID;
 	}
@@ -402,6 +445,7 @@ public class SharePage
 		if (null != buddiesViewer) {
 			setBuddies(buddiesViewer.getSelection());
 			buddiesViewer.addSelectionToShare();
+			buddiesViewer.setShareMode(true, this);
 		}
 
 		byte[] imageBytes = shareItem.getImageBytes();

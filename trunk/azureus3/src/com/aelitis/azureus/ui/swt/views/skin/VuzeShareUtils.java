@@ -41,9 +41,7 @@ public class VuzeShareUtils
 
 	public void shareTorrent(final SelectedContentV3 currentContent,
 			final String referer) {
-		if (Constants.DISABLE_BUDDIES_BAR) {
-			return;
-		}
+
 		PlatformBuddyMessenger.startShare(referer,
 				currentContent.isPlatformContent() ? currentContent.getHash() : null);
 
@@ -64,37 +62,37 @@ public class VuzeShareUtils
 			public void loginComplete() {
 				if (null != sharePage) {
 					try {
-						sharePage.setShareItem(currentContent, referer);
+						//sharePage.setShareItem(currentContent, referer);
 						
 						
-//						ShareWizard wizard = new ShareWizard(
-//								UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
-//								SWT.DIALOG_TRIM | SWT.RESIZE);
-//						wizard.setText("Vuze - Wizard");
-//						wizard.setSize(500, 550);
-//
-//						com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
-//						newSharePage.setShareItem(currentContent, referer);
-//
-//						/*
-//						 * Opens a centered free-floating shell
-//						 */
-//
-//						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-//						if (null == uiFunctions) {
-//							/*
-//							 * Centers on the active monitor
-//							 */
-//							Utils.centreWindow(wizard.getShell());
-//						} else {
-//							/*
-//							 * Centers on the main application window
-//							 */
-//							Utils.centerWindowRelativeTo(wizard.getShell(),
-//									uiFunctions.getMainShell());
-//						}
-//
-//						wizard.open();
+						ShareWizard wizard = new ShareWizard(
+								UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+								SWT.DIALOG_TRIM | SWT.RESIZE);
+						wizard.setText("Vuze - Wizard");
+						wizard.setSize(500, 550);
+
+						com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
+						newSharePage.setShareItem(currentContent, referer);
+
+						/*
+						 * Opens a centered free-floating shell
+						 */
+
+						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						if (null == uiFunctions) {
+							/*
+							 * Centers on the active monitor
+							 */
+							Utils.centreWindow(wizard.getShell());
+						} else {
+							/*
+							 * Centers on the main application window
+							 */
+							Utils.centerWindowRelativeTo(wizard.getShell(),
+									uiFunctions.getMainShell());
+						}
+
+						wizard.open();
 						
 					} catch (Exception e) {
 						e.printStackTrace();

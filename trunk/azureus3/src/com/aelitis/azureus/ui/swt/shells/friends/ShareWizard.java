@@ -1,6 +1,9 @@
 package com.aelitis.azureus.ui.swt.shells.friends;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 

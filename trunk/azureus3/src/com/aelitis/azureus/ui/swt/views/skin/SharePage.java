@@ -861,34 +861,34 @@ public class SharePage
 				friendsToolbar.setShareMode();
 			}
 			
-			getDetailPanel().show(true, PAGE_ID);
+			//getDetailPanel().show(true, PAGE_ID);
 
-// KN: Work in progress for new Share wizard			
-//			ShareWizard shell = new ShareWizard(
-//					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
-//					SWT.DIALOG_TRIM | SWT.RESIZE);
-//			shell.setText("Vuze - Wizard");
-//			shell.setSize(500, 550);
-//			
-//			/*
-//			 * Opens a centered free-floating shell
-//			 */
-//
-//			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-//			if (null == uiFunctions) {
-//				/*
-//				 * Centers on the active monitor
-//				 */
-//				Utils.centreWindow(shell.getShell());
-//			} else {
-//				/*
-//				 * Centers on the main application window
-//				 */
-//				Utils.centerWindowRelativeTo(shell.getShell(),
-//						uiFunctions.getMainShell());
-//			}
-//
-//			shell.open();
+ //KN: Work in progress for new Share wizard			
+			ShareWizard shell = new ShareWizard(
+					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+					SWT.DIALOG_TRIM | SWT.RESIZE);
+			shell.setText("Vuze - Wizard");
+			shell.setSize(500, 550);
+			
+			/*
+			 * Opens a centered free-floating shell
+			 */
+
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (null == uiFunctions) {
+				/*
+				 * Centers on the active monitor
+				 */
+				Utils.centreWindow(shell.getShell());
+			} else {
+				/*
+				 * Centers on the main application window
+				 */
+				Utils.centerWindowRelativeTo(shell.getShell(),
+						uiFunctions.getMainShell());
+			}
+
+			shell.open();
 		}
 	}
 

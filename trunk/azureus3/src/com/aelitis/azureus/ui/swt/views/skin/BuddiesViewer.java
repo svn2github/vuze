@@ -31,6 +31,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
+import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.util.Constants;
@@ -86,6 +87,8 @@ public class BuddiesViewer
 	private boolean isEnabled = true;
 
 	private Color textColor = null;
+	
+	private Color selectedTextColor = null;
 
 	private Color textLinkColor = null;
 
@@ -97,7 +100,7 @@ public class BuddiesViewer
 
 	private SWTSkinObject soNoBuddies;
 
-	private SharePage sharePage;
+	private com.aelitis.azureus.ui.swt.shells.friends.SharePage sharePage;
 
 	private List buddiesList;
 
@@ -244,7 +247,10 @@ public class BuddiesViewer
 			/*
 			 * Specify avatar dimensions and attributes before creating the avatars
 			 */
-			textColor = properties.getColor("color.links.normal");
+			textColor =  parent.getDisplay().getSystemColor(
+					SWT.COLOR_LIST_FOREGROUND);
+			selectedTextColor =  parent.getDisplay().getSystemColor(
+					SWT.COLOR_LIST_SELECTION_TEXT);
 			textLinkColor = properties.getColor("color.links.hover");
 			imageBorderColor = properties.getColor("color.buddy.bg.border");
 			selectedColor = parent.getDisplay().getSystemColor(
@@ -256,7 +262,7 @@ public class BuddiesViewer
 			avatarImageBorder = 1;
 			hSpacing = 1;
 			avatarImageSize = new Point(40, 40);
-			avatarNameSize = new Point(60, 26);
+			avatarNameSize = new Point(60, 30);
 			avatarSize = new Point(0, 0);
 			avatarSize.x = Math.max(avatarNameSize.x, avatarImageSize.x)
 					+ (2 * (avatarHightLightBorder + avatarImageBorder));
@@ -312,7 +318,7 @@ public class BuddiesViewer
 			}
 
 			if (true == value) {
-				setShareMode(false);
+				setShareMode(false,null);
 				setAddBuddyMode(false);
 			}
 		}
@@ -346,6 +352,7 @@ public class BuddiesViewer
 				avatarImageSize, avatarNameSize, vuzeBuddy);
 		avatarWidget.setBorderWidth(avatarHightLightBorder);
 		avatarWidget.setTextColor(textColor);
+		avatarWidget.setSelectedTextColor(selectedTextColor);
 		avatarWidget.setTextLinkColor(textLinkColor);
 		avatarWidget.setImageBorderColor(imageBorderColor);
 		avatarWidget.setImageBorder(avatarImageBorder);
@@ -669,7 +676,7 @@ public class BuddiesViewer
 	}
 
 	public void addToShare(AvatarWidget widget) {
-		if (null == sharePage) {
+		/*if (null == sharePage) {
 			SkinView detailPanelView = SkinViewManager.getByClass(DetailPanel.class);
 			if (detailPanelView instanceof DetailPanel) {
 				DetailPanel detailPanel = ((DetailPanel) detailPanelView);
@@ -679,8 +686,10 @@ public class BuddiesViewer
 				throw new IllegalArgumentException(
 						"Oops.. looks like the DetailPanel skin is not properly initialized");
 			}
+		}*/
+		if(sharePage != null) {
+			sharePage.addBuddy(widget.getVuzeBuddy());
 		}
-		sharePage.addBuddy(widget.getVuzeBuddy());
 		widget.setSharedAlready(true);
 	}
 
@@ -695,7 +704,9 @@ public class BuddiesViewer
 	}
 
 	public void removeFromShare(AvatarWidget widget) {
-		sharePage.removeBuddy(widget.getVuzeBuddy());
+		if(sharePage != null) {
+			sharePage.removeBuddy(widget.getVuzeBuddy());
+		}
 		widget.setSharedAlready(false);
 	}
 
@@ -726,7 +737,9 @@ public class BuddiesViewer
 				if (null != widget.getVuzeBuddy()) {
 					if (true == buddy.getLoginID().equals(
 							widget.getVuzeBuddy().getLoginID())) {
-						sharePage.removeBuddy(widget.getVuzeBuddy());
+						if(sharePage != null) {
+							sharePage.removeBuddy(widget.getVuzeBuddy());
+						}
 						widget.setSharedAlready(false);
 						break;
 					}
@@ -736,8 +749,10 @@ public class BuddiesViewer
 
 	}
 
-	public void setShareMode(boolean isShareMode) {
+	public void setShareMode(boolean isShareMode,SharePage sharePage) {
 
+		this.sharePage = sharePage;
+		
 		if (this.isShareMode != isShareMode) {
 			this.isShareMode = isShareMode;
 			for (Iterator iterator = avatarWidgets.iterator(); iterator.hasNext();) {
@@ -770,20 +785,20 @@ public class BuddiesViewer
 		 * Turn off share mode when we enter add buddy flow
 		 */
 		if (true == isAddBuddyMode) {
-			setShareMode(false);
+			setShareMode(false,null);
 			setEditMode(false);
 		}
 	}
 
 	public void setMode(int mode) {
 		if (mode == none_active_mode) {
-			setShareMode(false);
+			setShareMode(false,null);
 			setEditMode(false);
 			setAddBuddyMode(false);
 		} else if (mode == edit_mode) {
 			setEditMode(true);
 		} else if (mode == share_mode) {
-			setShareMode(true);
+			setShareMode(true,sharePage);
 		} else if (mode == add_buddy_mode) {
 			setAddBuddyMode(true);
 		}
