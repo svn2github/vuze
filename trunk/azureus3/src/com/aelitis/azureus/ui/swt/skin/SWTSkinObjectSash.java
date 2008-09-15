@@ -23,6 +23,8 @@ package com.aelitis.azureus.ui.swt.skin;
 import java.text.NumberFormat;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
@@ -96,6 +98,8 @@ public class SWTSkinObjectSash
 	private double sashPct;
 
 	private boolean noresize = false;
+
+	private String sBorder;
 
 	public SWTSkinObjectSash(final SWTSkin skin,
 			final SWTSkinProperties properties, final String sID,
@@ -216,6 +220,29 @@ public class SWTSkinObjectSash
 
 			});
 		} // dblclick
+		
+		sBorder = properties.getStringValue(sConfigID + ".border", (String) null);
+		if (sBorder != null) {
+			sash.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					e.gc.setForeground(e.gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_NORMAL_SHADOW));
+					Point size = sash.getSize();
+					if (bVertical) {
+						e.gc.drawLine(0, 0, 0, size.y);
+						if (!sBorder.startsWith("thin-top")) {
+							int x = size.x - 1;
+							e.gc.drawLine(x, 0, x, 0 + size.y);
+						}
+					} else {
+						e.gc.drawLine(0, 0, 0 + size.x, 0);
+						if (!sBorder.startsWith("thin-top")) {
+							int y = size.y - 1;
+							e.gc.drawLine(0, y, 0 + size.x, y);
+						}
+					}
+				}
+			});
+		}
 
 		setControl(sash);
 	}
