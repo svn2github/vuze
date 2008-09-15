@@ -60,7 +60,7 @@ BloomFilterImpl
 	
 
 	private int			max_entries;
-	private BigInteger	bi_max_entries;
+	//private BigInteger	bi_max_entries;
 	
 	private int			entry_count;
 	
@@ -68,9 +68,9 @@ BloomFilterImpl
 	BloomFilterImpl(
 		int		_max_entries )
 	{
-		bi_max_entries	= new BigInteger( ""+(((_max_entries/2)*2)+1));
+		//bi_max_entries	= new BigInteger( ""+(((_max_entries/2)*2)+1));
 				
-		max_entries	= bi_max_entries.intValue();
+		max_entries	= ((_max_entries/2)*2)+1;
 	}
 	
 	protected int
