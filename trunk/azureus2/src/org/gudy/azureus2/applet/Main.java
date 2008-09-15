@@ -43,7 +43,7 @@ public class Main extends Applet {
   String url;
   String savePath;
   
-  DownloadManager dm;    
+  DownloadManager dm;                  // dead
   
   public Main() {
     appletPanel = new JPanel();
