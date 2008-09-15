@@ -102,15 +102,23 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	// Array represents LogTypes (info, warning, error)
 	private ArrayList[] ignoredComponents = new ArrayList[3];
 
+	private boolean stopOnNull = false;
+
 	static {
 		dateFormatter = new SimpleDateFormat("[HH:mm:ss.SSS] ");
 		formatPos = new FieldPosition(0);
 	}
 
 	public LoggerView() {
+		this(false);
+		setEnabled(true);
+	}
+	
+	public LoggerView(boolean stopOnNull) {
 		for (int i = 0; i < ignoredComponents.length; i++) {
 			ignoredComponents[i] = new ArrayList();
 		}
+		this.stopOnNull = stopOnNull;
 	}
 
 	public LoggerView(java.util.List initialList) {
@@ -555,6 +563,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		return "ConsoleView.title.short";
 	}
 
+	// @see org.gudy.azureus2.core3.logging.ILogEventListener#log(org.gudy.azureus2.core3.logging.LogEvent)
 	public synchronized void log(final LogEvent event) {
 		if (display == null || display.isDisposed())
 			return;
@@ -642,15 +651,19 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 	// TODO: Support multiple selection
 	public void dataSourceChanged(Object newDataSource) {
-		boolean bEnable = newDataSource != null;
-		if (bEnable) {
-			if (newDataSource instanceof Object[])
-				setFilter((Object[]) newDataSource);
-			else
-				setFilter(new Object[] { newDataSource });
+		if (newDataSource == null) {
+			if (stopOnNull) {
+				setEnabled(false);
+				return;
+			}
+			setFilter(null);
+		} else if (newDataSource instanceof Object[]) {
+			setFilter((Object[]) newDataSource);
+		} else {
+			setFilter(new Object[] { newDataSource });
 		}
 
-		setEnabled(bEnable);
+		setEnabled(true);
 	}
 
 	private int logTypeToIndex(int entryType) {

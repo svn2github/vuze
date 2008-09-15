@@ -126,7 +126,7 @@ public class PeersView
 		tv.setCoreTabViews(new IView[] {
 			new PeerInfoView(),
 			new RemotePieceDistributionView(),
-			new LoggerView()
+			new LoggerView(true)
 		});
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);

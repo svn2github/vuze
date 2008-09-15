@@ -184,7 +184,7 @@ public class ManagerView
   	iviews_to_use.add(new TorrentInfoView());
   	iviews_to_use.add(new TorrentOptionsView());
   	if (Logger.isEnabled()) {
-  		iviews_to_use.add(new LoggerView());
+  		iviews_to_use.add(new LoggerView(true));
   	}
   	
   	IView[] views = (IView[])iviews_to_use.toArray(new IView[iviews_to_use.size()]);
