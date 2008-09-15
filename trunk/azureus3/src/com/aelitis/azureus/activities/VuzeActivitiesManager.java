@@ -56,8 +56,6 @@ public class VuzeActivitiesManager
 
 	private static final String SAVE_FILENAME = "VuzeActivities.config";
 
-	protected static final boolean SHOW_DM_REMOVED_ACTIVITY = false;
-
 	private static ArrayList listeners = new ArrayList();
 
 	private static ArrayList allEntries = new ArrayList();
@@ -73,8 +71,6 @@ public class VuzeActivitiesManager
 	private static long lastVuzeNewsAt;
 
 	private static boolean skipAutoSave = true;
-
-	private static DownloadManagerListener dmListener;
 
 	private static AEMonitor config_mon = new AEMonitor("ConfigMon");
 
@@ -112,6 +108,26 @@ public class VuzeActivitiesManager
 		});
 
 		loadEvents();
+		
+		{	
+			//TODO TUX : could we remove the dl-related entries from the "removed/deleted" list too ?
+			//Remove obsolete dl-related entries
+			List obsoleteEntries = new ArrayList();
+			VuzeActivitiesEntry[] entries = getAllEntries();
+			for(int i = 0 ; i < entries.length ; i++) {
+				VuzeActivitiesEntry entry = entries[i];
+				if( 	entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_ADDED) || 
+						entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_REMOVE) ||
+						entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_COMPLETE) ) {
+					
+					obsoleteEntries.add(entry);
+					
+				}
+			}
+			if(obsoleteEntries.size() > 0) {
+				removeEntries((VuzeActivitiesEntry[]) obsoleteEntries.toArray(new VuzeActivitiesEntry[obsoleteEntries.size()]),true);
+			}
+		}
 
 		replyListener = new PlatformVuzeActivitiesMessenger.GetEntriesReplyListener() {
 			public void gotVuzeNewsEntries(VuzeActivitiesEntry[] entries,
@@ -173,90 +189,12 @@ public class VuzeActivitiesManager
 			}
 		});
 
-		dmListener = new DownloadManagerListener() {
-
-			public void stateChanged(DownloadManager manager, int state) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void positionChanged(DownloadManager download, int oldPosition,
-					int newPosition) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void filePriorityChanged(DownloadManager download,
-					DiskManagerFileInfo file) {
-				// TODO Auto-generated method stub
-
-			}
-
-			public void downloadComplete(DownloadManager dm) {
-				VuzeActivitiesEntry entry = createDMCompleteEntry(dm);
-				if (entry != null) {
-					addEntries(new VuzeActivitiesEntry[] {
-						entry
-					});
-				}
-				dm.removeListener(this);
-			}
-
-			public void completionChanged(DownloadManager manager, boolean completed) {
-				// TODO Auto-generated method stub
-
-			}
-		};
-
 		GlobalManagerListener gmListener = new GlobalManagerListener() {
 
 			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
 			}
 
 			public void downloadManagerRemoved(DownloadManager dm) {
-				try {
-					if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
-						return;
-					}
-
-					VuzeActivitiesEntry[] entries = getAllEntries();
-					for (int i = 0; i < entries.length; i++) {
-						VuzeActivitiesEntry oldEntry = entries[i];
-						DownloadManager oldDM = oldEntry.getDownloadManger();
-						if (oldDM != null && oldDM.equals(dm)) {
-							removeEntries(new VuzeActivitiesEntry[] {
-								oldEntry
-							});
-						}
-					}
-					if (SHOW_DM_REMOVED_ACTIVITY) {
-						VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-
-						String hash = dm.getTorrent().getHashWrapper().toBase32String();
-						String title;
-						if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-							String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-									+ ".html?" + Constants.URL_SUFFIX + "&client_ref=activity-"
-									+ VuzeActivitiesConstants.TYPEID_DL_REMOVE;
-							title = "<A HREF=\"" + url + "\">"
-									+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-							entry.setAssetHash(hash);
-						} else {
-							title = PlatformTorrentUtils.getContentTitle2(dm);
-						}
-
-						entry.setID(hash + ";r" + entry.getTimestamp());
-						entry.setText(title + " has been removed from your library");
-						entry.setTypeID(VuzeActivitiesConstants.TYPEID_DL_REMOVE, true);
-						addEntries(new VuzeActivitiesEntry[] {
-							entry
-						});
-					}
-				} catch (Throwable t) {
-					// ignore
-				}
-
-				dm.removeListener(dmListener);
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
@@ -273,6 +211,9 @@ public class VuzeActivitiesManager
 			}
 		};
 
+		
+		
+		
 		List newEntries = new ArrayList();
 		GlobalManager gm = core.getGlobalManager();
 		gm.addListener(gmListener, false);
@@ -341,59 +282,6 @@ public class VuzeActivitiesManager
 		}
 	}
 
-	/**
-	 * @param dm
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	protected static VuzeActivitiesEntry createDMCompleteEntry(DownloadManager dm) {
-		try {
-			String hash = dm.getTorrent().getHashWrapper().toBase32String();
-
-			long completedTime = dm.getDownloadState().getLongParameter(
-					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
-
-			String id = hash + ";c" + completedTime;
-
-			//System.out.println("DC " + dm.getDisplayName());
-			VuzeActivitiesEntry[] entries = getAllEntries();
-			for (int i = 0; i < entries.length; i++) {
-				VuzeActivitiesEntry oldEntry = entries[i];
-				DownloadManager oldDM = oldEntry.getDownloadManger();
-				if (oldDM != null && oldDM.equals(dm)
-						&& VuzeActivitiesConstants.TYPEID_DL_ADDED.equals(oldEntry.getTypeID())) {
-					//System.out.println("remove added entry " + oldEntry.id);
-					removeEntries(new VuzeActivitiesEntry[] {
-						oldEntry
-					});
-				}
-			}
-
-			String title;
-			if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-				String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-						+ ".html?" + Constants.URL_SUFFIX + "&client_ref=activity-"
-						+ VuzeActivitiesConstants.TYPEID_DL_COMPLETE;
-				title = "<A HREF=\"" + url + "\">"
-						+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-			} else {
-				title = PlatformTorrentUtils.getContentTitle2(dm);
-			}
-
-			VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-			entry.setTimestamp(completedTime);
-			entry.setID(id);
-			entry.setText(title + " has completed downloading");
-			entry.setTypeID(VuzeActivitiesConstants.TYPEID_DL_COMPLETE, true);
-			entry.setDownloadManager(dm);
-
-			return entry;
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
-		return null;
-	}
 
 	private static List registerDM(DownloadManager dm) {
 		TOTorrent torrent = dm.getTorrent();
@@ -404,48 +292,6 @@ public class VuzeActivitiesManager
 		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
 
 		List entries = new ArrayList();
-
-		if (dm.getAssumedComplete()) {
-			VuzeActivitiesEntry entry = createDMCompleteEntry(dm);
-			if (entry != null) {
-				entries.add(entry);
-			}
-		} else {
-			try {
-				long addedOn = (dm == null) ? 0
-						: dm.getDownloadState().getLongParameter(
-								DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
-				if (addedOn < getCutoffTime()) {
-					return null;
-				}
-
-				VuzeActivitiesEntry entry = new VuzeActivitiesEntry();
-				entries.add(entry);
-				String hash = torrent.getHashWrapper().toBase32String();
-
-				String title;
-				if (isContent) {
-					String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-							+ ".html?" + Constants.URL_SUFFIX + "&client_ref=activity-"
-							+ VuzeActivitiesConstants.TYPEID_DL_ADDED;
-					title = "<A HREF=\"" + url + "\">"
-							+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
-					entry.setAssetHash(hash);
-				} else {
-					title = PlatformTorrentUtils.getContentTitle2(dm);
-				}
-
-				entry.setID(hash + ";a" + addedOn);
-				entry.setText(title + " has been added to your download list");
-				entry.setTimestamp(addedOn);
-				entry.setTypeID(VuzeActivitiesConstants.TYPEID_DL_ADDED, true);
-				entry.setDownloadManager(dm);
-			} catch (Throwable t) {
-				// ignore
-			}
-
-			dm.addListener(dmListener);
-		}
 
 		try {
 			if (isContent) {

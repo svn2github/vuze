@@ -74,10 +74,10 @@ public class VuzeActivitiesConstants
 		SORT_TYPE_ORDER.put(TYPEID_BUDDYSHARE, new Long(pos));
 		pos++;
 
-		SORT_TYPE_ORDER.put(TYPEID_DL_ADDED, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_DL_COMPLETE, new Long(pos));
-		SORT_TYPE_ORDER.put(TYPEID_DL_REMOVE, new Long(pos));
-		pos++;
+		//SORT_TYPE_ORDER.put(TYPEID_DL_ADDED, new Long(pos));
+		//SORT_TYPE_ORDER.put(TYPEID_DL_COMPLETE, new Long(pos));
+		//SORT_TYPE_ORDER.put(TYPEID_DL_REMOVE, new Long(pos));
+		//pos++;
 
 		SORT_TYPE_ORDER.put(TYPEID_RATING_REMINDER, new Long(pos));
 		pos++;
@@ -100,9 +100,9 @@ public class VuzeActivitiesConstants
 			new VuzeActivitiesEntry(0,
 					MessageText.getString("v3.activity.header.share.requests"), null,
 					TYPEID_BUDDYSHARE, TYPEID_HEADER, null),
-			new VuzeActivitiesEntry(0,
+			/*new VuzeActivitiesEntry(0,
 					MessageText.getString("v3.activity.header.downloads"), null,
-					TYPEID_DL_ADDED, TYPEID_HEADER, null),
+					TYPEID_DL_ADDED, TYPEID_HEADER, null),*/
 			new VuzeActivitiesEntry(0,
 					MessageText.getString("v3.activity.header.rating.reminders"), null,
 					TYPEID_RATING_REMINDER, TYPEID_HEADER, null),
