@@ -317,7 +317,7 @@ DHTPlugin
 									
 									if ( lc.equals("print")){
 										
-										dht.print();
+										dht.print( true );
 										
 										dhts[i].logStats();
 										

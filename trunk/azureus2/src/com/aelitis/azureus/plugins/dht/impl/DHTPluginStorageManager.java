@@ -135,7 +135,7 @@ DHTPluginStorageManager
 		log			= _log;
 		data_dir	= _data_dir;
 		
-		if ( network == DHT.NW_CVS ){
+		if ( false && network == DHT.NW_CVS ){
 			
 				// work around issue whereby puts to the CVS dht went out of control and
 				// diversified everything
@@ -757,7 +757,8 @@ DHTPluginStorageManager
 	getExistingDiversification(
 		byte[]			key,
 		boolean			put_operation,
-		boolean			exhaustive )
+		boolean			exhaustive,
+		int				max_depth )
 	{
 		if ( suspendDivs()){
 		
@@ -773,7 +774,7 @@ DHTPluginStorageManager
 		try{
 			storage_mon.enter();
 		
-			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive );
+			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive, max_depth );
 			
 			if ( !Arrays.equals( res[0], key )){
 				
@@ -800,7 +801,8 @@ DHTPluginStorageManager
 		byte[]				key,
 		boolean				put_operation,
 		byte				diversification_type,
-		boolean				exhaustive )
+		boolean				exhaustive,
+		int					max_depth )
 	{
 		if ( suspendDivs()){
 
@@ -828,7 +830,7 @@ DHTPluginStorageManager
 				created	= true;			
 			}
 		
-			byte[][] res = followDivChain( wrapper, put_operation, exhaustive );
+			byte[][] res = followDivChain( wrapper, put_operation, exhaustive, max_depth );
 		
 			String	trace = "";
 			
@@ -856,13 +858,14 @@ DHTPluginStorageManager
 	followDivChain(
 		HashWrapper	wrapper,
 		boolean		put_operation,
-		boolean		exhaustive )
+		boolean		exhaustive,
+		int			max_depth )
 	{
 		List	list = new ArrayList();
 		
 		list.add( wrapper );
 		
-		list	= followDivChain( list, put_operation, 0, exhaustive, new ArrayList());
+		list	= followDivChainSupport( list, put_operation, 0, exhaustive, new ArrayList(), max_depth );
 		
 		byte[][]	res = new byte[list.size()][];
 		
@@ -875,74 +878,81 @@ DHTPluginStorageManager
 	}
 	
 	protected List
-	followDivChain(
+	followDivChainSupport(
 		List		list_in,
 		boolean		put_operation,
 		int			depth,
 		boolean		exhaustive,
-		List		keys_done )
+		List		keys_done,
+		int			max_depth )
 	{
 		List	list_out = new ArrayList();
 	
-		/*
-		String	indent = "";
-		for(int i=0;i<depth;i++){
-			indent+= "  ";
-		}
-		System.out.println( indent + "->" );
-		*/
-		
-			// for each entry, if there are no diversifications then we just return the value
-			// for those with divs we replace their entry with the diversified set (which can
-			// include the entry itself under some circumstances )
-		
-		for (int i=0;i<list_in.size();i++){
+		if ( depth < max_depth ){
 			
-			HashWrapper	wrapper = (HashWrapper)list_in.get(i);
-		
-			diversification	div = lookupDiversification( wrapper );
-
-			if ( div == null ){
+			/*
+			String	indent = "";
+			for(int i=0;i<depth;i++){
+				indent+= "  ";
+			}
+			System.out.println( indent + "->" );
+			*/
+			
+				// for each entry, if there are no diversifications then we just return the value
+				// for those with divs we replace their entry with the diversified set (which can
+				// include the entry itself under some circumstances )
+			
+			for (int i=0;i<list_in.size();i++){
 				
-				if ( !list_out.contains( wrapper )){
-					
-					list_out.add(wrapper);
-				}
-				
-			}else{
-				
-				if ( keys_done.contains( wrapper )){
-					
-						// we've recursed on the key, this means that a prior diversification wanted
-						// the key included, so include it now
+				HashWrapper	wrapper = (HashWrapper)list_in.get(i);
+			
+				diversification	div = lookupDiversification( wrapper );
+	
+				if ( div == null ){
 					
 					if ( !list_out.contains( wrapper )){
 						
 						list_out.add(wrapper);
 					}
 					
-					continue;
-				}
-				
-				keys_done.add( wrapper );
-				
-					// replace this entry with the diversified keys 
-				
-				List	new_list = followDivChain( div.getKeys( put_operation, exhaustive ), put_operation, depth+1, exhaustive, keys_done );
-				
-				for (int j=0;j<new_list.size();j++){
+				}else{
 					
-					Object	entry =  new_list.get(j);
-					
-					if ( !list_out.contains( entry )){
+					if ( keys_done.contains( wrapper )){
 						
-						list_out.add(entry);
+							// we've recursed on the key, this means that a prior diversification wanted
+							// the key included, so include it now
+						
+						if ( !list_out.contains( wrapper )){
+							
+							list_out.add(wrapper);
+						}
+						
+						continue;
+					}
+					
+					keys_done.add( wrapper );
+					
+						// replace this entry with the diversified keys 
+					
+					List	new_list = followDivChainSupport( div.getKeys( put_operation, exhaustive ), put_operation, depth+1, exhaustive, keys_done, max_depth );
+					
+					for (int j=0;j<new_list.size();j++){
+						
+						Object	entry =  new_list.get(j);
+						
+						if ( !list_out.contains( entry )){
+							
+							list_out.add(entry);
+						}
 					}
 				}
 			}
+			// System.out.println( indent + "<-" );
+		}else{
+			
+			Debug.out( "Terminated div chain lookup (max depth=" + max_depth + ")" );
 		}
-		// System.out.println( indent + "<-" );
-
+		
 		return( list_out );
 	}
 	

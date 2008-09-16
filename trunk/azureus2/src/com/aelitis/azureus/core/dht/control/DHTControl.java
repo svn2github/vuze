@@ -193,5 +193,6 @@ DHTControl
 		DHTControlListener	l );
 	
 	public void
-	print();
+	print(
+		boolean	full );
 }

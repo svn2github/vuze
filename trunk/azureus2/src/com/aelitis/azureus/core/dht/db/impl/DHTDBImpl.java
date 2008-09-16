@@ -1377,7 +1377,8 @@ DHTDBImpl
 	}
 	
 	public void
-	print()
+	print(
+		boolean	full )
 	{
 		Map	count = new TreeMap();
 		
@@ -1386,6 +1387,11 @@ DHTDBImpl
 			
 			logger.log( "Stored keys = " + stored_values.size() + ", values = " + getValueDetails()[DHTDBStats.VD_VALUE_COUNT]); 
 
+			if ( !full ){
+				
+				return;
+			}
+			
 			Iterator	it = stored_values.entrySet().iterator();
 			
 			while( it.hasNext()){
@@ -1395,6 +1401,8 @@ DHTDBImpl
 				HashWrapper		value_key	= (HashWrapper)entry.getKey();
 				
 				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
+				
+				// mapping.print();
 				
 				DHTDBValue[]	values = mapping.get(null,0,(byte)0);
 					
@@ -1481,15 +1489,12 @@ DHTDBImpl
 	banContact(
 		final DHTTransportContact	contact,
 		final String				reason )
-	{
-			// CVS DHT can be significantly smaller than mainline (e.g. 1000) so will trigger\
-			// un-necessary banning which then obviously affects the main DHTs. So we disable
-			// banning for CVS
-		
-		if ( control.getTransport().getNetwork() == DHT.NW_CVS ){
-			
-			return;
-		}
+	{		
+		// CVS DHT can be significantly smaller than mainline (e.g. 1000) so will trigger
+		// un-necessary banning which then obviously affects the main DHTs. So we disable
+		// banning for CVS
+
+		final boolean ban_ip = control.getTransport().getNetwork() != DHT.NW_CVS;
 		
 		new AEThread2( "DHTDBImpl:delayed flood delete", true )
 		{
@@ -1503,12 +1508,16 @@ DHTDBImpl
 					this_mon.enter();
 					
 					Iterator	it = stored_values.values().iterator();
-												
+						
+					boolean	overall_deleted = false;
+					
 					while( it.hasNext()){
 						
 						DHTDBMapping	mapping = (DHTDBMapping)it.next();
 
 						Iterator	it2 = mapping.getDirectValues();
+						
+						boolean	deleted = false;
 						
 						while( it2.hasNext()){
 							
@@ -1518,12 +1527,28 @@ DHTDBImpl
 								
 								if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
 									
+									deleted = true;
+									
 									it.remove();
 								}
 							}
 						}
+						
+						if ( deleted && !ban_ip ){
+						
+								// if we're not banning then rebuild bloom to avoid us continually
+								// going through this ban code
+							
+							mapping.rebuildIPBloomFilter( false );
+							
+							overall_deleted = true;
+						}
 					}
 
+					if ( overall_deleted && !ban_ip ){
+						
+						rebuildIPBloomFilter( false );
+					}
 				}finally{
 					
 					this_mon.exit();
@@ -1532,11 +1557,14 @@ DHTDBImpl
 			}
 		}.start();
 	
-		logger.log( "Banning " + contact.getString() + " due to store flooding (" + reason + ")" );
-		
-		ip_filter.ban( 
-				contact.getAddress().getAddress().getHostAddress(),
-				"DHT: Sender stored excessive entries at this node (" + reason + ")", false );		
+		if ( ban_ip ){	
+
+			logger.log( "Banning " + contact.getString() + " due to store flooding (" + reason + ")" );
+			
+			ip_filter.ban( 
+					contact.getAddress().getAddress().getHostAddress(),
+					"DHT: Sender stored excessive entries at this node (" + reason + ")", false );
+		}
 	}
 	
 	protected void
@@ -1568,8 +1596,8 @@ DHTDBImpl
 		
 		if ( hit_count > 64 ){
 			
-			// obviously being spammed, drop all data originated by this IP and ban it
-			
+				// obviously being spammed, drop all data originated by this IP and ban it
+						
 			banContact( contact, "global flood" );
 		}
 	}
@@ -1936,9 +1964,10 @@ DHTDBImpl
 		getExistingDiversification(
 			byte[]			key,
 			boolean			put_operation,
-			boolean			exhaustive_get )
+			boolean			exhaustive_get,
+			int				max_depth )
 		{
-			return( delegate.getExistingDiversification( key, put_operation, exhaustive_get ));
+			return( delegate.getExistingDiversification( key, put_operation, exhaustive_get, max_depth ));
 		}
 		
 		public byte[][]
@@ -1947,9 +1976,10 @@ DHTDBImpl
 			byte[]				key,
 			boolean				put_operation,
 			byte				diversification_type,
-			boolean				exhaustive_get )
+			boolean				exhaustive_get,
+			int					max_depth )
 		{
-			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type, exhaustive_get ));
+			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type, exhaustive_get, max_depth ));
 		}
 		
 		public int

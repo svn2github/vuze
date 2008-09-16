@@ -124,6 +124,7 @@ DHTControlImpl
 	private long		last_dht_estimate_time;
 	private long		local_dht_estimate;
 	private long		combined_dht_estimate;
+	private int			combined_dht_estimate_mag;
 	
 	private static final int	LOCAL_ESTIMATE_HISTORY	= 32;
 	
@@ -755,6 +756,7 @@ DHTControlImpl
 				0, 
 				true,
 				new HashSet(),
+				1,
 				_listener instanceof DHTOperationListenerDemuxer?
 						(DHTOperationListenerDemuxer)_listener:
 						new DHTOperationListenerDemuxer(_listener));		
@@ -776,6 +778,7 @@ DHTControlImpl
 				timeout, 
 				original_mappings,
 				new HashSet(),
+				1,
 				new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
 	}
 	
@@ -789,7 +792,8 @@ DHTControlImpl
 		DHTTransportValue			value,
 		long						timeout,
 		boolean						original_mappings,
-		Set							keys_written,
+		Set							things_written,
+		int							put_level,
 		DHTOperationListenerDemuxer	listener )
 	{
 		put( 	thread_pool, 
@@ -799,7 +803,8 @@ DHTControlImpl
 				new DHTTransportValue[]{ value }, 
 				timeout,
 				original_mappings,
-				keys_written,
+				things_written,
+				put_level,
 				listener );
 	}
 	
@@ -812,7 +817,8 @@ DHTControlImpl
 		final DHTTransportValue[]			values,
 		final long							timeout,
 		final boolean						original_mappings,
-		final Set							keys_written,
+		final Set							things_written,
+		final int							put_level,
 		final DHTOperationListenerDemuxer	listener )
 	{
 
@@ -825,7 +831,8 @@ DHTControlImpl
 					true, 
 					initial_encoded_key, 
 					DHT.DT_NONE, 
-					original_mappings );
+					original_mappings,
+					getMaxDivDepth());
 		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
@@ -835,14 +842,14 @@ DHTControlImpl
 				
 			HashWrapper	hw = new HashWrapper( encoded_key );
 			
-			if ( keys_written.contains( hw )){
+			if ( things_written.contains( hw )){
 				
 				// System.out.println( "put: skipping key as already written" );
 				
 				continue;
 			}
 			
-			keys_written.add( hw );
+			things_written.add( hw );
 			
 			final String	this_description = 
 				Arrays.equals( encoded_key, initial_encoded_key )?
@@ -882,7 +889,8 @@ DHTControlImpl
 									timeout, 
 									listener, 
 									true,
-									keys_written,
+									things_written,
+									put_level,
 									false );		
 						}
 					});
@@ -910,6 +918,7 @@ DHTControlImpl
 				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
 				false,
 				new HashSet(),
+				1,
 				false );
 	}
 		
@@ -924,10 +933,25 @@ DHTControlImpl
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
 		final boolean							consider_diversification,
-		final Set								keys_written,
+		final Set								things_written,
+		final int								put_level,
 		final boolean							immediate )
 	{		
+		int max_depth = getMaxDivDepth();
+		
+		if ( put_level > max_depth ){
+			
+			Debug.out( "Put level exceeded, terminating diversification (level=" + put_level + ",max=" + max_depth + ")" );
+			
+			listener.incrementCompletes();
+			
+			listener.complete( false );
+			
+			return;
+		}
+		
 		boolean[]	ok = new boolean[initial_encoded_keys.length];
+		
 		int	failed = 0;
 		
 		for (int i=0;i<initial_encoded_keys.length;i++){
@@ -973,6 +997,8 @@ DHTControlImpl
 		
 		final boolean[]	diversified = new boolean[encoded_keys.length];
 		
+		int	skipped = 0;
+		
 		for (int i=0;i<contacts.size();i++){
 		
 			DHTTransportContact	contact = (DHTTransportContact)contacts.get(i);
@@ -981,7 +1007,20 @@ DHTControlImpl
 					
 					// don't send to ourselves!
 				
+				skipped++;
+				
+			}else if ( things_written.contains( contact )){
+				
+					// if we've come back to an already hit contact due to a diversification loop
+					// then ignore it
+				
+				Debug.out( "Put: contact encountered for a second time, ignoring" );
+				
+				skipped++;
+				
 			}else{
+				
+				things_written.add( contact );
 				
 				try{
 
@@ -992,7 +1031,7 @@ DHTControlImpl
 							listener.wrote( contact, value_sets[j][k] );
 						}
 					}
-							
+							  
 						// each store is going to report its complete event
 					
 					listener.incrementCompletes();
@@ -1023,8 +1062,11 @@ DHTControlImpl
 												diversified[j]	= true;
 												
 												byte[][]	diversified_keys = 
-													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false );
+													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false, getMaxDivDepth());
 											
+												
+												logDiversification( _contact, encoded_keys, diversified_keys );
+												
 												for (int k=0;k<diversified_keys.length;k++){
 												
 													put( 	thread_pool,
@@ -1034,7 +1076,8 @@ DHTControlImpl
 															value_sets[j], 
 															timeout,
 															false,
-															keys_written,
+															things_written,
+															put_level + 1,
 															listener );
 												}
 											}
@@ -1103,6 +1146,64 @@ DHTControlImpl
 				}
 			}
 		}
+		
+		if ( skipped == contacts.size()){
+			
+			listener.incrementCompletes();
+			
+			listener.complete( false );
+		}
+	}
+	
+	protected int
+	getMaxDivDepth()
+	{
+		if ( combined_dht_estimate == 0 ){
+			
+			getEstimatedDHTSize();
+		}
+		
+		int max = Math.max( 2, combined_dht_estimate_mag );
+		
+		// System.out.println( "net:" + transport.getNetwork() + " - max_div_depth=" + max );
+		
+		return( max );
+	}
+	
+	protected void
+	logDiversification(
+		final DHTTransportContact		contact,
+		final byte[][]					keys,
+		final byte[][]					div )
+	{
+		System.out.println( "Div check starts for " + contact.getString());
+		
+		String	keys_str = "";
+		
+		for (int i=0;i<keys.length;i++){
+			
+			keys_str += (i==0?"":",") + ByteFormatter.encodeString( keys[i] );
+		}
+		
+		String	div_str = "";
+		
+		for (int i=0;i<div.length;i++){
+			
+			div_str += (i==0?"":",") + ByteFormatter.encodeString( div[i] );
+		}
+		
+		System.out.println( "    " + keys_str + " -> " + div_str );
+		
+		new AEThread2( "sdsd", true )
+		{
+			public void
+			run()
+			{
+				DHTTransportFullStats stats = contact.getStats();
+				
+				System.out.println( contact.getString() + "-> " +(stats==null?"<null>":stats.getString()));
+			}
+		}.start();
 	}
 	
 	public DHTTransportValue
@@ -1330,7 +1431,7 @@ DHTControlImpl
 		
 			// get the initial starting point for the get - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive );
+		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive, getMaxDivDepth());
 
 		for (int i=0;i<encoded_keys.length;i++){
 			
@@ -1382,7 +1483,7 @@ DHTControlImpl
 								
 								if ( max_values == 0 || rem > 0 ){
 									
-									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type, exhaustive );
+									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type, exhaustive, getMaxDivDepth());
 									
 									if ( diversified_keys.length > 0 ){
 										
@@ -1504,6 +1605,7 @@ DHTControlImpl
 					0, 
 					true, 
 					new HashSet(),
+					1,
 					new DHTOperationListenerDemuxer( listener ));
 			
 			return( res.getValue());
@@ -1550,6 +1652,7 @@ DHTControlImpl
 					new DHTOperationListenerDemuxer( listener ), 
 					true,
 					new HashSet(),
+					1,
 					true );		
 			
 			return( res.getValue());
@@ -3087,6 +3190,17 @@ DHTControlImpl
 				
 				combined_dht_estimate = rem_average / rem_vals;
 				
+				long	test_val 	= 10;
+				int		test_mag	= 1;
+				
+				while( test_val < combined_dht_estimate ){
+					
+					test_val *= 10;
+					test_mag++;
+				}
+				
+				combined_dht_estimate_mag = test_mag+1;
+				
 				// System.out.println( "estimateDHTSize: loc =" + local_dht_estimate + ", comb = " + combined_dht_estimate + " [" + remote_estimate_values.size() + "]");
 			}finally{
 				
@@ -3240,7 +3354,8 @@ DHTControlImpl
 	}
 	
 	public void
-	print()
+	print(
+		boolean		full )
 	{
 		DHTNetworkPosition[]	nps = transport.getLocalContact().getNetworkPositions();
 		
@@ -3257,7 +3372,7 @@ DHTControlImpl
 		
 		router.print();
 		
-		database.print();
+		database.print( full );
 		
 		/*
 		List	c = getContacts();

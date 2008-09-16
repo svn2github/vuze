@@ -221,5 +221,6 @@ DHT
 	getLogger();
 	
 	public void
-	print();
+	print(
+		boolean	full );
 }

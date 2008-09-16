@@ -466,7 +466,7 @@ DHTPluginImpl
 				
 			log.log( "DHT " + (first?"":"re-") + "integration complete: elapsed = " + (end-start));
 			
-			dht.print();
+			dht.print( false );
 			
 		}finally{
 			

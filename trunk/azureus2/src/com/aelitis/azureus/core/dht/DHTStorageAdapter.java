@@ -91,7 +91,8 @@ DHTStorageAdapter
 	getExistingDiversification(
 		byte[]			key,
 		boolean			put_operation,
-		boolean			exhaustive_get );
+		boolean			exhaustive_get,
+		int				max_depth );
 	
 	public byte[][]
 	createNewDiversification(
@@ -99,7 +100,8 @@ DHTStorageAdapter
 		byte[]				key,
 		boolean				put_operation,
 		byte				diversification_type,
-		boolean				exhaustive_get );
+		boolean				exhaustive_get,
+		int					max_depth );
 	
 	public int
 	getNextValueVersions(

@@ -135,5 +135,6 @@ DHTDB
 	getStats();
 	
 	public void
-	print();
+	print(
+		boolean		full );
 }

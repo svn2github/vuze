@@ -113,7 +113,8 @@ DHTImpl
 						boolean				existing,
 						byte[]				key,
 						byte				type,
-						boolean				exhaustive )
+						boolean				exhaustive,
+						int					max_depth )
 					{
 						boolean	valid;
 						
@@ -132,11 +133,11 @@ DHTImpl
 							
 							if ( existing ){
 								
-								return( storage_adapter.getExistingDiversification( key, put_operation, exhaustive ));
+								return( storage_adapter.getExistingDiversification( key, put_operation, exhaustive, max_depth ));
 								
 							}else{
 								
-								return( storage_adapter.createNewDiversification( cause, key, put_operation, type, exhaustive ));
+								return( storage_adapter.createNewDiversification( cause, key, put_operation, type, exhaustive, max_depth ));
 							}
 						}else{
 							
@@ -362,8 +363,9 @@ DHTImpl
 	}
 	
 	public void
-	print()
+	print(
+		boolean	full )
 	{
-		control.print();
+		control.print( full );
 	}
 }

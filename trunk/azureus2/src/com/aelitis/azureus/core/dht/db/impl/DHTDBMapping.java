@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -902,6 +903,16 @@ DHTDBMapping
 			
 			ip_count_bloom_filter = new_filter;
 		}
+	}
+	
+	protected void
+	print()
+	{
+		System.out.println( 
+			ByteFormatter.encodeString( key.getBytes()) + ": " +
+			"dir=" + direct_originator_map.size() + "," +
+			"indir=" + indirect_originator_value_map.size() + "," +
+			"bloom=" + ip_count_bloom_filter.getEntryCount());	
 	}
 	
 	protected class

@@ -43,7 +43,8 @@ DHTControlAdapter
 		boolean				existing,
 		byte[]				key,
 		byte				type,
-		boolean				exhaustive );
+		boolean				exhaustive,
+		int					max_depth );
 	
 	public boolean
 	isDiversified(

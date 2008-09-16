@@ -538,7 +538,7 @@ Test
 	
 							stats_before = dht.getTransport().getStats().snapshot();
 							
-							dht.print();
+							dht.print( true );
 	
 							List	l = dht.getControl().getContacts();
 							
@@ -647,7 +647,7 @@ Test
 						
 						dht.integrate( true );
 	
-						dht.print();
+						dht.print( true );
 						
 					}else if ( command == 'r' ){
 						
