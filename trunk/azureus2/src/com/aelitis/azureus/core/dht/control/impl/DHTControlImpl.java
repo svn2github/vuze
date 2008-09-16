@@ -2544,7 +2544,7 @@ DHTControlImpl
 				
 				if ( nacul == null ){
 					
-					node_add_check_uninteresting_limit = contact_id;
+					node_add_check_uninteresting_limit = distance;
 					
 				}else{
 					
