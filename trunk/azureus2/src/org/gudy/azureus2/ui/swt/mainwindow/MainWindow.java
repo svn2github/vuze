@@ -503,7 +503,7 @@ public class MainWindow
 			initializer.nextTask();
 		}
 
-		if (azureus_core.getTrackerHost().getTorrents().length > 0) {
+		if (!Constants.isSafeMode && azureus_core.getTrackerHost().getTorrents().length > 0) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showMyTracker();
@@ -551,7 +551,7 @@ public class MainWindow
 			Debug.out(e);
 		}
 
-		if (COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open MyTorrents")) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showMyTorrents();
@@ -563,7 +563,7 @@ public class MainWindow
 
 		new ProgressWindow();
 
-		if (COConfigurationManager.getBooleanParameter("Open Console")) {
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Console")) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showConsole();
@@ -572,7 +572,7 @@ public class MainWindow
 		}
 		events = null;
 
-		if (COConfigurationManager.getBooleanParameter("Open Config")) {
+		if (Constants.isSafeMode || COConfigurationManager.getBooleanParameter("Open Config")) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showConfig();
@@ -580,7 +580,7 @@ public class MainWindow
 			});
 		}
 
-		if (COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Stats On Start")) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					showStats();
@@ -588,7 +588,7 @@ public class MainWindow
 			});
 		}
 
-		if (COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
+		if (!Constants.isSafeMode && COConfigurationManager.getBooleanParameter("Open Transfer Bar On Start")) {
 			Utils.execSWTThreadLater(delay += delayInc, new Runnable() {
 				public void run() {
 					uiFunctions.showGlobalTransferBar();
