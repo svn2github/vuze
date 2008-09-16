@@ -148,6 +148,10 @@ DHTControlImpl
 	private Cipher 			spoof_cipher;
 	private SecretKey		spoof_key;
 	
+	private long			last_node_add_check;
+	private byte[]			node_add_check_uninteresting_limit;
+	
+	
 	public
 	DHTControlImpl(
 		DHTControlAdapter	_adapter,
@@ -2482,17 +2486,73 @@ DHTControlImpl
 			
 			// see if we're one of the K closest to the new node
 		
-		List	closest_contacts = getClosestKContactsList( new_contact.getID(), false );
+			// optimise to avoid calculating for things obviously too far away
+		
+		boolean	perform_closeness_check = true;
+		
+		byte[] router_id 	= router.getID();
+		byte[] contact_id	= new_contact.getID();
+		
+		byte[] distance = computeDistance( router_id, contact_id );
+
+		long now = SystemTime.getCurrentTime();
+		
+		byte[] nacul = node_add_check_uninteresting_limit;
+		
+			// time limit to pick up router changes caused by contacts being deleted 
+		
+		if ( now - last_node_add_check < 30*1000 && nacul != null ){
+			
+			int res = compareDistances( nacul, distance );
+			
+			/*
+			System.out.println( 
+				"r=" + ByteFormatter.encodeString( router_id ) + 
+				",c=" +	ByteFormatter.encodeString( contact_id ) + 
+				",d=" + ByteFormatter.encodeString( distance ) +
+				",l=" + ByteFormatter.encodeString( nacul ) +
+				",r=" + res );
+			*/
+			
+			if ( res < 0 ){
+				
+				perform_closeness_check = false;
+			}
+		}else{
+			
+			last_node_add_check					= now;
+			node_add_check_uninteresting_limit 	= nacul = null;
+		}
 		
 		boolean	close	= false;
-		
-		for (int i=0;i<closest_contacts.size();i++){
+
+		if ( perform_closeness_check ){
 			
-			if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
+			List	closest_contacts = getClosestKContactsList( new_contact.getID(), false );
+			
+			for (int i=0;i<closest_contacts.size();i++){
 				
-				close	= true;
+				if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
+					
+					close	= true;
+					
+					break;
+				}
+			}
+			
+			if ( !close ){
 				
-				break;
+				if ( nacul == null ){
+					
+					node_add_check_uninteresting_limit = contact_id;
+					
+				}else{
+					
+					if ( compareDistances( nacul, distance ) > 0 ){
+
+						node_add_check_uninteresting_limit = distance;
+					}
+				}
 			}
 		}
 		
