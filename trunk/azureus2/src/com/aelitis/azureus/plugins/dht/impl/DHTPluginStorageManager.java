@@ -135,7 +135,7 @@ DHTPluginStorageManager
 		log			= _log;
 		data_dir	= _data_dir;
 		
-		if ( false && network == DHT.NW_CVS ){
+		if (  network == DHT.NW_CVS ){
 			
 				// work around issue whereby puts to the CVS dht went out of control and
 				// diversified everything
@@ -143,8 +143,8 @@ DHTPluginStorageManager
 			String key_ver 	= "dht.plugin.sm.hack.kill.div.2.v";
 			String key 		= "dht.plugin.sm.hack.kill.div.2";
 			
-			final int 	HACK_VER 	= 3;
-			final long 	HACK_PERIOD = 2*24*60*60*1000L;
+			final int 	HACK_VER 	= 4;
+			final long 	HACK_PERIOD = 3*24*60*60*1000L;
 			
 			long suspend_ver = COConfigurationManager.getLongParameter( key_ver, 0 );
 

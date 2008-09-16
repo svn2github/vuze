@@ -1176,6 +1176,7 @@ DHTControlImpl
 		final byte[][]					keys,
 		final byte[][]					div )
 	{
+		/*
 		System.out.println( "Div check starts for " + contact.getString());
 		
 		String	keys_str = "";
@@ -1204,6 +1205,7 @@ DHTControlImpl
 				System.out.println( contact.getString() + "-> " +(stats==null?"<null>":stats.getString()));
 			}
 		}.start();
+		*/
 	}
 	
 	public DHTTransportValue
