@@ -36,6 +36,8 @@ import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
@@ -73,11 +75,11 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public Object[] iviewClassVals;
 	
-	protected Image imageLeft;
-
 	public boolean disableCollapse;
 	
 	private List listVitalityImages = Collections.EMPTY_LIST;
+
+	private String imageLeftID;
 	
 	public String getParentID() {
 		return parentID;
@@ -229,5 +231,25 @@ public class SideBarEntrySWT implements SideBarEntry
 				tree.update();
 			}
 		});
+	}
+	
+	public void setImageLeftID(String id) {
+		imageLeftID = id;
+	}
+	
+	public Image getImageLeft(String suffix) {
+		if (imageLeftID == null) {
+			return null;
+		}
+		Image img = null;
+		if (suffix == null) {
+			img = ImageLoaderFactory.getInstance().getImage(imageLeftID);
+		} else {
+			img = ImageLoaderFactory.getInstance().getImage(imageLeftID + suffix);
+		}
+		if (ImageLoader.isRealImage(img)) {
+			return img;
+		}
+		return null;
 	}
 }
