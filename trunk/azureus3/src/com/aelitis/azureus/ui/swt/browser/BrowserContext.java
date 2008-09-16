@@ -22,8 +22,8 @@ package com.aelitis.azureus.ui.swt.browser;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
@@ -78,6 +78,8 @@ public class BrowserContext
 	protected boolean wiggleBrowser = org.gudy.azureus2.core3.util.Constants.isOSX;
 
 	private torrentURLHandler		torrentURLHandler;
+
+	private List loadingListeners = Collections.EMPTY_LIST;
 	
 	/**
 	 * Creates a context and registers the given browser.
@@ -139,7 +141,7 @@ public class BrowserContext
 
 		final TimerEventPerformer hideIndicatorPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
-				pageLoading = false;
+				setPageLoading(false);
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
@@ -178,7 +180,7 @@ public class BrowserContext
 		if (forceVisibleAfterLoad) {
 			browser.setVisible(false);
 		}
-		pageLoading = false;
+		setPageLoading(false);
 		if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 			widgetWaitIndicator.setVisible(false);
 		}
@@ -287,7 +289,7 @@ public class BrowserContext
 					timerevent.cancel();
 				}
 				checkURLEventPerformer.perform(null);
-				pageLoading = false;
+				setPageLoading(false);
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					widgetWaitIndicator.setVisible(false);
 				}
@@ -330,7 +332,7 @@ public class BrowserContext
 							"Tried to open " + event.location + " but it's blocked");
 					browser.back();
 				} else {
-					pageLoading = true;
+					setPageLoading(true);
 					if(event.top) {
 						lastValidURL = event.location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
@@ -454,6 +456,23 @@ public class BrowserContext
 
 		messageDispatcherSWT.registerBrowser(browser);
 		this.display = browser.getDisplay();
+	}
+
+	/**
+	 * @param b
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected void setPageLoading(boolean b) {
+		if (pageLoading == b) {
+			return;
+		}
+		pageLoading = b;
+		Object[] listeners = loadingListeners.toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			loadingListener l = (loadingListener) listeners[i];
+			l.browserLoadingChanged(b);
+		}
 	}
 
 	public void 
@@ -610,5 +629,17 @@ public class BrowserContext
 
 	public boolean isPageLoading() {
 		return pageLoading;
+	}
+
+	
+	public void addListener(loadingListener l) {
+		if (loadingListeners == Collections.EMPTY_LIST) {
+			loadingListeners = new ArrayList(1);
+		}
+		loadingListeners.add(l);
+	}
+	
+	public static interface loadingListener {
+		public void browserLoadingChanged(boolean loading);
 	}
 }

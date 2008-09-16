@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
@@ -273,4 +274,11 @@ public class SWTSkinObjectBrowser
 			}
 		});
 	}
+	
+	public void addListener(loadingListener l) {
+		if (context != null) {
+			context.addListener(l);
+		}
+	}
+
 }

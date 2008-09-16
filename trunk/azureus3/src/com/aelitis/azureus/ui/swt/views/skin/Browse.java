@@ -23,7 +23,9 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Composite;
@@ -36,13 +38,12 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -51,6 +52,7 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -72,7 +74,7 @@ public class Browse
 
 	private SWTSkinObject soMain;
 
-	private ViewTitleInfo titleInfo;
+	private SideBarVitalityImage vitalityImage;
 
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -83,26 +85,20 @@ public class Browse
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_BROWSE, soMain);
 
-		titleInfo = new ViewTitleInfo() {
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_SKINVIEW) {
-					return Browse.this;
-				} else if(propertyID == TITLE_HAS_ACTIVITY) {
-					return new Boolean(browserSkinObject.isPageLoading());
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sidebar != null) {
+			SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
+			if (entry != null) {
+				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
+				vitalityImage.setVisible(false);
+			}
+		}
+
+		browserSkinObject.addListener(new BrowserContext.loadingListener() {
+			public void browserLoadingChanged(boolean loading) {
+				if (vitalityImage != null) {
+					vitalityImage.setVisible(loading);
 				}
-				return null;
-			}
-		};
-
-		Browser browser = browserSkinObject.getBrowser();
-
-		browser.addLocationListener(new LocationListener() {
-			public void changing(LocationEvent event) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfo);
-			}
-
-			public void changed(LocationEvent event) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfo);
 			}
 		});
 
