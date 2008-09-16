@@ -54,8 +54,8 @@ DHTDBMapping
 	
 		// maps are access order, most recently used at tail, so we cycle values
 		
-	private Map				direct_originator_map			= new LinkedHashMap(2, 0.75f, true );
-	private Map				indirect_originator_value_map	= new LinkedHashMap(2, 0.75f, true );
+	private Map				direct_originator_map_may_be_null;
+	private Map				indirect_originator_value_map		= createLinkedMap();
 	
 	private int				hits;
 	
@@ -96,6 +96,12 @@ DHTDBMapping
 		}
 	}
 	
+	protected Map
+	createLinkedMap()
+	{		
+		return( new LinkedHashMap(1, 0.75f, true ));
+	}
+	
 	protected HashWrapper
 	getKey()
 	{
@@ -109,9 +115,14 @@ DHTDBMapping
 			// pull out all the local values, reset the originator and then
 			// re-add them
 		
+		if ( direct_originator_map_may_be_null == null ){
+			
+			return;
+		}
+		
 		List	changed = new ArrayList();
 		
-		Iterator	it = direct_originator_map.values().iterator();
+		Iterator	it = direct_originator_map_may_be_null.values().iterator();
 		
 		while( it.hasNext()){
 		
@@ -233,7 +244,8 @@ DHTDBMapping
 				// not direct. if we have a value already for this originator then
 				// we drop the value as the originator originated one takes precedence
 			
-			if ( direct_originator_map.get( originator_id ) != null ){
+			if ( 	direct_originator_map_may_be_null != null &&
+					direct_originator_map_may_be_null.get( originator_id ) != null ){
 				
 				return;
 			}
@@ -367,14 +379,19 @@ DHTDBMapping
 		
 		Set		duplicate_check = new HashSet();
 		
-		Map[]	maps = new Map[]{ direct_originator_map, indirect_originator_value_map };
+		Map[]	maps = new Map[]{ direct_originator_map_may_be_null, indirect_originator_value_map };
 		
 		for (int i=0;i<maps.length;i++){
 			
-			List	keys_used 	= new ArrayList();
-
 			Map			map	= maps[i];
 			
+			if ( map == null ){
+				
+				continue;
+			}
+			
+			List	keys_used 	= new ArrayList();
+
 			Iterator	it = map.entrySet().iterator();
 		
 			while( it.hasNext() && ( max==0 || res.size()< max )){
@@ -427,9 +444,14 @@ DHTDBMapping
 	{
 			// local get
 		
+		if ( direct_originator_map_may_be_null == null ){
+			
+			return( null );
+		}
+		
 		HashWrapper originator_id = new HashWrapper( originator.getID());
 		
-		DHTDBValueImpl	res = (DHTDBValueImpl)direct_originator_map.get( originator_id );
+		DHTDBValueImpl	res = (DHTDBValueImpl)direct_originator_map_may_be_null.get( originator_id );
 		
 		return( res );
 	}
@@ -451,7 +473,12 @@ DHTDBMapping
 	protected int
 	getValueCount()
 	{
-		return( direct_originator_map.size() + indirect_originator_value_map.size());
+		if ( direct_originator_map_may_be_null == null ){
+			
+			return( indirect_originator_value_map.size());
+		}
+		
+		return( direct_originator_map_may_be_null.size() + indirect_originator_value_map.size());
 	}
 	
 	protected Iterator
@@ -483,7 +510,12 @@ DHTDBMapping
 		HashWrapper		value_key,
 		DHTDBValueImpl	value )
 	{
-		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map.put( value_key, value );
+		if ( direct_originator_map_may_be_null == null ){
+			
+			direct_originator_map_may_be_null = createLinkedMap();
+		}
+		
+		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map_may_be_null.put( value_key, value );
 				
 		if ( old != null ){
 			
@@ -513,7 +545,7 @@ DHTDBMapping
 				
 					// put the old value back!
 				
-				direct_originator_map.put( value_key, old );
+				direct_originator_map_may_be_null.put( value_key, old );
 				
 				return;
 			}
@@ -556,7 +588,12 @@ DHTDBMapping
 	removeDirectValue(
 		HashWrapper		value_key )
 	{
-		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map.remove( value_key );
+		if ( direct_originator_map_may_be_null == null ){
+			
+			return( null );
+		}
+		
+		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map_may_be_null.remove( value_key );
 		
 		if ( old != null ){
 			
@@ -982,7 +1019,7 @@ DHTDBMapping
 		
 		System.out.println( 
 			ByteFormatter.encodeString( key.getBytes()) + ": " +
-			"dir=" + direct_originator_map.size() + "," +
+			"dir=" + (direct_originator_map_may_be_null==null?0:direct_originator_map_may_be_null.size()) + "," +
 			"indir=" + indirect_originator_value_map.size() + "," +
 			"bloom=" + entries );	
 	}
@@ -1003,8 +1040,8 @@ DHTDBMapping
 			boolean		direct,
 			boolean		indirect )
 		{
-			if ( direct ){
-				maps.add( direct_originator_map );
+			if ( direct && direct_originator_map_may_be_null != null ){
+				maps.add( direct_originator_map_may_be_null );
 			}
 			
 			if ( indirect ){
