@@ -1,5 +1,12 @@
 package com.aelitis.azureus.ui.swt.layout;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -9,8 +16,14 @@ public class SimpleReorderableListLayout extends Layout {
 	
 	public int margin;
 
+	public boolean wrap;
+	
 	public int borderW = 3;
 	public int borderH = 3;
+	
+	private int itemsPerRow;
+	private int maxHeight = 0;
+	private int maxWidth = 0;
 	
 	private boolean cached = false;
 	private Point cachedSize = null;
@@ -18,21 +31,38 @@ public class SimpleReorderableListLayout extends Layout {
 	protected Point computeSize(Composite composite, int wHint, int hHint, boolean flushCache) {
 		if(true || flushCache || ! cached || cachedSize == null) {
 			int totalWidth = 0;
-			int maxHeight = 0;
+			
 			Control[] controls = composite.getChildren();
 			int currentMargin = 0;
+			
+			
 			for(int i = 0 ; i < controls.length ; i++) {
 				Object layoutData = controls[i].getLayoutData();
 				if(layoutData != null && layoutData instanceof SimpleReorderableListLayoutData) {
 					SimpleReorderableListLayoutData sData = (SimpleReorderableListLayoutData) layoutData;
 					if(sData.height > maxHeight) maxHeight = sData.height;
-					totalWidth += currentMargin + sData.width;
-					currentMargin = margin;
+					if(sData.width > maxWidth) maxWidth = sData.width;
 				}
 			}
 			
+			
+			if((wHint != SWT.DEFAULT) && wrap) {
+				itemsPerRow = 1;
+				int width = 2 * borderW + maxWidth;
+				while(width < wHint) {
+					width += margin + maxWidth;
+					if(width < wHint) {
+						itemsPerRow++;
+					}
+				}
+			} else {
+				itemsPerRow = controls.length;
+			}
+			
+			int nbRows = (controls.length+itemsPerRow-1) / itemsPerRow;
+			
 			cached = true;
-			cachedSize = new Point(totalWidth + 2 * borderW, maxHeight + 2 * borderH);
+			cachedSize = new Point(2 * borderW + (maxWidth+margin) * itemsPerRow - margin, 2 * borderH + (margin + maxHeight) * nbRows - margin);
 			
 		} 
 		
@@ -46,37 +76,35 @@ public class SimpleReorderableListLayout extends Layout {
 		}
 		
 		Control[] controls = composite.getChildren();
-		
-		int[] positions = new int[controls.length];
-			
-		//Compute the positions of each based on the index of the controls
+		List sortedControls = new ArrayList(controls.length);
 		for(int i = 0 ; i < controls.length ; i++) {
-			Object layoutData = controls[i].getLayoutData();
-			if(layoutData != null && layoutData instanceof SimpleReorderableListLayoutData) {
-				SimpleReorderableListLayoutData sData = (SimpleReorderableListLayoutData) layoutData;
-				int index = sData.position;
-				for(int j = index+1 ; j < positions.length ; j++) {
-					positions[j] += margin + sData.width;
-				}
-			}
+			sortedControls.add(controls[i]);
 		}
 		
-		int[] extraShift = new int[controls.length];
-		//Set the positions
-		for(int i = 0 ; i < controls.length ; i++) {
-			Object layoutData = controls[i].getLayoutData();
-			if(layoutData != null && layoutData instanceof SimpleReorderableListLayoutData) {
-				SimpleReorderableListLayoutData sData = (SimpleReorderableListLayoutData) layoutData;
-				int index = sData.position;
-				if(index >= 0 && index < positions.length) {
-					controls[i].setLocation(extraShift[index] + borderW + positions[index], borderH);
-					controls[i].setBounds(extraShift[index] + borderW + positions[index], borderH,sData.width,sData.height);
-				}
-				if(index >= 0 && index < extraShift.length) {
-					extraShift[index] += margin + sData.width;
-				}
+		Collections.sort(sortedControls,new Comparator() {
+			public int compare(Object o1, Object o2) {
+				Control c1 = (Control) o1;
+				Control c2 = (Control) o2;
+				Object layoutData1 = c1.getLayoutData();
+				Object layoutData2 = c2.getLayoutData();
+				if(layoutData1 == null || ! (layoutData1 instanceof SimpleReorderableListLayoutData) ) return 0;
+				if(layoutData2 == null || ! (layoutData2 instanceof SimpleReorderableListLayoutData) ) return 0;
+				SimpleReorderableListLayoutData data1 = (SimpleReorderableListLayoutData) layoutData1;
+				SimpleReorderableListLayoutData data2 = (SimpleReorderableListLayoutData) layoutData2;
+				return data1.position - data2.position;
 			}
+		});
+		
+		for(int i = 0 ; i < sortedControls.size() ; i++) {
+			int xn = i % itemsPerRow;
+			int yn = i / itemsPerRow;
+			Control control = (Control) sortedControls.get(i);
+			int x = borderW + (margin + maxWidth) * xn;
+			int y = borderH + (margin + maxHeight) * yn;
+			control.setLocation(x,y);
+			control.setBounds(x,y,maxWidth,maxHeight);
 		}
+	
 	}
 
 }

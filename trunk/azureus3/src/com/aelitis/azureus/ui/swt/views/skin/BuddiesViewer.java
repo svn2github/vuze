@@ -30,6 +30,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
+import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -272,15 +273,16 @@ public class BuddiesViewer
 			fillBuddies(avatarsPanel);
 
 			/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT*/
-			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
-			rLayout.wrap = true;
-			rLayout.spacing = hSpacing;
-			avatarsPanel.setLayout(rLayout);
+//			RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
+//			rLayout.wrap = true;
+//			rLayout.spacing = hSpacing;
+//			avatarsPanel.setLayout(rLayout);
 
 			// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-			//			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
-			//			rLayout.margin = hSpacing;
-			//			avatarsPanel.setLayout(rLayout);
+			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
+			rLayout.margin = hSpacing;
+			rLayout.wrap = true;
+			avatarsPanel.setLayout(rLayout);
 
 			avatarsPanel.pack();
 
@@ -360,16 +362,16 @@ public class BuddiesViewer
 		avatarWidget.setHighlightedColor(highlightedColor);
 
 		/* UNCOMMENT THIS SECTION TO REVERT TO A ROW LAYOUT*/
-		RowData rData = new RowData();
-		rData.width = avatarSize.x;
-		rData.height = avatarSize.y;
-		avatarWidget.getControl().setLayoutData(rData);
+//		RowData rData = new RowData();
+//		rData.width = avatarSize.x;
+//		rData.height = avatarSize.y;
+//		avatarWidget.getControl().setLayoutData(rData);
 
 		// COMMENT THIS SECTION TO REVERT TO A ROW LAYOUT
-		//		SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
-		//		rData.width = avatarSize.x;
-		//		rData.height = avatarSize.y;
-		//		rData.position = (int) VuzeBuddyManager.getBuddyPosition(vuzeBuddy);
+				SimpleReorderableListLayoutData rData = new SimpleReorderableListLayoutData();
+				rData.width = avatarSize.x;
+				rData.height = avatarSize.y;
+				rData.position = (int) VuzeBuddyManager.getBuddyPosition(vuzeBuddy);
 		avatarWidget.getControl().setLayoutData(rData);
 
 		avatarWidgets.add(avatarWidget);
