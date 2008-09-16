@@ -50,6 +50,14 @@ public class ImageLoader
 
 	private static final boolean DEBUG_UNLOAD = false;
 
+	private final String[] sSuffixChecks = {
+		"-over",
+		"-down",
+		"-disabled",
+		"-selected",
+	};
+
+	
 	private Display display;
 
 	public static Image noImage;
@@ -83,12 +91,6 @@ public class ImageLoader
 		if (Collections.binarySearch(notFound, sKey) >= 0) {
 			return null;
 		}
-
-		String[] sSuffixChecks = {
-			"-over",
-			"-down",
-			"-disabled",
-		};
 
 		for (int i = 0; i < sSuffixChecks.length; i++) {
 			String sSuffix = sSuffixChecks[i];
@@ -138,12 +140,6 @@ public class ImageLoader
 
 		//System.out.println("LoadImage " + sKey + " - " + res);
 		if (res == null) {
-			String[] sSuffixChecks = {
-				"-over",
-				"-down",
-				"-disabled",
-			};
-
 			for (int i = 0; i < sSuffixChecks.length; i++) {
 				String sSuffix = sSuffixChecks[i];
 
