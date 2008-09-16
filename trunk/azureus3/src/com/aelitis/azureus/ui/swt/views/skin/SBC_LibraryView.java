@@ -236,6 +236,9 @@ public class SBC_LibraryView
 		};
 		SideBarEntrySWT infoCD = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		if (infoCD != null) {
+			SideBarVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ALERT);
+			vitalityImage.setVisible(false);
+
 			infoCD.setTitleInfo(titleInfoSeeding);
 		}
 
@@ -386,6 +389,15 @@ public class SBC_LibraryView
 			if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
 				vitalityImage.setVisible(numDownloading > 0);
 			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
+				vitalityImage.setVisible(numErrorInComplete > 0);
+			}
+		}
+
+		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		vitalityImages = entry.getVitalityImages();
+		for (int i = 0; i < vitalityImages.length; i++) {
+			SideBarVitalityImage vitalityImage = vitalityImages[i];
+			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorComplete > 0);
 			}
 		}
