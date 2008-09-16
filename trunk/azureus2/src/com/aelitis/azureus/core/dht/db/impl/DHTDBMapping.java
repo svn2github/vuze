@@ -54,8 +54,8 @@ DHTDBMapping
 	
 		// maps are access order, most recently used at tail, so we cycle values
 		
-	private Map				direct_originator_map			= new LinkedHashMap(16, 0.75f, true );
-	private Map				indirect_originator_value_map	= new LinkedHashMap(16, 0.75f, true );
+	private Map				direct_originator_map			= new LinkedHashMap(2, 0.75f, true );
+	private Map				indirect_originator_value_map	= new LinkedHashMap(2, 0.75f, true );
 	
 	private int				hits;
 	
@@ -69,7 +69,7 @@ DHTDBMapping
 
 		// 4 bit filter - counts up to 15
 	
-	private BloomFilter 	ip_count_bloom_filter = BloomFilterFactory.createAddRemove4Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+	private Object 	ip_count_bloom_filter;
 
 	protected
 	DHTDBMapping(
@@ -818,8 +818,34 @@ DHTDBMapping
 	
 
 		DHTTransportContact	originator = value.getOriginator();
+
+		byte[] address_bytes = originator.getAddress().getAddress().getAddress();
 		
-		int	hit_count = ip_count_bloom_filter.add( originator.getAddress().getAddress().getAddress());
+		// System.out.println( "addToBloom: existing=" + ip_count_bloom_filter );
+
+		if ( ip_count_bloom_filter == null ){
+			
+			ip_count_bloom_filter = address_bytes;
+			
+			return;
+		}
+		
+		BloomFilter filter;
+		
+		if ( ip_count_bloom_filter instanceof byte[] ){
+			
+			byte[]	existing_address = (byte[])ip_count_bloom_filter;
+			
+			ip_count_bloom_filter = filter = BloomFilterFactory.createAddRemove4Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			
+			filter.add( existing_address );
+			
+		}else{
+			
+			filter = (BloomFilter)ip_count_bloom_filter;
+		}
+								
+		int	hit_count = filter.add( address_bytes );
 		
 		if ( DHTLog.LOCAL_BLOOM_TRACE ){
 		
@@ -828,7 +854,7 @@ DHTDBMapping
 
 			// allow up to 10% bloom filter utilisation
 		
-		if ( ip_count_bloom_filter.getSize() / ip_count_bloom_filter.getEntryCount() < 10 ){
+		if ( filter.getSize() / filter.getEntryCount() < 10 ){
 			
 			rebuildIPBloomFilter( true );
 		}
@@ -845,7 +871,28 @@ DHTDBMapping
 	{
 		DHTTransportContact	originator = value.getOriginator();
 		
-		int	hit_count = ip_count_bloom_filter.remove( originator.getAddress().getAddress().getAddress());
+		if ( ip_count_bloom_filter == null ){
+
+			return;
+		}
+		
+		byte[] address_bytes = originator.getAddress().getAddress().getAddress();
+
+		if ( ip_count_bloom_filter instanceof byte[] ){
+
+			byte[]	existing_address = (byte[])ip_count_bloom_filter;
+
+			if ( Arrays.equals( address_bytes, existing_address )){
+				
+				ip_count_bloom_filter = null;
+			}
+			
+			return;
+		}
+		
+		BloomFilter filter = (BloomFilter)ip_count_bloom_filter;
+		
+		int	hit_count = filter.remove( address_bytes );
 		
 		if (  DHTLog.LOCAL_BLOOM_TRACE ){
 		
@@ -859,14 +906,24 @@ DHTDBMapping
 	{
 		BloomFilter	new_filter;
 		
-		if ( increase_size ){
+		int	old_size;
+		
+		if ( ip_count_bloom_filter instanceof BloomFilter ){
 			
-			new_filter = BloomFilterFactory.createAddRemove4Bit( ip_count_bloom_filter.getSize() + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			old_size = ((BloomFilter)ip_count_bloom_filter).getSize();
 			
 		}else{
 			
-			new_filter = BloomFilterFactory.createAddRemove4Bit( ip_count_bloom_filter.getSize());
+			old_size = IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK;
+		}
+		
+		if ( increase_size ){
 			
+			new_filter = BloomFilterFactory.createAddRemove4Bit( old_size + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			
+		}else{
+			
+			new_filter = BloomFilterFactory.createAddRemove4Bit( old_size );
 		}
 		
 		try{
@@ -908,11 +965,26 @@ DHTDBMapping
 	protected void
 	print()
 	{
+		int	entries;
+		
+		if ( ip_count_bloom_filter == null ){
+			
+			entries = 0;
+			
+		}else if ( ip_count_bloom_filter instanceof byte[] ){
+			
+			entries = 1;
+			
+		}else{
+			
+			entries = ((BloomFilter)ip_count_bloom_filter).getEntryCount();
+		}
+		
 		System.out.println( 
 			ByteFormatter.encodeString( key.getBytes()) + ": " +
 			"dir=" + direct_originator_map.size() + "," +
 			"indir=" + indirect_originator_value_map.size() + "," +
-			"bloom=" + ip_count_bloom_filter.getEntryCount());	
+			"bloom=" + entries );	
 	}
 	
 	protected class
