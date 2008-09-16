@@ -1,5 +1,5 @@
 /**
- * Created on Aug 13, 2008
+ * Created on Sep 15, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -20,25 +20,10 @@ package org.gudy.azureus2.plugins.ui.sidebar;
 
 /**
  * @author TuxPaper
- * @created Aug 13, 2008
+ * @created Sep 15, 2008
  *
  */
-public interface SideBarEntry
+public interface SideBarVitalityImageListener
 {
-
-	public String getParentID();
-
-	public Object getDatasource();
-
-	public boolean isCloseable();
-
-	public Class getIViewClass();
-
-	public Class[] getIViewClassArgs();
-
-	public Object[] getIViewClassVals();
-
-	public String getId();
-
-	public SideBarVitalityImage addVitalityImage(String imageID);
+	public void sbVitalityImage_clicked(int x, int y);
 }
