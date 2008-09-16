@@ -419,17 +419,26 @@ public class AvatarWidget
 					// ignore.. some of these may not be avail
 				}
 
+				if(isActivated) {
+					e.gc.setForeground(highlightedColor);
+					Rectangle bounds = canvas.getBounds();
+					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
+							bounds.width - (2 * highlightBorder)-1, bounds.height
+									- (2 * highlightBorder)-1, 6, 6);
+				}
+				
 				/*
 				 * Draw background if the widget is activated or selected
 				 */
-				if (true == isSelected && selectedColor != null) {
+				
+				/*if (true == isSelected && selectedColor != null) {
 					e.gc.setBackground(selectedColor);
 					Rectangle bounds = canvas.getBounds();
 					e.gc.fillRoundRectangle(highlightBorder, highlightBorder,
 							bounds.width - (2 * highlightBorder), bounds.height
 									- (2 * highlightBorder), 6, 6);
 					e.gc.setBackground(canvas.getBackground());
-				}
+				}*/
 
 				/*
 				 * Draw highlight borders if the widget is activated (being hovered over)
@@ -592,11 +601,8 @@ public class AvatarWidget
   					//e.gc.fillRectangle(nameAreaBounds);
 					} else {
 
-						if(isSelected) {
-							e.gc.setForeground(selectedTextColor);
-						} else {
-							e.gc.setForeground(textColor);
-						}
+						e.gc.setForeground(textLinkColor);
+						
 						if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
 							GCStringPrinter stringPrinter = new GCStringPrinter(e.gc, "%0 "
 									+ vuzeBuddy.getDisplayName(), nameAreaBounds, false, false,
@@ -716,14 +722,17 @@ public class AvatarWidget
 					}
 				} else if (decorator_add_to_share.contains(e.x, e.y)) {
 					
-				} else {
+				}
+				//No more selection
+				/*
+				else {
 					if ((e.stateMask & SWT.MOD1) == SWT.MOD1) {
 						viewer.select(vuzeBuddy, !isSelected, true);
 					} else {
 						viewer.select(vuzeBuddy, !isSelected, false);
 					}
 					canvas.redraw();
-				}
+				}*/
 
 			}
 
@@ -738,6 +747,31 @@ public class AvatarWidget
 				if (false == viewer.isShareMode() && false == viewer.isEditMode()) {
 					doChatClicked();
 					return;
+				}
+			}
+		});
+		
+		canvas.addMouseTrackListener(new MouseTrackListener() {
+
+			public void mouseHover(MouseEvent e) {
+
+			}
+
+			public void mouseExit(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
+				isActivated = false;
+				canvas.redraw();
+			}
+
+			public void mouseEnter(MouseEvent e) {
+				if (false == isFullyVisible()) {
+					return;
+				}
+				if (false == isActivated) {
+					isActivated = true;
+					canvas.redraw();
 				}
 			}
 		});
@@ -783,6 +817,8 @@ public class AvatarWidget
 					lastTooltipText = tooltipText;
 				}
 
+				Cursor cursor = null;
+				
 				if (true == nameAreaBounds.contains(e.x, e.y)) {
 					if (false == lastActiveState) {
 						nameLinkActive = true;
@@ -791,15 +827,20 @@ public class AvatarWidget
 					}
 				} else 
 				if (chatAreaBounds != null && chatAreaBounds.contains(e.x, e.y)) {
-					canvas.setCursor(canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					cursor = canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND);
 				} else {
-					canvas.setCursor(null);
 					if (true == lastActiveState) {
 						nameLinkActive = false;
 						canvas.redraw();
 						lastActiveState = false;
 					}
 				}
+				
+				if(nameLinkActive) {
+					cursor = canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND);
+				}
+				
+				canvas.setCursor(cursor);
 
 			}
 		});
@@ -864,6 +905,22 @@ public class AvatarWidget
 	protected void fillMenu(Menu menu) {
 		MenuItem item;
 
+		item = new MenuItem(menu, SWT.PUSH);
+		item.setEnabled(false);
+		item.setText(vuzeBuddy.getDisplayName());
+		item = new MenuItem(menu, SWT.SEPARATOR);
+		
+		
+		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
+				if (aw != null) {
+					aw.doLinkClicked();
+				}
+			}
+		});
+		
 		item = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
 		item.addSelectionListener(new SelectionAdapter() {

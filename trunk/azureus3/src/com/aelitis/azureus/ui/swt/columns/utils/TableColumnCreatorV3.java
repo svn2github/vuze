@@ -48,6 +48,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedLimitItem;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnInfo;
+import com.aelitis.azureus.ui.swt.columns.torrent.ColumnQuality;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRateUpDown;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRatingGlobal;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
@@ -70,17 +72,19 @@ public class TableColumnCreatorV3
 			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
+			show(new ColumnQuality(tableID,true)),
+			show(new ColumnInfo(tableID)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
 			show(new StatusItem(tableID, false)),
 			show(new ETAItem(tableID)),
-			show(new ColumnRatingGlobal(tableID)),
 			show(new ColumnRateUpDown(tableID)),
 			show(new DateAddedItem(tableID)),
 
 			/*
 			 * Initially hidden
 			 */
+			hide(new ColumnRatingGlobal(tableID)),
 			hide(new HealthItem(tableID)),
 			hide(new CommentIconItem(tableID)),
 			hide(new DownItem(tableID)),
@@ -131,6 +135,8 @@ public class TableColumnCreatorV3
 			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
+			show(new ColumnQuality(tableID,true)),
+			show(new ColumnInfo(tableID)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
 			show(new StatusItem(tableID, false)),
