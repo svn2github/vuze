@@ -82,6 +82,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
@@ -140,7 +141,7 @@ public class SideBar
 
 	private SideBarEntrySWT currentSideBarEntry;
 
-	private static Map mapTitleInfoToTreeItem = new LightHashMap();
+	private static Map mapTitleInfoToEntry = new LightHashMap();
 
 	private static Map mapIdToSideBarInfo = new LightHashMap();
 
@@ -790,6 +791,26 @@ public class SideBar
 			gc.drawImage(imgClose, closeArea.x, closeArea.y);
 			treeItem.setData("closeArea", closeArea);
 		}
+		
+		SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+		for (int i = 0; i < vitalityImages.length; i++) {
+			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+			if (!vitalityImage.isVisible()) {
+				continue;
+			}
+			String imageID = vitalityImage.getImageID();
+			Image image = imageLoader.getImage(imageID);
+			if (ImageLoader.isRealImage(image)) {
+				Rectangle bounds = image.getBounds();
+				bounds.x = treeArea.width - bounds.width - SIDEBAR_SPACING
+						- x1IndicatorOfs;
+				bounds.y = itemBounds.y + (itemBounds.height - bounds.height) / 2;
+				x1IndicatorOfs += bounds.width + SIDEBAR_SPACING;
+				
+				gc.drawImage(image, bounds.x, bounds.y);
+				vitalityImage.setHitArea(bounds);
+			}
+		}
 
 		if (sideBarInfo.titleInfo != null) {
 			Boolean hasActivity = (Boolean) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_HAS_ACTIVITY);
@@ -920,9 +941,10 @@ public class SideBar
 			}
 		});
 
-		SBC_LibraryView.setupViewTitle();
+
 		SideBarEntrySWT entry;
 		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
 				null, false, -1);
@@ -1033,6 +1055,8 @@ public class SideBar
 				}
 			}
 		}
+
+		SBC_LibraryView.setupViewTitle();
 
 		PluginsMenuHelper.getInstance().addPluginAddedViewListener(
 				new PluginAddedViewListener() {
@@ -1233,7 +1257,7 @@ public class SideBar
 		}
 
 		if (sideBarInfo.titleInfo != null) {
-			mapTitleInfoToTreeItem.put(sideBarInfo.titleInfo, treeItem);
+			mapTitleInfoToEntry.put(sideBarInfo.titleInfo, sideBarInfo);
 			String newText = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newText != null) {
 				pull = false;
@@ -1811,8 +1835,8 @@ public class SideBar
 					return;
 				}
 
-				TreeItem treeItem = (TreeItem) mapTitleInfoToTreeItem.get(titleIndicator);
-				if (treeItem == null) {
+				SideBarEntrySWT sideBarEntry = (SideBarEntrySWT) mapTitleInfoToEntry.get(titleIndicator);
+				if (sideBarEntry == null) {
 					Object o = titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_SKINVIEW);
 					if (o instanceof SkinView) {
 						SkinView skinView = (SkinView) o;
@@ -1822,11 +1846,10 @@ public class SideBar
 								TreeItem searchTreeItem = (TreeItem) iter.next();
 								String treeItemID = (String) searchTreeItem.getData("Plugin.viewID");
 								if (treeItemID != null && treeItemID.equals(id)) {
-									SideBarEntrySWT sideBarInfo = getSideBarInfo(treeItemID);
-									if (sideBarInfo.treeItem != null) {
-										sideBarInfo.titleInfo = titleIndicator;
-										treeItem = sideBarInfo.treeItem;
-										mapTitleInfoToTreeItem.put(titleIndicator, treeItem);
+									sideBarEntry = getSideBarInfo(treeItemID);
+									if (sideBarEntry.treeItem != null) {
+										sideBarEntry.titleInfo = titleIndicator;
+										mapTitleInfoToEntry.put(titleIndicator, sideBarEntry);
 									}
 									break;
 								}
@@ -1834,34 +1857,28 @@ public class SideBar
 						}
 					}
 
-					if (treeItem == null) {
+					if (sideBarEntry == null || sideBarEntry.treeItem == null) {
 						return;
 					}
 				}
 
-				if (treeItem.isDisposed()) {
+				if (sideBarEntry.treeItem.isDisposed()) {
 					return;
 				}
 
-				String id = (String) treeItem.getData("Plugin.viewID");
-				SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
-
 				String newText = (String) titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 				if (newText != null) {
-					sideBarInfo.pullTitleFromIView = false;
-					treeItem.setData("text", newText);
+					sideBarEntry.pullTitleFromIView = false;
+					sideBarEntry.treeItem.setData("text", newText);
 				}
 
 				String imageID = (String) titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_IMAGEID);
 				if (imageID != null) {
-					sideBarInfo.imageLeft = imageID.length() == 0 ? null
+					sideBarEntry.imageLeft = imageID.length() == 0 ? null
 							: ImageLoaderFactory.getInstance().getImage(imageID);
 				}
 
-				Rectangle bounds = treeItem.getBounds();
-				Rectangle treeBounds = tree.getBounds();
-				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
-				tree.update();
+				sideBarEntry.redraw();
 			}
 		});
 	}
@@ -2039,5 +2056,25 @@ public class SideBar
 			// everything else can go to browse..
 			showItemByID(SIDEBAR_SECTION_BROWSE);
 		}
+	}
+
+	/**
+	 * @param browse
+	 * @return 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public SideBarEntrySWT getSideBarEntry(SkinView skinView) {
+		SWTSkinObject so = skinView.getMainSkinObject();
+		Object[] sideBarEntries = mapIdToSideBarInfo.values().toArray();
+		for (int i = 0; i < sideBarEntries.length; i++) {
+			SideBarEntrySWT entry = (SideBarEntrySWT) sideBarEntries[i];
+			SWTSkinObject entrySO = entry.getSkinObject();
+			SWTSkinObject entrySOParent = entrySO == null ? entrySO : entrySO.getParent();
+			if (entrySO == so || entrySO == so.getParent() || entrySOParent == so) {
+				return entry;
+			}
+		}
+		return null;
 	}
 }

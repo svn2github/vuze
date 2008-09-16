@@ -18,10 +18,19 @@
  
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -29,6 +38,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -66,6 +76,8 @@ public class SideBarEntrySWT implements SideBarEntry
 	protected Image imageLeft;
 
 	public boolean disableCollapse;
+	
+	private List listVitalityImages = Collections.EMPTY_LIST;
 	
 	public String getParentID() {
 		return parentID;
@@ -173,5 +185,49 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public SideBarEntrySWT(String id) {
 		this.id = id;
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry#addVitalityImage(java.lang.String)
+	public SideBarVitalityImage addVitalityImage(String imageID) {
+		SideBarVitalityImageSWT vitalityImage = new SideBarVitalityImageSWT(this, imageID);
+		if (listVitalityImages == Collections.EMPTY_LIST) {
+			listVitalityImages = new ArrayList(1);
+		}
+		listVitalityImages.add(vitalityImage);
+		return vitalityImage;
+	}
+	
+	public SideBarVitalityImage[] getVitalityImages() {
+		return (SideBarVitalityImage[]) listVitalityImages.toArray(new SideBarVitalityImage[0]);
+	}
+	
+	public SideBarVitalityImage getVitalityImage(int hitX, int hitY) {
+		SideBarVitalityImage[] vitalityImages = getVitalityImages();
+		for (int i = 0; i < vitalityImages.length; i++) {
+			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+			if (!vitalityImage.isVisible()) {
+				continue;
+			}
+			Rectangle hitArea = vitalityImage.getHitArea();
+			if (hitArea != null && hitArea.contains(hitX, hitY)) {
+				return vitalityImage;
+			}
+		}
+		return null;
+	}
+	
+	public void redraw() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (treeItem == null || treeItem.isDisposed()) {
+					return;
+				}
+				Tree tree = treeItem.getParent();
+				Rectangle bounds = treeItem.getBounds();
+				Rectangle treeBounds = tree.getBounds();
+				tree.redraw(0, bounds.y, treeBounds.width, bounds.height, true);
+				tree.update();
+			}
+		});
 	}
 }
