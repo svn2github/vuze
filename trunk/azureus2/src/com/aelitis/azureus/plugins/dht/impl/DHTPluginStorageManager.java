@@ -143,7 +143,7 @@ DHTPluginStorageManager
 			String key_ver 	= "dht.plugin.sm.hack.kill.div.2.v";
 			String key 		= "dht.plugin.sm.hack.kill.div.2";
 			
-			final int 	HACK_VER 	= 4;
+			final int 	HACK_VER 	= 5;
 			final long 	HACK_PERIOD = 3*24*60*60*1000L;
 			
 			long suspend_ver = COConfigurationManager.getLongParameter( key_ver, 0 );
