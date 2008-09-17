@@ -136,6 +136,9 @@ public class SpeedScaleShell
 	public boolean open(final int startValue, boolean _assumeInitiallyDown) {
 		value = startValue;
 		this.assumeInitiallyDown = _assumeInitiallyDown;
+		if (assumeInitiallyDown) {
+			lastMoveHadMouseDown = true;
+		}
 		cancelled = true;
 
 		shell = new Shell(Utils.findAnyShell(), SWT.DOUBLE_BUFFERED | SWT.ON_TOP);
@@ -241,11 +244,14 @@ public class SpeedScaleShell
 
 			public void mouseUp(MouseEvent e) {
 				if (assumeInitiallyDown) {
+					//System.out.println("assumed down");
 					assumeInitiallyDown = false;
 				}
 				if (MOUSE_ONLY_UP_EXITS) {
+					//System.out.println("last move had mouse down: " + lastMoveHadMouseDown);
 					if (lastMoveHadMouseDown) {
 						Point mousePos = display.getCursorLocation();
+						//System.out.println("first=" + firstMousePos + ";mouse= " + mousePos);
 						if (mousePos.equals(firstMousePos)) {
 							lastMoveHadMouseDown = false;
 							return;
