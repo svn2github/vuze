@@ -486,41 +486,6 @@ DownloadManager
         File    new_parent_dir )
 
         throws DownloadManagerException;
-
-    /**
-     * Returns an array of size 2 indicating the appropriate locations for this
-     * download's data files and torrent file, based on Azureus's rules regarding
-     * default save paths, and move on completion rules.
-     * 
-     * This method takes one argument - <i>for_moving</i>. This essentially
-     * indicates whether you are getting this information for purposes of just
-     * finding where Azureus would store these files by default, or whether you
-     * are considering moving the files from its current location.
-     * 
-     * If <i>for_moving</i> is <tt>false</tt>, this method will determine locations
-     * for the download and the torrent file where Azureus would store them by
-     * default (it may return the current paths used by this download). 
-     * 
-     * If <i>for_moving</i> is <tt>true</tt>, then this method will consider the
-     * download's current location, and whether it is allowed to move it - you
-     * may not be allowed to move this download (based on Azureus's current rules)
-     * if the download doesn't exist within a default save directory already. If
-     * a download is complete, we consider whether we are allowed to move downloads
-     * on completion, and whether that includes downloads outside the default save
-     * directory.
-     * 
-     * In this case, the array may contain <tt>null</tt> indicating that the Azureus
-     * doesn't believe that the download should be moved (based on the current rules
-     * the user has set out). However, you are not prevented from changing the
-     * location of the torrent file or download.
-     * 
-     * @since 2.5.0.2
-     * @author amc1
-     * @return An array of type <tt>File</tt> of size 2, first element containing the
-     *     calculated location for the download's data files, and the second element
-     *     containing the location for the download's torrent file.
-     */
-    public File[] calculateDefaultPaths();
     
     /**
      * Returns <tt>true</tt> if the download is being saved to one of the default

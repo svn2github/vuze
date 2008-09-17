@@ -3356,12 +3356,6 @@ DownloadManagerImpl
 	  }
   }
   
-  public File[] calculateDefaultPaths() {
-	  SaveLocationChange slc = DownloadManagerMoveHandler.recalculatePath(this); 
-	  if (slc == null) {return null;}
-	  return new File[] {slc.download_location, slc.torrent_location};
-  }
-    
   public boolean isInDefaultSaveDir() {
 	  return DownloadManagerDefaultPaths.isInDefaultDownloadDir(this);
   }
