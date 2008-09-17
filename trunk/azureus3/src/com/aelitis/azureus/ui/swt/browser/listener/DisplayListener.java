@@ -174,7 +174,7 @@ public class DisplayListener
 			dlInfo.setRequestProperties(dlHeader);
 
 			String subID = MapUtils.getMapString(decodedMap, "subscription-id", null);
-			String subresID = MapUtils.getMapString(decodedMap, "subscription-results-id", null);
+			String subresID = MapUtils.getMapString(decodedMap, "subscription-result-id", null);
 			
 			if (subID != null && subresID != null) {
 				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID(subID);
