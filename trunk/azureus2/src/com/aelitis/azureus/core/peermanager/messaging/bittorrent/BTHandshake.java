@@ -99,8 +99,7 @@ public class BTHandshake implements BTMessage, RawMessage {
     buffer.flip( DirectByteBuffer.SS_MSG );
   }
   
-  // amc1: Disable caching for now...
-  public byte[] getReserved() {  return duplicate(reserved_bytes);  }
+  public byte[] getReserved() {  return reserved_bytes;  }
   
   public byte[] getDataHash() {  return datahash_bytes;  }
   
@@ -135,10 +134,8 @@ public class BTHandshake implements BTMessage, RawMessage {
     if( buffer == null ) {
       constructBuffer();
     }
-    // amc1: Disable caching for now...
-    DirectByteBuffer this_buffer = this.buffer;
-    this.buffer = null;
-    return new DirectByteBuffer[]{ this_buffer };
+    
+    return new DirectByteBuffer[]{ buffer };
   }
 
   
@@ -183,10 +180,8 @@ public class BTHandshake implements BTMessage, RawMessage {
     if( buffer == null ) {
       constructBuffer();
     }
-    // amc1: Disable caching for now...
-    DirectByteBuffer this_buffer = this.buffer;
-    this.buffer = null;
-    return new DirectByteBuffer[]{ this_buffer };
+    
+    return new DirectByteBuffer[]{ buffer };
   }
   
   public int getPriority() {  return RawMessage.PRIORITY_HIGH;  }
