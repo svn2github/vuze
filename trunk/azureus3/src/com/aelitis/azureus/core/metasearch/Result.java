@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
 
@@ -151,7 +152,7 @@ public abstract class Result {
 	}
 	
 	public Map toJSONMap() {
-		Map object = new HashMap();
+		Map object = new JSONObject();
 		try {
 			object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
 			object.put("ts", "" + this.getPublishedDate().getTime());
