@@ -709,11 +709,15 @@ public class SideBar
   				gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
   			}
 			} else {
-				System.out.println("whatup");
-				//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-				gc.setForeground(Colors.faded[Colors.BLUES_LIGHTEST]);
-				fgText = fg;
+				if (Constants.isOSX) {
+  				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
+  				gc.setBackground(Colors.faded[Colors.BLUES_MIDDARK]);
+				} else {
+  				//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+  				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+  				gc.setForeground(Colors.faded[Colors.BLUES_LIGHTEST]);
+  				fgText = fg;
+				}
 			}
 
 			gc.fillGradientRectangle(0, event.y, Math.max(treeBounds.width, event.width
