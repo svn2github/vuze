@@ -255,11 +255,18 @@ ExternalSeedReaderImpl
 				return( false );
 			}
 			
-			if ( peer_manager.getDownload().getState() == Download.ST_SEEDING ){
+			if ( peer_manager.getDownload().getState() != Download.ST_DOWNLOADING ){
 				
 				return( false );
 			}
-					
+				
+				// check dnd completeness too
+			
+			if ( peer_manager.getDownload().isComplete()){
+				
+				return( false );
+			}
+			
 				// now the more interesting stuff
 			
 			if ( transient_seed ){
