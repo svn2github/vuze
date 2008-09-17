@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -1241,11 +1242,11 @@ DHTDBImpl
 				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 	
 				if ( mapping.getValueCount() == 0 ){
+										
+					it.remove();
 					
 					mapping.destroy();
-					
-					it.remove();
-										
+
 				}else{
 					
 					Iterator	it2 = mapping.getValues();
@@ -1511,28 +1512,24 @@ DHTDBImpl
 						
 					boolean	overall_deleted = false;
 					
+					HashWrapper value_id = new HashWrapper( contact.getID());
+					
 					while( it.hasNext()){
 						
 						DHTDBMapping	mapping = (DHTDBMapping)it.next();
-
-						Iterator	it2 = mapping.getDirectValues();
 						
 						boolean	deleted = false;
 						
-						while( it2.hasNext()){
+						if ( mapping.removeDirectValue( value_id ) != null ){
 							
-							DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
-							
-							if ( !val.isLocal()){
-								
-								if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
-									
-									deleted = true;
-									
-									it.remove();
-								}
-							}
+							deleted = true;
 						}
+	
+						if ( mapping.removeIndirectValue( value_id ) != null ){
+							
+							deleted = true;
+						}
+
 						
 						if ( deleted && !ban_ip ){
 						
@@ -1781,6 +1778,11 @@ DHTDBImpl
 			Debug.out( "Actual keys != total: " + actual_keys + "/" + total_keys );
 		}
 		
+		if ( adapter.getKeyCount() != actual_keys ){
+			
+			Debug.out( "SM keys != total: " + actual_keys + "/" + adapter.getKeyCount());
+		}
+		
 		if ( actual_values != total_values ){
 			
 			Debug.out( "Actual values != total: " + actual_values + "/" + total_values );
@@ -1789,6 +1791,11 @@ DHTDBImpl
 		if ( actual_size != total_size ){
 			
 			Debug.out( "Actual size != total: " + actual_size + "/" + total_size );
+		}
+		
+		if ( actual_values < actual_keys ){
+			
+			Debug.out( "Actual values < actual keys: " + actual_values + "/" + actual_keys );
 		}
 		
 		System.out.println( "DHTDB: " + op + " - keys=" + total_keys + ", values=" + total_values + ", size=" + total_size );
@@ -1863,10 +1870,16 @@ DHTDBImpl
 			DHTStorageKey	adapter_key )
 		{
 			total_keys--;
-			
-			reportSizes( "keyDeleted" );
-			
+						
 			delegate.keyDeleted( adapter_key );
+
+			reportSizes( "keyDeleted" );
+		}
+		
+		public int 
+		getKeyCount() 
+		{
+			return( delegate.getKeyCount());
 		}
 		
 		public void

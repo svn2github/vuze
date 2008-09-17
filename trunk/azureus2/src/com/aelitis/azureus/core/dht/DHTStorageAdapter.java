@@ -138,4 +138,7 @@ DHTStorageAdapter
 	
 	public int
 	getRemoteSizeDivCount();
+	
+	public int
+	getKeyCount();
 }

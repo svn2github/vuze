@@ -702,7 +702,7 @@ DHTDBMapping
 		}
 	}
 	
-	protected void
+	protected DHTDBValueImpl
 	removeIndirectValue(
 		HashWrapper		value_key )
 	{
@@ -719,6 +719,8 @@ DHTDBMapping
 			
 			informDeleted( old );
 		}
+		
+		return( old );
 	}
 	
 	protected void
@@ -1115,9 +1117,11 @@ DHTDBMapping
 				
 				informDeleted( value );
 				
+				value = null;
+				
 			}else{
 			
-				it.remove();
+				throw( new IllegalStateException());
 			}
 		}
 	}

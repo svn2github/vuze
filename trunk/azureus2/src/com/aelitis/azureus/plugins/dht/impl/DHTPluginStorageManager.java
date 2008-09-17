@@ -596,6 +596,20 @@ DHTPluginStorageManager
 		}
 	}
 	
+	public int
+	getKeyCount()
+	{
+		try{
+			storage_mon.enter();
+		
+			return( local_storage_keys.size());
+			
+		}finally{
+			
+			storage_mon.exit();
+		}
+	}
+	
 	public void
 	keyRead(
 		DHTStorageKey			key,
@@ -969,7 +983,7 @@ DHTPluginStorageManager
 			
 			if ( local_storage_keys.size() >= MAX_STORAGE_KEYS ){
 				
-				res = new storageKey( this, DHT.DT_SIZE, key ); 
+				res = new storageKey( this, suspendDivs()?DHT.DT_NONE:DHT.DT_SIZE, key ); 
 
 				Debug.out( "DHTStorageManager: max key limit exceeded" );
 				
@@ -990,7 +1004,7 @@ DHTPluginStorageManager
 	deleteStorageKey(
 		storageKey		key )
 	{
-		if ( local_storage_keys.remove( key ) != null ){
+		if ( local_storage_keys.remove( key.getKey()) != null ){
 		
 			if ( key.getDiversificationType() != DHT.DT_NONE ){
 				
@@ -2196,11 +2210,14 @@ DHTPluginStorageManager
 						
 						if ( ip_entries > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
 						
-							type = DHT.DT_FREQUENCY;
-							
-							manager.log.log( "SM: sk freq created (" + ip_entries + "reads ) - " + DHTLog.getString2( key.getBytes()));
-							
-							manager.writeDiversifications();
+							if ( !manager.suspendDivs()){
+								
+								type = DHT.DT_FREQUENCY;
+								
+								manager.log.log( "SM: sk freq created (" + ip_entries + "reads ) - " + DHTLog.getString2( key.getBytes()));
+								
+								manager.writeDiversifications();
+							}
 						}
 					}
 										
@@ -2249,21 +2266,24 @@ DHTPluginStorageManager
 			
 			if ( type == DHT.DT_NONE ){
 				
-				if ( size > LOCAL_DIVERSIFICATION_SIZE_LIMIT ){
-				
-					type	= DHT.DT_SIZE;
+				if ( !manager.suspendDivs()){
 					
-					manager.log.log( "SM: sk size total created (size " + size + ") - " + DHTLog.getString2( key.getBytes()));
-
-					manager.writeDiversifications();
+					if ( size > LOCAL_DIVERSIFICATION_SIZE_LIMIT ){
 					
-				}else if ( entries > LOCAL_DIVERSIFICATION_ENTRIES_LIMIT ){
-					
-					type 	= DHT.DT_SIZE;
-					
-					manager.log.log( "SM: sk size entries created (" + entries + " entries) - " + DHTLog.getString2( key.getBytes()));
-
-					manager.writeDiversifications();
+						type	= DHT.DT_SIZE;
+						
+						manager.log.log( "SM: sk size total created (size " + size + ") - " + DHTLog.getString2( key.getBytes()));
+	
+						manager.writeDiversifications();
+						
+					}else if ( entries > LOCAL_DIVERSIFICATION_ENTRIES_LIMIT ){
+						
+						type 	= DHT.DT_SIZE;
+						
+						manager.log.log( "SM: sk size entries created (" + entries + " entries) - " + DHTLog.getString2( key.getBytes()));
+	
+						manager.writeDiversifications();
+					}
 				}
 			}
 			
