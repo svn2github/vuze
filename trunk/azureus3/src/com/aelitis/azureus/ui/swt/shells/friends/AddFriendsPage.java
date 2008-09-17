@@ -52,10 +52,23 @@ public class AddFriendsPage
 	private boolean isStandalone;
 
 	public AddFriendsPage(MultipageWizard wizard) {
+		this(wizard,false);
+	}
+	
+	public AddFriendsPage(MultipageWizard wizard,boolean isStandalone) {
 		super(wizard);
+		this.isStandalone = isStandalone;
 	}
 
 	public Composite createControls(Composite parent) {
+		if(isStandalone) {
+			getWizard().getShell().addListener(SWT.Dispose, new Listener() {
+				public void handleEvent(Event arg0) {
+					friendsToolbar.reset();
+				}
+			});
+		}
+		
 		content = super.createControls(parent);
 		content.setLayout(new FillLayout());
 
@@ -87,7 +100,36 @@ public class AddFriendsPage
 	}
 
 	protected void createButtons(Composite buttonPanel) {
+		if(isStandalone) {
+		createButton(BUTTON_CANCEL, MessageText.getString("Button.cancel"),
+				new SelectionListener() {
+					public void widgetSelected(SelectionEvent e) {
+						context.executeInBrowser("previewCancel()");
+						showButton(BUTTON_CONTINUE, true);
+						showButton(BUTTON_PREVIEW, true);
+						showButton(BUTTON_BACK, false);
+					}
 
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				});
+		//showButton(BUTTON_CANCEL, false);
+		} else {
+			createButton(BUTTON_CANCEL, MessageText.getString("wizard.previous"),
+					new SelectionListener() {
+						public void widgetSelected(SelectionEvent e) {
+							context.executeInBrowser("previewCancel()");
+							showButton(BUTTON_CONTINUE, true);
+							showButton(BUTTON_PREVIEW, true);
+							showButton(BUTTON_BACK, false);
+						}
+
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+			//showButton(BUTTON_CANCEL, false);
+		}
+		
 		createButton(BUTTON_PREVIEW, MessageText.getString("Button.preview"),
 				new SelectionListener() {
 					public void widgetSelected(SelectionEvent e) {
@@ -101,30 +143,33 @@ public class AddFriendsPage
 					}
 				});
 
-		createButton(BUTTON_CONTINUE, MessageText.getString("Button.continue"),
-				new SelectionListener() {
-					public void widgetSelected(SelectionEvent e) {
-						System.out.println("TODO: do continue");
-						performBack();
-					}
+		if(isStandalone) {
+			createButton(BUTTON_OK, MessageText.getString("Button.send"),
+					new SelectionListener() {
+						public void widgetSelected(SelectionEvent e) {
+							System.out.println("TODO: do continue");
+							performBack();
+						}
 
-					public void widgetDefaultSelected(SelectionEvent e) {
-					}
-				});
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+			
+		} else {
+			createButton(BUTTON_CONTINUE, MessageText.getString("Button.continue"),
+					new SelectionListener() {
+						public void widgetSelected(SelectionEvent e) {
+							System.out.println("TODO: do continue");
+							performBack();
+						}
 
-		createButton(BUTTON_BACK, MessageText.getString("wizard.previous"),
-				new SelectionListener() {
-					public void widgetSelected(SelectionEvent e) {
-						context.executeInBrowser("previewCancel()");
-						showButton(BUTTON_CONTINUE, true);
-						showButton(BUTTON_PREVIEW, true);
-						showButton(BUTTON_BACK, false);
-					}
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+		}
+		
 
-					public void widgetDefaultSelected(SelectionEvent e) {
-					}
-				});
-		showButton(BUTTON_BACK, false);
+		
 	}
 
 	public Browser getBrowser() {
