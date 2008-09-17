@@ -33,11 +33,9 @@ public class SimpleReorderableListLayout extends Layout {
 	private Point cachedSize = null;
 	
 	protected Point computeSize(Composite composite, int wHint, int hHint, boolean flushCache) {
-		if(true || flushCache || ! cached || cachedSize == null) {
-			int totalWidth = 0;
+		if(flushCache || ! cached || cachedSize == null) {
 			
 			Control[] controls = composite.getChildren();
-			int currentMargin = 0;
 			
 			
 			for(int i = 0 ; i < controls.length ; i++) {
@@ -69,7 +67,8 @@ public class SimpleReorderableListLayout extends Layout {
 				itemsPerRow = controls.length;
 			}
 			
-			int nbRows = (controls.length+itemsPerRow-1) / itemsPerRow;
+			//Avoid dividing by 0 when there are no items
+			int nbRows = itemsPerRow > 0 ? (controls.length+itemsPerRow-1) / itemsPerRow : 1;
 			
 			cached = true;
 			cachedSize = new Point(2 * borderW + (maxWidth+margin) * itemsPerRow - margin, 2 * borderH + (margin + maxHeight) * nbRows - margin);
