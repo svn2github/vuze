@@ -86,8 +86,10 @@ DownloadManagerController
 			ext_seed_plugin_tried	= true;
 			
 			try {
-				ext_seed_plugin = (ExternalSeedPlugin)AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
-						ExternalSeedPlugin.class).getPlugin();
+				org.gudy.azureus2.plugins.PluginInterface ext_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(ExternalSeedPlugin.class);
+				if (ext_pi != null) {
+					ext_seed_plugin = (ExternalSeedPlugin)ext_pi.getPlugin();
+				}
 	
 			}catch (Throwable e){
 	
