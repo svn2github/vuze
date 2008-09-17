@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.chat.Chat;
+import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.chat.ChatListener;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -282,6 +283,7 @@ public class BuddiesViewer
 			SimpleReorderableListLayout rLayout = new SimpleReorderableListLayout();
 			rLayout.margin = hSpacing;
 			rLayout.wrap = true;
+			rLayout.center = true;
 			avatarsPanel.setLayout(rLayout);
 
 			avatarsPanel.pack();
@@ -586,8 +588,29 @@ public class BuddiesViewer
 							VuzeBuddy v1 = (VuzeBuddy) o1;
 							VuzeBuddy v2 = (VuzeBuddy) o2;
 							int score = 0;
-							score -= v1.isOnline(true) ? 1 : 0;
-							score += v2.isOnline(true) ? 1 : 0;
+							ChatDiscussion d1 = getChat().getChatDiscussionFor(v1);
+							ChatDiscussion d2 = getChat().getChatDiscussionFor(v2);
+							if(d1 != null && d1.getUnreadMessages() > 0) {
+								score-= 1;
+							}
+							if(d2 != null && d2.getUnreadMessages() > 0) {
+								score +=1;
+							}
+							
+							if(score == 0) {
+								if(d1 != null && d1.getNbMessages() > 0) {
+									score-= 1;
+								}
+								if(d2 != null && d2.getNbMessages() > 0) {
+									score +=1;
+								}
+							}
+							
+							if(score == 0) {
+								score -= v1.isOnline(true) ? 1 : 0;
+								score += v2.isOnline(true) ? 1 : 0;
+							}
+							
 							return score;
 						}
 					});
