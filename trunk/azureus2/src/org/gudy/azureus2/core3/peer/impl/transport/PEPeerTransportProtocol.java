@@ -2045,7 +2045,7 @@ implements PEPeerTransport
 		if(getConnectionState() == CONNECTION_FULLY_ESTABLISHED)
 		{
 			handshake.destroy();
-			closeConnectionInternally("peer sent another handshake after the intial connect");
+			closeConnectionInternally("peer sent another handshake after the initial connect");
 		}
 
 		if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
