@@ -28,6 +28,7 @@ public class SimpleReorderableListLayout extends Layout {
 	
 	private int extraSpacing;
 	
+	private int previouswHint = SWT.DEFAULT;
 	
 	private boolean cached = false;
 	private Point cachedSize = null;
@@ -48,7 +49,12 @@ public class SimpleReorderableListLayout extends Layout {
 			}
 			
 			
-			if((wHint != SWT.DEFAULT) && wrap) {
+			if((wHint != SWT.DEFAULT || previouswHint != SWT.DEFAULT) && wrap) {
+				if(wHint != SWT.DEFAULT) {
+					previouswHint  = wHint;
+				} else {
+					wHint = previouswHint;
+				}
 				itemsPerRow = 1;
 				int width = 2 * borderW + maxWidth;
 				while(width < wHint) {
@@ -80,9 +86,6 @@ public class SimpleReorderableListLayout extends Layout {
 	}
 
 	protected void layout(Composite composite, boolean flushCache) {
-		if(!cached || cachedSize == null) {
-			computeSize(composite, 0, 0, true);
-		}
 		
 		Control[] controls = composite.getChildren();
 		List sortedControls = new ArrayList(controls.length);
