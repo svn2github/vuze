@@ -27,7 +27,6 @@ import com.aelitis.azureus.core.metasearch.impl.MetaSearchImpl;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebResult;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
 
 public class 
 RSSEngine 
@@ -179,7 +178,13 @@ RSSEngine
 					
 					result.setPublishedDate(item.getPublicationDate());
 					result.setNameFromHTML(item.getTitle());
-					result.setCDPLink(item.getLink().toExternalForm());
+					
+					URL cdp_link = item.getLink();
+					
+					if ( cdp_link != null ){
+					
+						result.setCDPLink(cdp_link.toExternalForm());
+					}
 					
 					SimpleXMLParserDocumentNode node = item.getNode();
 					if(node != null) {
@@ -187,7 +192,8 @@ RSSEngine
 						for(int k = 0 ; k < children.length ; k++) {
 							SimpleXMLParserDocumentNode child = children[k];
 							
-							String	lc_child_name = child.getName().toLowerCase();
+							String	lc_child_name 		= child.getName().toLowerCase();
+							String	lc_full_child_name 	= child.getName().toLowerCase();
 							
 							if (lc_child_name.equals( "enclosure" )){
 								
@@ -263,6 +269,25 @@ RSSEngine
 										}
 									}
 								}
+							}else if ( lc_full_child_name.equals( "vuze:size" )){
+								
+								result.setSizeFromHTML( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:seeds" )){
+								
+								result.setNbSeedsFromHTML( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:superseeds" )){
+								
+								result.setNbSuperSeedsFromHTML( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:peers" )){
+								
+								result.setNbPeersFromHTML( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:contentType" )){
+								
+								result.setCategoryFromHTML( child.getValue());
 							}
 						}
 					}
