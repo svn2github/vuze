@@ -364,7 +364,7 @@ public class SideBar
 		// there isn't a SWT.NO_SCROLL in pre 3.4
 		final int NO_SCROLL = 1 << 4;
 		tree = new Tree(parent, SWT.FULL_SELECTION | SWT.V_SCROLL
-				| NO_SCROLL | SWT.NO_FOCUS);
+				| NO_SCROLL);
 		tree.setHeaderVisible(false);
 
 		new SideBarToolTips(this, tree);
@@ -711,7 +711,7 @@ public class SideBar
 			} else {
 				if (Constants.isOSX) {
   				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
-  				gc.setBackground(Colors.faded[Colors.BLUES_MIDDARK]);
+  				gc.setBackground(Colors.faded[Colors.BLUES_MIDLIGHT]);
 				} else {
   				//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
   				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
