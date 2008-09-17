@@ -148,13 +148,13 @@ public class DisplayListener
 				null);
 		String dlURL = MapUtils.getMapString(decodedMap, "download-url", null);
 
+		String referer = MapUtils.getMapString(decodedMap, "referer",
+				"displaylistener");
 		if ((hash != null || dlURL != null) && displayName != null) {
 			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer", null);
 			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies", null);
 			Map dlHeader = MapUtils.getMapMap(decodedMap, "download-header", null);
 
-			String referer = MapUtils.getMapString(decodedMap, "referer",
-					"displaylistener");
 			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
 			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap, "is-vuze-content", true);
 			SelectedContentV3 content = new SelectedContentV3(hash,
@@ -193,6 +193,8 @@ public class DisplayListener
 					new ISelectedContent[] {
 						content
 					});
+		} else {
+			SelectedContentManager.changeCurrentlySelectedContent(referer, null);
 		}
 	}
 
