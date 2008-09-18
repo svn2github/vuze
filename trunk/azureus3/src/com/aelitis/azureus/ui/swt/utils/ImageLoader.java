@@ -57,7 +57,6 @@ public class ImageLoader
 		"-selected",
 	};
 
-	
 	private Display display;
 
 	public static Image noImage;
@@ -101,29 +100,21 @@ public class ImageLoader
 				String[] sParentFiles = skinProperties.getStringArray(sParentName);
 				if (sParentFiles != null) {
 					boolean bFoundOne = false;
-					Image[] images = new Image[sParentFiles.length];
-
-					for (int j = 0; j < sParentFiles.length; j++) {
-						int index = sParentFiles[j].lastIndexOf('.');
-						if (index > 0) {
-							String sTryFile = sParentFiles[j].substring(0, index) + sSuffix
-									+ sParentFiles[j].substring(index);
-							images[j] = loadImage(display, sTryFile, sKey);
-
-							if (images[j] == null) {
-								sTryFile = sParentFiles[j].substring(0, index)
-										+ sSuffix.replace('-', '_')
-										+ sParentFiles[j].substring(index);
-								images[j] = loadImage(display, sTryFile, sKey);
-							}
-
-							if (!bFoundOne && images[j] != null) {
-								bFoundOne = true;
-							}
+					Image[] images = parseValuesString(sKey, sParentFiles, sSuffix);
+					for (int j = 0; j < images.length; j++) {
+						Image image = images[j];
+						if (isRealImage(image)) {
+							bFoundOne = true;
 						}
 					}
-
-					if (bFoundOne) {
+					if (!bFoundOne) {
+						for (int j = 0; j < images.length; j++) {
+							Image image = images[j];
+							if (isRealImage(image)) {
+								image.dispose();
+							}
+						}
+					} else {
 						return images;
 					}
 				}
@@ -133,6 +124,80 @@ public class ImageLoader
 		int i = Collections.binarySearch(notFound, sKey) * -1 - 1;
 		notFound.add(i, sKey);
 		return null;
+	}
+
+	/**
+	 * @param values
+	 * @param suffix 
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	private Image[] parseValuesString(String sKey, String[] values, String suffix) {
+		Image[] images = null;
+		
+		int splitX = 0;
+		int locationStart = 0;
+		if (values[0].equals("multi") && values.length > 2) {
+			splitX = Integer.parseInt(values[1]);
+			locationStart = 2;
+		}
+
+		if (locationStart == 0 || splitX <= 0) {
+			images = new Image[values.length];
+			for (int i = 0; i < values.length; i++) {
+				int index = values[i].lastIndexOf('.');
+				if (index > 0) {
+					String sTryFile = values[i].substring(0, index) + suffix
+							+ values[i].substring(index);
+					images[i] = loadImage(display, sTryFile, sKey);
+
+					if (images[i] == null) {
+						sTryFile = values[i].substring(0, index)
+								+ suffix.replace('-', '_')
+								+ values[i].substring(index);
+						images[i] = loadImage(display, sTryFile, sKey);
+					}
+				}
+				
+				if (images[i] == null) {
+					images[i] = getNoImage();
+				}
+			}
+		} else {
+			Image image = null;
+			String origFile = values[locationStart];
+			int index = origFile.lastIndexOf('.');
+			if (index > 0) {
+				String sTryFile = origFile.substring(0, index) + suffix
+						+ origFile.substring(index);
+				image = loadImage(display, sTryFile, sKey);
+
+				if (image == null) {
+					sTryFile = origFile.substring(0, index)
+							+ suffix.replace('-', '_')
+							+ origFile.substring(index);
+					image = loadImage(display, sTryFile, sKey);
+				}
+			}
+			if (image == null) {
+				image = loadImage(display, values[locationStart], sKey);
+			}
+			
+			if (image != null) {
+  			Rectangle bounds = image.getBounds();
+  			images = new Image[(bounds.width + splitX - 1) / splitX];
+  			for (int i = 0; i < images.length; i++) {
+  				Image imgBG = Utils.createAlphaImage(display, splitX,
+  						bounds.height, (byte) 0);
+  				images[i] = Utils.blitImage(display, image, new Rectangle(i * splitX,
+  					0, splitX, bounds.height), imgBG, new Point(0, 0));
+  				imgBG.dispose();
+  			}
+			}
+		}
+		
+		return images;
 	}
 
 	private Image loadImage(Display display, String res, String sKey) {
@@ -255,9 +320,7 @@ public class ImageLoader
 
 	public Image[] getImages(String sKey) {
 		if (sKey == null) {
-			return new Image[] {
-				getNoImage()
-			};
+			return new Image[0];
 		}
 
 		Image[] images = (Image[]) mapImages.get(sKey);
@@ -272,9 +335,7 @@ public class ImageLoader
 			images = findResources(sKey);
 
 			if (images == null) {
-				return new Image[] {
-					getNoImage()
-				};
+				return new Image[0];
 			}
 
 			for (int i = 0; i < images.length; i++) {
@@ -283,13 +344,7 @@ public class ImageLoader
 				}
 			}
 		} else {
-			images = new Image[locations.length];
-			for (int i = 0; i < locations.length; i++) {
-				images[i] = loadImage(display, locations[i], sKey);
-				if (images[i] == null) {
-					images[i] = getNoImage();
-				}
-			}
+			images = parseValuesString(sKey, locations, "");
 		}
 
 		mapImages.put(sKey, images);
@@ -300,7 +355,7 @@ public class ImageLoader
 	public Image getImage(String sKey) {
 		Image[] images = getImages(sKey);
 		if (images == null || images.length == 0) {
-			return null;
+			return getNoImage();
 		}
 		return images[0];
 	}
@@ -326,5 +381,9 @@ public class ImageLoader
 
 	public static boolean isRealImage(Image image) {
 		return image != null && image != getNoImage() && !image.isDisposed();
+	}
+	
+	public int getAnimationDelay(String sKey) {
+		return skinProperties.getIntValue(sKey + ".delay", 100);
 	}
 }
