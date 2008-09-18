@@ -444,7 +444,7 @@ public class SideBar
 							
 							paintSideBar(event, sideBarInfo);
 
-							y = itemBounds.y + itemBounds.height;
+							y = itemBounds.y + itemBounds.height + 1;
 							if (y > bounds.y + bounds.height) {
 								break;
 							}
