@@ -119,6 +119,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
 
+	private static final String TOR_AZ_PROP_OPENED = "Opened";
+
 	private static ArrayList listPlatformHosts = null;
 
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
@@ -909,4 +911,13 @@ public class PlatformTorrentUtils
 		}
 		return name;
 	}
+	
+	public static void setHasBeenOpened(TOTorrent torrent, boolean opened) {
+		setContentMapLong(torrent, TOR_AZ_PROP_OPENED, opened ? 1 : 0);
+	}
+
+	public static boolean getHasBeenOpened(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
+	}
+
 }
