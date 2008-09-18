@@ -200,6 +200,26 @@ public class DebugMenuHelper
 						message);
 			}
 		});
+		
+		item = new MenuItem(menuBrowserTB, SWT.NONE);
+		item.setText("browser TB control int canplay callback");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
+				Map map = new HashMap();
+				map.put("torrent-hash", "JLUSORTLTNF3ZG5FVYMZBOQXMOELDPCI");
+				map.put("display-name", "control int play callbac");
+				map.put("referer", "cvs");
+				map.put("can-play", new Boolean(true));
+				map.put("callback", "alert");
+				BrowserMessage message = new BrowserMessage(
+						"AZMSG;0;display;set-selected-content;"
+								+ JSONUtils.encodeToJSON(map));
+				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
+				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
+						message);
+			}
+		});
 
 		return item;
 	}
