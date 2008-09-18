@@ -49,8 +49,6 @@ public interface ViewTitleInfo
 
 	public static int TITLE_LOGID	= 7;
 	
-	public static int TITLE_HAS_ACTIVITY	= 8;	
-
 
 	/**
 	 * 
