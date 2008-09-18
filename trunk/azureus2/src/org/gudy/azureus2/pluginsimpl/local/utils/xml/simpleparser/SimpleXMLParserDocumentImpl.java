@@ -169,6 +169,18 @@ SimpleXMLParserDocumentImpl
 	}
 	
 	public String
+	getFullName()
+	{
+		return( root_node.getFullName());
+	}
+	
+	public String
+	getNameSpaceURI()
+	{
+		return( root_node.getNameSpaceURI());
+	}
+	
+	public String
 	getValue()
 	{
 		return( root_node.getValue());

@@ -63,6 +63,18 @@ SimpleXMLParserDocumentNodeImpl
 	}
 	
 	public String
+	getFullName()
+	{
+		return( node.getNodeName());
+	}
+	
+	public String
+	getNameSpaceURI()
+	{
+		return( node.getNamespaceURI());
+	}
+	
+	public String
 	getValue()
 	{
 	//	if ( getChildren().length > 0 ){

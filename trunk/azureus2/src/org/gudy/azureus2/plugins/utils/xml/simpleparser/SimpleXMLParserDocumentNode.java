@@ -31,6 +31,12 @@ SimpleXMLParserDocumentNode
 	getName();
 	
 	public String
+	getFullName();
+	
+	public String
+	getNameSpaceURI();
+	
+	public String
 	getValue();
 	
 	public SimpleXMLParserDocumentAttribute[]
