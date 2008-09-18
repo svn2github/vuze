@@ -65,6 +65,9 @@ public class SWTSkinObjectContainer
 		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style = SWT.BORDER;
 		}
+		if (properties.getBooleanValue(sConfigID + ".doublebuffer", false)) {
+			style |= SWT.DOUBLE_BUFFERED;
+		}
 
 		Composite createOn;
 		if (parent == null) {
