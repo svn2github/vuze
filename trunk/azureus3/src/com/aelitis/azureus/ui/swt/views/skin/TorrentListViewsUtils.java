@@ -60,6 +60,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -397,6 +398,14 @@ public class TorrentListViewsUtils
 		if (torrent != null && !DataSourceUtils.isPlatformContent(ds)) {
 			TorrentUIUtilsV3.addTorrentToGM(torrent);
 		} else {
+			AzureusCore core = AzureusCoreFactory.getSingleton();
+			DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
+			if (dlInfo instanceof DownloadUrlInfoSWT) {
+				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
+						true, true);
+				return;
+			}
+
 			String hash = DataSourceUtils.getHash(ds);
 			if (hash != null) {
 				if (ds instanceof VuzeActivitiesEntry) {
@@ -408,16 +417,11 @@ public class TorrentListViewsUtils
 
 				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
-				AzureusCore core = AzureusCoreFactory.getSingleton();
-				DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+				dlInfo = new DownloadUrlInfo(url);
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
-			} else {
-				DownloadUrlInfo dlInfo = DataSourceUtils.getDownloadInfo(ds);
-				if (dlInfo != null) {
-					AzureusCore core = AzureusCoreFactory.getSingleton();
-					TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
-							true, true);
-				}
+			} else if (dlInfo != null) {
+				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false,
+						true, true);
 			}
 		}
 	}
@@ -477,6 +481,15 @@ public class TorrentListViewsUtils
 	}
 
 	public static boolean playOrStream(final DownloadManager dm,
+			final SWTSkinButtonUtility btn) {
+		boolean played = _playOrStream(dm, btn);
+		if (played) {
+			PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), true);
+		}
+		return played;
+	}
+
+	private static boolean _playOrStream(final DownloadManager dm,
 			final SWTSkinButtonUtility btn) {
 
 		debugDCAD("enter - playOrStream");
