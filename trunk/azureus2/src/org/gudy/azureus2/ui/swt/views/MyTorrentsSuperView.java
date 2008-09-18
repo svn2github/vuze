@@ -117,7 +117,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child1.setLayout(layout);
-    torrentview = createTorrentView(azureus_core, false, tableIncompleteItems);
+    torrentview = createTorrentView(azureus_core,
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, tableIncompleteItems);
     torrentview.initialize(child1);
 
     final Sash sash = new Sash(form, SWT.HORIZONTAL);
@@ -130,7 +131,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child2.setLayout(layout);
-    seedingview = createTorrentView(azureus_core, true, tableCompleteItems);
+    seedingview = createTorrentView(azureus_core,
+				TableManager.TABLE_MYTORRENTS_COMPLETE, true, tableCompleteItems);
     seedingview.initialize(child2);
 
     FormData formData;
@@ -371,7 +373,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	 * @return
 	 */
 	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
-			boolean isSeedingView, TableColumnCore[] columns) {
-		return new MyTorrentsView(_azureus_core, isSeedingView, columns);
+			String tableID, boolean isSeedingView, TableColumnCore[] columns) {
+		return new MyTorrentsView(_azureus_core, tableID, isSeedingView, columns);
 	}
 }

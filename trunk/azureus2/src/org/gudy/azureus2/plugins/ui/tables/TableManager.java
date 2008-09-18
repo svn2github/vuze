@@ -25,10 +25,14 @@ public interface TableManager
   public static final String TABLE_MYTORRENTS_COMPLETE   = "MySeeders";
   /** Visible for Incompleted Torrents table */
   public static final String TABLE_MYTORRENTS_INCOMPLETE = "MyTorrents";
+  
+  public static final String TABLE_MYTORRENTS_UNOPENED = "Unopened";
   /** Visible for Completed Torrents table (big version)*/
   public static final String TABLE_MYTORRENTS_COMPLETE_BIG   = "MySeeders.big";
   /** Visible for Incompleted Torrents table (big version)*/
   public static final String TABLE_MYTORRENTS_INCOMPLETE_BIG = "MyTorrents.big";
+  
+  public static final String TABLE_MYTORRENTS_UNOPENED_BIG = "Unopened.big";
 
   /** Visible for Torrent Peers table */
   public static final String TABLE_TORRENT_PEERS         = "Peers";

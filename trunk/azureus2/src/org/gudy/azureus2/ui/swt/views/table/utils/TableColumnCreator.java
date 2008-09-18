@@ -126,4 +126,48 @@ public class TableColumnCreator
 			new DateCompletedItem(tableID),
 		};
 	}
+
+	public static TableColumnCore[] createUnopenedDM(String tableID) {
+		return new TableColumnCore[] {
+			new HealthItem(tableID),
+			new RankItem(tableID),
+			new NameItem(tableID),
+			new CommentIconItem(tableID),
+			new SizeItem(tableID),
+			new DoneItem(tableID),
+			new StatusItem(tableID),
+			new SeedsItem(tableID),
+			new PeersItem(tableID),
+			new UpSpeedItem(tableID),
+			new ShareRatioItem(tableID, true),
+			new UpItem(tableID, true),
+			new UpSpeedLimitItem(tableID),
+
+			// Initially Invisible
+			new CompletedItem(tableID),
+			new CommentItem(tableID),
+			new MaxUploadsItem(tableID),
+			new TotalSpeedItem(tableID),
+			new FilesDoneItem(tableID),
+			new SavePathItem(tableID),
+			new TorrentPathItem(tableID),
+			new CategoryItem(tableID),
+			new NetworksItem(tableID),
+			new PeerSourcesItem(tableID),
+			new AvailabilityItem(tableID),
+			new AvgAvailItem(tableID),
+			new SecondsSeedingItem(tableID),
+			new SecondsDownloadingItem(tableID),
+			new TimeSinceUploadItem(tableID),
+			new OnlyCDing4Item(tableID),
+			new TrackerStatusItem(tableID),
+			new TrackerNextAccessItem(tableID),
+			new TrackerNameItem(tableID),
+			new SeedToPeerRatioItem(tableID),
+			new SwarmAverageSpeed(tableID),
+			new SwarmAverageCompletion(tableID),
+			new DateAddedItem(tableID),
+			new DateCompletedItem(tableID),
+		};
+	}
 }

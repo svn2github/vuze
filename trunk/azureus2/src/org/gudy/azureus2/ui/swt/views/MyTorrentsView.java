@@ -43,7 +43,9 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -52,8 +54,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTPanelCreator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
@@ -64,13 +66,11 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.common.table.*;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /** Displays a list of torrents in a table view.
  *
@@ -139,6 +139,10 @@ public class MyTorrentsView
 	private boolean forceHeaderVisible = false;
 	private Label lblFilter;
 
+	public
+	MyTorrentsView() {
+	}
+	
   /**
    * Initialize
    * 
@@ -148,11 +152,17 @@ public class MyTorrentsView
    */
   public 
   MyTorrentsView(
-  		AzureusCore				_azureus_core, 
+  		AzureusCore				_azureus_core,
+  		String						tableID,
   		boolean 					isSeedingView,
       TableColumnCore[]	basicItems) 
   {
-  	
+  	init(_azureus_core, tableID, isSeedingView, basicItems);
+  }
+  
+  public void init(AzureusCore _azureus_core, String tableID,
+			boolean isSeedingView, TableColumnCore[] basicItems) {
+
   	this.isSeedingView 	= isSeedingView;
   	
   	if (EXPERIMENT) {
@@ -160,7 +170,7 @@ public class MyTorrentsView
 //  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, SWT.V_SCROLL);
 //      tv.setColumnList(basicItems, "#", false);
   	} else {
-      tv = createTableView(basicItems);
+      tv = createTableView(tableID, basicItems);
   	}
     setTableView(tv);
     tv.setRowDefaultIconSize(new Point(16, 16));
@@ -832,7 +842,7 @@ public class MyTorrentsView
 		catResizeAdapter.controlResized(null);
 	}
 
-	private boolean isOurDownloadManager(DownloadManager dm) {
+	public boolean isOurDownloadManager(DownloadManager dm) {
   	if (!isInCategory(dm, currentCategory)) {
   		return false;
   	}
@@ -1883,13 +1893,11 @@ public class MyTorrentsView
 	 * @param basicItems
 	 * @return
 	 */
-	protected TableViewSWT createTableView(TableColumnCore[] 	basicItems){
+	protected TableViewSWT createTableView(String tableID,
+			TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return new TableViewSWTImpl(isSeedingView
-				? TableManager.TABLE_MYTORRENTS_COMPLETE
-	  				: TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MyTorrentsView",
-	  				basicItems, "#", tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL);
+		return new TableViewSWTImpl(tableID, "MyTorrentsView", basicItems, "#",
+				tableExtraStyle | SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 	}
 
 	/**

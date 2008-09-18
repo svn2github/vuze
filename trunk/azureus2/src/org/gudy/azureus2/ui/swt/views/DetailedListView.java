@@ -109,7 +109,8 @@ public class DetailedListView extends AbstractIView implements
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     child1.setLayout(layout);
-    torrentview = new MyTorrentsView(azureus_core, false, tableIncompleteItems);
+    torrentview = new MyTorrentsView(azureus_core, "DetailedTorrentList",
+				false, tableIncompleteItems);
     torrentview.initialize(child1);
     
     torrentview.getTableView().addSelectionListener(new TableSelectionAdapter() {
