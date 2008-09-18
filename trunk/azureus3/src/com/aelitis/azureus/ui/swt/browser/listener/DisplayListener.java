@@ -130,7 +130,7 @@ public class DisplayListener
 		} else if (OP_SET_SELECTED_CONTENT.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			if (decodedMap != null) {
-				setSelectedContent(decodedMap);
+				setSelectedContent(message, decodedMap);
 			}
 		} else {
 			throw new IllegalArgumentException("Unknown operation: " + opid);
@@ -138,31 +138,54 @@ public class DisplayListener
 	}
 
 	/**
+	 * @param message 
 	 * @param decodedMap
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void setSelectedContent(Map decodedMap) {
+	private void setSelectedContent(BrowserMessage message, Map decodedMap) {
 		String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
-		String displayName = MapUtils.getMapString(decodedMap, "display-name",
-				null);
+		String displayName = MapUtils.getMapString(decodedMap, "display-name", null);
+
+		String callback = MapUtils.getMapString(decodedMap, "callback", null);
+		if (callback != null && context != null) {
+			DownloadUrlInfoSWT dlInfo = new DownloadUrlInfoSWT(context, callback);
+			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
+			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap,
+					"is-vuze-content", true);
+			String referer = MapUtils.getMapString(decodedMap, "referer",
+					"displaylistener");
+
+			SelectedContentV3 content = new SelectedContentV3(hash, displayName,
+					isVuzeContent, canPlay);
+			content.setDownloadInfo(dlInfo);
+
+			SelectedContentManager.changeCurrentlySelectedContent(referer,
+					new ISelectedContent[] {
+						content
+					});
+			return;
+		}
+
 		String dlURL = MapUtils.getMapString(decodedMap, "download-url", null);
 
 		String referer = MapUtils.getMapString(decodedMap, "referer",
 				"displaylistener");
 		if ((hash != null || dlURL != null) && displayName != null) {
-			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer", null);
-			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies", null);
+			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer",
+					null);
+			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies",
+					null);
 			Map dlHeader = MapUtils.getMapMap(decodedMap, "download-header", null);
 
 			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
-			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap, "is-vuze-content", true);
-			SelectedContentV3 content = new SelectedContentV3(hash,
-					displayName, isVuzeContent, canPlay);
+			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap,
+					"is-vuze-content", true);
+			SelectedContentV3 content = new SelectedContentV3(hash, displayName,
+					isVuzeContent, canPlay);
 			content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 					null));
-			
-			
+
 			DownloadUrlInfo dlInfo = new DownloadUrlInfo(dlURL);
 			dlInfo.setReferer(dlReferer);
 			if (dlCookies != null) {
@@ -174,21 +197,23 @@ public class DisplayListener
 			dlInfo.setRequestProperties(dlHeader);
 
 			String subID = MapUtils.getMapString(decodedMap, "subscription-id", null);
-			String subresID = MapUtils.getMapString(decodedMap, "subscription-result-id", null);
-			
+			String subresID = MapUtils.getMapString(decodedMap,
+					"subscription-result-id", null);
+
 			if (subID != null && subresID != null) {
-				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID(subID);
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID(
+						subID);
 				if (subs != null) {
 					subs.addPotentialAssociation(subresID, dlURL);
 				}
 			}
-			
+
 			// pass decodeMap down to TorrentUIUtilsV3.loadTorrent in case
 			// is needs some other params
 			dlInfo.setAdditionalProperties(decodedMap);
 
 			content.setDownloadInfo(dlInfo);
-			
+
 			SelectedContentManager.changeCurrentlySelectedContent(referer,
 					new ISelectedContent[] {
 						content
@@ -271,14 +296,14 @@ public class DisplayListener
 		 * Refreshes all except the currently active tab
 		 */
 		if (true == VZ_NON_ACTIVE.equals(tabID)) {
-			SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
-			
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+
 			// 3.2 TODO: Need to fix this up
 
 			List browserViewIDs = new ArrayList();
-			
+
 			// Check if not active view and refresh (personally, sounds dangerous)
-			
+
 			for (Iterator iterator = browserViewIDs.iterator(); iterator.hasNext();) {
 				refreshBrowser(iterator.next().toString());
 			}
