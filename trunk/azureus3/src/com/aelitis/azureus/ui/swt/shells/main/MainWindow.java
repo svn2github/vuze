@@ -25,7 +25,6 @@ import java.net.URLDecoder;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
@@ -1654,14 +1653,14 @@ public class MainWindow
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
 
-		final StyledText text = new StyledText(cArea, SWT.SINGLE);
+		final Text text = new Text(cArea, SWT.NONE);
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
 		text.addListener(SWT.Resize, new Listener() {
 			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
 			public void handleEvent(Event event) {
-				StyledText text = (StyledText) event.widget;
+				Text text = (Text) event.widget;
 
 				int h = text.getClientArea().height - 2;
 				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
@@ -1671,7 +1670,7 @@ public class MainWindow
 
 					text.addDisposeListener(new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
-							StyledText text = (StyledText) e.widget;
+							Text text = (Text) e.widget;
 							if (!fFont.isDisposed()) {
 								text.setFont(null);
 								fFont.dispose();
@@ -1690,14 +1689,14 @@ public class MainWindow
 		text.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
-			}
-
-			public void mouseDown(MouseEvent e) {
-				StyledText text = (StyledText) e.widget;
+				Text text = (Text) e.widget;
 				if (text.getText().equals(sDefault)) {
 					text.setForeground(ColorCache.getColor(text.getDisplay(), 0, 0, 0));
 					text.setText("");
 				}
+			}
+
+			public void mouseDown(MouseEvent e) {
 			}
 
 			public void mouseDoubleClick(MouseEvent e) {
@@ -1706,7 +1705,6 @@ public class MainWindow
 
 		text.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
-
 				if (e.stateMask == SWT.MOD1) {
 
 					int key = e.character;
@@ -1730,7 +1728,12 @@ public class MainWindow
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
-				StyledText text = (StyledText) event.widget;
+				if (text.getText().equals(sDefault)) {
+					text.setText("");
+					return;
+				}
+
+				Text text = (Text) event.widget;
 				if (event.keyCode == SWT.ESC) {
 					text.setText("");
 					return;
@@ -1745,13 +1748,12 @@ public class MainWindow
 		text.setText(sDefault);
 		//text.selectAll();
 
-		final StyledText fText = text;
 		SWTSkinObject searchGo = skin.getSkinObject("search-go");
 		if (searchGo != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility) {
-					String sSearchText = fText.getText().trim();
+					String sSearchText = text.getText().trim();
 					doSearch(sSearchText);
 				}
 			});
