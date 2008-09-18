@@ -2596,46 +2596,45 @@ DHTControlImpl
 			
 			DHTDBValue[]	values = result.getValues();
 			
-			List	values_to_store = new ArrayList();
-			
-			for (int i=0;i<values.length;i++){
+			if ( values.length == 0 ){
 				
-				DHTDBValue	value = values[i];
+				continue;
+			}			
 		
 				// we don't consider any cached further away than the initial location, for transfer
 				// however, we *do* include ones we originate as, if we're the closest, we have to
 				// take responsibility for xfer (as others won't)
 							
-				List		sorted_contacts	= getClosestKContactsList( encoded_key, false ); 
+			List		sorted_contacts	= getClosestKContactsList( encoded_key, false ); 
 				
 					// if we're closest to the key, or the new node is closest and
 					// we're second closest, then we take responsibility for storing
 					// the value
 				
-				boolean	store_it	= false;
+			boolean	store_it	= false;
 				
-				if ( sorted_contacts.size() > 0 ){
+			if ( sorted_contacts.size() > 0 ){
 					
-					DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
+				DHTTransportContact	first = (DHTTransportContact)sorted_contacts.get(0);
 					
-					if ( router.isID( first.getID())){
+				if ( router.isID( first.getID())){
 						
-						store_it = true;
+					store_it = true;
 						
-					}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
+				}else if ( Arrays.equals( first.getID(), new_contact.getID()) && sorted_contacts.size() > 1 ){
 						
-						store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());
-						
-					}
-				}
-				
-				if ( store_it ){
-		
-					values_to_store.add( value );
+					store_it = router.isID(((DHTTransportContact)sorted_contacts.get(1)).getID());				
 				}
 			}
-			
-			if ( values_to_store.size() > 0 ){
+				
+			if ( store_it ){
+		
+				List	values_to_store = new ArrayList(values.length);
+
+				for (int i=0;i<values.length;i++){
+					
+					values_to_store.add( values[i] );
+				}
 				
 				keys_to_store.put( key, values_to_store );
 			}
