@@ -1763,7 +1763,7 @@ public class Utils
 		return image;
 	}
 
-    private static Image blitImage(Device device, Image srcImage,
+  public static Image blitImage(Device device, Image srcImage,
 			Rectangle srcArea, Image dstImage, Point dstPos) {
 		if (srcArea == null) {
 			srcArea = srcImage.getBounds();
@@ -1775,7 +1775,7 @@ public class Utils
 			dstBounds.x = dstPos.x;
 			dstBounds.y = dstPos.y;
 		}
-		srcArea.intersect(dstBounds);
+		//srcArea.intersect(dstBounds);
 
 		// draw the image with no mask! :(
 		GC gc = new GC(dstImage);
