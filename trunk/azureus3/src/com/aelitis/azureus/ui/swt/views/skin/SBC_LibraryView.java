@@ -26,19 +26,25 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author TuxPaper
@@ -60,6 +66,8 @@ public class SBC_LibraryView
 
 	public static final int TORRENTS_INCOMPLETE = 2;
 
+	public static final int TORRENTS_UNOPENED = 3;
+
 	public static List allViews = new ArrayList(1);
 
 	private final static String[] modeViewIDs = {
@@ -76,6 +84,8 @@ public class SBC_LibraryView
 
 	private static final String ID_VITALITY_ALERT = "image.sidebar.vitality.alert";
 
+	private static final long DL_VITALITY_REFRESH_RATE = 15000;
+
 	private static int numSeeding = 0;
 
 	private static int numDownloading = 0;
@@ -83,7 +93,7 @@ public class SBC_LibraryView
 	private static int numComplete = 0;
 
 	private static int numIncomplete = 0;
-	
+
 	private static int numErrorComplete = 0;
 
 	private static int numErrorInComplete = 0;
@@ -107,6 +117,8 @@ public class SBC_LibraryView
 			torrentFilterMode = TORRENTS_INCOMPLETE;
 		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_CD)) {
 			torrentFilterMode = TORRENTS_COMPLETE;
+		} else if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED)) {
+			torrentFilterMode = TORRENTS_UNOPENED;
 		}
 
 		soListArea = getSkinObject(ID + "-area");
@@ -207,11 +219,25 @@ public class SBC_LibraryView
 		if (infoDL != null) {
 			SideBarVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ACTIVE);
 			vitalityImage.setVisible(false);
-			
+
 			vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ALERT);
 			vitalityImage.setVisible(false);
 
 			infoDL.setTitleInfo(titleInfoDownloading);
+
+			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
+					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+							SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
+							for (int i = 0; i < vitalityImages.length; i++) {
+								SideBarVitalityImage vitalityImage = vitalityImages[i];
+								if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
+									refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
+								}
+							}
+						}
+					});
 		}
 
 		final ViewTitleInfo titleInfoSeeding = new ViewTitleInfo() {
@@ -236,7 +262,7 @@ public class SBC_LibraryView
 		};
 		SideBarEntrySWT infoCD = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		if (infoCD != null) {
-			SideBarVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ALERT);
+			SideBarVitalityImage vitalityImage = infoCD.addVitalityImage(ID_VITALITY_ALERT);
 			vitalityImage.setVisible(false);
 
 			infoCD.setTitleInfo(titleInfoSeeding);
@@ -287,10 +313,11 @@ public class SBC_LibraryView
 						dm.setUserData("wasDownloading", new Boolean(isDownloading));
 					}
 				}
-				
+
 				boolean complete = dm.getAssumedComplete();
 				Boolean wasErrorStateB = (Boolean) dm.getUserData("wasErrorState");
-				boolean wasErrorState = wasErrorStateB == null ? false : wasErrorStateB.booleanValue();
+				boolean wasErrorState = wasErrorStateB == null ? false
+						: wasErrorStateB.booleanValue();
 				boolean isErrorState = state == DownloadManager.STATE_ERROR;
 				if (isErrorState != wasErrorState) {
 					int rel = isErrorState ? 1 : -1;
@@ -388,6 +415,9 @@ public class SBC_LibraryView
 			SideBarVitalityImage vitalityImage = vitalityImages[i];
 			if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
 				vitalityImage.setVisible(numDownloading > 0);
+
+				refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
+
 			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorInComplete > 0);
 			}
@@ -401,5 +431,64 @@ public class SBC_LibraryView
 				vitalityImage.setVisible(numErrorComplete > 0);
 			}
 		}
+	}
+
+	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {
+		if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
+			if (!vitalityImage.isVisible()) {
+				return;
+			}
+			SpeedManager sm = AzureusCoreFactory.getSingleton().getSpeedManager();
+			if (sm != null) {
+				GlobalManagerStats stats = AzureusCoreFactory.getSingleton().getGlobalManager().getStats();
+
+				int delay = 500;
+				int limit = NetworkManager.getMaxDownloadRateBPS();
+				if (limit <= 0) {
+					limit = sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec();
+				}
+
+				// smoothing
+				int current = stats.getDataReceiveRate() / 10;
+				limit /= 10;
+
+				if (limit > 0) {
+					if (current > limit) {
+						delay = 70;
+					} else {
+						// 50 incrememnts of 40.. max 2000
+						current += 49;
+						delay = (50 - (current * 50 / limit)) * 40;
+						if (delay < 100) {
+							delay = 100;
+						} else if (delay > 2000) {
+							delay = 2000;
+						}
+					}
+					if (vitalityImage instanceof SideBarVitalityImageSWT) {
+						SideBarVitalityImageSWT viSWT = (SideBarVitalityImageSWT) vitalityImage;
+						if (viSWT.getDelayTime() != delay) {
+							viSWT.setDelayTime(delay);
+							//System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+	public static String getTableIdFromFilterMode(int torrentFilterMode, boolean big) {
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
+			return big ? TableManager.TABLE_MYTORRENTS_COMPLETE_BIG
+					: TableManager.TABLE_MYTORRENTS_COMPLETE;
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
+			return big ? TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG
+					: TableManager.TABLE_MYTORRENTS_INCOMPLETE;
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+			return big ? TableManager.TABLE_MYTORRENTS_UNOPENED_BIG
+					: TableManager.TABLE_MYTORRENTS_UNOPENED;
+		}
+		return null;
 	}
 }

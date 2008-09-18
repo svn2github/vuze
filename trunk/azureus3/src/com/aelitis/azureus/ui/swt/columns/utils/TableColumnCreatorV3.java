@@ -72,7 +72,7 @@ public class TableColumnCreatorV3
 			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
-			show(new ColumnQuality(tableID,true)),
+			show(new ColumnQuality(tableID, true)),
 			show(new ColumnInfo(tableID)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),
@@ -135,7 +135,54 @@ public class TableColumnCreatorV3
 			show(new ColumnThumbnail(tableID, 60, 2)),
 			show(new RankItem(tableID)),
 			show(new NameItem(tableID, true, false)),
-			show(new ColumnQuality(tableID,true)),
+			show(new ColumnQuality(tableID, true)),
+			show(new ColumnInfo(tableID)),
+			show(new SizeItem(tableID)),
+			show(new DoneItem(tableID)),
+			show(new StatusItem(tableID, false)),
+			show(new ColumnRatingGlobal(tableID)),
+			show(new ColumnRateUpDown(tableID)),
+			show(new DateCompletedItem(tableID)),
+
+			/*
+			 * Initially hidden
+			 */
+			hide(new CompletedItem(tableID)),
+			hide(new CommentItem(tableID)),
+			hide(new MaxUploadsItem(tableID)),
+			hide(new TotalSpeedItem(tableID)),
+			hide(new FilesDoneItem(tableID)),
+			hide(new SavePathItem(tableID)),
+			hide(new TorrentPathItem(tableID)),
+			hide(new CategoryItem(tableID)),
+			hide(new NetworksItem(tableID)),
+			hide(new PeerSourcesItem(tableID)),
+			hide(new AvailabilityItem(tableID)),
+			hide(new AvgAvailItem(tableID)),
+			hide(new SecondsSeedingItem(tableID)),
+			hide(new SecondsDownloadingItem(tableID)),
+			hide(new TimeSinceUploadItem(tableID)),
+			hide(new OnlyCDing4Item(tableID)),
+			hide(new TrackerStatusItem(tableID)),
+			hide(new TrackerNextAccessItem(tableID)),
+			hide(new TrackerNameItem(tableID)),
+			hide(new SeedToPeerRatioItem(tableID)),
+			hide(new SwarmAverageSpeed(tableID)),
+			hide(new SwarmAverageCompletion(tableID)),
+			hide(new DateAddedItem(tableID)),
+		};
+	}
+
+	public static TableColumnCore[] createUnopenedDM(String tableID) {
+
+		return new TableColumnCore[] {
+			/*
+			 * Initially visible
+			 */
+			show(new ColumnThumbnail(tableID, 60, 2)),
+			show(new RankItem(tableID)),
+			show(new NameItem(tableID, true, false)),
+			show(new ColumnQuality(tableID, true)),
 			show(new ColumnInfo(tableID)),
 			show(new SizeItem(tableID)),
 			show(new DoneItem(tableID)),

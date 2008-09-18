@@ -32,6 +32,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -155,6 +156,11 @@ public class ToolBarView
 				DownloadManager[] dms = getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.runTorrents(dms);
+					
+					for (int i = 0; i < dms.length; i++) {
+						DownloadManager dm = dms[i];
+						PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), true);
+					}
 				}
 			}
 		};

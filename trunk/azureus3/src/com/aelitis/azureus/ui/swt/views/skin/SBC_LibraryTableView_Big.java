@@ -27,6 +27,9 @@ public class SBC_LibraryTableView_Big
 
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 			return TableColumnCreatorV3.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG);
+
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+			return TableColumnCreatorV3.createUnopenedDM(TableManager.TABLE_MYTORRENTS_UNOPENED_BIG);
 		}
 		return null;
 	}

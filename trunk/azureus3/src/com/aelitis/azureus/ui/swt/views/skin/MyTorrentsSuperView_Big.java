@@ -19,8 +19,12 @@ public class MyTorrentsSuperView_Big
 		return TableColumnCreatorV3.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView#createTorrentView(com.aelitis.azureus.core.AzureusCore, java.lang.String, boolean, com.aelitis.azureus.ui.common.table.TableColumnCore[])
 	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
-			boolean isSeedingView, TableColumnCore[] columns) {
-		return new MyTorrentsView_Big(_azureus_core, isSeedingView, columns);
+			String tableID, boolean isSeedingView, TableColumnCore[] columns) {
+		return new MyTorrentsView_Big(_azureus_core, isSeedingView
+				? SBC_LibraryView.TORRENTS_COMPLETE
+				: SBC_LibraryView.TORRENTS_INCOMPLETE, columns);
 	}
+	
 }

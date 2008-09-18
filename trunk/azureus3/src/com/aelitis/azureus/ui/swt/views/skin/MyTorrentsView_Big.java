@@ -2,11 +2,15 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.util.PlayUtils;
@@ -14,16 +18,54 @@ import com.aelitis.azureus.util.PlayUtils;
 public class MyTorrentsView_Big
 	extends MyTorrentsView
 {
-	public MyTorrentsView_Big(AzureusCore _azureus_core, boolean isSeedingView,
+	private final int torrentFilterMode;
+
+	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
 			TableColumnCore[] basicItems) {
-		super(_azureus_core, isSeedingView, basicItems);
+		this.torrentFilterMode = torrentFilterMode;
+		init(
+				_azureus_core,
+				SBC_LibraryView.getTableIdFromFilterMode(torrentFilterMode, true),
+				torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE ? false : true,
+				basicItems);
 		setForceHeaderVisible(true);
+	}
+	
+
+	public boolean isOurDownloadManager(DownloadManager dm) {
+		if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
+			return false;
+		}
+		
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+			if (PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+				return false;
+			}
+		}
+		
+		return super.isOurDownloadManager(dm);
 	}
 
 	protected TableViewSWT createTableView(TableColumnCore[] basicItems) {
-		TableViewSWTImpl tv = new TableViewSWTImpl(isSeedingView
-				? TableManager.TABLE_MYTORRENTS_COMPLETE_BIG
-				: TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, "MyTorrentsView_Big",
+		String tableID;
+		switch (torrentFilterMode) {
+			case SBC_LibraryView.TORRENTS_COMPLETE:
+				tableID = TableManager.TABLE_MYTORRENTS_COMPLETE_BIG;
+				break;
+
+			case SBC_LibraryView.TORRENTS_INCOMPLETE:
+				tableID = TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG;
+				break;
+				
+			case SBC_LibraryView.TORRENTS_UNOPENED:
+				tableID = TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
+				break;
+				
+			default:
+				tableID = "bad";
+				break;
+		}
+		TableViewSWTImpl tv = new TableViewSWTImpl(tableID, "MyTorrentsView_Big",
 				basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL
 						| SWT.BORDER);
 		return tv;
