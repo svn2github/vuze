@@ -22,10 +22,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 
-import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
@@ -39,7 +45,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 public class SideBarVitalityImageSWT
 	implements SideBarVitalityImage
 {
-	private final String imageID;
+	private String imageID;
 
 	private final SideBarEntrySWT sideBarEntry;
 
@@ -48,15 +54,54 @@ public class SideBarVitalityImageSWT
 	private String tooltip;
 
 	private Rectangle hitArea;
-	
+
 	private boolean visible = true;
+
+	private int currentAnimationIndex;
+
+	private String suffix = "";
+
+	private TimerEventPerformer performer;
+
+	private TimerEventPeriodic timerEvent;
+
+	private Image[] images;
+	
+	private int delayTime = -1;
+
+	private String fullImageID;
 
 	/**
 	 * @param imageID
 	 */
 	public SideBarVitalityImageSWT(SideBarEntrySWT entry, String imageID) {
+		performer = new TimerEventPerformer() {
+			public void perform(TimerEvent event) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (images == null || images.length == 0 || !visible
+								|| hitArea == null) {
+							return;
+						}
+						currentAnimationIndex++;
+						if (currentAnimationIndex >= images.length) {
+							currentAnimationIndex = 0;
+						}
+						TreeItem treeItem = sideBarEntry.getTreeItem();
+						if (treeItem == null || treeItem.isDisposed()) {
+							return;
+						}
+						Tree parent = treeItem.getParent();
+						parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height,
+								false);
+						parent.update();
+					}
+				});
+			}
+		};
+
 		this.sideBarEntry = entry;
-		this.imageID = imageID;
+		setImageID(imageID);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage#getImageID()
@@ -83,7 +128,7 @@ public class SideBarVitalityImageSWT
 	public void setToolTip(String tooltip) {
 		this.tooltip = tooltip;
 	}
-	
+
 	public String getToolTip() {
 		return tooltip;
 	}
@@ -112,6 +157,13 @@ public class SideBarVitalityImageSWT
 			return;
 		}
 		this.visible = visible;
+
+		if (visible) {
+			createTimerEvent();
+		} else if (timerEvent != null) {
+			timerEvent.cancel();
+		}
+
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (sideBarEntry != null) {
@@ -119,5 +171,99 @@ public class SideBarVitalityImageSWT
 				}
 			}
 		});
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void createTimerEvent() {
+		if (timerEvent != null) {
+			timerEvent.cancel();
+		}
+		if (images.length > 1) {
+			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
+					: delayTime;
+			
+			timerEvent = SimpleTimer.addPeriodicEvent("Animate " + imageID + suffix,
+					delay, performer);
+		}
+	}
+
+	/**
+	 * @param images 
+	 * @return the currentAnimationIndex
+	 */
+	public int getCurrentAnimationIndex(Image[] images) {
+		if (currentAnimationIndex >= images.length) {
+			currentAnimationIndex = 0;
+		} else if (currentAnimationIndex < 0) {
+			currentAnimationIndex = 0;
+		}
+		return currentAnimationIndex;
+	}
+
+	public void switchSuffix(String suffix) {
+		if (suffix == null) {
+			suffix = "";
+		}
+		if (suffix.equals(this.suffix)) {
+			return;
+		}
+		this.suffix = suffix;
+		setImageID(imageID);
+	}
+
+	public void setImageID(String id) {
+		String newFullImageID = id + suffix;
+		if (newFullImageID.equals(fullImageID)) {
+			return;
+		}
+		this.imageID = id;
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		images = imageLoader.getImages(newFullImageID);
+		if (images == null || images.length == 0) {
+			if (id.equals(fullImageID)) {
+				return;
+			}
+			newFullImageID = id;
+			images = imageLoader.getImages(id);
+		}
+		fullImageID = newFullImageID;
+		currentAnimationIndex = 0;
+		createTimerEvent();
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public Image getImage() {
+		if (images == null || images.length == 0
+				|| currentAnimationIndex >= images.length) {
+			return null;
+		}
+		return images[currentAnimationIndex];
+	}
+
+	/**
+	 * @param delayTime the delayTime to set
+	 */
+	public void setDelayTime(int delayTime) {
+		if (this.delayTime == delayTime) {
+			return;
+		}
+		this.delayTime = delayTime;
+		createTimerEvent();
+	}
+
+	/**
+	 * @return the delayTime
+	 */
+	public int getDelayTime() {
+		return delayTime;
 	}
 }
