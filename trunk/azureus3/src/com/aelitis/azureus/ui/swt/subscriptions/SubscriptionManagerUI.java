@@ -384,76 +384,13 @@ SubscriptionManagerUI
 				}
 			};
 			
-			// MyTorrents incomplete
+		// MyTorrents tables
 			
-		subs_i_column = 
-			table_manager.createColumn(
-					TableManager.TABLE_MYTORRENTS_INCOMPLETE,
-					"azsubs.ui.column.subs" );
-		
-		subs_i_column.setAlignment(TableColumn.ALIGN_CENTER);
-		subs_i_column.setPosition(TableColumn.POSITION_LAST);
-		subs_i_column.setMinWidth(100);
-		subs_i_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		subs_i_column.setType(TableColumn.TYPE_GRAPHIC);
-		
-		subs_i_column.addCellRefreshListener( refresh_listener );
-		subs_i_column.addCellMouseListener( mouse_listener );
-		
-		table_manager.addColumn( subs_i_column );	
-		
-		subs_ib_column = 
-			table_manager.createColumn(
-					TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
-					"azsubs.ui.column.subs" );
-		
-		subs_ib_column.setAlignment(TableColumn.ALIGN_CENTER);
-		subs_ib_column.setPosition(TableColumn.POSITION_LAST);
-		subs_ib_column.setVisible( true );
-		subs_ib_column.setMinWidth(100);
-		subs_ib_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		subs_ib_column.setType(TableColumn.TYPE_GRAPHIC);
-		
-		subs_ib_column.addCellRefreshListener( refresh_listener );
-		subs_ib_column.addCellMouseListener( mouse_listener );
-		
-		table_manager.addColumn( subs_ib_column );	
-		
-			// MyTorrents complete
+		subs_i_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_INCOMPLETE);	
+		subs_ib_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG);	
+		subs_c_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE);	
+		subs_cb_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);	
 
-		subs_c_column = 
-			table_manager.createColumn(
-					TableManager.TABLE_MYTORRENTS_COMPLETE,
-					"azsubs.ui.column.subs" );
-		
-		subs_c_column.setAlignment(TableColumn.ALIGN_CENTER);
-		subs_c_column.setPosition(TableColumn.POSITION_LAST);
-		subs_c_column.setMinWidth(100);
-		subs_c_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		subs_c_column.setType(TableColumn.TYPE_GRAPHIC);
-		
-		subs_c_column.addCellRefreshListener( refresh_listener );
-		subs_c_column.addCellMouseListener( mouse_listener );
-		
-		table_manager.addColumn( subs_c_column );	
-
-		subs_cb_column = 
-			table_manager.createColumn(
-					TableManager.TABLE_MYTORRENTS_COMPLETE_BIG,
-					"azsubs.ui.column.subs" );
-		
-		subs_cb_column.setAlignment(TableColumn.ALIGN_CENTER);
-		subs_cb_column.setPosition(TableColumn.POSITION_LAST);
-		subs_cb_column.setVisible( true );
-		subs_cb_column.setMinWidth(100);
-		subs_cb_column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		subs_cb_column.setType(TableColumn.TYPE_GRAPHIC);
-		
-		subs_cb_column.addCellRefreshListener( refresh_listener );
-		subs_cb_column.addCellMouseListener( mouse_listener );
-		
-		table_manager.addColumn( subs_cb_column );	
-		
 		default_pi.getUIManager().addUIListener(
 				new UIManagerListener()
 				{
@@ -465,7 +402,7 @@ SubscriptionManagerUI
 							
 							UISWTInstance	swt = (UISWTInstance)instance;
 							
-							icon_rss			= loadGraphic( swt, "rss.png" );
+							icon_rss			= loadGraphic( swt, "btn_add_rss.png" );
 
 							subs_man = SubscriptionManagerFactory.getSingleton();
 							
@@ -532,6 +469,27 @@ SubscriptionManagerUI
 					}
 				});
 		
+	}
+	
+	private TableColumn createSubsColumn(TableManager table_manager,TableCellRefreshListener refresh_listener,TableCellMouseListener mouse_listener,String tableID) {
+		TableColumn result;
+		
+		result = table_manager.createColumn(
+				tableID,
+				"azsubs.ui.column.subs" );
+		
+		result.setAlignment(TableColumn.ALIGN_CENTER);
+		result.setPosition(TableColumn.POSITION_LAST);
+		result.setMinWidth(75);
+		result.setWidthLimits(75, 75);
+		result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		result.setType(TableColumn.TYPE_GRAPHIC);
+	
+		result.addCellRefreshListener( refresh_listener );
+		result.addCellMouseListener( mouse_listener );
+		
+		table_manager.addColumn( result );	
+		return result;
 	}
 	
 	protected void
