@@ -389,7 +389,7 @@ public class SideBar
 		Listener treeListener = new Listener() {
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
-				
+
 				switch (event.type) {
 					case SWT.MeasureItem: {
 						int clientWidth = tree.getClientArea().width;
@@ -467,16 +467,15 @@ public class SideBar
 					}
 
 					case SWT.Collapse: {
-						tree.setRedraw(false);
-
 						String id = (String) treeItem.getData("Plugin.viewID");
 						SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 						
 						if (sideBarInfo.disableCollapse) {
+							tree.setRedraw(false);
   						Display.getDefault().asyncExec(new Runnable() {
   							public void run() {
   								((TreeItem) event.item).setExpanded(true);
-  								tree.redraw();
+  								tree.setRedraw(true);
   							}
   						});
 						}
