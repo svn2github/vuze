@@ -36,11 +36,13 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -97,6 +99,18 @@ public class ColumnThumbnail
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(marginBorder);
 		cell.setMarginHeight(marginBorder);
+		cell.addDisposeListener(new TableCellDisposeListener() {
+			public void dispose(TableCell cell) {
+				Graphic graphic = cell.getGraphic();
+				if(graphic != null &&graphic instanceof UISWTGraphic) {
+					Image image = ((UISWTGraphic)graphic).getImage();
+					if(image!= null && !image.isDisposed()) {
+						image.dispose();
+					}
+					cell.setGraphic(null);
+				}
+			}
+		});
 	}
 
 	public void dispose(TableCell cell) {
@@ -141,9 +155,23 @@ public class ColumnThumbnail
 		if (imageBytes == null) {
 			imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
+		if(cell.getGraphic() != null) {
+			if(cell.isValid()) {
+				return;
+			} else {
+				Graphic graphic = cell.getGraphic();
+				if(graphic instanceof UISWTGraphic) {
+					Image image = ((UISWTGraphic)graphic).getImage();
+					if(image!= null && !image.isDisposed()) {
+						image.dispose();
+					}
+					cell.setGraphic(null);
+				}
+				
+			}
+		}
 
 		Image thumbnailImage = null;
-		boolean disposeImage = false;
 
 		if (imageBytes != null) {
 			/*
@@ -151,7 +179,6 @@ public class ColumnThumbnail
 			 */
 			ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
 			thumbnailImage = new Image(Display.getDefault(), bis);
-			disposeImage = true;
 
 		} else {
 			/*
@@ -169,8 +196,9 @@ public class ColumnThumbnail
 				path = dm.getDownloadState().getPrimaryFile();
 			}
 			if (path != null) {
-				thumbnailImage = ImageRepository.getPathIcon(path, true,
+				Image icon = ImageRepository.getPathIcon(path, true,
 						torrent != null && !torrent.isSimpleTorrent());
+				thumbnailImage = new Image(Display.getDefault(), icon,SWT.IMAGE_COPY);
 			}
 
 		}
@@ -198,11 +226,12 @@ public class ColumnThumbnail
 				}
 				gc.drawImage(thumbnailImage, 0, 0, bounds.width, bounds.height, 0, 0,
 						cellWidth, cellHeight);
+				
+				gc.dispose();
 
-				if (true == disposeImage) {
-					thumbnailImage.dispose();
-					thumbnailImage = resizedImage;
-				}
+				thumbnailImage.dispose();
+				thumbnailImage = resizedImage;
+
 			}
 
 			if (cell instanceof TableCellSWT) {
@@ -211,17 +240,6 @@ public class ColumnThumbnail
 				cell.setGraphic(new UISWTGraphicImpl(thumbnailImage));
 			}
 
-			if (true == disposeImage) {
-				final Image thumbnailImage_final = thumbnailImage;
-				cell.addDisposeListener(new TableCellDisposeListener() {
-					public void dispose(TableCell cell) {
-						if (null != thumbnailImage_final
-								&& false == thumbnailImage_final.isDisposed()) {
-							thumbnailImage_final.dispose();
-						}
-					}
-				});
-			}
 		}
 	}
 }
