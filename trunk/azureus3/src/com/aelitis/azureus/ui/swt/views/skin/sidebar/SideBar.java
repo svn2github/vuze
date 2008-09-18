@@ -389,7 +389,7 @@ public class SideBar
 		Listener treeListener = new Listener() {
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
-
+				
 				switch (event.type) {
 					case SWT.MeasureItem: {
 						int clientWidth = tree.getClientArea().width;
@@ -476,7 +476,7 @@ public class SideBar
   						Display.getDefault().asyncExec(new Runnable() {
   							public void run() {
   								((TreeItem) event.item).setExpanded(true);
-  								tree.setRedraw(true);
+  								tree.redraw();
   							}
   						});
 						}
