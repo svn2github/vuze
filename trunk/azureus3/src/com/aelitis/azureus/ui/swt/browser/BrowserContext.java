@@ -34,12 +34,16 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
@@ -87,43 +91,25 @@ public class BrowserContext
 	 * @param id unique identifier of this context
 	 * @param browser the browser to be registered
 	 */
-	public BrowserContext(String id, Browser browser,
-			Control widgetWaitingIndicator, boolean forceVisibleAfterLoad) {
-		this(id, forceVisibleAfterLoad);
-		registerBrowser(browser, widgetWaitingIndicator);
-	}
-
-	/**
-	 * Creates a context without a registered browser.
-	 * This method should rarely be used.
-	 * 
-	 * @param id unique identifier of this context
-	 */
-	public BrowserContext(String id, boolean forceVisibleAfterLoad) {
-		super(id, null);
-		messageDispatcherSWT = new MessageDispatcherSWT(this);
-		setMessageDispatcher(messageDispatcherSWT);
-		this.forceVisibleAfterLoad = forceVisibleAfterLoad;
-	}
-
-	public void registerBrowser(Object oBrowser,
-			Object oWidgetWaitIndicator) {
-		if (this.browser != null) {
-			throw new IllegalStateException("Context " + getID()
-					+ " already has a registered browser");
-		}
-
-		if (oBrowser instanceof Browser) {
-			this.browser = (Browser) oBrowser;
-		} else {
-			throw new IllegalStateException("Context " + getID()
-					+ ": brwoser isn't a Browser");
-		}
-
-		if (oWidgetWaitIndicator instanceof Control) {
-			this.widgetWaitIndicator = (Control) oWidgetWaitIndicator;
-		}
+	public 
+	BrowserContext(
+		String 		_id, 
+		Browser 	_browser,
+		Control 	_widgetWaitingIndicator, 
+		boolean 	_forceVisibleAfterLoad ) 
+	{
+		super( _id, null );
 		
+		browser 				= _browser;
+		forceVisibleAfterLoad 	= _forceVisibleAfterLoad;
+		widgetWaitIndicator 	= _widgetWaitingIndicator;
+
+		System.out.println( "Registered browser context: id=" + getID());
+		
+		messageDispatcherSWT = new MessageDispatcherSWT(this);
+		
+		setMessageDispatcher( messageDispatcherSWT );
+				
 		final TimerEventPerformer showBrowersPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
 				if (browser != null && !browser.isDisposed()) {
@@ -178,12 +164,16 @@ public class BrowserContext
 		};
 
 		if (forceVisibleAfterLoad) {
+			
 			browser.setVisible(false);
 		}
+		
 		setPageLoading(false);
+		
 		if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 			widgetWaitIndicator.setVisible(false);
 		}
+		
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
 				/*
@@ -301,40 +291,43 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				if(true == browser.isDisposed()){
+				
+				if ( browser.isDisposed()){
 					return;
 				}
 				
-				if (event.location.startsWith("javascript")
-						&& event.location.indexOf("back()") > 0) {
+				String event_location = event.location;
+				
+				if (event_location.startsWith("javascript")
+						&& event_location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {
 						browser.back();
 					} else if (lastValidURL != null) {
-						fillWithRetry(event.location);
+						fillWithRetry(event_location);
 					}
 					return;
 				}
-				boolean isWebURL = event.location.startsWith("http://")
-						|| event.location.startsWith("https://");
+				boolean isWebURL = event_location.startsWith("http://")
+						|| event_location.startsWith("https://");
 				if (!isWebURL) {
-					if (event.location.startsWith("res://") && lastValidURL != null) {
-						fillWithRetry(event.location);
+					if (event_location.startsWith("res://") && lastValidURL != null) {
+						fillWithRetry(event_location);
 					}
 					// we don't get a changed state on non URLs (mailto, javascript, etc)
 					return;
 				}
 
-				boolean blocked = PlatformConfigMessenger.isURLBlocked(event.location);
+				boolean blocked = PlatformConfigMessenger.isURLBlocked(event_location);
 
 				if (blocked) {
 					event.doit = false;
 					Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "URL blocked",
-							"Tried to open " + event.location + " but it's blocked");
+							"Tried to open " + event_location + " but it's blocked");
 					browser.back();
 				} else {
 					setPageLoading(true);
 					if(event.top) {
-						lastValidURL = event.location;
+						lastValidURL = event_location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 							widgetWaitIndicator.setVisible(true);
 						}
@@ -343,17 +336,25 @@ public class BrowserContext
 						timerevent = SimpleTimer.addEvent("Hide Indicator",
 								System.currentTimeMillis() + 20000, hideIndicatorPerformer);
 					} else {
-						boolean isTorrent = false;
+						boolean isTorrent 	= false;
+						boolean isVuzeFile	= false;
+						
 						//Try to catch .torrent files
-						if(event.location.endsWith(".torrent")) {
+						if(event_location.endsWith(".torrent")) {
 							isTorrent = true;
 						} else {
 							//If it's not obviously a web page
-							if (!PlatformConfigMessenger.urlCanRPC(event.location)
-									&& event.location.indexOf(".htm") == -1) {
+							
+							boolean	can_rpc = PlatformConfigMessenger.urlCanRPC(event_location);
+							
+							boolean	test_for_torrent 	= !can_rpc && event_location.indexOf(".htm") == -1;
+							boolean	test_for_vuze		= can_rpc &&  ( event_location.endsWith( ".xml" ) || event_location.endsWith( ".vuze" ));
+							
+							if ( test_for_torrent || test_for_vuze ){
+								
 								try {
 									//See what the content type is
-									URL url = new URL(event.location);
+									URL url = new URL(event_location);
 									URLConnection conn = url.openConnection();
 									
 										// we're only trying to get the content type so just use head
@@ -379,17 +380,40 @@ public class BrowserContext
 									
 									String contentType = conn.getContentType();
 									
-									if(contentType != null && contentType.indexOf("torrent") != -1) {
-										isTorrent = true;
+									if ( contentType != null ){
+										
+										if ( test_for_torrent && contentType.indexOf("torrent") != -1 ) {
+									
+											isTorrent = true;
+										}
+										
+										if ( test_for_vuze && contentType.indexOf("vuze") != -1 ) {
+											
+											isVuzeFile = true;
+										}
 									}
+									
 									String contentDisposition = conn.getHeaderField("Content-Disposition");
-									if(contentDisposition != null && contentDisposition.indexOf(".torrent") != -1) {
-										isTorrent = true;
+									
+									if (contentDisposition != null ){
+										
+										if ( test_for_torrent && contentDisposition.indexOf(".torrent") != -1) {
+									
+											isTorrent = true;
+										}
+										
+										if ( test_for_vuze && contentDisposition.indexOf(".vuze") != -1) {
+											
+											isVuzeFile = true;
+										}
+			
 									}
 									
 								} catch(Exception e) {
 									e.printStackTrace();
 								}
+								
+								System.out.println( "Test for t/v: " + event_location + " -> " + isTorrent + "/" + isVuzeFile );
 							}
 						}
 						
@@ -416,7 +440,7 @@ public class BrowserContext
 									headers.put("Cookie", cookies);
 								}
 								
-								String	url = event.location;
+								String	url = event_location;
 								
 								if ( torrentURLHandler != null ){
 									
@@ -432,7 +456,48 @@ public class BrowserContext
 								AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
 										new URL(url), headers );
 								
-							} catch(Exception e) {
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}else if ( isVuzeFile ){
+							
+							event.doit = false;
+							
+							try {
+								String referer_str = null;
+
+								try{
+									referer_str = new URL(((Browser)event.widget).getUrl()).toExternalForm();
+
+								}catch( Throwable e ){
+								}
+																
+								Map headers = UrlUtils.getBrowserHeaders( referer_str );
+																		
+								String cookies = (String) ((Browser)event.widget).getData("current-cookies");
+								
+								if ( cookies != null ){
+									
+									headers.put("Cookie", cookies);
+								}
+								
+								ResourceDownloader rd = StaticUtilities.getResourceDownloaderFactory().create( new URL( event_location ));
+								
+								VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+								
+								VuzeFile vf = vfh.loadVuzeFile( rd.download());
+								
+								if ( vf == null ){
+									
+									event.doit = true;
+									
+								}else{
+									
+									vfh.handleFiles( new VuzeFile[]{ vf }, 0 );
+								}
+							}catch( Throwable e ){
+								
 								e.printStackTrace();
 							}
 						}
@@ -493,12 +558,16 @@ public class BrowserContext
 				+ "</font></div>" + "</body></html>");
 	}
 
-	public void deregisterBrowser() {
+	private void 
+	deregisterBrowser() 
+	{
 		if (browser == null) {
 			throw new IllegalStateException("Context " + getID()
 					+ " doesn't have a registered browser");
 		}
 
+		System.out.println( "Unregistered browser context: id=" + getID());
+	
 		browser.setData(CONTEXT_KEY, null);
 		browser.removeDisposeListener(this);
 		messageDispatcherSWT.deregisterBrowser(browser);

@@ -35,21 +35,6 @@ import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListen
  */
 public interface ClientMessageContext
 {
-
-	/**
-	 * Attaches this context and its message dispatcher to the browser.
-	 * 
-	 * @param browser the browser to be attached
-	 * @param widgetWaitingIndicator Widget to be shown when browser is loading
-	 */
-	public abstract void registerBrowser(final Object browser,
-			Object widgetWaitingIndicator);
-
-	/**
-	 * Detaches everything from this context's browser.
-	 */
-	public abstract void deregisterBrowser();
-
 	public abstract void addMessageListener(BrowserMessageListener listener);
 
 	public abstract void removeMessageListener(String listenerId);

@@ -123,9 +123,6 @@ public abstract class ClientMessageContextImpl
 		return id;
 	}
 
-	public void registerBrowser(Object browser, Object widgetWaitingIndicator) {
-	}
-
 	public void setMessageDispatcher(BrowserMessageDispatcher dispatcher) {
 		this.dispatcher = dispatcher;
 	}
