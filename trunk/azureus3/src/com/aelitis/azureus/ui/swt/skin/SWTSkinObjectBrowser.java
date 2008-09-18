@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
@@ -86,14 +87,15 @@ public class SWTSkinObjectBrowser
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "browser", parent);
 
-		cParent = parent == null ? skin.getShell() : (Composite) parent.getControl();
-		
+		cParent = parent == null ? skin.getShell()
+				: (Composite) parent.getControl();
+
 		cArea = cParent;
 		cArea = new Canvas(cParent, SWT.NO_BACKGROUND);
 		cArea.setLayout(new FormLayout());
-		
+
 		setControl(cArea);
-		
+
 		if (cParent.isVisible()) {
 			init();
 		} else {
@@ -108,7 +110,7 @@ public class SWTSkinObjectBrowser
 			});
 		}
 	}
-	
+
 	public void init() {
 		if (browser != null && !browser.isDisposed()) {
 			return;
@@ -117,7 +119,7 @@ public class SWTSkinObjectBrowser
 
 		try {
 			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
-			
+
 			browser.setLayoutData(Utils.getFilledFormData());
 		} catch (SWTError e) {
 			System.err.println("Browser: " + e.toString());
@@ -138,7 +140,7 @@ public class SWTSkinObjectBrowser
 		if (browserID == null) {
 			browserID = sID;
 		}
-		
+
 		context = new BrowserContext(browserID, browser, widgetIndicator,
 				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
 
@@ -149,6 +151,14 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new LightBoxBrowserRequestListener());
 		context.addMessageListener(new StatusListener());
 		context.addMessageListener(new BrowserRpcBuddyListener());
+
+		context.addListener(new loadingListener() {
+			public void browserLoadingChanged(boolean loading) {
+				if (loading && browser.isVisible()) {
+					SelectedContentManager.changeCurrentlySelectedContent(null, null);
+				}
+			}
+		});
 
 		PublishUtils.setupContext(context);
 
@@ -256,17 +266,17 @@ public class SWTSkinObjectBrowser
 			browser.setData("StartURL", url);
 		}
 	}
-	
+
 	public boolean isPageLoading() {
 		return context == null ? false : context.isPageLoading();
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setVisible(boolean)
-	public void setVisible(final boolean visible) {
-		super.setVisible(visible);
+	public void setIsVisible(final boolean visible) {
+		super.setIsVisible(visible);
 
 		// notify browser after we've fully processed visibility 
-		Utils.execSWTThreadLater(0, new AERunnable(){
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				if (!isDisposed() && context != null) {
 					context.sendBrowserMessage("browser", visible ? "shown" : "hidden");
@@ -274,7 +284,7 @@ public class SWTSkinObjectBrowser
 			}
 		});
 	}
-	
+
 	public void addListener(loadingListener l) {
 		if (context != null) {
 			context.addListener(l);

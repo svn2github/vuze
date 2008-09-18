@@ -195,7 +195,7 @@ public class SWTSkinObjectBasic
 	 *
 	 * @since 3.0.4.3
 	 */
-	private void setIsVisible(boolean visible) {
+	protected void setIsVisible(boolean visible) {
 		if (visible == isVisible) {
 			return;
 		}
