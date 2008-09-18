@@ -55,8 +55,9 @@ public class
 SubscriptionSchedulerImpl 
 	implements SubscriptionScheduler, SubscriptionManagerListener
 {
-	private static final Object			SCHEDULER_NEXT_SCAN_KEY 	= new Object();
-	private static final Object			SCHEDULER_FAILED_SCAN_KEY 	= new Object();
+	private static final Object			SCHEDULER_NEXT_SCAN_KEY 			= new Object();
+	private static final Object			SCHEDULER_FAILED_SCAN_CONSEC_KEY 	= new Object();
+	private static final Object			SCHEDULER_FAILED_SCAN_TIME_KEY 		= new Object();
 	
 	private static final int			FAIL_INIT_DELAY		= 10*60*1000;
 	private static final int			FAIL_MAX_DELAY		= 8*60*60*1000;
@@ -438,6 +439,10 @@ SubscriptionSchedulerImpl
 				if ( new_last_scan == last_scan ){
 					
 					scanFailed( sub );
+					
+				}else{
+					
+					scanSuccess( sub );
 				}
 			}
 		}
@@ -449,11 +454,11 @@ SubscriptionSchedulerImpl
 	{
 		SubscriptionHistory	history = sub.getHistory();
 				
-		long	next_scan 	=  history.getNextScanTime();
-			
-		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_KEY );
+		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_CONSEC_KEY );
 		
 		if ( fail_count != null ){
+			
+			long 	fail_time = ((Long)sub.getUserData( SCHEDULER_FAILED_SCAN_TIME_KEY )).longValue();
 			
 			long	fails = fail_count.longValue();
 			
@@ -471,17 +476,26 @@ SubscriptionSchedulerImpl
 				}
 			}
 			
-			next_scan += backoff;
+			return( fail_time + backoff );
 		}
-		
-		return( next_scan );
+
+		return( history.getNextScanTime() );
+	}
+	
+	protected void
+	scanSuccess(
+		Subscription		sub )
+	{
+		sub.setUserData( SCHEDULER_FAILED_SCAN_CONSEC_KEY, null );
 	}
 	
 	protected void
 	scanFailed(
 		Subscription		sub )
 	{
-		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_KEY );
+		sub.setUserData( SCHEDULER_FAILED_SCAN_TIME_KEY, new Long( SystemTime.getCurrentTime()));
+		
+		Long fail_count = (Long)sub.getUserData( SCHEDULER_FAILED_SCAN_CONSEC_KEY );
 		
 		if ( fail_count == null ){
 			
@@ -492,7 +506,7 @@ SubscriptionSchedulerImpl
 			fail_count = new Long(fail_count.longValue()+1);
 		}
 		
-		sub.setUserData( SCHEDULER_FAILED_SCAN_KEY, fail_count );
+		sub.setUserData( SCHEDULER_FAILED_SCAN_CONSEC_KEY, fail_count );
 	}
 	
 	protected void
