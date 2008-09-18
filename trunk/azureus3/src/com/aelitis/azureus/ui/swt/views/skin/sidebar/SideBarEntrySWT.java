@@ -233,6 +233,16 @@ public class SideBarEntrySWT implements SideBarEntry
 		});
 	}
 	
+	public Rectangle getBounds() {
+		if (treeItem == null || treeItem.isDisposed()) {
+			return null;
+		}
+		Tree tree = treeItem.getParent();
+		Rectangle bounds = treeItem.getBounds();
+		Rectangle treeBounds = tree.getBounds();
+		return new Rectangle(0, bounds.y, treeBounds.width, bounds.height);
+	}
+	
 	public void setImageLeftID(String id) {
 		imageLeftID = id;
 	}
