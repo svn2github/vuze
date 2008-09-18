@@ -179,7 +179,7 @@ public class MessageBoxShell
 	}
 
 	public int open() {
-		return open(COConfigurationManager.getBooleanParameter("useNewStyleMessageBox"));
+		return open(false);
 	}
 
 	public int open(final boolean useCustomShell) {
