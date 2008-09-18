@@ -104,7 +104,7 @@ public class BrowserContext
 		forceVisibleAfterLoad 	= _forceVisibleAfterLoad;
 		widgetWaitIndicator 	= _widgetWaitingIndicator;
 
-		System.out.println( "Registered browser context: id=" + getID());
+		// System.out.println( "Registered browser context: id=" + getID());
 		
 		messageDispatcherSWT = new MessageDispatcherSWT(this);
 		
@@ -566,7 +566,7 @@ public class BrowserContext
 					+ " doesn't have a registered browser");
 		}
 
-		System.out.println( "Unregistered browser context: id=" + getID());
+		// System.out.println( "Unregistered browser context: id=" + getID());
 	
 		browser.setData(CONTEXT_KEY, null);
 		browser.removeDisposeListener(this);
