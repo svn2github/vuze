@@ -55,6 +55,10 @@ MetaSearch
 	getEngine(
 		long		id );
 	
+	public Engine
+	getEngineByUID(
+		String		uid );
+	
 	public void 
 	addEngine( 
 		Engine 		engine );

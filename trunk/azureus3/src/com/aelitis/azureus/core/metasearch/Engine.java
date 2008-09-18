@@ -91,6 +91,10 @@ Engine
 	public static final String	SC_SOURCE	= "azsrc";
 	public static final String	SC_AZID		= "azid";
 	
+	public static final String	CT_VIDEO	= "video";
+	public static final String	CT_AUDIO	= "audio";
+	public static final String	CT_GAME		= "game";
+	
 	public int getType();
 	
 	public Result[]

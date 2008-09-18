@@ -193,7 +193,7 @@ RSSEngine
 							SimpleXMLParserDocumentNode child = children[k];
 							
 							String	lc_child_name 		= child.getName().toLowerCase();
-							String	lc_full_child_name 	= child.getName().toLowerCase();
+							String	lc_full_child_name 	= child.getFullName().toLowerCase();
 							
 							if (lc_child_name.equals( "enclosure" )){
 								
@@ -285,15 +285,29 @@ RSSEngine
 								
 								result.setNbPeersFromHTML( child.getValue());
 								
-							}else if ( lc_full_child_name.equals( "vuze:contentType" )){
+							}else if ( lc_full_child_name.equals( "vuze:contenttype" )){
 								
-								result.setCategoryFromHTML( child.getValue());
+								String	type = child.getValue().toLowerCase();
+								
+								if ( type.startsWith( "video" )){
+									
+									type = Engine.CT_VIDEO;
+									
+								}else if ( type.startsWith( "audio" )){
+									
+									type = Engine.CT_AUDIO;
+									
+								}else if ( type.startsWith( "games" )){
+									
+									type = Engine.CT_GAME;
+								}
+								
+								result.setContentType( type );
 							}
 						}
 					}
 					
-					results.add(result);
-					
+					results.add(result);				
 				}
 			}
 			

@@ -640,6 +640,25 @@ MetaSearchImpl
 		return( null );
 	}
 	
+	public Engine
+	getEngineByUID(
+		String	uid )
+	{
+		List l = engines.getList();
+		
+		for( int i=0;i<l.size();i++){
+			
+			Engine e = (Engine)l.get(i);
+			
+			if ( e.getUID().equals( uid )){
+				
+				return( e );
+			}
+		}
+
+		return( null );
+	}
+	
 	public int
 	getEngineCount()
 	{
