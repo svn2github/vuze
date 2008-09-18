@@ -288,7 +288,7 @@ public class AvatarWidget
 										MessageText.getString("v3.buddies.dnd.info.dialog.remember"),
 										false, 0);
 
-								mb.open(true);
+								mb.open(false);
 
 								creationPercent = 0;
 								isCreatingFile = true;
@@ -1024,24 +1024,24 @@ public class AvatarWidget
 
 	private void doRemoveBuddy() {
 
-		LightBoxShell lbShell = new LightBoxShell(parent.getShell(), false);
+		//LightBoxShell lbShell = new LightBoxShell(parent.getShell(), false);
 
-		MessageBoxShell mBox = new MessageBoxShell(lbShell.getShell(),
+		MessageBoxShell mBox = new MessageBoxShell(parent.getShell(),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.title"),
 				MessageText.getString("v3.buddies.remove.buddy.dialog.text",
 						new String[] {
 							vuzeBuddy.getLoginID()
 						}), new String[] {
-					MessageText.getString("v3.mb.delPublished.delete"),
-					MessageText.getString("v3.mb.delPublished.cancel")
+					MessageText.getString("Button.remove"),
+					MessageText.getString("Button.cancel")
 				}, 1);
 
 		mBox.setLeftImage(SWT.ICON_QUESTION);
 
-		lbShell.open();
 
-		if (1 == mBox.open(true)) {
-			lbShell.close();
+		//Testing for == 1 is not good, because closing the shell actually returns -1
+		//which is != 1, and therefore it proceeds with the removal of the buddy.
+		if (0 != mBox.open(false)) {
 			return;
 		}
 		try {
@@ -1050,7 +1050,6 @@ public class AvatarWidget
 			// should not happen, unless the user cancelled
 			Debug.out(e);
 		}
-		lbShell.close();
 	}
 
 	private void doAddBuddyToShare() {
