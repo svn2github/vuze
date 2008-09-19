@@ -746,24 +746,24 @@ public class SideBar
 			if (tree.isFocusControl()) {
   			if (Constants.isOSX) {
   				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
-  				gc.setBackground(Colors.faded[Colors.BLUES_MIDDARK]);
+  				gc.setBackground(Colors.faded[Colors.BLUES_DARKEST]);
   			} else {
   				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
-  				gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
+  				gc.setForeground(Colors.faded[Colors.BLUES_DARKEST]);
   			}
 			} else {
 				if (Constants.isOSX) {
   				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
   				gc.setBackground(Colors.faded[Colors.BLUES_MIDLIGHT]);
 				} else {
-  				//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
+  				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
   				//gc.setForeground(Colors.faded[Colors.BLUES_MIDLIGHT]);
   				//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
   				
-  				//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-  				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-  				gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
-  				fgText = fg;
+  				gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+  				//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+  				//gc.setForeground(Colors.faded[Colors.BLUES_MIDLIGHT]);
+  				//fgText = fg;
 				}
 			}
 

@@ -20,9 +20,13 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -65,14 +69,37 @@ public class ToolBarView
 	private boolean showText = true;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
 		buttonListener = new toolbarButtonListener();
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		final SWTSkinObject so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
+
+		
+		final SWTSkinObject soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
+		if (soGap != null) {
+			soGap.getControl().getParent().addListener(SWT.Resize, new Listener() {
+				public void handleEvent(Event event) {
+					Rectangle boundsLeft = skinObject.getControl().getBounds();
+					Rectangle boundsRight = so2nd.getControl().getBounds();
+					
+					Rectangle clientArea = soGap.getControl().getParent().getClientArea();
+					
+					FormData fd = (FormData) soGap.getControl().getLayoutData();
+					fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width) - (boundsRight.width);
+					if (fd.width < 0) {
+						fd.width = 0;
+					} else if (fd.width > 50) {
+						fd.width -= 30;
+					} else if (fd.width > 20) {
+						fd.width = 20;
+					}
+					soGap.getControl().getParent().layout();
+				}
+			});
+		}
 
 		ToolBarItem item;
 		
-		SWTSkinObject so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
-
 		// ==download
 		item = new ToolBarItem("download", "image.button.download",
 				"v3.MainWindow.button.download") {
@@ -113,6 +140,8 @@ public class ToolBarView
 		
 		addSeperator("toolbar.area.item.sep", soMain);
 
+		lastControl = null;
+		
 		// ==OPEN
 //		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
 //			public void triggerToolBarItem() {
@@ -274,6 +303,7 @@ public class ToolBarView
 		addNonToolBar("toolbar.area.sitem.right", so2nd);
 		
 		skinObject.getControl().getParent().layout();
+		skinObject.getControl().getShell().layout(true, true);
 
 //		// ==comment
 //		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
