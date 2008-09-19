@@ -121,7 +121,9 @@ SubscriptionManagerUI
 	
 	private SubscriptionManager	subs_man;
 	
-	private MenuItemListener clearAllListener;
+	private MenuItemListener markAllResultsListener;
+	private MenuItemListener deleteAllResultsListener;
+	private MenuItemListener resetResultsListener;
 	private MenuItemListener exportListener;
 	private MenuItemListener removeListener;
 	private MenuItemListener forceCheckListener;
@@ -506,12 +508,42 @@ SubscriptionManagerUI
 			side_bar_setup = true;
 		}
 		
-		clearAllListener = new MenuItemListener() {
+		markAllResultsListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
 					Subscription subs = (Subscription) info.getDatasource();
 					subs.getHistory().markAllResultsRead();
+					refreshView( subs );
+				}
+			}
+		};
+		
+		deleteAllResultsListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					subs.getHistory().deleteAllResults();
+					refreshView( subs );
+				}
+			}
+		};
+		
+		resetResultsListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					subs.getHistory().reset();
+					
+					try{
+						subs.getManager().getScheduler().download(subs, true);
+						
+					}catch( Throwable e ){
+						
+						Debug.out(e);
+					}
 				}
 			}
 		};
@@ -721,17 +753,19 @@ SubscriptionManagerUI
 								menuItem.addListener(forceCheckListener);
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
-								menuItem.addListener(clearAllListener);
+								menuItem.addListener(markAllResultsListener);
 								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.deleteall");
+								menuItem.addListener(deleteAllResultsListener);
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.reset");
+								menuItem.addListener(resetResultsListener);
+
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
 								menuItem.addListener(exportListener);
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
-								menuItem.addListener(removeListener);
-								
-								
-								
-								
+								menuItem.addListener(removeListener);							
 							}
 						}
 					});
@@ -778,6 +812,23 @@ SubscriptionManagerUI
 		}
 		
 		refreshColumns();
+	}
+	
+	protected void
+	refreshView(
+		Subscription	subs )
+	{		
+		sideBarItem item = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
+		
+		if ( item != null ){
+			
+			subscriptionView view = item.getView();
+			
+			if ( view != null ){
+				
+				view.updateBrowser();
+			}
+		}
 	}
 	
 	protected void

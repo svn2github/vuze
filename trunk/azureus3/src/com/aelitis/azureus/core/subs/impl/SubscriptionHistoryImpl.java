@@ -402,6 +402,41 @@ SubscriptionHistoryImpl
 	}
 	
 	public void
+	deleteAllResults()
+	{
+		boolean	changed = false;
+		
+		synchronized( this ){
+						
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+
+			for (int i=0;i<results.length;i++){
+				
+				SubscriptionResultImpl result = results[i];
+				
+				if ( !result.isDeleted()){
+					
+					changed = true;
+				
+					result.deleteInternal();
+				}
+			}
+			
+			if ( changed ){
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+	public void
 	markAllResultsRead()
 	{
 		boolean	changed = false;
@@ -476,6 +511,33 @@ SubscriptionHistoryImpl
 				updateReadUnread( results );
 				
 				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+	public void 
+	reset() 
+	{
+		boolean	changed = false;
+
+		synchronized( this ){
+			
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+			
+			if ( results.length > 0 ){
+				
+				results = new SubscriptionResultImpl[0];
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+				
+				changed = true;
 			}
 		}
 		

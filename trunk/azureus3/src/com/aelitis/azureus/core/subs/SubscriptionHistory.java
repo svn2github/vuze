@@ -48,12 +48,18 @@ SubscriptionHistory
 		String[]		result_ids );
 	
 	public void
+	deleteAllResults();
+	
+	public void
 	markAllResultsRead();
 	
 	public void
 	markResults(
 		String[]		result_ids,
 		boolean[]		read );
+	
+	public void
+	reset();
 	
 	public long
 	getLastScanTime();
