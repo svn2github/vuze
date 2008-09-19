@@ -944,7 +944,7 @@ SubscriptionManagerImpl
 					
 					int	interval = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
 					
-					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url, interval, false );
+					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, interval, SubscriptionImpl.ADD_TYPE_IMPORT, false );
 					
 					boolean	subs_added = false;
 					

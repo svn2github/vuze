@@ -1022,7 +1022,17 @@ SubscriptionImpl
 	public boolean
 	isMine()
 	{
-		return( private_key != null );
+		if ( private_key == null ){
+			
+			return( false );
+		}
+		
+		if ( isSingleton() && add_type != ADD_TYPE_CREATE ){
+			
+			return( false );
+		}
+		
+		return( true );
 	}
 	
 	public boolean
