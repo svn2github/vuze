@@ -503,10 +503,11 @@ public class MainMenu
 				MENU_ID_COMMUNITY);
 		Menu communityMenu = item.getMenu();
 
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
+		
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_FAQ);
+						Utils.launch(Constants.URL_FORUMS);
 					}
 				});
 		
@@ -514,13 +515,6 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event e) {
 						Utils.launch(Constants.URL_WIKI);
-					}
-				});
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
-				new Listener() {
-					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_FORUMS);
 					}
 				});
 		
@@ -531,6 +525,13 @@ public class MainMenu
 					}
 				});	
 
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
+				new Listener() {
+					public void handleEvent(Event e) {
+						Utils.launch(Constants.URL_FAQ);
+					}
+				});
+		
 		MenuFactory.addSeparatorMenuItem(communityMenu);
 
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_ADD_FRIENDS,
