@@ -1896,6 +1896,8 @@ SubscriptionManagerImpl
 
 			if ( pop >= 0 ){	
 				
+				log( "Got popularity of " + subs.getName() + " from platform: " + pop );
+				
 				listener.gotPopularity( pop );
 
 				return;
@@ -1947,6 +1949,8 @@ SubscriptionManagerImpl
 		SubscriptionImpl					subs,
 		SubscriptionPopularityListener		listener )
 	{
+		log( "Getting popularity of " + subs.getName() + " from DHT" );
+
 		byte[]	hash = subs.getPublicationHash();
 		
 		final AESemaphore sem = new AESemaphore( "SM:pop" );
@@ -2031,10 +2035,14 @@ SubscriptionManagerImpl
 		
 		if ( result[0] == -1 ){
 			
+			log( "Failed to get popularity of " + subs.getName() + " from DHT" );
+
 			listener.failed( new SubscriptionException( "Timeout" ));
 			
 		}else{
 		
+			log( "Get popularity of " + subs.getName() + " from DHT: " + result[0] );
+
 			listener.gotPopularity( result[0] );
 		}
 	}
