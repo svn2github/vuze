@@ -619,7 +619,7 @@ public class DHTView extends AbstractIView {
   private void refreshDB() {    
     if(refreshIter == 0) {
 	  DHTDBStats    dbStats = dht.getDataBase().getStats();
-      lblKeys.setText("" + dbStats.getKeyCount());  
+      lblKeys.setText("" + dbStats.getKeyCount() + " (" + dbStats.getLocalKeyCount() + ")" );  
       int[] stats = dbStats.getValueDetails();
       lblValues.setText("" + stats[DHTDBStats.VD_VALUE_COUNT]);
       lblSize.setText(DisplayFormatters.formatByteCountToKiBEtc(dbStats.getSize()));

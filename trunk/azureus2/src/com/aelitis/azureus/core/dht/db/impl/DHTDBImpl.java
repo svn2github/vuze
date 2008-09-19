@@ -99,9 +99,11 @@ DHTDBImpl
 	
 	private static final long	MAX_TOTAL_SIZE	= 4*1024*1024;
 	
-	private long		total_size;
-	private long		total_values;
-	private long		total_keys;
+	private int		total_size;
+	private int		total_values;
+	private int		total_keys;
+	private int		total_local_keys;
+	
 	
 	private boolean force_original_republish;
 	
@@ -270,6 +272,8 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 				
+			total_local_keys++;
+			
 				// don't police max check for locally stored data
 				// only that received
 			
@@ -567,6 +571,8 @@ DHTDBImpl
 				
 				if ( res != null ){
 					
+					total_local_keys--;
+					
 					return( res.getValueForDeletion( getNextValueVersion()));
 				}
 				
@@ -671,6 +677,12 @@ DHTDBImpl
 	getKeyCount()
 	{
 		return( (int)total_keys );
+	}
+	
+	public int
+	getLocalKeyCount()
+	{
+		return( total_local_keys );
 	}
 	
 	public int

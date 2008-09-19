@@ -36,6 +36,9 @@ DHTDBStats
 	getKeyCount();
 	
 	public int
+	getLocalKeyCount();
+	
+	public int
 	getKeyBlockCount();
 	
 	public int

@@ -85,6 +85,14 @@ ResourceDownloader
 	
 		throws ResourceDownloaderException;
 	
+		/**
+		 * Warning! URL response properties have a type of 'List of String'
+		 * 
+		 * @param name
+		 * @return
+		 * @throws ResourceDownloaderException
+		 */
+	
 	public Object
 	getProperty(
 		String		name )
