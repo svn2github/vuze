@@ -941,7 +941,7 @@ SubscriptionManagerUI
 			
 			controls = new Composite(composite, SWT.NONE);
 			GridLayout layout = new GridLayout();
-			layout.numColumns = 4;
+			layout.numColumns = 1;
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			controls.setLayout(layout);
@@ -956,60 +956,19 @@ SubscriptionManagerUI
 			
 			info_lab = new Label( controls, SWT.NULL );
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			//grid_data.horizontalSpan = 5;
 			info_lab.setLayoutData(grid_data);
-
-				
 		
-			final Button delete_button = new Button( controls, SWT.NULL );
-			delete_button.setText( "Delete" );
-						
-			delete_button.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent e )
-					{
-						subs.remove();
-					}
-				});
-
-			final Button save_button = new Button( controls, SWT.NULL );
-			save_button.setText( "Save" );		
-			
-			final Button download_button = new Button( controls, SWT.NULL );
-			download_button.setText( "Download" );
-			
+				
 			info_lab2 = new Label( controls, SWT.NULL );
-			
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			grid_data.horizontalSpan = 4;
 			info_lab2.setLayoutData(grid_data);
 			
 			json_area = new StyledText(controls,SWT.BORDER);
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
-			grid_data.horizontalSpan = 4;
 			grid_data.heightHint = 50;
 			json_area.setLayoutData(grid_data);
-			
-			save_button.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent event )
-					{
-						try{
-							subs.setJSON( json_area.getText());
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-				});
-			
+			json_area.setWordWrap(true);
+				
 			subs.addListener(
 				new SubscriptionListener()
 				{
@@ -1039,48 +998,7 @@ SubscriptionManagerUI
 						}
 					}
 				});
-			
-			/*final Button browse_button = new Button( controls, SWT.NULL );
-			browse_button.setText( "Browser" );
 						
-			browse_button.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent e )
-					{
-						String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch/?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
-						
-						BrowserWindow browser = new BrowserWindow( 
-							UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
-							url,
-							600, 800, true, false );
-						
-						browser.getContext().addMessageListener(
-							new MetaSearchListener( null ));
-					}
-				});*/
-			
-			
-						
-			download_button.addSelectionListener(
-				new SelectionAdapter() 
-				{
-					public void 
-					widgetSelected(
-						SelectionEvent event )
-					{
-						try{
-							subs.getManager().getScheduler().download( subs, false );
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-						}
-					}
-				});
-			
 			updateInfo();
 		}
 		  
