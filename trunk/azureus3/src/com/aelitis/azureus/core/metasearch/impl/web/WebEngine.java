@@ -30,6 +30,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -556,8 +557,8 @@ WebEngine
 			
 			if ( only_if_modified ){
 				
-				String last_modified 	= (String)mr_rd.getProperty( "URL_Last-Modified" );
-				String etag				= (String)mr_rd.getProperty( "URL_ETag" );
+				String last_modified 	= extractProperty( mr_rd.getProperty( "URL_Last-Modified" ));
+				String etag				= extractProperty( mr_rd.getProperty( "URL_ETag" ));
 				
 				if ( last_modified != null ){
 					
@@ -657,6 +658,41 @@ WebEngine
 		}
 	}
 
+	protected String
+	extractProperty(
+		Object	o )
+	{
+		if ( o instanceof String ){
+			
+			return((String)o);
+			
+		}else if ( o instanceof List ){
+			
+			List	l = (List)o;
+			
+			if ( l.size() > 0 ){
+				
+				if ( l.size() > 1 ){
+					
+					Debug.out( "Property has multiple values!" );
+				}
+				
+				Object x = l.get(0);
+				
+				if ( x instanceof String ){
+					
+					return((String)x);
+					
+				}else{
+					
+					Debug.out( "Property value isn't a String:" + x );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	protected void
 	setHeaders(
 		ResourceDownloader		rd,
