@@ -25,12 +25,11 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -68,7 +67,7 @@ public class ColumnRatingGlobal
 	 */
 	public ColumnRatingGlobal(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+		initialize(ALIGN_LEAD, POSITION_LAST, COLUMN_WIDTH);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
 
@@ -77,7 +76,7 @@ public class ColumnRatingGlobal
 	}
 
 	private class Cell
-		implements TableCellRefreshListener, TableCellDisposeListener,
+		implements TableCellSWTPaintListener, TableCellDisposeListener,
 		RatingUpdateListener2, TableCellVisibilityListener
 	{
 		String rating = "--";
@@ -106,7 +105,7 @@ public class ColumnRatingGlobal
 
 		public void dispose(TableCell cell) {
 			PlatformRatingMessenger.removeListener(this);
-			disposeOldImage(cell);
+			//disposeOldImage(cell);
 		}
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -115,6 +114,14 @@ public class ColumnRatingGlobal
 		}
 
 		public void refresh(final TableCell cell, final boolean force) {
+			if (force) {
+				System.out.println("WANT FORCE");
+			}
+		}
+
+		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
+		public void cellPaint(GC gcImage, TableCell cell) {
+		//public void refresh(final TableCell cell, final boolean force) {
 
 			if (cell.isDisposed()) {
 				return;
@@ -127,14 +134,6 @@ public class ColumnRatingGlobal
 				dm = newDM;
 			}
 
-			if (!Utils.isThisThreadSWT()) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						refresh(cell, force);
-					}
-				});
-				return;
-			}
 			DownloadManager dm = getDM(cell.getDataSource());
 			if (dm == null) {
 				return;
@@ -157,15 +156,6 @@ public class ColumnRatingGlobal
 				b = !cell.setSortValue(count > 0 ? new Float(count) : null);
 			}
 
-			if (!force) {
-				if (b && cell.isValid()) {
-					return;
-				}
-				if (!cell.isShown()) {
-					return;
-				}
-			}
-
 			int width = cell.getWidth();
 			int height = 34;//cell.getHeight(); KN: HARDCODE!!!
 			if (width <= 0 || height <= 0) {
@@ -176,14 +166,14 @@ public class ColumnRatingGlobal
 			 * Creates a blank image to paint the rating on top of
 			 */
 			Graphic bgGraphic = cell.getBackgroundGraphic();
-			Image img;
-			if (bgGraphic instanceof UISWTGraphic) {
-				img = ((UISWTGraphic) bgGraphic).getImage();
-			} else {
-				img = new Image(Display.getDefault(), width, height);
-			}
-			GC gcImage = new GC(img);
-			Rectangle r = img.getBounds();
+//			Image img;
+//			if (bgGraphic instanceof UISWTGraphic) {
+//				img = ((UISWTGraphic) bgGraphic).getImage();
+//			} else {
+//				img = new Image(Display.getDefault(), width, height);
+//			}
+//			GC gcImage = new GC(img);
+			Rectangle r = ((TableCellSWT)cell).getBounds(); // img.getBounds();
 
 			int bigTextStyle = SWT.TOP | SWT.RIGHT;
 			int smallTextStyle = SWT.RIGHT;
@@ -191,9 +181,9 @@ public class ColumnRatingGlobal
 			if (font == null) {
 				// no sync required, SWT is on single thread
 				FontData[] fontData = gcImage.getFont().getFontData();
-				fontData[0].setStyle(SWT.BOLD);
+				//fontData[0].setStyle(SWT.BOLD);
 				// we can do a few more pixels because we have no text hanging below baseline
-				Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage, 22);
+				Utils.getFontHeightFromPX(gcImage.getDevice(), fontData, gcImage, 20);
 				font = new Font(Display.getDefault(), fontData);
 			}
 
@@ -211,7 +201,7 @@ public class ColumnRatingGlobal
 				color1 = ColorCache.getColor(gcImage.getDevice(), cell.getForeground());
 			}
 
-			r = img.getBounds();
+			//r = img.getBounds();
 
 			if (color1 != null) {
 				gcImage.setForeground(color1);
@@ -236,35 +226,36 @@ public class ColumnRatingGlobal
 					// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 				}
 
-				Rectangle rectDrawRatings = new Rectangle(0, 0, width, height);
-				rectDrawRatings.y = r.y + 21;
+				//Rectangle rectDrawRatings = new Rectangle(0, 0, width, height);
+				//rectDrawRatings.y = r.y + 21;
+				r.y += 20;
 				String sRatingInfo = count + " ratings";
 				Point ratingInfoExtent = gcImage.textExtent(sRatingInfo);
-				if (ratingInfoExtent.x > rectDrawRatings.width) {
+				if (ratingInfoExtent.x > r.width) {
 					sRatingInfo = DisplayFormatters.formatDecimal(count / 1000.0, 1)
 							+ "k ratings";
 					ratingInfoExtent = gcImage.textExtent(sRatingInfo);
-					if (ratingInfoExtent.x > rectDrawRatings.width) {
+					if (ratingInfoExtent.x > r.width) {
 						sRatingInfo = (count / 1000) + "k ratings";
 					}
 				}
-				GCStringPrinter.printString(gcImage, sRatingInfo, rectDrawRatings,
+				GCStringPrinter.printString(gcImage, sRatingInfo, r,
 						true, false, SWT.TOP | smallTextStyle);
 			}
 
-			Graphic graphic = new UISWTGraphicImpl(img);
+			//Graphic graphic = new UISWTGraphicImpl(img);
 
-			disposeOldImage(cell);
+			//disposeOldImage(cell);
 
-			cell.setGraphic(graphic);
+			//cell.setGraphic(graphic);
 
-			gcImage.dispose();
+			//gcImage.dispose();
 
 		}
 
 		/**
 		 * 
-		 */
+		 *
 		private void disposeOldImage(TableCell cell) {
 			Graphic oldGraphic = cell.getGraphic();
 			if (oldGraphic instanceof UISWTGraphic) {
@@ -274,6 +265,7 @@ public class ColumnRatingGlobal
 				}
 			}
 		}
+		*/
 
 		// @see com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger.RatingUpdateListener#ratingUpdated(com.aelitis.azureus.core.torrent.RatingInfoList)
 		public void ratingUpdated(RatingInfoList rating) {
