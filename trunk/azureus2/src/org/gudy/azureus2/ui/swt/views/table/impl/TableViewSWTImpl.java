@@ -1330,7 +1330,7 @@ public class TableViewSWTImpl
 			if (!cell.isUpToDate()) {
 				//System.out.println("R " + table.indexOf(item));
 				cell.refresh(true, true);
-				return;
+				//return;
 			}
 			
 			String text = cell.getText();
