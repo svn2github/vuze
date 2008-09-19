@@ -92,7 +92,7 @@ public class Constants
 
 	public static final String URL_DOWNLOAD = "download/";
 
-	public static final String URL_SUPPORT = URL_PREFIX + "Support.html";
+	public static final String URL_SUPPORT = URL_PREFIX + "support/";
 
 	public static final String URL_FAQ = "http://faq.vuze.com/";
 	
