@@ -1344,7 +1344,7 @@ public class TableViewSWTImpl
 				}
   			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds);
   			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-  					true,
+  					true, SWT.WRAP |
   					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
 			}
 
