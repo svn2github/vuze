@@ -52,7 +52,8 @@ SubscriptionManager
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		add_to_subscriptions )
 		
 		throws SubscriptionException;
 	

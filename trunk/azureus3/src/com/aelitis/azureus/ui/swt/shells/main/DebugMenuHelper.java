@@ -118,7 +118,7 @@ public class DebugMenuHelper
 						try{
 							URL	url = new URL( url_str );
 							
-							SubscriptionManagerFactory.getSingleton().createSingletonRSS( url_str, url, 120 );
+							SubscriptionManagerFactory.getSingleton().createSingletonRSS( url_str, url, 120, true );
 							
 						}catch( Throwable e ){
 							

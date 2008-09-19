@@ -496,19 +496,16 @@ SubscriptionManagerImpl
 		return( addSubscription( subs ));
 	}
 	
-		/**
-		 * DOESN'T ADD SUBSCRIPTION!!!!
-		 */
-	
 	public Subscription
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		boolean		add_to_subscriptions )
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE ));
+		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, add_to_subscriptions ));
 	}
 	
 	protected Subscription
@@ -516,7 +513,8 @@ SubscriptionManagerImpl
 		String		name,
 		URL			url,
 		int			check_interval_mins,
-		int			add_type )
+		int			add_type,
+		boolean		add_to_subscriptions )
 		
 		throws SubscriptionException
 	{
@@ -547,6 +545,11 @@ SubscriptionManagerImpl
 			
 			log( "Created new singleton subscription: " + subs.getString());
 			
+			if ( add_to_subscriptions ){
+				
+				subs = addSubscription( subs );
+			}
+			
 			return( subs );
 			
 		}catch( Throwable e ){
@@ -557,8 +560,9 @@ SubscriptionManagerImpl
 	
 	protected SubscriptionImpl
 	createSingletonSubscription(
-		Map		singleton_details,
-		int		add_type )
+		Map			singleton_details,
+		int			add_type,
+		boolean		add_to_subscriptions )
 	{
 		try{
 			String name = ImportExportUtils.importString( singleton_details, "name", "(Anonymous)" );
@@ -569,7 +573,7 @@ SubscriptionManagerImpl
 			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, check_interval_mins, add_type );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, check_interval_mins, add_type, add_to_subscriptions );
 			
 			return( s );
 			
@@ -940,56 +944,68 @@ SubscriptionManagerImpl
 					
 					int	interval = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
 					
-					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url, interval );
+					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url, interval, false );
 					
-					SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
-
-					if ( existing != null ){
-						
-						if ( warn_user ){
-							
-							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-							
-							String details = MessageText.getString(
-									"subscript.add.dup.desc",
-									new String[]{ existing.getName()});
-							
-							ui_manager.showMessageBox(
-									"subscript.add.dup.title",
-									"!" + details + "!",
-									UIManagerEvent.MT_OK );
-						}
-						
-						return( existing );
-						
-					}else{
-						
-						if ( warn_user ){
-							
-							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-				
-							String details = MessageText.getString(
-									"subscript.add.desc",
-									new String[]{ new_subs.getName()});
-							
-							long res = ui_manager.showMessageBox(
-									"subscript.add.title",
-									"!" + details + "!",
-									UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-							
-							if ( res != UIManagerEvent.MT_YES ){	
-							
-								log_errors = false;
+					boolean	subs_added = false;
+					
+					try{
+						SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
+	
+						if ( existing != null ){
+													
+							if ( warn_user ){
 								
-								throw( new SubscriptionException( "User declined addition" ));
+								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+								
+								String details = MessageText.getString(
+										"subscript.add.dup.desc",
+										new String[]{ existing.getName()});
+								
+								ui_manager.showMessageBox(
+										"subscript.add.dup.title",
+										"!" + details + "!",
+										UIManagerEvent.MT_OK );
 							}
+							
+							return( existing );
+							
+						}else{
+							
+							if ( warn_user ){
+								
+								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+								String details = MessageText.getString(
+										"subscript.add.desc",
+										new String[]{ new_subs.getName()});
+								
+								long res = ui_manager.showMessageBox(
+										"subscript.add.title",
+										"!" + details + "!",
+										UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+								
+								if ( res != UIManagerEvent.MT_YES ){	
+								
+									log_errors = false;
+									
+									throw( new SubscriptionException( "User declined addition" ));
+								}
+							}
+							
+							log( "Imported new singleton subscription: " + new_subs.getString());
+							
+							new_subs = addSubscription( new_subs );
+							
+							subs_added = true;
+							
+							return( new_subs );
 						}
+					}finally{
 						
-						log( "Imported new singleton subscription: " + new_subs.getString());
-						
-						new_subs = addSubscription( new_subs );
-						
-						return( new_subs );
+						if ( !subs_added ){
+							
+							new_subs.destroy();
+						}
 					}
 				}else{
 					
@@ -2159,7 +2175,7 @@ SubscriptionManagerImpl
 									
 								}else{
 									
-									SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP );
+									SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
 									
 									if ( subs == null ){
 										
@@ -4251,7 +4267,8 @@ SubscriptionManagerImpl
 				getSingleton(true).createSingletonRSS(
 						NAME,
 						new URL( URL_STR ),
-						240 );
+						240,
+						false );
 			
 			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
 			
