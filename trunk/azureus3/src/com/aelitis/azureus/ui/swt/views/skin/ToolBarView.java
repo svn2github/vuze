@@ -68,32 +68,25 @@ public class ToolBarView
 	
 	private boolean showText = true;
 
+	private SWTSkinObject skinObject;
+
+	private SWTSkinObject so2nd;
+
+	private SWTSkinObject soGap;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
+		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
-		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		final SWTSkinObject so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
+		gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
 
 		
-		final SWTSkinObject soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
+		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
 		if (soGap != null) {
 			soGap.getControl().getParent().addListener(SWT.Resize, new Listener() {
 				public void handleEvent(Event event) {
-					Rectangle boundsLeft = skinObject.getControl().getBounds();
-					Rectangle boundsRight = so2nd.getControl().getBounds();
-					
-					Rectangle clientArea = soGap.getControl().getParent().getClientArea();
-					
-					FormData fd = (FormData) soGap.getControl().getLayoutData();
-					fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width) - (boundsRight.width);
-					if (fd.width < 0) {
-						fd.width = 0;
-					} else if (fd.width > 50) {
-						fd.width -= 30;
-					} else if (fd.width > 20) {
-						fd.width = 20;
-					}
-					soGap.getControl().getParent().layout();
+					resizeGap();
 				}
 			});
 		}
@@ -301,9 +294,8 @@ public class ToolBarView
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 
 		addNonToolBar("toolbar.area.sitem.right", so2nd);
-		
-		skinObject.getControl().getParent().layout();
-		skinObject.getControl().getShell().layout(true, true);
+
+		resizeGap();
 
 //		// ==comment
 //		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
@@ -331,6 +323,29 @@ public class ToolBarView
 		});
 
 		return null;
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	protected void resizeGap() {
+		Rectangle boundsLeft = skinObject.getControl().getBounds();
+		Rectangle boundsRight = so2nd.getControl().getBounds();
+		
+		Rectangle clientArea = soGap.getControl().getParent().getClientArea();
+		
+		FormData fd = (FormData) soGap.getControl().getLayoutData();
+		fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width) - (boundsRight.width);
+		if (fd.width < 0) {
+			fd.width = 0;
+		} else if (fd.width > 50) {
+			fd.width -= 30;
+		} else if (fd.width > 20) {
+			fd.width = 20;
+		}
+		soGap.getControl().getParent().layout();
 	}
 
 	/**
