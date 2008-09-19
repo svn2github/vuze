@@ -689,10 +689,6 @@ public class TableViewSWTImpl
 					paintItem(event);
 				}
 			});
-			table.addListener(SWT.EraseItem, new Listener() {
-				public void handleEvent(Event event) {
-				}
-			});
 		}
 		
 		table.getHorizontalBar().addSelectionListener(new SelectionListener() {
@@ -710,6 +706,10 @@ public class TableViewSWTImpl
 				int defaultHeight = getRowDefaultHeight();
 				if (event.height < defaultHeight) {
 					event.height = defaultHeight;
+				}
+
+				if (Utils.SWT32_TABLEPAINT) {
+					event.width = ((TableItem) event.item).getBounds(event.index).width;
 				}
 			}
 		});
@@ -1281,35 +1281,13 @@ public class TableViewSWTImpl
 	 * @param event
 	 */
 	protected void paintItem(Event event) {
-		TableItem item = (TableItem) event.item;
-		if (item == null || item.isDisposed()) {
-			return;
-		}
-
-		TableRowSWT row = (TableRowSWT) getRow(item);
-		if (row == null) {
-			return;
-		}
-
-		// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
-		Rectangle cellBounds = item.getBounds(event.index);
-
-		cellBounds.x += 3;
-		cellBounds.width -= 6;
-
 		try {
-			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
-			int iColumnNo = event.index;
-
-			if (item.getImage(iColumnNo) != null) {
-				cellBounds.x += 18;
-				cellBounds.width -= 18;
-			}
-
-			if (cellBounds.width <= 0 || cellBounds.height <= 0) {
+			TableItem item = (TableItem) event.item;
+			if (item == null || item.isDisposed()) {
 				return;
 			}
 
+			int iColumnNo = event.index;
 			if (bSkipFirstColumn) {
 				if (iColumnNo == 0) {
 					return;
@@ -1322,6 +1300,31 @@ public class TableViewSWTImpl
 				return;
 			}
 
+			if (!isColumnVisible(columnsOrdered[iColumnNo])) {
+				return;
+			}
+
+
+			TableRowSWT row = (TableRowSWT) getRow(item);
+			if (row == null) {
+				return;
+			}
+
+			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
+			Rectangle cellBounds = item.getBounds(event.index);
+
+			cellBounds.x += 3;
+			cellBounds.width -= 6;
+
+			if (item.getImage(iColumnNo) != null) {
+				cellBounds.x += 18;
+				cellBounds.width -= 18;
+			}
+
+			if (cellBounds.width <= 0 || cellBounds.height <= 0) {
+				return;
+			}
+
 			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
 
 			if (!cell.isUpToDate()) {
@@ -1329,11 +1332,21 @@ public class TableViewSWTImpl
 				cell.refresh(true, true);
 				return;
 			}
+			
+			String text = cell.getText();
 
-			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds);
-			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-					true,
-					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
+			if (text.length() > 0) {
+				Image image = item.getImage(event.index);
+				if (image != null) {
+					int ofs = image.getBounds().width;
+					cellBounds.x += ofs;
+					cellBounds.width -= ofs;
+				}
+  			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds);
+  			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
+  					true,
+  					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
+			}
 
 			if (cell.needsPainting()) {
 				cell.doPaint(event.gc);

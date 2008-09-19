@@ -114,7 +114,7 @@ public class Utils
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
 			|| SWT.getVersion() >= 3212;
 
-	public static final boolean SWT32_TABLEPAINT = false; //SWT.getVersion() >= 3200;
+	public static final boolean SWT32_TABLEPAINT = SWT.getVersion() >= 3200;
 
 	/**
 	 * Debug/Diagnose SWT exec calls.  Provides usefull information like how
