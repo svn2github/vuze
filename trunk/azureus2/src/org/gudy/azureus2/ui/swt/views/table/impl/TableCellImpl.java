@@ -44,9 +44,7 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -102,6 +100,7 @@ public class TableCellImpl
 	private ArrayList cellMouseListeners;
 	private ArrayList cellMouseMoveListeners;
 	private ArrayList cellVisibilityListeners;
+	private ArrayList cellSWTPaintListeners;
   private TableColumnCore tableColumn;
   private byte refreshErrLoopCount;
   private byte tooltipErrLoopCount;
@@ -864,6 +863,41 @@ public class TableCellImpl
 		}
 	}
 
+	/**
+	 * @param listenerObject
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void addSWTPaintListener(TableCellSWTPaintListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellSWTPaintListeners == null)
+				cellSWTPaintListeners = new ArrayList(1);
+
+			cellSWTPaintListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void invokeSWTPaintListeners(GC gc) {
+		if (cellSWTPaintListeners == null)
+			return;
+
+		for (int i = 0; i < cellSWTPaintListeners.size(); i++) {
+			try {
+				TableCellSWTPaintListener l = (TableCellSWTPaintListener) (cellSWTPaintListeners.get(i));
+
+				l.cellPaint(gc, this);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
 	public void addListeners(Object listenerObject) {
 		if (listenerObject instanceof TableCellDisposeListener) {
 			addDisposeListener((TableCellDisposeListener)listenerObject);
@@ -885,6 +919,9 @@ public class TableCellImpl
 
 		if (listenerObject instanceof TableCellVisibilityListener)
 			addVisibilityListener((TableCellVisibilityListener)listenerObject);
+
+		if (listenerObject instanceof TableCellSWTPaintListener)
+			addSWTPaintListener((TableCellSWTPaintListener)listenerObject);
 	}
 
 	/**
@@ -1164,6 +1201,9 @@ public class TableCellImpl
   }
 
   public boolean needsPainting() {
+  	if (cellSWTPaintListeners != null) {
+  		return true;
+  	}
   	if (bufferedTableItem == null) {
   		return false;
   	}
@@ -1184,6 +1224,9 @@ public class TableCellImpl
 		if (bDebug) {
 			debug("doPaint up2date:" + hasFlag(FLAG_UPTODATE) + ";v:" + hasFlag(FLAG_VALID) + ";rl=" + refreshListeners);
 		}
+		
+		invokeSWTPaintListeners(gc);
+		
     bufferedTableItem.doPaint(gc);
     
     if (childCells != null) {
