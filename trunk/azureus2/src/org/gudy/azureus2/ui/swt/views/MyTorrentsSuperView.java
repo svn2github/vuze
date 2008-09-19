@@ -214,8 +214,12 @@ public class MyTorrentsSuperView extends AbstractIView implements
     if (getComposite() == null || getComposite().isDisposed())
       return;
 
-    seedingview.refresh();
-    torrentview.refresh();
+    if (seedingview != null) {
+    	seedingview.refresh();
+    }
+    if (torrentview != null) {
+    	torrentview.refresh();
+    }
   }
 
   public void updateLanguage() {
@@ -224,8 +228,12 @@ public class MyTorrentsSuperView extends AbstractIView implements
     if (getComposite() == null || getComposite().isDisposed())
       return;
 
-    seedingview.updateLanguage();
-    torrentview.updateLanguage();
+    if (seedingview != null) {
+    	seedingview.updateLanguage();
+    }
+    if (torrentview != null) {
+    	torrentview.updateLanguage();
+    }
 	}
 
 	public String getFullTitle() {
@@ -236,9 +244,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
   private MyTorrentsView getCurrentView() {
     // wrap in a try, since the controls may be disposed
     try {
-      if (torrentview.isTableFocus())
+      if (torrentview != null && torrentview.isTableFocus())
         lastSelectedView = torrentview;
-      else if (seedingview.isTableFocus())
+      else if (seedingview != null && seedingview.isTableFocus())
       	lastSelectedView = seedingview;
     } catch (Exception ignore) {/*ignore*/}
 
