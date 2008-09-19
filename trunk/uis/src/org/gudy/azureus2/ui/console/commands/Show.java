@@ -654,6 +654,10 @@ public class Show extends IConsoleCommand {
 			
 			for (int i=0;i<dhts.length;i++){
 				
+				if ( i > 0 ){
+					ci.out.println("");
+				}
+				
 				DHT	dht = dhts[i];
 				
 				DHTTransport transport = dht.getTransport();
