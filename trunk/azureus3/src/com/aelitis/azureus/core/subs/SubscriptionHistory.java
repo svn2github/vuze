@@ -70,6 +70,9 @@ SubscriptionHistory
 	public int
 	getNumRead();
 	
+	public int
+	getCheckFrequencyMins();
+	
 	public SubscriptionResult[]
 	getResults(
 		boolean		include_deleted );

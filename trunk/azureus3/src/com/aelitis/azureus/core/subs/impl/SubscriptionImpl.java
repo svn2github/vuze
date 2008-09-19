@@ -145,7 +145,8 @@ SubscriptionImpl
 	
 	protected static String
 	getSkeletonJSON(
-		Engine		engine )
+		Engine		engine,
+		int			check_interval_mins )
 	{
 		JSONObject	map = new JSONObject();
 		
@@ -159,7 +160,7 @@ SubscriptionImpl
 		
 		Map schedule = new HashMap();
 		
-		schedule.put( "interval", new Long( 120 ));
+		schedule.put( "interval", new Long( check_interval_mins ));
 		
 		List	days = new ArrayList();
 		

@@ -92,7 +92,7 @@ import com.aelitis.azureus.util.ImportExportUtils;
 public class 
 SubscriptionManagerImpl 
 	implements SubscriptionManager
-{
+{	
 	private static final String	CONFIG_FILE = "subscriptions.config";
 	private static final String	LOGGER_NAME = "Subscriptions";
 
@@ -503,17 +503,19 @@ SubscriptionManagerImpl
 	public Subscription
 	createSingletonRSS(
 		String		name,
-		URL			url )
+		URL			url,
+		int			check_interval_mins )
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSS( name, url, SubscriptionImpl.ADD_TYPE_CREATE ));
+		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE ));
 	}
 	
-	public Subscription
-	createSingletonRSS(
+	protected Subscription
+	createSingletonRSSSupport(
 		String		name,
 		URL			url,
+		int			check_interval_mins,
 		int			add_type )
 		
 		throws SubscriptionException
@@ -532,9 +534,14 @@ SubscriptionManagerImpl
 			
 			singleton_details.put( "name", name2 );
 			
+			if ( check_interval_mins != SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS ){
+				
+				singleton_details.put( "ci", new Long( check_interval_mins ));
+			}
+			
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
-			String	json = SubscriptionImpl.getSkeletonJSON( engine );
+			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json, add_type );
 			
@@ -558,9 +565,11 @@ SubscriptionManagerImpl
 			
 			URL	url = new URL( ImportExportUtils.importString( singleton_details, "key" ));
 			
+			int	check_interval_mins = (int)ImportExportUtils.importLong( singleton_details, "ci", SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS );
+			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSS( name, url, add_type );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, check_interval_mins, add_type );
 			
 			return( s );
 			
@@ -572,6 +581,7 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	/*
 	public Subscription 
 	createRSS(
 		String		name,
@@ -592,7 +602,7 @@ SubscriptionManagerImpl
 		
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
-			String	json = SubscriptionImpl.getSkeletonJSON( engine );
+			String	json = SubscriptionImpl.getSkeletonJSON( engine, DEFAULT_CHECK_INTERVAL_MINS );
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
@@ -610,6 +620,7 @@ SubscriptionManagerImpl
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
 	}
+	*/
 	
 	protected SubscriptionImpl
 	addSubscription(
@@ -915,15 +926,21 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
+		boolean	log_errors = true;
+		
 		try{
 			try{
 				if ( type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON ){
 					
-					String	name = new String((byte[])map.get( "name" ));
+					String	name = new String((byte[])map.get( "name" ), "UTF-8" );
 					
-					URL	url = new URL( new String((byte[])map.get( "url" )));
+					URL	url = new URL( new String((byte[])map.get( "url" ), "UTF-8" ));
 					
-					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url );
+					Long	l_interval = (Long)map.get( "check_interval_mins" );
+					
+					int	interval = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
+					
+					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSS( name, url, interval );
 					
 					SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
 
@@ -962,6 +979,8 @@ SubscriptionManagerImpl
 							
 							if ( res != UIManagerEvent.MT_YES ){	
 							
+								log_errors = false;
+								
 								throw( new SubscriptionException( "User declined addition" ));
 							}
 						}
@@ -1068,7 +1087,7 @@ SubscriptionManagerImpl
 			}
 		}catch( SubscriptionException e ){
 			
-			if ( warn_user ){
+			if ( warn_user && log_errors ){
 				
 				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
@@ -4223,7 +4242,8 @@ SubscriptionManagerImpl
 			Subscription subs = 
 				getSingleton(true).createSingletonRSS(
 						NAME,
-						new URL( URL_STR ));
+						new URL( URL_STR ),
+						240 );
 			
 			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
 			
@@ -4234,6 +4254,7 @@ SubscriptionManagerImpl
 			
 			map.put( "name", NAME );
 			map.put( "url", URL_STR );
+			map.put( "check_interval_mins", new Long( subs.getHistory().getCheckFrequencyMins()));
 			
 			vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON, map );
 			

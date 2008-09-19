@@ -26,6 +26,7 @@ import java.util.StringTokenizer;
 
 import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;
@@ -80,19 +81,24 @@ public abstract class Result {
 	}
 	
 	
-	public String getNameHTML() {
+	/*
+	public String getNameHTML() {		
 		if(getName() != null) {
-			return Entities.XML.escape(getName());
+			return( getName());
+			//return( XUXmlWriter.escapeXML( getName()));
+			//return Entities.XML.escape(getName());
 		}
 		return null;
 	}
 	
 	public String getCategoryHTML() {
 		if(getCategory() != null) {
-			return Entities.XML.escape(getCategory());
+			return( getCategory());
+			//return Entities.XML.escape(getCategory());
 		}
 		return null;
 	}
+	*/
 	
 	/**
 	 * 
@@ -160,8 +166,8 @@ public abstract class Result {
 			object.put("ts", "0");
 		}
 		
-		object.put("c", this.getCategoryHTML());
-		object.put("n",this.getNameHTML());
+		object.put("c", this.getCategory());
+		object.put("n",this.getName());
 		
 		if(this.getNbSeeds() >= 0) {
 			object.put("s","" + this.getNbSeeds());

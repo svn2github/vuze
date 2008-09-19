@@ -608,7 +608,7 @@ SubscriptionManagerUI
 				subscriptionAdded(
 					Subscription 		subscription ) 
 				{
-					addSubscription( side_bar, subscription );
+					addSubscription( side_bar, subscription, true );
 				}
 	
 				public void
@@ -637,7 +637,7 @@ SubscriptionManagerUI
 		
 		for (int i=0;i<subs.length;i++){
 			
-			addSubscription( side_bar, subs[i] );
+			addSubscription( side_bar, subs[i], false );
 		}
 	}
 	
@@ -648,18 +648,19 @@ SubscriptionManagerUI
 	{
 		if ( subs.isSubscribed()){
 			
-			addSubscription(side_bar, subs);
+			addSubscription( side_bar, subs, true );
 			
 		}else{
 			
-			removeSubscription(side_bar, subs);
+			removeSubscription( side_bar, subs);
 		}
 	}
 	
 	protected void
 	addSubscription(
 		final SideBar			side_bar,
-		final Subscription		subs )
+		final Subscription		subs,
+		final boolean			show )
 	{
 		if ( !subs.isSubscribed()){
 			
@@ -704,7 +705,7 @@ SubscriptionManagerUI
 										key, 
 										subs, 
 										false, 
-										true );
+										show );
 								
 								new_si.setTreeItem( tree_item );
 								
@@ -1265,7 +1266,8 @@ SubscriptionManagerUI
 					"History: " + 
 					"enabled=" + history.isEnabled() +
 					", auto=" + history.isAutoDownload() +
-					", scan=" + new SimpleDateFormat().format(new Date( history.getLastScanTime())) +
+					", last_scan=" + new SimpleDateFormat().format(new Date( history.getLastScanTime())) +
+					", next_scan=" + new SimpleDateFormat().format(new Date( history.getNextScanTime())) +
 					", last_new=" + new SimpleDateFormat().format(new Date( history.getLastNewResultTime())) +
 					", read=" + history.getNumRead() +
 					" ,unread=" + history.getNumUnread());

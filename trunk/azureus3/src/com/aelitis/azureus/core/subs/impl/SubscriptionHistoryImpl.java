@@ -34,6 +34,8 @@ public class
 SubscriptionHistoryImpl
 	implements SubscriptionHistory
 {
+	public static final int	DEFAULT_CHECK_INTERVAL_MINS		= 120;
+
 	private SubscriptionManagerImpl		manager;
 	private SubscriptionImpl			subs;
 	
@@ -232,6 +234,29 @@ SubscriptionHistoryImpl
 				log( "Failed to decode schedule " + schedule, e );
 				
 				return( Long.MAX_VALUE );
+			}
+		}
+	}
+	
+	public int
+	getCheckFrequencyMins()
+	{
+		Map	schedule = subs.getScheduleConfig();
+		
+		if ( schedule.size() == 0  ){
+			
+			return( DEFAULT_CHECK_INTERVAL_MINS );
+			
+		}else{
+			
+			try{		
+				int	interval_min = ((Long)schedule.get( "interval" )).intValue();
+				
+				return( interval_min );
+				
+			}catch( Throwable e ){
+								
+				return( DEFAULT_CHECK_INTERVAL_MINS );
 			}
 		}
 	}
