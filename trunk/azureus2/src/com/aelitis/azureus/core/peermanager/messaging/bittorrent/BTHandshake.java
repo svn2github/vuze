@@ -44,10 +44,10 @@ public class BTHandshake implements BTMessage, RawMessage {
   // Set seventh bit (2) and eight bit (1) to force AZMP over LTEP. [current behaviour]
   // Set seventh bit (2) only to prefer AZMP over LTEP.
   // Set eighth bit (1) only to prefer LTEP over AZMP.
-  private static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
+  //private static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
   // amc1: Temporary change for debugging purposes - don't let this go into a stable release.
-  //private static final byte[] AZ_RESERVED = new byte[]{(byte)193, (byte)193, 0, 0, 0, (byte)19, 0, 0 };  
+  private static final byte[] AZ_RESERVED = new byte[]{(byte)193, (byte)193, 0, 0, 0, (byte)19, 0, 0 };  
 
   public static void setMainlineDHTEnabled(boolean enabled) {
 	  if (enabled) {
@@ -102,7 +102,7 @@ public class BTHandshake implements BTMessage, RawMessage {
     buffer.flip( DirectByteBuffer.SS_MSG );
   }
   
-  public byte[] getReserved() {  return duplicate(reserved_bytes);  }
+  public byte[] getReserved() {  return reserved_bytes;  }
   
   public byte[] getDataHash() {  return datahash_bytes;  }
   
