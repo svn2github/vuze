@@ -559,6 +559,10 @@ public class ConfigurationDefaults {
 
     def.put( SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST, TRUE );
     def.put( SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST, new Long(2) );
+    
+    	// subscriptions
+    
+    def.put( "subscriptions.max.non.deleted.results", new Long( 256 ));
 }
   
   protected 
