@@ -47,7 +47,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   //private static final byte[] AZ_RESERVED = new byte[]{(byte)128, 0, 0, 0, 0, (byte)19, 0, 0 };
   
   // amc1: Temporary change for debugging purposes - don't let this go into a stable release.
-  private static final byte[] AZ_RESERVED = new byte[]{(byte)193, (byte)193, 0, 0, 0, (byte)19, 0, 0 };  
+  private static final byte[] AZ_RESERVED = new byte[]{(byte)192, 0, 0, 0, 0, (byte)19, 0, 0 };  
 
   public static void setMainlineDHTEnabled(boolean enabled) {
 	  if (enabled) {
