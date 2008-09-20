@@ -69,6 +69,8 @@ SubscriptionHistoryImpl
 		
 		SubscriptionResultImpl[] result;
 		
+		int	max_results = manager.getMaxNonDeletedResults();
+		
 		synchronized( this ){
 			
 			boolean	got_new_or_changed_result	= false;
@@ -121,6 +123,37 @@ SubscriptionHistoryImpl
 					if ( existing.updateFrom( r )){
 						
 						got_new_or_changed_result = true;
+					}
+				}
+			}
+			
+				// see if we need to delete any old ones
+			
+			if ( max_results > 0 && (new_unread + new_read ) > max_results ){
+				
+				for (int i=0;i<new_results.size();i++){
+					
+					SubscriptionResultImpl r = (SubscriptionResultImpl)new_results.get(i);
+					
+					if ( !r.isDeleted()){
+						
+						if ( r.getRead()){
+							
+							new_read--;
+							
+						}else{
+							
+							new_unread--;
+						}
+						
+						r.deleteInternal();
+						
+						got_new_or_changed_result = true;
+						
+						if (( new_unread + new_read ) <= max_results ){
+							
+							break;
+						}
 					}
 				}
 			}
@@ -538,6 +571,62 @@ SubscriptionHistoryImpl
 				manager.saveResults( subs, results );
 				
 				changed = true;
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
+	protected void
+	checkMaxResults(
+		int		max_results )
+	{
+		if ( max_results <= 0 ){
+			
+			return;
+		}
+		
+		boolean	changed = false;
+
+		synchronized( this ){
+
+			if ((num_unread + num_read ) > max_results ){
+
+				SubscriptionResultImpl[] results = manager.loadResults( subs );
+				
+				for (int i=0;i<results.length;i++){
+					
+					SubscriptionResultImpl r = results[i];
+					
+					if ( !r.isDeleted()){
+						
+						if ( r.getRead()){
+							
+							num_read--;
+							
+						}else{
+							
+							num_unread--;
+						}
+						
+						r.deleteInternal();
+						
+						changed = true;
+						
+						if (( num_unread + num_read ) <= max_results ){
+							
+							break;
+						}
+					}
+				}
+				
+				if ( changed ){
+					
+					manager.saveResults( subs, results );
+				}
 			}
 		}
 		

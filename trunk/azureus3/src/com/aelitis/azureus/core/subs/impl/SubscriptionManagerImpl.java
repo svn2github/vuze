@@ -33,6 +33,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -96,6 +98,8 @@ SubscriptionManagerImpl
 	private static final String	CONFIG_FILE = "subscriptions.config";
 	private static final String	LOGGER_NAME = "Subscriptions";
 
+	private static final String CONFIG_MAX_RESULTS = "subscriptions.max.non.deleted.results";
+	
 	private static SubscriptionManagerImpl		singleton;
 	
 	public static void
@@ -442,6 +446,27 @@ SubscriptionManagerImpl
 							
 							publishSubscriptions();
 							
+							COConfigurationManager.addParameterListener(
+									CONFIG_MAX_RESULTS,
+									new ParameterListener()
+									{
+										public void 
+										parameterChanged(
+											String	 name )
+										{
+											final int	max_results = COConfigurationManager.getIntParameter( CONFIG_MAX_RESULTS );
+											
+											new AEThread2( "Subs:max results changer", true )
+											{
+												public void
+												run()
+												{
+													checkMaxResults( max_results );
+												}
+											}.start();
+										}
+									});
+							
 							SimpleTimer.addPeriodicEvent(
 									"SubscriptionChecker",
 									TIMER_PERIOD,
@@ -465,6 +490,18 @@ SubscriptionManagerImpl
 		}
 	}
 
+	protected void
+	checkMaxResults(
+		int		max )
+	{
+		Subscription[] subs = getSubscriptions();
+		
+		for (int i=0;i<subs.length;i++){
+			
+			((SubscriptionHistoryImpl)subs[i].getHistory()).checkMaxResults( max );
+		}
+	}
+	
 	public SubscriptionScheduler
 	getScheduler()
 	{
@@ -1126,7 +1163,7 @@ SubscriptionManagerImpl
 	{
 		synchronized( this ){
 			
-			return((Subscription[])subscriptions.toArray( new Subscription[subscriptions.size()]));
+			return((SubscriptionImpl[])subscriptions.toArray( new SubscriptionImpl[subscriptions.size()]));
 		}
 	}
 	
@@ -4046,6 +4083,23 @@ SubscriptionManagerImpl
 		}
 		
 		return((SubscriptionResultImpl[])results.toArray( new SubscriptionResultImpl[results.size()] ));
+	}
+	
+	
+	public int
+	getMaxNonDeletedResults()
+	{
+		return( COConfigurationManager.getIntParameter( CONFIG_MAX_RESULTS ));
+	}
+	
+	public void
+	setMaxNonDeletedResults(
+		int		max )
+	{
+		if ( max != getMaxNonDeletedResults()){
+			
+			COConfigurationManager.setParameter( CONFIG_MAX_RESULTS, max );
+		}
 	}
 	
 	protected void

@@ -30,15 +30,12 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
@@ -52,6 +49,7 @@ import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
@@ -60,10 +58,13 @@ import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
@@ -134,192 +135,192 @@ SubscriptionManagerUI
 	SubscriptionManagerUI(
 		AzureusCore			core )
 	{
-		PluginInterface	default_pi = core.getPluginManager().getDefaultPluginInterface();
+		final PluginInterface	default_pi = core.getPluginManager().getDefaultPluginInterface();
 		
 		final TableManager	table_manager = default_pi.getUIManager().getTableManager();
 
 		
 		if ( Constants.isCVSVersion()){			
 			
-			// check assoc
-		
-		{
-			final TableContextMenuItem menu_item_itorrents = 
-				table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.lookupassoc");
-			final TableContextMenuItem menu_item_ctorrents 	= 
-				table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.lookupassoc");
+				// check assoc
 			
-			menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
-			menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
-	
-			MenuItemListener listener = 
-				new MenuItemListener()
-				{
-					public void 
-					selected(
-						MenuItem 	menu, 
-						Object 		target) 
+			{
+				final TableContextMenuItem menu_item_itorrents = 
+					table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.lookupassoc");
+				final TableContextMenuItem menu_item_ctorrents 	= 
+					table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.lookupassoc");
+				
+				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
+				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_PUSH);
+		
+				MenuItemListener listener = 
+					new MenuItemListener()
 					{
-						TableRow[]	rows = (TableRow[])target;
-						
-						if ( rows.length > 0 ){
+						public void 
+						selected(
+							MenuItem 	menu, 
+							Object 		target) 
+						{
+							TableRow[]	rows = (TableRow[])target;
 							
-							Download download = (Download)rows[0].getDataSource();
-							
-							new SubscriptionListWindow(PluginCoreUtils.unwrap(download), false);
-						}
-						/*
-						for (int i=0;i<rows.length;i++){
-							
-							Download download = (Download)rows[i].getDataSource();
-							
-							Torrent t = download.getTorrent();
-							
-							if ( t != null ){
+							if ( rows.length > 0 ){
 								
-								try{
-									lookupAssociations( 
-										t.getHash(),
-										new SubscriptionLookupListener()
+								Download download = (Download)rows[0].getDataSource();
+								
+								new SubscriptionListWindow(PluginCoreUtils.unwrap(download), false);
+							}
+							/*
+							for (int i=0;i<rows.length;i++){
+								
+								Download download = (Download)rows[i].getDataSource();
+								
+								Torrent t = download.getTorrent();
+								
+								if ( t != null ){
+									
+									try{
+										lookupAssociations( 
+											t.getHash(),
+											new SubscriptionLookupListener()
+											{
+												public void
+												found(
+													byte[]					hash,
+													Subscription			subscription )
+												{
+													log( "    lookup: found " + ByteFormatter.encodeString( hash ) + " -> " + subscription.getName());
+												}
+												
+												public void
+												complete(
+													byte[]					hash,
+													Subscription[]			subscriptions )
+												{
+													log( "    lookup: complete " + ByteFormatter.encodeString( hash ) + " -> " +subscriptions.length );
+		
+												}
+												
+												public void
+												failed(
+													byte[]					hash,
+													SubscriptionException	error )
+												{
+													log( "    lookup: failed", error );
+												}
+											});
+										
+									}catch( Throwable e ){
+										
+										log( "Lookup failed", e );
+									}
+								}	
+							}*/
+						}
+					};
+				
+				menu_item_itorrents.addMultiListener( listener );
+				menu_item_ctorrents.addMultiListener( listener );	
+			}
+			
+				// make assoc - CVS only as for testing purposes
+			
+			if ( Constants.isCVSVersion()){
+			
+				final TableContextMenuItem menu_item_itorrents = 
+					table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
+				final TableContextMenuItem menu_item_ctorrents 	= 
+					table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.addassoc");
+				
+				menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+				menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_MENU);
+				
+				MenuItemFillListener	menu_fill_listener = 
+					new MenuItemFillListener()
+					{
+						public void
+						menuWillBeShown(
+							MenuItem	menu,
+							Object		target )
+						{	
+							if ( subs_man == null ){
+								
+								return;
+							}
+							
+							TableRow[]	rows;
+							
+							if ( target instanceof TableRow[] ){
+								
+								rows = (TableRow[])target;
+								
+							}else{
+								
+								rows = new TableRow[]{ (TableRow)target };
+							}
+							
+							final List	hashes = new ArrayList();
+							
+							for (int i=0;i<rows.length;i++){
+								
+								Download	download = (Download)rows[i].getDataSource();
+							
+								if ( download != null ){
+									
+									Torrent torrent = download.getTorrent();
+									
+									if ( torrent != null ){
+										
+										hashes.add( torrent.getHash());
+									}
+								}
+							}
+														
+							menu.removeAllChildItems();
+							
+							boolean enabled = hashes.size() > 0;
+							
+							if ( enabled ){
+							
+								Subscription[] subs = subs_man.getSubscriptions();
+								
+								boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
+								
+								TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
+																
+								for (int i=0;i<subs.length;i++){
+									
+									final Subscription	sub = subs[i];
+									
+									TableContextMenuItem item =
+										table_manager.addContextMenuItem(
+											parent,
+											"!" + sub.getName() + "!");
+									
+									item.addListener(
+										new MenuItemListener()
 										{
-											public void
-											found(
-												byte[]					hash,
-												Subscription			subscription )
+											public void 
+											selected(
+												MenuItem 	menu,
+												Object 		target ) 
 											{
-												log( "    lookup: found " + ByteFormatter.encodeString( hash ) + " -> " + subscription.getName());
-											}
-											
-											public void
-											complete(
-												byte[]					hash,
-												Subscription[]			subscriptions )
-											{
-												log( "    lookup: complete " + ByteFormatter.encodeString( hash ) + " -> " +subscriptions.length );
-	
-											}
-											
-											public void
-											failed(
-												byte[]					hash,
-												SubscriptionException	error )
-											{
-												log( "    lookup: failed", error );
+												for (int i=0;i<hashes.size();i++){
+													
+													sub.addAssociation( (byte[])hashes.get(i));
+												}
 											}
 										});
-									
-								}catch( Throwable e ){
-									
-									log( "Lookup failed", e );
-								}
-							}	
-						}*/
-					}
-				};
-			
-			menu_item_itorrents.addMultiListener( listener );
-			menu_item_ctorrents.addMultiListener( listener );	
-		}
-		
-			// make assoc - CVS only as for testing purposes
-		
-		if ( Constants.isCVSVersion()){
-		
-			final TableContextMenuItem menu_item_itorrents = 
-				table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
-			final TableContextMenuItem menu_item_ctorrents 	= 
-				table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, "azsubs.contextmenu.addassoc");
-			
-			menu_item_itorrents.setStyle(TableContextMenuItem.STYLE_MENU);
-			menu_item_ctorrents.setStyle(TableContextMenuItem.STYLE_MENU);
-			
-			MenuItemFillListener	menu_fill_listener = 
-				new MenuItemFillListener()
-				{
-					public void
-					menuWillBeShown(
-						MenuItem	menu,
-						Object		target )
-					{	
-						if ( subs_man == null ){
-							
-							return;
-						}
-						
-						TableRow[]	rows;
-						
-						if ( target instanceof TableRow[] ){
-							
-							rows = (TableRow[])target;
-							
-						}else{
-							
-							rows = new TableRow[]{ (TableRow)target };
-						}
-						
-						final List	hashes = new ArrayList();
-						
-						for (int i=0;i<rows.length;i++){
-							
-							Download	download = (Download)rows[i].getDataSource();
-						
-							if ( download != null ){
-								
-								Torrent torrent = download.getTorrent();
-								
-								if ( torrent != null ){
-									
-									hashes.add( torrent.getHash());
 								}
 							}
-						}
-													
-						menu.removeAllChildItems();
-						
-						boolean enabled = hashes.size() > 0;
-						
-						if ( enabled ){
-						
-							Subscription[] subs = subs_man.getSubscriptions();
 							
-							boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
-							
-							TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
-															
-							for (int i=0;i<subs.length;i++){
-								
-								final Subscription	sub = subs[i];
-								
-								TableContextMenuItem item =
-									table_manager.addContextMenuItem(
-										parent,
-										"!" + sub.getName() + "!");
-								
-								item.addListener(
-									new MenuItemListener()
-									{
-										public void 
-										selected(
-											MenuItem 	menu,
-											Object 		target ) 
-										{
-											for (int i=0;i<hashes.size();i++){
-												
-												sub.addAssociation( (byte[])hashes.get(i));
-											}
-										}
-									});
-							}
+							menu.setEnabled( enabled );
 						}
-						
-						menu.setEnabled( enabled );
-					}
-				};
-				
-			menu_item_itorrents.addFillListener( menu_fill_listener );
-			menu_item_ctorrents.addFillListener( menu_fill_listener );		
+					};
+					
+				menu_item_itorrents.addFillListener( menu_fill_listener );
+				menu_item_ctorrents.addFillListener( menu_fill_listener );		
+			}
 		}
-	}
 	
 		TableCellRefreshListener	refresh_listener = 
 			new TableCellRefreshListener()
@@ -393,7 +394,9 @@ SubscriptionManagerUI
 		subs_c_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE);	
 		subs_cb_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);	
 
-		default_pi.getUIManager().addUIListener(
+		final UIManager	ui_manager = default_pi.getUIManager();
+		
+		ui_manager.addUIListener(
 				new UIManagerListener()
 				{
 					public void
@@ -441,6 +444,38 @@ SubscriptionManagerUI
 								});	
 							
 
+							BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
+									ConfigSection.SECTION_ROOT, "Subscriptions");
+
+							final IntParameter max_results = 
+								configModel.addIntParameter2( 
+									"subscriptions.config.maxresults", 
+									"subscriptions.config.maxresults", 
+									subs_man.getMaxNonDeletedResults());
+								
+							default_pi.getPluginconfig().addListener(
+								new PluginConfigListener()
+								{
+									public void 
+									configSaved() 
+									{
+										subs_man.setMaxNonDeletedResults(max_results.getValue());
+									}
+								});
+							
+							/* grr, this generated intermediate events...
+							max_results.addListener(
+								new ParameterListener()
+								{
+									public void 
+									parameterChanged(
+										Parameter param )
+									{
+										subs_man.setMaxNonDeletedResults( max_results.getValue());
+									}
+								});
+							*/
+							
 							SkinViewManager.addListener(
 								new SkinViewManagerListener() 
 								{
@@ -470,7 +505,6 @@ SubscriptionManagerUI
 					{
 					}
 				});
-		
 	}
 	
 	private TableColumn createSubsColumn(TableManager table_manager,TableCellRefreshListener refresh_listener,TableCellMouseListener mouse_listener,String tableID) {

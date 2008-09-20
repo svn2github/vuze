@@ -317,7 +317,12 @@ public class Initializer
 
 		reportCurrentTaskByKey("splash.initializeCore");
 
-		new SubscriptionManagerUI( core );
+		try{
+			new SubscriptionManagerUI( core );
+			
+		}catch( Throwable e ){
+			Debug.printStackTrace(e);
+		}
 		
 		core.start();
 

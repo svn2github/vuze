@@ -91,7 +91,14 @@ SubscriptionManager
 	
 	public SubscriptionScheduler
 	getScheduler();
-			
+	
+	public int
+	getMaxNonDeletedResults();
+	
+	public void
+	setMaxNonDeletedResults(
+		int		max );
+	
 	public void
 	addListener(
 		SubscriptionManagerListener	listener );
