@@ -31,6 +31,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -691,15 +692,18 @@ public class TableViewSWTImpl
 			});
 		}
 		
-		table.getHorizontalBar().addSelectionListener(new SelectionListener() {
-			public void widgetDefaultSelected(SelectionEvent e) {
-				columnVisibilitiesChanged = true;				
-			}
-			
-			public void widgetSelected(SelectionEvent e) {
-				columnVisibilitiesChanged = true;
-			}
-		});
+		ScrollBar horizontalBar = table.getHorizontalBar();
+		if (horizontalBar != null) {
+  		horizontalBar.addSelectionListener(new SelectionListener() {
+  			public void widgetDefaultSelected(SelectionEvent e) {
+  				columnVisibilitiesChanged = true;				
+  			}
+  			
+  			public void widgetSelected(SelectionEvent e) {
+  				columnVisibilitiesChanged = true;
+  			}
+  		});
+		}
 		
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
