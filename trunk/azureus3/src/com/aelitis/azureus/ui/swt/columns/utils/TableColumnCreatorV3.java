@@ -71,6 +71,7 @@ public class TableColumnCreatorV3
 			TableColumnCore tc = (TableColumnCore) mapTCs.get(id);
 			if (tc != null) {
 				tc.setVisible(true);
+				tc.setPositionNoShift(i);
 			}
 		}
 	}
