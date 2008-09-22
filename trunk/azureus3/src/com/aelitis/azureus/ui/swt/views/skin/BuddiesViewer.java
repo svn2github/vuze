@@ -840,7 +840,7 @@ public class BuddiesViewer
 		if (null != FAQObject) {
 			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
 			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					String url = Constants.URL_FAQ_BY_TOPIC_ENTRY
 							+ FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS;
 					Utils.launch(url);

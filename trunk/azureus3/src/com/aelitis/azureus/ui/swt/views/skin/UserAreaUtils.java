@@ -71,25 +71,25 @@ public class UserAreaUtils
 		 */
 
 		SWTSkinObject skinObject = skin.getSkinObject("user-info-image");
-		final Control control = skinObject.getControl();
-		final Menu menu = new Menu(control.getShell(), SWT.POP_UP);
-		fillUserInfoMenu(menu);
-
-		menu.addListener(SWT.Show, new Listener() {
-			public void handleEvent(Event event) {
-				MenuItem[] menuItems = menu.getItems();
-				for (int i = 0; i < menuItems.length; i++) {
-					menuItems[i].dispose();
-				}
-
-				fillUserInfoMenu(menu);
-			}
-		});
-
 		if (skinObject != null) {
+  		final Control control = skinObject.getControl();
+  		final Menu menu = new Menu(control.getShell(), SWT.POP_UP);
+  		fillUserInfoMenu(menu);
+  
+  		menu.addListener(SWT.Show, new Listener() {
+  			public void handleEvent(Event event) {
+  				MenuItem[] menuItems = menu.getItems();
+  				for (int i = 0; i < menuItems.length; i++) {
+  					menuItems[i].dispose();
+  				}
+  
+  				fillUserInfoMenu(menu);
+  			}
+  		});
+
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					Point point = control.getShell().toDisplay(
 							control.getParent().getLocation());
 					point.y += (control.getSize().y / 2) + 10;
@@ -107,7 +107,7 @@ public class UserAreaUtils
 		if (skinObject != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					if (true == LoginInfoManager.getInstance().isLoggedIn()) {
 						/*
 						 * If the user is logged in then go to profile page

@@ -74,7 +74,7 @@ public class ManageCdList
 			SWTSkinButtonUtility btnCountAreaNotOurs = new SWTSkinButtonUtility(
 					skinObject);
 			btnCountAreaNotOurs.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					if (bShowMyPublished) {
 						bShowMyPublished = false;
 
@@ -94,7 +94,7 @@ public class ManageCdList
 			SWTSkinButtonUtility btnCountAreaOurs = new SWTSkinButtonUtility(
 					skinObject);
 			btnCountAreaOurs.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					if (!bShowMyPublished) {
 						bShowMyPublished = true;
 
