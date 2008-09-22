@@ -75,6 +75,8 @@ public class SWTSkinObjectBrowser
 
 	private String urlToUse;
 
+	private boolean forceVisibleAfterLoad;
+
 	/**
 	 * @param skin
 	 * @param properties
@@ -141,8 +143,8 @@ public class SWTSkinObjectBrowser
 			browserID = sID;
 		}
 
-		context = new BrowserContext(browserID, browser, widgetIndicator,
-				properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true));
+		forceVisibleAfterLoad = properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true);
+		context = new BrowserContext(browserID, browser, widgetIndicator, forceVisibleAfterLoad);
 
 		context.addMessageListener(new TorrentListener(core));
 		context.addMessageListener(new DisplayListener(browser));
