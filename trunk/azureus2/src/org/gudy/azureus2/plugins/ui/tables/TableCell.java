@@ -264,12 +264,14 @@ public interface TableCell {
   
   /** Sets the image to be drawn.
    * <p>
-   * In our SWT implementation, setting the graphic, even if it's to the same 
-   * object, will result in a repaint.  We have no idea if you modified the
-   * image itself while keeping the object the same (for example, painting
-   * on the existing image).  So, if you know that you did not change the image
-   * you should check getGraphic() first to see if you really need to set
-   * the image again.
+   * From 3.0.1.1, setting the graphic to the same Graphic object will not
+   * redraw the image.  You need to {@link #invalidate()} the cell if you
+   * know the image bits have changed (or you could pass a new Graphic object
+   * in each time a new image is generated)
+   * <p>  
+   * Previously, setting the graphic to the same object resulted in a repaint.
+   * Plugins were naughty and would do this on every refresh, causing horrible
+   * repaint slowdowns.
    *
    * @param img image to be stored & drawn
    * @return true - image was changed.<br>
