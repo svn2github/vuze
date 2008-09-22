@@ -373,6 +373,9 @@ PRUDPPacketHandlerImpl
 						
 						if ( guess != null ){
 							
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: retrying with bind IP guess of " + guess ));
+
 							try{
 								
 								InetSocketAddress guess_address = new InetSocketAddress( guess, port );
