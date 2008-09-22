@@ -409,8 +409,7 @@ public class BrowserContext
 			
 									}
 									
-								} catch(Exception e) {
-									e.printStackTrace();
+								}catch( Throwable e){
 								}
 								
 								//System.out.println( "Test for t/v: " + event_location + " -> " + isTorrent + "/" + isVuzeFile );
