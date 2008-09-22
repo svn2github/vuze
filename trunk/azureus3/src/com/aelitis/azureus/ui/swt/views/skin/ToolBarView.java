@@ -73,6 +73,8 @@ public class ToolBarView
 	private SWTSkinObject so2nd;
 
 	private SWTSkinObject soGap;
+	
+	private boolean initComplete = false;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
@@ -80,7 +82,6 @@ public class ToolBarView
 		buttonListener = new toolbarButtonListener();
 		gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
-
 		
 		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
 		if (soGap != null) {
@@ -321,6 +322,8 @@ public class ToolBarView
 				updateCoreItems(currentContent, viewID);
 			}
 		});
+		
+		initComplete = true;
 
 		return null;
 	}
@@ -535,7 +538,9 @@ public class ToolBarView
 				((SWTSkinObjectText) soTitle).setTextID(item.getTextID());
 			}
 
-			Utils.relayout(so.getControl().getParent());
+			if (initComplete) {
+				Utils.relayout(so.getControl().getParent());
+			}
 
 			lastControl = item.getSkinButton().getSkinObject().getControl();
 			items.put(item.getId(), item);
@@ -596,7 +601,7 @@ public class ToolBarView
 	private static class toolbarButtonListener
 		extends ButtonListenerAdapter
 	{
-		public void pressed(SWTSkinButtonUtility buttonUtility) {
+		public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
 			item.triggerToolBarItem();
