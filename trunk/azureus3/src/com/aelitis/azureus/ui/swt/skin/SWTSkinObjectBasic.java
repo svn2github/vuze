@@ -137,16 +137,22 @@ public class SWTSkinObjectBasic
 
 		final Listener lShowHide = new Listener() {
 			public void handleEvent(final Event event) {
+				final boolean toBeVisible = event.type == SWT.Show;
+				if (toBeVisible == control.isVisible() && isVisible == toBeVisible) {
+					return;
+				}
+
+				//System.out.println(SWTSkinObjectBasic.this + ">show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible() + ";" + Debug.getCompressedStackTrace());
 				// wait until show or hide event is processed to guarantee
 				// isVisible will be correct for listener triggers
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
+						//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible());
 						if (control == null || control.isDisposed()) {
 							setIsVisible(false);
 							return;
 						}
 
-						boolean toBeVisible = event.type == SWT.Show;
 						if (event.widget == control) {
 							setIsVisible(toBeVisible);
 							return;
@@ -766,7 +772,6 @@ public class SWTSkinObjectBasic
 			bounds.width -= 1;
 			bounds.height -= 1;
 			if (colorBorderParams == null) {
-				System.out.println("MOO" + bounds);
 				e.gc.drawRectangle(bounds);
 			} else {
 				e.gc.drawRoundRectangle(bounds.x, bounds.y, bounds.width,
