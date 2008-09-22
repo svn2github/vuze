@@ -80,6 +80,9 @@ NetworkAdmin
 	public abstract InetAddress[]
 	getAllBindAddresses();
 
+	public abstract InetAddress
+	guessRoutableBindAddress();
+	
 	public abstract NetworkAdminNetworkInterface[]
 	getInterfaces();
 	

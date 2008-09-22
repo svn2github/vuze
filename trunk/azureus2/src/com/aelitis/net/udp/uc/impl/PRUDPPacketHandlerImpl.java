@@ -118,18 +118,15 @@ PRUDPPacketHandlerImpl
 		
 		final AESemaphore init_sem = new AESemaphore("PRUDPPacketHandler:init");
 		
-		Thread t = new AEThread( "PRUDPPacketReciever:".concat(String.valueOf(port)))
+		new AEThread2( "PRUDPPacketReciever:" + port, true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					receiveLoop(init_sem);
 				}
-			};
+			}.start();
 		
-		t.setDaemon(true);
-		
-		t.start();
 		
 		final TimerEventPeriodic[]	f_ev = {null};
 		
@@ -351,19 +348,57 @@ PRUDPPacketHandlerImpl
 				
 				DatagramSocket	new_socket;
 				
-				if ( target_bind_ip == null ){
-					
-					address = new InetSocketAddress("127.0.0.1",port);
-					
-					new_socket = new DatagramSocket( port );
-					
-				}else{
-					
-					address = new InetSocketAddress( target_bind_ip, port );
-					
-					new_socket = new DatagramSocket( address );		
-				}
+				try{
+					if ( target_bind_ip == null ){
 						
+						address = new InetSocketAddress("127.0.0.1",port);
+						
+						new_socket = new DatagramSocket( port );
+						
+					}else{
+						
+						address = new InetSocketAddress( target_bind_ip, port );
+						
+						new_socket = new DatagramSocket( address );		
+					}
+				}catch( BindException e ){
+					
+						// one off attempt to recover by selecting an explicit one.
+						// on  Vista (at least) we sometimes fail with wildcard but succeeed
+						// with explicit (see http://forum.vuze.com/thread.jspa?threadID=77574&tstart=0)
+					
+					if ( target_bind_ip.isAnyLocalAddress()){
+						
+						InetAddress guess = NetworkAdmin.getSingleton().guessRoutableBindAddress();
+						
+						if ( guess != null ){
+							
+							try{
+								
+								InetSocketAddress guess_address = new InetSocketAddress( guess, port );
+								
+								new_socket = new DatagramSocket( guess_address );		
+
+								target_bind_ip 	= guess;
+								address			= guess_address;
+								
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: Switched to explicit bind ip " + target_bind_ip + " after initial bind failure with wildcard (" + e.getMessage() + ")" ));
+
+							}catch( Throwable f ){
+								
+								throw( e );
+							}
+						}else{
+							
+							throw( e );
+						}
+					}else{
+						
+						throw( e );
+					}
+				}
+				
 				new_socket.setReuseAddress(true);
 				
 					// short timeout on receive so that we can interrupt a receive fairly quickly
@@ -496,9 +531,12 @@ PRUDPPacketHandlerImpl
 			
 			init_error	= e;
 			
-			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-					LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { "UDP:"
-					+ port });
+			if (!( e instanceof BindException && Constants.isWindowsVista )){
+				
+				Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+						LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { "UDP:"
+						+ port });
+			}
 			
 			Logger.log(new LogEvent(LOGID, "PRUDPPacketReceiver: "
 					+ "DatagramSocket bind failed on port " + port, e));

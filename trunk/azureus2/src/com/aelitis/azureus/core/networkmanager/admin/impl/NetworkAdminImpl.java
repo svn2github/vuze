@@ -491,6 +491,296 @@ NetworkAdminImpl
 		return nio ? supportsIPv6withNIO : supportsIPv6;
 	}
 	
+	
+	public InetAddress 
+	guessRoutableBindAddress() 
+	{
+		try{
+				// see if we have a choice
+			
+			List	local_addresses 	= new ArrayList();
+			List	non_local_addresses = new ArrayList();
+			
+			try{
+				NetworkAdminNetworkInterface[] interfaces = getInterfaces();
+				
+				List possible = new ArrayList();
+				
+				for (int i=0;i<interfaces.length;i++){
+					
+					NetworkAdminNetworkInterface intf = interfaces[i];
+					
+					NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
+					
+					for (int j=0;j<addresses.length;j++){
+						
+						NetworkAdminNetworkInterfaceAddress address = addresses[j];
+						
+						InetAddress ia = address.getAddress();
+						
+						if ( ia.isLoopbackAddress()){
+							
+							continue;
+						}
+						
+						if ( ia.isLinkLocalAddress() ||	ia.isSiteLocalAddress()){
+							
+							local_addresses.add( ia );
+							
+						}else{
+							
+							non_local_addresses.add( ia );
+						}
+						
+						if ( 	( hasIPV4Potential() && ia instanceof Inet4Address ) ||
+								( hasIPV6Potential() && ia instanceof Inet6Address )){
+							
+							possible.add( ia );
+						}
+					}
+				}
+				
+				if ( possible.size() == 1 ){
+					
+					return((InetAddress)possible.get(0));
+				}
+			}catch( Throwable e ){				
+			}
+			
+				// if we have a socks server then let's use a compatible address for it
+			
+			try{
+				NetworkAdminSocksProxy[] socks = getSocksProxies();
+				
+				if ( socks.length > 0 ){
+					
+					return( mapAddressToBindIP( InetAddress.getByName( socks[0].getHost())));
+				}
+			}catch( Throwable e ){				
+			}
+			
+				// next, same for nat devices
+			
+			try{
+				NetworkAdminNATDevice[] nat = getNATDevices();
+				
+				if ( nat.length > 0 ){
+					
+					return( mapAddressToBindIP( nat[0].getAddress()));
+				}
+			}catch( Throwable e ){				
+			}
+			
+			try{
+				final AESemaphore 	sem 		= new AESemaphore( "NA:conTest" );
+				final InetAddress[]	can_connect = { null };
+				
+				final int	timeout = 10*1000;
+				
+				for (int i=0;i<local_addresses.size();i++){
+					
+					final InetAddress address = (InetAddress)local_addresses.get(i);
+					
+					new AEThread2( "NA:conTest", true )
+					{
+						public void
+						run()
+						{
+							if ( canConnectWithBind( address, timeout )){
+								
+								can_connect[0] = address;
+								
+								sem.release();
+							}
+						}
+					}.start();
+				}
+				
+				if ( sem.reserve( timeout )){
+					
+					return( can_connect[0] );
+				}
+			}catch( Throwable e ){
+				
+			}
+			
+				// take a chance on any non local addresses we have
+			
+			if ( non_local_addresses.size() > 0 ){
+				
+				return( guessAddress( non_local_addresses ));
+			}
+			
+				// lastly, select local one at random
+			
+			if ( local_addresses.size() > 0 ){
+				
+				return( guessAddress( local_addresses ));
+			}
+			
+				// ho hum
+			
+			return( null );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
+	protected boolean
+	canConnectWithBind(
+		InetAddress	bind_address,
+		int			timeout )
+	{
+		Socket	socket = null;
+	
+		try{
+			socket = new Socket();
+
+			socket.bind( new InetSocketAddress( bind_address, 0 ));
+
+			socket.setSoTimeout( timeout );
+
+			socket.connect( new InetSocketAddress( "www.google.com", 80 ), timeout );
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+			
+		}finally{
+			
+			if ( socket != null ){
+				
+				try{
+					socket.close();
+					
+				}catch( Throwable f ){
+				}
+			}
+		}
+	}
+	
+	protected InetAddress
+	mapAddressToBindIP(
+		InetAddress	address )
+	{
+		boolean[]	address_bits = bytesToBits( address.getAddress());
+
+		NetworkAdminNetworkInterface[] interfaces = getInterfaces();
+		
+		InetAddress	best_bind_address	= null;
+		int			best_prefix			= 0;
+		
+		for (int i=0;i<interfaces.length;i++){
+			
+			NetworkAdminNetworkInterface intf = interfaces[i];
+			
+			NetworkAdminNetworkInterfaceAddress[] addresses = intf.getAddresses();
+			
+			for (int j=0;j<addresses.length;j++){
+				
+				NetworkAdminNetworkInterfaceAddress bind_address = addresses[j];
+				
+				InetAddress ba = bind_address.getAddress();
+
+				byte[]	bind_bytes = ba.getAddress();
+		
+				if ( address_bits.length == bind_bytes.length ){
+			
+					boolean[]	bind_bits = bytesToBits( bind_bytes );
+
+					for (int k=0;k<bind_bits.length;k++){
+				
+						if ( address_bits[k] != bind_bits[k] ){
+					
+							break;
+						}
+				
+						if ( k > best_prefix ){
+					
+							best_prefix	= k;
+					
+							best_bind_address	= ba;
+						}
+					}
+				}
+			}
+		}
+		
+		return( best_bind_address );
+	}
+		
+	protected boolean[]
+  	bytesToBits(
+  		byte[]	bytes )
+  	{
+  		boolean[]	res = new boolean[bytes.length*8];
+  		
+  		for (int i=0;i<bytes.length;i++){
+  			
+  			byte	b = bytes[i];
+  			
+  			for (int j=0;j<8;j++){
+  				
+  				res[i*8+j] = (b&(byte)(0x01<<(7-j))) != 0;
+  			}
+  		}
+  				
+  		return( res );
+  	}
+	
+	protected InetAddress
+	guessAddress(
+		List	addresses )
+	{
+			// prioritise 192.168.0.* and 192.168.1.* as common
+			// then ipv4 over ipv6
+		
+		for (int i=0;i<addresses.size();i++){
+			
+			InetAddress address = (InetAddress)addresses.get(i);
+			
+			String str = address.getHostAddress();
+			
+			if ( str.startsWith( "192.168.0." ) || str.startsWith( "192.168.1." )){
+				
+				return( address );
+			}
+		}
+		
+		for (int i=0;i<addresses.size();i++){
+			
+			InetAddress address = (InetAddress)addresses.get(i);
+			
+			if ( address instanceof Inet4Address ){
+				
+				return( address );
+			}
+		}
+		
+		for (int i=0;i<addresses.size();i++){
+			
+			InetAddress address = (InetAddress)addresses.get(i);
+			
+			if ( address instanceof Inet6Address ){
+				
+				return( address );
+			}
+		}
+		
+		if ( addresses.size() > 0 ){
+			
+			return((InetAddress)addresses.get(0));
+		}
+		
+		return( null );
+	}
+	
 	protected void
 	firePropertyChange(
 		String	property )
