@@ -176,6 +176,12 @@ PluginEngine
 		return( false );
 	}
 	
+	public boolean 
+	isShareable() 
+	{
+		return( false );
+	}
+	
 	public String 
 	getIcon() 
 	{

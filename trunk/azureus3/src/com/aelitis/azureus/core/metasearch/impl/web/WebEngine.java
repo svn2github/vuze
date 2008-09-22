@@ -385,6 +385,18 @@ WebEngine
 		return( false );
 	}
 	
+	public boolean 
+	isShareable() 
+	{
+		try{
+			return( !UrlUtils.containsPasskey( new URL( searchURLFormat )));
+			
+		}catch( Throwable e ){
+			
+			return( true );
+		}
+	}
+	
 	protected pageDetails 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,

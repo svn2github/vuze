@@ -179,6 +179,9 @@ Engine
 	supportsContext(
 		String	context_key );
 	
+	public boolean
+	isShareable();
+	
 	public Map 
 	exportToBencodedMap() 
 	

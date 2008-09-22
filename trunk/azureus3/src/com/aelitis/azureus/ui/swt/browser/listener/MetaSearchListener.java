@@ -219,6 +219,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									params.put("name", engine.getName());
 									params.put("favicon", engine.getIcon());
 									params.put("dl_link_css", engine.getDownloadLinkCSS());
+									params.put("shareable", new Boolean( engine.isShareable()));
 									
 									if ( sid != null ){
 										params.put( "sid", sid );
@@ -328,6 +329,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
+				engineMap.put("shareable", new Boolean( engine.isShareable()));
 				params.add(engineMap);
 			}
 			sendBrowserMessage("metasearch", "enginesUsed",params);
@@ -350,6 +352,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				engineMap.put("dl_link_css", engine.getDownloadLinkCSS());
 				engineMap.put("selected", Engine.SEL_STATE_STRINGS[ engine.getSelectionState()]);
 				engineMap.put("type", Engine.ENGINE_SOURCE_STRS[ engine.getSource()]);
+				engineMap.put("shareable", new Boolean( engine.isShareable()));
 				params.add(engineMap);
 			}
 			sendBrowserMessage("metasearch", "engineList",params);
@@ -1001,6 +1004,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "name", subs.getName());
 					result.put( "is_public", new Boolean( subs.isPublic()));
 					result.put( "is_author", new Boolean( subs.isMine()));
+					result.put( "is_shareable", new Boolean( subs.getEngine().isShareable()));
 					
 					SubscriptionHistory history = subs.getHistory();
 					
@@ -1401,6 +1405,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				params.put("name", engine.getName());
 				params.put("favicon", engine.getIcon());
 				params.put("dl_link_css", engine.getDownloadLinkCSS());
+				params.put("shareable", new Boolean( engine.isShareable()));
 				
 				if ( sid != null ){
 					params.put( "sid", sid );
