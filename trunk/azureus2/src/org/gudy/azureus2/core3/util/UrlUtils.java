@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 
@@ -622,5 +623,14 @@ public class UrlUtils
 		}
 		
 		return query_string.indexOf("&" + param_name + "=") != -1;
+	}
+	
+	public static boolean 
+	containsPasskey(
+		URL		url )
+	{
+		String url_str = url.toExternalForm();
+		
+		return( url_str.matches(".*[0-9a-z]{20,40}.*"));
 	}
 }

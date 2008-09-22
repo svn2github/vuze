@@ -1314,8 +1314,8 @@ TorrentUtils
 			return( false );
 		}	
 		
-		String announceURL = torrent.getAnnounceURL().toExternalForm();
-		if(announceURL.matches(".*[0-9a-z]{20,40}.*")) {
+		if ( UrlUtils.containsPasskey( torrent.getAnnounceURL())){
+				
 			return torrent.getPrivate();
 		}
 		
