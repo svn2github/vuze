@@ -57,7 +57,7 @@ public class ColumnInfo
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {
-	public static String COLUMN_ID = "Info";
+	public static final String COLUMN_ID = "Info";
 
 	private static UISWTGraphicImpl graphicInfo;
 
@@ -108,7 +108,7 @@ public class ColumnInfo
 		}
 
 		UISWTGraphic graphic = graphicInfo;
-		cell.setGraphic(graphic);
+		//cell.setGraphic(graphic);
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
