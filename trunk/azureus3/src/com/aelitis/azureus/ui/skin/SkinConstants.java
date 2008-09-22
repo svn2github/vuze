@@ -47,8 +47,6 @@ public class SkinConstants
 
 	public static final String VIEWID_LIBRARY = "library-area";
 
-	public static final String VIEWID_MINILIBRARY = "minilibrary-area";
-
 	public static final String VIEWID_ACTIVITIESVIEW = "vuzeevents-area";
 
 	public static final String VIEWID_TOOLBAR = "global-toolbar";
@@ -67,4 +65,6 @@ public class SkinConstants
 	
 	public static final String VIEWID_LIBRARY_TOOLBAR = "library-list-button-smalltable";
 	public static final String VIEWID_LIBRARY_TOOLBAR_BIG = "library-list-button-bigtable";
+
+	public static final String VIEWID_BROWSER_WELCOME = "welcome";
 }
