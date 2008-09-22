@@ -1564,7 +1564,7 @@ public class SideBar
 			gc.dispose();
 
 			final Shell shell = new Shell(soSideBarContents.getControl().getShell(),
-					SWT.NO_TRIM);
+					SWT.NO_TRIM | SWT.ON_TOP);
 			shell.addPaintListener(new PaintListener() {
 
 				public void paintControl(PaintEvent e) {
@@ -1580,7 +1580,7 @@ public class SideBar
 			shell.setAlpha(255);
 			shell.setVisible(true);
 			//System.out.println("ALPHA");
-			Utils.execSWTThreadLater(10, new AERunnable() {
+			Utils.execSWTThreadLater(15, new AERunnable() {
 				long lastTime;
 
 				public void runSupport() {
@@ -1603,7 +1603,7 @@ public class SideBar
 					if (lastTime > 0 && now - lastTime > 50) {
 						Utils.execSWTThreadLater(0, this);
 					} else {
-						Utils.execSWTThreadLater(10, this);
+						Utils.execSWTThreadLater(15, this);
 					}
 					lastTime = now;
 				};
