@@ -1552,6 +1552,9 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private void doFade(Control oldComposite) {
+		if (oldComposite.isDisposed()) {
+			return;
+		}
 		if (lastImage == null || lastImage.isDisposed()) {
 			Rectangle bounds = oldComposite.getBounds();
 			if (bounds.isEmpty()) {
@@ -1584,6 +1587,9 @@ public class SideBar
 				long lastTime;
 
 				public void runSupport() {
+					if (shell.isDisposed()) {
+						return;
+					}
 					if (lastImage == null || lastImage.isDisposed()) {
 						shell.dispose();
 						return;
