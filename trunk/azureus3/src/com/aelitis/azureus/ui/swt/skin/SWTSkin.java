@@ -48,9 +48,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -537,6 +535,7 @@ public class SWTSkin
 			sMainGroups = new String[] {};
 		}
 
+		
 		for (int i = 0; i < sMainGroups.length; i++) {
 			String sID = sMainGroups[i];
 
@@ -1358,6 +1357,9 @@ public class SWTSkin
 			} else if (sType.equals("separator")) {
 				skinObject = createSeparator(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("button")) {
+				skinObject = createButton(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
@@ -1382,6 +1384,30 @@ public class SWTSkin
 
 		if (skinObject != null) {
 			skinObject.triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
+		}
+
+		return skinObject;
+	}
+
+	/**
+	 * @param properties
+	 * @param sid
+	 * @param configID
+	 * @param typeParams
+	 * @param parentSkinObject
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	private SWTSkinObject createButton(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+
+		SWTSkinObject skinObject = new SWTSkinObjectButton(this, properties, id,
+				configID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		if (bLayoutComplete) {
+			attachControl(skinObject);
 		}
 
 		return skinObject;

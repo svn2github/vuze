@@ -101,7 +101,7 @@ public class TorrentListViewsUtils
 		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					/*
@@ -125,7 +125,7 @@ public class TorrentListViewsUtils
 		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					/*
@@ -148,7 +148,7 @@ public class TorrentListViewsUtils
 		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				for (int i = 0; i < selectedRows.length; i++) {
 					DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
@@ -201,7 +201,7 @@ public class TorrentListViewsUtils
 		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
 					viewDetails(selectedRows[0], PREFIX.substring(0, PREFIX.length() - 1));
@@ -256,7 +256,7 @@ public class TorrentListViewsUtils
 		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length > 0) {
 					String hash = DataSourceUtils.getHash(selectedRows[0].getDataSource(true));
@@ -296,7 +296,7 @@ public class TorrentListViewsUtils
 		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				if (selectedRows.length <= 0) {
 					return;
@@ -443,10 +443,15 @@ public class TorrentListViewsUtils
 
 		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 		btn.addSelectionListener(new ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				String tableID = view.getTableID();
+				TableRowCore focusedRow = view.getFocusedRow();
+				Class cla = null;
+				if (focusedRow != null) {
+					cla = focusedRow.getDataSource().getClass();
+				}
 				new TableColumnEditorWindow(view.getComposite().getShell(), tableID,
-						view.getAllColumns(), view.getFocusedRow(),
+						view.getAllColumns(), view.getFocusedRow(), cla,
 						TableStructureEventDispatcher.getInstance(tableID));
 			}
 		});
@@ -464,7 +469,7 @@ public class TorrentListViewsUtils
 		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 
 		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility) {
+			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 				TableRowCore[] selectedRows = view.getSelectedRows();
 				for (int i = 0; i < selectedRows.length; i++) {
 

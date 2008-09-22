@@ -8,6 +8,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -26,7 +27,7 @@ public class SWTSkinButtonUtility
 
 	public static class ButtonListenerAdapter
 	{
-		public void pressed(SWTSkinButtonUtility buttonUtility) {
+		public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 		}
 		
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
@@ -45,6 +46,11 @@ public class SWTSkinButtonUtility
 	public SWTSkinButtonUtility(SWTSkinObject skinObject, String imageViewID) {
 		this.skinObject = skinObject;
 		this.imageViewID = imageViewID;
+		
+		if (skinObject instanceof SWTSkinObjectButton) {
+			return;
+		}
+		
 		Listener l = new Listener() {
 			boolean bDownPressed;
 			private TimerEvent timerEvent;
@@ -91,7 +97,8 @@ public class SWTSkinButtonUtility
 
 				for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 					ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
-					l.pressed(SWTSkinButtonUtility.this);
+					l.pressed(SWTSkinButtonUtility.this,
+							SWTSkinButtonUtility.this.skinObject);
 				}
 			}
 		};
@@ -124,6 +131,11 @@ public class SWTSkinButtonUtility
 	}
 
 	public void addSelectionListener(ButtonListenerAdapter listener) {
+		if (skinObject instanceof SWTSkinObjectButton) {
+			((SWTSkinObjectButton)skinObject).addSelectionListener(listener);
+			return;
+		}
+
 		if (listeners.contains(listener)) {
 			return;
 		}
@@ -135,6 +147,10 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setTextID(final String id) {
+		if (skinObject instanceof SWTSkinObjectButton) {
+			((SWTSkinObjectButton)skinObject).setText(MessageText.getString(id));
+			return;
+		}
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				if (skinObject instanceof SWTSkinObjectText) {
@@ -153,6 +169,10 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setImage(final String id) {
+		if (skinObject instanceof SWTSkinObjectButton) {
+			// TODO implement
+			return;
+		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (imageViewID != null) {
@@ -177,6 +197,10 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setTooltipID(final String id) {
+		if (skinObject instanceof SWTSkinObjectButton) {
+			// TODO implement
+			return;
+		}
 		if (skinObject instanceof SWTSkinObjectImage) {
 			SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
 			skinImageObject.setTooltipByID(id);
