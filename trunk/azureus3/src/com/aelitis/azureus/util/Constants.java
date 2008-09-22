@@ -74,6 +74,8 @@ public class Constants
 
 	public static final String URL_PUBLISH = "publish.start";
 	
+	public static final String URL_WELCOME = "welcome.start";
+	
 	public static final String URL_PUBLISHED = "PublishedContent.html";
 
 	public static final String URL_PUBLISHNEW = "PublishNewContent.html";
