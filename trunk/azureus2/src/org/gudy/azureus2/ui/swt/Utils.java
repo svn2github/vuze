@@ -1361,7 +1361,7 @@ public class Utils
 	 * @param control Control that had it's sized changed and needs more room
 	 */
 	public static void relayout(Control control, boolean expandOnly) {
-		if (control == null || control.isDisposed()) {
+		if (control == null || control.isDisposed() || !control.isVisible()) {
 			return;
 		}
 
@@ -2359,5 +2359,26 @@ public class Utils
 		}
 		
 		return sb.toString();
+	}
+
+	/**
+	 * @param bg
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public static String toColorHexString(Color bg) {
+		StringBuffer sb = new StringBuffer();
+		twoHex(sb, bg.getRed());
+		twoHex(sb, bg.getGreen());
+		twoHex(sb, bg.getBlue());
+		return sb.toString();
+	}
+	
+	private static void twoHex(StringBuffer sb, int h) {
+		if (h <= 15) {
+			sb.append('0');
+		}
+		sb.append(Integer.toHexString(h));
 	}
 }
