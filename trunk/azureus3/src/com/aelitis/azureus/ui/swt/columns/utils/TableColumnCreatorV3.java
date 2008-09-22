@@ -1,58 +1,18 @@
 package com.aelitis.azureus.ui.swt.columns.utils;
 
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AvailabilityItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AvgAvailItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.BadAvailTimeItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.CategoryItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.CommentIconItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.CommentItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.CompletedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.CompletionItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DateAddedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DateCompletedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DoneItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DownItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DownSpeedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.DownSpeedLimitItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.ETAItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.FilesDoneItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.HealthItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.MaxUploadsItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.NameItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.NetworksItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.OnlyCDing4Item;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PeerSourcesItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PeersItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.PiecesItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RemainingItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SavePathItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SecondsDownloadingItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SecondsSeedingItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SeedToPeerRatioItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SeedsItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.ShareRatioItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.StatusItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SwarmAverageCompletion;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SwarmAverageSpeed;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TimeSinceDownloadItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TimeSinceUploadItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TorrentPathItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TotalSpeedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TrackerNameItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TrackerNextAccessItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TrackerStatusItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpSpeedLimitItem;
+import java.lang.reflect.Constructor;
+import java.util.*;
+
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnInfo;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnQuality;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRateUpDown;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnRatingGlobal;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
+import com.aelitis.azureus.ui.swt.columns.torrent.*;
+
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * A utility class for creating some common column sets; this is a virtual clone of <code>TableColumnCreator</code>
@@ -64,173 +24,188 @@ public class TableColumnCreatorV3
 {
 
 	public static TableColumnCore[] createIncompleteDM(String tableID) {
-
-		return new TableColumnCore[] {
-			/*
-			 * Initially visible
-			 */
-			show(new ColumnThumbnail(tableID, 60, 2)),
-			show(new RankItem(tableID)),
-			show(new NameItem(tableID, true, false)),
-			show(new ColumnQuality(tableID, true)),
-			show(new ColumnInfo(tableID)),
-			show(new SizeItem(tableID)),
-			show(new DoneItem(tableID)),
-			show(new StatusItem(tableID, false)),
-			show(new ETAItem(tableID)),
-			show(new ColumnRateUpDown(tableID)),
-			show(new DateAddedItem(tableID)),
-
-			/*
-			 * Initially hidden
-			 */
-			hide(new ColumnRatingGlobal(tableID)),
-			hide(new HealthItem(tableID)),
-			hide(new CommentIconItem(tableID)),
-			hide(new DownItem(tableID)),
-			hide(new SeedsItem(tableID)),
-			hide(new PeersItem(tableID)),
-			hide(new DownSpeedItem(tableID)),
-			hide(new UpSpeedItem(tableID)),
-			hide(new UpSpeedLimitItem(tableID)),
-			hide(new TrackerStatusItem(tableID)),
-			hide(new CompletedItem(tableID)),
-			hide(new ShareRatioItem(tableID, false)),
-			hide(new UpItem(tableID, false)),
-			hide(new RemainingItem(tableID)),
-			hide(new PiecesItem(tableID, 16)),
-			hide(new CompletionItem(tableID, 16)),
-			hide(new CommentItem(tableID)),
-			hide(new MaxUploadsItem(tableID)),
-			hide(new TotalSpeedItem(tableID)),
-			hide(new FilesDoneItem(tableID)),
-			hide(new SavePathItem(tableID)),
-			hide(new TorrentPathItem(tableID)),
-			hide(new CategoryItem(tableID)),
-			hide(new NetworksItem(tableID)),
-			hide(new PeerSourcesItem(tableID)),
-			hide(new AvailabilityItem(tableID)),
-			hide(new AvgAvailItem(tableID)),
-			hide(new SecondsSeedingItem(tableID)),
-			hide(new SecondsDownloadingItem(tableID)),
-			hide(new TimeSinceDownloadItem(tableID)),
-			hide(new TimeSinceUploadItem(tableID)),
-			hide(new OnlyCDing4Item(tableID)),
-			hide(new TrackerNextAccessItem(tableID)),
-			hide(new TrackerNameItem(tableID)),
-			hide(new SeedToPeerRatioItem(tableID)),
-			hide(new DownSpeedLimitItem(tableID)),
-			hide(new SwarmAverageSpeed(tableID)),
-			hide(new SwarmAverageCompletion(tableID)),
-			hide(new BadAvailTimeItem(tableID)),
+		final String[] defaultVisibleOrder = {
+				ColumnThumbnail.COLUMN_ID,
+				RankItem.COLUMN_ID,
+				NameItem.COLUMN_ID,
+				ColumnQuality.COLUMN_ID,
+				ColumnInfo.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				DoneItem.COLUMN_ID,
+				StatusItem.COLUMN_ID,
+				ETAItem.COLUMN_ID,
+				ColumnRateUpDown.COLUMN_ID,
+				DateAddedItem.COLUMN_ID,
 		};
+
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
+		
+		setVisibility(mapTCs, defaultVisibleOrder);
+
+		// special changes
+		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
+		if (tcStatusItem != null) {
+			tcStatusItem.setChangeRowFG(false);
+		}
+		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+		if (tcNameItem != null) {
+			tcNameItem.setShowIcon(false);
+		}
+		
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
+	/**
+	 * @param mapTCs
+	 * @param defaultVisibleOrder
+	 */
+	private static void setVisibility(Map mapTCs, String[] defaultVisibleOrder) {
+		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
+			TableColumnCore tc = (TableColumnCore) iter.next();
+			tc.setVisible(false);
+		}
+
+		for (int i = 0; i < defaultVisibleOrder.length; i++) {
+			String id = defaultVisibleOrder[i];
+			TableColumnCore tc = (TableColumnCore) mapTCs.get(id);
+			if (tc != null) {
+				tc.setVisible(true);
+			}
+		}
 	}
 
 	public static TableColumnCore[] createCompleteDM(String tableID) {
-
-		return new TableColumnCore[] {
-			/*
-			 * Initially visible
-			 */
-			show(new ColumnThumbnail(tableID, 60, 2)),
-			show(new RankItem(tableID)),
-			show(new NameItem(tableID, true, false)),
-			show(new ColumnQuality(tableID, true)),
-			show(new ColumnInfo(tableID)),
-			show(new SizeItem(tableID)),
-			show(new DoneItem(tableID)),
-			show(new StatusItem(tableID, false)),
-			show(new ColumnRatingGlobal(tableID)),
-			show(new ColumnRateUpDown(tableID)),
-			show(new DateCompletedItem(tableID)),
-
-			/*
-			 * Initially hidden
-			 */
-			hide(new CompletedItem(tableID)),
-			hide(new CommentItem(tableID)),
-			hide(new MaxUploadsItem(tableID)),
-			hide(new TotalSpeedItem(tableID)),
-			hide(new FilesDoneItem(tableID)),
-			hide(new SavePathItem(tableID)),
-			hide(new TorrentPathItem(tableID)),
-			hide(new CategoryItem(tableID)),
-			hide(new NetworksItem(tableID)),
-			hide(new PeerSourcesItem(tableID)),
-			hide(new AvailabilityItem(tableID)),
-			hide(new AvgAvailItem(tableID)),
-			hide(new SecondsSeedingItem(tableID)),
-			hide(new SecondsDownloadingItem(tableID)),
-			hide(new TimeSinceUploadItem(tableID)),
-			hide(new OnlyCDing4Item(tableID)),
-			hide(new TrackerStatusItem(tableID)),
-			hide(new TrackerNextAccessItem(tableID)),
-			hide(new TrackerNameItem(tableID)),
-			hide(new SeedToPeerRatioItem(tableID)),
-			hide(new SwarmAverageSpeed(tableID)),
-			hide(new SwarmAverageCompletion(tableID)),
-			hide(new DateAddedItem(tableID)),
+		final String[] defaultVisibleOrder = {
+				ColumnThumbnail.COLUMN_ID,
+				RankItem.COLUMN_ID,
+				NameItem.COLUMN_ID,
+				ColumnQuality.COLUMN_ID,
+				ColumnInfo.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				DoneItem.COLUMN_ID,
+				StatusItem.COLUMN_ID,
+				ColumnRatingGlobal.COLUMN_ID,
+				ColumnRateUpDown.COLUMN_ID,
+				DateCompletedItem.COLUMN_ID,
 		};
+
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
+		
+		setVisibility(mapTCs, defaultVisibleOrder);
+
+		// special changes
+		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
+		if (tcStatusItem != null) {
+			tcStatusItem.setChangeRowFG(false);
+		}
+		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+		if (tcNameItem != null) {
+			tcNameItem.setShowIcon(false);
+		}
+		
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
-	public static TableColumnCore[] createUnopenedDM(String tableID) {
-
-		return new TableColumnCore[] {
-			/*
-			 * Initially visible
-			 */
-			show(new ColumnThumbnail(tableID, 60, 2)),
-			show(new RankItem(tableID)),
-			show(new NameItem(tableID, true, false)),
-			show(new ColumnQuality(tableID, true)),
-			show(new ColumnInfo(tableID)),
-			show(new SizeItem(tableID)),
-			show(new DoneItem(tableID)),
-			show(new StatusItem(tableID, false)),
-			show(new ColumnRatingGlobal(tableID)),
-			show(new ColumnRateUpDown(tableID)),
-			show(new DateCompletedItem(tableID)),
-
-			/*
-			 * Initially hidden
-			 */
-			hide(new CompletedItem(tableID)),
-			hide(new CommentItem(tableID)),
-			hide(new MaxUploadsItem(tableID)),
-			hide(new TotalSpeedItem(tableID)),
-			hide(new FilesDoneItem(tableID)),
-			hide(new SavePathItem(tableID)),
-			hide(new TorrentPathItem(tableID)),
-			hide(new CategoryItem(tableID)),
-			hide(new NetworksItem(tableID)),
-			hide(new PeerSourcesItem(tableID)),
-			hide(new AvailabilityItem(tableID)),
-			hide(new AvgAvailItem(tableID)),
-			hide(new SecondsSeedingItem(tableID)),
-			hide(new SecondsDownloadingItem(tableID)),
-			hide(new TimeSinceUploadItem(tableID)),
-			hide(new OnlyCDing4Item(tableID)),
-			hide(new TrackerStatusItem(tableID)),
-			hide(new TrackerNextAccessItem(tableID)),
-			hide(new TrackerNameItem(tableID)),
-			hide(new SeedToPeerRatioItem(tableID)),
-			hide(new SwarmAverageSpeed(tableID)),
-			hide(new SwarmAverageCompletion(tableID)),
-			hide(new DateAddedItem(tableID)),
+	public static TableColumnCore[] createUnopenedDM(String tableID, boolean big) {
+		final String[] defaultVisibleOrder = {
+				ColumnUnopened.COLUMN_ID,
+				ColumnThumbnail.COLUMN_ID,
+				RankItem.COLUMN_ID,
+				NameItem.COLUMN_ID,
+				ColumnQuality.COLUMN_ID,
+				ColumnInfo.COLUMN_ID,
+				SizeItem.COLUMN_ID,
+				DoneItem.COLUMN_ID,
+				StatusItem.COLUMN_ID,
+				ColumnRatingGlobal.COLUMN_ID,
+				ColumnRateUpDown.COLUMN_ID,
+				DateCompletedItem.COLUMN_ID,
 		};
+
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
+		
+		setVisibility(mapTCs, defaultVisibleOrder);
+
+		// special changes
+		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
+		if (tcStatusItem != null) {
+			tcStatusItem.setChangeRowFG(false);
+		}
+		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+		if (tcNameItem != null) {
+			tcNameItem.setShowIcon(false);
+		}
+		
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
-	private static TableColumnCore show(TableColumnCore column) {
-		if (null != column) {
-			column.setVisible(true);
-		}
-		return column;
-	}
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	public static void initCoreColumns() {
+		TableColumnCreator.initCoreColumns();
+		
+		// short variable names to reduce wrapping
+		final Map c = new HashMap();
+		final Class all = Download.class;
+		//final Class dl = DownloadTypeIncomplete.class;
+		//final Class cd = DownloadTypeComplete.class;
 
-	private static TableColumnCore hide(TableColumnCore column) {
-		if (null != column) {
-			column.setVisible(false);
+		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, all));
+		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, all));
+		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, all));
+		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, all));
+		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, all));
+		c.put(ColumnRatingGlobal.COLUMN_ID, new cInfo(ColumnRatingGlobal.class, all));
+
+		// Core columns are implementors of TableColumn to save one class creation
+		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
+		// to another class so that it could manipulate it and act upon changes.
+
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+
+		TableColumnCoreCreationListener tcCreator = new TableColumnCoreCreationListener() {
+			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore()
+			public TableColumnCore createTableColumnCore(String tableID,
+					String columnID)
+			{
+				cInfo info = (cInfo) c.get(columnID);
+
+				try {
+					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] { String.class });
+					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] { tableID });
+					return column;
+				} catch (Exception e) {
+				}
+
+				return null;
+			}
+
+			public void tableColumnCreated(TableColumn column) {
+			}
+		};
+
+		for (Iterator iter = c.keySet().iterator(); iter.hasNext();) {
+			String id = (String) iter.next();
+			cInfo info = (cInfo) c.get(id);
+
+			tcManager.registerColumn(info.forDataSourceType, id, tcCreator);
 		}
-		return column;
+
+	}
+	
+	private static class cInfo {
+		public Class cla;
+		public Class forDataSourceType;
+		
+		public cInfo(Class cla, Class forDataSourceType) {
+			this.cla = cla;
+			this.forDataSourceType = forDataSourceType;
+		}
 	}
 }

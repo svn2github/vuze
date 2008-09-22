@@ -318,7 +318,7 @@ public class TorrentListView
 			SWTSkinButtonUtility btnAdd = new SWTSkinButtonUtility(skinObject);
 
 			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					TorrentOpener.openTorrentWindow();
 				}
 			});
@@ -445,7 +445,7 @@ public class TorrentListView
 				new ColumnTitle(tableID),
 				new ColumnRate(tableID, true),
 				new SizeItem(tableID),
-				new UpItem(tableID, true),
+				new UpItem(tableID),
 				new ColumnIsPrivate(tableID),
 				new ColumnDateCompleted2Liner(tableID, false),
 			};

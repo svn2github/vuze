@@ -36,7 +36,7 @@ public class ColumnQuality
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener
 {
-	public static String COLUMN_ID = "Quality";
+	public static final String COLUMN_ID = "Quality";
 
 	public Font font;
 

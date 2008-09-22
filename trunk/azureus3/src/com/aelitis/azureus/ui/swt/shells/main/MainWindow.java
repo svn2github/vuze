@@ -86,6 +86,7 @@ import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddyFakeSWTImpl;
 import com.aelitis.azureus.ui.swt.buddy.impl.VuzeBuddySWTImpl;
+import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -474,6 +475,10 @@ public class MainWindow
 
 		ImageRepository.loadImages(display);
 
+		System.out.println("UIFunctions/ImageLoad took "
+				+ (SystemTime.getCurrentTime() - startTime) + "ms");
+		startTime = SystemTime.getCurrentTime();
+		
 		shell = new Shell(display, SWT.SHELL_TRIM);
 
 		try {
@@ -481,7 +486,14 @@ public class MainWindow
 			shell.setText("Vuze");
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
+			//Shell activeShell = display.getActiveShell();
+			//shell.setVisible(true);
+			//shell.moveBelow(activeShell);
 
+			System.out.println("new shell took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+			
 			setupUsageTracker();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
@@ -493,13 +505,16 @@ public class MainWindow
 			 */
 			uiFunctions.setSkin(skin);
 
-			System.out.println("new shell took "
+			System.out.println("new shell setup took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
 			initSkinListeners();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
+			System.out.println("skinlisteners init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
 
 			skin.initialize(shell, "main.shell", uiInitializer);
 
@@ -624,6 +639,10 @@ public class MainWindow
 			startTime = SystemTime.getCurrentTime();
 
 			initWidgets();
+			System.out.println("skin widgets (1/2) init took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
+			initWidgets2();
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 			System.out.println("skin widgets init took "
@@ -648,6 +667,8 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
+			TableColumnCreatorV3.initCoreColumns();
+
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
@@ -655,7 +676,8 @@ public class MainWindow
 			uiSWTInstanceImpl.init(uiInitializer);
 			uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
 					"PieceGraphView", new PieceGraphView());
-
+			
+			
 			increaseProgress(uiInitializer, "splash.initializeGui");
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -763,12 +785,6 @@ public class MainWindow
 			Debug.out(t);
 		} finally {
 
-			shell.layout(true, true);
-
-			System.out.println("sb="
-					+ COConfigurationManager.getBooleanParameter(SkinConstants.VIEWID_PLUGINBAR
-							+ ".visible"));
-
 			String configID = SkinConstants.VIEWID_PLUGINBAR + ".visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
 					configID)) {
@@ -784,6 +800,12 @@ public class MainWindow
 			}
 
 			setVisible(WINDOW_ELEMENT_TABBAR, true);
+
+			shell.layout(true, true);
+
+			System.out.println("shell.layout took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			startTime = SystemTime.getCurrentTime();
 
 			showMainWindow();
 
@@ -1125,6 +1147,11 @@ public class MainWindow
 		boolean bStartMinimize = bEnableTray
 				&& (bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized"));
 
+		SWTSkinObject soMain = skin.getSkinObject("main");
+		if (soMain != null) {
+			soMain.getControl().setVisible(true);
+		}
+
 		if (!bStartMinimize) {
 			shell.open();
 			if (!isOSX) {
@@ -1296,8 +1323,7 @@ public class MainWindow
 		views.put(SkinConstants.VIEWID_LIBRARY, MediaList.class);
 
 		views.put("publish", Publish.class);
-
-		views.put(SkinConstants.VIEWID_MINILIBRARY, MiniLibraryList.class);
+		views.put("welcome", WelcomeView.class);
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
@@ -1553,8 +1579,10 @@ public class MainWindow
 				Debug.out(t);
 			}
 		}
+	}
 
-		skinObject = skin.getSkinObject("statusbar");
+	private void initWidgets2() {
+		SWTSkinObject skinObject = skin.getSkinObject("statusbar");
 		if (skinObject != null) {
 			final Composite cArea = (Composite) skinObject.getControl();
 
@@ -1628,8 +1656,6 @@ public class MainWindow
 		if (Constants.DISABLE_BUDDIES_BAR) {
 			COConfigurationManager.setParameter("Footer.visible", false);
 		}
-
-		shell.layout(true, true);
 	}
 
 	private void addMenuAndNonTextChildren(Composite parent, Menu menu) {
@@ -1752,7 +1778,7 @@ public class MainWindow
 		if (searchGo != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					String sSearchText = text.getText().trim();
 					doSearch(sSearchText);
 				}
@@ -1786,7 +1812,7 @@ public class MainWindow
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					final Menu menu = new Menu(shell, SWT.POP_UP);
 					menu.addMenuListener(new MenuListener() {
 						public void menuShown(MenuEvent e) {

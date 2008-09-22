@@ -35,9 +35,12 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger.subscriptionDetails;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 
@@ -62,7 +65,9 @@ public class SBC_LibraryTableView
 
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		Object data = skinObject.getParent().getControl().getData(
+		SWTSkinObject soParent = skinObject.getParent();
+		
+		Object data = soParent.getControl().getData(
 				"TorrentFilterMode");
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
@@ -71,10 +76,8 @@ public class SBC_LibraryTableView
 		TableColumnCore[] columns = getColumns();
 
 		if (null != columns) {
-			TableColumnManager tcExtensions = TableColumnManager.getInstance();
-			for (int i = 0; i < columns.length; i++) {
-				tcExtensions.addColumn(columns[i]);
-			}
+			TableColumnManager tcManager = TableColumnManager.getInstance();
+			tcManager.addColumns(columns);
 		}
 
 		if (true == useBigTable()) {
@@ -129,6 +132,31 @@ public class SBC_LibraryTableView
 		viewComposite.setLayout(gridLayout);
 
 		view.initialize(viewComposite);
+
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
+  		SWTSkinObject so = skin.getSkinObject("library-list-button-right",
+					soParent.getParent());
+  		if (so != null) {
+  			so.setVisible(true);
+  			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
+  			btn.setTextID("MarkAllOpened");
+  			btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+  					TableViewSWT tv = ((MyTorrentsView) view).getTableView();
+  					Object[] dataSources = tv.getDataSources();
+  					for (int i = 0; i < dataSources.length; i++) {
+							Object ds = dataSources[i];
+							if (ds instanceof DownloadManager) {
+								PlatformTorrentUtils.setHasBeenOpened(
+										((DownloadManager) ds).getTorrent(), true);
+								// give user visual indication right away 
+								tv.removeDataSource(ds);
+							}
+						}
+  				}
+  			});
+  		}
+		}
 
 		return null;
 	}
@@ -234,9 +262,17 @@ public class SBC_LibraryTableView
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 			return TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			return TableColumnCreator.createUnopenedDM(TableManager.TABLE_MYTORRENTS_UNOPENED);
+			return TableColumnCreatorV3.createUnopenedDM(TableManager.TABLE_MYTORRENTS_UNOPENED, false);
 		}
 
 		return null;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		if (view != null) {
+			view.delete();
+		}
+		return super.skinObjectDestroyed(skinObject, params);
 	}
 }

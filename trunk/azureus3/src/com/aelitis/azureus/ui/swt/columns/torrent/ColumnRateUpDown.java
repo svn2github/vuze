@@ -52,7 +52,7 @@ public class ColumnRateUpDown
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {
-	public static String COLUMN_ID = "RateIt";
+	public static final String COLUMN_ID = "RateIt";
 
 	private static UISWTGraphicImpl graphicRateMe;
 

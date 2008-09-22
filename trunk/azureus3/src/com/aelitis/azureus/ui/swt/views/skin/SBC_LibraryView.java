@@ -134,7 +134,7 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnSmallTable = new SWTSkinButtonUtility(so);
 			btnSmallTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					setViewMode(MODE_SMALLTABLE, true);
 				}
 			});
@@ -144,10 +144,23 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnBigTable = new SWTSkinButtonUtility(so);
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					setViewMode(MODE_BIGTABLE, true);
 				}
 			});
+		}
+
+		if (torrentFilterMode == TORRENTS_UNOPENED) {
+  		so = getSkinObject(ID + "-button-right");
+  		if (so != null) {
+  			so.setVisible(true);
+  			btnBigTable = new SWTSkinButtonUtility(so);
+  			btnBigTable.setTextID("Mark All UnNew");
+  			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+  				}
+  			});
+  		}
 		}
 
 		return null;

@@ -23,9 +23,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.DragSource;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
@@ -35,11 +33,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -47,18 +42,15 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.*;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -231,6 +223,8 @@ public class ListView
 	private Display display;
 
 	protected int rowFocusStyle;
+	
+	private Class dataSourceType;
 
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
@@ -1165,7 +1159,7 @@ public class ListView
 						String tableID = getTableID();
 						TableRowCore focusedRow = getFocusedRow();
 						new TableColumnEditorWindow(getComposite().getShell(), tableID,
-								getAllColumns(), focusedRow,
+								getAllColumns(), focusedRow, null,
 								TableStructureEventDispatcher.getInstance(tableID));
 					}
 				});
@@ -2803,17 +2797,13 @@ public class ListView
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		if (tcManager.getTableColumnCount(sTableID) != columns.length) {
-			for (int i = 0; i < columns.length; i++) {
-				columns[i].setTableID(sTableID);
-				tcManager.addColumn(columns[i]);
-			}
-		}
+		tcManager.addColumns(columns);
 
 		// fixup order
 		tcManager.ensureIntegrety(sTableID);
 
-		allColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
+		allColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
+				sTableID);
 
 		Arrays.sort(allColumns, TableColumnManager.getTableColumnOrderComparator());
 
@@ -3990,7 +3980,7 @@ public class ListView
 			headerArea,
 			listCanvas
 		});
-		TableColumnManager.getInstance().saveTableColumns(sTableID);
+		TableColumnManager.getInstance().saveTableColumns(null, sTableID);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)
@@ -4368,5 +4358,13 @@ public class ListView
 		} else {
 			TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 		}
+	}
+
+	public Class getDataSourceType() {
+		return dataSourceType;
+	}
+
+	public void setDataSourceType(Class dataSourceType) {
+		this.dataSourceType = dataSourceType;
 	}
 }

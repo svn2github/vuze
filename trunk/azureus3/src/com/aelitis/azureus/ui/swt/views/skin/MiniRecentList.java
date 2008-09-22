@@ -56,7 +56,7 @@ public class MiniRecentList
 		if (skinObject instanceof SWTSkinObjectText) {
 			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
 			btn.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 					SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 					if (sidebar != null) {
 						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);

@@ -62,6 +62,7 @@ public class ColumnThumbnail
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener
 {
+	public static final String COLUMN_ID = "Thumbnail";
 
 	private int columnWidth = 60;
 
@@ -84,7 +85,7 @@ public class ColumnThumbnail
 	 * @param marginBorder The border margin for the thumbnail image inside a cell
 	 */
 	public ColumnThumbnail(String sTableID, int width, int marginBorder) {
-		super("Thumbnail", sTableID);
+		super(COLUMN_ID, sTableID);
 		if (width > 0) {
 			columnWidth = width;
 		}
