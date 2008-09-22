@@ -29,6 +29,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
@@ -325,9 +326,9 @@ public class BrowserContext
 							"Tried to open " + event_location + " but it's blocked");
 					browser.back();
 				} else {
+					lastValidURL = event_location;
 					setPageLoading(true);
 					if(event.top) {
-						lastValidURL = event_location;
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 							widgetWaitIndicator.setVisible(true);
 						}
@@ -547,16 +548,23 @@ public class BrowserContext
 	}
 	
 	public void fillWithRetry(String s) {
-		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#1b1b1b text=#a0a0a0>"
+		Color bg = browser.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+		Color fg = browser.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND);
+		
+		browser.setText("<html><body style='overflow:auto; font-family: verdana; font-size: 10pt' bgcolor=#"
+				+ Utils.toColorHexString(bg)
+				+ " text=#" + Utils.toColorHexString(fg) + ">"
 				+ "<br>Sorry, there was a problem loading this page.<br> "
 				+ "Please check if your internet connection is working and click <a href='"
 				+ lastValidURL
 				+ "' style=\"color: rgb(100, 155, 255); \">retry</a> to continue."
-				+ "<div style='word-wrap: break-word'><font size=1 color=#2e2e2e>"
+				+ "<div style='word-wrap: break-word'><font size=1 color=#"
+				+ Utils.toColorHexString(bg)
+				+ ">"
 				+ s
 				+ "</font></div>" + "</body></html>");
 	}
-
+	
 	private void 
 	deregisterBrowser() 
 	{
