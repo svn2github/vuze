@@ -47,19 +47,17 @@ public class ShareRatioItem
        implements TableCellRefreshListener, ParameterListener
 {
   private final static String CONFIG_ID = "StartStopManager_iFirstPriority_ShareRatio";
+	public static final String COLUMN_ID = "shareRatio";
   private int iMinShareRatio;
 
   /** Default Constructor */
-  public ShareRatioItem(String sTableID, boolean visible) {
-    super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+  public ShareRatioItem(String sTableID) {
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 
-    if (visible)
-      setPosition(POSITION_LAST);
-    else
-      setPosition(POSITION_INVISIBLE);
+    setPosition(POSITION_LAST);
 
     iMinShareRatio = COConfigurationManager.getIntParameter(CONFIG_ID);
     COConfigurationManager.addParameterListener(CONFIG_ID, this);

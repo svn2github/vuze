@@ -38,9 +38,11 @@ public class OnlyCDing4Item
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "OnlyCDing4";
+
+	/** Default Constructor */
   public OnlyCDing4Item(String sTableID) {
-    super("OnlyCDing4", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

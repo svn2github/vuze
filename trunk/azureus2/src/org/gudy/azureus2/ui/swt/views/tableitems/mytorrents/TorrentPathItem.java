@@ -37,9 +37,11 @@ public class TorrentPathItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, ObfusticateCellText
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "torrentpath";
+
+	/** Default Constructor */
   public TorrentPathItem(String sTableID) {
-    super("torrentpath", 150, sTableID);
+    super(COLUMN_ID, 150, sTableID);
     setObfustication(true);
     setRefreshInterval(INTERVAL_LIVE);
   }

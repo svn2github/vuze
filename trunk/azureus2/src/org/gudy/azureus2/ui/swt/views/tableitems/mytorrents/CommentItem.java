@@ -39,9 +39,11 @@ public class CommentItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellMouseListener, ObfusticateCellText
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "comment";
+
+	/** Default Constructor */
   public CommentItem(String sTableID) {
-    super("comment", POSITION_INVISIBLE, 300, sTableID);
+    super(COLUMN_ID, POSITION_INVISIBLE, 300, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setType(TableColumn.TYPE_TEXT);
     setObfustication(true);

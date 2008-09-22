@@ -37,8 +37,10 @@ public class TrackerNameItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellToolTipListener
 {
-  public TrackerNameItem(String sTableID) {
-    super("trackername", POSITION_INVISIBLE, 120, sTableID);
+  public static final String COLUMN_ID = "trackername";
+
+	public TrackerNameItem(String sTableID) {
+    super(COLUMN_ID, POSITION_INVISIBLE, 120, sTableID);
     setRefreshInterval(5);
   }
 

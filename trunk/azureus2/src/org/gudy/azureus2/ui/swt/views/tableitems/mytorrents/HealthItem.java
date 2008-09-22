@@ -50,11 +50,13 @@ public class HealthItem
 {
 	static final int COLUMN_WIDTH = 16;
 
+	public static final String COLUMN_ID = "health";
+
 	static TRHost tracker_host = AzureusCoreFactory.getSingleton().getTrackerHost();
 
 	/** Default Constructor */
 	public HealthItem(String sTableID) {
-		super("health", sTableID);
+		super(COLUMN_ID, sTableID);
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setMinWidth(COLUMN_WIDTH);
 	}

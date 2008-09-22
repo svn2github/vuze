@@ -40,9 +40,11 @@ public class TimeSinceUploadItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "timesinceupload";
+
+	/** Default Constructor */
   public TimeSinceUploadItem(String sTableID) {
-    super("timesinceupload", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

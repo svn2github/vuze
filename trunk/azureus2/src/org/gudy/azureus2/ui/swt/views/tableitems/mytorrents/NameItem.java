@@ -45,38 +45,27 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class NameItem extends CoreTableColumn implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
-	private boolean bShowIcon;
-
-	/** Default Constructor */
-	public NameItem(String sTableID) {
-		this(sTableID,false,false);
-	}
-
+	public static final String COLUMN_ID = "name";
 	
+	private boolean showIcon;
+
 	/**
 	 * 
 	 * @param sTableID
-	 * @param overrideIconDisplay -- Overriding the normal behavior of reading this value from user preference by specifically setting it's value
-	 * @param iconDisplayValue -- the value to use if <code>overrideIconDisplay</code> is set to <code>true</code>
 	 */
-	public NameItem(String sTableID, boolean overrideIconDisplay,
-			boolean iconDisplayValue) {
-		super("name", POSITION_LAST, 250, sTableID);
+	public NameItem(String sTableID) {
+		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);
 		setMinWidth(100);
 
-		if (false == overrideIconDisplay) {
-			COConfigurationManager.addAndFireParameterListener(
-					"NameColumn.showProgramIcon", new ParameterListener() {
-						public void parameterChanged(String parameterName) {
-							bShowIcon = COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon");
-						}
-					});
-		} else {
-			bShowIcon = iconDisplayValue;
-		}
+		COConfigurationManager.addAndFireParameterListener(
+				"NameColumn.showProgramIcon", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						setShowIcon(COConfigurationManager.getBooleanParameter("NameColumn.showProgramIcon"));
+					}
+				});
 	}
 
 	public void refresh(TableCell cell)
@@ -95,7 +84,7 @@ public class NameItem extends CoreTableColumn implements
 
 		//setText returns true only if the text is updated
 		if ((cell.setText(name) || !cell.isValid())) {
-			if (dm != null && bShowIcon && !sortOnlyRefresh
+			if (dm != null && isShowIcon() && !sortOnlyRefresh
 					&& (cell instanceof TableCellSWT)) {
 				String path = dm.getDownloadState().getPrimaryFile();
 				if (path != null) {
@@ -139,6 +128,22 @@ public class NameItem extends CoreTableColumn implements
 				img.dispose();
 			}
 		}
+	}
+
+
+	/**
+	 * @param showIcon the showIcon to set
+	 */
+	public void setShowIcon(boolean showIcon) {
+		this.showIcon = showIcon;
+	}
+
+
+	/**
+	 * @return the showIcon
+	 */
+	public boolean isShowIcon() {
+		return showIcon;
 	}
 
 }

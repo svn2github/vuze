@@ -37,9 +37,11 @@ public class CategoryItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "category";
+
+	/** Default Constructor */
   public CategoryItem(String sTableID) {
-    super("category", 70, sTableID);
+    super(COLUMN_ID, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

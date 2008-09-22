@@ -40,9 +40,11 @@ extends CoreTableColumn
 implements TableCellRefreshListener
 {
 
+	public static final String COLUMN_ID = "maxdownspeed";
+
 	/** Default Constructor */
 	public DownSpeedLimitItem(String sTableID) {
-	  super("maxdownspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, sTableID);
+	  super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 	}

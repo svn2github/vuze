@@ -39,9 +39,11 @@ public class ETAItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "eta";
+
+	/** Default Constructor */
   public ETAItem(String sTableID) {
-    super("eta", ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

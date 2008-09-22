@@ -43,14 +43,15 @@ public class CommentIconItem
 {
 	static final UISWTGraphic graphicComment = new UISWTGraphicImpl(ImageRepository.getImage("comment"));
 	static final UISWTGraphic noGraphicComment = new UISWTGraphicImpl(ImageRepository.getImage("no_comment"));
+	public static final String COLUMN_ID = "commenticon";
 	
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
-	super("commenticon", CommentIconItem.POSITION_LAST, 20, sTableID);
-	setRefreshInterval(INTERVAL_LIVE);
-    initializeAsGraphic(POSITION_LAST, 20);
-    setMinWidth(20);
-  }
+		super(COLUMN_ID, CommentIconItem.POSITION_LAST, 20, sTableID);
+		setRefreshInterval(INTERVAL_LIVE);
+		initializeAsGraphic(POSITION_LAST, 20);
+		setMinWidth(20);
+	}
   
   public void cellMouseTrigger(TableCellMouseEvent event) {
 		DownloadManager dm = (DownloadManager) event.cell.getDataSource();

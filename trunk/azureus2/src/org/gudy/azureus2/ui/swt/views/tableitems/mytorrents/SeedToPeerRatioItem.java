@@ -36,8 +36,10 @@ public class SeedToPeerRatioItem
        implements TableCellRefreshListener
 {
 
-  public SeedToPeerRatioItem(String sTableID) {
-    super("seed_to_peer_ratio", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+  public static final String COLUMN_ID = "seed_to_peer_ratio";
+
+	public SeedToPeerRatioItem(String sTableID) {
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

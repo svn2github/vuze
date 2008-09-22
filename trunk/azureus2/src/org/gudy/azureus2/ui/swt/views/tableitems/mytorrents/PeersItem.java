@@ -49,9 +49,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 public class PeersItem extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static final String COLUMN_ID = "peers";
+
 	/** Default Constructor */
 	public PeersItem(String sTableID) {
-		super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 	}

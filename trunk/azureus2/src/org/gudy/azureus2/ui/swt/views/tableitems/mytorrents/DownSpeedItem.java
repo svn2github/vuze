@@ -48,9 +48,11 @@ public class DownSpeedItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "downspeed";
+
+	/** Default Constructor */
   public DownSpeedItem(String sTableID) {
-    super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);

@@ -37,6 +37,7 @@ public class BadAvailTimeItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final String COLUMN_ID = "bad_avail_time";
 	private static String	now_string;
 	
 	static{
@@ -55,7 +56,7 @@ public class BadAvailTimeItem
 	}
 	
 	public BadAvailTimeItem(String sTableID) {
-		super("bad_avail_time", ALIGN_CENTER, POSITION_INVISIBLE, 120, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, POSITION_INVISIBLE, 120, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 

@@ -45,10 +45,12 @@ public class StatusItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-	private final boolean changeRowFG;
+	public static final String COLUMN_ID = "status";
+	
+	private boolean changeRowFG;
 
 	public StatusItem(String sTableID, boolean changeRowFG) {
-		super("status", POSITION_LAST, 80, sTableID);
+		super(COLUMN_ID, POSITION_LAST, 80, sTableID);
 		this.changeRowFG = changeRowFG;
 		setRefreshInterval(INTERVAL_LIVE);
 	}
@@ -82,5 +84,13 @@ public class StatusItem
 			}
 		}
 
+	}
+
+	public boolean isChangeRowFG() {
+		return changeRowFG;
+	}
+
+	public void setChangeRowFG(boolean changeRowFG) {
+		this.changeRowFG = changeRowFG;
 	}
 }

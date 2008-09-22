@@ -32,9 +32,11 @@ public class MaxUploadsItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "maxuploads";
+
+	/** Default Constructor */
   public MaxUploadsItem(String sTableID) {
-    super("maxuploads", ALIGN_TRAIL, POSITION_INVISIBLE, 30, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 30, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

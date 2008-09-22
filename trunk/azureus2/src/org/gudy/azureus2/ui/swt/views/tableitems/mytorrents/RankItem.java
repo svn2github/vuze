@@ -45,13 +45,15 @@ public class RankItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final String COLUMN_ID = "#";
+
 	private boolean bInvalidByTrigger = false;
 	
 	private boolean showCompleteIncomplete = false;
 
   /** Default Constructor */
   public RankItem(String sTableID) {
-    super("#", ALIGN_TRAIL, POSITION_LAST, 50, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 50, sTableID);
     setRefreshInterval(INTERVAL_INVALID_ONLY);
     GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
     gm.addListener(new GMListener());

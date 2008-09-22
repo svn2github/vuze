@@ -46,6 +46,8 @@ public class SeedsItem
 
 	private static final String CFG_FC_NUMPEERS = "StartStopManager_iNumPeersAsFullCopy";
 
+	public static final String COLUMN_ID = "seeds";
+
 	// don't count x peers as a full copy if seeds below
 	private int iFC_MinSeeds;
 
@@ -54,7 +56,7 @@ public class SeedsItem
 
 	/** Default Constructor */
 	public SeedsItem(String sTableID) {
-		super("seeds", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 		setMinWidthAuto(true);
 

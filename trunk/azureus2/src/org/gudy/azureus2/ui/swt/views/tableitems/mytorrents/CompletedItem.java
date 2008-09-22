@@ -29,9 +29,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class CompletedItem extends CoreTableColumn implements TableCellRefreshListener {
 
+	public static final String COLUMN_ID = "completed";
+
 	/** Default Constructor */
 	public CompletedItem(String sTableID) {
-		super("completed", ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
+		super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
 		setMinWidthAuto(true);
 	}
 

@@ -39,9 +39,11 @@ public class DownItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "down";
+
+	/** Default Constructor */
   public DownItem(String sTableID) {
-    super("down", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

@@ -38,7 +38,7 @@ public class SizeItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-	public static String COLUMN_ID = "size";
+	public static final String COLUMN_ID = "size";
 
 	private static boolean DO_MULTILINE = true;
 

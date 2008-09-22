@@ -40,8 +40,10 @@ public class DateAddedItem
 	implements TableCellRefreshListener
 {
 
+	public static final String COLUMN_ID = "date_added";
+
 	public DateAddedItem(String sTableID) {
-		super("date_added", ALIGN_TRAIL, POSITION_INVISIBLE, 120, sTableID);
+		super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 120, sTableID);
 
 		TableContextMenuItem menuReset = addContextMenuItem("MyTorrentsView.date_added.menu.reset");
 		menuReset.addListener(new MenuItemListener() {

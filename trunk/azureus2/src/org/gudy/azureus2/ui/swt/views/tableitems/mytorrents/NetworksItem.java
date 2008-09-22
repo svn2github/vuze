@@ -36,9 +36,11 @@ public class NetworksItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "networks";
+
+	/** Default Constructor */
   public NetworksItem(String sTableID) {
-    super("networks", 70, sTableID);
+    super(COLUMN_ID, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

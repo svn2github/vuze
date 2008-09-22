@@ -43,12 +43,13 @@ public class AvgAvailItem
   private static final String zeros = "0000";
   // # decimal places == numZeros - 1
   private static final int numZeros = zeros.length();
+	public static final String COLUMN_ID = "AvgAvail";
 
   private int iTimesBy;
   
   /** Default Constructor */
   public AvgAvailItem(String sTableID) {
-    super("AvgAvail", ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 

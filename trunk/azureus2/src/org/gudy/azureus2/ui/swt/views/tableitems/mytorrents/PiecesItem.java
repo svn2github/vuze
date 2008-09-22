@@ -64,6 +64,8 @@ public class PiecesItem
 	// height of little completion bar above piece bar.
 	private final static int completionHeight = 2;
 
+	public static final String COLUMN_ID = "pieces";
+
 	private int marginHeight = -1;
 	
 	/** Default Constructor */
@@ -77,7 +79,7 @@ public class PiecesItem
 	 * @param marginHeight -- Margin height above and below the pieces graphic; used in cases where the row is very tall
 	 */
 	public PiecesItem(String sTableID, int marginHeight) {
-		super("pieces", 100, sTableID);
+		super(COLUMN_ID, 100, sTableID);
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 100);
 		setMinWidth(100);

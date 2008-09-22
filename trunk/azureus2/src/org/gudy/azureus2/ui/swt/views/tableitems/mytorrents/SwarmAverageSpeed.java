@@ -35,8 +35,10 @@ public class SwarmAverageSpeed
        implements TableCellRefreshListener
 {
 
-  public SwarmAverageSpeed(String sTableID) {
-    super("swarm_average_speed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+  public static final String COLUMN_ID = "swarm_average_speed";
+
+	public SwarmAverageSpeed(String sTableID) {
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

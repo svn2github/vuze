@@ -39,9 +39,11 @@ public class TotalSpeedItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "totalspeed";
+
+	/** Default Constructor */
   public TotalSpeedItem(String sTableID) {
-    super("totalspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

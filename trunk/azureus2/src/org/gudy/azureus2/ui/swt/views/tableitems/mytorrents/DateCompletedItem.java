@@ -35,8 +35,10 @@ public class DateCompletedItem
 	implements TableCellRefreshListener
 {
 
+	public static final String COLUMN_ID = "DateCompleted";
+
 	public DateCompletedItem(String sTableID) {
-		super("DateCompleted", ALIGN_TRAIL, POSITION_INVISIBLE, 125, sTableID);
+		super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 125, sTableID);
 	}
 
 	public void refresh(TableCell cell) {

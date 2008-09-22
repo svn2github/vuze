@@ -42,12 +42,13 @@ public class AvailabilityItem
   private static final String zeros = "0000";
   // # decimal places == numZeros - 1
   private static final int numZeros = zeros.length();
+	public static final String COLUMN_ID = "availability";
 
   private int iTimesBy;
   
   /** Default Constructor */
   public AvailabilityItem(String sTableID) {
-    super("availability", ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 

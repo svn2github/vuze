@@ -55,6 +55,8 @@ public class CompletionItem
 {
 	private static final int borderWidth = 1;
 
+	public static final String COLUMN_ID = "completion";
+
 	private static Font fontText;
 
 	private Map mapCellLastPercentDone = new HashMap();
@@ -72,7 +74,7 @@ public class CompletionItem
 	 * @param marginHeight -- Margin height above and below the progress bar; used in cases where the row is very tall 
 	 */
 	public CompletionItem(String sTableID, int marginHeight) {
-		super("completion", sTableID);
+		super(COLUMN_ID, sTableID);
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 200);
 		setMinWidth(100);

@@ -39,9 +39,11 @@ public class DoneItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "done";
+
+	/** Default Constructor */
   public DoneItem(String sTableID) {
-    super("done", ALIGN_TRAIL, POSITION_INVISIBLE, 55, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 55, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE))
       setPosition(POSITION_LAST);

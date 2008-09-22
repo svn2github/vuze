@@ -39,9 +39,11 @@ public class UpSpeedLimitItem
   implements TableCellRefreshListener
 {
   
+	public static final String COLUMN_ID = "maxupspeed";
+
 	/** Default Constructor */
 	public UpSpeedLimitItem(String sTableID) {
-	  super("maxupspeed", ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
+	  super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 	}

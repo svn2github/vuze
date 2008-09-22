@@ -35,8 +35,10 @@ public class FilesDoneItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  public FilesDoneItem(String sTableID) {
-	  super("filesdone", ALIGN_CENTER, POSITION_INVISIBLE, 50, sTableID);
+  public static final String COLUMN_ID = "filesdone";
+
+	public FilesDoneItem(String sTableID) {
+	  super(COLUMN_ID, ALIGN_CENTER, POSITION_INVISIBLE, 50, sTableID);
 	  setRefreshInterval(5);
     setMinWidthAuto(true);
   }

@@ -36,9 +36,11 @@ public class PeerSourcesItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "peersources";
+
+	/** Default Constructor */
   public PeerSourcesItem(String sTableID) {
-    super("peersources", 70, sTableID);
+    super(COLUMN_ID, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

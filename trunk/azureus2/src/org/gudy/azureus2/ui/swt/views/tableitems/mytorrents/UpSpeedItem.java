@@ -49,13 +49,15 @@ public class UpSpeedItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-  /** 
+  public static final String COLUMN_ID = "upspeed";
+
+	/** 
    * Default Constructor
    *  
    * @param sTableID The ID of the table the cell belongs to 
    */
   public UpSpeedItem(String sTableID) {
-    super("upspeed", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);

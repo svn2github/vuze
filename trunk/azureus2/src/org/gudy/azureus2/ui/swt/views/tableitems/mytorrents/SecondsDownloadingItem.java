@@ -39,9 +39,11 @@ public class SecondsDownloadingItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "secondsdownloading";
+
+	/** Default Constructor */
   public SecondsDownloadingItem(String sTableID) {
-    super("secondsdownloading", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }

@@ -39,16 +39,15 @@ public class UpItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
-  public UpItem(String sTableID, boolean visible) {
-    super("up", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+  public static final String COLUMN_ID = "up";
+
+	/** Default Constructor */
+  public UpItem(String sTableID) {
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 
-    if (visible)
-      setPosition(POSITION_LAST);
-    else
-      setPosition(POSITION_INVISIBLE);
+    setPosition(POSITION_LAST);
   }
 
   public void refresh(TableCell cell) {

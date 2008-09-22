@@ -40,8 +40,10 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 public class TrackerStatusItem extends CoreTableColumn implements
 		TableCellAddedListener, TableCellToolTipListener
 {
+	public static final String COLUMN_ID = "tracker";
+
 	public TrackerStatusItem(String sTableID) {
-		super("tracker", POSITION_LAST, 90, sTableID);
+		super(COLUMN_ID, POSITION_LAST, 90, sTableID);
 		setRefreshInterval(15); // Slow update while no responses from tracker
 	}
 

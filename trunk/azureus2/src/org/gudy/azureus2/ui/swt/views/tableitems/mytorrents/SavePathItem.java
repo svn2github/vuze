@@ -35,9 +35,11 @@ public class SavePathItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, ObfusticateCellText
 {
-  /** Default Constructor */
+  public static final String COLUMN_ID = "savepath";
+
+	/** Default Constructor */
   public SavePathItem(String sTableID) {
-    super("savepath", 150, sTableID);
+    super(COLUMN_ID, 150, sTableID);
     setObfustication(true);
     setRefreshInterval(INTERVAL_LIVE);
   }
