@@ -142,7 +142,7 @@ public class TableCellImpl
       int position, BufferedTableItem item) {
     this.tableColumn = _tableColumn;
     this.tableRow = _tableRow;
-    flags = FLAG_SORTVALUEISTEXT | FLAG_UPTODATE;
+    flags = FLAG_SORTVALUEISTEXT;
     refreshErrLoopCount = 0;
     tooltipErrLoopCount = 0;
     loopFactor = 0;
@@ -573,6 +573,7 @@ public class TableCellImpl
     return pt.y;
   }
 
+  // @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setGraphic(org.eclipse.swt.graphics.Image)
   public boolean setGraphic(Image img) {
   	checkCellForSetting();
 
@@ -583,10 +584,12 @@ public class TableCellImpl
     boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
     if (b) {
     	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+			bufferedTableItem.redraw();
     }
     return b;
   }
 
+  // @see org.gudy.azureus2.plugins.ui.tables.TableCell#setGraphic(org.gudy.azureus2.plugins.ui.Graphic)
   public boolean setGraphic(Graphic img) {
   	if (img != null){
   		checkCellForSetting();
@@ -606,6 +609,7 @@ public class TableCellImpl
       boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
       if (b) {
       	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+  			bufferedTableItem.redraw();
       }
     }
 
@@ -614,6 +618,7 @@ public class TableCellImpl
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {
       	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+  			bufferedTableItem.redraw();
       }
     }
     
@@ -622,6 +627,7 @@ public class TableCellImpl
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {
       	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+  			bufferedTableItem.redraw();
       }
     }
     
@@ -936,6 +942,12 @@ public class TableCellImpl
 
 	/* Start of Core-Only function */
   //////////////////////////////////
+	
+	public void redraw() {
+		if (bufferedTableItem != null) {
+			bufferedTableItem.redraw();
+		}
+	}
 	
   public void invalidate(final boolean bMustRefresh) {
   	if (!hasFlag(FLAG_VALID)) {

@@ -26,9 +26,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerEventAdapter;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
@@ -43,7 +41,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 public class TableManagerImpl implements TableManager
 {
 	private UIManagerImpl ui_manager;
-
+	
 	public TableManagerImpl(UIManagerImpl _ui_manager) {
 		ui_manager = _ui_manager;
 	}
@@ -57,10 +55,7 @@ public class TableManagerImpl implements TableManager
 
 			public void UIAttached(UIInstance instance) {
 				UIManagerEventAdapter event = new UIManagerEventAdapter(
-						UIManagerEvent.ET_CREATE_TABLE_COLUMN, new String[] {
-							tableID,
-							cellID
-						});
+						UIManagerEvent.ET_CREATE_TABLE_COLUMN, column);
 
 				UIManagerImpl.fireEvent(event);
 				// event.result used to have the TableColumn which we would populate
@@ -70,13 +65,18 @@ public class TableManagerImpl implements TableManager
 
 		return column;
 	}
+	
+  // @see org.gudy.azureus2.plugins.ui.tables.TableManager#registerColumn(java.lang.Class, java.lang.String, org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener)
+  public void registerColumn(Class forDataSourceType, String cellID,
+  		TableColumnCreationListener listener) {
+  	TableColumnManager tcManager = TableColumnManager.getInstance();
+  	tcManager.registerColumn(forDataSourceType, cellID, listener);
+	}
 
 	public void addColumn(final TableColumn tableColumn) {
 		if (!(tableColumn instanceof TableColumnCore))
 			throw (new UIRuntimeException(
 					"TableManager.addColumn(..) can only add columns created by createColumn(..)"));
-
-		TableColumnManager.getInstance().addColumn((TableColumnCore) tableColumn);
 
 		ui_manager.addUIListener(new UIManagerListener() {
 			public void UIDetached(UIInstance instance) {

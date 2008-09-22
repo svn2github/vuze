@@ -59,6 +59,7 @@ public class TableColumnEditorWindow {
 	private Composite cSample;
   private FakeTableCell fakeTableCell;
 	private final String tableID;
+	private final Class dataSourceType;
 
 
   /**
@@ -70,8 +71,10 @@ public class TableColumnEditorWindow {
    */
   public TableColumnEditorWindow(Shell parent, String sTableID,
 			TableColumnCore[] _tableColumns, final Object sampleDS,
+			Class dataSourceType,
 			TableStructureModificationListener _listener) {    
     tableID = sTableID;
+		this.dataSourceType = dataSourceType;
 		RowData rd;
     display = parent.getDisplay();
     listener = _listener;
@@ -361,7 +364,7 @@ public class TableColumnEditorWindow {
 			tableColumn.setPositionNoShift(i);
 			tableColumn.setVisible(bChecked);
 		}
-		TableColumnManager.getInstance().saveTableColumns(tableID);
+		TableColumnManager.getInstance().saveTableColumns(dataSourceType, tableID);
 		listener.tableStructureChanged();
 	}
 }

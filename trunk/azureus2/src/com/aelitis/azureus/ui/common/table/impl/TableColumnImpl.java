@@ -132,6 +132,8 @@ public class TableColumnImpl
 	
 	private Map userData;
 
+	private Class forDataSourceType;
+
 	/** Create a column object for the specified table.
 	 *
 	 * @param tableID table in which the column belongs to
@@ -153,6 +155,17 @@ public class TableColumnImpl
 		iPosition = POSITION_INVISIBLE;
 		int iSortDirection = COConfigurationManager.getIntParameter(CFG_SORTDIRECTION);
 		bSortAscending = iSortDirection == 1 ? false : true;
+	}
+	
+	public TableColumnImpl(Class forDataSourceType, String columnID) {
+		this((String) null, columnID);
+		this.forDataSourceType = forDataSourceType;
+		sTableID = forDataSourceType.getName();
+		int i = sTableID.lastIndexOf('.');
+		if (i > 0) {
+			sTableID = sTableID.substring(i + 1);
+		}
+		sTableID = "datasource." + sTableID;
 	}
 
 	public void initialize(int iAlignment, int iPosition, int iWidth,

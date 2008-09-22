@@ -78,7 +78,8 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   
   /* Sets image to be drawn.
    * @param img Image to be stored & drawn
-   * @return true - image was changed.  false = image was the same
+   * @return true - image was changed.<br>  
+   *         false = image was the same (doesn't mean image bits were the same)
    */
   public boolean setGraphic(Image img) {
     boolean bImageSet = (image != img);
@@ -95,8 +96,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
 
     doPaint(bDoRedraw);
 
-    // can't assume image bits haven't changed
-    return true;
+    return bImageSet;
   }
 
   public boolean needsPainting() {

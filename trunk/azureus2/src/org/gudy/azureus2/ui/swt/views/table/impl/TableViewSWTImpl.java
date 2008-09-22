@@ -261,6 +261,10 @@ public class TableViewSWTImpl
 	
 	private boolean columnVisibilitiesChanged = true;
 
+	// What type of data is stored in this table
+	private Class dataSourceType;
+
+
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
 		{
@@ -277,7 +281,7 @@ public class TableViewSWTImpl
 				TableViewSWTImpl.this.debug( str );
 			}
 		};
-	
+
 	
 	/**
 	 * Main Initializer
@@ -332,15 +336,14 @@ public class TableViewSWTImpl
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (tcManager.getTableColumnCount(sTableID) != basicItems.length) {
-			for (int i = 0; i < basicItems.length; i++) {
-				tcManager.addColumn(basicItems[i]);
-			}
+			tcManager.addColumns(basicItems);
 		}
 
 		// fixup order
 		tcManager.ensureIntegrety(sTableID);
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
+				sTableID);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String)
@@ -352,16 +355,14 @@ public class TableViewSWTImpl
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (tcManager.getTableColumnCount(sTableID) != columns.length) {
-			for (int i = 0; i < columns.length; i++) {
-				columns[i].setTableID(sTableID);
-				tcManager.addColumn(columns[i]);
-			}
+			tcManager.addColumns(basicItems);
 		}
 
 		// fixup order
 		tcManager.ensureIntegrety(sTableID);
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
+				sTableID);
 	}
 
 	// AbstractIView::initialize
@@ -684,25 +685,45 @@ public class TableViewSWTImpl
 		}
 
 		if (Utils.SWT32_TABLEPAINT) {
+			table.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent event) {
+					changeColumnIndicator();
+					// This fixes the scrollbar not being long enough on Win2k
+					// There may be other methods to get it to refresh right, but
+					// layout(true, true) didn't work.
+					table.setRedraw(false);
+					table.setRedraw(true);
+					table.removePaintListener(this);
+				}
+			});
+
 			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			table.addListener(SWT.PaintItem, new Listener() {
 				public void handleEvent(Event event) {
+					visibleRowsChanged();
 					paintItem(event);
 				}
 			});
+			//table.addListener(SWT.Paint, new Listener() {
+			//	public void handleEvent(Event event) {
+			//		System.out.println("paint " + event.getBounds() + ";" + table.getColumnCount());
+			//	}
+			//});
 		}
 		
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
-  		horizontalBar.addSelectionListener(new SelectionListener() {
-  			public void widgetDefaultSelected(SelectionEvent e) {
-  				columnVisibilitiesChanged = true;				
-  			}
-  			
-  			public void widgetSelected(SelectionEvent e) {
-  				columnVisibilitiesChanged = true;
-  			}
-  		});
+			horizontalBar.addSelectionListener(new SelectionListener() {
+				public void widgetDefaultSelected(SelectionEvent e) {
+					columnVisibilitiesChanged = true;
+					updateColumnVisibilities();
+				}
+
+				public void widgetSelected(SelectionEvent e) {
+					columnVisibilitiesChanged = true;
+					updateColumnVisibilities();
+				}
+			});
 		}
 		
 		table.addListener(SWT.MeasureItem, new Listener() {
@@ -1012,6 +1033,12 @@ public class TableViewSWTImpl
 		}
 
 		table.setHeaderVisible(true);
+		
+		table.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				columnVisibilitiesChanged = true;
+			}
+		});
 
 		initializeTableColumns(table);
 	}
@@ -1292,6 +1319,7 @@ public class TableViewSWTImpl
 			}
 
 			int iColumnNo = event.index;
+			//System.out.println("paintItem " + table.indexOf(item) + ":" + iColumnNo);
 			if (bSkipFirstColumn) {
 				if (iColumnNo == 0) {
 					return;
@@ -1305,12 +1333,14 @@ public class TableViewSWTImpl
 			}
 
 			if (!isColumnVisible(columnsOrdered[iColumnNo])) {
+				//System.out.println("col not visible " + iColumnNo);
 				return;
 			}
 
 
 			TableRowSWT row = (TableRowSWT) getRow(item);
 			if (row == null) {
+				//System.out.println("no row");
 				return;
 			}
 
@@ -1326,13 +1356,14 @@ public class TableViewSWTImpl
 			}
 
 			if (cellBounds.width <= 0 || cellBounds.height <= 0) {
+				//System.out.println("no bounds");
 				return;
 			}
 
 			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
 
 			if (!cell.isUpToDate()) {
-				//System.out.println("R " + table.indexOf(item));
+				//System.out.println("R " + table.indexOf(item) + ":" + iColumnNo);
 				cell.refresh(true, true);
 				//return;
 			}
@@ -1346,7 +1377,7 @@ public class TableViewSWTImpl
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
 				}
-  			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds);
+  			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
   			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
   					true, SWT.WRAP |
   					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
@@ -1382,18 +1413,41 @@ public class TableViewSWTImpl
 		Rectangle tableArea = table.getClientArea();
 		for (int i = 0; i < columns.length; i++)
 		{
-			TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
-			if (tc == null)
+			final TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
+			if (tc == null){
 				continue;
+			}
+
+			int position = tc.getPosition();
+			if (position < 0 || position >= columnsVisible.length) {
+				continue;
+			}
+
 			Rectangle size = topRow.getBounds(i);
 			size.intersect(tableArea);
-			columnsVisible[tc.getPosition()] = !size.isEmpty();
+			boolean nowVisible = !size.isEmpty();
+			if (columnsVisible[position] != nowVisible) {
+				columnsVisible[position] = nowVisible;
+				if (nowVisible) {
+					runForVisibleRows(new TableGroupRowRunner() {
+						public void run(TableRowCore row) {
+							TableCellCore cell = row.getTableCellCore(tc.getName());
+							cell.invalidate();
+							cell.redraw();
+						}
+					});
+				}
+			}
 		}
 	}
 	
 	public boolean isColumnVisible(org.gudy.azureus2.plugins.ui.tables.TableColumn column)
 	{
-		return columnsVisible[column.getPosition()];
+		int position = column.getPosition();
+		if (position < 0 || position >= columnsVisible.length) {
+			return false;
+		}
+		return columnsVisible[position];
 	}
 
 	protected void initializeTableColumns(final Table table) {
@@ -1448,6 +1502,7 @@ public class TableViewSWTImpl
 			TableColumn tc = new TableColumn(table, SWT.NULL);
 			tc.setWidth(0);
 			tc.setResizable(false);
+			tc.setMoveable(false);
 		}
 
 		TableColumnCore[] tmpColumnsOrdered = new TableColumnCore[tableColumns.length];
@@ -1653,7 +1708,7 @@ public class TableViewSWTImpl
 	
 	void showColumnEditor() {
 		new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
-				getFocusedRow(),
+				getFocusedRow(), dataSourceType,
 				TableStructureEventDispatcher.getInstance(sTableID));		
 	}
 
@@ -1982,7 +2037,7 @@ public class TableViewSWTImpl
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (tcManager != null) {
-			tcManager.saveTableColumns(sTableID);
+			tcManager.saveTableColumns(dataSourceType, sTableID);
 		}
 
 		if (table != null && !table.isDisposed())
@@ -2632,6 +2687,7 @@ public class TableViewSWTImpl
 	public void columnOrderChanged(int[] positions) {
 		try {
 			table.setColumnOrder(positions);
+			updateColumnVisibilities();
 		} catch (NoSuchMethodError e) {
 			// Pre SWT 3.1
 			// This shouldn't really happen, since this function only gets triggered
@@ -3233,6 +3289,12 @@ public class TableViewSWTImpl
 				if (iColumnOrder[i] == iAddedPosition) {
 					int iNewPosition = i - (bSkipFirstColumn ? 1 : 0);
 					if (tableColumnCore.getPosition() != iNewPosition) {
+						if (iNewPosition == -1) {
+							iColumnOrder[0] = 0;
+							iColumnOrder[1] = iAddedPosition;
+							table.setColumnOrder(iColumnOrder);
+							iNewPosition = 0;
+						}
 						//System.out.println("Moving " + tableColumnCore.getName() + " to Position " + i);
 						tableColumnCore.setPositionNoShift(iNewPosition);
 						tableColumnCore.saveSettings(null);
@@ -3654,8 +3716,6 @@ public class TableViewSWTImpl
 		}
 		//debug("VRC " + Debug.getCompressedStackTrace());
 		
-		columnVisibilitiesChanged = true;
-
 		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -4028,5 +4088,13 @@ public class TableViewSWTImpl
 			return null;
 		}
 		return new Point(x, y);
+	}
+
+	public Class getDataSourceType() {
+		return dataSourceType;
+	}
+
+	public void setDataSourceType(Class dataSourceType) {
+		this.dataSourceType = dataSourceType;
 	}
 }

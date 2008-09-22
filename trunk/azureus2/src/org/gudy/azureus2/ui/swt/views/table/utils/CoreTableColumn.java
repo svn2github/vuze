@@ -111,8 +111,8 @@ public class CoreTableColumn
     super(sTableID, sName);
     setUseCoreDataSource(true);
     addListeners(this);
-  }
-  
+  }  
+
   public void initializeAsGraphic(int iPosition, int iWidth) {
     setPosition(iPosition);
     setWidth(iWidth);

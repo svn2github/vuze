@@ -63,6 +63,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -366,9 +367,13 @@ UISWTInstanceImpl
 			}
 			case UIManagerEvent.ET_CREATE_TABLE_COLUMN:{
 				
-	 			String[]	args = (String[])data;
-	 			
-	 			event.setResult( new TableColumnImpl(args[0], args[1]));
+				if (data instanceof TableColumn) {
+					event.setResult((TableColumn) data);
+				} else {
+					String[] args = (String[]) data;
+
+					event.setResult(new TableColumnImpl(args[0], args[1]));
+				}
 	 			
 	 			break;
 			} 
@@ -378,7 +383,9 @@ UISWTInstanceImpl
 				
 				if ( _col instanceof TableColumnImpl ){
 					
-					TableColumnManager.getInstance().addColumn((TableColumnImpl)_col);
+					TableColumnManager.getInstance().addColumns(new TableColumnCore[] {
+						(TableColumnCore) _col
+					});
 					
 				}else{
 					

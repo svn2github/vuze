@@ -14,6 +14,10 @@
 
 package org.gudy.azureus2.plugins.ui.tables;
 
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+
 /** Allows plugins to manage Azureus UI tables.
  *
  * @author TuxPaper
@@ -76,6 +80,27 @@ public interface TableManager
    * @return an interface object allowing modification of the table column.
    */
   public TableColumn createColumn(String tableID, String cellID);
+  
+  /**
+   * Register a column for a specific data source type.  When the column
+   * is created, the listener will be fired.
+   * <p>
+   * This method is independent of {@link #createColumn(String, String)} and
+   * {@link #addColumn(TableColumn)}.  This method improves upon them by
+   * saving you from creating and adding the column to every potential table
+   * it could be displayed in.  It allows for your column to be added to future
+   * tables without and code changes on your end. 
+   * 
+   * @param forDataSourceType Class of datasource you want to add a column to,
+   *                          such as {@link Download}, {@link DownloadTypeComplete},
+   *                          {@link DownloadTypeIncomplete}
+   * @param cellID The logical name of the column.
+   * @return an interface object allowing modification of the table column.
+   *
+   * @since 3.1.1.1
+   */
+  public void registerColumn(Class forDataSourceType, String cellID,
+			TableColumnCreationListener listener);
 
   /** Adds a column to an Azureus UI table.
    *

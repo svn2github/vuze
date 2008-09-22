@@ -26,17 +26,22 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 
 
 /** Holds a list of column definitions (TableColumnCore) for 
  * all the tables in Azureus.
  *
- * Colum definitions are added via 
+ * Column definitions are added via 
  * PluginInterface.addColumn(TableColumn)
  * See Use javadoc section for more uses.
  *
@@ -68,6 +73,10 @@ public class TableColumnManager {
 	private Map mapTablesConfig; // key = table; value = map of columns
 	private static Comparator orderComparator;
 	
+	private Map mapColumnIDsToListener = new HashMap();
+	private Map mapDataSourceTypeToColumnIDs = new HashMap();
+
+
 	static {
 		orderComparator = new Comparator() {
 			public int compare(Object arg0, Object arg1) {				
@@ -112,50 +121,52 @@ public class TableColumnManager {
   /** Adds a column definition to the list
    * @param item The column definition object
    */
-  public void addColumn(TableColumnCore item) {
-    try {
-      String name = item.getName();
-      String sTableID = item.getTableID();
-     try{
-     	items_mon.enter();
-        Map mTypes = (Map)items.get(sTableID);
-        if (mTypes == null) {
-          // LinkedHashMap to preserve order
-          mTypes = new LinkedHashMap();
-          items.put(sTableID, mTypes);
-        }
-        if (!mTypes.containsKey(name)) {
-          mTypes.put(name, item);
-          Map mapColumnConfig = getTableConfigMap(sTableID);
-          mapTablesConfig.put("Table." + sTableID, mapColumnConfig);
-          ((TableColumnCore)item).loadSettings(mapColumnConfig);
-        }
-      }finally{
-      	items_mon.exit();
-      }
-      if (!item.getColumnAdded()) {
-        item.setColumnAdded(true);
-      }
-    } catch (Exception e) {
-      System.out.println("Error while adding Table Column Extension");
-      Debug.printStackTrace( e );
-    }
-  }
+  public void addColumns(TableColumnCore[] itemsToAdd) {
+		try {
+			items_mon.enter();
+			for (int i = 0; i < itemsToAdd.length; i++) {
+				TableColumnCore item = itemsToAdd[i];
+				String name = item.getName();
+				String sTableID = item.getTableID();
+				Map mTypes = (Map) items.get(sTableID);
+				if (mTypes == null) {
+					// LinkedHashMap to preserve order
+					mTypes = new LinkedHashMap();
+					items.put(sTableID, mTypes);
+				}
+				if (!mTypes.containsKey(name)) {
+					mTypes.put(name, item);
+					Map mapColumnConfig = getTableConfigMap(sTableID);
+					mapTablesConfig.put("Table." + sTableID, mapColumnConfig);
+					((TableColumnCore) item).loadSettings(mapColumnConfig);
+				}
+				if (!item.getColumnAdded()) {
+					item.setColumnAdded(true);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error while adding Table Column Extension");
+			Debug.printStackTrace(e);
+		} finally {
+			items_mon.exit();
+		}
+	}
 
   /** Retrieves TableColumnCore objects of a particular type.
    * @param sTableID TABLE_* constant.  See {@link TableColumn} for list 
    * of constants
+   * @param forDataSourceType 
    *
    * @return Map of column definition objects matching the supplied criteria.
    *         key = name
    *         value = TableColumnCore object
    */
-  public Map getTableColumnsAsMap(String sTableID) {
+  public Map getTableColumnsAsMap(Class forDataSourceType, String sTableID) {
     //System.out.println("getTableColumnsAsMap(" + sTableID + ")");
     try{
     	items_mon.enter();
       Map mReturn = new LinkedHashMap();
-      Map mTypes = (Map)items.get(sTableID);
+    	Map mTypes = getAllTableColumnCore(forDataSourceType, sTableID);
       if (mTypes != null) {
         mReturn.putAll(mTypes);
       }
@@ -176,12 +187,80 @@ public class TableColumnManager {
   }
 
   
-  public TableColumnCore[] getAllTableColumnCoreAsArray(String sTableID) {
-    Map mTypes = (Map)items.get(sTableID);
-    if (mTypes != null) {
-      return (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[mTypes.values().size()]);
-    }
-    return new TableColumnCore[0];
+  public TableColumnCore[] getAllTableColumnCoreAsArray(
+			Class forDataSourceType, String tableID)
+	{
+  	Map mTypes = getAllTableColumnCore(forDataSourceType, tableID);
+		return (TableColumnCore[]) mTypes.values().toArray(
+				new TableColumnCore[mTypes.values().size()]);
+	}
+
+  private Map getAllTableColumnCore(
+			Class forDataSourceType, String tableID)
+	{
+		String[] dstColumnIDs = new String[0];
+		if (forDataSourceType != null) {
+  		List listDST = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+  		if (listDST != null) {
+  			dstColumnIDs = (String[]) listDST.toArray(new String[0]);
+  		}
+  		if (forDataSourceType.equals(DownloadTypeComplete.class)
+  				|| forDataSourceType.equals(DownloadTypeIncomplete.class)) {
+  			listDST = (List) mapDataSourceTypeToColumnIDs.get(Download.class);
+  			if (listDST != null && listDST.size() > 0) {
+  				String[] ids1 = (String[]) listDST.toArray(new String[0]);
+  				String[] ids2 = dstColumnIDs;
+  				dstColumnIDs = new String[ids2.length + ids1.length];
+  				System.arraycopy(ids2, 0, dstColumnIDs, 0, ids2.length);
+  				System.arraycopy(ids1, 0, dstColumnIDs, ids2.length, ids1.length);
+  			}
+  		}
+		}
+
+		try {
+			items_mon.enter();
+
+			Map mTypes = (Map) items.get(tableID);
+			if (mTypes == null) {
+        mTypes = new LinkedHashMap();
+				items.put(tableID, mTypes);
+			}
+
+			for (int i = 0; i < dstColumnIDs.length; i++) {
+				String columnID = dstColumnIDs[i];
+				if (!mTypes.containsKey(columnID)) {
+					try {
+						TableColumnCreationListener l = (TableColumnCreationListener) mapColumnIDsToListener.get(columnID);
+						TableColumnCore tc = null;
+						if (l instanceof TableColumnCoreCreationListener) {
+							tc = ((TableColumnCoreCreationListener) l).createTableColumnCore(
+									tableID, columnID);
+						}
+						if (tc == null) {
+							tc = new TableColumnImpl(tableID, columnID);
+						}
+
+						addColumns(new TableColumnCore[] { tc });
+
+						l.tableColumnCreated(tc);
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
+			}
+
+			return mTypes;
+		} finally {
+			items_mon.exit();
+		}
+	}
+  
+  public TableColumnCore[] appendLists(TableColumnCore[] list1, TableColumnCore[] list2) {
+  	int size = list1.length + list2.length;
+  	TableColumnCore[] list = new TableColumnCore[size];
+  	System.arraycopy(list1, 0, list, 0, list1.length);
+  	System.arraycopy(list2, 0, list, list1.length, list2.length);
+  	return list;
   }
   
   public TableColumnCore getTableColumnCore(String sTableID,
@@ -242,10 +321,11 @@ public class TableColumnManager {
    *
    * @param sTableID Table to save settings for
    */
-  public void saveTableColumns(String sTableID) {
+  public void saveTableColumns(Class forDataSourceType, String sTableID) {
   	try {
   		Map mapTableConfig = getTableConfigMap(sTableID);
-      TableColumnCore[] tcs = getAllTableColumnCoreAsArray(sTableID);
+      TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
+					sTableID);
       for (int i = 0; i < tcs.length; i++) {
         if (tcs[i] != null)
           tcs[i].saveSettings(mapTableConfig);
@@ -321,5 +401,23 @@ public class TableColumnManager {
 	public static Comparator getTableColumnOrderComparator()
 	{
 		return orderComparator;
+	}
+
+	/**
+	 * @param forDataSourceType
+	 * @param cellID
+	 * @param listener
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void registerColumn(Class forDataSourceType, String cellID,
+			TableColumnCreationListener listener) {
+  	mapColumnIDsToListener.put(cellID, listener);
+		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+		if (list == null) {
+			list = new ArrayList(1);
+			mapDataSourceTypeToColumnIDs.put(forDataSourceType, list);
+		}
+		list.add(cellID);
 	}
 }

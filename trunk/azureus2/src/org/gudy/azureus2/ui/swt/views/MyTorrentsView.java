@@ -72,6 +72,9 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+
 /** Displays a list of torrents in a table view.
  *
  * @author Olivier
@@ -193,6 +196,8 @@ public class MyTorrentsView
     tv.addMenuFillListener(this);
     tv.addRefreshListener(this, false);
     tv.addCountChangeListener(this);
+    tv.setDataSourceType(isSeedingView ? DownloadTypeComplete.class
+				: DownloadTypeIncomplete.class);
 
     // experiment
 		//tv.setEnableTabViews(true);

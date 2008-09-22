@@ -68,10 +68,8 @@ public class DetailedListView extends AbstractIView implements
   public DetailedListView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;
 
-    TableColumnManager tcExtensions = TableColumnManager.getInstance();
-    for (int i = 0; i < tableIncompleteItems.length; i++) {
-      tcExtensions.addColumn(tableIncompleteItems[i]);
-    }
+    TableColumnManager tcManager = TableColumnManager.getInstance();
+    tcManager.addColumns(tableIncompleteItems);
   }
 
   public Composite getComposite() {

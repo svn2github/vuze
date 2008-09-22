@@ -71,13 +71,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;
 
-    TableColumnManager tcExtensions = TableColumnManager.getInstance();
-    for (int i = 0; i < tableCompleteItems.length; i++) {
-      tcExtensions.addColumn(tableCompleteItems[i]);
-    }
-    for (int i = 0; i < tableIncompleteItems.length; i++) {
-      tcExtensions.addColumn(tableIncompleteItems[i]);
-    }
+    TableColumnManager tcManager = TableColumnManager.getInstance();
+    tcManager.addColumns(tableCompleteItems);
+    tcManager.addColumns(tableIncompleteItems);
   }
 
   public Composite getComposite() {

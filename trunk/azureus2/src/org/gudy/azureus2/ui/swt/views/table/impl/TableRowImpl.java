@@ -24,10 +24,8 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.*;
 
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 
@@ -248,15 +246,18 @@ public class TableRowImpl
     
 		bSetNotUpToDateLastRefresh = false;
 		
-		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex());
+		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex() + ";vis=" + bVisible);
 
     Iterator iter = mTableCells.values().iterator();
     while (iter.hasNext())
 		{
 			TableCellSWT item = (TableCellSWT) iter.next();
 			TableColumn column = item.getTableColumn();
-			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column))
+			//System.out.println(column);
+			if (column != tableView.getSortColumn() && !tableView.isColumnVisible(column)) {
+				//System.out.println("skip " + column);
 				continue;
+			}
 			boolean changed = item.refresh(bDoGraphics, bVisible);
 			if (changed)
 			{
@@ -266,6 +267,7 @@ public class TableRowImpl
 			}
 				
 		}
+    //System.out.println();
     return list;
   }
 

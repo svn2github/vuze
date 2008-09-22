@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
+import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class 
@@ -264,8 +265,10 @@ TorrentInfoView
 		TableColumnManager col_man = TableColumnManager.getInstance();
 		
 		TableColumnCore[][] cols_sets = {
-				col_man.getAllTableColumnCoreAsArray( TableManager.TABLE_MYTORRENTS_INCOMPLETE ),
-				col_man.getAllTableColumnCoreAsArray( TableManager.TABLE_MYTORRENTS_COMPLETE ),
+			col_man.getAllTableColumnCoreAsArray(DownloadTypeIncomplete.class,
+					TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+			col_man.getAllTableColumnCoreAsArray(DownloadTypeComplete.class,
+					TableManager.TABLE_MYTORRENTS_COMPLETE),
 		};
 				
 		for (int i=0;i<cols_sets.length;i++){

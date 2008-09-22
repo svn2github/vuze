@@ -1179,4 +1179,10 @@ public class FakeTableCell
 	public void refreshAsync() {
 		refresh();
 	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableCellCore#redraw()
+	public void redraw() {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -364,4 +364,18 @@ public interface TableView
 	 * @since 3.0.4.3
 	 */
 	TableRowCore getRow(int position);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	Class getDataSourceType();
+
+	/**
+	 * @param dataSourceType
+	 *
+	 * @since 3.1.1.1
+	 */
+	void setDataSourceType(Class dataSourceType);
 }

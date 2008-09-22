@@ -177,4 +177,11 @@ public interface TableCellCore extends TableCell, Comparable
 	 * @since 3.0.5.3
 	 */
 	void refreshAsync();
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	void redraw();
 }
