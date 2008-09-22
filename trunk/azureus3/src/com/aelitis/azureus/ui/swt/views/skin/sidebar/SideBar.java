@@ -181,6 +181,8 @@ public class SideBar
 	
 	private Image treeImage;
 
+	private Image lastImage;
+
 	static {
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
@@ -624,7 +626,7 @@ public class SideBar
 
 				SWTSkinButtonUtility btnDropDown = new SWTSkinButtonUtility(soDropDown);
 				btnDropDown.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility) {
+					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 						Control c = buttonUtility.getSkinObject().getControl();
 						menuDropDown.setLocation(c.getDisplay().getCursorLocation());
 						menuDropDown.setVisible(!menuDropDown.getVisible());
@@ -636,7 +638,7 @@ public class SideBar
 			if (soExpand != null) {
 				SWTSkinButtonUtility btnExpand = new SWTSkinButtonUtility(soExpand);
 				btnExpand.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility) {
+					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
 						flipSideBarVisibility();
 					}
 				});
@@ -1136,7 +1138,9 @@ public class SideBar
 		tree.showItem(treeItem);
 		itemSelected(treeItem);
 
-		parent.layout(true, true);
+		if (parent.isVisible()) {
+			parent.layout(true, true);
+		}
 	}
 
 	/**
@@ -1267,10 +1271,10 @@ public class SideBar
 		return treeItem;
 	}
 
-	private void setupTreeItem(IView iview, TreeItem treeItem, String id,
+	private void setupTreeItem(final IView iview, TreeItem treeItem, String id,
 			ViewTitleInfo titleInfo, String title, Composite initializeView,
 			Object datasource, boolean closeable) {
-		SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+		final SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 
 		boolean pull = true;
 		if (treeItem.getParentItem() != null) {
@@ -1374,6 +1378,14 @@ public class SideBar
 			if (sideBarInfo.datasource != null) {
 				iview.dataSourceChanged(sideBarInfo.datasource);
 			}
+			initializeView.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					if (sideBarInfo.iview != null) {
+						sideBarInfo.iview.delete();
+						sideBarInfo.iview = null;
+					}
+				}
+			});
 		}
 	}
 
@@ -1465,20 +1477,31 @@ public class SideBar
 
 			// hide old
 			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
+				if (lastImage != null && !lastImage.isDisposed()) {
+					lastImage.dispose();
+					lastImage = null;
+				}
 				if (oldSideBarInfo.skinObject != null) {
 					SWTSkinObjectContainer container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
 					if (container != null) {
+						Control oldComposite = container.getControl();
+						doFade(oldComposite);
+						
 						container.setVisible(false);
+						oldComposite.getShell().update();
 					}
 				}
 				if (oldSideBarInfo.iview != null) {
 					Composite oldComposite = oldSideBarInfo.iview.getComposite();
 					if (oldComposite != null && !oldComposite.isDisposed()) {
+						doFade(oldComposite);
+
 						oldComposite.setVisible(false);
+						oldComposite.getShell().update();
 					}
 				}
 			}
-
+				
 			SelectedContentManager.changeCurrentlySelectedContent(null, null);
 
 			// show new
@@ -1520,6 +1543,71 @@ public class SideBar
 			}
 
 			triggerListener(newSideBarInfo, oldSideBarInfo);
+		}
+	}
+
+	/**
+	 * @param oldComposite
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void doFade(Control oldComposite) {
+		if (lastImage == null || lastImage.isDisposed()) {
+			Rectangle bounds = oldComposite.getBounds();
+			if (bounds.isEmpty()) {
+				return;
+			}
+			lastImage = new Image(oldComposite.getDisplay(), bounds.width,
+					bounds.height);
+			GC gc = new GC(oldComposite);
+			gc.copyArea(lastImage, 0, 0);
+			gc.dispose();
+
+			final Shell shell = new Shell(soSideBarContents.getControl().getShell(),
+					SWT.NO_TRIM);
+			shell.addPaintListener(new PaintListener() {
+
+				public void paintControl(PaintEvent e) {
+					if (shell.isDisposed() || lastImage == null || lastImage.isDisposed()) {
+						return;
+					}
+					e.gc.drawImage(lastImage, 0, 0);
+				}
+			});
+			Point pos = soSideBarContents.getControl().toDisplay(0, 0);
+			shell.setLocation(pos);
+			shell.setSize(soSideBarContents.getControl().getSize());
+			shell.setAlpha(255);
+			shell.setVisible(true);
+			//System.out.println("ALPHA");
+			Utils.execSWTThreadLater(10, new AERunnable() {
+				long lastTime;
+
+				public void runSupport() {
+					if (lastImage == null || lastImage.isDisposed()) {
+						shell.dispose();
+						return;
+					}
+
+					int alpha = shell.getAlpha();
+					alpha -= 50;
+					long now = SystemTime.getCurrentTime();
+
+					if (alpha < 0 || lastImage == null || lastImage.isDisposed()) {
+						shell.dispose();
+						return;
+					}
+					shell.setAlpha(alpha);
+					//System.out.println(alpha);
+
+					if (lastTime > 0 && now - lastTime > 50) {
+						Utils.execSWTThreadLater(0, this);
+					} else {
+						Utils.execSWTThreadLater(10, this);
+					}
+					lastTime = now;
+				};
+			});
 		}
 	}
 
@@ -1631,7 +1719,9 @@ public class SideBar
 			setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
 					viewComposite, datasource, closeable);
 
-			parent.layout(true, true);
+			if (parent.isVisible()) {
+				parent.layout(true, true);
+			}
 
 			if (closeable) {
 				COConfigurationManager.setParameter("SideBar.AutoOpen." + id, true);
@@ -1821,6 +1911,11 @@ public class SideBar
 						break;
 					case UISWTViewEvent.TYPE_REFRESH: {
 
+						break;
+					}
+					
+					case UISWTViewEvent.TYPE_DESTROY: {
+						break;
 					}
 				}
 				return true;
