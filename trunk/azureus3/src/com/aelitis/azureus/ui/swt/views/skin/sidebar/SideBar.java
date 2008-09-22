@@ -1488,7 +1488,9 @@ public class SideBar
 						doFade(oldComposite);
 						
 						container.setVisible(false);
-						oldComposite.getShell().update();
+						if (!oldComposite.isDisposed()) {
+							oldComposite.getShell().update();
+						}
 					}
 				}
 				if (oldSideBarInfo.iview != null) {
