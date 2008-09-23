@@ -301,17 +301,22 @@ public class ColumnMediaThumb
 
 			int h2;
 			int w2;
+			int hImg;
+			int wImg;
 
 			if (h > MAXH) {
-				h2 = MAXH;
-				w2 = h2 * w / h;
+				hImg = h2 = MAXH;
+				wImg = w2 = h2 * w / h;
 			} else {
 				h2 = MAXH;
+				hImg = h;
 				w2 = h2 * w / h;
+				wImg = hImg * w / h;
+				dy = (h2 - hImg) / 2;
 			}
 
-			if (cellWidth > w2) {
-				dx = (cellWidth - w2) / 2;
+			if (cellWidth > wImg) {
+				dx = (cellWidth - wImg) / 2;
 			}
 			//dx += 18;
 
@@ -351,7 +356,7 @@ public class ColumnMediaThumb
 				}
 			}
 			gc.drawImage(firstImage, 0, 0, w, h, dx + BORDER_SIZE, dy + BORDER_SIZE,
-					w2 - (BORDER_SIZE * 2), h2 - (BORDER_SIZE * 2));
+					wImg - (BORDER_SIZE * 2), hImg - (BORDER_SIZE * 2));
 
 			if (cell instanceof TableCellSWT) {
 				TableCellSWT cellSWT = (TableCellSWT) cell;
