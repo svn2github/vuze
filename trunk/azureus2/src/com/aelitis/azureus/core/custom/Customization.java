@@ -27,6 +27,8 @@ import java.io.InputStream;
 public interface 
 Customization 
 {
+	public static final String RT_META_SEARCH_TEMPLATES	= "metasearch";	// InputStream[]
+	
 	public String
 	getName();
 	
@@ -46,6 +48,10 @@ Customization
 	
 	public InputStream
 	getResource(
+		String		resource_name );
+	
+	public InputStream[]
+	getResources(
 		String		resource_name );
 	
 	public void

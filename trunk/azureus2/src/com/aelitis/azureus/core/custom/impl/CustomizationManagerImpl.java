@@ -215,6 +215,11 @@ CustomizationManagerImpl
 			
 		    File	user_dir = FileUtil.getUserFile("custom");
 		    
+		    if ( !user_dir.exists()){
+		    	
+		    	user_dir.mkdirs();
+		    }
+		    
 		    File	target = new File( user_dir, name + "_" + version + ".zip" );
 		    
 		    if ( !target.exists()){

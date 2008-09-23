@@ -21,8 +21,18 @@
 
 package com.aelitis.azureus.core.custom.impl;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationException;
@@ -100,6 +110,74 @@ CustomizationImpl
 		String		resource_name )
 	{
 		return( null );
+	}
+	
+	public InputStream[]
+   	getResources(
+   		String		resource_name )
+	{
+		List	result = new ArrayList();
+		
+		ZipInputStream	zis = null;
+	
+		try{
+			zis = new ZipInputStream( 
+					new BufferedInputStream( new FileInputStream( contents ) ));
+				
+			while( true ){
+				
+				ZipEntry	entry = zis.getNextEntry();
+					
+				if ( entry == null ){
+					
+					break;
+				}
+				
+				String	name = entry.getName();
+				
+				int pos = name.indexOf( resource_name + "/" );
+				
+				if ( pos != -1 ){
+										
+					if ( name.endsWith( ".vuze" )){
+						
+						ByteArrayOutputStream baos = new ByteArrayOutputStream( 16*1024 );
+						
+						byte[]	buffer = new byte[16*1024];
+						
+						while( true ){
+						
+							int	len = zis.read( buffer );
+							
+							if ( len <= 0 ){
+								
+								break;
+							}
+							
+							baos.write( buffer, 0, len );
+						}
+						
+						result.add( new ByteArrayInputStream( baos.toByteArray()));
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+		}finally{
+			
+			if ( zis != null ){
+				
+				try{
+					zis.close();
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return((InputStream[])result.toArray( new InputStream[result.size()]));
 	}
 	
 	public void 
