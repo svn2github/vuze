@@ -353,7 +353,10 @@ public class ColumnVuzeActivity
 			}
 
 			if (canShowThumb) {
-				height += 60;
+				//height += 60;
+				if (height < 60) {
+					height = 60;
+				}
 			}
 
 			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setDrawableHeight(
@@ -371,7 +374,11 @@ public class ColumnVuzeActivity
 				imgBounds = image.getBounds();
 			}
 
-			drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
+			if (canShowThumb) {
+				drawRect = new Rectangle(x, y, (width / 2) - x - 4, height - y + MARGIN_HEIGHT);
+			} else {
+				drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
+			}
 			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(), drawRect,
 					0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
@@ -460,7 +467,7 @@ public class ColumnVuzeActivity
 			entry.urlInfo = stringPrinter;
 
 			if (canShowThumb) {
-				Rectangle dmThumbRect = getDMImageRect(height);
+				Rectangle dmThumbRect = getDMImageRect(width, height);
 				if (thumbCell == null) {
 					ListCell listCell = new ListCellGraphic((ListRow) cell.getTableRow(),
 							SWT.LEFT, dmThumbRect);
@@ -659,7 +666,7 @@ public class ColumnVuzeActivity
 		TableCellImpl thumbCell = getThumbCell(event.cell);
 		TableCellImpl ratingCell = getRatingCell(event.cell);
 		if (thumbCell != null || ratingCell != null) {
-			Rectangle dmThumbRect = getDMImageRect(event.cell.getHeight());
+			Rectangle dmThumbRect = getDMImageRect(event.cell.getWidth(), event.cell.getHeight());
 			Rectangle dmRatingRect = getDMRatingRect(event.cell.getWidth(),
 					event.cell.getHeight());
 
@@ -836,14 +843,16 @@ public class ColumnVuzeActivity
 		}
 	}
 
-	private Rectangle getDMImageRect(int cellHeight) {
+	private Rectangle getDMImageRect(int cellWidth, int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
-		return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 88, 50);
+		//return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 88, 50);
+		return new Rectangle(cellWidth / 2, MARGIN_HEIGHT, 88, 50);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
-		return new Rectangle(cellWidth - 80 - 10, cellHeight - 42 - MARGIN_HEIGHT,
-				80, 38);
+		//return new Rectangle(cellWidth - 80 - 10, cellHeight - 42 - MARGIN_HEIGHT,
+		//		80, 38);
+		return new Rectangle(cellWidth - 80 - 10, MARGIN_HEIGHT + 12, 88, 38);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
