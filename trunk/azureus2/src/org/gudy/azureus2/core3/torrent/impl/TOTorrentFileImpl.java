@@ -25,8 +25,7 @@ package org.gudy.azureus2.core3.torrent.impl;
 import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -200,6 +199,10 @@ TOTorrentFileImpl
 		LocaleUtilDecoder decoder = null;
 		try {
 			decoder = LocaleTorrentUtil.getTorrentEncodingIfAvailable(torrent);
+			if (decoder == null) {
+				LocaleUtil localeUtil = LocaleUtil.getSingleton();
+				decoder = localeUtil.getSystemDecoder();
+			}
 		} catch (Exception e) {
 			// Do Nothing
 		}
