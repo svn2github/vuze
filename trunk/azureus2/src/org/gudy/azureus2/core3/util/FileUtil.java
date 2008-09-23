@@ -1470,20 +1470,38 @@ public class FileUtil {
     
     
     
-    public static void writeBytesAsFile( String filename, byte[] file_data ) {
-      try{
-        File file = new File( filename );
-        
-        FileOutputStream out = new FileOutputStream( file );
-        
-        out.write( file_data );
-        
-        out.close();
-      }
-      catch( Throwable t ) {
-        Debug.out( "writeBytesAsFile:: error: ", t );
-      }
+    public static void 
+    writeBytesAsFile( 
+    	String filename, 
+    	byte[] file_data ) 
+    {
+    		// pftt, this is used by emp so can't fix signature to make more useful
+    	
+    	writeBytesAsFile2( filename, file_data );
+    }
+    
+    public static boolean 
+    writeBytesAsFile2( 
+    	String filename, 
+    	byte[] file_data ) 
+    {
+    	try{
+    		File file = new File( filename );
 
+    		FileOutputStream out = new FileOutputStream( file );
+
+    		out.write( file_data );
+
+    		out.close();
+    		
+    		return( true );
+    		
+    	}catch( Throwable t ){
+    		
+    		Debug.out( "writeBytesAsFile:: error: ", t );
+    	
+    		return( false );
+    	}
     }
     
 	public static boolean

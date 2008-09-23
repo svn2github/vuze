@@ -28,6 +28,10 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.custom.*;
 
@@ -50,7 +54,8 @@ CustomizationManagerImpl
 
 	private Map	customization_file_map = new HashMap();
 	
-	private String	current_customization;
+	private String				current_customization_name;
+	private CustomizationImpl	current_customization;
 	
 	protected
 	CustomizationManagerImpl()
@@ -120,7 +125,7 @@ CustomizationManagerImpl
 	    			
 	    			active = name;
 	    			
-	    			String version = (String)((Object[])customization_file_map.get( name ))[0];
+	    			String version = ((String[])customization_file_map.get( name ))[0];
 	    			
 	    			COConfigurationManager.setParameter( "customization.active.name", active );
 	    			
@@ -131,7 +136,7 @@ CustomizationManagerImpl
 	    	}
 	    }
 	    	
-	    current_customization = active;
+	    current_customization_name = active;
 	}
 	
 	protected void
@@ -170,19 +175,19 @@ CustomizationManagerImpl
 						continue;
 					}
 					
-					Object[]	details = (Object[])customization_file_map.get( lhs );
+					String[]	details = (String[])customization_file_map.get( lhs );
 					
 					if ( details == null ){
 						
-						customization_file_map.put( lhs, new Object[]{ rhs, file.getAbsolutePath()});
+						customization_file_map.put( lhs, new String[]{ rhs, file.getAbsolutePath()});
 						
 					}else{
 						
-						String	old_version = (String)details[0];
+						String	old_version = details[0];
 						
 						if ( Constants.compareVersions( old_version, rhs ) < 0 ){
 							
-							customization_file_map.put( lhs, new Object[]{ rhs, file.getAbsolutePath()});
+							customization_file_map.put( lhs, new String[]{ rhs, file.getAbsolutePath()});
 						}
 					}
 				}
@@ -208,6 +213,17 @@ CustomizationManagerImpl
 			
 			byte[]	data = (byte[])map.get( "data" );
 			
+		    File	user_dir = FileUtil.getUserFile("custom");
+		    
+		    File	target = new File( user_dir, name + "_" + version + ".zip" );
+		    
+		    if ( !target.exists()){
+		    	
+		    	if ( !FileUtil.writeBytesAsFile2( target.getAbsolutePath(), data )){
+		    		
+		    		throw( new CustomizationException( "Failed to save customization to " + target ));
+		    	}
+		    }
 		}catch( CustomizationException e ){
 			
 			throw( e );
@@ -261,13 +277,83 @@ CustomizationManagerImpl
 	public Customization
 	getActiveCustomization()
 	{
-		return( null );
+		synchronized( this ){
+			
+			if ( current_customization == null ){
+				
+				if ( current_customization_name != null ){
+					
+					String[] entry = (String[])customization_file_map.get( current_customization_name );
+					
+					if ( entry != null ){
+						
+						try{
+							current_customization = 
+								new CustomizationImpl(
+									this,
+									current_customization_name,
+									entry[0],
+									new File( entry[1] ));
+							
+							SimpleTimer.addEvent( 
+								"Custom:clear", 
+								SystemTime.getCurrentTime() + 120*1000,
+								new TimerEventPerformer()
+								{
+									public void 
+									perform(
+										TimerEvent event ) 
+									{
+										synchronized( this ){
+											
+											current_customization = null;
+										}
+									}
+								});
+							
+						}catch( CustomizationException e ){
+							
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+			
+			return( current_customization );
+		}
 	}
 	
 	public Customization[]
 	getCustomizations()
 	{
-		return( new Customization[0] );
+		List	result = new ArrayList();
+		
+		synchronized( this ){
+			
+			Iterator	it = customization_file_map.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry	entry = (Map.Entry)it.next();
+				
+				String		name = (String)entry.getKey();
+				String[]	bits = (String[])entry.getValue();
+				
+				String	version = (String)bits[0];
+				File	file	= new File(bits[1]);
+				
+				try{
+					
+					CustomizationImpl cust = new CustomizationImpl( this, name, version, file );
+					
+					result.add( cust );
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return((Customization[])result.toArray(new Customization[result.size()]));
 	}
 	
 	public static void

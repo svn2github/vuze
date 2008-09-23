@@ -43,11 +43,18 @@ CustomizationImpl
 		String						_name,
 		String						_version,
 		File						_contents )
+	
+		throws CustomizationException
 	{	
 		manager		= _manager;
 		name		= _name;
 		version		= _version;
 		contents	= _contents;
+		
+		if ( !contents.exists()){
+			
+			throw( new CustomizationException( "Content file '" + contents + " not found" ));
+		}
 	}
 	
 	public String
