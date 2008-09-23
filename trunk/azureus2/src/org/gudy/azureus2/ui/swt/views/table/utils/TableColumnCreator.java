@@ -24,6 +24,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
@@ -80,7 +81,7 @@ public class TableColumnCreator
 	 */
 	public static void initCoreColumns() {
 		// short variable names to reduce wrapping
-		final Map c = new HashMap();
+		final Map c = new LightHashMap(50);
 		final Class all = Download.class;
 		final Class dl = DownloadTypeIncomplete.class;
 		final Class cd = DownloadTypeComplete.class;

@@ -69,12 +69,12 @@ public class TableColumnManager {
    * key   = TABLE_* type
    * value = List of TableColumn, indexed in the order they should be removed
    */ 
-  private Map autoHideOrder = new HashMap();
+  private Map autoHideOrder = new LightHashMap();
 	private Map mapTablesConfig; // key = table; value = map of columns
 	private static Comparator orderComparator;
 	
-	private Map mapColumnIDsToListener = new HashMap();
-	private Map mapDataSourceTypeToColumnIDs = new HashMap();
+	private Map mapColumnIDsToListener = new LightHashMap();
+	private Map mapDataSourceTypeToColumnIDs = new LightHashMap();
 
 
 	static {
