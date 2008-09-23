@@ -255,6 +255,33 @@ Constants
 	}
 	
 	public static boolean
+	isValidVersionFormat(
+		String		version )
+	{
+		if ( version == null || version.length() == 0 ){
+			
+			return( false );
+		}
+		
+		for (int i=0;i<version.length();i++){
+			
+			char	c = version.charAt(i);
+			
+			if ( !( Character.isDigit( c ) || c == '.' )){
+				
+				return( false) ;
+			}
+		}
+	
+		if ( version.startsWith( "." ) || version.endsWith( "." ) || version.indexOf( ".." ) != -1 ){
+				
+			return( false );
+		}
+		
+		return( true );
+	}
+	
+	public static boolean
 	isAzureusDomain(
 		String	host )
 	{

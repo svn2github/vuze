@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.custom;
 
+import java.io.File;
 import java.io.InputStream;
 
 public interface 
@@ -29,7 +30,7 @@ Customization
 	public String
 	getName();
 	
-	public int
+	public String
 	getVersion();
 	
 	public Object
@@ -46,4 +47,10 @@ Customization
 	public InputStream
 	getResource(
 		String		resource_name );
+	
+	public void
+	exportToVuzeFile(
+		File		file )
+	
+		throws CustomizationException;
 }

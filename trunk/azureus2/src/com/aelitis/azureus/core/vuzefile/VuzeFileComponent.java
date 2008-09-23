@@ -33,6 +33,7 @@ VuzeFileComponent
 	public static final int COMP_TYPE_PLUGIN					= 0x00000008;
 	public static final int COMP_TYPE_SUBSCRIPTION				= 0x00000010;
 	public static final int COMP_TYPE_SUBSCRIPTION_SINGLETON	= 0x00000020;
+	public static final int COMP_TYPE_CUSTOMIZATION				= 0x00000040;
 
 	public int
 	getType();

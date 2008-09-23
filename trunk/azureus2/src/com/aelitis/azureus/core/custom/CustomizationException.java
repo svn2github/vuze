@@ -1,5 +1,5 @@
 /*
- * Created on Sep 9, 2008
+ * Created on Sep 22, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,14 +21,22 @@
 
 package com.aelitis.azureus.core.custom;
 
-import com.aelitis.azureus.core.custom.impl.CustomizationManagerImpl;
-
 public class 
-CustomizationManagerFactory 
+CustomizationException 
+	extends Exception
 {
-	public static CustomizationManager
-	getSingleton()
+	public
+	CustomizationException(
+		String		str )
 	{
-		return( CustomizationManagerImpl.getSingleton());
+		super( str );
+	}
+	
+	public
+	CustomizationException(
+		String		str,
+		Throwable	c )
+	{
+		super( str, c );
 	}
 }

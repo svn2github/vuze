@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.custom.CustomizationManager;
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
@@ -214,6 +216,8 @@ AzureusCoreImpl
 			});
 		
 			//ensure early initialization
+		
+		CustomizationManagerFactory.getSingleton();
 		
 		NetworkManager.getSingleton();
 		
