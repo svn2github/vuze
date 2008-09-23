@@ -27,12 +27,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -109,11 +104,18 @@ BuddyPluginView
 			});
 		
 
-		UISWTStatusEntry label = ui_instance.createStatusEntry();
-		
-		label.setText( MessageText.getString( "azbuddy.tracker.bbb.status.title" ));
+		SimpleTimer.addEvent("BuddyStatusInit", SystemTime.getOffsetTime(1000),
+				new TimerEventPerformer() {
+					public void perform(
+							TimerEvent event ) 
+					{
+						UISWTStatusEntry label = ui_instance.createStatusEntry();
 
-		new statusUpdater( ui_instance );
+						label.setText(MessageText.getString("azbuddy.tracker.bbb.status.title"));
+
+						new statusUpdater(ui_instance);
+					}
+				});
 	}
 	
 	public boolean 
