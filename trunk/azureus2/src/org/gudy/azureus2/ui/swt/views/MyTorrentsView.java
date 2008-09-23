@@ -141,6 +141,7 @@ public class MyTorrentsView
 	protected boolean viewActive;
 	private boolean forceHeaderVisible = false;
 	private Label lblFilter;
+	private TableSelectionListener defaultSelectedListener;
 
 	public
 	MyTorrentsView() {
@@ -199,7 +200,6 @@ public class MyTorrentsView
     tv.setDataSourceType(isSeedingView ? DownloadTypeComplete.class
 				: DownloadTypeIncomplete.class);
 
-    // experiment
 		//tv.setEnableTabViews(true);
 		//IView views[] = { new GeneralView(), new PeersView(),
 		//	new PeersGraphicView(), new PiecesView(), new FilesView(),
@@ -969,6 +969,10 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void defaultSelected(TableRowCore[] rows) {
+  	if (defaultSelectedListener != null) {
+  		defaultSelectedListener.defaultSelected(rows);
+  		return;
+  	}
 		Object[] dm_sources = tv.getSelectedDataSources();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		for (int i = 0; i < dm_sources.length; i++) {
@@ -981,6 +985,10 @@ public class MyTorrentsView
 			}
 		}
 	}
+  
+  public void overrideDefaultSelected(TableSelectionListener defaultSelectedListener) {
+		this.defaultSelectedListener = defaultSelectedListener;
+  }
 
 
 
