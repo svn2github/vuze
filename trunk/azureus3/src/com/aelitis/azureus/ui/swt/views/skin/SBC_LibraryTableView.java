@@ -38,11 +38,14 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger.subscriptionDetails;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.util.PlayUtils;
 
 /**
  * Classic My Torrents view wrapped in a SkinView
@@ -97,6 +100,16 @@ public class SBC_LibraryTableView
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
 						true, columns);
+				
+				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
+					public void defaultSelected(TableRowCore[] rows) {
+						if (rows == null || rows.length > 1) {
+							return;
+						}
+						Object ds = rows[0].getDataSource(true);
+						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+					}
+				});
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
@@ -114,6 +127,18 @@ public class SBC_LibraryTableView
 				};
 			} else {
 				view = new MyTorrentsSuperView();
+				MyTorrentsView seedingview = ((MyTorrentsSuperView) view).getSeedingview();
+				if (seedingview != null) {
+					seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
+  					public void defaultSelected(TableRowCore[] rows) {
+  						if (rows == null || rows.length > 1) {
+  							return;
+  						}
+  						Object ds = rows[0].getDataSource(true);
+  						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+  					}
+  				});
+				}
 			}
 		}
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
