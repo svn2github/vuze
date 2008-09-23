@@ -380,4 +380,14 @@ public class MyTorrentsSuperView extends AbstractIView implements
 			String tableID, boolean isSeedingView, TableColumnCore[] columns) {
 		return new MyTorrentsView(_azureus_core, tableID, isSeedingView, columns);
 	}
+
+
+	public MyTorrentsView getTorrentview() {
+		return torrentview;
+	}
+
+
+	public MyTorrentsView getSeedingview() {
+		return seedingview;
+	}
 }
