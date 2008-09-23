@@ -81,6 +81,8 @@ public class VuzeActivitiesEntry
 	private boolean isPlatformContent;
 	
 	private boolean playable;
+	
+	private boolean read;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -160,6 +162,7 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
+		setRead(MapUtils.getMapBoolean(map, "read", false));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -261,6 +264,8 @@ public class VuzeActivitiesEntry
 		if (playable) {
 			map.put("playable", new Long(playable ? 1 : 0));
 		}
+		
+		map.put("read", new Long(read ? 1 : 0));
 
 		return map;
 	}
@@ -524,5 +529,17 @@ public class VuzeActivitiesEntry
 
 	public void setPlayable(boolean playable) {
 		this.playable = playable;
+	}
+
+	public boolean isRead() {
+		return read;
+	}
+
+	public void setRead(boolean read) {
+		if (this.read == read) {
+			return;
+		}
+		this.read = read;
+		VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);		
 	}
 }

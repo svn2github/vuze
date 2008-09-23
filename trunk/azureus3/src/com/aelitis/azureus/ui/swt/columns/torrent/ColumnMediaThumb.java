@@ -74,7 +74,7 @@ public class ColumnMediaThumb
 	public static final boolean ROW_HOVER = System.getProperty("rowhover", "0").equals(
 			"1");
 
-	private static final boolean SET_ALPHA = true;
+	private static final boolean SET_ALPHA = false;
 
 	private static final int WIDTH = 60;
 
@@ -93,6 +93,8 @@ public class ColumnMediaThumb
 	private static final int IMG_SIZE = 19;
 
 	private static final int IMG_SIZE_HALF = IMG_SIZE / 2;
+
+	private static final boolean ICONS_BELOW = true;
 
 	private Map mapCellTorrent = new HashMap();
 
@@ -228,6 +230,7 @@ public class ColumnMediaThumb
 
 		boolean cellHasMouse = (cell instanceof TableCellCore)
 				? ((TableCellCore) cell).isMouseOver() : false;
+				cellHasMouse = true;
 
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
@@ -270,7 +273,13 @@ public class ColumnMediaThumb
 			}
 		}
 
+		int cellWidth = cell.getWidth();
+		int cellHeight = cell.getHeight();
+
 		int MAXH = maxThumbHeight < 0 ? cell.getHeight() : maxThumbHeight;
+		if (ICONS_BELOW) {
+			MAXH -= (IMG_SIZE + 5);
+		}
 
 		TableRow row = cell.getTableRow();
 		if (ROW_HOVER) {
@@ -293,9 +302,6 @@ public class ColumnMediaThumb
 		}
 		Image newImg = null;
 		try {
-			int cellWidth = cell.getWidth();
-			int cellHeight = cell.getHeight();
-
 			int w = firstImage.getBounds().width;
 			int h = firstImage.getBounds().height;
 
@@ -303,6 +309,7 @@ public class ColumnMediaThumb
 			int w2;
 			int hImg;
 			int wImg;
+			boolean smaller = false;
 
 			if (h > MAXH) {
 				hImg = h2 = MAXH;
@@ -313,6 +320,7 @@ public class ColumnMediaThumb
 				w2 = h2 * w / h;
 				wImg = hImg * w / h;
 				dy = (h2 - hImg) / 2;
+				smaller = true;
 			}
 
 			if (cellWidth > wImg) {
@@ -320,7 +328,7 @@ public class ColumnMediaThumb
 			}
 			//dx += 18;
 
-			newImg = new Image(firstImage.getDevice(), cellWidth, h2);
+			newImg = new Image(firstImage.getDevice(), cellWidth, cellHeight);
 
 			GC gc = new GC(newImg);
 			gc.setAdvanced(true);
@@ -338,10 +346,18 @@ public class ColumnMediaThumb
 			}
 
 			gc.setBackground(ColorCache.getColor(firstImage.getDevice(),
-					"COLOR_WIDGET_LIGHT_SHADOW"));
-			gc.fillRoundRectangle(0, 0, cellWidth, h2, 11, 8);
-			//gc.fillRectangle(2, 2, (int) (h2 * 1.77f) - 4, h2 - 4);
-			//gc.fillRectangle(newImg.getBounds());
+	  			"COLOR_LIST_BACKGROUND"));
+			gc.setForeground(ColorCache.getColor(firstImage.getDevice(),
+			"COLOR_WIDGET_LIGHT_SHADOW"));
+			if (smaller) {
+  			gc.fillRoundRectangle(0, 0, cellWidth - 1, h2, 11, 8);
+  			gc.drawRoundRectangle(0, 0, cellWidth - 1, h2, 11, 8);
+  			//gc.drawRectangle(0, 0, cellWidth - 1, h2);
+			}
+			gc.fillRoundRectangle(0, h2 + 2, cellWidth - 1, cellHeight - h2 - 3, 11, 8);
+			//gc.drawRoundRectangle(0, h2 + 2, cellWidth - 1, cellHeight - h2 - 3, 11, 8);
+  			//gc.fillRectangle(2, 2, (int) (h2 * 1.77f) - 4, h2 - 4);
+  			//gc.fillRectangle(newImg.getBounds());
 
 			if (cellHasMouse && SET_ALPHA) {
 				bg = cell.getBackground();
@@ -386,33 +402,31 @@ public class ColumnMediaThumb
 					canShare = false;
 				}
 			}
+			
+			int yPos = ICONS_BELOW ? cellHeight - imgSize - 2 :  cellHeight / 2 - imgSizeHalf;
 
 			if (clickAreaDL != null) {
-				clickAreaDL.setPosition(cellWidth - imgSize - border, cellHeight / 2
-						- imgSizeHalf);
+				clickAreaDL.setPosition(cellWidth - imgSize - border, yPos);
 				clickAreaDL.setVisible(dm == null);
 				if (dm == null) {
 					canShare = false;
 				}
 			}
 			if (clickAreaDetails != null) {
-				clickAreaDetails.setPosition(border, cellHeight / 2 - imgSizeHalf);
+				clickAreaDetails.setPosition(border, yPos);
 				clickAreaDetails.setVisible(getHash(ds, true) != null);
 			}
 			if (clickAreaRun != null) {
-				clickAreaRun.setPosition(border, cellHeight / 2
-						- imgSizeHalf);
+				clickAreaRun.setPosition(border, yPos);
 				clickAreaRun.setVisible(canRun);
 			}
 			if (clickAreaPlay != null) {
-				clickAreaPlay.setPosition(cellWidth / 2 - imgSizeHalf, cellHeight / 2
-						- imgSizeHalf);
+				clickAreaPlay.setPosition(cellWidth / 2 - imgSizeHalf, yPos);
 				clickAreaPlay.setVisible(canPlay);
 			}
 			
 			if (clickAreaShare != null) {
-				clickAreaShare.setPosition(cellWidth - imgSize - border, cellHeight / 2
-						- imgSizeHalf);
+				clickAreaShare.setPosition(cellWidth - imgSize - border, yPos);
 				clickAreaShare.setVisible(canShare);
 			}
 

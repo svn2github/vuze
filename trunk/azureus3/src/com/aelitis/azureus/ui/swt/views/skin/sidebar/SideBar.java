@@ -990,7 +990,15 @@ public class SideBar
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return "" + VuzeActivitiesManager.getNumEntries();
+					int count = 0;
+					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+					for (int i = 0; i < allEntries.length; i++) {
+						VuzeActivitiesEntry entry = allEntries[i];
+						if (!entry.isRead()) {
+							count++;
+						}
+					}
+					return "" + count;
 				} else if (propertyID == TITLE_IMAGEID) {
 					return "image.sidebar.activity";
 				}
@@ -999,6 +1007,7 @@ public class SideBar
 		};
 		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
 			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
+				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
 			}
 
 			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {

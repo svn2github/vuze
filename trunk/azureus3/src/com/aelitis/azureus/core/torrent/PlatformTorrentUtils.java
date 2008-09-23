@@ -119,6 +119,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
 
+	private static final String TOR_AZ_PROP_VIDEO_RUNNINGTIME = "Running Time";
+
 	private static final String TOR_AZ_PROP_OPENED = "Opened";
 
 	private static ArrayList listPlatformHosts = null;
@@ -835,6 +837,10 @@ public class PlatformTorrentUtils
 
 	private static long getContentVideoHeight(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_HEIGHT, -1);
+	}
+
+	public static long getContentVideoRunningTime(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_VIDEO_RUNNINGTIME, -1);
 	}
 	
 	public static int[] getContentVideoResolution(TOTorrent torrent) {

@@ -778,7 +778,9 @@ public class MainWindow
 
 			ManagerUtils.setRunRunnable(new RunDownloadManager() {
 				public void run(DownloadManager dm) {
-					if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+					TOTorrent torrent = dm.getTorrent();
+					if (PlatformTorrentUtils.isContent(torrent, true)
+							&& PlatformTorrentUtils.isContentAdEnabled(torrent)) {
 						TorrentListViewsUtils.playOrStream(dm);
 					} else {
 						Utils.launch(dm.getSaveLocation().toString());

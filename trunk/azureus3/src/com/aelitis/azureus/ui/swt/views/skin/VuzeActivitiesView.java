@@ -165,6 +165,14 @@ public class VuzeActivitiesView
 		});
 
 		view.addSelectionListener(new TableSelectionAdapter() {
+			// @see com.aelitis.azureus.ui.common.table.TableSelectionAdapter#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+			public void selected(TableRowCore[] rows) {
+				for (int i = 0; i < rows.length; i++) {
+					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) rows[i].getDataSource(true);
+					entry.setRead(true);
+				}
+			}
+			
 			public void defaultSelected(TableRowCore[] rows) {
 				if (rows.length == 1) {
 					TorrentListViewsUtils.playOrStreamDataSource(rows[0].getDataSource(),
@@ -327,6 +335,20 @@ public class VuzeActivitiesView
 			});
 		}
 
+		skinObject = getSkinObject(PREFIX + "button-readall");
+		if (skinObject instanceof SWTSkinObjectButton) {
+			((SWTSkinObjectButton) skinObject).addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject) {
+					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+					for (int i = 0; i < allEntries.length; i++) {
+						VuzeActivitiesEntry entry = allEntries[i];
+						entry.setRead(true);
+					}
+				}
+			});
+		}
+		
 		VuzeActivitiesEntry headerEntry;
 		headerEntry = new VuzeActivitiesEntry(0,
 				MessageText.getString("v3.activity.header.today"),

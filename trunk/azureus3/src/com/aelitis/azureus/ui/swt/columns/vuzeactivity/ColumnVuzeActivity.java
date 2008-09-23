@@ -25,7 +25,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -40,6 +43,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -103,6 +107,8 @@ public class ColumnVuzeActivity
 	private Color colorHeaderBG;
 
 	private static Image imgDelete;
+	
+	private static Image imgUnRead;
 
 	private int sortBy = VuzeActivitiesConstants.SORT_DATE;
 
@@ -121,6 +127,7 @@ public class ColumnVuzeActivity
 		colorNewsBG = skinProperties.getColor("color.vuze-entry.news.bg");
 		colorNewsFG = skinProperties.getColor("color.vuze-entry.news.fg");
 
+		imgUnRead = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		//imgDelete = ImageRepository.getImage("progress_remove"); 
 	}
 
@@ -289,9 +296,9 @@ public class ColumnVuzeActivity
 			}
 		}
 
-		int avatarPos = x;
+		int avatarPos = x + 10;
 		if (imgAvatar != null && !imgAvatar.isDisposed()) {
-			x += AVATAR_HEIGHT + AVATAR_PADDING;
+			x += AVATAR_HEIGHT + AVATAR_PADDING + 10;
 		}
 
 		int style = SWT.WRAP;
@@ -331,7 +338,7 @@ public class ColumnVuzeActivity
 			stringPrinter = new GCStringPrinter(gcQuery, entry.getText(),
 					potentialArea, 0, SWT.WRAP | SWT.TOP);
 			stringPrinter.calculateMetrics();
-			Point size = stringPrinter.getCalculatedSize();
+			Point textSize = stringPrinter.getCalculatedSize();
 			//System.out.println(size + ";" + entry.text);
 
 			//boolean focused = ((ListRow) cell.getTableRow()).isFocused();
@@ -340,13 +347,13 @@ public class ColumnVuzeActivity
 				height = 35 - 2;
 				y = 8;
 			} else {
-				height = size.y;
+				height = textSize.y;
 				height += (MARGIN_HEIGHT * 2);
 				y = MARGIN_HEIGHT + 1;
 			}
 			style |= SWT.TOP;
 
-			int minHeight = imgAvatar == null || imgAvatar.isDisposed() ? 30
+			int minHeight = imgAvatar == null || imgAvatar.isDisposed() ? 50
 					: AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
 			if (height < minHeight) {
 				height = minHeight;
@@ -354,9 +361,14 @@ public class ColumnVuzeActivity
 
 			if (canShowThumb) {
 				//height += 60;
-				if (height < 60) {
-					height = 60;
+				if (height < 80 + MARGIN_HEIGHT * 2) {
+					height = 80  + MARGIN_HEIGHT * 2;
 				}
+			}
+
+			boolean isRatingReminder = VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID());
+			if (isRatingReminder && height < 70) {
+				height = 70;
 			}
 
 			boolean heightChanged = ((TableCellCore) cell).getTableRowCore().setDrawableHeight(
@@ -375,7 +387,13 @@ public class ColumnVuzeActivity
 			}
 
 			if (canShowThumb) {
-				drawRect = new Rectangle(x, y, (width / 2) - x - 4, height - y + MARGIN_HEIGHT);
+				if (isRatingReminder) {
+					Rectangle ratingRect = getDMRatingRect(width, height);
+					int x1 = ratingRect.x + ratingRect.width + 2;
+					drawRect = new Rectangle(x1, y, (width / 2) - x1 - 4, height - y + MARGIN_HEIGHT);
+				} else {
+					drawRect = new Rectangle(x, y, (width / 2) - x - 4, height - y + MARGIN_HEIGHT);
+				}
 			} else {
 				drawRect = new Rectangle(x, y, width - x - 4, height - y + MARGIN_HEIGHT);
 			}
@@ -450,6 +468,12 @@ public class ColumnVuzeActivity
 					gc.drawImage(imgIcon, iconBounds.x, iconBounds.y, iconBounds.width,
 							iconBounds.height, 0, MARGIN_HEIGHT, 16, 16);
 				}
+				
+				if (imgUnRead != null && !entry.isRead()) {
+					Rectangle imageBounds = imgUnRead.getBounds();
+					gc.drawImage(imgUnRead, (16 - imageBounds.width) / 2,
+							MARGIN_HEIGHT + 22);
+				}
 			}
 
 			try {
@@ -485,6 +509,32 @@ public class ColumnVuzeActivity
 				((ListCell) thumbCell.getBufferedTableItem()).setBackground(gc.getBackground());
 				((ListCell) thumbCell.getBufferedTableItem()).setBounds(dmThumbRect);
 				invalidateAndRefresh(thumbCell);
+				
+				DownloadManager dm = DataSourceUtils.getDM(ds);
+				TOTorrent torrent = DataSourceUtils.getTorrent(ds);
+				if (dm != null || torrent != null) {
+					String title =  PlatformTorrentUtils.getContentTitle2(dm);
+					if (title == null) {
+						title = PlatformTorrentUtils.getContentTitle(torrent);
+						if (title == null && (ds instanceof VuzeActivitiesEntry)) {
+							title = ((VuzeActivitiesEntry)ds).getTorrentName();
+						}
+					}
+					long time = PlatformTorrentUtils.getContentVideoRunningTime(torrent);
+					int[] resolution = PlatformTorrentUtils.getContentVideoResolution(torrent);
+					if (time > 0) {
+						title += "\n" + DisplayFormatters.formatTime(time * 1000);
+					}
+					if (resolution != null) {
+						title += "\n" + resolution[0] + "x" + resolution[1];
+					}
+					Rectangle titleArea = new Rectangle(dmThumbRect.x + dmThumbRect.width
+							+ 3, dmThumbRect.y, width - dmThumbRect.x - dmThumbRect.width
+							- MARGIN_WIDTH, dmThumbRect.height);
+					GCStringPrinter.printString(gc, title, titleArea); 
+				}
+				
+				
 
 				if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID())) {
 					if (canShowThumb && DataSourceUtils.isPlatformContent(ds)) {
@@ -846,13 +896,13 @@ public class ColumnVuzeActivity
 	private Rectangle getDMImageRect(int cellWidth, int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
 		//return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 88, 50);
-		return new Rectangle(cellWidth / 2, MARGIN_HEIGHT, 88, 50);
+		return new Rectangle(cellWidth / 2, MARGIN_HEIGHT, 105, 80);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
 		//return new Rectangle(cellWidth - 80 - 10, cellHeight - 42 - MARGIN_HEIGHT,
 		//		80, 38);
-		return new Rectangle(cellWidth - 80 - 10, MARGIN_HEIGHT + 12, 88, 38);
+		return new Rectangle(EVENT_INDENT, MARGIN_HEIGHT, 50, 32);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)

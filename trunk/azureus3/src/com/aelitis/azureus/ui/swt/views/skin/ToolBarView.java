@@ -286,9 +286,18 @@ public class ToolBarView
 		// ==remove
 		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.removeTorrents(dms, null);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isActivityView = "Activity".equals(viewID);
+				if (isActivityView) {
+					VuzeActivitiesView view = (VuzeActivitiesView) SkinViewManager.getBySkinObjectID("Activity");
+					if (view != null) {
+						view.removeSelected();
+					}
+				} else {
+  				DownloadManager[] dms = getDMSFromSelectedContent();
+  				if (dms != null) {
+  					TorrentUtil.removeTorrents(dms, null);
+  				}
 				}
 			}
 		};
@@ -376,6 +385,8 @@ public class ToolBarView
 
 		String[] itemsRequiring1DMSelection = {
 		};
+		
+		boolean isActivityView = "Activity".equals(viewID);
 
 		int numSelection = currentContent.length;
 		boolean hasSelection = numSelection > 0;
@@ -420,15 +431,30 @@ public class ToolBarView
 
 		boolean canStart = false;
 		boolean canStop = false;
-		for (int i = 0; i < currentContent.length; i++) {
-			ISelectedContent content = currentContent[i];
-			DownloadManager dm = content.getDM();
-			if (!canStart && ManagerUtils.isStartable(dm)) {
-				canStart = true;
+		if (isActivityView) {
+			item = getToolBarItem("up");
+			if (item != null) {
+				item.setEnabled(false);
 			}
-			if (!canStop && ManagerUtils.isStopable(dm)) {
-				canStop = true;
+			item = getToolBarItem("down");
+			if (item != null) {
+				item.setEnabled(false);
 			}
+			item = getToolBarItem("remove");
+			if (item != null) {
+				item.setEnabled(true);
+			}
+		} else if (currentContent.length > 0) {
+  		for (int i = 0; i < currentContent.length; i++) {
+  			ISelectedContent content = currentContent[i];
+  			DownloadManager dm = content.getDM();
+  			if (!canStart && ManagerUtils.isStartable(dm)) {
+  				canStart = true;
+  			}
+  			if (!canStop && ManagerUtils.isStopable(dm)) {
+  				canStop = true;
+  			}
+  		}
 		}
 		item = getToolBarItem("start");
 		if (item != null) {
