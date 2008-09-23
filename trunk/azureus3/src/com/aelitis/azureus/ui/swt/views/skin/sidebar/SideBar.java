@@ -1438,7 +1438,15 @@ public class SideBar
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void itemSelected(TreeItem treeItem) {
+	private void itemSelected(final TreeItem treeItem) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				_itemSelected(treeItem);
+			}
+		});
+	}
+
+	private void _itemSelected(TreeItem treeItem) {
 		TreeItem[] selection = tree.getSelection();
 		if (selection == null || selection.length == 0 || selection[0] != treeItem) {
 			tree.showItem(treeItem);
