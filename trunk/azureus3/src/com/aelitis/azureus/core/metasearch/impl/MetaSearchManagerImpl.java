@@ -22,20 +22,13 @@
 package com.aelitis.azureus.core.metasearch.impl;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEDiagnostics;
-import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AsyncDispatcher;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
@@ -43,6 +36,9 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
+import com.aelitis.azureus.core.custom.Customization;
+import com.aelitis.azureus.core.custom.CustomizationManager;
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearch;
@@ -127,6 +123,8 @@ MetaSearchManagerImpl
 	
 	private AESemaphore	refresh_sem = new AESemaphore( "MetaSearch:refresh", 1 );
 	
+	private boolean	checked_customization;
+	
 	protected
 	MetaSearchManagerImpl()
 	{
@@ -206,6 +204,100 @@ MetaSearchManagerImpl
 	{
 		try{
 			refresh_sem.reserve();
+			
+			if ( !checked_customization ){
+				
+				checked_customization = true;
+				
+				CustomizationManager cust_man = CustomizationManagerFactory.getSingleton();
+				
+				Customization cust = cust_man.getActiveCustomization();
+				
+				if ( cust != null ){
+					
+					String cust_name 	= COConfigurationManager.getStringParameter( "metasearch.custom.name", "" );
+					String cust_version = COConfigurationManager.getStringParameter( "metasearch.custom.version", "0" );
+					
+					boolean	new_name 	= !cust_name.equals( cust.getName());
+					boolean	new_version = org.gudy.azureus2.core3.util.Constants.compareVersions( cust_version, cust.getVersion() ) < 0;
+					
+					if ( new_name || new_version ){
+
+						log( "Customization: checking templates for " + cust.getName() + "/" + cust.getVersion());
+						
+						try{
+							InputStream[] streams = cust.getResources( Customization.RT_META_SEARCH_TEMPLATES );
+							
+							if ( streams.length > 0 && new_name ){
+								
+									// reset engines
+								
+								log( "    setting auto-mode to false" );
+								
+								setAutoMode( false );
+								
+								/*
+								Engine[]	engines = meta_search.getEngines( false, false );
+
+								for (int i=0;i<engines.length;i++){
+									
+									Engine engine = engines[i];
+									
+									if ( engine.getSelectionState()) == Engine.SEL_STATE_MANUAL_SELECTED ){
+										
+									}
+								}
+								*/
+							}
+							for (int i=0;i<streams.length;i++){
+								
+								InputStream is = streams[i];
+								
+								try{
+									VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile(is);
+									
+									if ( vf != null ){
+										
+										VuzeFileComponent[] comps = vf.getComponents();
+										
+										for (int j=0;j<comps.length;j++){
+											
+											VuzeFileComponent comp = comps[j];
+											
+											if ( comp.getType() == VuzeFileComponent.COMP_TYPE_METASEARCH_TEMPLATE ){
+												
+												try{
+													Engine e = 
+														getSingleton().importEngine( comp.getContent(), false ); 
+													
+													log( "    updated " + e.getName());
+													
+													e.setSelectionState( Engine.SEL_STATE_MANUAL_SELECTED );
+													
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
+											}
+										}
+									}
+								}finally{
+									
+									try{
+										is.close();
+										
+									}catch( Throwable e ){
+									}
+								}
+							}
+						}finally{
+							
+							COConfigurationManager.setParameter( "metasearch.custom.name", cust.getName());
+							COConfigurationManager.setParameter( "metasearch.custom.version", cust.getVersion());
+						}
+					}
+				}
+			}
 			
 			log( "Refreshing engines" );
 					
@@ -472,6 +564,13 @@ MetaSearchManagerImpl
 	isAutoMode()
 	{
 		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", true ));
+	}
+	
+	protected void
+	setAutoMode(
+		boolean	auto )
+	{
+		COConfigurationManager.setParameter( "metasearch.auto.mode", auto );
 	}
 	
 	public void
