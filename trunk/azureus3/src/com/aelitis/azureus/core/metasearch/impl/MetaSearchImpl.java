@@ -252,7 +252,7 @@ MetaSearchImpl
 				
 				if ( check_secs < MIN_UPDATE_CHECK_SECS ){
 					
-					log( "update check secs for to small, adjusting: " + engine.getName());
+					log( "Update check period too small (" + check_secs + " secs) adjusting to " + MIN_UPDATE_CHECK_SECS + ": " + engine.getName());
 					
 					check_secs = MIN_UPDATE_CHECK_SECS;
 				}
