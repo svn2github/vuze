@@ -1563,11 +1563,16 @@ public class SideBar
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void doFade(Control oldComposite) {
+	private void doFade(final Control oldComposite) {
 		if (oldComposite.isDisposed()
 				|| (shellFade != null && !shellFade.isDisposed())) {
 			return;
 		}
+		final Shell parentShell = oldComposite.getShell();
+		if (parentShell != oldComposite.getDisplay().getActiveShell()) {
+			return;
+		}
+
 		if (lastImage == null || lastImage.isDisposed()) {
 			Rectangle bounds = oldComposite.getBounds();
 			if (bounds.isEmpty()) {
@@ -1579,24 +1584,24 @@ public class SideBar
 			gc.copyArea(lastImage, 0, 0);
 			gc.dispose();
 
-			shellFade = new Shell(soSideBarContents.getControl().getShell(),
-					SWT.NO_TRIM | SWT.ON_TOP);
-			shellFade.addPaintListener(new PaintListener() {
-
-				public void paintControl(PaintEvent e) {
-					if (shellFade.isDisposed() || lastImage == null
-							|| lastImage.isDisposed()) {
-						return;
-					}
-					e.gc.drawImage(lastImage, 0, 0);
-				}
-			});
+			int style = SWT.NO_TRIM;
+			if (Constants.isOSX) {
+				style |= SWT.ON_TOP;
+			}
+			shellFade = new Shell(soSideBarContents.getControl().getShell(), style);
 			Point pos = soSideBarContents.getControl().toDisplay(0, 0);
+			shellFade.setBackgroundImage(lastImage);
 			shellFade.setLocation(pos);
 			shellFade.setSize(soSideBarContents.getControl().getSize());
 			shellFade.setAlpha(255);
 			shellFade.setVisible(true);
-			//System.out.println("ALPHA");
+			shellFade.addListener(SWT.Dispose, new Listener() {
+				public void handleEvent(Event event) {
+					if (lastImage != null && !lastImage.isDisposed()) {
+						lastImage.dispose();
+					}
+				}
+			});
 			Utils.execSWTThreadLater(15, new AERunnable() {
 				long lastTime;
 
@@ -1604,7 +1609,9 @@ public class SideBar
 					if (shellFade.isDisposed()) {
 						return;
 					}
-					if (lastImage == null || lastImage.isDisposed()) {
+					if (lastImage == null
+							|| lastImage.isDisposed()
+							|| parentShell != parentShell.getDisplay().getActiveShell()) {
 						shellFade.dispose();
 						return;
 					}
