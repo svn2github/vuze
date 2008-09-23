@@ -662,28 +662,32 @@ public class MainWindow
 				});
 			}
 
-			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			System.out.println("pre SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			startTime = SystemTime.getCurrentTime();
 
 			TableColumnCreatorV3.initCoreColumns();
 
+			System.out.println("Init Core Columns took "
+					+ (SystemTime.getCurrentTime() - startTime) + "ms");
+			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
+			startTime = SystemTime.getCurrentTime();
+			
+			
 			// attach the UI to plugins
 			// Must be done before initializing views, since plugins may register
 			// table columns and other objects
 			uiSWTInstanceImpl = new UISWTInstanceImpl(core);
 			uiSWTInstanceImpl.init(uiInitializer);
-			uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
-					"PieceGraphView", new PieceGraphView());
+			//uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
+			//		"PieceGraphView", new PieceGraphView());
 			
 			
-			increaseProgress(uiInitializer, "splash.initializeGui");
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
-			startTime = SystemTime.getCurrentTime();
-
 			increaseProgress(uiInitializer, "splash.initializeGui");
+			startTime = SystemTime.getCurrentTime();
 
 			topBarView = new TopBarView(skin, uiSWTInstanceImpl);
 			topBarView.buildTopBarViews();
