@@ -157,6 +157,30 @@ PluginResult
 		return(getStringProperty( SearchResult.PR_PLAY_LINK ));
 	}
 	
+	public float 
+	getRank() 
+	{
+		Long	l_rank = (Long)result.getProperty( SearchResult.PR_RANK );
+		
+		if ( l_rank == null ){
+			
+			return( super.getRank());
+		}
+		
+		float	rank = l_rank.longValue();
+		
+		if ( rank > 100 ){
+			
+			rank = 100;
+			
+		}else if ( rank < 0 ){
+			
+			rank = 0;
+		}
+		
+		return( rank / 100 );
+	}
+	
 	public String 
 	getSearchQuery()
 	{
