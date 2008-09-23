@@ -36,4 +36,6 @@ public interface SideBarVitalityImage
 	public void setVisible(boolean visible);
 	
 	public boolean isVisible();
+
+	public void triggerClickedListeners(int x, int y);
 }
