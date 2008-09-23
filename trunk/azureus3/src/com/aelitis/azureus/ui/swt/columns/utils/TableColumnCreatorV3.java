@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.columns.utils;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -78,17 +79,17 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createCompleteDM(String tableID) {
 		final String[] defaultVisibleOrder = {
-				ColumnThumbnail.COLUMN_ID,
-				RankItem.COLUMN_ID,
-				NameItem.COLUMN_ID,
-				ColumnQuality.COLUMN_ID,
-				ColumnInfo.COLUMN_ID,
-				SizeItem.COLUMN_ID,
-				DoneItem.COLUMN_ID,
-				StatusItem.COLUMN_ID,
-				ColumnRatingGlobal.COLUMN_ID,
-				ColumnRateUpDown.COLUMN_ID,
-				DateCompletedItem.COLUMN_ID,
+			RankItem.COLUMN_ID,
+			ColumnThumbnail.COLUMN_ID,
+			NameItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			DoneItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			ColumnRatingGlobal.COLUMN_ID,
+			ColumnRateUpDown.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -113,7 +114,6 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 				ColumnUnopened.COLUMN_ID,
 				ColumnThumbnail.COLUMN_ID,
-				RankItem.COLUMN_ID,
 				NameItem.COLUMN_ID,
 				ColumnQuality.COLUMN_ID,
 				ColumnInfo.COLUMN_ID,
@@ -152,7 +152,7 @@ public class TableColumnCreatorV3
 		TableColumnCreator.initCoreColumns();
 		
 		// short variable names to reduce wrapping
-		final Map c = new HashMap();
+		final Map c = new LightHashMap(7);
 		final Class all = Download.class;
 		//final Class dl = DownloadTypeIncomplete.class;
 		//final Class cd = DownloadTypeComplete.class;
