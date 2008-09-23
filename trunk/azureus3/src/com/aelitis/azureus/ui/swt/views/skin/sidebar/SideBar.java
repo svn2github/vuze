@@ -183,6 +183,8 @@ public class SideBar
 
 	private Image lastImage;
 
+	private Shell shellFade;
+
 	static {
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
@@ -1562,7 +1564,8 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private void doFade(Control oldComposite) {
-		if (oldComposite.isDisposed()) {
+		if (oldComposite.isDisposed()
+				|| (shellFade != null && !shellFade.isDisposed())) {
 			return;
 		}
 		if (lastImage == null || lastImage.isDisposed()) {
@@ -1576,44 +1579,45 @@ public class SideBar
 			gc.copyArea(lastImage, 0, 0);
 			gc.dispose();
 
-			final Shell shell = new Shell(soSideBarContents.getControl().getShell(),
+			shellFade = new Shell(soSideBarContents.getControl().getShell(),
 					SWT.NO_TRIM | SWT.ON_TOP);
-			shell.addPaintListener(new PaintListener() {
+			shellFade.addPaintListener(new PaintListener() {
 
 				public void paintControl(PaintEvent e) {
-					if (shell.isDisposed() || lastImage == null || lastImage.isDisposed()) {
+					if (shellFade.isDisposed() || lastImage == null
+							|| lastImage.isDisposed()) {
 						return;
 					}
 					e.gc.drawImage(lastImage, 0, 0);
 				}
 			});
 			Point pos = soSideBarContents.getControl().toDisplay(0, 0);
-			shell.setLocation(pos);
-			shell.setSize(soSideBarContents.getControl().getSize());
-			shell.setAlpha(255);
-			shell.setVisible(true);
+			shellFade.setLocation(pos);
+			shellFade.setSize(soSideBarContents.getControl().getSize());
+			shellFade.setAlpha(255);
+			shellFade.setVisible(true);
 			//System.out.println("ALPHA");
 			Utils.execSWTThreadLater(15, new AERunnable() {
 				long lastTime;
 
 				public void runSupport() {
-					if (shell.isDisposed()) {
+					if (shellFade.isDisposed()) {
 						return;
 					}
 					if (lastImage == null || lastImage.isDisposed()) {
-						shell.dispose();
+						shellFade.dispose();
 						return;
 					}
 
-					int alpha = shell.getAlpha();
+					int alpha = shellFade.getAlpha();
 					alpha -= 50;
 					long now = SystemTime.getCurrentTime();
 
 					if (alpha < 0 || lastImage == null || lastImage.isDisposed()) {
-						shell.dispose();
+						shellFade.dispose();
 						return;
 					}
-					shell.setAlpha(alpha);
+					shellFade.setAlpha(alpha);
 					//System.out.println(alpha);
 
 					if (lastTime > 0 && now - lastTime > 50) {
