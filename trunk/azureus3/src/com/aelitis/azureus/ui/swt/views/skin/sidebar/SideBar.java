@@ -502,6 +502,23 @@ public class SideBar
 						} else {
 							itemSelected(sideBarInfo.treeItem);
 						}
+						
+						SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+						for (int i = 0; i < vitalityImages.length; i++) {
+							SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+							if (!vitalityImage.isVisible()) {
+								continue;
+							}
+							Rectangle hitArea = vitalityImage.getHitArea();
+							if (hitArea == null) {
+								continue;
+							}
+							if (hitArea.contains(event.x, event.y)) {
+								vitalityImage.triggerClickedListeners(event.x, event.y);
+								break;
+							}
+						}
+
 						break;
 					}
 

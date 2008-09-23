@@ -123,6 +123,18 @@ public class SideBarVitalityImageSWT
 		}
 		listeners.add(l);
 	}
+	
+	public void triggerClickedListeners(int x, int y) {
+		Object[] list = listeners.toArray();
+		for (int i = 0; i < list.length; i++) {
+			SideBarVitalityImageListener l = (SideBarVitalityImageListener) list[i];
+			try {
+				l.sbVitalityImage_clicked(x, y);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
 
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage#setTooltip(java.lang.String)
 	public void setToolTip(String tooltip) {

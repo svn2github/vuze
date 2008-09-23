@@ -66,6 +66,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
@@ -105,6 +107,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.MapUtils;
 
 public class 
@@ -540,6 +543,17 @@ SubscriptionManagerUI
 			}
 			
 			side_bar_setup = true;
+		}
+		
+		SideBarEntrySWT mainSBEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		if (mainSBEntry != null) {
+			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+			addSub.addListener(new SideBarVitalityImageListener() {
+				public void sbVitalityImage_clicked(int x, int y) {
+					Utils.openMessageBox(null, 0, "Add Subscription",
+							"Someone needs to call subscription adding code here");
+				}
+			});
 		}
 		
 		markAllResultsListener = new MenuItemListener() {
