@@ -257,15 +257,17 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
     if (ourGC) {
       gc = new GC(table);
     }
+    try {
 
-    Point srcStart = new Point(clipping.x - bounds.x, clipping.y - bounds.y); 
-    Rectangle dstRect = new Rectangle(clipping.x, clipping.y, 
-    		imageBounds.width - srcStart.x, imageBounds.height - srcStart.y);
-
-    Utils.drawImage(gc, image, srcStart, dstRect, clipping, 0, 0, false);
-    
-    if (ourGC) {
-      gc.dispose();
+      Point srcStart = new Point(clipping.x - bounds.x, clipping.y - bounds.y); 
+      Rectangle dstRect = new Rectangle(clipping.x, clipping.y, 
+      		imageBounds.width - srcStart.x, imageBounds.height - srcStart.y);
+  
+      Utils.drawImage(gc, image, srcStart, dstRect, clipping, 0, 0, false);
+    } finally {
+      if (ourGC) {
+        gc.dispose();
+      }
     }
   }
 
