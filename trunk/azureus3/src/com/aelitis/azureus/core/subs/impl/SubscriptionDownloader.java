@@ -92,7 +92,7 @@ SubscriptionDownloader
 			
 			context.put( Engine.SC_SOURCE, 	"subscription" );
 			
-			Result[] results = engine.search( parameters, context );
+			Result[] results = engine.search( parameters, context, -1, -1, null, null );
 		
 			log( "    Got " + results.length + " results" );
 			

@@ -96,33 +96,17 @@ Engine
 	public static final String	CT_GAME		= "game";
 	
 	public int getType();
-	
-	public Result[]
-  	search(
-  		SearchParameter[] 	searchParameters )
-  	
-  		throws SearchException;
-	
-	public Result[]
-   	search(
-   		SearchParameter[] 	searchParameters,
-   		Map					searchContext )
-	
-   		throws SearchException;
-
+		
 	public Result[]
 	search(
 		SearchParameter[] 	searchParameters,
-		String				headers )
+		Map					context,
+		int					desired_max_matches,
+		int					absolute_max_matches,
+		String				headers,
+		ResultListener		listener )
 	
 		throws SearchException;
-	
-	public void
-	search(
-		SearchParameter[] 	searchParameters,
-		int					max_matches,
-		String				headers,
-		ResultListener		listener );
 	
 	public String 
 	getName();

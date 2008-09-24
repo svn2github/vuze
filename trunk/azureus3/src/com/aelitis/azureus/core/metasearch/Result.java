@@ -59,6 +59,7 @@ public abstract class Result {
 	public abstract String getDownloadButtonLink();
 	public abstract String getCDPLink();
 	public abstract String getPlayLink();
+	public abstract float getAccuracy();  // 0.0 -> 1.0 and -1 if not supported
 	
 	
 	public abstract String getSearchQuery();
@@ -200,6 +201,15 @@ public abstract class Result {
 		object.put("r", "" + this.getRank());
 		
 		object.put("ct", this.getContentType());
+		
+		float accuracy = getAccuracy();
+		
+		if ( accuracy >= 0 ){
+			if ( accuracy > 1 ){
+				accuracy = 1;
+			}
+			object.put ("ac", "" + accuracy );
+		}
 		
 		if ( this.getCDPLink().length() > 0 ){
 			object.put("cdp", this.getCDPLink());

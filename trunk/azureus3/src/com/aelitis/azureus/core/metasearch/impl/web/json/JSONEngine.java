@@ -176,7 +176,8 @@ JSONEngine
 	searchSupport(
 		SearchParameter[] 	searchParameters,
 		Map					searchContext,
-		int					max_matches,
+		int					desired_max_matches,
+		int					absolute_max_matches,
 		String				headers, 
 		ResultListener		listener )
 	
@@ -245,8 +246,8 @@ JSONEngine
 					if(obj instanceof JSONObject) {
 						JSONObject jsonEntry = (JSONObject) obj;
 						
-						if ( max_matches >= 0 ){
-							if ( --max_matches < 0 ){
+						if ( absolute_max_matches >= 0 ){
+							if ( --absolute_max_matches < 0 ){
 								break;
 							}
 						}

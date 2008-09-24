@@ -146,7 +146,8 @@ RSSEngine
 	searchSupport(
 		SearchParameter[] 	searchParameters, 
 		Map					searchContext,
-		int 				max_matches,
+		int 				desired_max_matches,
+		int					absolute_max_matches,
 		String 				headers, 
 		ResultListener 		listener) 
 	
@@ -307,7 +308,12 @@ RSSEngine
 						}
 					}
 					
-					results.add(result);				
+					results.add(result);
+					
+					if ( absolute_max_matches >= 0 && results.size() == absolute_max_matches ){
+						
+						break;
+					}
 				}
 			}
 			

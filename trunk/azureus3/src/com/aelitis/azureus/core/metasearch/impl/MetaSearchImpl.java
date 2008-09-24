@@ -669,9 +669,10 @@ MetaSearchImpl
 	search(
 		final ResultListener 	original_listener,
 		SearchParameter[] 		searchParameters,
-		String					headers )
+		String					headers,
+		int						max_results_per_engine )
 	{
-		return( search( null, original_listener, searchParameters, headers ));
+		return( search( null, original_listener, searchParameters, headers, max_results_per_engine ));
 	}
 	
 	public Engine[] 
@@ -679,7 +680,8 @@ MetaSearchImpl
 		Engine					engine,
 		final ResultListener 	original_listener,
 		SearchParameter[] 		searchParameters,
-		String					headers )
+		String					headers,
+		final int				max_results_per_engine )
 	{
 		String	param_str = "";
 		
@@ -740,39 +742,9 @@ MetaSearchImpl
 							public void
 							runSupport()
 							{
-								final boolean CHUNK = false;
+								Result[] results_to_return = truncateResults( engine, results, max_results_per_engine );
 								
-								if ( CHUNK ){
-									
-									final int	CHUNK_SIZE 	= 25;
-									final int	CHUNK_DELAY	= 500;
-									
-									for (int i=0;i<results.length;i+=CHUNK_SIZE){
-										
-										int	to_do = Math.min( CHUNK_SIZE, results.length - i );
-										
-										Result[] chunk = new Result[to_do];
-										
-										System.out.println( "sending " + i + " to " + ( i+to_do ) + " of " + results.length );
-										
-										System.arraycopy(results, i, chunk, 0, to_do );
-										
-										original_listener.resultsReceived( engine, chunk );
-										
-										if ( results.length - i > CHUNK_SIZE ){
-											
-											try{
-												Thread.sleep( CHUNK_DELAY );
-												
-											}catch( Throwable e ){
-												
-											}
-										}
-									}
-								}else{
-								
-									original_listener.resultsReceived( engine, results );
-								}
+								original_listener.resultsReceived( engine, results_to_return );
 							}
 						});
 				}
@@ -843,7 +815,7 @@ MetaSearchImpl
 	
 			for (int i=0;i<engines.length;i++){
 				
-				se.search( engines[i], searchParameters, headers );
+				se.search( engines[i], searchParameters, headers, max_results_per_engine );
 			}
 			
 			return( engines );
@@ -852,9 +824,63 @@ MetaSearchImpl
 			
 			log( "Search: params=" + param_str + "; engine=" + engine.getId());
 
-			se.search( engine, searchParameters, headers );
+			se.search( engine, searchParameters, headers, max_results_per_engine );
 			
 			return( new Engine[]{ engine });
+		}
+	}
+	
+	protected Result[]
+	truncateResults(
+		Engine		engine,
+		Result[] 	results,
+		int			max )
+	{
+		if ( max < results.length ){
+		
+			log( "Truncating search results for " + engine.getName() + " from " + results.length + " to " + max );
+			
+			Arrays.sort(
+				results,
+				new Comparator()
+				{
+					Map	ranks = new HashMap();
+					
+					public int 
+					compare(
+						Object o1, 
+						Object o2) 
+					{
+						Result	r1 = (Result)o1;
+						Result	r2 = (Result)o2;
+						
+						Float	rank1 = (Float)ranks.get(r1);
+						
+						if ( rank1 == null ){	
+							rank1 = new Float(r1.getRank());
+							ranks.put( r1, rank1 );
+						}
+						
+						Float	rank2 = (Float)ranks.get(r2);
+						
+						if ( rank2 == null ){	
+							rank2 = new Float(r2.getRank());
+							ranks.put( r2, rank2 );
+						}
+						
+						return( -rank1.compareTo( rank2 ));
+					}
+				});
+		
+			Result[] x = new Result[max];
+			
+			System.arraycopy( results, 0, x, 0, max );
+			
+			return( x );
+			
+		}else{
+			
+			return( results );
 		}
 	}
 	

@@ -37,14 +37,16 @@ MetaSearch
 	search(
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters,
-		String				headers );
+		String				headers,
+		int					max_per_engine );
 	
 	public Engine[] 
 	search(
 		Engine				engine,
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters,
-		String				headers );
+		String				headers,
+		int					max_per_engine );
 	
 	public Engine[] 
 	getEngines(

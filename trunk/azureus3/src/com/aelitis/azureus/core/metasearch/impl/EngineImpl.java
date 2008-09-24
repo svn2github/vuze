@@ -604,59 +604,63 @@ EngineImpl
 			return( false );
 		}
 	}
-	
+		
 	public Result[]
 	search(
-		SearchParameter[] 	params )
+		SearchParameter[] 	params,
+		Map					context,
+		int					desired_max_matches,
+		int					absolute_max_matches,
+		String				headers,
+		ResultListener		listener )
 	
 		throws SearchException
 	{
-		return( searchAndMap( params, new HashMap(), -1, null, null ));
-	}
-	
-	public Result[]
-  	search(
-  		SearchParameter[] 	params,
-  		Map					context )
-  	
-  		throws SearchException
-  	{
-  		return( searchAndMap( params, context, -1, null, null ));
-  	}
-	
-	public Result[]
-  	search(
-  		SearchParameter[] 	params,
-  		String				headers )
-  	
-  		throws SearchException
-  	{
-		return( searchAndMap( params, new HashMap(), -1, headers, null ));
-  	}
-	
-	public void
-	search(
-		SearchParameter[] 	params,
-		int					max_matches,
-		String				headers,
-		ResultListener		listener )
-	{
+		if ( context == null ){
+			
+			context = new HashMap();
+		}
+		
 		try{
-			Result[] results = searchAndMap( params, new HashMap(), max_matches, headers, listener) ;
+			Result[] results = searchAndMap( params, context, desired_max_matches, absolute_max_matches, headers, listener) ;
 			
-			listener.resultsReceived( this, results );
+			if ( listener != null ){
+				
+				listener.resultsReceived( this, results );
+				
+				listener.resultsComplete( this );
+			}
 			
-			listener.resultsComplete( this );
+			return( results );
 			
 		}catch( Throwable e ){
 			
-			if( e instanceof SearchLoginException ){
+			if ( e instanceof SearchLoginException ){
 				
-				listener.engineRequiresLogin(this, e);
+				if ( listener != null ){
+				
+					listener.engineRequiresLogin(this, e);
+				}
+				
+				throw((SearchLoginException)e);
+				
+			}else if ( e instanceof SearchException ){
+				
+				if ( listener != null ){
+				
+					listener.engineFailed( this, e);
+				}
+				
+				throw((SearchException)e);
 				
 			}else{
 				
-				listener.engineFailed( this, e);
+				if ( listener != null ){
+				
+					listener.engineFailed( this, e);
+				}
+				
+				throw( new SearchException( "Search failed", e ));
 			}
 		}
 	}
@@ -665,7 +669,8 @@ EngineImpl
 	searchAndMap(
 		SearchParameter[] 			params,
 		Map							context,
-		int							max_matches,
+		int							desired_max_matches,
+		int							absolute_max_matches,
 		String						headers,
 		final ResultListener		listener )
 	
@@ -684,7 +689,8 @@ EngineImpl
 			 searchSupport( 
 					params, 
 					context,
-					max_matches, 
+					desired_max_matches,
+					absolute_max_matches,
 					headers, 
 					new ResultListener()
 					{
@@ -785,7 +791,8 @@ EngineImpl
 	searchSupport(
 		SearchParameter[] 	params,
 		Map					searchContext,
-		int					max_matches,
+		int					desired_max_matches,
+		int					absolute_max_matches,
 		String				headers,
 		ResultListener		listener )
 	

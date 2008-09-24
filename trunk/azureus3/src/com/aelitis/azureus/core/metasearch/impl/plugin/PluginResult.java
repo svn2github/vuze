@@ -22,7 +22,10 @@
 package com.aelitis.azureus.core.metasearch.impl.plugin;
 
 import java.util.Date;
+import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
 
 import com.aelitis.azureus.core.metasearch.*;
@@ -31,8 +34,12 @@ public class
 PluginResult 
 	extends Result
 {
+	private static final Object NULL_OBJECT = PluginResult.class;
+	
 	private SearchResult			result;
 	private String					search_term;
+	
+	private Map		property_cache = new LightHashMap();
 	
 	protected
 	PluginResult(
@@ -49,7 +56,7 @@ PluginResult
 	public Date
 	getPublishedDate()
 	{
-		return((Date)result.getProperty( SearchResult.PR_PUB_DATE ));
+		return((Date)getResultProperty( SearchResult.PR_PUB_DATE ));
 	}
 	
 	public String 
@@ -160,14 +167,19 @@ PluginResult
 	public float 
 	getRank() 
 	{
-		Long	l_rank = (Long)result.getProperty( SearchResult.PR_RANK );
+		if (((PluginEngine)getEngine()).useAccuracyForRank()){
+			
+			return( getAccuracy());
+		}
 		
-		if ( l_rank == null ){
+		long	l_rank = getLongProperty( SearchResult.PR_RANK );
+		
+		if ( l_rank == Long.MIN_VALUE ){
 			
 			return( super.getRank());
 		}
 		
-		float	rank = l_rank.longValue();
+		float rank = l_rank;
 		
 		if ( rank > 100 ){
 			
@@ -181,6 +193,30 @@ PluginResult
 		return( rank / 100 );
 	}
 	
+	public float 
+	getAccuracy()
+	{
+		long	l_accuracy = getLongProperty( SearchResult.PR_ACCURACY );
+		
+		if ( l_accuracy == Long.MIN_VALUE ){
+			
+			return( -1 );
+		}
+		
+		float accuracy = l_accuracy;
+		
+		if ( accuracy > 100 ){
+			
+			accuracy = 100;
+			
+		}else if ( accuracy < 0 ){
+			
+			accuracy = 0;
+		}
+		
+		return( accuracy / 100 );
+	}
+
 	public String 
 	getSearchQuery()
 	{
@@ -194,46 +230,121 @@ PluginResult
 		return((int)getLongProperty( name ));
 	}
 	
-	protected int
+	protected long
 	getLongProperty(
 		int		name )
 	{
-		Long	l = (Long)result.getProperty( name );
-		
-		if ( l == null ){
+		return( getLongProperty( name, Long.MIN_VALUE ));
+	}
+	
+	protected long
+	getLongProperty(
+		int		name,
+		long	def )
+	{
+		try{
+			Long	l = (Long)getResultProperty( name );
 			
-			return( -1 );
+			if ( l == null ){
+				
+				return( def );
+			}
+			
+			return( l.longValue());
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Invalid value returned for Long property " + name );
+			
+			return( def );
 		}
-		
-		return( l.intValue());
 	}
 	
 	protected boolean
 	getBooleanProperty(
 		int		name )
 	{
-		Boolean	b = (Boolean)result.getProperty( name );
-		
-		if ( b == null ){
+		return( getBooleanProperty( name, false ));
+	}
+	
+	protected boolean
+	getBooleanProperty(
+		int		name,
+		boolean	def )
+	{
+		try{
+			Boolean	b = (Boolean)getResultProperty( name );
 			
-			return( false );
+			if ( b == null ){
+				
+				return( def );
+			}
+			
+			return( b.booleanValue());
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Invalid value returned for Boolean property " + name );
+			
+			return( def );
 		}
-		
-		return( b.booleanValue());
 	}
 	
 	protected String
 	getStringProperty(
 		int		name )
 	{
-		String	l = (String)result.getProperty( name );
-		
-		if ( l == null ){
-			
-			return( "" );
-		}
-		
-		return( l );
+		return( getStringProperty( name, "" ));
 	}
 	
+	protected String
+	getStringProperty(
+		int		name,
+		String	def )
+	{
+		try{
+			String	l = (String)getResultProperty( name );
+			
+			if ( l == null ){
+				
+				return( def );
+			}
+			
+			return( l );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Invalid value returned for String property " + name );
+			
+			return( def );
+		}
+	}
+	
+	protected synchronized Object
+	getResultProperty(
+		int		prop )
+	{
+		Integer i_prop = new Integer( prop );
+		
+		Object	res = property_cache.get( i_prop );
+		
+		if ( res == null ){
+			
+			res = result.getProperty( prop );
+			
+			if ( res == null ){
+				
+				res = NULL_OBJECT;
+			}
+			
+			property_cache.put( i_prop, res );
+		}
+		
+		if ( res == NULL_OBJECT ){
+			
+			return( null );
+		}
+		
+		return( res );
+	}
 }

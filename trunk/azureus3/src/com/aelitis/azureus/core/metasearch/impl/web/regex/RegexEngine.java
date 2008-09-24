@@ -188,7 +188,8 @@ RegexEngine
 	searchSupport(
 		final SearchParameter[] 	searchParameters,
 		Map							searchContext,
-		final int					o_max_matches,
+		final int					desired_max_matches,
+		final int					o_absolute_max_matches,
 		final String				headers,
 		final ResultListener		listener )
 	
@@ -257,7 +258,7 @@ RegexEngine
 					
 						throws Exception
 					{
-						int	max_matches = o_max_matches;
+						int	max_matches = o_absolute_max_matches;
 								
 						if ( max_matches < 0 || max_matches > 1024 ){
 							

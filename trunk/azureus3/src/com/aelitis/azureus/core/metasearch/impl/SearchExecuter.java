@@ -20,8 +20,11 @@
 
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.util.HashMap;
+
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.ResultListener;
+import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 
 
@@ -33,10 +36,22 @@ public class SearchExecuter {
 		this.listener = listener;
 	}
 	
-	public void search(final Engine engine,final SearchParameter[] searchParameters, final String headers ) {
+	public void 
+	search(
+		final Engine 			engine,
+		final SearchParameter[] searchParameters, 
+		final String 			headers,
+		final int				desired_max_matches )
+	{
 		Thread t = new Thread(engine.getName() + " runner") {
-			public void run() {
-				engine.search(searchParameters, -1, headers, listener );
+			public void 
+			run() 
+			{
+				try{
+					engine.search(searchParameters, new HashMap(), desired_max_matches, -1, headers, listener );
+					
+				}catch( SearchException e ){
+				}
 			}
 		};
 		t.setDaemon(false);

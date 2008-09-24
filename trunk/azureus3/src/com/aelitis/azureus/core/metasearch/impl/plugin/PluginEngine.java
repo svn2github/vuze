@@ -115,6 +115,23 @@ PluginEngine
 		provider	= _provider;
 	}
 	
+	protected boolean
+	useAccuracyForRank()
+	{
+		if ( provider == null ){
+			
+			return( false );
+		}
+		
+		Boolean val = (Boolean)provider.getProperty( SearchProvider.PR_USE_ACCURACY_FOR_RANK );
+		
+		if ( val == null ){
+			
+			return( false );
+		}
+		
+		return( val.booleanValue());
+	}
 	public boolean
 	isActive()
 	{
@@ -208,7 +225,8 @@ PluginEngine
 	searchSupport(
 		SearchParameter[] 	params, 
 		Map					searchContext,
-		int 				max_matches,
+		final int 			desired_max_matches,
+		final int			absolute_max_matches,
 		String 				headers, 
 		ResultListener 		listener )
 	
@@ -257,12 +275,29 @@ PluginEngine
 				search_parameters,
 				new SearchObserver()
 				{
+					private boolean	complete = false;
+					
 					public void 
 					resultReceived(
 						SearchInstance 		search,
 						SearchResult 		result )
 					{
-						results.add( new PluginResult( PluginEngine.this, result, f_term ));
+						synchronized( this ){
+							
+							if ( complete ){
+								
+								return;
+							}
+							
+							results.add( new PluginResult( PluginEngine.this, result, f_term ));
+							
+							if ( absolute_max_matches >= 0 && results.size() >= absolute_max_matches ){
+								
+								complete = true;
+								
+								sem.release();
+							}
+						}
 					}
 					
 					public void 
@@ -275,6 +310,18 @@ PluginEngine
 					complete() 
 					{
 						sem.release();
+					}
+					
+					public Object 
+					getProperty(
+						int property ) 
+					{
+						if ( property == PR_MAX_RESULTS_WANTED ){
+							
+							return( new Long( desired_max_matches ));
+						}
+						
+						return( null );
 					}
 				});
 			

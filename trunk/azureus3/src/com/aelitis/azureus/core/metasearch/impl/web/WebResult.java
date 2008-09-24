@@ -378,4 +378,8 @@ public class WebResult extends Result {
 	public String getDRMKey() {
 		return drmKey;
 	}
+	
+	public float getAccuracy() {
+		return -1;
+	}
 }

@@ -605,97 +605,102 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				SearchParameter parameter = new SearchParameter("s",searchText);
 				SearchParameter[] parameters = new SearchParameter[] {parameter};
 
+				try{
 				
-				engine.search(
-						parameters, 
-						(int)match_count,
-						headers,
-						new ResultListener()
-						{
-							private String	content;
-							private List	matches = new ArrayList();
-							
-							public void 
-							contentReceived(
-								Engine 		engine, 
-								String 		_content )
+					engine.search(
+							parameters, 
+							new HashMap(),
+							(int)match_count,
+							(int)match_count,
+							headers,
+							new ResultListener()
 							{
-								content = _content;
-							}
-							
-							public void 
-							matchFound(
-								Engine 		engine,
-								String[] 	fields) 
-							{
-								matches.add( fields );
-							}
-							
-							public void 
-							resultsReceived(
-								Engine 		engine,
-								Result[] 	results )
-							{								
-							}
-							
-							public void 
-							resultsComplete(
-								Engine 		engine )
-							{
-								Map params = new HashMap();
-								params.put( "id", new Long( id ));
-								if ( sid != null )params.put( "sid", sid );
-								params.put( "content", JSONObject.escape( content ));
-
-								JSONArray	l_matches = new JSONArray();
+								private String	content;
+								private List	matches = new ArrayList();
 								
-								params.put( "matches", l_matches );
-								
-								for (int i=0;i<matches.size();i++){
-									
-									String[]	match = (String[])matches.get(i);
-									
-									JSONArray	l_match = new JSONArray();
-									
-									l_matches.add( l_match );
-									
-									for (int j=0;j<match.length;j++){
-										
-										l_match.add( match[j] );
-									}
+								public void 
+								contentReceived(
+									Engine 		engine, 
+									String 		_content )
+								{
+									content = _content;
 								}
-															
-								sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
-			
-							}
-							
-							public void 
-							engineFailed(
-								Engine 		engine,
-								Throwable 	e )
-							{
-								Map params = new HashMap();
-								params.put( "id", new Long( id ));
-								params.put( "error", Debug.getNestedExceptionMessage( e ));
-								if ( sid != null )params.put( "sid", sid );
-
-								sendBrowserMessage("metasearch", "testTemplateFailed",params);
-							}
-							
-							public void 
-							engineRequiresLogin(
-								Engine 		engine,
-								Throwable 	e )
-							{
-								Map params = new HashMap();
-								params.put( "id", new Long( id ));
-								params.put( "error", Debug.getNestedExceptionMessage( e ));
-								if ( sid != null )params.put( "sid", sid );
-
-								sendBrowserMessage("metasearch", "testTemplateRequiresLogin",params);
-							}
-						});
-
+								
+								public void 
+								matchFound(
+									Engine 		engine,
+									String[] 	fields) 
+								{
+									matches.add( fields );
+								}
+								
+								public void 
+								resultsReceived(
+									Engine 		engine,
+									Result[] 	results )
+								{								
+								}
+								
+								public void 
+								resultsComplete(
+									Engine 		engine )
+								{
+									Map params = new HashMap();
+									params.put( "id", new Long( id ));
+									if ( sid != null )params.put( "sid", sid );
+									params.put( "content", JSONObject.escape( content ));
+	
+									JSONArray	l_matches = new JSONArray();
+									
+									params.put( "matches", l_matches );
+									
+									for (int i=0;i<matches.size();i++){
+										
+										String[]	match = (String[])matches.get(i);
+										
+										JSONArray	l_match = new JSONArray();
+										
+										l_matches.add( l_match );
+										
+										for (int j=0;j<match.length;j++){
+											
+											l_match.add( match[j] );
+										}
+									}
+																
+									sendBrowserMessage( "metasearch", "testTemplateCompleted", params );
+				
+								}
+								
+								public void 
+								engineFailed(
+									Engine 		engine,
+									Throwable 	e )
+								{
+									Map params = new HashMap();
+									params.put( "id", new Long( id ));
+									params.put( "error", Debug.getNestedExceptionMessage( e ));
+									if ( sid != null )params.put( "sid", sid );
+	
+									sendBrowserMessage("metasearch", "testTemplateFailed",params);
+								}
+								
+								public void 
+								engineRequiresLogin(
+									Engine 		engine,
+									Throwable 	e )
+								{
+									Map params = new HashMap();
+									params.put( "id", new Long( id ));
+									params.put( "error", Debug.getNestedExceptionMessage( e ));
+									if ( sid != null )params.put( "sid", sid );
+	
+									sendBrowserMessage("metasearch", "testTemplateRequiresLogin",params);
+								}
+							});
+				}catch( SearchException e ){
+						// listener handles
+				}
 			}	
 		} else if ( OP_EXPORT_TEMPLATE.equals(opid)){
 			
@@ -1320,6 +1325,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 		Boolean	mature = (Boolean)decodedMap.get( "mature" );
 		
+		Long	l_max_per_engine = (Long)decodedMap.get( "maxResultsPerEngine" );
+
+		int	max_per_engine = l_max_per_engine==null?100:l_max_per_engine.intValue();
+		
+		if ( max_per_engine < 1 ){
+			
+			max_per_engine = 1;
+		}
+		
 		if ( target == null ){
 		
 				// override engine selection for subscriptions
@@ -1429,11 +1443,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 		if ( target == null ){
 		
-			metaSearchManager.getMetaSearch().search( listener, parameters, headers );
+			metaSearchManager.getMetaSearch().search( listener, parameters, headers, max_per_engine );
 			
 		}else{
 			
-			metaSearchManager.getMetaSearch().search( target, listener, parameters, headers );
+			metaSearchManager.getMetaSearch().search( target, listener, parameters, headers, max_per_engine );
 
 		}
 	}
