@@ -158,6 +158,9 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("v3.Start Advanced", false);
 		defaults.addParameter("MyTorrentsView.table.style", SWT.BORDER);
 		
+		boolean startAdvanced = config.getBooleanParameter("v3.Start Advanced");
+		defaults.addParameter("Library.viewMode", startAdvanced ? 1 : 0);
+		
 		
 		//=== defaults used by MainWindow
 		defaults.addParameter("vista.adminquit", false);
