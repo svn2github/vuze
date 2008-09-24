@@ -1228,7 +1228,7 @@ public class MainWindow
 		if (currentView instanceof UISWTViewImpl) {
 			UISWTViewEventListener eventListener = ((UISWTViewImpl) currentView).getEventListener();
 			if (eventListener instanceof IconBarEnabler) {
-				((IconBarEnabler)eventListener).isSelected(itemKey);
+				((IconBarEnabler)eventListener).itemActivated(itemKey);
 				return;
 			}
 		}
