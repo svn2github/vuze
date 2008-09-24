@@ -296,6 +296,21 @@ public class SBC_LibraryView
 			});
 		}
 
+		SideBarEntrySWT infoLibraryUn = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		if (infoLibraryUn != null) {
+			infoLibraryUn.setTitleInfo(new ViewTitleInfo() {
+				public Object getTitleInfoProperty(int propertyID) {
+					if (propertyID == TITLE_LOGID) {
+						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
+						int viewMode = COConfigurationManager.getIntParameter(id
+								+ ".viewmode", MODE_BIGTABLE);
+						return id + "-" + viewMode;
+					}
+					return null;
+				}
+			});
+		}
+
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
