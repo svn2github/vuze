@@ -1,14 +1,18 @@
 package com.aelitis.azureus.ui.swt.shells.friends;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -16,13 +20,16 @@ import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
+import com.aelitis.azureus.ui.swt.shells.MessageWindow;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -49,15 +56,20 @@ public class AddFriendsPage
 
 	private FriendsToolbar friendsToolbar;
 
+	private boolean previewMode = false;
+	
 	private boolean isStandalone;
+	
+	private SharePage sharePage;
 
 	public AddFriendsPage(MultipageWizard wizard) {
-		this(wizard,false);
+		this(wizard,null);
 	}
 	
-	public AddFriendsPage(MultipageWizard wizard,boolean isStandalone) {
+	public AddFriendsPage(MultipageWizard wizard,SharePage sharePage) {
 		super(wizard);
-		this.isStandalone = isStandalone;
+		this.sharePage = sharePage;
+		this.isStandalone = sharePage == null;
 	}
 
 	public Composite createControls(Composite parent) {
@@ -73,9 +85,14 @@ public class AddFriendsPage
 		content.setLayout(new FillLayout());
 
 		friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
-
+		Color bg = parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+		int red = bg.getRed();
+		int blue = bg.getBlue();
+		int green = bg.getGreen();
+		
+		System.out.println(bg);
 		browser = new Browser(content, SWT.NONE);
-		String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
+		String url = Constants.URL_PREFIX + "/user/AddFriend.html?ts=" + Math.random() + "&bg=";
 		browser.setUrl(url);
 
 		getMessageContext();
@@ -100,75 +117,72 @@ public class AddFriendsPage
 	}
 
 	protected void createButtons(Composite buttonPanel) {
-		if(isStandalone) {
-		createButton(BUTTON_CANCEL, MessageText.getString("Button.cancel"),
+		createButton(BUTTON_CANCEL, isStandalone ? MessageText.getString("Button.cancel") : MessageText.getString("wizard.previous"),
 				new SelectionListener() {
 					public void widgetSelected(SelectionEvent e) {
-						context.executeInBrowser("previewCancel()");
-						showButton(BUTTON_CONTINUE, true);
-						showButton(BUTTON_PREVIEW, true);
-						showButton(BUTTON_BACK, false);
+						if(previewMode && !isStandalone) {
+							previewMode = false;
+							context.executeInBrowser("previewCancel()");
+							showButton(BUTTON_PREVIEW, true);
+						} else {
+							if(isStandalone) {
+								getWizard().close();
+							} else {
+								getWizard().showPage(SharePage.ID);
+							}
+						}
+						
 					}
 
 					public void widgetDefaultSelected(SelectionEvent e) {
 					}
 				});
-		//showButton(BUTTON_CANCEL, false);
-		} else {
-			createButton(BUTTON_CANCEL, MessageText.getString("wizard.previous"),
-					new SelectionListener() {
-						public void widgetSelected(SelectionEvent e) {
-							context.executeInBrowser("previewCancel()");
-							showButton(BUTTON_CONTINUE, true);
-							showButton(BUTTON_PREVIEW, true);
-							showButton(BUTTON_BACK, false);
-						}
-
-						public void widgetDefaultSelected(SelectionEvent e) {
-						}
-					});
-			//showButton(BUTTON_CANCEL, false);
-		}
+		
 		
 		createButton(BUTTON_PREVIEW, MessageText.getString("Button.preview"),
 				new SelectionListener() {
 					public void widgetSelected(SelectionEvent e) {
+						previewMode = true;
 						context.executeInBrowser("preview()");
-						showButton(BUTTON_BACK, true);
-						showButton(BUTTON_CONTINUE, false);
 						showButton(BUTTON_PREVIEW, false);
+						if(isStandalone) {
+							showButton(BUTTON_BACK, true);
+							enableButton(BUTTON_BACK, true);
+						}
 					}
 
 					public void widgetDefaultSelected(SelectionEvent e) {
 					}
 				});
-
+		enableButton(BUTTON_PREVIEW, false);
+		
+		//Back for canceling the preview : only used in standalone mode
 		if(isStandalone) {
-			createButton(BUTTON_OK, MessageText.getString("Button.send"),
+			createButton(BUTTON_BACK, MessageText.getString("Button.back"),
 					new SelectionListener() {
 						public void widgetSelected(SelectionEvent e) {
-							System.out.println("TODO: do continue");
-							performBack();
+							context.executeInBrowser("previewCancel()");
+							showButton(BUTTON_BACK, false);
+							showButton(BUTTON_PREVIEW, true);
 						}
-
+	
 						public void widgetDefaultSelected(SelectionEvent e) {
 						}
 					});
-			
-		} else {
-			createButton(BUTTON_CONTINUE, MessageText.getString("Button.continue"),
-					new SelectionListener() {
-						public void widgetSelected(SelectionEvent e) {
-							System.out.println("TODO: do continue");
-							performBack();
-						}
-
-						public void widgetDefaultSelected(SelectionEvent e) {
-						}
-					});
+			showButton(BUTTON_BACK, false);
 		}
 		
+		
+		createButton(BUTTON_OK, isStandalone ? MessageText.getString("Button.send") : MessageText.getString("Button.continue"),
+				new SelectionListener() {
+					public void widgetSelected(SelectionEvent e) {
+						context.executeInBrowser("inviteSubmit()");
+					}
 
+					public void widgetDefaultSelected(SelectionEvent e) {
+					}
+				});
+		enableButton(BUTTON_OK, !isStandalone);
 		
 	}
 
@@ -180,7 +194,7 @@ public class AddFriendsPage
 		return true;
 	}
 
-	public ClientMessageContext getMessageContext() {
+	public synchronized ClientMessageContext getMessageContext() {
 		if (null == context) {
 			context = new BrowserContext(
 					"buddy-page-listener-invite" + Math.random(), getBrowser(), null,
@@ -192,17 +206,15 @@ public class AddFriendsPage
 			 * Add listener to call the 'inviteFromShare' script; this listener is only called
 			 * once whenever a web page is loaded the first time or when it's refreshed
 			 */
-			if (true == isStandalone()) {
-				context.addMessageListener(new AbstractStatusListener("status") {
-					public void handlePageLoadCompleted() {
-						/*
-						 * Setting inviteFromShare to false in the browser
-						 */
-						context.executeInBrowser("inviteFromShare(" + false + ")");
-
-					}
-				});
-			}
+			context.addMessageListener(new AbstractStatusListener("status") {
+				public void handlePageLoadCompleted() {
+					/*
+					 * Setting inviteFromShare to false in the browser
+					 */
+					context.executeInBrowser("inviteFromShare(" + !isStandalone + ")");
+					context.removeMessageListener(this);
+				}
+			});
 			/*
 			 * Add the appropriate messaging listeners
 			 */
@@ -235,9 +247,35 @@ public class AddFriendsPage
 				}
 
 				public void handleBuddyInvites() {
+
+					if(sharePage != null) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								sharePage.inviteeList.clear();
+								for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+									VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+									sharePage.inviteeList.addFriend(buddy);
+								}
+							}
+						});
+					}
+
 				}
 
 				public void handleEmailInvites() {
+					if(sharePage != null) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+									VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy(null);
+									buddy.setLoginID((iterator.next()).toString());
+									sharePage.inviteeList.addFriend(buddy);
+								}
+								getWizard().performBack();
+							}
+						});
+					}
+
 				}
 
 				public void handleInviteConfirm() {
@@ -248,7 +286,11 @@ public class AddFriendsPage
 						// XXX Handle me!
 						e.printStackTrace();
 					}
-
+					
+					if(isStandalone) {
+						handleClose();
+					}
+					
 					showConfirmationDialog();
 				}
 
@@ -259,10 +301,15 @@ public class AddFriendsPage
 //						fullScreen(false);
 //					}
 				}
+				
+				public void handleNbBuddiesUpdated(int nbInvites) {
+					enableButton(BUTTON_OK,nbInvites > 0 || !isStandalone);
+					enableButton(BUTTON_PREVIEW,nbInvites > 0 );
+				}
 
 			};
 
-			getMessageContext().addMessageListener(buddyPageListener);
+			context.addMessageListener(buddyPageListener);
 		}
 		return context;
 	}
@@ -282,9 +329,9 @@ public class AddFriendsPage
 			Utils.execSWTThreadLater(0, new AERunnable() {
 
 				public void runSupport() {
-					final LightBoxShell lightBoxShell = new LightBoxShell(false);
-					StyledMessageWindow messageWindow = new StyledMessageWindow(
-							lightBoxShell.getShell(), 6, true);
+					Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+					MessageWindow messageWindow = new MessageWindow(
+							mainShell, 6);
 
 					messageWindow.setDetailMessages(buddyPageListener.getConfirmationMessages());
 					messageWindow.setMessage(buddyPageListener.getFormattedInviteMessage());
@@ -292,12 +339,10 @@ public class AddFriendsPage
 					messageWindow.setTitle("Invite confirmation");
 					messageWindow.setSize(400, 300);
 
-					messageWindow.addListener(SWT.Dispose, new Listener() {
-						public void handleEvent(Event event) {
-							lightBoxShell.close();
-						}
-					});
-					lightBoxShell.open(messageWindow);
+					Utils.centerWindowRelativeTo(messageWindow.getShell(),mainShell);
+					
+					messageWindow.open();
+
 
 				}
 			});

@@ -20,8 +20,9 @@ public class ShareWizard
 	}
 
 	public void createPages() {
-		addPage(new SharePage(this));
-		addPage(new AddFriendsPage(this));
+		SharePage sharePage = new SharePage(this);
+		addPage(sharePage);
+		addPage(new AddFriendsPage(this,sharePage));
 	}
 
 }

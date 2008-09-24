@@ -79,7 +79,7 @@ public class SharePage
 
 	private Composite inviteePanel;
 
-	private FriendsList inviteeList;
+	FriendsList inviteeList;
 
 	private Button addBuddyButton;
 
@@ -436,7 +436,7 @@ public class SharePage
 		if (null == browser) {
 			getBrowser();
 		}
-		browser.refresh();
+		//browser.refresh();
 
 		if (null != friendsToolbar) {
 			friendsToolbar.setShareMode();
@@ -546,113 +546,130 @@ public class SharePage
 
 		contentStats.append("File size: " + dm.getSize() / 1000000 + " MB");
 	}
-
+	
 	public ClientMessageContext getMessageContext() {
-		if (null == context) {
-			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
-					getBrowser(), null, true);
-
-			context.addMessageListener(new DisplayListener(getBrowser()));
-
-			/*
-			 * Add listener to call the 'inviteFromShare' script; this listener is only called
-			 * once whenever a web page is loaded the first time or when it's refreshed
-			 */
-			context.addMessageListener(new AbstractStatusListener("status") {
-				public void handlePageLoadCompleted() {
-					/*
-					 * Setting inviteFromShare to true in the browser
-					 */
-					context.executeInBrowser("inviteFromShare(" + true + ")");
-
-					//					SharePage.this.notifyRefreshListeners();
-
-				}
-			});
-
-			/*
-			 * Add the appropriate messaging listeners
-			 */
-
-			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
-
-				private Map confirmationResponse;
-
-				public void handleCancel() {
-//					Utils.execSWTThread(new AERunnable() {
-//						public void runSupport() {
-//							getWizard().showPage(ID);
-//						}
-//					});
-				}
-
-				public void handleClose() {
-//					Utils.execSWTThread(new AERunnable() {
-//						public void runSupport() {
-//							getWizard().showPage(ID);
-//						}
-//					});
-
-				}
-
-				public void handleBuddyInvites() {
-
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							inviteeList.clear();
-							for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
-								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
-								inviteeList.addFriend(buddy);
-							}
-						}
-					});
-
-				}
-
-				public void handleEmailInvites() {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
-								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy(null);
-								buddy.setLoginID((iterator.next()).toString());
-								inviteeList.addFriend(buddy);
-							}
-						}
-					});
-
-				}
-
-				public void handleInviteConfirm() {
-					confirmationResponse = getConfirmationResponse();
-
-					if (null != confirmationResponse) {
-						final List buddiesToShareWith = buddyList.getFriends();
-						final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
-						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
-							public void loginComplete() {
-								try {
-									VuzeBuddyManager.inviteWithShare(confirmationResponse,
-											getShareItem(), messageText.getText(), buddies);
-									getWizard().close();
-									showConfirmationDialog(buddiesToShareWith);
-
-								} catch (NotLoggedInException e) {
-									//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
-									// try again
-								}
-							}
-						});
-					}
-				}
-
-				public void handleResize() {
-				}
-
-			};
-			context.addMessageListener(buddyPageListener);
+		AddFriendsPage page = (AddFriendsPage) getWizard().getPage(
+				AddFriendsPage.ID);
+		if (null != page) {
+			browser = page.getBrowser();
+			return page.getMessageContext();
 		}
-		return context;
+		
+		return null;
 	}
+
+//	public ClientMessageContext getMessageContext() {
+//		if (null == context) {
+//			context = new BrowserContext("buddy-page-listener-share" + Math.random(),
+//					getBrowser(), null, true);
+//
+//			context.addMessageListener(new DisplayListener(getBrowser()));
+//
+//			/*
+//			 * Add listener to call the 'inviteFromShare' script; this listener is only called
+//			 * once whenever a web page is loaded the first time or when it's refreshed
+//			 */
+//			context.addMessageListener(new AbstractStatusListener("status") {
+//				public void handlePageLoadCompleted() {
+//					/*
+//					 * Setting inviteFromShare to true in the browser
+//					 */
+//					context.executeInBrowser("inviteFromShare(" + true + ")");
+//
+//					//					SharePage.this.notifyRefreshListeners();
+//
+//				}
+//			});
+//
+//			/*
+//			 * Add the appropriate messaging listeners
+//			 */
+//
+//			buddyPageListener = new AbstractBuddyPageListener(getBrowser()) {
+//
+//				private Map confirmationResponse;
+//
+//				public void handleCancel() {
+////					Utils.execSWTThread(new AERunnable() {
+////						public void runSupport() {
+////							getWizard().showPage(ID);
+////						}
+////					});
+//				}
+//
+//				public void handleClose() {
+////					Utils.execSWTThread(new AERunnable() {
+////						public void runSupport() {
+////							getWizard().showPage(ID);
+////						}
+////					});
+//
+//				}
+//
+//				public void handleBuddyInvites() {
+//
+//					Utils.execSWTThread(new AERunnable() {
+//						public void runSupport() {
+//							inviteeList.clear();
+//							for (Iterator iterator = getInvitedBuddies().iterator(); iterator.hasNext();) {
+//								VuzeBuddy buddy = (VuzeBuddy) iterator.next();
+//								inviteeList.addFriend(buddy);
+//							}
+//						}
+//					});
+//
+//				}
+//
+//				public void handleEmailInvites() {
+//					Utils.execSWTThread(new AERunnable() {
+//						public void runSupport() {
+//							for (Iterator iterator = getInvitedEmails().iterator(); iterator.hasNext();) {
+//								VuzeBuddy buddy = VuzeBuddyManager.createPotentialBuddy(null);
+//								buddy.setLoginID((iterator.next()).toString());
+//								inviteeList.addFriend(buddy);
+//							}
+//						}
+//					});
+//
+//				}
+//
+//				public void handleInviteConfirm() {
+//					confirmationResponse = getConfirmationResponse();
+//
+//					if (null != confirmationResponse) {
+//						final List buddiesToShareWith = buddyList.getFriends();
+//						final VuzeBuddy[] buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
+//						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+//							public void loginComplete() {
+//								try {
+//									VuzeBuddyManager.inviteWithShare(confirmationResponse,
+//											getShareItem(), messageText.getText(), buddies);
+//									getWizard().close();
+//									showConfirmationDialog(buddiesToShareWith);
+//
+//								} catch (NotLoggedInException e) {
+//									//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
+//									// try again
+//								}
+//							}
+//						});
+//					}
+//				}
+//
+//				public void handleResize() {
+//				}
+//				
+//				@Override
+//				public void handleNbBuddiesUpdated(int nbInvites) {
+//					// TODO Auto-generated method stub
+//					
+//				}
+//
+//			};
+//			context.addMessageListener(buddyPageListener);
+//		}
+//		return context;
+//	}
 
 	private void showConfirmationDialog(List buddiesToShareWith) {
 
@@ -741,13 +758,9 @@ public class SharePage
 					AddFriendsPage.ID);
 			if (null != page) {
 				browser = page.getBrowser();
+				page.getMessageContext();
 			}
-
-			/*
-			 * Calling to initialize the listeners
-			 */
-			getMessageContext();
-
+			
 		}
 
 		return browser;

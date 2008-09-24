@@ -14,6 +14,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -115,6 +116,13 @@ public abstract class AbstractBuddyPageListener
 						}
 					}
 					handleResize();
+				} else if( OP_INVITEES_UPDATE.equals(opID)) {
+					try {
+						int nbInvitees = Integer.parseInt(decodedMap.get(OP_INVITEES_PARAM_NB_INVITEES).toString());
+						handleNbBuddiesUpdated(nbInvitees);
+					}catch (Exception e) {
+						// TODO: handle exception
+					}
 				}
 			}
 		});
@@ -131,7 +139,7 @@ public abstract class AbstractBuddyPageListener
 					OP_INVITEES_PARAM_BUDDIES, new ArrayList());
 
 			for (Iterator iterator = invitedBuddyMaps.iterator(); iterator.hasNext();) {
-				Map map = (HashMap) iterator.next();
+				JSONObject map = (JSONObject) iterator.next();
 				VuzeBuddy vBuddy = VuzeBuddyManager.createPotentialBuddy(null);
 				vBuddy.setDisplayName(map.get("displayName").toString());
 				vBuddy.setLoginID(map.get("name").toString());

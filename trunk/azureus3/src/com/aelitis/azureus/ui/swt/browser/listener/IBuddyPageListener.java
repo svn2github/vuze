@@ -34,7 +34,13 @@ public interface IBuddyPageListener
 	public static final String OP_RESIZE_PARAM_STATE_MINIMIZE = "minimize";
 
 	public static final String OP_RESIZE_PARAM_STATE_RESTORE = "restore";
+	
+	public static final String OP_INVITEES_UPDATE = "invitees-update";
+	
+	public static final String OP_INVITEES_PARAM_NB_INVITEES = "nb_invitees";
 
+	public void handleNbBuddiesUpdated(int nbInvites);
+	
 	public void handleClose();
 
 	public void handleCancel();

@@ -433,7 +433,7 @@ public class FriendsToolbar
 					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
 					SWT.DIALOG_TRIM | SWT.RESIZE) {
 				public void createPages() {
-					addPage(new AddFriendsPage(this,true));
+					addPage(new AddFriendsPage(this));
 				}
 			};
 			shell.setText("Vuze - Wizard");

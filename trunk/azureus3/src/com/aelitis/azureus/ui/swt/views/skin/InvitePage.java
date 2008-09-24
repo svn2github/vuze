@@ -156,6 +156,12 @@ public class InvitePage
 								+ getWindowState());//KN: sysout
 					}
 				}
+				
+				@Override
+				public void handleNbBuddiesUpdated(int nbInvites) {
+					// TODO Auto-generated method stub
+					
+				}
 
 			};
 

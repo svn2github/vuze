@@ -785,6 +785,11 @@ public class SharePage
 								+ getWindowState());//KN: sysout
 					}
 				}
+				
+				public void handleNbBuddiesUpdated(int nbInvites) {
+					// TODO Auto-generated method stub
+					
+				}
 
 			};
 			context.addMessageListener(buddyPageListener);
