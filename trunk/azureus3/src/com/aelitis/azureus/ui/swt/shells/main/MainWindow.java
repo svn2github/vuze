@@ -92,7 +92,6 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.views.PieceGraphView;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -900,8 +899,13 @@ public class MainWindow
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				String startTab;
-				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
+				boolean welcomeClosed = COConfigurationManager.getBooleanParameter("v3.Welcome Closed");
+				if (welcomeClosed) {
+  				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+  					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+  				} else {
+  					startTab = SideBar.SIDEBAR_SECTION_BROWSE;
+  				}
 				} else {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				}
@@ -1760,7 +1764,7 @@ public class MainWindow
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
-				if (text.getText().equals(sDefault)) {
+				if (text.getText().equals(sDefault) && event.character != '\0') {
 					text.setText("");
 					return;
 				}

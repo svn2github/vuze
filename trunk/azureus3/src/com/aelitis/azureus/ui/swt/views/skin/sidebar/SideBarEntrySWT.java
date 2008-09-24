@@ -81,6 +81,8 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	private String imageLeftID;
 	
+	private List listCloseListeners = Collections.EMPTY_LIST;
+	
 	public String getParentID() {
 		return parentID;
 	}
@@ -261,5 +263,20 @@ public class SideBarEntrySWT implements SideBarEntry
 			return img;
 		}
 		return null;
+	}
+	
+	public void addListener(SideBarCloseListener l) {
+		if (listCloseListeners == Collections.EMPTY_LIST) {
+			listCloseListeners = new ArrayList(1);
+		}
+		listCloseListeners.add(l);
+	}
+	
+	protected void triggerCloseListeners() {
+		Object[] list = listCloseListeners.toArray();
+		for (int i = 0; i < list.length; i++) {
+			SideBarCloseListener l = (SideBarCloseListener) list[i];
+			l.sidebarClosed(this);
+		}
 	}
 }

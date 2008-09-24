@@ -20,10 +20,15 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarCloseListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.Constants;
 
 /**
@@ -56,8 +61,27 @@ public class WelcomeView
 		} else {
   		String sURL = Constants.URL_PREFIX + Constants.URL_WELCOME + "?"
   				+ Constants.URL_SUFFIX;
+  		System.out.println(sURL);
   		browserSkinObject.setURL(sURL);
 		}
+		
+		SideBarEntrySWT sideBarInfo = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_WELCOME);
+		sideBarInfo.addListener(new SideBarCloseListener() {
+			public void sidebarClosed(SideBarEntrySWT entry) {
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				if (sidebar != null) {
+  				COConfigurationManager.setParameter("v3.Welcome Closed", true);
+  				String startTab;
+  				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+  					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+  				} else {
+  					startTab = SideBar.SIDEBAR_SECTION_BROWSE;
+  				}
+
+					sidebar.showItemByID(startTab);
+				}
+			}
+		});
 		
 		return null;
 	}

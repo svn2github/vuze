@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.List;
@@ -191,12 +190,23 @@ public class SideBar
 				TreeItem treeItem = (TreeItem) e.widget;
 				String id = (String) treeItem.getData("Plugin.viewID");
 
+				//TreeItem currentItem = treeItem.getParent().getSelection()[0];
+				
 				if (id != null) {
+					try {
+						SideBarEntrySWT entry = getSideBarInfo(id);
+						entry.triggerCloseListeners();
+					} catch (Exception e2) {
+						Debug.out(e2);
+					}
+
 					mapAutoOpen.remove(id);
 					mapIdToSideBarInfo.remove(id);
+
 					return;
 				}
 
+				// find treeitem..
 				for (Iterator iter = mapIdToSideBarInfo.keySet().iterator(); iter.hasNext();) {
 					id = (String) iter.next();
 					SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
@@ -204,6 +214,7 @@ public class SideBar
 						iter.remove();
 					}
 				}
+				
 			}
 		};
 	}
@@ -981,11 +992,6 @@ public class SideBar
 	private void setupDefaultItems() {
 		TreeItem treeItem;
 
-		File file = new File(SystemProperties.getUserPath(), "sidebarauto.config");
-		if (!file.exists()) {
-			createWelcomeSection();
-		}
-
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
@@ -1165,11 +1171,6 @@ public class SideBar
 
 		Composite parent = tree.getParent();
 
-		treeItem = tree.getItem(0);
-		tree.select(treeItem);
-		tree.showItem(treeItem);
-		itemSelected(treeItem);
-
 		if (parent.isVisible()) {
 			parent.layout(true, true);
 		}
@@ -1182,6 +1183,7 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private SideBarEntrySWT createWelcomeSection() {
+		System.out.println("CR WE " + Debug.getCompressedStackTrace());
 		SideBarEntrySWT entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_WELCOME,
 				"main.area.welcome", "Getting Started", null, null, true, 0);
 		entry.setImageLeftID("image.sidebar.welcome");
