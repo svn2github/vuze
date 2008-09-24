@@ -165,7 +165,7 @@ public class ColumnRatingGlobal
 			/*
 			 * Creates a blank image to paint the rating on top of
 			 */
-			Graphic bgGraphic = cell.getBackgroundGraphic();
+//			Graphic bgGraphic = cell.getBackgroundGraphic();
 //			Image img;
 //			if (bgGraphic instanceof UISWTGraphic) {
 //				img = ((UISWTGraphic) bgGraphic).getImage();
