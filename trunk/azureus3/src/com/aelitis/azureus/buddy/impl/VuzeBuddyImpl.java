@@ -112,17 +112,26 @@ public class VuzeBuddyImpl
 			setAvatar(newAvatar);
 		}
 
+		// start of day, existing url none and we have one, just use it and assume corresponds
+		
 		String newAvatarURL = MapUtils.getMapString(mapNewBuddy, "avatar.url", null);
-		if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || !hasAvatar()) {
+
+		if ( avatarURL == null && hasAvatar()){
+			
 			avatarURL = newAvatarURL;
-			if (avatarURL != null) {
-				ImageDownloader.loadImage(avatarURL,
-						new ImageDownloader.ImageDownloaderListener() {
-							public void imageDownloaded(byte[] image) {
-								VuzeBuddyManager.log("Got new avatar! " + toDebugString());
-								setAvatar(image);
-							}
-						});
+		}else{
+		
+			if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || !hasAvatar()) {
+				avatarURL = newAvatarURL;
+				if (avatarURL != null) {
+					ImageDownloader.loadImage(avatarURL,
+							new ImageDownloader.ImageDownloaderListener() {
+								public void imageDownloaded(byte[] image) {
+									VuzeBuddyManager.log("Got new avatar! " + toDebugString());
+									setAvatar(image);
+								}
+							});
+				}
 			}
 		}
 
