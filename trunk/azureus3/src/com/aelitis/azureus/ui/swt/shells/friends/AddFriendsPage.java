@@ -1,6 +1,10 @@
 package com.aelitis.azureus.ui.swt.shells.friends;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -17,6 +21,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
+import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
 import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
@@ -24,6 +29,7 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.login.NotLoggedInException;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
@@ -31,6 +37,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.shells.MessageWindow;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
+import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.util.Constants;
@@ -238,12 +245,9 @@ public class AddFriendsPage
 					if (null != friendsToolbar) {
 						friendsToolbar.reset();
 					}
-					if (true == isStandalone()) {
-						getWizard().close();
-					} else {
-						getWizard().performBack();
-					}
-
+					
+					getWizard().close();
+					
 				}
 
 				public void handleBuddyInvites() {
@@ -279,19 +283,45 @@ public class AddFriendsPage
 				}
 
 				public void handleInviteConfirm() {
-					try {
-						VuzeBuddyManager.inviteWithShare(getConfirmationResponse(), null,
-								null, null);
-					} catch (NotLoggedInException e) {
-						// XXX Handle me!
-						e.printStackTrace();
+					final Map confirmationResponse = getConfirmationResponse();
+
+					if (null != confirmationResponse) {
+						SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
+							public void loginComplete() {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										try {
+											SelectedContentV3 shareItem = null;
+											String commentText = null;
+											VuzeBuddy[] buddies = null;
+											List buddiesToShareWith = null;
+											if(sharePage != null) {
+												shareItem = sharePage.getShareItem();
+												commentText = sharePage.getCommentText();
+												buddiesToShareWith = sharePage.getFriends();
+												buddies = (VuzeBuddy[]) buddiesToShareWith.toArray(new VuzeBuddy[buddiesToShareWith.size()]);
+											}
+																						
+											VuzeBuddyManager.inviteWithShare(confirmationResponse,
+													shareItem, commentText, buddies);
+											
+											handleClose();
+											if(buddiesToShareWith != null) {
+												showConfirmationDialog(buddiesToShareWith);
+											} else {
+												showConfirmationDialog();
+											}
+											//resetControls();
+										} catch (NotLoggedInException e) {
+											//Do nothing if login failed; leaves the Share page open... the user can then click cancel to dismiss or 
+											// try again
+										}
+									}
+								});
+							}
+						});
+						
 					}
-					
-					if(isStandalone) {
-						handleClose();
-					}
-					
-					showConfirmationDialog();
 				}
 
 				public void handleResize() {
@@ -324,6 +354,83 @@ public class AddFriendsPage
 		browser.refresh();
 	}
 
+	private void showConfirmationDialog(List buddiesToShareWith) {
+
+		if (null != buddyPageListener) {
+
+			final String[] message = new String[1];
+			final List messages = new ArrayList();
+
+			if (null == buddiesToShareWith) {
+				buddiesToShareWith = Collections.EMPTY_LIST;
+			}
+
+			/*
+			 * Share only
+			 */
+			if (buddyPageListener.getInvitationsSent() == 0) {
+				/*
+				 * The main message to display
+				 */
+				if (buddiesToShareWith.size() > 1) {
+					message[0] = MessageText.getString("message.confirm.share.plural");
+				} else {
+					message[0] = MessageText.getString("message.confirm.share.singular");
+				}
+			}
+
+			/*
+			 * Share with invitations
+			 */
+			else {
+
+				boolean hasError = false;
+				List inviteMessages = buddyPageListener.getConfirmationMessages();
+				for (Iterator iterator = inviteMessages.iterator(); iterator.hasNext();) {
+					ProgressReportMessage cMessage = (ProgressReportMessage) iterator.next();
+					if (true == cMessage.isError()) {
+						hasError = true;
+						break;
+					}
+				}
+
+				if (true == hasError) {
+					message[0] = MessageText.getString("message.confirm.invite.error");
+					messages.addAll(buddyPageListener.getConfirmationMessages());
+				} else {
+					/*
+					 * The main message to display
+					 */
+					if (buddiesToShareWith.size()
+							+ buddyPageListener.getInvitationsSent() == 1) {
+						message[0] = MessageText.getString("message.confirm.share.invite.singular");
+					} else {
+						message[0] = MessageText.getString("message.confirm.share.invite.plural");
+					}
+				}
+			}
+
+			Utils.execSWTThreadLater(0, new AERunnable() {
+
+				public void runSupport() {
+					Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+					MessageWindow messageWindow = new MessageWindow(
+							mainShell, 6);
+
+					messageWindow.setDetailMessages(messages);
+					messageWindow.setMessage(message[0]);
+					messageWindow.setTitle("Share confirmation");
+					messageWindow.setSize(400, 300);
+
+					Utils.centerWindowRelativeTo(messageWindow.getShell(),mainShell);
+					
+					messageWindow.open();
+
+				}
+			});
+		}
+	}
+	
 	private void showConfirmationDialog() {
 		if (null != buddyPageListener) {
 			Utils.execSWTThreadLater(0, new AERunnable() {

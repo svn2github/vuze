@@ -998,7 +998,11 @@ public class SideBar
 							count++;
 						}
 					}
-					return "" + count;
+					if(count > 0) {
+						return "" + count;
+					} else {
+						return null;
+					}
 				} else if (propertyID == TITLE_IMAGEID) {
 					return "image.sidebar.activity";
 				}

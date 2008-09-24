@@ -417,6 +417,10 @@ public class SharePage
 	public String getDesciption() {
 		return MessageText.getString("v3.Share.header.message");
 	}
+	
+	public List getFriends() {
+		return buddyList.getFriends();
+	}
 
 	public String getTitle() {
 		return MessageText.getString("v3.Share.header");
@@ -764,5 +768,9 @@ public class SharePage
 		}
 
 		return browser;
+	}
+	
+	public String getCommentText() {
+		return messageText.getText();
 	}
 }
