@@ -11,7 +11,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -75,6 +74,7 @@ public class MyTorrentsView_Big
 	public void defaultSelected(TableRowCore[] rows) {
 		if (!isSeedingView) {
 			super.defaultSelected(rows);
+			return;
 		}
 		if (rows == null || rows.length > 1) {
 			return;
