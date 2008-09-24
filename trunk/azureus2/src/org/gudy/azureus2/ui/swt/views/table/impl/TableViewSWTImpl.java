@@ -1448,6 +1448,7 @@ public class TableViewSWTImpl
 			return false;
 		}
 		return columnsVisible[position];
+
 	}
 
 	protected void initializeTableColumns(final Table table) {
