@@ -33,6 +33,7 @@ SearchProvider
 	public static final int PR_DOWNLOAD_LINK_LOCATOR		= 3;	// optional; String
 	public static final int PR_REFERER						= 4;	// optional; String
 	public static final int PR_SUPPORTS_RESULT_FIELDS		= 5;	// optional; int[]
+	public static final int PR_USE_ACCURACY_FOR_RANK		= 6;	// optional; Boolean
 	
 		// search parameters
 	

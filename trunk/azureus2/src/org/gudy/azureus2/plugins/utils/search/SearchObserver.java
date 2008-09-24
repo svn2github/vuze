@@ -24,6 +24,8 @@ package org.gudy.azureus2.plugins.utils.search;
 public interface 
 SearchObserver 
 {
+	public static final int PR_MAX_RESULTS_WANTED	= 1;	// Long
+	
 	public void
 	resultReceived(
 		SearchInstance		search,
@@ -34,4 +36,8 @@ SearchObserver
 	
 	public void
 	cancelled();
+	
+	public Object
+	getProperty(
+		int		property );
 }
