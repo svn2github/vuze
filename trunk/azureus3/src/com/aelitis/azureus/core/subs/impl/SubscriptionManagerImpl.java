@@ -193,6 +193,7 @@ SubscriptionManagerImpl
 	private TorrentAttribute		ta_subscription_info;
 	
 	private boolean					periodic_lookup_in_progress;
+	private int						priority_lookup_pending;
 	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	
@@ -431,7 +432,9 @@ SubscriptionManagerImpl
 									downloadAdded(
 										Download	download )
 									{
-										lookupAssociations();
+											// if new download then we want to check out its subscription status 
+										
+										lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
 									}
 									
 									public void
@@ -939,7 +942,7 @@ SubscriptionManagerImpl
 		
 		if ( ticks % ASSOC_CHECK_TICKS == 0 ){
 			
-			lookupAssociations();
+			lookupAssociations( false );
 		}
 		
 		if ( ticks % SERVER_PUB_CHECK_TICKS == 0 ){
@@ -1302,11 +1305,17 @@ SubscriptionManagerImpl
 	}
 	
 	protected void
-	lookupAssociations()
+	lookupAssociations(
+		boolean		high_priority )
 	{
 		synchronized( this ){
 			
 			if ( periodic_lookup_in_progress ){
+				
+				if ( high_priority ){
+				
+					priority_lookup_pending++;
+				}
 				
 				return;
 			}
@@ -1385,7 +1394,7 @@ SubscriptionManagerImpl
 			
 				byte[] hash = newest_download.getTorrent().getHash();
 				
-				log( "Periodic lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
+				log( "Association lookup starts for " + newest_download.getName() + "/" + ByteFormatter.encodeString( hash ));
 
 				lookupAssociationsSupport( 
 					hash,
@@ -1403,13 +1412,9 @@ SubscriptionManagerImpl
 							byte[]					hash,
 							SubscriptionException	error )
 						{
-							synchronized( SubscriptionManagerImpl.this ){
-								
-								periodic_lookup_in_progress = false;
-							}
-							
-							log( "Periodic lookup failed for " + ByteFormatter.encodeString( hash ), error );
+							log( "Association lookup failed for " + ByteFormatter.encodeString( hash ), error );
 
+							associationLookupComplete();
 						}
 						
 						public void 
@@ -1417,30 +1422,50 @@ SubscriptionManagerImpl
 							byte[] 			hash,
 							Subscription[]	subs )
 						{
-							synchronized( SubscriptionManagerImpl.this ){
-								
-								periodic_lookup_in_progress = false;
-							}
+							log( "Association lookup complete for " + ByteFormatter.encodeString( hash ));
 							
-							log( "Periodic lookup complete for " + ByteFormatter.encodeString( hash ));
+							associationLookupComplete();
 						}
 					});
 						
 			}else{
 				
-				synchronized( this ){
-					
-					periodic_lookup_in_progress = false;
-				}
+				associationLookupComplete();
 			}
 		}catch( Throwable e ){
 			
-			synchronized( this ){
-				
-				periodic_lookup_in_progress = false;
-			}
+			log( "Association lookup check failed", e );
+
+			associationLookupComplete();			
+		}
+	}
+	
+	protected void
+	associationLookupComplete()
+	{
+		boolean	recheck;
+		
+		synchronized( SubscriptionManagerImpl.this ){
 			
-			log( "Periodic update check failed", e );
+			periodic_lookup_in_progress = false;
+			
+			recheck = priority_lookup_pending > 0;
+				
+			if ( recheck ){
+				
+				priority_lookup_pending--;
+			}
+		}
+		
+		if ( recheck ){
+			
+			new AEThread2( "SM:priAssLookup", true )
+			{
+				public void run() 
+				{
+					lookupAssociations( false );
+				}
+			}.start();
 		}
 	}
 	
