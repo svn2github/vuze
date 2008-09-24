@@ -157,7 +157,6 @@ public class InvitePage
 					}
 				}
 				
-				@Override
 				public void handleNbBuddiesUpdated(int nbInvites) {
 					// TODO Auto-generated method stub
 					
