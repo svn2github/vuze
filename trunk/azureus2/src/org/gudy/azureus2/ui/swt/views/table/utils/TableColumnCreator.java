@@ -44,32 +44,12 @@ public class TableColumnCreator
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
 
-		// special changes
-		ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
-		if (tcShareRatioItem != null) {
-			tcShareRatioItem.setVisible(true);
-		}
-		UpItem tcUpItem = (UpItem) mapTCs.get(UpItem.COLUMN_ID);
-		if (tcUpItem != null) {
-			tcUpItem.setVisible(true);
-		}
-
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
 	public static TableColumnCore[] createCompleteDM(String tableID) {
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class, tableID);
-		
-		// special changes
-		ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
-		if (tcShareRatioItem != null) {
-			tcShareRatioItem.setVisible(false);
-		}
-		UpItem tcUpItem = (UpItem) mapTCs.get(UpItem.COLUMN_ID);
-		if (tcUpItem != null) {
-			tcUpItem.setVisible(false);
-		}
 		
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
