@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
@@ -32,7 +33,9 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -148,42 +151,84 @@ public class UserAreaUtils
 			
 			// @see com.aelitis.azureus.util.ILoginInfoListener#avatarURLUpdated()
 			public void avatarURLUpdated(String newAvatarURL) {
+				
+				final File cache = new File(SystemProperties.getUserPath(), "friends"
+						+ File.separator + newAvatarURL.hashCode() + ".ico");
+
+				if ( cache.exists()){
+					
+					try{
+						FileInputStream fis = new FileInputStream(cache);
+						
+						try{
+							byte[] content = FileUtil.readInputStreamAsByteArray(fis);
+							
+							VuzeBuddyManager.log( "Using cached login avatar");
+							
+							updateImage( content );
+							
+							return;
+							
+						}finally{
+							
+							fis.close();
+						}
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+				
+				VuzeBuddyManager.log( "Downloading login avatar");
+
 				ImageDownloader.loadImage(newAvatarURL,
 						new ImageDownloader.ImageDownloaderListener() {
-							public void imageDownloaded(final byte[] image) {
-								Utils.execSWTThread(new AERunnable() {
+							public void 
+							imageDownloaded(
+								byte[] image) 
+							{
+								updateImage( image );
+								
+								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), image);
 
-									public void runSupport() {
-
-										VuzeBuddyManager.log("Got new login avatar! ");
-										if (soImage != null) {
-											Display display = Utils.getDisplay();
-											if (display == null) {
-												return;
-											}
-											InputStream is = new ByteArrayInputStream(image);
-											Image bigAvatarImage = new Image(display, is);
-											Image avatarImage = new Image(display, 40, 40);
-											GC gc = new GC(avatarImage);
-											try {
-												Rectangle bounds = bigAvatarImage.getBounds();
-												try {
-													gc.setInterpolation(SWT.HIGH);
-												} catch (Exception e) {
-												}
-												gc.drawImage(bigAvatarImage, 0, 0, bounds.width,
-														bounds.height, 0, 0, 40, 40);
-											} finally {
-												gc.dispose();
-											}
-											bigAvatarImage.dispose();
-
-											soImage.setImage(avatarImage);
-										}
-									}
-								});
 							}
 						});
+			}
+			
+			protected void
+			updateImage(
+				final byte[]		image )
+			{
+				Utils.execSWTThread(new AERunnable() {
+
+					public void runSupport() {
+
+						if (soImage != null) {
+							Display display = Utils.getDisplay();
+							if (display == null) {
+								return;
+							}
+							InputStream is = new ByteArrayInputStream(image);
+							Image bigAvatarImage = new Image(display, is);
+							Image avatarImage = new Image(display, 40, 40);
+							GC gc = new GC(avatarImage);
+							try {
+								Rectangle bounds = bigAvatarImage.getBounds();
+								try {
+									gc.setInterpolation(SWT.HIGH);
+								} catch (Exception e) {
+								}
+								gc.drawImage(bigAvatarImage, 0, 0, bounds.width,
+										bounds.height, 0, 0, 40, 40);
+							} finally {
+								gc.dispose();
+							}
+							bigAvatarImage.dispose();
+
+							soImage.setImage(avatarImage);
+						}
+					}
+				});
 			}
 		});
 	}
