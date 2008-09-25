@@ -58,7 +58,7 @@ AEThread
 	public void
 	run()
 	{
-		// System.out.println( "Start: " + this );
+		// System.out.println( TimeFormatter.milliStamp() + ": AEThread:start: " + this );
 		
 		try{
 			/*

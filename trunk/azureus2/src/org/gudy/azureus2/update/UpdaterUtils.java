@@ -111,7 +111,7 @@ public class UpdaterUtils
 		}
 	}
 
-	public static void
+	public static boolean
 	ensurePluginPresent(
 		String			id,
 		String			cla,
@@ -127,7 +127,11 @@ public class UpdaterUtils
 					"plugin.class=" + cla,
 					"plugin.name=" + name,
 					"plugin.id=" + id });
+			
+			return( true );
 		}
+		
+		return( false );
 	}
 	
 	protected static void

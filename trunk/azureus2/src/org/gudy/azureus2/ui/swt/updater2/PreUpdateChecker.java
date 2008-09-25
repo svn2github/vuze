@@ -44,12 +44,15 @@ public class PreUpdateChecker
 	{
 		if ( ui.equals( "az3") && !"0".equals(System.getProperty("azureus.loadplugins"))) {
 			
-			UpdaterUtils.ensurePluginPresent(
-				"azemp",
-				"com.azureus.plugins.azemp.EmbeddedMediaPlayerPlugin",
-				"Embedded Media Player" );
+			if ( UpdaterUtils.ensurePluginPresent(
+					"azemp",
+					"com.azureus.plugins.azemp.EmbeddedMediaPlayerPlugin",
+					"Embedded Media Player" )){
 			
-			core.getPluginManager().refreshPluginList();
+					// rescan if we've done anything  
+				
+				core.getPluginManager().refreshPluginList();
+			}
 		}
 	}
 }

@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
@@ -54,6 +55,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginContactImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImplAdapter;
+import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
@@ -755,6 +757,8 @@ DHTPlugin
 				public void
 				run()
 				{
+					boolean	went_async = false;
+					
 					try{							
 						
 						enabled = VersionCheckClient.getSingleton().DHTEnableAllowed();
@@ -763,102 +767,138 @@ DHTPlugin
 							
 							status_area.setText( "Initialising" );
 							
-							List	plugins = new ArrayList();
-							
-								// adapter only added to first DHTPluginImpl we create
-							
-							DHTPluginImplAdapter adapter = 
-					        		new DHTPluginImplAdapter()
-					        		{
-					        			public void
-					        			localContactChanged(
-					        				DHTPluginContact	local_contact )
-					        			{
-					        				for (int i=0;i<listeners.size();i++){
-					        					
-					        					((DHTPluginListener)listeners.get(i)).localAddressChanged( local_contact );
-					        				}
-					        			}
-					        		};
-					        		
-							if ( MAIN_DHT_ENABLE ){
-								
-								main_dht = 
-									new DHTPluginImpl(
-												plugin_interface,
-												AzureusCoreFactory.getSingleton().getNATTraverser(),
-												adapter,
-												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-												DHT.NW_MAIN,
-												false,
-												override_ip,
-												dht_data_port,
-												reseed,
-												warn_user,
-												logging,
-												log, dht_log );
-																
-								plugins.add( main_dht );
-								
-								adapter = null;
-							}
-							
-							if ( MAIN_DHT_V6_ENABLE ){
-								
-								if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
-									
-									main_v6_dht = 
-										new DHTPluginImpl(
-											plugin_interface,
-											AzureusCoreFactory.getSingleton().getNATTraverser(),
-											adapter,
-											DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-											DHT.NW_MAIN_V6,
-											true,
-											null,
-											dht_data_port,
-											reseed,
-											warn_user,
-											logging,
-											log, dht_log );
-																
-									plugins.add( main_v6_dht );
-									
-									adapter = null;
-								}
-							}
-							
-							if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
-								
-								cvs_dht = 
-									new DHTPluginImpl(
-										plugin_interface,
-										AzureusCoreFactory.getSingleton().getNATTraverser(),
-										adapter,
-										DHTTransportUDP.PROTOCOL_VERSION_CVS,
-										DHT.NW_CVS,
-										false,
-										override_ip,
-										dht_data_port,
-										reseed,
-										warn_user,
-										logging,
-										log, dht_log );
-							
-								plugins.add( cvs_dht );
-								
-								adapter = null;
-							}
-							
-							DHTPluginImpl[]	_dhts = new DHTPluginImpl[plugins.size()];
-							
-							plugins.toArray( _dhts );
+							final DelayedTask dt = plugin_interface.getUtilities().createDelayedTask(new Runnable()
+							{
+								public void 
+								run() 
+								{
+									try{
+										List	plugins = new ArrayList();
+										
+											// adapter only added to first DHTPluginImpl we create
+										
+										DHTPluginImplAdapter adapter = 
+								        		new DHTPluginImplAdapter()
+								        		{
+								        			public void
+								        			localContactChanged(
+								        				DHTPluginContact	local_contact )
+								        			{
+								        				for (int i=0;i<listeners.size();i++){
+								        					
+								        					((DHTPluginListener)listeners.get(i)).localAddressChanged( local_contact );
+								        				}
+								        			}
+								        		};
+								        		
+										if ( MAIN_DHT_ENABLE ){
+											
+											main_dht = 
+												new DHTPluginImpl(
+															plugin_interface,
+															AzureusCoreFactory.getSingleton().getNATTraverser(),
+															adapter,
+															DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+															DHT.NW_MAIN,
+															false,
+															override_ip,
+															dht_data_port,
+															reseed,
+															warn_user,
+															logging,
+															log, dht_log );
+																			
+											plugins.add( main_dht );
+											
+											adapter = null;
+										}
+										
+										if ( MAIN_DHT_V6_ENABLE ){
+											
+											if ( NetworkAdmin.getSingleton().hasIPV6Potential(false)){
 												
-							dhts = _dhts;
+												main_v6_dht = 
+													new DHTPluginImpl(
+														plugin_interface,
+														AzureusCoreFactory.getSingleton().getNATTraverser(),
+														adapter,
+														DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+														DHT.NW_MAIN_V6,
+														true,
+														null,
+														dht_data_port,
+														reseed,
+														warn_user,
+														logging,
+														log, dht_log );
+																			
+												plugins.add( main_v6_dht );
+												
+												adapter = null;
+											}
+										}
+										
+										if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
+											
+											cvs_dht = 
+												new DHTPluginImpl(
+													plugin_interface,
+													AzureusCoreFactory.getSingleton().getNATTraverser(),
+													adapter,
+													DHTTransportUDP.PROTOCOL_VERSION_CVS,
+													DHT.NW_CVS,
+													false,
+													override_ip,
+													dht_data_port,
+													reseed,
+													warn_user,
+													logging,
+													log, dht_log );
+										
+											plugins.add( cvs_dht );
+											
+											adapter = null;
+										}
+										
+										DHTPluginImpl[]	_dhts = new DHTPluginImpl[plugins.size()];
+										
+										plugins.toArray( _dhts );
+															
+										dhts = _dhts;
+										
+										status = dhts[0].getStatus();
+										
+										status_area.setText( dhts[0].getStatusText());
+										
+									}catch( Throwable e ){
+										
+										enabled	= false;
+										
+										status	= STATUS_DISABLED;
+
+										status_area.setText( "Disabled due to error during initialisation" );
+
+										log.log( e );
+										
+										Debug.printStackTrace(e);
+										
+									}finally{
+										
+										init_sem.releaseForever();
+									}
+									
+										// pick up any port changes that occurred during init
+									
+									if ( status == STATUS_RUNNING ){
+									
+										changePort( dht_data_port );
+									}
+								}
+							});
 							
-							status = dhts[0].getStatus();
-							
-							status_area.setText( dhts[0].getStatusText());			
+							dt.queue();
+								
+							went_async = true;
 							
 						}else{
 							
@@ -880,14 +920,10 @@ DHTPlugin
 						
 					}finally{
 						
-						init_sem.releaseForever();
-					}
-					
-						// pick up any port changes that occurred during init
-					
-					if ( status == STATUS_RUNNING ){
-					
-						changePort( dht_data_port );
+						if ( !went_async ){
+						
+							init_sem.releaseForever();
+						}
 					}
 				}
 			};

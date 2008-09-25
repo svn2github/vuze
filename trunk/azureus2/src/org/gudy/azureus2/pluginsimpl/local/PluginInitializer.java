@@ -519,17 +519,17 @@ PluginInitializer
 	    if (Logger.isEnabled())
 	    	Logger.log(new LogEvent(LOGID, "Loading built-in plugins"));
 	    
-	    if (core_operation != null) {
-	    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin")
-	    			+ MessageText.getString("ConfigView.pluginlist.column.type.builtIn"));
-	    }
-
   		PluginManagerDefaults	def = PluginManager.getDefaults();
     
   		for (int i=0;i<builtin_plugins.length;i++){
     		
   			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
     		
+  			    if (core_operation != null) {
+  			    	core_operation.reportCurrentTask(MessageText.getString("splash.plugin")
+  			    			+ builtin_plugins[i][0]);
+  			    }
+
   				try{
   					loading_builtin	= true;
   					

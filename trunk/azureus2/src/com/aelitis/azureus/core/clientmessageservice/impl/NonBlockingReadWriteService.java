@@ -67,38 +67,37 @@ public class NonBlockingReadWriteService {
 		this.activity_timeout_period_ms = timeout *1000;
 		close_delay_period_ms			= close_delay * 1000;
 		
-    AEThread select_thread = new AEThread( "[" +service_name+ "] Service Select" ) {
-      public void runSupport() {
-        while( true ) {
-        	
-          boolean	stop_after_select = destroyed;
-          
-  	      if ( stop_after_select ){
-  	    	  read_selector.destroy();
-  	    	  write_selector.destroy();
-  	      }
-  	      
-          try{
-            read_selector.select( 50 );
-            write_selector.select( 50 );
-          }
-          catch( Throwable t ) {
-            Debug.out( "[" +service_name+ "] SelectorLoop() EXCEPTION: ", t );
-          }
-          
-          if (stop_after_select){
-        	  break;
-          }
-          
-          doConnectionTimeoutChecks();
-          
-          	// check this at the end so we have one last run through  the selectors to do cancels
-          	// before exiting
-        }
-      }
-    };
-    select_thread.setDaemon( true );
-    select_thread.start();
+		new AEThread2( "[" +service_name+ "] Service Select", true ) 
+		{
+	      public void run() {
+	        while( true ) {
+	        	
+	          boolean	stop_after_select = destroyed;
+	          
+	  	      if ( stop_after_select ){
+	  	    	  read_selector.destroy();
+	  	    	  write_selector.destroy();
+	  	      }
+	  	      
+	          try{
+	            read_selector.select( 50 );
+	            write_selector.select( 50 );
+	          }
+	          catch( Throwable t ) {
+	            Debug.out( "[" +service_name+ "] SelectorLoop() EXCEPTION: ", t );
+	          }
+	          
+	          if (stop_after_select){
+	        	  break;
+	          }
+	          
+	          doConnectionTimeoutChecks();
+	          
+	          	// check this at the end so we have one last run through  the selectors to do cancels
+	          	// before exiting
+	        }
+	      }
+	    }.start();
 	}
 	
 	

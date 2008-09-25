@@ -79,19 +79,27 @@ UDPNetworkManager
 	    if ( udp_mss_size > MAX_MSS ) udp_mss_size = MAX_MSS;
 	}
 	
-	private static UDPNetworkManager	singleton = new UDPNetworkManager();
+	private static UDPNetworkManager	singleton;
 	
 
 	public static UDPNetworkManager
 	getSingleton()
 	{
+		synchronized( UDPNetworkManager.class ){
+			
+			if ( singleton == null ){
+				
+				singleton = new UDPNetworkManager();
+			}
+		}
+		
 		return( singleton );
 	}
 	
 	private int udp_listen_port	= -1;
 	private int udp_non_data_listen_port = -1;
 	
-	private UDPConnectionManager	connection_manager;
+	private UDPConnectionManager	_connection_manager;
 	
 	protected
 	UDPNetworkManager()
@@ -161,8 +169,6 @@ UDPNetworkManager
 						    }
 					   }
 				   });
-		
-		connection_manager = new UDPConnectionManager();
 	}
 	
 	public boolean
@@ -192,6 +198,14 @@ UDPNetworkManager
 	public UDPConnectionManager
 	getConnectionManager()
 	{
-		return( connection_manager );
+		synchronized( this ){
+			
+			if ( _connection_manager == null ){
+				
+				_connection_manager = new UDPConnectionManager();
+			}
+		}
+		
+		return( _connection_manager );
 	}
 }

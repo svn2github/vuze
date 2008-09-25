@@ -159,34 +159,28 @@ UpdateCheckInstanceImpl
 			
 			final UpdateCheckerImpl			checker = checkers[i];
 			
-			Thread	t = 
-				new AEThread( "UpdatableComponent Checker:" + i )
-				{
-					public void
-					runSupport()
-					{					
-						try{		
-							checker.getComponent().checkForUpdate( checker );
-							
-						}catch( Throwable e ){
-							
-							checker.reportProgress( "Update check failed: " + Debug.getNestedExceptionMessage( e ));
-							
-							checker.failed();
-						}
-					}
-				};
-				
-			t.setDaemon( true );
-			
-			t.start();
-		}
-		
-		Thread	t = 
-			new AEThread( "UpdatableComponent Completion Waiter" )
+			new AEThread2( "UpdatableComponent Checker:" + i, true )
 			{
 				public void
-				runSupport()
+				run()
+				{					
+					try{		
+						checker.getComponent().checkForUpdate( checker );
+						
+					}catch( Throwable e ){
+						
+						checker.reportProgress( "Update check failed: " + Debug.getNestedExceptionMessage( e ));
+						
+						checker.failed();
+					}
+				}
+			}.start();
+		}
+		
+		new AEThread2( "UpdatableComponent Completion Waiter", true )
+			{
+				public void
+				run()
 				{
 					for (int i=0;i<components.length;i++){
 			
@@ -278,11 +272,7 @@ UpdateCheckInstanceImpl
 						}
 					}
 				}
-			};
-			
-		t.setDaemon(true);
-		
-		t.start();
+			}.start();
 	}
 		
 	protected UpdateImpl

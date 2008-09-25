@@ -360,7 +360,7 @@ ResourceDownloaderURLImpl
 		final Object	parent_tls = TorrentUtils.getTLS();
 
 		AEThread2	t = 
-			new AEThread2( "ResourceDownloader:asyncDownload", true )
+			new AEThread2( "ResourceDownloader:asyncDownload - " + original_url, true )
 			{
 				public void
 				run()

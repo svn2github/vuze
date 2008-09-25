@@ -131,7 +131,7 @@ ThreadPool
 	private long		task_total_last;
 	private Average		task_average	= Average.getInstance( WARN_TIME, 120 );
 	
-	private boolean		log_cpu;
+	private boolean		log_cpu	= false;
 	
 	public
 	ThreadPool(
@@ -297,18 +297,23 @@ ThreadPool
 		if ( log_cpu ){
 			
 			long	start_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
-
+			long	start_time	= SystemTime.getHighPrecisionCounter();
+			
 			runnable.run();
 			
 			if ( start_cpu > 0 ){
 				
 				long	end_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
 				
-				long	diff_millis = ( end_cpu - start_cpu ) / 1000000;
+				long	diff_cpu = ( end_cpu - start_cpu ) / 1000000;
 			
-				if ( diff_millis > 10 ){
+				long	end_time	= SystemTime.getHighPrecisionCounter();
+
+				long	diff_millis = ( end_time - start_time ) / 1000000;
 				
-					System.out.println( Thread.currentThread().getName() + ": " + runnable + " -> " + diff_millis );
+				if ( diff_cpu > 10 || diff_millis > 10){
+				
+					System.out.println( TimeFormatter.milliStamp() + ": Thread: " + Thread.currentThread().getName() + ": " + runnable + " -> " + diff_cpu + "/" + diff_millis );
 				}
 			}	
 		}else{

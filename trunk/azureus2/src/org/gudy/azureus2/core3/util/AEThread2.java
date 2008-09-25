@@ -25,10 +25,14 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.LinkedList;
 
+import com.aelitis.azureus.core.util.Java15Utils;
+
 
 public abstract class 
 AEThread2 
 {
+	private static final boolean TRACE_TIMES = false;
+	
 	private static final int MIN_RETAINED	= 2;
 	private static final int MAX_RETAINED	= 16;
 	
@@ -139,6 +143,12 @@ AEThread2
 		}
 	}
 	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
 	public void
 	interrupt()
 	{
@@ -222,7 +232,29 @@ AEThread2
 				synchronized (currentLock)
 				{
 					try{
-						target.run();
+						if ( TRACE_TIMES ){
+
+							long 	start_time 	= SystemTime.getHighPrecisionCounter();
+							long	start_cpu 	= Java15Utils.getThreadCPUTime();
+
+							try{
+
+								target.run();
+
+							}finally{
+								
+								long	time_diff 	= ( SystemTime.getHighPrecisionCounter() - start_time )/1000000;
+								long	cpu_diff	= ( Java15Utils.getThreadCPUTime() - start_cpu ) / 1000000;
+								
+								if ( cpu_diff > 10 || time_diff > 10 ){
+								
+									System.out.println( TimeFormatter.milliStamp() + ": Thread: " + target.getName() + ": " + cpu_diff + "/" + time_diff );
+								}
+							}
+						}else{
+
+							target.run();
+						}
 						
 					}catch( Throwable e ){
 						
