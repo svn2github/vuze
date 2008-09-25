@@ -151,7 +151,7 @@ public class Initializer
 		ImageRepository.loadImagesForSplashWindow(display);
 
 		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
-			display.syncExec(new AERunnable() {
+			display.asyncExec(new AERunnable() {
 				public void runSupport() {
 					new SplashWindow(display, Initializer.this);
 				}
