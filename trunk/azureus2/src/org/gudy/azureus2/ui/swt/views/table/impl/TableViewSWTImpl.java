@@ -1363,6 +1363,10 @@ public class TableViewSWTImpl
 			}
 
 			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
+			
+			if (cell == null) {
+				return;
+			}
 
 			if (!cell.isUpToDate()) {
 				//System.out.println("R " + table.indexOf(item) + ":" + iColumnNo);
