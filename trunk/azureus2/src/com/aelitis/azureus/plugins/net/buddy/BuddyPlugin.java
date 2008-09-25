@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.Plugin;
@@ -278,9 +277,7 @@ BuddyPlugin
 	public void
 	initialize(
 		final PluginInterface		_plugin_interface )
-	{
-		logTime( "start" );
-		
+	{		
 		plugin_interface	= _plugin_interface;
 		
 		az2_handler = new BuddyPluginAZ2( this );
@@ -606,18 +603,8 @@ BuddyPlugin
 				{				
 				}
 			});
+	}
 		
-		logTime( "end" );
-
-	}
-	
-	protected void
-	logTime(
-		String	str )
-	{
-		System.out.println( TimeFormatter.milliStamp() + ": " + str );
-	}
-	
 	protected void
 	updateLocale(
 		LocaleUtilities	lu )
