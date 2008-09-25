@@ -95,20 +95,17 @@ public class ColumnInfo
 		} else if (ds instanceof DownloadManager) {
 			torrent = ((DownloadManager) ds).getTorrent();
 		}
-
-		if (torrent == null) {
-			return;
-		}
-		if (!PlatformTorrentUtils.isContent(torrent, true)) {
-			return;
-		}
 		
-		if (!cell.isShown()) {
+		if (!cell.isShown() || cell.isValid()) {
 			return;
 		}
 
-		UISWTGraphic graphic = graphicInfo;
-		//cell.setGraphic(graphic);
+		if (torrent == null || !PlatformTorrentUtils.isContent(torrent, true)) {
+			cell.setGraphic(null);
+		} else {
+			UISWTGraphic graphic = graphicInfo;
+			cell.setGraphic(graphic);
+		}
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
