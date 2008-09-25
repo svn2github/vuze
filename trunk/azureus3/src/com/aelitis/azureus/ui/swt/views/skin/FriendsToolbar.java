@@ -617,8 +617,8 @@ public class FriendsToolbar
 
 				if (true == isExpanded) {
 
-					soSash.setPercent((double) COConfigurationManager.getFloatParameter("Friends.sash.percent"));
 					soSash.setVisible(true);
+					soSash.setPercent((double) COConfigurationManager.getFloatParameter("Friends.sash.percent"));
 
 				} else {
 
@@ -637,13 +637,11 @@ public class FriendsToolbar
 		SWTSkinObject soSidebar = skin.getSkinObject(SkinConstants.VIEWID_SIDEBAR);
 		if (null != soSidebar) {
 			SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash-bottom");
-			double minPercent = (double) toolbarHeight
-					/ (double) soSidebar.getControl().getSize().y;
-			soSash.setPercent(minPercent);
 			/*
 			 * Hide the sash if the Friends viewer is not visible
 			 */
 			soSash.setVisible(false);
+			soSash.setBelowPX(toolbarHeight);
 		}
 	}
 

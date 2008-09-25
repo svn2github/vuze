@@ -150,19 +150,6 @@ public class SBC_LibraryView
 			});
 		}
 
-		if (torrentFilterMode == TORRENTS_UNOPENED) {
-  		so = getSkinObject(ID + "-button-right");
-  		if (so != null) {
-  			so.setVisible(true);
-  			btnBigTable = new SWTSkinButtonUtility(so);
-  			btnBigTable.setTextID("Mark All UnNew");
-  			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
-  				}
-  			});
-  		}
-		}
-
 		return null;
 	}
 

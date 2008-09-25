@@ -59,6 +59,12 @@ public class SkinConstants
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
 
+	public static final String VIEWID_SIDEBAR_ACTIVITY_PARENT = "sidebar-activity-area";
+
+	public static final String VIEWID_SIDEBAR_ACTIVITY_BIG = "activity-big-area";
+
+	public static final String VIEWID_SIDEBAR_ACTIVITY_SMALL = "activity-small-area";
+
 	public static final String VIEWID_SIDEBAR = "sidebar";
 
 	public static final String VIEWID_FRIENDS_TOOLBAR = "toolbar-friends";

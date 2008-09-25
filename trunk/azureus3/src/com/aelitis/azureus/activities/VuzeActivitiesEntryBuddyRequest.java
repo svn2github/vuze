@@ -31,6 +31,12 @@ import com.aelitis.azureus.util.Constants;
 public class VuzeActivitiesEntryBuddyRequest
 	extends VuzeActivitiesEntryBuddy
 {
+	private String urlAccept;
+
+	public String getUrlAccept() {
+		return urlAccept;
+	}
+
 	public VuzeActivitiesEntryBuddyRequest() {
 		super();
 	}
@@ -38,7 +44,7 @@ public class VuzeActivitiesEntryBuddyRequest
 	public void init(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
-		String urlAccept = Constants.appendURLSuffix(acceptURL);
+		urlAccept = Constants.appendURLSuffix(acceptURL);
 
 		String textID = "v3.activity.buddy-request";
 		if (attempNumber > 1) {

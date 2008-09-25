@@ -120,7 +120,7 @@ public class ColumnRatingGlobal
 		}
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
-		public void cellPaint(GC gcImage, TableCell cell) {
+		public void cellPaint(GC gcImage, TableCellSWT cell) {
 		//public void refresh(final TableCell cell, final boolean force) {
 
 			if (cell.isDisposed()) {
@@ -173,7 +173,7 @@ public class ColumnRatingGlobal
 //				img = new Image(Display.getDefault(), width, height);
 //			}
 //			GC gcImage = new GC(img);
-			Rectangle r = ((TableCellSWT)cell).getBounds(); // img.getBounds();
+			Rectangle r = cell.getBounds(); // img.getBounds();
 
 			int bigTextStyle = SWT.TOP | SWT.RIGHT;
 			int smallTextStyle = SWT.RIGHT;

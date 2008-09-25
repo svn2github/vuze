@@ -318,7 +318,7 @@ public class SideBar
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
-				if (soSash.getPercent() == 1) {
+				if (soSash.getPercent() == 0) {
 					if (lastPercent != 0) {
 						soSash.setPercent(lastPercent);
 					}
@@ -335,7 +335,7 @@ public class SideBar
 				} else {
 					// invisible
 					lastPercent = soSash.getPercent();
-					soSash.setPercent(1);
+					soSash.setPercent(0);
 
 					if (soSideBarPopout != null) {
 						Object ld = soSideBarPopout.getControl().getLayoutData();
@@ -1057,7 +1057,7 @@ public class SideBar
 
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES,
-				"main.area.events", "Activity", titleInfoActivityView, null, false, -1);
+				"activity", "Activity", titleInfoActivityView, null, false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);

@@ -163,7 +163,7 @@ public class SBC_LibraryTableView
   		if (so != null) {
   			so.setVisible(true);
   			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
-  			btn.setTextID("MarkAllOpened");
+  			btn.setTextID("Mark All UnNew");
   			btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
   				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
   					TableViewSWT tv = ((MyTorrentsView) view).getTableView();
@@ -212,6 +212,8 @@ public class SBC_LibraryTableView
   				DownloadManager dm = (DownloadManager) dataSources[i];
   				if (!torrentsView.isOurDownloadManager(dm)) {
   					tv.removeDataSource(dm);
+  				} else {
+  					tv.addDataSource(dm);
   				}
   			}
 			}

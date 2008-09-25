@@ -3,14 +3,17 @@ package com.aelitis.azureus.ui.swt.columns.utils;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
+import com.aelitis.azureus.ui.swt.columns.vuzeactivity.*;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -26,22 +29,23 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createIncompleteDM(String tableID) {
 		final String[] defaultVisibleOrder = {
-				ColumnThumbnail.COLUMN_ID,
-				RankItem.COLUMN_ID,
-				NameItem.COLUMN_ID,
-				ColumnQuality.COLUMN_ID,
-				ColumnInfo.COLUMN_ID,
-				SizeItem.COLUMN_ID,
-				DoneItem.COLUMN_ID,
-				StatusItem.COLUMN_ID,
-				ETAItem.COLUMN_ID,
-				ColumnRateUpDown.COLUMN_ID,
-				DateAddedItem.COLUMN_ID,
+			ColumnThumbnail.COLUMN_ID,
+			RankItem.COLUMN_ID,
+			NameItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			DoneItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			ETAItem.COLUMN_ID,
+			ColumnRateUpDown.COLUMN_ID,
+			DateAddedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
-		
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
+				tableID);
+
 		setVisibility(mapTCs, defaultVisibleOrder);
 
 		// special changes
@@ -53,7 +57,7 @@ public class TableColumnCreatorV3
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
 		}
-		
+
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
@@ -93,8 +97,9 @@ public class TableColumnCreatorV3
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
-		
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
+				tableID);
+
 		setVisibility(mapTCs, defaultVisibleOrder);
 
 		// special changes
@@ -106,28 +111,29 @@ public class TableColumnCreatorV3
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
 		}
-		
+
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
 	public static TableColumnCore[] createUnopenedDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
-				ColumnUnopened.COLUMN_ID,
-				ColumnThumbnail.COLUMN_ID,
-				NameItem.COLUMN_ID,
-				ColumnQuality.COLUMN_ID,
-				ColumnInfo.COLUMN_ID,
-				SizeItem.COLUMN_ID,
-				DoneItem.COLUMN_ID,
-				StatusItem.COLUMN_ID,
-				ColumnRatingGlobal.COLUMN_ID,
-				ColumnRateUpDown.COLUMN_ID,
-				DateCompletedItem.COLUMN_ID,
+			ColumnUnopened.COLUMN_ID,
+			ColumnThumbnail.COLUMN_ID,
+			NameItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			DoneItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			ColumnRatingGlobal.COLUMN_ID,
+			ColumnRateUpDown.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
-		
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
+				tableID);
+
 		setVisibility(mapTCs, defaultVisibleOrder);
 
 		// special changes
@@ -139,7 +145,24 @@ public class TableColumnCreatorV3
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
 		}
-		
+
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
+	public static TableColumnCore[] createActivitySmall(String tableID) {
+		final String[] defaultVisibleOrder = {
+			ColumnActivityNew.COLUMN_ID,
+			ColumnActivityType.COLUMN_ID,
+			ColumnActivityText.COLUMN_ID,
+			ColumnActivityActions.COLUMN_ID,
+			ColumnActivityDate.COLUMN_ID,
+		};
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
+				tableID);
+
+		setVisibility(mapTCs, defaultVisibleOrder);
+
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
@@ -150,7 +173,7 @@ public class TableColumnCreatorV3
 	 */
 	public static void initCoreColumns() {
 		TableColumnCreator.initCoreColumns();
-		
+
 		// short variable names to reduce wrapping
 		final Map c = new LightHashMap(7);
 		final Class all = Download.class;
@@ -162,7 +185,18 @@ public class TableColumnCreatorV3
 		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, all));
 		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, all));
 		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, all));
-		c.put(ColumnRatingGlobal.COLUMN_ID, new cInfo(ColumnRatingGlobal.class, all));
+		c.put(ColumnRatingGlobal.COLUMN_ID,
+				new cInfo(ColumnRatingGlobal.class, all));
+
+		/////////
+
+		final Class ac = VuzeActivitiesEntry.class;
+
+		c.put(ColumnActivityNew.COLUMN_ID, new cInfo(ColumnActivityNew.class, ac));
+		c.put(ColumnActivityType.COLUMN_ID, new cInfo(ColumnActivityType.class, ac));
+		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
+		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(ColumnActivityActions.class, ac));
+		c.put(ColumnActivityDate.COLUMN_ID, new cInfo(ColumnActivityDate.class, ac));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
@@ -173,15 +207,19 @@ public class TableColumnCreatorV3
 		TableColumnCoreCreationListener tcCreator = new TableColumnCoreCreationListener() {
 			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore()
 			public TableColumnCore createTableColumnCore(String tableID,
-					String columnID)
-			{
+					String columnID) {
 				cInfo info = (cInfo) c.get(columnID);
 
 				try {
-					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] { String.class });
-					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] { tableID });
+					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] {
+						String.class
+					});
+					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] {
+						tableID
+					});
 					return column;
 				} catch (Exception e) {
+					Debug.out(e);
 				}
 
 				return null;
@@ -199,11 +237,13 @@ public class TableColumnCreatorV3
 		}
 
 	}
-	
-	private static class cInfo {
+
+	private static class cInfo
+	{
 		public Class cla;
+
 		public Class forDataSourceType;
-		
+
 		public cInfo(Class cla, Class forDataSourceType) {
 			this.cla = cla;
 			this.forDataSourceType = forDataSourceType;

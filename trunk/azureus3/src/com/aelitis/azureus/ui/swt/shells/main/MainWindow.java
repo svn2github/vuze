@@ -1337,6 +1337,10 @@ public class MainWindow
 
 		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
+		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_PARENT, SBC_ActivityView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG, SBC_ActivityTableView.class);
+		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_SMALL, SBC_ActivityTableView.class);
+		
 		//		views.put(SkinConstants.VIEWID_LIBRARY_TOOLBAR, LibraryToolbar.class);
 
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
