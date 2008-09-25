@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
@@ -93,13 +94,15 @@ public class AddFriendsPage
 
 		friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
 		Color bg = parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-		int red = bg.getRed();
-		int blue = bg.getBlue();
-		int green = bg.getGreen();
 		
-		System.out.println(bg);
+		byte[] color = new byte[3];
+		
+		color[0] = (byte) bg.getRed();
+		color[1] = (byte) bg.getGreen();
+		color[2] = (byte) bg.getBlue();
+		
 		browser = new Browser(content, SWT.NONE);
-		String url = Constants.URL_PREFIX + "/user/AddFriend.html?ts=" + Math.random() + "&bg=";
+		String url = Constants.URL_PREFIX + "/user/AddFriend.html?ts=" + Math.random() + "&bg_color=" + ByteFormatter.nicePrint(color);
 		browser.setUrl(url);
 
 		getMessageContext();
