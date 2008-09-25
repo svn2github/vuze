@@ -45,7 +45,9 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.custom.CustomizationManager;
@@ -700,12 +702,10 @@ AzureusCoreImpl
 	   
 		   global_manager.resumeDownloads();
 	   }
-	   
-       //late inits
-	   NetworkManager.getSingleton().initialize(); 
-          
+	    
 	   instance_manager.initialize();
-	   
+
+	   NetworkManager.getSingleton().initialize(); 
          
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
@@ -713,73 +713,83 @@ AzureusCoreImpl
 			AzureusCoreImpl.this.stop();
 	     }
 	   });	
-	   	   
-	   AEDiagnostics.checkDumpsAndNatives();
-	   
-	   NetworkAdmin na = NetworkAdmin.getSingleton();
-	   
-	   na.runInitialChecks();
-	   
-	   na.addPropertyChangeListener(
-			   new NetworkAdminPropertyChangeListener()
-			   {
-				   private String	last_as;
-				   
-				   public void
-				   propertyChanged(
-						   String		property )
-				   {
-					   NetworkAdmin na = NetworkAdmin.getSingleton();
+	   	  
 
-					   if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
+	   DelayedTask delayed_task = UtilitiesImpl.addDelayedTask("SWT Initialisation", new Runnable()
+	   {
+		   public void
+		   run()
+		   {
+			   AEDiagnostics.checkDumpsAndNatives();
+			   
+			   NetworkAdmin na = NetworkAdmin.getSingleton();
+			   
+			   na.runInitialChecks();
+			   
+			   na.addPropertyChangeListener(
+					   new NetworkAdminPropertyChangeListener()
+					   {
+						   private String	last_as;
+						   
+						   public void
+						   propertyChanged(
+								   String		property )
+						   {
+							   NetworkAdmin na = NetworkAdmin.getSingleton();
 
-						   boolean	found_usable = false;
-						   
-						   NetworkAdminNetworkInterface[] intf = na.getInterfaces();
-						   
-						   for (int i=0;i<intf.length;i++){
-							   
-							   NetworkAdminNetworkInterfaceAddress[] addresses = intf[i].getAddresses();
-							   
-							   for (int j=0;j<addresses.length;j++){
+							   if ( property.equals( NetworkAdmin.PR_NETWORK_INTERFACES )){
+
+								   boolean	found_usable = false;
 								   
-								   if ( !addresses[j].isLoopback()){
+								   NetworkAdminNetworkInterface[] intf = na.getInterfaces();
+								   
+								   for (int i=0;i<intf.length;i++){
 									   
-									   found_usable = true;
+									   NetworkAdminNetworkInterfaceAddress[] addresses = intf[i].getAddresses();
+									   
+									   for (int j=0;j<addresses.length;j++){
+										   
+										   if ( !addresses[j].isLoopback()){
+											   
+											   found_usable = true;
+										   }
+									   }
+								   }
+								   
+								   		// ignore event if nothing usable
+								   
+								   if ( !found_usable ){
+									   
+									   return;
+								   }
+								   
+								   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
+
+								   announceAll( false );
+								   
+							   }else if ( property.equals( NetworkAdmin.PR_AS )){
+								   
+								   String	as = na.getCurrentASN().getAS();
+								   
+								   if ( last_as == null ){
+									   
+									   last_as = as;
+									   
+								   }else if ( !as.equals( last_as )){
+									   
+									   Logger.log(	new LogEvent(LOGID, "AS has changed (new=" + as + ")" ));
+
+									   last_as = as;
+									   
+									   announceAll( false );
 								   }
 							   }
 						   }
-						   
-						   		// ignore event if nothing usable
-						   
-						   if ( !found_usable ){
-							   
-							   return;
-						   }
-						   
-						   Logger.log(	new LogEvent(LOGID, "Network interfaces have changed (new=" + na.getNetworkInterfacesAsString() + ")"));
+					   });
+		   }
+	   });
 
-						   announceAll( false );
-						   
-					   }else if ( property.equals( NetworkAdmin.PR_AS )){
-						   
-						   String	as = na.getCurrentASN().getAS();
-						   
-						   if ( last_as == null ){
-							   
-							   last_as = as;
-							   
-						   }else if ( !as.equals( last_as )){
-							   
-							   Logger.log(	new LogEvent(LOGID, "AS has changed (new=" + as + ")" ));
-
-							   last_as = as;
-							   
-							   announceAll( false );
-						   }
-					   }
-				   }
-			   });
+	   delayed_task.queue();
 	}
 	
 	public boolean
