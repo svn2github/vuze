@@ -38,10 +38,12 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
@@ -71,6 +73,8 @@ SubscriptionSchedulerImpl
 	
 	private AsyncDispatcher	result_downloader = new AsyncDispatcher();
 
+	private boolean		schedulng_permitted;
+	
 	private TimerEvent	schedule_event;
 	private boolean		schedule_in_progress;
 	private long		last_schedule;
@@ -84,7 +88,22 @@ SubscriptionSchedulerImpl
 		
 		manager.addListener( this );
 		
-		calculateSchedule();
+		DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "Subscriptions Scheduler", 
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					synchronized( SubscriptionSchedulerImpl.this ){
+						
+						schedulng_permitted	= true;
+					}
+					
+					calculateSchedule();
+				}
+			});
+		
+		delayed_task.queue();
 	}
 	
 	public void 
@@ -272,6 +291,11 @@ SubscriptionSchedulerImpl
 		Subscription[]	subs = manager.getSubscriptions();
 		
 		synchronized( this ){
+			
+			if ( !schedulng_permitted ){
+				
+				return;
+			}
 			
 			if ( schedule_in_progress ){
 				

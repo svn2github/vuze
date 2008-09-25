@@ -53,6 +53,7 @@ import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -376,8 +377,7 @@ SubscriptionManagerImpl
 			ta_subscription_info 	= default_pi.getTorrentManager().getPluginAttribute( "azsubs.subs_info" );
 	
 	
-			DelayedTask dt = 
-				default_pi.getUtilities().createDelayedTask(
+			DelayedTask delayed_task = UtilitiesImpl.addDelayedTask( "Subscriptions", 
 					new Runnable()
 					{
 						public void 
@@ -489,7 +489,7 @@ SubscriptionManagerImpl
 						}
 					});
 		
-			dt.queue();
+			delayed_task.queue();
 		}
 	}
 
