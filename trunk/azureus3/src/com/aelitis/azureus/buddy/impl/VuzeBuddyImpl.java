@@ -194,7 +194,14 @@ public class VuzeBuddyImpl
 			File file = getAvatarFile();
 			if (file.exists()) {
 				FileInputStream fis = new FileInputStream(file);
-				return FileUtil.readInputStreamAsByteArray(fis);
+				
+				try{
+					return FileUtil.readInputStreamAsByteArray(fis);
+					
+				}finally{
+					
+					fis.close();
+				}
 			}
 		} catch (Throwable t) {
 		}
