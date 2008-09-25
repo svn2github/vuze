@@ -166,6 +166,25 @@ public class TableColumnCreatorV3
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
+	public static TableColumnCore[] createActivityBig(String tableID) {
+		final String[] defaultVisibleOrder = {
+			ColumnActivityNew.COLUMN_ID,
+			ColumnActivityType.COLUMN_ID,
+			ColumnActivityAvatar.COLUMN_ID,
+			ColumnActivityText.COLUMN_ID,
+			ColumnActivityActions.COLUMN_ID,
+			ColumnActivityDate.COLUMN_ID,
+		};
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
+				tableID);
+
+		setVisibility(mapTCs, defaultVisibleOrder);
+
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
+
 	/**
 	 * 
 	 *
@@ -193,6 +212,7 @@ public class TableColumnCreatorV3
 		final Class ac = VuzeActivitiesEntry.class;
 
 		c.put(ColumnActivityNew.COLUMN_ID, new cInfo(ColumnActivityNew.class, ac));
+		c.put(ColumnActivityAvatar.COLUMN_ID, new cInfo(ColumnActivityAvatar.class, ac));
 		c.put(ColumnActivityType.COLUMN_ID, new cInfo(ColumnActivityType.class, ac));
 		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
 		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(ColumnActivityActions.class, ac));

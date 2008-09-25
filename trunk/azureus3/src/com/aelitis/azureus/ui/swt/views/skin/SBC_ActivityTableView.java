@@ -51,15 +51,29 @@ public class SBC_ActivityTableView
 
 	private Composite viewComposite;
 
+	private int viewMode = SBC_ActivityView.MODE_SMALLTABLE;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+
+
+		SWTSkinObject soParent = skinObject.getParent();
+		
+		Object data = soParent.getControl().getData(
+				"ViewMode");
+		if (data instanceof Long) {
+			viewMode  = (int) ((Long) data).longValue();
+		}
+		
+		boolean big = viewMode == SBC_ActivityView.MODE_BIGTABLE;
+		
 		tableID = skinObject.getSkinObjectID();
-		TableColumnCore[] columns = TableColumnCreatorV3.createActivitySmall(tableID);
+		TableColumnCore[] columns = big ?  TableColumnCreatorV3.createActivityBig(tableID) : TableColumnCreatorV3.createActivitySmall(tableID);
 
 		view = new TableViewSWTImpl(tableID, tableID, columns, "name", SWT.MULTI
 				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
-		view.setRowDefaultHeight(26);
+		view.setRowDefaultHeight(big ? 50 : 26);
 
 
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,

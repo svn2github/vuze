@@ -27,7 +27,9 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy;
+import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -37,44 +39,54 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  * @created Sep 25, 2008
  *
  */
-public class ColumnActivityNew
+public class ColumnActivityAvatar
 	extends CoreTableColumn
 	implements TableCellSWTPaintListener, TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "activityNew";
-
-	private static Image imgNew;
-
-	private Rectangle imgBounds;
-
+	public static final String COLUMN_ID = "activityAvatar";
 
 	/**
 	 * @param name
 	 * @param tableID
 	 */
-	public ColumnActivityNew(String tableID) {
-		super(COLUMN_ID, 22, tableID);
-		
-		initializeAsGraphic(POSITION_LAST, 22);
-		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
-		imgBounds = imgNew.getBounds();
+	public ColumnActivityAvatar(String tableID) {
+		super(COLUMN_ID, 45, tableID);
+
+		initializeAsGraphic(POSITION_LAST, 45);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		
-		if (entry.isRead()) {
-			Rectangle cellBounds = cell.getBounds();
-			gc.drawImage(imgNew, cellBounds.x
-					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
+
+		if (entry instanceof VuzeActivitiesEntryBuddy) {
+
+			VuzeActivitiesEntryBuddy entryBuddy = (VuzeActivitiesEntryBuddy) entry;
+			VuzeBuddy buddy = entryBuddy.getBuddy();
+			if (buddy instanceof VuzeBuddySWT) {
+				VuzeBuddySWT buddySWT = (VuzeBuddySWT) buddy;
+				Image imgAvatar = buddySWT.getAvatarImage();
+
+				if (imgAvatar != null) {
+					Rectangle cellBounds = cell.getBounds();
+					Rectangle imgBounds = imgAvatar.getBounds();
+					int dstWidth = 30;
+					int dstHeight = 30;
+
+					gc.drawImage(imgAvatar, 0, 0, imgBounds.width, imgBounds.height,
+							cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
+									+ ((cellBounds.height - dstWidth) / 2), dstWidth, dstHeight);
+				}
+			}
+
 		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		
-		cell.setSortValue(entry.isRead() ? 0 : 1);
+
+		cell.setSortValue((entry instanceof VuzeActivitiesEntryBuddy) ? 1 : 0);
 	}
+
 }

@@ -136,6 +136,12 @@ public class SBC_ActivityView
 		int oldViewMode = this.viewMode;
 
 		this.viewMode = viewMode;
+		
+		soListArea = getSkinObject(ID + "-area");
+
+		soListArea.getControl().setData("ViewMode",
+				new Long(viewMode));
+
 
 		if (oldViewMode >= 0 && oldViewMode < modeViewIDs.length) {
 			SWTSkinObject soOldViewArea = getSkinObject(modeViewIDs[oldViewMode]);
