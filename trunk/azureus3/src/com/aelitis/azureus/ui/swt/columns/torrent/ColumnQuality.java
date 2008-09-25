@@ -45,10 +45,9 @@ public class ColumnQuality
 	/**
 	 * 
 	 */
-	public ColumnQuality(String sTableID, boolean visible) {
+	public ColumnQuality(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(visible ? POSITION_LAST : POSITION_INVISIBLE,
-				COLUMN_WIDTH);
+		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setAlignment(ALIGN_CENTER);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
