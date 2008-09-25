@@ -185,9 +185,10 @@ public class Initializer
 				}
 
 				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
+						
 					long diff = now - startTime;
 					if (diff > 10 && diff < 1000 * 60 * 5) {
-						System.out.println("   Core: " + diff + "ms for " + sLastTask);
+						System.out.println(TimeFormatter.milliStamp() + "   Core: " + diff + "ms for activity between '" + sLastTask + "' and '" + currentTask + "'");
 					}
 					startTime = SystemTime.getCurrentTime();
 				}
