@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -93,6 +94,7 @@ ProtocolDecoderPHE
 	private static BloomFilter			generate_bloom				= BloomFilterFactory.createAddRemove4Bit(BLOOM_INCREASE);
 	private static long					generate_bloom_create_time	= SystemTime.getCurrentTime();
 	
+	private static boolean	crypto_setup_done;
 	private static boolean	crypto_ok;
 	//private static boolean	aes_ok;
 	
@@ -125,74 +127,88 @@ ProtocolDecoderPHE
     {
     	return( MIN_INCOMING_INITIAL_PACKET_SIZE + (min_overheads?PADDING_MAX_LIMITED:PADDING_MAX_NORMAL)/2 );
     }
+    	
+    private static Random	random = RandomUtils.SECURE_RANDOM;
     
-	private static final Random	random = new SecureRandom();
-	
 	private static Map	global_shared_secrets	= new LightHashMap();
 	
-	static{
-		try{
-			DHParameterSpec dh_param_spec = new DHParameterSpec( DH_P_BI, DH_G_BI, DH_L );
+	private static void
+	cryptoSetup()
+	{
+		synchronized( global_shared_secrets ){
 			
-			dh_key_generator = KeyPairGenerator.getInstance("DH");
-	        
-			dh_key_generator.initialize(dh_param_spec);
-	        
-			dh_key_generator.generateKeyPair();
-	               	
-		    byte[]	rc4_test_secret = new byte[RC4_STREAM_KEY_SIZE_BYTES];
-
-		    SecretKeySpec	rc4_test_secret_key_spec = new SecretKeySpec(rc4_test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
-		        		        
-		    TransportCipher rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, rc4_test_secret_key_spec );
-		         
-		    rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
-	        
-		    /*
-			try{
-				byte[]	aes_test_secret = new byte[AES_STREAM_KEY_SIZE_BYTES];
-	        	 
-				SecretKeySpec	aes_test_secret_key_spec = new SecretKeySpec(aes_test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
-		        	        
-				AlgorithmParameterSpec	spec = 	new IvParameterSpec( aes_test_secret );
-		        
-		        TCPTransportCipher aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, aes_test_secret_key_spec, spec );
-		        
-		        aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, aes_test_secret_key_spec, spec );
-		        
-		        aes_ok	= true;
-		        
-			}catch( Throwable e ){
+			if ( crypto_setup_done ){
 				
-				Logger.log(	new LogEvent(LOGID, "AES Unavailable", e ));
+				return;
 			}
-	        */
-		    
-	        crypto_ok	= true;
-	        
-	     	if (Logger.isEnabled()){
-	     		
-        		Logger.log(	new LogEvent(LOGID, "PHE crypto initialised" ));
-	     	}
-		}catch( NoClassDefFoundError e ){
 			
-				// running without PHE classes, not such a severe error
-      	
-			Logger.log(	new LogEvent(LOGID, "PHE crypto disabled as classes unavailable" ));
+			crypto_setup_done = true;
 			
-			crypto_ok	= false;
-			
-		}catch( Throwable e ){
-				     		
-        	Logger.log(	new LogEvent(LOGID, "PHE crypto initialisation failed", e ));
-			
-			crypto_ok	= false;
+			try{
+				DHParameterSpec dh_param_spec = new DHParameterSpec( DH_P_BI, DH_G_BI, DH_L );
+				
+				dh_key_generator = KeyPairGenerator.getInstance("DH");
+		        
+				dh_key_generator.initialize(dh_param_spec);
+		        
+				dh_key_generator.generateKeyPair();
+		               	
+			    byte[]	rc4_test_secret = new byte[RC4_STREAM_KEY_SIZE_BYTES];
+	
+			    SecretKeySpec	rc4_test_secret_key_spec = new SecretKeySpec(rc4_test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
+			        		        
+			    TransportCipher rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, rc4_test_secret_key_spec );
+			         
+			    rc4_cipher = new TransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
+		        
+			    /*
+				try{
+					byte[]	aes_test_secret = new byte[AES_STREAM_KEY_SIZE_BYTES];
+		        	 
+					SecretKeySpec	aes_test_secret_key_spec = new SecretKeySpec(aes_test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+			        	        
+					AlgorithmParameterSpec	spec = 	new IvParameterSpec( aes_test_secret );
+			        
+			        TCPTransportCipher aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, aes_test_secret_key_spec, spec );
+			        
+			        aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, aes_test_secret_key_spec, spec );
+			        
+			        aes_ok	= true;
+			        
+				}catch( Throwable e ){
+					
+					Logger.log(	new LogEvent(LOGID, "AES Unavailable", e ));
+				}
+		        */
+			    
+		        crypto_ok	= true;
+		        
+		     	if (Logger.isEnabled()){
+		     		
+	        		Logger.log(	new LogEvent(LOGID, "PHE crypto initialised" ));
+		     	}
+			}catch( NoClassDefFoundError e ){
+				
+					// running without PHE classes, not such a severe error
+	      	
+				Logger.log(	new LogEvent(LOGID, "PHE crypto disabled as classes unavailable" ));
+				
+				crypto_ok	= false;
+				
+			}catch( Throwable e ){
+					     		
+	        	Logger.log(	new LogEvent(LOGID, "PHE crypto initialisation failed", e ));
+				
+				crypto_ok	= false;
+			}
 		}
 	}
 	
 	public static boolean
 	isCryptoOK()
 	{
+		cryptoSetup();
+		
 		return( crypto_ok );
 	}
 	
@@ -1925,6 +1941,11 @@ ProtocolDecoderPHE
 	
 		throws IOException
 	{
+		if ( dh_key_generator == null ){
+			
+			throw( new IOException( "Crypto not setup" ));
+		}
+		
 		synchronized( dh_key_generator ){
 			
 			if ( !outbound ){
