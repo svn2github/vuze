@@ -218,7 +218,7 @@ public class UpdaterUtils
 	getUpdaterPluginVersion()
 	{
 		try {
-  		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(AZUPDATER_PLUGIN_ID);
+  		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(AZUPDATER_PLUGIN_ID, false );
   		if (pi != null) {
   			String version = pi.getPluginVersion();
   			if (version != null) {

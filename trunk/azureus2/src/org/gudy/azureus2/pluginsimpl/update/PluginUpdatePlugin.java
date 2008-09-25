@@ -207,7 +207,7 @@ PluginUpdatePlugin
 							
 							String	rp_id = rps[i];
 							
-							if ( plugin_manager.getPluginInterfaceByID( rp_id ) != null ){
+							if ( plugin_manager.getPluginInterfaceByID( rp_id, false ) != null ){
 								
 									// already installed
 								

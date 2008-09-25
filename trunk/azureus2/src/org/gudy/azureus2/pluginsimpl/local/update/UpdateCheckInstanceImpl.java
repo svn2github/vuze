@@ -171,6 +171,8 @@ UpdateCheckInstanceImpl
 						
 						checker.reportProgress( "Update check failed: " + Debug.getNestedExceptionMessage( e ));
 						
+						e.printStackTrace();
+						
 						checker.failed();
 					}
 				}

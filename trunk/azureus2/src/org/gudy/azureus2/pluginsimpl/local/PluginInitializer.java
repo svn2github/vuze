@@ -281,8 +281,9 @@ PluginInitializer
 	  		try{
 	  			singleton.initializePluginFromInstance( plugin, id, plugin.getClass().getName());
 	  			
-			}catch(PluginException e ){
+			}catch( Throwable e ){
 	  				
+				Debug.out( e );
 	  		}
 	  	}
 	}finally{

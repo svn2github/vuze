@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.installer;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
@@ -91,13 +92,15 @@ InstallablePluginImpl
 	
 	public void
 	install(
-		boolean		shared,
-		boolean		low_noise,
-		boolean		wait_until_done )
+		boolean				shared,
+		boolean				low_noise,
+		final boolean		wait_until_done )
 	
 		throws PluginException
 	{
 		final AESemaphore sem = new AESemaphore( "FPI" );
+		
+		final PluginException[]	error = { null };
 		
 		installer.install( 
 			new InstallablePlugin[]{ this }, 
@@ -110,11 +113,30 @@ InstallablePluginImpl
 				{
 					sem.release();
 				}
+				
+				public void 
+				failed(
+					PluginException e ) 
+				{
+					error[0] = e;
+					
+					sem.release();
+					
+					if ( !wait_until_done ){
+						
+						Debug.out( "Install failed", e );
+					}
+				}
 			});
 		
 		if ( wait_until_done ){
 			
 			sem.reserve();
+			
+			if ( error[0] != null ){
+				
+				throw( error[0] );
+			}
 		}
 	}	
 	

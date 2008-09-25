@@ -208,6 +208,15 @@ PluginInstallerImpl
 															{
 																done_sem.release();
 															}
+															
+															public void 
+															failed(
+																PluginException e ) 
+															{
+																done_sem.release();
+																
+																Debug.out( "Installation failed", e );
+															}
 														});
 													
 												}catch( Throwable e ){
@@ -384,7 +393,7 @@ PluginInstallerImpl
 					cancelled(
 						UpdateCheckInstance		instance )
 					{
-						listener.done();
+						listener.failed( new PluginException( "Installation cancelled" ));
 					}
 					
 					public void
@@ -393,39 +402,57 @@ PluginInstallerImpl
 					{
 						final Update[] updates = instance.getUpdates();
 						
-						for (int i=0;i<updates.length;i++){
+						if ( updates.length == 0 ){
+														
+							listener.failed( new PluginException( "No updates were added during check process" ));
 							
-							updates[i].addListener(
-								new UpdateListener()
-								{
-									public void 
-									cancelled(
-										Update update) 
+						}else{
+							
+							for (int i=0;i<updates.length;i++){
+								
+								updates[i].addListener(
+									new UpdateListener()
 									{
-										check();
-									}
-									
-									public void 
-									complete(
-										Update update ) 
-									{
-										check();
-									}
-									
-									protected void
-									check()
-									{
-										for (int i=0;i<updates.length;i++){
+										private boolean	cancelled;
+										
+										public void 
+										cancelled(
+											Update update) 
+										{
+											cancelled = true;
 											
-											if ( !updates[i].isCancelled() && !updates[i].isComplete()){
-												
-												return;
-											}
+											check();
 										}
 										
-										listener.done();
-									}
-								});
+										public void 
+										complete(
+											Update update ) 
+										{
+											check();
+										}
+										
+										protected void
+										check()
+										{
+											for (int i=0;i<updates.length;i++){
+												
+												if ( !updates[i].isCancelled() && !updates[i].isComplete()){
+													
+													return;
+												}
+											}
+											
+											if ( cancelled ){
+												
+												listener.failed( new PluginException( "Installation cancelled" ));
+												
+											}else{
+												
+												listener.done();
+											}
+										}
+									});
+							}
 						}
 					}
 				});
@@ -439,7 +466,7 @@ PluginInstallerImpl
 				
 				final String	plugin_id = plugin.getId();
 				
-				PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+				PluginInterface	existing_plugin_interface = manager.getPluginInterfaceByID( plugin_id, false );
 				
 				Plugin			existing_plugin	= null;
 				
@@ -493,7 +520,7 @@ PluginInstallerImpl
 					
 					PluginManager.registerPlugin( dummy_plugin, plugin_id );
 				
-					final PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id );
+					final PluginInterface dummy_plugin_interface = manager.getPluginInterfaceByID( plugin_id, false );
 					
 					((InstallablePluginImpl)plugin).addUpdate( inst, pup, dummy_plugin, dummy_plugin_interface );
 							
@@ -518,7 +545,7 @@ PluginInstallerImpl
 							complete(
 								UpdateCheckInstance		instance )
 							{
-								PluginInterface pi = manager.getPluginInterfaceByID( plugin_id );
+								PluginInterface pi = manager.getPluginInterfaceByID( plugin_id, false );
 								
 								if ( pi != null && pi.getPlugin() instanceof FailedPlugin ){
 									
@@ -746,7 +773,7 @@ PluginInstallerImpl
 	getAlreadyInstalledPlugin(
 		String	id )
 	{
-		return( getPluginManager().getPluginInterfaceByID(id));
+		return( getPluginManager().getPluginInterfaceByID(id, false ));
 	}
 	
 	
@@ -787,5 +814,9 @@ PluginInstallerImpl
 	{
 		public void
 		done();
+		
+		public void
+		failed(
+			PluginException	e );
 	}
 }
