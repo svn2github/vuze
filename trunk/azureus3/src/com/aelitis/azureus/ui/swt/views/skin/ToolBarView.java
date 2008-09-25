@@ -63,9 +63,9 @@ public class ToolBarView
 	private GlobalManager gm;
 
 	//ToolBarItem lastItem = null;
-	
+
 	Control lastControl = null;
-	
+
 	private boolean showText = true;
 
 	private SWTSkinObject skinObject;
@@ -73,27 +73,34 @@ public class ToolBarView
 	private SWTSkinObject so2nd;
 
 	private SWTSkinObject soGap;
-	
+
 	private boolean initComplete = false;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
+			Object params) {
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
 		gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
-		
+
 		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
 		if (soGap != null) {
-			soGap.getControl().getParent().addListener(SWT.Resize, new Listener() {
-				public void handleEvent(Event event) {
-					resizeGap();
-				}
-			});
+			Control cGap = soGap.getControl();
+			FormData fd = (FormData) cGap.getLayoutData();
+			if (fd.width == SWT.DEFAULT) {
+				cGap.getParent().addListener(SWT.Resize, new Listener() {
+					public void handleEvent(Event event) {
+						resizeGap();
+					}
+				});
+			} else {
+				soGap = null;
+			}
 		}
 
 		ToolBarItem item;
-		
+
 		// ==download
 		item = new ToolBarItem("download", "image.button.download",
 				"v3.MainWindow.button.download") {
@@ -108,7 +115,6 @@ public class ToolBarView
 					}
 				}
 
-				
 				// This is for our CDP pages
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 				if (sc != null && sc.length == 1
@@ -131,19 +137,19 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item);
-		
+
 		addSeperator("toolbar.area.item.sep", soMain);
 
 		lastControl = null;
-		
+
 		// ==OPEN
-//		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
-//			public void triggerToolBarItem() {
-//				TorrentOpener.openTorrentWindow();
-//			}
-//		};
-//		addToolBarItem(item);
-		
+		//		item = new ToolBarItem("open", "image.toolbar.open", "iconBar.open") {
+		//			public void triggerToolBarItem() {
+		//				TorrentOpener.openTorrentWindow();
+		//			}
+		//		};
+		//		addToolBarItem(item);
+
 		addNonToolBar("toolbar.area.sitem.left", so2nd);
 
 		// ==details
@@ -172,14 +178,13 @@ public class ToolBarView
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
-		
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
 				DownloadManager[] dms = getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.runTorrents(dms);
-					
+
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = dms[i];
 						PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), true);
@@ -190,7 +195,6 @@ public class ToolBarView
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
-		
 		// ==UP
 		item = new ToolBarItem("up", "image.toolbar.up", "iconBar.up") {
 			public void triggerToolBarItem() {
@@ -210,7 +214,7 @@ public class ToolBarView
 					}
 				}
 			}
-			
+
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
 				DownloadManager[] dms = getDMSFromSelectedContent();
@@ -222,7 +226,6 @@ public class ToolBarView
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
-
 
 		// ==down
 		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
@@ -243,7 +246,7 @@ public class ToolBarView
 					}
 				}
 			}
-			
+
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
 				DownloadManager[] dms = getDMSFromSelectedContent();
@@ -255,7 +258,6 @@ public class ToolBarView
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
-
 
 		// ==start
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
@@ -269,7 +271,6 @@ public class ToolBarView
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
-
 		// ==stop
 		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
 			public void triggerToolBarItem() {
@@ -282,7 +283,6 @@ public class ToolBarView
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
 		addSeperator(so2nd);
 
-
 		// ==remove
 		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
 			public void triggerToolBarItem() {
@@ -294,10 +294,10 @@ public class ToolBarView
 						view.removeSelected();
 					}
 				} else {
-  				DownloadManager[] dms = getDMSFromSelectedContent();
-  				if (dms != null) {
-  					TorrentUtil.removeTorrents(dms, null);
-  				}
+					DownloadManager[] dms = getDMSFromSelectedContent();
+					if (dms != null) {
+						TorrentUtil.removeTorrents(dms, null);
+					}
 				}
 			}
 		};
@@ -307,23 +307,23 @@ public class ToolBarView
 
 		resizeGap();
 
-//		// ==comment
-//		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
-//			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-//			public void triggerToolBarItem() {
-//				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-//				if (sc.length > 0 && sc[0].getHash() != null) {
-//					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
-//							+ sc[0].getHash() + ".html?" + Constants.URL_SUFFIX + "&rnd="
-//							+ Math.random();
-//
-//					UIFunctions functions = UIFunctionsManager.getUIFunctions();
-//					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-//							false, false);
-//				}
-//			}
-//		};
-//		addToolBarItem(item);
+		//		// ==comment
+		//		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
+		//			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
+		//			public void triggerToolBarItem() {
+		//				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+		//				if (sc.length > 0 && sc[0].getHash() != null) {
+		//					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
+		//							+ sc[0].getHash() + ".html?" + Constants.URL_SUFFIX + "&rnd="
+		//							+ Math.random();
+		//
+		//					UIFunctions functions = UIFunctionsManager.getUIFunctions();
+		//					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
+		//							false, false);
+		//				}
+		//			}
+		//		};
+		//		addToolBarItem(item);
 
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			public void currentlySelectedContentChanged(
@@ -331,7 +331,7 @@ public class ToolBarView
 				updateCoreItems(currentContent, viewID);
 			}
 		});
-		
+
 		initComplete = true;
 
 		return null;
@@ -343,13 +343,18 @@ public class ToolBarView
 	 * @since 3.1.1.1
 	 */
 	protected void resizeGap() {
+		if (soGap == null) {
+			skinObject.getControl().getParent().layout();
+			return;
+		}
 		Rectangle boundsLeft = skinObject.getControl().getBounds();
 		Rectangle boundsRight = so2nd.getControl().getBounds();
-		
+
 		Rectangle clientArea = soGap.getControl().getParent().getClientArea();
-		
+
 		FormData fd = (FormData) soGap.getControl().getLayoutData();
-		fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width) - (boundsRight.width);
+		fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width)
+				- (boundsRight.width);
 		if (fd.width < 0) {
 			fd.width = 0;
 		} else if (fd.width > 50) {
@@ -365,7 +370,8 @@ public class ToolBarView
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected void updateCoreItems(ISelectedContent[] currentContent, String viewID) {
+	protected void updateCoreItems(ISelectedContent[] currentContent,
+			String viewID) {
 		String[] itemsNeedingSelection = {};
 
 		String[] itemsNeedingDMSelection = {
@@ -383,9 +389,8 @@ public class ToolBarView
 			"comment",
 		};
 
-		String[] itemsRequiring1DMSelection = {
-		};
-		
+		String[] itemsRequiring1DMSelection = {};
+
 		boolean isActivityView = "Activity".equals(viewID);
 
 		int numSelection = currentContent.length;
@@ -400,10 +405,10 @@ public class ToolBarView
 				item.setEnabled(hasSelection);
 			}
 		}
-		
+
 		DownloadManager[] dms = getDMSFromSelectedContent();
 		boolean isDMSelection = dms != null && dms.length > 0;
-		
+
 		for (int i = 0; i < itemsNeedingDMSelection.length; i++) {
 			String itemID = itemsNeedingDMSelection[i];
 			item = getToolBarItem(itemID);
@@ -445,16 +450,16 @@ public class ToolBarView
 				item.setEnabled(true);
 			}
 		} else if (currentContent.length > 0) {
-  		for (int i = 0; i < currentContent.length; i++) {
-  			ISelectedContent content = currentContent[i];
-  			DownloadManager dm = content.getDM();
-  			if (!canStart && ManagerUtils.isStartable(dm)) {
-  				canStart = true;
-  			}
-  			if (!canStop && ManagerUtils.isStopable(dm)) {
-  				canStop = true;
-  			}
-  		}
+			for (int i = 0; i < currentContent.length; i++) {
+				ISelectedContent content = currentContent[i];
+				DownloadManager dm = content.getDM();
+				if (!canStart && ManagerUtils.isStartable(dm)) {
+					canStart = true;
+				}
+				if (!canStop && ManagerUtils.isStopable(dm)) {
+					canStop = true;
+				}
+			}
 		}
 		item = getToolBarItem("start");
 		if (item != null) {
@@ -466,8 +471,7 @@ public class ToolBarView
 		}
 		item = getToolBarItem("play");
 		if (item != null) {
-			item.setEnabled(has1Selection
-					&& PlayUtils.canPlayDS(currentContent[0]));
+			item.setEnabled(has1Selection && PlayUtils.canPlayDS(currentContent[0]));
 		}
 		item = getToolBarItem("download");
 		if (item != null) {
@@ -528,11 +532,11 @@ public class ToolBarView
 	public ToolBarItem getToolBarItem(String itemID) {
 		return (ToolBarItem) items.get(itemID);
 	}
-	
+
 	public ToolBarItem[] getAllToolBarItems() {
 		return (ToolBarItem[]) items.values().toArray(new ToolBarItem[0]);
 	}
-	
+
 	public void refreshCoreToolBarItems() {
 		updateCoreItems(SelectedContentManager.getCurrentlySelectedContent(),
 				SelectedContentManager.getCurrentySelectedViewID());
@@ -578,27 +582,29 @@ public class ToolBarView
 	}
 
 	private void addSeperator(String id, SWTSkinObject soMain) {
-		SWTSkinObject so = skin.createSkinObject("toolbar_sep" + Math.random(),
-				id, soMain);
+		SWTSkinObject so = skin.createSkinObject("toolbar_sep" + Math.random(), id,
+				soMain);
 		if (so != null) {
 			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
-				fd.left = new FormAttachment(lastControl, fd.left == null ? 0 : fd.left.offset);
+				fd.left = new FormAttachment(lastControl, fd.left == null ? 0
+						: fd.left.offset);
 			}
-			
+
 			lastControl = so.getControl();
 		}
 	}
-	
+
 	private void addNonToolBar(String skinid, SWTSkinObject soMain) {
 		SWTSkinObject so = skin.createSkinObject("toolbar_d" + Math.random(),
 				skinid, soMain);
 		if (so != null) {
 			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
-				fd.left = new FormAttachment(lastControl, fd.left == null ? 0 : fd.left.offset);
+				fd.left = new FormAttachment(lastControl, fd.left == null ? 0
+						: fd.left.offset);
 			}
-			
+
 			lastControl = so.getControl();
 		}
 	}
@@ -627,15 +633,16 @@ public class ToolBarView
 	private static class toolbarButtonListener
 		extends ButtonListenerAdapter
 	{
-		public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+		public void pressed(SWTSkinButtonUtility buttonUtility,
+				SWTSkinObject skinObject) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
 			item.triggerToolBarItem();
 		}
-		
+
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
-			"toolbaritem");
+					"toolbaritem");
 			return item.triggerToolBarItemHold();
 		}
 
