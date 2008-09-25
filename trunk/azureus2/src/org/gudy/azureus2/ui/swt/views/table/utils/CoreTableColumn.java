@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import org.eclipse.swt.SWT;
 
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
@@ -120,7 +122,16 @@ public class CoreTableColumn
     setRefreshInterval(INTERVAL_GRAPHIC);
     setAlignment(TableColumn.ALIGN_CENTER);
   }
-
+  
+  // @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#addListeners(java.lang.Object)
+  public void addListeners(Object listenerObject) {
+  	if (listenerObject instanceof TableCellSWTPaintListener) {
+  		super.addCellOtherListener("SWTPaint", listenerObject);
+  	}
+  	
+  	super.addListeners(listenerObject);
+  }
+  
   /** 
    * Convert the getAlignment() constant to a SWT constant
 	 *

@@ -101,6 +101,7 @@ public class TableCellImpl
 	private ArrayList cellMouseMoveListeners;
 	private ArrayList cellVisibilityListeners;
 	private ArrayList cellSWTPaintListeners;
+	private boolean hasColumnSWTPaintListeners;
   private TableColumnCore tableColumn;
   private byte refreshErrLoopCount;
   private byte tooltipErrLoopCount;
@@ -146,6 +147,7 @@ public class TableCellImpl
     refreshErrLoopCount = 0;
     tooltipErrLoopCount = 0;
     loopFactor = 0;
+    hasColumnSWTPaintListeners = (_tableColumn instanceof TableCellSWTPaintListener);
 
     if (item != null) {
     	bufferedTableItem = item;
@@ -889,8 +891,26 @@ public class TableCellImpl
 	}
 
 	public void invokeSWTPaintListeners(GC gc) {
-		if (cellSWTPaintListeners == null)
+  	if (tableColumn != null) {
+			Object[] swtPaintListeners = tableColumn.getCellOtherListeners("SWTPaint");
+			if (swtPaintListeners != null) { 
+  			for (int i = 0; i < swtPaintListeners.length; i++) {
+  				try {
+  					TableCellSWTPaintListener l = (TableCellSWTPaintListener) swtPaintListeners[i];
+  
+  					l.cellPaint(gc, this);
+  
+  				} catch (Throwable e) {
+  					Debug.printStackTrace(e);
+  				}
+  			}
+			}
+		}
+
+		if (cellSWTPaintListeners == null) {
 			return;
+		}
+		
 
 		for (int i = 0; i < cellSWTPaintListeners.size(); i++) {
 			try {
@@ -1213,7 +1233,7 @@ public class TableCellImpl
   }
 
   public boolean needsPainting() {
-  	if (cellSWTPaintListeners != null) {
+  	if (cellSWTPaintListeners != null || hasColumnSWTPaintListeners) {
   		return true;
   	}
   	if (bufferedTableItem == null) {

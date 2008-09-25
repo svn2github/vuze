@@ -92,6 +92,8 @@ public class TableColumnImpl
 
 	private ArrayList cellVisibilityListeners;
 
+	private Map mapOtherCellListeners;
+	
 	private int iConsecutiveErrCount;
 
 	private ArrayList menuItems;
@@ -363,6 +365,40 @@ public class TableColumnImpl
 
 			this_mon.exit();
 		}
+	}
+
+	public void addCellOtherListener(String listenerID, Object listener) {
+		try {
+			this_mon.enter();
+			
+			if (mapOtherCellListeners == null) {
+				mapOtherCellListeners = new HashMap(1);
+			}
+
+			List list = (List) mapOtherCellListeners.get(listenerID);
+			if (list == null) {
+				list = new ArrayList(1);
+				mapOtherCellListeners.put(listenerID, list);
+			}
+
+			list.add(listener);
+
+		} finally {
+
+			this_mon.exit();
+		}
+	}
+	
+	public Object[] getCellOtherListeners(String listenerID) {
+		if (mapOtherCellListeners == null) {
+			return null;
+		}
+
+		List list = (List) mapOtherCellListeners.get(listenerID);
+		if (list == null) {
+			return null;
+		}
+		return list.toArray();
 	}
 
 	public List getCellAddedListeners() {

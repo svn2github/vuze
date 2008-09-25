@@ -317,4 +317,20 @@ public interface TableColumnCore
 	 * @return should be false if the currently entered value is invalid
 	 */
 	boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit);
+
+	/**
+	 * @param listenerID
+	 * @param listener
+	 *
+	 * @since 3.1.1.1
+	 */
+	void addCellOtherListener(String listenerID, Object listener);
+
+	/**
+	 * @param listenerID
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	Object[] getCellOtherListeners(String listenerID);
 }

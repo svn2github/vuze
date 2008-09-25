@@ -626,6 +626,8 @@ public class TableViewSWTImpl
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		panel.setLayout(layout);
+		
+		panel.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		return panel;
 	}
@@ -1370,7 +1372,9 @@ public class TableViewSWTImpl
 			
 			String text = cell.getText();
 
-			if (text.length() > 0) {
+			if (cell.needsPainting()) {
+				cell.doPaint(event.gc);
+			} else if (text.length() > 0) {
 				Image image = item.getImage(event.index);
 				if (image != null) {
 					int ofs = image.getBounds().width;
@@ -1383,9 +1387,6 @@ public class TableViewSWTImpl
   					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
 			}
 
-			if (cell.needsPainting()) {
-				cell.doPaint(event.gc);
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -20,8 +20,6 @@ package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.graphics.GC;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-
 /**
  * @author TuxPaper
  * @created Sep 19, 2008
@@ -29,5 +27,5 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
  */
 public interface TableCellSWTPaintListener
 {
-	public void cellPaint(GC gc, TableCell cell);
+	public void cellPaint(GC gc, TableCellSWT cell);
 }
