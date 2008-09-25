@@ -298,7 +298,7 @@ public class ColumnVuzeActivity
 
 		int avatarPos = x + 10;
 		if (imgAvatar != null && !imgAvatar.isDisposed()) {
-			x += AVATAR_HEIGHT + AVATAR_PADDING + 10;
+			x += AVATAR_HEIGHT + AVATAR_PADDING + 12;
 		}
 
 		int style = SWT.WRAP;
@@ -355,7 +355,7 @@ public class ColumnVuzeActivity
 
 			int minHeight = imgAvatar == null || imgAvatar.isDisposed() ? 50
 					: AVATAR_HEIGHT + MARGIN_HEIGHT * 2;
-			if (height < minHeight) {
+			if (!isHeader && height < minHeight) {
 				height = minHeight;
 			}
 
@@ -389,7 +389,7 @@ public class ColumnVuzeActivity
 			if (canShowThumb) {
 				if (isRatingReminder) {
 					Rectangle ratingRect = getDMRatingRect(width, height);
-					int x1 = ratingRect.x + ratingRect.width + 2;
+					int x1 = ratingRect.x + ratingRect.width + 5;
 					drawRect = new Rectangle(x1, y, (width / 2) - x1 - 4, height - y + MARGIN_HEIGHT);
 				} else {
 					drawRect = new Rectangle(x, y, (width / 2) - x - 4, height - y + MARGIN_HEIGHT);
@@ -896,13 +896,13 @@ public class ColumnVuzeActivity
 	private Rectangle getDMImageRect(int cellWidth, int cellHeight) {
 		//return new Rectangle(0, cellHeight - 50 - MARGIN_HEIGHT, 16, 50);
 		//return new Rectangle(EVENT_INDENT, cellHeight - 50 - MARGIN_HEIGHT, 88, 50);
-		return new Rectangle(cellWidth / 2, MARGIN_HEIGHT, 105, 80);
+		return new Rectangle(cellWidth / 2 + 10, MARGIN_HEIGHT, 105, 80);
 	}
 
 	private Rectangle getDMRatingRect(int cellWidth, int cellHeight) {
 		//return new Rectangle(cellWidth - 80 - 10, cellHeight - 42 - MARGIN_HEIGHT,
 		//		80, 38);
-		return new Rectangle(EVENT_INDENT, MARGIN_HEIGHT, 50, 32);
+		return new Rectangle(EVENT_INDENT, 4, 50, 32);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellVisibilityListener#cellVisibilityChanged(org.gudy.azureus2.plugins.ui.tables.TableCell, int)
