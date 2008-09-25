@@ -125,19 +125,23 @@ public class SBC_LibraryTableView
 					}
 				};
 			} else {
-				view = new MyTorrentsSuperView();
-				MyTorrentsView seedingview = ((MyTorrentsSuperView) view).getSeedingview();
-				if (seedingview != null) {
-					seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
-  					public void defaultSelected(TableRowCore[] rows) {
-  						if (rows == null || rows.length > 1) {
-  							return;
-  						}
-  						Object ds = rows[0].getDataSource(true);
-  						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
-  					}
-  				});
-				}
+				view = new MyTorrentsSuperView() {
+					public void initialize(Composite parent) {
+						super.initialize(parent);
+						MyTorrentsView seedingview = getSeedingview();
+						if (seedingview != null) {
+							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
+		  					public void defaultSelected(TableRowCore[] rows) {
+		  						if (rows == null || rows.length > 1) {
+		  							return;
+		  						}
+		  						Object ds = rows[0].getDataSource(true);
+		  						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+		  					}
+		  				});
+						}
+					}
+				};
 			}
 		}
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
