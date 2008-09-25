@@ -58,7 +58,10 @@ AEThread
 	public void
 	run()
 	{
-		// System.out.println( TimeFormatter.milliStamp() + ": AEThread:start: " + this );
+		if ( AEThread2.TRACE_TIMES ){
+			
+			System.out.println( TimeFormatter.milliStamp() + ": AEThread:start: " + this );
+		}
 		
 		try{
 			/*

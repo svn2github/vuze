@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.util.Java15Utils;
 public abstract class 
 AEThread2 
 {
-	private static final boolean TRACE_TIMES = false;
+	public static final boolean TRACE_TIMES = false;
 	
 	private static final int MIN_RETAINED	= 2;
 	private static final int MAX_RETAINED	= 16;

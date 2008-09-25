@@ -75,6 +75,7 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -879,6 +880,8 @@ UtilitiesImpl
 										task = (DelayedTaskImpl)delayed_tasks.remove(0);
 									}
 									
+									System.out.println( TimeFormatter.milliStamp() + ": Running delayed task: " + task.getName());
+									
 									task.run();
 								}
 							}
@@ -1000,7 +1003,7 @@ UtilitiesImpl
 		protected String
 		getName()
 		{
-			return( name );
+			return( name + " (" + target.getClass() + ")" );
 		}
 
 	}
