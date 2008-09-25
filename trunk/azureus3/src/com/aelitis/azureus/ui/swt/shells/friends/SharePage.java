@@ -430,7 +430,11 @@ public class SharePage
 		return MessageText.getString("v3.Share.wizard.title");
 	}
 
+	private boolean alreadyShown = false;
 	public void performAboutToBeShown() {
+		if(alreadyShown) return;
+		alreadyShown = true;
+		
 		super.performAboutToBeShown();
 		friendsToolbar.enableShareButton(true);
 
