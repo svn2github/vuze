@@ -562,7 +562,7 @@ public class ConfigurationDefaults {
     
     	// subscriptions
     
-    def.put( "subscriptions.max.non.deleted.results", new Long( 256 ));
+    def.put( "subscriptions.max.non.deleted.results", new Long( 512 ));
 }
   
   protected 
