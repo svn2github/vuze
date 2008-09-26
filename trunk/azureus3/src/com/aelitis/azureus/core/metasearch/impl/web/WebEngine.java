@@ -43,7 +43,6 @@ import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
-import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
@@ -804,6 +803,14 @@ WebEngine
 
 	public String getCookies() {
 		return local_cookies;
+	}
+	
+	public String
+	getString()
+	{
+		return( 	super.getString() + 
+					", auth=" + isNeedsAuth() +
+					(isNeedsAuth()?" [cookies=" + local_cookies + "]":"" ));
 	}
 	
 	public static class

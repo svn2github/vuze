@@ -53,6 +53,9 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
 
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+
 public class 
 SubscriptionSchedulerImpl 
 	implements SubscriptionScheduler, SubscriptionManagerListener
@@ -241,15 +244,22 @@ SubscriptionSchedulerImpl
 										
 							UrlUtils.setBrowserHeaders( url_rd, subs.getReferer());
 							
-							/*if(cookieParameters!= null && cookieParameters.length > 0) {
-								String 	cookieString = "";
-								String separator = "";
-								for(CookieParameter parameter : cookieParameters) {
-									cookieString += separator + parameter.getName() + "=" + parameter.getValue();
-									separator = "; ";
-								}				
-								url_rd.setProperty( "URL_Cookie", cookieString );
-							}*/
+							Engine engine = subs.getEngine();
+							
+							if ( engine instanceof WebEngine ){
+								
+								WebEngine we = (WebEngine)engine;
+								
+								if ( we.isNeedsAuth()){
+									
+									String cookies = we.getCookies();
+									
+									if ( cookies != null && cookies.length() > 0 ){
+										
+										url_rd.setProperty( "URL_Cookie", cookies );
+									}
+								}
+							}
 							
 							ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
 

@@ -304,6 +304,9 @@ RegexEngine
 								debugLog( "Found match:" );
 								
 								WebResult result = new WebResult(RegexEngine.this,getRootPage(),getBasePage(),getDateParser(),searchQuery);
+								
+								int	fields_matched = 0;
+								
 								for(int i = 0 ; i < mappings.length ; i++) {
 									int group = -1;
 									try {
@@ -311,66 +314,75 @@ RegexEngine
 									} catch(Exception e) {
 										//In "Debug/Test" mode, we should fire an exception / notification
 									}
-									if(group > 0 && group <= m.groupCount()) {
+									
+									if (group > 0 && group <= m.groupCount()) {
 										
 										int field = mappings[i].getField();
 										String groupContent = m.group(group);
 										
 										debugLog( "    " + field + "=" + groupContent );
 										
+										fields_matched++;
+										
 										switch(field) {
-										case FIELD_NAME :
-											result.setNameFromHTML(groupContent);
-											break;
-										case FIELD_SIZE :
-											result.setSizeFromHTML(groupContent);
-											break;
-										case FIELD_PEERS :
-											result.setNbPeersFromHTML(groupContent);
-											break;
-										case FIELD_SEEDS :
-											result.setNbSeedsFromHTML(groupContent);
-											break;
-										case FIELD_CATEGORY :
-											result.setCategoryFromHTML(groupContent);
-											break;
-										case FIELD_DATE :
-											result.setPublishedDateFromHTML(groupContent);
-											break;
-										case FIELD_CDPLINK :
-											result.setCDPLink(groupContent);
-											break;
-										case FIELD_TORRENTLINK :
-											result.setTorrentLink(groupContent);
-											break;
-										case FIELD_PLAYLINK :
-											result.setPlayLink(groupContent);
-											break;
-										case FIELD_DOWNLOADBTNLINK :
-											result.setDownloadButtonLink(groupContent);
-											break;
-										case FIELD_COMMENTS :
-											result.setCommentsFromHTML(groupContent);
-											break;
-										case FIELD_VOTES :
-											result.setVotesFromHTML(groupContent);
-											break;
-										case FIELD_SUPERSEEDS :
-											result.setNbSuperSeedsFromHTML(groupContent);
-											break;
-										case FIELD_PRIVATE :
-											result.setPrivateFromHTML(groupContent);
-											break;
-										case FIELD_DRMKEY :
-											result.setDrmKey(groupContent);
-											break;
-										default:
-											break;
+											case FIELD_NAME :
+												result.setNameFromHTML(groupContent);
+												break;
+											case FIELD_SIZE :
+												result.setSizeFromHTML(groupContent);
+												break;
+											case FIELD_PEERS :
+												result.setNbPeersFromHTML(groupContent);
+												break;
+											case FIELD_SEEDS :
+												result.setNbSeedsFromHTML(groupContent);
+												break;
+											case FIELD_CATEGORY :
+												result.setCategoryFromHTML(groupContent);
+												break;
+											case FIELD_DATE :
+												result.setPublishedDateFromHTML(groupContent);
+												break;
+											case FIELD_CDPLINK :
+												result.setCDPLink(groupContent);
+												break;
+											case FIELD_TORRENTLINK :
+												result.setTorrentLink(groupContent);
+												break;
+											case FIELD_PLAYLINK :
+												result.setPlayLink(groupContent);
+												break;
+											case FIELD_DOWNLOADBTNLINK :
+												result.setDownloadButtonLink(groupContent);
+												break;
+											case FIELD_COMMENTS :
+												result.setCommentsFromHTML(groupContent);
+												break;
+											case FIELD_VOTES :
+												result.setVotesFromHTML(groupContent);
+												break;
+											case FIELD_SUPERSEEDS :
+												result.setNbSuperSeedsFromHTML(groupContent);
+												break;
+											case FIELD_PRIVATE :
+												result.setPrivateFromHTML(groupContent);
+												break;
+											case FIELD_DRMKEY :
+												result.setDrmKey(groupContent);
+												break;
+											default:
+												fields_matched--;
+												break;
 										}
 									}
 								}
 								
-								results.add(result);
+									// ignore "matches" that don't actually populate any fields 
+								
+								if ( fields_matched > 0 ){
+								
+									results.add(result);
+								}
 							}
 								
 								// hack - if no results and redirected to https and auth required then

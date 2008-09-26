@@ -86,6 +86,8 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
@@ -127,6 +129,7 @@ SubscriptionManagerUI
 	
 	private MenuItemListener markAllResultsListener;
 	private MenuItemListener deleteAllResultsListener;
+	private MenuItemListener resetAuthListener;
 	private MenuItemListener resetResultsListener;
 	private MenuItemListener exportListener;
 	private MenuItemListener removeListener;
@@ -578,6 +581,26 @@ SubscriptionManagerUI
 			}
 		};
 		
+		
+		resetAuthListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					try{
+						Engine engine = subs.getEngine();
+						
+						if ( engine instanceof WebEngine ){
+							
+							((WebEngine)engine).setCookies( null );
+						}
+					}catch( Throwable e ){
+						Debug.printStackTrace(e);
+					}
+					refreshView( subs );
+				}
+			}
+		};
 		resetResultsListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
@@ -809,6 +832,22 @@ SubscriptionManagerUI
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.reset");
 								menuItem.addListener(resetResultsListener);
 
+								try{
+									Engine e = subs.getEngine();
+									
+									if ( e instanceof WebEngine ){
+										
+										if (((WebEngine)e).isNeedsAuth()){
+											
+											menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.resetauth");
+											menuItem.addListener(resetAuthListener);
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
 								menuItem.addListener(exportListener);
 								
@@ -1268,6 +1307,20 @@ SubscriptionManagerUI
 		protected void
 		updateInfo()
 		{
+			String	engine_str = "";
+			
+			try{
+				Engine engine = subs.getEngine();
+				
+				engine_str = engine.getString();
+				
+			}catch( Throwable e ){
+				
+				engine_str = Debug.getNestedExceptionMessage(e);
+				
+				Debug.out(e);
+			}
+			
 			info_lab.setText( 
 					"ID=" + subs.getID() +
 					", version=" + subs.getVersion() +
@@ -1275,7 +1328,8 @@ SubscriptionManagerUI
 					", public=" + subs.isPublic() +
 					", mine=" + subs.isMine() +
 					", popularity=" + subs.getCachedPopularity() +
-					", associations=" + subs.getAssociationCount());
+					", associations=" + subs.getAssociationCount() +
+					", engine=" + engine_str );
 			
 			SubscriptionHistory history = subs.getHistory();
 			

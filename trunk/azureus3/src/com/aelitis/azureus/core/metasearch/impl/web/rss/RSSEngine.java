@@ -134,6 +134,7 @@ RSSEngine
 			case FIELD_COMMENTS:
 			case FIELD_CDPLINK:
 			case FIELD_TORRENTLINK:
+			case FIELD_DOWNLOADBTNLINK:
 			{
 				return( true );
 			}
