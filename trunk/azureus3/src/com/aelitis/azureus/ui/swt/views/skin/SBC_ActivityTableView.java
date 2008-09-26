@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -139,6 +140,7 @@ public class SBC_ActivityTableView
 		view.addSelectionListener(new TableSelectionAdapter() {
 			// @see com.aelitis.azureus.ui.common.table.TableSelectionAdapter#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 			public void selected(TableRowCore[] rows) {
+				selectionChanged();
 				for (int i = 0; i < rows.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) rows[i].getDataSource(true);
 					entry.setRead(true);
@@ -151,6 +153,24 @@ public class SBC_ActivityTableView
 							null);
 				}
 			}
+
+			public void deselected(TableRowCore[] rows) {
+				selectionChanged();
+			}
+
+			
+			public void selectionChanged() {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						ISelectedContent[] contents = getCurrentlySelectedContent();
+						if (soMain.isVisible()) {
+							SelectedContentManager.changeCurrentlySelectedContent(tableID,
+									contents);
+						}
+					}
+				});
+			}
+
 		}, false);
 
 
