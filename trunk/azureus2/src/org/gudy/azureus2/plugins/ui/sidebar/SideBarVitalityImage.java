@@ -27,6 +27,8 @@ public interface SideBarVitalityImage
 {
 	public String getImageID();
 
+	public void setImageID(String id );
+	
 	public SideBarEntry getSideBarEntry();
 	
 	public void addListener(SideBarVitalityImageListener l);
