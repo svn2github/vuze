@@ -205,7 +205,7 @@ public class ColumnActivityActions
 			StringBuffer sb = new StringBuffer();
 			if (canDL) {
 				if (sb.length() > 0) {
-					sb.append(", ");
+					sb.append(" | ");
 				}
 				sb.append("<A HREF=\"download\">Download</A>");
 			}

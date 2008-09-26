@@ -1063,7 +1063,7 @@ public class SideBar
 
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES,
-				"activity", "Activity", titleInfoActivityView, null, false, -1);
+				"activity", "Notifications", titleInfoActivityView, null, false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
