@@ -484,7 +484,9 @@ public class TableRowImpl
 	
 	// @see com.aelitis.azureus.ui.common.table.TableRowCore#redraw()
 	public void redraw() {
-		refresh(true);
+		// this will call paintItem which may call refresh
+		Rectangle bounds = getBounds();
+		table.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
 	}
 
 	public String toString() {
