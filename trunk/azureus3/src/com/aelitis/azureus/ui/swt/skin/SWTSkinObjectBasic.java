@@ -659,31 +659,35 @@ public class SWTSkinObjectBasic
 		}
 
 		// process listeners added locally
-		listeners_mon.enter();
-		try {
-			for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-				try {
-					SWTSkinObjectListener l = (SWTSkinObjectListener) iterator.next();
-					l.eventOccured(this, eventType, params);
-				} catch (Exception e) {
-					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
-							+ " caused an error for listener added locally", e);
-				}
-			}
-		} finally {
-			listeners_mon.exit();
+		if (listeners.size() > 0) {
+  		listeners_mon.enter();
+  		try {
+  			for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+  				try {
+  					SWTSkinObjectListener l = (SWTSkinObjectListener) iterator.next();
+  					l.eventOccured(this, eventType, params);
+  				} catch (Exception e) {
+  					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
+  							+ " caused an error for listener added locally", e);
+  				}
+  			}
+  		} finally {
+  			listeners_mon.exit();
+  		}
 		}
 
 		// process listeners added to skin
 		SWTSkinObjectListener[] listeners = skin.getSkinObjectListeners(sViewID);
-		for (int i = 0; i < listeners.length; i++) {
-			try {
-				SWTSkinObjectListener l = listeners[i];
-				l.eventOccured(this, eventType, params);
-			} catch (Exception e) {
-				Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
-						+ " caused an error for listener added to skin", e);
-			}
+		if (listeners.length > 0) {
+  		for (int i = 0; i < listeners.length; i++) {
+  			try {
+  				SWTSkinObjectListener l = listeners[i];
+  				l.eventOccured(this, eventType, params);
+  			} catch (Exception e) {
+  				Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
+  						+ " caused an error for listener added to skin", e);
+  			}
+  		}
 		}
 
 		if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
