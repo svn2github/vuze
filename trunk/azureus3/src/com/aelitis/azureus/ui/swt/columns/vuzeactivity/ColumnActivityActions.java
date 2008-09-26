@@ -94,6 +94,8 @@ public class ColumnActivityActions
 	private Image imgDown;
 
 	private Image imgWait;
+	
+	private static Font font = null;
 
 	/**
 	 * @param name
@@ -134,6 +136,13 @@ public class ColumnActivityActions
 		String text = cell.getText();
 
 		if (text != null && text.length() > 0) {
+			if (font == null) {
+				FontData[] fontData = gc.getFont().getFontData();
+				fontData[0].setStyle(SWT.BOLD);
+				font = new Font(gc.getDevice(), fontData);
+			}
+			gc.setFont(font);
+
 			Rectangle bounds = getDrawBounds(cell);
 
 			GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, true,
