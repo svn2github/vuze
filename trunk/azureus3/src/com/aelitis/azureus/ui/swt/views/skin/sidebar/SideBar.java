@@ -1596,6 +1596,9 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private void doFade(final Control oldComposite) {
+		if (true) {
+			return;
+		}
 		if (oldComposite.isDisposed()
 				|| (shellFade != null && !shellFade.isDisposed())) {
 			return;
