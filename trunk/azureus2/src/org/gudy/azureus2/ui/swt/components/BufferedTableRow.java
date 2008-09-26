@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -724,12 +725,17 @@ BufferedTableRow
    *
    */
   public void invalidate() {
-  	if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED | REQUIRE_VISIBILITY))
-  		return;
+  	Utils.execSWTThread(new AERunnable() {
+		
+			public void runSupport() {
+		  	if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED | REQUIRE_VISIBILITY))
+		  		return;
 
-		Rectangle r = item.getBounds(0);
+				Rectangle r = item.getBounds(0);
 
-		table.redraw(0, r.y, table.getClientArea().width, r.height, true);
+				table.redraw(0, r.y, table.getClientArea().width, r.height, true);
+			}
+		});
   }
   
   public void setBackgroundImage(Image image) {
