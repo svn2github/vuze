@@ -172,6 +172,7 @@ public class TableColumnCreatorV3
 			ColumnActivityType.COLUMN_ID,
 			ColumnActivityAvatar.COLUMN_ID,
 			ColumnActivityText.COLUMN_ID,
+			ColumnThumbnail.COLUMN_ID,
 			ColumnActivityActions.COLUMN_ID,
 			ColumnActivityDate.COLUMN_ID,
 		};
@@ -217,6 +218,7 @@ public class TableColumnCreatorV3
 		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
 		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(ColumnActivityActions.class, ac));
 		c.put(ColumnActivityDate.COLUMN_ID, new cInfo(ColumnActivityDate.class, ac));
+		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ac));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
