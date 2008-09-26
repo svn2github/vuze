@@ -203,7 +203,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
         
         // TODO: make config option to choose
 /**/
-        invalidate();
+        //invalidate();
         return;
       }
     } else {
