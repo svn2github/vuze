@@ -810,7 +810,11 @@ SubscriptionManagerUI
 										false, 
 										show );
 								
-								new_si.setTreeItem( tree_item );
+								SideBarEntrySWT	entry = SideBar.getSideBarInfo( key );
+																
+								new_si.setTreeItem( tree_item, entry );
+								
+								setStatus( subs, new_si );
 								
 								PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 								PluginInterface pi = pm.getDefaultPluginInterface();
@@ -859,8 +863,18 @@ SubscriptionManagerUI
 			}else{
 				
 				ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
+				
+				setStatus( subs, existing_si );
 			}
 		}
+	}
+	
+	protected void
+	setStatus(
+		Subscription	subs,
+		sideBarItem		sbi )
+	{
+		sbi.setWarning( subs );
 	}
 	
 	protected void
@@ -1341,7 +1355,8 @@ SubscriptionManagerUI
 					", next_scan=" + new SimpleDateFormat().format(new Date( history.getNextScanTime())) +
 					", last_new=" + new SimpleDateFormat().format(new Date( history.getLastNewResultTime())) +
 					", read=" + history.getNumRead() +
-					" ,unread=" + history.getNumUnread());
+					" ,unread=" + history.getNumUnread() +
+					", error=" + history.getLastError() + " [af=" + history.isAuthFail() + "]" );
 					
 			try{
 			
@@ -1369,9 +1384,15 @@ SubscriptionManagerUI
 	protected static class
 	sideBarItem
 	{
+		public static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
+		public static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
+		
 		private subscriptionView	view;
+		private SideBarEntrySWT		sb_entry;
 		private TreeItem			tree_item;
 		private boolean				destroyed;
+		
+		private SideBarVitalityImage	warning;
 		
 		protected
 		sideBarItem()
@@ -1380,9 +1401,13 @@ SubscriptionManagerUI
 		
 		protected void
 		setTreeItem(
-			TreeItem		_tree_item )
+			TreeItem		_tree_item,
+			SideBarEntrySWT	_sb_entry )
 		{
 			tree_item	= _tree_item;
+			sb_entry	= _sb_entry;
+			
+			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
 		}
 		
 		protected TreeItem
@@ -1402,6 +1427,30 @@ SubscriptionManagerUI
 		getView()
 		{
 			return( view );
+		}
+		
+		protected void
+		setWarning(
+			Subscription	subs )
+		{
+			String	last_error = subs.getHistory().getLastError();
+
+			boolean	trouble = last_error != null;
+			
+			if ( trouble ){
+			 
+				warning.setToolTip( last_error );
+				
+				warning.setImageID( subs.getHistory().isAuthFail()?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
+				
+				warning.setVisible( true );
+				
+			}else{
+				
+				warning.setVisible( false );
+				
+				warning.setToolTip( "" );
+			}
 		}
 		
 		protected boolean

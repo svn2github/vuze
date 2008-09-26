@@ -23,8 +23,11 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
+import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.util.JSONUtils;
@@ -115,9 +118,13 @@ SubscriptionDownloader
 						
 			checkAutoDownload( all_results );
 			
+			history.setLastError( null, false );
+			
 		}catch( Throwable e ){
 			
 			log( "    Download failed", e);
+			
+			history.setLastError( Debug.getNestedExceptionMessage( e ),e instanceof SearchLoginException );
 			
 			throw( new SubscriptionException( "Search failed", e ));
 		}

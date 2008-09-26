@@ -79,6 +79,12 @@ SubscriptionHistory
 	public int
 	getCheckFrequencyMins();
 	
+	public String
+	getLastError();
+	
+	public boolean
+	isAuthFail();
+	
 	public SubscriptionResult[]
 	getResults(
 		boolean		include_deleted );

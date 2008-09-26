@@ -47,6 +47,10 @@ SubscriptionHistoryImpl
 	private int			num_unread;
 	private int			num_read;
 	
+	private String			last_error;
+	private boolean			auth_failed;
+	
+
 	protected
 	SubscriptionHistoryImpl(
 		SubscriptionManagerImpl		_manager,
@@ -662,6 +666,46 @@ SubscriptionHistoryImpl
 		
 		num_read	= new_read;
 		num_unread	= new_unread;
+	}
+	
+	protected void
+	setLastError(
+		String		_last_error,
+		boolean		_auth_failed )
+	{
+		/*
+		if ( auth_failed == _auth_failed ){
+			
+			if ( last_error == _last_error ){
+				
+				return;
+			}
+			
+			if ( last_error != null && _last_error != null ){
+				
+				if ( last_error.equals( _last_error )){
+					
+					return;
+				}
+			}
+		}
+		*/
+		last_error 	= _last_error;
+		auth_failed	= _auth_failed;
+		
+		subs.fireChanged();
+	}
+	
+	public String
+	getLastError()
+	{
+		return( last_error );
+	}
+	
+	public boolean
+	isAuthFail()
+	{
+		return( auth_failed );
 	}
 	
 	protected void
