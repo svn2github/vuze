@@ -27,6 +27,7 @@ import java.lang.reflect.Constructor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -238,6 +239,19 @@ public class SWTThread {
     // must dispose here in case another window has take over the
     // readAndDispatch/sleep loop
     if (!display.isDisposed()) {
+    	try {
+      	Shell[] shells = display.getShells();
+      	for (int i = 0; i < shells.length; i++) {
+      		try {
+      			Shell shell = shells[i];
+      			shell.dispose();
+      		} catch (Throwable t) {
+        		Debug.out(t);
+      		}
+  			}
+    	} catch (Throwable t) {
+    		Debug.out(t);
+    	}
     	display.dispose();
     }
   }
