@@ -201,7 +201,7 @@ public class TableColumnCreatorV3
 		//final Class cd = DownloadTypeComplete.class;
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, all));
-		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, all));
+		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, all));
 		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, all));
 		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, all));
 		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, all));
@@ -218,7 +218,9 @@ public class TableColumnCreatorV3
 		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
 		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(ColumnActivityActions.class, ac));
 		c.put(ColumnActivityDate.COLUMN_ID, new cInfo(ColumnActivityDate.class, ac));
-		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ac));
+
+		
+		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, new Class[] { ac, all } ));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
@@ -255,7 +257,11 @@ public class TableColumnCreatorV3
 			String id = (String) iter.next();
 			cInfo info = (cInfo) c.get(id);
 
-			tcManager.registerColumn(info.forDataSourceType, id, tcCreator);
+			for (int i = 0; i < info.forDataSourceTypes.length; i++) {
+				Class cla = info.forDataSourceTypes[i];
+				
+				tcManager.registerColumn(cla, id, tcCreator);
+			}
 		}
 
 	}
@@ -264,11 +270,18 @@ public class TableColumnCreatorV3
 	{
 		public Class cla;
 
-		public Class forDataSourceType;
+		public Class[] forDataSourceTypes;
 
 		public cInfo(Class cla, Class forDataSourceType) {
 			this.cla = cla;
-			this.forDataSourceType = forDataSourceType;
+			this.forDataSourceTypes = new Class[] {
+				forDataSourceType
+			};
+		}
+		
+		public cInfo(Class cla, Class[] forDataSourceTypes) {
+			this.cla = cla;
+			this.forDataSourceTypes = forDataSourceTypes;
 		}
 	}
 }
