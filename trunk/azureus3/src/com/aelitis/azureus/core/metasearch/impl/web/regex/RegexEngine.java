@@ -386,11 +386,16 @@ RegexEngine
 							}
 							
 							return (Result[]) results.toArray(new Result[results.size()]);
-									
+							
 						}catch (Throwable e){
 							
 							log( "Failed process result", e );
 				
+							if ( e instanceof SearchException ){
+								
+								throw((SearchException)e );
+							}
+							
 							throw new SearchException(e);
 						}
 					}
