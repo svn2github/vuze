@@ -154,8 +154,9 @@ public class ColumnActivityActions
 				URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
 				for (int i = 0; i < hitUrlInfo.length; i++) {
 					URLInfo info = hitUrlInfo[i];
-					if (cell.getTableRow().isSelected()) {
-						info.urlColor = ColorCache.getColor(gc.getDevice(), 200, 150, 50);
+					info.urlUnderline = cell.getTableRow().isSelected();
+					if (info.urlUnderline) {
+						info.urlColor = null;
 					} else {
 						info.urlColor = colorLinkNormal;
 					}
