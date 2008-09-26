@@ -63,6 +63,8 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
  */
 public class SWTSkin
 {
+	private static final SWTSkinObjectListener[] NOLISTENERS = new SWTSkinObjectListener[0];
+
 	static boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
 
 	private Map mapImageLoaders = new HashMap();
@@ -1621,7 +1623,7 @@ public class SWTSkin
 
 	public SWTSkinObjectListener[] getSkinObjectListeners(String viewID) {
 		if (viewID == null) {
-			return new SWTSkinObjectListener[0];
+			return NOLISTENERS;
 		}
 
 		mapPublicViewIDsToListeners_mon.enter();
@@ -1630,9 +1632,9 @@ public class SWTSkin
 
 			if (existing instanceof List) {
 				List list = (List) existing;
-				return (SWTSkinObjectListener[]) list.toArray(new SWTSkinObjectListener[0]);
+				return (SWTSkinObjectListener[]) list.toArray(NOLISTENERS);
 			} else {
-				return new SWTSkinObjectListener[0];
+				return NOLISTENERS;
 			}
 		} finally {
 			mapPublicViewIDsToListeners_mon.exit();
