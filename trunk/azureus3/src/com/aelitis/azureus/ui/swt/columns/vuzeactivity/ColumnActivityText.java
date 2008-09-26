@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -39,6 +40,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.util.StringCompareUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -87,10 +89,11 @@ public class ColumnActivityText
 			URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
 			for (int i = 0; i < hitUrlInfo.length; i++) {
 				URLInfo info = hitUrlInfo[i];
-				if (info.hitAreas != null && info.hitAreas.size() > 0) {
-					//System.out.println("  " + i + ": " + info.hitAreas.get(0));
+				if (cell.getTableRow().isSelected()) {
+					info.urlColor = ColorCache.getColor(gc.getDevice(), 200, 150, 50);
+				} else {
+					info.urlColor = colorLinkNormal;
 				}
-				info.urlColor = colorLinkNormal;
 			}
 			int[] mouseOfs = cell.getMouseOffset();
 			if (mouseOfs != null) {

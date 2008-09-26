@@ -48,6 +48,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
@@ -144,7 +145,11 @@ public class ColumnActivityActions
 				URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
 				for (int i = 0; i < hitUrlInfo.length; i++) {
 					URLInfo info = hitUrlInfo[i];
-					info.urlColor = colorLinkNormal;
+					if (cell.getTableRow().isSelected()) {
+						info.urlColor = ColorCache.getColor(gc.getDevice(), 200, 150, 50);
+					} else {
+						info.urlColor = colorLinkNormal;
+					}
 				}
 				int[] mouseOfs = cell.getMouseOffset();
 				if (mouseOfs != null) {
