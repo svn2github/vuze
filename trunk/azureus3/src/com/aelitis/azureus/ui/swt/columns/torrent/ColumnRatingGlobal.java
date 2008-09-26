@@ -68,7 +68,6 @@ public class ColumnRatingGlobal
 	public ColumnRatingGlobal(String sTableID) {
 		super(COLUMN_ID, sTableID);
 		initialize(ALIGN_LEAD, POSITION_LAST, COLUMN_WIDTH);
-		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}
 
 	public void cellAdded(TableCell cell) {
