@@ -64,7 +64,7 @@ public class ColumnActivityNew
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 		
-		if (entry.isRead()) {
+		if (!entry.isRead()) {
 			Rectangle cellBounds = cell.getBounds();
 			gc.drawImage(imgNew, cellBounds.x
 					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
