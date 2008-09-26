@@ -137,7 +137,6 @@ public class ColumnActivityText
 			URLInfo hitUrl = sp.getHitUrl(event.x + bounds.x, event.y + bounds.y);
 			int newCursor;
 			if (hitUrl != null) {
-				System.out.println("hiT");
 				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
 					if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);
