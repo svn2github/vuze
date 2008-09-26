@@ -718,12 +718,12 @@ public class TableViewSWTImpl
 			horizontalBar.addSelectionListener(new SelectionListener() {
 				public void widgetDefaultSelected(SelectionEvent e) {
 					columnVisibilitiesChanged = true;
-					updateColumnVisibilities();
+					//updateColumnVisibilities();
 				}
 
 				public void widgetSelected(SelectionEvent e) {
 					columnVisibilitiesChanged = true;
-					updateColumnVisibilities();
+					//updateColumnVisibilities();
 				}
 			});
 		}
@@ -733,10 +733,6 @@ public class TableViewSWTImpl
 				int defaultHeight = getRowDefaultHeight();
 				if (event.height < defaultHeight) {
 					event.height = defaultHeight;
-				}
-
-				if (Utils.SWT32_TABLEPAINT) {
-					event.width = ((TableItem) event.item).getBounds(event.index).width;
 				}
 			}
 		});
@@ -1049,18 +1045,11 @@ public class TableViewSWTImpl
 	protected void triggerSelectionListeners(TableRowCore[] rows) {
 		//System.out.println("triggerSelectionLis" + rows[0]);
 		if (TRIGGER_PAINT_ON_SELECTIONS) {
-  		GC gc = new GC(table);
-  		try {
-  			for (int i = 0; i < rows.length; i++) {
-  				TableRowCore row = rows[i];
-  				//row.invalidate();
-  				row.redraw();
-  				((TableRowSWT) row).doPaint(gc, true);
-  				table.update();
-  			}
-  		} finally {
-  			gc.dispose();
-  		}
+			for (int i = 0; i < rows.length; i++) {
+				TableRowCore row = rows[i];
+				row.redraw();
+				table.update();
+			}
 		}
 		//System.out.println("e triggerSelectionLis" + rows[0]);
 		super.triggerSelectionListeners(rows);
@@ -1069,18 +1058,11 @@ public class TableViewSWTImpl
 	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerDeselectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	protected void triggerDeselectionListeners(TableRowCore[] rows) {
 		if (TRIGGER_PAINT_ON_SELECTIONS) {
-  		GC gc = new GC(table);
-  		try {
-  			for (int i = 0; i < rows.length; i++) {
-  				TableRowCore row = rows[i];
-  				//row.invalidate();
-  				row.redraw();
-  				((TableRowSWT) row).doPaint(gc, true);
-  				table.update();
-  			}
-  		} finally {
-  			gc.dispose();
-  		}
+			for (int i = 0; i < rows.length; i++) {
+				TableRowCore row = rows[i];
+				row.redraw();
+				table.update();
+			}
 		}
 		super.triggerDeselectionListeners(rows);
 	}
@@ -1319,8 +1301,8 @@ public class TableViewSWTImpl
 			if (item == null || item.isDisposed()) {
 				return;
 			}
-
 			int iColumnNo = event.index;
+			
 			//System.out.println("paintItem " + table.indexOf(item) + ":" + iColumnNo);
 			if (bSkipFirstColumn) {
 				if (iColumnNo == 0) {
@@ -1386,9 +1368,12 @@ public class TableViewSWTImpl
 					cellBounds.width -= ofs;
 				}
   			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
+				int style = CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment());
+				if (cellBounds.height > 20) {
+					style |= SWT.WRAP;
+				}
   			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-  					true, SWT.WRAP |
-  					CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment()));
+  					true, style);
 			}
 
 		} catch (Exception e) {
@@ -2014,8 +1999,6 @@ public class TableViewSWTImpl
 						//System.out.println("redraw " + row + "; " + oldBG + ";" + newBG);
 						row.invalidate();
 						row.redraw();
-						// painting immediately reduces flicker a tiny bit
-						rowSWT.doPaint(gc, true);
 						row.setData("bgColor", newBG);
 					} else {
 						rowSWT.doPaint(gc, true);
@@ -3570,6 +3553,7 @@ public class TableViewSWTImpl
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
 						if (visible) {
   						if (row.setTableItem(i)) {
+  							row.setAlternatingBGColor(true);
   							iNumMoves++;
   						}
 						} else {
@@ -3707,6 +3691,11 @@ public class TableViewSWTImpl
 	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public boolean isRowVisible(TableRowCore row) {
 		int i = row.getIndex();
+		if (Utils.SWT32_TABLEPAINT) {
+			int iTopIndex = table.getTopIndex();
+			int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+			return i >= iTopIndex && i <= iBottomIndex;
+		}
 		return i >= lastTopIndex && i <= lastBottomIndex;
 	}
 
