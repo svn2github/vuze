@@ -23,9 +23,14 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -118,6 +123,22 @@ public class SBC_ActivityView
 					}
 				}
 			});
+		}
+
+		final ViewTitleInfo titleInfo = new ViewTitleInfo() {
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_LOGID) {
+					String id = SideBar.SIDEBAR_SECTION_ACTIVITIES;
+					int viewMode = COConfigurationManager.getIntParameter(ID
+							+ ".viewmode", MODE_SMALLTABLE);
+					return id + "-" + viewMode;
+				}
+				return null;
+			}
+		};
+		SideBarEntrySWT sidebarEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_ACTIVITIES);
+		if (sidebarEntry != null) {
+			sidebarEntry.setTitleInfo(titleInfo);
 		}
 
 		return null;
