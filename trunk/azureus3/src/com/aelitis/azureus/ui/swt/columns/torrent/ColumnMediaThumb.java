@@ -123,6 +123,10 @@ public class ColumnMediaThumb
 		this(sTableID, maxThumbHeight, WIDTH);
 	}
 
+	public ColumnMediaThumb(String sTableID) {
+		this(sTableID, 40, WIDTH);
+	}
+
 	public ColumnMediaThumb(String sTableID, int maxThumbHeight, int WIDTH) {
 		super(COLUMN_ID, sTableID);
 		this.maxThumbHeight = maxThumbHeight;
