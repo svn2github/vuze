@@ -224,12 +224,16 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#redraw()
   public void redraw() {
-		Rectangle bounds = getBounds();
-		if (bounds != null) {
-			Table table = row.getTable();
-			Rectangle dirty = table.getClientArea().intersection(bounds);
-			table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
-		}
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Rectangle bounds = getBounds();
+				if (bounds != null) {
+					Table table = row.getTable();
+					Rectangle dirty = table.getClientArea().intersection(bounds);
+					table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+				}
+			}
+		});
   }
   
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getMaxLines()
