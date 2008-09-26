@@ -101,6 +101,8 @@ public class GCStringPrinter
 		public String text;
 
 		public Color urlColor;
+		
+		public Color dropShadowColor;
 
 		int relStartPos;
 
@@ -114,6 +116,8 @@ public class GCStringPrinter
 		public String title;
 
 		public String target;
+
+		public boolean urlUnderline;
 
 		// @see java.lang.Object#toString()
 		public String toString() {
@@ -851,6 +855,12 @@ public class GCStringPrinter
 				Color fgColor = null;
 				if (!noDraw) {
 					fgColor = gc.getForeground();
+
+					if (urlInfo.dropShadowColor != null) {
+						gc.setForeground(urlInfo.dropShadowColor);
+						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.height, null, noDraw);
+					}
+
 					if (urlInfo.urlColor != null) {
 						gc.setForeground(urlInfo.urlColor);
 					} else if (urlColor != null) {
@@ -862,6 +872,9 @@ public class GCStringPrinter
 				}
 				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw);
 				if (!noDraw) {
+					if (urlInfo.urlUnderline) {
+						gc.drawLine(x0, y0 + pt.y - 1, x0 + pt.x - 1, y0 + pt.y - 1); 
+					}
 					gc.setForeground(fgColor);
 				}
 
