@@ -28,12 +28,24 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -65,6 +77,8 @@ public class SearchResultsTabArea
 
 	protected String title;
 
+	private MenuItem menuItem;
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
@@ -94,6 +108,71 @@ public class SearchResultsTabArea
 				}
 		**/
 
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getDefaultPluginInterface();
+		UIManager uim = pi.getUIManager();
+		
+		final MenuManager menuManager = uim.getMenuManager();
+
+		if ( menuItem == null ){
+		
+			menuItem = menuManager.addMenuItem("sidebar.Search","Search.menu.engines");
+		
+			menuItem.setStyle( MenuItem.STYLE_MENU );
+			
+			menuItem.addFillListener(
+				new MenuItemFillListener()
+				{
+					public void menuWillBeShown(MenuItem menu, Object data) {
+				
+						menuItem.removeAllChildItems();
+						
+						Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines( true, false );
+						
+						for (int i=0;i<engines.length;i++){
+							
+							Engine engine = engines[i];
+							
+							MenuItem engine_menu = menuManager.addMenuItem( menuItem, "!" + engine.getName() + "!" );
+							
+							engine_menu.setStyle( MenuItem.STYLE_MENU );
+
+							if ( engine instanceof WebEngine ){
+								
+								final WebEngine we = (WebEngine)engine;
+								
+								if ( we.isNeedsAuth()){
+									
+									String cookies = we.getCookies();
+									
+									if ( cookies != null && cookies.length() > 0 ){
+										
+										MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.resetauth" );
+
+										mi.addListener(
+											new MenuItemListener()
+											{
+												public void 
+												selected(
+													MenuItem menu, 
+													Object target) 
+												{
+													we.setCookies( null );
+												}
+											});
+									}
+								}
+							}
+							
+							if ( engine_menu.getItems().length == 0 ){
+								
+								engine_menu.setEnabled( false );
+							}
+						}
+					}
+				});
+		}
+		
 		if (browserSkinObject != null) {
 			Object o = skinObject.getData("CreationParams");
 

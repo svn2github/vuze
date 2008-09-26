@@ -162,7 +162,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									ExternalLoginWindow 	window,
 									String 					cookies) 
 								{
-									if ( handleCookies(cookies)){
+									if ( handleCookies(cookies, false )){
 										
 										window.close();									
 									}
@@ -173,7 +173,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									ExternalLoginWindow 	window,
 									String 					cookies )
 								{
-									handleCookies( cookies );
+									handleCookies( cookies, true );
 									
 									if ( !outcome_informed ){
 										
@@ -187,9 +187,14 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								
 								private boolean
 								handleCookies(
-									String	cookies )
+									String		cookies,
+									boolean		force_if_ready )
 								{
-									if ( CookieParser.cookiesContain(webEngine.getRequiredCookies(), cookies)){
+									String[] required = webEngine.getRequiredCookies();
+									
+									boolean	skip_search = required.length == 0 && !force_if_ready;
+									
+									if ( CookieParser.cookiesContain( required, cookies )){
 											
 										webEngine.setCookies(cookies);
 										
@@ -197,14 +202,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 											
 											previous_cookies = cookies;
 											
-												// search operation will report outcome
-											
-											outcome_informed	= true;
-											
-											search( decodedMap, webEngine );
+											if ( !skip_search ){
+													// search operation will report outcome
+												
+												outcome_informed	= true;
+												
+												search( decodedMap, webEngine );
+											}
 										}
 										
-										return( true );
+										return( !skip_search );
 									}
 	
 									return( false );
@@ -227,6 +234,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									return( params );
 								}
 							},
+						webEngine.getName(),
 						webEngine.getLoginPageUrl(),
 						false );
 					}
@@ -262,7 +270,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							params.put("currentCookie",cookies);
 							sendBrowserMessage("metasearch", "setCookies", params );
 						};
-						},url,true);
+						},url, url,true);
 				}
 			});
 			

@@ -32,7 +32,7 @@ public class ExternalLoginWindow {
 	
 	String cookies;
 	
-	public ExternalLoginWindow(final ExternalLoginListener listener,final String loginUrl,boolean captureMode) {
+	public ExternalLoginWindow(final ExternalLoginListener listener,String name, final String loginUrl,boolean captureMode) {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -47,7 +47,7 @@ public class ExternalLoginWindow {
 		}
 		
 		display = shell.getDisplay();
-		shell.setText(MessageText.getString("externalLogin.title"));
+		shell.setText(MessageText.getString("externalLogin.title", new String[]{ name }));
 		
 		shell.setLayout(new FormLayout());
 		
@@ -146,7 +146,7 @@ public class ExternalLoginWindow {
 	public static void main(String[] args) {
 		Display display = new Display();
 		ImageRepository.loadImages(display);
-		ExternalLoginWindow slw = new ExternalLoginWindow(null,"http://hdbits.org/login.php",false);
+		ExternalLoginWindow slw = new ExternalLoginWindow(null,"test","http://hdbits.org/login.php",false);
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
 				display.sleep();
