@@ -14,12 +14,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
-
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.impl.web.CookieParser;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
@@ -47,15 +41,15 @@ public class ExternalLoginWindow {
 		}
 		
 		display = shell.getDisplay();
-		shell.setText(MessageText.getString("externalLogin.title", new String[]{ name }));
+		shell.setText(MessageText.getString("externalLogin.title"));
 		
 		shell.setLayout(new FormLayout());
 		
 		Label explain = new Label(shell,SWT.WRAP);
 		if(captureMode) {
-			explain.setText(MessageText.getString("externalLogin.explanation.capture"));
+			explain.setText(MessageText.getString("externalLogin.explanation.capture", new String[]{ name }));
 		} else {
-			explain.setText(MessageText.getString("externalLogin.explanation"));
+			explain.setText(MessageText.getString("externalLogin.explanation", new String[]{ name }));
 		}
 		
 		Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
