@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 public class SBC_ActivityView
 	extends SkinView
 {
-	private final static String ID = "activity-list";
+	public final static String ID = "activity-list";
 
 	public final static int MODE_BIGTABLE = 0;
 
@@ -123,22 +123,6 @@ public class SBC_ActivityView
 					}
 				}
 			});
-		}
-
-		final ViewTitleInfo titleInfo = new ViewTitleInfo() {
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_LOGID) {
-					String id = SideBar.SIDEBAR_SECTION_ACTIVITIES;
-					int viewMode = COConfigurationManager.getIntParameter(ID
-							+ ".viewmode", MODE_SMALLTABLE);
-					return id + "-" + viewMode;
-				}
-				return null;
-			}
-		};
-		SideBarEntrySWT sidebarEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_ACTIVITIES);
-		if (sidebarEntry != null) {
-			sidebarEntry.setTitleInfo(titleInfo);
 		}
 
 		return null;

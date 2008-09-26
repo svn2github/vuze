@@ -781,7 +781,8 @@ public class SideBar
   				gc.setBackground(Colors.faded[Colors.BLUES_DARKEST]);
   			} else {
   				gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION));
-  				gc.setForeground(Colors.faded[Colors.BLUES_DARKEST]);
+  				//gc.setForeground(Colors.faded[Colors.BLUES_DARKEST]);
+  				gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
   			}
 			} else {
 				if (Constants.isOSX) {
@@ -1011,6 +1012,11 @@ public class SideBar
 					}
 				} else if (propertyID == TITLE_IMAGEID) {
 					return "image.sidebar.activity";
+				} else if (propertyID == TITLE_LOGID) {
+					String id = SideBar.SIDEBAR_SECTION_ACTIVITIES;
+					int viewMode = COConfigurationManager.getIntParameter(SBC_ActivityView.ID
+							+ ".viewmode", SBC_ActivityView.MODE_SMALLTABLE);
+					return id + "-" + viewMode;
 				}
 				return null;
 			}
