@@ -189,9 +189,11 @@ public class ColumnThumbnail
 			// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 			String path = null;
 			if (dm == null) {
-				TOTorrentFile[] files = torrent.getFiles();
-				if (files.length > 0) {
-					path = files[0].getRelativePath();
+				if (torrent != null) {
+  				TOTorrentFile[] files = torrent.getFiles();
+  				if (files.length > 0) {
+  					path = files[0].getRelativePath();
+  				}
 				}
 			} else {
 				path = dm.getDownloadState().getPrimaryFile();
