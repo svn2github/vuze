@@ -105,7 +105,7 @@ public class GCStringPrinter
 		int relStartPos;
 
 		// We could use a region, but that uses a resource that requires disposal
-		List hitAreas = null;
+		public List hitAreas = null;
 
 		int titleLength;
 
