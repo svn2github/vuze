@@ -71,7 +71,7 @@ public class SBC_ActivityView
 		soListArea = getSkinObject(ID + "-area");
 
 		setViewMode(COConfigurationManager.getIntParameter(ID
-				+ ".viewmode", MODE_OLDTABLE), false);
+				+ ".viewmode", MODE_SMALLTABLE), false);
 
 		SWTSkinObject so;
 		so = getSkinObject(ID + "-button-smalltable");
