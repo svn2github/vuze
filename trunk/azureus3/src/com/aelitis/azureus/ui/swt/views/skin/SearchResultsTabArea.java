@@ -20,6 +20,9 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -27,9 +30,12 @@ import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -40,12 +46,14 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -129,14 +137,90 @@ public class SearchResultsTabArea
 						
 						Engine[] engines = MetaSearchManagerFactory.getSingleton().getMetaSearch().getEngines( true, false );
 						
+						Arrays.sort( 
+							engines,
+							new Comparator()
+							{
+								public int 
+								compare(
+									Object o1, 
+									Object o2)
+								{
+									return(((Engine)o1).getName().compareToIgnoreCase(((Engine)o2).getName()));
+								}
+							});
+							
 						for (int i=0;i<engines.length;i++){
 							
-							Engine engine = engines[i];
+							final Engine engine = engines[i];
 							
 							MenuItem engine_menu = menuManager.addMenuItem( menuItem, "!" + engine.getName() + "!" );
 							
 							engine_menu.setStyle( MenuItem.STYLE_MENU );
 
+							if ( engine.getSource() != Engine.ENGINE_SOURCE_VUZE ){
+								
+								MenuItem mi = menuManager.addMenuItem( engine_menu, "MyTorrentsView.menu.exportmenu" );
+
+								mi.addListener(
+									new MenuItemListener()
+									{
+										public void 
+										selected(
+											MenuItem menu, 
+											Object target) 
+										{
+											final Shell shell = Utils.findAnyShell();
+											
+											shell.getDisplay().asyncExec(
+												new AERunnable() 
+												{
+													public void 
+													runSupport()
+													{
+														FileDialog dialog = 
+															new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+														
+														dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+																				
+														dialog.setText(MessageText.getString("metasearch.export.select.template.file"));
+														
+														dialog.setFilterExtensions(new String[] {
+																"*.vuze",
+																"*.vuz",
+																org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+															});
+														dialog.setFilterNames(new String[] {
+																"*.vuze",
+																"*.vuz",
+																org.gudy.azureus2.core3.util.Constants.FILE_WILDCARD
+															});
+														
+														String path = TorrentOpener.setFilterPathData( dialog.open());
+									
+														if ( path != null ){
+															
+															String lc = path.toLowerCase();
+															
+															if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+																
+																path += ".vuze";
+															}
+															
+															try{
+																engine.exportToVuzeFile( new File( path ));
+																
+															}catch( Throwable e ){
+																
+																Debug.out( e );
+															}
+														}
+													}
+												});						
+										}
+									});
+							}
+							
 							if ( engine instanceof WebEngine ){
 								
 								final WebEngine we = (WebEngine)engine;

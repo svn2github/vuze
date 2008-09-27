@@ -126,9 +126,13 @@ EngineImpl
 		}	
 	}
 	
+		// if you extend this with state pertaining to what has been downloaded then
+		// make sure you extend the code in reset();
+	
 	protected static final String		LD_COOKIES				= "cookies";
 	protected static final String		LD_ETAG					= "etag";
 	protected static final String		LD_LAST_MODIFIED		= "last_mod";
+	
 	protected static final String		LD_LAST_UPDATE_CHECK	= "last_update_check";
 	protected static final String		LD_UPDATE_CHECK_SECS	= "update_check_secs";
 	
@@ -1030,6 +1034,21 @@ EngineImpl
 	getLocalKey()
 	{
 		return( "metasearch.engine." + id + ".local" );
+	}
+	
+	public void
+	reset()
+	{
+		synchronized( this ){
+			
+			Map map = COConfigurationManager.getMapParameter( getLocalKey(), new HashMap());
+
+			map.remove(	LD_COOKIES );
+			map.remove(	LD_ETAG );
+			map.remove(	LD_LAST_MODIFIED );
+			
+			COConfigurationManager.setParameter( getLocalKey(), map );
+		}
 	}
 	
 	protected void

@@ -192,6 +192,14 @@ Engine
 	sameLogicAs(
 		Engine	other );
 	
+		/**
+		 * resets to initial state (e.g. if the engine has state pertaining to what has/hasn't been downloaded
+		 * such as etags then this will be cleared)
+		 */
+	
+	public void
+	reset();
+	
 	public void
 	delete();
 	

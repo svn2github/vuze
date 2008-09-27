@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -528,7 +530,27 @@ WebEngine
 			
 			ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
 
-			InputStream	is = mr_rd.download();
+			InputStream	is;
+			
+			try{
+			
+				is = mr_rd.download();
+				
+			}catch( ResourceDownloaderException e ){
+			
+				Long	response = (Long)mr_rd.getProperty( "URL_HTTP_Response" );
+				
+				if ( response != null && response.longValue() == 304 ){
+					
+						// not modified
+					
+					return( new pageDetails( initial_url, initial_url, "" ));
+					
+				}else{
+					
+					throw( e );
+				}
+			}
 				
 			if ( needsAuth ){
 				

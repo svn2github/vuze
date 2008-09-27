@@ -163,7 +163,12 @@ RSSEngine
 		if ( listener != null ){
 			listener.contentReceived( this, page );
 		}
-				
+			
+		if ( page == null || page.length() == 0 ){
+			
+			return( new Result[0]);
+		}
+		
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(page.getBytes("UTF-8"));
 			RSSFeed rssFeed = StaticUtilities.getRSSFeed(bais);

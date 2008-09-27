@@ -595,9 +595,17 @@ SubscriptionManagerUI
 							((WebEngine)engine).setCookies( null );
 						}
 					}catch( Throwable e ){
+						
 						Debug.printStackTrace(e);
 					}
-					refreshView( subs );
+					
+					try{
+						subs.getManager().getScheduler().download(subs, true);
+						
+					}catch( Throwable e ){
+						
+						Debug.out(e);
+					}
 				}
 			}
 		};
@@ -607,7 +615,11 @@ SubscriptionManagerUI
 					SideBarEntry info = (SideBarEntry) target;
 					Subscription subs = (Subscription) info.getDatasource();
 					subs.getHistory().reset();
-					
+					try{
+						subs.getEngine().reset();
+					}catch( Throwable e ){
+						Debug.printStackTrace(e);
+					}
 					try{
 						subs.getManager().getScheduler().download(subs, true);
 						
