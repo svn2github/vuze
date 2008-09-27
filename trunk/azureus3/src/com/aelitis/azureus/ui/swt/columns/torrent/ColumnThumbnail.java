@@ -66,7 +66,7 @@ public class ColumnThumbnail
 
 	private int columnWidth = 60;
 
-	private int marginBorder = 0;
+	private int marginBorder = 1;
 
 	/**
 	 * Each cell is mapped to a torrent
@@ -93,7 +93,6 @@ public class ColumnThumbnail
 			this.marginBorder = marginBorder;
 		}
 		initializeAsGraphic(POSITION_LAST, columnWidth);
-		setWidthLimits(columnWidth, columnWidth);
 		setAlignment(ALIGN_CENTER);
 	}
 
@@ -129,12 +128,12 @@ public class ColumnThumbnail
 		 */
 		long sortIndex = PlatformTorrentUtils.isContent(newTorrent, true) ? 0 : 1;
 		boolean bChanged = cell.setSortValue(sortIndex);
-
+		
 		/*
 		 * Get the torrent for this cell
 		 */
 		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
-
+		
 		/*
 		 * If the cell is not shown or nothing has changed then skip since there's nothing to update
 		 */
@@ -142,7 +141,7 @@ public class ColumnThumbnail
 				|| (newTorrent == torrent && !bChanged && cell.isValid())) {
 			return;
 		}
-
+		
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
 
@@ -209,7 +208,7 @@ public class ColumnThumbnail
 		if (null != thumbnailImage) {
 
 			int cellWidth = cell.getWidth();
-			int cellHeight = 32;//cell.getHeight(); KN HARDCODE!!!!: getHeight() is returning 4 so have to hardcode until fixed
+			int cellHeight = cell.getHeight();
 			Rectangle bounds = thumbnailImage.getBounds();
 
 			/*
