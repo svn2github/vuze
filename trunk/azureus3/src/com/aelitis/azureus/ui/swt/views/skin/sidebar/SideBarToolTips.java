@@ -28,6 +28,8 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+
 /**
  * @author TuxPaper
  * @created Aug 13, 2008
@@ -47,6 +49,8 @@ public class SideBarToolTips
 	private final SideBar sidebar;
 
 	private SideBarEntrySWT sideBarInfo;
+	
+	private Point lastMouseHoverPos;
 
 	/**
 	 * Initialize
@@ -110,10 +114,12 @@ public class SideBarToolTips
 			return;
 		}
 
-		String sToolTip = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		String sToolTip = getToolTip(mousePos);
 		if (sToolTip == null) {
 			return;
 		}
+		
+		lastMouseHoverPos = mousePos;
 
 		Display d = tree.getDisplay();
 		if (d == null)
@@ -181,6 +187,33 @@ public class SideBarToolTips
 
 	}
 
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	private String getToolTip(Point mousePos) {
+		String sToolTip = null;
+		if (sToolTip == null) {
+			SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+			for (int i = 0; i < vitalityImages.length; i++) {
+				SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+				String indicatorToolTip = vitalityImage.getToolTip();
+				if (indicatorToolTip == null || !vitalityImage.isVisible()) {
+					continue;
+				}
+				Rectangle hitArea = vitalityImage.getHitArea();
+				if (hitArea == null) {
+					continue;
+				}
+				if (hitArea.contains(mousePos)) {
+					return indicatorToolTip;
+				}
+			}
+		}
+		return (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+	}
+
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
 	public String getUpdateUIName() {
 		return "SideBarToolTips";
@@ -194,7 +227,7 @@ public class SideBarToolTips
 		if (sideBarInfo == null || sideBarInfo.titleInfo == null) {
 			return;
 		}
-		String sToolTip = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		String sToolTip = getToolTip(lastMouseHoverPos);
 		if (sToolTip == null) {
 			return;
 		}
