@@ -1225,9 +1225,18 @@ PRUDPPacketHandlerImpl
 				Debug.out(e);
 			}
 			
-			Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,
-					"PRUDPPacketHandler: sendAndReceive to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e))); 
+			String msg = Debug.getNestedExceptionMessage(e);
 			
+			Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,
+					"PRUDPPacketHandler: sendAndReceive to " + destination_address + " failed: " + msg )); 
+			
+			if ( msg.indexOf( "Invalid data length" ) != -1 ){
+				
+				Debug.out( "packet=" + request_packet.getString() + ",auth=" + auth );
+				
+				Debug.out( e );
+			}
+
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:sendAndReceive failed", e ));
 		}
 	}
