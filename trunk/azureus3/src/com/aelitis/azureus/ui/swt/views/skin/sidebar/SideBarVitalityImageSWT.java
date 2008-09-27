@@ -237,10 +237,6 @@ public class SideBarVitalityImageSWT
 		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 		images = imageLoader.getImages(newFullImageID);
 		if (images == null || images.length == 0) {
-			if (id.equals(fullImageID)) {
-				fullImageID = newFullImageID;
-				return;
-			}
 			newFullImageID = id;
 			images = imageLoader.getImages(id);
 		}
