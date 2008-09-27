@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -377,7 +378,6 @@ public class SBC_LibraryView
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
-				refreshAllLibraries();
 				dm.addListener(dmListener, false);
 
 				if (dm.getAssumedComplete()) {
@@ -394,6 +394,7 @@ public class SBC_LibraryView
 						dm.setUserData("wasDownloading", new Boolean(false));
 					}
 				}
+				refreshAllLibraries();
 			}
 		}, false);
 		List downloadManagers = gm.getDownloadManagers();
@@ -437,6 +438,7 @@ public class SBC_LibraryView
 				vitalityImage.setVisible(numErrorInComplete > 0);
 			}
 		}
+		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
 
 		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		vitalityImages = entry.getVitalityImages();
