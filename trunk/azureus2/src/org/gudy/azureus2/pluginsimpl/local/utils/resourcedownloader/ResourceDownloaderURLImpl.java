@@ -279,6 +279,8 @@ ResourceDownloaderURLImpl
 							
 							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
 								
+								setProperty( "URL_HTTP_Response", new Long( response ));
+
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
@@ -563,6 +565,8 @@ redirect_label:
 								if ( 	response != HttpURLConnection.HTTP_ACCEPTED && 
 										response != HttpURLConnection.HTTP_OK ) {
 									
+									setProperty( "URL_HTTP_Response", new Long( response ));
+
 									throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 								}
 									
