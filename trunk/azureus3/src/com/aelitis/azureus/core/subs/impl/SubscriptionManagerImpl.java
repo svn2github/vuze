@@ -383,6 +383,20 @@ SubscriptionManagerImpl
 						public void 
 						run() 
 						{
+							new AEThread2( "Subscriptions:delayInit", true )
+							{
+								public void
+								run()
+								{
+									asyncInit();
+								}
+							}.start();
+							
+						}
+						
+						protected void
+						asyncInit()
+						{
 							Download[] downloads = default_pi.getDownloadManager().getDownloads();
 									
 							for (int i=0;i<downloads.length;i++){
