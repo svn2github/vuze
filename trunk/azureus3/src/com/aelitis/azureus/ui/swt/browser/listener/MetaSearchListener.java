@@ -139,12 +139,13 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							{
 								private String previous_cookies;
 								
-								private boolean	outcome_informed;
+								private boolean	search_done;
 								
 								public void 
 								canceled(
-									ExternalLoginWindow window) 
+									ExternalLoginWindow 	window ) 
 								{
+									/* gouss doesn't wan't anything on cancel
 									if ( !outcome_informed ){
 										
 										outcome_informed = true;
@@ -155,14 +156,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 										
 										sendBrowserMessage("metasearch", "engineFailed", params );
 									}
+									*/
 								}
 	
 								public void 
 								cookiesFound(
 									ExternalLoginWindow 	window,
-									String 					cookies) 
+									String 					cookies ) 
 								{
-									if ( handleCookies(cookies, false )){
+									if ( handleCookies( cookies, false )){
 										
 										window.close();									
 									}
@@ -175,6 +177,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								{
 									handleCookies( cookies, true );
 									
+									/*
 									if ( !outcome_informed ){
 										
 										outcome_informed = true;
@@ -183,6 +186,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 																				
 										sendBrowserMessage("metasearch", "engineCompleted", params );
 									}
+									*/
 								}
 								
 								private boolean
@@ -190,6 +194,11 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									String		cookies,
 									boolean		force_if_ready )
 								{
+									if ( search_done ){
+										
+										return( false );
+									}
+									
 									String[] required = webEngine.getRequiredCookies();
 									
 									boolean	skip_search = required.length == 0 && !force_if_ready;
@@ -203,20 +212,20 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 											previous_cookies = cookies;
 											
 											if ( !skip_search ){
+												
 													// search operation will report outcome
 												
-												outcome_informed	= true;
+												search_done	= true;
 												
 												search( decodedMap, webEngine );
 											}
 										}
-										
-										return( !skip_search );
 									}
 	
-									return( false );
+									return( search_done );
 								}
 								
+								/*
 								protected Map
 								getParams(
 									Engine	engine )
@@ -233,6 +242,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									}
 									return( params );
 								}
+								*/
 							},
 						webEngine.getName(),
 						webEngine.getLoginPageUrl(),
