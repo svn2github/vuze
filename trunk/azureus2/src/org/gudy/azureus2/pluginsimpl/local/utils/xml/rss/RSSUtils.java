@@ -56,9 +56,25 @@ RSSUtils
 				format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US );
 			}
 			
+			
 			return( format.parse( date_str ));
 			
 		}catch( ParseException e ){
+			
+			String[]	fallbacks =
+			{	"EEE MMM dd hh:mm:ss z yyyy",			// Fri Sep 26 00:00:00 EDT 2008
+				"EEE MMM dd hh:mm z yyyy",				// Fri Sep 26 00:00 EDT 2008	
+				"EEE MMM dd hh z yyyy",					// Fri Sep 26 00 EDT 2008	
+			};
+			
+			for (int i=0;i<fallbacks.length;i++){
+				
+				try{
+					return(  new SimpleDateFormat(fallbacks[i], Locale.US ).parse( date_str ));
+					
+				}catch( ParseException f ){
+				}
+			}
 			
 			Debug.printStackTrace(e);
 			
