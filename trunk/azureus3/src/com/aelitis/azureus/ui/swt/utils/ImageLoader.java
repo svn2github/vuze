@@ -122,7 +122,9 @@ public class ImageLoader
 		}
 
 		int i = Collections.binarySearch(notFound, sKey) * -1 - 1;
-		notFound.add(i, sKey);
+		if (i >= 0) {
+			notFound.add(i, sKey);
+		}
 		return null;
 	}
 
@@ -335,7 +337,7 @@ public class ImageLoader
 			images = findResources(sKey);
 
 			if (images == null) {
-				return new Image[0];
+				images = new Image[0];
 			}
 
 			for (int i = 0; i < images.length; i++) {
