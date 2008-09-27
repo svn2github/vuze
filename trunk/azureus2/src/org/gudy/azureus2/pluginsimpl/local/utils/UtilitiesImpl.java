@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
@@ -75,7 +76,6 @@ import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -858,32 +858,39 @@ UtilitiesImpl
 						public void
 						run()
 						{
-							while( true ){
-								
-								if ( !delayed_tasks_sem.reserve( 5*1000 )){
+							try{
+								PluginInitializer.addInitThread();
+							
+								while( true ){
 									
-									synchronized( delayed_tasks ){
+									if ( !delayed_tasks_sem.reserve( 5*1000 )){
 										
-										if ( delayed_tasks.isEmpty()){
+										synchronized( delayed_tasks ){
 											
-											delayed_task_thread	= null;
-											
-											break;
+											if ( delayed_tasks.isEmpty()){
+												
+												delayed_task_thread	= null;
+												
+												break;
+											}
 										}
-									}
-								}else{
-									
-									DelayedTaskImpl	task;
-									
-									synchronized( delayed_tasks ){
+									}else{
 										
-										task = (DelayedTaskImpl)delayed_tasks.remove(0);
+										DelayedTaskImpl	task;
+										
+										synchronized( delayed_tasks ){
+											
+											task = (DelayedTaskImpl)delayed_tasks.remove(0);
+										}
+										
+										// System.out.println( TimeFormatter.milliStamp() + ": Running delayed task: " + task.getName());
+										
+										task.run();
 									}
-									
-									// System.out.println( TimeFormatter.milliStamp() + ": Running delayed task: " + task.getName());
-									
-									task.run();
 								}
+							}finally{
+								
+								PluginInitializer.removeInitThread();
 							}
 						}
 					};

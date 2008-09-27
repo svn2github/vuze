@@ -194,7 +194,9 @@ PluginInitializer
   private static AEMonitor			class_mon	= new AEMonitor( "PluginInitializer");
 
   private static List		registration_queue 	= new ArrayList();
-   
+  
+  private static List		initThreads = new ArrayList(1);
+  
   private AzureusCoreOperation core_operation;
   
   private AzureusCore		azureus_core;
@@ -211,7 +213,6 @@ PluginInitializer
   private List		s_plugins				= new ArrayList();
   private List		s_plugin_interfaces		= new ArrayList();
   
-  private List		initThreads;
   private boolean	initialisation_complete;
   
   private volatile boolean	plugins_initialised;
@@ -433,10 +434,36 @@ PluginInitializer
 	  azureus_core.triggerLifeCycleComponentCreated( pi );
   }
   
+  public static void
+  addInitThread()
+  {
+	  synchronized( initThreads ){
+		  
+		  if ( initThreads.contains( Thread.currentThread())){
+			  
+			  Debug.out( "Already added" );
+		  }
+		  
+		  initThreads.add( Thread.currentThread());
+	  }
+  }
+  
+  public static void
+  removeInitThread()
+  {
+	  synchronized( initThreads ){
+		  
+		  initThreads.remove( Thread.currentThread());
+	  }
+  }
+  
   protected boolean
   isInitialisationThread()
   {
-	  return initThreads != null && initThreads.contains(Thread.currentThread());
+	  synchronized( initThreads ){
+
+		  return initThreads.contains(Thread.currentThread());
+	  }
   }
   
   	public List 
@@ -1144,9 +1171,7 @@ PluginInitializer
   initialisePlugins() 
   {
 	  try{
-		  if(initThreads == null)
-			  initThreads = new ArrayList();
-		  initThreads.add(Thread.currentThread());
+		  addInitThread();
 		  
 		  final LinkedList initQueue = new LinkedList();
 		  
@@ -1295,26 +1320,36 @@ PluginInitializer
 				});
 			}
 			
-			AEThread2 secondaryInitializer = new AEThread2("2nd PluginInitializer Thread",true)
-			{
-				public void run() {
-					initThreads.add(Thread.currentThread());
-					
-					while(true)
+			AEThread2 secondaryInitializer = 
+				new AEThread2("2nd PluginInitializer Thread",true)
+				{
+					public void run() 
 					{
-						Runnable toRun;
-						synchronized (initQueue)
-						{
-							if(initQueue.isEmpty())
-								break;
-							toRun = (Runnable)initQueue.remove(0);
+						
+						try{
+							addInitThread();
+							
+							while( true ){
+							
+								Runnable toRun;
+								
+								synchronized (initQueue){
+									
+									if(initQueue.isEmpty()){
+										break;
+									}
+									
+									toRun = (Runnable)initQueue.remove(0);
+								}
+								
+								toRun.run();
+							}
+						}finally{
+							
+							removeInitThread();
 						}
-						toRun.run();
 					}
-					
-					initThreads.remove(Thread.currentThread());
-				}
-			};
+				};
 			secondaryInitializer.start();
 			
 			while(true)
@@ -1336,9 +1371,10 @@ PluginInitializer
 			plugins_initialised = true;
 			
 			fireEvent( PluginEvent.PEV_ALL_PLUGINS_INITIALISED );
+			
 	  }finally{
 		  
-		  initThreads = null;
+		  removeInitThread();
 	  }
 	}
   

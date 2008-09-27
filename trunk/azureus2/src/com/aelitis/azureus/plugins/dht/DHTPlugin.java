@@ -149,6 +149,7 @@ DHTPlugin
 		PluginInterface 	_plugin_interface )
 	{
 		status = STATUS_INITALISING;
+		
 		plugin_interface	= _plugin_interface;
 				
 		dht_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
@@ -953,7 +954,13 @@ DHTPlugin
 	public boolean
 	isEnabled()
 	{
-		if (plugin_interface == null) {return false;}
+		if ( plugin_interface == null ){
+		
+			Debug.out( "Called too early!" );
+			
+			return false;
+		}
+		
 		if ( plugin_interface.isInitialisationThread()){
 			
 			if ( !init_sem.isReleasedForever()){
