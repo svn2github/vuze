@@ -8,6 +8,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -24,6 +25,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -69,6 +71,13 @@ public class SubscriptionWizard {
 	TabItem   createSearchTabItem;
 	Composite availableSubscriptionComposite;
 	
+	Text searchInput;
+	Text feedUrl;
+	
+	static {
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/rss_bg.png", "rss_bg");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/search_bg.png", "search_bg");
+	}
 	
 	public SubscriptionWizard() {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -255,10 +264,32 @@ public class SubscriptionWizard {
 	private Composite createCreateRSSComposite(Composite parent) {
 		Composite composite = new Composite(parent,SWT.NONE);
 
-		Text feedUrl = new Text(composite, SWT.SINGLE);
+		Image bg = ImageRepository.getImage("rss_bg");
+		int width = bg.getBounds().width;
+		
+		feedUrl = new Text(composite, SWT.SINGLE);
 		feedUrl.setFont(textInputFont);
 		feedUrl.setText(MessageText.getString("Wizard.Subscription.rss.inputPrompt"));
-
+		feedUrl.setData("visited",new Boolean(false));
+		
+		feedUrl.addListener(SWT.FocusIn, new Listener() {
+			public void handleEvent(Event arg0) {
+				boolean visited = ((Boolean) feedUrl.getData("visited")).booleanValue();
+				if(visited) return;
+				feedUrl.setData("visited",new Boolean(true));
+				feedUrl.setText("");
+			}
+		});
+		
+		feedUrl.addListener (SWT.DefaultSelection, new Listener () {
+			public void handleEvent (Event e) {
+				System.out.println (e.widget + " - Default Selection");
+			}
+		});
+		
+		Label rssBackground = new Label(composite,SWT.NONE);
+		rssBackground.setImage(bg);
+		
 		Label subTitle = new Label(composite,SWT.NONE);
 		subTitle.setFont(subTitleFont);
 		subTitle.setText(MessageText.getString("Wizard.Subscription.rss.subtitle"));
@@ -276,11 +307,16 @@ public class SubscriptionWizard {
 		
 		FormData data;
 
+
 		data = new FormData();
 		data.top = new FormAttachment(0);
-		data.left = new FormAttachment(0, 40);
-		data.right = new FormAttachment(100, -40);
-		data.height = 30;
+		data.left = new FormAttachment(50,-width/2);
+		rssBackground.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(rssBackground,7,SWT.TOP);
+		data.left = new FormAttachment(rssBackground, 45,SWT.LEFT);
+		data.right = new FormAttachment(rssBackground, -5,SWT.RIGHT);
 		feedUrl.setLayoutData(data);
 
 		data = new FormData();
@@ -300,9 +336,31 @@ public class SubscriptionWizard {
 	private Composite createCreateSearchComposite(Composite parent) {
 		Composite composite = new Composite(parent,SWT.NONE);
 		
-		Text searchInput = new Text(composite, SWT.SINGLE);
+		Image bg = ImageRepository.getImage("search_bg");
+		int width = bg.getBounds().width;
+		
+		searchInput = new Text(composite, SWT.SINGLE);
 		searchInput.setFont(textInputFont);
 		searchInput.setText(MessageText.getString("Wizard.Subscription.search.inputPrompt"));
+		searchInput.setData("visited",new Boolean(false));
+		
+		searchInput.addListener(SWT.FocusIn, new Listener() {
+			public void handleEvent(Event arg0) {
+				boolean visited = ((Boolean) searchInput.getData("visited")).booleanValue();
+				if(visited) return;
+				searchInput.setData("visited",new Boolean(true));
+				searchInput.setText("");
+			}
+		});
+		
+		searchInput.addListener (SWT.DefaultSelection, new Listener () {
+			public void handleEvent (Event e) {
+				System.out.println (e.widget + " - Default Selection");
+			}
+		});
+		
+		Label searchBackground = new Label(composite,SWT.NONE);
+		searchBackground.setImage(bg);
 		
 		Label subTitle = new Label(composite,SWT.NONE);
 		subTitle.setFont(subTitleFont);
@@ -323,9 +381,13 @@ public class SubscriptionWizard {
 
 		data = new FormData();
 		data.top = new FormAttachment(0);
-		data.left = new FormAttachment(0, 40);
-		data.right = new FormAttachment(100, -40);
-		data.height = 30;
+		data.left = new FormAttachment(50,-width/2);
+		searchBackground.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(searchBackground,7,SWT.TOP);
+		data.left = new FormAttachment(searchBackground, 45,SWT.LEFT);
+		data.right = new FormAttachment(searchBackground, -5,SWT.RIGHT);
 		searchInput.setLayoutData(data);
 
 		data = new FormData();
@@ -342,7 +404,9 @@ public class SubscriptionWizard {
 	
 	private Composite createAvailableSubscriptionComposite(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
-		
+
+		composite.setBackground(display.getSystemColor(SWT.COLOR_BLUE));
+
 		return composite;
 	}
 	
@@ -470,6 +534,7 @@ public class SubscriptionWizard {
 		
 		switch (mode) {
 		case MODE_SUBSCRIBE :
+			mainLayout.topControl = availableSubscriptionComposite;
 			titleText = TITLE_SUBSCRIBE;
 			createButton.setVisible(true);
 			addButton.setVisible(true);
