@@ -43,6 +43,7 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -106,7 +107,8 @@ public class SBC_LibraryTableView
 							return;
 						}
 						Object ds = rows[0].getDataSource(true);
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+								Constants.DL_REFERAL_DBLCLICK);
 					}
 				});
 
@@ -136,7 +138,8 @@ public class SBC_LibraryTableView
 		  							return;
 		  						}
 		  						Object ds = rows[0].getDataSource(true);
-		  						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "dblclick");
+		  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+											Constants.DL_REFERAL_DBLCLICK);
 		  					}
 		  				});
 						}

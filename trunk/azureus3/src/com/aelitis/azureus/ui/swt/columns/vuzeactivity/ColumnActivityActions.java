@@ -51,9 +51,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.DataSourceUtils;
-import com.aelitis.azureus.util.PlayUtils;
-import com.aelitis.azureus.util.StringCompareUtils;
+import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -281,7 +279,7 @@ public class ColumnActivityActions
 								return;
 							}
 
-							referal = "dashboardactivity-"
+							referal = Constants.DL_REFERAL_DASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
 						TorrentListViewsUtils.downloadDataSource(ds, false, referal);
@@ -298,7 +296,7 @@ public class ColumnActivityActions
 								}
 								return;
 							}
-							referal = "playdashboardactivity-"
+							referal = Constants.DL_REFERAL_PLAYDASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
 						TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal);
@@ -306,7 +304,8 @@ public class ColumnActivityActions
 					} else if (hitUrl.url.equals("launch")) {
 						// run via play or stream so we get the security warning
 						Object ds = event.cell.getDataSource();
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null, "unknown");
+						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+								Constants.DL_REFERAL_LAUNCH);
 						
 					} else if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);

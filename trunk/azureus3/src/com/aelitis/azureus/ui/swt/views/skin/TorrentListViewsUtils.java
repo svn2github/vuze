@@ -361,15 +361,13 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
-		String referal = "unknown";
+		String referal = Constants.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
-			referal = "playdashboardactivity";
+			referal = Constants.DL_REFERAL_PLAYDASHACTIVITY;
 		} else if (ds instanceof DownloadManager) {
-			referal = "playdownloadmanager";
+			referal = Constants.DL_REFERAL_PLAYDM;
 		} else if (ds instanceof ISelectedContent) {
-			referal = "selectedcontent";
-		} else {
-			referal = "unknown";
+			referal = Constants.DL_REFERAL_SELCONTENT;
 		}
 		playOrStreamDataSource(ds, btn, referal);
 	}

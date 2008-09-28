@@ -148,6 +148,23 @@ public class Constants
 	public static final boolean DIAG_TO_STDOUT = System.getProperty(
 			"DIAG_TO_STDOUT", "0").equals("1");
 
+	public static final String DL_REFERAL_PLAYDASHACTIVITY = "playdashboardactivity";
+	
+	public static final String DL_REFERAL_UNKNOWN = "unknown";
+
+	public static final String DL_REFERAL_LAUNCH = "launch";
+
+	public static final String DL_REFERAL_PLAYDM = "playdownloadmanager";
+
+	public static final String DL_REFERAL_SELCONTENT = "selectedcontent";
+
+	public static final String DL_REFERAL_DBLCLICK = "dblclick";
+
+	public static final String DL_REFERAL_TOOLBAR = "toolbar";
+
+	public static final String DL_REFERAL_DASHACTIVITY = "dashboardactivity";
+	
+
 	public static String AZID;
 
 	public static void initialize(AzureusCore core) {
