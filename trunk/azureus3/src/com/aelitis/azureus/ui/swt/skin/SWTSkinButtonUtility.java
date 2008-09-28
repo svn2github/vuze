@@ -213,12 +213,12 @@ public class SWTSkinButtonUtility
 		}
 		if (skinObject instanceof SWTSkinObjectImage) {
 			SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) skinObject;
-			skinImageObject.setTooltipByID(id);
+			skinImageObject.setTooltipID(id);
 		} else if (skinObject instanceof SWTSkinObjectContainer) {
 			SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
 			if (children.length > 0 && children[0] instanceof SWTSkinObjectImage) {
 				SWTSkinObjectImage skinImageObject = (SWTSkinObjectImage) children[0];
-				skinImageObject.setTooltipByID(id);
+				skinImageObject.setTooltipID(id);
 			}
 		}
 	}

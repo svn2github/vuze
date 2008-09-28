@@ -19,6 +19,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
  * @author TuxPaper
@@ -87,6 +88,10 @@ public class SWTSkinObjectBasic
 	protected Color bgColor2;
 
 	private Image bgImage;
+
+	private String tooltipID;
+
+	protected boolean customTooltipID = false;
 
 	/**
 	 * @param properties TODO
@@ -191,6 +196,18 @@ public class SWTSkinObjectBasic
 				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
+		
+		control.addListener(SWT.MouseHover, new Listener() {
+			public void handleEvent(Event event) {
+				String id = getTooltipID(true);
+				if (id == null) {
+					control.setToolTipText(null);
+				} else {
+					control.setToolTipText(MessageText.getString(id, (String) null));
+				}
+			}
+		});
+		
 		if (skin.isLayoutComplete()) {
 			skin.attachControl(this);
 		}
@@ -545,12 +562,15 @@ public class SWTSkinObjectBasic
 					}
 				}
 
-				String sTooltip = properties.getStringValue(sConfigID + ".tooltip"
-						+ sSuffix);
-				if (sTooltip != null) {
-					setTooltipAndChildren(control, sTooltip);
+				if (!customTooltipID ) {
+  				String newToolTipID = properties.getReferenceID(sConfigID + ".tooltip"
+  						+ sSuffix);
+  				if (newToolTipID == null && sSuffix.length() > 0) {
+  					newToolTipID = properties.getReferenceID(sConfigID + ".tooltip");
+  				}
+  				tooltipID = newToolTipID;
 				}
-
+				
 				if (!alwaysHookPaintListener && needPaintHook != paintListenerHooked) {
 					if (needPaintHook) {
 						control.addPaintListener(SWTSkinObjectBasic.this);
@@ -572,17 +592,6 @@ public class SWTSkinObjectBasic
 			suffix += suffixes[i];
 		}
 		return suffix;
-	}
-
-	public void setTooltipAndChildren(Control c, String sToolTip) {
-		c.setToolTipText(sToolTip);
-		if (c instanceof Composite) {
-			Control[] children = ((Composite) c).getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				setTooltipAndChildren(control, sToolTip);
-			}
-		}
 	}
 
 	/**
@@ -718,15 +727,28 @@ public class SWTSkinObjectBasic
 		return disposed;
 	}
 
-	public void setTooltipByID(final String id) {
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#setTooltipID(java.lang.String)
+	public void setTooltipID(final String id) {
 		if (isDisposed()) {
 			return;
 		}
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				control.setToolTipText(MessageText.getString(id));
-			}
-		});
+		if (StringCompareUtils.equals(id, tooltipID)) {
+			return;
+		}
+
+		tooltipID = id;
+		customTooltipID = true;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#getTooltipID(boolean)
+	public String getTooltipID(boolean walkup) {
+		if (tooltipID != null || !walkup) {
+			return tooltipID;
+		}
+		if (parent != null) {
+			return parent.getTooltipID(true);
+		}
+		return null;
 	}
 
 	public void paintControl(GC gc) {

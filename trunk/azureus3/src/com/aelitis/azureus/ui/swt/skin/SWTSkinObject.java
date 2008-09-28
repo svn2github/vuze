@@ -127,7 +127,7 @@ public interface SWTSkinObject extends ObfusticateShell
 	 *
 	 * @since 3.0.4.3
 	 */
-	void setTooltipByID(String id);
+	void setTooltipID(String id);
 
 	/**
 	 * @return
@@ -153,4 +153,12 @@ public interface SWTSkinObject extends ObfusticateShell
 	 * @since 3.1.1.1
 	 */
 	boolean isDebug();
+
+	/**
+	 * @param walkup
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	String getTooltipID(boolean walkup);
 }

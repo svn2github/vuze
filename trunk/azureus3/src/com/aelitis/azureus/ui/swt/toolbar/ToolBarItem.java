@@ -36,6 +36,8 @@ public abstract class ToolBarItem
 	boolean enabled = true;
 	
 	private String textID;
+	
+	private String tooltipID;
 
 	/**
 	 * @param id
@@ -52,6 +54,7 @@ public abstract class ToolBarItem
 		this.id = id;
 		imageID = imageid;
 		this.textID = textID;
+		this.tooltipID = textID + ".tooltip";
 	}
 
 	public abstract void triggerToolBarItem();
@@ -112,5 +115,13 @@ public abstract class ToolBarItem
 	 */
 	public boolean triggerToolBarItemHold() {
 		return false;
+	}
+
+	public String getTooltipID() {
+		return tooltipID;
+	}
+
+	public void setTooltipID(String tooltipID) {
+		this.tooltipID = tooltipID;
 	}
 }

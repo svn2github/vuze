@@ -542,6 +542,8 @@ public class ToolBarView
 		SWTSkinObject so = skin.createSkinObject("toolbar:" + item.getId(),
 				templateID, soMain);
 		if (so != null) {
+			so.setTooltipID(item.getTooltipID());
+
 			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
 				fd.left = new FormAttachment(lastControl);
