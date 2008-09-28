@@ -90,4 +90,12 @@ public interface SkinProperties
 	 * @since 3.1.1.1
 	 */
 	boolean hasKey(String name);
+
+	/**
+	 * @param name
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	String getReferenceID(String name);
 }

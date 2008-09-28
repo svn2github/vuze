@@ -139,7 +139,22 @@ public class SkinPropertiesImpl
 	}
 
 
+	public String getReferenceID(String name) {
+		String value = getValue(name, null, false);
+		if (value == null || value.length() < 2) {
+			return null;
+		}
+		if (value.charAt(0) == '{' && value.charAt(value.length() - 1) == '}') {
+			return value.substring(1, value.length() - 2);
+		}
+		return null;
+	}
+	
 	private String getValue(String name, String[] params) {
+		return getValue(name, params, true);
+	}
+
+	private String getValue(String name, String[] params, boolean expandReferences) {
 		String value = null;
 		String osName = null;
 
@@ -169,7 +184,7 @@ public class SkinPropertiesImpl
 			value = rb.getString(name, null);
 		}
 
-		if (value != null && value.indexOf('}') > 0) {
+		if (expandReferences && value != null && value.indexOf('}') > 0) {
 			Matcher matcher;
 
 			if (params != null) {

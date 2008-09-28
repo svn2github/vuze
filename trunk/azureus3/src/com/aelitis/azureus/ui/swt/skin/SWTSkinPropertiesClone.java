@@ -317,4 +317,26 @@ public class SWTSkinPropertiesClone
 		}
 		return color;
 	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getReferenceID(java.lang.String)
+	public String getReferenceID(String name) {
+		if (name == null) {
+			return null;
+		}
+		if (DEBUG) {
+			checkName(name);
+		}
+		if (name.length() > 0 && name.charAt(0) != '.') {
+			return properties.getReferenceID(name);
+		}
+
+		if (!name.equals(IGNORE_NAME)) {
+			String val = properties.getReferenceID(sCloneConfigID + name);
+			if (val != null) {
+				return val;
+			}
+		}
+
+		return properties.getReferenceID(sTemplateConfigID + name);
+	}
 }

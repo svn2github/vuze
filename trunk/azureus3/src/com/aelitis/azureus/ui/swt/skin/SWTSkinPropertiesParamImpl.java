@@ -110,4 +110,9 @@ public class SWTSkinPropertiesParamImpl
 		}
 		return color;
 	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getReferenceID(java.lang.String)
+	public String getReferenceID(String name) {
+		return properties.getReferenceID(name);
+	}
 }
