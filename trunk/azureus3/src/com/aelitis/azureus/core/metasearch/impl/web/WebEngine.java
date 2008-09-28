@@ -685,7 +685,7 @@ WebEngine
 			
 		}catch( Throwable e) {
 			
-			e.printStackTrace();
+			// e.printStackTrace();
 			
 			throw( new SearchException( "Failed to load page", e ));
 		}
