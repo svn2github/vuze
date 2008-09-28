@@ -60,7 +60,7 @@ DHT
 	public static final byte		FLAG_ANON			= 0x10;
 	public static final byte		FLAG_PRECIOUS		= 0x20;
 
-	public static final int 	MAX_VALUE_SIZE		= 256;
+	public static final int 	MAX_VALUE_SIZE		= 512;
 
 		// diversification types, don't change as serialised!!!!
 	

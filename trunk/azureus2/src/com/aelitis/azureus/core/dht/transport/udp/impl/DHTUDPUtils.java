@@ -124,7 +124,7 @@ DHTUDPUtils
 	{
 		if ( len > max_length ){
 			
-			throw( new IOException( "Invalid data length" ));
+			throw( new IOException( "Invalid DHT data length: max=" + max_length + ",actual=" + len ));
 		}
 		
 		if ( max_length < 256 ){
@@ -165,7 +165,7 @@ DHTUDPUtils
 		
 		if ( len > max_length ){
 			
-			throw( new IOException( "Invalid data length" ));
+			throw( new IOException( "Invalid DHT data length: max=" + max_length + ",actual=" + len ));
 		}
 		
 		return( len );
