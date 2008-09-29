@@ -1055,13 +1055,16 @@ public class TorrentListViewsUtils
 
 		debug("removeDownload");
 
-		tableView.removeDataSource(dm, true);
-
-		AERunnable failure = new AERunnable() {
-			public void runSupport() {
-				tableView.addDataSource(dm, true);
-			}
-		};
+		AERunnable failure = null;
+		if (tableView != null) {
+  		tableView.removeDataSource(dm, true);
+  
+  		failure = new AERunnable() {
+  			public void runSupport() {
+  				tableView.addDataSource(dm, true);
+  			}
+  		};
+		}
 
 		if (PublishUtils.isPublished(dm)) {
 			ManagerUtils.remove(dm, null, false, false, failure);

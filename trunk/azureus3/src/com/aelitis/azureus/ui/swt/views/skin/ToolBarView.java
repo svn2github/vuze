@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -48,7 +49,10 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
+
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author TuxPaper
@@ -286,8 +290,13 @@ public class ToolBarView
 					}
 				} else {
 					DownloadManager[] dms = getDMSFromSelectedContent();
-					if (dms != null) {
-						TorrentUtil.removeTorrents(dms, null);
+					for (int i = 0; i < dms.length; i++) {
+						DownloadManager dm = dms[i];
+						if (dm != null) {
+							boolean delete = !dm.getDownloadState().getFlag(
+									Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
+							TorrentListViewsUtils.removeDownload(dm, null, true, delete);
+						}
 					}
 				}
 			}
