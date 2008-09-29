@@ -144,7 +144,7 @@ public class ColumnRatingGlobal
 			}
 
 			int width = cell.getWidth();
-			int height = 34;//cell.getHeight(); KN: HARDCODE!!!
+			int height = cell.getHeight();
 			if (width <= 0 || height <= 0) {
 				return;
 			}
@@ -161,7 +161,12 @@ public class ColumnRatingGlobal
 //			}
 //			GC gcImage = new GC(img);
 			Rectangle r = cell.getBounds(); // img.getBounds();
-
+			
+			if (r.height < 30) {
+				GCStringPrinter.printString(gcImage, rating, r, true, false, SWT.RIGHT);
+				return;
+			}
+			
 			int bigTextStyle = SWT.TOP | SWT.RIGHT;
 			int smallTextStyle = SWT.RIGHT;
 
