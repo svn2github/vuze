@@ -30,8 +30,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -51,12 +50,15 @@ public class ColumnDateAdded2Liner
 		"EEE, MMM d, ''yy",
 		"MMMM d, ''yy",
 		"MMM d, ''yy",
-		"yyyy/mm/dd"
+		"yyyy/mm/dd",
+		"yyyy/mm",
 	};
 
-	static int globalFormat = 0;
-
 	int curFormat = 0;
+
+	int maxWidthUsed = 0;
+
+	Date maxWidthDate = new Date();
 
 	public ColumnDateAdded2Liner(String sTableID) {
 		this(sTableID, false);
@@ -73,24 +75,40 @@ public class ColumnDateAdded2Liner
 		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
 				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 
-		if (!cell.setSortValue(value) && cell.isValid()
-				&& curFormat == globalFormat) {
+		if (!cell.setSortValue(value) && cell.isValid()) {
 			return;
 		}
 		if (!cell.isShown()) {
 			return;
 		}
 
-		int cellWidth = cell.getWidth();
 		Date date = new Date(value);
+
+		if (curFormat >= 0) {
+			int newWidth = calcWidth(date, FORMATS[curFormat]);
+			if (newWidth > maxWidthUsed) {
+				maxWidthUsed = newWidth;
+				maxWidthDate = date;
+				invalidateCells();
+			}
+			
+			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
+					+ "\nh:mm a");
+			cell.setText(temp.format(date));
+		}
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
+	public void setWidth(int width) {
+		super.setWidth(width);
 
 		GC gc = new GC(Display.getDefault());
 		Point minSize = new Point(99999, 0);
-		int idxFormat = -1;
-		for (int i = globalFormat; i < FORMATS.length; i++) {
+		int idxFormat = FORMATS.length - 1;
+		for (int i = 0; i < FORMATS.length; i++) {
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
-			Point newSize = gc.stringExtent(temp.format(date));
-			if (newSize.x < cellWidth) {
+			Point newSize = gc.stringExtent(temp.format(maxWidthDate));
+			if (newSize.x < width - 6) {
 				idxFormat = i;
 				break;
 			}
@@ -100,19 +118,22 @@ public class ColumnDateAdded2Liner
 			}
 		}
 		gc.dispose();
+		
+		maxWidthUsed = minSize.x;
 
-		if (idxFormat >= 0) {
-			if (idxFormat > globalFormat) {
-				globalFormat = idxFormat;
-				cell.getTableColumn().invalidateCells();
-			} else if (idxFormat < globalFormat) {
-				idxFormat = globalFormat;
-			}
+		if (curFormat != idxFormat) {
 			curFormat = idxFormat;
-
-			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[idxFormat]
-					+ "\nh:mm a");
-			cell.setText(temp.format(date));
+			invalidateCells();
 		}
+	}
+
+
+	public int calcWidth(Date date, String format) {
+		GC gc = new GC(Display.getDefault());
+		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
+				+ "\nh:mm a");
+		Point newSize = gc.stringExtent(temp.format(date));
+		gc.dispose();
+		return newSize.x;
 	}
 }
