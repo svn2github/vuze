@@ -49,7 +49,7 @@ public class SideBarToolTips
 	private final SideBar sidebar;
 
 	private SideBarEntrySWT sideBarInfo;
-	
+
 	private Point lastMouseHoverPos;
 
 	/**
@@ -110,15 +110,12 @@ public class SideBarToolTips
 		}
 		String id = (String) treeItem.getData("Plugin.viewID");
 		sideBarInfo = SideBar.getSideBarInfo(id);
-		if (sideBarInfo.titleInfo == null) {
-			return;
-		}
 
 		String sToolTip = getToolTip(mousePos);
 		if (sToolTip == null) {
 			return;
 		}
-		
+
 		lastMouseHoverPos = mousePos;
 
 		Display d = tree.getDisplay();
@@ -193,25 +190,27 @@ public class SideBarToolTips
 	 * @since 3.1.1.1
 	 */
 	private String getToolTip(Point mousePos) {
-		String sToolTip = null;
-		if (sToolTip == null) {
-			SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
-			for (int i = 0; i < vitalityImages.length; i++) {
-				SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-				String indicatorToolTip = vitalityImage.getToolTip();
-				if (indicatorToolTip == null || !vitalityImage.isVisible()) {
-					continue;
-				}
-				Rectangle hitArea = vitalityImage.getHitArea();
-				if (hitArea == null) {
-					continue;
-				}
-				if (hitArea.contains(mousePos)) {
-					return indicatorToolTip;
-				}
+		SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+		for (int i = 0; i < vitalityImages.length; i++) {
+			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+			String indicatorToolTip = vitalityImage.getToolTip();
+			if (indicatorToolTip == null || !vitalityImage.isVisible()) {
+				continue;
+			}
+			Rectangle hitArea = vitalityImage.getHitArea();
+			if (hitArea == null) {
+				continue;
+			}
+			if (hitArea.contains(mousePos)) {
+				return indicatorToolTip;
 			}
 		}
-		return (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+
+		if (sideBarInfo.titleInfo != null) {
+			return (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		}
+
+		return null;
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
