@@ -220,7 +220,7 @@ public class ColumnActivityActions
 
 			if (canPlay) {
 				if (sb.length() > 0) {
-					sb.append(", ");
+					sb.append(" | ");
 				}
 				sb.append("<A HREF=\"play\">Play</A>");
 			}
