@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -35,6 +36,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -98,6 +101,9 @@ public class SBC_LibraryView
 	private static int numErrorComplete = 0;
 
 	private static int numErrorInComplete = 0;
+
+	private static int numUnOpened = 0;
+
 
 	private int viewMode = -1;
 
@@ -293,6 +299,8 @@ public class SBC_LibraryView
 						int viewMode = COConfigurationManager.getIntParameter(id
 								+ ".viewmode", MODE_BIGTABLE);
 						return id + "-" + viewMode;
+					} else if (propertyID == TITLE_INDICATOR_TEXT) {
+						return "" + numUnOpened;
 					}
 					return null;
 				}
@@ -348,7 +356,10 @@ public class SBC_LibraryView
 			}
 
 			public void completionChanged(DownloadManager dm, boolean completed) {
-				if (dm.getAssumedComplete()) {
+				if (completed) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+						numUnOpened++;
+					}
 					numComplete++;
 					numIncomplete--;
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
@@ -356,6 +367,9 @@ public class SBC_LibraryView
 						numErrorInComplete--;
 					}
 				} else {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+						numUnOpened--;
+					}
 					numIncomplete++;
 					numComplete--;
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
@@ -368,6 +382,9 @@ public class SBC_LibraryView
 		};
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					numUnOpened--;
+				}
 				if (dm.getAssumedComplete()) {
 					numComplete--;
 				} else {
@@ -381,6 +398,9 @@ public class SBC_LibraryView
 				dm.addListener(dmListener, false);
 
 				if (dm.getAssumedComplete()) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+						numUnOpened++;
+					}
 					numComplete++;
 					if (dm.getState() == DownloadManager.STATE_SEEDING) {
 						numSeeding++;
@@ -402,6 +422,9 @@ public class SBC_LibraryView
 			DownloadManager dm = (DownloadManager) iter.next();
 			dm.addListener(dmListener, false);
 			if (dm.getAssumedComplete()) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					numUnOpened++;
+				}
 				numComplete++;
 				if (dm.getState() == DownloadManager.STATE_SEEDING) {
 					dm.setUserData("wasSeeding", new Boolean(true));
@@ -416,7 +439,16 @@ public class SBC_LibraryView
 				}
 			}
 		}
-
+		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
+			public void hasBeenOpenedChanged(TOTorrent torrent, boolean opened) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(torrent)) {
+					numUnOpened++;
+				} else {
+					numUnOpened--;
+				}
+				refreshAllLibraries();
+			}
+		});
 	}
 
 	/**
@@ -448,7 +480,10 @@ public class SBC_LibraryView
 				vitalityImage.setVisible(numErrorComplete > 0);
 			}
 		}
-	}
+
+		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
+}
 
 	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {
 		if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
