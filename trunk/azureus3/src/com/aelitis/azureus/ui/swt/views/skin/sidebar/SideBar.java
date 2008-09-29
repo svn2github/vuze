@@ -1010,7 +1010,9 @@ public class SideBar
 
 			if (sideBarInfo.closeable) {
 				Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
-				closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height) / 2;
+				if (closeArea != null) {
+					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height) / 2;
+				}
 			}
 
 			SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
