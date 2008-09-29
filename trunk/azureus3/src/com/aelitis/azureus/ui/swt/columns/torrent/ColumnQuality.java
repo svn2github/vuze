@@ -75,19 +75,8 @@ public class ColumnQuality
 	}
 
 	public void refresh(TableCell cell) {
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		if (dm == null) {
-			return;
-		}
-
-		TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			return;
-		}
-
+		TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
 		String quality = PlatformTorrentUtils.getContentQuality(torrent);
-		if (!cell.setSortValue(quality) && cell.isValid()) {
-			return;
-		}
+		cell.setSortValue(quality);
 	}
 }
