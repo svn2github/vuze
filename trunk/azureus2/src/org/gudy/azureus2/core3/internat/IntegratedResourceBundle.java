@@ -107,6 +107,8 @@ IntegratedResourceBundle
 	private List null_values;
 	
 	private int		clean_count	= 0;
+	private boolean	one_off_discard_done;
+	
 	private File	scratch_file;
 	
 
@@ -263,6 +265,7 @@ IntegratedResourceBundle
 					}
 					
 					null_values.add(index, keyHash);
+					
 				} else {
 
 					used_messages.put( key, res==null?NULL_OBJECT:res );
@@ -385,12 +388,28 @@ IntegratedResourceBundle
 			}
 		}
 		
-		if ( scratch_file != null && clean_count >= 2 ){
+		if ( scratch_file != null ){
 			
-			messages = null;
+			if ( clean_count >= 2 ){
+		
+			
+					// throw away full message map after 2 ticks
+			
+				messages = null;
+			}
+		
+			if ( clean_count == 5 && !one_off_discard_done){
+
+				one_off_discard_done = true;
+				
+					// one off discard of used_messages to clear out any that were
+					// accessed once and never again
+			
+				used_messages.clear();
+			}
 		}
 		
-		if ( clean_count >= 5 ){
+		if ( clean_count > 5 ){
 		
 			Map	compact_um = new LightHashMap( used_messages.size() + 16 );
 			
