@@ -107,7 +107,9 @@ public class PlatformTorrentUtils
 	
 	private static final String TOR_AZ_PROP_PRIMARY_FILE = "Primary File Index";
 
-	private static final ArrayList metaDataListeners = new ArrayList();
+	private static final ArrayList metaDataListeners = new ArrayList(1);
+
+	private static final ArrayList hasBeenOpenedListeners = new ArrayList(1);
 
 	private static final String TOR_AZ_PROP_USE_EMP = "useEMP";
 	
@@ -919,11 +921,29 @@ public class PlatformTorrentUtils
 	}
 	
 	public static void setHasBeenOpened(TOTorrent torrent, boolean opened) {
+		if (opened == getHasBeenOpened(torrent)) {
+			return;
+		}
 		setContentMapLong(torrent, TOR_AZ_PROP_OPENED, opened ? 1 : 0);
+		Object[] array = hasBeenOpenedListeners.toArray();
+		for (int i = 0; i < array.length; i++) {
+			try {
+				HasBeenOpenedListener l = (HasBeenOpenedListener) array[i];
+				l.hasBeenOpenedChanged(torrent, opened);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
 	}
 
 	public static boolean getHasBeenOpened(TOTorrent torrent) {
+		if (PlatformTorrentUtils.getAdId(torrent) != null) {
+			return true;
+		}
 		return getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
 	}
 
+	public static void addHasBeenOpenedListener(HasBeenOpenedListener l) {
+		hasBeenOpenedListeners.add(l);
+	}
 }
