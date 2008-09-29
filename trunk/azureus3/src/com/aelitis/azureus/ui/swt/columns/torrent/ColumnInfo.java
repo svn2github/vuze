@@ -19,18 +19,21 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -42,21 +45,20 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class ColumnInfo
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellRefreshListener,
-	TableCellMouseListener
+	implements TableCellAddedListener,
+	TableCellMouseListener, TableCellSWTPaintListener
 {
 	public static final String COLUMN_ID = "Info";
 
-	private static UISWTGraphicImpl graphicInfo;
-
-	private static Rectangle boundsInfo;
+	private static Rectangle imgBounds;
 
 	private static int width = 30;
 
+	private static Image img;
+
 	static {
-		Image img = ImageLoaderFactory.getInstance().getImage("icon.info");
-		graphicInfo = new UISWTGraphicImpl(img);
-		boundsInfo = img.getBounds();
+		img = ImageLoaderFactory.getInstance().getImage("icon.info");
+		imgBounds = img.getBounds();
 //		width = boundsRateMe.width;
 	}
 
@@ -72,26 +74,17 @@ public class ColumnInfo
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
+		((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
 	}
 
-	public void refresh(TableCell cell) {
-		Object ds = cell.getDataSource();
-		TOTorrent torrent = null;
-		if (ds instanceof TOTorrent) {
-			torrent = (TOTorrent) ds;
-		} else if (ds instanceof DownloadManager) {
-			torrent = ((DownloadManager) ds).getTorrent();
-		}
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
+	public void cellPaint(GC gc, TableCellSWT cell) {
+		TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
 		
-		if (!cell.isShown() || cell.isValid()) {
-			return;
-		}
-
-		if (torrent == null || !PlatformTorrentUtils.isContent(torrent, true)) {
-			cell.setGraphic(null);
-		} else {
-			UISWTGraphic graphic = graphicInfo;
-			cell.setGraphic(graphic);
+		if (PlatformTorrentUtils.isContent(torrent, true)) {
+  		Rectangle cellBounds = cell.getBounds();
+  		gc.drawImage(img, cellBounds.x
+  				+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
 		}
 	}
 
@@ -117,11 +110,5 @@ public class ColumnInfo
 				// TODO: handle exception
 			}
 		}
-	}
-
-
-
-	public void setDisabled(boolean disabled) {
-		this.invalidateCells();
 	}
 }
