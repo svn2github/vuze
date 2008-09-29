@@ -52,6 +52,7 @@ public class ColumnVideoLength
 	 */
 	public ColumnVideoLength(String tableID) {
 		super(COLUMN_ID, WIDTH, tableID);
+		setAlignment(ALIGN_TRAIL);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
