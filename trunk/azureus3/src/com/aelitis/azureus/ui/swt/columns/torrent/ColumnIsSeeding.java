@@ -54,7 +54,7 @@ public class ColumnIsSeeding
 
 	public ColumnIsSeeding(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, width);
+		initializeAsGraphic(width);
 		setAlignment(ALIGN_CENTER);
 	}
 

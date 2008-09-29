@@ -60,7 +60,7 @@ public class ColumnUnopened
 			graphicCheck = new UISWTGraphicImpl(img);
 		}
 		
-		initializeAsGraphic(POSITION_LAST, width);
+		initializeAsGraphic(width);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

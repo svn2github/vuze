@@ -55,7 +55,7 @@ public class ColumnActivityNew
 	public ColumnActivityNew(String tableID) {
 		super(COLUMN_ID, 22, tableID);
 		
-		initializeAsGraphic(POSITION_LAST, 22);
+		initializeAsGraphic(22);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
 	}

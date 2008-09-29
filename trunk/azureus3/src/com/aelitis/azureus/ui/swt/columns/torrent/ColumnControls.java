@@ -65,7 +65,7 @@ public class ColumnControls
 
 	public ColumnControls(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+		initializeAsGraphic(COLUMN_WIDTH);
 		setAlignment(ALIGN_LEAD);
 		setMinWidth(COLUMN_WIDTH);
 		setMaxWidth(COLUMN_WIDTH);

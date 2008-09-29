@@ -30,16 +30,16 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createIncompleteDM(String tableID) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbnail.COLUMN_ID,
-			RankItem.COLUMN_ID,
 			NameItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			StatusItem.COLUMN_ID,
+			ETAItem.COLUMN_ID,
+			CompletionItem.COLUMN_ID,
+			PiecesItem.COLUMN_ID,
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
 			SizeItem.COLUMN_ID,
-			DoneItem.COLUMN_ID,
-			StatusItem.COLUMN_ID,
-			ETAItem.COLUMN_ID,
-			ColumnRateUpDown.COLUMN_ID,
-			DateAddedItem.COLUMN_ID,
+			ColumnDateAdded2Liner.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -83,17 +83,17 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createCompleteDM(String tableID) {
 		final String[] defaultVisibleOrder = {
-			RankItem.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
-			SizeItem.COLUMN_ID,
-			DoneItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
 			StatusItem.COLUMN_ID,
 			ColumnRatingGlobal.COLUMN_ID,
 			ColumnRateUpDown.COLUMN_ID,
-			DateCompletedItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnDateCompleted2Liner.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -120,14 +120,15 @@ public class TableColumnCreatorV3
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
-			ColumnQuality.COLUMN_ID,
-			ColumnInfo.COLUMN_ID,
-			SizeItem.COLUMN_ID,
-			DoneItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
 			StatusItem.COLUMN_ID,
 			ColumnRatingGlobal.COLUMN_ID,
 			ColumnRateUpDown.COLUMN_ID,
-			DateCompletedItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnDateCompleted2Liner.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -207,6 +208,9 @@ public class TableColumnCreatorV3
 		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, all));
 		c.put(ColumnRatingGlobal.COLUMN_ID,
 				new cInfo(ColumnRatingGlobal.class, all));
+		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, all));
+		c.put(ColumnDateAdded2Liner.COLUMN_ID, new cInfo(ColumnDateAdded2Liner.class, all));
+		c.put(ColumnDateCompleted2Liner.COLUMN_ID, new cInfo(ColumnDateCompleted2Liner.class, all));
 
 		/////////
 

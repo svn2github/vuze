@@ -75,7 +75,7 @@ public class ColumnRateDropDown
 			imgDD = ImageLoaderFactory.getInstance().getImage("image.rateitdd");
 			imgDDbounds = imgDD.getBounds();
 		}
-		initializeAsGraphic(POSITION_LAST, imgDDbounds.width);
+		initializeAsGraphic(imgDDbounds.width);
 		setAlignment(ALIGN_CENTER);
 	}
 

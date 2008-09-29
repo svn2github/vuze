@@ -79,7 +79,7 @@ public class ColumnTitle
 
 	/** Default Constructor */
 	public ColumnTitle(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
+		super(COLUMN_ID, POSITION_INVISIBLE, 250, sTableID);
 		setMinWidth(70);
 		setObfustication(true);
 		if (LINKIFY) {

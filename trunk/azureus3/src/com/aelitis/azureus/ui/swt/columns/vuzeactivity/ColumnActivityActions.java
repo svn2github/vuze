@@ -101,7 +101,7 @@ public class ColumnActivityActions
 	 */
 	public ColumnActivityActions(String tableID) {
 		super(COLUMN_ID, tableID);
-		initializeAsGraphic(POSITION_LAST, 150);
+		initializeAsGraphic(150);
 
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		colorLinkNormal = skinProperties.getColor("color.links.normal");

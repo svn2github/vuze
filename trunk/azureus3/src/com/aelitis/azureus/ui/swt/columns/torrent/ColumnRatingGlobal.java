@@ -40,7 +40,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
-import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -67,7 +66,7 @@ public class ColumnRatingGlobal
 	 */
 	public ColumnRatingGlobal(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initialize(ALIGN_LEAD, POSITION_LAST, COLUMN_WIDTH);
+		initialize(ALIGN_LEAD, POSITION_INVISIBLE, COLUMN_WIDTH);
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -105,17 +104,6 @@ public class ColumnRatingGlobal
 		public void dispose(TableCell cell) {
 			PlatformRatingMessenger.removeListener(this);
 			//disposeOldImage(cell);
-		}
-
-		// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
-		public void refresh(TableCell cell) {
-			refresh(cell, false);
-		}
-
-		public void refresh(final TableCell cell, final boolean force) {
-			if (force) {
-				System.out.println("WANT FORCE");
-			}
 		}
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -274,7 +262,7 @@ public class ColumnRatingGlobal
 			try {
 				String hash = dm.getTorrent().getHashWrapper().toBase32String();
 				if (rating.hasHash(hash)) {
-					refresh(cell, true);
+					cell.invalidate();
 				}
 			} catch (Exception e) {
 				// ignore

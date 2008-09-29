@@ -45,7 +45,7 @@ public class ColumnRecEdit
 	 */
 	public ColumnRecEdit(String sTableID) {
 		super("RecEdit", sTableID);
-		initializeAsGraphic(POSITION_LAST, 18);
+		initializeAsGraphic(18);
 		setAlignment(ALIGN_CENTER);
 	}
 

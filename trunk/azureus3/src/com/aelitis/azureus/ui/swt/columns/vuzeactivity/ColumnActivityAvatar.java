@@ -52,7 +52,7 @@ public class ColumnActivityAvatar
 	public ColumnActivityAvatar(String tableID) {
 		super(COLUMN_ID, 45, tableID);
 
-		initializeAsGraphic(POSITION_LAST, 45);
+		initializeAsGraphic(45);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)

@@ -58,6 +58,10 @@ public class ColumnDateAdded2Liner
 
 	int curFormat = 0;
 
+	public ColumnDateAdded2Liner(String sTableID) {
+		this(sTableID, false);
+	}
+
 	public ColumnDateAdded2Liner(String sTableID, boolean bVisible) {
 		super(COLUMN_ID, ALIGN_TRAIL,
 				bVisible ? POSITION_LAST : POSITION_INVISIBLE, 70, sTableID);

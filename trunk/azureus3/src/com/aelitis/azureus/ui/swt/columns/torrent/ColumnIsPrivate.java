@@ -57,7 +57,7 @@ public class ColumnIsPrivate
 	 */
 	public ColumnIsPrivate(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, width);
+		initializeAsGraphic(width);
 		setAlignment(ALIGN_CENTER);
 	}
 

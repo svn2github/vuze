@@ -60,7 +60,7 @@ public class ColumnActivityType
 	public ColumnActivityType(String tableID) {
 		super(COLUMN_ID, 22, tableID);
 
-		initializeAsGraphic(POSITION_LAST, 22);
+		initializeAsGraphic(22);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)

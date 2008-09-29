@@ -143,7 +143,7 @@ public class ColumnRate
 	public ColumnRate(String sTableID, boolean allowRate) {
 		super(COLUMN_ID, sTableID);
 		this.allowRate = allowRate;
-		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+		initializeAsGraphic(COLUMN_WIDTH);
 		setAlignment(ALIGN_TRAIL);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}

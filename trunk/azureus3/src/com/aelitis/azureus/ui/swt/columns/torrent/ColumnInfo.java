@@ -19,28 +19,16 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
-import java.util.Map;
-
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.core.messenger.PlatformMessage;
-import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.skin.SkinConstants;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
@@ -63,7 +51,7 @@ public class ColumnInfo
 
 	private static Rectangle boundsInfo;
 
-	private static int width = 60;
+	private static int width = 30;
 
 	static {
 		Image img = ImageLoaderFactory.getInstance().getImage("icon.info");
@@ -77,9 +65,8 @@ public class ColumnInfo
 	 */
 	public ColumnInfo(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, width);
+		initializeAsGraphic(width);
 		setAlignment(ALIGN_CENTER);
-		setWidthLimits(width, width);
 	}
 
 	public void cellAdded(TableCell cell) {

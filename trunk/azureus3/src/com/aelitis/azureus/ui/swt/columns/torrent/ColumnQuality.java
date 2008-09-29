@@ -47,7 +47,7 @@ public class ColumnQuality
 	 */
 	public ColumnQuality(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
+		initializeAsGraphic(COLUMN_WIDTH);
 		setAlignment(ALIGN_CENTER);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
 	}

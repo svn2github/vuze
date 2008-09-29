@@ -92,7 +92,7 @@ public class ColumnThumbnail
 		if (marginBorder > 0) {
 			this.marginBorder = marginBorder;
 		}
-		initializeAsGraphic(POSITION_LAST, columnWidth);
+		initializeAsGraphic(columnWidth);
 		setAlignment(ALIGN_CENTER);
 	}
 

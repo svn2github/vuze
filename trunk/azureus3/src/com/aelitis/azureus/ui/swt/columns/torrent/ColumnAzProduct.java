@@ -53,7 +53,7 @@ public class ColumnAzProduct
 	 */
 	public ColumnAzProduct(String sTableID) {
 		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(POSITION_LAST, width);
+		initializeAsGraphic(width);
 		setWidthLimits(width, width);
 		setAlignment(ALIGN_CENTER);
 	}
