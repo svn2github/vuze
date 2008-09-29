@@ -104,21 +104,21 @@ public class SubscriptionWizard {
 	
 	public SubscriptionWizard() {
 
-//		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
-//		Arrays.sort(availableSubscriptions,new Comparator() {
-//			public int compare(Object o1, Object o2) {
-//				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
-//				SubscriptionDownloadDetails sub1 = (SubscriptionDownloadDetails) o1;
-//				SubscriptionDownloadDetails sub2 = (SubscriptionDownloadDetails) o2;
-//				return sub1.getDownload().getDisplayName().compareTo(sub2.getDownload().getDisplayName());
-//			}
-//		});
+		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		Arrays.sort(availableSubscriptions,new Comparator() {
+			public int compare(Object o1, Object o2) {
+				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
+				SubscriptionDownloadDetails sub1 = (SubscriptionDownloadDetails) o1;
+				SubscriptionDownloadDetails sub2 = (SubscriptionDownloadDetails) o2;
+				return sub1.getDownload().getDisplayName().compareTo(sub2.getDownload().getDisplayName());
+			}
+		});
 		
 		
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE);
+			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON);
 			shell.setSize(500,400);
 			Utils.centerWindowRelativeTo(shell, mainShell);
 		} else {
@@ -215,7 +215,8 @@ public class SubscriptionWizard {
 		createComposite = createCreateComposite(main);
 		availableSubscriptionComposite = createAvailableSubscriptionComposite(main);
 		
-		setMode(MODE_OPT_IN);
+		
+		setDefaultAvailableMode();
 		
 		shell.layout();
 		shell.open();
@@ -585,7 +586,7 @@ public class SubscriptionWizard {
 			subscriptionTable.addListener(SWT.SetData, new Listener() {
 				public void handleEvent(Event event) {
 					  final TableItem item = (TableItem) event.item;
-			          int index = libraryTable.indexOf (item);
+			          int index = subscriptionTable.indexOf (item);
 			          Subscription subscription = subscriptions[index];
 			          item.setImage(rssIcon);
 			          item.setText(0, subscription.getName());
@@ -824,6 +825,7 @@ public class SubscriptionWizard {
 		yesButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				COConfigurationManager.setParameter("subscriptions.opted_in",true);
+				COConfigurationManager.save();
 				setMode(MODE_SUBSCRIBE);
 			}
 		});
@@ -836,13 +838,8 @@ public class SubscriptionWizard {
 		
 		availableButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in");
-				if(!opted_in) {
-					setMode(MODE_OPT_IN);
-				} else {
-					setMode(MODE_SUBSCRIBE);
-				}
-			}
+				setDefaultAvailableMode();
+			}			
 		});
 		
 		cancelButton.addListener(SWT.Selection, new Listener() {
@@ -850,6 +847,15 @@ public class SubscriptionWizard {
 				shell.close();
 			}
 		});
+	}
+	
+	private void setDefaultAvailableMode() {
+		boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in");
+		if(!opted_in) {
+			setMode(MODE_OPT_IN);
+		} else {
+			setMode(MODE_SUBSCRIBE);
+		}
 	}
 	
 	private void setMode(int mode) {

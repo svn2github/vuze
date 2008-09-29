@@ -552,8 +552,7 @@ SubscriptionManagerUI
 			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			addSub.addListener(new SideBarVitalityImageListener() {
 				public void sbVitalityImage_clicked(int x, int y) {
-					Utils.openMessageBox(null, 0, "Add Subscription",
-							"Someone needs to call subscription adding code here");
+					new SubscriptionWizard();
 				}
 			});
 		}
