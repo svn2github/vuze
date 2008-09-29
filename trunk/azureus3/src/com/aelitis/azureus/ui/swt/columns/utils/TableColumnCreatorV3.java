@@ -198,7 +198,7 @@ public class TableColumnCreatorV3
 		// short variable names to reduce wrapping
 		final Map c = new LightHashMap(7);
 		final Class all = Download.class;
-		//final Class dl = DownloadTypeIncomplete.class;
+		final Class dl = DownloadTypeIncomplete.class;
 		//final Class cd = DownloadTypeComplete.class;
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, all));
@@ -211,6 +211,7 @@ public class TableColumnCreatorV3
 		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, all));
 		c.put(ColumnDateAdded2Liner.COLUMN_ID, new cInfo(ColumnDateAdded2Liner.class, all));
 		c.put(ColumnDateCompleted2Liner.COLUMN_ID, new cInfo(ColumnDateCompleted2Liner.class, all));
+		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, dl));
 
 		/////////
 
