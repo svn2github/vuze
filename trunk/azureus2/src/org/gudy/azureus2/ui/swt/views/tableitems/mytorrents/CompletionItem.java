@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -51,7 +53,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class CompletionItem
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellRefreshListener,
-	TableCellDisposeListener
+	TableCellDisposeListener, TableCellSWTPaintListener
 {
 	private static final int borderWidth = 1;
 
@@ -60,14 +62,14 @@ public class CompletionItem
 	private static Font fontText;
 
 	private Map mapCellLastPercentDone = new HashMap();
-	
+
 	private int marginHeight = -1;
 
 	/** Default Constructor */
 	public CompletionItem(String sTableID) {
 		this(sTableID, -1);
 	}
-	
+
 	/**
 	 * 
 	 * @param sTableID
@@ -87,7 +89,6 @@ public class CompletionItem
 		} else {
 			cell.setMarginHeight(2);
 		}
-		cell.setFillCell(true);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -95,7 +96,7 @@ public class CompletionItem
 		mapCellLastPercentDone.remove(cell);
 		Graphic graphic = cell.getGraphic();
 		if (graphic instanceof UISWTGraphic) {
-			Image img = ((UISWTGraphic)graphic).getImage();
+			Image img = ((UISWTGraphic) graphic).getImage();
 			if (img != null && !img.isDisposed()) {
 				img.dispose();
 			}
@@ -113,83 +114,56 @@ public class CompletionItem
 				&& lastPercentDone == percentDone) {
 			return;
 		}
+	}
 
-		//Compute bounds ...
-		int newWidth = cell.getWidth();
-		if (newWidth <= 0)
-			return;
-		int newHeight = cell.getHeight();
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
+	public void cellPaint(GC gcImage, TableCellSWT cell) {
+		int percentDone = getPercentDone(cell);
 
-		int x1 = newWidth - borderWidth - 1;
-		int y1 = newHeight - borderWidth - 1;
+		Rectangle bounds = cell.getBounds();
+
+		int yOfs = 1;
+		int x1 = bounds.width - borderWidth - 2;
+		int y1 = bounds.height - 3 - yOfs;
 		if (x1 < 10 || y1 < 3) {
 			return;
+		}
+		int textYofs = 0;
+
+		if (y1 >= 28) {
+			yOfs = 2;
+			y1 = 16;
+			textYofs = 19;
 		}
 
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 
-		Graphic graphic = cell.getGraphic();
-		Image image = null;
-		if (graphic instanceof UISWTGraphic) {
-			image = ((UISWTGraphic)graphic).getImage();
-		}
-
-		GC gcImage;
-		boolean bImageSizeChanged;
-		Rectangle imageBounds;
-		if (image == null) {
-			bImageSizeChanged = true;
-		} else {
-			imageBounds = image.getBounds();
-			bImageSizeChanged = imageBounds.width != newWidth
-					|| imageBounds.height != newHeight;
-		}
-
-		if (bImageSizeChanged) {
-			image = new Image(SWTThread.getInstance().getDisplay(), newWidth,
-					newHeight);
-			imageBounds = image.getBounds();
-
-			// draw border
-			gcImage = new GC(image);
-			gcImage.setForeground(Colors.grey);
-			gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
-			
-			if (fontText != null) {
-				if (!fontText.isDisposed()) {
-					fontText.dispose();
-				}
-				fontText = null;
-			}
-		} else {
-			gcImage = new GC(image);
-		}
+		// draw border
+		Color fg = gcImage.getForeground();
+		gcImage.setForeground(Colors.grey);
+		gcImage.drawRectangle(bounds.x, bounds.y + yOfs, x1 + 1, y1 + 1);
+		gcImage.setForeground(fg);
 
 		int limit = (x1 * percentDone) / 1000;
 		gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
-		gcImage.fillRectangle(1, 1, limit, y1);
+		gcImage.fillRectangle(bounds.x + 1, bounds.y + 1 + yOfs, limit, y1);
 		if (limit < x1) {
 			gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
-			gcImage.fillRectangle(limit + 1, 1, x1 - limit, y1);
+			gcImage.fillRectangle(bounds.x + limit + 1, bounds.y + 1 + yOfs, x1
+					- limit, y1);
 		}
 
-		if (fontText == null) {
-			fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage,
-					newHeight - 1);
+		if (textYofs == 0) {
+			if (fontText == null) {
+				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, y1);
+			}
+			gcImage.setFont(fontText);
+			gcImage.setForeground(Colors.black);
 		}
-		gcImage.setFont(fontText);
-		gcImage.setForeground(Colors.black);
 		String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-		GCStringPrinter.printString(gcImage, sPercent, new Rectangle(4, 0,
-				newWidth, newHeight));
-
-		gcImage.dispose();
-
-		if (cell instanceof TableCellSWT) {
-			((TableCellSWT) cell).setGraphic(image);
-		} else {
-			cell.setGraphic(new UISWTGraphicImpl(image));
-		}
+		GCStringPrinter.printString(gcImage, sPercent, new Rectangle(bounds.x + 4,
+				bounds.y + textYofs, bounds.width - 4, bounds.height - textYofs), true,
+				false, SWT.CENTER);
 	}
 
 	private int getPercentDone(TableCell cell) {

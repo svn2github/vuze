@@ -99,7 +99,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  */
 public class Utils
 {
-	private static final String GOOD_STRING = "(/|,jI~`gy";
+	public static final String GOOD_STRING = "(/|,jI~`gy";
 
 	public static final boolean isGTK = SWT.getPlatform().equals("gtk");
 

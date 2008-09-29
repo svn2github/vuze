@@ -115,6 +115,14 @@ public class CoreTableColumn
     addListeners(this);
   }  
 
+  public void initializeAsGraphic(int iWidth) {
+    setWidth(iWidth);
+    setType(TYPE_GRAPHIC);
+    setRefreshInterval(INTERVAL_GRAPHIC);
+    setAlignment(TableColumn.ALIGN_CENTER);
+  }
+  
+
   public void initializeAsGraphic(int iPosition, int iWidth) {
     setPosition(iPosition);
     setWidth(iWidth);
