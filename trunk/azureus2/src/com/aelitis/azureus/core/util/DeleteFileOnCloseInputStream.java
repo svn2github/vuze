@@ -172,4 +172,13 @@ DeleteFileOnCloseInputStream
 	{
 		return( true );
 	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public File getFile() {
+		return file;
+	}
 }
