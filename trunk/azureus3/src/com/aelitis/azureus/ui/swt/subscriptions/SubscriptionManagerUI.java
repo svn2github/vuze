@@ -522,8 +522,7 @@ SubscriptionManagerUI
 		
 		result.setAlignment(TableColumn.ALIGN_CENTER);
 		result.setPosition(TableColumn.POSITION_LAST);
-		result.setMinWidth(75);
-		result.setWidthLimits(75, 75);
+		result.setWidth(75);
 		result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
 		result.setType(TableColumn.TYPE_GRAPHIC);
 	
