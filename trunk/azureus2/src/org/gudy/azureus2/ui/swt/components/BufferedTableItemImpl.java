@@ -264,6 +264,6 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		pt = table.toControl(pt);
 
 		Rectangle bounds = getBounds();
-		return bounds.contains(pt);
+		return bounds == null ? false : bounds.contains(pt);
   }
 }
