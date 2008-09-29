@@ -50,9 +50,9 @@ public class ColumnActivityAvatar
 	 * @param tableID
 	 */
 	public ColumnActivityAvatar(String tableID) {
-		super(COLUMN_ID, 45, tableID);
+		super(COLUMN_ID, 40, tableID);
 
-		initializeAsGraphic(45);
+		initializeAsGraphic(40);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -70,8 +70,8 @@ public class ColumnActivityAvatar
 				if (imgAvatar != null) {
 					Rectangle cellBounds = cell.getBounds();
 					Rectangle imgBounds = imgAvatar.getBounds();
-					int dstWidth = 30;
-					int dstHeight = 30;
+					int dstWidth = cellBounds.width - 4;
+					int dstHeight = dstWidth;
 
 					gc.drawImage(imgAvatar, 0, 0, imgBounds.width, imgBounds.height,
 							cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
@@ -86,7 +86,13 @@ public class ColumnActivityAvatar
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 
-		cell.setSortValue((entry instanceof VuzeActivitiesEntryBuddy) ? 1 : 0);
+		
+		if (entry instanceof VuzeActivitiesEntryBuddy) {
+			VuzeBuddy buddy = ((VuzeActivitiesEntryBuddy)entry).getBuddy();
+			cell.setSortValue(buddy == null ? null : buddy.getDisplayName());
+		} else {
+			cell.setSortValue(null);
+		}
 	}
 
 }
