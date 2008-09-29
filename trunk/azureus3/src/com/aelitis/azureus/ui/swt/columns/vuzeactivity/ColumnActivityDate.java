@@ -18,8 +18,12 @@
  
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -40,7 +44,22 @@ public class ColumnActivityDate
 	
 	public static final String COLUMN_ID = "activityDate";
 
-	DateFormat df = DateFormat.getDateInstance();
+	final static String[] FORMATS = new String[] {
+		"EEEE, MMMM d, yyyy",
+		"EEE, MMMM d, yyyy",
+		"EEE, MMM d, yyyy",
+		"EEE, MMM d, ''yy",
+		"MMMM d, ''yy",
+		"MMM d, ''yy",
+		"yyyy/mm/dd",
+		"yyyy/mm",
+	};
+
+	int curFormat = 0;
+
+	int maxWidthUsed = 0;
+
+	Date maxWidthDate = new Date();
 
 	/**
 	 * @param name
@@ -59,9 +78,63 @@ public class ColumnActivityDate
 		if (!cell.setSortValue(timestamp) && cell.isValid()) {
 			return;
 		}
-		cell.setText(df.format(new Date(timestamp)));
+		
+		Date date = new Date(timestamp);
+
+		if (curFormat >= 0) {
+			int newWidth = calcWidth(date, FORMATS[curFormat]);
+			if (newWidth > maxWidthUsed) {
+				maxWidthUsed = newWidth;
+				maxWidthDate = date;
+				invalidateCells();
+			}
+			
+			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
+					+ (cell.getHeight() > 32 ? "\nh:mm a" : ""));
+			cell.setText(temp.format(date));
+		}
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
+	public void setWidth(int width) {
+		super.setWidth(width);
+		
+		if (maxWidthDate == null) {
+			maxWidthDate = new Date();
+		}
+
+		GC gc = new GC(Display.getDefault());
+		Point minSize = new Point(99999, 0);
+		int idxFormat = FORMATS.length - 1;
+		for (int i = 0; i < FORMATS.length; i++) {
+			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
+			Point newSize = gc.stringExtent(temp.format(maxWidthDate));
+			if (newSize.x < width - 8) {
+				idxFormat = i;
+				break;
+			}
+			if (newSize.x < minSize.x) {
+				minSize = newSize;
+				idxFormat = i;
+			}
+		}
+		gc.dispose();
+		
+		maxWidthUsed = minSize.x;
+
+		if (curFormat != idxFormat) {
+			curFormat = idxFormat;
+			invalidateCells();
+		}
 	}
 
-	
 
+	public int calcWidth(Date date, String format) {
+		GC gc = new GC(Display.getDefault());
+		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
+				+ "\nh:mm a");
+		Point newSize = gc.stringExtent(temp.format(date));
+		gc.dispose();
+		return newSize.x;
+	}
 }
