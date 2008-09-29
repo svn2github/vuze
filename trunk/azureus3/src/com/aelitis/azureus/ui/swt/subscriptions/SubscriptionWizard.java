@@ -1,14 +1,16 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
-import java.awt.SystemColor;
-
-import javax.swing.plaf.FontUIResource;
+import java.util.Arrays;
+import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -19,18 +21,27 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
+import com.aelitis.azureus.core.subs.SubscriptionUtils;
+import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.columns.torrent.ColumnMediaThumb.disposableUISWTGraphic;
 
 public class SubscriptionWizard {
 	
@@ -39,12 +50,17 @@ public class SubscriptionWizard {
 	private static final int MODE_CREATE_SEARCH = 3;
 	private static final int MODE_CREATE_RSS = 4;
 	
+	private static final int RANK_COLUMN_WIDTH = 85;
+	
 	private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.title");
 	private final String TITLE_SUBSCRIBE = MessageText.getString("Wizard.Subscription.subscribe.title");
 	private final String TITLE_CREATE = MessageText.getString("Wizard.Subscription.create.title");
 	
 	Display display;
 	Shell shell;
+	
+	Image rankingBars;
+	Color rankingBorderColor;
 	
 	Label title;
 	
@@ -74,12 +90,31 @@ public class SubscriptionWizard {
 	Text searchInput;
 	Text feedUrl;
 	
+	
+	SubscriptionDownloadDetails[] availableSubscriptions;
+	Subscription[] subscriptions;
+	
 	static {
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_bullet_check.png", "icon_check");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/rss_bg.png", "rss_bg");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/search_bg.png", "search_bg");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_rss.png", "icon_rss");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/ranking_bars.png", "ranking_bars");
 	}
 	
 	public SubscriptionWizard() {
+
+//		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+//		Arrays.sort(availableSubscriptions,new Comparator() {
+//			public int compare(Object o1, Object o2) {
+//				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
+//				SubscriptionDownloadDetails sub1 = (SubscriptionDownloadDetails) o1;
+//				SubscriptionDownloadDetails sub2 = (SubscriptionDownloadDetails) o2;
+//				return sub1.getDownload().getDisplayName().compareTo(sub2.getDownload().getDisplayName());
+//			}
+//		});
+		
+		
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -93,6 +128,11 @@ public class SubscriptionWizard {
 		}
 		
 		display = shell.getDisplay();
+		
+		Utils.setShellIcon(shell);
+		
+		rankingBars = ImageRepository.getImage("ranking_bars");
+		rankingBorderColor = new Color(display,200,200,200);
 		
 		createFonts();
 		
@@ -111,6 +151,10 @@ public class SubscriptionWizard {
 				
 				if(subTitleFont != null && !subTitleFont.isDisposed()) {
 					subTitleFont.dispose();
+				}
+				
+				if(rankingBorderColor != null && !rankingBorderColor.isDisposed()) {
+					rankingBorderColor.dispose();
 				}
 				
 			}
@@ -293,7 +337,11 @@ public class SubscriptionWizard {
 		Label subTitle = new Label(composite,SWT.NONE);
 		subTitle.setFont(subTitleFont);
 		subTitle.setText(MessageText.getString("Wizard.Subscription.rss.subtitle"));
-		
+
+		Label checkBullet = new Label(composite, SWT.NONE);
+		Image checkIcon = ImageRepository.getImage("icon_check");
+		checkBullet.setImage(checkIcon);
+
 		Label description = new Label(composite, SWT.WRAP);
 		//subTitle.setFont(subTitleFont);
 		description.setText(MessageText.getString("Wizard.Subscription.rss.description"));
@@ -307,14 +355,13 @@ public class SubscriptionWizard {
 		
 		FormData data;
 
-
 		data = new FormData();
 		data.top = new FormAttachment(0);
 		data.left = new FormAttachment(50,-width/2);
 		rssBackground.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(rssBackground,7,SWT.TOP);
+		data.top = new FormAttachment(rssBackground,5,SWT.TOP);
 		data.left = new FormAttachment(rssBackground, 45,SWT.LEFT);
 		data.right = new FormAttachment(rssBackground, -5,SWT.RIGHT);
 		feedUrl.setLayoutData(data);
@@ -323,10 +370,15 @@ public class SubscriptionWizard {
 		data.top = new FormAttachment(feedUrl, 20);
 		data.left = new FormAttachment(0);
 		subTitle.setLayoutData(data);
-		
+
 		data = new FormData();
 		data.top = new FormAttachment(subTitle);
 		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
+		checkBullet.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(subTitle);
+		data.left = new FormAttachment(checkBullet, 0, SWT.RIGHT);
 		data.right = new FormAttachment(100, 0);
 		description.setLayoutData(data);
 
@@ -365,10 +417,17 @@ public class SubscriptionWizard {
 		Label subTitle = new Label(composite,SWT.NONE);
 		subTitle.setFont(subTitleFont);
 		subTitle.setText(MessageText.getString("Wizard.Subscription.search.subtitle"));
-		
-		Label description = new Label(composite,SWT.NONE);
-		//subTitle.setFont(subTitleFont);
-		description.setText(MessageText.getString("Wizard.Subscription.search.description"));
+
+		Image checkIcon = ImageRepository.getImage("icon_check");
+		Label checkBullet1 = new Label(composite, SWT.NONE);
+		checkBullet1.setImage(checkIcon);
+		Label checkBullet2 = new Label(composite, SWT.NONE);
+		checkBullet2.setImage(checkIcon);
+
+		Label description1 = new Label(composite,SWT.NONE);
+		description1.setText(MessageText.getString("Wizard.Subscription.search.description1"));
+		Label description2 = new Label(composite,SWT.NONE);
+		description2.setText(MessageText.getString("Wizard.Subscription.search.description2"));
 		
 		FormLayout layout = new FormLayout();
 		layout.marginLeft = 50;
@@ -385,7 +444,7 @@ public class SubscriptionWizard {
 		searchBackground.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(searchBackground,7,SWT.TOP);
+		data.top = new FormAttachment(searchBackground,5,SWT.TOP);
 		data.left = new FormAttachment(searchBackground, 45,SWT.LEFT);
 		data.right = new FormAttachment(searchBackground, -5,SWT.RIGHT);
 		searchInput.setLayoutData(data);
@@ -394,19 +453,291 @@ public class SubscriptionWizard {
 		data.top = new FormAttachment(searchInput, 20);
 		data.left = new FormAttachment(0);
 		subTitle.setLayoutData(data);
-		
+
 		data = new FormData();
 		data.top = new FormAttachment(subTitle);
 		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
-		description.setLayoutData(data);
+		checkBullet1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(checkBullet1);
+		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
+		checkBullet2.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(checkBullet1, 0, SWT.TOP);
+		data.left = new FormAttachment(checkBullet1, 0, SWT.RIGHT);
+		description1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(checkBullet2, 0, SWT.TOP);
+		data.left = new FormAttachment(checkBullet2, 0, SWT.RIGHT);
+		description2.setLayoutData(data);
+
 		return composite;
 	}
 	
 	private Composite createAvailableSubscriptionComposite(Composite parent) {
 		Composite composite = new Composite(parent, SWT.NONE);
+		
+		Label hsep1 = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
+		Label hsep2 = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
+		
+		Label vsep = new Label(composite, SWT.SEPARATOR | SWT.VERTICAL);
+		
+		Label subtitle1 = new Label(composite, SWT.NONE);
+		Label subtitle2 = new Label(composite, SWT.NONE);
+		subtitle1.setFont(subTitleFont);
+		subtitle2.setFont(subTitleFont);
+		subtitle1.setText(MessageText.getString("Wizard.Subscription.subscribe.library"));
+		subtitle2.setText(MessageText.getString("Wizard.Subscription.subscribe.subscriptions"));
 
-		composite.setBackground(display.getSystemColor(SWT.COLOR_BLUE));
+		final Table libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.H_SCROLL | SWT.SINGLE);
+		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
+		
+		final Table subscriptionTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.H_SCROLL | SWT.SINGLE);
+		
+		final TableColumn nameColumn = new TableColumn(subscriptionTable, SWT.NONE);
+		final TableColumn rankColumn = new TableColumn(subscriptionTable, SWT.NONE);
+		nameColumn.setText("name");
+		rankColumn.setText("rank");
+		
+//		subscriptionTable.setHeaderVisible(true);
+		Listener resizeListener = new Listener() {
+			
+			public void handleEvent(Event event) {
+				Table table = (Table)event.widget ;
+				Rectangle rect = table.getClientArea();
+				int width = rect.width - 2;
+				
+				int nbColumns = table.getColumnCount();
+				
+				if(nbColumns == 1) {
+					table.getColumns()[0].setWidth(width);
+				} else {
+					
+					if(width > 100 + RANK_COLUMN_WIDTH) {
+						table.getColumns()[1].setWidth(RANK_COLUMN_WIDTH);
+						table.getColumns()[0].setWidth(width-RANK_COLUMN_WIDTH);
+					} else {
+						table.getColumns()[0].setWidth(100);
+						table.getColumns()[1].setWidth(width-RANK_COLUMN_WIDTH);
+					}
+				}
+			}
+		};
+			
+		subscriptionTable.addListener(SWT.Resize , resizeListener);
+		libraryTable.addListener(SWT.Resize , resizeListener);
+		
+		
+		
+		if(availableSubscriptions != null) {
+			libraryTable.addListener(SWT.SetData, new Listener() {
+				public void handleEvent(Event event) {
+					  TableItem item = (TableItem) event.item;
+			          int index = libraryTable.indexOf (item);
+			          SubscriptionDownloadDetails subInfo = availableSubscriptions[index];
+			          item.setText (subInfo.getDownload().getDisplayName());
+			          item.setData("subscriptions",subInfo.getSubscriptions());
+				}
+			});
+			
+			libraryTable.setItemCount(availableSubscriptions.length);
+		} else {
+			//Test code
+			libraryTable.addListener(SWT.SetData, new Listener() {
+				public void handleEvent(Event event) {
+					  TableItem item = (TableItem) event.item;
+			          int index = libraryTable.indexOf (item);
+			          item.setText ("test " + index);
+				}
+			});
+			
+			libraryTable.setItemCount(20);
+		}
+		
+		libraryTable.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				subscriptions = (Subscription[]) item.getData("subscriptions");
+				
+				if(subscriptions != null) {
+					Arrays.sort(subscriptions,new Comparator() {
+						public int compare(Object o1, Object o2) {
+							if(! (o1 instanceof Subscription && o2 instanceof Subscription)) return 0;
+							Subscription sub1 = (Subscription) o1;
+							Subscription sub2 = (Subscription) o2;
+							return (int) (sub1.getCachedPopularity() - sub2.getCachedPopularity());
+						}
+					});
+					subscriptionTable.setItemCount(subscriptions.length);
+					subscriptionTable.clearAll();
+				} else {
+					subscriptionTable.setItemCount((int) (Math.random() * 10 + 1));
+					subscriptionTable.clearAll();					
+				}
+			}
+		});
 
+		final Image rssIcon = ImageRepository.getImage("icon_rss");
+		if(availableSubscriptions != null) {
+			subscriptionTable.addListener(SWT.SetData, new Listener() {
+				public void handleEvent(Event event) {
+					  final TableItem item = (TableItem) event.item;
+			          int index = libraryTable.indexOf (item);
+			          Subscription subscription = subscriptions[index];
+			          item.setImage(rssIcon);
+			          item.setText(0, subscription.getName());
+			          item.setData("popularity", new Long(subscription.getCachedPopularity()));
+//			          try {
+//				          subscription.getPopularity(new SubscriptionPopularityListener() {
+//				        	public void failed(SubscriptionException error) {
+//				        		
+//				        	}
+//				        	public void gotPopularity(long popularity) {
+//				        		item.setText(1,"" + popularity);
+//				        	}
+//				        	
+//				          });
+//			          } catch (Exception e) {
+//						// TODO: handle exception
+//					}
+			          
+				}
+			});
+			
+		} else {
+			//Test code
+			subscriptionTable.addListener(SWT.SetData, new Listener() {
+				public void handleEvent(Event event) {
+					  TableItem item = (TableItem) event.item;
+			          int index = subscriptionTable.indexOf (item);
+			          item.setImage( rssIcon);
+			          item.setText (0,"sub test " + index);
+			          item.setData("popularity", new Long((int)(700*Math.random() - 100 )));
+			          //item.setText (1,"" + index);
+			          //item.setImage(1, rssIcon);
+				}
+			});
+		}		
+		
+		Listener paintListener = new Listener() {
+			public void handleEvent(Event event) {
+				GC gc = event.gc;
+				TableItem item = (TableItem) event.item;
+
+				switch (event.type) {
+				case SWT.MeasureItem:
+					event.height = 20;
+					break;
+				case SWT.EraseItem:
+					Rectangle bounds = item.getBounds(1);
+					gc.setBackground(item.getBackground(1));
+					gc.setForeground(item.getBackground(1));
+					gc.fillRectangle(bounds);
+					break;
+				case SWT.PaintItem :
+					bounds = item.getBounds(1);
+					bounds.width -= 3;
+					bounds.height -= 7;
+					bounds.x += 1;
+					bounds.y += 3;
+					gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+					gc.fillRectangle(bounds);
+					gc.setForeground(rankingBorderColor);
+					gc.drawRectangle(bounds);
+					bounds.width -= 2;
+					bounds.height -= 2;
+					bounds.x += 1;
+					bounds.y += 1;
+					
+					
+					Long pop = (Long) item.getData("popularity");
+					if(pop != null) {
+						long popularity = pop.longValue();
+						//Rank in pixels between 0 and 80
+						//0 -> no subscriber
+						//80 -> 500 subscribers
+						int rank = 80 * (int) popularity / 500;
+						if(rank > 80) rank = 80;
+						if(rank < 0) rank = 0;
+						
+						Rectangle clipping = gc.getClipping();
+						
+						bounds.width = rank;
+						bounds.height -= 1;
+						bounds.x += 1;
+						bounds.y += 1;
+						gc.setClipping(bounds);
+						gc.drawImage(rankingBars, bounds.x, bounds.y);
+						
+						
+						gc.setClipping(clipping);
+						
+					}
+					
+					break;
+				default:
+					break;
+				}
+			}
+		};
+		
+		subscriptionTable.addListener(SWT.EraseItem, paintListener);
+		subscriptionTable.addListener(SWT.PaintItem, paintListener);
+		subscriptionTable.addListener(SWT.MeasureItem, paintListener);
+		libraryTable.addListener(SWT.MeasureItem, paintListener);
+		
+		FormLayout layout = new FormLayout();
+		composite.setLayout(layout);
+		
+		FormData data;
+		
+		data = new FormData();
+		data.top = new FormAttachment(0, 0);
+		data.left = new FormAttachment(50, 0);
+		data.bottom = new FormAttachment(100, 0);
+		vsep.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(0, 5);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 5);
+		subtitle1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(0, 5);
+		data.left = new FormAttachment(vsep, 5);
+		data.right = new FormAttachment(100, 0);
+		subtitle2.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(subtitle1, 5);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 0);
+		hsep1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(subtitle2, 5);
+		data.left = new FormAttachment(vsep, -1);
+		data.right = new FormAttachment(100, 0);
+		hsep2.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(hsep1, 0);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 0);
+		data.bottom = new FormAttachment(100, 0);
+		libraryTable.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(hsep2, 0);
+		data.left = new FormAttachment(vsep, 0);
+		data.right = new FormAttachment(100, 0);
+		data.bottom = new FormAttachment(100, 0);
+		subscriptionTable.setLayoutData(data);
+		
 		return composite;
 	}
 	
