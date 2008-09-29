@@ -403,6 +403,7 @@ public class SideBar
 		fontHeader = new Font(tree.getDisplay(), fontData);
 
 		Listener treeListener = new Listener() {
+			TreeItem lastTopItem = null;
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
 
@@ -464,6 +465,12 @@ public class SideBar
 								break;
 							}
 							treeItem = tree.getItem(new Point(indent, y));
+						}
+						
+						if (tree.getTopItem() != lastTopItem) {
+							lastTopItem = tree.getTopItem();
+							SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToSideBarInfo.values().toArray(new SideBarEntrySWT[0]);
+							updateSideBarHitAreasY(sideBarEntries);
 						}
 
 						break;
@@ -571,7 +578,7 @@ public class SideBar
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
-
+		
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
 
@@ -988,7 +995,40 @@ public class SideBar
 			gc.setBackground(oldBG);
 			gc.setFont(fontHeader);
 		}
+	}
 
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private void updateSideBarHitAreasY(SideBarEntrySWT[] entries) {
+		for (int x = 0; x < entries.length; x++) {
+			SideBarEntrySWT sideBarInfo = entries[x];
+			TreeItem treeItem = sideBarInfo.treeItem;
+			Rectangle itemBounds = sideBarInfo.getBounds();
+
+			if (sideBarInfo.closeable) {
+				Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+				closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height) / 2;
+			}
+
+			SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+			for (int i = 0; i < vitalityImages.length; i++) {
+				SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+				if (!vitalityImage.isVisible()) {
+					continue;
+				}
+				Image image = vitalityImage.getImage();
+				if (image != null) {
+					Rectangle bounds = vitalityImage.getHitArea();
+					if (bounds == null) {
+						continue;
+					}
+					bounds.y = itemBounds.y + (itemBounds.height - bounds.height) / 2;
+				}
+			}
+		}
 	}
 
 	/**
