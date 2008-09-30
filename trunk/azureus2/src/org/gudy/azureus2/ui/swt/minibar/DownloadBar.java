@@ -98,7 +98,7 @@ public class DownloadBar extends MiniBar {
 		this.up_speed = this.createSpeedLabel();
 		
 		// ETA.
-		this.createFixedTextLabel("MyTorrentsView.eta", true, false);
+		this.createFixedTextLabel("TableColumn.header.eta", true, false);
 		this.eta = this.createDataLabel(65);
 	}
 	
