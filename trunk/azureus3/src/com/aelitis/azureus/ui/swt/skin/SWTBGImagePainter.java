@@ -59,6 +59,9 @@ public class SWTBGImagePainter
 	private final Control control;
 
 	private boolean bDirty;
+	
+	private int fdWidth = -1;
+	private int fdHeight = -1;
 
 	private SWTBGImagePainter(Control control, int tileMode) {
 		this.control = control;
@@ -75,26 +78,6 @@ public class SWTBGImagePainter
 			Image bgImageRight, Image bgImage, int tileMode) {
 		this(control, tileMode);
 		setImages(bgImageLeft, bgImageRight, bgImage);
-		// TODO: Change layoutdata if image size changes?
-		if ((tileMode & SWTSkinUtils.TILE_BOTH) != SWTSkinUtils.TILE_BOTH) {
-			int width = SWT.DEFAULT;
-			int height = SWT.DEFAULT;
-
-			if (tileMode == SWTSkinUtils.TILE_Y || tileMode == SWTSkinUtils.TILE_NONE) {
-				width = imgSrcBounds.width + imgSrcLeftBounds.width
-						+ imgSrcRightBounds.width;
-			}
-			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
-				height = imgSrcBounds.height;
-			}
-			FormData fd = (FormData) control.getLayoutData();
-			if (fd == null) {
-				fd = new FormData();
-			}
-			fd.width = width;
-			fd.height = height;
-			control.setLayoutData(fd);
-		}
 
 		if (bDirty) {
 			if (control.isVisible()) {
@@ -212,6 +195,39 @@ public class SWTBGImagePainter
 		} else {
 			bDirty = true;
 		}
+		
+		if ((tileMode & SWTSkinUtils.TILE_BOTH) != SWTSkinUtils.TILE_BOTH) {
+			int width = SWT.DEFAULT;
+			int height = SWT.DEFAULT;
+
+			if (tileMode == SWTSkinUtils.TILE_Y || tileMode == SWTSkinUtils.TILE_NONE) {
+				width = imgSrcBounds.width + imgSrcLeftBounds.width
+						+ imgSrcRightBounds.width;
+			}
+			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
+				height = imgSrcBounds.height;
+			}
+			FormData fd = (FormData) control.getLayoutData();
+			if (fd == null) {
+				fd = new FormData();
+			}
+			
+			if (fd.width != fdWidth && fd.height != fdHeight) {
+				return;
+			}
+			
+			if (fd.width == fdWidth) {
+				fdWidth = fd.width = width;
+			}
+			if (fd.height == fdHeight) {
+				fdHeight = fd.height = height;
+			}
+			control.setLayoutData(fd);
+			if (control.isVisible()) {
+				control.getParent().layout();
+			}
+		}
+
 	}
 
 	public void buildBackground(Control control) {
