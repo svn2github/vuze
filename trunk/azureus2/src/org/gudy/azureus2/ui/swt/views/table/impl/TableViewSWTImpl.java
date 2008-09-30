@@ -1372,6 +1372,10 @@ public class TableViewSWTImpl
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
 				}
+				int textOpacity = cell.getTextOpacity();
+				if (textOpacity < 255) {
+					event.gc.setAlpha(textOpacity);
+				}
   			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
   					true, style);
 			}

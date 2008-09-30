@@ -101,4 +101,18 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 	 * @since 3.0.3.4
 	 */
 	Color getBackgroundSWT();
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	int getTextOpacity();
+
+	/**
+	 * @param textOpacity
+	 *
+	 * @since 3.1.1.1
+	 */
+	void setTextOpacity(int textOpacity);
 }

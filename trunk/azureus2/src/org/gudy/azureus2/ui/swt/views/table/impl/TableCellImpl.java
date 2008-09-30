@@ -129,7 +129,9 @@ public class TableCellImpl
 	private byte restartRefresh = 0;
 	private boolean bInRefreshAsync = false;
 	
-  static {
+	private int textOpacity = 255;
+	
+	static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -1500,13 +1502,13 @@ public class TableCellImpl
 	
 	public void setCursorID(int cursorID) {
 		iCursorID = cursorID;
-		if (isMouseOver()) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (isMouseOver()) {
 					bufferedTableItem.setCursor(iCursorID);
 				}
-			});
-		}
+			}
+		});
 	}
 	
 	public boolean isMouseOver() {
@@ -1545,4 +1547,13 @@ public class TableCellImpl
 		//TODO: childCell.setParentCell(this);
 		childCells.add(childCell);
 	}
+
+  public int getTextOpacity() {
+		return textOpacity;
+	}
+
+	public void setTextOpacity(int textOpacity) {
+		this.textOpacity = textOpacity;
+	}
+
 }
