@@ -472,6 +472,10 @@ SubscriptionImpl
 
 				schedule_map = (Map)map.get( "schedule" );
 				
+				if ( schedule_map == null ){
+					
+					schedule_map = new HashMap();
+				}
 			}catch( Throwable e ){
 				
 				log( "Failed to load schedule", e );
