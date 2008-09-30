@@ -1632,16 +1632,18 @@ public class MainWindow
 						
 						SWTSkinObject skinObject = skin.getSkinObject("tabbar");
 						if (skinObject != null) {
+							skinObject.switchSuffix(showText ? "" : "-small");
+
 							Control control = skinObject.getControl();
 							FormData fd = (FormData) control.getLayoutData();
-							fd.height = showText ? -1 : 28;
+							fd.height = showText ? 50 : 32;
 							//Utils.relayout(control);
 						}
 						skinObject = skin.getSkinObject("topgap");
 						if (skinObject != null) {
 							Control control = skinObject.getControl();
 							FormData fd = (FormData) control.getLayoutData();
-							fd.height = showText ? 6 : 0;
+							fd.height = showText ? 6 : 2;
 							Utils.relayout(control);
 						}
 					}
