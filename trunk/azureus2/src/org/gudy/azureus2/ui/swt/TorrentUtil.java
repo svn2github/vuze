@@ -964,46 +964,44 @@ public class TorrentUtil {
 			}
 		}
 
-		if ( tv != null ){
-			 final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
-			Messages.setLanguageText(itemPositionManual,
-					"MyTorrentsView.menu.reposition.manual");
-			itemPositionManual.addSelectionListener(new SelectionAdapter() {
-				public void widgetSelected(SelectionEvent e) {
-					InputShell is = new InputShell(
-							"MyTorrentsView.dialog.setPosition.title",
-							"MyTorrentsView.dialog.setPosition.text");
-	
-					String sReturn = is.open();
-					if (sReturn == null)
-						return;
-	
-					int newPosition = -1;
-					try {
-						newPosition = Integer.valueOf(sReturn).intValue();
-					} catch (NumberFormatException er) {
-						// Ignore
-					}
-	
-					int size = azureus_core.getGlobalManager().downloadManagerCount(
-							isSeedingView);
-					if (newPosition > size)
-						newPosition = size;
-	
-					if (newPosition <= 0) {
-						MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_ERROR
-								| SWT.OK);
-						mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
-						mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
-	
-						mb.open();
-						return;
-					}
-	
-					moveSelectedTorrentsTo(tv, dms, newPosition);
+		 final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
+		Messages.setLanguageText(itemPositionManual,
+				"MyTorrentsView.menu.reposition.manual");
+		itemPositionManual.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				InputShell is = new InputShell(
+						"MyTorrentsView.dialog.setPosition.title",
+						"MyTorrentsView.dialog.setPosition.text");
+
+				String sReturn = is.open();
+				if (sReturn == null)
+					return;
+
+				int newPosition = -1;
+				try {
+					newPosition = Integer.valueOf(sReturn).intValue();
+				} catch (NumberFormatException er) {
+					// Ignore
 				}
-			});
-		}
+
+				int size = azureus_core.getGlobalManager().downloadManagerCount(
+						isSeedingView);
+				if (newPosition > size)
+					newPosition = size;
+
+				if (newPosition <= 0) {
+					MessageBox mb = new MessageBox(composite.getShell(), SWT.ICON_ERROR
+							| SWT.OK);
+					mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+					mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
+
+					mb.open();
+					return;
+				}
+
+				moveSelectedTorrentsTo(tv, dms, newPosition);
+			}
+		});
 
 		// back to main menu
 		if (userMode > 0 && isTrackerOn) {
