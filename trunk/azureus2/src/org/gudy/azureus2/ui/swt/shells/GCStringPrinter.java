@@ -637,6 +637,11 @@ public class GCStringPrinter
 
 		Point ptWordSize = gc.stringExtent(word + " ");
 		boolean bWordLargerThanWidth = ptWordSize.x > printArea.width;
+		// This will split put a word that is longer than a full line onto a new
+		// line (when the existing line has text).
+		if (bWordLargerThanWidth && lineInfo.width > 0) {
+			return 0;
+		}
 		int targetWidth = lineInfo.width + ptWordSize.x;
 		if (targetWidth > printArea.width) {
 			// word is longer than space avail, split
