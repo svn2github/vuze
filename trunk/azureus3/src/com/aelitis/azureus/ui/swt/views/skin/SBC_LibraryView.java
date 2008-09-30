@@ -99,9 +99,11 @@ public class SBC_LibraryView
 	private static int numIncomplete = 0;
 
 	private static int numErrorComplete = 0;
+	private static String errorInCompleteTooltip;
 
 	private static int numErrorInComplete = 0;
-
+	private static String errorCompleteTooltip;
+	
 	private static int numUnOpened = 0;
 
 
@@ -350,6 +352,7 @@ public class SBC_LibraryView
 					} else {
 						numErrorInComplete += rel;
 					}
+					updateErrorTooltip();
 					dm.setUserData("wasErrorState", new Boolean(isErrorState));
 				}
 				refreshAllLibraries();
@@ -377,9 +380,60 @@ public class SBC_LibraryView
 						numErrorInComplete++;
 					}
 				}
+				updateErrorTooltip();
 				refreshAllLibraries();
 			}
+			
+			protected void
+			updateErrorTooltip()
+			{
+				if ( numErrorComplete < 0 ){				
+					numErrorComplete = 0;
+				}
+				if ( numErrorInComplete < 0 ){				
+					numErrorInComplete = 0;
+				}
+				
+				if ( numErrorComplete > 0 || numErrorInComplete > 0 ){
+				
+					String	comp_error 		= null;
+					String	incomp_error 	= null;
+					
+					List	downloads = gm.getDownloadManagers();
+					
+					for (int i=0;i<downloads.size();i++){
+						
+						DownloadManager download = (DownloadManager)downloads.get(i);
+						
+						if ( download.getState() == DownloadManager.STATE_ERROR) {
+							
+							if ( download.getAssumedComplete()){
+								
+								if ( comp_error == null ){
+									
+									comp_error = download.getDisplayName() + ": " + download.getErrorDetails();
+								}else{
+									
+									comp_error += "...";
+								}
+							}else{
+								if ( incomp_error == null ){
+									
+									incomp_error = download.getDisplayName() + ": " + download.getErrorDetails();
+								}else{
+									
+									incomp_error += "...";
+								}
+							}
+						}
+					}
+					
+					errorCompleteTooltip 	= comp_error;
+					errorInCompleteTooltip 	= incomp_error;
+				}
+			}
 		};
+		
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
 				if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
@@ -468,6 +522,9 @@ public class SBC_LibraryView
 
 			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorInComplete > 0);
+				if ( numErrorInComplete > 0 ){
+					vitalityImage.setToolTip( errorInCompleteTooltip );
+				}
 			}
 		}
 		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
@@ -478,6 +535,9 @@ public class SBC_LibraryView
 			SideBarVitalityImage vitalityImage = vitalityImages[i];
 			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorComplete > 0);
+				if ( numErrorComplete > 0 ){
+					vitalityImage.setToolTip( errorCompleteTooltip );
+				}
 			}
 		}
 
