@@ -125,6 +125,7 @@ public class CompletionItem
 		int yOfs = 1;
 		int x1 = bounds.width - borderWidth - 2;
 		int y1 = bounds.height - 3 - yOfs;
+
 		if (x1 < 10 || y1 < 3) {
 			return;
 		}
@@ -136,6 +137,8 @@ public class CompletionItem
 			textYofs = 19;
 		}
 
+		
+		
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 
 		// draw border
