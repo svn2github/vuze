@@ -1,5 +1,6 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -30,16 +31,20 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.subs.SubscriptionUtils;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -87,12 +92,17 @@ public class SubscriptionWizard {
 	TabItem   createSearchTabItem;
 	Composite availableSubscriptionComposite;
 	
+	Listener rssSaveListener;
+	Listener searchListener;
+	
 	Text searchInput;
 	Text feedUrl;
 	
 	
 	SubscriptionDownloadDetails[] availableSubscriptions;
 	Subscription[] subscriptions;
+	
+	DownloadManager download;
 	
 	static {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_bullet_check.png", "icon_check");
@@ -103,7 +113,13 @@ public class SubscriptionWizard {
 	}
 	
 	public SubscriptionWizard() {
+		this(null);
+	}
+	
+	public SubscriptionWizard(DownloadManager download) {
 
+		this.download = download;
+		
 		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
 		Arrays.sort(availableSubscriptions,new Comparator() {
 			public int compare(Object o1, Object o2) {
@@ -326,9 +342,13 @@ public class SubscriptionWizard {
 			}
 		});
 		
-		feedUrl.addListener (SWT.DefaultSelection, new Listener () {
-			public void handleEvent (Event e) {
-				System.out.println (e.widget + " - Default Selection");
+		feedUrl.addListener (SWT.DefaultSelection, rssSaveListener);
+		
+		feedUrl.addListener(SWT.Modify, new Listener() {
+			public void handleEvent(Event event) {
+				boolean valid_url = false;
+				try { new URL(feedUrl.getText()); valid_url = true; } catch (Exception e) {}
+				saveButton.setEnabled(valid_url);
 			}
 		});
 		
@@ -406,11 +426,7 @@ public class SubscriptionWizard {
 			}
 		});
 		
-		searchInput.addListener (SWT.DefaultSelection, new Listener () {
-			public void handleEvent (Event e) {
-				System.out.println (e.widget + " - Default Selection");
-			}
-		});
+		searchInput.addListener (SWT.DefaultSelection, searchListener);
 		
 		Label searchBackground = new Label(composite,SWT.NONE);
 		searchBackground.setImage(bg);
@@ -493,15 +509,17 @@ public class SubscriptionWizard {
 		subtitle1.setText(MessageText.getString("Wizard.Subscription.subscribe.library"));
 		subtitle2.setText(MessageText.getString("Wizard.Subscription.subscribe.subscriptions"));
 
-		final Table libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.H_SCROLL | SWT.SINGLE);
-		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
+		final Table libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		
-		final Table subscriptionTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.H_SCROLL | SWT.SINGLE);
+		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
+		torrentColumn.setWidth(50);
+		
+		final Table subscriptionTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		
 		final TableColumn nameColumn = new TableColumn(subscriptionTable, SWT.NONE);
 		final TableColumn rankColumn = new TableColumn(subscriptionTable, SWT.NONE);
-		nameColumn.setText("name");
-		rankColumn.setText("rank");
+		//nameColumn.setText("name");
+		//rankColumn.setText("rank");
 		
 //		subscriptionTable.setHeaderVisible(true);
 		Listener resizeListener = new Listener() {
@@ -509,7 +527,7 @@ public class SubscriptionWizard {
 			public void handleEvent(Event event) {
 				Table table = (Table)event.widget ;
 				Rectangle rect = table.getClientArea();
-				int width = rect.width - 2;
+				int width = rect.width - 3;
 				
 				int nbColumns = table.getColumnCount();
 				
@@ -525,13 +543,41 @@ public class SubscriptionWizard {
 						table.getColumns()[1].setWidth(width-RANK_COLUMN_WIDTH);
 					}
 				}
+				
+				((Table)event.widget).update();
 			}
 		};
 			
 		subscriptionTable.addListener(SWT.Resize , resizeListener);
 		libraryTable.addListener(SWT.Resize , resizeListener);
 		
+		final Listener selectionListener = new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				subscriptions = (Subscription[]) item.getData("subscriptions");
+				
+				if(subscriptions != null) {
+					Arrays.sort(subscriptions,new Comparator() {
+						public int compare(Object o1, Object o2) {
+							if(! (o1 instanceof Subscription && o2 instanceof Subscription)) return 0;
+							Subscription sub1 = (Subscription) o1;
+							Subscription sub2 = (Subscription) o2;
+							return (int) (sub1.getCachedPopularity() - sub2.getCachedPopularity());
+						}
+					});
+					subscriptionTable.setItemCount(subscriptions.length);
+				} else {
+					subscriptionTable.setItemCount((int) (Math.random() * 10 + 1));
+				}
+				
+				addButton.setEnabled(false);
+				addButton.setData("subscription",null);
+				subscriptionTable.clearAll();			
+				subscriptionTable.deselectAll();
+			}
+		};
 		
+		libraryTable.addListener(SWT.Selection, selectionListener);
 		
 		if(availableSubscriptions != null) {
 			libraryTable.addListener(SWT.SetData, new Listener() {
@@ -541,6 +587,10 @@ public class SubscriptionWizard {
 			          SubscriptionDownloadDetails subInfo = availableSubscriptions[index];
 			          item.setText (subInfo.getDownload().getDisplayName());
 			          item.setData("subscriptions",subInfo.getSubscriptions());
+			          if(subInfo.getDownload() == download) {
+			        	  libraryTable.setSelection(item);
+			        	  selectionListener.handleEvent(event);
+			          }
 				}
 			});
 			
@@ -558,28 +608,22 @@ public class SubscriptionWizard {
 			libraryTable.setItemCount(20);
 		}
 		
-		libraryTable.addListener(SWT.Selection, new Listener() {
+		addButton.setEnabled(false);
+		addButton.setData("subscription",null);
+		
+		subscriptionTable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				TableItem item = (TableItem) event.item;
-				subscriptions = (Subscription[]) item.getData("subscriptions");
-				
-				if(subscriptions != null) {
-					Arrays.sort(subscriptions,new Comparator() {
-						public int compare(Object o1, Object o2) {
-							if(! (o1 instanceof Subscription && o2 instanceof Subscription)) return 0;
-							Subscription sub1 = (Subscription) o1;
-							Subscription sub2 = (Subscription) o2;
-							return (int) (sub1.getCachedPopularity() - sub2.getCachedPopularity());
-						}
-					});
-					subscriptionTable.setItemCount(subscriptions.length);
-					subscriptionTable.clearAll();
+				if(subscriptionTable.getSelectionCount() == 1) {
+					addButton.setEnabled(true);
+//					TableItem item = subscriptionTable.getSelection()[0];
+					Subscription subscription = subscriptions[subscriptionTable.getSelectionIndex()];
+					addButton.setData("subscription",subscription);
 				} else {
-					subscriptionTable.setItemCount((int) (Math.random() * 10 + 1));
-					subscriptionTable.clearAll();					
+					addButton.setEnabled(false);
 				}
 			}
 		});
+		
 
 		final Image rssIcon = ImageRepository.getImage("icon_rss");
 		if(availableSubscriptions != null) {
@@ -591,20 +635,6 @@ public class SubscriptionWizard {
 			          item.setImage(rssIcon);
 			          item.setText(0, subscription.getName());
 			          item.setData("popularity", new Long(subscription.getCachedPopularity()));
-//			          try {
-//				          subscription.getPopularity(new SubscriptionPopularityListener() {
-//				        	public void failed(SubscriptionException error) {
-//				        		
-//				        	}
-//				        	public void gotPopularity(long popularity) {
-//				        		item.setText(1,"" + popularity);
-//				        	}
-//				        	
-//				          });
-//			          } catch (Exception e) {
-//						// TODO: handle exception
-//					}
-			          
 				}
 			});
 			
@@ -776,6 +806,7 @@ public class SubscriptionWizard {
 		
 		saveButton = new Button(footer, SWT.PUSH);
 		saveButton.setText(MessageText.getString("Button.save"));
+		saveButton.setEnabled(false);
 		
 		searchButton = new Button(footer, SWT.PUSH);
 		searchButton.setText(MessageText.getString("Button.search"));
@@ -817,7 +848,7 @@ public class SubscriptionWizard {
 		
 		data = new FormData();
 		data.left = new FormAttachment(0);
-		data.width = 150;
+		data.width = 175;
 		createButton.setLayoutData(data);
 		availableButton.setLayoutData(data);
 		
@@ -847,6 +878,43 @@ public class SubscriptionWizard {
 				shell.close();
 			}
 		});
+		
+		
+		rssSaveListener = new Listener() {
+			public void handleEvent(Event event) {
+				try {
+					String url_str = feedUrl.getText();
+					URL	url = new URL(url_str);
+					
+					SubscriptionManagerFactory.getSingleton().createSingletonRSS( url_str, url, 120, true );
+					shell.close();
+				} catch (Exception e) {
+					// TODO: handle exception
+				}
+			}
+		};
+		
+		saveButton.addListener(SWT.Selection, rssSaveListener);
+		
+		addButton.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				Subscription subscription = (Subscription) addButton.getData("subscription");
+				if(subscription != null) {
+					subscription.setSubscribed(true);
+					shell.close();
+				}
+			}
+		});
+		
+		searchListener = new Listener() {
+			public void handleEvent(Event event) {
+				MainWindow.doSearch(searchInput.getText());
+				shell.close();
+			}
+		};
+		
+		searchButton.addListener(SWT.Selection, searchListener);
+		
 	}
 	
 	private void setDefaultAvailableMode() {
@@ -909,39 +977,7 @@ public class SubscriptionWizard {
 	
 	public static void main(String args[]) {
 		final SubscriptionWizard sw = new SubscriptionWizard();
-		
-//		Thread t = new Thread() {
-//			public void run() {
-//				final int[] i = new int[1];
-//				i[0] = 0;
-//				while(true) {
-//					try {
-//						i[0]++;
-//						sw.display.asyncExec(new Runnable() {
-//							
-//							public void run() {
-//								if(! sw.title.isDisposed()) {
-//									sw.title.setText("test " + i[0]);
-//								}
-//							}
-//						});
-//						
-//					} catch (Exception e) {
-//						e.printStackTrace();
-//					} finally {
-//						try {
-//							Thread.sleep(500);
-//						} catch (Exception e) {
-//							//e.printStackTrace();
-//						}
-//					}
-//				}
-//			}
-//		};
-//		
-//		t.setDaemon(true);
-//		t.start();
-		
+				
 		while( ! sw.shell.isDisposed()) {
 			if(! sw.display.readAndDispatch()) {
 				sw.display.sleep();

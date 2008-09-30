@@ -1858,7 +1858,9 @@ public class MainWindow
 	/**
 	 * @param searchText
 	 */
-	protected void doSearch(String sSearchText) {
+	//TODO : Tux Move to utils? Could you also add a "mode" or something that would be added to the url
+	// eg: &subscribe_mode=true
+	public static void doSearch(String sSearchText) {
 		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
 			return;

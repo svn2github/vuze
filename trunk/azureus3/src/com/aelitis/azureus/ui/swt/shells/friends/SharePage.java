@@ -206,7 +206,9 @@ public class SharePage
 		addBuddyPromptLabel.setText(MessageText.getString("v3.Share.invite.buddies.prompt"));
 
 		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
-		addBuddyButton.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
+		gData = new GridData(SWT.END, SWT.CENTER, true, false);
+		gData.widthHint = 100;
+		addBuddyButton.setLayoutData(gData);
 		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
 		addBuddyButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {

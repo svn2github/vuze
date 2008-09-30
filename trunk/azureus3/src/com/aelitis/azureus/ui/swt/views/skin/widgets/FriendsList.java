@@ -127,22 +127,25 @@ public class FriendsList
 //					if (textColor != null) {
 //						e.gc.setForeground(textColor);
 //					}
-					int imageXOffset = 16;
-					if (null != default_prompt_image
-							&& false == default_prompt_image.isDisposed()) {
-						Rectangle imageBounds = default_prompt_image.getBounds();
-						e.gc.drawImage(default_prompt_image, imageXOffset,
-								(bounds.height / 2) - (imageBounds.height / 2));
+//					int imageXOffset = 16;
+//					if (null != default_prompt_image
+//							&& false == default_prompt_image.isDisposed()) {
+//						Rectangle imageBounds = default_prompt_image.getBounds();
+//						e.gc.drawImage(default_prompt_image, imageXOffset,
+//								(bounds.height / 2) - (imageBounds.height / 2));
+//
+//						textBounds.x += default_prompt_image.getBounds().width
+//								+ imageXOffset + 8;
+//						textBounds.width -= default_prompt_image.getBounds().width
+//								+ imageXOffset + 8;
+//					}
 
-						textBounds.x += default_prompt_image.getBounds().width
-								+ imageXOffset + 8;
-						textBounds.width -= default_prompt_image.getBounds().width
-								+ imageXOffset + 8;
-					}
-
+					textBounds.x += 8;
+					textBounds.width -= 16;
+					
 					if (null != default_prompt_text && default_prompt_text.length() > 0) {
 						GCStringPrinter.printString(e.gc, default_prompt_text, textBounds,
-								false, false, SWT.WRAP);
+								false, false, SWT.WRAP | SWT.CENTER);
 					}
 				}
 			}

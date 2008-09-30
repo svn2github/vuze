@@ -386,7 +386,9 @@ SubscriptionManagerUI
 							
 							if ( subs.length > 0 ){
 								
-								new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
+								new SubscriptionWizard(PluginCoreUtils.unwrap(dl));
+								
+								//new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
 							}
 						}
 					}

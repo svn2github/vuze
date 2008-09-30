@@ -19,6 +19,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -108,7 +109,8 @@ public class LightBoxBrowserWindow
 		}
 
 		lightBoxShell = new LightBoxShell(true);
-
+		//Shell mainShell = uiFunctions.getMainShell();
+		
 		borderColor = new Color(lightBoxShell.getDisplay(), 38, 38, 38);
 		contentBackgroundColor = new Color(lightBoxShell.getDisplay(), 13, 13, 13);
 
