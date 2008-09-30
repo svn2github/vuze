@@ -25,12 +25,14 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 /**
@@ -40,7 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class ColumnActivityDate
 	extends CoreTableColumn
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellAddedListener
 {
 	
 	public static final String COLUMN_ID = "activityDate";
@@ -69,6 +71,13 @@ public class ColumnActivityDate
 	public ColumnActivityDate(String tableID) {
 		super(COLUMN_ID, TableColumnCreatorV3.DATE_COLUMN_WIDTH, tableID);
 		setAlignment(ALIGN_TRAIL);
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellAdded(TableCell cell) {
+		if (cell instanceof TableCellSWT) {
+			((TableCellSWT)cell).setTextOpacity(120);
+		}
 	}
 	
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
