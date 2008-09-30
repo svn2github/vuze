@@ -50,7 +50,11 @@ public class SWTSkinObjectImage
 	static {
 		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				e.gc.setAdvanced(true);
+				try {
+					e.gc.setAdvanced(true);
+					e.gc.setInterpolation(SWT.HIGH);
+				} catch (Exception ex) {
+				}
 
 				Label label = (Label) e.widget;
 				Image imgSrc = (Image) label.getData("image");
