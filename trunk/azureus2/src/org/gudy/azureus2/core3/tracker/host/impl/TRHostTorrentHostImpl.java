@@ -286,6 +286,12 @@ TRHostTorrentHostImpl
 		torrent = _torrent;
 	}
 	
+	public TRTrackerServerTorrent 
+	getTrackerTorrent() 
+	{
+		return( server_torrent );
+	}
+	
 	public TRHostPeer[]
 	getPeers()
 	{

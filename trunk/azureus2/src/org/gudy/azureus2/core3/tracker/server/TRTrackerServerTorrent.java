@@ -76,6 +76,11 @@ TRTrackerServerTorrent
 		String	link );
 	
 	public void
+	addExplicitBiasedPeer(
+		String		ip,
+		int			port );
+	
+	public void
 	remove(
 		TRTrackerServerPeerBase		peer );
 	

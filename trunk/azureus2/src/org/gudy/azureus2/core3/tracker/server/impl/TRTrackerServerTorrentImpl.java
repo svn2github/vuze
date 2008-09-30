@@ -115,19 +115,10 @@ TRTrackerServerTorrentImpl
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServerTorrent" );
 
-	private static String[]	EXPLICIT_PEERS = {
-		 "209.34.83.140",
-	};
-
-	private static final int		EXPLICIT_PORT	= 20001;
-	
-	private static final int	EXPLICIT_PEERS_TO_ADD	= 1;
-	private static final byte[]	EXPLICIT_HASH	= ByteFormatter.decodeString( "07A4750F3CAA588E6963EB66B1E3713B4F3ED172" );
-	
+	private List	explicit_manual_biased_peers;
+		
 	private static int explicit_next_peer;
-	
-	private final boolean	add_explicit_peers;
-	
+		
 	public
 	TRTrackerServerTorrentImpl(
 		TRTrackerServerImpl		_server,
@@ -139,13 +130,6 @@ TRTrackerServerTorrentImpl
 		enabled		= _enabled;
 		
 		stats		= new TRTrackerServerTorrentStatsImpl( this );
-		
-		add_explicit_peers = Arrays.equals( hash.getBytes(), EXPLICIT_HASH );
-		
-		if ( add_explicit_peers ){
-			
-			System.out.println( "Adding explicit peers for " + ByteFormatter.encodeString( EXPLICIT_HASH ));
-		}
 	}
 	
 	public void
@@ -1852,65 +1836,57 @@ TRTrackerServerTorrentImpl
 				}
 			}
 		
-			if ( add_explicit_peers && num_want > 0 ){
+			if ( explicit_manual_biased_peers != null ){
 								
 				if ( requesting_peer != null && !requesting_peer.isSeed()){
+											
+					Object[]	explicit_peer = (Object[])explicit_manual_biased_peers.get( explicit_next_peer++ );
 					
-					for (int i=0;i<EXPLICIT_PEERS_TO_ADD;i++){
+					if ( explicit_next_peer == explicit_manual_biased_peers.size()){
 						
-						String	cl_peer = EXPLICIT_PEERS[explicit_next_peer++];
-						
-						if ( explicit_next_peer == EXPLICIT_PEERS.length ){
-							
-							explicit_next_peer = 0;
-						}
-						
-						Map rep_peer = new HashMap(3);
-						
-						if ( send_peer_ids ){
-							
-							byte[]	peer_id = new byte[20];
-							
-							random.nextBytes( peer_id );
-							
-							rep_peer.put( "peer id", peer_id );
-						}
-						
-						if ( compact_mode != COMPACT_MODE_NONE ){
-							
-							byte[]	peer_bytes = HostNameToIPResolver.hostAddressToBytes( cl_peer );
-							
-							if ( peer_bytes == null ){
-																	
-								continue;
-							}
-							
-							rep_peer.put( "ip", peer_bytes );
-							
-							if ( compact_mode >= COMPACT_MODE_AZ ){
-								
-								rep_peer.put( "azver", new Long( 0 ));	// non-az
-								
-								rep_peer.put( "azudp", new Long( 0 ));
-								
-								rep_peer.put( "azup", new Long( 0 ));
-																
-								rep_peer.put( "azbiased", "" );
-							}
-						}else{
-							
-							rep_peer.put( "ip", cl_peer.getBytes());
-						}
-						
-						rep_peer.put( "port", new Long( EXPLICIT_PORT ));	
-						
-						if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
-							
-							rep_peer.put( "crypto_flag", new Long( 0 ));
-						}
-	
-						rep_peers.addFirst( rep_peer );
+						explicit_next_peer = 0;
 					}
+					
+					Map rep_peer = new HashMap(3);
+					
+					if ( send_peer_ids ){
+						
+						byte[]	peer_id = new byte[20];
+						
+						random.nextBytes( peer_id );
+						
+						rep_peer.put( "peer id", peer_id );
+					}
+					
+					if ( compact_mode != COMPACT_MODE_NONE ){
+						
+						byte[]	peer_bytes = (byte[])explicit_peer[1];
+													
+						rep_peer.put( "ip", peer_bytes );
+						
+						if ( compact_mode >= COMPACT_MODE_AZ ){
+							
+							rep_peer.put( "azver", new Long( 0 ));	// non-az
+							
+							rep_peer.put( "azudp", new Long( 0 ));
+							
+							rep_peer.put( "azup", new Long( 0 ));
+															
+							rep_peer.put( "azbiased", "" );
+						}
+					}else{
+						
+						rep_peer.put( "ip", ((String)explicit_peer[0]).getBytes());
+					}
+					
+					rep_peer.put( "port", new Long( ((Integer)explicit_peer[2]).intValue()));	
+					
+					if ( crypto_level != TRTrackerServerPeer.CRYPTO_NONE ){
+						
+						rep_peer.put( "crypto_flag", new Long( 0 ));
+					}
+
+					rep_peers.addFirst( rep_peer );
 				}
 			}
 			
@@ -2590,7 +2566,32 @@ TRTrackerServerTorrentImpl
 	{
 		return( hash );
 	}
+	
+	public void
+	addExplicitBiasedPeer(
+		String		ip,
+		int			port )
+	{
+		byte[]	bytes = HostNameToIPResolver.hostAddressToBytes( ip );
 		
+		if ( bytes != null ){
+			
+			try{
+				this_mon.enter();
+
+				if ( explicit_manual_biased_peers == null  ){
+					
+					explicit_manual_biased_peers = new ArrayList();
+				}
+				
+				explicit_manual_biased_peers.add( new Object[]{ ip, bytes, new Integer( port )});
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
+	}
 	public void
 	setRedirects(
 		URL[]		urls )

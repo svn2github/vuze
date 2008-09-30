@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
@@ -228,4 +230,10 @@ PluginCoreUtils
 		return(((PeerManagerImpl)pm).getDelegate());
 	}
 	
+	public static TRTrackerServerTorrent
+	unwrap(
+		TrackerTorrent		torrent )
+	{
+		return( ((TrackerTorrentImpl)torrent).getHostTorrent().getTrackerTorrent());
+	}
 }

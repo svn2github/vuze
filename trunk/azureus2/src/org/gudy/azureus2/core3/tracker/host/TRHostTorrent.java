@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.host;
  */
 
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.server.TRTrackerServerTorrent;
 
 public interface 
 TRHostTorrent 
@@ -76,6 +77,9 @@ TRHostTorrent
 	
 	public TOTorrent
 	getTorrent();
+	
+	public TRTrackerServerTorrent
+	getTrackerTorrent();
 	
 	public int
 	getPort();
