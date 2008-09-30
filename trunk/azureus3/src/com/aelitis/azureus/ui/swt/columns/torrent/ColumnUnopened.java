@@ -44,7 +44,7 @@ public class ColumnUnopened
 
 	private static UISWTGraphicImpl graphicCheck;
 
-	private static int width;
+	private static int WIDTH = 35; // enough to fit title
 
 
 	/**
@@ -55,12 +55,11 @@ public class ColumnUnopened
 		super(COLUMN_ID, tableID);
 		
 		if (graphicCheck == null) {
-			Image img = ImageLoaderFactory.getInstance().getImage("image.check");
-			width = img.getBounds().width;
+			Image img = ImageLoaderFactory.getInstance().getImage("image.unopened");
 			graphicCheck = new UISWTGraphicImpl(img);
 		}
 		
-		initializeAsGraphic(width);
+		initializeAsGraphic(WIDTH);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

@@ -33,23 +33,22 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * A non-interactive (no click no hover) thumbnail column
@@ -59,14 +58,15 @@ import com.aelitis.azureus.util.DataSourceUtils;
 
 public class ColumnThumbnail
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellRefreshListener,
-	TableCellDisposeListener
+	implements TableCellRefreshListener, TableCellSWTPaintListener
 {
 	public static final String COLUMN_ID = "Thumbnail";
 
-	private int columnWidth = 60;
+	private static final int WIDTH_SMALL = 35;
 
-	private int marginBorder = 1;
+	private static final int WIDTH_BIG = 60;
+
+	private static final int WIDTH_ACTIVITY = 80;
 
 	/**
 	 * Each cell is mapped to a torrent
@@ -75,42 +75,13 @@ public class ColumnThumbnail
 
 	/** Default Constructor */
 	public ColumnThumbnail(String sTableID) {
-		this(sTableID, -1, -1);
-	}
-
-	/**
-	 * 
-	 * @param sTableID
-	 * @param width The fixed width of the column
-	 * @param marginBorder The border margin for the thumbnail image inside a cell
-	 */
-	public ColumnThumbnail(String sTableID, int width, int marginBorder) {
 		super(COLUMN_ID, sTableID);
-		if (width > 0) {
-			columnWidth = width;
+		if (TableManager.TABLE_ACTIVITY_BIG.equals(sTableID)) {
+			initializeAsGraphic(WIDTH_ACTIVITY);
+		} else {
+			initializeAsGraphic(sTableID.endsWith(".big") ? WIDTH_BIG : WIDTH_SMALL);
 		}
-		if (marginBorder > 0) {
-			this.marginBorder = marginBorder;
-		}
-		initializeAsGraphic(columnWidth);
 		setAlignment(ALIGN_CENTER);
-	}
-
-	public void cellAdded(TableCell cell) {
-		cell.setMarginWidth(marginBorder);
-		cell.setMarginHeight(marginBorder);
-		cell.addDisposeListener(new TableCellDisposeListener() {
-			public void dispose(TableCell cell) {
-				Graphic graphic = cell.getGraphic();
-				if(graphic != null &&graphic instanceof UISWTGraphic) {
-					Image image = ((UISWTGraphic)graphic).getImage();
-					if(image!= null && !image.isDisposed()) {
-						image.dispose();
-					}
-					cell.setGraphic(null);
-				}
-			}
-		});
 	}
 
 	public void dispose(TableCell cell) {
@@ -120,7 +91,6 @@ public class ColumnThumbnail
 	public void refresh(final TableCell cell) {
 
 		Object ds = cell.getDataSource();
-		DownloadManager dm = DataSourceUtils.getDM(ds);
 		TOTorrent newTorrent = DataSourceUtils.getTorrent(ds);
 
 		/*
@@ -128,12 +98,12 @@ public class ColumnThumbnail
 		 */
 		long sortIndex = PlatformTorrentUtils.isContent(newTorrent, true) ? 0 : 1;
 		boolean bChanged = cell.setSortValue(sortIndex);
-		
+
 		/*
 		 * Get the torrent for this cell
 		 */
 		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
-		
+
 		/*
 		 * If the cell is not shown or nothing has changed then skip since there's nothing to update
 		 */
@@ -141,9 +111,21 @@ public class ColumnThumbnail
 				|| (newTorrent == torrent && !bChanged && cell.isValid())) {
 			return;
 		}
-		
+
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
+
+		cell.invalidate();
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
+	public void cellPaint(GC gc, TableCellSWT cell) {
+		Object ds = cell.getDataSource();
+
+		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
+		if (torrent == null) {
+			return;
+		}
 
 		/*
 		 * Try to get the image bytes if available
@@ -155,32 +137,19 @@ public class ColumnThumbnail
 		if (imageBytes == null) {
 			imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
-		if(cell.getGraphic() != null) {
-			if(cell.isValid()) {
-				return;
-			} else {
-				Graphic graphic = cell.getGraphic();
-				if(graphic instanceof UISWTGraphic) {
-					Image image = ((UISWTGraphic)graphic).getImage();
-					if(image!= null && !image.isDisposed()) {
-						image.dispose();
-					}
-					cell.setGraphic(null);
-				}
-				
-			}
-		}
 
-		Image thumbnailImage = null;
+		Image imgThumbnail = null;
+		Rectangle cellBounds = cell.getBounds();
 
 		if (imageBytes != null) {
 			/*
 			 * Creates an image from what's given
 			 */
 			ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-			thumbnailImage = new Image(Display.getDefault(), bis);
+			imgThumbnail = new Image(Display.getDefault(), bis);
 
 		} else {
+			DownloadManager dm = DataSourceUtils.getDM(ds);
 			/*
 			 * Try to get an image from the OS
 			 */
@@ -189,59 +158,59 @@ public class ColumnThumbnail
 			String path = null;
 			if (dm == null) {
 				if (torrent != null) {
-  				TOTorrentFile[] files = torrent.getFiles();
-  				if (files.length > 0) {
-  					path = files[0].getRelativePath();
-  				}
+					TOTorrentFile[] files = torrent.getFiles();
+					if (files.length > 0) {
+						path = files[0].getRelativePath();
+					}
 				}
 			} else {
 				path = dm.getDownloadState().getPrimaryFile();
 			}
 			if (path != null) {
-				Image icon = ImageRepository.getPathIcon(path, true,
-						torrent != null && !torrent.isSimpleTorrent());
-				thumbnailImage = new Image(Display.getDefault(), icon,SWT.IMAGE_COPY);
+				Image icon = ImageRepository.getPathIcon(path, cellBounds.height >= 32
+						&& cellBounds.width >= 32, torrent != null
+						&& !torrent.isSimpleTorrent());
+				imgThumbnail = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
 			}
 
 		}
 
-		if (null != thumbnailImage) {
+		if (null != imgThumbnail) {
+			if (cellBounds.height > 30) {
+				cellBounds.y += 2;
+				cellBounds.height -= 4;
+			}
 
-			int cellWidth = cell.getWidth();
-			int cellHeight = cell.getHeight();
-			Rectangle bounds = thumbnailImage.getBounds();
+			Rectangle imgBounds = imgThumbnail.getBounds();
 
-			/*
-			 * If the original image is bigger than the cell (minus margin)
-			 * then use GC to resize it to fit
-			 * Only perform if the current cell width and height are not 0
-			 */
-			if (cellWidth > 0 && cellHeight > 0
-					&& (bounds.width > cellWidth || bounds.height > cellHeight)) {
-				Image resizedImage = new Image(Display.getDefault(), cellWidth,
-						cellHeight);
-				GC gc = new GC(resizedImage);
-				try {
-					gc.setAdvanced(true);
-					gc.setInterpolation(SWT.HIGH);
-				} catch (Exception e) {
+			int dstWidth;
+			int dstHeight;
+			if (imgBounds.width > cellBounds.width
+					|| imgBounds.height > cellBounds.height) {
+				dstWidth = cellBounds.width - 4;
+				dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
+				if (cellBounds.height < 30) {
+					cellBounds.y += 1;
+					cellBounds.height -= 2;
 				}
-				gc.drawImage(thumbnailImage, 0, 0, bounds.width, bounds.height, 0, 0,
-						cellWidth, cellHeight);
-				
-				gc.dispose();
-
-				thumbnailImage.dispose();
-				thumbnailImage = resizedImage;
-
-			}
-
-			if (cell instanceof TableCellSWT) {
-				((TableCellSWT) cell).setGraphic(thumbnailImage);
 			} else {
-				cell.setGraphic(new UISWTGraphicImpl(thumbnailImage));
+				dstWidth = imgBounds.width;
+				dstHeight = imgBounds.height;
 			}
 
+			Rectangle clipping = gc.getClipping();
+			gc.setClipping(cellBounds);
+
+			try {
+				gc.setAdvanced(true);
+				gc.setInterpolation(SWT.HIGH);
+			} catch (Exception e) {
+			}
+			gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
+					cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
+							+ ((cellBounds.height - dstHeight) / 2), dstWidth, dstHeight);
+
+			gc.setClipping(clipping);
 		}
 	}
 }

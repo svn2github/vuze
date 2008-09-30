@@ -2314,4 +2314,8 @@ public class MainWindow
 			MenuFactory.updateMenuText(menu.getMenu(IMenuConstants.MENU_ID_MENU_BAR));
 		}
 	}
+	
+	protected MainMenu getMainMenu() {
+		return menu;
+	}
 }

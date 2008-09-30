@@ -70,7 +70,7 @@ public class ColumnRateUpDown
 
 	private static Rectangle boundsRateMe;
 
-	private static int width = 60;
+	private static int width = 36;
 
 	private boolean useButton = false;
 
@@ -123,6 +123,10 @@ public class ColumnRateUpDown
 	}
 
 	public void refresh(TableCell cell) {
+		if (cell.getHeight() < 32) {
+			return;
+		}
+
 		Object ds = cell.getDataSource();
 		TOTorrent torrent = null;
 		if (ds instanceof TOTorrent) {

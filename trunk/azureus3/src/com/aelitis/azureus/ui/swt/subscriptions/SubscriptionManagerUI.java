@@ -68,14 +68,8 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -120,11 +114,6 @@ SubscriptionManagerUI
 	private Graphic	icon_rss;
 	private List	icon_list	= new ArrayList();
 	
-	private TableColumn	subs_i_column;
-	private TableColumn	subs_c_column;
-	private TableColumn	subs_ib_column;
-	private TableColumn	subs_cb_column;
-	
 	private SubscriptionManager	subs_man;
 	
 	private MenuItemListener markAllResultsListener;
@@ -136,6 +125,8 @@ SubscriptionManagerUI
 	private MenuItemListener forceCheckListener;
 	
 	private boolean		side_bar_setup;
+
+	private List columns = new ArrayList();
 	
 	public
 	SubscriptionManagerUI(
@@ -396,11 +387,8 @@ SubscriptionManagerUI
 			};
 			
 		// MyTorrents tables
-			
-		subs_i_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_INCOMPLETE);	
-		subs_ib_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG);	
-		subs_c_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE);	
-		subs_cb_column = createSubsColumn(table_manager, refresh_listener, mouse_listener, TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);	
+
+		createSubsColumns(table_manager, refresh_listener, mouse_listener);
 
 		final UIManager	ui_manager = default_pi.getUIManager();
 		
@@ -444,10 +432,7 @@ SubscriptionManagerUI
 									associationsChanged(
 										byte[] hash )
 									{
-										subs_i_column.invalidateCells();
-										subs_ib_column.invalidateCells();
-										subs_c_column.invalidateCells();
-										subs_cb_column.invalidateCells();
+										refreshColumns();
 									}
 								});	
 							
@@ -514,27 +499,27 @@ SubscriptionManagerUI
 					}
 				});
 	}
-	
-	private TableColumn createSubsColumn(TableManager table_manager,TableCellRefreshListener refresh_listener,TableCellMouseListener mouse_listener,String tableID) {
-		TableColumn result;
+
+	private void createSubsColumns(TableManager table_manager,
+			final TableCellRefreshListener refresh_listener,
+			final TableCellMouseListener mouse_listener) {
+		table_manager.registerColumn(Download.class, "azsubs.ui.column.subs", new TableColumnCreationListener() {
 		
-		result = table_manager.createColumn(
-				tableID,
-				"azsubs.ui.column.subs" );
-		
-		result.setAlignment(TableColumn.ALIGN_CENTER);
-		result.setPosition(TableColumn.POSITION_LAST);
-		result.setWidth(75);
-		result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-		result.setType(TableColumn.TYPE_GRAPHIC);
-	
-		result.addCellRefreshListener( refresh_listener );
-		result.addCellMouseListener( mouse_listener );
-		
-		table_manager.addColumn( result );	
-		return result;
+			public void tableColumnCreated(TableColumn result) {
+				result.setAlignment(TableColumn.ALIGN_CENTER);
+				result.setPosition(TableColumn.POSITION_LAST);
+				result.setWidth(75);
+				result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+				result.setType(TableColumn.TYPE_GRAPHIC);
+			
+				result.addCellRefreshListener( refresh_listener );
+				result.addCellMouseListener( mouse_listener );
+				
+				columns.add(result);
+			}
+		});
 	}
-	
+
 	protected void
 	setupSideBar(
 		final SideBar		side_bar )
@@ -552,6 +537,7 @@ SubscriptionManagerUI
 		SideBarEntrySWT mainSBEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
 		if (mainSBEntry != null) {
 			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+			addSub.setToolTip("This is the tooltip");
 			addSub.addListener(new SideBarVitalityImageListener() {
 				public void sbVitalityImage_clicked(int x, int y) {
 					new SubscriptionWizard();
@@ -947,10 +933,10 @@ SubscriptionManagerUI
 	protected void
 	refreshColumns()
 	{
-		subs_i_column.invalidateCells();
-		subs_ib_column.invalidateCells();
-		subs_c_column.invalidateCells();
-		subs_cb_column.invalidateCells();
+		for (Iterator iter = columns.iterator(); iter.hasNext();) {
+			TableColumn column = (TableColumn) iter.next();
+			column.invalidateCells();
+		}
 	}
 	
 	protected Graphic

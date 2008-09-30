@@ -24,10 +24,12 @@ public class SBC_LibraryTableView_Big
 	public TableColumnCore[] getColumns() {
 		TableColumnCore[] columns = null;
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
-			columns = TableColumnCreatorV3.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);
+			columns = TableColumnCreatorV3.createCompleteDM(
+					TableManager.TABLE_MYTORRENTS_COMPLETE_BIG, true);
 
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
-			columns = TableColumnCreatorV3.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG);
+			columns = TableColumnCreatorV3.createIncompleteDM(
+					TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, true);
 
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			columns = TableColumnCreatorV3.createUnopenedDM(

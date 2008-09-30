@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,11 +44,13 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -651,12 +654,40 @@ public class UIFunctionsImpl
 
 	public void refreshTorrentMenu() {
 		try {
-			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
+			if (mainWindow.isOnAdvancedView()) {
+  			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+  			
+  			if (uiFunctions != null) {
+  				uiFunctions.refreshTorrentMenu();
+  			}
+  			return;
 			}
 
-			uiFunctions.refreshTorrentMenu();
+			final MenuItem torrentItem = MenuFactory.findMenuItem(
+					mainWindow.getMainMenu().getMenu(IMenuConstants.MENU_ID_MENU_BAR),
+					MenuFactory.MENU_ID_TORRENT);
+
+			if (null != torrentItem) {
+
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+				
+				final DownloadManager[] dm_final = dms;
+				final TableViewSWT tv_final = null;
+				final boolean detailed_view_final = false;
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (null == dm_final) {
+							torrentItem.setEnabled(false);
+						} else {
+							torrentItem.setData("downloads", dm_final);
+							torrentItem.setData("TableView", tv_final);
+							torrentItem.setData("is_detailed_view",
+									Boolean.valueOf(detailed_view_final));
+							torrentItem.setEnabled(true);
+						}
+					}
+				}, true); // async
+			}
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "refreshTorrentMenu", e));

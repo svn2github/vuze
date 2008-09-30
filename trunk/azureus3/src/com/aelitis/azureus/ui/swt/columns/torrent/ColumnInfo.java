@@ -52,7 +52,7 @@ public class ColumnInfo
 
 	private static Rectangle imgBounds;
 
-	private static int width = 30;
+	private static int width = 38;
 
 	private static Image img;
 

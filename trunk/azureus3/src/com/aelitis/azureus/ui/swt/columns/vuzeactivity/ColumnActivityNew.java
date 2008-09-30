@@ -42,6 +42,8 @@ public class ColumnActivityNew
 	implements TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "activityNew";
+	
+	private static int WIDTH = 35; // enough to fit title
 
 	private static Image imgNew;
 
@@ -53,9 +55,9 @@ public class ColumnActivityNew
 	 * @param tableID
 	 */
 	public ColumnActivityNew(String tableID) {
-		super(COLUMN_ID, 22, tableID);
+		super(COLUMN_ID, tableID);
 		
-		initializeAsGraphic(22);
+		initializeAsGraphic(WIDTH);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
 	}

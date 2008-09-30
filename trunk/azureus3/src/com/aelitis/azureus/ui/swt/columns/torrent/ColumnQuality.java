@@ -36,7 +36,7 @@ public class ColumnQuality
 
 	public Font font;
 
-	private final int COLUMN_WIDTH = 40;
+	private final int COLUMN_WIDTH = 50;
 
 	/**
 	 * 

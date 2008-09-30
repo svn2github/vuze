@@ -46,6 +46,8 @@ public class ColumnActivityType
 	implements TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "activityType";
+	
+	private static int WIDTH = 40; // enough to fit title in most cases
 
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
 			"h:mm:ss a, EEEE, MMMM d, yyyy");
@@ -58,9 +60,9 @@ public class ColumnActivityType
 	 * @param tableID
 	 */
 	public ColumnActivityType(String tableID) {
-		super(COLUMN_ID, 22, tableID);
+		super(COLUMN_ID, tableID);
 
-		initializeAsGraphic(22);
+		initializeAsGraphic(WIDTH);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)

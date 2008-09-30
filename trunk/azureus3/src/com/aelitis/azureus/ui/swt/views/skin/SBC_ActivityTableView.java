@@ -53,6 +53,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
 
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+
 /**
  * @author TuxPaper
  * @created Sep 25, 2008
@@ -99,7 +101,7 @@ public class SBC_ActivityTableView
 		
 		boolean big = viewMode == SBC_ActivityView.MODE_BIGTABLE;
 		
-		tableID = skinObject.getSkinObjectID();
+		tableID = big ? TableManager.TABLE_ACTIVITY_BIG : TableManager.TABLE_ACTIVITY;
 		TableColumnCore[] columns = big ?  TableColumnCreatorV3.createActivityBig(tableID) : TableColumnCreatorV3.createActivitySmall(tableID);
 
 		view = new TableViewSWTImpl(tableID, tableID, columns, "name", SWT.MULTI

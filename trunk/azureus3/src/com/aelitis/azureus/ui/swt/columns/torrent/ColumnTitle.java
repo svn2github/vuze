@@ -145,14 +145,6 @@ public class ColumnTitle
 			}
 		}
 
-		if (ColumnProgressETA.TRY_NAME_COLUMN_EXPANDER) {
-			if (dm.getAssumedComplete()) {
-				long size = dm.getSize() - dm.getStats().getRemaining();
-				name += "\nCompleted. "
-						+ DisplayFormatters.formatByteCountToKiBEtc(size);
-			}
-		}
-
 		Graphic graphic = cell.getBackgroundGraphic();
 		if (!(graphic instanceof UISWTGraphic)) {
 			cell.setText(name);

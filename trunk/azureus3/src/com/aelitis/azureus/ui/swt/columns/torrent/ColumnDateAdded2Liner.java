@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -42,13 +44,13 @@ public class ColumnDateAdded2Liner
 	implements TableCellRefreshListener
 {
 	public static String COLUMN_ID = "date_added";
-
+	
 	final static String[] FORMATS = new String[] {
 		"EEEE, MMMM d, yyyy",
 		"EEE, MMMM d, yyyy",
+		"MMMM d, ''yy",
 		"EEE, MMM d, yyyy",
 		"EEE, MMM d, ''yy",
-		"MMMM d, ''yy",
 		"MMM d, ''yy",
 		"yyyy/mm/dd",
 		"yyyy/mm",
@@ -66,7 +68,8 @@ public class ColumnDateAdded2Liner
 
 	public ColumnDateAdded2Liner(String sTableID, boolean bVisible) {
 		super(COLUMN_ID, ALIGN_TRAIL,
-				bVisible ? POSITION_LAST : POSITION_INVISIBLE, 70, sTableID);
+				bVisible ? POSITION_LAST : POSITION_INVISIBLE,
+				TableColumnCreatorV3.DATE_COLUMN_WIDTH, sTableID);
 		setMaxWidthAuto(true);
 	}
 
@@ -89,7 +92,7 @@ public class ColumnDateAdded2Liner
 			if (newWidth > maxWidthUsed) {
 				maxWidthUsed = newWidth;
 				maxWidthDate = date;
-				invalidateCells();
+				recalcWidth();
 			}
 			
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
@@ -100,7 +103,20 @@ public class ColumnDateAdded2Liner
 	
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
 	public void setWidth(int width) {
+		int oldWidth = this.getWidth();
 		super.setWidth(width);
+
+		if (oldWidth == width) {
+			return;
+		}
+		recalcWidth();
+	}
+	public void recalcWidth() {
+		int width = getWidth();
+
+		if (maxWidthDate == null) {
+			maxWidthDate = new Date();
+		}
 
 		GC gc = new GC(Display.getDefault());
 		Point minSize = new Point(99999, 0);
@@ -108,6 +124,7 @@ public class ColumnDateAdded2Liner
 		for (int i = 0; i < FORMATS.length; i++) {
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
 			Point newSize = gc.stringExtent(temp.format(maxWidthDate));
+			maxWidthUsed = newSize.x;
 			if (newSize.x < width - 6) {
 				idxFormat = i;
 				break;
@@ -118,8 +135,6 @@ public class ColumnDateAdded2Liner
 			}
 		}
 		gc.dispose();
-		
-		maxWidthUsed = minSize.x;
 
 		if (curFormat != idxFormat) {
 			curFormat = idxFormat;
@@ -127,11 +142,9 @@ public class ColumnDateAdded2Liner
 		}
 	}
 
-
 	public int calcWidth(Date date, String format) {
 		GC gc = new GC(Display.getDefault());
-		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
-				+ "\nh:mm a");
+		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]);
 		Point newSize = gc.stringExtent(temp.format(date));
 		gc.dispose();
 		return newSize.x;

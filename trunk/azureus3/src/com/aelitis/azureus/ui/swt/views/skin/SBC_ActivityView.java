@@ -23,14 +23,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -46,18 +41,14 @@ public class SBC_ActivityView
 
 	public final static int MODE_SMALLTABLE = 1;
 
-	public final static int MODE_OLDTABLE = 2;
-
 	private final static String[] modeViewIDs = {
 		SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG,
 		SkinConstants.VIEWID_SIDEBAR_ACTIVITY_SMALL,
-		SkinConstants.VIEWID_ACTIVITIESVIEW,
 	};
 
 	private final static String[] modeIDs = {
 		"activity.table.big",
 		"activity.table.small",
-		"main.area.events",
 	};
 
 	private int viewMode = -1;
@@ -68,15 +59,11 @@ public class SBC_ActivityView
 
 	private SWTSkinObject soListArea;
 
-	private SWTSkinButtonUtility btnOldTable;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
 		soListArea = getSkinObject(ID + "-area");
-
-		setViewMode(COConfigurationManager.getIntParameter(ID
-				+ ".viewmode", MODE_SMALLTABLE), false);
 
 		SWTSkinObject so;
 		so = getSkinObject(ID + "-button-smalltable");
@@ -99,16 +86,6 @@ public class SBC_ActivityView
 			});
 		}
 
-		so = getSkinObject(ID + "-button-oldtable");
-		if (so != null) {
-			btnOldTable = new SWTSkinButtonUtility(so);
-			btnOldTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
-					setViewMode(MODE_OLDTABLE, true);
-				}
-			});
-		}
-
 		so = getSkinObject(ID + "-button-right");
 		if (so != null) {
 			so.setVisible(true);
@@ -124,6 +101,9 @@ public class SBC_ActivityView
 				}
 			});
 		}
+
+		setViewMode(COConfigurationManager.getIntParameter(ID
+				+ ".viewmode", MODE_SMALLTABLE), false);
 
 		return null;
 	}
@@ -165,6 +145,14 @@ public class SBC_ActivityView
 		} else {
 			soViewArea.setVisible(true);
 		}
+
+		if (btnSmallTable != null) {
+			btnSmallTable.getSkinObject().switchSuffix(viewMode == MODE_SMALLTABLE ? "-selected" : "");
+		}
+		if (btnBigTable != null) {
+			btnBigTable.getSkinObject().switchSuffix(viewMode == MODE_BIGTABLE ? "-selected" : "");
+		}
+
 
 		if (save) {
 			COConfigurationManager.setParameter(ID + ".viewmode", viewMode);

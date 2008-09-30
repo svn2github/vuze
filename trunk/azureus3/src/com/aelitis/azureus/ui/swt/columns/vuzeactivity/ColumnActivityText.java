@@ -19,9 +19,7 @@
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -59,12 +57,14 @@ public class ColumnActivityText
 
 	private Color colorLinkHover;
 
+	private static Font font = null;
+
 	/**
 	 * @param name
 	 * @param tableID
 	 */
 	public ColumnActivityText(String tableID) {
-		super(COLUMN_ID, 500, tableID);
+		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(500);
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
@@ -77,6 +77,15 @@ public class ColumnActivityText
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 		String text = entry.getText();
 		Rectangle bounds = getDrawBounds(cell);
+		
+		if (!entry.isRead()) {
+			if (font == null) {
+				FontData[] fontData = gc.getFont().getFontData();
+				fontData[0].setStyle(SWT.BOLD);
+				font = new Font(gc.getDevice(), fontData);
+			}
+			gc.setFont(font);
+		}
 
 		GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, true,
 				SWT.WRAP);
@@ -105,6 +114,7 @@ public class ColumnActivityText
 		}
 
 		sp.printString();
+		gc.setFont(null);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -186,8 +196,10 @@ public class ColumnActivityText
 
 	private Rectangle getDrawBounds(TableCellSWT cell) {
 		Rectangle bounds = cell.getBounds();
-		bounds.height -= 12;
-		bounds.y += 6;
+		if (bounds.height < 40) {
+			bounds.height -= 12;
+			bounds.y += 6;
+		}
 		bounds.x += 4;
 		bounds.width -= 4;
 

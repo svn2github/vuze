@@ -37,10 +37,12 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
@@ -176,7 +178,7 @@ public class ToolBarView
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.runTorrents(dms);
 
@@ -193,7 +195,7 @@ public class ToolBarView
 		// ==UP
 		item = new ToolBarItem("up", "image.toolbar.up", "iconBar.up") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					Arrays.sort(dms, new Comparator() {
 						public int compare(Object a, Object b) {
@@ -212,7 +214,7 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					gm.moveTop(dms);
 				}
@@ -225,7 +227,7 @@ public class ToolBarView
 		// ==down
 		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					Arrays.sort(dms, new Comparator() {
 						public int compare(Object a, Object b) {
@@ -244,7 +246,7 @@ public class ToolBarView
 
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
 			public boolean triggerToolBarItemHold() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					gm.moveEnd(dms);
 				}
@@ -257,7 +259,7 @@ public class ToolBarView
 		// ==start
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.queueTorrents(dms, null);
 				}
@@ -269,7 +271,7 @@ public class ToolBarView
 		// ==stop
 		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = getDMSFromSelectedContent();
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.stopTorrents(dms, null);
 				}
@@ -289,7 +291,7 @@ public class ToolBarView
 						view.removeSelected();
 					}
 				} else {
-					DownloadManager[] dms = getDMSFromSelectedContent();
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = dms[i];
 						if (dm != null) {
@@ -329,6 +331,7 @@ public class ToolBarView
 			public void currentlySelectedContentChanged(
 					ISelectedContent[] currentContent, String viewID) {
 				updateCoreItems(currentContent, viewID);
+				UIFunctionsManagerSWT.getUIFunctionsSWT().refreshTorrentMenu();
 			}
 		});
 
@@ -406,7 +409,7 @@ public class ToolBarView
 			}
 		}
 
-		DownloadManager[] dms = getDMSFromSelectedContent();
+		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 		boolean isDMSelection = dms != null && dms.length > 0;
 
 		for (int i = 0; i < itemsNeedingDMSelection.length; i++) {
@@ -480,31 +483,6 @@ public class ToolBarView
 					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);
 		}
-	}
-
-	/**
-	 * @return
-	 *
-	 * @since 3.1.1.1
-	 */
-	protected DownloadManager[] getDMSFromSelectedContent() {
-		ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-		if (sc.length > 0) {
-			int x = 0;
-			DownloadManager[] dms = new DownloadManager[sc.length];
-			for (int i = 0; i < sc.length; i++) {
-				ISelectedContent selectedContent = sc[i];
-				dms[x] = selectedContent.getDM();
-				if (dms[x] != null) {
-					x++;
-				}
-			}
-			if (x > 0) {
-				System.arraycopy(dms, 0, dms, 0, x);
-				return dms;
-			}
-		}
-		return null;
 	}
 
 	/**

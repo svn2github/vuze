@@ -12,11 +12,13 @@ public class MyTorrentsSuperView_Big
 	extends MyTorrentsSuperView
 {
 	protected TableColumnCore[] getIncompleteColumns() {
-		return TableColumnCreatorV3.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG);
+		return TableColumnCreatorV3.createIncompleteDM(
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, true);
 	}
 
 	protected TableColumnCore[] getCompleteColumns() {
-		return TableColumnCreatorV3.createCompleteDM(TableManager.TABLE_MYTORRENTS_COMPLETE_BIG);
+		return TableColumnCreatorV3.createCompleteDM(
+				TableManager.TABLE_MYTORRENTS_COMPLETE_BIG, true);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView#createTorrentView(com.aelitis.azureus.core.AzureusCore, java.lang.String, boolean, com.aelitis.azureus.ui.common.table.TableColumnCore[])
@@ -26,5 +28,5 @@ public class MyTorrentsSuperView_Big
 				? SBC_LibraryView.TORRENTS_COMPLETE
 				: SBC_LibraryView.TORRENTS_INCOMPLETE, columns);
 	}
-	
+
 }

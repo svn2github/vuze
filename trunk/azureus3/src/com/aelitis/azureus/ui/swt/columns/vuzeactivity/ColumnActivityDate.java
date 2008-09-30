@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -47,9 +48,9 @@ public class ColumnActivityDate
 	final static String[] FORMATS = new String[] {
 		"EEEE, MMMM d, yyyy",
 		"EEE, MMMM d, yyyy",
+		"MMMM d, ''yy",
 		"EEE, MMM d, yyyy",
 		"EEE, MMM d, ''yy",
-		"MMMM d, ''yy",
 		"MMM d, ''yy",
 		"yyyy/mm/dd",
 		"yyyy/mm",
@@ -66,7 +67,7 @@ public class ColumnActivityDate
 	 * @param tableID
 	 */
 	public ColumnActivityDate(String tableID) {
-		super(COLUMN_ID, 100, tableID);
+		super(COLUMN_ID, TableColumnCreatorV3.DATE_COLUMN_WIDTH, tableID);
 		setAlignment(ALIGN_TRAIL);
 	}
 	
@@ -86,7 +87,7 @@ public class ColumnActivityDate
 			if (newWidth > maxWidthUsed) {
 				maxWidthUsed = newWidth;
 				maxWidthDate = date;
-				invalidateCells();
+				recalcWidth();
 			}
 			
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
@@ -94,10 +95,19 @@ public class ColumnActivityDate
 			cell.setText(temp.format(date));
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
 	public void setWidth(int width) {
+		int oldWidth = this.getWidth();
 		super.setWidth(width);
+
+		if (oldWidth == width) {
+			return;
+		}
+		recalcWidth();
+	}
+	public void recalcWidth() {
+		int width = getWidth();
 		
 		if (maxWidthDate == null) {
 			maxWidthDate = new Date();
@@ -109,7 +119,8 @@ public class ColumnActivityDate
 		for (int i = 0; i < FORMATS.length; i++) {
 			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
 			Point newSize = gc.stringExtent(temp.format(maxWidthDate));
-			if (newSize.x < width - 8) {
+			maxWidthUsed = newSize.x;
+			if (newSize.x < width - 6) {
 				idxFormat = i;
 				break;
 			}
@@ -119,8 +130,6 @@ public class ColumnActivityDate
 			}
 		}
 		gc.dispose();
-		
-		maxWidthUsed = minSize.x;
 
 		if (curFormat != idxFormat) {
 			curFormat = idxFormat;
@@ -128,11 +137,9 @@ public class ColumnActivityDate
 		}
 	}
 
-
 	public int calcWidth(Date date, String format) {
 		GC gc = new GC(Display.getDefault());
-		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
-				+ "\nh:mm a");
+		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]);
 		Point newSize = gc.stringExtent(temp.format(date));
 		gc.dispose();
 		return newSize.x;

@@ -27,26 +27,38 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class TableColumnCreatorV3
 {
 
-	public static TableColumnCore[] createIncompleteDM(String tableID) {
+	public static int DATE_COLUMN_WIDTH = 90;
+
+	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
-			StatusItem.COLUMN_ID,
-			ETAItem.COLUMN_ID,
-			CompletionItem.COLUMN_ID,
-			PiecesItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
-			SizeItem.COLUMN_ID,
-			ColumnDateAdded2Liner.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
+			CompletionItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			DownSpeedItem.COLUMN_ID,
+			SeedsItem.COLUMN_ID,
+			PeersItem.COLUMN_ID,
+			ETAItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
 				tableID);
 
-		setVisibility(mapTCs, defaultVisibleOrder);
+		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+				tableID)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			NameItem tc = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID, NameItem.COLUMN_ID);
+				tc.setSortAscending(true);
+			}
+		}
 
 		// special changes
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
@@ -81,26 +93,34 @@ public class TableColumnCreatorV3
 		}
 	}
 
-	public static TableColumnCore[] createCompleteDM(String tableID) {
+	public static TableColumnCore[] createCompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
+			ColumnUnopened.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
-			StatusItem.COLUMN_ID,
-			ColumnRatingGlobal.COLUMN_ID,
-			ColumnRateUpDown.COLUMN_ID,
+			SizeItem.COLUMN_ID,
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
+			ColumnRateUpDown.COLUMN_ID,
+			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
-			SizeItem.COLUMN_ID,
 			ColumnDateCompleted2Liner.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class,
 				tableID);
 
-		setVisibility(mapTCs, defaultVisibleOrder);
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID,
+						ColumnDateCompleted2Liner.COLUMN_ID);
+				tc.setSortAscending(false);
+			}
+		}
 
 		// special changes
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
@@ -121,13 +141,10 @@ public class TableColumnCreatorV3
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
-			StatusItem.COLUMN_ID,
-			ColumnRatingGlobal.COLUMN_ID,
-			ColumnRateUpDown.COLUMN_ID,
+			SizeItem.COLUMN_ID,
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
-			ShareRatioItem.COLUMN_ID,
-			SizeItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
 			ColumnDateCompleted2Liner.COLUMN_ID,
 		};
 
@@ -135,7 +152,16 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
 				tableID);
 
-		setVisibility(mapTCs, defaultVisibleOrder);
+		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+				tableID)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID,
+						ColumnDateCompleted2Liner.COLUMN_ID);
+				tc.setSortAscending(false);
+			}
+		}
 
 		// special changes
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
@@ -162,7 +188,15 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
-		setVisibility(mapTCs, defaultVisibleOrder);
+		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			ColumnActivityDate tc = (ColumnActivityDate) mapTCs.get(ColumnActivityDate.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID,
+						ColumnActivityDate.COLUMN_ID);
+				tc.setSortAscending(false);
+			}
+		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
@@ -181,11 +215,23 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
-		setVisibility(mapTCs, defaultVisibleOrder);
+		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+
+			ColumnActivityText tcText = (ColumnActivityText) mapTCs.get(ColumnActivityText.COLUMN_ID);
+			if (tcText != null) {
+				tcText.setWidth(350);
+			}
+			ColumnActivityDate tc = (ColumnActivityDate) mapTCs.get(ColumnActivityDate.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID,
+						ColumnActivityDate.COLUMN_ID);
+				tc.setSortAscending(false);
+			}
+		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
-
 
 	/**
 	 * 
@@ -209,8 +255,10 @@ public class TableColumnCreatorV3
 		c.put(ColumnRatingGlobal.COLUMN_ID,
 				new cInfo(ColumnRatingGlobal.class, all));
 		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, all));
-		c.put(ColumnDateAdded2Liner.COLUMN_ID, new cInfo(ColumnDateAdded2Liner.class, all));
-		c.put(ColumnDateCompleted2Liner.COLUMN_ID, new cInfo(ColumnDateCompleted2Liner.class, all));
+		c.put(ColumnDateAdded2Liner.COLUMN_ID, new cInfo(
+				ColumnDateAdded2Liner.class, all));
+		c.put(ColumnDateCompleted2Liner.COLUMN_ID, new cInfo(
+				ColumnDateCompleted2Liner.class, all));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, dl));
 
 		/////////
@@ -218,14 +266,19 @@ public class TableColumnCreatorV3
 		final Class ac = VuzeActivitiesEntry.class;
 
 		c.put(ColumnActivityNew.COLUMN_ID, new cInfo(ColumnActivityNew.class, ac));
-		c.put(ColumnActivityAvatar.COLUMN_ID, new cInfo(ColumnActivityAvatar.class, ac));
+		c.put(ColumnActivityAvatar.COLUMN_ID, new cInfo(ColumnActivityAvatar.class,
+				ac));
 		c.put(ColumnActivityType.COLUMN_ID, new cInfo(ColumnActivityType.class, ac));
 		c.put(ColumnActivityText.COLUMN_ID, new cInfo(ColumnActivityText.class, ac));
-		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(ColumnActivityActions.class, ac));
+		c.put(ColumnActivityActions.COLUMN_ID, new cInfo(
+				ColumnActivityActions.class, ac));
 		c.put(ColumnActivityDate.COLUMN_ID, new cInfo(ColumnActivityDate.class, ac));
 
-		
-		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, new Class[] { ac, all } ));
+		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class,
+				new Class[] {
+					ac,
+					all
+				}));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
@@ -264,7 +317,7 @@ public class TableColumnCreatorV3
 
 			for (int i = 0; i < info.forDataSourceTypes.length; i++) {
 				Class cla = info.forDataSourceTypes[i];
-				
+
 				tcManager.registerColumn(cla, id, tcCreator);
 			}
 		}
@@ -283,7 +336,7 @@ public class TableColumnCreatorV3
 				forDataSourceType
 			};
 		}
-		
+
 		public cInfo(Class cla, Class[] forDataSourceTypes) {
 			this.cla = cla;
 			this.forDataSourceTypes = forDataSourceTypes;
