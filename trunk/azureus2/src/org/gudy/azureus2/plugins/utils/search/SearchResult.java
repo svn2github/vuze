@@ -42,6 +42,8 @@ SearchResult
 	public static final int	PR_DOWNLOAD_BUTTON_LINK = 16;	// URL as String
 	public static final int	PR_RANK					= 17;	// Long value, 0->100
 	public static final int	PR_ACCURACY				= 18;	// Long value, 0->100
+	public static final int	PR_VOTES_DOWN			= 19;	// Long
+	
 
 	
 		// if you add more properties make sure you amend the mapping in PluginEngine appropriately
