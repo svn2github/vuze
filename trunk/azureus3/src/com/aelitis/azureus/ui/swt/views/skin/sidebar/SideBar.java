@@ -189,6 +189,8 @@ public class SideBar
 			public void widgetDisposed(DisposeEvent e) {
 				TreeItem treeItem = (TreeItem) e.widget;
 				String id = (String) treeItem.getData("Plugin.viewID");
+				
+				listTreeItemsNoTitleInfo.remove(treeItem);				
 
 				//TreeItem currentItem = treeItem.getParent().getSelection()[0];
 
@@ -2109,6 +2111,10 @@ public class SideBar
 						if (id != null) {
 							for (Iterator iter = listTreeItemsNoTitleInfo.iterator(); iter.hasNext();) {
 								TreeItem searchTreeItem = (TreeItem) iter.next();
+								if (searchTreeItem.isDisposed()) {
+									iter.remove();
+									continue;
+								}
 								String treeItemID = (String) searchTreeItem.getData("Plugin.viewID");
 								if (treeItemID != null && treeItemID.equals(id)) {
 									sideBarEntry = getSideBarInfo(treeItemID);
