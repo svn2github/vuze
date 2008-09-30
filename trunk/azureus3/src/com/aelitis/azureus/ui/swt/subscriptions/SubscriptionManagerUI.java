@@ -224,7 +224,7 @@ SubscriptionManagerUI
 			
 				// make assoc - CVS only as for testing purposes
 			
-			if ( Constants.isCVSVersion()){
+			if ( false ){
 			
 				final TableContextMenuItem menu_item_itorrents = 
 					table_manager.addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azsubs.contextmenu.addassoc");
@@ -1025,11 +1025,10 @@ SubscriptionManagerUI
 		private Composite		parent_composite;
 		private Composite		composite;
 				
-		private Label			info_lab;
-		private Label			info_lab2;
-		private StyledText		json_area;
-		
-		private Composite 		controls;
+		//private Label			info_lab;
+		//private Label			info_lab2;
+		//private StyledText	json_area;
+		//private Composite 		controls;
 		
 		private Browser			mainBrowser;
 		private Browser			detailsBrowser;
@@ -1096,10 +1095,11 @@ SubscriptionManagerUI
 			
 			//GridData grid_data = new GridData(GridData.FILL_BOTH );
 			//composite.setLayoutData(grid_data);
-			FormData data;
+			//FormData data;
 
 				// control area
 			
+			/*
 			controls = new Composite(composite, SWT.NONE);
 			GridLayout layout = new GridLayout();
 			layout.numColumns = 1;
@@ -1114,7 +1114,7 @@ SubscriptionManagerUI
 			controls.setLayoutData(data);
 			
 			GridData grid_data;
-			
+
 			info_lab = new Label( controls, SWT.NULL );
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
 			info_lab.setLayoutData(grid_data);
@@ -1129,7 +1129,8 @@ SubscriptionManagerUI
 			grid_data.heightHint = 50;
 			json_area.setLayoutData(grid_data);
 			json_area.setWordWrap(true);
-				
+			*/
+			
 			subs.addListener(
 				new SubscriptionListener()
 				{
@@ -1185,7 +1186,7 @@ SubscriptionManagerUI
 				FormData data = new FormData();
 				data.left = new FormAttachment(0,0);
 				data.right = new FormAttachment(100,0);
-				data.top = new FormAttachment(controls,0);
+				data.top = new FormAttachment(composite,0);
 				data.bottom = new FormAttachment(100,0);
 				mainBrowser.setLayoutData(data);
 				
@@ -1381,6 +1382,7 @@ SubscriptionManagerUI
 		protected void
 		updateInfo()
 		{
+			/*
 			String	engine_str = "";
 			
 			try{
@@ -1426,6 +1428,7 @@ SubscriptionManagerUI
 				
 				e.printStackTrace();
 			}
+			*/
 		}
 		
 		public Composite 
