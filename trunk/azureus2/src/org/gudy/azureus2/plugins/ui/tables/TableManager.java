@@ -38,6 +38,10 @@ public interface TableManager
   
   public static final String TABLE_MYTORRENTS_UNOPENED_BIG = "Unopened.big";
 
+  public static final String TABLE_ACTIVITY = "Activity";
+  
+  public static final String TABLE_ACTIVITY_BIG = "Activity.big";
+
   /** Visible for Torrent Peers table */
   public static final String TABLE_TORRENT_PEERS         = "Peers";
   /** Visible for Torrent Pieces table */

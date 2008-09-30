@@ -21,6 +21,8 @@ package com.aelitis.azureus.ui.selectedcontent;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 /**
  * Manages the currently selected content in the visible display
  * 
@@ -75,4 +77,25 @@ public class SelectedContentManager
 	public static ISelectedContent[] getCurrentlySelectedContent() {
 		return currentlySelectedContent;
 	}
+	
+	public static DownloadManager[] getDMSFromSelectedContent() {
+		ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+		if (sc.length > 0) {
+			int x = 0;
+			DownloadManager[] dms = new DownloadManager[sc.length];
+			for (int i = 0; i < sc.length; i++) {
+				ISelectedContent selectedContent = sc[i];
+				dms[x] = selectedContent.getDM();
+				if (dms[x] != null) {
+					x++;
+				}
+			}
+			if (x > 0) {
+				System.arraycopy(dms, 0, dms, 0, x);
+				return dms;
+			}
+		}
+		return null;
+	}
+
 }

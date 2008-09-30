@@ -240,9 +240,10 @@ public class TableColumnManager {
 							tc = new TableColumnImpl(tableID, columnID);
 						}
 
+						l.tableColumnCreated(tc);
+
 						addColumns(new TableColumnCore[] { tc });
 
-						l.tableColumnCreated(tc);
 					} catch (Exception e) {
 						Debug.out(e);
 					}
@@ -334,6 +335,24 @@ public class TableColumnManager {
   	} catch (Exception e) {
   		Debug.out(e);
   	}
+  }
+  
+  public boolean loadTableColumnSettings(Class forDataSourceType, String sTableID) {
+  	try {
+  		Map mapTableConfig = getTableConfigMap(sTableID);
+  		if (mapTableConfig.isEmpty()) {
+  			return false;
+  		}
+      TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
+					sTableID);
+      for (int i = 0; i < tcs.length; i++) {
+        if (tcs[i] != null)
+          tcs[i].loadSettings(mapTableConfig);
+      }
+  	} catch (Exception e) {
+  		Debug.out(e);
+  	}
+  	return true;
   }
   
   public Map getTableConfigMap(String sTableID) {

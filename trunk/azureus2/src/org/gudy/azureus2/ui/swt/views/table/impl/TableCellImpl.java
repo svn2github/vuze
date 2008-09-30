@@ -181,6 +181,7 @@ public class TableCellImpl
 	        }
 	        public void invalidate() {
 	        	clearFlag(FLAG_VALID);
+	        	redraw();
 	        }
 	      };
 	    } else {
@@ -190,6 +191,7 @@ public class TableCellImpl
 	        }
 	        public void invalidate() {
 	        	clearFlag(FLAG_VALID);
+	        	redraw();
 	        }
 	      };
 	    }
@@ -475,6 +477,10 @@ public class TableCellImpl
   	
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
+    
+  	if (cellSWTPaintListeners != null || hasColumnSWTPaintListeners) {
+  		redraw();
+  	}
 
     return true;
   }

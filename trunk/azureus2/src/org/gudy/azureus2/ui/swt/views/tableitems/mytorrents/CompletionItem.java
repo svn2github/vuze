@@ -78,7 +78,7 @@ public class CompletionItem
 	public CompletionItem(String sTableID, int marginHeight) {
 		super(COLUMN_ID, sTableID);
 		this.marginHeight = marginHeight;
-		initializeAsGraphic(POSITION_INVISIBLE, 200);
+		initializeAsGraphic(POSITION_INVISIBLE, 150);
 		setMinWidth(100);
 	}
 
