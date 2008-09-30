@@ -1377,7 +1377,7 @@ public class TableViewSWTImpl
 					event.gc.setAlpha(textOpacity);
 				}
   			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-  					true, style);
+  					cellBounds.height > 20, style);
 			}
 
 		} catch (Exception e) {
