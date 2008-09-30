@@ -260,7 +260,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   // @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#isMouseOver()
   public boolean isMouseOver() {
 		Table table = row.getTable();
-		Point pt = Display.getCurrent().getCursorLocation();
+		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
 
 		Rectangle bounds = getBounds();
