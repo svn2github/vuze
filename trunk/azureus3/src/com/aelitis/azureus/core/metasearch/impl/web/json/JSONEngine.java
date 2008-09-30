@@ -338,6 +338,9 @@ JSONEngine
 									case FIELD_DRMKEY :
 										result.setDrmKey(fieldContent);
 										break;
+									case FIELD_VOTES_DOWN :
+										result.setVotesDownFromHTML(fieldContent);
+										break;
 									default:
 										break;
 									}

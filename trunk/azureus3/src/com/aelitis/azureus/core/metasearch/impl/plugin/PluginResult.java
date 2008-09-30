@@ -126,6 +126,12 @@ PluginResult
 		return(getIntProperty( SearchResult.PR_VOTES ));
 	}
 	
+	public int 
+	getVotesDown()
+	{
+		return(getIntProperty( SearchResult.PR_VOTES_DOWN ));
+	}
+	
 	public boolean 
 	isPrivate()
 	{

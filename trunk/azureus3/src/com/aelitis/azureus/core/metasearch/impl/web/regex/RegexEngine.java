@@ -370,6 +370,9 @@ RegexEngine
 											case FIELD_DRMKEY :
 												result.setDrmKey(groupContent);
 												break;
+											case FIELD_VOTES_DOWN :
+												result.setVotesDownFromHTML(groupContent);
+												break;
 											default:
 												fields_matched--;
 												break;

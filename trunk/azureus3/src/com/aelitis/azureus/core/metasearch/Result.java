@@ -50,6 +50,7 @@ public abstract class Result {
 	public abstract int getNbSuperSeeds();
 	public abstract int getComments();
 	public abstract int getVotes();
+	public abstract int getVotesDown();
 	public abstract boolean isPrivate();
 	
 	public abstract String getDRMKey();
@@ -122,13 +123,20 @@ public abstract class Result {
 		
 		int superSeeds = getNbSuperSeeds();
 		if(superSeeds > 0) {
-			totalVirtualPeers  += 100 * superSeeds;
+			totalVirtualPeers  += 1000 * superSeeds;
 		}
 		
 		int votes = getVotes();
 		if(votes > 0) {
 			totalVirtualPeers += 10 * votes;
 		}
+		
+		int votesDown = getVotesDown();
+		if(votesDown > 0) {
+			totalVirtualPeers -= 200 * votesDown;
+		}
+		
+		if(totalVirtualPeers < 2) totalVirtualPeers = 2;
 		
 		float rank = (float) (Math.log(totalVirtualPeers)/Math.log(10)) / 5f;
 		
@@ -232,6 +240,10 @@ public abstract class Result {
 		
 		if ( this.getVotes() >= 0 ){
 			object.put("v", "" + this.getVotes());
+		}
+		
+		if ( this.getVotesDown() >= 0 ){
+			object.put("vd", "" + this.getVotesDown());
 		}
 		
 		String drmKey = getDRMKey();

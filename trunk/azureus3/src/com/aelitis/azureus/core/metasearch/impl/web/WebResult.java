@@ -56,6 +56,8 @@ public class WebResult extends Result {
 	int nbSeeds = -1;
 	int nbSuperSeeds = -1;
 	int	comments	= -1;
+	int votes = -1;
+	int votesDown = -1;
 	
 	boolean privateTorrent;
 	
@@ -64,7 +66,7 @@ public class WebResult extends Result {
 	String downloadButtonLink;
 	String playLink;
 	
-	int votes = -1;
+	
 	
 	public WebResult(Engine engine, String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
 		super( engine );
@@ -229,6 +231,20 @@ public class WebResult extends Result {
 		}
 	}	
 	
+	public void setVotesDownFromHTML(String votes_str) {
+		if(votes_str != null) {
+			votes_str = removeHTMLTags(votes_str);
+			votes_str = Entities.HTML40.unescape(votes_str);
+			votes_str = votes_str.replaceAll(",", "");
+			votes_str = votes_str.replaceAll(" ", "");
+			try {
+				this.votesDown = Integer.parseInt(votes_str);
+			} catch(Throwable e) {
+				//e.printStackTrace();
+			}
+		}
+	}
+	
 	public void setPrivateFromHTML(String privateTorrent) {
 		if(privateTorrent != null && ! "".equals(privateTorrent)) {
 			this.privateTorrent = true;
@@ -239,6 +255,12 @@ public class WebResult extends Result {
 	getVotes()
 	{
 		return( votes );
+	}
+	
+	public int
+	getVotesDown()
+	{
+		return( votesDown );
 	}
 	
 	public void setCDPLink(String cdpLink) {
