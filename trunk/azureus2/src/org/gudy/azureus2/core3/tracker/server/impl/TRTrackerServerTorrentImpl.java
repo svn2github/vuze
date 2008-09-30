@@ -117,7 +117,7 @@ TRTrackerServerTorrentImpl
 
 	private List	explicit_manual_biased_peers;
 		
-	private static int explicit_next_peer;
+	private int 	explicit_next_peer;
 		
 	public
 	TRTrackerServerTorrentImpl(
