@@ -227,7 +227,16 @@ SubscriptionResultImpl
 	public String 
 	getDownloadLink() 
 	{
-		return((String)toJSONMap().get( "dl" ));
+		Map map = toJSONMap();
+		
+		String	link = (String)map.get( "dbl" );
+		
+		if ( link == null ){
+			
+			link = (String)toJSONMap().get( "dl" );
+		}
+		
+		return( link );
 	}
 	
 	public String 

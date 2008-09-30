@@ -30,6 +30,12 @@ Subscription
 	public String
 	getName();
 	
+	public void
+	setName(
+		String		str )
+	
+		throws SubscriptionException;
+	
 	public String
 	getID();
 	
@@ -44,6 +50,9 @@ Subscription
 	
 	public boolean
 	isPublic();
+	
+	public boolean
+	isUpdateable();
 	
 	public String
 	getJSON()

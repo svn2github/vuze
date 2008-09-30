@@ -1039,6 +1039,12 @@ SubscriptionImpl
 	}
 	
 	public boolean
+	isUpdateable()
+	{
+		return( private_key != null );
+	}
+	
+	public boolean
 	isSubscribed()
 	{
 		return( is_subscribed );

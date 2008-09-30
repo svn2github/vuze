@@ -73,7 +73,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -121,6 +123,7 @@ SubscriptionManagerUI
 	private MenuItemListener resetAuthListener;
 	private MenuItemListener resetResultsListener;
 	private MenuItemListener exportListener;
+	private MenuItemListener renameListener;
 	private MenuItemListener removeListener;
 	private MenuItemListener forceCheckListener;
 	
@@ -401,7 +404,7 @@ SubscriptionManagerUI
 					{
 						if ( instance instanceof UISWTInstance ){
 							
-							UISWTInstance	swt = (UISWTInstance)instance;
+							final UISWTInstance	swt = (UISWTInstance)instance;
 							
 							icon_rss			= loadGraphic( swt, "btn_add_rss.png" );
 
@@ -478,7 +481,7 @@ SubscriptionManagerUI
 									{
 										if ( skinview instanceof SideBar ){
 											
-											setupSideBar((SideBar) skinview);
+											setupSideBar((SideBar) skinview, swt);
 										}
 									}
 								});
@@ -487,7 +490,7 @@ SubscriptionManagerUI
 							
 							if ( sideBar != null ){
 								
-								setupSideBar( sideBar );
+								setupSideBar( sideBar, swt );
 							}
 						}
 					}
@@ -522,7 +525,8 @@ SubscriptionManagerUI
 
 	protected void
 	setupSideBar(
-		final SideBar		side_bar )
+		final SideBar			side_bar,
+		final UISWTInstance		swt_ui )		
 	{
 		synchronized( this ){
 			
@@ -537,7 +541,7 @@ SubscriptionManagerUI
 		SideBarEntrySWT mainSBEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
 		if (mainSBEntry != null) {
 			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
-			addSub.setToolTip("This is the tooltip");
+			addSub.setToolTip("Add Subscription");
 			addSub.addListener(new SideBarVitalityImageListener() {
 				public void sbVitalityImage_clicked(int x, int y) {
 					new SubscriptionWizard();
@@ -677,12 +681,62 @@ SubscriptionManagerUI
 			}
 		};
 		
+		renameListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					
+					UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
+					entry.setPreenteredText(subs.getName(), false );
+					entry.maintainWhitespace(false);
+					entry.allowEmptyInput( false );
+					entry.setTitle("MyTorrentsView.menu.rename");
+					entry.prompt();
+					if (!entry.hasSubmittedInput()){
+						
+						return;
+					}
+					
+					String input = entry.getSubmittedInput().trim();
+					
+					if ( input.length() > 0 ){
+						
+						try{
+							subs.setName( input );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+			}
+		};
+		
 		removeListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
 					Subscription subs = (Subscription) info.getDatasource();
-					subs.remove();
+					MessageBoxShell mb = 
+						new MessageBoxShell(
+							Utils.findAnyShell(),
+							MessageText.getString("message.confirm.delete.title"),
+							MessageText.getString("message.confirm.delete.text",
+									new String[] {
+										subs.getName()
+									}), 
+							new String[] {
+								MessageText.getString("Button.yes"),
+								MessageText.getString("Button.no")
+							},
+							1 );
+					
+					int result = mb.open();
+					if (result == 0) {
+						subs.remove();
+					}
 				}
 			}
 		};
@@ -822,7 +876,7 @@ SubscriptionManagerUI
 								MenuItem menuItem;
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.forcecheck");
-								menuItem.setText(MessageText.getString("Subscription.menu.forcecheck",new String[] {subs.getName()}));
+								menuItem.setText(MessageText.getString("Subscription.menu.forcecheck"));
 								menuItem.addListener(forceCheckListener);
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
@@ -850,8 +904,16 @@ SubscriptionManagerUI
 									Debug.printStackTrace(e);
 								}
 								
+								if ( subs.isUpdateable()){
+									
+									menuItem = menuManager.addMenuItem("sidebar." + key,"MyTorrentsView.menu.rename");
+									menuItem.addListener(renameListener);
+
+								}
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
 								menuItem.addListener(exportListener);
+								
+								menuManager.addMenuItem("sidebar." + key,"").setStyle( MenuItem.STYLE_SEPARATOR );
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
 								menuItem.addListener(removeListener);							
