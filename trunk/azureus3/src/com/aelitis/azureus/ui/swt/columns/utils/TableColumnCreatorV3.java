@@ -51,7 +51,7 @@ public class TableColumnCreatorV3
 				tableID);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
-				tableID)) {
+				tableID) || areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			NameItem tc = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 			if (tc != null) {
@@ -112,7 +112,7 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class,
 				tableID);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)) {
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID) || areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
 			if (tc != null) {
@@ -153,7 +153,7 @@ public class TableColumnCreatorV3
 				tableID);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
-				tableID)) {
+				tableID) || areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
 			if (tc != null) {
@@ -188,7 +188,7 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
-		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)) {
+		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID) || areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			ColumnActivityDate tc = (ColumnActivityDate) mapTCs.get(ColumnActivityDate.COLUMN_ID);
 			if (tc != null) {
@@ -215,7 +215,8 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
-		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)) {
+		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
+				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 
 			ColumnActivityText tcText = (ColumnActivityText) mapTCs.get(ColumnActivityText.COLUMN_ID);
@@ -231,6 +232,23 @@ public class TableColumnCreatorV3
 		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 3.1.1.1
+	 */
+	private static boolean areNoneVisible(Map mapTCs) {
+		boolean noneVisible = true;
+		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
+			TableColumn tc = (TableColumn) iter.next();
+			if (tc.isVisible()) {
+				noneVisible = false;
+				break;
+			}
+		}
+		return noneVisible;
 	}
 
 	/**
