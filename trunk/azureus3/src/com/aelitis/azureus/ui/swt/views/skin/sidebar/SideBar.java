@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
 import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewListener;
@@ -753,6 +754,16 @@ public class SideBar
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 						currentSideBarEntry
 					}));
+			
+			if ( currentSideBarEntry.datasource instanceof DownloadManager ){
+				
+				DownloadManager[] downloads = new DownloadManager[]{(DownloadManager)currentSideBarEntry.datasource };
+				
+				org.eclipse.swt.widgets.MenuItem mi = MenuFactory.createTorrentMenuItem( menuTree );
+				
+				mi.setData( "downloads", downloads );
+				mi.setData( "is_detailed_view", new Boolean( true ));
+			}
 		}
 	}
 
