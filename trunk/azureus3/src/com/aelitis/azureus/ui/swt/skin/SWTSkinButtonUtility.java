@@ -132,7 +132,7 @@ public class SWTSkinButtonUtility
 		if (skinObject.getSuffix().equals(suffix)) {
 			return;
 		}
-		skinObject.switchSuffix(suffix, 1, true);
+		skinObject.switchSuffix(suffix, 1, false);
 
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 			ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
