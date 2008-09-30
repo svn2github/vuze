@@ -94,6 +94,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_DELETE_SUBSCRIPTION_RESULTS   = "delete-subscription-results";
 	public static final String OP_MARK_SUBSCRIPTION_RESULTS	   	= "mark-subscription-results";
 	public static final String OP_DOWNLOAD_SUBSCRIPTION   		= "download-subscription";
+	public static final String OP_SUBSCRIPTION_SET_AUTODL   	= "subscription-set-auto-download";
 
 	private final OpenCloseSearchDetailsListener openCloseSearchDetailsListener;
 	
@@ -1122,6 +1123,43 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 				sendBrowserMessage("metasearch", "updateSubscriptionFailed",result);
 			}
+			
+		}else if (OP_SUBSCRIPTION_SET_AUTODL.equals(opid)){
+			
+			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
+			
+			String 	sid = (String)decodedMap.get("id");
+			
+			Long	tid = (Long) decodedMap.get("tid");
+
+			Boolean 	autoDownload	= (Boolean)decodedMap.get( "auto_dl" );
+
+			Map result = new HashMap();
+
+			if ( tid != null )result.put( "tid", tid );
+
+			try{
+				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				
+				if ( subs == null ){
+					
+					result.put( "error", "Subscription not found" );
+
+					sendBrowserMessage("metasearch", "setSubscriptionAutoDownloadFailed",result);
+					
+				}else{
+					
+					subs.getHistory().setAutoDownload( autoDownload.booleanValue());
+					
+					sendBrowserMessage( "metasearch", "setSubscriptionAutoDownloadCompleted", result );
+				}
+			} catch( Throwable e ){
+				
+				result.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
+
+				sendBrowserMessage("metasearch", "setSubscriptionAutoDownloadFailed",result);
+			}
+			
 		}else if(OP_READ_SUBSCRIPTION_RESULTS.equals(opid)) {
 			
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap():new HashMap();
