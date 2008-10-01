@@ -991,19 +991,24 @@ UtilitiesImpl
 		protected void
 		run()
 		{
-			run_time = SystemTime.getCurrentTime();
-			
-			target.run();
-			
-			long now = SystemTime.getCurrentTime();
-			
-			if (Logger.isEnabled()) {
-	     		Logger.log(	
-	     			new LogEvent(
-	     				LogIDs.PLUGIN, LogEvent.LT_INFORMATION,
-	     				"Delayed task '" + getName() + 
-	     					"': queue_time=" + ( run_time - create_time ) +
-	     					", exec_time=" + ( now - run_time )));
+			try{
+				run_time = SystemTime.getCurrentTime();
+				
+				target.run();
+				
+				long now = SystemTime.getCurrentTime();
+				
+				if (Logger.isEnabled()) {
+		     		Logger.log(	
+		     			new LogEvent(
+		     				LogIDs.PLUGIN, LogEvent.LT_INFORMATION,
+		     				"Delayed task '" + getName() + 
+		     					"': queue_time=" + ( run_time - create_time ) +
+		     					", exec_time=" + ( now - run_time )));
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( "Initialisation task " + getName() + " failed to complete", e );
 			}
 		}
 		

@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.progress.IProgressReport;
 import org.gudy.azureus2.ui.swt.progress.IProgressReportConstants;
@@ -177,7 +178,7 @@ public class UpdateMonitor
 		
 							if ( !new File(app_str).canWrite()){
 		
-								UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+								final UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		
 								if ( uiFunctions != null ){
 		
@@ -185,23 +186,34 @@ public class UpdateMonitor
 		
 										app_str = app_str.substring(0, app_str.length()-1);
 									}
-		
-									UIFunctionsUserPrompter prompt = 
-										uiFunctions.getUserPrompter(
-												MessageText.getString("updater.cant.write.to.app.title"), 
-												MessageText.getString("updater.cant.write.to.app.details", new String[]{app_str}), 
-												new String[]{ MessageText.getString( "Button.ok" )}, 
-												0 );
-		
-									//prompt.setHtml( "http://a.b.c/" );
-		
-									prompt.setIconResource( "warning" );
-		
-									prompt.setRememberID( "UpdateMonitor.can.not..write.to.app.dir", false );
-		
-									prompt.setRememberText( MessageText.getString( "MessageBoxWindow.nomoreprompting" ));
-		
-									prompt.open();
+									
+									final String f_app_str = app_str;
+									
+									Utils.execSWTThread(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												UIFunctionsUserPrompter prompt = 
+													uiFunctions.getUserPrompter(
+														MessageText.getString("updater.cant.write.to.app.title"), 
+														MessageText.getString("updater.cant.write.to.app.details", new String[]{f_app_str}), 
+														new String[]{ MessageText.getString( "Button.ok" )}, 
+														0 );
+				
+												//prompt.setHtml( "http://a.b.c/" );
+					
+												prompt.setIconResource( "warning" );
+					
+												prompt.setRememberID( "UpdateMonitor.can.not.write.to.app.dir.2", false );
+					
+												prompt.setRememberText( MessageText.getString( "MessageBoxWindow.nomoreprompting" ));
+					
+												prompt.open();
+											}
+										},
+										true );
 								}
 							}
 						}

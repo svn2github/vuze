@@ -81,7 +81,7 @@ public class RememberedDecisionsManager
 			remembered_decisions.put(id, new Long(value));
 		}
 
-		System.out.println("setR " + id + " -> " + value);
+		// System.out.println("setR " + id + " -> " + value);
 		COConfigurationManager.setParameter("MessageBoxWindow.decisions",
 				remembered_decisions);
 		COConfigurationManager.save();
