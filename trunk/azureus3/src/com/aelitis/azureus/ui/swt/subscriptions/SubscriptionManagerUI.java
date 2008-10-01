@@ -593,7 +593,7 @@ SubscriptionManagerUI
 					}
 					
 					try{
-						subs.getManager().getScheduler().download(subs, true);
+						subs.getManager().getScheduler().downloadAsync(subs, true);
 						
 					}catch( Throwable e ){
 						
@@ -614,7 +614,7 @@ SubscriptionManagerUI
 						Debug.printStackTrace(e);
 					}
 					try{
-						subs.getManager().getScheduler().download(subs, true);
+						subs.getManager().getScheduler().downloadAsync(subs, true);
 						
 					}catch( Throwable e ){
 						
@@ -749,10 +749,13 @@ SubscriptionManagerUI
 				if (target instanceof SideBarEntry) {
 					SideBarEntry info = (SideBarEntry) target;
 					Subscription subs = (Subscription) info.getDatasource();
-					try {
-						subs.getManager().getScheduler().download(subs,false);
-					} catch (Exception e) {
-						// TODO: handle exception
+					try{
+						
+						subs.getManager().getScheduler().downloadAsync( subs, true );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
 					}
 				}
 			}

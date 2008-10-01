@@ -32,6 +32,13 @@ SubscriptionScheduler
 		throws SubscriptionException;
 	
 	public void
+	downloadAsync(
+		Subscription		subs,
+		boolean				is_auto )
+	
+		throws SubscriptionException;
+	
+	public void
 	download(
 		Subscription					subs,
 		boolean							is_auto,

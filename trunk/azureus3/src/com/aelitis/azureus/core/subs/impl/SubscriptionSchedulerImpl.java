@@ -110,6 +110,34 @@ SubscriptionSchedulerImpl
 	}
 	
 	public void 
+	downloadAsync(
+		Subscription 	subs, 
+		boolean 		is_auto )
+	
+		throws SubscriptionException 
+	{
+		download(
+			subs,
+			is_auto,
+			new SubscriptionDownloadListener()
+			{
+				public void
+				complete(
+					Subscription		subs )
+				{
+				}
+				
+				public void
+				failed(
+					Subscription			subs,
+					SubscriptionException	error )
+				{
+					log( "Async download of " + subs.getName() + " failed", error );
+				}
+			});
+	}
+	
+	public void 
 	download(
 		final Subscription 					subs,
 		final boolean						is_auto,

@@ -96,6 +96,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_DOWNLOAD_SUBSCRIPTION   		= "download-subscription";
 	public static final String OP_SUBSCRIPTION_SET_AUTODL   	= "subscription-set-auto-download";
 
+	private static final Set	active_subs_auth = new HashSet();
+	
 	private final OpenCloseSearchDetailsListener openCloseSearchDetailsListener;
 	
 	
@@ -1174,7 +1176,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			if ( tid != null )result.put( "tid", tid );
 
 			try{
-				Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
+				final Subscription subs = SubscriptionManagerFactory.getSingleton().getSubscriptionByID( sid );
 				
 				if ( subs == null ){
 								
@@ -1184,45 +1186,49 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 				}else{
 						
-					if ( subs.getHistory().getLastScanTime() == 0 ){
-						
-						subs.getManager().getScheduler().download(
-								subs,
-								false,
-								new SubscriptionDownloadListener()
-								{
-									public void
-									complete(
-										Subscription		subs )
-									{
-										result.put( "id", subs.getID());
+					result.put( "id", subs.getID());
 										
-										encodeResults( subs, result );
-										
-										sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
-									}
-									
-									public void
-									failed(
-										Subscription			subs,
-										SubscriptionException	error )
-									{
-										result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
-
-										sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
-
-									}
-								});
-					}else{
+					if ( !handleSubscriptionAuth( subs, result )){
 					
-						result.put( "id", subs.getID());
-						
-						encodeResults( subs, result );
-						
-						sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+						if ( subs.getHistory().getLastScanTime() == 0 ){
+							
+							subs.getManager().getScheduler().download(
+									subs,
+									false,
+									new SubscriptionDownloadListener()
+									{
+										public void
+										complete(
+											Subscription		subs )
+										{
+											if ( !handleSubscriptionAuth( subs, result )){
+												
+												encodeResults( subs, result );
+											
+												sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+											}
+										}
+										
+										public void
+										failed(
+											Subscription			subs,
+											SubscriptionException	error )
+										{
+											result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+	
+											sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
+	
+										}
+									});
+						}else{
+													
+							encodeResults( subs, result );
+							
+							sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+						}
 					}
 				}
-			} catch( Throwable e ){
+			}catch( Throwable e ){
 				
 				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1334,33 +1340,39 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 				}else{
 					
-					subs.getManager().getScheduler().download(
-						subs,
-						false,
-						new SubscriptionDownloadListener()
-						{
-							public void
-							complete(
-								Subscription		subs )
-							{
-								result.put( "id", subs.getID());
-								
-								encodeResults( subs, result );
-								
-								sendBrowserMessage( "metasearch", "downloadSubscriptionCompleted", result );
-							}
-							
-							public void
-							failed(
-								Subscription			subs,
-								SubscriptionException	error )
-							{
-								result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+					result.put( "id", subs.getID());
+					
+					if ( !handleSubscriptionAuth( subs, result )){
 
-								sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
+						subs.getManager().getScheduler().download(
+							subs,
+							false,
+							new SubscriptionDownloadListener()
+							{
+								public void
+								complete(
+									Subscription		subs )
+								{
+									if ( !handleSubscriptionAuth( subs, result )){
 
-							}
-						});
+										encodeResults( subs, result );
+									
+										sendBrowserMessage( "metasearch", "downloadSubscriptionCompleted", result );
+									}
+								}
+								
+								public void
+								failed(
+									Subscription			subs,
+									SubscriptionException	error )
+								{
+									result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+	
+									sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
+	
+								}
+							});
+					}
 				}
 			} catch( Throwable e ){
 				
@@ -1368,6 +1380,184 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 				sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
 			}
+		}
+	}
+	
+	protected boolean
+	handleSubscriptionAuth(
+		final Subscription		subs,
+		final Map				result )
+	{
+		if ( subs.getHistory().isAuthFail()){
+			
+			try{
+				Engine engine = subs.getEngine();
+				
+				if ( engine instanceof WebEngine ){
+				
+					final WebEngine webEngine = (WebEngine)engine;
+				
+					synchronized( active_subs_auth ){
+						
+						if ( active_subs_auth.contains( subs )){
+							
+							return( false );
+						}
+						
+						active_subs_auth.add( subs );
+					}
+					
+					Utils.execSWTThread( new Runnable() {
+						public void run() {
+							new ExternalLoginWindow(
+								new ExternalLoginListener() 
+								{
+									private String previous_cookies;
+									
+									private boolean	result_sent;
+									
+									public void 
+									canceled(
+										ExternalLoginWindow 	window ) 
+									{
+										try{
+											encodeResults( subs, result );
+											
+											sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+											
+										}finally{
+											
+											completed();
+										}
+									}
+		
+									public void 
+									cookiesFound(
+										ExternalLoginWindow 	window,
+										String 					cookies ) 
+									{
+										if ( handleCookies( cookies, false )){
+											
+											window.close();									
+										}
+									}
+		
+									public void 
+									done(
+										ExternalLoginWindow 	window,
+										String 					cookies )
+									{
+										try{
+											if ( !handleCookies( cookies, true )){
+												
+												encodeResults( subs, result );
+												
+												sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+											}
+										}finally{
+											
+											completed();
+										}
+									}
+									
+									private void
+									completed()
+									{
+										synchronized( active_subs_auth ){
+
+											active_subs_auth.remove( subs );
+										}
+									}
+									
+									private boolean
+									handleCookies(
+										String		cookies,
+										boolean		force_if_ready )
+									{
+										if ( result_sent ){
+											
+											return( false );
+										}
+										
+										String[] required = webEngine.getRequiredCookies();
+										
+										boolean	skip = required.length == 0 && !force_if_ready;
+										
+										if ( CookieParser.cookiesContain( required, cookies )){
+												
+											webEngine.setCookies(cookies);
+											
+											if ( previous_cookies == null || !previous_cookies.equals( cookies )){
+												
+												previous_cookies = cookies;
+												
+												if ( !skip ){
+													
+														// search operation will report outcome
+													
+													result_sent	= true;
+													
+													try{
+														subs.getManager().getScheduler().download(
+															subs,
+															false,
+															new SubscriptionDownloadListener()
+															{
+																public void
+																complete(
+																	Subscription		subs )
+																{
+																	result.put( "id", subs.getID());
+																	
+																	encodeResults( subs, result );
+																	
+																	sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+																}
+																
+																public void
+																failed(
+																	Subscription			subs,
+																	SubscriptionException	error )
+																{
+																	result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+	
+																	sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
+																}
+															});		
+													}catch( Throwable error ){
+														
+														result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
+	
+														sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
+													}
+												}
+											}
+										}
+		
+										return( result_sent );
+									}
+								},
+							webEngine.getName(),
+							webEngine.getLoginPageUrl(),
+							false );
+						}
+					});
+					
+					return( true );
+					
+				}else{
+					
+					return( false );
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( false );
+			}
+		}else{
+			
+			return( false );
 		}
 	}
 	
