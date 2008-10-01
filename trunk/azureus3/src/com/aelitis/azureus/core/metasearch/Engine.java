@@ -111,6 +111,9 @@ Engine
 	public String 
 	getName();
 	
+	public String
+	getNameEx();
+	
 	public long 
 	getId();
 	

@@ -1041,6 +1041,29 @@ SubscriptionManagerUI
 			last_error = "";
 		}
 		
+		String	engine_str;
+		String	auth_str	= String.valueOf(false);
+		
+		try{
+			Engine engine = subs.getEngine();
+			
+			engine_str = engine.getNameEx();
+			
+			if ( engine instanceof WebEngine ){
+			
+				WebEngine web_engine = (WebEngine)engine;
+				
+				if ( web_engine.isNeedsAuth()){
+					
+					auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
+				}
+			}
+		}catch( Throwable e ){
+			
+			engine_str 	= "Unknown";
+			auth_str	= "";
+		}
+		
 		String[] keys = {
 				"subs.prop.enabled",
 				"subs.prop.is_auto",
@@ -1049,6 +1072,8 @@ SubscriptionManagerUI
 				"subs.prop.last_error",
 				"subs.prop.num_read",
 				"subs.prop.num_unread",
+				"subs.prop.template",
+				"subs.prop.auth",
 			};
 		
 		String[] values = { 
@@ -1059,9 +1084,24 @@ SubscriptionManagerUI
 				(last_error.length()==0?MessageText.getString("PeersView.uniquepiece.none"):last_error),
 				String.valueOf( history.getNumRead()),
 				String.valueOf( history.getNumUnread()),
+				engine_str,
+				auth_str,
 			};
 		
 		new PropertiesWindow( subs.getName(), keys, values );
+	}
+	
+	private String
+	toString(
+		String[]	strs )
+	{
+		String	res = "";
+		
+		for(int i=0;i<strs.length;i++){
+			res += (i==0?"":",") + strs[i];
+		}
+		
+		return( res );
 	}
 	
 	protected Graphic
@@ -1109,6 +1149,7 @@ SubscriptionManagerUI
 		{
 			switch(propertyID) {
 			case ViewTitleInfo.TITLE_TEXT :
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:
 				return subs.getName();
 			case ViewTitleInfo.TITLE_INDICATOR_TEXT :
 				if(subs.getHistory().getNumUnread() > 0) {

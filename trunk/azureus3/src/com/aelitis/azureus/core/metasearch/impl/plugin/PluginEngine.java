@@ -139,6 +139,12 @@ PluginEngine
 	}
 	
 	public String 
+	getNameEx() 
+	{
+		return( super.getName() + ": (plugin)" );
+	}
+	
+	public String 
 	getDownloadLinkCSS() 
 	{
 		if ( provider == null ){

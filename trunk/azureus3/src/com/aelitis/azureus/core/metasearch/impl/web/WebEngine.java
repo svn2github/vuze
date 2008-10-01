@@ -351,6 +351,29 @@ WebEngine
 	}
 	
 	public String 
+	getNameEx() 
+	{
+		String url = getRootPage();
+		
+		if ( url == null || url.length() == 0 ){
+			
+			url = searchURLFormat;
+		}
+		
+		String name = getName();
+		
+		if ( name.indexOf( url ) == -1 ){
+			
+			return( name + " (" + url + ")");
+			
+		}else{
+			
+			return( name );
+		}
+		     
+	}
+	
+	public String 
 	getReferer() 
 	{
 		return( getRootPage());
