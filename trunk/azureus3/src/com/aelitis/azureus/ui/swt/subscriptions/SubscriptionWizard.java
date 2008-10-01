@@ -134,7 +134,7 @@ public class SubscriptionWizard {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
-			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON);
+			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON | SWT.RESIZE);
 			shell.setSize(500,400);
 			Utils.centerWindowRelativeTo(shell, mainShell);
 		} else {
@@ -301,7 +301,7 @@ public class SubscriptionWizard {
 		createSearchTabItem.setControl(createCreateSearchComposite(createTabFolder));
 		
 		createRSSTabItem = new TabItem(createTabFolder,SWT.NONE);
-		createRSSTabItem.setText(MessageText.getString("Wizard.Subscription.create.rss"));
+		createRSSTabItem.setText("  " + MessageText.getString("Wizard.Subscription.create.rss"));
 		createRSSTabItem.setControl(createCreateRSSComposite(createTabFolder));
 		
 		createTabFolder.addListener(SWT.Selection, new Listener() {
@@ -551,6 +551,19 @@ public class SubscriptionWizard {
 		subscriptionTable.addListener(SWT.Resize , resizeListener);
 		libraryTable.addListener(SWT.Resize , resizeListener);
 		
+		final Listener subscriptionSelectionListener = new Listener() {
+			public void handleEvent(Event event) {
+				if(subscriptionTable.getSelectionCount() == 1) {
+					addButton.setEnabled(true);
+//					TableItem item = subscriptionTable.getSelection()[0];
+					Subscription subscription = subscriptions[subscriptionTable.getSelectionIndex()];
+					addButton.setData("subscription",subscription);
+				} else {
+					addButton.setEnabled(false);
+				}
+			}
+		};
+		
 		final Listener selectionListener = new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
@@ -574,6 +587,11 @@ public class SubscriptionWizard {
 				addButton.setData("subscription",null);
 				subscriptionTable.clearAll();			
 				subscriptionTable.deselectAll();
+				if(subscriptionTable.getItemCount() > 0) {
+					subscriptionTable.setSelection(0);
+					subscriptionSelectionListener.handleEvent(null);
+				}
+				//subscriptionTable.setFocus();
 			}
 		};
 		
@@ -584,10 +602,15 @@ public class SubscriptionWizard {
 				public void handleEvent(Event event) {
 					  TableItem item = (TableItem) event.item;
 			          int index = libraryTable.indexOf (item);
+			         
 			          SubscriptionDownloadDetails subInfo = availableSubscriptions[index];
 			          item.setText (subInfo.getDownload().getDisplayName());
 			          item.setData("subscriptions",subInfo.getSubscriptions());
 			          if(subInfo.getDownload() == download) {
+			        	  libraryTable.setSelection(item);
+			        	  selectionListener.handleEvent(event);
+			          }
+			          if(index == 0 && download == null) {
 			        	  libraryTable.setSelection(item);
 			        	  selectionListener.handleEvent(event);
 			          }
@@ -611,18 +634,9 @@ public class SubscriptionWizard {
 		addButton.setEnabled(false);
 		addButton.setData("subscription",null);
 		
-		subscriptionTable.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				if(subscriptionTable.getSelectionCount() == 1) {
-					addButton.setEnabled(true);
-//					TableItem item = subscriptionTable.getSelection()[0];
-					Subscription subscription = subscriptions[subscriptionTable.getSelectionIndex()];
-					addButton.setData("subscription",subscription);
-				} else {
-					addButton.setEnabled(false);
-				}
-			}
-		});
+		
+		
+		subscriptionTable.addListener(SWT.Selection,subscriptionSelectionListener );
 		
 
 		final Image rssIcon = ImageRepository.getImage("icon_rss");
@@ -692,7 +706,7 @@ public class SubscriptionWizard {
 						//80 -> 500 subscribers
 						int rank = 80 * (int) popularity / 500;
 						if(rank > 80) rank = 80;
-						if(rank < 0) rank = 0;
+						if(rank < 5) rank = 5;
 						
 						Rectangle clipping = gc.getClipping();
 						
