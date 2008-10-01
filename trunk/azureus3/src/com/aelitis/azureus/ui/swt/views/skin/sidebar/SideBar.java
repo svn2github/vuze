@@ -234,7 +234,7 @@ public class SideBar
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
 		imgCloseSelected = imageLoader.getImage("image.sidebar.closeitem-selected");
 
-		addTestMenus();
+		// addTestMenus();
 
 		ViewTitleInfoManager.addListener(this);
 
@@ -271,6 +271,7 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
+	/*
 	private void addTestMenus() {
 		// Add some test menus
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
@@ -311,7 +312,8 @@ public class SideBar
 			}
 		});
 	}
-
+	*/
+	
 	/**
 	 * 
 	 *
