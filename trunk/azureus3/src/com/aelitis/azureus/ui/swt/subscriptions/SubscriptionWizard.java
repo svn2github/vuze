@@ -47,7 +47,6 @@ import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetai
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.sun.org.apache.bcel.internal.Constants;
 
 public class SubscriptionWizard {
 	
