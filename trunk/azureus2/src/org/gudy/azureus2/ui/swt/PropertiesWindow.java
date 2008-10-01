@@ -23,6 +23,10 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -54,13 +58,39 @@ PropertiesWindow
 	    layout.numColumns = 3;
 	    shell.setLayout(layout);
 
+	    final ScrolledComposite scrollable = new ScrolledComposite(shell, SWT.V_SCROLL | SWT.H_SCROLL );
+	    GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+	    gridData.horizontalSpan = 3;
 	    
+		scrollable.setLayoutData( gridData );
 
-	    Composite main = new Composite( shell, SWT.V_SCROLL );
-	    layout = new GridLayout();
-	    layout.numColumns = 2;
-	    main.setLayout(layout);
-	    GridData gridData = new GridData(GridData.FILL_BOTH);
+		/*
+		 * Main content composite where panels will be created
+		 */
+		final Composite main = new Composite(scrollable, SWT.NONE);
+
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		//layout.verticalSpacing = 0;
+		layout.numColumns = 2;
+		main.setLayout(layout);
+		
+		scrollable.setContent(main);
+		scrollable.setExpandVertical(true);
+		scrollable.setExpandHorizontal(true);
+
+		/*
+		 * Re-adjust scrollbar setting when the window resizes
+		 */
+		scrollable.addControlListener(new ControlAdapter() {
+			public void controlResized(ControlEvent e) {
+				Rectangle r = scrollable.getClientArea();
+				scrollable.setMinSize(main.computeSize(r.width, SWT.DEFAULT ));
+			}
+		});
+	    
+	    gridData = new GridData(GridData.FILL_BOTH);
 	    gridData.horizontalSpan = 3;
 	    main.setLayoutData(gridData);
 
