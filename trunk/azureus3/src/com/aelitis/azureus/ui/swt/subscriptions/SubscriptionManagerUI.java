@@ -115,6 +115,7 @@ SubscriptionManagerUI
 	private static final Object	SUB_IVIEW_KEY = new Object();
 	
 	private Graphic	icon_rss;
+	private Graphic	icon_rss_small;
 	private List	icon_list	= new ArrayList();
 	
 	private SubscriptionManager	subs_man;
@@ -349,8 +350,9 @@ SubscriptionManagerUI
 					if ( torrent != null ){
 						
 						Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
-											
-						cell.setGraphic( subs.length > 0?icon_rss:null );
+									
+						int height = cell.getHeight();
+						cell.setGraphic( subs.length > 0? (height >= 22 ? icon_rss : icon_rss_small):null );
 						
 						cell.setSortValue( subs.length );
 					}else{
@@ -410,6 +412,7 @@ SubscriptionManagerUI
 							final UISWTInstance	swt = (UISWTInstance)instance;
 							
 							icon_rss			= loadGraphic( swt, "btn_add_rss.png" );
+							icon_rss_small		= loadGraphic( swt, "btn_add_rss_small.png" );
 
 							subs_man = SubscriptionManagerFactory.getSingleton();
 							
