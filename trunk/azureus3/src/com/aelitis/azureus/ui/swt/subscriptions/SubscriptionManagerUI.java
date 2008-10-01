@@ -71,6 +71,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
@@ -126,6 +127,8 @@ SubscriptionManagerUI
 	private MenuItemListener renameListener;
 	private MenuItemListener removeListener;
 	private MenuItemListener forceCheckListener;
+	private MenuItemListener propertiesListener;
+	
 	
 	private boolean		side_bar_setup;
 
@@ -755,6 +758,16 @@ SubscriptionManagerUI
 			}
 		};
 		
+		propertiesListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+				
+					showProperties( subs );
+				}
+			}
+		};
 		
 		subs_man.addListener(
 			new SubscriptionManagerListener()
@@ -904,6 +917,8 @@ SubscriptionManagerUI
 									Debug.printStackTrace(e);
 								}
 								
+								menuManager.addMenuItem("sidebar." + key,"s1").setStyle( MenuItem.STYLE_SEPARATOR );
+
 								if ( subs.isUpdateable()){
 									
 									menuItem = menuManager.addMenuItem("sidebar." + key,"MyTorrentsView.menu.rename");
@@ -913,10 +928,15 @@ SubscriptionManagerUI
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
 								menuItem.addListener(exportListener);
 								
-								menuManager.addMenuItem("sidebar." + key,"").setStyle( MenuItem.STYLE_SEPARATOR );
+								menuManager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
 								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
-								menuItem.addListener(removeListener);							
+								menuItem.addListener(removeListener);
+								
+								menuManager.addMenuItem("sidebar." + key,"s3").setStyle( MenuItem.STYLE_SEPARATOR );
+
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.properties");
+								menuItem.addListener(propertiesListener);
 							}
 						}
 					});
@@ -999,6 +1019,43 @@ SubscriptionManagerUI
 			TableColumn column = (TableColumn) iter.next();
 			column.invalidateCells();
 		}
+	}
+	
+	protected void
+	showProperties(
+		Subscription		subs )
+	{
+		SubscriptionHistory history = subs.getHistory();
+		
+		SimpleDateFormat df = new SimpleDateFormat();
+		
+		String last_error = history.getLastError();
+		
+		if ( last_error == null ){
+			last_error = "";
+		}
+		
+		String[] keys = {
+				"subs.prop.enabled",
+				"subs.prop.is_auto",
+				"subs.prop.last_scan",
+				"subs.prop.last_result",
+				"subs.prop.last_error",
+				"subs.prop.num_read",
+				"subs.prop.num_unread",
+			};
+		
+		String[] values = { 
+				String.valueOf( history.isEnabled()),
+				String.valueOf( history.isAutoDownload()),
+				df.format(new Date( history.getLastScanTime())),
+				df.format(new Date( history.getLastNewResultTime())),
+				(last_error.length()==0?MessageText.getString("PeersView.uniquepiece.none"):last_error),
+				String.valueOf( history.getNumRead()),
+				String.valueOf( history.getNumUnread()),
+			};
+		
+		new PropertiesWindow( subs.getName(), keys, values );
 	}
 	
 	protected Graphic
