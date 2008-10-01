@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetai
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.sun.org.apache.bcel.internal.Constants;
 
 public class SubscriptionWizard {
 	
@@ -382,9 +383,9 @@ public class SubscriptionWizard {
 		rssBackground.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(rssBackground,5,SWT.TOP);
+		data.top = new FormAttachment(rssBackground,7,SWT.TOP);
 		data.left = new FormAttachment(rssBackground, 45,SWT.LEFT);
-		data.right = new FormAttachment(rssBackground, -5,SWT.RIGHT);
+		data.right = new FormAttachment(rssBackground, -8,SWT.RIGHT);
 		feedUrl.setLayoutData(data);
 
 		data = new FormData();
@@ -461,9 +462,9 @@ public class SubscriptionWizard {
 		searchBackground.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(searchBackground,5,SWT.TOP);
+		data.top = new FormAttachment(searchBackground,7,SWT.TOP);
 		data.left = new FormAttachment(searchBackground, 45,SWT.LEFT);
-		data.right = new FormAttachment(searchBackground, -5,SWT.RIGHT);
+		data.right = new FormAttachment(searchBackground, -8,SWT.RIGHT);
 		searchInput.setLayoutData(data);
 
 		data = new FormData();
@@ -797,13 +798,21 @@ public class SubscriptionWizard {
 		
 		
 		for(int i = 0 ; i < fDatas.length ; i++) {
-			fDatas[i].setHeight(14);
+			if(org.gudy.azureus2.core3.util.Constants.isOSX) {
+				fDatas[i].setHeight(17);
+			} else {
+				fDatas[i].setHeight(14);
+			}
 		}
 		titleFont = new Font(display,fDatas);
 		
 		
 		for(int i = 0 ; i < fDatas.length ; i++) {
-			fDatas[i].setHeight(12);
+			if(org.gudy.azureus2.core3.util.Constants.isOSX) {
+				fDatas[i].setHeight(14);
+			} else {
+				fDatas[i].setHeight(12);
+			}
 			fDatas[i].setStyle(SWT.NONE);
 		}
 		textInputFont = new Font(display,fDatas);
