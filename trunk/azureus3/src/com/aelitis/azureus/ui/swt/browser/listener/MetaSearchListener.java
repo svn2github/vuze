@@ -548,7 +548,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					params.put("name", engine.getName());
 					params.put("type", Engine.ENGINE_TYPE_STRS[ engine.getType()]);
 					params.put("value", JSONObject.escape( engine.exportToJSONString()));
-				
+					params.put("shareable", new Boolean( engine.isShareable()));
+					
 					params.put("uid", engine.getUID());
 					
 					params.put("supports_direct_download", 
