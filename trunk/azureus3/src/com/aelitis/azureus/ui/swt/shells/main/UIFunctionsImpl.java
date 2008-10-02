@@ -655,27 +655,27 @@ public class UIFunctionsImpl
 	public void refreshTorrentMenu() {
 		try {
 			if (mainWindow.isOnAdvancedView()) {
-  			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-  			
-  			if (uiFunctions != null) {
-  				uiFunctions.refreshTorrentMenu();
-  			}
-  			return;
+				UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
+
+				if (uiFunctions != null) {
+					uiFunctions.refreshTorrentMenu();
+				}
+				return;
 			}
 
-			final MenuItem torrentItem = MenuFactory.findMenuItem(
-					mainWindow.getMainMenu().getMenu(IMenuConstants.MENU_ID_MENU_BAR),
-					MenuFactory.MENU_ID_TORRENT);
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					final MenuItem torrentItem = MenuFactory.findMenuItem(
+							mainWindow.getMainMenu().getMenu(IMenuConstants.MENU_ID_MENU_BAR),
+							MenuFactory.MENU_ID_TORRENT);
 
-			if (null != torrentItem) {
+					if (null != torrentItem) {
 
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				
-				final DownloadManager[] dm_final = dms;
-				final TableViewSWT tv_final = null;
-				final boolean detailed_view_final = false;
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
+						DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+
+						final DownloadManager[] dm_final = dms;
+						final TableViewSWT tv_final = null;
+						final boolean detailed_view_final = false;
 						if (null == dm_final) {
 							torrentItem.setEnabled(false);
 						} else {
@@ -686,8 +686,8 @@ public class UIFunctionsImpl
 							torrentItem.setEnabled(true);
 						}
 					}
-				}, true); // async
-			}
+				}
+			});
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "refreshTorrentMenu", e));
