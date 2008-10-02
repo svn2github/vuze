@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
@@ -53,7 +55,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -247,6 +248,65 @@ public class SearchResultsTabArea
 									}
 								}
 							}
+							
+							if ( engine_menu.getItems().length > 0 ){
+								
+								MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep" );
+
+								mi.setStyle( MenuItem.STYLE_SEPARATOR );
+							}
+							
+							MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.properties" );
+
+							mi.addListener(
+								new MenuItemListener()
+								{
+									public void 
+									selected(
+										MenuItem menu, 
+										Object target) 
+									{
+										String	engine_str;
+										String	auth_str	= String.valueOf(false);
+										
+										engine_str = engine.getNameEx();
+										
+										if ( engine instanceof WebEngine ){
+										
+											WebEngine web_engine = (WebEngine)engine;
+											
+											if ( web_engine.isNeedsAuth()){
+												
+												auth_str = String.valueOf(true) + ": cookies=" + toString( web_engine.getRequiredCookies());
+											}
+										}
+										
+										String[] keys = {
+												"subs.prop.template",
+												"subs.prop.auth",
+											};
+										
+										String[] values = { 
+												engine_str,
+												auth_str,
+											};
+										
+										new PropertiesWindow( engine.getName(), keys, values );
+									}
+									
+									private String
+									toString(
+										String[]	strs )
+									{
+										String	res = "";
+										
+										for(int i=0;i<strs.length;i++){
+											res += (i==0?"":",") + strs[i];
+										}
+										
+										return( res );
+									}
+								});
 							
 							if ( engine_menu.getItems().length == 0 ){
 								
