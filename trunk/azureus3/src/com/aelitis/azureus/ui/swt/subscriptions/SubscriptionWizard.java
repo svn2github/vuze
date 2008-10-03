@@ -22,7 +22,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Sash;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
@@ -36,17 +35,13 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
-
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
-import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.subs.SubscriptionUtils;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 
 public class SubscriptionWizard {
 	
@@ -58,6 +53,7 @@ public class SubscriptionWizard {
 	private static final int RANK_COLUMN_WIDTH = 85;
 	
 	private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.title");
+	//private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.subtitle");
 	private final String TITLE_SUBSCRIBE = MessageText.getString("Wizard.Subscription.subscribe.title");
 	private final String TITLE_CREATE = MessageText.getString("Wizard.Subscription.create.title");
 	
@@ -77,6 +73,7 @@ public class SubscriptionWizard {
 	Button availableButton;
 	Button createButton;
 	
+	Font boldFont;
 	Font titleFont;
 	Font subTitleFont;
 	Font textInputFont;
@@ -105,6 +102,9 @@ public class SubscriptionWizard {
 	DownloadManager download;
 	
 	static {
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/rss.png","rss");
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/btn_add_rss.png","btn_rss_add");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/ic_add.png","btn_sidebar_add");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_bullet_check.png", "icon_check");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/rss_bg.png", "rss_bg");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/search_bg.png", "search_bg");
@@ -135,11 +135,11 @@ public class SubscriptionWizard {
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
 			shell = new Shell(mainShell,SWT.TITLE | SWT.CLOSE | SWT.ICON | SWT.RESIZE);
-			shell.setSize(500,400);
+			shell.setSize(550,400);
 			Utils.centerWindowRelativeTo(shell, mainShell);
 		} else {
 			shell = new Shell(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-			shell.setSize(500,400);
+			shell.setSize(550,400);
 			Utils.centreWindow(shell);
 		}
 		
@@ -163,6 +163,10 @@ public class SubscriptionWizard {
 				
 				if(textInputFont != null && !textInputFont.isDisposed()) {
 					textInputFont.dispose();
+				}
+				
+				if(boldFont != null && !boldFont.isDisposed()) {
+					boldFont.dispose();
 				}
 				
 				if(subTitleFont != null && !subTitleFont.isDisposed()) {
@@ -240,8 +244,7 @@ public class SubscriptionWizard {
 	
 	private void populateHeader(Composite header) {
 		header.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-		title = new Label(header, SWT.NONE);
-		title.setText("This is a title");
+		title = new Label(header, SWT.WRAP);
 		
 		title.setFont(titleFont);
 		
@@ -254,18 +257,34 @@ public class SubscriptionWizard {
 	
 	private Composite createOptInComposite(Composite parent) {
 		Composite composite = new Composite(parent,SWT.NONE);
+		composite.setBackgroundMode(SWT.INHERIT_FORCE);
 		
-		Label subTitle = new Label(composite,SWT.NONE);
+		//composite.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+
+		Label subTitle = new Label(composite,SWT.WRAP);
 		subTitle.setFont(subTitleFont);
 		subTitle.setText(MessageText.getString("Wizard.Subscription.optin.subtitle"));
 		
-		Label description = new Label(composite,SWT.NONE);
+		Label description = new Label(composite,SWT.WRAP);
 		//subTitle.setFont(subTitleFont);
 		description.setText(MessageText.getString("Wizard.Subscription.optin.description"));
 		
+		Label descLibraryIcon = new Label(composite, SWT.NONE);
+		descLibraryIcon.setImage(ImageRepository.getImage("btn_rss_add"));
+		
+		Label descLibraryText = new Label(composite, SWT.NONE);
+		descLibraryText.setText(MessageText.getString("Wizard.Subscription.optin.description.library"));
+		
+		Label descSidebarIcon = new Label(composite, SWT.NONE);
+		descSidebarIcon.setImage(ImageRepository.getImage("btn_sidebar_add"));
+		
+		Label descSidebarText = new Label(composite, SWT.NONE);
+		descSidebarText.setText(MessageText.getString("Wizard.Subscription.optin.description.sidebar"));
+		
 		FormLayout layout = new FormLayout();
 		layout.marginLeft = 50;
-		layout.marginTop = 50;
+		layout.marginRight = 50;
+		layout.marginTop = 30;
 		layout.spacing = 5;
 		composite.setLayout(layout);
 		
@@ -274,12 +293,39 @@ public class SubscriptionWizard {
 		data = new FormData();
 		data.top = new FormAttachment(0);
 		data.left = new FormAttachment(0);
+		data.right= new FormAttachment(100);
 		subTitle.setLayoutData(data);
 		
 		data = new FormData();
-		data.top = new FormAttachment(subTitle);
-		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
+		data.top = new FormAttachment(subTitle,30);
+		data.left = new FormAttachment(0);
+		data.right= new FormAttachment(100);
 		description.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(description,10);
+		data.left = new FormAttachment(0);
+		descLibraryIcon.setLayoutData(data);
+		
+		data = new FormData();
+		//data.top = new FormAttachment(description,10);
+		data.left = new FormAttachment(descLibraryIcon,10);
+		data.right= new FormAttachment(100);
+		data.bottom= new FormAttachment(descLibraryIcon,-3,SWT.BOTTOM);
+		descLibraryText.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(descLibraryText,10);
+		//data.left = new FormAttachment(descLibraryIcon,-10,SWT.CENTER);
+		data.left = new FormAttachment(0);
+		descSidebarIcon.setLayoutData(data);
+		
+		data = new FormData();
+		//data.top = new FormAttachment(descLibraryText,10);
+		data.left = new FormAttachment(descLibraryText,0,SWT.LEFT);
+		data.right= new FormAttachment(100);
+		data.bottom= new FormAttachment(descSidebarIcon,-3,SWT.BOTTOM);
+		descSidebarText.setLayoutData(data);
 		
 		return composite;
 	}
@@ -328,26 +374,34 @@ public class SubscriptionWizard {
 		Image bg = ImageRepository.getImage("rss_bg");
 		int width = bg.getBounds().width;
 		
+		Label subTitle1 = new Label(composite,SWT.WRAP);
+		subTitle1.setFont(subTitleFont);
+		subTitle1.setText(MessageText.getString("Wizard.Subscription.rss.subtitle1"));
+		
 		feedUrl = new Text(composite, SWT.SINGLE);
 		feedUrl.setFont(textInputFont);
-		feedUrl.setText(MessageText.getString("Wizard.Subscription.rss.inputPrompt"));
-		feedUrl.setData("visited",new Boolean(false));
-		
-		feedUrl.addListener(SWT.FocusIn, new Listener() {
-			public void handleEvent(Event arg0) {
-				boolean visited = ((Boolean) feedUrl.getData("visited")).booleanValue();
-				if(visited) return;
-				feedUrl.setData("visited",new Boolean(true));
-				feedUrl.setText("");
-			}
-		});
+		feedUrl.setText("http://");
+//		feedUrl.setData("visited",new Boolean(false));
+//		
+//		feedUrl.addListener(SWT.FocusIn, new Listener() {
+//			public void handleEvent(Event arg0) {
+//				boolean visited = ((Boolean) feedUrl.getData("visited")).booleanValue();
+//				if(visited) return;
+//				feedUrl.setData("visited",new Boolean(true));
+//				feedUrl.setText("");
+//			}
+//		});
 		
 		feedUrl.addListener (SWT.DefaultSelection, rssSaveListener);
 		
 		feedUrl.addListener(SWT.Modify, new Listener() {
 			public void handleEvent(Event event) {
 				boolean valid_url = false;
-				try { new URL(feedUrl.getText()); valid_url = true; } catch (Exception e) {}
+				try {
+					URL url = new URL(feedUrl.getText());
+					valid_url = url.getHost().trim().length() > 0;
+				} catch (Exception e) {}
+				
 				saveButton.setEnabled(valid_url);
 			}
 		});
@@ -355,29 +409,33 @@ public class SubscriptionWizard {
 		Label rssBackground = new Label(composite,SWT.NONE);
 		rssBackground.setImage(bg);
 		
-		Label subTitle = new Label(composite,SWT.NONE);
-		subTitle.setFont(subTitleFont);
-		subTitle.setText(MessageText.getString("Wizard.Subscription.rss.subtitle"));
+		Label subTitle2 = new Label(composite,SWT.WRAP);
+		subTitle2.setFont(subTitleFont);
+		subTitle2.setText(MessageText.getString("Wizard.Subscription.rss.subtitle2"));
 
-		Label checkBullet = new Label(composite, SWT.NONE);
-		Image checkIcon = ImageRepository.getImage("icon_check");
-		checkBullet.setImage(checkIcon);
+		Label rssBullet = new Label(composite, SWT.NONE);
+		Image rssIcon = ImageRepository.getImage("rss");
+		rssBullet.setImage(rssIcon);
 
-		Label description = new Label(composite, SWT.WRAP);
-		//subTitle.setFont(subTitleFont);
-		description.setText(MessageText.getString("Wizard.Subscription.rss.description"));
+		Label subTitle3 = new Label(composite,SWT.WRAP);
+		subTitle3.setFont(subTitleFont);
+		subTitle3.setText(MessageText.getString("Wizard.Subscription.rss.subtitle3"));
 		
 		FormLayout layout = new FormLayout();
-		layout.marginLeft = 50;
-		layout.marginRight = 50;
-		layout.marginTop = 50;
-		layout.spacing = 5;
+		layout.marginWidth = 50;
+		layout.marginTop = 25;
 		composite.setLayout(layout);
 		
 		FormData data;
 
 		data = new FormData();
 		data.top = new FormAttachment(0);
+		data.left = new FormAttachment(0);
+		data.right = new FormAttachment(100);
+		subTitle1.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(subTitle1,5);
 		data.left = new FormAttachment(50,-width/2);
 		rssBackground.setLayoutData(data);
 		
@@ -388,20 +446,22 @@ public class SubscriptionWizard {
 		feedUrl.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(feedUrl, 20);
+		data.top = new FormAttachment(rssBackground,15);
 		data.left = new FormAttachment(0);
-		subTitle.setLayoutData(data);
+		rssBullet.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(subTitle);
-		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
-		checkBullet.setLayoutData(data);
-
+		data.top = new FormAttachment(rssBullet,0,SWT.TOP);
+		data.left = new FormAttachment(rssBullet,5);
+		data.right = new FormAttachment(100);
+		subTitle2.setLayoutData(data);
+		
 		data = new FormData();
-		data.top = new FormAttachment(subTitle);
-		data.left = new FormAttachment(checkBullet, 0, SWT.RIGHT);
-		data.right = new FormAttachment(100, 0);
-		description.setLayoutData(data);
+		data.top = new FormAttachment(subTitle2,20);
+		data.left = new FormAttachment(0);
+		data.right = new FormAttachment(100);
+		subTitle3.setLayoutData(data);
+
 
 		return composite;
 	}
@@ -412,28 +472,32 @@ public class SubscriptionWizard {
 		Image bg = ImageRepository.getImage("search_bg");
 		int width = bg.getBounds().width;
 		
+		Label subTitle1 = new Label(composite,SWT.WRAP);
+		subTitle1.setFont(subTitleFont);
+		subTitle1.setText(MessageText.getString("Wizard.Subscription.search.subtitle1"));
+		
 		searchInput = new Text(composite, SWT.SINGLE);
 		searchInput.setFont(textInputFont);
-		searchInput.setText(MessageText.getString("Wizard.Subscription.search.inputPrompt"));
-		searchInput.setData("visited",new Boolean(false));
-		
-		searchInput.addListener(SWT.FocusIn, new Listener() {
-			public void handleEvent(Event arg0) {
-				boolean visited = ((Boolean) searchInput.getData("visited")).booleanValue();
-				if(visited) return;
-				searchInput.setData("visited",new Boolean(true));
-				searchInput.setText("");
-			}
-		});
+//		searchInput.setText(MessageText.getString("Wizard.Subscription.search.inputPrompt"));
+//		searchInput.setData("visited",new Boolean(false));
+//		
+//		searchInput.addListener(SWT.FocusIn, new Listener() {
+//			public void handleEvent(Event arg0) {
+//				boolean visited = ((Boolean) searchInput.getData("visited")).booleanValue();
+//				if(visited) return;
+//				searchInput.setData("visited",new Boolean(true));
+//				searchInput.setText("");
+//			}
+//		});
 		
 		searchInput.addListener (SWT.DefaultSelection, searchListener);
 		
 		Label searchBackground = new Label(composite,SWT.NONE);
 		searchBackground.setImage(bg);
 		
-		Label subTitle = new Label(composite,SWT.NONE);
-		subTitle.setFont(subTitleFont);
-		subTitle.setText(MessageText.getString("Wizard.Subscription.search.subtitle"));
+		Label subTitle2 = new Label(composite,SWT.WRAP);
+		subTitle2.setFont(subTitleFont);
+		subTitle2.setText(MessageText.getString("Wizard.Subscription.search.subtitle2"));
 
 		Image checkIcon = ImageRepository.getImage("icon_check");
 		Label checkBullet1 = new Label(composite, SWT.NONE);
@@ -442,21 +506,31 @@ public class SubscriptionWizard {
 		checkBullet2.setImage(checkIcon);
 
 		Label description1 = new Label(composite,SWT.NONE);
-		description1.setText(MessageText.getString("Wizard.Subscription.search.description1"));
+		description1.setText(MessageText.getString("Wizard.Subscription.search.subtitle2.sub1"));
 		Label description2 = new Label(composite,SWT.NONE);
-		description2.setText(MessageText.getString("Wizard.Subscription.search.description2"));
+		description2.setText(MessageText.getString("Wizard.Subscription.search.subtitle2.sub2"));
+		
+		Label subTitle3 = new Label(composite,SWT.WRAP);
+		subTitle3.setFont(subTitleFont);
+		subTitle3.setText(MessageText.getString("Wizard.Subscription.search.subtitle3"));
 		
 		FormLayout layout = new FormLayout();
 		layout.marginLeft = 50;
 		layout.marginRight = 50;
-		layout.marginTop = 50;
-		layout.spacing = 5;
+		layout.marginTop = 25;
+		//layout.spacing = 10;
 		composite.setLayout(layout);
 		
 		FormData data;
 
 		data = new FormData();
 		data.top = new FormAttachment(0);
+		data.left = new FormAttachment(0);
+		data.right = new FormAttachment(100);
+		subTitle1.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(subTitle1,5);
 		data.left = new FormAttachment(50,-width/2);
 		searchBackground.setLayoutData(data);
 		
@@ -467,29 +541,36 @@ public class SubscriptionWizard {
 		searchInput.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(searchInput, 20);
+		data.top = new FormAttachment(searchBackground,15);
 		data.left = new FormAttachment(0);
-		subTitle.setLayoutData(data);
-
+		data.right = new FormAttachment(100);
+		subTitle2.setLayoutData(data);
+		
 		data = new FormData();
-		data.top = new FormAttachment(subTitle);
-		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
+		data.top = new FormAttachment(subTitle2,5);
+		data.left = new FormAttachment(0);
 		checkBullet1.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(checkBullet1);
-		data.left = new FormAttachment(subTitle,0,SWT.LEFT);
+		data.top = new FormAttachment(checkBullet1,5);
+		data.left = new FormAttachment(0);
 		checkBullet2.setLayoutData(data);
 
 		data = new FormData();
 		data.top = new FormAttachment(checkBullet1, 0, SWT.TOP);
-		data.left = new FormAttachment(checkBullet1, 0, SWT.RIGHT);
+		data.left = new FormAttachment(checkBullet1, 5);
 		description1.setLayoutData(data);
 
 		data = new FormData();
 		data.top = new FormAttachment(checkBullet2, 0, SWT.TOP);
-		data.left = new FormAttachment(checkBullet2, 0, SWT.RIGHT);
+		data.left = new FormAttachment(checkBullet2, 5);
 		description2.setLayoutData(data);
+		
+		data = new FormData();
+		data.top = new FormAttachment(checkBullet2,15);
+		data.left = new FormAttachment(0);
+		data.right = new FormAttachment(100);
+		subTitle3.setLayoutData(data);
 
 		return composite;
 	}
@@ -793,8 +874,17 @@ public class SubscriptionWizard {
 		for(int i = 0 ; i < fDatas.length ; i++) {
 			fDatas[i].setStyle(SWT.BOLD);
 		}
-		subTitleFont = new Font(display,fDatas);
+		boldFont = new Font(display,fDatas);
 		
+		
+		for(int i = 0 ; i < fDatas.length ; i++) {
+			if(org.gudy.azureus2.core3.util.Constants.isOSX) {
+				fDatas[i].setHeight(12);
+			} else {
+				fDatas[i].setHeight(10);
+			}
+		}
+		subTitleFont = new Font(display,fDatas);
 		
 		for(int i = 0 ; i < fDatas.length ; i++) {
 			if(org.gudy.azureus2.core3.util.Constants.isOSX) {
@@ -822,16 +912,20 @@ public class SubscriptionWizard {
 	private void populateFooter(Composite footer) {
 		yesButton = new Button(footer, SWT.PUSH);
 		yesButton.setText(MessageText.getString("Button.yes"));
-
+		yesButton.setFont(boldFont);
+		
 		addButton = new Button(footer, SWT.PUSH);
 		addButton.setText(MessageText.getString("Button.add"));
+		addButton.setFont(boldFont);
 		
 		saveButton = new Button(footer, SWT.PUSH);
 		saveButton.setText(MessageText.getString("Button.save"));
 		saveButton.setEnabled(false);
+		saveButton.setFont(boldFont);
 		
 		searchButton = new Button(footer, SWT.PUSH);
 		searchButton.setText(MessageText.getString("Button.search"));
+		searchButton.setFont(boldFont);
 		
 		cancelButton = new Button(footer,SWT.PUSH);
 		//cancelButton.setText(MessageText.getString("Button.cancel"));
@@ -911,7 +1005,7 @@ public class SubscriptionWizard {
 					SubscriptionManagerFactory.getSingleton().createSingletonRSS( url_str, url, 120, true );
 					shell.close();
 				} catch (Exception e) {
-					// TODO: handle exception
+					e.printStackTrace();
 				}
 			}
 		};
@@ -940,7 +1034,7 @@ public class SubscriptionWizard {
 	}
 	
 	private void setDefaultAvailableMode() {
-		boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in");
+		boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in_test");
 		if(!opted_in) {
 			setMode(MODE_OPT_IN);
 		} else {
