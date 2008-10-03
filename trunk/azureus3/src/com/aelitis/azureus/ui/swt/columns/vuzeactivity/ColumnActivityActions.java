@@ -48,7 +48,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.*;
@@ -63,7 +62,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnActivityActions
 	extends CoreTableColumn
 	implements TableCellSWTPaintListener, TableCellRefreshListener,
-	TableCellMouseMoveListener
+	TableCellMouseMoveListener, TableCellAddedListener
 {
 	public static final String COLUMN_ID = "activityActions";
 
@@ -171,6 +170,11 @@ public class ColumnActivityActions
 
 			sp.printString();
 		}
+	}
+	
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellAdded(TableCell cell) {
+		cell.setMarginHeight(0);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
