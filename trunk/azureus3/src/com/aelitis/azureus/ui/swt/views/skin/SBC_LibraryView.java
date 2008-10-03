@@ -143,7 +143,7 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnSmallTable = new SWTSkinButtonUtility(so);
 			btnSmallTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_SMALLTABLE, true);
 				}
 			});
@@ -153,7 +153,7 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnBigTable = new SWTSkinButtonUtility(so);
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_BIGTABLE, true);
 				}
 			});

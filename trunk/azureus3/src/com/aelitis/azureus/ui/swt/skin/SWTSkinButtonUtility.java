@@ -27,7 +27,8 @@ public class SWTSkinButtonUtility
 
 	public static class ButtonListenerAdapter
 	{
-		public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+		public void pressed(SWTSkinButtonUtility buttonUtility,
+				SWTSkinObject skinObject, int stateMask) {
 		}
 
 		/**
@@ -108,7 +109,7 @@ public class SWTSkinButtonUtility
 					ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
 					l.pressed(SWTSkinButtonUtility.this);
 					l.pressed(SWTSkinButtonUtility.this,
-							SWTSkinButtonUtility.this.skinObject);
+							SWTSkinButtonUtility.this.skinObject, event.stateMask);
 				}
 			}
 		};

@@ -318,7 +318,7 @@ public class TorrentListView
 			SWTSkinButtonUtility btnAdd = new SWTSkinButtonUtility(skinObject);
 
 			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					TorrentOpener.openTorrentWindow();
 				}
 			});

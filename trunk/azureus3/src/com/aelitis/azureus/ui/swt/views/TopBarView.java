@@ -140,7 +140,7 @@ public class TopBarView
 			if (soPrev != null) {
 				SWTSkinButtonUtility btnPrev = new SWTSkinButtonUtility(soPrev);
 				btnPrev.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 						//System.out.println("prev click " + activeTopBar + " ; "
 						//		+ topbarViews.size());
 						if (activeTopBar == null || topbarViews.size() <= 1) {
@@ -159,7 +159,7 @@ public class TopBarView
 			if (soNext != null) {
 				SWTSkinButtonUtility btnNext = new SWTSkinButtonUtility(soNext);
 				btnNext.addSelectionListener(new ButtonListenerAdapter() {
-					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+					public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 						//System.out.println("next click");
 						if (activeTopBar == null || topbarViews.size() <= 1) {
 							return;

@@ -614,7 +614,7 @@ public class ToolBarView
 		extends ButtonListenerAdapter
 	{
 		public void pressed(SWTSkinButtonUtility buttonUtility,
-				SWTSkinObject skinObject) {
+				SWTSkinObject skinObject, int stateMask) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
 			item.triggerToolBarItem();

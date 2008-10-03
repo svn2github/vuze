@@ -205,7 +205,7 @@ public class VuzeActivitiesView
 			btnDelete = new SWTSkinButtonUtility(skinObject);
 
 			btnDelete.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					removeSelected();
 				}
 			});
@@ -305,7 +305,7 @@ public class VuzeActivitiesView
 		if (skinObject != null) {
 			btnSortByDate = new SWTSkinButtonUtility(skinObject);
 			btnSortByDate.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					columnVuzeActivity.setSortBy(VuzeActivitiesConstants.SORT_DATE);
 					view.removeDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
 					shiftVuzeNews();
@@ -322,7 +322,7 @@ public class VuzeActivitiesView
 		if (skinObject != null) {
 			btnSortByType = new SWTSkinButtonUtility(skinObject);
 			btnSortByType.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					view.removeDataSources(headerEntries.toArray());
 					columnVuzeActivity.setSortBy(VuzeActivitiesConstants.SORT_TYPE);
 					view.addDataSources(VuzeActivitiesConstants.HEADERS_SORTBY_TYPE);
@@ -339,7 +339,7 @@ public class VuzeActivitiesView
 		if (skinObject instanceof SWTSkinObjectButton) {
 			((SWTSkinObjectButton) skinObject).addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility,
-						SWTSkinObject skinObject) {
+						SWTSkinObject skinObject, int stateMask) {
 					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
 					for (int i = 0; i < allEntries.length; i++) {
 						VuzeActivitiesEntry entry = allEntries[i];

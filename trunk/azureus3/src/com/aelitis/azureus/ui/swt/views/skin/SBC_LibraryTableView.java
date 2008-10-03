@@ -172,7 +172,7 @@ public class SBC_LibraryTableView
   			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
   			btn.setTextID("Mark All UnNew");
   			btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
   					TableViewSWT tv = ((MyTorrentsView) view).getTableView();
   					Object[] dataSources = tv.getDataSources();
   					for (int i = 0; i < dataSources.length; i++) {

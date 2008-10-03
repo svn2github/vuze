@@ -64,7 +64,7 @@ public class SWTSkinObjectButton
 				for (int i = 0; i < listeners.length; i++) {
 					ButtonListenerAdapter l = (ButtonListenerAdapter) listeners[i];
 					l.pressed(null);
-					l.pressed(null, SWTSkinObjectButton.this);
+					l.pressed(null, SWTSkinObjectButton.this, e.stateMask);
 				}
 			}
 		

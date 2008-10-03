@@ -92,7 +92,7 @@ public class UserAreaUtils
 
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					Point point = control.getShell().toDisplay(
 							control.getParent().getLocation());
 					point.y += (control.getSize().y / 2) + 10;
@@ -110,7 +110,7 @@ public class UserAreaUtils
 		if (skinObject != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(skinObject);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					if (true == LoginInfoManager.getInstance().isLoggedIn()) {
 						/*
 						 * If the user is logged in then go to profile page
