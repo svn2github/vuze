@@ -5,6 +5,9 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -39,6 +42,7 @@ import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -51,9 +55,10 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 public class FriendsToolbar
 	extends SkinView
 {
-	private ToolBar toolbar;
 
 	private Label friendsLabel;
+	
+	private Label onlineFriendsLabel;
 
 	private Label showHideButton;
 
@@ -63,26 +68,31 @@ public class FriendsToolbar
 
 	private Composite shareWithAllPanel;
 
-	private ToolItem edit;
+	private Label edit;
 
-	private ToolItem addFriends;
+	private Label addFriends;
 
 	private Label image;
 
 	private Label text;
 
-	private int toolbarHeight = 30;
+	private int toolbarHeight = 46;
+	
+	private Color textColor;
+	private Font boldFont;
+	private Font friendsFont;
 
+	private Listener hoverListener;
+	
+	
 	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_down.png",
-				"button_collapse");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png",
-				"button_expand");
-		ImageRepository.addPath(
-				"com/aelitis/azureus/ui/images/buddy_add_to_share.png", "add_to_share");
-		ImageRepository.addPath(
-				"com/aelitis/azureus/ui/images/buddy_add_to_share_selected.png",
-				"add_to_share_selected");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch.png", "btn_collapse");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch_over.png", "btn_collapse_over");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png", "btn_expand");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png", "btn_expand_over");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/friends_bg.png", "friends_bg");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share.png", "add_to_share");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share_selected.png", "add_to_share_selected");
 	}
 
 	public FriendsToolbar() {
@@ -115,20 +125,64 @@ public class FriendsToolbar
 			throw new IllegalArgumentException(
 					"Oops! We can not handle any layout other than FormLayout at the moment!!!");
 		}
+		
+		hoverListener = new Listener() {
+			public void handleEvent(Event event) {
+				Widget widget = event.widget;
+				if(! (widget instanceof Control)) return;
+				Control control = (Control) widget;
+				
+				switch (event.type) {
+				case SWT.MouseEnter:
+						control.setForeground(event.display.getSystemColor(SWT.COLOR_BLUE));
+					break;
+
+				case SWT.MouseExit:
+						control.setForeground(textColor);
+					break;
+				}
+			}
+		};
 
 		content = new Composite(parent, SWT.NONE);
-
+		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		content.setBackgroundImage(ImageRepository.getImage("friends_bg"));
+		
+		
+		FontData[] datas = content.getFont().getFontData();
+		
+		for(int i = 0 ; i < datas.length ; i++) {
+			datas[i].setStyle(SWT.BOLD);
+			if(Constants.isOSX) {
+				datas[i].setHeight(11);
+			} else {
+				datas[i].setHeight(11);
+			}
+		}
+		
+		boldFont = new Font(content.getDisplay(),datas);
+		
+		for(int i = 0 ; i < datas.length ; i++) {
+			if(Constants.isOSX) {
+				datas[i].setHeight(13);
+			} else {
+				datas[i].setHeight(13);
+			}
+		}
+		
+		friendsFont = new Font(content.getDisplay(),datas);
+		
+		textColor = new Color(content.getDisplay(),49,52,60);
+		
+		
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, 0);
-		fd.bottom = new FormAttachment(100, 0);
+		fd.height = 46;
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);
 		content.setLayoutData(fd);
 
-		GridLayout layout = new GridLayout(4, false);
-		layout.marginHeight = 3;
-		layout.marginWidth = 3;
-		content.setLayout(layout);
+		content.setLayout(new FormLayout());
 
 		createControls();
 
@@ -164,9 +218,56 @@ public class FriendsToolbar
 	}
 
 	private void createControls() {
+		FormData data;
+		
 		friendsLabel = new Label(content, SWT.NONE);
-		friendsLabel.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false,
-				false));
+		friendsLabel.setFont(friendsFont);
+		friendsLabel.setForeground(textColor);
+		
+		onlineFriendsLabel = new Label(content, SWT.NONE);
+		onlineFriendsLabel.setFont(boldFont);
+		onlineFriendsLabel.setForeground(textColor);
+		
+		showHideButton = new Label(content, SWT.NONE);
+		showHideButton.setData("over",new Boolean(false));
+		Listener hoverBtnListener = new Listener() {
+		public void handleEvent(Event event) {
+			Boolean expandedB = (Boolean) showHideButton.getData("expanded");
+			boolean isExpanded = expandedB != null ? expandedB.booleanValue() : true;
+			
+			switch (event.type) {
+				case SWT.MouseEnter:
+					showHideButton.setData("over",new Boolean(true));
+					showHideButton.setImage(isExpanded
+							? ImageRepository.getImage("btn_collapse_over")
+							: ImageRepository.getImage("btn_expand_over"));
+					break;
+	
+				case SWT.MouseExit:
+					showHideButton.setData("over",new Boolean(false));
+					showHideButton.setImage(isExpanded
+							? ImageRepository.getImage("btn_collapse")
+							: ImageRepository.getImage("btn_expand"));
+					break;
+			}
+			}	
+		};
+		
+		
+		showHideButton.addListener(SWT.MouseEnter, hoverBtnListener);
+		showHideButton.addListener(SWT.MouseExit, hoverBtnListener);
+		
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,8);
+		data.right = new FormAttachment(showHideButton,-5);
+		data.top = new FormAttachment(0,6);
+		friendsLabel.setLayoutData(data);
+		
+		data = new FormData();
+		data.right = new FormAttachment(100,-8);
+		data.top = new FormAttachment(0,10);
+		showHideButton.setLayoutData(data);
 
 		hookTuxGoodies(friendsLabel);
 
@@ -205,15 +306,16 @@ public class FriendsToolbar
 
 		}, false);
 
-		createSharePanel();
-
-		toolbar = new ToolBar(content, SWT.HORIZONTAL);
-		toolbar.setLayoutData(new GridData(SWT.END, SWT.CENTER, true, false));
 		createToolItems();
 
-		showHideButton = new Label(content, SWT.NONE);
-		showHideButton.setLayoutData(new GridData(SWT.END, SWT.CENTER, false, false));
+		createSharePanel();
 
+		data = new FormData();
+		data.left = new FormAttachment(0,8);
+		data.right = new FormAttachment(edit,-5);
+		data.top = new FormAttachment(0,29);
+		onlineFriendsLabel.setLayoutData(data);
+		
 		/*
 		 * Initial state from configuration
 		 */
@@ -261,30 +363,30 @@ public class FriendsToolbar
 
 	private void createToolItems() {
 
-		edit = new ToolItem(toolbar, SWT.CHECK);
+		edit = new Label(content, SWT.PUSH);
+		edit.setFont(boldFont);
+		edit.setForeground(textColor);
+		edit.setCursor(content.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		edit.addListener(SWT.MouseEnter, hoverListener);
+		edit.addListener(SWT.MouseExit, hoverListener);
 		edit.setText(MessageText.getString("Button.bar.edit"));
-		edit.addSelectionListener(new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
-				if (true == edit.getSelection()) {
+		edit.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event arg0) {
+				if (new Boolean(false).equals(edit.getData("edit_mode"))) {
 					setEditMode();
 				} else {
 					reset();
 				}
 			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
-			}
 		});
-
+		
 		LoginInfoManager.getInstance().addListener(new ILoginInfoListener() {
 			public void loginUpdate(LoginInfo info, boolean isNewLoginID) {
 				if (null == info.userName) {
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
 							edit.setText(MessageText.getString("Button.bar.edit"));
-							edit.setSelection(false);
+							edit.setData("selection", new Boolean(false));
 							reset();
 							content.layout(true);
 						}
@@ -298,19 +400,43 @@ public class FriendsToolbar
 			}
 		});
 
-		addFriends = new ToolItem(toolbar, SWT.PUSH);
-		addFriends.setText("Add");
-		addFriends.addSelectionListener(new SelectionListener() {
-
-			public void widgetSelected(SelectionEvent e) {
+		addFriends = new Label(content, SWT.NONE);
+		addFriends.setFont(boldFont);
+		addFriends.setForeground(textColor);
+		addFriends.setCursor(content.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		addFriends.addListener(SWT.MouseEnter, hoverListener);
+		addFriends.addListener(SWT.MouseExit, hoverListener);
+		addFriends.setText(MessageText.getString("Button.bar.add"));
+		addFriends.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event arg0) {
 				addBuddy();
-
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				widgetSelected(e);
 			}
 		});
+		
+		Label separator = new Label(content,SWT.NONE);
+		separator.setFont(boldFont);
+		separator.setForeground(textColor);
+		separator.setText("/");
+		
+		FormData data;
+		
+		data = new FormData();
+		data.right = new FormAttachment(100,-8);
+		data.top = new FormAttachment(0,29);
+		addFriends.setLayoutData(data);
+		
+		data = new FormData();
+		data.right = new FormAttachment(addFriends,-1);
+		data.top = new FormAttachment(0,29);
+		separator.setLayoutData(data);
+		
+		
+		data = new FormData();
+		data.right = new FormAttachment(separator,-1);
+		data.top = new FormAttachment(0,29);
+		edit.setLayoutData(data);
+		
+		
 	}
 
 	private void createSharePanel() {
@@ -319,19 +445,36 @@ public class FriendsToolbar
 		 */
 		shareWithAllPanel = new Composite(content, SWT.NONE);
 		shareWithAllPanel.setVisible(false);
-
-		GridData gData = new GridData(SWT.END, SWT.CENTER, false, false);
-		gData.widthHint = 100;
-		gData.exclude = true;
-		shareWithAllPanel.setLayoutData(gData);
-		shareWithAllPanel.setLayout(new GridLayout(2, false));
+		
+		FormData data ;
+		data = new FormData();
+		data.left = new FormAttachment(0,8);
+		data.top = new FormAttachment(0,29);
+		data.right = new FormAttachment(edit,-5);
+		//data.bottom = new FormAttachment(100,-1);
+		shareWithAllPanel.setLayoutData(data);
+		
+		shareWithAllPanel.setLayout(new FormLayout());
 
 		image = new Label(shareWithAllPanel, SWT.NONE);
-		image.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 		image.setImage(ImageRepository.getImage("add_to_share"));
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,0);
+		data.top = new FormAttachment(0,0);
+		image.setLayoutData(data);
+
 		text = new Label(shareWithAllPanel, SWT.NONE);
-		text.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		text.setFont(boldFont);
+		text.setForeground(textColor);
 		text.setText(MessageText.getString("v3.Share.add.buddy.all"));
+		
+		
+		data = new FormData();
+		data.left = new FormAttachment(image,5);
+		data.top = new FormAttachment(0,0);
+		text.setLayoutData(data);
+		
 
 		hookShareListener();
 	}
@@ -385,9 +528,24 @@ public class FriendsToolbar
 	}
 
 	private void updateFriendsLabel() {
+		
+		List buddies = VuzeBuddyManager.getAllVuzeBuddies();
+		
+		int onlineBuddies = 0;
+		for(int i = 0 ; i < buddies.size() ; i++) {
+			VuzeBuddy buddy = (VuzeBuddy) buddies.get(i);
+			if(buddy.isOnline(true)) onlineBuddies++;
+		}
+		
 		friendsLabel.setText(MessageText.getString("v3.buddies.count",
 				new String[] {
-					VuzeBuddyManager.getAllVuzeBuddies().size() + ""
+					buddies.size() + ""
+				}));
+		
+		onlineFriendsLabel.setText(MessageText.getString("v3.buddies.online",
+				
+				new String[] {
+					onlineBuddies + ""
 				}));
 
 		/*
@@ -483,12 +641,13 @@ public class FriendsToolbar
 	}
 
 	public void reset() {
+		onlineFriendsLabel.setVisible(true);
 		addFriends.setEnabled(true);
 		friendsLabel.setEnabled(true);
 		showHideButton.setEnabled(true);
 		edit.setEnabled(true);
 		edit.setText(MessageText.getString("Button.bar.edit"));
-		edit.setSelection(false);
+		edit.setData("edit_mode",new Boolean(false));
 
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null == viewer) {
@@ -496,7 +655,7 @@ public class FriendsToolbar
 		}
 		viewer.setMode(BuddiesViewer.none_active_mode);
 
-		showAddWithAll(false);
+		shareWithAllPanel.setVisible(false);
 		content.layout(true);
 
 	}
@@ -506,13 +665,15 @@ public class FriendsToolbar
 		if (null == viewer) {
 			return;
 		}
+		
 		viewer.setMode(BuddiesViewer.share_mode);
 		addFriends.setEnabled(false);
 		friendsLabel.setEnabled(false);
+		onlineFriendsLabel.setVisible(false);
 		showHideButton.setEnabled(false);
 		edit.setEnabled(false);
 
-		showAddWithAll(true);
+		shareWithAllPanel.setVisible(true);
 		content.layout(true);
 
 		COConfigurationManager.setParameter("Friends.visible", true);
@@ -534,7 +695,7 @@ public class FriendsToolbar
 				showHideButton.setEnabled(false);
 				edit.setEnabled(false);
 
-				showAddWithAll(true);
+				shareWithAllPanel.setVisible(true);
 			}
 
 			public long getCancelDelay() {
@@ -549,12 +710,6 @@ public class FriendsToolbar
 
 	}
 
-	private void showAddWithAll(boolean value) {
-		GridData gData = (GridData) shareWithAllPanel.getLayoutData();
-		gData.exclude = !value;
-		shareWithAllPanel.setVisible(value);
-	}
-
 	public void setEditMode() {
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 
@@ -566,6 +721,9 @@ public class FriendsToolbar
 				}
 				viewer.setMode(BuddiesViewer.edit_mode);
 
+				
+				edit.setData("edit_mode",new Boolean(true));
+				
 				edit.setText(MessageText.getString("Button.bar.edit.cancel"));
 				edit.setEnabled(true);
 				addFriends.setEnabled(false);
@@ -590,9 +748,20 @@ public class FriendsToolbar
 	 * @param value
 	 */
 	private void showFooterToggleButton(boolean isExpanded) {
-		showHideButton.setImage(isExpanded
-				? ImageRepository.getImage("button_collapse")
-				: ImageRepository.getImage("button_expand"));
+		showHideButton.setData("expanded",new Boolean(isExpanded));
+		
+		Boolean overB = (Boolean) showHideButton.getData("over");
+		boolean isOver = overB != null ? overB.booleanValue() : false;
+		
+		if(isOver) {
+			showHideButton.setImage(isExpanded
+				? ImageRepository.getImage("btn_collapse_over")
+				: ImageRepository.getImage("btn_expand_over"));
+		} else {
+			showHideButton.setImage(isExpanded
+					? ImageRepository.getImage("btn_collapse")
+					: ImageRepository.getImage("btn_expand"));
+		}
 
 	}
 
