@@ -552,7 +552,7 @@ public class SearchResultsTabArea
 			return this;
 		}
 		if (propertyID == TITLE_TEXT) {
-			return "Search: " + searchText;
+			return searchText;
 		}
 		return null;
 	}
