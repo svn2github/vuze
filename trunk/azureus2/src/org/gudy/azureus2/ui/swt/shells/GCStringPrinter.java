@@ -32,6 +32,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -189,6 +190,23 @@ public class GCStringPrinter
 		return false;
 	}
 
+	private boolean _printString() {
+		boolean b = false;
+		try {
+			boolean wasAdvanced = gc.getAdvanced();
+			if (gc.getAdvanced() && gc.getTextAntialias() == SWT.DEFAULT) {
+				gc.setAdvanced(false);
+			}
+			b = __printString();
+			if (wasAdvanced) {
+				gc.setAdvanced(true);
+			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+		return b;
+	}
+
 	/**
 	 * @param gc
 	 * @param string
@@ -199,7 +217,7 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.4.3
 	 */
-	private boolean _printString() {
+	private boolean __printString() {
 		size = new Point(0, 0);
 
 		if (string == null) {
