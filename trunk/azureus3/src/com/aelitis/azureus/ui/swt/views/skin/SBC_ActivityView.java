@@ -37,17 +37,19 @@ public class SBC_ActivityView
 {
 	public final static String ID = "activity-list";
 
-	public final static int MODE_BIGTABLE = 0;
+	public final static int MODE_BIGTABLE = -1;
 
-	public final static int MODE_SMALLTABLE = 1;
+	public final static int MODE_SMALLTABLE = 0;
+	
+	public final static int MODE_DEFAULT = MODE_SMALLTABLE;
 
 	private final static String[] modeViewIDs = {
-		SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG,
+		//SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG,
 		SkinConstants.VIEWID_SIDEBAR_ACTIVITY_SMALL,
 	};
 
 	private final static String[] modeIDs = {
-		"activity.table.big",
+		//"activity.table.big",
 		"activity.table.small",
 	};
 
@@ -70,7 +72,7 @@ public class SBC_ActivityView
 		if (so != null) {
 			btnSmallTable = new SWTSkinButtonUtility(so);
 			btnSmallTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_SMALLTABLE, true);
 				}
 			});
@@ -80,7 +82,7 @@ public class SBC_ActivityView
 		if (so != null) {
 			btnBigTable = new SWTSkinButtonUtility(so);
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_BIGTABLE, true);
 				}
 			});
@@ -92,7 +94,7 @@ public class SBC_ActivityView
 			SWTSkinButtonUtility btnReadAll = new SWTSkinButtonUtility(so);
 			btnReadAll.setTextID("v3.activity.button.readall");
 			btnReadAll.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
 					for (int i = 0; i < allEntries.length; i++) {
 						VuzeActivitiesEntry entry = allEntries[i];
@@ -103,7 +105,7 @@ public class SBC_ActivityView
 		}
 
 		setViewMode(COConfigurationManager.getIntParameter(ID
-				+ ".viewmode", MODE_SMALLTABLE), false);
+				+ ".viewmode", MODE_DEFAULT), false);
 
 		return null;
 	}
@@ -113,11 +115,14 @@ public class SBC_ActivityView
 	}
 
 	public void setViewMode(int viewMode, boolean save) {
-		if (viewMode >= modeViewIDs.length || viewMode < 0
-				|| viewMode == this.viewMode) {
-			return;
+		if (viewMode >= modeViewIDs.length || viewMode < 0) {
+			viewMode = MODE_DEFAULT;
 		}
 
+		if (viewMode == this.viewMode) {
+			return;
+		}
+		
 		int oldViewMode = this.viewMode;
 
 		this.viewMode = viewMode;
@@ -156,6 +161,13 @@ public class SBC_ActivityView
 
 		if (save) {
 			COConfigurationManager.setParameter(ID + ".viewmode", viewMode);
+		}
+	}
+	
+	protected void removeSelected() {
+		SBC_ActivityTableView tv = (SBC_ActivityTableView) SkinViewManager.getBySkinObjectID(modeViewIDs[viewMode]);
+		if (tv != null) {
+			tv.removeSelected();
 		}
 	}
 }

@@ -41,9 +41,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -174,6 +172,15 @@ public class SBC_ActivityTableView
 			}
 
 		}, false);
+		
+		view.addLifeCycleListener(new TableLifeCycleListener() {
+			public void tableViewInitialized() {
+				view.addDataSources(VuzeActivitiesManager.getAllEntries());
+			}
+		
+			public void tableViewDestroyed() {
+			}
+		});
 
 
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
@@ -194,9 +201,6 @@ public class SBC_ActivityTableView
 		view.initialize(viewComposite);
 
 		VuzeActivitiesManager.addListener(this);
-		
-		view.addDataSources(VuzeActivitiesManager.getAllEntries());
-		
 		
 		return super.skinObjectInitialShow(skinObject, params);
 	}
