@@ -405,6 +405,8 @@ public class SideBar
 		FontData[] fontData = tree.getFont().getFontData();
 		//fontData[0].setHeight(fontData[0].getHeight() + 1);
 		fontData[0].setStyle(SWT.BOLD);
+		//fontData[0].setName("Helvetica");
+		Utils.getFontHeightFromPX(tree.getDisplay(), fontData, null, 13);
 		fontHeader = new Font(tree.getDisplay(), fontData);
 
 		Listener treeListener = new Listener() {
@@ -421,14 +423,14 @@ public class SideBar
 							event.width = size.x + event.x; // tree.getClientArea().width;
 							event.x = 0;
 						}
-						int padding = 12;
+						int padding = 4;
 						//String id = (String) treeItem.getData("Plugin.viewID");
 						//SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 						//if (sideBarInfo.imageLeft != null) {
 						//padding += 4;
 						//}
 
-						event.height = Math.max(event.height, size.y + padding);
+						event.height = 24;// Math.max(event.height, size.y + padding);
 
 						break;
 					}
@@ -566,6 +568,7 @@ public class SideBar
 						}
 						break;
 					}
+					
 				}
 			}
 		};
@@ -668,7 +671,7 @@ public class SideBar
 				SWTSkinButtonUtility btnDropDown = new SWTSkinButtonUtility(soDropDown);
 				btnDropDown.addSelectionListener(new ButtonListenerAdapter() {
 					public void pressed(SWTSkinButtonUtility buttonUtility,
-							SWTSkinObject skinObject) {
+							SWTSkinObject skinObject, int stateMask) {
 						Control c = buttonUtility.getSkinObject().getControl();
 						menuDropDown.setLocation(c.getDisplay().getCursorLocation());
 						menuDropDown.setVisible(!menuDropDown.getVisible());
@@ -681,7 +684,7 @@ public class SideBar
 				SWTSkinButtonUtility btnExpand = new SWTSkinButtonUtility(soExpand);
 				btnExpand.addSelectionListener(new ButtonListenerAdapter() {
 					public void pressed(SWTSkinButtonUtility buttonUtility,
-							SWTSkinObject skinObject) {
+							SWTSkinObject skinObject, int stateMask) {
 						flipSideBarVisibility();
 					}
 				});
@@ -787,6 +790,8 @@ public class SideBar
 
 		GC gc = event.gc;
 
+		gc.setAntialias(SWT.ON);
+		gc.setAdvanced(true);
 		//gc.setClipping((Rectangle) null);
 
 		boolean selected = (event.detail & SWT.SELECTED) > 0;
@@ -856,7 +861,6 @@ public class SideBar
 		if (sideBarInfo.titleInfo != null) {
 			String textIndicator = (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT);
 			if (textIndicator != null) {
-				gc.setAntialias(SWT.ON);
 
 				Point textSize = gc.textExtent(textIndicator);
 				Point minTextSize = gc.textExtent("99");
@@ -938,6 +942,9 @@ public class SideBar
 		}
 
 		Image imageLeft = sideBarInfo.getImageLeft(selected ? "-selected" : null);
+		if (imageLeft == null && selected) {
+			imageLeft = sideBarInfo.getImageLeft(null);
+		}
 		if (imageLeft != null) {
 			Rectangle bounds = imageLeft.getBounds();
 			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - bounds.width) / 2);
@@ -949,14 +956,22 @@ public class SideBar
 			//					IMAGELEFT_SIZE);
 
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
-
-			gc.setFont(fontHeader);
 		} else if (ALWAYS_IMAGE_GAP) {
 			x0IndicatorOfs += IMAGELEFT_SIZE + IMAGELEFT_GAP;
 		} else {
 			if (treeItem.getParentItem() != null) {
 				x0IndicatorOfs += 30 - 18;
 			}
+		}
+		
+//		gc.setAdvanced(true);
+//		gc.setTextAntialias(SWT.ON);
+//		gc.setAntialias(SWT.ON);
+//		gc.setInterpolation(SWT.HIGH);
+
+		if (treeItem.getParentItem() == null) {
+			gc.setFont(fontHeader);
+			gc.setForeground(ColorCache.getColor(gc.getDevice(), "#2B2D32"));
 		}
 
 		gc.setForeground(fgText);
@@ -1112,10 +1127,6 @@ public class SideBar
 				"library", MessageText.getString("sidebar.LibraryDL"), null, null,
 				false, -1);
 
-		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_CD,
-				"library", MessageText.getString("sidebar.LibraryCD"), null, null,
-				false, -1);
-
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
 				SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
 				MessageText.getString("sidebar.LibraryUnopened"), null, null, false, -1);
@@ -1130,7 +1141,7 @@ public class SideBar
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
 		entry.setImageLeftID("image.sidebar.subscriptions");
-
+		
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
 		if (SHOW_TOOLS) {
