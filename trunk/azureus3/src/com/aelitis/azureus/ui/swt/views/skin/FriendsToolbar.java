@@ -156,7 +156,7 @@ public class FriendsToolbar
 			if(Constants.isOSX) {
 				datas[i].setHeight(11);
 			} else {
-				datas[i].setHeight(11);
+				datas[i].setHeight(8);
 			}
 		}
 		
@@ -166,7 +166,7 @@ public class FriendsToolbar
 			if(Constants.isOSX) {
 				datas[i].setHeight(13);
 			} else {
-				datas[i].setHeight(13);
+				datas[i].setHeight(10);
 			}
 		}
 		
