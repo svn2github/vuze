@@ -1794,7 +1794,7 @@ public class MainWindow
 		if (searchGo != null) {
 			SWTSkinButtonUtility btnGo = new SWTSkinButtonUtility(searchGo);
 			btnGo.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					String sSearchText = text.getText().trim();
 					doSearch(sSearchText);
 				}
@@ -1828,7 +1828,7 @@ public class MainWindow
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject) {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					final Menu menu = new Menu(shell, SWT.POP_UP);
 					menu.addMenuListener(new MenuListener() {
 						public void menuShown(MenuEvent e) {
@@ -1874,9 +1874,12 @@ public class MainWindow
 		if (searchClass != null) {
 			searchClass.anotherSearch(sSearchText);
 		} else {
-			sidebar.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
-					MessageText.getString("Search: ") + sSearchText, null, sSearchText,
+			SideBarEntrySWT entry = sidebar.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
+					sSearchText, null, sSearchText,
 					true, -1);
+			if (entry != null) {
+				entry.setImageLeftID("image.sidebar.search");
+			}
 		}
 		sidebar.showItemByID(id);
 	}
