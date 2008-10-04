@@ -2,6 +2,8 @@ package com.aelitis.azureus.core.metasearch.impl;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -12,8 +14,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.core.util.http.HTTPSniffingProxy;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
@@ -24,9 +29,13 @@ public class ExternalLoginWindow {
 	Display display;
 	Shell shell;
 	
+	String originalLoginUrl;
+	
 	String cookies;
 	
-	public ExternalLoginWindow(final ExternalLoginListener listener,String name, final String loginUrl,boolean captureMode) {
+	HTTPSniffingProxy	sniffer;
+	
+	public ExternalLoginWindow(final ExternalLoginListener listener,String name, final String loginUrl,boolean captureMode, boolean isMine ) {
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -45,6 +54,22 @@ public class ExternalLoginWindow {
 		
 		shell.setLayout(new FormLayout());
 		
+		shell.addDisposeListener(
+			new DisposeListener()
+			{
+				public void 
+				widgetDisposed(
+					DisposeEvent arg0) 
+				{
+					if ( sniffer != null ){
+						
+						sniffer.destroy();
+					}
+				}
+			});
+		
+		originalLoginUrl = loginUrl;
+		
 		Label explain = new Label(shell,SWT.WRAP);
 		if(captureMode) {
 			explain.setText(MessageText.getString("externalLogin.explanation.capture", new String[]{ name }));
@@ -52,7 +77,7 @@ public class ExternalLoginWindow {
 			explain.setText(MessageText.getString("externalLogin.explanation", new String[]{ name }));
 		}
 		
-		Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
+		final Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies) {
 				if(listener != null) {
@@ -67,6 +92,43 @@ public class ExternalLoginWindow {
 		browser.setUrl(loginUrl);
 		
 		Label separator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
+		
+		Button alt_method = null;
+		
+		if ( isMine ){
+			
+			alt_method = new Button(shell,SWT.CHECK);
+			
+			final Button f_alt_method = alt_method;
+			
+			alt_method.setText(MessageText.getString("externalLogin.alt_method"));
+			
+			alt_method.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event arg0) {
+	
+					if ( f_alt_method.getSelection()){
+						
+						if ( sniffer != null ){
+							
+							sniffer.destroy();
+						}
+						
+						try{
+							sniffer = new HTTPSniffingProxy( loginUrl );
+														
+							browser.setUrl( "http://localhost:" + sniffer.getPort() + "/" );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+						}
+					}else{
+						
+						browser.setUrl( originalLoginUrl );
+					}
+				}
+			});
+		}
 		
 		Button cancel = new Button(shell,SWT.PUSH);
 		cancel.setText(MessageText.getString("Button.cancel"));
@@ -113,6 +175,16 @@ public class ExternalLoginWindow {
 		data.bottom = new FormAttachment(cancel,-5);
 		separator.setLayoutData(data);
 		
+		if ( isMine ){
+			
+			data =  new FormData();
+			data.width = 100;
+			data.left = new FormAttachment(0,5);
+			data.right = new FormAttachment(cancel,-5);
+			data.bottom = new FormAttachment(100,-5);
+			alt_method.setLayoutData(data);
+		}
+		
 		data =  new FormData();
 		data.width = 100;
 		data.right = new FormAttachment(done,-5);
@@ -140,7 +212,8 @@ public class ExternalLoginWindow {
 	public static void main(String[] args) {
 		Display display = new Display();
 		ImageRepository.loadImages(display);
-		ExternalLoginWindow slw = new ExternalLoginWindow(null,"test","http://hdbits.org/login.php",false);
+		ExternalLoginWindow slw = 
+			new ExternalLoginWindow(null,"test","http://hdbits.org/login.php",false,true);
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
 				display.sleep();

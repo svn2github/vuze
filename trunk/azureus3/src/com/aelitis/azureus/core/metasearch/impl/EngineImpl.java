@@ -135,6 +135,7 @@ EngineImpl
 	
 	protected static final String		LD_LAST_UPDATE_CHECK	= "last_update_check";
 	protected static final String		LD_UPDATE_CHECK_SECS	= "update_check_secs";
+	protected static final String		LD_CREATED_BY_ME		= "mine";
 	
 	private MetaSearchImpl	meta_search;
 	
@@ -953,6 +954,19 @@ EngineImpl
 		}
 	}
 	
+	public boolean
+	isMine()
+	{
+		return( getLocalBoolean( LD_CREATED_BY_ME, false ));
+	}
+	
+	public void
+	setMine(
+		boolean		mine )
+	{
+		setLocalBoolean( LD_CREATED_BY_ME, mine );
+	}
+	
 	protected String
 	getUpdateURL()
 	{
@@ -1097,6 +1111,22 @@ EngineImpl
 				return( null );
 			}
 		}
+	}
+	
+	protected void
+	setLocalBoolean(
+		String		key,
+		boolean		value )
+	{
+		setLocalLong( key, value?1:0 );
+	}
+	
+	protected boolean
+	getLocalBoolean(
+		String		key,
+		boolean		def )
+	{
+		return( getLocalLong( key, def?1:0 ) == 1 );
 	}
 	
 	protected void

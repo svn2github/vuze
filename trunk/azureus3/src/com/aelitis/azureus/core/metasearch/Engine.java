@@ -135,6 +135,13 @@ Engine
 	public boolean
 	isActive();
 	
+	public boolean
+	isMine();
+	
+	public void
+	setMine(
+		boolean		mine );
+	
 	public int
 	getSelectionState();
 	

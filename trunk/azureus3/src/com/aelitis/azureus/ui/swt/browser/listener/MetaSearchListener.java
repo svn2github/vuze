@@ -129,7 +129,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			final Long	sid = (Long)decodedMap.get( "sid" );
 
-			Engine engine = getEngineFromId(engine_id);
+			final Engine engine = getEngineFromId(engine_id);
 			
 			if ( engine != null && engine instanceof WebEngine){
 				
@@ -249,7 +249,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							},
 						webEngine.getName(),
 						webEngine.getLoginPageUrl(),
-						false );
+						false,
+						engine.isMine());
 					}
 				});
 			}else{
@@ -283,7 +284,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							params.put("currentCookie",cookies);
 							sendBrowserMessage("metasearch", "setCookies", params );
 						};
-						},url, url,true);
+						},url, url,true,true);
 				}
 			});
 			
@@ -507,6 +508,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							type_str.equals( "json" )?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX, 
 							name, 
 							json );
+				
+				engine.setMine( true );
 				
 				if(cookies!= null && engine instanceof WebEngine) {
 					WebEngine we = (WebEngine) engine;
@@ -1539,7 +1542,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 								},
 							webEngine.getName(),
 							webEngine.getLoginPageUrl(),
-							false );
+							false,
+							subs.isMine());
 						}
 					});
 					
