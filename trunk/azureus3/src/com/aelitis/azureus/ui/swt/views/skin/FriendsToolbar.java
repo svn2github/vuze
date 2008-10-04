@@ -299,9 +299,19 @@ public class FriendsToolbar
 			}
 
 			public void buddyOrderChanged() {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						updateFriendsLabel();
+					}
+				});
 			}
 
 			public void buddyChanged(VuzeBuddy buddy) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						updateFriendsLabel();
+					}
+				});
 			}
 
 		}, false);
@@ -668,7 +678,6 @@ public class FriendsToolbar
 		
 		viewer.setMode(BuddiesViewer.share_mode);
 		addFriends.setEnabled(false);
-		friendsLabel.setEnabled(false);
 		onlineFriendsLabel.setVisible(false);
 		showHideButton.setEnabled(false);
 		edit.setEnabled(false);
@@ -727,7 +736,6 @@ public class FriendsToolbar
 				edit.setText(MessageText.getString("Button.bar.edit.cancel"));
 				edit.setEnabled(true);
 				addFriends.setEnabled(false);
-				friendsLabel.setEnabled(false);
 				showHideButton.setEnabled(false);
 				content.layout(true);
 			}
