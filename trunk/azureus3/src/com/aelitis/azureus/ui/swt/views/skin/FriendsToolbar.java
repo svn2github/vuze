@@ -700,7 +700,6 @@ public class FriendsToolbar
 				}
 				viewer.setMode(BuddiesViewer.share_mode);
 				addFriends.setEnabled(false);
-				friendsLabel.setEnabled(false);
 				showHideButton.setEnabled(false);
 				edit.setEnabled(false);
 
