@@ -259,14 +259,8 @@ public class SubscriptionWizard {
 		Composite composite = new Composite(parent,SWT.NONE);
 		composite.setBackgroundMode(SWT.INHERIT_FORCE);
 		
-		//composite.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-
-		Label subTitle = new Label(composite,SWT.WRAP);
-		subTitle.setFont(subTitleFont);
-		subTitle.setText(MessageText.getString("Wizard.Subscription.optin.subtitle"));
-		
 		Label description = new Label(composite,SWT.WRAP);
-		//subTitle.setFont(subTitleFont);
+		description.setFont(boldFont);
 		description.setText(MessageText.getString("Wizard.Subscription.optin.description"));
 		
 		Label descLibraryIcon = new Label(composite, SWT.NONE);
@@ -281,43 +275,37 @@ public class SubscriptionWizard {
 		Label descSidebarText = new Label(composite, SWT.NONE);
 		descSidebarText.setText(MessageText.getString("Wizard.Subscription.optin.description.sidebar"));
 		
+		Label help = new Label(composite, SWT.NONE);
+		help.setFont(boldFont);
+		help.setText(MessageText.getString("Wizard.Subscription.optin.help"));
+		
 		FormLayout layout = new FormLayout();
-		layout.marginLeft = 50;
-		layout.marginRight = 50;
-		layout.marginTop = 30;
-		layout.spacing = 5;
 		composite.setLayout(layout);
 		
 		FormData data;
 		
 		data = new FormData();
-		data.top = new FormAttachment(0);
-		data.left = new FormAttachment(0);
-		data.right= new FormAttachment(100);
-		subTitle.setLayoutData(data);
-		
-		data = new FormData();
-		data.top = new FormAttachment(subTitle,30);
-		data.left = new FormAttachment(0);
-		data.right= new FormAttachment(100);
+		data.top = new FormAttachment(50,-50);
+		data.left = new FormAttachment(0,50);
+		data.right= new FormAttachment(100,-50);
 		description.setLayoutData(data);
 		
 		data = new FormData();
 		data.top = new FormAttachment(description,10);
-		data.left = new FormAttachment(0);
+		data.left = new FormAttachment(0,50);
 		descLibraryIcon.setLayoutData(data);
 		
 		data = new FormData();
 		//data.top = new FormAttachment(description,10);
 		data.left = new FormAttachment(descLibraryIcon,10);
-		data.right= new FormAttachment(100);
+		data.right= new FormAttachment(100,-50);
 		data.bottom= new FormAttachment(descLibraryIcon,-3,SWT.BOTTOM);
 		descLibraryText.setLayoutData(data);
 		
 		data = new FormData();
 		data.top = new FormAttachment(descLibraryText,10);
 		//data.left = new FormAttachment(descLibraryIcon,-10,SWT.CENTER);
-		data.left = new FormAttachment(0);
+		data.left = new FormAttachment(0,50);
 		descSidebarIcon.setLayoutData(data);
 		
 		data = new FormData();
@@ -326,6 +314,11 @@ public class SubscriptionWizard {
 		data.right= new FormAttachment(100);
 		data.bottom= new FormAttachment(descSidebarIcon,-3,SWT.BOTTOM);
 		descSidebarText.setLayoutData(data);
+		
+		data = new FormData();
+		data.right= new FormAttachment(100,-20);
+		data.bottom= new FormAttachment(100,-10);
+		help.setLayoutData(data);
 		
 		return composite;
 	}
@@ -451,7 +444,7 @@ public class SubscriptionWizard {
 		rssBullet.setLayoutData(data);
 
 		data = new FormData();
-		data.top = new FormAttachment(rssBullet,0,SWT.TOP);
+		data.top = new FormAttachment(rssBullet,-3,SWT.TOP);
 		data.left = new FormAttachment(rssBullet,5);
 		data.right = new FormAttachment(100);
 		subTitle2.setLayoutData(data);
@@ -1059,6 +1052,7 @@ public class SubscriptionWizard {
 			titleText = TITLE_SUBSCRIBE;
 			createButton.setVisible(true);
 			addButton.setVisible(true);
+			shell.setDefaultButton(addButton);
 			break;
 			
 		case MODE_CREATE_RSS :
@@ -1067,6 +1061,7 @@ public class SubscriptionWizard {
 			titleText = TITLE_CREATE;
 			availableButton.setVisible(true);
 			saveButton.setVisible(true);
+			shell.setDefaultButton(saveButton);
 			break;
 			
 		case MODE_CREATE_SEARCH :
@@ -1075,6 +1070,7 @@ public class SubscriptionWizard {
 			titleText = TITLE_CREATE;
 			availableButton.setVisible(true);
 			searchButton.setVisible(true);
+			shell.setDefaultButton(searchButton);
 			break;
 			
 		case MODE_OPT_IN:
@@ -1083,6 +1079,7 @@ public class SubscriptionWizard {
 			cancelButton.setText(MessageText.getString("Button.no"));
 			createButton.setVisible(true);
 			yesButton.setVisible(true);
+			shell.setDefaultButton(yesButton);
 			break;
 		}
 			
