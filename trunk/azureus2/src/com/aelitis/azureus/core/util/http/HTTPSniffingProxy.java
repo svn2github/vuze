@@ -60,6 +60,24 @@ HTTPSniffingProxy
 	
 	public
 	HTTPSniffingProxy(
+		String		url_str )
+		
+		throws Exception
+	{
+		this( new URL( url_str ));
+	}
+	
+	public
+	HTTPSniffingProxy(
+		URL			url )
+	
+		throws Exception
+	{
+		this( url.getHost(), url.getProtocol().toLowerCase().equals( "https" ));
+	}
+	
+	public
+	HTTPSniffingProxy(
 		String		_delegate_to,
 		boolean		_delegate_is_https )
 	
@@ -165,7 +183,7 @@ HTTPSniffingProxy
 		private Socket		socket_in;
 		private Socket		socket_out;
 		
-		private boolean	destroyed;
+		private transient boolean	destroyed;
 		
 		protected
 		processor(
@@ -350,7 +368,7 @@ HTTPSniffingProxy
 						
 						byte[]	buffer = new byte[32000];
 	
-						while( true ){
+						while( !destroyed ){
 												
 							int	len = source_is.read( buffer );
 								
@@ -434,7 +452,7 @@ HTTPSniffingProxy
 
 				// TODO: url rewriting - have to gunzip + rezip if zipped and update content-length...
 			
-			while( true ){
+			while( !destroyed  ){
 								
 				int	len = target_is.read( buffer );
 				
