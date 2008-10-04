@@ -580,7 +580,6 @@ public class FriendsToolbar
 
 	protected void _addBuddy() {
 		addFriends.setEnabled(false);
-		friendsLabel.setEnabled(false);
 		showHideButton.setEnabled(false);
 		edit.setEnabled(false);
 
