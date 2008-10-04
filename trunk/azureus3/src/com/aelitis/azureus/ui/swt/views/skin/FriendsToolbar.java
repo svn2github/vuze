@@ -79,6 +79,7 @@ public class FriendsToolbar
 	private int toolbarHeight = 45;
 	
 	private Color textColor;
+	private Color hoverTextColor;
 	private Font boldFont;
 	private Font friendsFont;
 
@@ -134,7 +135,7 @@ public class FriendsToolbar
 				
 				switch (event.type) {
 				case SWT.MouseEnter:
-						control.setForeground(event.display.getSystemColor(SWT.COLOR_BLUE));
+						control.setForeground(hoverTextColor);
 					break;
 
 				case SWT.MouseExit:
@@ -173,7 +174,7 @@ public class FriendsToolbar
 		friendsFont = new Font(content.getDisplay(),datas);
 		
 		textColor = new Color(content.getDisplay(),49,52,60);
-		
+		hoverTextColor = new Color(content.getDisplay(),144,166,181);
 		
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, 0);
