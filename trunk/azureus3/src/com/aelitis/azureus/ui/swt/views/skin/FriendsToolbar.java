@@ -76,7 +76,7 @@ public class FriendsToolbar
 
 	private Label text;
 
-	private int toolbarHeight = 46;
+	private int toolbarHeight = 45;
 	
 	private Color textColor;
 	private Font boldFont;
@@ -196,7 +196,7 @@ public class FriendsToolbar
 		 * This height is used to dynamically calculate the percentage of the sash
 		 * the toolbar will occupy
 		 */
-		toolbarHeight = parent.getSize().y;
+		toolbarHeight = parent.getSize().y - 1;
 
 		/*
 		 * When the sidebar is resized we need to recalculate the percentage for the toolbar again
