@@ -52,7 +52,7 @@ public class SplashWindow
 	
 	protected static final int OFFSET_LEFT = 10;
 	protected static final int OFFSET_RIGHT = 139;
-	protected static final int OFFSET_BOTTOM = 10;
+	protected static final int OFFSET_BOTTOM = 12;
 	protected static final int PB_HEIGHT = 2;
 	
 	protected static final boolean PB_INVERTED = true;
@@ -148,8 +148,8 @@ public class SplashWindow
 		current = new Image(display, background, SWT.IMAGE_COPY);
 
 		progressBarColor = new Color(display, 21, 92, 198);
-		textColor = new Color(display, 180, 180, 180);
-		fadedGreyColor = new Color(display, 70, 70, 70);
+		textColor = new Color(display, 90, 90, 90);
+		fadedGreyColor = new Color(display, 170, 170, 170);
 
 		width = background.getBounds().width;
 		height = background.getBounds().height;
@@ -272,12 +272,14 @@ public class SplashWindow
 				} catch (Exception e) {
 
 				}
+				
+				int y = pbY;
 
 				if (task != null) {
 					gc.setFont(textFont);
 					gc.setForeground(textColor);
 					Point extent = gc.textExtent(task);
-					int y = pbY - extent.y - 6;
+					y = pbY - extent.y - 5;
 					gc.setClipping(OFFSET_LEFT, y, width - (OFFSET_LEFT * 2), extent.y);
 					gc.drawText(task, OFFSET_LEFT, y, true);
 					gc.setClipping((Rectangle) null);
@@ -315,7 +317,7 @@ public class SplashWindow
 
 				gc.dispose();
 
-				canvas.redraw(0, height - 26, width, 26, true);
+				canvas.redraw(0, y, width, height - y, true);
 				canvas.update();
 			}
 		});
