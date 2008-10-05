@@ -1829,29 +1829,8 @@ public class MainWindow
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-					final Menu menu = new Menu(shell, SWT.POP_UP);
-					menu.addMenuListener(new MenuListener() {
-						public void menuShown(MenuEvent e) {
-						}
-
-						public void menuHidden(MenuEvent e) {
-							Utils.execSWTThreadLater(0, new AERunnable() {
-								public void runSupport() {
-									menu.dispose();
-								}
-							});
-						}
-					});
-					MenuItem menuItem;
-					menuItem = new MenuItem(menu, SWT.PUSH);
-					menuItem.setText("Menu 1");
-					menuItem = new MenuItem(menu, SWT.PUSH);
-					menuItem.setText("Menu 2");
-					menuItem = new MenuItem(menu, SWT.PUSH);
-					menuItem.setText("Menu 3");
-
-					menu.setLocation(shell.getDisplay().getCursorLocation());
-					menu.setVisible(true);
+					text.selectAll();
+					text.setFocus();
 				}
 			});
 		}
