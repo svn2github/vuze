@@ -44,7 +44,7 @@ public class ColumnUnopened
 
 	private static UISWTGraphicImpl graphicCheck;
 
-	private static int WIDTH = 35; // enough to fit title
+	private static int WIDTH = 38; // enough to fit title
 
 
 	/**
@@ -90,8 +90,8 @@ public class ColumnUnopened
 			DownloadManager dm = (DownloadManager) event.cell.getDataSource();
 			boolean hasBeenOpened = !PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent());
 			PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), hasBeenOpened);
-			event.cell.invalidate();
 			event.cell.setGraphic(hasBeenOpened ? null : graphicCheck);
+			event.cell.invalidate();
 		}
 	}
 }
