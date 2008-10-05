@@ -54,6 +54,7 @@ public class WelcomeView
 			}
 		});
 
+		COConfigurationManager.setParameter("v3.Show Welcome", false);
 		
 		Object o = skinObject.getData("CreationParams");
 		if (o instanceof String) {
@@ -70,7 +71,6 @@ public class WelcomeView
 			public void sidebarClosed(SideBarEntrySWT entry) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				if (sidebar != null) {
-  				COConfigurationManager.setParameter("v3.Welcome Closed", true);
   				String startTab;
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;

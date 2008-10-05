@@ -141,9 +141,9 @@ public class MainWindow
 
 	private SystemTraySWT systemTraySWT;
 
-	private Map mapTrackUsage = null;
+	private static Map mapTrackUsage = null;
 
-	private AEMonitor mapTrackUsage_mon = new AEMonitor("mapTrackUsage");
+	private final static AEMonitor mapTrackUsage_mon = new AEMonitor("mapTrackUsage");
 
 	private long lCurrentTrackTime = 0;
 
@@ -899,15 +899,15 @@ public class MainWindow
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				String startTab;
-				boolean welcomeClosed = COConfigurationManager.getBooleanParameter("v3.Welcome Closed");
-				if (welcomeClosed) {
+				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
+				if (showWelcome) {
+					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
+				} else {
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
   					startTab = SideBar.SIDEBAR_SECTION_BROWSE;
   				}
-				} else {
-					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				}
 				sidebar.showItemByID(startTab);
 			}
@@ -1922,6 +1922,26 @@ public class MainWindow
 
 		lCurrentTrackTime = 0;
 		lCurrentTrackTimeIdle = 0;
+	}
+	
+	public static void addUsageStat(String id, long value) {
+		if (mapTrackUsage != null) {
+			mapTrackUsage_mon.enter();
+			try {
+				Long currentLength = (Long) mapTrackUsage.get(id);
+				long newLength;
+				if (currentLength == null) {
+					newLength = value;
+				} else {
+					newLength = currentLength.longValue() + value;
+				}
+				if (newLength > 1000) {
+					mapTrackUsage.put(id, new Long(newLength / 1000));
+				}
+			} finally {
+				mapTrackUsage_mon.exit();
+			}
+		}
 	}
 
 	/**
