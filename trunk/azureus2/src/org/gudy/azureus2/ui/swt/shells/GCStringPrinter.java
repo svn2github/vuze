@@ -194,7 +194,11 @@ public class GCStringPrinter
 		boolean b = false;
 		try {
 			boolean wasAdvanced = gc.getAdvanced();
-			if (gc.getAdvanced() && gc.getTextAntialias() == SWT.DEFAULT) {
+			// With Advanced ontext antialias in SWT.DEFAULT is not the system's default
+			// Turn off Advanced while drawing text so it antialiases based on 
+			// system prefs.
+			if (gc.getAdvanced() && gc.getTextAntialias() == SWT.DEFAULT
+					&& gc.getAlpha() == 255) {
 				gc.setAdvanced(false);
 			}
 			b = __printString();
