@@ -66,7 +66,7 @@ public class ColumnActivityText
 	public ColumnActivityText(String tableID) {
 		super(COLUMN_ID, tableID);
 
-		initializeAsGraphic(500);
+		initializeAsGraphic(480);
 		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");
@@ -86,9 +86,11 @@ public class ColumnActivityText
 			}
 			gc.setFont(font);
 		}
+		
+		int style = (bounds.height < 40) ? 0 : SWT.WRAP;
 
 		GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, true,
-				SWT.WRAP);
+				style);
 
 		sp.calculateMetrics();
 
@@ -197,8 +199,8 @@ public class ColumnActivityText
 	private Rectangle getDrawBounds(TableCellSWT cell) {
 		Rectangle bounds = cell.getBounds();
 		if (bounds.height < 40) {
-			bounds.height -= 12;
-			bounds.y += 6;
+			bounds.height -= 8;
+			bounds.y += 4;
 		}
 		bounds.x += 4;
 		bounds.width -= 4;
