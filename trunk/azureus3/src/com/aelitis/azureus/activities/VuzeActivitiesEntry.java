@@ -544,10 +544,11 @@ public class VuzeActivitiesEntry
 	}
 	
 	public void setRead(boolean read) {
+		long now = SystemTime.getCurrentTime();
 		if (read) {
-			this.readOn = SystemTime.getCurrentTime();
+			setReadOn(now);
 		} else {
-			this.readOn = SystemTime.getCurrentTime() * -1;
+			setReadOn(now * -1);
 		}
 	}
 	
