@@ -82,7 +82,7 @@ public class VuzeActivitiesEntry
 	
 	private boolean playable;
 	
-	private boolean read;
+	private long readOn;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -162,7 +162,7 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
-		setRead(MapUtils.getMapBoolean(map, "read", false));
+		setReadOn(MapUtils.getMapLong(map, "readOn", 0));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -265,7 +265,7 @@ public class VuzeActivitiesEntry
 			map.put("playable", new Long(playable ? 1 : 0));
 		}
 		
-		map.put("read", new Long(read ? 1 : 0));
+		map.put("readOn", new Long(readOn));
 
 		return map;
 	}
@@ -531,15 +531,36 @@ public class VuzeActivitiesEntry
 		this.playable = playable;
 	}
 
-	public boolean isRead() {
-		return read;
+	public long getReadOn() {
+		return readOn;
 	}
 
-	public void setRead(boolean read) {
-		if (this.read == read) {
+	public void setReadOn(long readOn) {
+		if (this.readOn == readOn) {
 			return;
 		}
-		this.read = read;
+		this.readOn = readOn;
 		VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);		
+	}
+	
+	public void setRead(boolean read) {
+		if (read) {
+			this.readOn = SystemTime.getCurrentTime();
+		} else {
+			this.readOn = SystemTime.getCurrentTime() * -1;
+		}
+	}
+	
+	public boolean isRead() {
+		return readOn > 0;
+	}
+	
+	public boolean canFlipRead() {
+		long ofs = SystemTime.getOffsetTime(-300);
+		if (readOn > 0) {
+			return ofs > readOn;
+		} else {
+			return ofs > (-1 * readOn);
+		}
 	}
 }

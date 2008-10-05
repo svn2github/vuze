@@ -47,7 +47,7 @@ public class ColumnActivityType
 {
 	public static final String COLUMN_ID = "activityType";
 	
-	private static int WIDTH = 40; // enough to fit title in most cases
+	private static int WIDTH = 42; // enough to fit title in most cases
 
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
 			"h:mm:ss a, EEEE, MMMM d, yyyy");

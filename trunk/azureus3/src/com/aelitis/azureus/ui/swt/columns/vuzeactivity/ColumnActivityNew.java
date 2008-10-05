@@ -29,8 +29,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -39,16 +38,16 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class ColumnActivityNew
 	extends CoreTableColumn
-	implements TableCellSWTPaintListener, TableCellRefreshListener
+	implements TableCellSWTPaintListener, TableCellAddedListener,
+	TableCellRefreshListener, TableCellMouseListener
 {
 	public static final String COLUMN_ID = "activityNew";
-	
-	private static int WIDTH = 35; // enough to fit title
+
+	private static int WIDTH = 38; // enough to fit title
 
 	private static Image imgNew;
 
 	private Rectangle imgBounds;
-
 
 	/**
 	 * @param name
@@ -56,7 +55,7 @@ public class ColumnActivityNew
 	 */
 	public ColumnActivityNew(String tableID) {
 		super(COLUMN_ID, tableID);
-		
+
 		initializeAsGraphic(WIDTH);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
@@ -65,18 +64,45 @@ public class ColumnActivityNew
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		
-		if (!entry.isRead()) {
+
+		if (entry.getReadOn() <= 0) {
 			Rectangle cellBounds = cell.getBounds();
 			gc.drawImage(imgNew, cellBounds.x
-					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
+					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
+					+ ((cellBounds.height - imgBounds.height) / 2));
 		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellAdded(TableCell cell) {
+		cell.setMarginWidth(0);
+		cell.setMarginHeight(0);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		
-		cell.setSortValue(entry.isRead() ? 0 : 1);
+
+		boolean isRead = entry.getReadOn() > 0;
+		int sortVal = isRead ? 1 : 0;
+
+		if (!cell.setSortValue(sortVal) && cell.isValid()) {
+			return;
+		}
+
+		cell.invalidate();
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
+	public void cellMouseTrigger(final TableCellMouseEvent event) {
+		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
+				&& event.button == 1) {
+			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) event.cell.getDataSource();
+			
+			if (entry.canFlipRead()) {
+				entry.setRead(!entry.isRead());
+				event.cell.invalidate();
+			}
+		}
 	}
 }

@@ -166,11 +166,16 @@ public class VuzeActivitiesView
 
 		view.addSelectionListener(new TableSelectionAdapter() {
 			// @see com.aelitis.azureus.ui.common.table.TableSelectionAdapter#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-			public void selected(TableRowCore[] rows) {
-				for (int i = 0; i < rows.length; i++) {
-					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) rows[i].getDataSource(true);
-					entry.setRead(true);
-				}
+			public void selected(final TableRowCore[] rows) {
+				Utils.execSWTThreadLater(1000, new AERunnable() {
+				
+					public void runSupport() {
+						for (int i = 0; i < rows.length; i++) {
+							VuzeActivitiesEntry entry = (VuzeActivitiesEntry) rows[i].getDataSource(true);
+							entry.setRead(true);
+						}
+					}
+				});
 			}
 			
 			public void defaultSelected(TableRowCore[] rows) {

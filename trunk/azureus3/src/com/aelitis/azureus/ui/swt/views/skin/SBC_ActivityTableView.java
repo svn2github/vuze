@@ -143,7 +143,9 @@ public class SBC_ActivityTableView
 				selectionChanged();
 				for (int i = 0; i < rows.length; i++) {
 					VuzeActivitiesEntry entry = (VuzeActivitiesEntry) rows[i].getDataSource(true);
-					entry.setRead(true);
+					if (!entry.isRead() && entry.canFlipRead()) {
+						entry.setRead(true);
+					}
 				}
 			}
 			
