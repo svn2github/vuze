@@ -2038,7 +2038,7 @@ public class MainWindow
 		skinObject = skin.getSkinObject(target);
 
 		if (skinObject instanceof SWTSkinObjectBrowser) {
-			((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
+			//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
 			if (url == null || url.length() == 0) {
 				((SWTSkinObjectBrowser) skinObject).restart();
 			} else {
