@@ -261,8 +261,8 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		SWTSkinObjectContainer so = (SWTSkinObjectContainer) item.getSkinButton().getSkinObject();
-		so.setDebugAndChildren(true);
+		//SWTSkinObjectContainer so = (SWTSkinObjectContainer) item.getSkinButton().getSkinObject();
+		//so.setDebugAndChildren(true);
 		addSeperator(so2nd);
 
 		// ==stop
