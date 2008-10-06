@@ -1639,6 +1639,13 @@ public class MainWindow
 							fd.height = showText ? 50 : 32;
 							//Utils.relayout(control);
 						}
+						skinObject = skin.getSkinObject("search-text");
+						if (skinObject != null) {
+							Control control = skinObject.getControl();
+							FormData fd = (FormData) control.getLayoutData();
+							fd.top.offset = showText ? 6 : 5;
+							fd.bottom.offset = showText ? -3 : -2; 
+						}
 						skinObject = skin.getSkinObject("topgap");
 						if (skinObject != null) {
 							Control control = skinObject.getControl();
@@ -1904,6 +1911,12 @@ public class MainWindow
 	}
 	
 	public static void addUsageStat(String id, long value) {
+		if (id == null) {
+			return;
+		}
+		if (id.length() > 150) {
+			id = id.substring(0, 150);
+		}
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
