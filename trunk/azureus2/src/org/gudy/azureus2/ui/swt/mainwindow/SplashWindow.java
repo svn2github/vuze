@@ -173,10 +173,10 @@ public class SplashWindow
 
 		//splash.pack();
 		splash.setSize(width, height);
-		splash.layout();
+		//splash.layout();
 		Utils.centreWindow(splash);
 		splash.open();
-
+		
 		if (initializer != null) {
 			initializer.addListener(this);
 		}
