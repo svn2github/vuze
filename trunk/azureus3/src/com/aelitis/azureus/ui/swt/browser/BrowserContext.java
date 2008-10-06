@@ -550,7 +550,7 @@ public class BrowserContext
 					} else {
 						s = lastValidURL.substring(i);
 					}
-					s.replaceAll(";jsessionid.*\\?", "\\?");
+					s = s.replaceAll(";jsessionid.*\\?", "\\?");
 					//System.out.println("web:" + s + "  = " + diff);
 					MainWindow.addUsageStat("web:" + s, diff);
 				}
