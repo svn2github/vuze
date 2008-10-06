@@ -117,6 +117,12 @@ public class ImageLoader
 					} else {
 						return images;
 					}
+				} else {
+					// maybe there's another suffix..
+					Image[] images = findResources(sParentName);
+					if (images != null) {
+						return images;
+					}
 				}
 			}
 		}
