@@ -195,4 +195,16 @@ public class SWTSkinObjectContainer
 	public boolean getPropogation() {
 		return bPropogate;
 	}
+	
+	public void setDebugAndChildren(boolean b) {
+		setDebug(true);
+		SWTSkinObject[] children = getChildren();
+		for (int i = 0; i < children.length; i++) {
+			if (children[i] instanceof SWTSkinObjectContainer) {
+				((SWTSkinObjectContainer)children[i]).setDebugAndChildren(b);
+			} else {
+				children[i].setDebug(b);
+			}
+		}
+	}
 }
