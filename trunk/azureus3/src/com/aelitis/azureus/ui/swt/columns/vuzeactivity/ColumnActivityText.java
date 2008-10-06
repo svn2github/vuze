@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -152,7 +153,10 @@ public class ColumnActivityText
 			int newCursor;
 			if (hitUrl != null) {
 				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
-					if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+					if (VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
+						String userMessage = ((VuzeActivitiesEntryContentShare) entry).getUserMessage();
+						Utils.openMessageBox(null, SWT.OK, "", userMessage);
+					} if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -166,7 +170,8 @@ public class ColumnActivityText
 				}
 
 				newCursor = SWT.CURSOR_HAND;
-				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)
+						|| VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
 					tooltip = hitUrl.title;
 				} else {
 					tooltip = hitUrl.url;
