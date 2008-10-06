@@ -39,11 +39,11 @@ public class SWTSkinUtils
 
 	private static Listener imageDownListener;
 
-	private static Listener imageOverListener;
+	//private static Listener imageOverListener;
 
 	static {
-		imageOverListener = new SWTSkinImageChanger("-over", SWT.MouseEnter,
-				SWT.MouseExit);
+		//imageOverListener = new SWTSkinImageChanger("-over", SWT.MouseEnter,
+		//		SWT.MouseExit);
 		imageDownListener = new SWTSkinImageChanger("-down", SWT.MouseDown,
 				SWT.MouseUp);
 	}
@@ -97,13 +97,13 @@ public class SWTSkinUtils
 		return tileMode;
 	}
 
-	static void addMouseImageChangeListeners(Widget widget) {
+	static void addMouseImageChangeListeners(Control widget) {
 		if (widget.getData("hasMICL") != null) {
 			return;
 		}
 
-		widget.addListener(SWT.MouseEnter, imageOverListener);
-		widget.addListener(SWT.MouseExit, imageOverListener);
+		//widget.addListener(SWT.MouseEnter, imageOverListener);
+		//widget.addListener(SWT.MouseExit, imageOverListener);
 		//		new MouseEnterExitListener(widget);
 
 		widget.addListener(SWT.MouseDown, imageDownListener);
@@ -396,6 +396,8 @@ public class SWTSkinUtils
 
 			} else {
 				bOver = false;
+				System.out.println(System.currentTimeMillis() + ": " + skinObject
+						+ "-- NOOVER");
 				skinObject.switchSuffix("", 2, true);
 			}
 

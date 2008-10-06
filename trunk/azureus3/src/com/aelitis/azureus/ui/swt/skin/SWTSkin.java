@@ -484,8 +484,39 @@ public class SWTSkin
 				}
 			}
 		});
-		
 
+		Listener l = new Listener() {
+			Control lastControl = null;
+
+			public void handleEvent(Event event) {
+				Control cursorControl = shell.getDisplay().getCursorControl();
+				if (cursorControl != lastControl) {
+					while (lastControl != null && !lastControl.isDisposed()) {
+						SWTSkinObjectBasic so = (SWTSkinObjectBasic) lastControl.getData("SkinObject");
+						if (so != null) {
+							so.switchSuffix("", 2, true);
+						}
+
+						lastControl = lastControl.getParent();
+					}
+					lastControl = cursorControl;
+
+					while (cursorControl != null) {
+						SWTSkinObjectBasic so = (SWTSkinObjectBasic) cursorControl.getData("SkinObject");
+						if (so != null) {
+							so.switchSuffix("-over", 2, true);
+						}
+
+						cursorControl = cursorControl.getParent();
+					}
+				}
+			}
+		};
+		shell.getDisplay().addFilter(SWT.MouseMove, l);
+		shell.addListener(SWT.Deactivate, l);
+		shell.addListener(SWT.Activate, l);
+
+		/****** REPLACED BY MouseMove
 		// When shell activates or deactivates, send a MouseEnter or MouseExit
 		// This fixes the problem where we are hovering over a skinobject with
 		// a "-over" state, we tab away, move the mouse, and tab back again.
@@ -495,12 +526,13 @@ public class SWTSkin
 				Control cursorControl = shell.getDisplay().getCursorControl();
 				if (cursorControl != null) {
 					while (cursorControl != null) {
-  					Event mouseExitEvent = new Event();
-  					mouseExitEvent.type = SWT.MouseExit;
-  					mouseExitEvent.widget = cursorControl;
-  					shell.getDisplay().post(mouseExitEvent);
-  					
-  					cursorControl = cursorControl.getParent();
+						Event mouseExitEvent = new Event();
+						mouseExitEvent.type = SWT.MouseExit;
+						mouseExitEvent.widget = cursorControl;
+						shell.getDisplay().post(mouseExitEvent);
+						System.out.println(cursorControl.getData("SkinObject"));
+						
+						cursorControl = cursorControl.getParent();
 					}
 				}
 			}
@@ -510,16 +542,17 @@ public class SWTSkin
 				Control cursorControl = shell.getDisplay().getCursorControl();
 				if (cursorControl != null) {
 					while (cursorControl != null) {
-  					Event mouseExitEvent = new Event();
-  					mouseExitEvent.type = SWT.MouseEnter;
-  					mouseExitEvent.widget = cursorControl;
-  					shell.getDisplay().post(mouseExitEvent);
-  					
-  					cursorControl = cursorControl.getParent();
+						Event mouseExitEvent = new Event();
+						mouseExitEvent.type = SWT.MouseEnter;
+						mouseExitEvent.widget = cursorControl;
+						shell.getDisplay().post(mouseExitEvent);
+						
+						cursorControl = cursorControl.getParent();
 					}
 				}
 			}
 		});
+		*/
 
 		Color bg = skinProperties.getColor(startID + ".color");
 		if (bg != null) {
@@ -537,7 +570,6 @@ public class SWTSkin
 			sMainGroups = new String[] {};
 		}
 
-		
 		for (int i = 0; i < sMainGroups.length; i++) {
 			String sID = sMainGroups[i];
 
@@ -605,7 +637,7 @@ public class SWTSkin
 		if (DEBUGLAYOUT) {
 			System.out.println("==== End Apply Layout");
 		}
-		
+
 		skinProperties.clearCache();
 	}
 
@@ -1170,7 +1202,6 @@ public class SWTSkin
 		return handCursorListener;
 	}
 
-
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
 			SWTSkinObject parentSkinObject) {
 		return createSkinObject(sID, sConfigID, parentSkinObject, null);
@@ -1243,8 +1274,8 @@ public class SWTSkin
 					}
 				}
 			}
-			
-			SWTSkinObject[] newObjects = new SWTSkinObject[x]; 
+
+			SWTSkinObject[] newObjects = new SWTSkinObject[x];
 			System.arraycopy(objects, 0, newObjects, 0, x);
 			mapIDsToControls.put(id, newObjects);
 		}
@@ -1260,7 +1291,7 @@ public class SWTSkin
 					}
 				}
 			}
-			SWTSkinObject[] newObjects = new SWTSkinObject[x]; 
+			SWTSkinObject[] newObjects = new SWTSkinObject[x];
 			System.arraycopy(objects, 0, newObjects, 0, x);
 			mapPublicViewIDsToControls.put(id, newObjects);
 		}
@@ -1365,7 +1396,7 @@ public class SWTSkin
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
-			
+
 			skinObject.setData("CreationParams", creationParams);
 
 			if (bAddView) {
