@@ -161,4 +161,11 @@ public interface SWTSkinObject extends ObfusticateShell
 	 * @since 3.1.1.1
 	 */
 	String getTooltipID(boolean walkup);
+
+	/**
+	 * @param b
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void setDebug(boolean b);
 }
