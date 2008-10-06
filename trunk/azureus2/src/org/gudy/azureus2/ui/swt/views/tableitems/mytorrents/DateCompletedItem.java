@@ -24,6 +24,9 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
@@ -34,6 +37,7 @@ public class DateCompletedItem
 {
 
 	public static final String COLUMN_ID = "DateCompleted";
+	private static final long SHOW_ETA_AFTER_MS = 30000;
 
 	public DateCompletedItem(String sTableID) {
 		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
@@ -53,7 +57,10 @@ public class DateCompletedItem
 	public void refresh(TableCell cell, long timestamp) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		long value = 0;
-		if (dm != null && dm.isDownloadComplete(false)) {
+		if (dm == null) {
+			return;
+		}
+		if (dm.isDownloadComplete(false)) {
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 			if (completedTime <= 0) {
@@ -62,6 +69,20 @@ public class DateCompletedItem
 			} else {
 				value = completedTime;
 			}
+		} else {
+			long diff = SystemTime.getCurrentTime() - dm.getStats().getTimeStarted();
+			if (diff > SHOW_ETA_AFTER_MS) {
+				long eta = dm.getStats().getETA();
+				if (eta > 0) {
+					String sETA = TimeFormatter.format(eta);
+					value = -eta;
+					cell.setText(MessageText.getString(
+							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
+								sETA
+							}));
+				}
+			}
+			cell.invalidate();
 		}
 
 		super.refresh(cell, value);
