@@ -18,6 +18,10 @@
 
 package com.aelitis.azureus.ui.swt.toolbar;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 
 /**
@@ -25,7 +29,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
  * @created Jul 22, 2008
  *
  */
-public abstract class ToolBarItem
+public class ToolBarItem
 {
 	String imageID;
 
@@ -38,6 +42,8 @@ public abstract class ToolBarItem
 	private String textID;
 	
 	private String tooltipID;
+	
+	private List listeners = Collections.EMPTY_LIST;
 
 	/**
 	 * @param id
@@ -57,7 +63,13 @@ public abstract class ToolBarItem
 		this.tooltipID = textID + ".tooltip";
 	}
 
-	public abstract void triggerToolBarItem();
+	public void triggerToolBarItem() {
+		Object[] array = listeners.toArray();
+		for (int i = 0; i < array.length; i++) {
+			ToolBarItemListener l = (ToolBarItemListener) array[i];
+			l.pressed(this);
+		}
+	}
 
 
 	public String getId() {
@@ -114,6 +126,13 @@ public abstract class ToolBarItem
 	 * @since 3.1.1.1
 	 */
 	public boolean triggerToolBarItemHold() {
+		Object[] array = listeners.toArray();
+		for (int i = 0; i < array.length; i++) {
+			ToolBarItemListener l = (ToolBarItemListener) array[i];
+			if (l.held(this)) {
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -123,5 +142,12 @@ public abstract class ToolBarItem
 
 	public void setTooltipID(String tooltipID) {
 		this.tooltipID = tooltipID;
+	}
+	
+	public void addListener(ToolBarItemListener l) {
+		if (listeners == Collections.EMPTY_LIST) {
+			listeners = new ArrayList(1);
+		}
+		listeners.add(l);
 	}
 }
