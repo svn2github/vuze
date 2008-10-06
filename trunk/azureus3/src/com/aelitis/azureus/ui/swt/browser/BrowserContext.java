@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -69,6 +70,8 @@ public class BrowserContext
 	private Display display;
 
 	private boolean pageLoading = false;
+	
+	private long pageLoadingStart = 0;
 
 	private String lastValidURL = null;
 
@@ -533,6 +536,27 @@ public class BrowserContext
 			return;
 		}
 		pageLoading = b;
+		if (pageLoading) {
+			pageLoadingStart = SystemTime.getCurrentTime();
+		} else if (pageLoadingStart > 0) {
+			long diff = SystemTime.getCurrentTime() - pageLoadingStart;
+			if (diff > 0 && PlatformConfigMessenger.urlCanRPC(lastValidURL)) {
+				int i = lastValidURL.lastIndexOf('/') + 1;
+				if (i >= 0 && i < lastValidURL.length()) {
+					int j = lastValidURL.lastIndexOf("azid=") - 1;
+					String s;
+					if (j > i) {
+						s = lastValidURL.substring(i, j);
+					} else {
+						s = lastValidURL.substring(i);
+					}
+					s.replaceAll(";jsessionid.*\\?", "\\?");
+					//System.out.println("web:" + s + "  = " + diff);
+					MainWindow.addUsageStat("web:" + s, diff);
+				}
+			}
+			pageLoadingStart = 0;
+		}
 		Object[] listeners = loadingListeners.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			loadingListener l = (loadingListener) listeners[i];
