@@ -43,6 +43,8 @@ public class ColumnProgressETA
 
 	private static final int COLUMN_WIDTH = 150;
 
+	public static final long SHOW_ETA_AFTER_MS = 30000;
+
 	private static Font fontText = null;
 
 	Display display;
@@ -126,6 +128,8 @@ public class ColumnProgressETA
 				return;
 			}
 			int newHeight = cell.getHeight();
+			
+			Color fgFirst = gcImage.getForeground();
 			
 			Rectangle cellBounds = cell.getBounds();
 			
@@ -214,8 +218,9 @@ public class ColumnProgressETA
 
 			if (showSecondLine) {
   			gcImage.setFont(fontText);
-  			int[] fg = cell.getForeground();
-  			gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
+  			//int[] fg = cell.getForeground();
+  			//gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
+  			gcImage.setForeground(fgFirst);
   			gcImage.drawText(sETALine, x0 + 2, y0 + progressY2, true);
   			Point textExtent = gcImage.textExtent(sETALine);
   			cell.setToolTip(textExtent.x > newWidth ? sETALine : null);
@@ -245,9 +250,13 @@ public class ColumnProgressETA
 		private long getETA(TableCell cell) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null) {
-				return Constants.INFINITY_AS_INT;
+				return 0;
 			}
-			return dm.getStats().getETA();
+			long diff = SystemTime.getCurrentTime() - dm.getStats().getTimeStarted();
+			if (diff > SHOW_ETA_AFTER_MS) {
+				return dm.getStats().getETA();
+			}
+			return 0;
 		}
 
 		private int getState(TableCell cell) {
