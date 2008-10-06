@@ -21,8 +21,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -53,6 +53,8 @@ public class ColumnDateSizer
 	private boolean showTime = true;
 
 	private boolean multiline = true;
+
+	private static Font fontBold;
 
 	/**
 	 * @param name
@@ -87,6 +89,10 @@ public class ColumnDateSizer
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell, long timestamp) {
 		if (!cell.setSortValue(timestamp) && cell.isValid()) {
+			return;
+		}
+
+		if (timestamp <= 0) {
 			return;
 		}
 
@@ -136,6 +142,16 @@ public class ColumnDateSizer
 		int idxFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
 
 		GC gc = new GC(Display.getDefault());
+		if (fontBold == null) {
+			FontData[] fontData = gc.getFont().getFontData();
+			for (int i = 0; i < fontData.length; i++) {
+				FontData fd = fontData[i];
+				fd.setStyle(SWT.BOLD);
+			}
+			fontBold = new Font(gc.getDevice(), fontData);
+		}
+		gc.setFont(fontBold);
+
 		try {
 			Point minSize = new Point(99999, 0);
 			for (int i = 0; i < TimeFormatter.DATEFORMATS_DESC.length; i++) {
@@ -166,6 +182,15 @@ public class ColumnDateSizer
 
 	public int calcWidth(Date date, String format) {
 		GC gc = new GC(Display.getDefault());
+		if (fontBold == null) {
+			FontData[] fontData = gc.getFont().getFontData();
+			for (int i = 0; i < fontData.length; i++) {
+				FontData fd = fontData[i];
+				fd.setStyle(SWT.BOLD);
+			}
+			fontBold = new Font(gc.getDevice(), fontData);
+		}
+		gc.setFont(fontBold);
 		SimpleDateFormat temp = new SimpleDateFormat(
 				TimeFormatter.DATEFORMATS_DESC[curFormat]);
 		Point newSize = gc.stringExtent(temp.format(date));
