@@ -180,7 +180,7 @@ public class ColumnRateDropDown
 			RateItListView view = new RateItListView(null, cDropDownList);
 			view.getListView().setMouseClickIsDefaultSelection(true);
 			view.getListView().addSelectionListener(new TableSelectionAdapter() {
-				public void defaultSelected(TableRowCore[] rows) {
+				public void defaultSelected(TableRowCore[] rows, int stateMask) {
 					closeDropDownList();
 
 					((ListView) listCell.getRow().getView()).getControl().setFocus();

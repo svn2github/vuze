@@ -114,6 +114,10 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
+			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			if (tcName != null) {
+				tcName.setWidth(200);
+			}
 		}
 
 		// special changes

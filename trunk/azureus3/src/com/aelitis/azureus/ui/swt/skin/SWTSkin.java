@@ -489,6 +489,10 @@ public class SWTSkin
 			Control lastControl = null;
 
 			public void handleEvent(Event event) {
+				if (shell.isDisposed() && event.display != null) {
+					event.display.removeFilter(SWT.MouseMove, this);
+					return;
+				}
 				Control cursorControl = shell.getDisplay().getCursorControl();
 				if (cursorControl != lastControl) {
 					while (lastControl != null && !lastControl.isDisposed()) {

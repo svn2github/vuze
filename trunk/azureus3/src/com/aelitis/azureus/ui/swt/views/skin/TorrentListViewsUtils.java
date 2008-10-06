@@ -348,7 +348,7 @@ public class TorrentListViewsUtils
 				btn.setDisabled(bDisabled);
 			}
 
-			public void defaultSelected(TableRowCore[] rows) {
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				if (rows.length == 1) {
 					playOrStreamDataSource(rows[0].getDataSource(true), btn);
 				}

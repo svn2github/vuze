@@ -849,4 +849,28 @@ public class ListRow
 	
 	public void setBackgroundImage(Image image) {
 	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getAlpha()
+	public int getAlpha() {
+		// TODO Auto-generated method stub
+		return 255;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getFontStyle()
+	public int getFontStyle() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setAlpha(int)
+	public boolean setAlpha(int alpha) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setFontStyle(int)
+	public boolean setFontStyle(int style) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -12,6 +13,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -78,17 +80,19 @@ public class MyTorrentsView_Big
 	}
 	
 	// @see org.gudy.azureus2.ui.swt.views.MyTorrentsView#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	public void defaultSelected(TableRowCore[] rows) {
+	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 		if (!isSeedingView) {
-			super.defaultSelected(rows);
 			return;
 		}
-		if (rows == null || rows.length > 1) {
+		if (rows == null || rows.length > 1 || rows.length == 0) {
 			return;
 		}
 		Object ds = rows[0].getDataSource(true);
-		TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-				Constants.DL_REFERAL_DBLCLICK);
+		DownloadManager dm = DataSourceUtils.getDM(ds);
+		if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+  		TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+  				Constants.DL_REFERAL_DBLCLICK);
+		}
 	}
 
 	protected int getRowDefaultHeight() {

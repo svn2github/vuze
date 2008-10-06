@@ -29,7 +29,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
@@ -44,8 +46,11 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 /**
  * Classic My Torrents view wrapped in a SkinView
@@ -104,13 +109,16 @@ public class SBC_LibraryTableView
 						true, columns);
 
 				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
-					public void defaultSelected(TableRowCore[] rows) {
+					public void defaultSelected(TableRowCore[] rows, int stateMask) {
 						if (rows == null || rows.length > 1) {
 							return;
 						}
 						Object ds = rows[0].getDataSource(true);
-						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-								Constants.DL_REFERAL_DBLCLICK);
+						DownloadManager dm = DataSourceUtils.getDM(ds);
+						if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+  								Constants.DL_REFERAL_DBLCLICK);
+						}
 					}
 				});
 
@@ -135,13 +143,16 @@ public class SBC_LibraryTableView
 						MyTorrentsView seedingview = getSeedingview();
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
-								public void defaultSelected(TableRowCore[] rows) {
+								public void defaultSelected(TableRowCore[] rows, int stateMask) {
 									if (rows == null || rows.length > 1) {
 										return;
 									}
 									Object ds = rows[0].getDataSource(true);
-									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-											Constants.DL_REFERAL_DBLCLICK);
+									DownloadManager dm = DataSourceUtils.getDM(ds);
+									if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+  									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+  											Constants.DL_REFERAL_DBLCLICK);
+									}
 								}
 							});
 						}
@@ -149,6 +160,30 @@ public class SBC_LibraryTableView
 				};
 			}
 		}
+		
+		if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL
+				&& (view instanceof TableViewTab)) {
+			TableViewSWT tv = ((TableViewTab)view).getTableView();
+			tv.addRefreshListener(new TableRowRefreshListener() {
+				public void rowRefresh(TableRow row) {
+					TableRowSWT rowCore = (TableRowSWT)row;
+					DownloadManager dm = (DownloadManager) rowCore.getDataSource(true);
+					boolean changed = false;
+					boolean assumedComplete = dm.getAssumedComplete();
+					if (!assumedComplete) {
+						changed |= rowCore.setAlpha(160);
+						changed |= rowCore.setFontStyle(SWT.NORMAL);
+					} else if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+						changed |= rowCore.setAlpha(255);
+						changed |= rowCore.setFontStyle(SWT.BOLD);
+					} else {
+						changed |= rowCore.setAlpha(255);
+						changed |= rowCore.setFontStyle(SWT.NORMAL);
+					}
+				}
+			});
+		}
+		
 		SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
 				skin.getSkinProperties(), getUpdateUIName(), "", soMain);
 

@@ -54,6 +54,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 /**
  * @author TuxPaper
@@ -2187,11 +2188,11 @@ public class ListView
 			}
 
 			if (bMouseClickIsDefaultSelection && e.type == SWT.MouseUp) {
-				_runDefaultAction();
+				_runDefaultAction(e.stateMask);
 			}
 
 			if (e.type == SWT.MouseDoubleClick) {
-				_runDefaultAction();
+				_runDefaultAction(e.stateMask);
 			}
 		}
 	}
@@ -3134,7 +3135,7 @@ public class ListView
 					break;
 
 				case SWT.TRAVERSE_RETURN:
-					_runDefaultAction();
+					_runDefaultAction(event.stateMask);
 					break;
 
 				default:
@@ -3142,19 +3143,19 @@ public class ListView
 
 			}
 		} else if (event.type == SWT.DefaultSelection) {
-			_runDefaultAction();
+			_runDefaultAction(event.stateMask);
 		}
 
 	}
 
-	private void _runDefaultAction() {
+	private void _runDefaultAction(int stateMask) {
 		// plugin may have cancelled the default action
 
 		if (lCancelSelectionTriggeredOn > 0
 				&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
 			lCancelSelectionTriggeredOn = -1;
 		} else {
-			triggerDefaultSelectedListeners(getSelectedRows());
+			triggerDefaultSelectedListeners(getSelectedRows(), stateMask);
 		}
 	}
 
@@ -4366,5 +4367,17 @@ public class ListView
 
 	public void setDataSourceType(Class dataSourceType) {
 		this.dataSourceType = dataSourceType;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#addRefreshListener(org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener)
+	public void addRefreshListener(TableRowRefreshListener listener) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#removeRefreshListener(org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener)
+	public void removeRefreshListener(TableRowRefreshListener listener) {
+		// TODO Auto-generated method stub
+		
 	}
 }

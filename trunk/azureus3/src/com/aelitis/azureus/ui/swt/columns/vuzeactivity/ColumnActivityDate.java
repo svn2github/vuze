@@ -50,7 +50,7 @@ public class ColumnActivityDate
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
 		if (cell instanceof TableCellSWT) {
-			((TableCellSWT) cell).setTextOpacity(120);
+			((TableCellSWT) cell).setTextAlpha(120);
 		}
 	}
 
