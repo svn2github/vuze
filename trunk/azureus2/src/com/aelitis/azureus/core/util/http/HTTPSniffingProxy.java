@@ -54,6 +54,8 @@ HTTPSniffingProxy
 	
 	private ServerSocket	server_socket;	
 	
+	private boolean			http_only_detected;
+	
 	private List			processors = new ArrayList();
 	
 	private volatile boolean		destroyed;
@@ -142,6 +144,12 @@ HTTPSniffingProxy
 	getPort()
 	{
 		return( port );
+	}
+	
+	public boolean
+	wasHTTPOnlyCookieDetected()
+	{
+		return( http_only_detected );
 	}
 	
 	public void
@@ -419,6 +427,8 @@ HTTPSniffingProxy
 							String entry = x[j];
 							
 							if ( entry.equalsIgnoreCase( "httponly" )){
+								
+								http_only_detected	= true;
 								
 							}else if ( entry.equalsIgnoreCase( "secure" )){
 								
