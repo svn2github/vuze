@@ -42,6 +42,8 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
@@ -264,6 +266,11 @@ public class TableViewSWTImpl
 	// What type of data is stored in this table
 	private Class dataSourceType;
 
+  private AEMonitor listeners_mon = new AEMonitor("tablelisteners");
+
+	private ArrayList refreshListeners;
+	
+	private Font fontBold;
 
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
@@ -923,7 +930,7 @@ public class TableViewSWTImpl
 					e.doit = false;
 					lCancelSelectionTriggeredOn = -1;
 				} else {
-					runDefaultAction();
+					runDefaultAction(e.stateMask);
 				}
 			}
 		});
@@ -1327,6 +1334,21 @@ public class TableViewSWTImpl
 				//System.out.println("no row");
 				return;
 			}
+			
+			int rowAlpha = row.getAlpha();
+			
+			int fontStyle = row.getFontStyle();
+			if (fontStyle == SWT.BOLD) {
+				if (fontBold == null) {
+					FontData[] fontData = event.gc.getFont().getFontData();
+					for (int i = 0; i < fontData.length; i++) {
+						FontData fd = fontData[i];
+						fd.setStyle(SWT.BOLD);
+					}
+					fontBold = new Font(event.gc.getDevice(), fontData);
+				}
+				event.gc.setFont(fontBold);
+			}
 
 			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			Rectangle cellBounds = item.getBounds(event.index);
@@ -1357,6 +1379,10 @@ public class TableViewSWTImpl
 			}
 			
 			String text = cell.getText();
+			
+			if (rowAlpha < 255) {
+				event.gc.setAlpha(rowAlpha);
+			}
 
 			if (cell.needsPainting()) {
 				cell.doPaint(event.gc);
@@ -1372,7 +1398,7 @@ public class TableViewSWTImpl
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
 				}
-				int textOpacity = cell.getTextOpacity();
+				int textOpacity = cell.getTextAlpha();
 				if (textOpacity < 255) {
 					event.gc.setAlpha(textOpacity);
 				}
@@ -1385,7 +1411,7 @@ public class TableViewSWTImpl
 		}
 	}
 
-	public void runDefaultAction() {
+	public void runDefaultAction(int stateMask) {
 		// plugin may have cancelled the default action
 
 		if (lCancelSelectionTriggeredOn > 0
@@ -1393,7 +1419,7 @@ public class TableViewSWTImpl
 			lCancelSelectionTriggeredOn = -1;
 		} else {
 			TableRowCore[] selectedRows = getSelectedRows();
-			triggerDefaultSelectedListeners(selectedRows);
+			triggerDefaultSelectedListeners(selectedRows, stateMask);
 		}
 	}
 	
@@ -4096,4 +4122,58 @@ public class TableViewSWTImpl
 	public void setDataSourceType(Class dataSourceType) {
 		this.dataSourceType = dataSourceType;
 	}
+	
+	public void addRefreshListener(TableRowRefreshListener listener) {
+		try {
+			listeners_mon.enter();
+
+			if (refreshListeners == null)
+				refreshListeners = new ArrayList(1);
+
+			refreshListeners.add(listener);
+
+		} finally {
+			listeners_mon.exit();
+		}
+	}
+
+	public void removeRefreshListener(TableRowRefreshListener listener) {
+		try {
+			listeners_mon.enter();
+
+			if (refreshListeners == null)
+				return;
+
+			refreshListeners.remove(listener);
+
+		} finally {
+			listeners_mon.exit();
+		}
+	}
+
+  public void invokeRefreshListeners(TableRowCore row) {
+  	Object[] listeners;
+		try {
+			listeners_mon.enter();
+			if (refreshListeners == null) {
+				return;
+			}
+			listeners = refreshListeners.toArray();
+
+		} finally {
+			listeners_mon.exit();
+		}
+		
+		for (int i = 0; i < listeners.length; i++) {
+			try {
+				TableRowRefreshListener l = (TableRowRefreshListener) listeners[i];
+
+				l.rowRefresh(row);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
 }

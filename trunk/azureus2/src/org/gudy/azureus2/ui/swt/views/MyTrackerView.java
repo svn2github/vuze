@@ -143,7 +143,7 @@ public class MyTrackerView
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	public void defaultSelected(TableRowCore[] rows) {
+	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 		TRHostTorrent torrent = (TRHostTorrent) tv.getFirstSelectedDataSource();
 		if (torrent == null)
 			return;

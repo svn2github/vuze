@@ -129,7 +129,7 @@ public class TableCellImpl
 	private byte restartRefresh = 0;
 	private boolean bInRefreshAsync = false;
 	
-	private int textOpacity = 255;
+	private int textAlpha = 255;
 	
 	static {
   	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
@@ -1132,6 +1132,10 @@ public class TableCellImpl
 		  {
 			  boolean bWasValid = isValid();
 
+			  if (hasFlag(FLAG_MUSTREFRESH)) {
+			  	clearFlag(FLAG_MUSTREFRESH);
+			  }
+
 			  if (bDebug)
 				  debug("invoke refresh; wasValid? " + bWasValid);
 
@@ -1151,11 +1155,8 @@ public class TableCellImpl
 
 			  // Change to valid only if we weren't valid before the listener calls
 			  // This is in case the listeners set valid to false when it was true
-			  if (!bWasValid) 
+			  if (!bWasValid && !hasFlag(FLAG_MUSTREFRESH)) {
 			  	setFlag(FLAG_VALID);
-
-			  if (hasFlag(FLAG_MUSTREFRESH)) {
-			  	clearFlag(FLAG_MUSTREFRESH);
 			  }
 		  }
 		  loopFactor++;
@@ -1548,12 +1549,12 @@ public class TableCellImpl
 		childCells.add(childCell);
 	}
 
-  public int getTextOpacity() {
-		return textOpacity;
+  public int getTextAlpha() {
+		return textAlpha;
 	}
 
-	public void setTextOpacity(int textOpacity) {
-		this.textOpacity = textOpacity;
+	public void setTextAlpha(int textOpacity) {
+		this.textAlpha = textOpacity;
 	}
 
 }

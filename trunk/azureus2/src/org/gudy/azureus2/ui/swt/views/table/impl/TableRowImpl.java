@@ -75,6 +75,8 @@ public class TableRowImpl
 	private Map dataList;
 	
 	private int lastIndex = -1;
+	private int fontStyle;
+	private int alpha = 255;
 
   // XXX add rowVisuallyupdated bool like in ListRow
 
@@ -247,6 +249,8 @@ public class TableRowImpl
 		bSetNotUpToDateLastRefresh = false;
 		
 		//System.out.println(SystemTime.getCurrentTime() + "refresh " + getIndex() + ";vis=" + bVisible);
+		
+		((TableViewSWTImpl)tableView).invokeRefreshListeners(this);
 
     Iterator iter = mTableCells.values().iterator();
     while (iter.hasNext())
@@ -557,5 +561,39 @@ public class TableRowImpl
 		bounds.x = 0;
 		bounds.width = table.getSize().x;
 		return bounds;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setFontStyle(int)
+	public boolean setFontStyle(int style) {
+		if (fontStyle == style) {
+			return false;
+		}
+		
+		fontStyle = style;
+		invalidate();
+		
+		return true;
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#setAlpha(int)
+	public boolean setAlpha(int alpha) {
+		if (this.alpha == alpha) {
+			return false;
+		}
+		
+		this.alpha = alpha;
+		invalidate();
+		
+		return true;
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getAlpha()
+	public int getAlpha() {
+		return alpha;
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getFontStyle()
+	public int getFontStyle() {
+		return fontStyle;
 	}
 }

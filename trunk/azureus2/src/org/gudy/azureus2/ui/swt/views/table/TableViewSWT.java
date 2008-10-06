@@ -33,6 +33,8 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+
 /**
  * @author TuxPaper
  * @created Feb 2, 2007
@@ -117,4 +119,18 @@ public interface TableViewSWT
 	 * @since 3.0.4.3
 	 */
 	Point getTableCellMouseOffset(TableCellSWT tableCell);
+
+	/**
+	 * @param listener
+	 *
+	 * @since 3.1.1.1
+	 */
+	void removeRefreshListener(TableRowRefreshListener listener);
+
+	/**
+	 * @param listener
+	 *
+	 * @since 3.1.1.1
+	 */
+	void addRefreshListener(TableRowRefreshListener listener);
 }

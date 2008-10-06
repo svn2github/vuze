@@ -34,7 +34,7 @@ public interface TableSelectionListener
 	
 	public void focusChanged(TableRowCore focus);
 
-	public void defaultSelected(TableRowCore[] rows);
+	public void defaultSelected(TableRowCore[] rows, int stateMask);
 
 	public void mouseEnter(TableRowCore row);
 

@@ -69,10 +69,10 @@ public abstract class TableViewImpl
 	/**
 	 * @param selectedRows
 	 */
-	protected void triggerDefaultSelectedListeners(TableRowCore[] selectedRows) {
+	protected void triggerDefaultSelectedListeners(TableRowCore[] selectedRows, int keyMask) {
 		for (Iterator iter = listenersSelection.iterator(); iter.hasNext();) {
 			TableSelectionListener l = (TableSelectionListener) iter.next();
-			l.defaultSelected(selectedRows);
+			l.defaultSelected(selectedRows, keyMask);
 		}
 	}
 

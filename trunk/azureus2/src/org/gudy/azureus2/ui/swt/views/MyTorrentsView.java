@@ -968,9 +968,9 @@ public class MyTorrentsView
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-  public void defaultSelected(TableRowCore[] rows) {
+  public void defaultSelected(TableRowCore[] rows, int keyMask) {
   	if (defaultSelectedListener != null) {
-  		defaultSelectedListener.defaultSelected(rows);
+  		defaultSelectedListener.defaultSelected(rows, keyMask);
   		return;
   	}
 		Object[] dm_sources = tv.getSelectedDataSources();

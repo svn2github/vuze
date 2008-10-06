@@ -67,4 +67,33 @@ public interface TableRowSWT extends TableRowCore
 	public Rectangle getBounds();
 	
 	public void setBackgroundImage(Image image);
+
+	
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public int getFontStyle();
+	
+	/**
+	 * @param bold
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean setFontStyle(int style);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public int getAlpha();
+
+	/**
+	 * @param i
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean setAlpha(int alpha);
 }

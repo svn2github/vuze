@@ -108,7 +108,7 @@ implements ShareManagerListener,
 		global_manager = azureus_core.getGlobalManager();
 
 		tv.addSelectionListener(new TableSelectionAdapter() {
-			public void defaultSelected(TableRowCore[] rows) {
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				MySharesView.this.defaultSelected(rows);
 			}
 		

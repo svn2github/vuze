@@ -159,7 +159,7 @@ public class FilesView
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	public void defaultSelected(TableRowCore[] rows) {
+	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) tv.getFirstSelectedDataSource();
 		if (fileInfo != null
 				&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)

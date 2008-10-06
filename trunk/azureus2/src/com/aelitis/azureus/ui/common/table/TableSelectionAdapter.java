@@ -29,7 +29,7 @@ public abstract class TableSelectionAdapter
 	implements TableSelectionListener
 {
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[])
-	public void defaultSelected(TableRowCore[] rows) {
+	public void defaultSelected(TableRowCore[] rows, int stateMask) {
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore)
