@@ -43,6 +43,7 @@ public class ColumnUnopened
 	public static final String COLUMN_ID = "unopened";
 
 	private static UISWTGraphicImpl graphicCheck;
+	private static UISWTGraphicImpl graphicProgress;
 
 	private static int WIDTH = 38; // enough to fit title
 
@@ -58,6 +59,11 @@ public class ColumnUnopened
 			Image img = ImageLoaderFactory.getInstance().getImage("image.unopened");
 			graphicCheck = new UISWTGraphicImpl(img);
 		}
+
+		if (graphicProgress == null) {
+			Image img = ImageLoaderFactory.getInstance().getImage("image.sidebar.vitality");
+			graphicProgress = new UISWTGraphicImpl(img);
+		}
 		
 		initializeAsGraphic(WIDTH);
 	}
@@ -71,8 +77,15 @@ public class ColumnUnopened
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		boolean hasBeenOpened = PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent());
-		int sortVal = hasBeenOpened ? 1 : 0;
+		int sortVal;
+		boolean complete = dm.getAssumedComplete();
+		boolean hasBeenOpened = false;
+		if (complete) {
+			hasBeenOpened = PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent());
+			sortVal = hasBeenOpened ? 1 : 0;
+		} else {
+			sortVal = -1;
+		}
 
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
 			return;
@@ -80,8 +93,12 @@ public class ColumnUnopened
 		if (!cell.isShown()) {
 			return;
 		}
-
-		cell.setGraphic(hasBeenOpened ? null : graphicCheck);
+		
+		if (complete) {
+			cell.setGraphic(hasBeenOpened ? null : graphicCheck);
+		} else {
+			cell.setGraphic(graphicProgress);
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
