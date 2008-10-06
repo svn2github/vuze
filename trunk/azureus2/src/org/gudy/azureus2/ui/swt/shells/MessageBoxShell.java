@@ -226,7 +226,9 @@ public class MessageBoxShell
 
 		final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
 				| SWT.RESIZE | SWT.APPLICATION_MODAL);
-		shell.setText(title);
+		if (title != null) {
+			shell.setText(title);
+		}
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
 		GridLayout gridLayout = new GridLayout();
