@@ -33,6 +33,17 @@ public class TimeFormatter {
   // XXX should be i18n'd
 	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d", "y" };
 
+	public static final String[] DATEFORMATS_DESC = new String[] {
+		"EEEE, MMMM d, yyyy",
+		"EEE, MMMM d, yyyy",
+		"MMMM d, ''yy",
+		"EEE, MMM d, yyyy",
+		"EEE, MMM d, ''yy",
+		"MMM d, ''yy",
+		"yyyy/MM/dd",
+		"yyyy/MM",
+		"''yy/MM",
+	};
 	
 	private static final SimpleDateFormat http_date_format = 
 		new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.US );

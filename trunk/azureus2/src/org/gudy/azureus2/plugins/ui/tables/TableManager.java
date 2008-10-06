@@ -38,6 +38,8 @@ public interface TableManager
   
   public static final String TABLE_MYTORRENTS_UNOPENED_BIG = "Unopened.big";
 
+  public static final String TABLE_MYTORRENTS_ALL_BIG   = "MyLibrary.big";
+
   public static final String TABLE_ACTIVITY = "Activity";
   
   public static final String TABLE_ACTIVITY_BIG = "Activity.big";

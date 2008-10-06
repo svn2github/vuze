@@ -26,26 +26,29 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 public class DateAddedItem
-	extends CoreTableColumn
-	implements TableCellRefreshListener
+	extends ColumnDateSizer
 {
 
 	public static final String COLUMN_ID = "date_added";
 
 	public DateAddedItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 120, sTableID);
+		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
+		
+		setMultiline(false);
+		
 
-		TableContextMenuItem menuReset = addContextMenuItem("MyTorrentsView.date_added.menu.reset");
+		TableContextMenuItem menuReset = addContextMenuItem("TableColumn.menu.date_added.reset");
 		menuReset.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof TableRowCore) {
@@ -73,14 +76,20 @@ public class DateAddedItem
 		});
 	}
 
-	public void refresh(TableCell cell) {
+	/**
+	 * @param tableID
+	 * @param b
+	 */
+	public DateAddedItem(String tableID, boolean v) {
+		this(tableID);
+		setVisible(v);
+	}
+
+	public void refresh(TableCell cell, long timestamp) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
+		timestamp = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
 				DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
-
-		if (!cell.setSortValue(value) && cell.isValid())
-			return;
-
-		cell.setText(DisplayFormatters.formatDate(value));
+		super.refresh(cell, timestamp);
+		//cell.setText(DisplayFormatters.formatDate(timestamp));
 	}
 }

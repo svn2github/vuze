@@ -24,31 +24,46 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 public class DateCompletedItem
-	extends CoreTableColumn
-	implements TableCellRefreshListener
+	extends ColumnDateSizer
 {
 
 	public static final String COLUMN_ID = "DateCompleted";
 
 	public DateCompletedItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 125, sTableID);
+		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
+
+		setMultiline(false);
 	}
 
-	public void refresh(TableCell cell) {
+	/**
+	 * @param tableID
+	 * @param b
+	 */
+	public DateCompletedItem(String tableID, boolean v) {
+		this(tableID);
+		setVisible(v);
+	}
+
+	public void refresh(TableCell cell, long timestamp) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		long value = (dm == null) ? 0 : dm.getDownloadState().getLongParameter(
-				DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+		long value = 0;
+		if (dm != null && dm.isDownloadComplete(false)) {
+			long completedTime = dm.getDownloadState().getLongParameter(
+					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+			if (completedTime <= 0) {
+				value = dm.getDownloadState().getLongParameter(
+						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+			} else {
+				value = completedTime;
+			}
+		}
 
-		if (!cell.setSortValue(value) && cell.isValid())
-			return;
-
-		cell.setText(DisplayFormatters.formatDate(value));
+		super.refresh(cell, value);
 	}
 }

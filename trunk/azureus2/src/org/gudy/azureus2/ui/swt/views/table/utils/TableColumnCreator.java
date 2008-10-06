@@ -40,6 +40,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  */
 public class TableColumnCreator
 {
+	public static int DATE_COLUMN_WIDTH = 90;
+
 	public static TableColumnCore[] createIncompleteDM(String tableID) {
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
