@@ -44,8 +44,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.StatusItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -428,15 +427,15 @@ public class SBC_LibraryListView
 			new ColumnTitle(tableID),
 			new SizeItem(tableID),
 			new StatusItem(tableID, false),
-			new ColumnDateCompleted2Liner(tableID, true),
-			new ColumnDateAdded2Liner(tableID, true),
+			new DateCompletedItem(tableID, true),
+			new DateAddedItem(tableID, true),
 			new ColumnProgressETA(tableID),
 		};
 		autoHideOrder = new String[] {
 			ColumnQuality.COLUMN_ID,
 			SizeItem.COLUMN_ID,
 			ColumnMediaThumb.COLUMN_ID,
-			ColumnDateCompleted2Liner.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		ArrayList listTableColumns = new ArrayList();
@@ -451,7 +450,7 @@ public class SBC_LibraryListView
 
 		TableColumnCore[] tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
-		view.setColumnList(tableColumns, ColumnDateAdded2Liner.COLUMN_ID, false,
+		view.setColumnList(tableColumns, DateAddedItem.COLUMN_ID, false,
 				true);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		tcManager.setAutoHideOrder(tableID, autoHideOrder);

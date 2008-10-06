@@ -28,7 +28,7 @@ public class MyTorrentsView_Big
 				SBC_LibraryView.getTableIdFromFilterMode(torrentFilterMode, true),
 				torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE ? false : true,
 				basicItems);
-		setForceHeaderVisible(true);
+		//setForceHeaderVisible(true);
 	}
 	
 
@@ -41,6 +41,8 @@ public class MyTorrentsView_Big
 			if (PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
 				return false;
 			}
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
+			return true;
 		}
 		
 		return super.isOurDownloadManager(dm);
@@ -61,6 +63,10 @@ public class MyTorrentsView_Big
 				tableID = TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
 				break;
 				
+			case SBC_LibraryView.TORRENTS_ALL:
+				tableID = TableManager.TABLE_MYTORRENTS_ALL_BIG;
+				break;
+
 			default:
 				tableID = "bad";
 				break;

@@ -37,21 +37,16 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -266,6 +261,8 @@ public class ToolBarView
 			}
 		};
 		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		SWTSkinObjectContainer so = (SWTSkinObjectContainer) item.getSkinButton().getSkinObject();
+		so.setDebugAndChildren(true);
 		addSeperator(so2nd);
 
 		// ==stop
@@ -286,9 +283,13 @@ public class ToolBarView
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				boolean isActivityView = "Activity".equals(viewID);
 				if (isActivityView) {
-					VuzeActivitiesView view = (VuzeActivitiesView) SkinViewManager.getBySkinObjectID("Activity");
-					if (view != null) {
-						view.removeSelected();
+					SkinView view = SkinViewManager.getBySkinObjectID("Activity");
+					if (view instanceof SBC_ActivityView) {
+						SBC_ActivityView viewActivity = (SBC_ActivityView) view;
+						viewActivity.removeSelected();
+					} else if (view instanceof VuzeActivitiesView) {
+						VuzeActivitiesView viewActivity = (VuzeActivitiesView) view;
+						viewActivity.removeSelected();
 					}
 				} else {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
@@ -307,6 +308,24 @@ public class ToolBarView
 
 		addNonToolBar("toolbar.area.sitem.right", so2nd);
 
+		///////////////////////
+		
+		addNonToolBar("toolbar.area.sitem.left2", so2nd);
+
+		// == mode big
+		item = new ToolBarItem("modeBig", "image.toolbar.table_large", null);
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		item.setEnabled(false);
+		addSeperator(so2nd);
+
+		// == mode small
+		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal", null);
+		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		item.setEnabled(false);
+		//addSeperator(so2nd);
+		
+		addNonToolBar("toolbar.area.sitem.right", so2nd);
+		
 		resizeGap();
 
 		//		// ==comment

@@ -69,9 +69,8 @@ public class SBC_LibraryTableView
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
 		SWTSkinObject soParent = skinObject.getParent();
-		
-		Object data = soParent.getControl().getData(
-				"TorrentFilterMode");
+
+		Object data = soParent.getControl().getData("TorrentFilterMode");
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
@@ -92,15 +91,18 @@ public class SBC_LibraryTableView
 						torrentFilterMode, columns);
 
 			} else {
-				view = new MyTorrentsSuperView_Big();
+				//view = new MyTorrentsSuperView_Big();
+				view = new MyTorrentsView_Big(AzureusCoreFactory.getSingleton(),
+						torrentFilterMode, columns);
 			}
 
 		} else {
-			String tableID = SBC_LibraryView.getTableIdFromFilterMode(torrentFilterMode, false);
+			String tableID = SBC_LibraryView.getTableIdFromFilterMode(
+					torrentFilterMode, false);
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
 						true, columns);
-				
+
 				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
 					public void defaultSelected(TableRowCore[] rows) {
 						if (rows == null || rows.length > 1) {
@@ -133,15 +135,15 @@ public class SBC_LibraryTableView
 						MyTorrentsView seedingview = getSeedingview();
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
-		  					public void defaultSelected(TableRowCore[] rows) {
-		  						if (rows == null || rows.length > 1) {
-		  							return;
-		  						}
-		  						Object ds = rows[0].getDataSource(true);
-		  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+								public void defaultSelected(TableRowCore[] rows) {
+									if (rows == null || rows.length > 1) {
+										return;
+									}
+									Object ds = rows[0].getDataSource(true);
+									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
 											Constants.DL_REFERAL_DBLCLICK);
-		  					}
-		  				});
+								}
+							});
 						}
 					}
 				};
@@ -165,17 +167,18 @@ public class SBC_LibraryTableView
 		view.initialize(viewComposite);
 
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-  		SWTSkinObject so = skin.getSkinObject("library-list-button-right",
+			SWTSkinObject so = skin.getSkinObject("library-list-button-right",
 					soParent.getParent());
-  		if (so != null) {
-  			so.setVisible(true);
-  			SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
-  			btn.setTextID("Mark All UnNew");
-  			btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-  				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-  					TableViewSWT tv = ((MyTorrentsView) view).getTableView();
-  					Object[] dataSources = tv.getDataSources();
-  					for (int i = 0; i < dataSources.length; i++) {
+			if (so != null) {
+				so.setVisible(true);
+				SWTSkinButtonUtility btn = new SWTSkinButtonUtility(so);
+				btn.setTextID("Mark All UnNew");
+				btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						TableViewSWT tv = ((MyTorrentsView) view).getTableView();
+						Object[] dataSources = tv.getDataSources();
+						for (int i = 0; i < dataSources.length; i++) {
 							Object ds = dataSources[i];
 							if (ds instanceof DownloadManager) {
 								PlatformTorrentUtils.setHasBeenOpened(
@@ -184,9 +187,9 @@ public class SBC_LibraryTableView
 								tv.removeDataSource(ds);
 							}
 						}
-  				}
-  			});
-  		}
+					}
+				});
+			}
 		}
 
 		return null;
@@ -209,23 +212,23 @@ public class SBC_LibraryTableView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
-		
+
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			if (view instanceof MyTorrentsView) {
-  			MyTorrentsView torrentsView = (MyTorrentsView) view;
-  			TableViewSWT tv = torrentsView.getTableView();
-  			Object[] dataSources = tv.getDataSources();
-  			for (int i = 0; i < dataSources.length; i++) {
-  				DownloadManager dm = (DownloadManager) dataSources[i];
-  				if (!torrentsView.isOurDownloadManager(dm)) {
-  					tv.removeDataSource(dm);
-  				} else {
-  					tv.addDataSource(dm);
-  				}
-  			}
+				MyTorrentsView torrentsView = (MyTorrentsView) view;
+				TableViewSWT tv = torrentsView.getTableView();
+				Object[] dataSources = tv.getDataSources();
+				for (int i = 0; i < dataSources.length; i++) {
+					DownloadManager dm = (DownloadManager) dataSources[i];
+					if (!torrentsView.isOurDownloadManager(dm)) {
+						tv.removeDataSource(dm);
+					} else {
+						tv.addDataSource(dm);
+					}
+				}
 			}
 		}
-		
+
 		updateUI();
 
 		return null;
@@ -295,12 +298,15 @@ public class SBC_LibraryTableView
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 			return TableColumnCreator.createIncompleteDM(TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			return TableColumnCreatorV3.createUnopenedDM(TableManager.TABLE_MYTORRENTS_UNOPENED, false);
+			return TableColumnCreatorV3.createUnopenedDM(
+					TableManager.TABLE_MYTORRENTS_UNOPENED, false);
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
+			return TableColumnCreator.createCompleteDM(TableManager.TABLE_MYTORRENTS_ALL_BIG);
 		}
 
 		return null;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		if (view != null) {

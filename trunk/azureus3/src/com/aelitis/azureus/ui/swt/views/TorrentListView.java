@@ -30,9 +30,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.SizeItem;
-import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.UpItem;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -418,7 +416,7 @@ public class TorrentListView
 				new ColumnQuality(tableID),
 				new SizeItem(tableID),
 				new ColumnRate(tableID, true),
-				new ColumnDateCompleted2Liner(tableID, false),
+				new DateCompletedItem(tableID, false),
 			};
 
 			ArrayList listTableColumns = new ArrayList();
@@ -430,7 +428,7 @@ public class TorrentListView
 
 			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
-			setColumnList(tableColumns, ColumnDateCompleted2Liner.COLUMN_ID, false,
+			setColumnList(tableColumns, DateCompletedItem.COLUMN_ID, false,
 					true);
 			String[] autoHideOrder = new String[] {
 				ColumnQuality.COLUMN_ID,
@@ -447,7 +445,7 @@ public class TorrentListView
 				new SizeItem(tableID),
 				new UpItem(tableID),
 				new ColumnIsPrivate(tableID),
-				new ColumnDateCompleted2Liner(tableID, false),
+				new DateCompletedItem(tableID, false),
 			};
 
 			setColumnList(tableColumns, "date_added", false, true);
@@ -507,7 +505,7 @@ public class TorrentListView
 				new ColumnQuality(tableID),
 				new SizeItem(tableID),
 				new ColumnProgressETA(tableID),
-				new ColumnDateAdded2Liner(tableID, false),
+				new DateAddedItem(tableID, false),
 			};
 			ArrayList listTableColumns = new ArrayList();
 			for (int i = 0; i < v3TableColumns.length; i++) {
@@ -533,7 +531,7 @@ public class TorrentListView
 				new ColumnQuality(tableID),
 				new SizeItem(tableID),
 				new ColumnProgressETA(tableID),
-				new ColumnDateAdded2Liner(tableID, false),
+				new DateAddedItem(tableID, false),
 			};
 
 			setColumnList(tableColumns, "date_added", false, true);
@@ -541,7 +539,7 @@ public class TorrentListView
 				ColumnQuality.COLUMN_ID,
 				SizeItem.COLUMN_ID,
 				ColumnMediaThumb.COLUMN_ID,
-				ColumnDateAdded2Liner.COLUMN_ID,
+				DateAddedItem.COLUMN_ID,
 			};
 			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 		}
@@ -573,8 +571,8 @@ public class TorrentListView
 				new ColumnQuality(tableID),
 				new ColumnProgressETA(tableID),
 				new ColumnRate(tableID, true),
-				new ColumnDateAdded2Liner(tableID, false),
-				new ColumnDateCompleted2Liner(tableID, false),
+				new DateAddedItem(tableID, false),
+				new DateCompletedItem(tableID, false),
 			};
 			autoHideOrder = new String[] {
 				ColumnMediaThumb.COLUMN_ID,
@@ -587,15 +585,15 @@ public class TorrentListView
 				new ColumnTitle(tableID),
 				new SizeItem(tableID),
 				new ColumnQuality(tableID),
-				new ColumnDateCompleted2Liner(tableID, true),
+				new DateCompletedItem(tableID, true),
 				new ColumnRate(tableID, true),
-				new ColumnDateAdded2Liner(tableID, false),
+				new DateAddedItem(tableID, false),
 			};
 			autoHideOrder = new String[] {
 				ColumnQuality.COLUMN_ID,
 				SizeItem.COLUMN_ID,
 				ColumnMediaThumb.COLUMN_ID,
-				ColumnDateCompleted2Liner.COLUMN_ID,
+				DateCompletedItem.COLUMN_ID,
 			};
 		}
 
@@ -612,7 +610,7 @@ public class TorrentListView
 		tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
 		setColumnList(tableColumns, bMiniMode ? ColumnProgressETA.COLUMN_ID
-				: ColumnDateAdded2Liner.COLUMN_ID, false, true);
+				: DateAddedItem.COLUMN_ID, false, true);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 	}

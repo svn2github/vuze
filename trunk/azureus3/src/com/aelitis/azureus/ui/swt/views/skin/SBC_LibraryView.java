@@ -43,6 +43,8 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarVitalityImageSWT;
@@ -159,7 +161,71 @@ public class SBC_LibraryView
 			});
 		}
 
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb != null) {
+			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			if (itemModeSmall != null) {
+				itemModeSmall.addListener(new ToolBarItemListener() {
+					public void pressed(ToolBarItem toolBarItem) {
+						if (isVisible()) {
+							setViewMode(MODE_SMALLTABLE, true);
+						}
+					}
+
+					public boolean held(ToolBarItem toolBarItem) {
+						return false;
+					}
+				});
+			}
+			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			if (itemModeBig != null) {
+				itemModeBig.addListener(new ToolBarItemListener() {
+					public void pressed(ToolBarItem toolBarItem) {
+						if (isVisible()) {
+							setViewMode(MODE_BIGTABLE, true);
+						}
+					}
+
+					public boolean held(ToolBarItem toolBarItem) {
+						return false;
+					}
+				});
+			}
+		}
+
 		return null;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb != null) {
+			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			if (itemModeSmall != null) {
+				itemModeSmall.setEnabled(true);
+			}
+			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			if (itemModeBig != null) {
+				itemModeBig.setEnabled(true);
+			}
+		}
+		return super.skinObjectShown(skinObject, params);
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb != null) {
+			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			if (itemModeSmall != null) {
+				itemModeSmall.setEnabled(false);
+			}
+			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			if (itemModeBig != null) {
+				itemModeBig.setEnabled(false);
+			}
+		}
+		return super.skinObjectHidden(skinObject, params);
 	}
 
 	public int getViewMode() {
@@ -600,6 +666,8 @@ public class SBC_LibraryView
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			return big ? TableManager.TABLE_MYTORRENTS_UNOPENED_BIG
 					: TableManager.TABLE_MYTORRENTS_UNOPENED;
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
+			return TableManager.TABLE_MYTORRENTS_ALL_BIG;
 		}
 		return null;
 	}

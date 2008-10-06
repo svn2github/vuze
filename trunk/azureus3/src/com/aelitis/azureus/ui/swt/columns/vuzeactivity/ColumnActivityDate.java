@@ -15,25 +15,17 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
 /**
  * @author TuxPaper
@@ -41,116 +33,32 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  *
  */
 public class ColumnActivityDate
-	extends CoreTableColumn
-	implements TableCellRefreshListener, TableCellAddedListener
+	extends ColumnDateSizer
+	implements TableCellAddedListener
 {
-	
+
 	public static final String COLUMN_ID = "activityDate";
-
-	final static String[] FORMATS = new String[] {
-		"EEEE, MMMM d, yyyy",
-		"EEE, MMMM d, yyyy",
-		"MMMM d, ''yy",
-		"EEE, MMM d, yyyy",
-		"EEE, MMM d, ''yy",
-		"MMM d, ''yy",
-		"yyyy/mm/dd",
-		"yyyy/mm",
-	};
-
-	int curFormat = 0;
-
-	int maxWidthUsed = 0;
-
-	Date maxWidthDate = new Date();
 
 	/**
 	 * @param name
 	 * @param tableID
 	 */
 	public ColumnActivityDate(String tableID) {
-		super(COLUMN_ID, TableColumnCreatorV3.DATE_COLUMN_WIDTH, tableID);
-		setAlignment(ALIGN_TRAIL);
+		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, tableID);
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellAdded(TableCell cell) {
 		if (cell instanceof TableCellSWT) {
-			((TableCellSWT)cell).setTextOpacity(120);
+			((TableCellSWT) cell).setTextOpacity(120);
 		}
 	}
-	
-	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void refresh(TableCell cell) {
+
+	// @see org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell, long)
+	public void refresh(TableCell cell, long timestamp) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		long timestamp = entry.getTimestamp();
-		
-		if (!cell.setSortValue(timestamp) && cell.isValid()) {
-			return;
-		}
-		
-		Date date = new Date(timestamp);
+		timestamp = entry.getTimestamp();
 
-		if (curFormat >= 0) {
-			int newWidth = calcWidth(date, FORMATS[curFormat]);
-			if (newWidth > maxWidthUsed) {
-				maxWidthUsed = newWidth;
-				maxWidthDate = date;
-				recalcWidth();
-			}
-			
-			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]
-					+ (cell.getHeight() > 32 ? "\nh:mm a" : ""));
-			cell.setText(temp.format(date));
-		}
-	}
-
-	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
-	public void setWidth(int width) {
-		int oldWidth = this.getWidth();
-		super.setWidth(width);
-
-		if (oldWidth == width) {
-			return;
-		}
-		recalcWidth();
-	}
-	public void recalcWidth() {
-		int width = getWidth();
-		
-		if (maxWidthDate == null) {
-			maxWidthDate = new Date();
-		}
-
-		GC gc = new GC(Display.getDefault());
-		Point minSize = new Point(99999, 0);
-		int idxFormat = FORMATS.length - 1;
-		for (int i = 0; i < FORMATS.length; i++) {
-			SimpleDateFormat temp = new SimpleDateFormat(FORMATS[i]);
-			Point newSize = gc.stringExtent(temp.format(maxWidthDate));
-			maxWidthUsed = newSize.x;
-			if (newSize.x < width - 6) {
-				idxFormat = i;
-				break;
-			}
-			if (newSize.x < minSize.x) {
-				minSize = newSize;
-				idxFormat = i;
-			}
-		}
-		gc.dispose();
-
-		if (curFormat != idxFormat) {
-			curFormat = idxFormat;
-			invalidateCells();
-		}
-	}
-
-	public int calcWidth(Date date, String format) {
-		GC gc = new GC(Display.getDefault());
-		SimpleDateFormat temp = new SimpleDateFormat(FORMATS[curFormat]);
-		Point newSize = gc.stringExtent(temp.format(date));
-		gc.dispose();
-		return newSize.x;
+		super.refresh(cell, timestamp);
 	}
 }

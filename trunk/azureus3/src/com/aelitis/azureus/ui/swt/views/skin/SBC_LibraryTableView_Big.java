@@ -34,6 +34,9 @@ public class SBC_LibraryTableView_Big
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			columns = TableColumnCreatorV3.createUnopenedDM(
 					TableManager.TABLE_MYTORRENTS_UNOPENED_BIG, true);
+		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
+			columns = TableColumnCreatorV3.createCompleteDM(
+					TableManager.TABLE_MYTORRENTS_ALL_BIG, true);
 		}
 		if (columns == null) {
 			return null;

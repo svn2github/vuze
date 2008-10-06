@@ -36,6 +36,8 @@ public class SkinView
 	extends SWTSkinObjectAdapter
 {
 	private boolean shownOnce;
+	
+	private boolean visible;
 
 	protected SWTSkinObject soMain;
 
@@ -48,8 +50,24 @@ public class SkinView
 		shownOnce = false;
 	}
 
+	/**
+	 * @param visible the visible to set
+	 */
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+
+	/**
+	 * @return the visible
+	 */
+	public boolean isVisible() {
+		return visible;
+	}
+
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		setMainSkinObject(skinObject);
+		
+		visible = true;
 
 		if (shownOnce) {
 			return null;
@@ -62,6 +80,12 @@ public class SkinView
 			Debug.out(e);
 		}
 		return null;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		visible = false;
+		return super.skinObjectHidden(skinObject, params);
 	}
 
 	/**

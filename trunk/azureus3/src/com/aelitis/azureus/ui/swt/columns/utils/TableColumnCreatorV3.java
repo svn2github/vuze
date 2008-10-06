@@ -26,9 +26,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  */
 public class TableColumnCreatorV3
 {
-
-	public static int DATE_COLUMN_WIDTH = 90;
-
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbnail.COLUMN_ID,
@@ -38,12 +35,8 @@ public class TableColumnCreatorV3
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
-			CompletionItem.COLUMN_ID,
-			StatusItem.COLUMN_ID,
-			DownSpeedItem.COLUMN_ID,
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
-			ETAItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -51,7 +44,8 @@ public class TableColumnCreatorV3
 				tableID);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
-				tableID) || areNoneVisible(mapTCs)) {
+				tableID)
+				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			NameItem tc = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 			if (tc != null) {
@@ -105,19 +99,19 @@ public class TableColumnCreatorV3
 			ColumnRateUpDown.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
-			ColumnDateCompleted2Liner.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class,
 				tableID);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID) || areNoneVisible(mapTCs)) {
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
+				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
-			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
+			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID,
-						ColumnDateCompleted2Liner.COLUMN_ID);
+				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
 		}
@@ -145,7 +139,7 @@ public class TableColumnCreatorV3
 			ColumnQuality.COLUMN_ID,
 			ColumnInfo.COLUMN_ID,
 			StatusItem.COLUMN_ID,
-			ColumnDateCompleted2Liner.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -153,12 +147,12 @@ public class TableColumnCreatorV3
 				tableID);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
-				tableID) || areNoneVisible(mapTCs)) {
+				tableID)
+				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
-			ColumnDateCompleted2Liner tc = (ColumnDateCompleted2Liner) mapTCs.get(ColumnDateCompleted2Liner.COLUMN_ID);
+			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID,
-						ColumnDateCompleted2Liner.COLUMN_ID);
+				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
 		}
@@ -188,7 +182,8 @@ public class TableColumnCreatorV3
 		Map mapTCs = tcManager.getTableColumnsAsMap(VuzeActivitiesEntry.class,
 				tableID);
 
-		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID) || areNoneVisible(mapTCs)) {
+		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
+				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
 			ColumnActivityDate tc = (ColumnActivityDate) mapTCs.get(ColumnActivityDate.COLUMN_ID);
 			if (tc != null) {
@@ -273,10 +268,8 @@ public class TableColumnCreatorV3
 		c.put(ColumnRatingGlobal.COLUMN_ID,
 				new cInfo(ColumnRatingGlobal.class, all));
 		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, all));
-		c.put(ColumnDateAdded2Liner.COLUMN_ID, new cInfo(
-				ColumnDateAdded2Liner.class, all));
-		c.put(ColumnDateCompleted2Liner.COLUMN_ID, new cInfo(
-				ColumnDateCompleted2Liner.class, all));
+		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, all));
+		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, all));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, dl));
 
 		/////////

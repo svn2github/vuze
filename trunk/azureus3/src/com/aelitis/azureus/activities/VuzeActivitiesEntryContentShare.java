@@ -44,7 +44,17 @@ import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 public class VuzeActivitiesEntryContentShare
 	extends VuzeActivitiesEntryBuddy
 {
+	public static final String URL_USERMESSAGE = "showsharemessage";	
+	
 	private String userMessage;
+	public String getUserMessage() {
+		return userMessage;
+	}
+
+	public void setUserMessage(String userMessage) {
+		this.userMessage = userMessage;
+	}
+
 	private long version;
 
 	public VuzeActivitiesEntryContentShare() {
@@ -179,6 +189,7 @@ public class VuzeActivitiesEntryContentShare
 				buddy.getProfileAHREF(VuzeActivitiesConstants.TYPEID_BUDDYSHARE),
 				contentString,
 				buddy.getDisplayName(),
+				URL_USERMESSAGE,
 				userMessage
 			}));
 		}
