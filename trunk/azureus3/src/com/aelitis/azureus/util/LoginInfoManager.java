@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.UrlUtils;
 
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -59,11 +58,10 @@ public class LoginInfoManager
 			listeners.add(listener);
 			
 			if (isLoggedIn()) {
-				notifyListeners(false);
+				listener.loginUpdate(new LoginInfo(), true);
+
 				if (avatarURL != null) {
-					for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-						((ILoginInfoListener) iterator.next()).avatarURLUpdated(avatarURL);
-					}
+					listener.avatarURLUpdated(avatarURL);
 				}
 			}
 		}
