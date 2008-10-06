@@ -213,16 +213,29 @@ public class SWTSkinObjectImage
 				}
 
 				ImageLoader imageLoader = skin.getImageLoader(properties);
-				Image image = sImageID == null || sImageID.length() == 0 ? null
-						: imageLoader.getImage(sImageID);
+				Image[] images = sImageID == null || sImageID.length() == 0 ? null
+						: imageLoader.getImages(sImageID);
+				
+				Image image = null;
 
-				Image imageLeft = imageLoader.getImage(sImageID + ".left");
-				if (ImageLoader.isRealImage(imageLeft)) {
-					label.setData("image-left", imageLeft);
+				if (images.length == 3) {
+					Image imageLeft = images[0];
+					if (ImageLoader.isRealImage(imageLeft)) {
+						label.setData("image-left", imageLeft);
+					}
+					
+					image = images[1];
+					
+					Image imageRight = images[2];
+					if (ImageLoader.isRealImage(imageRight)) {
+						label.setData("image-right", imageRight);
+					}
+				} else if (images.length > 0) {
+					image = images[0];
 				}
-				Image imageRight = imageLoader.getImage(sImageID + ".right");
-				if (ImageLoader.isRealImage(imageRight)) {
-					label.setData("image-right", imageRight);
+				
+				if (image == null) {
+					image = ImageLoader.noImage;
 				}
 
 				String sDrawMode = properties.getStringValue(sConfigID + ".drawmode");
@@ -316,8 +329,12 @@ public class SWTSkinObjectImage
 				: customImageID)
 				+ suffix;
 		
+
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
+		if (debug) {
+			System.out.println(sImageID + image + ";" + ImageLoader.isRealImage(image));
+		}
 		if (image != ImageLoader.noImage) {
 			setLabelImage(sImageID, null);
 		}
