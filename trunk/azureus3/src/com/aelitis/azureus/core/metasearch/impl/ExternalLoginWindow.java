@@ -201,6 +201,12 @@ public class ExternalLoginWindow {
 		shell.open();
 	}
 	
+	public boolean
+	altCaptureModeRequired()
+	{
+		return( sniffer != null && sniffer.wasHTTPOnlyCookieDetected());
+	}
+	
 	public void close() {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
