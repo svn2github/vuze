@@ -202,7 +202,7 @@ public class ColumnActivityActions
 		if (entry instanceof VuzeActivitiesEntryBuddyRequest) {
 			VuzeActivitiesEntryBuddyRequest br = (VuzeActivitiesEntryBuddyRequest) entry;
 			String urlAccept = br.getUrlAccept();
-			String text = "<A HREF=\"" + urlAccept + "\">Accept</A>";
+			String text = "<A HREF=\"" + urlAccept + "\" TARGET=\"browse\">Accept</A>";
 			cell.setText(text);
 		} else {
 			DownloadManager dm = entry.getDownloadManger();
