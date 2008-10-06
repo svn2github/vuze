@@ -156,7 +156,7 @@ public class UIConfigDefaultsSWTv3
 		config.removeParameter("v3.home-tab.starttab");
 		defaults.addParameter("v3.topbar.height", 60);
 		defaults.addParameter("v3.Start Advanced", false);
-		defaults.addParameter("MyTorrentsView.table.style", SWT.BORDER);
+		defaults.addParameter("MyTorrentsView.table.style", 0);
 		defaults.addParameter("v3.Show Welcome", true);
 		
 		boolean startAdvanced = config.getBooleanParameter("v3.Start Advanced");
