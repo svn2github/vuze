@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
@@ -93,6 +94,15 @@ public class ColumnThumbnail
 		Object ds = cell.getDataSource();
 		TOTorrent newTorrent = DataSourceUtils.getTorrent(ds);
 
+		//System.out.println("REF");
+		//TableCellImpl c1 = ((TableCellImpl) cell);
+		//TableRowSWT tableRowSWT = c1.getTableRowSWT();
+		//TableViewSWTImpl view = (TableViewSWTImpl) tableRowSWT.getView();
+		//System.out.println(view.getComposite());
+		//view.getTableComposite().redraw(0, 0, 5000, 5000, true);
+		//view.getTableComposite().update();
+		
+		
 		/*
 		 * For sorting we only create 2 buckets... Vuze content and non-vuze content
 		 */
@@ -114,14 +124,12 @@ public class ColumnThumbnail
 
 		torrent = newTorrent;
 		mapCellTorrent.put(cell, torrent);
-
-		cell.invalidate();
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		Object ds = cell.getDataSource();
-
+		
 		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
 		if (torrent == null) {
 			return;
@@ -211,6 +219,8 @@ public class ColumnThumbnail
 							+ ((cellBounds.height - dstHeight) / 2), dstWidth, dstHeight);
 
 			gc.setClipping(clipping);
+			
+			imgThumbnail.dispose();
 		}
 	}
 }
