@@ -129,7 +129,7 @@ public class SWTSkinObjectSash
 		sash = new Sash(createOn, style);
 
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
-				+ ".SplitAt", -1);
+				+ ".splitAt", -1);
 		if (splitAt >= 0) {
 			sashPct = splitAt / 10000.0;
 			if (sashPct > 1) {
@@ -370,7 +370,7 @@ public class SWTSkinObjectSash
 					}
 
 					if (e.detail != SWT.DRAG) {
-						COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
+						COConfigurationManager.setParameter("v3." + sID + ".splitAt",
 								(int) (sashPct * 10000));
 					}
 
@@ -548,7 +548,7 @@ public class SWTSkinObjectSash
 		sash.setData("PCT", new Double(pctAbove));
 		sashPct = pctAbove;
 		if (sashPct != 0 && sashPct != 100) {
-  		COConfigurationManager.setParameter("v3." + sID + ".SplitAt",
+  		COConfigurationManager.setParameter("v3." + sID + ".splitAt",
   				(int) (pctAbove * 10000));
 		}
 	}
