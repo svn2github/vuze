@@ -62,6 +62,8 @@ public class ViewUpSpeedGraph
 
 	TimerEventPeriodic	timerEvent;
 	
+	private boolean everRefreshed = false;
+	
 	public ViewUpSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
@@ -71,22 +73,12 @@ public class ViewUpSpeedGraph
 	public void initialize(Composite composite) {
 		GridData gridData;
 
-		upSpeedCanvas = new Canvas(composite, SWT.NULL);
+		upSpeedCanvas = new Canvas(composite, SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(GridData.FILL_BOTH);
 		upSpeedCanvas.setLayoutData(gridData);
 		upSpeedGraphic = SpeedGraphic.getInstance();
 		upSpeedGraphic.initialize(upSpeedCanvas);
 		//upSpeedGraphic.setAutoAlpha(true);
-		
-		timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				if ( upSpeedCanvas.isDisposed()){
-					timerEvent.cancel();
-				}else{
-					periodicUpdate();
-				}
-			}
-		});
 	}
 	
 	public void periodicUpdate() {
@@ -115,6 +107,18 @@ public class ViewUpSpeedGraph
 	}
 
 	public void refresh() {
+		if (!everRefreshed) {
+			everRefreshed = true;
+			timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
+				public void perform(TimerEvent event) {
+					if ( upSpeedCanvas.isDisposed()){
+						timerEvent.cancel();
+					}else{
+						periodicUpdate();
+					}
+				}
+			});
+		}
 		upSpeedGraphic.refresh();
 	}
 

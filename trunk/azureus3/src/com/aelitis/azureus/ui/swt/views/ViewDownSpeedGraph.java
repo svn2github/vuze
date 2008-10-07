@@ -64,6 +64,8 @@ public class ViewDownSpeedGraph
 
 	TimerEventPeriodic	timerEvent;
 	
+	private boolean everRefreshed = false;
+	
 	public ViewDownSpeedGraph() {
 		this.manager = AzureusCoreFactory.getSingleton().getGlobalManager();
 		this.stats = manager.getStats();
@@ -85,7 +87,7 @@ public class ViewDownSpeedGraph
 	public void initialize(Composite composite) {
 		GridData gridData;
 
-		downSpeedCanvas = new Canvas(composite, SWT.NONE);
+		downSpeedCanvas = new Canvas(composite, SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(GridData.FILL_BOTH);
 		downSpeedCanvas.setLayoutData(gridData);
 		downSpeedGraphic = SpeedGraphic.getInstance();
@@ -102,17 +104,6 @@ public class ViewDownSpeedGraph
 				skinProperties.getColor("color.topbar.speed.value1"),
 				skinProperties.getColor("color.topbar.speed.value2plus"),
 				skinProperties.getColor("color.topbar.speed.trimmed"));
-		
-		
-		timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				if ( downSpeedCanvas.isDisposed()){
-					timerEvent.cancel();
-				}else{
-					periodicUpdate();
-				}
-			}
-		});
 	}
 
 	public void delete() {
@@ -131,6 +122,18 @@ public class ViewDownSpeedGraph
 	}
 
 	public void refresh() {
+		if (!everRefreshed) {
+			everRefreshed = true;
+			timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
+				public void perform(TimerEvent event) {
+					if ( downSpeedCanvas.isDisposed()){
+						timerEvent.cancel();
+					}else{
+						periodicUpdate();
+					}
+				}
+			});
+		}
 		downSpeedGraphic.refresh();
 	}
 
