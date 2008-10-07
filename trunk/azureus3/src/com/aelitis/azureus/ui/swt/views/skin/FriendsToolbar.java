@@ -271,13 +271,13 @@ public class FriendsToolbar
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,8);
-		data.top = new FormAttachment(0,6);
+		data.top = new FormAttachment(0,4);
 		friendsLabel.setLayoutData(data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(friendsLabel,2);
 		data.right = new FormAttachment(showHideButton,-5);
-		data.top = new FormAttachment(0,6);
+		data.top = new FormAttachment(0,4);
 		friendsCountLabel.setLayoutData(data);
 		
 		data = new FormData();
@@ -340,7 +340,7 @@ public class FriendsToolbar
 		data = new FormData();
 		data.left = new FormAttachment(0,8);
 		data.right = new FormAttachment(edit,-5);
-		data.top = new FormAttachment(0,29);
+		data.top = new FormAttachment(0,28);
 		onlineFriendsLabel.setLayoutData(data);
 		
 		/*
@@ -449,18 +449,18 @@ public class FriendsToolbar
 		
 		data = new FormData();
 		data.right = new FormAttachment(100,-8);
-		data.top = new FormAttachment(0,29);
+		data.top = new FormAttachment(0,28);
 		addFriends.setLayoutData(data);
 		
 		data = new FormData();
 		data.right = new FormAttachment(addFriends,-1);
-		data.top = new FormAttachment(0,29);
+		data.top = new FormAttachment(0,28);
 		separator.setLayoutData(data);
 		
 		
 		data = new FormData();
 		data.right = new FormAttachment(separator,-1);
-		data.top = new FormAttachment(0,29);
+		data.top = new FormAttachment(0,28);
 		edit.setLayoutData(data);
 		
 		
