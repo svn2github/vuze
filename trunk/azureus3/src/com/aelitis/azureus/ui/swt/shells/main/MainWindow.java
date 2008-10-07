@@ -1613,7 +1613,8 @@ public class MainWindow
 		}
 
 		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
-		if (skinObject != null) {
+		if (skinObject != null
+				&& COConfigurationManager.getIntParameter("User Mode") > 1) {
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
 
 			MainMenu.createViewMenuItem(skin, topbarMenu, "v3.MainWindow.menu.view."
