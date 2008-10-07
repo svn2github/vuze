@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 HTTPSniffingProxy 
 {
+	public static final boolean	TRACE	= false;
+	
 	public static final int MAX_PROCESSORS = 32;
 		
 	public static final int	CONNECT_TIMEOUT		= 30*1000;
@@ -472,8 +474,8 @@ HTTPSniffingProxy
 				}
 				
 				if ( line_out != null ){
-										
-					// System.out.println( "-> " + line_out );
+					
+					trace( "-> " + line_out );
 					
 					target_os.write((line_out+NL).getBytes());
 				}
@@ -504,7 +506,7 @@ HTTPSniffingProxy
 							
 							target_os.write( buffer, 0, len );
 							
-							// System.out.println( "POST:" + new String( buffer, 0, len ));
+							trace( "POST:" + new String( buffer, 0, len ));
 							
 						}
 					}catch( Throwable e ){
@@ -614,6 +616,8 @@ HTTPSniffingProxy
 								
 							}else if ( entry.equalsIgnoreCase( "secure" )){
 								
+							}else if ( entry.toLowerCase().startsWith( "domain" )){
+								
 							}else{
 								
 								modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
@@ -696,7 +700,7 @@ HTTPSniffingProxy
 				
 				if ( line_out != null ){
 					
-					// System.out.println( "<- " + line_out );
+					trace( "<- " + line_out );
 					
 					source_os.write((line_out+NL).getBytes());
 				}
@@ -924,7 +928,7 @@ HTTPSniffingProxy
 											result.append( str.subSequence( str_pos, url_start ));
 										}
 										
-										// System.out.println( "Replacing " + url_str + " with " + replacement );
+										trace( "Replacing " + url_str + " with " + replacement );
 										
 										result.append( replacement );
 										
@@ -932,7 +936,7 @@ HTTPSniffingProxy
 										
 									}else{
 										
-										// System.out.println( "    Not child for " + url_str );
+										trace( "    Not child for " + url_str );
 									}
 								}
 							}catch( Throwable e ){
@@ -1071,12 +1075,22 @@ HTTPSniffingProxy
 		}
 	}
 	
+	protected void
+	trace(
+		String		str )
+	{
+		if ( TRACE ){
+			
+			System.out.println( str );
+		}
+	}
+	
 	public static void
 	main(
 		String[]		args )
 	{
 		try{
-			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://www.sf.net/" ));
+			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://waffles.fm/" ));
 			
 			System.out.println( "port=" + proxy.getPort());
 			
