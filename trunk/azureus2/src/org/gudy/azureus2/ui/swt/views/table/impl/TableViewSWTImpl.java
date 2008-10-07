@@ -3625,7 +3625,7 @@ public class TableViewSWTImpl
 			 * This is Eclipse bug #77106, and is marked WONTFIX 
 			 */
 			if (focusedRow != null) {
-				int pos = 1;
+				int pos = selectedRows.length == 1 ? 0 : 1;
 				int numSame = 0;
 				int[] newSelectedRowIndices = new int[selectedRows.length];
 				Arrays.sort(selectedRowIndices);
