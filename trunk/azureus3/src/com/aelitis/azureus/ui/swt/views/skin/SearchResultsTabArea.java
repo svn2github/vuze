@@ -61,7 +61,9 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
@@ -370,7 +372,8 @@ public class SearchResultsTabArea
 						SelectedContentManager.changeCurrentlySelectedContent("searchresults",
 								null);
 
-						Browser browser = browserSkinObject.getBrowser();
+						final Browser browser = browserSkinObject.getBrowser();
+						
 						browser.addTitleListener(new TitleListener() {
 							public void changed(TitleEvent event) {
 								title = event.title;
@@ -381,6 +384,14 @@ public class SearchResultsTabArea
 							}
 						});
 
+						final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
+							public void cookiesFound(String cookies) {
+								browser.setData("current-cookies", cookies);
+							}
+						},browser);
+						
+						cookieListener.hook();
+						
 						browser.addLocationListener(new LocationListener() {
 							public void changing(LocationEvent event) {
 								//ViewTitleInfoManager.refreshTitleInfo(titleInfo);
