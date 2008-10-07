@@ -81,7 +81,7 @@ public class ColumnUnopened
 		boolean complete = dm.getAssumedComplete();
 		boolean hasBeenOpened = false;
 		if (complete) {
-			hasBeenOpened = PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent());
+			hasBeenOpened = PlatformTorrentUtils.getHasBeenOpened(dm);
 			sortVal = hasBeenOpened ? 1 : 0;
 		} else {
 			sortVal = -1;
@@ -105,8 +105,8 @@ public class ColumnUnopened
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEUP && event.button == 1) {
 			DownloadManager dm = (DownloadManager) event.cell.getDataSource();
-			boolean hasBeenOpened = !PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent());
-			PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), hasBeenOpened);
+			boolean hasBeenOpened = !PlatformTorrentUtils.getHasBeenOpened(dm);
+			PlatformTorrentUtils.setHasBeenOpened(dm, hasBeenOpened);
 			event.cell.setGraphic(hasBeenOpened ? null : graphicCheck);
 			event.cell.invalidate();
 		}

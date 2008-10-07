@@ -426,7 +426,7 @@ public class SBC_LibraryView
 
 			public void completionChanged(DownloadManager dm, boolean completed) {
 				if (completed) {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 						numUnOpened++;
 					}
 					numComplete++;
@@ -436,7 +436,7 @@ public class SBC_LibraryView
 						numErrorInComplete--;
 					}
 				} else {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 						numUnOpened--;
 					}
 					numIncomplete++;
@@ -502,7 +502,7 @@ public class SBC_LibraryView
 		
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 					numUnOpened--;
 				}
 				if (dm.getAssumedComplete()) {
@@ -518,7 +518,7 @@ public class SBC_LibraryView
 				dm.addListener(dmListener, false);
 
 				if (dm.getAssumedComplete()) {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 						numUnOpened++;
 					}
 					numComplete++;
@@ -542,7 +542,7 @@ public class SBC_LibraryView
 			DownloadManager dm = (DownloadManager) iter.next();
 			dm.addListener(dmListener, false);
 			if (dm.getAssumedComplete()) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 					numUnOpened++;
 				}
 				numComplete++;
@@ -560,8 +560,8 @@ public class SBC_LibraryView
 			}
 		}
 		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
-			public void hasBeenOpenedChanged(TOTorrent torrent, boolean opened) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(torrent)) {
+			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
+				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 					numUnOpened++;
 				} else {
 					numUnOpened--;

@@ -58,6 +58,8 @@ public class PlatformTorrentUtils
 
 	private static final long MAX_MD_REFRESH_MS = 1000L * 60 * 60 * 24 * 30;
 
+	public static final String AELITIS_HOST_CORE	= "aelitis.com";			// needs to be lowercase
+
 	public static final boolean DEBUG_CACHING = System.getProperty(
 			"az3.debug.caching", "0").equals("1");
 
@@ -560,6 +562,47 @@ public class PlatformTorrentUtils
 		}
 		return false;
 	}
+	
+	public static boolean isUpdateDM(DownloadManager dm) {
+		Boolean oisUpdate = (Boolean) dm.getUserData("isUpdate");
+		if (oisUpdate != null) {
+			return oisUpdate.booleanValue();
+		}
+
+		boolean isUpdate = true;
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			isUpdate = false;
+		} else {
+			URL announceURL = torrent.getAnnounceURL();
+
+			if (announceURL != null) {
+				if (announceURL.getHost().indexOf(AELITIS_HOST_CORE) == -1) {
+					isUpdate = false;
+				}
+			}
+			
+			if (isUpdate) {
+				TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+
+				for (int i = 0; i < sets.length; i++) {
+
+					URL[] urls = sets[i].getAnnounceURLs();
+
+					for (int j = 0; j < urls.length; j++) {
+
+						if (urls[j].getHost().indexOf(AELITIS_HOST_CORE) == -1) {
+							isUpdate = false;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		dm.setUserData("isUpdate", new Boolean(isUpdate));
+		return isUpdate;
+	}
 
 	public static String getAdId(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_AD_ID);
@@ -920,8 +963,12 @@ public class PlatformTorrentUtils
 		return name;
 	}
 	
-	public static void setHasBeenOpened(TOTorrent torrent, boolean opened) {
-		if (opened == getHasBeenOpened(torrent)) {
+	public static void setHasBeenOpened(DownloadManager dm, boolean opened) {
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
+			return;
+		}
+		if (opened == getHasBeenOpened(dm)) {
 			return;
 		}
 		setContentMapLong(torrent, TOR_AZ_PROP_OPENED, opened ? 1 : 0);
@@ -929,18 +976,24 @@ public class PlatformTorrentUtils
 		for (int i = 0; i < array.length; i++) {
 			try {
 				HasBeenOpenedListener l = (HasBeenOpenedListener) array[i];
-				l.hasBeenOpenedChanged(torrent, opened);
+				l.hasBeenOpenedChanged(dm, opened);
 			} catch (Exception e) {
 				Debug.out(e);
 			}
 		}
 	}
 
-	public static boolean getHasBeenOpened(TOTorrent torrent) {
-		if (PlatformTorrentUtils.getAdId(torrent) != null) {
+	public static boolean getHasBeenOpened(DownloadManager dm) {
+		TOTorrent torrent = dm.getTorrent();
+		if (torrent == null) {
 			return true;
 		}
-		return getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
+		boolean opened = getContentMapLong(torrent, TOR_AZ_PROP_OPENED, -1) > 0;
+		if (opened || getAdId(torrent) != null || isUpdateDM(dm)) {
+			return true;
+		}
+		
+		return false;
 	}
 
 	public static void addHasBeenOpenedListener(HasBeenOpenedListener l) {

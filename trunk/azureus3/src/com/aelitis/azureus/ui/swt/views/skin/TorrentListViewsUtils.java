@@ -487,7 +487,7 @@ public class TorrentListViewsUtils
 			final SWTSkinButtonUtility btn) {
 		boolean played = _playOrStream(dm, btn);
 		if (played) {
-			PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), true);
+			PlatformTorrentUtils.setHasBeenOpened(dm, true);
 		}
 		return played;
 	}

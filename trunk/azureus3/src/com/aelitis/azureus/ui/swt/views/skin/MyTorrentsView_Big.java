@@ -35,12 +35,13 @@ public class MyTorrentsView_Big
 	
 
 	public boolean isOurDownloadManager(DownloadManager dm) {
-		if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null) {
+		if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null ||
+				PlatformTorrentUtils.isUpdateDM(dm)) {
 			return false;
 		}
 		
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			if (PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+			if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
 				return false;
 			}
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {

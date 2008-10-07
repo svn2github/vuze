@@ -131,7 +131,7 @@ public class SBC_LibraryTableView
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
 						true, columns) {
 					public boolean isOurDownloadManager(DownloadManager dm) {
-						if (PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+						if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
 							return false;
 						}
 						return super.isOurDownloadManager(dm);
@@ -182,7 +182,7 @@ public class SBC_LibraryTableView
 					if (!assumedComplete) {
 						changed |= rowCore.setAlpha(160);
 						changed |= rowCore.setFontStyle(SWT.NORMAL);
-					} else if (!PlatformTorrentUtils.getHasBeenOpened(dm.getTorrent())) {
+					} else if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
 						changed |= rowCore.setAlpha(255);
 						changed |= rowCore.setFontStyle(SWT.BOLD);
 					} else {
@@ -225,8 +225,8 @@ public class SBC_LibraryTableView
 						for (int i = 0; i < dataSources.length; i++) {
 							Object ds = dataSources[i];
 							if (ds instanceof DownloadManager) {
-								PlatformTorrentUtils.setHasBeenOpened(
-										((DownloadManager) ds).getTorrent(), true);
+								PlatformTorrentUtils.setHasBeenOpened((DownloadManager) ds,
+										true);
 								// give user visual indication right away 
 								tv.removeDataSource(ds);
 							}

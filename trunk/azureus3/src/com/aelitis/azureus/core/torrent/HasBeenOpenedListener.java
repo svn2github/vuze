@@ -18,7 +18,7 @@
  
 package com.aelitis.azureus.core.torrent;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  * @author TuxPaper
@@ -27,5 +27,5 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
  */
 public interface HasBeenOpenedListener
 {
-	public void hasBeenOpenedChanged(TOTorrent torrent, boolean opened);
+	public void hasBeenOpenedChanged(DownloadManager dm, boolean opened);
 }

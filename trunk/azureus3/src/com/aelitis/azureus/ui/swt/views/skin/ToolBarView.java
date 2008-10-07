@@ -179,7 +179,7 @@ public class ToolBarView
 
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = dms[i];
-						PlatformTorrentUtils.setHasBeenOpened(dm.getTorrent(), true);
+						PlatformTorrentUtils.setHasBeenOpened(dm, true);
 					}
 				}
 			}
