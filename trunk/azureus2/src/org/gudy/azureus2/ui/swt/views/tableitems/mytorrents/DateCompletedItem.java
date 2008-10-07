@@ -84,10 +84,13 @@ public class DateCompletedItem
 								sETA
 							}));
 				} else {
-					value = SystemTime.getCurrentTime() + 1;
+					cell.setText("");
+					// make above 
+					value = SystemTime.getCurrentTime() / 1000 * 1001;
 				}
 			} else {
-				value = SystemTime.getCurrentTime();
+				cell.setText("");
+				value = SystemTime.getCurrentTime() / 1000 * 1002;
 			}
 
 			cell.invalidate();
