@@ -275,7 +275,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					new ExternalLoginWindow(
 						new ExternalLoginListener() 
 						{	
-						public void canceled(ExternalLoginWindow window) {};
+						public void canceled(ExternalLoginWindow window) {
+							sendBrowserMessage("metasearch", "setCookiesFailed", new HashMap() );
+						};
 						public void cookiesFound(ExternalLoginWindow window, String cookies) {};
 						public void done(ExternalLoginWindow window, String cookies) {
 							String[] cookieNames = CookieParser.getCookiesNames(cookies);
