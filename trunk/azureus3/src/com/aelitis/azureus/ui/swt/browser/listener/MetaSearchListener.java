@@ -941,6 +941,25 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							subs.addPotentialAssociation( subscriptionResultId, torrentUrl );
 						}
 					}
+				}else{
+					try{
+						long engineID		= ((Long)decodedMap.get("engine_id")).longValue();
+
+						Engine engine = metaSearchManager.getMetaSearch().getEngine( engineID );
+						
+						if ( engine != null && engine instanceof WebEngine ){
+							
+							WebEngine webEngine = (WebEngine) engine;
+							
+							if ( webEngine.isNeedsAuth()){
+								
+								headers.put( "Cookie",webEngine.getCookies());
+							}
+						}
+					}catch( Throwable e ){
+					
+						Debug.printStackTrace(e);
+					}
 				}
 				
 				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
