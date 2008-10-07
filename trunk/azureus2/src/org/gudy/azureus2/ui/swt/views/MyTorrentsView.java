@@ -920,8 +920,8 @@ public class MyTorrentsView
 	public void mouseExit(TableRowCore row) {
 	}
 
-	protected void updateSelectedContent() {
-		if (!viewActive) {
+	public void updateSelectedContent() {
+		if (!cTablePanel.isVisible()) {
 			SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
 					null);
 			return;
