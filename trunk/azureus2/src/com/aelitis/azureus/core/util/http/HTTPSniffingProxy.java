@@ -231,7 +231,8 @@ HTTPSniffingProxy
 	public void
 	destroy()
 	{
-		List	to_destroy;
+		List	processors_to_destroy;
+		List	chidren_to_destroy;
 		
 		synchronized( this ){
 			
@@ -242,7 +243,11 @@ HTTPSniffingProxy
 			
 			destroyed = true;
 				
-			to_destroy = new ArrayList( processors );
+			chidren_to_destroy = new ArrayList( children.values());
+			
+			children.clear();
+			
+			processors_to_destroy = new ArrayList( processors );
 			
 			processors.clear();
 			
@@ -252,10 +257,23 @@ HTTPSniffingProxy
 			}catch( Throwable e ){	
 			}
 		}
-		
-		for (int i=0;i<to_destroy.size();i++){
+				
+		for (int i=0;i<chidren_to_destroy.size();i++){
 			
-			((processor)to_destroy.get(i)).destroy();
+			try{
+				((HTTPSniffingProxy)chidren_to_destroy.get(i)).destroy();
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		for (int i=0;i<processors_to_destroy.size();i++){
+			
+			try{
+				((processor)processors_to_destroy.get(i)).destroy();
+			
+			}catch( Throwable e ){
+			}
 		}
 	}
 	
@@ -686,7 +704,7 @@ HTTPSniffingProxy
 						
 						HTTPSniffingProxy child = getChild( child_url, false );
 
-						int	pos = page.indexOf( "://");
+						int	pos = page.indexOf( "://" );
 						
 						if ( pos >= 0 ){
 							
@@ -1136,13 +1154,6 @@ HTTPSniffingProxy
 				}
 				
 				destroyed = true;
-			}
-			
-			Iterator it = children.values().iterator();
-			
-			while ( it.hasNext()){
-				
-				((HTTPSniffingProxy)it.next()).destroy();
 			}
 			
 			if ( socket_out != null ){
