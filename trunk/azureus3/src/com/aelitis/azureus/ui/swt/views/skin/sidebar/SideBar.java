@@ -876,20 +876,19 @@ public class SideBar
 
 				boolean vitality = b_vitality != null && b_vitality.booleanValue();
 
-				if (!selected) {
-					gc.setForeground(Colors.blues[Colors.BLUES_LIGHTEST]);
-					gc.setBackground(vitality ? Colors.fadedRed
-							: Colors.faded[Colors.BLUES_DARKEST]);
-				} else {
-					gc.setBackground(ColorCache.getColor(gc.getDevice(), 210, 210, 230));
-					gc.setForeground(ColorCache.getColor(gc.getDevice(), 44, 44, 128));
-					//gc.setForeground(Colors.blue);
-				}
+				Color color1 = ColorCache.getColor(gc.getDevice(), "#166688");
+				Color color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
+				Pattern pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
+						+ height, color1, color2);
+				gc.setBackgroundPattern(pattern);
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y + 1,
 						height);
+				gc.setBackgroundPattern(null);
+				pattern.dispose();
 				if (maxIndicatorWidth > width) {
 					maxIndicatorWidth = width;
 				}
+				gc.setForeground(Colors.white);
 				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
 						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
