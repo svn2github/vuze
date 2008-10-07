@@ -87,6 +87,8 @@ public class SWTSkinObjectBasic
 
 	protected Color bgColor2;
 
+	protected int bgColor2until;
+
 	private Image bgImage;
 
 	private String tooltipID;
@@ -472,6 +474,9 @@ public class SWTSkinObjectBasic
 						} else if (split[0].equals("gradient")) {
 							colorFillType = BORDER_GRADIENT;
 							bgColor2 = ColorCache.getColor(Display.getDefault(), split[1]);
+							if (split.length > 2) {
+								bgColor2until = Integer.parseInt(split[2]);
+							}
 
 							control.addListener(SWT.Resize, new Listener() {
 								public void handleEvent(Event event) {
@@ -493,7 +498,11 @@ public class SWTSkinObjectBasic
   									}
   									gc.setBackground(bgColor);
   									gc.setForeground(bgColor2);
-  									gc.fillGradientRectangle(0, 0, 5, bounds.height, true);
+  									gc.fillGradientRectangle(0, 0, 5, bgColor2until > 0 ? bgColor2until : bounds.height, true);
+  									if (bgColor2until > 0) {
+    									//gc.setBackground(bgColor2);
+    									gc.fillRectangle(0, bgColor2until, 5, bounds.height - bgColor2until);
+  									}
 									} finally {
 										gc.dispose();
 									}

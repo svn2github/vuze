@@ -309,6 +309,9 @@ public class ToolBarView
 		addNonToolBar("toolbar.area.sitem.right", so2nd);
 
 		///////////////////////
+
+		addSeperator("toolbar.area.item.sep3", so2nd);
+
 		
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 

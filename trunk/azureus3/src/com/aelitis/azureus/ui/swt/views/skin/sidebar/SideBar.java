@@ -804,33 +804,11 @@ public class SideBar
 				gc.setBackground(bgSel);
 			}
 			if (tree.isFocusControl()) {
-				if (Constants.isOSX) {
-					gc.setForeground(gc.getDevice().getSystemColor(
-							SWT.COLOR_LIST_SELECTION));
-					gc.setBackground(Colors.faded[Colors.BLUES_DARKEST]);
-				} else {
-					gc.setBackground(gc.getDevice().getSystemColor(
-							SWT.COLOR_LIST_SELECTION));
-					//gc.setForeground(Colors.faded[Colors.BLUES_DARKEST]);
-					gc.setForeground(Colors.faded[Colors.BLUES_MIDDARK]);
-				}
+				gc.setForeground(ColorCache.getColor(gc.getDevice(), "#166688"));
+				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#1c2458"));
 			} else {
-				if (Constants.isOSX) {
-					gc.setForeground(gc.getDevice().getSystemColor(
-							SWT.COLOR_LIST_SELECTION));
-					gc.setBackground(Colors.faded[Colors.BLUES_MIDLIGHT]);
-				} else {
-					gc.setBackground(gc.getDevice().getSystemColor(
-							SWT.COLOR_LIST_SELECTION));
-					//gc.setForeground(Colors.faded[Colors.BLUES_MIDLIGHT]);
-					//gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-
-					gc.setForeground(gc.getDevice().getSystemColor(
-							SWT.COLOR_WIDGET_BACKGROUND));
-					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-					//gc.setForeground(Colors.faded[Colors.BLUES_MIDLIGHT]);
-					//fgText = fg;
-				}
+				gc.setForeground(ColorCache.getColor(gc.getDevice(), "#809da7"));
+				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#686d87"));
 			}
 
 			gc.fillGradientRectangle(event.x, itemBounds.y, event.width,
