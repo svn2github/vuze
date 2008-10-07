@@ -1,8 +1,7 @@
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.net.URLDecoder;
-import java.util.List;
-import java.util.Map;
+
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
@@ -12,8 +11,6 @@ import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.browser.StatusTextEvent;
 import org.eclipse.swt.browser.StatusTextListener;
 
-import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
-import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 
 public class ExternalLoginCookieListener

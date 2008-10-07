@@ -65,6 +65,7 @@ RSSEngine
 		String 				name,
 		String 				searchURLFormat,
 		boolean				needs_auth,
+		String				auth_method,
 		String				login_url,
 		String[]			required_cookies )
 	{
@@ -79,6 +80,7 @@ RSSEngine
 				"EEE, d MMM yyyy HH:mm:ss Z",
 				new FieldMapping[0],
 				needs_auth,
+				auth_method,
 				login_url,
 				required_cookies );		
 	}

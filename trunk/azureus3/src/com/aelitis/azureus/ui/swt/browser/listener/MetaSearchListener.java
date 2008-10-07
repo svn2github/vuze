@@ -250,6 +250,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 						webEngine.getName(),
 						webEngine.getLoginPageUrl(),
 						false,
+						webEngine.getAuthMethod(),
 						engine.isMine());
 					}
 				});
@@ -284,9 +285,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							Map params = new HashMap();
 							params.put("cookieNames", cookieNames);
 							params.put("currentCookie",cookies);
+							params.put("cookieMethod", window.proxyCaptureModeRequired()?WebEngine.AM_PROXY:WebEngine.AM_TRANSPARENT );
 							sendBrowserMessage("metasearch", "setCookies", params );
 						};
-						},url, url,true,true);
+						}, 
+						url, 
+						url,
+						true,
+						WebEngine.AM_PROXY,
+						true );
 				}
 			});
 			
@@ -1564,6 +1571,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							webEngine.getName(),
 							webEngine.getLoginPageUrl(),
 							false,
+							webEngine.getAuthMethod(),
 							subs.isMine());
 						}
 					});

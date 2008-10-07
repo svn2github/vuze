@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformMetaSearchMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.FieldMapping;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.regex.RegexEngine;
 import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -189,6 +190,7 @@ MetaSearchImpl
 					name, 
 					url.toExternalForm(), 
 					false,
+					WebEngine.AM_TRANSPARENT,
 					null,
 					new String[0] );
 		
@@ -1069,6 +1071,7 @@ MetaSearchImpl
 						new FieldMapping("10",Engine.FIELD_PEERS),
 						},
 					false,
+					WebEngine.AM_TRANSPARENT,
 					"",
 					new String[] {""} );
 					

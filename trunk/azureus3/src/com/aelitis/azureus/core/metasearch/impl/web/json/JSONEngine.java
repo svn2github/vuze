@@ -92,6 +92,7 @@ JSONEngine
 		String 				resultsEntryPath,
 		FieldMapping[] 		mappings,
 		boolean				needs_auth,
+		String				auth_method,
 		String				login_url,
 		String[]			required_cookies )
 	{
@@ -106,6 +107,7 @@ JSONEngine
 				userDateFormat,
 				mappings,
 				needs_auth,
+				auth_method,
 				login_url,
 				required_cookies );		
 		

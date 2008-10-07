@@ -20,6 +20,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.util.http.HTTPSniffingProxy;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -37,7 +38,17 @@ public class ExternalLoginWindow {
 	
 	HTTPSniffingProxy	sniffer;
 	
-	public ExternalLoginWindow(final ExternalLoginListener listener,String name, final String loginUrl,boolean captureMode, boolean isMine ) {
+	public 
+	ExternalLoginWindow(
+		final ExternalLoginListener listener,
+		String name, 
+		final String _loginUrl,
+		boolean captureMode,
+		String	authMode,
+		boolean isMine ) 
+	{
+		originalLoginUrl = _loginUrl;
+
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
 			Shell mainShell = functionsSWT.getMainShell();
@@ -70,7 +81,6 @@ public class ExternalLoginWindow {
 				}
 			});
 		
-		originalLoginUrl = loginUrl;
 		
 		Label explain = new Label(shell,SWT.WRAP);
 		if(captureMode) {
@@ -90,9 +100,7 @@ public class ExternalLoginWindow {
 		},browser);
 		
 		cookieListener.hook();
-		
-		browser.setUrl(loginUrl);
-		
+				
 		Label separator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
 		
 		Button alt_method = null;
@@ -103,53 +111,20 @@ public class ExternalLoginWindow {
 			
 			final Button f_alt_method = alt_method;
 			
-			alt_method.setText(MessageText.getString("externalLogin.alt_method"));
+			alt_method.setText(MessageText.getString("externalLogin.auth_method_proxy"));
+			
+			alt_method.setSelection( authMode == WebEngine.AM_PROXY );
 			
 			alt_method.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event arg0) {
 	
-					if ( f_alt_method.getSelection()){
-						
-						if ( sniffer != null ){
-							
-							sniffer.destroy();
-						}
-						
-						try{
-							sniffer = new HTTPSniffingProxy( new URL( loginUrl ));
-								
-							String str = originalLoginUrl.toString();
-							
-							int	pos = str.indexOf( "://" );
-							
-							str = str.substring( pos+3 );
-							
-							pos = str.indexOf( "/" );
-							
-							if ( pos != -1 ){
-								
-								str = str.substring( pos );
-							}
-							
-							if ( !str.startsWith( "/" )){
-								
-								str  = "/" + str;
-							}
-							
-							browser.setUrl( "http://localhost:" + sniffer.getPort() + str );
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace( e );
-						}
-					}else{
-						
-						browser.setUrl( originalLoginUrl );
-					}
+					setCaptureMethod( browser, !f_alt_method.getSelection());
 				}
 			});
 		}
 		
+		setCaptureMethod( browser, authMode == WebEngine.AM_TRANSPARENT );
+				
 		Button cancel = new Button(shell,SWT.PUSH);
 		cancel.setText(MessageText.getString("Button.cancel"));
 		
@@ -221,8 +196,55 @@ public class ExternalLoginWindow {
 		shell.open();
 	}
 	
+	protected void
+	setCaptureMethod(
+		Browser		browser,
+		boolean		transparent )
+	{
+		if ( sniffer != null ){
+			
+			sniffer.destroy();
+			
+			sniffer = null;
+		}
+		
+		if ( transparent ){
+			
+			browser.setUrl( originalLoginUrl );
+
+		}else{
+				
+			try{
+				sniffer = new HTTPSniffingProxy( new URL( originalLoginUrl ));
+					
+				String str = originalLoginUrl.toString();
+				
+				int	pos = str.indexOf( "://" );
+				
+				str = str.substring( pos+3 );
+				
+				pos = str.indexOf( "/" );
+				
+				if ( pos != -1 ){
+					
+					str = str.substring( pos );
+				}
+				
+				if ( !str.startsWith( "/" )){
+					
+					str  = "/" + str;
+				}
+				
+				browser.setUrl( "http://localhost:" + sniffer.getPort() + str );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+	}
 	public boolean
-	altCaptureModeRequired()
+	proxyCaptureModeRequired()
 	{
 		return( sniffer != null && sniffer.wasHTTPOnlyCookieDetected());
 	}
@@ -263,7 +285,11 @@ public class ExternalLoginWindow {
 						System.out.println( "Done" );
 					}
 				},
-				"test","http://waffles.fm/login.php",false,true);
+				"test",
+				"http://www.google.com/",
+				false,
+				WebEngine.AM_PROXY,
+				true );
 		
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
@@ -271,7 +297,7 @@ public class ExternalLoginWindow {
 			}
 		}
 		
-		System.out.println( "Found httponly cookies=" + slw.altCaptureModeRequired());
+		System.out.println( "Found httponly cookies=" + slw.proxyCaptureModeRequired());
 	}
 
 }

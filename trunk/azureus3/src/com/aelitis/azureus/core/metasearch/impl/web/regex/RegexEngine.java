@@ -90,6 +90,7 @@ RegexEngine
 		String 				userDateFormat,
 		FieldMapping[] 		mappings,
 		boolean				needs_auth,
+		String				auth_method,
 		String				login_url,
 		String[]			required_cookies )
 	{
@@ -104,6 +105,7 @@ RegexEngine
 				userDateFormat, 
 				mappings,
 				needs_auth,
+				auth_method,
 				login_url,
 				required_cookies );		
 

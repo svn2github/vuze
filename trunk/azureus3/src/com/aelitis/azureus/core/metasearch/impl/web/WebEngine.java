@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -51,6 +50,8 @@ public abstract class
 WebEngine 
 	extends EngineImpl 
 {
+	public static final String	AM_TRANSPARENT 	= "transparent";
+	public static final String	AM_PROXY		= "proxy";
 	
 	static private final Pattern baseTagPattern = Pattern.compile("(?i)<base.*?href=\"([^\"]+)\".*?>");
 	static private final Pattern rootURLPattern = Pattern.compile("(https?://[^/]+)");
@@ -71,6 +72,7 @@ WebEngine
 	private DateParser dateParser;
 	
 	private boolean needsAuth;
+	private String	authMethod;
 	private String loginPageUrl;
 	private String[] requiredCookies;
 	
@@ -92,6 +94,7 @@ WebEngine
 		String 			userDateFormat, 
 		FieldMapping[] 	mappings,
 		boolean			needs_auth,
+		String			auth_method,
 		String			login_url,
 		String[]		required_cookies )
 	{	
@@ -103,6 +106,7 @@ WebEngine
 		this.userDateFormat 		= userDateFormat;
 		this.mappings				= mappings;
 		this.needsAuth				= needs_auth;
+		this.authMethod				= auth_method;
 		this.loginPageUrl			= login_url;
 		this.requiredCookies		= required_cookies;
 		
@@ -126,6 +130,7 @@ WebEngine
 		downloadLinkCSS		= ImportExportUtils.importString( map, "web.dl_link_css" );
 		
 		needsAuth			= ImportExportUtils.importBoolean(map, "web.needs_auth", false );
+		authMethod			= ImportExportUtils.importString( map, "web.auth_method", WebEngine.AM_TRANSPARENT );
 		loginPageUrl 		= ImportExportUtils.importString( map, "web.login_page" );
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "web.required_cookies" );
 
@@ -162,6 +167,7 @@ WebEngine
 		ImportExportUtils.exportString( map, "web.dl_link_css",				downloadLinkCSS );
 		
 		ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
+		ImportExportUtils.exportString( map, "web.auth_method",				authMethod );
 		ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
 		ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
 
@@ -206,6 +212,7 @@ WebEngine
 
 		
 		needsAuth			= ImportExportUtils.importBoolean( map, "needs_auth", false );
+		authMethod			= ImportExportUtils.importString( map, "auth_method", WebEngine.AM_TRANSPARENT );
 		loginPageUrl 		= ImportExportUtils.importURL( map, "login_page" );
 		
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "required_cookies" );
@@ -278,6 +285,7 @@ WebEngine
 		}
 		
 		ImportExportUtils.exportJSONBoolean( res, "needs_auth",				needsAuth );
+		ImportExportUtils.exportJSONString( res, "auth_method",				authMethod );
 		ImportExportUtils.exportJSONURL( res, "login_page",					loginPageUrl );
 		ImportExportUtils.exportJSONStringArray( res, "required_cookies",	requiredCookies );
  
@@ -348,6 +356,10 @@ WebEngine
 		this.dateParser = new DateParserRegex(timeZone,automaticDateParser,userDateFormat);
 		
 		local_cookies = getLocalString( LD_COOKIES );
+		
+			// normalise to permit == to be safely used when testing method
+		
+		authMethod = authMethod.intern();
 	}
 	
 	public String 
@@ -846,6 +858,12 @@ WebEngine
 		return needsAuth;
 	}
 
+	public String
+	getAuthMethod()
+	{
+		return( authMethod );
+	}
+	
 	public String getCookies() {
 		return local_cookies;
 	}
