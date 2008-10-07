@@ -117,8 +117,26 @@ public class ExternalLoginWindow {
 						
 						try{
 							sniffer = new HTTPSniffingProxy( new URL( loginUrl ));
-														
-							browser.setUrl( "http://localhost:" + sniffer.getPort() + "/" );
+								
+							String str = originalLoginUrl.toString();
+							
+							int	pos = str.indexOf( "://" );
+							
+							str = str.substring( pos+3 );
+							
+							pos = str.indexOf( "/" );
+							
+							if ( pos != -1 ){
+								
+								str = str.substring( pos );
+							}
+							
+							if ( !str.startsWith( "/" )){
+								
+								str  = "/" + str;
+							}
+							
+							browser.setUrl( "http://localhost:" + sniffer.getPort() + str );
 							
 						}catch( Throwable e ){
 							
@@ -221,13 +239,39 @@ public class ExternalLoginWindow {
 		Display display = new Display();
 		ImageRepository.loadImages(display);
 		ExternalLoginWindow slw = 
-			new ExternalLoginWindow(null,"test","http://hdbits.org/login.php",false,true);
+			new ExternalLoginWindow(
+				new ExternalLoginListener()
+				{
+					public void 
+					cookiesFound(
+						ExternalLoginWindow window,String cookies)
+					{
+						System.out.println( "Cookies found: " + cookies );
+					}
+					
+					public void 
+					canceled(
+						ExternalLoginWindow window)
+					{
+						System.out.println( "Cancelled" );
+					}
+					
+					public void 
+					done(
+						ExternalLoginWindow window,String cookies)
+					{
+						System.out.println( "Done" );
+					}
+				},
+				"test","http://waffles.fm/login.php",false,true);
+		
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
 		
+		System.out.println( "Found httponly cookies=" + slw.altCaptureModeRequired());
 	}
 
 }
