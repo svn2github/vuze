@@ -44,11 +44,12 @@ public class ColumnDateSizer
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	private static int PADDING = 10;
 	int curFormat = 0;
 
-	int maxWidthUsed = 0;
+	int[] maxWidthUsed = new int[TimeFormatter.DATEFORMATS_DESC.length];
 
-	Date maxWidthDate = new Date();
+	Date[] maxWidthDate = new Date[TimeFormatter.DATEFORMATS_DESC.length];
 
 	private boolean showTime = true;
 
@@ -76,7 +77,13 @@ public class ColumnDateSizer
 			public void selected(MenuItem menu, Object target) {
 				showTime = !showTime;
 				setUserData("showTime", new Boolean(showTime));
-				recalcWidth();
+				maxWidthUsed = new int[TimeFormatter.DATEFORMATS_DESC.length];
+				maxWidthDate = new Date[TimeFormatter.DATEFORMATS_DESC.length];
+				curFormat = -1;
+				recalcWidth(new Date());
+				if (curFormat < 0) {
+					curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
+				}
 			}
 		});
 	}
@@ -106,10 +113,15 @@ public class ColumnDateSizer
 
 			int newWidth = calcWidth(date, TimeFormatter.DATEFORMATS_DESC[curFormat]
 					+ suffix);
-			if (newWidth > maxWidthUsed) {
-				maxWidthUsed = newWidth;
-				maxWidthDate = date;
-				recalcWidth();
+
+			//SimpleDateFormat temp2 = new SimpleDateFormat(TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix + (showTime && multiline ? "\nh:mm a" : ""));
+			//System.out.println(curFormat + ":newWidth=" +  newWidth + ":max=" + maxWidthUsed[curFormat] + ":cell=" + cell.getWidth() + "::" + temp2.format(date));
+			if (newWidth > cell.getWidth() - PADDING) {
+				if (newWidth > maxWidthUsed[curFormat]) {
+					maxWidthUsed[curFormat] = newWidth;
+					maxWidthDate[curFormat] = date;
+				}
+				recalcWidth(date);
 			}
 
 			String s = TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix;
@@ -127,16 +139,22 @@ public class ColumnDateSizer
 		if (oldWidth == width) {
 			return;
 		}
-		recalcWidth();
+		if (maxWidthDate != null) {
+			if (maxWidthDate[curFormat] == null) {
+				maxWidthDate[curFormat] = new Date();
+			}
+			recalcWidth(maxWidthDate[curFormat]);
+		}
 	}
 
-	public void recalcWidth() {
+	public void recalcWidth(Date date) {
 		String suffix = showTime && !multiline ? " hh:mm a" : "";
 
 		int width = getWidth();
 
 		if (maxWidthDate == null) {
-			maxWidthDate = new Date();
+			maxWidthUsed = new int[TimeFormatter.DATEFORMATS_DESC.length];
+			maxWidthDate = new Date[TimeFormatter.DATEFORMATS_DESC.length];
 		}
 
 		int idxFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
@@ -155,12 +173,18 @@ public class ColumnDateSizer
 		try {
 			Point minSize = new Point(99999, 0);
 			for (int i = 0; i < TimeFormatter.DATEFORMATS_DESC.length; i++) {
+				if (maxWidthUsed[i] > width - PADDING) {
+					continue;
+				}
 				SimpleDateFormat temp = new SimpleDateFormat(
 						TimeFormatter.DATEFORMATS_DESC[i] + suffix);
-				Point newSize = gc.stringExtent(temp.format(maxWidthDate));
-				maxWidthUsed = newSize.x;
-				if (newSize.x < width - 6) {
+				Point newSize = gc.stringExtent(temp.format(date));
+				if (newSize.x < width - PADDING) {
 					idxFormat = i;
+					if (maxWidthUsed[i] < newSize.x) {
+						maxWidthUsed[i] = newSize.x;
+						maxWidthDate[i] = date;
+					}
 					break;
 				}
 				if (newSize.x < minSize.x) {
@@ -175,6 +199,7 @@ public class ColumnDateSizer
 		}
 
 		if (curFormat != idxFormat) {
+			//System.out.println("switch fmt to " + idxFormat + ", max=" + maxWidthUsed[idxFormat]);
 			curFormat = idxFormat;
 			invalidateCells();
 		}
@@ -191,8 +216,7 @@ public class ColumnDateSizer
 			fontBold = new Font(gc.getDevice(), fontData);
 		}
 		gc.setFont(fontBold);
-		SimpleDateFormat temp = new SimpleDateFormat(
-				TimeFormatter.DATEFORMATS_DESC[curFormat]);
+		SimpleDateFormat temp = new SimpleDateFormat(format);
 		Point newSize = gc.stringExtent(temp.format(date));
 		gc.dispose();
 		return newSize.x;
