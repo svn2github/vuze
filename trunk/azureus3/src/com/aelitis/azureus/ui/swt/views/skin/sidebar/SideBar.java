@@ -803,16 +803,24 @@ public class SideBar
 			if (bgSel != null) {
 				gc.setBackground(bgSel);
 			}
+			Color color1;
+			Color color2;
 			if (tree.isFocusControl()) {
-				gc.setForeground(ColorCache.getColor(gc.getDevice(), "#166688"));
-				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#1c2458"));
+				color1 = ColorCache.getColor(gc.getDevice(), "#166688");
+				color2 = ColorCache.getColor(gc.getDevice(), "#1c2458");
 			} else {
-				gc.setForeground(ColorCache.getColor(gc.getDevice(), "#809da7"));
-				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#686d87"));
+				color1 = ColorCache.getColor(gc.getDevice(), "#809da7");
+				color2 = ColorCache.getColor(gc.getDevice(), "#686d87");
 			}
 
-			gc.fillGradientRectangle(event.x, itemBounds.y, event.width,
-					itemBounds.height, true);
+			gc.setBackground(color1);
+			gc.fillRectangle(event.x, itemBounds.y, event.width,
+					3);
+
+			gc.setForeground(color1);
+			gc.setBackground(color2);
+			gc.fillGradientRectangle(event.x, itemBounds.y + 3, event.width,
+					itemBounds.height - 3, true);
 		} else {
 			if (fg != null) {
 				fgText = fg;
