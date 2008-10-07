@@ -35,12 +35,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.gudy.azureus2.core3.security.SESecurityManager;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.ThreadPool;
-
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 HTTPSniffingProxy 
@@ -508,6 +503,9 @@ HTTPSniffingProxy
 							}
 							
 							target_os.write( buffer, 0, len );
+							
+							// System.out.println( "POST:" + new String( buffer, 0, len ));
+							
 						}
 					}catch( Throwable e ){
 					}
@@ -608,7 +606,7 @@ HTTPSniffingProxy
 						
 						for (int j=0;j<x.length;j++){
 							
-							String entry = x[j];
+							String entry = x[j].trim();
 							
 							if ( entry.equalsIgnoreCase( "httponly" )){
 								
@@ -629,7 +627,7 @@ HTTPSniffingProxy
 						line_out = "Connection: close";
 						
 					}else if ( lhs.equals( "location" )){
-												
+						
 						String page = line_out.substring( line_out.indexOf( ':' )+1).trim();
 						
 						String child_url = page.trim();
@@ -818,7 +816,7 @@ HTTPSniffingProxy
 				StringBuffer	result 	= null;
 				int				str_pos	= 0;
 				
-				FileUtil.writeBytesAsFile( "C:\\temp\\xxx" + new Random().nextInt(100000) + ".txt", str.getBytes());
+				// FileUtil.writeBytesAsFile( "C:\\temp\\xxx" + new Random().nextInt(100000) + ".txt", str.getBytes());
 				
 				while( true ){
 					
@@ -850,12 +848,12 @@ HTTPSniffingProxy
 							
 							char c = lc_str.charAt(i);
 							
-							if ( c == '/' || i == lc_str.length()-1 ){
+							if ( c == '/' ){
 							
-								url_end = i;
+								url_end = i+1;
 								
 								break;
-								
+																
 							}else if ( c == '.' || c == '-' || c == ':' ){
 								
 							}else if ( c >= '0' && c <= '9' ){
@@ -868,48 +866,74 @@ HTTPSniffingProxy
 								
 								break;
 							}
+							
+							if ( i == lc_str.length()-1 ){
+
+								url_end = i;
+							}
 						}
 						
 						if ( url_end > url_start ){
 							
-							String 	url_str = str.substring( url_start, url_end+1 );
+							String 	url_str = str.substring( url_start, url_end );
 							
 							boolean	appended = false;
 							
-							try{								
-								HTTPSniffingProxy child = getChild( url_str, true );
+							try{	
+									// make sure vald URL
 								
-								if ( child != null ){
+								URL url = new URL( url_str );
+								
+								if ( url.getHost().length() > 0 ){
+								
+									boolean	existing_only = true;
 									
-									String replacement = "http://127.0.0.1:" + child.getPort();
+										// override if form action
 									
-									if ( url_str.endsWith( "/" )){
+									for (int i=url_start-1;i>=0&&url_start-i<512;i--){
 										
-										replacement += "/";
-									}
-									
-									if ( result == null ){
-										
-										result = new StringBuffer( str.length());
-										
-										if ( url_start > 0 ){
+										if ( lc_str.charAt( i ) == '<' ){
 											
-											result.append( str.subSequence( 0, url_start ));
+											if ( lc_str.substring(i, url_start).indexOf( "form" ) != -1 ){
+												
+												existing_only = false;
+											}
 										}
-									}else if ( url_start > str_pos ){
-										
-										result.append( str.subSequence( str_pos, url_start ));
 									}
+									HTTPSniffingProxy child = getChild(  url_str, existing_only );
 									
-									// System.out.println( "Replacing " + url_str + " with " + replacement );
-									
-									result.append( replacement );
-									
-									appended = true;
-									
-								}else{
-									
-									// System.out.println( "    Not child for " + url_str );
+									if ( child != null ){
+										
+										String replacement = "http://127.0.0.1:" + child.getPort();
+										
+										if ( url_str.endsWith( "/" )){
+											
+											replacement += "/";
+										}
+										
+										if ( result == null ){
+											
+											result = new StringBuffer( str.length());
+											
+											if ( url_start > 0 ){
+												
+												result.append( str.subSequence( 0, url_start ));
+											}
+										}else if ( url_start > str_pos ){
+											
+											result.append( str.subSequence( str_pos, url_start ));
+										}
+										
+										// System.out.println( "Replacing " + url_str + " with " + replacement );
+										
+										result.append( replacement );
+										
+										appended = true;
+										
+									}else{
+										
+										// System.out.println( "    Not child for " + url_str );
+									}
 								}
 							}catch( Throwable e ){
 								
@@ -917,10 +941,10 @@ HTTPSniffingProxy
 							
 							if ( result != null && !appended ){
 								
-								result.append( str.subSequence( str_pos, url_end+1 ));
+								result.append( str.subSequence( str_pos, url_end ));
 							}
 							
-							str_pos = url_end+1;
+							str_pos = url_end;
 							
 						}else{
 							
