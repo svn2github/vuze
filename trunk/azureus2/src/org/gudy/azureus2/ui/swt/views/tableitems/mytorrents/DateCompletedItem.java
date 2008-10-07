@@ -75,14 +75,25 @@ public class DateCompletedItem
 				long eta = dm.getStats().getETA();
 				if (eta > 0) {
 					String sETA = TimeFormatter.format(eta);
-					value = -eta;
+					value = eta << 42;
+					if (value < 0) {
+						value = Long.MAX_VALUE;
+					}
 					cell.setText(MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
 								sETA
 							}));
+				} else {
+					value = SystemTime.getCurrentTime() + 1;
 				}
+			} else {
+				value = SystemTime.getCurrentTime();
 			}
+
 			cell.invalidate();
+
+			cell.setSortValue(value);
+			return;
 		}
 
 		super.refresh(cell, value);
