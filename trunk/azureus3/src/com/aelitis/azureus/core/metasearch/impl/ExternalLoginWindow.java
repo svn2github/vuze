@@ -1,5 +1,7 @@
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.net.URL;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.DisposeEvent;
@@ -114,7 +116,7 @@ public class ExternalLoginWindow {
 						}
 						
 						try{
-							sniffer = new HTTPSniffingProxy( loginUrl );
+							sniffer = new HTTPSniffingProxy( new URL( loginUrl ));
 														
 							browser.setUrl( "http://localhost:" + sniffer.getPort() + "/" );
 							
