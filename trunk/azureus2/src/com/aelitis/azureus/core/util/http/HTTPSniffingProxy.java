@@ -410,6 +410,18 @@ HTTPSniffingProxy
 			
 			String[]	request_lines = splitHeader( request_header );
 			
+			String target_url = request_lines[0];
+			
+			int	space_pos = target_url.indexOf(' ');
+			
+			target_url = target_url.substring( space_pos ).trim();
+			
+			space_pos = target_url.indexOf(' ');
+			
+			target_url = target_url.substring( 0, space_pos ).trim();
+
+			trace( "Page request for " + target_url );
+			
 			for (int i=0;i<request_lines.length;i++){
 				
 				String	line_out	= request_lines[i];
@@ -618,6 +630,12 @@ HTTPSniffingProxy
 								
 							}else if ( entry.toLowerCase().startsWith( "domain" )){
 								
+									// remove domain restriction so cookie sent to localhost
+								
+							}else if ( entry.toLowerCase().startsWith( "expires" )){
+								
+									// force to be session cookie otherwise we'll end up sending
+									// cookies from multiple sites to 'localhost'
 							}else{
 								
 								modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
@@ -626,6 +644,36 @@ HTTPSniffingProxy
 						
 						line_out = "Set-Cookie: " + modified_cookie;
 						
+					}else if ( lhs.equals( "set-cookie2" )){
+						
+							// http://www.ietf.org/rfc/rfc2965.txt
+						
+						String	cookie = line_out.substring( line_out.indexOf( ':' )+1 );
+						
+						String[]	x = cookie.split( ";" );
+						
+						String	modified_cookie = "";
+						
+						for (int j=0;j<x.length;j++){
+							
+							String entry = x[j].trim();
+							
+							if ( entry.equalsIgnoreCase( "secure" )){
+								
+							}else if ( entry.equalsIgnoreCase( "discard" )){
+
+							}else if ( entry.toLowerCase().startsWith( "domain" )){
+																								
+							}else if ( entry.toLowerCase().startsWith( "port" )){
+								
+							}else{
+								
+								modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
+							}
+						}
+						
+						line_out = "Set-Cookie2: " + modified_cookie + "; Discard";
+
 					}else if ( lhs.equals( "connection" )){
 						
 						line_out = "Connection: close";
@@ -642,6 +690,8 @@ HTTPSniffingProxy
 						
 						if ( pos >= 0 ){
 							
+								// absolute 
+							
 							page = page.substring( pos + 3);
 						
 							pos = page.indexOf( '/' );
@@ -656,9 +706,46 @@ HTTPSniffingProxy
 							}
 						}else{
 							
+								// relative. actually illegal as must be absolute
+							
 							if ( !page.startsWith( "/" )){
 								
-								page = "/" + page;
+								String	temp = target_url;
+								
+								int marker = temp.indexOf( "://" );
+								
+								if ( marker != -1 ){
+									
+										// strip out absolute part
+									
+									temp = temp.substring( marker + 3 );
+									
+									marker = temp.indexOf( "/" );
+									
+									if ( marker == -1 ){
+										
+										temp = "/";
+										
+									}else{
+										
+										temp = temp.substring( marker );
+									}
+								}else{
+									
+									if ( !temp.startsWith( "/" )){
+										
+										temp = "/" + temp;
+									}
+								}
+								
+								marker = temp.lastIndexOf( "/" );
+								
+								if ( marker >= 0 ){
+									
+									temp = temp.substring( 0, marker+1 );
+								}
+								
+								page = temp + page;
 							}
 						}
 						
@@ -936,7 +1023,7 @@ HTTPSniffingProxy
 										
 									}else{
 										
-										trace( "    Not child for " + url_str );
+										trace( "    No child for " + url_str );
 									}
 								}
 							}catch( Throwable e ){
