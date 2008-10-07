@@ -37,10 +37,9 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -68,9 +67,11 @@ public class SBC_LibraryTableView
 	private IView view;
 
 	private Composite viewComposite;
+	
+	private TableViewSWT tv;
 
 	protected int torrentFilterMode = SBC_LibraryView.TORRENTS_ALL;
-
+	
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
 		SWTSkinObject soParent = skinObject.getParent();
@@ -161,9 +162,17 @@ public class SBC_LibraryTableView
 			}
 		}
 		
+		if (tv == null) {
+			if (view instanceof TableViewTab) {
+				TableViewTab tvt = (TableViewTab) view;
+				tv = tvt.getTableView();
+			} else if (view instanceof TableViewSWT) {
+				tv = (TableViewSWT) view;
+			}
+		}
+		
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL
-				&& (view instanceof TableViewTab)) {
-			TableViewSWT tv = ((TableViewTab)view).getTableView();
+				&& tv != null) {
 			tv.addRefreshListener(new TableRowRefreshListener() {
 				public void rowRefresh(TableRow row) {
 					TableRowSWT rowCore = (TableRowSWT)row;
@@ -264,9 +273,21 @@ public class SBC_LibraryTableView
 			}
 		}
 
+		if (view instanceof MyTorrentsView) {
+			((MyTorrentsView)view).updateSelectedContent();
+		}
+		
 		updateUI();
 
 		return null;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		if (view instanceof MyTorrentsView) {
+			((MyTorrentsView)view).updateSelectedContent();
+		}
+		return super.skinObjectHidden(skinObject, params);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)

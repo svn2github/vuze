@@ -190,8 +190,8 @@ public class SideBar
 			public void widgetDisposed(DisposeEvent e) {
 				TreeItem treeItem = (TreeItem) e.widget;
 				String id = (String) treeItem.getData("Plugin.viewID");
-				
-				listTreeItemsNoTitleInfo.remove(treeItem);				
+
+				listTreeItemsNoTitleInfo.remove(treeItem);
 
 				//TreeItem currentItem = treeItem.getParent().getSelection()[0];
 
@@ -313,7 +313,7 @@ public class SideBar
 		});
 	}
 	*/
-	
+
 	/**
 	 * 
 	 *
@@ -411,6 +411,7 @@ public class SideBar
 
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
+
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
 
@@ -473,10 +474,11 @@ public class SideBar
 							}
 							treeItem = tree.getItem(new Point(indent, y));
 						}
-						
+
 						if (tree.getTopItem() != lastTopItem) {
 							lastTopItem = tree.getTopItem();
-							SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToSideBarInfo.values().toArray(new SideBarEntrySWT[0]);
+							SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToSideBarInfo.values().toArray(
+									new SideBarEntrySWT[0]);
 							updateSideBarHitAreasY(sideBarEntries);
 						}
 
@@ -568,7 +570,7 @@ public class SideBar
 						}
 						break;
 					}
-					
+
 				}
 			}
 		};
@@ -586,7 +588,7 @@ public class SideBar
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
-		
+
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
 
@@ -759,15 +761,17 @@ public class SideBar
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
 						currentSideBarEntry
 					}));
-			
-			if ( currentSideBarEntry.datasource instanceof DownloadManager ){
-				
-				DownloadManager[] downloads = new DownloadManager[]{(DownloadManager)currentSideBarEntry.datasource };
-				
-				org.eclipse.swt.widgets.MenuItem mi = MenuFactory.createTorrentMenuItem( menuTree );
-				
-				mi.setData( "downloads", downloads );
-				mi.setData( "is_detailed_view", new Boolean( true ));
+
+			if (currentSideBarEntry.datasource instanceof DownloadManager) {
+
+				DownloadManager[] downloads = new DownloadManager[] {
+					(DownloadManager) currentSideBarEntry.datasource
+				};
+
+				org.eclipse.swt.widgets.MenuItem mi = MenuFactory.createTorrentMenuItem(menuTree);
+
+				mi.setData("downloads", downloads);
+				mi.setData("is_detailed_view", new Boolean(true));
 			}
 		}
 	}
@@ -814,8 +818,7 @@ public class SideBar
 			}
 
 			gc.setBackground(color1);
-			gc.fillRectangle(event.x, itemBounds.y, event.width,
-					3);
+			gc.fillRectangle(event.x, itemBounds.y, event.width, 3);
 
 			gc.setForeground(color1);
 			gc.setBackground(color2);
@@ -949,11 +952,11 @@ public class SideBar
 				x0IndicatorOfs += 30 - 18;
 			}
 		}
-		
-//		gc.setAdvanced(true);
-//		gc.setTextAntialias(SWT.ON);
-//		gc.setAntialias(SWT.ON);
-//		gc.setInterpolation(SWT.HIGH);
+
+		//		gc.setAdvanced(true);
+		//		gc.setTextAntialias(SWT.ON);
+		//		gc.setAntialias(SWT.ON);
+		//		gc.setInterpolation(SWT.HIGH);
 
 		if (treeItem.getParentItem() == null) {
 			gc.setFont(fontHeader);
@@ -1027,7 +1030,8 @@ public class SideBar
 			if (sideBarInfo.closeable) {
 				Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 				if (closeArea != null) {
-					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height) / 2;
+					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height)
+							/ 2;
 				}
 			}
 
@@ -1127,7 +1131,7 @@ public class SideBar
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
 		entry.setImageLeftID("image.sidebar.subscriptions");
-		
+
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 
 		if (SHOW_TOOLS) {
@@ -1550,8 +1554,13 @@ public class SideBar
 			tree.showItem(treeItem);
 			tree.select(treeItem);
 		}
+
 		final String id = (String) treeItem.getData("Plugin.viewID");
 		SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
+
+		if (currentSideBarEntry == newSideBarInfo) {
+			return;
+		}
 
 		// We'll have an iview if we've previously created one
 		IView newIView = newSideBarInfo.iview;

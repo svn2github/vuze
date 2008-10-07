@@ -472,7 +472,7 @@ public class ToolBarView
 			}
 			item = getToolBarItem("remove");
 			if (item != null) {
-				item.setEnabled(true);
+				item.setEnabled(hasSelection);
 			}
 		} else if (currentContent.length > 0) {
 			for (int i = 0; i < currentContent.length; i++) {
