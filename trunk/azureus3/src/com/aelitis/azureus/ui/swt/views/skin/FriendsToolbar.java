@@ -57,6 +57,7 @@ public class FriendsToolbar
 {
 
 	private Label friendsLabel;
+	private Label friendsCountLabel;
 	
 	private Label onlineFriendsLabel;
 
@@ -78,7 +79,9 @@ public class FriendsToolbar
 
 	private int toolbarHeight = 45;
 	
-	private Color textColor;
+	private Color friendsTextColor;
+	private Color numberOfFriendsTextColor;
+	private Color secondaryTextColor;
 	private Color hoverTextColor;
 	private Font boldFont;
 	private Font friendsFont;
@@ -139,7 +142,7 @@ public class FriendsToolbar
 					break;
 
 				case SWT.MouseExit:
-						control.setForeground(textColor);
+						control.setForeground(secondaryTextColor);
 					break;
 				}
 			}
@@ -173,8 +176,10 @@ public class FriendsToolbar
 		
 		friendsFont = new Font(content.getDisplay(),datas);
 		
-		textColor = new Color(content.getDisplay(),49,52,60);
-		hoverTextColor = new Color(content.getDisplay(),144,166,181);
+		friendsTextColor = new Color(content.getDisplay(),49,52,60);
+		numberOfFriendsTextColor = new Color(content.getDisplay(),77,77,77);
+		secondaryTextColor = new Color(content.getDisplay(),51,63,79);
+		hoverTextColor = new Color(content.getDisplay(),42,63,113);
 		
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, 0);
@@ -223,11 +228,16 @@ public class FriendsToolbar
 		
 		friendsLabel = new Label(content, SWT.NONE);
 		friendsLabel.setFont(friendsFont);
-		friendsLabel.setForeground(textColor);
+		friendsLabel.setForeground(friendsTextColor);
+		friendsLabel.setText(MessageText.getString("v3.buddies.friends"));
+		
+		friendsCountLabel = new Label(content, SWT.NONE);
+		friendsCountLabel.setFont(friendsFont);
+		friendsCountLabel.setForeground(numberOfFriendsTextColor);
 		
 		onlineFriendsLabel = new Label(content, SWT.NONE);
 		onlineFriendsLabel.setFont(boldFont);
-		onlineFriendsLabel.setForeground(textColor);
+		onlineFriendsLabel.setForeground(secondaryTextColor);
 		
 		showHideButton = new Label(content, SWT.NONE);
 		showHideButton.setData("over",new Boolean(false));
@@ -261,9 +271,14 @@ public class FriendsToolbar
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,8);
-		data.right = new FormAttachment(showHideButton,-5);
 		data.top = new FormAttachment(0,6);
 		friendsLabel.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(friendsLabel,2);
+		data.right = new FormAttachment(showHideButton,-5);
+		data.top = new FormAttachment(0,6);
+		friendsCountLabel.setLayoutData(data);
 		
 		data = new FormData();
 		data.right = new FormAttachment(100,-8);
@@ -272,6 +287,7 @@ public class FriendsToolbar
 
 		hookTuxGoodies(friendsLabel);
 
+		
 		/*
 		 * Initial Friends count
 		 */
@@ -376,7 +392,7 @@ public class FriendsToolbar
 
 		edit = new Label(content, SWT.PUSH);
 		edit.setFont(boldFont);
-		edit.setForeground(textColor);
+		edit.setForeground(secondaryTextColor);
 		edit.setCursor(content.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		edit.addListener(SWT.MouseEnter, hoverListener);
 		edit.addListener(SWT.MouseExit, hoverListener);
@@ -413,7 +429,7 @@ public class FriendsToolbar
 
 		addFriends = new Label(content, SWT.NONE);
 		addFriends.setFont(boldFont);
-		addFriends.setForeground(textColor);
+		addFriends.setForeground(secondaryTextColor);
 		addFriends.setCursor(content.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		addFriends.addListener(SWT.MouseEnter, hoverListener);
 		addFriends.addListener(SWT.MouseExit, hoverListener);
@@ -426,7 +442,7 @@ public class FriendsToolbar
 		
 		Label separator = new Label(content,SWT.NONE);
 		separator.setFont(boldFont);
-		separator.setForeground(textColor);
+		separator.setForeground(secondaryTextColor);
 		separator.setText("/");
 		
 		FormData data;
@@ -477,7 +493,7 @@ public class FriendsToolbar
 
 		text = new Label(shareWithAllPanel, SWT.NONE);
 		text.setFont(boldFont);
-		text.setForeground(textColor);
+		text.setForeground(secondaryTextColor);
 		text.setText(MessageText.getString("v3.Share.add.buddy.all"));
 		
 		
@@ -548,10 +564,7 @@ public class FriendsToolbar
 			if(buddy.isOnline(true)) onlineBuddies++;
 		}
 		
-		friendsLabel.setText(MessageText.getString("v3.buddies.count",
-				new String[] {
-					buddies.size() + ""
-				}));
+		friendsCountLabel.setText("(" + buddies.size() + ")");
 		
 		onlineFriendsLabel.setText(MessageText.getString("v3.buddies.online",
 				
