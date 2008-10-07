@@ -193,32 +193,41 @@ HTTPSniffingProxy
 			return( parent.getChild( url_str,existing_only ));
 		}
 	
-		URL child_url = new URL( url_str );
+		String lc_url_str = url_str.toLowerCase();
 		
-		String	child_key = getKey( child_url );
-		
-		if ( child_key.equals( getKey( delegate_to ))){
+		if ( lc_url_str.startsWith( "http://" ) || lc_url_str.startsWith( "https://")){
+			
+			URL child_url = new URL( url_str );
+			
+			String	child_key = getKey( child_url );
+			
+			if ( child_key.equals( getKey( delegate_to ))){
+				
+				return( this );
+			}
+			
+			synchronized( this ){
+	
+				if ( destroyed ){
+					
+					throw( new Exception( "Destroyed" ));
+				}
+				
+				HTTPSniffingProxy child = (HTTPSniffingProxy)children.get( child_key );
+				
+				if ( child == null && !existing_only ){
+				
+					child = new HTTPSniffingProxy( this, new URL( url_str ));
+							
+					children.put( child_key, child );
+				}
+				
+				return( child );
+			}
+		}else{
+				//relative
 			
 			return( this );
-		}
-		
-		synchronized( this ){
-
-			if ( destroyed ){
-				
-				throw( new Exception( "Destroyed" ));
-			}
-			
-			HTTPSniffingProxy child = (HTTPSniffingProxy)children.get( child_key );
-			
-			if ( child == null && !existing_only ){
-			
-				child = new HTTPSniffingProxy( this, new URL( url_str ));
-						
-				children.put( child_key, child );
-			}
-			
-			return( child );
 		}
 	}
 
@@ -627,17 +636,28 @@ HTTPSniffingProxy
 						
 						HTTPSniffingProxy child = getChild( child_url, false );
 
-						page = page.substring( page.indexOf( "://") + 3);
-						
-						int pos = page.indexOf( '/' );
+						int	pos = page.indexOf( "://");
 						
 						if ( pos >= 0 ){
 							
-							page = page.substring( pos );
+							page = page.substring( pos + 3);
+						
+							pos = page.indexOf( '/' );
+						
+							if ( pos >= 0 ){
 							
+								page = page.substring( pos );
+							
+							}else{
+							
+								page = "/";
+							}
 						}else{
 							
-							page = "/";
+							if ( !page.startsWith( "/" )){
+								
+								page = "/" + page;
+							}
 						}
 						
 						line_out = "Location: http://127.0.0.1:" + child.getPort() + page;
@@ -1032,7 +1052,7 @@ HTTPSniffingProxy
 		String[]		args )
 	{
 		try{
-			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "https://www.google.com" ));
+			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://www.sf.net/" ));
 			
 			System.out.println( "port=" + proxy.getPort());
 			
