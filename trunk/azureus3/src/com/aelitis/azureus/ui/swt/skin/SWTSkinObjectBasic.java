@@ -314,12 +314,20 @@ public class SWTSkinObjectBasic
 				imageBG = images[1];
 				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
 			} else {
+				if (sSuffix.length() > 0) {
+					setBackground(sConfigID, "");
+				}
 				return;
 			}
 		} else {
 			if (s != null && painter != null) {
 				painter.dispose();
 				painter = null;
+			}
+			if (s == null) {
+				if (sSuffix.length() > 0) {
+					setBackground(sConfigID, "");
+				}
 			}
 			return;
 		}
@@ -612,6 +620,9 @@ public class SWTSkinObjectBasic
 			if (suffixes[i] != null) {
 				suffix += suffixes[i];
 			}
+		}
+		if (suffix.indexOf("-down-over") >= 0) {
+			return suffix.replaceAll("-down-over", "-down");
 		}
 		return suffix;
 	}
