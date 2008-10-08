@@ -92,8 +92,8 @@ public class FriendsToolbar
 	static {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch.png", "btn_collapse");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch_over.png", "btn_collapse_over");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png", "btn_expand");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/torrent_up.png", "btn_expand_over");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_show_notch.png", "btn_expand");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_show_notch_over.png", "btn_expand_over");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/friends_bg.png", "friends_bg");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share.png", "add_to_share");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share_selected.png", "add_to_share_selected");
@@ -341,7 +341,7 @@ public class FriendsToolbar
 		data.left = new FormAttachment(0,8);
 		data.right = new FormAttachment(edit,-5);
 		data.top = new FormAttachment(0,28);
-		onlineFriendsLabel.setLayoutData(data);
+		onlineFriendsLabel.setLayoutData(data);	
 		
 		/*
 		 * Initial state from configuration
