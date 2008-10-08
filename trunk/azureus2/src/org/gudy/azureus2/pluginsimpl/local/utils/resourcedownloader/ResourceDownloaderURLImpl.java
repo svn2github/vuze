@@ -281,7 +281,7 @@ ResourceDownloaderURLImpl
 								
 								setProperty( "URL_HTTP_Response", new Long( response ));
 
-								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+								throw( new ResourceDownloaderException("Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
 							getRequestProperties( con );
@@ -319,11 +319,11 @@ ResourceDownloaderURLImpl
 				
 			}catch (java.net.UnknownHostException e){
 				
-				throw( new ResourceDownloaderException("Exception while initializing download of '" + original_url + "': Unknown Host '" + e.getMessage() + "'", e));
+				throw( new ResourceDownloaderException("Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
 				
 			}catch (java.io.IOException e ){
 				
-				throw( new ResourceDownloaderException("I/O Exception while downloading '" + original_url + "':" + e.toString(), e ));
+				throw( new ResourceDownloaderException("I/O Exception while downloading '" + trimForDisplay( original_url )+ "'", e ));
 			}
 		}catch( Throwable e ){
 			
@@ -362,7 +362,7 @@ ResourceDownloaderURLImpl
 		final Object	parent_tls = TorrentUtils.getTLS();
 
 		AEThread2	t = 
-			new AEThread2( "ResourceDownloader:asyncDownload - " + original_url, true )
+			new AEThread2( "ResourceDownloader:asyncDownload - " + trimForDisplay( original_url ), true )
 			{
 				public void
 				run()
@@ -395,7 +395,7 @@ ResourceDownloaderURLImpl
 		// System.out.println("ResourceDownloader:download - " + getName());
 		
 		try{
-			reportActivity(this, getLogIndent() + "Downloading: " + original_url );
+			reportActivity(this, getLogIndent() + "Downloading: " +trimForDisplay(  original_url ));
 			
 			try{
 				this_mon.enter();
@@ -567,7 +567,7 @@ redirect_label:
 									
 									setProperty( "URL_HTTP_Response", new Long( response ));
 
-									throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
+									throw( new ResourceDownloaderException("Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 								}
 									
 								getRequestProperties( con );
@@ -673,7 +673,7 @@ redirect_label:
 												// this has been seen with UPnP linksys - more data is read than
 												// the content-length has us believe is coming (1 byte in fact...)
 											
-											Debug.outNoStack( "Inconsistent stream length for '" + original_url + "': expected = " + size + ", actual = " + total_read );
+											Debug.outNoStack( "Inconsistent stream length for '" + trimForDisplay( original_url ) + "': expected = " + size + ", actual = " + total_read );
 											
 										}else{
 											
@@ -720,7 +720,7 @@ redirect_label:
 									}
 								}
 								
-								throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + original_url + "'" ));
+								throw( new ResourceDownloaderException("Contents downloaded but rejected: '" + trimForDisplay( original_url ) + "'" ));
 		
 							}catch( SSLException e ){
 								
@@ -786,15 +786,15 @@ redirect_label:
 				}
 			}catch (java.net.MalformedURLException e){
 				
-				throw( new ResourceDownloaderException("Exception while parsing URL '" + original_url + "':" + e.getMessage(), e));
+				throw( new ResourceDownloaderException("Exception while parsing URL '" + trimForDisplay( original_url ) + "':" + e.getMessage(), e));
 				
 			}catch (java.net.UnknownHostException e){
 				
-				throw( new ResourceDownloaderException("Exception while initializing download of '" + original_url + "': Unknown Host '" + e.getMessage() + "'", e));
+				throw( new ResourceDownloaderException("Exception while initializing download of '" + trimForDisplay( original_url ) + "': Unknown Host '" + e.getMessage() + "'", e));
 				
 			}catch (java.io.IOException e ){
 				
-				throw( new ResourceDownloaderException("I/O Exception while downloading '" + original_url + "':" + e.toString(), e ));
+				throw( new ResourceDownloaderException("I/O Exception while downloading '" + trimForDisplay( original_url ) + "'", e ));
 			}
 		}catch( Throwable e ){
 			
@@ -955,5 +955,21 @@ redirect_label:
 	private URLConnection openConnection(URL url) throws IOException {
 		if (this.force_no_proxy) {return Java15Utils.openConnectionForceNoProxy(url);}
 		else {return url.openConnection();}
+	}
+	
+	protected String
+	trimForDisplay(
+		URL		url )
+	{
+		String str = url.toString();
+		
+		int pos = str.indexOf( '?' );
+		
+		if ( pos != -1 ){
+			
+			str = str.substring( 0, pos );
+		}
+		
+		return( str );
 	}
 }
