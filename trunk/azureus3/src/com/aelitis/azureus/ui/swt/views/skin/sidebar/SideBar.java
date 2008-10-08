@@ -1121,7 +1121,8 @@ public class SideBar
 				MessageText.getString("sidebar.LibraryUnopened"), null, null, false, -1);
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE,
-				"main.area.browsetab", "Vuze Network", null, null, false, -1);
+				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
+				null, null, false, -1);
 		entry.setImageLeftID("image.sidebar.vuze");
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
