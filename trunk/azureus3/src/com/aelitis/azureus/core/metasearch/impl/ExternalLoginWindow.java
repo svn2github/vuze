@@ -24,7 +24,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.core.util.http.HTTPSniffingProxy;
+import com.aelitis.azureus.core.util.http.HTTPAuthHelper;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
@@ -39,7 +39,7 @@ public class ExternalLoginWindow {
 	
 	String cookies;
 	
-	HTTPSniffingProxy	sniffer;
+	HTTPAuthHelper	sniffer;
 	
 	public 
 	ExternalLoginWindow(
@@ -244,7 +244,7 @@ public class ExternalLoginWindow {
 		}else{
 				
 			try{
-				sniffer = new HTTPSniffingProxy( new URL( originalLoginUrl ));
+				sniffer = new HTTPAuthHelper( new URL( originalLoginUrl ));
 					
 				String str = originalLoginUrl.toString();
 				
