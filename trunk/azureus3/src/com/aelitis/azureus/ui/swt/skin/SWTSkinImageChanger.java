@@ -112,8 +112,22 @@ public class SWTSkinImageChanger
 					System.out.println(System.currentTimeMillis() + ": " + skinObject
 							+ "--" + sSuffix);
 				}
+				
+				Point ptMouse = ((Control)event.widget).toDisplay(event.x, event.y);
+				while (skinObject != null) {
+					Rectangle bounds = skinObject.getControl().getBounds();
+					Point pt = skinObject.getControl().toDisplay(bounds.x, bounds.y);
+					bounds.x = pt.x;
+					bounds.y = pt.y;
 
-				skinObject.switchSuffix(sSuffix, 2, true);
+					
+					if (bounds.contains(ptMouse)) {
+						skinObject.switchSuffix(sSuffix, 2, false, false);
+						skinObject = skinObject.getParent();
+					} else {
+						break;
+					}
+				}
 			}
 		} finally {
 			lastControl = control;
