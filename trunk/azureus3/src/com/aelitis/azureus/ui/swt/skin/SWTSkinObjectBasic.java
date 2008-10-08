@@ -139,6 +139,9 @@ public class SWTSkinObjectBasic
 					bgImage.dispose();
 				}
 				Rectangle bounds = control.getBounds();
+				if (bounds.height <= 0) {
+					return;
+				}
 				bgImage = new Image(control.getDisplay(), 5, bounds.height);
 				GC gc = new GC(bgImage);
 				try {
@@ -314,9 +317,9 @@ public class SWTSkinObjectBasic
 				imageBG = images[1];
 				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
 			} else {
-				if (sSuffix.length() > 0) {
-					setBackground(sConfigID, "");
-				}
+				//if (sSuffix.length() > 0) {
+				//	setBackground(sConfigID, "");
+				//}
 				return;
 			}
 		} else {
@@ -325,9 +328,9 @@ public class SWTSkinObjectBasic
 				painter = null;
 			}
 			if (s == null) {
-				if (sSuffix.length() > 0) {
-					setBackground(sConfigID, "");
-				}
+				//if (sSuffix.length() > 0) {
+				//	setBackground(sConfigID, "");
+				//}
 			}
 			return;
 		}
