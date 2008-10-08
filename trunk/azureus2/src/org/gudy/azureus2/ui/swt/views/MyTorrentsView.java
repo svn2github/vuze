@@ -921,7 +921,8 @@ public class MyTorrentsView
 	}
 
 	public void updateSelectedContent() {
-		if (!cTablePanel.isVisible()) {
+		if (cTablePanel == null || cTablePanel.isDisposed()
+				|| !cTablePanel.isVisible()) {
 			SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
 					null);
 			return;
