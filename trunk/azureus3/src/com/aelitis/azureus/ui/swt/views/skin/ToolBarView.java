@@ -291,6 +291,9 @@ public class ToolBarView
 					}
 				} else {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms == null) {
+						return;
+					}
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = dms[i];
 						if (dm != null) {
