@@ -591,6 +591,10 @@ SubscriptionHistoryImpl
 			}
 		}
 		
+		last_error		= "";
+		last_new_result	= 0;
+		last_scan		= 0;
+		
 		if ( changed ){
 			
 			saveConfig();
@@ -686,23 +690,6 @@ SubscriptionHistoryImpl
 		String		_last_error,
 		boolean		_auth_failed )
 	{
-		/*
-		if ( auth_failed == _auth_failed ){
-			
-			if ( last_error == _last_error ){
-				
-				return;
-			}
-			
-			if ( last_error != null && _last_error != null ){
-				
-				if ( last_error.equals( _last_error )){
-					
-					return;
-				}
-			}
-		}
-		*/
 		last_error 	= _last_error;
 		auth_failed	= _auth_failed;
 		
