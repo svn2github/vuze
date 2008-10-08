@@ -38,7 +38,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-HTTPSniffingProxy 
+HTTPAuthHelper 
 {
 	public static final boolean	TRACE	= false;
 	
@@ -47,7 +47,7 @@ HTTPSniffingProxy
 	public static final int	CONNECT_TIMEOUT		= 30*1000;
 	public static final int READ_TIMEOUT		= 30*1000;
 
-	private HTTPSniffingProxy		parent;
+	private HTTPAuthHelper		parent;
 	private Map						children	= new HashMap();
 	
 	private URL						delegate_to;
@@ -68,7 +68,7 @@ HTTPSniffingProxy
 	private volatile boolean		destroyed;
 		
 	public
-	HTTPSniffingProxy(
+	HTTPAuthHelper(
 		URL			url )
 	
 		throws Exception
@@ -77,8 +77,8 @@ HTTPSniffingProxy
 	}
 	
 	protected
-	HTTPSniffingProxy(
-		HTTPSniffingProxy		_parent,
+	HTTPAuthHelper(
+		HTTPAuthHelper		_parent,
 		URL						_delegate_to )
 	
 		throws Exception
@@ -112,7 +112,7 @@ HTTPSniffingProxy
         					   
         					socket.setSoTimeout( READ_TIMEOUT );
         					
-        					synchronized( HTTPSniffingProxy.this ){
+        					synchronized( HTTPAuthHelper.this ){
         						
         						if ( processors.size() >= MAX_PROCESSORS ){
         							
@@ -178,7 +178,7 @@ HTTPSniffingProxy
 		return( key );
 	}
 	
-	protected HTTPSniffingProxy
+	protected HTTPAuthHelper
 	getChild(
 		String		url_str,
 		boolean		existing_only )
@@ -210,11 +210,11 @@ HTTPSniffingProxy
 					throw( new Exception( "Destroyed" ));
 				}
 				
-				HTTPSniffingProxy child = (HTTPSniffingProxy)children.get( child_key );
+				HTTPAuthHelper child = (HTTPAuthHelper)children.get( child_key );
 				
 				if ( child == null && !existing_only ){
 				
-					child = new HTTPSniffingProxy( this, new URL( url_str ));
+					child = new HTTPAuthHelper( this, new URL( url_str ));
 							
 					children.put( child_key, child );
 				}
@@ -261,7 +261,7 @@ HTTPSniffingProxy
 		for (int i=0;i<chidren_to_destroy.size();i++){
 			
 			try{
-				((HTTPSniffingProxy)chidren_to_destroy.get(i)).destroy();
+				((HTTPAuthHelper)chidren_to_destroy.get(i)).destroy();
 				
 			}catch( Throwable e ){
 			}
@@ -308,7 +308,7 @@ HTTPSniffingProxy
 							
 						}finally{
 													
-							synchronized( HTTPSniffingProxy.this ){
+							synchronized( HTTPAuthHelper.this ){
 
 								processors.remove( processor.this );
 							}
@@ -702,7 +702,7 @@ HTTPSniffingProxy
 						
 						String child_url = page.trim();
 						
-						HTTPSniffingProxy child = getChild( child_url, false );
+						HTTPAuthHelper child = getChild( child_url, false );
 
 						int	pos = page.indexOf( "://" );
 						
@@ -1009,7 +1009,7 @@ HTTPSniffingProxy
 											}
 										}
 									}
-									HTTPSniffingProxy child = getChild(  url_str, existing_only );
+									HTTPAuthHelper child = getChild(  url_str, existing_only );
 									
 									if ( child != null ){
 										
@@ -1188,7 +1188,7 @@ HTTPSniffingProxy
 		String[]		args )
 	{
 		try{
-			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://www.sf.net/" ));
+			HTTPAuthHelper proxy = new HTTPAuthHelper( new URL( "http://www.sf.net/" ));
 			
 			System.out.println( "port=" + proxy.getPort());
 			
