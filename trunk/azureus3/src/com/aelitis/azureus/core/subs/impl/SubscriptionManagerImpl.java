@@ -61,10 +61,12 @@ import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
@@ -1002,6 +1004,19 @@ SubscriptionManagerImpl
 					
 					boolean	subs_added = false;
 					
+					Engine engine = new_subs.getEngine();
+					
+					if ( engine instanceof RSSEngine ){
+						
+						RSSEngine rss_engine = (RSSEngine)engine;
+						
+						String search_url = rss_engine.getSearchUrl();
+						
+						if ( PlatformConfigMessenger.urlCanRPC( search_url )){
+					
+							warn_user = false;
+						}
+					}
 					try{
 						SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
 	

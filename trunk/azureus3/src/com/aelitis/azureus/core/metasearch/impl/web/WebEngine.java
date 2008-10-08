@@ -836,6 +836,12 @@ WebEngine
 		setLocalString( LD_COOKIES, cookies );
 	}
 
+	public String
+	getSearchUrl()
+	{
+		return( searchURLFormat.replaceAll("%s", ""));
+	}
+	
 	public String getLoginPageUrl() {
 		//Let's try with no login page url
 		//return loginPageUrl;
