@@ -44,6 +44,8 @@ public class SWTSkinObjectContainer
 {
 	boolean bPropogate = false;
 
+	boolean bPropogateDown = false;
+
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "container", parent);
@@ -136,6 +138,13 @@ public class SWTSkinObjectContainer
 
 		setControl(control);
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setControl(org.eclipse.swt.widgets.Control)
+	public void setControl(Control control) {
+		bPropogateDown = properties.getIntValue(sConfigID + ".propogateDown", 1) == 1;
+		
+		super.setControl(control);
+	}
 
 	protected void setViewID(String viewID) {
 		super.setViewID(viewID);
@@ -174,7 +183,7 @@ public class SWTSkinObjectContainer
 	public String switchSuffix(String suffix, int level, boolean walkUp) {
 		String sFullsuffix = super.switchSuffix(suffix, level, walkUp);
 
-		if (bPropogate && suffix != null && control != null
+		if (bPropogateDown && suffix != null && control != null
 				&& !control.isDisposed()) {
 			SWTSkinObject[] children = getChildren();
 			for (int i = 0; i < children.length; i++) {
