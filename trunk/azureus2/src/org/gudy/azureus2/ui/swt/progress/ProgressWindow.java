@@ -83,18 +83,19 @@ ProgressWindow
 			});
 	}
 	
-	private AzureusCoreOperation	operation;
 	private volatile Shell 			shell;
 	private volatile boolean 		task_complete;
 	
+	private final 	String	 resource;
+	
 	protected 
 	ProgressWindow(
-		final AzureusCoreOperation	_operation )
+		final AzureusCoreOperation	operation )
 	{
-		operation	= _operation;
-		
 		final RuntimeException[] error = {null};
 		
+		resource = operation.getOperationType()==AzureusCoreOperation.OP_FILE_MOVE?"progress.window.msg.filemove":"progress.window.msg.progress";
+
 		new DelayedEvent( 
 				"ProgWin",
 				operation.getOperationType()==AzureusCoreOperation.OP_FILE_MOVE?1000:10,
@@ -102,28 +103,29 @@ ProgressWindow
 				{
 					public void
 					runSupport()
-					{
-						synchronized( this ){
-							
-							if ( !task_complete ){
+					{							
+						if ( !task_complete ){
 								
-								Utils.execSWTThread(
-									new Runnable()
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
 									{
-										public void
-										run()
-										{
-											synchronized( this ){
-												
-												if ( !task_complete ){
+										synchronized( ProgressWindow.this ){
 											
-													showDialog();
-												}
+											if ( !task_complete ){
+										
+												Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createMainShell(
+														( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL ));
+
+
+												showDialog( shell );
 											}
 										}
-									},
-									false );
-							}
+									}
+								},
+								false );
 						}
 					}
 				});
@@ -148,12 +150,15 @@ ProgressWindow
 					
 				}finally{
 					
-					synchronized( this ){
-						
-						task_complete = true;
-						
-						Utils.execSWTThread( new Runnable(){public void run(){}}, true );
-					}			
+					Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									destroy();
+								}
+							});
 				}
 			}
 		}.start();
@@ -169,7 +174,7 @@ ProgressWindow
 			
 				// bit of boiler plate in case something fails in the dispatch loop
 			
-			synchronized( this ){
+			synchronized( ProgressWindow.this ){
 				
 				task_complete = true;
 			}
@@ -191,12 +196,61 @@ ProgressWindow
 		}
 	}
 	
-	protected void
-	showDialog()
-	{	
-		shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createMainShell(
-				( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL ));
+	public
+	ProgressWindow(
+		Shell		_parent,
+		String		_resource,
+		int			_style,
+		int			_delay_millis )
+	{
+		resource = _resource;
+			
+		final Shell shell = new Shell( _parent, _style );
 
+		if ( _delay_millis <= 0 ){
+		
+			showDialog( shell );
+			
+		}else{
+			
+			new DelayedEvent( 
+					"ProgWin",
+					_delay_millis,
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{								
+							if ( !task_complete ){
+									
+								Utils.execSWTThread(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											synchronized( ProgressWindow.this ){
+												
+												if ( !task_complete ){
+											
+													showDialog( shell );
+												}
+											}
+										}
+									},
+									false );
+							}
+						}
+					});
+		}
+	}
+	
+	protected void
+	showDialog(
+		Shell		_shell )
+	{	
+		shell	= _shell;
+		
 		shell.setText( MessageText.getString( "progress.window.title" ));
 
 		Utils.setShellIcon(shell);
@@ -382,9 +436,7 @@ ProgressWindow
 		
 		
 		Label label = new Label(shell, SWT.NONE);
-		
-		String resource = operation.getOperationType()==AzureusCoreOperation.OP_FILE_MOVE?"progress.window.msg.filemove":"progress.window.msg.progress";
-		
+				
 		label.setText(MessageText.getString( resource ));
 		GridData gridData = new GridData();
 		label.setLayoutData(gridData);
@@ -394,5 +446,24 @@ ProgressWindow
 		Utils.centreWindow( shell );
 
 		shell.open();
+	}
+	
+	public void
+	destroy()
+	{
+		synchronized( ProgressWindow.this ){
+			
+			task_complete = true;
+		}
+		
+		try{
+			if ( shell != null && !shell.isDisposed()){
+			
+				shell.dispose();
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 }
