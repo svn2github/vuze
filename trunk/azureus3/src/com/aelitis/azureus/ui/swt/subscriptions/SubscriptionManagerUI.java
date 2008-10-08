@@ -78,6 +78,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -553,6 +554,8 @@ SubscriptionManagerUI
 					new SubscriptionWizard();
 				}
 			});
+			//TODO : can you hook SubscriptionsView here? what's missing ?
+			//mainSBEntry.setIView()
 		}
 		
 		markAllResultsListener = new MenuItemListener() {

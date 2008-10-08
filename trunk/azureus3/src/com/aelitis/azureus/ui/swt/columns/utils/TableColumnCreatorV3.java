@@ -11,7 +11,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionView;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.*;
 
@@ -233,6 +239,35 @@ public class TableColumnCreatorV3
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
+	
+	
+	public static TableColumnCore[] createSubscriptions(String tableID) {
+		final String[] defaultVisibleOrder = {
+			ColumnSubscriptionNew.COLUMN_ID,
+			ColumnSubscriptionName.COLUMN_ID,
+			ColumnSubscriptionNbResults.COLUMN_ID,
+			ColumnSubscriptionNbNewResults.COLUMN_ID,
+			ColumnSubscriptionView.COLUMN_ID,
+		};
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(Subscription.class,
+				tableID);
+
+		if (!tcManager.loadTableColumnSettings(Subscription.class, tableID)
+				|| areNoneVisible(mapTCs)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			ColumnSubscriptionName tc = (ColumnSubscriptionName) mapTCs.get(ColumnSubscriptionName.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID,
+						ColumnSubscriptionName.COLUMN_ID);
+				tc.setSortAscending(true);
+			}
+		}
+
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+	
+	
 	/**
 	 * 
 	 *
