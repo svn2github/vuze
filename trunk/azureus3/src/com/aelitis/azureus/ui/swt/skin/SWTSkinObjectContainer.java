@@ -180,10 +180,10 @@ public class SWTSkinObjectContainer
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String)
-	public String switchSuffix(String suffix, int level, boolean walkUp) {
-		String sFullsuffix = super.switchSuffix(suffix, level, walkUp);
+	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+		String sFullsuffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 
-		if (bPropogateDown && suffix != null && control != null
+		if (bPropogateDown && walkDown && suffix != null && control != null
 				&& !control.isDisposed()) {
 			SWTSkinObject[] children = getChildren();
 			for (int i = 0; i < children.length; i++) {

@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -95,6 +96,8 @@ public class SWTSkinObjectBasic
 
 	protected boolean customTooltipID = false;
 
+	private Listener resizeBGListener;
+
 	/**
 	 * @param properties TODO
 	 * 
@@ -129,6 +132,40 @@ public class SWTSkinObjectBasic
 			});
 			return;
 		}
+		
+		resizeBGListener = new Listener() {
+			public void handleEvent(Event event) {
+				if (bgImage != null && !bgImage.isDisposed()) {
+					bgImage.dispose();
+				}
+				Rectangle bounds = control.getBounds();
+				bgImage = new Image(control.getDisplay(), 5, bounds.height);
+				GC gc = new GC(bgImage);
+				try {
+					try {
+						gc.setAdvanced(true);
+						gc.setInterpolation(SWT.HIGH);
+						gc.setAntialias(SWT.ON);
+					} catch (Exception ex) {
+					}
+					gc.setBackground(bgColor);
+					gc.setForeground(bgColor2);
+					gc.fillGradientRectangle(0, 0, 5, bgColor2until > 0 ? bgColor2until : bounds.height, true);
+					if (bgColor2until > 0) {
+						//gc.setBackground(bgColor2);
+						gc.fillRectangle(0, bgColor2until, 5, bounds.height - bgColor2until);
+					}
+				} finally {
+					gc.dispose();
+				}
+				if (painter == null) {
+					painter = new SWTBGImagePainter(control, null, null,
+							bgImage, SWTSkinUtils.TILE_X);
+				} else {
+					painter.setImage(null, null, bgImage);
+				}
+			}
+		};
 
 		this.control = control;
 		control.setData("ConfigID", sConfigID);
@@ -225,6 +262,7 @@ public class SWTSkinObjectBasic
 			return;
 		}
 		isVisible = visible;
+		switchSuffix(suffixes[0], 1, false);
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
 	}
@@ -411,7 +449,11 @@ public class SWTSkinObjectBasic
 		return switchSuffix(suffix, 1, false);
 	}
 
-	public String switchSuffix(String suffix, int level, boolean walkUp) {
+	public final String switchSuffix(String suffix, int level, boolean walkUp) {
+		return switchSuffix(suffix, level, walkUp, true);
+	}
+
+	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
 		if (walkUp) {
 			SWTSkinObject parentSkinObject = parent;
 			SWTSkinObject skinObject = this;
@@ -443,7 +485,7 @@ public class SWTSkinObjectBasic
 
 		suffix = getSuffix();
 
-		if (sConfigID == null || control == null || control.isDisposed()) {
+		if (sConfigID == null || control == null || control.isDisposed() || !isVisible) {
 			return suffix;
 		}
 
@@ -456,6 +498,8 @@ public class SWTSkinObjectBasic
 					return;
 				}
 
+				control.removeListener(SWT.Resize, resizeBGListener);
+
 				boolean needPaintHook = false;
 
 				if (properties.hasKey(sConfigID + ".color" + sSuffix)) {
@@ -465,6 +509,18 @@ public class SWTSkinObjectBasic
 							+ ".color.style" + sSuffix);
 					if (colorStyle != null) {
 						String[] split = colorStyle.split(",");
+
+						if (split.length > 2) {
+							try {
+  							colorFillParams = new int[] {
+  								Integer.parseInt(split[1]),
+  								Integer.parseInt(split[2])
+  							};
+							} catch (NumberFormatException e) {
+								//ignore
+							}
+						}
+
 						if (split[0].equals("rounded")) {
 							colorFillType = BORDER_ROUNDED;
 							needPaintHook = true;
@@ -478,53 +534,8 @@ public class SWTSkinObjectBasic
 								bgColor2until = Integer.parseInt(split[2]);
 							}
 
-							control.addListener(SWT.Resize, new Listener() {
-								public void handleEvent(Event event) {
-									if (bgImage != null && !bgImage.isDisposed()) {
-										bgImage.dispose();
-									}
-									Rectangle bounds = control.getBounds();
-									if (bounds.height <= 0) {
-										return;
-									}
-									bgImage = new Image(control.getDisplay(), 5, bounds.height);
-									GC gc = new GC(bgImage);
-									try {
-  									try {
-  										gc.setAdvanced(true);
-  										gc.setInterpolation(SWT.HIGH);
-  										gc.setAntialias(SWT.ON);
-  									} catch (Exception ex) {
-  									}
-  									gc.setBackground(bgColor);
-  									gc.setForeground(bgColor2);
-  									gc.fillGradientRectangle(0, 0, 5, bgColor2until > 0 ? bgColor2until : bounds.height, true);
-  									if (bgColor2until > 0) {
-    									//gc.setBackground(bgColor2);
-    									gc.fillRectangle(0, bgColor2until, 5, bounds.height - bgColor2until);
-  									}
-									} finally {
-										gc.dispose();
-									}
-									if (painter == null) {
-										painter = new SWTBGImagePainter(control, null, null,
-												bgImage, SWTSkinUtils.TILE_X);
-									} else {
-										painter.setImage(null, null, bgImage);
-									}
-								}
-							});
-						}
-
-						if (split.length > 2) {
-							try {
-  							colorFillParams = new int[] {
-  								Integer.parseInt(split[1]),
-  								Integer.parseInt(split[2])
-  							};
-							} catch (NumberFormatException e) {
-								//ignore
-							}
+							control.addListener(SWT.Resize, resizeBGListener);
+							resizeBGListener.handleEvent(null);
 						}
 
 						control.redraw();
@@ -598,7 +609,9 @@ public class SWTSkinObjectBasic
 	public String getSuffix() {
 		String suffix = "";
 		for (int i = 0; i < suffixes.length; i++) {
-			suffix += suffixes[i];
+			if (suffixes[i] != null) {
+				suffix += suffixes[i];
+			}
 		}
 		return suffix;
 	}

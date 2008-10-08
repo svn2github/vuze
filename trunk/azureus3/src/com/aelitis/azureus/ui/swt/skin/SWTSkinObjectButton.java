@@ -75,8 +75,8 @@ public class SWTSkinObjectButton
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String, int, boolean)
-	public String switchSuffix(String suffix, int level, boolean walkUp) {
-		suffix = super.switchSuffix(suffix, level, walkUp);
+	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 
 		if (suffix == null) {
 			return null;

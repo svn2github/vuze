@@ -249,8 +249,8 @@ public class SWTSkinObjectText2
 		updateFont("");
 	}
 
-	public String switchSuffix(String suffix, int level, boolean walkUp) {
-		suffix = super.switchSuffix(suffix, level, walkUp);
+	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 		if (suffix == null) {
 			return null;
 		}

@@ -316,8 +316,8 @@ public class SWTSkinObjectImage
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#switchSuffix(java.lang.String)
-	public String switchSuffix(String suffix, int level, boolean walkUp) {
-		suffix = super.switchSuffix(suffix, level, walkUp);
+	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 		if (customImage) {
 			return suffix;
 		}

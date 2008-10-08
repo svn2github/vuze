@@ -491,6 +491,7 @@ public class SWTSkin
 			public void handleEvent(Event event) {
 				if (shell.isDisposed() && event.display != null) {
 					event.display.removeFilter(SWT.MouseMove, this);
+					event.display.removeFilter(SWT.MouseExit, this);
 					return;
 				}
 				Control cursorControl = shell.getDisplay().getCursorControl();
@@ -498,7 +499,7 @@ public class SWTSkin
 					while (lastControl != null && !lastControl.isDisposed()) {
 						SWTSkinObjectBasic so = (SWTSkinObjectBasic) lastControl.getData("SkinObject");
 						if (so != null) {
-							so.switchSuffix("", 2, true);
+							so.switchSuffix("", 3, false, false);
 						}
 
 						lastControl = lastControl.getParent();
@@ -508,7 +509,7 @@ public class SWTSkin
 					while (cursorControl != null) {
 						SWTSkinObjectBasic so = (SWTSkinObjectBasic) cursorControl.getData("SkinObject");
 						if (so != null) {
-							so.switchSuffix("-over", 2, true);
+							so.switchSuffix("-over", 3, false, false);
 						}
 
 						cursorControl = cursorControl.getParent();
@@ -517,6 +518,9 @@ public class SWTSkin
 			}
 		};
 		shell.getDisplay().addFilter(SWT.MouseMove, l);
+		// can't just add a MouseExit listener to the shell, because it doesn't
+		// get fired when a control is on the edge
+		shell.getDisplay().addFilter(SWT.MouseExit, l);
 		shell.addListener(SWT.Deactivate, l);
 		shell.addListener(SWT.Activate, l);
 

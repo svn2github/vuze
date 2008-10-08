@@ -59,8 +59,9 @@ public class SWTBGImagePainter
 	private final Control control;
 
 	private boolean bDirty;
-	
+
 	private int fdWidth = -1;
+
 	private int fdHeight = -1;
 
 	private SWTBGImagePainter(Control control, int tileMode) {
@@ -93,7 +94,7 @@ public class SWTBGImagePainter
 
 		control.addListener(SWT.Dispose, this);
 	}
-	
+
 	public void dispose() {
 		if (control == null || control.isDisposed()) {
 			return;
@@ -155,7 +156,7 @@ public class SWTBGImagePainter
 
 		if (DEBUG) {
 			System.out.println("SI " + bgImageLeft + ";" + bgImageRight + ";"
-					+ bgImage + ";" + control.getData("SkinObject") + "/"
+					+ bgImage + ";" + control.getData("SkinObject") + "/" + control.isVisible() + control.getSize() + "\\"
 					+ Debug.getStackTrace(true, false));
 		}
 
@@ -178,6 +179,7 @@ public class SWTBGImagePainter
 			imgSrcRight = null;
 			imgSrcRightBounds = new Rectangle(0, 0, 0, 0);
 		}
+		
 
 		if (TEST_SWT_PAINTING) {
 			control.removeListener(SWT.Resize, this);
@@ -195,7 +197,8 @@ public class SWTBGImagePainter
 		} else {
 			bDirty = true;
 		}
-		
+
+
 		if ((tileMode & SWTSkinUtils.TILE_BOTH) != SWTSkinUtils.TILE_BOTH) {
 			int width = SWT.DEFAULT;
 			int height = SWT.DEFAULT;
@@ -211,20 +214,20 @@ public class SWTBGImagePainter
 			if (fd == null) {
 				fd = new FormData();
 			}
-			
-			if (fd.width != fdWidth && fd.height != fdHeight) {
-				return;
-			}
-			
-			if (fd.width == fdWidth) {
-				fdWidth = fd.width = width;
-			}
-			if (fd.height == fdHeight) {
-				fdHeight = fd.height = height;
-			}
-			control.setLayoutData(fd);
-			if (control.isVisible()) {
-				control.getParent().layout();
+
+			if (fd.width == fdWidth || fd.height == fdHeight) {
+
+				if (fd.width == fdWidth) {
+					fdWidth = fd.width = width;
+				}
+				if (fd.height == fdHeight) {
+					fdHeight = fd.height = height;
+				}
+				control.setLayoutData(fd);
+				if (control.isVisible()) {
+					bDirty = true;
+					control.getParent().layout(true, true);
+				}
 			}
 		}
 
@@ -235,7 +238,7 @@ public class SWTBGImagePainter
 				|| control.isDisposed()) {
 			return;
 		}
-		
+
 		//System.out.println("BB: " + control.getData("ConfigID"));
 
 		inEvent = true;
