@@ -1751,8 +1751,8 @@ public class MainWindow
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 
-		//text.setForeground(ColorCache.getColor(text.getDisplay(), 127, 127, 127));
-		//text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
+		text.setForeground(ColorCache.getColor(text.getDisplay(), "#999999"));
+		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
 		text.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
