@@ -1141,12 +1141,25 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					payload.put( "schedule", decodedMap.get( "schedule" ));
 					payload.put( "options", decodedMap.get( "options" ));
 				
-					subs.setDetails( name, isPublic.booleanValue(), payload.toString());
+					boolean	changed = subs.setDetails( name, isPublic.booleanValue(), payload.toString());
 					
 					subs.getHistory().setDetails(
 							isEnabled==null?true:isEnabled.booleanValue(),
 							autoDownload==null?false:autoDownload.booleanValue());
 
+					if ( changed ){
+						
+						subs.getHistory().reset();
+						
+						try{
+							subs.getManager().getScheduler().downloadAsync(subs, true);
+							
+						}catch( Throwable e ){
+							
+							Debug.out(e);
+						}
+					}
+					
 					result.put( "id", subs.getID());
 					
 					sendBrowserMessage( "metasearch", "updateSubscriptionCompleted", result );
