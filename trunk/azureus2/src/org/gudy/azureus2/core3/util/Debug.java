@@ -369,7 +369,7 @@ public class Debug {
 						
 			if ( this_message.length() > 0 && last_message.indexOf( this_message ) == -1 ){
 				
-				last_message	= this_message + ( last_message.length()==0?"":(", " + last_message ));
+				last_message	+= (last_message.length()==0?"":", " ) + this_message;
 			}
 			
 			e	= e.getCause();
