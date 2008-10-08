@@ -1691,7 +1691,7 @@ public class MainWindow
 				FormData fd = (FormData) control.getLayoutData();
 				fd.height = showText ? 50 : 32;
 				//Utils.relayout(control);
-				skinObject.switchSuffix(showText ? "" : "-small", 3, true);
+				skinObject.switchSuffix(showText ? "" : "-small", 4, true);
 			}
 
 			shell.layout(true, true);
