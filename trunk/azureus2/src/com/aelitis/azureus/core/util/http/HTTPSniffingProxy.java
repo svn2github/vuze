@@ -1188,7 +1188,7 @@ HTTPSniffingProxy
 		String[]		args )
 	{
 		try{
-			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://waffles.fm/" ));
+			HTTPSniffingProxy proxy = new HTTPSniffingProxy( new URL( "http://www.sf.net/" ));
 			
 			System.out.println( "port=" + proxy.getPort());
 			
