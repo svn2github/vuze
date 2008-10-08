@@ -68,6 +68,8 @@ public interface SWTSkinObject extends ObfusticateShell
 	 * @return TODO
 	 */
 	String switchSuffix(String suffix, int level, boolean walkUp);
+	
+	String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown);
 
 	/**
 	 * Convenience method for switching suffix using defaults
