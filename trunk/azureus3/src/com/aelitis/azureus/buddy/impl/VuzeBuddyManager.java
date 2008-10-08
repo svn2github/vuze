@@ -517,7 +517,6 @@ public class VuzeBuddyManager
 		setSaveDelayed(true);
 
 		try {
-			LoginInfoManager.getInstance().addListener(loginInfoListener);
 			log("setupBuddyPlugin");
 
 			boolean newPluginEnabled = false;
@@ -602,6 +601,8 @@ public class VuzeBuddyManager
 			} catch (Throwable t) {
 				Debug.out(t);
 			}
+
+			LoginInfoManager.getInstance().addListener(loginInfoListener);
 		} finally {
 			setSaveDelayed(false);
 		}
