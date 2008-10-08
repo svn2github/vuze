@@ -302,6 +302,8 @@ public class BrowserContext
 				
 				String event_location = event.location;
 				
+				//Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Location Changing", "Navigating to " + event_location );
+
 				if (event_location.startsWith("javascript")
 						&& event_location.indexOf("back()") > 0) {
 					if (browser.isBackEnabled()) {

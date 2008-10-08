@@ -35,7 +35,6 @@ SubscriptionManager
 		
 		throws SubscriptionException;
 	
-	/*
 	public Subscription
 	createRSS(
 		String		name,
@@ -43,7 +42,6 @@ SubscriptionManager
 		int			check_interval_mins )
 		
 		throws SubscriptionException;
-	*/
 	
 		// creates a subscription that will always have the same identity for the given parameters
 		// and can't be updated
@@ -52,9 +50,8 @@ SubscriptionManager
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins,
-		boolean		add_to_subscriptions )
-		
+		int			check_interval_mins )
+	
 		throws SubscriptionException;
 	
 	public Subscription[]

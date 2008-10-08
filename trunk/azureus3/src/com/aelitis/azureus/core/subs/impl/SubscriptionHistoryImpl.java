@@ -34,8 +34,6 @@ public class
 SubscriptionHistoryImpl
 	implements SubscriptionHistory
 {
-	public static final int	DEFAULT_CHECK_INTERVAL_MINS		= 120;
-
 	private SubscriptionManagerImpl		manager;
 	private SubscriptionImpl			subs;
 	

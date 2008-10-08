@@ -556,12 +556,11 @@ SubscriptionManagerImpl
 	createSingletonRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins,
-		boolean		add_to_subscriptions )
+		int			check_interval_mins )
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, add_to_subscriptions ));
+		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
 	}
 	
 	protected Subscription
@@ -641,11 +640,11 @@ SubscriptionManagerImpl
 		}
 	}
 	
-	/*
 	public Subscription 
 	createRSS(
 		String		name,
-		URL			url )
+		URL			url,
+		int			check_interval_mins )
 	
 		throws SubscriptionException 
 	{
@@ -662,25 +661,24 @@ SubscriptionManagerImpl
 		
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
-			String	json = SubscriptionImpl.getSkeletonJSON( engine, DEFAULT_CHECK_INTERVAL_MINS );
+			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 			
 			log( "Created new subscription: " + subs.getString());
+					
+			subs = addSubscription( subs );
 			
-			if ( subs.isPublic()){
-				
-				updatePublicSubscription( subs );
-			}
+			updatePublicSubscription( subs );
 			
-			return( addSubscription( subs ));
+			return( subs );
 			
 		}catch( Throwable e ){
 			
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
 	}
-	*/
+
 	
 	protected SubscriptionImpl
 	addSubscription(
@@ -4375,11 +4373,11 @@ SubscriptionManagerImpl
 				getSingleton(true).createSingletonRSS(
 						NAME,
 						new URL( URL_STR ),
-						240,
-						false );
+						240 );
 			
 			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
 			
+			subs.remove();
 			
 			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
 			

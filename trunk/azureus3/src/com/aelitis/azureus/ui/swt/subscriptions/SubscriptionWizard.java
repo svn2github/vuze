@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionUtils;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
@@ -995,7 +996,7 @@ public class SubscriptionWizard {
 					String url_str = feedUrl.getText();
 					URL	url = new URL(url_str);
 					
-					SubscriptionManagerFactory.getSingleton().createSingletonRSS( url_str, url, 120, true );
+					SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS );
 					shell.close();
 				} catch (Exception e) {
 					e.printStackTrace();

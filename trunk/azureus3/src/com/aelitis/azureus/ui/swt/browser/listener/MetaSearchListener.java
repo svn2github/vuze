@@ -1059,12 +1059,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage("metasearch", "readSubscriptionFailed",result);
 					
 				}else{
-										
+								
+					boolean	shareable = subs.isShareable();
+					
+						// override public flag if not shareable
+					
 					result.put( "id", subs.getID());
 					result.put( "name", subs.getName());
-					result.put( "is_public", new Boolean( subs.isPublic()));
+					result.put( "is_public", new Boolean( shareable && subs.isPublic()));
 					result.put( "is_author", new Boolean( subs.isMine()));
-					result.put( "is_shareable", new Boolean( subs.getEngine().isShareable()));
+					result.put( "is_shareable", new Boolean( shareable ));
 					
 					SubscriptionHistory history = subs.getHistory();
 					

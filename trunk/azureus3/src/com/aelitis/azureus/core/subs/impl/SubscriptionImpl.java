@@ -523,12 +523,25 @@ SubscriptionImpl
 		short_id = SubscriptionBodyImpl.deriveShortID( public_key, singleton_details );
 	}
 	
-	protected boolean
+	public boolean
 	isSingleton()
 	{
 		return( singleton_details != null );
 	}
 	
+	public boolean
+	isShareable()
+	{
+		try{
+			return( getEngine().isShareable() && !isSingleton());
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( false );
+		}
+	}
 	protected Map
 	getSingletonDetails()
 	{

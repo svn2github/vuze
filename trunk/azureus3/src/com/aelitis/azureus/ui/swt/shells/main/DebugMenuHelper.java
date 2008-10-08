@@ -49,6 +49,7 @@ public class DebugMenuHelper
 					"UIFunctionsManagerSWT.getUIFunctionsSWT() is returning null");
 		}
 
+		/*
 		item = new MenuItem(menuDebug, SWT.CASCADE);
 		item.setText("Subscriptions");
 		Menu menuSubscriptions = new Menu(menuDebug.getParent(), SWT.DROP_DOWN);
@@ -139,7 +140,7 @@ public class DebugMenuHelper
 				
 			}
 		});
-
+		 */
 
 		item = new MenuItem(menuDebug, SWT.CASCADE);
 		item.setText("BrowserTB");

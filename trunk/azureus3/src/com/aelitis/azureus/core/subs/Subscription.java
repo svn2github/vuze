@@ -54,6 +54,9 @@ Subscription
 	public boolean
 	isUpdateable();
 	
+	public boolean
+	isShareable();
+	
 	public String
 	getJSON()
 	

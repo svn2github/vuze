@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.subs;
 public interface 
 SubscriptionHistory 
 {
+	public static final int	DEFAULT_CHECK_INTERVAL_MINS		= 120;
+
 	public boolean
 	isEnabled();
 	
