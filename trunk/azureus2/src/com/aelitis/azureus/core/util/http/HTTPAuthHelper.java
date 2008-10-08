@@ -1014,6 +1014,8 @@ HTTPAuthHelper
 												
 												existing_only = false;
 											}
+											
+											break;
 										}
 									}
 									
