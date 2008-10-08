@@ -561,7 +561,8 @@ ConfigurationChecker
         }
         else {
           System.getProperties().remove( "org.eclipse.swt.internal.carbon.smallFonts" );
-        } 
+        }
+        System.setProperty( "org.eclipse.swt.internal.carbon.noFocusRing", "1" );
       }
       
 	    
