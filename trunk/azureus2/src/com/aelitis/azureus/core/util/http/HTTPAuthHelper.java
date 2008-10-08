@@ -997,18 +997,26 @@ HTTPAuthHelper
 								
 									boolean	existing_only = true;
 									
-										// override if form action
+										// override if form action or meta
 									
 									for (int i=url_start-1;i>=0&&url_start-i<512;i--){
 										
 										if ( lc_str.charAt( i ) == '<' ){
 											
-											if ( lc_str.substring(i, url_start).indexOf( "form" ) != -1 ){
+											String prefix = lc_str.substring(i, url_start);
+											
+											if ( prefix.indexOf( "form" ) != -1 ){
+												
+												existing_only = false;
+												
+											}else if ( 	prefix.indexOf( "meta" ) != -1 &&
+														prefix.indexOf( "http-equiv" ) != -1 ){
 												
 												existing_only = false;
 											}
 										}
 									}
+									
 									HTTPAuthHelper child = getChild(  url_str, existing_only );
 									
 									if ( child != null ){
