@@ -142,8 +142,6 @@ public class ToolBarView
 		//		};
 		//		addToolBarItem(item);
 
-		addNonToolBar("toolbar.area.sitem.left", so2nd);
-
 		// ==details
 		//item = new ToolBarItem("details", "image.button.details", "iconBar.details") {
 		//	// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
@@ -167,7 +165,7 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
 		addSeperator(so2nd);
 
 		// ==run
@@ -304,9 +302,7 @@ public class ToolBarView
 				}
 			}
 		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-
-		addNonToolBar("toolbar.area.sitem.right", so2nd);
+		addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
 
 		///////////////////////
 
@@ -317,17 +313,16 @@ public class ToolBarView
 
 		// == mode big
 		item = new ToolBarItem("modeBig", "image.toolbar.table_large", null);
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
 		item.setEnabled(false);
+
 		addSeperator(so2nd);
 
 		// == mode small
 		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal", null);
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
+		addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
 		item.setEnabled(false);
 		//addSeperator(so2nd);
-		
-		addNonToolBar("toolbar.area.sitem.right", so2nd);
 		
 		resizeGap();
 

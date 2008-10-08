@@ -101,13 +101,14 @@ public class SBC_LibraryView
 	private static int numIncomplete = 0;
 
 	private static int numErrorComplete = 0;
+
 	private static String errorInCompleteTooltip;
 
 	private static int numErrorInComplete = 0;
-	private static String errorCompleteTooltip;
-	
-	private static int numUnOpened = 0;
 
+	private static String errorCompleteTooltip;
+
+	private static int numUnOpened = 0;
 
 	private int viewMode = -1;
 
@@ -120,6 +121,10 @@ public class SBC_LibraryView
 	private int torrentFilterMode = TORRENTS_ALL;
 
 	private String torrentFilter;
+
+	private ToolBarItem itemModeSmall;
+
+	private ToolBarItem itemModeBig;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -145,7 +150,8 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnSmallTable = new SWTSkinButtonUtility(so);
 			btnSmallTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_SMALLTABLE, true);
 				}
 			});
@@ -155,7 +161,8 @@ public class SBC_LibraryView
 		if (so != null) {
 			btnBigTable = new SWTSkinButtonUtility(so);
 			btnBigTable.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
 					setViewMode(MODE_BIGTABLE, true);
 				}
 			});
@@ -163,7 +170,7 @@ public class SBC_LibraryView
 
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
-			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			itemModeSmall = tb.getToolBarItem("modeSmall");
 			if (itemModeSmall != null) {
 				itemModeSmall.addListener(new ToolBarItemListener() {
 					public void pressed(ToolBarItem toolBarItem) {
@@ -177,7 +184,7 @@ public class SBC_LibraryView
 					}
 				});
 			}
-			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			itemModeBig = tb.getToolBarItem("modeBig");
 			if (itemModeBig != null) {
 				itemModeBig.addListener(new ToolBarItemListener() {
 					public void pressed(ToolBarItem toolBarItem) {
@@ -195,7 +202,7 @@ public class SBC_LibraryView
 
 		return null;
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
@@ -203,25 +210,31 @@ public class SBC_LibraryView
 			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
 			if (itemModeSmall != null) {
 				itemModeSmall.setEnabled(true);
+				itemModeSmall.getSkinButton().getSkinObject().switchSuffix(
+						viewMode == MODE_BIGTABLE ? "" : "-down");
 			}
 			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
 			if (itemModeBig != null) {
 				itemModeBig.setEnabled(true);
+				itemModeBig.getSkinButton().getSkinObject().switchSuffix(
+						viewMode == MODE_BIGTABLE ? "-down" : "");
 			}
 		}
 		return super.skinObjectShown(skinObject, params);
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
 			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
 			if (itemModeSmall != null) {
+				itemModeSmall.getSkinButton().getSkinObject().switchSuffix("");
 				itemModeSmall.setEnabled(false);
 			}
 			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
 			if (itemModeBig != null) {
+				itemModeBig.getSkinButton().getSkinObject().switchSuffix("");
 				itemModeBig.setEnabled(false);
 			}
 		}
@@ -236,6 +249,15 @@ public class SBC_LibraryView
 		if (viewMode >= modeViewIDs.length || viewMode < 0
 				|| viewMode == this.viewMode) {
 			return;
+		}
+
+		if (itemModeSmall != null) {
+			itemModeSmall.getSkinButton().getSkinObject().switchSuffix(
+					viewMode == MODE_BIGTABLE ? "" : "-down");
+		}
+		if (itemModeBig != null) {
+			itemModeBig.getSkinButton().getSkinObject().switchSuffix(
+					viewMode == MODE_BIGTABLE ? "-down" : "");
 		}
 
 		int oldViewMode = this.viewMode;
@@ -449,57 +471,57 @@ public class SBC_LibraryView
 				updateErrorTooltip();
 				refreshAllLibraries();
 			}
-			
-			protected void
-			updateErrorTooltip()
-			{
-				if ( numErrorComplete < 0 ){				
+
+			protected void updateErrorTooltip() {
+				if (numErrorComplete < 0) {
 					numErrorComplete = 0;
 				}
-				if ( numErrorInComplete < 0 ){				
+				if (numErrorInComplete < 0) {
 					numErrorInComplete = 0;
 				}
-				
-				if ( numErrorComplete > 0 || numErrorInComplete > 0 ){
-				
-					String	comp_error 		= null;
-					String	incomp_error 	= null;
-					
-					List	downloads = gm.getDownloadManagers();
-					
-					for (int i=0;i<downloads.size();i++){
-						
-						DownloadManager download = (DownloadManager)downloads.get(i);
-						
-						if ( download.getState() == DownloadManager.STATE_ERROR) {
-							
-							if ( download.getAssumedComplete()){
-								
-								if ( comp_error == null ){
-									
-									comp_error = download.getDisplayName() + ": " + download.getErrorDetails();
-								}else{
-									
+
+				if (numErrorComplete > 0 || numErrorInComplete > 0) {
+
+					String comp_error = null;
+					String incomp_error = null;
+
+					List downloads = gm.getDownloadManagers();
+
+					for (int i = 0; i < downloads.size(); i++) {
+
+						DownloadManager download = (DownloadManager) downloads.get(i);
+
+						if (download.getState() == DownloadManager.STATE_ERROR) {
+
+							if (download.getAssumedComplete()) {
+
+								if (comp_error == null) {
+
+									comp_error = download.getDisplayName() + ": "
+											+ download.getErrorDetails();
+								} else {
+
 									comp_error += "...";
 								}
-							}else{
-								if ( incomp_error == null ){
-									
-									incomp_error = download.getDisplayName() + ": " + download.getErrorDetails();
-								}else{
-									
+							} else {
+								if (incomp_error == null) {
+
+									incomp_error = download.getDisplayName() + ": "
+											+ download.getErrorDetails();
+								} else {
+
 									incomp_error += "...";
 								}
 							}
 						}
 					}
-					
-					errorCompleteTooltip 	= comp_error;
-					errorInCompleteTooltip 	= incomp_error;
+
+					errorCompleteTooltip = comp_error;
+					errorInCompleteTooltip = incomp_error;
 				}
 			}
 		};
-		
+
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
 				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
@@ -588,8 +610,8 @@ public class SBC_LibraryView
 
 			} else if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorInComplete > 0);
-				if ( numErrorInComplete > 0 ){
-					vitalityImage.setToolTip( errorInCompleteTooltip );
+				if (numErrorInComplete > 0) {
+					vitalityImage.setToolTip(errorInCompleteTooltip);
 				}
 			}
 		}
@@ -601,15 +623,15 @@ public class SBC_LibraryView
 			SideBarVitalityImage vitalityImage = vitalityImages[i];
 			if (vitalityImage.getImageID().equals(ID_VITALITY_ALERT)) {
 				vitalityImage.setVisible(numErrorComplete > 0);
-				if ( numErrorComplete > 0 ){
-					vitalityImage.setToolTip( errorCompleteTooltip );
+				if (numErrorComplete > 0) {
+					vitalityImage.setToolTip(errorCompleteTooltip);
 				}
 			}
 		}
 
 		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
 		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
-}
+	}
 
 	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {
 		if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
@@ -655,8 +677,8 @@ public class SBC_LibraryView
 		}
 	}
 
-
-	public static String getTableIdFromFilterMode(int torrentFilterMode, boolean big) {
+	public static String getTableIdFromFilterMode(int torrentFilterMode,
+			boolean big) {
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
 			return big ? TableManager.TABLE_MYTORRENTS_COMPLETE_BIG
 					: TableManager.TABLE_MYTORRENTS_COMPLETE;
