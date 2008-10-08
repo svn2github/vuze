@@ -4,6 +4,8 @@ import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.FormAttachment;
@@ -19,6 +21,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.util.http.HTTPSniffingProxy;
@@ -118,12 +121,12 @@ public class ExternalLoginWindow {
 			alt_method.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event arg0) {
 	
-					setCaptureMethod( browser, !f_alt_method.getSelection());
+					setCaptureMethod( browser, !f_alt_method.getSelection(), true );
 				}
 			});
 		}
 		
-		setCaptureMethod( browser, authMode == WebEngine.AM_TRANSPARENT );
+		setCaptureMethod( browser, authMode == WebEngine.AM_TRANSPARENT, true );
 				
 		Button cancel = new Button(shell,SWT.PUSH);
 		cancel.setText(MessageText.getString("Button.cancel"));
@@ -198,14 +201,40 @@ public class ExternalLoginWindow {
 	
 	protected void
 	setCaptureMethod(
-		Browser		browser,
-		boolean		transparent )
+		final Browser		browser,
+		boolean				transparent,
+		boolean				show_progress )
 	{
 		if ( sniffer != null ){
 			
 			sniffer.destroy();
 			
 			sniffer = null;
+		}
+		
+		if ( show_progress ){
+			
+			final ProgressWindow prog_wind = 
+				new ProgressWindow( shell, "externalLogin.wait", SWT.DIALOG_TRIM, 500 );
+			
+			browser.addProgressListener(
+				new ProgressListener()
+				{
+					public void 
+					changed(
+						ProgressEvent arg0 )
+					{
+					}
+					
+					public void 
+					completed(
+						ProgressEvent arg0 ) 
+					{
+						browser.removeProgressListener( this );
+						
+						prog_wind.destroy();
+					}
+				});
 		}
 		
 		if ( transparent ){
@@ -243,6 +272,7 @@ public class ExternalLoginWindow {
 			}
 		}
 	}
+	
 	public boolean
 	proxyCaptureModeRequired()
 	{
@@ -286,7 +316,7 @@ public class ExternalLoginWindow {
 					}
 				},
 				"test",
-				"http://www.google.com/",
+				"http://waffles.fm/",
 				false,
 				WebEngine.AM_PROXY,
 				true );
