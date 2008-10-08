@@ -573,8 +573,6 @@ SubscriptionHistoryImpl
 	public void 
 	reset() 
 	{
-		boolean	changed = false;
-
 		synchronized( this ){
 			
 			SubscriptionResultImpl[] results = manager.loadResults( subs );
@@ -586,19 +584,14 @@ SubscriptionHistoryImpl
 				updateReadUnread( results );
 				
 				manager.saveResults( subs, results );
-				
-				changed = true;
 			}
 		}
 		
 		last_error		= "";
 		last_new_result	= 0;
 		last_scan		= 0;
-		
-		if ( changed ){
-			
-			saveConfig();
-		}
+					
+		saveConfig();
 	}
 	
 	protected void
