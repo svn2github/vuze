@@ -183,13 +183,13 @@ HTTPAuthHelper
 	protected HTTPAuthHelper
 	getChild(
 		String		url_str,
-		boolean		existing_only )
+		boolean		optional )
 	
 		throws Exception
 	{
 		if ( parent != null ){
 	
-			return( parent.getChild( url_str,existing_only ));
+			return( parent.getChild( url_str,optional ));
 		}
 	
 		String lc_url_str = url_str.toLowerCase();
@@ -214,7 +214,29 @@ HTTPAuthHelper
 				
 				HTTPAuthHelper child = (HTTPAuthHelper)children.get( child_key );
 				
-				if ( child == null && !existing_only ){
+				if ( optional ){
+					
+						// create children for related domains
+					
+					String	base_host 	= delegate_to.getHost();
+					String	child_host	= child_url.getHost();
+					
+					int	base_pos = base_host.lastIndexOf( '.' );
+					base_pos = base_host.lastIndexOf( '.', base_pos-1 );
+					
+					int	child_pos = child_host.lastIndexOf( '.' );
+					child_pos = child_host.lastIndexOf( '.', child_pos-1 );
+
+					String base_dom 	= base_host.substring( base_pos, base_host.length());
+					String child_dom 	= child_host.substring( child_pos, child_host.length());
+					
+					if ( base_dom.equals( child_dom )){
+						
+						optional = false;
+					}
+				}
+				
+				if ( child == null && !optional ){
 				
 					child = new HTTPAuthHelper( this, new URL( url_str ));
 							
@@ -761,7 +783,7 @@ HTTPAuthHelper
 								}
 							}
 							
-							cookies_out += (c==0?"":", " ) + modified_cookie + "; Discard";
+							cookies_out += (c==0?"":", " ) + modified_cookie;
 						}					
 						
 						line_out = "Set-Cookie: " + cookies_out;
