@@ -160,6 +160,10 @@ public class MainWindow
 	private String lastShellStatus = null;
 
 	private TopBarView topBarView;
+	
+	private Color colorSearchTextBG; 
+	private Color colorSearchTextFGdef; 
+	private Color colorSearchTextFG; 
 
 	public static void main(String args[]) {
 		if (Launcher.checkAndLaunch(MainWindow.class, args))
@@ -469,11 +473,9 @@ public class MainWindow
 
 		increaseProgress(uiInitializer, "splash.initializeGui");
 
-		// XXX Temporary.  We'll use our own images
 		ImageRepository.loadImagesForSplashWindow(display);
-
 		ImageRepository.loadImages(display);
-
+		
 		System.out.println("UIFunctions/ImageLoad took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
@@ -1750,15 +1752,26 @@ public class MainWindow
 		text.setTextLimit(254);
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
+		
+		SWTSkinProperties properties = skinObject.getProperties();
+		colorSearchTextBG = properties.getColor("color.search.text.bg"); 
+		colorSearchTextFG = properties.getColor("color.search.text.fg"); 
+		colorSearchTextFGdef = properties.getColor("color.search.text.fg.default"); 
 
-		text.setForeground(ColorCache.getColor(text.getDisplay(), "#999999"));
-		text.setBackground(ColorCache.getColor(text.getDisplay(), 255, 255, 255));
+		if (colorSearchTextFGdef != null) {
+			text.setForeground(colorSearchTextFGdef);
+		}
+		if (colorSearchTextBG != null) {
+			text.setBackground(colorSearchTextBG);
+		}
 		text.addMouseListener(new MouseListener() {
 
 			public void mouseUp(MouseEvent e) {
 				Text text = (Text) e.widget;
 				if (text.getText().equals(sDefault)) {
-					text.setForeground(ColorCache.getColor(text.getDisplay(), 0, 0, 0));
+					if (colorSearchTextFG != null) {
+						text.setForeground(colorSearchTextFG);
+					}
 					text.setText("");
 				}
 			}
@@ -1795,8 +1808,13 @@ public class MainWindow
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
-				if (text.getText().equals(sDefault) && event.character != '\0') {
-					text.setText("");
+				if (text.getText().equals(sDefault)) {
+					if (colorSearchTextFG != null) {
+						text.setForeground(colorSearchTextFG);
+					}
+					if (event.character != '\0') {
+						text.setText("");
+					}
 					return;
 				}
 
