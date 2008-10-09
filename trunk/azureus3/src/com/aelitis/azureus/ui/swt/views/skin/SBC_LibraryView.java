@@ -91,7 +91,7 @@ public class SBC_LibraryView
 
 	private static final String ID_VITALITY_ALERT = "image.sidebar.vitality.alert";
 
-	private static final long DL_VITALITY_REFRESH_RATE = 1000;
+	private static final long DL_VITALITY_REFRESH_RATE = 15000;
 
 	private static int numSeeding = 0;
 
@@ -667,7 +667,7 @@ public class SBC_LibraryView
 						SideBarVitalityImageSWT viSWT = (SideBarVitalityImageSWT) vitalityImage;
 						if (viSWT.getDelayTime() != delay) {
 							viSWT.setDelayTime(delay);
-							System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
+							//System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
 						}
 					}
 				}
