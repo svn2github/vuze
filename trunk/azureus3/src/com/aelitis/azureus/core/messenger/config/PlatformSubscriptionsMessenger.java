@@ -69,7 +69,7 @@ PlatformSubscriptionsMessenger
 		parameters.put( "version_number", new Long( version ));
 		parameters.put( "content", content );				
 		
-		if ( version == 1 ){
+		if ( create ){
 			
 			parameters.put( "public_key", pk_str );
 		}
