@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
-import org.gudy.azureus2.ui.swt.components.BufferedToolItem;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
@@ -79,8 +78,6 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.*;
 import com.aelitis.azureus.ui.swt.Initializer;
@@ -90,8 +87,7 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.*;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -100,7 +96,6 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.Constants;
-import com.aelitis.azureus.util.PublishUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -1266,8 +1261,6 @@ public class MainWindow
 
 		views.put("publish", Publish.class);
 		views.put("welcome", WelcomeView.class);
-
-		views.put(SkinConstants.VIEWID_ACTIVITIESVIEW, VuzeActivitiesView.class);
 
 		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_PARENT, SBC_ActivityView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG, SBC_ActivityTableView.class);

@@ -142,18 +142,6 @@ public class ToolBarView
 		//		};
 		//		addToolBarItem(item);
 
-		// ==details
-		//item = new ToolBarItem("details", "image.button.details", "iconBar.details") {
-		//	// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-		//	public void triggerToolBarItem() {
-		//		DownloadManager[] dms = getDMSFromSelectedContent();
-		//		if (dms != null) {
-		//			TorrentListViewsUtils.viewDetails(dms[0], "Toolbar");
-		//		}
-		//	}
-		//};
-		//addToolBarItem(item, "toolbar.area.sitem");
-		//addSeperator(so2nd);
 
 		// ==share
 		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
@@ -284,9 +272,6 @@ public class ToolBarView
 					SkinView view = SkinViewManager.getBySkinObjectID("Activity");
 					if (view instanceof SBC_ActivityView) {
 						SBC_ActivityView viewActivity = (SBC_ActivityView) view;
-						viewActivity.removeSelected();
-					} else if (view instanceof VuzeActivitiesView) {
-						VuzeActivitiesView viewActivity = (VuzeActivitiesView) view;
 						viewActivity.removeSelected();
 					}
 				} else {

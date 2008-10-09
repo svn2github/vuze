@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -53,21 +52,16 @@ import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.ui.swt.views.TorrentListView;
-import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
-import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
@@ -91,90 +85,6 @@ public class TorrentListViewsUtils
 
 	public static final boolean ENABLE_ON_HOVER = false;
 
-	public static SWTSkinButtonUtility addShareButton(final SkinView skinView,
-			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "send-selected");
-		if (skinObject == null) {
-			return null;
-		}
-
-		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				if (contents.length > 0) {
-					/*
-					 * KN: we're only supporting sharing a single content right now
-					 */
-					VuzeShareUtils.getInstance().shareTorrent(contents[0], PREFIX + "btn");
-				}
-			}
-		});
-		btn.setDisabled(true);
-		return btn;
-	}
-
-	public static SWTSkinButtonUtility addNewTagButton(final SkinView skinView,
-			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "newtag");
-		if (skinObject == null) {
-			return null;
-		}
-
-		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-				if (contents.length > 0) {
-					/*
-					 * KN: we're only supporting sharing a single content right now
-					 */
-					VuzeShareUtils.getInstance().shareTorrent(contents[0],
-							PREFIX + "tag-btn");
-				}
-			}
-		});
-		return btn;
-	}
-
-	public static SWTSkinButtonUtility addStopButton(final SkinView skinView,
-			String PREFIX, final TorrentListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "stop");
-		if (skinObject == null) {
-			return null;
-		}
-		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				for (int i = 0; i < selectedRows.length; i++) {
-					DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-					stop(dm);
-					StartStopButtonUtil.updateStopButton(view, btn);
-				}
-			}
-		});
-		view.addListener(new TorrentListViewListener() {
-			public void stateChanged(DownloadManager manager) {
-				boolean update = false;
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				for (int i = 0; i < selectedRows.length; i++) {
-					if (selectedRows[i].getDataSource(true) == manager) {
-						update = true;
-						break;
-					}
-				}
-				if (update) {
-					StartStopButtonUtil.updateStopButton(view, btn);
-				}
-			}
-		});
-		return btn;
-	}
-
 	/**
 	 * @param dm
 	 *
@@ -189,27 +99,6 @@ public class TorrentListViewsUtils
 		} else {
 			ManagerUtils.stop(dm, null);
 		}
-	}
-
-	public static SWTSkinButtonUtility addDetailsButton(final SkinView skinView,
-			final String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "viewdetails");
-		if (skinObject == null) {
-			return null;
-		}
-
-		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				if (selectedRows.length > 0) {
-					viewDetails(selectedRows[0], PREFIX.substring(0, PREFIX.length() - 1));
-				}
-			}
-		});
-
-		return btn;
 	}
 
 	public static void viewDetails(TableRowCore row, String ref) {
@@ -246,119 +135,6 @@ public class TorrentListViewsUtils
 		}
 	}
 
-	public static SWTSkinButtonUtility addCommentsButton(final SkinView skinView,
-			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "comment");
-		if (skinObject == null) {
-			return null;
-		}
-
-		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				if (selectedRows.length > 0) {
-					String hash = DataSourceUtils.getHash(selectedRows[0].getDataSource(true));
-
-					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS + hash
-							+ ".html?" + Constants.URL_SUFFIX + "&rnd=" + Math.random();
-
-					UIFunctions functions = UIFunctionsManager.getUIFunctions();
-					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-							false, false);
-				}
-			}
-		});
-
-		return btn;
-	}
-
-	public static SWTSkinButtonUtility addPlayButton(final SkinView skinView,
-			String PREFIX, final ListView view, boolean bOnlyIfMediaServer,
-			boolean bPlayOnDoubleClick) {
-
-		debugDCAD("enter - addPlayButton");
-
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "play");
-		if (skinObject == null) {
-			return null;
-		}
-
-		if (bOnlyIfMediaServer) {
-			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-					"azupnpav", true);
-			if (pi == null) {
-				skinObject.getControl().setVisible(false);
-				return null;
-			}
-		}
-		final SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				if (selectedRows.length <= 0) {
-					return;
-				}
-				playOrStreamDataSource(selectedRows[0].getDataSource(true), btn);
-			}
-		});
-
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void mouseEnter(TableRowCore row) {
-				if (ENABLE_ON_HOVER) {
-					update();
-				}
-			}
-
-			public void mouseExit(TableRowCore row) {
-				if (ENABLE_ON_HOVER) {
-					update();
-				}
-			}
-
-			public void deselected(TableRowCore[] rows) {
-				update();
-			}
-
-			public void selected(TableRowCore[] rows) {
-				update();
-			}
-
-			public void focusChanged(TableRowCore focusedRow) {
-				update();
-			}
-
-			private void update() {
-				TableRowCore rowWithCursor = ENABLE_ON_HOVER
-						? view.getTableRowWithCursor() : null;
-
-				boolean bDisabled = rowWithCursor == null
-						? view.getSelectedRowsSize() != 1 : false;
-				if (!bDisabled) {
-					TableRowCore[] rows = rowWithCursor == null ? view.getSelectedRows()
-							: new TableRowCore[] {
-								rowWithCursor
-							};
-					Object ds = rows[0].getDataSource(true);
-					bDisabled = !PlayUtils.canPlayDS(ds);
-
-				}
-				btn.setDisabled(bDisabled);
-			}
-
-			public void defaultSelected(TableRowCore[] rows, int stateMask) {
-				if (rows.length == 1) {
-					playOrStreamDataSource(rows[0].getDataSource(true), btn);
-				}
-			}
-		}, true);
-
-		debugDCAD("exit - addPlayButton");
-
-		return btn;
-	}
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
 		String referal = Constants.DL_REFERAL_UNKNOWN;
@@ -422,65 +198,6 @@ public class TorrentListViewsUtils
 						true, true);
 			}
 		}
-	}
-
-	/**
-	 * @param skin
-	 * @param prefix
-	 * @param view
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	public static SWTSkinButtonUtility addColumnSetupButton(SkinView skinView,
-			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "columnsetup");
-		if (skinObject == null) {
-			return null;
-		}
-
-		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-		btn.addSelectionListener(new ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				String tableID = view.getTableID();
-				TableRowCore focusedRow = view.getFocusedRow();
-				Class cla = null;
-				if (focusedRow != null) {
-					cla = focusedRow.getDataSource().getClass();
-				}
-				new TableColumnEditorWindow(view.getComposite().getShell(), tableID,
-						view.getAllColumns(), view.getFocusedRow(), cla,
-						TableStructureEventDispatcher.getInstance(tableID));
-			}
-		});
-
-		return btn;
-	}
-
-	public static SWTSkinButtonUtility addDeleteButton(SkinView skinView,
-			String PREFIX, final ListView view) {
-		SWTSkinObject skinObject = skinView.getSkinObject(PREFIX + "delete");
-		if (skinObject == null) {
-			return null;
-		}
-
-		SWTSkinButtonUtility btn = new SWTSkinButtonUtility(skinObject);
-
-		btn.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-			public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-				TableRowCore[] selectedRows = view.getSelectedRows();
-				for (int i = 0; i < selectedRows.length; i++) {
-
-					DownloadManager dm = DataSourceUtils.getDM(selectedRows[i].getDataSource(true));
-					if (dm != null) {
-						boolean delete = ! dm.getDownloadState().getFlag(Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
-						TorrentListViewsUtils.removeDownload(dm, view, true, delete);
-					}
-				}
-			}
-		});
-
-		return btn;
 	}
 
 	public static boolean playOrStream(final DownloadManager dm,
@@ -951,102 +668,6 @@ public class TorrentListViewsUtils
 			Logger.log(new LogEvent(LogIDs.UI3, "IPC to media server plugin failed",
 					e));
 		}
-	}
-
-	/**
-	 * @param view
-	 * @param buttonsNeedingRow
-	 * @param buttonsNeedingPlatform
-	 * @param buttonsNeedingSingleSelection 
-	 * @param btnStop
-	 */
-	public static void addButtonSelectionDisabler(final ListView view,
-			final SWTSkinButtonUtility[] buttonsNeedingRow,
-			final SWTSkinButtonUtility[] buttonsNeedingPlatform,
-			final SWTSkinButtonUtility[] buttonsNeedingSingleSelection,
-			final SWTSkinButtonUtility btnStop) {
-
-		view.addSelectionListener(new TableSelectionAdapter() {
-			public void mouseEnter(TableRowCore row) {
-				if (ENABLE_ON_HOVER) {
-					update();
-				}
-			}
-
-			public void mouseExit(TableRowCore row) {
-				if (ENABLE_ON_HOVER) {
-					update();
-				}
-			}
-
-			public void deselected(TableRowCore[] rows) {
-				update();
-			}
-
-			public void selected(TableRowCore[] rows) {
-				update();
-			}
-
-			public void focusChanged(TableRowCore focusedRow) {
-				update();
-			}
-
-			private void update() {
-				TableRowCore rowWithCursor = ENABLE_ON_HOVER
-						? view.getTableRowWithCursor() : null;
-
-				boolean bDisabled;
-				int size;
-				if (rowWithCursor == null) {
-					size = view.getSelectedRowsSize();
-					bDisabled = size == 0;
-				} else {
-					bDisabled = false;
-					size = 1;
-				}
-
-				for (int i = 0; i < buttonsNeedingRow.length; i++) {
-					if (buttonsNeedingRow[i] != null) {
-						buttonsNeedingRow[i].setDisabled(bDisabled);
-					}
-				}
-
-				// now for buttons that require platform torrents
-				if (!bDisabled) {
-					TableRowCore[] rows = rowWithCursor == null ? view.getSelectedRows()
-							: new TableRowCore[] {
-								rowWithCursor
-							};
-					for (int i = 0; i < rows.length; i++) {
-						TableRowCore row = rows[i];
-						Object ds = row.getDataSource(true);
-						boolean ourContent = DataSourceUtils.isPlatformContent(ds);
-						if (!ourContent) {
-							bDisabled = true;
-							break;
-						}
-					}
-				}
-				for (int i = 0; i < buttonsNeedingPlatform.length; i++) {
-					if (buttonsNeedingPlatform[i] != null) {
-						buttonsNeedingPlatform[i].setDisabled(bDisabled);
-					}
-				}
-
-				// buttons needing single selection
-				if (size > 1) {
-					for (int i = 0; i < buttonsNeedingSingleSelection.length; i++) {
-						if (buttonsNeedingSingleSelection[i] != null) {
-							buttonsNeedingSingleSelection[i].setDisabled(true);
-						}
-					}
-				}
-
-				if (btnStop != null) {
-					StartStopButtonUtil.updateStopButton(view, btnStop);
-				}
-			}
-		}, true);
 	}
 
 	public static void removeDownload(final DownloadManager dm,

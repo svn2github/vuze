@@ -25,7 +25,6 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
@@ -40,7 +39,9 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
@@ -301,103 +302,7 @@ public class TorrentListView
 			}
 		});
 
-		addSkinButtons(skinView, skinPrefix);
-	}
-
-	/**
-	 * @param skin
-	 * @param skinPrefix
-	 *
-	 * @since 3.0.5.3
-	 */
-	private void addSkinButtons(SkinView skinView, String skinPrefix) {
-		SWTSkinObject skinObject = skinView.getSkinObject(skinPrefix + "add");
-		if (skinObject instanceof SWTSkinObject) {
-			SWTSkinButtonUtility btnAdd = new SWTSkinButtonUtility(skinObject);
-
-			btnAdd.addSelectionListener(new SWTSkinButtonUtility.ButtonListenerAdapter() {
-				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-					TorrentOpener.openTorrentWindow();
-				}
-			});
-		}
-
-		SWTSkinButtonUtility btnColumnSetup = TorrentListViewsUtils.addColumnSetupButton(
-				skinView, skinPrefix, this);
-
-		SWTSkinButtonUtility btnStop = TorrentListViewsUtils.addStopButton(
-				skinView, skinPrefix, this);
-		SWTSkinButtonUtility btnDetails = TorrentListViewsUtils.addDetailsButton(
-				skinView, skinPrefix, this);
-		SWTSkinButtonUtility btnComments = TorrentListViewsUtils.addCommentsButton(
-				skinView, skinPrefix, this);
-		SWTSkinButtonUtility btnPlay = TorrentListViewsUtils.addPlayButton(
-				skinView, skinPrefix, this, true, true);
-		SWTSkinButtonUtility btnDelete = TorrentListViewsUtils.addDeleteButton(
-				skinView, skinPrefix, this);
-
-		SWTSkinButtonUtility[] buttonsNeedingRow = {
-			btnDelete,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingPlatform = {
-			btnDetails,
-			btnComments,
-		};
-		SWTSkinButtonUtility[] buttonsNeedingSingleSelection = {
-			btnDetails,
-			btnComments,
-		};
-		TorrentListViewsUtils.addButtonSelectionDisabler(this, buttonsNeedingRow,
-				buttonsNeedingPlatform, buttonsNeedingSingleSelection, btnStop);
-
-		final SWTSkinButtonUtility btnShare = TorrentListViewsUtils.addShareButton(
-				skinView, skinPrefix, this);
-		final SWTSkinButtonUtility btnTag = TorrentListViewsUtils.addNewTagButton(
-				skinView, skinPrefix, this);
-
-		addSelectionListener(new TableSelectionAdapter() {
-			public void mouseEnter(TableRowCore row) {
-				{
-					if (btnTag != null) {
-						btnTag.setDisabled(false);
-					}
-				}
-			}
-
-			public void mouseExit(TableRowCore row) {
-				{
-					if (btnTag != null) {
-						btnTag.setDisabled(getCurrentlySelectedContent().length != 1);
-					}
-				}
-			}
-
-			public void selected(TableRowCore[] row) {
-				selectionChanged();
-			}
-
-			public void deselected(TableRowCore[] rows) {
-				selectionChanged();
-			}
-
-			public void selectionChanged() {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						ISelectedContent[] contents = getCurrentlySelectedContent();
-						if (dataArea.isVisible()) {
-							SelectedContentManager.changeCurrentlySelectedContent(
-									getTableID(), contents);
-						}
-						if (btnShare != null) {
-							btnShare.setDisabled(contents.length != 1);
-						}
-						if (btnTag != null) {
-							btnTag.setDisabled(contents.length != 1);
-						}
-					}
-				});
-			}
-		}, true);
+		//addSkinButtons(skinView, skinPrefix);
 	}
 
 	/**
