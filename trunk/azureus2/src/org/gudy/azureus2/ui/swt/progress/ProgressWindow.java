@@ -35,6 +35,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -443,8 +444,17 @@ ProgressWindow
 
 		shell.pack();
 		
-		Utils.centreWindow( shell );
-
+		Composite parent = shell.getParent();
+		
+		if ( parent != null ){
+			
+			Utils.centerWindowRelativeTo( shell, parent );
+			
+		}else{
+			
+			Utils.centreWindow( shell );
+		}
+		
 		shell.open();
 	}
 	
