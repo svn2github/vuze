@@ -1488,6 +1488,11 @@ public class FileUtil {
     	try{
     		File file = new File( filename );
 
+    		if ( !file.getParentFile().exists()){
+    			
+    			file.getParentFile().mkdirs();
+    		}
+    		
     		FileOutputStream out = new FileOutputStream( file );
 
     		out.write( file_data );
