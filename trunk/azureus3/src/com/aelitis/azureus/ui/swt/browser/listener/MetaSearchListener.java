@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
@@ -405,8 +406,28 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 			boolean	auto = ((Boolean)decodedMap.get( "auto" )).booleanValue();
 			
+				// there's some code that attempts to switch to 'auto=true' on first use as
+				// when 3110 defaults to false and the decision was made to switch this
+				// disable the behaviour if we are customised
+			
+			
+			Boolean	is_default = (Boolean)decodedMap.get( "set_default" );
+			
+			boolean skip = false;
+			
+			if ( is_default != null && is_default.booleanValue()){
+				
+				if ( CustomizationManagerFactory.getSingleton().getActiveCustomization() != null ){
+					
+					skip = true;
+				}
+			}
+			
 			try{
-				metaSearchManager.setSelectedEngines( ids, auto );
+				if ( !skip ){
+					
+					metaSearchManager.setSelectedEngines( ids, auto );
+				}
 				
 				Map params = new HashMap();
 				sendBrowserMessage("metasearch", "setSelectedCompleted",params);
