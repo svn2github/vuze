@@ -1,5 +1,6 @@
 package com.aelitis.azureus.core.metasearch.impl;
 
+import java.util.*;
 import java.net.URL;
 
 import org.eclipse.swt.SWT;
@@ -25,6 +26,7 @@ import org.gudy.azureus2.ui.swt.progress.ProgressWindow;
 
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelper;
+import com.aelitis.azureus.core.util.http.HTTPAuthHelperListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
@@ -35,22 +37,25 @@ public class ExternalLoginWindow {
 	Display display;
 	Shell shell;
 	
+	ExternalLoginListener	listener;
+	
 	String originalLoginUrl;
 	
-	String cookies;
+	Map	cookies = new HashMap();
 	
 	HTTPAuthHelper	sniffer;
 	
 	public 
 	ExternalLoginWindow(
-		final ExternalLoginListener listener,
+		ExternalLoginListener _listener,
 		String name, 
 		final String _loginUrl,
 		boolean captureMode,
 		String	authMode,
 		boolean isMine ) 
 	{
-		originalLoginUrl = _loginUrl;
+		listener			= _listener;
+		originalLoginUrl 	= _loginUrl;
 
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if(functionsSWT != null) {
@@ -94,11 +99,8 @@ public class ExternalLoginWindow {
 		
 		final Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
-			public void cookiesFound(String cookies) {
-				if(listener != null) {
-					ExternalLoginWindow.this.cookies = cookies;
-					listener.cookiesFound(ExternalLoginWindow.this,cookies);
-				}
+			public void cookiesFound(String cookies){
+				foundCookies( cookies );
 			}
 		},browser);
 		
@@ -146,7 +148,7 @@ public class ExternalLoginWindow {
 		done.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				if(listener != null) {
-					listener.done(ExternalLoginWindow.this,cookies);
+					listener.done(ExternalLoginWindow.this,cookiesToString());
 				}
 				shell.dispose();
 			}
@@ -244,8 +246,27 @@ public class ExternalLoginWindow {
 		}else{
 				
 			try{
-				sniffer = new HTTPAuthHelper( new URL( originalLoginUrl ));
+				final HTTPAuthHelper this_sniffer = sniffer = 
+					new HTTPAuthHelper( new URL( originalLoginUrl ));
+				
+				this_sniffer.addListener(
+					new HTTPAuthHelperListener()
+					{
+						public void 
+						cookieFound(
+							HTTPAuthHelper 	helper,
+							String 			cookie_name, 
+							String 			cookie_value )
+						{
+							if ( helper == this_sniffer ){
+								
+								foundCookies( cookie_name + "=" + cookie_value );
+							}
+						}
+					});
 					
+				this_sniffer.start();
+				
 				String str = originalLoginUrl.toString();
 				
 				int	pos = str.indexOf( "://" );
@@ -271,6 +292,50 @@ public class ExternalLoginWindow {
 				Debug.printStackTrace( e );
 			}
 		}
+	}
+	
+	protected void
+	foundCookies(
+		String		_cookies )
+	{
+		String[]	x = _cookies.split( ";" );
+		
+		for (int i=0;i<x.length;i++){
+			
+			String	cookie = x[i];
+			
+			String[]	bits = cookie.split("=");
+			
+			if( bits.length == 2 ){
+				
+				String name 	= bits[0];
+				String value	= bits[1];
+				
+				cookies.put(name,value);
+			}
+		}
+		
+		if ( listener != null ){
+
+			listener.cookiesFound(ExternalLoginWindow.this,cookiesToString());
+		}
+	}
+	
+	protected String
+	cookiesToString()
+	{
+		String	res = "";
+		
+		Iterator it = cookies.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry entry = (Map.Entry)it.next();
+			
+			res += (res.length()==0?"":";" ) + entry.getKey() + "=" + entry.getValue();
+		}
+		
+		return( res );
 	}
 	
 	public boolean
@@ -315,8 +380,8 @@ public class ExternalLoginWindow {
 						System.out.println( "Done" );
 					}
 				},
-				"test",
-				"http://waffles.fm/",
+				"test",			
+				"http://www.sf.net/",
 				false,
 				WebEngine.AM_PROXY,
 				true );
