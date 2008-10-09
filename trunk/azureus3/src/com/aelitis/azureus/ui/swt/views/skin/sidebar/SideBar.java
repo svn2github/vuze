@@ -184,6 +184,10 @@ public class SideBar
 
 	private Image lastImage;
 
+	private Image imgUntwist;
+
+	private Image imgTwist;
+
 	private Shell shellFade;
 
 	static {
@@ -234,6 +238,8 @@ public class SideBar
 		imageLoader = skin.getImageLoader(skinObject.getProperties());
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
 		imgCloseSelected = imageLoader.getImage("image.sidebar.closeitem-selected");
+		imgTwist = imageLoader.getImage("image.sidebar.twist");
+		imgUntwist = imageLoader.getImage("image.sidebar.untwist");
 
 		// addTestMenus();
 
@@ -978,7 +984,8 @@ public class SideBar
 
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
-		if (!Constants.isOSX && treeItem.getItemCount() > 0) {
+		if (!Constants.isOSX && treeItem.getItemCount() > 0
+				&& !sideBarInfo.disableCollapse) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
 			gc.setBackground(gc.getForeground());
@@ -987,24 +994,24 @@ public class SideBar
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
-					event.x - xStart,
-					event.y + yStart,
-					event.x - xStart + arrowSize,
-					event.y + yStart,
-					event.x - xStart + (arrowSize / 2),
-					event.y + 16,
+					itemBounds.x - xStart,
+					itemBounds.y + yStart,
+					itemBounds.x - xStart + arrowSize,
+					itemBounds.y + yStart,
+					itemBounds.x - xStart + (arrowSize / 2),
+					itemBounds.y + 16,
 				});
 			} else {
 				int xStart = 15;
 				int arrowSize = 8;
 				int yStart = itemBounds.height - (itemBounds.height + arrowSize) / 2;
 				gc.fillPolygon(new int[] {
-					event.x - xStart,
-					event.y + yStart,
-					event.x - xStart + arrowSize,
-					event.y + yStart + 4,
-					event.x - xStart,
-					event.y + yStart + 8,
+					itemBounds.x - xStart,
+					itemBounds.y + yStart,
+					itemBounds.x - xStart + arrowSize,
+					itemBounds.y + yStart + 4,
+					itemBounds.x - xStart,
+					itemBounds.y + yStart + 8,
 				});
 			}
 			gc.setBackground(oldBG);
