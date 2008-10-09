@@ -1163,8 +1163,6 @@ SubscriptionManagerUI
 					return ( "" + subs.getHistory().getNumUnread());
 				}
 				return null;
-			case ViewTitleInfo.TITLE_HAS_VITALITY :
-				return new Boolean(false);
 			}
 			
 			return( null );

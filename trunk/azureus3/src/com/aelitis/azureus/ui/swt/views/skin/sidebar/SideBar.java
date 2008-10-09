@@ -854,17 +854,13 @@ public class SideBar
 
 				Point textSize = gc.textExtent(textIndicator);
 				Point minTextSize = gc.textExtent("99");
-				int textOffsetX = 0;
-				if (textSize.x < minTextSize.x) {
-					textOffsetX = (minTextSize.x - textSize.x) / 2;
-					textSize.x = minTextSize.x;
+				if (textSize.x < minTextSize.x + 2) {
+					textSize.x = minTextSize.x + 2;
 				}
 
 				int width = textSize.x + textSize.y / 2 + 2;
 				x1IndicatorOfs += width + SIDEBAR_SPACING;
 				int startX = treeArea.width - x1IndicatorOfs;
-
-				textOffsetX += textSize.y / 4 + 1;
 
 				int textOffsetY = 0;
 
@@ -872,10 +868,6 @@ public class SideBar
 				int startY = itemBounds.y + (itemBounds.height - height) / 2;
 
 				//gc.fillRectangle(startX, startY, width, height);
-
-				Boolean b_vitality = (Boolean) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_HAS_VITALITY);
-
-				boolean vitality = b_vitality != null && b_vitality.booleanValue();
 
 				Color color1 = ColorCache.getColor(gc.getDevice(), "#166688");
 				Color color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
@@ -893,7 +885,11 @@ public class SideBar
 				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
 						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
-		}
+		} 
+		
+		//if (x1IndicatorOfs < 30) {
+		//	x1IndicatorOfs = 30;
+		//}
 
 		if (sideBarInfo.closeable) {
 			Image img = selected ? imgCloseSelected : imgClose;
