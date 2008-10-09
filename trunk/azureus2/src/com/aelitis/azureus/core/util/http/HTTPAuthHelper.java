@@ -47,7 +47,7 @@ HTTPAuthHelper
 	public static final int	CONNECT_TIMEOUT		= 30*1000;
 	public static final int READ_TIMEOUT		= 30*1000;
 
-	private HTTPAuthHelper		parent;
+	private HTTPAuthHelper			parent;
 	private Map						children	= new HashMap();
 	
 	private URL						delegate_to;
@@ -60,6 +60,8 @@ HTTPAuthHelper
 	private ServerSocket	server_socket;	
 	
 	private boolean			http_only_detected;
+	
+	private Set				cookie_names_set	= new HashSet();
 	
 	private ThreadPool		thread_pool = new ThreadPool("HTTPSniffer", MAX_PROCESSORS, true );
 	
@@ -228,6 +230,44 @@ HTTPAuthHelper
 		}
 	}
 
+	protected void
+	addSetCookieName(
+		String		name )
+	{
+		if ( parent != null ){
+			
+			parent.addSetCookieName( name );
+			
+		}else{
+			
+			synchronized( cookie_names_set ){
+		
+				trace( "SetCookieName: " + name );
+				
+				cookie_names_set.add( name );
+			}
+		}	
+	}
+	
+	protected boolean
+	hasSetCookieName(
+		String		name )
+	{
+		if ( parent != null ){
+			
+			return( parent.hasSetCookieName( name ));
+			
+		}else{
+		
+			synchronized( cookie_names_set ){
+				
+				trace( "GetCookieName: " + name );
+				
+				return( cookie_names_set.contains( name ));
+			}
+		}
+	}
+	
 	public void
 	destroy()
 	{
@@ -440,6 +480,8 @@ HTTPAuthHelper
 
 			trace( "Page request for " + target_url );
 			
+			List	cookies_to_remove = new ArrayList();
+
 			for (int i=0;i<request_lines.length;i++){
 				
 				String	line_out	= request_lines[i];
@@ -500,6 +542,39 @@ HTTPAuthHelper
 						}
 
 						line_out = "Referer: http" + (delegate_is_https?"s":"") + "://" + delegate_to_host + port_str + page;
+						
+					}else if ( lhs.equals( "cookie" )){
+
+						String cookies_str = line_out.substring( line_out.indexOf( ':' )+1).trim();
+						
+						String[] cookies = cookies_str.split( ";" );
+						
+						String	cookies_out = "";
+						
+						for (int j=0;j<cookies.length;j++){
+							
+							String	cookie = cookies[j];
+							
+							String	name = cookie.split( "=" )[0].trim();
+							
+							if ( hasSetCookieName( name )){
+								
+								cookies_out += (cookies_out.length()==0?"":"; ") + cookie;
+								
+							}else{
+								
+								cookies_to_remove.add( name );
+							}
+						}
+						
+						if ( cookies_out.length() > 0 ){
+							
+							line_out = "Cookie: " + cookies_out;
+							
+						}else{
+							
+							line_out = null;
+						}
 					}
 				}
 				
@@ -615,7 +690,7 @@ HTTPAuthHelper
 					rewrite = true;
 				}
 			}
-						
+							
 			for (int i=0;i<reply_lines.length;i++){
 								
 				String	line_out	= reply_lines[i];
@@ -630,67 +705,118 @@ HTTPAuthHelper
 					
 					if ( lhs.equals( "set-cookie" )){
 						
-						String	cookie = line_out.substring( line_out.indexOf( ':' )+1 );
+						String	cookies_in = line_out.substring( line_out.indexOf( ':' )+1 );
 						
-						String[]	x = cookie.split( ";" );
+						String[] cookies;
 						
-						String	modified_cookie = "";
-						
-						for (int j=0;j<x.length;j++){
+						if ( cookies_in.toLowerCase().indexOf( "expires" ) == -1 ){
 							
-							String entry = x[j].trim();
+							cookies = cookies_in.split( "," );
 							
-							if ( entry.equalsIgnoreCase( "httponly" )){
-								
-								setHTTPOnlyCookieDetected();
-								
-							}else if ( entry.equalsIgnoreCase( "secure" )){
-								
-							}else if ( entry.toLowerCase().startsWith( "domain" )){
-								
-									// remove domain restriction so cookie sent to localhost
-								
-							}else if ( entry.toLowerCase().startsWith( "expires" )){
-								
-									// force to be session cookie otherwise we'll end up sending
-									// cookies from multiple sites to 'localhost'
-							}else{
-								
-								modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
-							}
+						}else{
+							
+							cookies = new String[]{ cookies_in };
 						}
 						
-						line_out = "Set-Cookie: " + modified_cookie;
+						String	cookies_out = "";
+						
+						for (int c=0;c<cookies.length;c++){
+							
+							String	cookie = cookies[c];
+						
+							String[]	x = cookie.split( ";" );
+							
+							String	modified_cookie = "";
+							
+							for (int j=0;j<x.length;j++){
+								
+								String entry = x[j].trim();
+								
+								if ( entry.equalsIgnoreCase( "httponly" )){
+									
+									setHTTPOnlyCookieDetected();
+									
+								}else if ( entry.equalsIgnoreCase( "secure" )){
+									
+								}else if ( entry.toLowerCase().startsWith( "domain" )){
+									
+										// remove domain restriction so cookie sent to localhost
+									
+								}else if ( entry.toLowerCase().startsWith( "expires" )){
+									
+										// force to be session cookie otherwise we'll end up sending
+										// cookies from multiple sites to 'localhost'
+								}else{
+									
+									if ( j == 0 ){
+										
+										int pos = entry.indexOf( '=' );
+										
+										String name = entry.substring( 0, pos ).trim();
+										
+										addSetCookieName( name );
+									}
+									
+									modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
+								}
+							}
+							
+							cookies_out += (c==0?"":", " ) + modified_cookie + "; Discard";
+						}					
+						
+						line_out = "Set-Cookie: " + cookies_out;
 						
 					}else if ( lhs.equals( "set-cookie2" )){
 						
 							// http://www.ietf.org/rfc/rfc2965.txt
 						
-						String	cookie = line_out.substring( line_out.indexOf( ':' )+1 );
+							// one or more comma separated
 						
-						String[]	x = cookie.split( ";" );
+						String	cookies_in = line_out.substring( line_out.indexOf( ':' )+1 );
 						
-						String	modified_cookie = "";
+						String[] cookies = cookies_in.split( "," );
 						
-						for (int j=0;j<x.length;j++){
+						String	cookies_out = "";
+						
+						for (int c=0;c<cookies.length;c++){
 							
-							String entry = x[j].trim();
+							String	cookie = cookies[c];
 							
-							if ( entry.equalsIgnoreCase( "secure" )){
+							String[]	x = cookie.split( ";" );
+							
+							String	modified_cookie = "";
+							
+							for (int j=0;j<x.length;j++){
 								
-							}else if ( entry.equalsIgnoreCase( "discard" )){
-
-							}else if ( entry.toLowerCase().startsWith( "domain" )){
-																								
-							}else if ( entry.toLowerCase().startsWith( "port" )){
+								String entry = x[j].trim();
 								
-							}else{
-								
-								modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
+								if ( entry.equalsIgnoreCase( "secure" )){
+									
+								}else if ( entry.equalsIgnoreCase( "discard" )){
+	
+								}else if ( entry.toLowerCase().startsWith( "domain" )){
+																									
+								}else if ( entry.toLowerCase().startsWith( "port" )){
+																		
+								}else{
+									
+									if ( j == 0 ){
+									
+										int pos = entry.indexOf( '=' );
+										
+										String name = entry.substring( 0, pos ).trim();
+										
+										addSetCookieName( name );
+									}
+									
+									modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
+								}
 							}
+							
+							cookies_out += (c==0?"":", " ) + modified_cookie + "; Discard";
 						}
 						
-						line_out = "Set-Cookie2: " + modified_cookie + "; Discard";
+						line_out = "Set-Cookie2: " + cookies_out;
 
 					}else if ( lhs.equals( "connection" )){
 						
@@ -808,6 +934,26 @@ HTTPAuthHelper
 					trace( "<- " + line_out );
 					
 					source_os.write((line_out+NL).getBytes());
+				}
+			}
+			
+			for ( int i=0;i<cookies_to_remove.size();i++ ){
+				
+				String	name = (String)cookies_to_remove.get(i);
+				
+				if ( !hasSetCookieName( name )){
+					
+					String	remove_str = "Set-Cookie: " + name + "=X; expires=Sun, 01 Jan 2000 01:00:00 GMT";
+					
+					trace( "<- (cookie removal) " + remove_str );
+					
+					source_os.write((remove_str+NL).getBytes());
+					
+					remove_str = "Set-Cookie2: " + name + "=X; Max-Age=0; Version=1";
+					
+					trace( "<- (cookie removal) " + remove_str );
+					
+					source_os.write((remove_str+NL).getBytes());
 				}
 			}
 			
