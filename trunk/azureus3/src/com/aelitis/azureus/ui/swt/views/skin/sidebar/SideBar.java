@@ -66,6 +66,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -1128,9 +1129,9 @@ public class SideBar
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
 				"Notifications", titleInfoActivityView, null, false, -1);
 
-		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
-				"main.area.subscriptions", "Subscriptions", null, null, false, -1);
-		entry.setImageLeftID("image.sidebar.subscriptions");
+		createTreeItemFromIViewClass(null,SIDEBAR_SECTION_SUBSCRIPTIONS,"subscriptions", SubscriptionsView.class,null,null,null,null,false);
+				
+		//entry.setImageLeftID("image.sidebar.subscriptions");
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
 

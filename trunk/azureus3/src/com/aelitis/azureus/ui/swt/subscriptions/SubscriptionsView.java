@@ -3,7 +3,9 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
@@ -11,11 +13,17 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionView;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 
 public class SubscriptionsView
-	implements UIUpdatable, IconBarEnabler, SubscriptionManagerListener
+	implements UIUpdatable, IconBarEnabler, IView, SubscriptionManagerListener
 {
 	private static final String TABLE_ID = "subscriptions";
 
@@ -23,16 +31,10 @@ public class SubscriptionsView
 
 	private Composite viewComposite;
 	
-	public SubscriptionsView(Composite parent) {
-		viewComposite = new Composite(parent,SWT.NONE);
-		viewComposite.setLayout(new FillLayout());
+	public SubscriptionsView() {
 		
-		TableColumnCore[] columns = TableColumnCreatorV3.createSubscriptions(TABLE_ID);
 		
-		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.MULTI
-				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
-		view.addDataSources(SubscriptionManagerFactory.getSingleton().getSubscriptions());
 	}
 	
 	
@@ -78,6 +80,82 @@ public class SubscriptionsView
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public void dataSourceChanged(Object newDataSource) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void delete() {
+		viewComposite.dispose();
+	}
+	
+	public void generateDiagnostics(IndentWriter writer) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public Composite getComposite() {
+		return viewComposite;
+	}
+	
+	public String getData() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String getFullTitle() {
+		return "Subscriptions";
+	}
+	
+	public String getShortTitle() {
+		return "Subscriptions";
+	}
+	
+	public void initialize(Composite parent) {
+		
+		viewComposite = new Composite(parent,SWT.NONE);
+		viewComposite.setLayout(new FillLayout());
+		
+		TableColumnCore[] columns = new TableColumnCore[] {
+				new ColumnSubscriptionNew(TABLE_ID),
+				new ColumnSubscriptionName(TABLE_ID),
+				new ColumnSubscriptionNbResults(TABLE_ID),
+				new ColumnSubscriptionNbNewResults(TABLE_ID),
+				new ColumnSubscriptionView(TABLE_ID),
+				
+		};
+		
+		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.MULTI
+				| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		
+		view.addLifeCycleListener(new TableLifeCycleListener() {
+			public void tableViewInitialized() {
+				view.addDataSources(SubscriptionManagerFactory.getSingleton().getSubscriptions());
+			}
+		
+			public void tableViewDestroyed() {
+			}
+		});
+		
+		view.setRowDefaultHeight(20);
+		
+		view.initialize(viewComposite);
+		view.getComposite().setLayoutData(null);
+	}
+	
+	public void refresh() {
+		view.refreshTable(false);
+	}
+	
+	public void updateLanguage() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	
+	
 	
 	
 	

@@ -554,8 +554,6 @@ SubscriptionManagerUI
 					new SubscriptionWizard();
 				}
 			});
-			//TODO : can you hook SubscriptionsView here? what's missing ?
-			//mainSBEntry.setIView()
 		}
 		
 		markAllResultsListener = new MenuItemListener() {

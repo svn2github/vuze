@@ -39,7 +39,7 @@ public class ColumnSubscriptionNew
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "subscriptionNew";
+	public static final String COLUMN_ID = "new";
 
 	private static int WIDTH = 38; // enough to fit title
 
@@ -55,6 +55,7 @@ public class ColumnSubscriptionNew
 		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(WIDTH);
+		setVisible(true);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
 	}

@@ -241,33 +241,6 @@ public class TableColumnCreatorV3
 
 	
 	
-	public static TableColumnCore[] createSubscriptions(String tableID) {
-		final String[] defaultVisibleOrder = {
-			ColumnSubscriptionNew.COLUMN_ID,
-			ColumnSubscriptionName.COLUMN_ID,
-			ColumnSubscriptionNbResults.COLUMN_ID,
-			ColumnSubscriptionNbNewResults.COLUMN_ID,
-			ColumnSubscriptionView.COLUMN_ID,
-		};
-		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(Subscription.class,
-				tableID);
-
-		if (!tcManager.loadTableColumnSettings(Subscription.class, tableID)
-				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
-			ColumnSubscriptionName tc = (ColumnSubscriptionName) mapTCs.get(ColumnSubscriptionName.COLUMN_ID);
-			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID,
-						ColumnSubscriptionName.COLUMN_ID);
-				tc.setSortAscending(true);
-			}
-		}
-
-		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
-	}
-	
-	
 	/**
 	 * 
 	 *
