@@ -206,9 +206,6 @@ public class ColumnThumbnail
 				dstHeight = imgBounds.height;
 			}
 
-			Rectangle clipping = gc.getClipping();
-			gc.setClipping(cellBounds);
-
 			try {
 				gc.setAdvanced(true);
 				gc.setInterpolation(SWT.HIGH);
@@ -218,8 +215,6 @@ public class ColumnThumbnail
 					cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
 							+ ((cellBounds.height - dstHeight) / 2), dstWidth, dstHeight);
 
-			gc.setClipping(clipping);
-			
 			imgThumbnail.dispose();
 		}
 	}
