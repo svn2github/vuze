@@ -33,6 +33,7 @@ import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.MessageNotificationWindow;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayout;
 import com.aelitis.azureus.ui.swt.layout.SimpleReorderableListLayoutData;
+import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -303,6 +304,8 @@ public class BuddiesViewer
 			parent.layout();
 
 			hookFAQLink();
+			
+			hookImageAction();
 		}
 		
 		return null;
@@ -844,6 +847,21 @@ public class BuddiesViewer
 					String url = Constants.URL_FAQ_BY_TOPIC_ENTRY
 							+ FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS;
 					Utils.launch(url);
+				}
+			});
+		}
+	}
+	
+	public void hookImageAction() {
+		SWTSkinObject imageObject = skin.getSkinObject("buddies-viewer-nobuddies-graphic");
+		if (null != imageObject) {
+			SWTSkinButtonUtility imageButton = new SWTSkinButtonUtility(imageObject);
+			imageButton.addSelectionListener(new ButtonListenerAdapter() {
+				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
+					FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
+					if(friendsToolbar != null) {
+						friendsToolbar.addBuddy();
+					}
 				}
 			});
 		}
