@@ -37,9 +37,6 @@ import java.util.regex.Pattern;
  */
 public class Messages {
 
-	private final static boolean SWTBUG_COLUMN = Constants.isOSX
-			&& SWT.getVersion() > 3200 && SWT.getVersion() < 3300;
-
   private static final Pattern HIG_ELLIP_EXP = Pattern.compile("([\\.]{3})"); // rec. hig style on some platforms
 
   /**
@@ -251,10 +248,6 @@ public class Messages {
         }
         else if (widget instanceof TableColumn) {
         	TableColumn tc = ((TableColumn) widget);
-        	if (SWTBUG_COLUMN && tc.getAlignment() == SWT.RIGHT) {
-        		// this still sucks.. it bleeds the column text into the column to the left
-        		message = " " + message + "  ";
-        	}
           tc.setText(message);
         } else if (widget instanceof Label)
         	// Disable Mnemonic when & is before a space.  Otherwise, it's most

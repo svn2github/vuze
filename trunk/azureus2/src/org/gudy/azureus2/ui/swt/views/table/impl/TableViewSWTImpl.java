@@ -1618,6 +1618,7 @@ public class TableViewSWTImpl
 			tc = tableColumns[0];
 		}
 		sortColumn = tc;
+		fixAlignment(tc, true);
 		changeColumnIndicator();
 
 		// Add move listener at the very end, so we don't get a bazillion useless 
@@ -1640,6 +1641,21 @@ public class TableViewSWTImpl
 		}
 		
 		columnVisibilitiesChanged = true;
+	}
+	
+	public void fixAlignment(TableColumnCore tc, boolean sorted) {
+		if (Constants.isOSX) {
+			int[] columnOrder = table.getColumnOrder();
+			TableColumn swtColumn = table.getColumn(columnOrder[tc.getPosition()
+					+ (bSkipFirstColumn ? 1 : 0)]);
+			if (swtColumn != null) {
+				if (swtColumn.getAlignment() == SWT.RIGHT && sorted) {
+					swtColumn.setText("   " + swtColumn.getText() + "   ");
+				} else {
+					swtColumn.setText(swtColumn.getText().trim());
+				}
+			}
+		}
 	}
 
 	/** Creates the Context Menu.
@@ -3684,7 +3700,9 @@ public class TableViewSWTImpl
 	public void sortColumnReverse(TableColumnCore sorter) {
 		boolean bSameColumn = sortColumn.equals(sorter);
 		if (!bSameColumn) {
+			fixAlignment(sortColumn, false);
 			sortColumn = sorter;
+			fixAlignment(sorter, true);
 			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
 			if (iSortDirection == 0)
 				sortColumn.setSortAscending(true);
