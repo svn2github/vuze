@@ -41,6 +41,7 @@ public class DateParserRegex extends DateParser {
 	private static final Pattern isAgeBasedPattern = Pattern.compile("(?i)(ago)|(min)|(hour)|(day)|(week)|(month)|(year)|([0-9](h|d|w|m|y))");
 	private static final Pattern getTimeComponent = Pattern.compile("(?i)([0-9]{2}):([0-9]{2})(:([0-9]{2}))?( ?(a|p)m)?");
 	private static final Pattern timeBasedDateWithLettersPattern = Pattern.compile("(?i)([0-9]{1,2})[^ ]{0,2}(?: |-)([a-z]{3,10})\\.?(?: |-)?([0-9]{2,4})?");
+	private static final Pattern timeBasedDateWithLettersPatternMonthFirst = Pattern.compile("(?i)([a-z]{3,10})\\.?(?: |-)?([0-9]{1,2})[^ ]{0,2}(?: |-)([0-9]{2,4})?");
 	private static final Pattern todayPattern = Pattern.compile("(?i)(t.?day)");
 	private static final Pattern yesterdayPattern = Pattern.compile("(?i)(y[a-z\\-]+day)");
 	private static final Pattern agoSpacerPattern = Pattern.compile("(?i)([0-9])([a-z])");
@@ -229,9 +230,42 @@ public class DateParserRegex extends DateParser {
 					//System.out.println(input + " > " + calendar.getTime() + "( " + calendar.getTimeZone() + " )");
 					
 				} else {
-					System.err.println("Unparseable date : " + input);
+					matcher = timeBasedDateWithLettersPatternMonthFirst.matcher(s);
+					if(matcher.find()) {
+						int day = Integer.parseInt(matcher.group(2));
+						calendar.set(Calendar.DAY_OF_MONTH,day);
+						
+						String monthStr = " " + matcher.group(1).toLowerCase();
+						int month = -1;
+						for(int i = 0 ; i < MONTHS_LIST.length ; i++) {
+							if(MONTHS_LIST[i].indexOf(monthStr) != -1) {
+								month = i;
+							}
+						}
+						if(month > -1) {
+							calendar.set(Calendar.MONTH,month);
+						}
+						
+						boolean hasYear = matcher.group(3) != null;
+						if(hasYear) {
+							int year = Integer.parseInt(matcher.group(3));
+							if(year < 100) {
+								year += 2000;
+							}
+							calendar.set(Calendar.YEAR,year);
+						}
+						
+						calendar.set(Calendar.HOUR_OF_DAY,0);
+						calendar.set(Calendar.MINUTE,0);
+						calendar.set(Calendar.SECOND,0);
+						calendar.set(Calendar.MILLISECOND,0);
+
+						//System.out.println(input + " > " + calendar.getTime() + "( " + calendar.getTimeZone() + " )");
+						
+					} else {
+						System.err.println("Unparseable date : " + input);
+					}
 				}
-				
 			}
 		} else {
 			//We have a date with only numbers
