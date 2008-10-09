@@ -585,7 +585,7 @@ public class SBC_LibraryView
 		numUnOpened = 0;
 		for (Iterator iter = dms.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
-			if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
+			if (!PlatformTorrentUtils.getHasBeenOpened(dm) && dm.getAssumedComplete()) {
 				numUnOpened++;
 			}
 		}
