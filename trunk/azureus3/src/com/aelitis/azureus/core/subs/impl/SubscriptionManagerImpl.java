@@ -188,7 +188,10 @@ SubscriptionManagerImpl
 	
 	private boolean	config_dirty;
 	
-	private boolean	publish_associations_active;
+	private static final int PUB_ASSOC_CONC_MAX	= 3;
+	
+	private int		publish_associations_active;
+	
 	private boolean publish_subscription_active;
 	
 	private TorrentAttribute		ta_subs_download;
@@ -461,7 +464,13 @@ SubscriptionManagerImpl
 								},
 								false );
 							
-							publishAssociations();
+							for (int i=0;i<PUB_ASSOC_CONC_MAX;i++){
+							
+								if ( publishAssociations()){
+									
+									break;
+								}
+							}
 							
 							publishSubscriptions();
 							
@@ -890,7 +899,7 @@ SubscriptionManagerImpl
 			throw( new SubscriptionException( "Singleton publish already attempted" ));
 		}
 		
-		subs.getSingletonPublishAttempted();
+		subs.setSingletonPublishAttempted();
 		
 		try{
 			File vf = getVuzeFile( subs );
@@ -2883,57 +2892,58 @@ SubscriptionManagerImpl
 		return( download_found );
 	}
 	
-	protected void
+	protected boolean
 	publishAssociations()
 	{
-		List	 shuffled_subs;
+		SubscriptionImpl 				subs_to_publish		= null;
+		SubscriptionImpl.association	assoc_to_publish 	= null;
 
 		synchronized( this ){
 			
-			if ( publish_associations_active ){
+			if ( publish_associations_active >= PUB_ASSOC_CONC_MAX ){
 				
-				return;
+				return( false );
 			}			
 			
-			shuffled_subs = new ArrayList( subscriptions );
+			publish_associations_active++;
+			
+			List shuffled_subs = new ArrayList( subscriptions );
 
-			publish_associations_active = true;
-		}
-		
-		boolean	publish_initiated = false;
-		
-		try{
 			Collections.shuffle( shuffled_subs );
-						
+							
 			for (int i=0;i<shuffled_subs.size();i++){
-				
+					
 				SubscriptionImpl sub = (SubscriptionImpl)shuffled_subs.get( i );
-				
+					
 				if ( sub.isSubscribed() && sub.isPublic()){
 					
-					SubscriptionImpl.association  assoc = sub.getAssociationForPublish();
-					
-					if ( assoc != null ){
+					assoc_to_publish 	= sub.getAssociationForPublish();
 						
-						publishAssociation( sub, assoc );
-						
-						publish_initiated = true;
-						
+					if ( assoc_to_publish != null ){
+							
+						subs_to_publish		= sub;
+
 						break;
 					}
 				}
 			}
-		}finally{
+		}
+		
+		if ( assoc_to_publish != null ){
+		
+			publishAssociation( subs_to_publish, assoc_to_publish );
 			
-			if ( !publish_initiated ){
-				
-				log( "Publishing Associations Complete" );
-				
-				synchronized( this ){
+			return( false );
+		}else{
+					
+			log( "Publishing Associations Complete" );
+					
+			synchronized( this ){
 
-					publish_associations_active = false;
-				}
+				publish_associations_active--;
 			}
+			
+			return( true );
 		}
 	}
 	
@@ -3107,7 +3117,7 @@ SubscriptionManagerImpl
 				{
 					synchronized( this ){
 						
-						publish_associations_active = false;
+						publish_associations_active--;
 					}
 					
 					publishAssociations();
