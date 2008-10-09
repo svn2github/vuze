@@ -178,7 +178,9 @@ public class ColumnThumbnail
 				Image icon = ImageRepository.getPathIcon(path, cellBounds.height >= 32
 						&& cellBounds.width >= 32, torrent != null
 						&& !torrent.isSimpleTorrent());
-				imgThumbnail = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
+				if(icon != null) {
+					imgThumbnail = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
+				}
 			}
 
 		}
