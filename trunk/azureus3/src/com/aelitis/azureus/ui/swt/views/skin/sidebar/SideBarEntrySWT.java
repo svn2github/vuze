@@ -27,9 +27,8 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -109,6 +108,14 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public void setTitleInfo(ViewTitleInfo titleInfo) {
 		this.titleInfo = titleInfo;
+		
+		if (treeItem != null && !treeItem.isDisposed()) {
+  		String newText = (String) titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
+  		if (newText != null) {
+  			pullTitleFromIView = false;
+  			treeItem.setData("text", newText);
+  		}
+		}
 	}
 
 	public SWTSkinObject getSkinObject() {

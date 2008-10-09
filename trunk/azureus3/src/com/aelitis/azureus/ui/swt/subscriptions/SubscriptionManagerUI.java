@@ -554,6 +554,17 @@ SubscriptionManagerUI
 					new SubscriptionWizard();
 				}
 			});
+			
+			mainSBEntry.setImageLeftID("image.sidebar.subscriptions");
+
+			mainSBEntry.setTitleInfo(new ViewTitleInfo() {
+				public Object getTitleInfoProperty(int propertyID) {
+					if (propertyID == TITLE_TEXT) {
+						return MessageText.getString("subscriptions.view.title");
+					}
+					return null;
+				}
+			});
 		}
 		
 		markAllResultsListener = new MenuItemListener() {

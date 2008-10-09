@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
+
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -87,12 +89,14 @@ public class SubscriptionsView
 	}
 	
 	public void delete() {
-		viewComposite.dispose();
+		view.delete();
+		if (viewComposite != null && !viewComposite.isDisposed()) {
+			viewComposite.dispose();
+		}
 	}
 	
 	public void generateDiagnostics(IndentWriter writer) {
-		// TODO Auto-generated method stub
-		
+		view.generate(writer);
 	}
 	
 	public Composite getComposite() {
@@ -100,16 +104,15 @@ public class SubscriptionsView
 	}
 	
 	public String getData() {
-		// TODO Auto-generated method stub
-		return null;
+		return "subscriptions.view.title";
 	}
 	
 	public String getFullTitle() {
-		return "Subscriptions";
+		return MessageText.getString("subscriptions.view.title");
 	}
 	
 	public String getShortTitle() {
-		return "Subscriptions";
+		return MessageText.getString("subscriptions.view.title");
 	}
 	
 	public void initialize(Composite parent) {
@@ -149,8 +152,7 @@ public class SubscriptionsView
 	}
 	
 	public void updateLanguage() {
-		// TODO Auto-generated method stub
-		
+		view.updateLanguage();
 	}
 	
 	
