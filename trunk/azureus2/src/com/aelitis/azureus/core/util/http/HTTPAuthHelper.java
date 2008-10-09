@@ -37,6 +37,8 @@ import javax.net.ssl.X509TrustManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 HTTPAuthHelper 
 {
@@ -55,13 +57,15 @@ HTTPAuthHelper
 	private int						delegate_to_port;
 	private boolean					delegate_is_https;
 	
+	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	
 	private int		port;
 	
 	private ServerSocket	server_socket;	
 	
 	private boolean			http_only_detected;
 	
-	private Set				cookie_names_set	= new HashSet();
+	private Map				cookie_names_set	= new HashMap();
 	
 	private ThreadPool		thread_pool = new ThreadPool("HTTPSniffer", MAX_PROCESSORS, true );
 	
@@ -80,7 +84,7 @@ HTTPAuthHelper
 	
 	protected
 	HTTPAuthHelper(
-		HTTPAuthHelper		_parent,
+		HTTPAuthHelper			_parent,
 		URL						_delegate_to )
 	
 		throws Exception
@@ -99,7 +103,11 @@ HTTPAuthHelper
 		server_socket.bind( new InetSocketAddress( "127.0.0.1", 0 ));
         
         port = server_socket.getLocalPort();
-        
+	}
+	
+	public void
+	start()
+	{
         new AEThread2( 
         	"HTTPSniffingProxy: " + delegate_to_host + ":" + delegate_to_port + "/" + delegate_is_https + "/" + port, 
         	true )
@@ -241,6 +249,8 @@ HTTPAuthHelper
 					child = new HTTPAuthHelper( this, new URL( url_str ));
 							
 					children.put( child_key, child );
+					
+					child.start();
 				}
 				
 				return( child );
@@ -254,21 +264,42 @@ HTTPAuthHelper
 
 	protected void
 	addSetCookieName(
-		String		name )
+		String		name,
+		String		value )
 	{
 		if ( parent != null ){
 			
-			parent.addSetCookieName( name );
+			parent.addSetCookieName( name, value );
 			
 		}else{
+			
+			boolean	new_entry;
 			
 			synchronized( cookie_names_set ){
 		
 				trace( "SetCookieName: " + name );
 				
-				cookie_names_set.add( name );
+				String old_value = (String)cookie_names_set.put( name, value );
+				
+				new_entry = old_value==null || !old_value.equals( value );
 			}
-		}	
+			
+			if ( new_entry ){
+				
+				Iterator it = listeners.iterator();
+				
+				while( it.hasNext()){
+					
+					try{
+						((HTTPAuthHelperListener)it.next()).cookieFound( this, name, value );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e );
+					}
+				}
+			}
+		}
 	}
 	
 	protected boolean
@@ -285,9 +316,16 @@ HTTPAuthHelper
 				
 				trace( "GetCookieName: " + name );
 				
-				return( cookie_names_set.contains( name ));
+				return( cookie_names_set.containsKey( name ));
 			}
 		}
+	}
+	
+	public void
+	addListener(
+		HTTPAuthHelperListener		listener )
+	{
+		listeners.add( listener );
 	}
 	
 	public void
@@ -393,7 +431,10 @@ HTTPAuthHelper
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				if ( !( e instanceof IOException )){
+					
+					Debug.out( e );
+				}
 				
 				destroy();
 			}
@@ -774,9 +815,10 @@ HTTPAuthHelper
 										
 										int pos = entry.indexOf( '=' );
 										
-										String name = entry.substring( 0, pos ).trim();
+										String name 	= entry.substring( 0, pos ).trim();
+										String value 	= entry.substring( pos+1 ).trim();
 										
-										addSetCookieName( name );
+										addSetCookieName( name, value );
 									}
 									
 									modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
@@ -828,7 +870,9 @@ HTTPAuthHelper
 										
 										String name = entry.substring( 0, pos ).trim();
 										
-										addSetCookieName( name );
+										String value 	= entry.substring( pos+1 ).trim();
+										
+										addSetCookieName( name, value );
 									}
 									
 									modified_cookie += (modified_cookie.length()==0?"":"; ") + entry;
@@ -1367,6 +1411,8 @@ HTTPAuthHelper
 	{
 		try{
 			HTTPAuthHelper proxy = new HTTPAuthHelper( new URL( "http://www.sf.net/" ));
+			
+			proxy.start();
 			
 			System.out.println( "port=" + proxy.getPort());
 			
