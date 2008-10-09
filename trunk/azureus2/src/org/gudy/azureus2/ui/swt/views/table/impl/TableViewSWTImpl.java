@@ -1380,6 +1380,16 @@ public class TableViewSWTImpl
 			
 			String text = cell.getText();
 			
+			int headerHeight = table.getHeaderHeight();
+			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
+					cellBounds.width, cellBounds.height);
+			if (cellBounds.y < headerHeight) {
+				clipping.height -= (headerHeight - cellBounds.y);
+				clipping.y = headerHeight;
+			}
+			
+			event.gc.setClipping(clipping);
+			
 			if (rowAlpha < 255) {
 				event.gc.setAlpha(rowAlpha);
 			}

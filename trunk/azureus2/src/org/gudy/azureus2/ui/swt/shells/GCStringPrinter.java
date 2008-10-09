@@ -194,16 +194,20 @@ public class GCStringPrinter
 		boolean b = false;
 		try {
 			boolean wasAdvanced = gc.getAdvanced();
+			Rectangle clipping = null;
 			// With Advanced ontext antialias in SWT.DEFAULT is not the system's default
 			// Turn off Advanced while drawing text so it antialiases based on 
 			// system prefs.
 			if (gc.getAdvanced() && gc.getTextAntialias() == SWT.DEFAULT
 					&& gc.getAlpha() == 255) {
+				clipping = gc.getClipping();
 				gc.setAdvanced(false);
+				gc.setClipping(clipping);
 			}
 			b = __printString();
 			if (wasAdvanced) {
 				gc.setAdvanced(true);
+				gc.setClipping(clipping);
 			}
 		} catch (Throwable t) {
 			Debug.out(t);
