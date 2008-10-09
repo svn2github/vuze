@@ -26,8 +26,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
-import org.gudy.azureus2.core3.global.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -389,7 +390,7 @@ public class SBC_LibraryView
 						int viewMode = COConfigurationManager.getIntParameter(id
 								+ ".viewmode", MODE_BIGTABLE);
 						return id + "-" + viewMode;
-					} else if (propertyID == TITLE_INDICATOR_TEXT) {
+					} else if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
 						return "" + numUnOpened;
 					}
 					return null;
@@ -448,9 +449,6 @@ public class SBC_LibraryView
 
 			public void completionChanged(DownloadManager dm, boolean completed) {
 				if (completed) {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-						numUnOpened++;
-					}
 					numComplete++;
 					numIncomplete--;
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
@@ -458,9 +456,6 @@ public class SBC_LibraryView
 						numErrorInComplete--;
 					}
 				} else {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-						numUnOpened--;
-					}
 					numIncomplete++;
 					numComplete--;
 					if (dm.getState() == DownloadManager.STATE_ERROR) {
@@ -468,6 +463,7 @@ public class SBC_LibraryView
 						numErrorInComplete++;
 					}
 				}
+				recountUnopened();
 				updateErrorTooltip();
 				refreshAllLibraries();
 			}
@@ -524,9 +520,7 @@ public class SBC_LibraryView
 
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-					numUnOpened--;
-				}
+				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					numComplete--;
 				} else {
@@ -539,10 +533,8 @@ public class SBC_LibraryView
 			public void downloadManagerAdded(DownloadManager dm) {
 				dm.addListener(dmListener, false);
 
+				recountUnopened();
 				if (dm.getAssumedComplete()) {
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-						numUnOpened++;
-					}
 					numComplete++;
 					if (dm.getState() == DownloadManager.STATE_SEEDING) {
 						numSeeding++;
@@ -564,9 +556,6 @@ public class SBC_LibraryView
 			DownloadManager dm = (DownloadManager) iter.next();
 			dm.addListener(dmListener, false);
 			if (dm.getAssumedComplete()) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-					numUnOpened++;
-				}
 				numComplete++;
 				if (dm.getState() == DownloadManager.STATE_SEEDING) {
 					dm.setUserData("wasSeeding", new Boolean(true));
@@ -581,16 +570,25 @@ public class SBC_LibraryView
 				}
 			}
 		}
+		recountUnopened();
 		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
 			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
-				if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
-					numUnOpened++;
-				} else {
-					numUnOpened--;
-				}
+				recountUnopened();
 				refreshAllLibraries();
 			}
 		});
+	}
+	
+	private static void recountUnopened() {
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		List dms = gm.getDownloadManagers();
+		numUnOpened = 0;
+		for (Iterator iter = dms.iterator(); iter.hasNext();) {
+			DownloadManager dm = (DownloadManager) iter.next();
+			if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
+				numUnOpened++;
+			}
+		}
 	}
 
 	/**
