@@ -41,12 +41,6 @@ public interface ViewTitleInfo
 	 */
 	public static int TITLE_SKINVIEW = 4;
 
-	/**
-	 * Boolean value, via getTitleInfoObjectProperty
-	 */
-	
-	public static int TITLE_HAS_VITALITY	= 6;	
-
 	public static int TITLE_LOGID	= 7;
 	
 
