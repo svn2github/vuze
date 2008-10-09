@@ -329,24 +329,6 @@ public class ToolBarView
 		
 		resizeGap();
 
-		//		// ==comment
-		//		item = new ToolBarItem("comment", "image.button.comment", "iconBar.comment") {
-		//			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-		//			public void triggerToolBarItem() {
-		//				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-		//				if (sc.length > 0 && sc[0].getHash() != null) {
-		//					String url = Constants.URL_PREFIX + Constants.URL_COMMENTS
-		//							+ sc[0].getHash() + ".html?" + Constants.URL_SUFFIX + "&rnd="
-		//							+ Math.random();
-		//
-		//					UIFunctions functions = UIFunctionsManager.getUIFunctions();
-		//					functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-		//							false, false);
-		//				}
-		//			}
-		//		};
-		//		addToolBarItem(item);
-
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			public void currentlySelectedContentChanged(
 					ISelectedContent[] currentContent, String viewID) {
