@@ -64,6 +64,9 @@ public class TableColumnCreatorV3
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
 		if (tcStatusItem != null) {
 			tcStatusItem.setChangeRowFG(false);
+			if (big) {
+				tcStatusItem.setChangeCellFG(false);
+			}
 		}
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
@@ -130,6 +133,9 @@ public class TableColumnCreatorV3
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
 		if (tcStatusItem != null) {
 			tcStatusItem.setChangeRowFG(false);
+			if (big) {
+				tcStatusItem.setChangeCellFG(false);
+			}
 		}
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
@@ -171,6 +177,9 @@ public class TableColumnCreatorV3
 		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
 		if (tcStatusItem != null) {
 			tcStatusItem.setChangeRowFG(false);
+			if (big) {
+				tcStatusItem.setChangeCellFG(false);
+			}
 		}
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
