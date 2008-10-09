@@ -87,11 +87,11 @@ public class SBC_LibraryView
 		"library.table.small"
 	};
 
-	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality";
+	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
 	private static final String ID_VITALITY_ALERT = "image.sidebar.vitality.alert";
 
-	private static final long DL_VITALITY_REFRESH_RATE = 15000;
+	private static final long DL_VITALITY_REFRESH_RATE = 1000;
 
 	private static int numSeeding = 0;
 
@@ -640,7 +640,7 @@ public class SBC_LibraryView
 			if (sm != null) {
 				GlobalManagerStats stats = AzureusCoreFactory.getSingleton().getGlobalManager().getStats();
 
-				int delay = 500;
+				int delay = 100;
 				int limit = NetworkManager.getMaxDownloadRateBPS();
 				if (limit <= 0) {
 					limit = sm.getEstimatedDownloadCapacityBytesPerSec().getBytesPerSec();
@@ -652,22 +652,22 @@ public class SBC_LibraryView
 
 				if (limit > 0) {
 					if (current > limit) {
-						delay = 70;
+						delay = 25;
 					} else {
-						// 50 incrememnts of 40.. max 2000
+						// 50 incrememnts of 5.. max 250
 						current += 49;
-						delay = (50 - (current * 50 / limit)) * 40;
-						if (delay < 100) {
-							delay = 100;
-						} else if (delay > 2000) {
-							delay = 2000;
+						delay = (50 - (current * 50 / limit)) * 5;
+						if (delay < 35) {
+							delay = 35;
+						} else if (delay > 250) {
+							delay = 250;
 						}
 					}
 					if (vitalityImage instanceof SideBarVitalityImageSWT) {
 						SideBarVitalityImageSWT viSWT = (SideBarVitalityImageSWT) vitalityImage;
 						if (viSWT.getDelayTime() != delay) {
 							viSWT.setDelayTime(delay);
-							//System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
+							System.out.println("new delay: " + delay + "; via " + current + " / " + limit);
 						}
 					}
 				}

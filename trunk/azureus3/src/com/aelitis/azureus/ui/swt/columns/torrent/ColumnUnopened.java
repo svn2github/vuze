@@ -61,7 +61,7 @@ public class ColumnUnopened
 		}
 
 		if (graphicProgress == null) {
-			Image img = ImageLoaderFactory.getInstance().getImage("image.sidebar.vitality");
+			Image img = ImageLoaderFactory.getInstance().getImage("image.sidebar.vitality.dl");
 			graphicProgress = new UISWTGraphicImpl(img);
 		}
 		
