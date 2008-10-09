@@ -43,6 +43,9 @@ public class ExternalLoginWindow {
 	
 	Map	cookies = new HashMap();
 	
+	Set	sniffer_cookies = new HashSet();
+	Set js_cookies		= new HashSet();
+	
 	HTTPAuthHelper	sniffer;
 	
 	public 
@@ -100,7 +103,7 @@ public class ExternalLoginWindow {
 		final Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies){
-				foundCookies( cookies );
+				foundCookies( cookies, true );
 			}
 		},browser);
 		
@@ -260,7 +263,7 @@ public class ExternalLoginWindow {
 						{
 							if ( helper == this_sniffer ){
 								
-								foundCookies( cookie_name + "=" + cookie_value );
+								foundCookies( cookie_name + "=" + cookie_value, false );
 							}
 						}
 					});
@@ -296,22 +299,35 @@ public class ExternalLoginWindow {
 	
 	protected void
 	foundCookies(
-		String		_cookies )
+		String		_cookies,
+		boolean		_from_js )
 	{
 		String[]	x = _cookies.split( ";" );
-		
-		for (int i=0;i<x.length;i++){
+	
+		synchronized( cookies ){
 			
-			String	cookie = x[i];
-			
-			String[]	bits = cookie.split("=");
-			
-			if( bits.length == 2 ){
+			for (int i=0;i<x.length;i++){
 				
-				String name 	= bits[0];
-				String value	= bits[1];
+				String	cookie = x[i];
 				
-				cookies.put(name,value);
+				String[]	bits = cookie.split("=");
+				
+				if( bits.length == 2 ){
+					
+					String name 	= bits[0];
+					String value	= bits[1];
+					
+					if ( _from_js ){
+						
+						js_cookies.add( name );
+						
+					}else{
+						
+						sniffer_cookies.add( name );
+					}
+					
+					cookies.put(name,value);
+				}
 			}
 		}
 		
@@ -324,23 +340,33 @@ public class ExternalLoginWindow {
 	protected String
 	cookiesToString()
 	{
-		String	res = "";
-		
-		Iterator it = cookies.entrySet().iterator();
-		
-		while( it.hasNext()){
+		synchronized( cookies ){
 			
-			Map.Entry entry = (Map.Entry)it.next();
+			String	res = "";
 			
-			res += (res.length()==0?"":";" ) + entry.getKey() + "=" + entry.getValue();
+			Iterator it = cookies.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Map.Entry entry = (Map.Entry)it.next();
+				
+				res += (res.length()==0?"":";" ) + entry.getKey() + "=" + entry.getValue();
+			}
+			
+			return( res );
 		}
-		
-		return( res );
 	}
 	
 	public boolean
 	proxyCaptureModeRequired()
 	{
+			// if we sniffed more cookies that we grabbed through js then use proxy
+		
+		if ( sniffer_cookies.size() > js_cookies.size()){
+			
+			return( true );
+		}
+		
 		return( sniffer != null && sniffer.wasHTTPOnlyCookieDetected());
 	}
 	
