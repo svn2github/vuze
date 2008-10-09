@@ -48,6 +48,7 @@ public class StatusItem
 	public static final String COLUMN_ID = "status";
 	
 	private boolean changeRowFG;
+	private boolean changeCellFG = true;
 
 	public StatusItem(String sTableID, boolean changeRowFG) {
 		super(COLUMN_ID, POSITION_LAST, 80, sTableID);
@@ -65,6 +66,9 @@ public class StatusItem
 		if (cell.setText(dm == null ? ""
 				: DisplayFormatters.formatDownloadStatus(dm))
 				|| !cell.isValid()) {
+			if (!changeCellFG && !changeRowFG) {
+				return;
+			}
 			TableRow row = cell.getTableRow();
 			if (row != null && dm != null) {
 				int state = dm.getState();
@@ -78,7 +82,7 @@ public class StatusItem
 				}
 				if (changeRowFG) {
 					row.setForeground(Utils.colorToIntArray(color));
-				} else {
+				} else if (changeCellFG) {
 					cell.setForeground(Utils.colorToIntArray(color));
 				}
 			}
@@ -93,4 +97,13 @@ public class StatusItem
 	public void setChangeRowFG(boolean changeRowFG) {
 		this.changeRowFG = changeRowFG;
 	}
+
+	public boolean isChangeCellFG() {
+		return changeCellFG;
+	}
+
+	public void setChangeCellFG(boolean changeCellFG) {
+		this.changeCellFG = changeCellFG;
+	}
+
 }
