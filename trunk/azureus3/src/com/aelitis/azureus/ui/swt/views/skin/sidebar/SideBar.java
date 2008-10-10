@@ -68,12 +68,11 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityView;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -874,13 +873,13 @@ public class SideBar
 				if (selected) {
 					color1 = ColorCache.getColor(gc.getDevice(), "#000000");
 					color2 = ColorCache.getColor(gc.getDevice(), "#000000");
-					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
-							+ height, color1, 127, color2, 4);
+					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY + height,
+							color1, 127, color2, 4);
 				} else {
 					color1 = ColorCache.getColor(gc.getDevice(), "#166688");
 					color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
-					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
-							+ height, color1, color2);
+					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY + height,
+							color1, color2);
 				}
 				gc.setBackgroundPattern(pattern);
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y + 1,
@@ -894,8 +893,8 @@ public class SideBar
 				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
 						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
-		} 
-		
+		}
+
 		//if (x1IndicatorOfs < 30) {
 		//	x1IndicatorOfs = 30;
 		//}
@@ -987,8 +986,7 @@ public class SideBar
 
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
-		if (treeItem.getItemCount() > 0
-				&& !sideBarInfo.disableCollapse) {
+		if (treeItem.getItemCount() > 0 && !sideBarInfo.disableCollapse) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
 			gc.setBackground(gc.getForeground());
@@ -1135,8 +1133,9 @@ public class SideBar
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
 				"Notifications", titleInfoActivityView, null, false, -1);
 
-		createTreeItemFromIViewClass(null,SIDEBAR_SECTION_SUBSCRIPTIONS,"subscriptions", SubscriptionsView.class,null,null,null,null,false);
-				
+		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
+				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
+
 		//entry.setImageLeftID("image.sidebar.subscriptions");
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
@@ -1558,6 +1557,22 @@ public class SideBar
 			}
 		});
 	}
+	
+	private void disabledViewModes() {
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb != null) {
+			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			if (itemModeSmall != null) {
+				itemModeSmall.getSkinButton().getSkinObject().switchSuffix("");
+				itemModeSmall.setEnabled(false);
+			}
+			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			if (itemModeBig != null) {
+				itemModeBig.getSkinButton().getSkinObject().switchSuffix("");
+				itemModeBig.setEnabled(false);
+			}
+		}
+	}
 
 	private void _itemSelected(TreeItem treeItem) {
 		TreeItem[] selection = tree.getSelection();
@@ -1601,39 +1616,13 @@ public class SideBar
 		if (newIView != null) {
 			final SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
 
-			// hide old
-			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
-				if (lastImage != null && !lastImage.isDisposed()) {
-					lastImage.dispose();
-					lastImage = null;
-				}
-				if (oldSideBarInfo.skinObject != null) {
-					SWTSkinObjectContainer container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
-					if (container != null) {
-						Control oldComposite = container.getControl();
-						doFade(oldComposite);
-
-						container.setVisible(false);
-						if (!oldComposite.isDisposed()) {
-							oldComposite.getShell().update();
-						}
-					}
-				}
-				if (oldSideBarInfo.iview != null) {
-					Composite oldComposite = oldSideBarInfo.iview.getComposite();
-					if (oldComposite != null && !oldComposite.isDisposed()) {
-						doFade(oldComposite);
-
-						oldComposite.setVisible(false);
-						oldComposite.getShell().update();
-					}
-				}
-			}
-
 			SelectedContentManager.changeCurrentlySelectedContent(null, null);
+			disabledViewModes();
 
 			// show new
 			currentSideBarEntry = newSideBarInfo;
+			
+			SWTSkinObjectContainer container;
 
 			if (currentSideBarEntry.iview instanceof UISWTViewImpl) {
 				Object ds = ((UISWTViewImpl) currentSideBarEntry.iview).getDataSource();
@@ -1656,27 +1645,49 @@ public class SideBar
 				}
 			}
 
-			Utils.execSWTThreadLater(0, new AERunnable() {
+			container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
+			if (container != null) {
+				Composite composite = container.getComposite();
+				if (composite != null && !composite.isDisposed()) {
+					composite.setVisible(true);
+					composite.moveAbove(null);
+					//composite.setFocus();
+				}
+			}
+			Composite c = currentSideBarEntry.iview.getComposite();
+			if (c != null && !c.isDisposed()) {
+				c.setVisible(true);
+			}
 
-				public void runSupport() {
-
-					SWTSkinObjectContainer container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
+			// hide old
+			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
+				if (lastImage != null && !lastImage.isDisposed()) {
+					lastImage.dispose();
+					lastImage = null;
+				}
+				if (oldSideBarInfo.skinObject != null) {
+					container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
 					if (container != null) {
-						Composite composite = container.getComposite();
-						if (composite != null && !composite.isDisposed()) {
-							composite.setVisible(true);
-							composite.moveAbove(null);
-							//composite.setFocus();
+						Control oldComposite = container.getControl();
+						doFade(oldComposite);
+
+						container.setVisible(false);
+						if (!oldComposite.isDisposed()) {
+							oldComposite.getShell().update();
 						}
 					}
-					Composite c = currentSideBarEntry.iview.getComposite();
-					if (c != null && !c.isDisposed()) {
-						c.setVisible(true);
-					}
-
-					triggerListener(newSideBarInfo, oldSideBarInfo);
 				}
-			});
+				if (oldSideBarInfo.iview != null) {
+					Composite oldComposite = oldSideBarInfo.iview.getComposite();
+					if (oldComposite != null && !oldComposite.isDisposed()) {
+						doFade(oldComposite);
+
+						oldComposite.setVisible(false);
+						oldComposite.getShell().update();
+					}
+				}
+			}
+
 		}
 	}
 

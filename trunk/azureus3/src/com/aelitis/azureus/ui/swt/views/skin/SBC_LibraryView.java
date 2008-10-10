@@ -226,19 +226,6 @@ public class SBC_LibraryView
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb != null) {
-			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
-			if (itemModeSmall != null) {
-				itemModeSmall.getSkinButton().getSkinObject().switchSuffix("");
-				itemModeSmall.setEnabled(false);
-			}
-			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
-			if (itemModeBig != null) {
-				itemModeBig.getSkinButton().getSkinObject().switchSuffix("");
-				itemModeBig.setEnabled(false);
-			}
-		}
 		return super.skinObjectHidden(skinObject, params);
 	}
 

@@ -495,6 +495,7 @@ public class SWTSkin
 					return;
 				}
 				Control cursorControl = shell.getDisplay().getCursorControl();
+				//System.out.println("move from " + (lastControl == null ? null : lastControl.handle) + " to " + (cursorControl == null ? "null" : cursorControl.handle));
 				if (cursorControl != lastControl) {
 					while (lastControl != null && !lastControl.isDisposed()) {
 						SWTSkinObjectBasic so = (SWTSkinObjectBasic) lastControl.getData("SkinObject");
