@@ -34,6 +34,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -1366,6 +1372,7 @@ SubscriptionManagerUI
 				torrent_listener.setTorrentURLHandler( url_handler );
 				
 				detailsContext.addMessageListener( torrent_listener );
+				detailsContext.addMessageListener(new VuzeListener());
 				detailsContext.addMessageListener(new DisplayListener(detailsBrowser));
 				detailsContext.addMessageListener(new ConfigListener(detailsBrowser));
 				url = "about:blank";
