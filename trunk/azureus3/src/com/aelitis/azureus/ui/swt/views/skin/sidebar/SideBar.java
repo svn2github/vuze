@@ -1567,7 +1567,7 @@ public class SideBar
 		}
 
 		final String id = (String) treeItem.getData("Plugin.viewID");
-		SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
+		final SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
 
 		if (currentSideBarEntry == newSideBarInfo) {
 			return;
@@ -1599,7 +1599,7 @@ public class SideBar
 		}
 
 		if (newIView != null) {
-			SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
+			final SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
 
 			// hide old
 			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
@@ -1656,21 +1656,27 @@ public class SideBar
 				}
 			}
 
-			SWTSkinObjectContainer container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
-			if (container != null) {
-				Composite composite = container.getComposite();
-				if (composite != null && !composite.isDisposed()) {
-					composite.setVisible(true);
-					composite.moveAbove(null);
-					//composite.setFocus();
-				}
-			}
-			Composite c = currentSideBarEntry.iview.getComposite();
-			if (c != null && !c.isDisposed()) {
-				c.setVisible(true);
-			}
+			Utils.execSWTThreadLater(0, new AERunnable() {
 
-			triggerListener(newSideBarInfo, oldSideBarInfo);
+				public void runSupport() {
+
+					SWTSkinObjectContainer container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
+					if (container != null) {
+						Composite composite = container.getComposite();
+						if (composite != null && !composite.isDisposed()) {
+							composite.setVisible(true);
+							composite.moveAbove(null);
+							//composite.setFocus();
+						}
+					}
+					Composite c = currentSideBarEntry.iview.getComposite();
+					if (c != null && !c.isDisposed()) {
+						c.setVisible(true);
+					}
+
+					triggerListener(newSideBarInfo, oldSideBarInfo);
+				}
+			});
 		}
 	}
 
