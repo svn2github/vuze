@@ -854,19 +854,23 @@ public class TableViewSWTImpl
 		table.addMouseMoveListener(new MouseMoveListener() {
 			TableCellSWT lastCell = null;
 
-			int lastCursorID = -1;
+			int lastCursorID = 0;
 
 			public void mouseMove(MouseEvent e) {
 				try {
 					iMouseX = e.x;
 
 					TableCellSWT cell = getTableCell(e.x, e.y);
-					int iCursorID = -1;
+					int iCursorID = 0;
 					if (cell == null) {
 						lastCell = null;
 					} else if (cell != lastCell) {
 						iCursorID = cell.getCursorID();
 						lastCell = cell;
+					}
+					
+					if (iCursorID < 0) {
+						iCursorID = 0;
 					}
 
 					if (iCursorID != lastCursorID) {
