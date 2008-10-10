@@ -867,23 +867,42 @@ public class MyTorrentsView
 //				+ dm.getStats().getDownloadCompleted(false) + ";"
 //				+ dm.getStats().getDownloadCompleted(true));
 
-		if (bOurs && sLastSearch.length() > 0) {
+		if (bOurs) {
+			bOurs = filterCheck(dm);
+		}
+
+		return bOurs;
+	}
+	
+	public boolean filterCheck(DownloadManager dm) {
+		boolean bOurs = true;
+		if (sLastSearch.length() > 0) {
 			try {
-				String[][] names = {	{"", 		dm.getDisplayName()},
-												{"t:", 	dm.getTorrent().getAnnounceURL().getHost()},
-												{"st:", 	"" + dm.getState()}
-											};
-				
+				String[][] names = {
+					{
+						"",
+						dm.getDisplayName()
+					},
+					{
+						"t:",
+						dm.getTorrent().getAnnounceURL().getHost()
+					},
+					{
+						"st:",
+						"" + dm.getState()
+					}
+				};
+
 				String name = names[0][1];
 				String tmpSearch = sLastSearch;
-				
-				for(int i = 0; i < names.length; i++){
+
+				for (int i = 0; i < names.length; i++) {
 					if (tmpSearch.startsWith(names[i][0])) {
 						tmpSearch = tmpSearch.substring(names[i][0].length());
 						name = names[i][1];
 					}
 				}
-				
+
 				String s = bRegexSearch ? tmpSearch : "\\Q"
 						+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
@@ -894,7 +913,6 @@ public class MyTorrentsView
 				// Future: report PatternSyntaxException message to user.
 			}
 		}
-
 		return bOurs;
 	}
 
