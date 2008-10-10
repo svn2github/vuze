@@ -17,7 +17,7 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionView;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.*;
 
