@@ -1490,7 +1490,11 @@ public class SideBar
 			initializeView.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					if (sideBarInfo.iview != null) {
-						sideBarInfo.iview.delete();
+						try {
+							sideBarInfo.iview.delete();
+						} catch (Throwable t) {
+							Debug.out(t);
+						}
 						sideBarInfo.iview = null;
 					}
 				}
