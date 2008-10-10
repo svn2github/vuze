@@ -270,26 +270,28 @@ public class MainStatusBar
 		progressGridData.widthHint = 5;
 		progressBar.setLayoutData(progressGridData);
 
+		if ( isAZ3 ){
 		
-		/*
-		 * Feedback
-		 * 
-		 */
-		
-		CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
-		feedback.setText(MessageText.getString("statusbar.feedback"));
-
-		Listener feedback_listener = new Listener() {
-			public void handleEvent(Event e) {
-				Utils.launch( "http://faq.vuze.com/?View=contact" );
-			}
-		};
-		
-		feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
-		feedback.setCursor(Cursors.handCursor);
-		feedback.setForeground(Colors.blue);
-		feedback.addListener(SWT.MouseUp, feedback_listener);
-		feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+			/*
+			 * Feedback
+			 * 
+			 */
+			
+			CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
+			feedback.setText(MessageText.getString("statusbar.feedback"));
+	
+			Listener feedback_listener = new Listener() {
+				public void handleEvent(Event e) {
+					Utils.launch( "http://faq.vuze.com/?View=contact" );
+				}
+			};
+			
+			feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
+			feedback.setCursor(Cursors.handCursor);
+			feedback.setForeground(Colors.blue);
+			feedback.addListener(SWT.MouseUp, feedback_listener);
+			feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+		}
 		
 		/*
 		 * Progress reporting window image label
