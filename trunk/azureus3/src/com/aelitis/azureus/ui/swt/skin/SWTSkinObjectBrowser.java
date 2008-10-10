@@ -147,6 +147,7 @@ public class SWTSkinObjectBrowser
 		context = new BrowserContext(browserID, browser, widgetIndicator, forceVisibleAfterLoad);
 
 		context.addMessageListener(new TorrentListener(core));
+		context.addMessageListener(new VuzeListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
 		context.addMessageListener(new PublishListener(skin.getShell(), this));

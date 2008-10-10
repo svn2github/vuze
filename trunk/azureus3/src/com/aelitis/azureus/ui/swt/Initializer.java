@@ -535,6 +535,7 @@ public class Initializer
 		if (clientMsgContext != null) {
 			clientMsgContext.setMessageDispatcher(new MessageDispatcherSWT(clientMsgContext));
 			clientMsgContext.addMessageListener(new TorrentListener());
+			clientMsgContext.addMessageListener(new VuzeListener());
 			clientMsgContext.addMessageListener(new DisplayListener(null));
 			clientMsgContext.addMessageListener(new ConfigListener(null));
 			clientMsgContext.addMessageListener(new LightBoxBrowserRequestListener());

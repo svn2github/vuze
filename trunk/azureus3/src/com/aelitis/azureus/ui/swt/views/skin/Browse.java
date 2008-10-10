@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
@@ -165,7 +166,8 @@ public class Browse
 		final ClientMessageContext context = new BrowserContext("big", browser,
 				null, true);
 		context.addMessageListener(new TorrentListener(core));
-
+		context.addMessageListener(new VuzeListener());
+		
 		formData = new FormData();
 		formData.top = new FormAttachment(0, 0);
 		formData.left = new FormAttachment(0, 0);

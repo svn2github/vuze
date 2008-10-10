@@ -103,6 +103,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -1329,6 +1330,7 @@ SubscriptionManagerUI
 					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
 				
 				context.addMessageListener(new TorrentListener());
+				context.addMessageListener(new VuzeListener());
 				context.addMessageListener(new DisplayListener(mainBrowser));
 				context.addMessageListener(new ConfigListener(mainBrowser));
 				context.addMessageListener(

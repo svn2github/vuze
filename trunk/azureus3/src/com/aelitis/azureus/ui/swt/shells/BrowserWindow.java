@@ -35,6 +35,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 
 /**
  * @author TuxPaper
@@ -102,6 +103,7 @@ public class BrowserWindow
 		context = new BrowserContext("browser-window"
 				+ Math.random(), browser, null, true);
 		context.addMessageListener(new TorrentListener());
+		context.addMessageListener(new VuzeListener());
 		context.addMessageListener(new DisplayListener(browser));
 		context.addMessageListener(new ConfigListener(browser));
 

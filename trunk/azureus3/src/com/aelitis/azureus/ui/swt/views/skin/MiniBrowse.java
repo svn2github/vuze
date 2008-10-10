@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
+import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.util.Constants;
 
@@ -104,6 +105,7 @@ public class MiniBrowse
 		final ClientMessageContext context = new BrowserContext("mini", browser,
 				null, true);
 		context.addMessageListener(new TorrentListener(core));
+		context.addMessageListener(new VuzeListener());
 
 		formData = new FormData();
 		formData.top = new FormAttachment(0, 0);
