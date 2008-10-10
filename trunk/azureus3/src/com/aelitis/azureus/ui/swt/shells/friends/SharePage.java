@@ -207,7 +207,7 @@ public class SharePage
 
 		addBuddyButton = new Button(inviteePanel, SWT.PUSH);
 		gData = new GridData(SWT.END, SWT.CENTER, true, false);
-		gData.widthHint = 100;
+		gData.widthHint = 130;
 		addBuddyButton.setLayoutData(gData);
 		addBuddyButton.setText(MessageText.getString("v3.Share.add.buddy"));
 		addBuddyButton.addSelectionListener(new SelectionListener() {
