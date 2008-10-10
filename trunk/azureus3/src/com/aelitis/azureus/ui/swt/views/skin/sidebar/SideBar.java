@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -67,25 +68,17 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityView;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.util.MapUtils;
 
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -820,8 +813,8 @@ public class SideBar
 				color1 = ColorCache.getColor(gc.getDevice(), "#166688");
 				color2 = ColorCache.getColor(gc.getDevice(), "#1c2458");
 			} else {
-				color1 = ColorCache.getColor(gc.getDevice(), "#809da7");
-				color2 = ColorCache.getColor(gc.getDevice(), "#686d87");
+				color1 = ColorCache.getColor(gc.getDevice(), "#447281");
+				color2 = ColorCache.getColor(gc.getDevice(), "#393e58");
 			}
 
 			gc.setBackground(color1);
@@ -875,10 +868,20 @@ public class SideBar
 
 				//gc.fillRectangle(startX, startY, width, height);
 
-				Color color1 = ColorCache.getColor(gc.getDevice(), "#166688");
-				Color color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
-				Pattern pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
-						+ height, color1, color2);
+				Pattern pattern;
+				Color color1;
+				Color color2;
+				if (selected) {
+					color1 = ColorCache.getColor(gc.getDevice(), "#000000");
+					color2 = ColorCache.getColor(gc.getDevice(), "#000000");
+					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
+							+ height, color1, 127, color2, 4);
+				} else {
+					color1 = ColorCache.getColor(gc.getDevice(), "#166688");
+					color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
+					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY
+							+ height, color1, color2);
+				}
 				gc.setBackgroundPattern(pattern);
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y + 1,
 						height);
