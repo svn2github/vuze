@@ -282,7 +282,7 @@ public class MainStatusBar
 	
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
-					Utils.launch( "http://faq.vuze.com/?View=contact" );
+					Utils.launch( "http://www.vuze.com/contact" );
 				}
 			};
 			
