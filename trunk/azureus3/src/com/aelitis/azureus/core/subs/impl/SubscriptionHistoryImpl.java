@@ -131,8 +131,14 @@ SubscriptionHistoryImpl
 					
 					got_new_or_changed_result = true;
 				
-					new_unread++;
+					if ( r.getRead()){
+						
+						new_read++;
+						
+					}else{
 					
+						new_unread++;
+					}
 				}else{
 					
 					if ( existing.updateFrom( r )){
