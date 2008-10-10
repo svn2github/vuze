@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -130,6 +131,7 @@ SubscriptionBodyImpl
 	private boolean	is_public;
 	private byte[]	public_key;
 	private int		version;
+	private int		az_version;
 	private String	json;
 	private Map		singleton_details;
 	
@@ -214,6 +216,10 @@ SubscriptionBodyImpl
 		
 		singleton_details = (Map)details.get( "sin_details" );
 		
+		Long l_az_version	= (Long)details.get( "az_version" );
+		
+		az_version = l_az_version==null?Subscription.AZ_VERSION:l_az_version.intValue();
+		
 		if ( _verify ){
 			
 				// verify
@@ -249,6 +255,7 @@ SubscriptionBodyImpl
 		String					_json_content,
 		byte[]					_public_key,
 		int						_version,
+		int						_az_version,
 		Map						_singleton_details )
 	
 		throws IOException
@@ -259,6 +266,7 @@ SubscriptionBodyImpl
 		is_public	= _is_public;
 		public_key	= _public_key;
 		version		= _version;
+		az_version	= _az_version;
 		json		= _json_content;
 		
 		singleton_details	= _singleton_details;
@@ -273,6 +281,7 @@ SubscriptionBodyImpl
 		details.put( "is_public", new Long( is_public?1:0 ));
 		details.put( "public_key", public_key );
 		details.put( "version", new Long( version ));
+		details.put( "az_version", new Long( az_version ));
 		details.put( "json", _json_content.getBytes( "UTF-8" ));
 		
 		if ( singleton_details != null ){
@@ -290,11 +299,13 @@ SubscriptionBodyImpl
 	{
 		is_public	= subs.isPublic();
 		version		= subs.getVersion();
+		az_version	= subs.getAZVersion();
 		name		= subs.getName();
 		
 		details.put( "name",name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));
 		details.put( "version", new Long( version ));
+		details.put( "az_version", new Long( az_version ));
 		
 		if ( json != null ){
 		
@@ -354,6 +365,12 @@ SubscriptionBodyImpl
 	getVersion()
 	{
 		return( version );
+	}
+	
+	protected int
+	getAZVersion()
+	{
+		return( az_version );
 	}
 	
 		// derived data

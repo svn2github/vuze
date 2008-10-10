@@ -28,6 +28,7 @@ import java.security.KeyPair;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -59,6 +60,7 @@ import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.JSONUtils;
 
 public class 
@@ -96,6 +98,8 @@ SubscriptionImpl
 	
 	private String			name;
 	private int				version;
+	private int				az_version;
+	
 	private boolean			is_public;
 	private Map				singleton_details;
 	
@@ -202,6 +206,8 @@ SubscriptionImpl
 		singleton_details	= _singleton_details;
 		
 		version				= 1;
+		az_version			= AZ_VERSION;
+		
 		add_type			= _add_type;
 		add_time			= SystemTime.getCurrentTime();
 		
@@ -220,7 +226,7 @@ SubscriptionImpl
 			
 			String json_content = embedEngines( _json_content );
 			
-			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, public_key, version, singleton_details );
+			SubscriptionBodyImpl body = new SubscriptionBodyImpl( manager, name, is_public, json_content, public_key, version, az_version, singleton_details );
 						
 			syncToBody( body );
 			
@@ -229,28 +235,6 @@ SubscriptionImpl
 			throw( new SubscriptionException( "Failed to create subscription", e ));
 		}
 	}
-	
-	/*
-	private String
-	xxx(
-		byte[]	b )
-	{
-		String	str = "";
-		
-		for (int i=0;i<b.length;i++){
-			
-			String g = Integer.toHexString(b[i]&0xff);
-			
-			if ( g.length()==1){
-				
-				g = "0" + g;
-			}
-			str += (i==0?"":",") + "(byte)0x" + g;
-		}
-		
-		return( str );
-	}
-	*/
 	
 		// cache detail constructor
 	
@@ -304,12 +288,21 @@ SubscriptionImpl
 	protected void
 	syncFromBody(
 		SubscriptionBodyImpl	body )
+	
+		throws SubscriptionException
 	{
-		public_key	= body.getPublicKey();
+		public_key			= body.getPublicKey();
 		version				= body.getVersion();
+		az_version			= body.getAZVersion();
+				
 		name				= body.getName();
 		is_public			= body.isPublic();
 		singleton_details	= body.getSingletonDetails();
+		
+		if ( az_version > AZ_VERSION ){
+			
+			throw( new SubscriptionException( MessageText.getString( "subscription.version.bad", new String[]{ name })));
+		}
 	}
 	
 	protected void
@@ -341,6 +334,8 @@ SubscriptionImpl
 			map.put( "public_key", public_key );
 						
 			map.put( "version", new Long( version ));
+			
+			map.put( "az_version", new Long( az_version ));
 			
 			map.put( "is_public", new Long( is_public?1:0 ));
 			
@@ -412,6 +407,7 @@ SubscriptionImpl
 		public_key	= (byte[])map.get( "public_key" );
 		private_key			= (byte[])map.get( "private_key" );
 		version				= ((Long)map.get( "version" )).intValue();
+		az_version			= (int)ImportExportUtils.importLong( map, "az_version", AZ_VERSION );
 		is_public			= ((Long)map.get( "is_public")).intValue() == 1;
 		singleton_details	= (Map)map.get( "sin_details" );
 		
@@ -1010,6 +1006,12 @@ SubscriptionImpl
 	getVersion()
 	{
 		return( version );
+	}
+	
+	public int
+	getAZVersion()
+	{
+		return( az_version );
 	}
 	
 	protected void

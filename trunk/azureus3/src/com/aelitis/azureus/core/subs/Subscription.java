@@ -27,6 +27,8 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 public interface 
 Subscription 
 {
+	public static final int AZ_VERSION	= 1;
+	
 	public String
 	getName();
 	
@@ -44,12 +46,15 @@ Subscription
 	
 	public int
 	getVersion();
-	
+
 	public int
 	getHighestVersion();
 	
 	public void
 	resetHighestVersion();
+
+	public int
+	getAZVersion();
 	
 	public boolean
 	isMine();
