@@ -802,6 +802,20 @@ MetaSearchManagerImpl
 			
 		}catch( Throwable e ){
 			
+			if ( warn_user ){
+				
+				UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+				
+				String details = MessageText.getString(
+						"metasearch.addtemplate.failed.desc",
+						new String[]{ Debug.getNestedExceptionMessage(e) });
+				
+				ui_manager.showMessageBox(
+						"metasearch.addtemplate.failed.title",
+						"!" + details + "!",
+						UIManagerEvent.MT_OK );
+			}
+			
 			throw( new MetaSearchException( "Failed to add engine", e ));
 		}
 	}

@@ -30,6 +30,7 @@ import java.util.*;
 
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -147,6 +148,8 @@ EngineImpl
 	private byte[]		uid;
 	private int			version;
 	
+	private int			az_version;
+	
 	private int			selection_state				= SEL_STATE_DESELECTED;
 	private boolean		selection_state_recorded	= true;
 	
@@ -186,7 +189,8 @@ EngineImpl
 		name			= _name;
 		
 		version			= 1;
-		
+		az_version		= AZ_VERSION;
+			
 		allocateUID( id );
 	}
 	
@@ -216,6 +220,14 @@ EngineImpl
 		second_level_mapping 	= importBEncodedMappings( map, "l2_map" );
 		
 		version = (int)ImportExportUtils.importLong( map, "version", 1 );
+		
+		az_version = (int)ImportExportUtils.importLong( map, "az_version", AZ_VERSION );
+
+		if ( az_version > AZ_VERSION ){
+			
+			throw( new IOException( MessageText.getString("metasearch.template.version.bad", new String[]{ name })));
+		}
+		
 		uid		= (byte[])map.get( "uid" );
 		
 		if ( uid == null ){
@@ -251,6 +263,7 @@ EngineImpl
 		exportBEncodedMappings( map, "l2_map", second_level_mapping );
 		
 		map.put( "version", new Long( version ));
+		map.put( "az_version", new Long( az_version ));
 		map.put( "uid", uid );
 		
 		if ( update_url != null ){
@@ -279,7 +292,13 @@ EngineImpl
 		first_level_mapping 	= importJSONMappings( map, "value_map", true );
 		second_level_mapping 	= importJSONMappings( map, "ctype_map", false );
 		
-		version = (int)ImportExportUtils.importLong( map, "version", 1 );
+		version 	= (int)ImportExportUtils.importLong( map, "version", 1 );
+		az_version 	= (int)ImportExportUtils.importLong( map, "az_version", AZ_VERSION );
+		
+		if ( az_version > AZ_VERSION ){
+			
+			throw( new IOException( MessageText.getString( "metasearch.template.version.bad", new String[]{ name })));
+		}
 		
 		String uid_str		= (String)map.get( "uid" );
 		
@@ -308,6 +327,8 @@ EngineImpl
 		exportJSONMappings( res, "ctype_map", second_level_mapping, false );
 		
 		res.put( "version", new Long( version ));
+		res.put( "az_version", new Long( az_version ));
+		
 		res.put( "uid", Base32.encode( uid ));
 		
 		if ( update_url != null ){
@@ -536,6 +557,12 @@ EngineImpl
 	}
 	
 	public int
+	getAZVersion()
+	{
+		return( az_version );
+	}
+	
+	public int
 	getVersion()
 	{
 		return( version );
@@ -592,7 +619,7 @@ EngineImpl
 			Map	m1 = exportToBencodedMap();
 			Map	m2 = other.exportToBencodedMap();
 		
-			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source", "version", "uid" };
+			String[]	to_remove = {"type","id","last_updated","selected","select_rec","source", "version", "az_version", "uid" };
 			
 			for (int i=0;i<to_remove.length;i++){
 				

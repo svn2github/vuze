@@ -27,6 +27,8 @@ import java.util.Map;
 public interface 
 Engine 
 {	
+	public static final int	AZ_VERSION		= 1;
+	
 	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
 	
 		// Don't change these values as they get persisted
@@ -175,6 +177,9 @@ Engine
 	
 	public boolean
 	isShareable();
+	
+	public int
+	getAZVersion();
 	
 	public Map 
 	exportToBencodedMap() 
