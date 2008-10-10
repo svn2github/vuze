@@ -45,6 +45,12 @@ Subscription
 	public int
 	getVersion();
 	
+	public int
+	getHighestVersion();
+	
+	public void
+	resetHighestVersion();
+	
 	public boolean
 	isMine();
 	

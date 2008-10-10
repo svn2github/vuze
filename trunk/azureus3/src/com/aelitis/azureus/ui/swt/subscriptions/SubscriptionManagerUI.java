@@ -129,6 +129,7 @@ SubscriptionManagerUI
 	private MenuItemListener renameListener;
 	private MenuItemListener removeListener;
 	private MenuItemListener forceCheckListener;
+	private MenuItemListener upgradeListener;
 	private MenuItemListener propertiesListener;
 	
 	
@@ -776,6 +777,17 @@ SubscriptionManagerUI
 			}
 		};
 		
+		upgradeListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+				
+					subs.resetHighestVersion();
+				}
+			}
+		};
+		
 		propertiesListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
@@ -935,16 +947,35 @@ SubscriptionManagerUI
 									Debug.printStackTrace(e);
 								}
 								
+									// sep
+								
 								menuManager.addMenuItem("sidebar." + key,"s1").setStyle( MenuItem.STYLE_SEPARATOR );
 
 								if ( subs.isUpdateable()){
 									
 									menuItem = menuManager.addMenuItem("sidebar." + key,"MyTorrentsView.menu.rename");
 									menuItem.addListener(renameListener);
-
 								}
+								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.upgrade");
+								menuItem.addListener(upgradeListener);
+									
+								menuItem.addFillListener(
+									new MenuItemFillListener()
+									{
+										public void 
+										menuWillBeShown(
+											MenuItem 	menu, 
+											Object 		data ) 
+										{									
+											menu.setVisible( subs.getHighestVersion() > subs.getVersion());
+										}
+									});
+								
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.export");
 								menuItem.addListener(exportListener);
+								
+									// sep
 								
 								menuManager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
 								
@@ -1078,6 +1109,7 @@ SubscriptionManagerUI
 		
 		String[] keys = {
 				"subs.prop.enabled",
+				"subs.prop.is_public",
 				"subs.prop.is_auto",
 				"subs.prop.last_scan",
 				"subs.prop.last_result",
@@ -1087,12 +1119,14 @@ SubscriptionManagerUI
 				"subs.prop.num_unread",
 				"subs.prop.assoc",
 				"subs.prop.version",
+				"subs.prop.high_version",
 				"subs.prop.template",
 				"subs.prop.auth",
 			};
 		
 		String[] values = { 
 				String.valueOf( history.isEnabled()),
+				String.valueOf( subs.isPublic()),
 				String.valueOf( history.isAutoDownload()),
 				df.format(new Date( history.getLastScanTime())),
 				df.format(new Date( history.getLastNewResultTime())),
@@ -1102,6 +1136,7 @@ SubscriptionManagerUI
 				String.valueOf( history.getNumUnread()),
 				String.valueOf( subs.getAssociationCount()),
 				String.valueOf( subs.getVersion()),
+				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,
 				engine_str,
 				auth_str,
 			};

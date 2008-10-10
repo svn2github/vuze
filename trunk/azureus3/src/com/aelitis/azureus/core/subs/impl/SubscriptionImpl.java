@@ -1035,6 +1035,25 @@ SubscriptionImpl
 		return( highest_prompted_version );
 	}
 	
+	public int
+	getHighestVersion()
+	{
+		return( Math.max( version, highest_prompted_version ));
+	}
+	
+	public void
+	resetHighestVersion()
+	{
+		if ( highest_prompted_version > 0 ){
+			
+			highest_prompted_version = 0;
+			
+			fireChanged();
+			
+			manager.checkUpgrade(this);
+		}
+	}
+	
 	public boolean
 	isMine()
 	{

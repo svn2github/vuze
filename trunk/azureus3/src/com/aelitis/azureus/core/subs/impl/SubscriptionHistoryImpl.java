@@ -578,11 +578,11 @@ SubscriptionHistoryImpl
 			if ( results.length > 0 ){
 				
 				results = new SubscriptionResultImpl[0];
-				
-				updateReadUnread( results );
-				
+								
 				manager.saveResults( subs, results );
 			}
+			
+			updateReadUnread( results );
 		}
 		
 		last_error		= "";

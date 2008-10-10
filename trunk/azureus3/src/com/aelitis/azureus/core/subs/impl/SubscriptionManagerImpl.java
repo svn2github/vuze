@@ -569,13 +569,14 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
+		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
 	}
 	
 	protected Subscription
 	createSingletonRSSSupport(
 		String		name,
 		URL			url,
+		boolean		is_public,
 		int			check_interval_mins,
 		int			add_type,
 		boolean		add_to_subscriptions )
@@ -605,7 +606,7 @@ SubscriptionManagerImpl
 			
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, singleton_details, json, add_type );
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, singleton_details, json, add_type );
 			
 			log( "Created new singleton subscription: " + subs.getString());
 			
@@ -637,7 +638,7 @@ SubscriptionManagerImpl
 			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, check_interval_mins, add_type, add_to_subscriptions );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type, add_to_subscriptions );
 			
 			return( s );
 			
@@ -1007,7 +1008,11 @@ SubscriptionManagerImpl
 					
 					int	interval = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
 					
-					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, interval, SubscriptionImpl.ADD_TYPE_IMPORT, false );
+					Long	l_public = (Long)map.get( "public" );
+					
+					boolean is_public = l_public==null?true:l_public.longValue()==1;
+					
+					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, interval, SubscriptionImpl.ADD_TYPE_IMPORT, false );
 					
 					boolean	subs_added = false;
 					
@@ -1091,9 +1096,9 @@ SubscriptionManagerImpl
 					
 					if ( existing != null ){
 					
-						if ( existing.getVersion() <= body.getVersion()){
+						if ( existing.getVersion() >= body.getVersion()){
 							
-							log( "Not upgrading subscription: " + existing.getString() + " as supplied is not more recent");
+							log( "Not upgrading subscription: " + existing.getString() + " as supplied (" +  body.getVersion() + ") is not more recent than existing (" + existing.getVersion() + ")");
 							
 							if ( warn_user ){
 								
@@ -1561,6 +1566,13 @@ SubscriptionManagerImpl
 			
 			log( "Popularity update: No selected, public subscriptions" );
 		}
+	}
+	
+	protected void
+	checkUpgrade(
+		SubscriptionImpl		sub )
+	{
+		setSelected( sub );
 	}
 	
 	protected void
@@ -3363,6 +3375,11 @@ SubscriptionManagerImpl
 		try{
 			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
 			
+			if ( !askIfCanUpgrade( subs, new_version )){
+				
+				return;
+			}
+			
 			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 			
 			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
@@ -3858,22 +3875,7 @@ SubscriptionManagerImpl
 	{
 		log( "Subscription " + subs.getString() + " - update torrent: " + new String( torrent.getName()));
 
-		subs.setHighestUserPromptedVersion( new_version );
-		
-		UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-		
-		String details = MessageText.getString(
-				"subscript.add.upgradeto.desc",
-				new String[]{ String.valueOf(new_version), subs.getName()});
-		
-		long res = ui_manager.showMessageBox(
-				"subscript.add.upgrade.title",
-				"!" + details + "!",
-				UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-		
-		if ( res != UIManagerEvent.MT_YES ){	
-		
-			log( "    User declined upgrade" );
+		if ( !askIfCanUpgrade( subs, new_version )){
 			
 			return;
 		}
@@ -3927,6 +3929,34 @@ SubscriptionManagerImpl
 			});
 	}
 
+	protected boolean
+	askIfCanUpgrade(
+		SubscriptionImpl		subs,
+		int						new_version )
+	{
+		subs.setHighestUserPromptedVersion( new_version );
+		
+		UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+		
+		String details = MessageText.getString(
+				"subscript.add.upgradeto.desc",
+				new String[]{ String.valueOf(new_version), subs.getName()});
+		
+		long res = ui_manager.showMessageBox(
+				"subscript.add.upgrade.title",
+				"!" + details + "!",
+				UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+		
+		if ( res != UIManagerEvent.MT_YES ){	
+		
+			log( "    User declined upgrade" );
+			
+			return( false );
+		}
+		
+		return( true );
+	}
+	
 	protected boolean
 	recoverSubscriptionUpdate(
 		Download				download,
@@ -4378,7 +4408,7 @@ SubscriptionManagerImpl
 		
 		try{
 			//AzureusCoreFactory.create();
-			
+			/*
 			Subscription subs = 
 				getSingleton(true).createSingletonRSS(
 						NAME,
@@ -4388,6 +4418,7 @@ SubscriptionManagerImpl
 			subs.getVuzeFile().write( new File( "C:\\temp\\srss.vuze" ));
 			
 			subs.remove();
+			*/
 			
 			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
 			
@@ -4395,7 +4426,8 @@ SubscriptionManagerImpl
 			
 			map.put( "name", NAME );
 			map.put( "url", URL_STR );
-			map.put( "check_interval_mins", new Long( subs.getHistory().getCheckFrequencyMins()));
+			map.put( "public", new Long( 0 ));
+			map.put( "check_interval_mins", new Long( 345 ));
 			
 			vf.addComponent( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON, map );
 			
