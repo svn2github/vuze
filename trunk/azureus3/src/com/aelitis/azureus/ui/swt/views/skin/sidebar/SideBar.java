@@ -1557,7 +1557,7 @@ public class SideBar
 			}
 		});
 	}
-	
+
 	private void disabledViewModes() {
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
@@ -1614,81 +1614,92 @@ public class SideBar
 		}
 
 		if (newIView != null) {
-			final SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
-
 			SelectedContentManager.changeCurrentlySelectedContent(null, null);
 			disabledViewModes();
 
-			// show new
-			currentSideBarEntry = newSideBarInfo;
-			
-			SWTSkinObjectContainer container;
+			Utils.execSWTThreadLater(0, new AERunnable() {
 
-			if (currentSideBarEntry.iview instanceof UISWTViewImpl) {
-				Object ds = ((UISWTViewImpl) currentSideBarEntry.iview).getDataSource();
-				DownloadManager dm = null;
-				if (ds instanceof DownloadManager) {
-					dm = (DownloadManager) ds;
-				} else if (ds instanceof Download) {
-					dm = PluginCoreUtils.unwrap((Download) ds);
+				public void runSupport() {
+					flipVisibilityTo(newSideBarInfo);
 				}
-				if (dm != null) {
-					try {
-						SelectedContentManager.changeCurrentlySelectedContent(
-								currentSideBarEntry.id, new ISelectedContent[] {
-									new SelectedContentV3(dm)
-								});
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+			});
+
+		}
+	}
+
+	protected void flipVisibilityTo(SideBarEntrySWT newSideBarInfo) {
+
+		final SideBarEntrySWT oldSideBarInfo = currentSideBarEntry;
+
+		// show new
+		currentSideBarEntry = newSideBarInfo;
+
+		SWTSkinObjectContainer container;
+
+		if (currentSideBarEntry.iview instanceof UISWTViewImpl) {
+			Object ds = ((UISWTViewImpl) currentSideBarEntry.iview).getDataSource();
+			DownloadManager dm = null;
+			if (ds instanceof DownloadManager) {
+				dm = (DownloadManager) ds;
+			} else if (ds instanceof Download) {
+				dm = PluginCoreUtils.unwrap((Download) ds);
+			}
+			if (dm != null) {
+				try {
+					SelectedContentManager.changeCurrentlySelectedContent(
+							currentSideBarEntry.id, new ISelectedContent[] {
+								new SelectedContentV3(dm)
+							});
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
+		}
 
-			container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
-			if (container != null) {
-				Composite composite = container.getComposite();
-				if (composite != null && !composite.isDisposed()) {
-					composite.setVisible(true);
-					composite.moveAbove(null);
-					//composite.setFocus();
-				}
+		container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
+		if (container != null) {
+			Composite composite = container.getComposite();
+			if (composite != null && !composite.isDisposed()) {
+				composite.setVisible(true);
+				composite.moveAbove(null);
+				//composite.setFocus();
 			}
-			Composite c = currentSideBarEntry.iview.getComposite();
-			if (c != null && !c.isDisposed()) {
-				c.setVisible(true);
+		}
+		Composite c = currentSideBarEntry.iview.getComposite();
+		if (c != null && !c.isDisposed()) {
+			c.setVisible(true);
+		}
+
+		// hide old
+		if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
+			if (lastImage != null && !lastImage.isDisposed()) {
+				lastImage.dispose();
+				lastImage = null;
 			}
+			if (oldSideBarInfo.skinObject != null) {
+				container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
+				if (container != null) {
+					Control oldComposite = container.getControl();
+					doFade(oldComposite);
 
-			// hide old
-			if (oldSideBarInfo != null && oldSideBarInfo != newSideBarInfo) {
-				if (lastImage != null && !lastImage.isDisposed()) {
-					lastImage.dispose();
-					lastImage = null;
-				}
-				if (oldSideBarInfo.skinObject != null) {
-					container = (SWTSkinObjectContainer) oldSideBarInfo.skinObject;
-					if (container != null) {
-						Control oldComposite = container.getControl();
-						doFade(oldComposite);
-
-						container.setVisible(false);
-						if (!oldComposite.isDisposed()) {
-							oldComposite.getShell().update();
-						}
-					}
-				}
-				if (oldSideBarInfo.iview != null) {
-					Composite oldComposite = oldSideBarInfo.iview.getComposite();
-					if (oldComposite != null && !oldComposite.isDisposed()) {
-						doFade(oldComposite);
-
-						oldComposite.setVisible(false);
+					container.setVisible(false);
+					if (!oldComposite.isDisposed()) {
 						oldComposite.getShell().update();
 					}
 				}
 			}
+			if (oldSideBarInfo.iview != null) {
+				Composite oldComposite = oldSideBarInfo.iview.getComposite();
+				if (oldComposite != null && !oldComposite.isDisposed()) {
+					doFade(oldComposite);
 
+					oldComposite.setVisible(false);
+					oldComposite.getShell().update();
+				}
+			}
 		}
+
 	}
 
 	/**
