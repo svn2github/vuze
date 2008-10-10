@@ -96,6 +96,11 @@ PropertiesWindow
 
 	    for (int i=0;i<keys.length;i++){
 	    	
+	    	if ( keys[i] == null || values[i] == null ){
+	    		
+	    		continue;
+	    	}
+	    	
 		    BufferedLabel	msg_label = new BufferedLabel(main, SWT.NULL);
 		    msg_label.setText( MessageText.getString( keys[i] ) + ":" );
 		    gridData = new GridData();
