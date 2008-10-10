@@ -828,8 +828,10 @@ public class FileUtil {
 	deleteResilientConfigFile(
 		String		name )
 	{
-		new File( name ).delete();
-		new File( name + ".bak" ).delete();
+		File parent_dir = new File(SystemProperties.getUserPath());
+		
+		new File( parent_dir, name ).delete();
+		new File( parent_dir, name + ".bak" ).delete();
 	}
 	
 	private static void
