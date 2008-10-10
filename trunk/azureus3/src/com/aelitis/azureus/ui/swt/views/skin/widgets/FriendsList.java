@@ -260,8 +260,6 @@ public class FriendsList
 
 		private Color normalColor = null;
 
-		private Color activeColor = null;
-
 		private Color borderColor = null;
 
 		private boolean isActive = false;
@@ -299,7 +297,6 @@ public class FriendsList
 
 			borderColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 					"color.widget.border");
-			activeColor = borderColor;
 
 			friendCanvas = new Canvas(parent, SWT.DOUBLE_BUFFERED);
 			friendCanvas.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -397,17 +394,11 @@ public class FriendsList
 					 */
 
 					Rectangle innerBounds = friendCanvas.getClientArea();
-					if (true == isActive) {
-						if (activeColor != null) {
-							e.gc.setBackground(activeColor);
-						}
-						e.gc.fillRectangle(innerBounds);
-					} else {
-						if (normalColor != null) {
-							e.gc.setBackground(normalColor);
-						}
-						e.gc.fillRectangle(innerBounds);
+
+					if (normalColor != null) {
+						e.gc.setBackground(normalColor);
 					}
+					e.gc.fillRectangle(innerBounds);
 
 					/*
 					 * Paints the border
