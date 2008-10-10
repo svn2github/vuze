@@ -24,6 +24,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -37,7 +38,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
  */
 public class ColumnSubscriptionNew
 	extends CoreTableColumn
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener,TableCellSWTPaintListener
 {
 	public static final String COLUMN_ID = "new";
 
