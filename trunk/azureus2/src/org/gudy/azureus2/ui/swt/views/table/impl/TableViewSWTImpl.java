@@ -1361,8 +1361,8 @@ public class TableViewSWTImpl
 			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			Rectangle cellBounds = item.getBounds(event.index);
 
-			cellBounds.x += 3;
-			cellBounds.width -= 6;
+			//cellBounds.x += 3;
+			//cellBounds.width -= 6;
 
 			if (item.getImage(iColumnNo) != null) {
 				cellBounds.x += 18;
