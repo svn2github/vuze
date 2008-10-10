@@ -272,6 +272,8 @@ public class TableViewSWTImpl
 	
 	private Font fontBold;
 
+	private Rectangle clientArea;
+
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
 		{
@@ -378,6 +380,7 @@ public class TableViewSWTImpl
 		mainComposite = createSashForm(composite);
 		menu = createMenu();
 		table = createTable(tableComposite);
+		clientArea = table.getClientArea();
 		editor = new TableEditor(table);
 		editor.minimumWidth = 80;
 		editor.grabHorizontal = true;
@@ -815,10 +818,9 @@ public class TableViewSWTImpl
 						return;
 
 					// skip if outside client area (ie. scrollbars)
-					Rectangle rTableArea = table.getClientArea();
 					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
 					Point pMousePosition = new Point(e.x, e.y);
-					if (rTableArea.contains(pMousePosition)) {
+					if (clientArea.contains(pMousePosition)) {
 						
 						int[] columnOrder = table.getColumnOrder();
 						if (columnOrder.length == 0) {
@@ -1043,8 +1045,10 @@ public class TableViewSWTImpl
 
 		table.setHeaderVisible(true);
 		
+		clientArea = table.getClientArea();
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
+				clientArea = table.getClientArea();
 				columnVisibilitiesChanged = true;
 			}
 		});
@@ -1249,7 +1253,7 @@ public class TableViewSWTImpl
 				
 				Rectangle leftAlignedBounds = item.getBounds(column);
 				leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-				if(leftAlignedBounds.intersection(table.getClientArea()).equals(leftAlignedBounds))
+				if(leftAlignedBounds.intersection(clientArea).equals(leftAlignedBounds))
 					editor.horizontalAlignment = SWT.LEFT;
 				else
 					editor.horizontalAlignment = SWT.RIGHT;
@@ -1384,14 +1388,24 @@ public class TableViewSWTImpl
 			
 			String text = cell.getText();
 			
-			int headerHeight = table.getHeaderHeight();
 			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
 					cellBounds.width, cellBounds.height);
-			if (cellBounds.y < headerHeight) {
-				clipping.height -= (headerHeight - cellBounds.y);
-				clipping.y = headerHeight;
-			}
-			
+			int headerHeight = table.getHeaderHeight();
+	    int iMinY = headerHeight + clientArea.y;
+	    if (clipping.y < iMinY) {
+	      clipping.height -= iMinY - clipping.y;
+	      clipping.y = iMinY;
+	    }
+	    int iMaxY = clientArea.height + clientArea.y;
+	    if (clipping.y + clipping.height > iMaxY) {
+	      clipping.height = iMaxY - clipping.y + 1;
+	    }
+
+	    if (clipping.width <= 0 || clipping.height <= 0) {
+	      //System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
+	      return;
+	    }
+
 			event.gc.setClipping(clipping);
 			
 			if (rowAlpha < 255) {
@@ -1444,7 +1458,6 @@ public class TableViewSWTImpl
 			return;
 		columnVisibilitiesChanged = false;
 		TableItem topRow = table.getItem(topIdx);
-		Rectangle tableArea = table.getClientArea();
 		for (int i = 0; i < columns.length; i++)
 		{
 			final TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
@@ -1458,7 +1471,7 @@ public class TableViewSWTImpl
 			}
 
 			Rectangle size = topRow.getBounds(i);
-			size.intersect(tableArea);
+			size.intersect(clientArea);
 			boolean nowVisible = !size.isEmpty();
 			if (columnsVisible[position] != nowVisible) {
 				columnsVisible[position] = nowVisible;
@@ -3867,7 +3880,6 @@ public class TableViewSWTImpl
 		if (table.getItemCount() == 0) {
 			return image;
 		}
-		Rectangle tableArea = table.getClientArea();
 
 		TableColumn[] tableColumnsSWT = table.getColumns();
 		for (int i = 0; i < tableColumnsSWT.length; i++) {
@@ -3887,15 +3899,15 @@ public class TableViewSWTImpl
 					if (row != null) {
 						TableCellSWT cell = row.getTableCellSWT(tc.getName());
 						final Rectangle columnBounds = rowSWT.getBounds(i);
-						if (columnBounds.y + columnBounds.height > tableArea.y
-								+ tableArea.height) {
+						if (columnBounds.y + columnBounds.height > clientArea.y
+								+ clientArea.height) {
 							columnBounds.height -= (columnBounds.y + columnBounds.height)
-									- (tableArea.y + tableArea.height);
+									- (clientArea.y + clientArea.height);
 						}
-						if (columnBounds.x + columnBounds.width > tableArea.x
-								+ tableArea.width) {
+						if (columnBounds.x + columnBounds.width > clientArea.x
+								+ clientArea.width) {
 							columnBounds.width -= (columnBounds.x + columnBounds.width)
-									- (tableArea.x + tableArea.width);
+									- (clientArea.x + clientArea.width);
 						}
 
 						final Point offset = table.toDisplay(columnBounds.x, columnBounds.y);
