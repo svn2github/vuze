@@ -30,8 +30,10 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 CopyOnWriteList 
 {
-	private static boolean LOG_STATS = false;
-
+	private static final boolean LOG_STATS = false;
+	
+	//private int mutation_count = 0;
+	
 	private List	list = Collections.EMPTY_LIST;
 	
 	private boolean	visible = false;
@@ -101,6 +103,8 @@ CopyOnWriteList
 				
 				List	new_list = new ArrayList( list );
 				
+				//mutated();
+				
 				new_list.add( obj );
 			
 				list	= new_list;
@@ -126,6 +130,8 @@ CopyOnWriteList
 			if ( visible ){
 
 				List	new_list = new ArrayList( list );
+				
+				//mutated();
 				
 				boolean result = new_list.remove( obj );
 			
@@ -223,6 +229,19 @@ CopyOnWriteList
 			return( list.toArray(x));
 		}
   	}
+	
+	/*
+	private void
+	mutated()
+	{
+		mutation_count++;
+		
+		if ( mutation_count%10 == 0 ){
+			
+			System.out.println( this + ": mut=" + mutation_count );
+		}
+	}
+	*/
 	
 	private class
 	CopyOnWriteListIterator

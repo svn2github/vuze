@@ -24,13 +24,13 @@
 
 package com.aelitis.azureus.ui.common.table;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author Olivier
@@ -45,7 +45,7 @@ public class TableStructureEventDispatcher implements
 	private static AEMonitor class_mon = new AEMonitor(
 			"TableStructureEventDispatcher:class");
 
-	private List listeners;
+	private CopyOnWriteList listeners;
 
 	private AEMonitor listeners_mon = new AEMonitor(
 			"TableStructureEventDispatcher:L");
@@ -54,7 +54,7 @@ public class TableStructureEventDispatcher implements
 	 * 
 	 */
 	private TableStructureEventDispatcher() {
-		listeners = new ArrayList(2);
+		listeners = new CopyOnWriteList(2);
 	}
 
 	public static TableStructureEventDispatcher getInstance(String sTableID) {
@@ -77,8 +77,8 @@ public class TableStructureEventDispatcher implements
 		try {
 			listeners_mon.enter();
 
-			if (!this.listeners.contains(listener)) {
-				this.listeners.add(listener);
+			if (!listeners.contains(listener)) {
+				listeners.add(listener);
 			}
 
 		} finally {
@@ -91,7 +91,7 @@ public class TableStructureEventDispatcher implements
 		try {
 			listeners_mon.enter();
 
-			this.listeners.remove(listener);
+			listeners.remove(listener);
 		} finally {
 
 			listeners_mon.exit();
@@ -99,78 +99,49 @@ public class TableStructureEventDispatcher implements
 	}
 
 	public void tableStructureChanged() {
-		try {
-			listeners_mon.enter();
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				listener.tableStructureChanged();
 			}
-		} finally {
-
-			listeners_mon.exit();
-		}
 	}
 
 	public void columnSizeChanged(TableColumnCore tableColumn) {
-		try {
-			listeners_mon.enter();
-
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				listener.columnSizeChanged(tableColumn);
 			}
-		} finally {
-
-			listeners_mon.exit();
-		}
 	}
 
 	public void columnInvalidate(TableColumnCore tableColumn) {
-		try {
-			listeners_mon.enter();
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				listener.columnInvalidate(tableColumn);
 			}
-		} finally {
 
-			listeners_mon.exit();
-		}
 	}
 
 	public void cellInvalidate(TableColumnCore tableColumn, Object data_source) {
-		try {
-			listeners_mon.enter();
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				listener.cellInvalidate(tableColumn, data_source);
 			}
-		} finally {
 
-			listeners_mon.exit();
-		}
 	}
 
 	
 	public void columnOrderChanged(int[] iPositions) {
-		try {
-			listeners_mon.enter();
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
 				listener.columnOrderChanged(iPositions);
 			}
-		} finally {
-
-			listeners_mon.exit();
-		}
 	}
 }
