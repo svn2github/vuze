@@ -101,21 +101,23 @@ public class ImageLoader
 				if (sParentFiles != null) {
 					boolean bFoundOne = false;
 					Image[] images = parseValuesString(sKey, sParentFiles, sSuffix);
-					for (int j = 0; j < images.length; j++) {
-						Image image = images[j];
-						if (isRealImage(image)) {
-							bFoundOne = true;
-						}
-					}
-					if (!bFoundOne) {
-						for (int j = 0; j < images.length; j++) {
-							Image image = images[j];
-							if (isRealImage(image)) {
-								image.dispose();
-							}
-						}
-					} else {
-						return images;
+					if (images != null) {
+  					for (int j = 0; j < images.length; j++) {
+  						Image image = images[j];
+  						if (isRealImage(image)) {
+  							bFoundOne = true;
+  						}
+  					}
+  					if (!bFoundOne) {
+  						for (int j = 0; j < images.length; j++) {
+  							Image image = images[j];
+  							if (isRealImage(image)) {
+  								image.dispose();
+  							}
+  						}
+  					} else {
+  						return images;
+  					}
 					}
 				} else {
 					// maybe there's another suffix..
