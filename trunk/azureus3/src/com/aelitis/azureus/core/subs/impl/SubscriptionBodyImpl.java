@@ -36,7 +36,6 @@ import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 SubscriptionBodyImpl 

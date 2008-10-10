@@ -134,7 +134,7 @@ public class SubscriptionsView
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
-				view.addDataSources(SubscriptionManagerFactory.getSingleton().getSubscriptions());
+				view.addDataSources(SubscriptionManagerFactory.getSingleton().getSubscriptions( true ));
 			}
 		
 			public void tableViewDestroyed() {

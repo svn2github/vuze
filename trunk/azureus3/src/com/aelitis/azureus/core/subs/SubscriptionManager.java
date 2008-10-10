@@ -57,6 +57,10 @@ SubscriptionManager
 	public Subscription[]
 	getSubscriptions();
 	
+	public Subscription[]
+   	getSubscriptions(
+   		boolean	subscribed_only );
+
 	public Subscription
 	getSubscriptionByID(
 		String			id );

@@ -1211,6 +1211,33 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	public Subscription[]
+	getSubscriptions(
+		boolean	subscribed_only )
+	{
+		if ( !subscribed_only ){
+			
+			return( getSubscriptions());
+		}
+		
+		List	result = new ArrayList();
+		
+		synchronized( this ){
+			
+			for (int i=0;i<subscriptions.size();i++){
+				
+				SubscriptionImpl subs = (SubscriptionImpl)subscriptions.get(i);
+				
+				if ( subs.isSubscribed()){
+					
+					result.add( subs );
+				}
+			}
+		}
+		
+		return((SubscriptionImpl[])result.toArray( new SubscriptionImpl[result.size()]));
+	}
+	
 	public SubscriptionImpl
 	getSubscriptionFromName(
 		String		name )
