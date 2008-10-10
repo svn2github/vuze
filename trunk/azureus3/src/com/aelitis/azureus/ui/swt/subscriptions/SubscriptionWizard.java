@@ -54,7 +54,6 @@ public class SubscriptionWizard {
 	private static final int RANK_COLUMN_WIDTH = 85;
 	
 	private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.title");
-	//private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.subtitle");
 	private final String TITLE_SUBSCRIBE = MessageText.getString("Wizard.Subscription.subscribe.title");
 	private final String TITLE_CREATE = MessageText.getString("Wizard.Subscription.create.title");
 	
@@ -111,6 +110,8 @@ public class SubscriptionWizard {
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/search_bg.png", "search_bg");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_rss.png", "icon_rss");
 		ImageRepository.addPath("com/aelitis/azureus/ui/images/ranking_bars.png", "ranking_bars");
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/wizard_header_bg.png", "wizard_header_bg");
+		
 	}
 	
 	public SubscriptionWizard() {
@@ -183,6 +184,7 @@ public class SubscriptionWizard {
 		
 		Composite header = new Composite(shell, SWT.NONE);
 		header.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		header.setBackgroundImage(ImageRepository.getImage("wizard_header_bg"));
 		Label topSeparator = new Label(shell,SWT.SEPARATOR |SWT.HORIZONTAL);
 		main = new Composite(shell, SWT.NONE);
 		Label bottomSeparator = new Label(shell,SWT.SEPARATOR |SWT.HORIZONTAL);
@@ -264,7 +266,7 @@ public class SubscriptionWizard {
 		description.setFont(boldFont);
 		description.setText(MessageText.getString("Wizard.Subscription.optin.description"));
 		
-		Label descLibraryIcon = new Label(composite, SWT.NONE);
+		/*Label descLibraryIcon = new Label(composite, SWT.NONE);
 		descLibraryIcon.setImage(ImageRepository.getImage("btn_rss_add"));
 		
 		Label descLibraryText = new Label(composite, SWT.NONE);
@@ -278,7 +280,7 @@ public class SubscriptionWizard {
 		
 		Label help = new Label(composite, SWT.NONE);
 		help.setFont(boldFont);
-		help.setText(MessageText.getString("Wizard.Subscription.optin.help"));
+		help.setText(MessageText.getString("Wizard.Subscription.optin.help"));*/
 		
 		FormLayout layout = new FormLayout();
 		composite.setLayout(layout);
@@ -286,12 +288,12 @@ public class SubscriptionWizard {
 		FormData data;
 		
 		data = new FormData();
-		data.top = new FormAttachment(50,-50);
+		data.top = new FormAttachment(0,40);
 		data.left = new FormAttachment(0,50);
 		data.right= new FormAttachment(100,-50);
 		description.setLayoutData(data);
 		
-		data = new FormData();
+		/*data = new FormData();
 		data.top = new FormAttachment(description,10);
 		data.left = new FormAttachment(0,50);
 		descLibraryIcon.setLayoutData(data);
@@ -319,7 +321,7 @@ public class SubscriptionWizard {
 		data = new FormData();
 		data.right= new FormAttachment(100,-20);
 		data.bottom= new FormAttachment(100,-10);
-		help.setLayoutData(data);
+		help.setLayoutData(data);*/
 		
 		return composite;
 	}
@@ -1028,7 +1030,7 @@ public class SubscriptionWizard {
 	}
 	
 	private void setDefaultAvailableMode() {
-		boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in_test");
+		boolean opted_in = COConfigurationManager.getBooleanParameter("subscriptions.opted_in");
 		if(!opted_in) {
 			setMode(MODE_OPT_IN);
 		} else {
