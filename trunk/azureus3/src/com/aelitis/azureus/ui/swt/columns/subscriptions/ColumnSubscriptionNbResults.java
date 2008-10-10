@@ -36,8 +36,9 @@ public class ColumnSubscriptionNbResults
 
 	/** Default Constructor */
 	public ColumnSubscriptionNbResults(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 50, sTableID);
-		setMinWidth(200);
+		super(COLUMN_ID, POSITION_LAST, 100, sTableID);
+		setMinWidth(100);
+		setMaxWidth(100);
 	}
 
 	public void refresh(TableCell cell) {

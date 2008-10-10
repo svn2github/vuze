@@ -114,7 +114,7 @@ import com.aelitis.azureus.util.MapUtils;
 public class 
 SubscriptionManagerUI 
 {
-	private static final Object	SUB_IVIEW_KEY = new Object();
+	public static final Object	SUB_IVIEW_KEY = new Object();
 	
 	private Graphic	icon_rss;
 	private Graphic	icon_rss_small;
@@ -1348,7 +1348,6 @@ SubscriptionManagerUI
 				mainBrowser.setLayoutData(data);
 				
 				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
-				
 				BrowserContext detailsContext = 
 					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, false);
 				
@@ -1602,7 +1601,7 @@ SubscriptionManagerUI
 		}
 	}
 	
-	protected static class
+	public static class
 	sideBarItem
 	{
 		public static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
@@ -1684,6 +1683,11 @@ SubscriptionManagerUI
 		destroy()
 		{
 			destroyed = true;
+		}
+		
+		public void activate() {
+			TreeItem item = sb_entry.getTreeItem();
+			item.getParent().setSelection(item);
 		}
 	}
 }

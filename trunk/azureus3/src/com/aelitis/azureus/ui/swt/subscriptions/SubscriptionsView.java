@@ -21,7 +21,7 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionView;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 
 public class SubscriptionsView
@@ -123,10 +123,9 @@ public class SubscriptionsView
 		TableColumnCore[] columns = new TableColumnCore[] {
 				new ColumnSubscriptionNew(TABLE_ID),
 				new ColumnSubscriptionName(TABLE_ID),
-				new ColumnSubscriptionNbResults(TABLE_ID),
 				new ColumnSubscriptionNbNewResults(TABLE_ID),
-				new ColumnSubscriptionView(TABLE_ID),
-				
+				new ColumnSubscriptionNbResults(TABLE_ID),
+				new ColumnSubscriptionLastChecked(TABLE_ID),
 		};
 		
 		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.MULTI

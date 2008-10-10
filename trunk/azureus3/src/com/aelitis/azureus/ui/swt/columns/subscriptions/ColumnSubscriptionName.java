@@ -17,11 +17,23 @@
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 
 /**
  * @author Olivier Chalouhi
@@ -30,14 +42,25 @@ import com.aelitis.azureus.core.subs.Subscription;
  */
 public class ColumnSubscriptionName
 	extends CoreTableColumn
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellSWTPaintListener, TableCellMouseListener
 {
 	public static String COLUMN_ID = "name";
+	
+	static {
+		ImageRepository.addPath("com/aelitis/azureus/ui/images/ic_view.png", "ic_view");
+	}
+	
+	
+	Image viewImage;
+	int imageWidth = -1;
+	int imageHeight = -1;
 
 	/** Default Constructor */
 	public ColumnSubscriptionName(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
+		super(COLUMN_ID, POSITION_LAST, 300, sTableID);
 		setMinWidth(200);
+		
+		viewImage = ImageRepository.getImage("ic_view");
 	}
 
 	public void refresh(TableCell cell) {
@@ -60,6 +83,39 @@ public class ColumnSubscriptionName
 		
 		cell.setText(name);
 		return;
+	}
+	
+	public void cellPaint(GC gc, TableCellSWT cell) {
+		Rectangle bounds = cell.getBounds();
+		if(imageWidth == -1 || imageHeight == -1) {
+			imageWidth = viewImage.getBounds().width;
+			imageHeight = viewImage.getBounds().height;
+		}
+		
+		bounds.width -= (imageWidth + 5);
+		
+		GCStringPrinter.printString(gc, cell.getText(), bounds,true,false,SWT.LEFT);
+		gc.drawImage(viewImage, bounds.x + bounds.width, bounds.y + bounds.height / 2 - imageHeight / 2);
+		
+		//gc.drawText(cell.getText(), bounds.x,bounds.y);
+	}
+	
+	public void cellMouseTrigger(TableCellMouseEvent event) {
+		
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
+				&& event.button == 1) {
+			TableCell cell = event.cell;
+			int cellWidth = cell.getWidth();
+			if(event.x > cellWidth - imageWidth - 5 && event.x < cellWidth - 5) {
+				Subscription sub = (Subscription) cell.getDataSource();
+				if(sub != null) {
+					sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
+					item.activate();
+				}
+			}
+		}
 		
 	}
+	
+	
 }

@@ -17,6 +17,9 @@
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -28,23 +31,34 @@ import com.aelitis.azureus.core.subs.Subscription;
  * @created Oct 7, 2008
  *
  */
-public class ColumnSubscriptionView
+public class ColumnSubscriptionLastChecked
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
-	public static String COLUMN_ID = "view";
+	
+	SimpleDateFormat format = new SimpleDateFormat("MM/dd/yy hh:mm");
+	
+	public static String COLUMN_ID = "last-checked";
 
 	/** Default Constructor */
-	public ColumnSubscriptionView(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 70, sTableID);
-		setMinWidth(70);
+	public ColumnSubscriptionLastChecked(String sTableID) {
+		super(COLUMN_ID, POSITION_LAST, 100, sTableID);
+		setMinWidth(100);
 	}
 
 	public void refresh(TableCell cell) {
-		String text = "View Results";
+		Date date = null;
+		String dateText = "--";
+		Subscription sub = (Subscription) cell.getDataSource();
+		if (sub != null) {
+			date =  new Date(sub.getHistory().getLastScanTime());
+		}
 		
+		if (date != null) {
+			dateText = format.format(date);
+		}
 
-		if (!cell.setSortValue(text) && cell.isValid()) {
+		if (!cell.setSortValue(date) && cell.isValid()) {
 			return;
 		}
 
@@ -52,7 +66,7 @@ public class ColumnSubscriptionView
 			return;
 		}
 		
-		cell.setText(text);
+		cell.setText(dateText);
 		return;
 		
 	}

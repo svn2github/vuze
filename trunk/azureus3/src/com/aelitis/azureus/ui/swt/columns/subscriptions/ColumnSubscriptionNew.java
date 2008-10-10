@@ -56,6 +56,8 @@ public class ColumnSubscriptionNew
 		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(WIDTH);
+		setMinWidth(WIDTH);
+		setMaxWidth(WIDTH);
 		setVisible(true);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
