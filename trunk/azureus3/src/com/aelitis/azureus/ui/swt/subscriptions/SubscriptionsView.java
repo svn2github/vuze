@@ -134,10 +134,14 @@ public class SubscriptionsView
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
+				SubscriptionManagerFactory.getSingleton().addListener( SubscriptionsView.this );
+				
 				view.addDataSources(SubscriptionManagerFactory.getSingleton().getSubscriptions( true ));
 			}
 		
 			public void tableViewDestroyed() {
+				SubscriptionManagerFactory.getSingleton().removeListener( SubscriptionsView.this );
+
 			}
 		});
 		
