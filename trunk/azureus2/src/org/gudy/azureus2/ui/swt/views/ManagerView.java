@@ -28,6 +28,10 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -174,6 +178,11 @@ public class ManagerView
 		} else {
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
 		}
+  	if (composite.getLayout() instanceof FormLayout) {
+  		folder.setLayoutData(Utils.getFilledFormData());
+  	} else if (composite.getLayout() instanceof GridLayout) {
+  		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
+  	}
   	
   	ArrayList iviews_to_use = new ArrayList();
   	iviews_to_use.add(new GeneralView());
