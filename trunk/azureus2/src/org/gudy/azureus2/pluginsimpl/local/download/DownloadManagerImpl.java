@@ -627,7 +627,7 @@ DownloadManagerImpl
 	public Download[]
 	getDownloads()
 	{
-		List	res_l = new ArrayList();
+		Set	res_l = new LinkedHashSet();
 	
 		// we have to use the global manager's ordering as it
 		// hold this
