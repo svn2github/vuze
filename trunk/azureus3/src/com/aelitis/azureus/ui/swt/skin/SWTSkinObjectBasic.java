@@ -15,7 +15,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -265,7 +264,7 @@ public class SWTSkinObjectBasic
 			return;
 		}
 		isVisible = visible;
-		switchSuffix(suffixes[0], 1, false);
+		switchSuffix(null, 0, false);
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
 	}
@@ -484,15 +483,17 @@ public class SWTSkinObjectBasic
 			}
 		}
 
-		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
-		if (suffixes == null) {
-			suffixes = new String[level];
-		} else if (suffixes.length < level) {
-			String[] newSuffixes = new String[level];
-			System.arraycopy(suffixes, 0, newSuffixes, 0, suffixes.length);
-			suffixes = newSuffixes;
+		if (level > 0) {
+  		//System.out.println(SystemTime.getCurrentTime() + ": " + this + suffix + "; switchy");
+  		if (suffixes == null) {
+  			suffixes = new String[level];
+  		} else if (suffixes.length < level) {
+  			String[] newSuffixes = new String[level];
+  			System.arraycopy(suffixes, 0, newSuffixes, 0, suffixes.length);
+  			suffixes = newSuffixes;
+  		}
+  		suffixes[level - 1] = suffix;
 		}
-		suffixes[level - 1] = suffix;
 
 		suffix = getSuffix();
 
