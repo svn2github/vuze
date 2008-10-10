@@ -148,6 +148,7 @@ public class VuzeActivitiesEntryContentShare
 		Map map = super.toMap();
 		
 		map.put("version", new Long(version));
+		map.put("userMessage", userMessage);
 		
 		return map;
 	}
