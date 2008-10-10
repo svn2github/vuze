@@ -1348,8 +1348,9 @@ SubscriptionManagerUI
 				mainBrowser.setLayoutData(data);
 				
 				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+				
 				BrowserContext detailsContext = 
-					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, true);
+					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, false);
 				
 				ClientMessageContext.torrentURLHandler url_handler =
 					new ClientMessageContext.torrentURLHandler()
