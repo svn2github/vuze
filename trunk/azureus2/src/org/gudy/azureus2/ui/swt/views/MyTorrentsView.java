@@ -523,8 +523,14 @@ public class MyTorrentsView
 					Button curButton = (Button) e.widget;
 					boolean isEnabled = curButton.getSelection();
 					Control[] controls = cCategories.getChildren();
-					if (!isEnabled)
-						curButton = (Button) controls[0];
+					if (!isEnabled) {
+						for (int i = 0; i < controls.length; i++) {
+							if (controls[i] instanceof Button) {
+								curButton = (Button) controls[i];
+								break;
+							}
+						}
+					}
 
 					for (int i = 0; i < controls.length; i++) {
 						if (!(controls[i] instanceof Button)) {
