@@ -260,7 +260,8 @@ public class BrowserContext
 					public void changing(LocationEvent event) {
 						event.doit = false;
 						System.out.println("SubBrowser URL : " + event.location);
-						if(event.location.startsWith("http://") || event.location.startsWith("https://")) {
+						if (!PlatformConfigMessenger.isURLBlocked(event.location)
+								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
 							Program.launch(event.location);
 						}
 						Utils.execSWTThreadLater(0, new AERunnable() {
