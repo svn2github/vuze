@@ -1361,9 +1361,6 @@ public class TableViewSWTImpl
 			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			Rectangle cellBounds = item.getBounds(event.index);
 
-			//cellBounds.x += 3;
-			//cellBounds.width -= 6;
-
 			if (item.getImage(iColumnNo) != null) {
 				cellBounds.x += 18;
 				cellBounds.width -= 18;
@@ -1430,8 +1427,13 @@ public class TableViewSWTImpl
 				if (textOpacity < 255) {
 					event.gc.setAlpha(textOpacity);
 				}
-  			GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-  					cellBounds.height > 20, style);
+				// put some padding on text
+				cellBounds.x += 3;
+				cellBounds.width -= 6;
+				if (!cellBounds.isEmpty()) {
+					GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
+							cellBounds.height > 20, style);
+				}
 			}
 
 		} catch (Exception e) {
