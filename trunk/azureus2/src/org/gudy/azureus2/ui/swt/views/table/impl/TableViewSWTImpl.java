@@ -1664,9 +1664,15 @@ public class TableViewSWTImpl
 	
 	public void fixAlignment(TableColumnCore tc, boolean sorted) {
 		if (Constants.isOSX) {
+			if (table.isDisposed()) {
+				return;
+			}
 			int[] columnOrder = table.getColumnOrder();
-			TableColumn swtColumn = table.getColumn(columnOrder[tc.getPosition()
-					+ (bSkipFirstColumn ? 1 : 0)]);
+			int i = tc.getPosition() - (bSkipFirstColumn ? 1 : 0);
+			if (i < 0 || i >= columnOrder.length) {
+				return;
+			}
+			TableColumn swtColumn = table.getColumn(columnOrder[i]);
 			if (swtColumn != null) {
 				if (swtColumn.getAlignment() == SWT.RIGHT && sorted) {
 					swtColumn.setText("   " + swtColumn.getText() + "   ");
