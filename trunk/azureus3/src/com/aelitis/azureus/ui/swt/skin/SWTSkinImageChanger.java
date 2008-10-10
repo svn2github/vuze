@@ -117,7 +117,7 @@ public class SWTSkinImageChanger
 				Point ptMouse = control.toDisplay(0, 0);
 				while (skinObject != null) {
 					Rectangle bounds = skinObject.getControl().getBounds();
-					Point pt = skinObject.getControl().toDisplay(bounds.x, bounds.y);
+					Point pt = skinObject.getControl().toDisplay(0, 0);
 					bounds.x = pt.x;
 					bounds.y = pt.y;
 
