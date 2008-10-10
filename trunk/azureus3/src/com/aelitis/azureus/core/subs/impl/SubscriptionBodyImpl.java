@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 SubscriptionBodyImpl 
@@ -411,6 +412,22 @@ SubscriptionBodyImpl
 			byte[] new_hash = new SHA1Simple().calculateHash( contents );
 			
 			byte[] old_hash	= (byte[])map.get( "hash" );
+			
+				// backward compat from before az_version was introduced
+			
+			if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
+
+				if ( az_version == 1 ){
+					
+					Map details_copy = new HashMap( details );
+					
+					details_copy.remove( "az_version" );
+					
+					contents = BEncoder.encode( details_copy );
+					
+					new_hash = new SHA1Simple().calculateHash( contents );
+				}
+			}
 			
 			if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
 				
