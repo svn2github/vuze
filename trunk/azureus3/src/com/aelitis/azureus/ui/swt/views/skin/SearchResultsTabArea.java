@@ -324,6 +324,8 @@ public class SearchResultsTabArea
 
 			anotherSearch((String) o);
 		}
+		
+		closeSearchResults(null);
 
 		return null;
 	}
@@ -521,6 +523,8 @@ public class SearchResultsTabArea
 				Control controlBottom = soSearchResults.getControl();
 				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 
+				soSearchResults.setVisible(false);
+
 				FormData gd = (FormData) controlBottom.getLayoutData();
 				if (gd == null) {
 					return;
@@ -528,7 +532,6 @@ public class SearchResultsTabArea
 				gd.top = null;
 				gd.height = 0;
 				controlBottom.setLayoutData(gd);
-				soSearchResults.setVisible(false);
 
 				gd = (FormData) controlTop.getLayoutData();
 				gd.bottom = new FormAttachment(controlBottom, 0);
