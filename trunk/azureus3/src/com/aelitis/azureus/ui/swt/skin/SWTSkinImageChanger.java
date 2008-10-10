@@ -45,6 +45,7 @@ public class SWTSkinImageChanger
 		if (control == null) {
 			return;
 		}
+		//System.out.println("event " + event.type + ";" + control.handle);
 
 		try {
 			boolean isExit = event.type == SWT.MouseExit
@@ -113,7 +114,7 @@ public class SWTSkinImageChanger
 							+ "--" + sSuffix);
 				}
 				
-				Point ptMouse = ((Control)event.widget).toDisplay(event.x, event.y);
+				Point ptMouse = control.toDisplay(0, 0);
 				while (skinObject != null) {
 					Rectangle bounds = skinObject.getControl().getBounds();
 					Point pt = skinObject.getControl().toDisplay(bounds.x, bounds.y);
