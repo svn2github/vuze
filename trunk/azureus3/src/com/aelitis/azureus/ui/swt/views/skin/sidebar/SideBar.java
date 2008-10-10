@@ -987,7 +987,7 @@ public class SideBar
 
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
-		if (!Constants.isOSX && treeItem.getItemCount() > 0
+		if (treeItem.getItemCount() > 0
 				&& !sideBarInfo.disableCollapse) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
