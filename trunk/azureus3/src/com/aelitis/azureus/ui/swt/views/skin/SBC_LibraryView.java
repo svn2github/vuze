@@ -402,6 +402,10 @@ public class SBC_LibraryView
 						dm.setUserData("wasSeeding", new Boolean(isSeeding));
 					}
 				} else {
+					if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+							|| PlatformTorrentUtils.isUpdateDM(dm)) {
+						return;
+					}
 					boolean isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
 					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
 					boolean wasDownloading = wasDownloadingB == null ? false
