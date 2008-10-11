@@ -16,6 +16,9 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
@@ -23,6 +26,7 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResu
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 
 public class SubscriptionsView
 	implements UIUpdatable, IconBarEnabler, IView, SubscriptionManagerListener
@@ -56,7 +60,7 @@ public class SubscriptionsView
 	}
 	
 	public void subscriptionChanged(Subscription subscription) {
-		
+		view.refreshTable(true);
 	}
 	
 	public boolean isEnabled(String itemKey) {
@@ -128,7 +132,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionLastChecked(TABLE_ID),
 		};
 		
-		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.MULTI
+		view = new TableViewSWTImpl(TABLE_ID, TABLE_ID, columns, "name", SWT.SINGLE
 				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
@@ -143,6 +147,21 @@ public class SubscriptionsView
 
 			}
 		});
+		
+		view.addSelectionListener(new TableSelectionAdapter() {
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
+				if(rows.length == 1) {
+					TableRowCore row = rows[0];
+					
+					Subscription sub = (Subscription) row.getDataSource();
+					if(sub != null) {
+						sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
+						item.activate();
+					}
+				}
+				
+			}
+		}, false) ;
 		
 		view.setRowDefaultHeight(20);
 		
