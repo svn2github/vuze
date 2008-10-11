@@ -9,7 +9,9 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -22,7 +24,6 @@ import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -49,6 +50,14 @@ public class ColumnProgressETA
 
 	Display display;
 
+	private Color cBG;
+
+	private Color cFG;
+
+	private Color cBorder;
+
+	private Color cText;
+
 	/**
 	 * 
 	 */
@@ -59,6 +68,25 @@ public class ColumnProgressETA
 		setMinWidth(COLUMN_WIDTH);
 
 		display = SWTThread.getInstance().getDisplay();
+		
+		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
+		cBG = skinProperties.getColor("color.progress.bg");
+		if (cBG == null) {
+			cBG = Colors.blues[Colors.BLUES_DARKEST];
+		}
+		cFG = skinProperties.getColor("color.progress.fg");
+		if (cFG == null) {
+			cFG = Colors.blues[Colors.BLUES_LIGHTEST];
+		}
+		cBorder = skinProperties.getColor("color.progress.border");
+		if (cBorder == null) {
+			cBorder = Colors.grey;
+		}
+		cText = skinProperties.getColor("color.progress.text");
+		if (cText == null) {
+			cText = Colors.black;
+		}
+
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -151,24 +179,6 @@ public class ColumnProgressETA
 			
 			if (x2 < 10 || progressX2 < 10) {
 				return;
-			}
-
-			SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
-			Color cBG = skinProperties.getColor("color.progress.bg");
-			if (cBG == null) {
-				cBG = Colors.blues[Colors.BLUES_DARKEST];
-			}
-			Color cFG = skinProperties.getColor("color.progress.fg");
-			if (cFG == null) {
-				cFG = Colors.blues[Colors.BLUES_LIGHTEST];
-			}
-			Color cBorder = skinProperties.getColor("color.progress.border");
-			if (cBorder == null) {
-				cBorder = Colors.grey;
-			}
-			Color cText = skinProperties.getColor("color.progress.text");
-			if (cText == null) {
-				cText = Colors.black;
 			}
 
 			boolean bDrawProgressBar = true;
