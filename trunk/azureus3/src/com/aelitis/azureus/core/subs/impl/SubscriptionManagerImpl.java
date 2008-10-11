@@ -922,31 +922,40 @@ SubscriptionManagerImpl
 	updatePublicSubscription(
 		SubscriptionImpl		subs )
 	{		
-		try{		
-			File vf = getVuzeFile( subs );
-
-			byte[] bytes = FileUtil.readFileAsByteArray( vf );
+		if ( subs.isSingleton()){
 			
-			byte[]	encoded_subs = Base64.encode( bytes );
-
-			PlatformSubscriptionsMessenger.updateSubscription(
-					!subs.getServerPublished(),
-					subs.getName(),
-					subs.getPublicKey(),
-					subs.getPrivateKey(),
-					subs.getShortID(),
-					subs.getVersion(),
-					new String( encoded_subs ));
+				// never update singletons
 			
 			subs.setServerPublished();
 			
-			log( "    Updated public subscription " + subs.getString());
+		}else{
 			
-		}catch( Throwable e ){
-			
-			log( "    Failed to update public subscription " + subs.getString(), e );
-			
-			subs.setServerPublicationOutstanding();
+			try{		
+				File vf = getVuzeFile( subs );
+	
+				byte[] bytes = FileUtil.readFileAsByteArray( vf );
+				
+				byte[]	encoded_subs = Base64.encode( bytes );
+	
+				PlatformSubscriptionsMessenger.updateSubscription(
+						!subs.getServerPublished(),
+						subs.getName(),
+						subs.getPublicKey(),
+						subs.getPrivateKey(),
+						subs.getShortID(),
+						subs.getVersion(),
+						new String( encoded_subs ));
+				
+				subs.setServerPublished();
+				
+				log( "    Updated public subscription " + subs.getString());
+				
+			}catch( Throwable e ){
+				
+				log( "    Failed to update public subscription " + subs.getString(), e );
+				
+				subs.setServerPublicationOutstanding();
+			}
 		}
 	}
 	
@@ -1724,7 +1733,7 @@ SubscriptionManagerImpl
 					complete(
 						Subscription		subs )
 					{
-						log( "Initial download of " + subs + " complete" );
+						log( "Initial download of " + subs.getName() + " complete" );
 					}
 					
 					public void
@@ -1732,7 +1741,7 @@ SubscriptionManagerImpl
 						Subscription			subs,
 						SubscriptionException	error )
 					{
-						log( "Initial download of " + subs + " failed", error );
+						log( "Initial download of " + subs.getName() + " failed", error );
 					}
 				});
 		}
