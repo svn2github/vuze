@@ -12,6 +12,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -57,6 +58,18 @@ public class ColumnProgressETA
 	private Color cBorder;
 
 	private Color cText;
+	
+	static {
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_end.png", "dl_bar_end");
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_0.png", "dl_bar_0");
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_1.png", "dl_bar_1");
+	}
+	
+	Image imgEnd;
+	Image img1;
+	Image img0;
+	
+	Color textColor;
 
 	/**
 	 * 
@@ -86,6 +99,10 @@ public class ColumnProgressETA
 		if (cText == null) {
 			cText = Colors.black;
 		}
+		
+		imgEnd = ImageRepository.getImage("dl_bar_end");
+		img0 = ImageRepository.getImage("dl_bar_0");
+		img1 = ImageRepository.getImage("dl_bar_1");
 
 	}
 
@@ -168,7 +185,7 @@ public class ColumnProgressETA
 			int y1 = borderWidth;
 			int x2 = newWidth - x1 - borderWidth;
 			int progressX2 = x2;
-			int progressY2 = newHeight - y1 - borderWidth - 12;
+			int progressY2 = newHeight - y1 - borderWidth - 13;
 			if (progressY2 > 18) {
 				progressY2 = 18;
 			}
@@ -189,17 +206,27 @@ public class ColumnProgressETA
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
 			if (bDrawProgressBar && percentDone < 1000) {
-				gcImage.setForeground(cBorder);
-				gcImage.drawRectangle(x0, y0, progressX2 - x1 + 1, progressY2 - y1 + 1);
+				
+				gcImage.drawImage(imgEnd, x0, y0+y1);
+				gcImage.drawImage(imgEnd, x0 + progressX2 - x1 + 1, y0+y1);
+				
+				
+				
+//				gcImage.setForeground(cBorder);
+//				gcImage.drawRectangle(x0, y0, progressX2 - x1 + 1, progressY2 - y1 + 1);
 
 				int limit = ((progressX2 - x1) * percentDone) / 1000;
 
-				gcImage.setBackground(cBG);
-				gcImage.fillRectangle(x0 + x1, y0 + y1, limit, progressY2 - y1);
+				gcImage.drawImage(img1, 0, 0, 1, 13,x0 + x1, y0 + y1, limit, 13);
+				
+				
+//				gcImage.setBackground(cBG);
+//				gcImage.fillRectangle(x0 + x1, y0 + y1, limit, progressY2 - y1);
 				if (limit < progressX2) {
-					gcImage.setBackground(cFG);
-					gcImage.fillRectangle(x0 + limit + 1, y0 + y1, progressX2 - limit - 1,
-							progressY2 - y1);
+					gcImage.drawImage(img0, 0, 0, 1, 13, x0 + limit + 1, y0 + y1, progressX2 - limit - 1,13);
+//					gcImage.setBackground(cFG);
+//					gcImage.fillRectangle(x0 + limit + 1, y0 + y1, progressX2 - limit - 1,
+//							progressY2 - y1);
 				}
 
 			}
@@ -242,8 +269,8 @@ public class ColumnProgressETA
 			} else if (bDrawProgressBar) {
 				gcImage.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gcImage.drawText(sSpeed, x0 + 50, y0 + middleY, true);
-				gcImage.drawText(sPercent, x0 + 2, y0 + middleY, true);
+				gcImage.drawText(sSpeed, x0 + 50, y0 + y1, true);
+				gcImage.drawText(sPercent, x0 + 2, y0 + y1, true);
 			}
   
 			gcImage.setFont(null);
