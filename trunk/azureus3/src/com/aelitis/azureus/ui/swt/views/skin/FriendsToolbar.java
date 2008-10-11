@@ -556,6 +556,10 @@ public class FriendsToolbar
 
 	private void updateFriendsLabel() {
 		
+		if (friendsCountLabel.isDisposed()) {
+			return;
+		}
+		
 		List buddies = VuzeBuddyManager.getAllVuzeBuddies();
 		
 		int onlineBuddies = 0;
