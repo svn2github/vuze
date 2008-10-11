@@ -437,7 +437,14 @@ public class ToolBarView
 			}
 			item = getToolBarItem("remove");
 			if (item != null) {
-				item.setEnabled(hasSelection);
+				SkinView view = SkinViewManager.getBySkinObjectID("Activity");
+				if (view instanceof SBC_ActivityView) {
+					SBC_ActivityView viewActivity = (SBC_ActivityView) view;
+					item.setEnabled(viewActivity.getNumSelected() > 0);
+				} else {
+					item.setEnabled(false);
+				}
+
 			}
 		} else if (currentContent.length > 0) {
 			for (int i = 0; i < currentContent.length; i++) {

@@ -173,4 +173,12 @@ public class SBC_ActivityView
 			tv.removeSelected();
 		}
 	}
+
+	public int getNumSelected() {
+		SBC_ActivityTableView tv = (SBC_ActivityTableView) SkinViewManager.getBySkinObjectID(modeIDs[viewMode]);
+		if (tv != null) {
+			return tv.getView().getSelectedRowsSize();
+		}
+		return 0;
+	}
 }

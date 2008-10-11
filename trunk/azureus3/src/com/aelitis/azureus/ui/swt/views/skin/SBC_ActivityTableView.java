@@ -353,4 +353,8 @@ public class SBC_ActivityTableView
 			shell.setCursor(oldCursor);
 		}
 	}
+	
+	public TableViewSWT getView() {
+		return view;
+	}
 }
