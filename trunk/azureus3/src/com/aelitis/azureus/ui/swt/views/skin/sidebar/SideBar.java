@@ -445,15 +445,16 @@ public class SideBar
 						if (tree.getItemCount() == 0) {
 							return;
 						}
-						int indent = tree.getItem(0).getBounds().x;
-						int y = event.y;
+						int indent = Constants.isUnix ? tree.getClientArea().width - 1
+								: tree.getItem(0).getBounds().x;
+						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
-
+						
 						while (treeItem != null) {
 							String id = (String) treeItem.getData("Plugin.viewID");
 							SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 							Rectangle itemBounds = sideBarInfo.getBounds();
-
+							
 							event.item = treeItem;
 
 							boolean selected = tree.getSelectionCount() == 1
@@ -463,7 +464,7 @@ public class SideBar
 							Rectangle newClip = bounds.intersection(itemBounds);
 							//System.out.println("Paint " + id + " @ " + newClip);
 							event.setBounds(newClip);
-							event.gc.setClipping(newClip);
+							//event.gc.setClipping(newClip);
 
 							paintSideBar(event, sideBarInfo);
 
