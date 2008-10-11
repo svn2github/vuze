@@ -22,32 +22,40 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
-import org.gudy.azureus2.ui.swt.debug.*;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
-import org.gudy.azureus2.ui.swt.minibar.*;
+import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
+import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -62,7 +70,9 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreException;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
