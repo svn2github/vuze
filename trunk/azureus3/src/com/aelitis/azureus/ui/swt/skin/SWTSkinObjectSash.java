@@ -128,9 +128,30 @@ public class SWTSkinObjectSash
 
 		sash = new Sash(createOn, style);
 
+		noresize = properties.getBooleanValue(sConfigID + ".noresize", false);
+
+		String sMinContainerPos = properties.getStringValue(sConfigID
+				+ ".resize.container.min");
+		if (sMinContainerPos != null) {
+			try {
+				resizeContainerAboveMin = NumberFormat.getInstance().parse(
+						sMinContainerPos).intValue();
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
+
 		int splitAt = COConfigurationManager.getIntParameter("v3." + sID
 				+ ".splitAt", -1);
-		if (splitAt >= 0) {
+		int splitAtPX = COConfigurationManager.getIntParameter("v3." + sID
+				+ ".splitAtPX", -1);
+		if (noresize && splitAtPX >= 0) {
+			if (splitAtPX < resizeContainerAboveMin) {
+				splitAtPX = resizeContainerAboveMin;
+			}
+			sash.setData("PX", new Long(splitAtPX));
+		} else if (!noresize && splitAt >= 0) {
 			sashPct = splitAt / 10000.0;
 			if (sashPct > 1) {
 				sashPct = 1;
@@ -157,18 +178,6 @@ public class SWTSkinObjectSash
 
 		parentComposite = createOn;
 
-		String sMinContainerPos = properties.getStringValue(sConfigID
-				+ ".resize.container.min");
-		if (sMinContainerPos != null) {
-			try {
-				resizeContainerAboveMin = NumberFormat.getInstance().parse(
-						sMinContainerPos).intValue();
-			} catch (Exception e) {
-				Debug.out(e);
-			}
-		}
-
-		noresize = properties.getBooleanValue(sConfigID + ".noresize", false);
 
 		SWTSkinObject soInitializeSashAfterCreated = parent == null ? this : parent;
 		soInitializeSashAfterCreated.addListener(new SWTSkinObjectListener() {
@@ -389,6 +398,16 @@ public class SWTSkinObjectSash
 		event.type = SWT.Show;
 
 		handleShowResize(event);
+	}
+	
+	public void dispose() {
+		if (noresize) {
+			Long px = (Long) sash.getData("PX");
+			if (px != null) {
+				COConfigurationManager.setParameter("v3." + sID + ".splitAtPX", px.longValue());
+			}
+		}
+		super.dispose();
 	}
 
 	/**
