@@ -863,7 +863,7 @@ SubscriptionManagerUI
 		
 		synchronized( this ){
 				
-			sideBarItem existing_si = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
+			final sideBarItem existing_si = (sideBarItem)subs.getUserData( SUB_IVIEW_KEY );
 			
 			if (  existing_si == null ){
 	
@@ -985,9 +985,17 @@ SubscriptionManagerUI
 					});
 			}else{
 				
-				ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
-				
-				setStatus( subs, existing_si );
+				Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								ViewTitleInfoManager.refreshTitleInfo( existing_si.getView());
+								
+								setStatus( subs, existing_si );
+							}
+						});
 			}
 		}
 	}
