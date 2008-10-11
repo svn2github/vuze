@@ -106,9 +106,14 @@ public class ColumnUnopened
 		if (complete) {
 			cell.setGraphic(hasBeenOpened ? null : graphicCheck);
 		} else {
-			int i = TableCellRefresher.getRefreshIndex(1, graphicsProgress.length);
-			cell.setGraphic(graphicsProgress[i]);
-			TableCellRefresher.addCell(this, cell);
+			if(dm.getState() == DownloadManager.STATE_DOWNLOADING) {
+				int i = TableCellRefresher.getRefreshIndex(1, graphicsProgress.length);
+				cell.setGraphic(graphicsProgress[i]);
+				TableCellRefresher.addCell(this, cell);
+			} else {
+				cell.setGraphic(null);
+			}
+			
 		}
 	}
 
