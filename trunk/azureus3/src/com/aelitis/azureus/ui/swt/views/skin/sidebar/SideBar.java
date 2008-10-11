@@ -1131,7 +1131,7 @@ public class SideBar
 		entry.setImageLeftID("image.sidebar.vuze");
 
 		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
-				"Notifications", titleInfoActivityView, null, false, -1);
+				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES), titleInfoActivityView, null, false, -1);
 
 		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
