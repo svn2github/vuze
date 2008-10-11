@@ -63,7 +63,7 @@ public class DownloadUrlInfoSWT
 	}
 
 	public void invoke(String reason) {
-		context.executeInBrowser(callback + "('" + reason + "','" + hash + "',"
+		context.executeInBrowser(callback + "('" + reason + "','" + hash + "','"
 				+ getDownloadURL() + "')");
 	}
 }
