@@ -645,13 +645,13 @@ public class SBC_LibraryView
 					if (current > limit) {
 						delay = 25;
 					} else {
-						// 50 incrememnts of 5.. max 250
-						current += 49;
-						delay = (50 - (current * 50 / limit)) * 5;
+						// 40 incrememnts of 5.. max 200
+						current += 39;
+						delay = (40 - (current * 40 / limit)) * 5;
 						if (delay < 35) {
 							delay = 35;
-						} else if (delay > 250) {
-							delay = 250;
+						} else if (delay > 200) {
+							delay = 200;
 						}
 					}
 					if (vitalityImage instanceof SideBarVitalityImageSWT) {
