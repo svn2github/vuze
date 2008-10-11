@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -37,6 +38,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -67,8 +69,18 @@ public class ColumnRateUpDown
 	private static UISWTGraphicImpl graphicRateMeButtonEnabled;
 
 	private static UISWTGraphicImpl graphicRateMeButtonDisabled;
+	
+	private static UISWTGraphicImpl graphicRate;
+	
+	private static UISWTGraphicImpl graphicRateDown;
+	
+	private static UISWTGraphicImpl graphicRateUp;
+	
+	private static UISWTGraphicImpl graphicsWait[];
 
 	private static Rectangle boundsRateMe;
+	
+	private static Rectangle boundsRate;
 
 	private static int width = 36;
 
@@ -77,6 +89,8 @@ public class ColumnRateUpDown
 	private boolean mouseIn = false;
 
 	private boolean disabled = false;
+	
+	private int i = 0;
 
 	static {
 		Image img = ImageLoaderFactory.getInstance().getImage("icon.rateme");
@@ -105,6 +119,25 @@ public class ColumnRateUpDown
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
 		graphicWait = new UISWTGraphicImpl(img);
 //		width = Math.max(width, img.getBounds().width);
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
+		graphicRate = new UISWTGraphicImpl(img);
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.down");
+		graphicRateDown = new UISWTGraphicImpl(img);
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.up");
+		graphicRateUp = new UISWTGraphicImpl(img);
+		
+		boundsRate = img.getBounds();
+		
+		Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dots");
+		graphicsWait = new UISWTGraphicImpl[imgs.length];
+		for(int i = 0 ; i < imgs.length  ;i++) {
+			graphicsWait[i] =  new UISWTGraphicImpl(imgs[i]);
+		}
+		
+				
 	}
 
 	/**
@@ -123,6 +156,7 @@ public class ColumnRateUpDown
 	}
 
 	public void refresh(TableCell cell) {
+		
 		if (cell.getHeight() < 32) {
 			return;
 		}
@@ -149,29 +183,35 @@ public class ColumnRateUpDown
 		int rating = PlatformTorrentUtils.getUserRating(torrent);
 
 		if (!cell.setSortValue(rating) && cell.isValid()) {
-			return;
+			if(rating != -2) {
+				return;
+			}
 		}
+		
+		
+		
 		if (!cell.isShown()) {
 			return;
 		}
-
+		
 		UISWTGraphic graphic;
 		switch (rating) {
 			case -2: // waiting
-				graphic = graphicWait;
+				int i = TableCellRefresher.getRefreshIndex(1, graphicsWait.length);
+				graphic = graphicsWait[i];
+				TableCellRefresher.addCell(this,cell);
 				break;
 
 			case -1: // unrated
-				graphic = (useButton && !mouseIn) || disabled ? graphicRateMeButton
-						: graphicRateMe;
+				graphic = graphicRate;
 				break;
 
 			case 0:
-				graphic = graphicDown;
+				graphic = graphicRateDown;
 				break;
 
 			case 1:
-				graphic = graphicUp;
+				graphic = graphicRateUp;
 				break;
 
 			default:
@@ -181,12 +221,13 @@ public class ColumnRateUpDown
 		cell.setGraphic(graphic);
 	}
 
-	boolean bMouseDowned = false;
+	TableRow previousSelection = null;
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
 		if (disabled) {
 			return;
 		}
+		
 		Object ds = event.cell.getDataSource();
 		TOTorrent torrent0 = null;
 		if (ds instanceof TOTorrent) {
@@ -237,57 +278,78 @@ public class ColumnRateUpDown
 			return;
 		}
 
+		
 		// no rating if row isn't selected yet
 		TableRow row = event.cell.getTableRow();
 		if (row != null && !row.isSelected()) {
+			return;
+		}
+		
+		if(row != previousSelection) {
+			previousSelection = row;
 			return;
 		}
 
 		if (!PlatformTorrentUtils.isContent(torrent, true)) {
 			return;
 		}
+		
+//		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
+//			bMouseDowned = true;
+//			return;
+//		}
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-			bMouseDowned = true;
-			return;
-		}
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && bMouseDowned) {
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ) {
 			Comparable sortValue = event.cell.getSortValue();
-			if (sortValue == null || sortValue.equals(new Long(-1))) {
-				// not set
-				int cellWidth = event.cell.getWidth();
-				int cellHeight = event.cell.getHeight();
-				int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
-				int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
+			//By default, let's cancel the setting
+			boolean cancel = true;
 
-				if (x >= 0 && y >= 0 && x < boundsRateMe.width
-						&& y < boundsRateMe.height) {
+			// Are we in the graphics area? (and not canceling)
+			int cellWidth = event.cell.getWidth();
+			int cellHeight = event.cell.getHeight();
+			int x = event.x - ((cellWidth - boundsRate.width) / 2);
+			int y = event.y - ((cellHeight - boundsRate.height) / 2);
+
+			if (x >= 0 && y >= 0 && x < boundsRate.width
+					&& y < boundsRate.height && ! (graphicWait.equals(event.cell.getGraphic()) ) ) {
+				//The event is within the graphic, are we on a non-transparent pixel ?
+				int alpha = graphicRate.getImage().getImageData().getAlpha(x,y);
+				if(alpha > 0) {
 					try {
-						final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
-						refresh(event.cell);
-						PlatformRatingMessenger.setUserRating(torrent, value, true, 0,
-								new PlatformMessengerListener() {
-									public void replyReceived(PlatformMessage message,
-											String replyType, Map reply) {
-										refresh(event.cell);
-									}
-
-									public void messageSent(PlatformMessage message) {
-									}
-								});
+						cancel = false;
+						final int value = (x < (boundsRate.width / 2)) ? 0 : 1;
+						int previousValue = PlatformTorrentUtils.getUserRating(torrent);
+						//Changing the value
+						if(value != previousValue) {
+							
+							PlatformRatingMessenger.setUserRating(torrent, value, true, 0,
+									new PlatformMessengerListener() {
+										public void replyReceived(PlatformMessage message,
+												String replyType, Map reply) {
+											refresh(event.cell);
+										}
+		
+										public void messageSent(PlatformMessage message) {
+										}
+									});
+							refresh(event.cell);
+						}
 					} catch (Exception e) {
 						Debug.out(e);
 					}
 				}
-			} else {
+			}
+			
+			 if(cancel) {
 				// remove setting
 				try {
 					final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
+					System.out.println(oldValue);
 					if (oldValue == -2) {
 						return;
 					}
-					refresh(event.cell);
+					i = 0;
 					PlatformRatingMessenger.setUserRating(torrent, -1, true, 0,
 							new PlatformMessengerListener() {
 								public void replyReceived(PlatformMessage message,
@@ -298,12 +360,12 @@ public class ColumnRateUpDown
 								public void messageSent(PlatformMessage message) {
 								}
 							});
+					refresh(event.cell);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
 			}
 		}
-		bMouseDowned = false;
 	}
 
 	public boolean useButton() {

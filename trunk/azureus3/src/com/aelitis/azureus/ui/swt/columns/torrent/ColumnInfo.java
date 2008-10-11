@@ -55,6 +55,8 @@ public class ColumnInfo
 	private static int width = 38;
 
 	private static Image img;
+	
+	private TableRow previousSelection;
 
 	static {
 		img = ImageLoaderFactory.getInstance().getImage("icon.info");
@@ -96,8 +98,19 @@ public class ColumnInfo
 		} else if (ds instanceof DownloadManager) {
 			torrent = ((DownloadManager) ds).getTorrent();
 		}
-
-		if (torrent == null) {
+		
+		if( ! PlatformTorrentUtils.isContent(torrent, true)) {
+			return;
+		}
+		
+		// no rating if row isn't selected yet
+		TableRow row = event.cell.getTableRow();
+		if (row != null && !row.isSelected()) {
+			return;
+		}
+		
+		if(row != previousSelection) {
+			previousSelection = row;
 			return;
 		}
 

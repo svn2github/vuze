@@ -43,7 +43,7 @@ public class ColumnUnopened
 	public static final String COLUMN_ID = "unopened";
 
 	private static UISWTGraphicImpl graphicCheck;
-	private static UISWTGraphicImpl graphicProgress;
+	private static UISWTGraphicImpl[] graphicsProgress;
 
 	private static int WIDTH = 38; // enough to fit title
 
@@ -60,9 +60,16 @@ public class ColumnUnopened
 			graphicCheck = new UISWTGraphicImpl(img);
 		}
 
-		if (graphicProgress == null) {
-			Image img = ImageLoaderFactory.getInstance().getImage("image.sidebar.vitality.dl");
-			graphicProgress = new UISWTGraphicImpl(img);
+		if (graphicsProgress == null) {
+			
+			
+			
+			Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dl");
+			graphicsProgress = new UISWTGraphicImpl[imgs.length];
+			for(int i = 0 ; i < imgs.length ; i++) {
+				graphicsProgress[i] = new UISWTGraphicImpl(imgs[i]);
+			}
+			
 		}
 		
 		initializeAsGraphic(WIDTH);
@@ -88,7 +95,9 @@ public class ColumnUnopened
 		}
 
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
-			return;
+			if(complete) {
+				return;
+			}
 		}
 		if (!cell.isShown()) {
 			return;
@@ -97,7 +106,9 @@ public class ColumnUnopened
 		if (complete) {
 			cell.setGraphic(hasBeenOpened ? null : graphicCheck);
 		} else {
-			cell.setGraphic(graphicProgress);
+			int i = TableCellRefresher.getRefreshIndex(1, graphicsProgress.length);
+			cell.setGraphic(graphicsProgress[i]);
+			TableCellRefresher.addCell(this, cell);
 		}
 	}
 
@@ -105,6 +116,8 @@ public class ColumnUnopened
 	public void cellMouseTrigger(TableCellMouseEvent event) {
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEUP && event.button == 1) {
 			DownloadManager dm = (DownloadManager) event.cell.getDataSource();
+			boolean complete = dm.getAssumedComplete();
+			if(!complete) return;
 			boolean hasBeenOpened = !PlatformTorrentUtils.getHasBeenOpened(dm);
 			PlatformTorrentUtils.setHasBeenOpened(dm, hasBeenOpened);
 			event.cell.setGraphic(hasBeenOpened ? null : graphicCheck);
