@@ -34,12 +34,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -412,6 +406,12 @@ SubscriptionManagerUI
 									subscriptionChanged(
 										Subscription		subscription )
 									{
+									}
+									
+									public void 
+									subscriptionSelected(
+										Subscription subscription )
+									{		
 									}
 									
 									public void 
@@ -795,6 +795,18 @@ SubscriptionManagerUI
 					Subscription		subscription )
 				{
 					changeSubscription( side_bar, subscription );
+				}
+				
+				public void 
+				subscriptionSelected(
+					Subscription subscription )
+				{	
+					sideBarItem item = (sideBarItem)subscription.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
+					
+					if (item != null ){
+					
+						item.activate();
+					}
 				}
 				
 				public void 

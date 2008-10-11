@@ -861,6 +861,18 @@ SubscriptionManagerImpl
 	}
 	
 	protected void
+	selectSubscription(
+		SubscriptionImpl		subs )
+	{
+		Iterator it = listeners.iterator();
+		
+		while( it.hasNext()){
+			
+			((SubscriptionManagerListener)it.next()).subscriptionSelected( subs );
+		}
+	}
+	
+	protected void
 	removeSubscription(
 		SubscriptionImpl		subs )
 	{
@@ -1084,6 +1096,8 @@ SubscriptionManagerImpl
 									UIManagerEvent.MT_OK );
 						}
 						
+						selectSubscription( existing );
+						
 						return( existing );
 						
 					}else{
@@ -1146,6 +1160,8 @@ SubscriptionManagerImpl
 										UIManagerEvent.MT_OK );
 							}
 								// we have a newer one, ignore
+							
+							selectSubscription( existing );
 							
 							return( existing );
 							

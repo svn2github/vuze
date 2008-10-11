@@ -33,6 +33,10 @@ SubscriptionManagerListener
 		Subscription		subscription );
 	
 	public void
+	subscriptionSelected(
+		Subscription		subscription );
+	
+	public void
 	subscriptionRemoved(
 		Subscription		subscription );
 	

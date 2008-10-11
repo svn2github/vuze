@@ -18,14 +18,12 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
-import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 
 public class SubscriptionsView
@@ -47,6 +45,12 @@ public class SubscriptionsView
 	public void associationsChanged(byte[] association_hash) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public void 
+	subscriptionSelected(
+		Subscription subscription )
+	{		
 	}
 	
 	public void subscriptionAdded(Subscription subscription) {
