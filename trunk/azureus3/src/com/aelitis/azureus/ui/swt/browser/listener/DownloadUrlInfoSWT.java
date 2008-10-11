@@ -15,12 +15,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.browser.listener;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
-
 
 /**
  * @author TuxPaper
@@ -32,15 +31,21 @@ public class DownloadUrlInfoSWT
 {
 
 	private final ClientMessageContext context;
+
 	private final String callback;
 
+	private final String hash;
+
 	/**
+	 * @param hash 
 	 * @param url
 	 */
-	public DownloadUrlInfoSWT(ClientMessageContext context, String callback) {
+	public DownloadUrlInfoSWT(ClientMessageContext context, String callback,
+			String hash) {
 		super(null);
 		this.context = context;
 		this.callback = callback;
+		this.hash = hash;
 	}
 
 	/**
@@ -56,8 +61,9 @@ public class DownloadUrlInfoSWT
 	public String getCallback() {
 		return callback;
 	}
-	
+
 	public void invoke(String reason) {
-		context.executeInBrowser(callback + "('" + reason + "')");
+		context.executeInBrowser(callback + "('" + reason + "','" + hash + "',"
+				+ getDownloadURL() + "')");
 	}
 }

@@ -155,7 +155,8 @@ public class DisplayListener
 
 		String callback = MapUtils.getMapString(decodedMap, "callback", null);
 		if (callback != null && context != null) {
-			DownloadUrlInfoSWT dlInfo = new DownloadUrlInfoSWT(context, callback);
+			DownloadUrlInfoSWT dlInfo = new DownloadUrlInfoSWT(context, callback,
+					hash);
 			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
 			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap,
 					"is-vuze-content", true);
