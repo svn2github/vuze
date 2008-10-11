@@ -125,14 +125,14 @@ public class SWTSkinButtonUtility
 	}
 
 	public boolean isDisabled() {
-		return skinObject.getSuffix().equals("-disabled");
+		return skinObject.getSuffix().indexOf("-disabled") >= 0;
 	}
 
 	public void setDisabled(boolean disabled) {
-		String suffix = disabled ? "-disabled" : "";
-		if (skinObject.getSuffix().equals(suffix)) {
+		if (disabled == isDisabled()) {
 			return;
 		}
+		String suffix = disabled ? "-disabled" : "";
 		skinObject.switchSuffix(suffix, 1, false);
 
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
