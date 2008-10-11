@@ -250,7 +250,7 @@ public class ColumnProgressETA
 			}
 
 			if (fontText == null) {
-				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 12);
+				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 11);
 			}
 
 			if (showSecondLine) {
