@@ -85,13 +85,13 @@ public class ToolBarItem
 	}
 
 	public boolean isEnabled() {
+		if (skinButton != null) {
+			return !skinButton.isDisabled();
+		}
 		return enabled;
 	}
 
 	public void setEnabled(boolean enabled) {
-		if (this.enabled == enabled) {
-			return;
-		}
 		this.enabled = enabled;
 		if (skinButton != null) {
 			skinButton.setDisabled(!enabled);
