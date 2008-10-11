@@ -279,6 +279,7 @@ public class ColumnRate
 			boolean showAverage = !useButton;
 			boolean showRateActionIcon = useButton;
 
+			System.out.println("======================================" + allowRate + ";" + userRating);
 			Image imgRate = null;
 			if (allowRate) {
 				if (ROW_HOVER) {
@@ -296,6 +297,12 @@ public class ColumnRate
 				switch (userRating) {
 					case -2: // waiting
 						imgRate = imgWait;
+						break;
+
+					case -3:
+						if (disabled) {
+							imgRate = imgRateMeButtonDisabled;
+						}
 						break;
 
 					case -1: // unrated
@@ -469,6 +476,7 @@ public class ColumnRate
 
 			disposeOldImage(cell);
 
+			System.out.println("set to ");
 			cell.setGraphic(graphic);
 		}
 
