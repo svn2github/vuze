@@ -348,7 +348,6 @@ SubscriptionManagerUI
 				{
 					if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ){
 						
-						event.skipCoreFunctionality	= true;
 						
 						TableCell cell = event.cell;
 						
@@ -362,6 +361,8 @@ SubscriptionManagerUI
 							
 							if ( subs.length > 0 ){
 								
+								event.skipCoreFunctionality	= true;
+
 								new SubscriptionWizard(PluginCoreUtils.unwrap(dl));
 								
 								//new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
