@@ -1482,6 +1482,14 @@ public class SideBar
 			Composite composite = iview.getComposite();
 			if (composite != null && !composite.isDisposed()) {
 				composite.setVisible(false);
+				composite.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						if (sideBarInfo.treeItem != null
+								&& !sideBarInfo.treeItem.isDisposed()) {
+							sideBarInfo.treeItem.dispose();
+						}
+					}
+				});
 			}
 			if (sideBarInfo.datasource != null) {
 				iview.dataSourceChanged(sideBarInfo.datasource);
