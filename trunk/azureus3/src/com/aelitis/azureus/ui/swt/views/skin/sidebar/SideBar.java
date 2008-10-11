@@ -77,6 +77,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
@@ -506,7 +507,8 @@ public class SideBar
 						if (tree.getItemCount() == 0 || event.button != 1) {
 							return;
 						}
-						int indent = tree.getItem(0).getBounds().x;
+						int indent = Constants.isUnix ? tree.getClientArea().width - 1
+								: tree.getItem(0).getBounds().x;
 						treeItem = tree.getItem(new Point(indent, event.y));
 						if (treeItem == null) {
 							return;
@@ -619,7 +621,25 @@ public class SideBar
 
 				bShown = true;
 
-				fillMenu(menuTree);
+				int indent = Constants.isUnix ? tree.getClientArea().width - 1
+						: tree.getItem(0).getBounds().x;
+				Point ptMouse = tree.toControl(e.display.getCursorLocation());
+				TreeItem treeItem = tree.getItem(new Point(indent, ptMouse.y));
+				if (treeItem == null) {
+					return;
+				}
+				String id = (String) treeItem.getData("Plugin.viewID");
+				SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+
+				fillMenu(menuTree, sideBarInfo);
+
+				if (menuTree.getItemCount() == 0) {
+					Utils.execSWTThreadLater(0, new AERunnable() {
+						public void runSupport() {
+							menuTree.setVisible(false);
+						}
+					});
+				}
 			}
 		});
 
@@ -741,7 +761,7 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	protected void fillMenu(Menu menuTree) {
+	protected void fillMenu(Menu menuTree, final SideBarEntry entry) {
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
 
 		menu_items = MenuItemManager.getInstance().getAllAsArray("sidebar");
@@ -749,17 +769,17 @@ public class SideBar
 		MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
 				menu_items, menuTree, false, true,
 				new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
-					currentSideBarEntry
+					entry
 				}));
 
-		if (currentSideBarEntry != null) {
+		if (entry != null) {
 			menu_items = MenuItemManager.getInstance().getAllAsArray(
-					"sidebar." + currentSideBarEntry.id);
+					"sidebar." + entry.getId());
 
 			MenuBuildUtils.addPluginMenuItems((Composite) soMain.getControl(),
 					menu_items, menuTree, false, true,
 					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(new Object[] {
-						currentSideBarEntry
+						entry
 					}));
 
 			if (currentSideBarEntry.datasource instanceof DownloadManager) {
