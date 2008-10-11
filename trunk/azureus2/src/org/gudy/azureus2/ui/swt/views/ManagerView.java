@@ -36,6 +36,8 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
@@ -52,7 +54,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -79,21 +81,27 @@ public class ManagerView
   
   int lastCompleted = -1;
 	private UISWTView swtView;
+	private GlobalManagerAdapter gmListener;
+	private Composite parent;
   
   /**
 	 * 
 	 */
 	public ManagerView() {
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		gmListener = new GlobalManagerAdapter() {
+			public void downloadManagerRemoved(DownloadManager dm) {
+				if (dm.equals(manager)) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							delete();
+						}
+					});
+				}
+			}
+		};
+		gm.addListener(gmListener, false);
 	}
-  
-  public 
-  ManagerView(
-  	AzureusCore		_azureus_core,
-	DownloadManager manager) 
-  {
-  	dataSourceChanged(manager);
-    
-  }
   
   private void dataSourceChanged(Object newDataSource) {
     if (manager != null) {
@@ -141,6 +149,13 @@ public class ManagerView
   		manager.removeListener(this);
   	}
     
+  	try {
+  		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+  		gm.removeListener(gmListener);
+  	} catch (Exception e) {
+  		Debug.out(e);
+  	}
+
     if (folder != null && !folder.isDisposed()){
     	
     	folder.setSelection(0);
@@ -161,19 +176,23 @@ public class ManagerView
 
     for (int i = 0; i < tabViews.size(); i++) {
     	IView view = (IView) tabViews.get(i);
-    	if (view != null)
-    		view.delete();
+    	try {
+      	if (view != null) {
+      		view.delete();
+      	}
+    	} catch (Throwable t) {
+    		Debug.out(t);
+    	}
     }
     tabViews.clear();
 
-    if (folder != null && !folder.isDisposed()) {
-      folder.dispose();
-    }
+    Utils.disposeSWTObjects(new Object[] { folder, parent });
   }
 
   private void initialize(Composite composite) {
 
-  	if (folder == null) {
+  	this.parent = composite;
+		if (folder == null) {
 			folder = new TabFolder(composite, SWT.LEFT);
 		} else {
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
