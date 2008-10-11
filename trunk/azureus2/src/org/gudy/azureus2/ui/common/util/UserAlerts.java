@@ -33,13 +33,17 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.applet.Applet;
@@ -69,15 +73,46 @@ UserAlerts
 		final DownloadManagerAdapter download_manager_listener = 
 			new DownloadManagerAdapter()
 			{
-				public void
-				downloadComplete(DownloadManager manager)
-				{
-					if( !manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
-						
-						activityFinished(true, manager.getDisplayName(), manager);
-					}
+			public void downloadComplete(DownloadManager manager) {
+				if (!manager.getDownloadState().getFlag(
+						DownloadManagerState.FLAG_LOW_NOISE)) {
+
+					activityFinished(true, manager.getDisplayName(), manager);
 				}
-			}; 
+			}
+
+			// @see org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter#stateChanged(org.gudy.azureus2.core3.download.DownloadManager, int)
+			public void stateChanged(final DownloadManager manager, int state) {
+
+				boolean lowNoise = manager.getDownloadState().getFlag(
+						DownloadManagerState.FLAG_LOW_NOISE);
+				if (lowNoise) {
+					return;
+				}
+
+				// if state == STARTED, then open the details window (according to config)
+				if (state == DownloadManager.STATE_DOWNLOADING
+						|| state == DownloadManager.STATE_SEEDING) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							boolean complete = manager.isDownloadComplete(false);
+
+							if (!complete
+									&& COConfigurationManager.getBooleanParameter("Open Details")) {
+								UIFunctionsManagerSWT.getUIFunctionsSWT().openView(
+										UIFunctions.VIEW_DM_DETAILS, manager);
+							}
+
+							if (((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete"))
+									|| (complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))) {
+
+								DownloadBar.open(manager, Utils.findAnyShell());
+							}
+						}
+					});
+				}
+			}
+		}; 
 		
 		final DiskManagerListener	disk_listener = 
 			new DiskManagerListener()
@@ -152,29 +187,29 @@ UserAlerts
 				public void 
 				downloadManagerAdded(DownloadManager manager) 
 				{
-						// don't pop up for non-persistent as these get added late in the day every time
-						// so we'll notify for each download every startup
-					
-					if (!startup && manager.isPersistent()) {
-						
-						boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
+				// don't pop up for non-persistent as these get added late in the day every time
+				// so we'll notify for each download every startup
 
-						if ( bPopup ){
+				if (!startup && manager.isPersistent()) {
+
+					boolean bPopup = COConfigurationManager.getBooleanParameter("Popup Download Added");
+
+					if (bPopup) {
 
 							if( !manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
 
-								String popup_text = MessageText.getString("popup.download.added",
+							String popup_text = MessageText.getString("popup.download.added",
 										new String[] { manager.getDisplayName()
-								});
+									});
 								Logger.log(new LogAlert(manager, true, LogAlert.AT_INFORMATION, popup_text));
-							}
 						}
 					}
-					
-					manager.addListener( download_manager_listener );
-					
-					manager.addDiskListener( dm_disk_listener );
 				}
+
+				manager.addListener(download_manager_listener);
+
+				manager.addDiskListener(dm_disk_listener);
+			}
 
 				public void 
 				downloadManagerRemoved(DownloadManager manager) 
@@ -214,6 +249,7 @@ UserAlerts
 	  		
 	  		popup_enabler   = "Popup Download Finished";
 	  		popup_def_text  = "popup.download.finished";
+	  		
   		}else{
 	 		sound_enabler 	= "Play File Finished";
 	  		sound_file		= "Play File Finished File";

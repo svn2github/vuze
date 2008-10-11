@@ -848,11 +848,6 @@ public class MainWindow
 	}
 
 	private void downloadManagerAdded(DownloadManager created) {
-		created.addListener(new DownloadManagerAdapter() {
-			public void stateChanged(DownloadManager manager, int state) {
-				downloadManagerStateChanged(manager, state);
-			}
-		});
 	}
 
 	protected void openManagerView(DownloadManager downloadManager) {
@@ -1476,34 +1471,6 @@ public class MainWindow
 
 	public void setMainMenu(IMainMenu menu) {
 		mainMenu = menu;
-	}
-
-	private void downloadManagerStateChanged(final DownloadManager manager,
-			int state) {
-		// if state == STARTED, then open the details window (according to config)
-		if (state == DownloadManager.STATE_DOWNLOADING
-				|| state == DownloadManager.STATE_SEEDING) {
-			if (display != null && !display.isDisposed()) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (display == null || display.isDisposed())
-							return;
-
-						if (COConfigurationManager.getBooleanParameter("Open Details")) {
-							openManagerView(manager);
-						}
-
-						boolean complete = manager.isDownloadComplete(false);
-
-						if (((!complete) && COConfigurationManager.getBooleanParameter("Open Bar Incomplete"))
-								|| (complete && COConfigurationManager.getBooleanParameter("Open Bar Complete"))) {
-
-							DownloadBar.open(manager, shell);
-						}
-					}
-				});
-			}
-		}
 	}
 
 	protected AzureusCore getAzureusCore() {
