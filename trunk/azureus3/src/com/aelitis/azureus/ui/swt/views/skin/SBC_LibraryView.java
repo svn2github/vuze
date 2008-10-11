@@ -168,40 +168,52 @@ public class SBC_LibraryView
 				}
 			});
 		}
+		
+		SkinViewManager.addListener(new SkinViewManager.SkinViewManagerListener() {
+			public void skinViewAdded(SkinView skinview) {
+				if (skinview instanceof ToolBarView) {
+					initToolBarView((ToolBarView) skinview);
+				}
+			}
+		});
 
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
-			itemModeSmall = tb.getToolBarItem("modeSmall");
-			if (itemModeSmall != null) {
-				itemModeSmall.addListener(new ToolBarItemListener() {
-					public void pressed(ToolBarItem toolBarItem) {
-						if (isVisible()) {
-							setViewMode(MODE_SMALLTABLE, true);
-						}
-					}
-
-					public boolean held(ToolBarItem toolBarItem) {
-						return false;
-					}
-				});
-			}
-			itemModeBig = tb.getToolBarItem("modeBig");
-			if (itemModeBig != null) {
-				itemModeBig.addListener(new ToolBarItemListener() {
-					public void pressed(ToolBarItem toolBarItem) {
-						if (isVisible()) {
-							setViewMode(MODE_BIGTABLE, true);
-						}
-					}
-
-					public boolean held(ToolBarItem toolBarItem) {
-						return false;
-					}
-				});
-			}
+			initToolBarView(tb);
 		}
 
 		return null;
+	}
+
+	protected void initToolBarView(ToolBarView tb) {
+		itemModeSmall = tb.getToolBarItem("modeSmall");
+		if (itemModeSmall != null) {
+			itemModeSmall.addListener(new ToolBarItemListener() {
+				public void pressed(ToolBarItem toolBarItem) {
+					if (isVisible()) {
+						setViewMode(MODE_SMALLTABLE, true);
+					}
+				}
+
+				public boolean held(ToolBarItem toolBarItem) {
+					return false;
+				}
+			});
+		}
+		itemModeBig = tb.getToolBarItem("modeBig");
+		if (itemModeBig != null) {
+			itemModeBig.addListener(new ToolBarItemListener() {
+				public void pressed(ToolBarItem toolBarItem) {
+					if (isVisible()) {
+						setViewMode(MODE_BIGTABLE, true);
+					}
+				}
+
+				public boolean held(ToolBarItem toolBarItem) {
+					return false;
+				}
+			});
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
