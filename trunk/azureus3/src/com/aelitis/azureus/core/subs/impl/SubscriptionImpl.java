@@ -511,6 +511,8 @@ SubscriptionImpl
 			// write to file
 		
 		syncToBody(body);
+		
+		fireChanged();
 	}
 	
 	protected void
