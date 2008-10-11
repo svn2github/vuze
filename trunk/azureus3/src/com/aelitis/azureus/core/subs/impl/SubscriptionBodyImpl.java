@@ -241,6 +241,22 @@ SubscriptionBodyImpl
 	
 			if ( !Arrays.equals( actual_hash, hash )){
 				
+					// backwards compat for pre-az_version
+				
+				if ( az_version == 1 ){
+				
+					Map details_copy = new HashMap( details );
+					
+					details_copy.remove( "az_version" );
+					
+					contents = BEncoder.encode( details_copy );
+					
+					actual_hash = new SHA1Simple().calculateHash( contents );
+				}
+			}
+			
+			if ( !Arrays.equals( actual_hash, hash )){
+
 				throw( new IOException( "Hash mismatch" ));
 			}
 			
