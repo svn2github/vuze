@@ -197,6 +197,15 @@ public class SideBar
 					try {
 						SideBarEntrySWT entry = getSideBarInfo(id);
 						entry.triggerCloseListeners();
+
+						if (entry.iview != null) {
+							entry.iview.delete();
+							entry.iview = null;
+						}
+						if (entry.skinObject != null) {
+							entry.skinObject.getSkin().removeSkinObject(entry.skinObject);
+						}
+						COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
 					} catch (Exception e2) {
 						Debug.out(e2);
 					}
@@ -518,14 +527,6 @@ public class SideBar
 
 						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 						if (closeArea != null && closeArea.contains(event.x, event.y)) {
-							if (sideBarInfo.iview != null) {
-								sideBarInfo.iview.delete();
-							}
-							if (sideBarInfo.skinObject != null) {
-								sideBarInfo.skinObject.getSkin().removeSkinObject(
-										sideBarInfo.skinObject);
-							}
-							COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
 							treeItem.dispose();
 						} else {
 							itemSelected(sideBarInfo.treeItem);
