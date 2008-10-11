@@ -145,6 +145,13 @@ public class DisplayListener
 	private void setSelectedContent(BrowserMessage message, Map decodedMap) {
 		String hash = MapUtils.getMapString(decodedMap, "torrent-hash", null);
 		String displayName = MapUtils.getMapString(decodedMap, "display-name", null);
+		String dlURL = MapUtils.getMapString(decodedMap, "download-url", null);
+		String referer = MapUtils.getMapString(decodedMap, "referer",
+				"displaylistener");
+
+		if (hash == null && dlURL == null) {
+			SelectedContentManager.changeCurrentlySelectedContent(referer, null);
+		}
 
 		String callback = MapUtils.getMapString(decodedMap, "callback", null);
 		if (callback != null && context != null) {
@@ -152,8 +159,6 @@ public class DisplayListener
 			boolean canPlay = MapUtils.getMapBoolean(decodedMap, "can-play", false);
 			boolean isVuzeContent = MapUtils.getMapBoolean(decodedMap,
 					"is-vuze-content", true);
-			String referer = MapUtils.getMapString(decodedMap, "referer",
-					"displaylistener");
 
 			SelectedContentV3 content = new SelectedContentV3(hash, displayName,
 					isVuzeContent, canPlay);
@@ -166,11 +171,7 @@ public class DisplayListener
 			return;
 		}
 
-		String dlURL = MapUtils.getMapString(decodedMap, "download-url", null);
-
-		String referer = MapUtils.getMapString(decodedMap, "referer",
-				"displaylistener");
-		if ((hash != null || dlURL != null) && displayName != null) {
+		if (displayName != null) {
 			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer",
 					null);
 			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies",
