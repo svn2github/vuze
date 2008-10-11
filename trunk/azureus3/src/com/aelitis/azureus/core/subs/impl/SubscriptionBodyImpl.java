@@ -107,23 +107,34 @@ SubscriptionBodyImpl
 		byte[]		public_key,
 		Map			singleton_details )
 	{
-		byte[]	short_id = new byte[SIMPLE_ID_LENGTH];
-
 		if ( singleton_details != null ){
 			
-			byte[] 	explicit_sid = new SHA1Simple().calculateHash((byte[])singleton_details.get( "key" ));
-			
-			System.arraycopy( explicit_sid, 0, short_id, 0, SIMPLE_ID_LENGTH );
+			return( deriveSingletonShortID( singleton_details ));
 							
 		}else{
 		
 			byte[]	hash = new SHA1Simple().calculateHash( public_key );
-				
+
+			byte[]	short_id = new byte[SIMPLE_ID_LENGTH];
+
 			System.arraycopy( hash, 0, short_id, 0, SIMPLE_ID_LENGTH );
-		}
 		
-		return( short_id );
+			return( short_id );
+		}
 	}
+	
+	protected static byte[]
+  	deriveSingletonShortID(
+  		Map			singleton_details )
+  	{
+  		byte[]	short_id = new byte[SIMPLE_ID_LENGTH];
+
+  		byte[] 	explicit_sid = new SHA1Simple().calculateHash((byte[])singleton_details.get( "key" ));
+  			
+  		System.arraycopy( explicit_sid, 0, short_id, 0, SIMPLE_ID_LENGTH );
+  		
+  		return( short_id );
+  	}
 	
 	private SubscriptionManagerImpl		manager;
 	

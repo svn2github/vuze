@@ -66,7 +66,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
-import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
@@ -569,17 +568,15 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
+		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE ));
 	}
 	
-	protected Subscription
-	createSingletonRSSSupport(
+	protected SubscriptionImpl
+	lookupSingletonRSS(
 		String		name,
 		URL			url,
 		boolean		is_public,
-		int			check_interval_mins,
-		int			add_type,
-		boolean		add_to_subscriptions )
+		int			check_interval_mins )
 		
 		throws SubscriptionException
 	{
@@ -588,6 +585,70 @@ SubscriptionManagerImpl
 			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
 		}
 		
+		Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
+		
+		byte[] sid = SubscriptionBodyImpl.deriveSingletonShortID(singleton_details);
+		
+		return( getSubscriptionFromSID( sid ));
+	}
+	
+			
+	protected Subscription
+	createSingletonRSSSupport(
+		String		name,
+		URL			url,
+		boolean		is_public,
+		int			check_interval_mins,
+		int			add_type )
+		
+		throws SubscriptionException
+	{
+		if ( url.getHost().trim().length() == 0 ){
+			
+			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
+		}
+		
+		try{
+			Subscription existing = lookupSingletonRSS( name, url, is_public, check_interval_mins );
+			
+			if ( existing != null ){
+				
+				return( existing );
+			}
+			
+			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
+			
+			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
+			
+			Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
+			
+			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, singleton_details, json, add_type );
+			
+			log( "Created new singleton subscription: " + subs.getString());
+							
+			subs = addSubscription( subs );
+			
+			return( subs );
+			
+		}catch( SubscriptionException e ){
+			
+			throw((SubscriptionException)e);
+			
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to create subscription", e ));
+		}
+	}
+	
+	protected Map
+	getSingletonMap(
+		String		name,
+		URL			url,
+		boolean		is_public,
+		int			check_interval_mins )
+	
+		throws SubscriptionException
+	{
 		try{
 			Map	singleton_details = new HashMap();
 			
@@ -602,21 +663,8 @@ SubscriptionManagerImpl
 				singleton_details.put( "ci", new Long( check_interval_mins ));
 			}
 			
-			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
-			
-			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
-			
-			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, singleton_details, json, add_type );
-			
-			log( "Created new singleton subscription: " + subs.getString());
-			
-			if ( add_to_subscriptions ){
-				
-				subs = addSubscription( subs );
-			}
-			
-			return( subs );
-			
+			return( singleton_details );
+		
 		}catch( Throwable e ){
 			
 			throw( new SubscriptionException( "Failed to create subscription", e ));
@@ -626,8 +674,9 @@ SubscriptionManagerImpl
 	protected SubscriptionImpl
 	createSingletonSubscription(
 		Map			singleton_details,
-		int			add_type,
-		boolean		add_to_subscriptions )
+		int			add_type )
+	
+		throws SubscriptionException 
 	{
 		try{
 			String name = ImportExportUtils.importString( singleton_details, "name", "(Anonymous)" );
@@ -638,7 +687,7 @@ SubscriptionManagerImpl
 			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type, add_to_subscriptions );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type );
 			
 			return( s );
 			
@@ -646,7 +695,7 @@ SubscriptionManagerImpl
 			
 			log( "Creation of singleton from " + singleton_details + " failed", e );
 			
-			return( null );
+			throw( new SubscriptionException( "Creation of singleton from " + singleton_details + " failed", e ));
 		}
 	}
 	
@@ -1006,87 +1055,70 @@ SubscriptionManagerImpl
 					
 					Long	l_interval = (Long)map.get( "check_interval_mins" );
 					
-					int	interval = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
+					int	check_interval_mins = l_interval==null?SubscriptionHistoryImpl.DEFAULT_CHECK_INTERVAL_MINS:l_interval.intValue();
 					
 					Long	l_public = (Long)map.get( "public" );
 					
 					boolean is_public = l_public==null?true:l_public.longValue()==1;
 					
-					SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, interval, SubscriptionImpl.ADD_TYPE_IMPORT, false );
+					SubscriptionImpl existing = lookupSingletonRSS(name, url, is_public, check_interval_mins );
 					
-					boolean	subs_added = false;
-					
-					Engine engine = new_subs.getEngine();
-					
-					if ( engine instanceof RSSEngine ){
+					if ( PlatformConfigMessenger.urlCanRPC( url.toExternalForm())){
 						
-						RSSEngine rss_engine = (RSSEngine)engine;
-						
-						String search_url = rss_engine.getSearchUrl();
-						
-						if ( PlatformConfigMessenger.urlCanRPC( search_url )){
-					
-							warn_user = false;
-						}
+						warn_user = false;
 					}
-					try{
-						SubscriptionImpl existing = getSubscriptionFromSID( new_subs.getShortID());
-	
-						if ( existing != null ){
-													
-							if ( warn_user ){
-								
-								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-								
-								String details = MessageText.getString(
-										"subscript.add.dup.desc",
-										new String[]{ existing.getName()});
-								
-								ui_manager.showMessageBox(
-										"subscript.add.dup.title",
-										"!" + details + "!",
-										UIManagerEvent.MT_OK );
-							}
-							
-							return( existing );
-							
-						}else{
-							
-							if ( warn_user ){
-								
-								UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 					
-								String details = MessageText.getString(
-										"subscript.add.desc",
-										new String[]{ new_subs.getName()});
-								
-								long res = ui_manager.showMessageBox(
-										"subscript.add.title",
-										"!" + details + "!",
-										UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-								
-								if ( res != UIManagerEvent.MT_YES ){	
-								
-									log_errors = false;
-									
-									throw( new SubscriptionException( "User declined addition" ));
-								}
-							}
-							
-							log( "Imported new singleton subscription: " + new_subs.getString());
-							
-							new_subs = addSubscription( new_subs );
-							
-							subs_added = true;
-							
-							return( new_subs );
-						}
-					}finally{
+					if ( existing != null && existing.isSubscribed()){
 						
-						if ( !subs_added ){
+						if ( warn_user ){
 							
-							new_subs.destroy();
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+							
+							String details = MessageText.getString(
+									"subscript.add.dup.desc",
+									new String[]{ existing.getName()});
+							
+							ui_manager.showMessageBox(
+									"subscript.add.dup.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_OK );
 						}
+						
+						return( existing );
+						
+					}else{
+						
+						if ( warn_user ){
+							
+							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+				
+							String details = MessageText.getString(
+									"subscript.add.desc",
+									new String[]{ name });
+							
+							long res = ui_manager.showMessageBox(
+									"subscript.add.title",
+									"!" + details + "!",
+									UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+							
+							if ( res != UIManagerEvent.MT_YES ){	
+							
+								log_errors = false;
+								
+								throw( new SubscriptionException( "User declined addition" ));
+							}
+						}
+					
+						SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, check_interval_mins, SubscriptionImpl.ADD_TYPE_IMPORT );
+																	
+						log( "Imported new singleton subscription: " + new_subs.getString());
+							
+						if ( existing != null ){
+								
+							existing.remove();
+						}
+														
+						return( new_subs );
 					}
 				}else{
 					
@@ -1094,7 +1126,7 @@ SubscriptionManagerImpl
 							
 					SubscriptionImpl existing = getSubscriptionFromSID( body.getShortID());
 					
-					if ( existing != null ){
+					if ( existing != null && existing.isSubscribed()){
 					
 						if ( existing.getVersion() >= body.getVersion()){
 							
@@ -1172,6 +1204,11 @@ SubscriptionManagerImpl
 						}
 						
 						log( "Imported new subscription: " + new_subs.getString());
+						
+						if ( existing != null ){
+							
+							existing.remove();
+						}
 						
 						new_subs = addSubscription( new_subs );
 						
@@ -2311,37 +2348,30 @@ SubscriptionManagerImpl
 									}.start();
 									
 								}else{
-									
-									SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
-									
-									if ( subs == null ){
-										
-										log( "    found " + sid_str + " but singleton decode failed" );
-
-									}else{
-										
-										synchronized( this ){
+																			
+									synchronized( this ){
 											
-											if ( listener_handled  ){
+										if ( listener_handled  ){
 												
-												subs.destroy();
-												
-												return;
-											}
-											
-											listener_handled = true;
+											return;
 										}
-										
-										subs.setSubscribed( false );
-										
-										subs = addSubscription( subs );
-										
+											
+										listener_handled = true;
+									}
+									
+									try{
+										SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP );
+																			
 										listener.complete( association_hash, new Subscription[]{ subs });
+																			
+									}catch( Throwable e ){
+																					
+										listener.failed( association_hash, new SubscriptionException( "Subscription creation failed", e ));
 									}
 								}
 							}else{
 								
-								log( "    found " + sid_str + " but verification failed" );
+								log( "    found " + sid_str + " but version mismatch" );
 
 							}
 						}catch( Throwable e ){
@@ -2657,6 +2687,13 @@ SubscriptionManagerImpl
 		String						result_id,
 		String						key )
 	{
+		if ( key == null ){
+			
+			Debug.out( "Attempt to add null key!" );
+			
+			return;
+		}
+		
 		log( "Added potential association: " + subs.getName() + "/" + result_id + " -> " + key );
 		
 		synchronized( potential_associations ){
