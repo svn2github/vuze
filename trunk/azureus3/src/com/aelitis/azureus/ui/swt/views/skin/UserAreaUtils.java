@@ -63,10 +63,10 @@ public class UserAreaUtils
 		this.skin = skin;
 		this.uiFunctions = uiFunctions;
 
+		updateLoginLabels(null);
+		
 		hookListeners();
 		
-		updateLoginLabels(null);
-
 	}
 
 	private void hookListeners() {
