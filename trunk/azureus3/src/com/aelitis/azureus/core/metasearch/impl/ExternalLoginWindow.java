@@ -36,6 +36,7 @@ public class ExternalLoginWindow {
 	
 	Display display;
 	Shell shell;
+	Browser browser;
 	
 	ExternalLoginListener	listener;
 	
@@ -100,7 +101,7 @@ public class ExternalLoginWindow {
 			explain.setText(MessageText.getString("externalLogin.explanation", new String[]{ name }));
 		}
 		
-		final Browser browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
+		browser = new Browser(shell,Utils.getInitialBrowserStyle(SWT.BORDER));
 		final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 			public void cookiesFound(String cookies){
 				foundCookies( cookies, true );
@@ -373,6 +374,10 @@ public class ExternalLoginWindow {
 	public void close() {
 		Utils.execSWTThread(new Runnable() {
 			public void run() {
+				if(browser!=null && !browser.isDisposed()){
+					//OSX browser disposal bug -- workaround for limiting memory leak
+					browser.setUrl("about:blank");
+				}
 				shell.close();
 			}
 		});

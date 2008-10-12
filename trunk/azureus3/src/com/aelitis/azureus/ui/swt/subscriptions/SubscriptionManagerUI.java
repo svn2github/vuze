@@ -1431,12 +1431,18 @@ SubscriptionManagerUI
 		{
 			if ( mainBrowser != null ){
 			
+				//OSX bug : browsers don't really get disposed
+				mainBrowser.setUrl("about:blank");
+				
 				mainBrowser.dispose();
 				
 				mainBrowser = null;
 			}
 			
 			if ( detailsBrowser != null ){
+				
+				//OSX bug : browsers don't really get disposed
+				detailsBrowser.setUrl("about:blank");
 			
 				detailsBrowser.dispose();
 
