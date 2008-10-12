@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 import javax.swing.plaf.FontUIResource;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -116,12 +118,17 @@ public class SubscriptionsView
 	
 	public void itemActivated(String itemKey) {
 		if("remove".equals(itemKey) ) {
-			TableRowCore[] rows = view.getSelectedRows();
-			for(int i = 0 ; i < rows.length ; i++) {
-				Subscription subs = (Subscription) rows[i].getDataSource();
-				subs.setSubscribed(false);
-				subs.remove();
-			}
+			removeSelected();
+		}
+	}
+
+
+	private void removeSelected() {
+		TableRowCore[] rows = view.getSelectedRows();
+		for(int i = 0 ; i < rows.length ; i++) {
+			Subscription subs = (Subscription) rows[i].getDataSource();
+			subs.setSubscribed(false);
+			subs.remove();
 		}
 	}
 	
@@ -218,6 +225,18 @@ public class SubscriptionsView
 			}
 			
 		}, false) ;
+		
+		view.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent event) {
+				
+			}
+			
+			public void keyReleased(KeyEvent event) {
+				if(event.keyCode == SWT.DEL) {
+					removeSelected();
+				}
+			}
+		});
 		
 		view.setRowDefaultHeight(20);
 		
