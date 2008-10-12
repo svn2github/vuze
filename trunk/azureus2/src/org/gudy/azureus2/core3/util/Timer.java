@@ -102,6 +102,11 @@ public class Timer
 		indestructable	= true;
 	}
 	
+	public synchronized List
+	getEvents()
+	{
+		return( new ArrayList( events ));
+	}
 	public void
 	setLogging(
 		boolean	_log )
@@ -537,10 +542,13 @@ public class Timer
 							iter.remove();
 						} else {
 							count++;
+							
+							List	events = timer.getEvents();
+							
 							lines.add(timer.thread_pool.getName() + ", "
-									+ timer.events.size() + " events:");
+									+ events.size() + " events:");
 
-							Iterator it = timer.events.iterator();
+							Iterator it = events.iterator();
 							while (it.hasNext()) {
 								TimerEvent ev = (TimerEvent) it.next();
 
@@ -559,7 +567,7 @@ public class Timer
 					writer.println(line);
 				}
 				writer.exdent();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				writer.println(e.toString());
 			}
 		}
