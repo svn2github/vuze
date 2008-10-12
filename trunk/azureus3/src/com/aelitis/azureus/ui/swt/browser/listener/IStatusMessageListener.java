@@ -11,6 +11,8 @@ public interface IStatusMessageListener
 
 	public static final String OP_LOGIN_UPDATE_PARAM_USER_NAME = "user-name";
 
+	public static final String OP_LOGIN_UPDATE_PARAM_AVATAR = "avatar.url";
+
 	public static final String OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME = "display-name";
 	
 	public static final String OP_LOGIN_UPDATE_PARAM_REGISTRATION_OPEN = "registration-open";

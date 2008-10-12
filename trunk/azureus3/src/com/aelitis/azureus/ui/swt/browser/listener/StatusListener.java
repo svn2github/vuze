@@ -13,11 +13,11 @@ public class StatusListener
 
 	public void handleLoginUpdate() {
 		LoginInfoManager.getInstance().setUserInfo(getUserName(), getDisplayName(),
-				getPK());
+				getPK(), getAvatar());
 	}
 
 	public void handleLoginStatus() {
 		LoginInfoManager.getInstance().setUserInfo(getUserName(), getDisplayName(),
-				getPK());
+				getPK(), getAvatar());
 	}
 }

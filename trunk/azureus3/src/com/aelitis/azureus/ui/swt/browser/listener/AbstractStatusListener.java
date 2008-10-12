@@ -52,6 +52,15 @@ public abstract class AbstractStatusListener
 
 	}
 
+	public String getAvatar() {
+		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_AVATAR)) {
+			return MapUtils.getMapString(decodedMap, OP_LOGIN_UPDATE_PARAM_AVATAR,
+					"");
+		}
+		return null;
+
+	}
+
 	public String getDisplayName() {
 		if (true == decodedMap.containsKey(OP_LOGIN_UPDATE_PARAM_DISPLAY_NAME)) {
 			return MapUtils.getMapString(decodedMap,

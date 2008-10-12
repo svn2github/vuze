@@ -81,7 +81,7 @@ public class LoginInfoManager
 		return new LoginInfo();
 	}
 
-	public void setUserInfo(String userName, String displayName, String pk) {
+	public void setUserInfo(String userName, String displayName, String pk, String avatarURL) {
 		boolean changed = false;
 		boolean isNewLoginID = false;
 		if (!("" + userName).equals("" + this.userName)) {
@@ -97,6 +97,10 @@ public class LoginInfoManager
 			this.pk = pk;
 			changed = true;
 		}
+		if (!("" + avatarURL).equals("" + this.avatarURL)) {
+			setAvatarURL(avatarURL);
+			changed = true;
+		}
 
 		if (changed) {
 			notifyListeners(isNewLoginID);
@@ -104,6 +108,9 @@ public class LoginInfoManager
 	}
 	
 	public void setAvatarURL(String avatarURL) {
+		if (avatarURL == null) {
+			return;
+		}
 		if (avatarURL.equals(this.avatarURL)) {
 			return;
 		}
@@ -174,11 +181,8 @@ public class LoginInfoManager
 		try {
 			setUserInfo(MapUtils.getMapString(mapUserInfo, "login-id", null),
 					MapUtils.getMapString(mapUserInfo, "display-name", null),
-					VuzeCryptoManager.getSingleton().getPublicKey(""));
-			String avatarURL = MapUtils.getMapString(mapUserInfo, "avatar.url", null);
-			if (avatarURL != null) {
-				setAvatarURL(avatarURL);
-			}
+					VuzeCryptoManager.getSingleton().getPublicKey(""),
+					MapUtils.getMapString(mapUserInfo, "avatar.url", null));
 		} catch (VuzeCryptoException e) {
 		}
 	}
