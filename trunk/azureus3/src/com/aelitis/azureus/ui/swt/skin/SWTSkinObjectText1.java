@@ -54,11 +54,13 @@ public class SWTSkinObjectText1
 
 	Label label;
 
+	private int style;
+
 	public SWTSkinObjectText1(SWTSkin skin, SWTSkinProperties skinProperties,
 			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
 
-		int style = SWT.WRAP;
+		style = SWT.WRAP;
 
 		String sAlign = skinProperties.getStringValue(sConfigID + ".align");
 		if (sAlign != null) {
@@ -336,5 +338,15 @@ public class SWTSkinObjectText1
 
 			return ptMax;
 		}
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#getStyle()
+	public int getStyle() {
+		return style;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#setStyle(int)
+	public void setStyle(int style) {
+		this.style = style;
 	}
 }

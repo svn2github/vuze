@@ -32,4 +32,18 @@ public interface SWTSkinObjectText
 	public void setTextID(String id);
 	
 	public void setTextID(String id, String[] params);
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	int getStyle();
+
+	/**
+	 * @param style
+	 *
+	 * @since 3.1.1.1
+	 */
+	void setStyle(int style);
 }

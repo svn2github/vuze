@@ -599,4 +599,13 @@ public class SWTSkinObjectText2
 		}
 		super.triggerListeners(eventType, params);
 	}
+
+	public int getStyle() {
+		return style;
+	}
+
+	public void setStyle(int style) {
+		this.style = style;
+	}
+
 }
