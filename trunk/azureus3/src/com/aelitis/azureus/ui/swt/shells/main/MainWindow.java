@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -391,6 +392,18 @@ public class MainWindow
 		if (title != null && title.length() > 0
 				&& dm.getDownloadState().getDisplayName() == null) {
 			dm.getDownloadState().setDisplayName(title);
+		}
+
+		if (ConfigurationChecker.isNewVersion() && dm.getAssumedComplete()) {
+			String lastVersion = COConfigurationManager.getStringParameter("Last Version");
+			if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
+					"3.1.1.1") <= 0) {
+  			long completedTime = dm.getDownloadState().getLongParameter(
+  					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+  			if (completedTime < SystemTime.getOffsetTime(-(1000 * 60))) {
+  				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+  			}
+			}
 		}
 
 		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
