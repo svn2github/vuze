@@ -166,7 +166,7 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
-		setReadOn(MapUtils.getMapLong(map, "readOn", 0));
+		setReadOn(MapUtils.getMapLong(map, "readOn", SystemTime.getCurrentTime()));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
