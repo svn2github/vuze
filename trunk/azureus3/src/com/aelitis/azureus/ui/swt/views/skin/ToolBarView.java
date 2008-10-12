@@ -28,9 +28,11 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -41,6 +43,7 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
@@ -157,13 +160,24 @@ public class ToolBarView
 		// ==run
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.runTorrents(dms);
-
-					for (int i = 0; i < dms.length; i++) {
-						DownloadManager dm = dms[i];
-						PlatformTorrentUtils.setHasBeenOpened(dm, true);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("start");
+					}
+				} else {
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms != null) {
+						TorrentUtil.runTorrents(dms);
+	
+						for (int i = 0; i < dms.length; i++) {
+							DownloadManager dm = dms[i];
+							PlatformTorrentUtils.setHasBeenOpened(dm, true);
+						}
 					}
 				}
 			}
@@ -174,18 +188,29 @@ public class ToolBarView
 		// ==UP
 		item = new ToolBarItem("up", "image.toolbar.up", "iconBar.up") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					Arrays.sort(dms, new Comparator() {
-						public int compare(Object a, Object b) {
-							return ((DownloadManager) a).getPosition()
-									- ((DownloadManager) b).getPosition();
-						}
-					});
-					for (int i = 0; i < dms.length; i++) {
-						DownloadManager dm = (DownloadManager) dms[i];
-						if (gm.isMoveableUp(dm)) {
-							gm.moveUp(dm);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("up");
+					}
+				} else {
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms != null) {
+						Arrays.sort(dms, new Comparator() {
+							public int compare(Object a, Object b) {
+								return ((DownloadManager) a).getPosition()
+										- ((DownloadManager) b).getPosition();
+							}
+						});
+						for (int i = 0; i < dms.length; i++) {
+							DownloadManager dm = (DownloadManager) dms[i];
+							if (gm.isMoveableUp(dm)) {
+								gm.moveUp(dm);
+							}
 						}
 					}
 				}
@@ -206,18 +231,29 @@ public class ToolBarView
 		// ==down
 		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					Arrays.sort(dms, new Comparator() {
-						public int compare(Object a, Object b) {
-							return ((DownloadManager) b).getPosition()
-									- ((DownloadManager) a).getPosition();
-						}
-					});
-					for (int i = 0; i < dms.length; i++) {
-						DownloadManager dm = (DownloadManager) dms[i];
-						if (gm.isMoveableDown(dm)) {
-							gm.moveDown(dm);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("down");
+					}
+				} else {
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms != null) {
+						Arrays.sort(dms, new Comparator() {
+							public int compare(Object a, Object b) {
+								return ((DownloadManager) b).getPosition()
+										- ((DownloadManager) a).getPosition();
+							}
+						});
+						for (int i = 0; i < dms.length; i++) {
+							DownloadManager dm = (DownloadManager) dms[i];
+							if (gm.isMoveableDown(dm)) {
+								gm.moveDown(dm);
+							}
 						}
 					}
 				}
@@ -238,9 +274,20 @@ public class ToolBarView
 		// ==start
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.queueTorrents(dms, null);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("start");
+					}
+				} else {
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms != null) {
+						TorrentUtil.queueTorrents(dms, null);
+					}
 				}
 			}
 		};
@@ -252,9 +299,20 @@ public class ToolBarView
 		// ==stop
 		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
 			public void triggerToolBarItem() {
-				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-				if (dms != null) {
-					TorrentUtil.stopTorrents(dms, null);
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("stop");
+					}
+				} else {
+					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+					if (dms != null) {
+						TorrentUtil.stopTorrents(dms, null);
+					}
 				}
 			}
 		};
@@ -266,6 +324,16 @@ public class ToolBarView
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				boolean isActivityView = "Activity".equals(viewID);
+				
+				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+					ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+					IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+					if(enabler != null) {
+						enabler.itemActivated("remove");
+					}
+				} else
 				if (isActivityView) {
 					SkinView view = SkinViewManager.getBySkinObjectID("Activity");
 					if (view instanceof SBC_ActivityView) {
@@ -399,7 +467,8 @@ public class ToolBarView
 		String[] itemsRequiring1DMSelection = {};
 
 		boolean isActivityView = "Activity".equals(viewID);
-
+		boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
+		
 		int numSelection = currentContent.length;
 		boolean hasSelection = numSelection > 0;
 		boolean has1Selection = numSelection == 1;
@@ -443,6 +512,24 @@ public class ToolBarView
 
 		boolean canStart = false;
 		boolean canStop = false;
+		
+		if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
+			ToolBarEnablerSelectedContent ibeSelected = (ToolBarEnablerSelectedContent) currentContent[0];
+			IconBarEnabler enabler = ibeSelected.getIconBarEnabler();
+			if(enabler != null) {
+				
+				String[] TBKEYS = new String[] {"download","play","share","run","up","down","start","stop","remove"};
+				//String[] OLD_TBKEYS = new String[] {"run","up","down","start","stop","delete"};
+				
+				for(int i = 0 ; i < TBKEYS.length  ;i++) {
+					item = getToolBarItem(TBKEYS[i]);
+					if (item != null) {
+						item.setEnabled(enabler.isEnabled(TBKEYS[i]));
+					}
+				}
+			}
+			
+		} else
 		if (isActivityView) {
 			item = getToolBarItem("up");
 			if (item != null) {
@@ -457,7 +544,11 @@ public class ToolBarView
 				SkinView view = SkinViewManager.getBySkinObjectID("Activity");
 				if (view instanceof SBC_ActivityView) {
 					SBC_ActivityView viewActivity = (SBC_ActivityView) view;
-					item.setEnabled(viewActivity.getNumSelected() > 0);
+					if(viewActivity.isVisible()) {
+						item.setEnabled(viewActivity.getNumSelected() > 0);
+					} else {
+						item.setEnabled(false);
+					}
 				} else {
 					item.setEnabled(false);
 				}
@@ -475,6 +566,7 @@ public class ToolBarView
 				}
 			}
 		}
+		
 		item = getToolBarItem("start");
 		if (item != null) {
 			item.setEnabled(canStart);
@@ -494,6 +586,7 @@ public class ToolBarView
 					&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null);
 			item.setEnabled(enabled);
 		}
+		
 	}
 
 	/**

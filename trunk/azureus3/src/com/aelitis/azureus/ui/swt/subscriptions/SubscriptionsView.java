@@ -34,17 +34,21 @@ import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 public class SubscriptionsView
-	implements UIUpdatable, IconBarEnabler, IView, SubscriptionManagerListener
+	implements UIUpdatable, IView, SubscriptionManagerListener, ToolBarEnabler
 {
 	private static final String TABLE_ID = "subscriptions";
 
@@ -95,7 +99,9 @@ public class SubscriptionsView
 	}
 	
 	public boolean isEnabled(String itemKey) {
-		// TODO Auto-generated method stub
+		if("remove".equals(itemKey) ) {
+			return view.getSelectedRows().length > 0;
+		}
 		return false;
 	}
 	
@@ -109,8 +115,14 @@ public class SubscriptionsView
 	}
 	
 	public void itemActivated(String itemKey) {
-		// TODO Auto-generated method stub
-		
+		if("remove".equals(itemKey) ) {
+			TableRowCore[] rows = view.getSelectedRows();
+			for(int i = 0 ; i < rows.length ; i++) {
+				Subscription subs = (Subscription) rows[i].getDataSource();
+				subs.setSubscribed(false);
+				subs.remove();
+			}
+		}
 	}
 	
 	public void updateUI() {
@@ -198,6 +210,13 @@ public class SubscriptionsView
 				}
 				
 			}
+			
+			public void selected(TableRowCore[] rows) {
+				ISelectedContent[] sels = new ISelectedContent[1];
+				sels[0] = new ToolBarEnablerSelectedContent(SubscriptionsView.this);
+				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels);
+			}
+			
 		}, false) ;
 		
 		view.setRowDefaultHeight(20);

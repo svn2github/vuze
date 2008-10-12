@@ -68,6 +68,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -1676,7 +1678,19 @@ public class SideBar
 		}
 
 		if (newIView != null) {
-			SelectedContentManager.changeCurrentlySelectedContent(null, null);
+			
+			if(newIView instanceof ToolBarEnabler) {
+				
+				ISelectedContent[] sels = new ISelectedContent[1];
+				sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler)newIView);
+				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels);
+				
+			} else {
+				
+				SelectedContentManager.changeCurrentlySelectedContent(null, null);
+				
+			}
+
 			disabledViewModes();
 
 			Utils.execSWTThreadLater(0, new AERunnable() {
