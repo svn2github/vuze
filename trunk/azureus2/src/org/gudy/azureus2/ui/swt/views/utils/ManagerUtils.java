@@ -368,19 +368,22 @@ public class ManagerUtils {
 				String path = dm.getSaveLocation().toString();
 
 				String title = MessageText.getString("deletedata.title");
-				String text = MessageText.getString("deletedata.message1");
+				String text = MessageText.getString("deletedata.message1",
+						new String[] {
+							dm.getDisplayName()
+						});
 						
 				MessageBoxShell mb = new MessageBoxShell(shell, title, text,
 						new String[] {
-							MessageText.getString("Button.no"),
 							MessageText.getString("Button.yes"),
+							MessageText.getString("Button.no"),
 						}, 1,"deletedata.noconfirm.key",MessageText.getString("deletedata.noprompt"),false,0);
 				mb.setRememberOnlyIfButton(1);
 				mb.setRelatedObject(dm);
 				mb.setLeftImage(SWT.ICON_WARNING);
 
 				int result = mb.open();
-				if (result != 1) {
+				if (result != 0) {
 					if (deleteFailed != null) {
 						deleteFailed.runSupport();
 					}
