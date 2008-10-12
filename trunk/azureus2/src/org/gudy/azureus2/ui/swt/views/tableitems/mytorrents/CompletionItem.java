@@ -178,8 +178,9 @@ public class CompletionItem
 		int limit = (x1 * percentDone) / 1000;
 		
 		gcImage.drawImage(img1, 0, 0, 1, 13, bounds.x + 1, bounds.y + yOfs, limit, 13);
-		gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit - 1, 13);
-		
+		if(percentDone < 100) {
+			gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit - 1, 13);
+		}
 		
 //		gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
 //		gcImage.fillRectangle(bounds.x + 1, bounds.y + 1 + yOfs, limit, y1);
