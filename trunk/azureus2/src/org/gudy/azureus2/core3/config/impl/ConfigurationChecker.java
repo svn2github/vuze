@@ -62,6 +62,8 @@ ConfigurationChecker
   private static boolean new_install			= false;
   
   private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
+
+	private static boolean new_version = false;
   
   
 
@@ -274,6 +276,10 @@ ConfigurationChecker
 	    String	this_version	= Constants.AZUREUS_VERSION;
 	    
 	    if ( !last_version.equals( this_version )){
+	    	if (!Constants.getBaseVersion(last_version).equals(
+						Constants.getBaseVersion())) {
+					new_version = true;
+				}
 	    	
 	    	if (!COConfigurationManager.hasParameter("First Recorded Version", true)) {
 					COConfigurationManager.setParameter("First Recorded Version",
@@ -629,6 +635,12 @@ ConfigurationChecker
 	isNewInstall()
 	{
 		return( new_install );
+	}
+	
+	public static final boolean
+	isNewVersion()
+	{
+		return( new_version );
 	}
   
   public static void main(String args[]) {
