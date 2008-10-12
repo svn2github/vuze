@@ -312,6 +312,18 @@ RSSEngine
 								}
 								
 								result.setContentType( type );
+								
+							}else if ( lc_full_child_name.equals( "vuze:downloadurl" )){
+
+								result.setDownloadButtonLink( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:playurl" )){
+
+								result.setPlayLink( child.getValue());
+								
+							}else if ( lc_full_child_name.equals( "vuze:drmkey" )){
+
+								result.setDrmKey( child.getValue());
 							}
 						}
 					}
