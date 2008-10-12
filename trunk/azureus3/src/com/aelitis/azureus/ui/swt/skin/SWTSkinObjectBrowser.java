@@ -26,6 +26,8 @@ import java.net.URL;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
@@ -234,6 +236,14 @@ public class SWTSkinObjectBrowser
 	 */
 	public void layout() {
 		cParent.layout();
+	}
+	
+	public void dispose() {
+		if (browser != null && !browser.isDisposed()) {
+			browser.setVisible(false);
+			browser.setUrl("about:blank");
+		}
+		super.dispose();
 	}
 
 	// @see com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster#hostFile(java.io.File)
