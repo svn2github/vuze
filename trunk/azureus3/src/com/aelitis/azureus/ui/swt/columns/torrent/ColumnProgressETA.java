@@ -269,8 +269,8 @@ public class ColumnProgressETA
 			} else if (bDrawProgressBar) {
 				gcImage.setForeground(cText);
 				String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-				gcImage.drawText(sSpeed, x0 + 50, y0 + y1, true);
-				gcImage.drawText(sPercent, x0 + 2, y0 + y1, true);
+				gcImage.drawText(sSpeed, x0 + 50, y0 + y1 + 1, true);
+				gcImage.drawText(sPercent, x0 + 2, y0 + y1 + 1, true);
 			}
   
 			gcImage.setFont(null);
