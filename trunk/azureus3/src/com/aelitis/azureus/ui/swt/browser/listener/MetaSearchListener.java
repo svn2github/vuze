@@ -28,13 +28,20 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -54,6 +61,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.JSONUtils;
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
@@ -99,11 +107,120 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 	private static final Set	active_subs_auth = new HashSet();
 	
+	private static String	pending_play_now_url;
+	
+	static{
+		TorrentUtils.addTorrentAttributeListener(
+			new TorrentUtils.torrentAttributeListener()
+			{
+				public void 
+				attributeSet(
+					TOTorrent 	torrent,
+					String 		attribute, 
+					Object 		value )
+				{
+					if ( attribute == TorrentUtils.TORRENT_AZ_PROP_OBTAINED_FROM ){
+						
+						try{
+							String torrent_url = (String)value;
+							
+							boolean hook_dm = false;
+							
+							synchronized( MetaSearchListener.class ){
+								
+								if ( 	pending_play_now_url != null && 
+										torrent_url.equals( pending_play_now_url )){
+									
+										// ok, we now have the torrent associated with the URL
+									
+									hook_dm = true;
+								}
+							}
+							
+							if ( hook_dm ){
+								
+								final HashWrapper hash = torrent.getHashWrapper();
+								
+								AzureusCore core = AzureusCoreFactory.getSingleton();
+								
+								final GlobalManager gm = core.getGlobalManager();
+					
+								DownloadManager existing = gm.getDownloadManager( hash );
+								
+								if ( existing != null) {
+
+									playOrStream( existing );
+	
+									return;
+								}
+	
+								GlobalManagerListener l = 
+									new GlobalManagerAdapter() 
+									{
+										private final long listener_add_time = SystemTime.getMonotonousTime();
+										
+										public void 
+										downloadManagerAdded(
+											DownloadManager dm )
+										{
+											try{	
+												TOTorrent t = dm.getTorrent();
+												
+												if ( t.getHashWrapper().equals( hash )){
+													
+													gm.removeListener( this );
+													
+													playOrStream( dm );
+												}
+											
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+												
+											}finally{
+												
+												if ( SystemTime.getMonotonousTime() - listener_add_time > 5*60*1000 ){
+													
+													gm.removeListener( this );
+												}
+											}
+										}
+									};
+									
+								gm.addListener( l, false );
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}				
+			});
+	}
+	
+	private static void
+	playOrStream(
+		final DownloadManager		download )
+	{
+		new AEThread2( "MSL:POS", true )
+		{
+			public void
+			run()
+			{
+				TorrentListViewsUtils.playOrStream( download );
+			}
+		}.start();
+	}
+	
 	private final OpenCloseSearchDetailsListener openCloseSearchDetailsListener;
 	
 	
-	public MetaSearchListener(OpenCloseSearchDetailsListener openCloseSearchDetailsListener) {
+	public 
+	MetaSearchListener(
+		OpenCloseSearchDetailsListener openCloseSearchDetailsListener )
+	{
 		super(LISTENER_ID);
+		
 		this.openCloseSearchDetailsListener = openCloseSearchDetailsListener;
 	}
 	
@@ -933,7 +1050,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();			
 			
-			final String torrentUrl	= (String) decodedMap.get( "torrent_url" );
+			final String torrentUrl		= (String) decodedMap.get( "torrent_url" );
 			final String referer_str	= (String) decodedMap.get( "referer_url" );
 			
 			try {
@@ -992,8 +1109,19 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 				
+				Boolean	play_now = (Boolean)decodedMap.get( "play-now" );
+				
+				if ( play_now != null && play_now.booleanValue()){
+					
+					synchronized( MetaSearchListener.class ){
+						
+						pending_play_now_url = torrentUrl;
+					}
+				}
+				
 				AzureusCoreImpl.getSingleton().getPluginManager().getDefaultPluginInterface().getDownloadManager().addDownload(
-						new URL(torrentUrl), headers );
+						new URL(torrentUrl), 
+						headers );
 				
 				Map params = new HashMap();
 				params.put("torrent_url",torrentUrl);
