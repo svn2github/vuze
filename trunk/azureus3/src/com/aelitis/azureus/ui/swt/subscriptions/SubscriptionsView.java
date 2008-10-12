@@ -1,12 +1,27 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
+import javax.swing.plaf.FontUIResource;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.Listener;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
+import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -25,6 +40,8 @@ import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResu
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
 import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 public class SubscriptionsView
 	implements UIUpdatable, IconBarEnabler, IView, SubscriptionManagerListener
@@ -34,6 +51,16 @@ public class SubscriptionsView
 	private TableViewSWT view;
 
 	private Composite viewComposite;
+	
+	private Font textFont1;
+	
+	private Font textFont2;
+	
+	private Image rssImage;
+	
+	static {
+		ImageRepository.addPath("org/gudy/azureus2/ui/icons/btn_add_rss.png", "btn_add_rss");
+	}
 	
 	public SubscriptionsView() {
 		
@@ -101,6 +128,12 @@ public class SubscriptionsView
 		if (viewComposite != null && !viewComposite.isDisposed()) {
 			viewComposite.dispose();
 		}
+		if(textFont1 != null && ! textFont1.isDisposed()) {
+			textFont1.dispose();
+		}
+		if(textFont2 != null && ! textFont2.isDisposed()) {
+			textFont2.dispose();
+		}
 	}
 	
 	public void generateDiagnostics(IndentWriter writer) {
@@ -126,7 +159,7 @@ public class SubscriptionsView
 	public void initialize(Composite parent) {
 		
 		viewComposite = new Composite(parent,SWT.NONE);
-		viewComposite.setLayout(new FillLayout());
+		viewComposite.setLayout(new FormLayout());
 		
 		TableColumnCore[] columns = new TableColumnCore[] {
 				new ColumnSubscriptionNew(TABLE_ID),
@@ -170,7 +203,108 @@ public class SubscriptionsView
 		view.setRowDefaultHeight(20);
 		
 		view.initialize(viewComposite);
-		view.getComposite().setLayoutData(null);
+		
+		final Composite composite = new Composite(viewComposite,SWT.NONE);
+		composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		composite.setBackground(ColorCache.getColor(composite.getDisplay(), "#F1F9F8"));
+		
+		Font font = composite.getFont();
+		FontData fDatas[] = font.getFontData();
+		for(int i = 0 ; i < fDatas.length ; i++) {
+			fDatas[i].setHeight(150 * fDatas[i].getHeight() / 100);
+		}
+		
+		textFont1 = new Font(composite.getDisplay(),fDatas);
+		
+		fDatas = font.getFontData();
+		for(int i = 0 ; i < fDatas.length ; i++) {
+			fDatas[i].setHeight(120 * fDatas[i].getHeight() / 100);
+		}
+		
+		textFont2 = new Font(composite.getDisplay(),fDatas);
+		
+		Label preText = new Label(composite,SWT.NONE);
+		preText.setForeground(ColorCache.getColor(composite.getDisplay(), "#3A3A3C"));
+		preText.setFont(textFont1);
+		preText.setText(MessageText.getString("subscriptions.view.help.1"));
+		
+		Label image = new Label(composite,SWT.NONE);
+		image.setImage(ImageRepository.getImage("btn_add_rss"));
+		
+		Link postText = new Link(composite,SWT.NONE);
+		postText.setForeground(ColorCache.getColor(composite.getDisplay(), "#3A3A3C"));
+		postText.setFont(textFont2);
+		postText.setText(MessageText.getString("subscriptions.view.help.2"));
+		
+		postText.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if(event.text != null &&  ( event.text.startsWith("http://") || event.text.startsWith("https://") ) ) {
+					Utils.launch(event.text);
+				}
+			}
+		});
+		
+		Label close = new Label(composite,SWT.NONE);
+		close.setImage(ImageLoaderFactory.getInstance().getImage("image.sidebar.closeitem"));
+		close.setCursor(composite.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		close.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event arg0) {
+				COConfigurationManager.setParameter("subscriptions.view.showhelp", false);
+				composite.setVisible(false);
+				FormData data = (FormData) view.getComposite().getLayoutData();
+				data.bottom = new FormAttachment(100,0);
+				viewComposite.layout(true);
+			}
+		});
+		
+		FormLayout layout = new FormLayout();
+		composite.setLayout(layout);
+		
+		FormData data;
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,15);
+		data.top = new FormAttachment(0,20);
+		data.bottom = new FormAttachment(postText,-5);
+		preText.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(preText,5);
+		data.top = new FormAttachment(preText,0,SWT.TOP);
+		image.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(preText,0,SWT.LEFT);
+		//data.top = new FormAttachment(preText,5);
+		data.bottom = new FormAttachment(100,-20);
+		postText.setLayoutData(data);
+		
+		data = new FormData();
+		data.right = new FormAttachment(100,-10);
+		data.top = new FormAttachment(0,10);		
+		close.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,0);
+		data.right = new FormAttachment(100,0);
+		data.top = new FormAttachment(0,0);
+		data.bottom = new FormAttachment(composite,0);		
+		view.getComposite().setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(0,0);
+		data.right = new FormAttachment(100,0);
+		data.bottom = new FormAttachment(100,0);		
+		composite.setLayoutData(data);
+		
+		COConfigurationManager.setBooleanDefault("subscriptions.view.showhelp", true);
+		if(!COConfigurationManager.getBooleanParameter("subscriptions.view.showhelp")) {
+			composite.setVisible(false);
+			data = (FormData) view.getComposite().getLayoutData();
+			data.bottom = new FormAttachment(100,0);
+			viewComposite.layout(true);
+		}
+
 	}
 	
 	public void refresh() {
