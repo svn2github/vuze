@@ -64,6 +64,8 @@ public class UserAreaUtils
 		this.uiFunctions = uiFunctions;
 
 		hookListeners();
+		
+		updateLoginLabels(null);
 
 	}
 
@@ -278,7 +280,7 @@ public class UserAreaUtils
 	 * @param displayName
 	 */
 	private void updateLoginLabels(LoginInfo info) {
-		if (null != info.userName) {
+		if (info != null && null != info.userName) {
 			SWTSkinObject skinObjectName = skin.getSkinObject("user-info-name");
 			if (skinObjectName instanceof SWTSkinObjectText) {
 				if (null != info.displayName) {
