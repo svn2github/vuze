@@ -74,33 +74,65 @@ public class SideBarVitalityImageSWT
 	/**
 	 * @param imageID
 	 */
-	public SideBarVitalityImageSWT(SideBarEntrySWT entry, String imageID) {
-		performer = new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						if (images == null || images.length == 0 || !visible
-								|| hitArea == null) {
+	public 
+	SideBarVitalityImageSWT(
+		SideBarEntrySWT entry, 
+		String 			imageID )
+	{
+		performer = 
+			new TimerEventPerformer() 
+			{		
+				private boolean	exec_pending 	= false;
+				private Object	lock			= this;
+				
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					synchronized( lock ){
+						
+						if ( exec_pending ){
+					
 							return;
 						}
-						currentAnimationIndex++;
-						if (currentAnimationIndex >= images.length) {
-							currentAnimationIndex = 0;
-						}
-						TreeItem treeItem = sideBarEntry.getTreeItem();
-						if (treeItem == null || treeItem.isDisposed()) {
-							return;
-						}
-						Tree parent = treeItem.getParent();
-						parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height,
-								false);
-						parent.update();
+						
+						exec_pending = true;
 					}
-				});
-			}
-		};
+					
+					Utils.execSWTThread(
+						new AERunnable() 
+						{
+							public void 
+							runSupport() 
+							{
+								synchronized( lock ){
+									
+									exec_pending = false;
+								}
+								
+								if (images == null || images.length == 0 || !visible
+										|| hitArea == null) {
+									return;
+								}
+								currentAnimationIndex++;
+								if (currentAnimationIndex >= images.length) {
+									currentAnimationIndex = 0;
+								}
+								TreeItem treeItem = sideBarEntry.getTreeItem();
+								if (treeItem == null || treeItem.isDisposed()) {
+									return;
+								}
+								Tree parent = treeItem.getParent();
+								parent.redraw(hitArea.x, hitArea.y, hitArea.width, hitArea.height,
+										false);
+								parent.update();
+							}
+						});
+				}
+			};
 
 		this.sideBarEntry = entry;
+		
 		setImageID(imageID);
 	}
 
