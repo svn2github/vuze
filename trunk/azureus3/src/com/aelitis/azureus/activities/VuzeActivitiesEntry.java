@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -83,6 +85,8 @@ public class VuzeActivitiesEntry
 	private boolean playable;
 	
 	private long readOn;
+
+	private GlobalManagerAdapter globalManagerAdapter;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -375,6 +379,25 @@ public class VuzeActivitiesEntry
 	 * @param dm the dm to set
 	 */
 	public void setDownloadManager(DownloadManager dm) {
+		if (this.dm == dm) {
+			return;
+		}
+		if (dm == null && globalManagerAdapter != null) {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			gm.removeListener(globalManagerAdapter);
+			globalManagerAdapter = null;
+		}
+		if (dm != null && globalManagerAdapter == null) {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			globalManagerAdapter = new GlobalManagerAdapter() {
+				public void downloadManagerRemoved(DownloadManager dm) {
+					setDownloadManager(null);
+				}
+			};
+			gm.addListener(globalManagerAdapter, false);
+		}
+		
+		
 		this.dm = dm;
 		if (dm != null) {
 			setTorrent(dm.getTorrent());
