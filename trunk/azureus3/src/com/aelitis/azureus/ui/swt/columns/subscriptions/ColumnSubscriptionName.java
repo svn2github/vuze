@@ -57,8 +57,8 @@ public class ColumnSubscriptionName
 
 	/** Default Constructor */
 	public ColumnSubscriptionName(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 300, sTableID);
-		setMinWidth(200);
+		super(COLUMN_ID, POSITION_LAST, 350, sTableID);
+		setMinWidth(300);
 		
 		viewImage = ImageRepository.getImage("ic_view");
 	}
