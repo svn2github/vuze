@@ -1811,6 +1811,10 @@ public class MainWindow
 	//TODO : Tux Move to utils? Could you also add a "mode" or something that would be added to the url
 	// eg: &subscribe_mode=true
 	public static void doSearch(String sSearchText) {
+		doSearch(sSearchText,false);
+	}
+	
+	public static void doSearch(String sSearchText,boolean toSubscribe) {
 		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
 			return;
@@ -1820,10 +1824,15 @@ public class MainWindow
 		String id = "Search";
 		SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
 		if (searchClass != null) {
-			searchClass.anotherSearch(sSearchText);
+			searchClass.anotherSearch(sSearchText,toSubscribe);
 		} else {
+			
+			SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery();
+			sq.term = sSearchText;
+			sq.toSubscribe = toSubscribe;
+			
 			SideBarEntrySWT entry = sidebar.createEntryFromSkinRef(null, id, "main.area.searchresultstab",
-					sSearchText, null, sSearchText,
+					sSearchText, null, sq,
 					true, -1);
 			if (entry != null) {
 				entry.setImageLeftID("image.sidebar.search");

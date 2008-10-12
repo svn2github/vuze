@@ -90,6 +90,11 @@ public class SearchResultsTabArea
 
 	private MenuItem menuItem;
 	
+	public static class SearchQuery {
+		public String term;
+		public boolean toSubscribe;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
@@ -322,7 +327,14 @@ public class SearchResultsTabArea
 		if (browserSkinObject != null) {
 			Object o = skinObject.getData("CreationParams");
 
-			anotherSearch((String) o);
+			if(o instanceof String) {
+				anotherSearch((String) o);
+			}
+			
+			if(o instanceof SearchQuery) {
+				SearchQuery sq = (SearchQuery) o;
+				anotherSearch(sq.term,sq.toSubscribe);
+			}
 		}
 		
 		closeSearchResults(null);
@@ -545,6 +557,10 @@ public class SearchResultsTabArea
 	}
 
 	public void anotherSearch(String searchText) {
+		anotherSearch(searchText,false);
+	}
+	
+	public void anotherSearch(String searchText,boolean toSubscribe) {
 		this.searchText = searchText;
 		String url = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
 				+ UrlUtils.encode(searchText) + "&" + Constants.URL_SUFFIX + "&rand="
@@ -553,6 +569,9 @@ public class SearchResultsTabArea
 		if (System.getProperty("metasearch", "1").equals("1")) {
 			url = Constants.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(searchText)
 					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
+			if(toSubscribe) {
+				url += "&createSubscription=1";
+			}
 		}
 
 		closeSearchResults(null);
