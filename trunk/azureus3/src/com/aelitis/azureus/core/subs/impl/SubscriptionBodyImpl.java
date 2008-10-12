@@ -242,17 +242,14 @@ SubscriptionBodyImpl
 			if ( !Arrays.equals( actual_hash, hash )){
 				
 					// backwards compat for pre-az_version
+							
+				Map details_copy = new HashMap( details );
 				
-				if ( az_version == 1 ){
+				details_copy.remove( "az_version" );
 				
-					Map details_copy = new HashMap( details );
-					
-					details_copy.remove( "az_version" );
-					
-					contents = BEncoder.encode( details_copy );
-					
-					actual_hash = new SHA1Simple().calculateHash( contents );
-				}
+				contents = BEncoder.encode( details_copy );
+				
+				actual_hash = new SHA1Simple().calculateHash( contents );
 			}
 			
 			if ( !Arrays.equals( actual_hash, hash )){
@@ -441,18 +438,15 @@ SubscriptionBodyImpl
 			
 				// backward compat from before az_version was introduced
 			
-			if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
-
-				if ( az_version == 1 ){
+			if ( old_hash != null && !Arrays.equals( old_hash, new_hash )){
 					
-					Map details_copy = new HashMap( details );
-					
-					details_copy.remove( "az_version" );
-					
-					contents = BEncoder.encode( details_copy );
-					
-					new_hash = new SHA1Simple().calculateHash( contents );
-				}
+				Map details_copy = new HashMap( details );
+				
+				details_copy.remove( "az_version" );
+				
+				contents = BEncoder.encode( details_copy );
+				
+				new_hash = new SHA1Simple().calculateHash( contents );
 			}
 			
 			if ( old_hash == null || !Arrays.equals( old_hash, new_hash )){
