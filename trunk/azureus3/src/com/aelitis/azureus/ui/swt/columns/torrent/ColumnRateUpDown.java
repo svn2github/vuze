@@ -82,7 +82,7 @@ public class ColumnRateUpDown
 	
 	private static Rectangle boundsRate;
 
-	private static int width = 36;
+	private static int width = 50;
 
 	private boolean useButton = false;
 
