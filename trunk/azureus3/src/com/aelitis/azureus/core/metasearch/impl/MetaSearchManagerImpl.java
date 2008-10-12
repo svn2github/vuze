@@ -54,6 +54,9 @@ public class
 MetaSearchManagerImpl
 	implements MetaSearchManager, UtilitiesImpl.searchManager
 {
+	private static final boolean AUTO_MODE_DEFAULT		= false;
+	
+	
 	private static final String	LOGGER_NAME = "MetaSearch";
 	
 	private static final int REFRESH_MILLIS = 23*60*60*1000;
@@ -202,8 +205,13 @@ MetaSearchManagerImpl
 	
 		throws MetaSearchException
 	{
+		boolean refresh_completed 	= false;
+		boolean	first_run			= false;
+		
 		try{
 			refresh_sem.reserve();
+			
+			first_run = COConfigurationManager.getBooleanParameter( "metasearch.refresh.first_run", true );
 			
 			if ( !checked_customization ){
 				
@@ -306,6 +314,7 @@ MetaSearchManagerImpl
 				// manually selected ones are, well, manually selected
 			
 			Map		vuze_selected_ids 		= new HashMap();
+			Map		vuze_preload_ids 		= new HashMap();
 			
 			Set		featured_ids 			= new HashSet();
 			Set		popular_ids 			= new HashSet();
@@ -342,11 +351,12 @@ MetaSearchManagerImpl
 					
 				log( "Featured templates: " + featured_str );
 				
-				if ( auto_mode ){
+				if ( auto_mode || first_run ){
 					
 					PlatformMetaSearchMessenger.templateInfo[] popular = PlatformMetaSearchMessenger.listTopPopularTemplates();
 					
 					String popular_str = "";
+					String preload_str = "";
 					
 					for (int i=0;i<popular.length;i++){
 						
@@ -359,19 +369,37 @@ MetaSearchManagerImpl
 						
 						Long	key = new Long( template.getId());
 						
-						if ( !vuze_selected_ids.containsKey( key )){
+						if ( auto_mode ){
 							
-							vuze_selected_ids.put( 
-								key, 
-								new Long( template.getModifiedDate()));
+							if ( !vuze_selected_ids.containsKey( key )){
+								
+								vuze_selected_ids.put( 
+									key, 
+									new Long( template.getModifiedDate()));
+								
+								popular_ids.add( key );
+								
+								popular_str += (popular_str.length()==0?"":",") + key;
+							}
+						}else{
 							
-							popular_ids.add( key );
-							
-							popular_str += (popular_str.length()==0?"":",") + key;
+							if ( !vuze_preload_ids.containsKey( key )){
+								
+								vuze_preload_ids.put( 
+									key, 
+									new Long( template.getModifiedDate()));
+																
+								preload_str += (preload_str.length()==0?"":",") + key;
+							}
 						}
 					}
 					
 					log( "Popular templates: " + popular_str );
+					
+					if ( preload_str.length() > 0 ){
+						
+						log( "Pre-load templates: " + popular_str );
+					}
 				}
 						
 					// pick up explicitly selected vuze ones
@@ -458,6 +486,8 @@ MetaSearchManagerImpl
 					
 					Map.Entry entry = (Map.Entry)it.next();
 					
+					vuze_preload_ids.remove( entry.getKey());
+					
 					long	id 			= ((Long)entry.getKey()).longValue();
 					long	modified 	= ((Long)entry.getValue()).longValue();
 									
@@ -508,6 +538,50 @@ MetaSearchManagerImpl
 					}
 				}
 				
+					// do any pre-loads
+				
+				it = vuze_preload_ids.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry entry = (Map.Entry)it.next();
+					
+					long	id 			= ((Long)entry.getKey()).longValue();
+									
+					Engine this_engine = (Engine)existing_engine_map.get( new Long(id));
+						
+					if ( this_engine == null ){
+						
+						PlatformMetaSearchMessenger.templateDetails details = PlatformMetaSearchMessenger.getTemplate( id );
+	
+						log( "Downloading pre-load definition of template " + id );
+						log( details.getValue());
+						
+						if ( details.isVisible()){
+							
+							try{
+								this_engine = 
+									meta_search.importFromJSONString( 
+										details.getType()==PlatformMetaSearchMessenger.templateDetails.ENGINE_TYPE_JSON?Engine.ENGINE_TYPE_JSON:Engine.ENGINE_TYPE_REGEX,
+										details.getId(),
+										details.getModifiedDate(),
+										details.getName(),
+										details.getValue());
+								
+								this_engine.setSource( Engine.ENGINE_SOURCE_VUZE );
+								
+								this_engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
+								
+								meta_search.addEngine( this_engine );
+								
+							}catch( Throwable e ){
+								
+								log( "Failed to import engine '" + details.getValue() + "'", e );
+							}
+						}			
+					}
+				}
+				
 					// deselect any not in use
 				
 				for (int i=0;i<engines.length;i++){
@@ -540,6 +614,9 @@ MetaSearchManagerImpl
 						engine.checkSelectionStateRecorded();
 					}
 				}
+				
+				refresh_completed = true;
+				
 			}catch( Throwable e ){
 				
 				log( "Refresh failed", e );
@@ -547,6 +624,11 @@ MetaSearchManagerImpl
 				throw( new MetaSearchException( "Refresh failed", e ));
 			}
 		}finally{
+			
+			if ( first_run && refresh_completed ){
+				
+				COConfigurationManager.setParameter( "metasearch.refresh.first_run", false );
+			}
 			
 			refresh_sem.release();
 			
@@ -563,7 +645,7 @@ MetaSearchManagerImpl
 	public boolean
 	isAutoMode()
 	{
-		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", true ));
+		return( COConfigurationManager.getBooleanParameter( "metasearch.auto.mode", AUTO_MODE_DEFAULT ));
 	}
 	
 	protected void
