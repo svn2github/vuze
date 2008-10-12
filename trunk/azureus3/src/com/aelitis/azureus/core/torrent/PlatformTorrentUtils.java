@@ -972,6 +972,7 @@ public class PlatformTorrentUtils
 			return;
 		}
 		setContentMapLong(torrent, TOR_AZ_PROP_OPENED, opened ? 1 : 0);
+		writeTorrentIfExists(torrent);
 		Object[] array = hasBeenOpenedListeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			try {
