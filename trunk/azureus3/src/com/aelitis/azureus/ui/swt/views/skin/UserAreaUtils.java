@@ -261,7 +261,6 @@ public class UserAreaUtils
 			if (null == info.userName) {
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
 				resetBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
-				resetBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
 			} else {
 
 				/*
@@ -269,7 +268,6 @@ public class UserAreaUtils
 				 */
 				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_BROWSE);
 				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_PUBLISH);
-				refreshBrowserPage(SkinConstants.VIEWID_BROWSER_MINI);
 			}
 		}
 	}
