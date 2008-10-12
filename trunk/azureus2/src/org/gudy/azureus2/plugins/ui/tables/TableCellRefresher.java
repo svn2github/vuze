@@ -3,17 +3,9 @@ package org.gudy.azureus2.plugins.ui.tables;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-
-import sun.security.jca.GetInstance;
 
 /**
  * 
