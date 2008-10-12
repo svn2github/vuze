@@ -1508,7 +1508,11 @@ public class SideBar
 					public void widgetDisposed(DisposeEvent e) {
 						if (sideBarInfo.treeItem != null
 								&& !sideBarInfo.treeItem.isDisposed()) {
-							sideBarInfo.treeItem.dispose();
+							try {
+								sideBarInfo.treeItem.dispose();
+							} catch (NullPointerException npe) {
+								// ignore swt bug
+							}
 						}
 					}
 				});
