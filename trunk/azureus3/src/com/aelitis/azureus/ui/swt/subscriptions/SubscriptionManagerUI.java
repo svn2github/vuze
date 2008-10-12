@@ -1655,6 +1655,13 @@ SubscriptionManagerUI
 		setWarning(
 			Subscription	subs )
 		{
+				// possible during initialisation, status will be shown again on complete
+			
+			if ( warning == null ){
+				
+				return;
+			}
+			
 			String	last_error = subs.getHistory().getLastError();
 
 			boolean	trouble = last_error != null;
