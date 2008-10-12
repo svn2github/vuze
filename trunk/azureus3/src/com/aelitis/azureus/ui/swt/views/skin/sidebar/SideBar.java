@@ -75,8 +75,14 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.MapUtils;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
@@ -323,6 +329,25 @@ public class SideBar
 	}
 	*/
 
+	private void addMenuNotifications() {
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getDefaultPluginInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
+
+		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+				+ SIDEBAR_SECTION_ACTIVITIES, "v3.activity.button.readall");
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				VuzeActivitiesEntry[] allEntries = VuzeActivitiesManager.getAllEntries();
+				for (int i = 0; i < allEntries.length; i++) {
+					VuzeActivitiesEntry entry = allEntries[i];
+					entry.setRead(true);
+				}
+			}
+		});
+	}
+
 	/**
 	 * 
 	 *
@@ -459,12 +484,12 @@ public class SideBar
 								: tree.getItem(0).getBounds().x;
 						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
-						
+
 						while (treeItem != null) {
 							String id = (String) treeItem.getData("Plugin.viewID");
 							SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 							Rectangle itemBounds = sideBarInfo.getBounds();
-							
+
 							event.item = treeItem;
 
 							boolean selected = tree.getSelectionCount() == 1
@@ -1152,9 +1177,12 @@ public class SideBar
 				null, null, false, -1);
 		entry.setImageLeftID("image.sidebar.vuze");
 
-		createEntryFromSkinRef(null, SIDEBAR_SECTION_ACTIVITIES, "activity",
-				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES), titleInfoActivityView, null, false, -1);
-
+		SideBarEntrySWT entryActivity = createEntryFromSkinRef(null,
+				SIDEBAR_SECTION_ACTIVITIES, "activity",
+				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
+				titleInfoActivityView, null, false, -1);
+		addMenuNotifications();
+		
 		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
 
