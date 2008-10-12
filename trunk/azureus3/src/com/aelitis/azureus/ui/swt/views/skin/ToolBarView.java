@@ -24,9 +24,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -303,6 +301,14 @@ public class ToolBarView
 		item = new ToolBarItem("modeBig", "image.toolbar.table_large", null);
 		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
 		item.setEnabled(false);
+		
+		Control bigItem = item.getSkinButton().getSkinObject().getControl();
+		SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
+				item.getSkinButton().getSkinObject());
+		if (soTitle instanceof SWTSkinObjectText) {
+			((SWTSkinObjectText) soTitle).setText("Vi");
+			((SWTSkinObjectText) soTitle).setStyle(SWT.RIGHT);
+		}
 
 		addSeperator(so2nd);
 
@@ -310,6 +316,17 @@ public class ToolBarView
 		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal", null);
 		addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
 		item.setEnabled(false);
+		
+		Control smallItem = item.getSkinButton().getSkinObject().getControl();
+		
+		soTitle = skin.getSkinObject("toolbar-item-title",
+				item.getSkinButton().getSkinObject());
+		if (soTitle instanceof SWTSkinObjectText) {
+			((SWTSkinObjectText) soTitle).setText("ew");
+			((SWTSkinObjectText) soTitle).setStyle(SWT.LEFT);
+		}
+		
+
 		//addSeperator(so2nd);
 		
 		resizeGap();
