@@ -591,7 +591,7 @@ SubscriptionHistoryImpl
 			updateReadUnread( results );
 		}
 		
-		last_error		= "";
+		last_error		= null;
 		last_new_result	= 0;
 		last_scan		= 0;
 					
