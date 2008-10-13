@@ -156,7 +156,7 @@ public class ColumnActivityText
 					if (VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
 						String userMessage = ((VuzeActivitiesEntryContentShare) entry).getUserMessage();
 						Utils.openMessageBox(null, SWT.OK, "", userMessage);
-					} if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+					} else if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
