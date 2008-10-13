@@ -162,7 +162,7 @@ public class UIConfigDefaultsSWTv3
 		boolean startAdvanced = config.getBooleanParameter("v3.Start Advanced");
 		defaults.addParameter("Library.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
-		defaults.addParameter("LibraryUnopened.viewmode", 1);
+		defaults.addParameter("LibraryUnopened.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryCD.viewmode", startAdvanced ? 1 : 0);
 		
 		
