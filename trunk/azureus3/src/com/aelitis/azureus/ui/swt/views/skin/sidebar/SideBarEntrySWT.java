@@ -81,6 +81,13 @@ public class SideBarEntrySWT implements SideBarEntry
 	private String imageLeftID;
 	
 	private List listCloseListeners = Collections.EMPTY_LIST;
+
+	private final SideBar sidebar;
+	
+	public SideBarEntrySWT(SideBar sidebar, String id) {
+		this.id = id;
+		this.sidebar = sidebar;
+	}
 	
 	public String getParentID() {
 		return parentID;
@@ -108,6 +115,8 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public void setTitleInfo(ViewTitleInfo titleInfo) {
 		this.titleInfo = titleInfo;
+		
+		sidebar.linkTitleInfoToEntry(titleInfo, this);
 		
 		if (treeItem != null && !treeItem.isDisposed()) {
   		String newText = (String) titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
@@ -194,10 +203,6 @@ public class SideBarEntrySWT implements SideBarEntry
 		return id;
 	}
 
-	public SideBarEntrySWT(String id) {
-		this.id = id;
-	}
-	
 	// @see org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry#addVitalityImage(java.lang.String)
 	public SideBarVitalityImage addVitalityImage(String imageID) {
 		SideBarVitalityImageSWT vitalityImage = new SideBarVitalityImageSWT(this, imageID);

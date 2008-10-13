@@ -193,6 +193,8 @@ public class SideBar
 	private Image imgTwist;
 
 	private Shell shellFade;
+	
+	public static SideBar instance = null;
 
 	static {
 		disposeTreeItemListener = new DisposeListener() {
@@ -247,6 +249,12 @@ public class SideBar
 				});
 			}
 		};
+	}
+	
+	public SideBar() {
+		if (instance == null) {
+			instance = this;
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -1596,7 +1604,7 @@ public class SideBar
 	public static SideBarEntrySWT getSideBarInfo(String id) {
 		SideBarEntrySWT sidebarInfo = (SideBarEntrySWT) mapIdToSideBarInfo.get(id);
 		if (sidebarInfo == null) {
-			sidebarInfo = new SideBarEntrySWT(id);
+			sidebarInfo = new SideBarEntrySWT(instance, id);
 			mapIdToSideBarInfo.put(id, sidebarInfo);
 		}
 		return sidebarInfo;
@@ -2519,5 +2527,9 @@ public class SideBar
 			}
 		}
 		return null;
+	}
+	
+	protected void linkTitleInfoToEntry(ViewTitleInfo ti, SideBarEntry entry) {
+		mapTitleInfoToEntry.put(ti, entry);
 	}
 }
