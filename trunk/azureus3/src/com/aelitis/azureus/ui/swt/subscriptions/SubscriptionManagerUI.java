@@ -1198,6 +1198,19 @@ SubscriptionManagerUI
 			subs = _subs;
 		}
 		
+		public void delete() {
+			// Fix/Hack for SWT Browser disposal bug + memory leak
+			if(mainBrowser != null && ! mainBrowser.isDisposed()) {
+				mainBrowser.setUrl("about:blank");
+				mainBrowser.setVisible(false);
+			}
+			if(detailsBrowser != null && ! detailsBrowser.isDisposed()) {
+				detailsBrowser.setUrl("about:blank");
+				detailsBrowser.setVisible(false);
+			}
+			super.delete();
+		}
+		
 		public Object 
 		getTitleInfoProperty(
 			int propertyID ) 
