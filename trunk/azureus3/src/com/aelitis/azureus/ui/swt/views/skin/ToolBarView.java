@@ -275,7 +275,7 @@ public class ToolBarView
 		addSeperator(so2nd);
 
 		// ==start
-		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.queue") {
+		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.start") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
