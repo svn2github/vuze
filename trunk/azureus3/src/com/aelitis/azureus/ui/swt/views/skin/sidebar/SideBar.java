@@ -193,46 +193,55 @@ public class SideBar
 
 	static {
 		disposeTreeItemListener = new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				TreeItem treeItem = (TreeItem) e.widget;
-				String id = (String) treeItem.getData("Plugin.viewID");
+			public void widgetDisposed(final DisposeEvent e) {
+				final TreeItem treeItem = (TreeItem) e.widget;
+				final String id = (String) treeItem.getData("Plugin.viewID");
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
 
-				listTreeItemsNoTitleInfo.remove(treeItem);
+						listTreeItemsNoTitleInfo.remove(treeItem);
 
-				//TreeItem currentItem = treeItem.getParent().getSelection()[0];
+						//TreeItem currentItem = treeItem.getParent().getSelection()[0];
 
-				if (id != null) {
-					try {
-						SideBarEntrySWT entry = getSideBarInfo(id);
-						entry.triggerCloseListeners();
+						if (id != null) {
+							try {
+								SideBarEntrySWT entry = getSideBarInfo(id);
+								entry.treeItem = null;
+								
+								entry.triggerCloseListeners();
 
-						if (entry.iview != null) {
-							entry.iview.delete();
-							entry.iview = null;
+								if (entry.iview != null) {
+									IView iviewDelete = entry.iview;
+									entry.iview = null;
+									iviewDelete.delete();
+								}
+								if (entry.skinObject != null) {
+									SWTSkinObject so = entry.skinObject;
+									entry.skinObject = null;
+									so.getSkin().removeSkinObject(so);
+								}
+								COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
+							} catch (Exception e2) {
+								Debug.out(e2);
+							}
+
+							mapAutoOpen.remove(id);
+							mapIdToSideBarInfo.remove(id);
+
+							return;
 						}
-						if (entry.skinObject != null) {
-							entry.skinObject.getSkin().removeSkinObject(entry.skinObject);
+
+						// find treeitem..
+						for (Iterator iter = mapIdToSideBarInfo.keySet().iterator(); iter.hasNext();) {
+							String id = (String) iter.next();
+							SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
+							if (sideBarInfo != null && sideBarInfo.treeItem == treeItem) {
+								iter.remove();
+							}
 						}
-						COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
-					} catch (Exception e2) {
-						Debug.out(e2);
+
 					}
-
-					mapAutoOpen.remove(id);
-					mapIdToSideBarInfo.remove(id);
-
-					return;
-				}
-
-				// find treeitem..
-				for (Iterator iter = mapIdToSideBarInfo.keySet().iterator(); iter.hasNext();) {
-					id = (String) iter.next();
-					SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
-					if (sideBarInfo != null && sideBarInfo.treeItem == treeItem) {
-						iter.remove();
-					}
-				}
-
+				});
 			}
 		};
 	}
@@ -2202,7 +2211,8 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		if (currentSideBarEntry == null || currentSideBarEntry.iview == null) {
+		if (currentSideBarEntry == null || currentSideBarEntry.iview == null
+				|| tree.getSelectionCount() == 0) {
 			return;
 		}
 		currentSideBarEntry.iview.refresh();
@@ -2348,7 +2358,7 @@ public class SideBar
 				SideBarEntrySWT sideBarInfo = getSideBarInfo(id);
 				Map autoOpenInfo = (Map) o;
 
-				if (sideBarInfo.treeItem != null) {
+				if (sideBarInfo.treeItem != null && !sideBarInfo.treeItem.isDisposed()) {
 					String s = (String) sideBarInfo.treeItem.getData("text");
 					if (s != null) {
 						autoOpenInfo.put("title", s);
