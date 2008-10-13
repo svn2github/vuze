@@ -424,21 +424,7 @@ SubscriptionManagerImpl
 									
 									if ( delete_it ){
 										
-										try{
-											download.stop();
-											
-										}catch( Throwable e ){
-										}
-										
-										try{
-											download.remove( true, true );
-											
-											log( "Removed non-recoverable download '" + download.getName() + "'" );
-
-										}catch( Throwable e ){
-											
-											log( "Failed to remove non-recoverable download '" + download.getName() + "'", e );
-										}
+										removeDownload( download, true );
 									}
 								}
 							}
@@ -2619,13 +2605,7 @@ SubscriptionManagerImpl
 						File	data_file = new File( download.getSavePath());
 						
 						try{
-							download.stop();
-							
-						}catch( Throwable e ){
-						}
-						
-						try{
-							download.remove( true, false );
+							removeDownload( download, false );
 
 							complete( data_file );
 							
@@ -3859,17 +3839,7 @@ SubscriptionManagerImpl
 									
 									if ( listener.isCancelled()){
 										
-										try{
-											f_download.stop();
-											
-										}catch( Throwable e ){
-										}
-										
-										try{
-											f_download.remove( true, true );
-											
-										}catch( Throwable e ){
-										}
+										removeDownload( f_download, true );
 										
 										torrent_file.delete();
 									}
@@ -4117,13 +4087,7 @@ SubscriptionManagerImpl
 		File					data_file )
 	{
 		try{
-			try{
-				download.stop();
-				
-			}catch( Throwable e ){
-			}
-			
-			download.remove( true, false );
+			removeDownload( download, false );
 		
 			try{				
 				updateSubscription( subs, data_file );
@@ -4143,6 +4107,28 @@ SubscriptionManagerImpl
 		}catch( Throwable e ){
 			
 			log( "Failed to remove update download", e );
+		}
+	}
+	
+	protected void
+	removeDownload(
+		Download		download,
+		boolean			remove_data )
+	{
+		try{
+			download.stop();
+			
+		}catch( Throwable e ){
+		}
+		
+		try{
+			download.remove( true, remove_data );
+			
+			log( "Removed download '" + download.getName() + "'" );
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to remove download '" + download.getName() + "'", e );
 		}
 	}
 	
