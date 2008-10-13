@@ -23,6 +23,8 @@ package com.aelitis.azureus.util;
 
 import java.util.Locale;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -170,9 +172,14 @@ public class Constants
 	public static void initialize(AzureusCore core) {
 		AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
 
-		URL_SUFFIX = "azid=" + AZID + "&azv="
-				+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION + "&locale="
-				+ Locale.getDefault().toString();
+		COConfigurationManager.addAndFireParameterListener("locale",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						URL_SUFFIX = "azid=" + AZID + "&azv="
+								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+								+ "&locale=" + Locale.getDefault().toString();
+					}
+				});
 	}
 
 	public static String appendURLSuffix(String url) {
