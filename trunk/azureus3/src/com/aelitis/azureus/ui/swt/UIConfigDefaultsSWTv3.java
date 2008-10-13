@@ -160,7 +160,8 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("v3.Show Welcome", true);
 		
 		boolean startAdvanced = config.getBooleanParameter("v3.Start Advanced");
-		defaults.addParameter("Library.viewMode", startAdvanced ? 1 : 0);
+		defaults.addParameter("Library.viewmode", startAdvanced ? 1 : 0);
+		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
 		
 		
 		//=== defaults used by MainWindow
