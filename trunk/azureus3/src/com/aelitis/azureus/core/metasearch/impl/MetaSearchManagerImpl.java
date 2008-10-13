@@ -52,7 +52,7 @@ import com.aelitis.azureus.util.Constants;
 
 public class 
 MetaSearchManagerImpl
-	implements MetaSearchManager, UtilitiesImpl.searchManager
+	implements MetaSearchManager, UtilitiesImpl.searchManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final boolean AUTO_MODE_DEFAULT		= false;
 	
@@ -132,6 +132,8 @@ MetaSearchManagerImpl
 	MetaSearchManagerImpl()
 	{
 		meta_search = new MetaSearchImpl( this );
+		
+		AEDiagnostics.addEvidenceGenerator( this );
 		
 		SimpleTimer.addPeriodicEvent(
 			"MetaSearchRefresh",
@@ -994,5 +996,20 @@ MetaSearchManagerImpl
 		}
 	}
 	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Metasearch: auto=" + isAutoMode());
+			
+		try{
+			writer.indent();
 
+			meta_search.generate( writer );
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

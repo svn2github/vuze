@@ -1314,4 +1314,11 @@ EngineImpl
 	{
 		return( "id=" + getId() + ", name=" + getName() + ", source=" + ENGINE_SOURCE_STRS[getSource()] + ", selected=" + SEL_STATE_STRINGS[getSelectionState()]);
 	}
+	
+	public String
+	getString(
+		boolean		full )
+	{
+		return( getString());
+	}
 }

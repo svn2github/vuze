@@ -95,7 +95,7 @@ import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 SubscriptionManagerImpl 
-	implements SubscriptionManager
+	implements SubscriptionManager, AEDiagnosticsEvidenceGenerator
 {	
 	private static final String	CONFIG_FILE = "subscriptions.config";
 	private static final String	LOGGER_NAME = "Subscriptions";
@@ -220,6 +220,8 @@ SubscriptionManagerImpl
 			
 			loadConfig();
 	
+			AEDiagnostics.addEvidenceGenerator( this );
+			
 			scheduler = new SubscriptionSchedulerImpl( this );
 			
 			AzureusCore	core = AzureusCoreFactory.getSingleton();
@@ -4479,6 +4481,30 @@ SubscriptionManagerImpl
 		SubscriptionManagerListener	listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Subscriptions" );
+			
+		try{
+			writer.indent();
+
+			Subscription[] subs = getSubscriptions();
+			
+			for (int i=0;i<subs.length;i++){
+				
+				SubscriptionImpl sub = (SubscriptionImpl)subs[i];
+				
+				sub.generate( writer );
+			}
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 	
 	public static void

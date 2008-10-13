@@ -877,9 +877,17 @@ WebEngine
 	public String
 	getString()
 	{
+		return( getString( false ));
+	}
+	
+	public String
+	getString(
+		boolean		full )
+	{
 		return( 	super.getString() + 
-					", auth=" + isNeedsAuth() +
-					(isNeedsAuth()?" [cookies=" + local_cookies + "]":"" ));
+						(full?(", url=" + searchURLFormat ):"") +
+						", auth=" + isNeedsAuth() +
+						(isNeedsAuth()?" [cookies=" + local_cookies + "]":"" ));
 	}
 	
 	public static class

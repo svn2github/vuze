@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -1039,6 +1040,20 @@ MetaSearchImpl
 		Throwable 	e )
 	{
 		manager.log( "search :"  +  str, e );
+	}
+	
+	protected void
+	generate(
+		IndentWriter		writer )
+	{
+		Iterator it = engines.iterator();
+		
+		while( it.hasNext()){
+				
+			EngineImpl	e = (EngineImpl)it.next();
+			
+			writer.println( e.getString( true ));
+		}	
 	}
 	
 	public static void

@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -1642,6 +1643,28 @@ SubscriptionImpl
 					(server_publication_outstanding?",spo=true":""));
 	}
 	
+	protected void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( getString());
+			
+		try{
+			writer.indent();
+			
+			synchronized( this ){
+
+				for (int i=0;i<associations.size();i++){
+					
+					((association)associations.get(i)).generate( writer );
+				}
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
 	protected static class
 	association
 	{
@@ -1686,7 +1709,14 @@ SubscriptionImpl
 		protected String
 		getString()
 		{
-			return( ByteFormatter.encodeString( hash ));
+			return( ByteFormatter.encodeString( hash ) + ", pub=" + published );
+		}
+		
+		protected void
+		generate(
+			IndentWriter		writer )
+		{
+			writer.println( getString());
 		}
 	}
 }
