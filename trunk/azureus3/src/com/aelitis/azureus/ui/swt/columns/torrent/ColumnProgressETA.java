@@ -3,6 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
@@ -120,7 +121,7 @@ public class ColumnProgressETA
 
 		public Cell(TableCell cell) {
 			cell.addListeners(this);
-			cell.setMarginHeight(2);
+			cell.setMarginHeight(3);
 			//cell.setFillCell(true);
 		}
 
@@ -253,6 +254,7 @@ public class ColumnProgressETA
 				fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 11);
 			}
 
+			gcImage.setTextAntialias(SWT.ON);
 			if (showSecondLine) {
   			gcImage.setFont(fontText);
   			//int[] fg = cell.getForeground();
