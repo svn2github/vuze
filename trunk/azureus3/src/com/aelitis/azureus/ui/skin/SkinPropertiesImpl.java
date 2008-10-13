@@ -145,7 +145,7 @@ public class SkinPropertiesImpl
 			return null;
 		}
 		if (value.charAt(0) == '{' && value.charAt(value.length() - 1) == '}') {
-			return value.substring(1, value.length() - 2);
+			return value.substring(1, value.length() - 1);
 		}
 		return null;
 	}
