@@ -1684,7 +1684,6 @@ public class SideBar
 		final String id = (String) treeItem.getData("Plugin.viewID");
 		final SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
 
-		System.out.println("ID IS " + id);
 		if (currentSideBarEntry == newSideBarInfo) {
 			return;
 		}
