@@ -18,11 +18,15 @@
 
 package com.aelitis.azureus.ui.swt.columns.vuzeactivity;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -172,7 +176,10 @@ public class ColumnActivityText
 				newCursor = SWT.CURSOR_HAND;
 				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)
 						|| VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
-					tooltip = hitUrl.title;
+					try {
+						tooltip = URLDecoder.decode(hitUrl.title, "utf-8");
+					} catch (UnsupportedEncodingException e) {
+					}
 				} else {
 					tooltip = hitUrl.url;
 				}
