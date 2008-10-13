@@ -403,7 +403,7 @@ public class SWTSkinObjectSash
 	public void dispose() {
 		if (noresize) {
 			Long px = (Long) sash.getData("PX");
-			if (px != null) {
+			if (px != null && px.longValue() != 0) {
 				COConfigurationManager.setParameter("v3." + sID + ".splitAtPX", px.longValue());
 			}
 		}
