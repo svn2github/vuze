@@ -278,6 +278,7 @@ ConfigurationChecker
 	    if ( !last_version.equals( this_version )){
 	    	if (!Constants.getBaseVersion(last_version).equals(
 						Constants.getBaseVersion())) {
+	    		COConfigurationManager.setParameter("Last Version", last_version);
 					new_version = true;
 				}
 	    	

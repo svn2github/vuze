@@ -37,6 +37,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -346,7 +347,11 @@ public class MyTorrentsSuperView extends AbstractIView implements
     	ID = ((MyTorrentsView)currentView).getTableView().getTableID();
     }
 
-    SelectedContentManager.changeCurrentlySelectedContent(ID, null);
+    TableView tv = null;
+    if (currentView instanceof MyTorrentsView) {
+    	tv = ((MyTorrentsView) currentView).getTableView();    	
+    }
+    SelectedContentManager.changeCurrentlySelectedContent(ID, null, tv);
 	}
 	
 	/**

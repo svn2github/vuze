@@ -948,7 +948,7 @@ public class MyTorrentsView
 		if (cTablePanel == null || cTablePanel.isDisposed()
 				|| !cTablePanel.isVisible()) {
 			SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
-					null);
+					null, tv);
 			return;
 		}
 		DownloadManager[] dms = getSelectedDownloads();
@@ -967,7 +967,7 @@ public class MyTorrentsView
 		if (pos != dms.length) {
 			System.arraycopy(sc, 0, sc, 0, pos);
 		}
-		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc);
+		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc, tv);
 	}
 
   private void refreshIconBar() {

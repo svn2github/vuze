@@ -23,6 +23,8 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
+import com.aelitis.azureus.ui.common.table.TableView;
+
 /**
  * Manages the currently selected content in the visible display
  * 
@@ -37,6 +39,8 @@ public class SelectedContentManager
 	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
 
 	private static String viewID = null;
+	
+	private static TableView tv = null;
 
 	public static String getCurrentySelectedViewID() {
 		return viewID;
@@ -48,8 +52,18 @@ public class SelectedContentManager
 		l.currentlySelectedContentChanged(currentlySelectedContent, viewID);
 	}
 
+	public static void clearCurrentlySelectedContent() {
+		changeCurrentlySelectedContent(null, null, null);
+	}
+
 	public static void changeCurrentlySelectedContent(String viewID,
 			ISelectedContent[] currentlySelectedContent) {
+		changeCurrentlySelectedContent(viewID, currentlySelectedContent, null);
+	}
+
+	public static void changeCurrentlySelectedContent(String viewID,
+			ISelectedContent[] currentlySelectedContent, TableView tv) {
+		SelectedContentManager.tv = tv;
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
 		}
@@ -98,4 +112,7 @@ public class SelectedContentManager
 		return null;
 	}
 
+	public static TableView getCurrentlySelectedTableView() {
+		return tv;
+	}
 }

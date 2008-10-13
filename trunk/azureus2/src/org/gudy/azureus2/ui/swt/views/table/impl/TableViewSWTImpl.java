@@ -2894,6 +2894,17 @@ public class TableViewSWTImpl
 
 		return cells;
 	}
+	
+	public org.gudy.azureus2.plugins.ui.tables.TableColumn getTableColumn(
+			String sColumnName) {
+		for (int i = 0; i < tableColumns.length; i++) {
+			TableColumnCore tc = tableColumns[i];
+			if (tc.getName().equals(sColumnName)) {
+				return tc;
+			}
+		}
+		return null;
+	}
 
 	// see common.TableView
 	public TableRowCore[] getRows() {

@@ -345,7 +345,8 @@ public class DetailedListView extends AbstractIView implements
     	ID = ((MyTorrentsView)currentView).getTableView().getTableID();
     }
 
-    SelectedContentManager.changeCurrentlySelectedContent(ID, null);
+    SelectedContentManager.changeCurrentlySelectedContent(ID, null,
+				torrentview == null ? null : torrentview.getTableView());
 	}
 	
 	  public void refreshDownloadView(DownloadManager[] dms) {

@@ -378,4 +378,12 @@ public interface TableView
 	 * @since 3.1.1.1
 	 */
 	void setDataSourceType(Class dataSourceType);
+
+	/**
+	 * @param columnName
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	TableColumn getTableColumn(String columnName);
 }
