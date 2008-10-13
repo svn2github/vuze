@@ -25,9 +25,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 
-import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.metasearch.utils.MomentsAgoDateFormatter;

@@ -315,7 +315,7 @@ RSSEngine
 								
 							}else if ( lc_full_child_name.equals( "vuze:downloadurl" )){
 
-								result.setDownloadButtonLink( child.getValue());
+								result.setTorrentLink( child.getValue());
 								
 							}else if ( lc_full_child_name.equals( "vuze:playurl" )){
 

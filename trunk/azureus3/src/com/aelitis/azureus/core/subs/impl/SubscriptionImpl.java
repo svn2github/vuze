@@ -1647,7 +1647,18 @@ SubscriptionImpl
 	generate(
 		IndentWriter		writer )
 	{
-		writer.println( getString());
+		String	engine_str;
+		
+		try{
+			
+			engine_str = "" + getEngine().getId();
+			
+		}catch( Throwable e ){
+			
+			engine_str = Debug.getNestedExceptionMessage(e);
+		}
+		
+		writer.println( getString() + ": engine=" + engine_str );
 			
 		try{
 			writer.indent();
