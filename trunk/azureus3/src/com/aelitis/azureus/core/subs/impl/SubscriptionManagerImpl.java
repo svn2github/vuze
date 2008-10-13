@@ -436,17 +436,30 @@ SubscriptionManagerImpl
 								{
 									public void
 									downloadAdded(
-										Download	download )
+										final Download	download )
 									{
 											// if ever changed to handle non-persistent then you need to fix init deadlock
 											// potential with share-hoster plugin
 										
 										if ( download.isPersistent()){
 											
+											if ( !dht_plugin.isInitialising()){
 								
-												// if new download then we want to check out its subscription status 
-											
-											lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
+													// if new download then we want to check out its subscription status 
+												
+												lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
+												
+											}else{
+												
+												new AEThread2( "Subscriptions:delayInit", true )
+												{
+													public void
+													run()
+													{
+														lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
+													}
+												}.start();
+											}
 										}
 									}
 									
