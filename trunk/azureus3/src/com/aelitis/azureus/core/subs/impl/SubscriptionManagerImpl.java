@@ -436,9 +436,16 @@ SubscriptionManagerImpl
 									downloadAdded(
 										Download	download )
 									{
-											// if new download then we want to check out its subscription status 
+											// if ever changed to handle non-persistent then you need to fix init deadlock
+											// potential with share-hoster plugin
 										
-										lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
+										if ( download.isPersistent()){
+											
+								
+												// if new download then we want to check out its subscription status 
+											
+											lookupAssociations( download.getMapAttribute( ta_subscription_info ) == null );
+										}
 									}
 									
 									public void
