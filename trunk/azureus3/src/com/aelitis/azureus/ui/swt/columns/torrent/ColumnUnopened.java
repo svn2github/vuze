@@ -84,6 +84,9 @@ public class ColumnUnopened
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm == null) {
+			return;
+		}
 		int sortVal;
 		boolean complete = dm.getAssumedComplete();
 		boolean hasBeenOpened = false;
