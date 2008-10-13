@@ -88,8 +88,9 @@ public class SubscriptionsView
 	}
 	
 	public void subscriptionAdded(Subscription subscription) {
-		view.addDataSource(subscription);
-		
+		if ( subscription.isSubscribed()){
+			view.addDataSource(subscription);
+		}
 	}
 	
 	public void subscriptionRemoved(Subscription subscription) {
@@ -98,7 +99,11 @@ public class SubscriptionsView
 	}
 	
 	public void subscriptionChanged(Subscription subscription) {
-		view.refreshTable(true);
+		if ( view.getRow(subscription) == null ){
+			subscriptionAdded( subscription );
+		}else{
+			view.refreshTable(true);
+		}
 	}
 	
 	public boolean isEnabled(String itemKey) {
