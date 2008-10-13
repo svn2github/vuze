@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -52,6 +54,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.*;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -70,27 +73,21 @@ public class ColumnActivityActions
 
 	private Color colorLinkHover;
 
-	private static Rectangle boundsRateMe;
-
 	private boolean useButton = false;
 
 	private boolean mouseIn = false;
 
 	private boolean disabled = false;
 
-	private Image imgRateMe;
-
-	private Image imgRateMeButton;
-
-	private Image imgRateMeButtonEnabled;
-
-	private Image imgRateMeDisabled;
-
-	private Image imgUp;
-
-	private Image imgDown;
-
-	private Image imgWait;
+	private static UISWTGraphicImpl graphicRate;
+	
+	private static UISWTGraphicImpl graphicRateDown;
+	
+	private static UISWTGraphicImpl graphicRateUp;
+	
+	private static UISWTGraphicImpl graphicsWait[];
+	
+	private static Rectangle boundsRate;
 	
 	private static Font font = null;
 
@@ -106,20 +103,24 @@ public class ColumnActivityActions
 		colorLinkNormal = skinProperties.getColor("color.links.normal");
 		colorLinkHover = skinProperties.getColor("color.links.hover");
 
-		imgRateMe = ImageLoaderFactory.getInstance().getImage("icon.rateme");
-		boundsRateMe = imgRateMe.getBounds();
-
-		imgRateMeButton = ImageLoaderFactory.getInstance().getImage("icon.rateme-button");
-		imgRateMeButtonEnabled = imgRateMe;
-
-		imgRateMeDisabled = ImageLoaderFactory.getInstance().getImage(
-				"icon.rateme-button-disabled");
-
-		imgUp = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
-
-		imgDown = ImageLoaderFactory.getInstance().getImage("icon.rate.down");
-
-		imgWait = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
+		Image img;
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
+		graphicRate = new UISWTGraphicImpl(img);
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.down");
+		graphicRateDown = new UISWTGraphicImpl(img);
+		
+		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.up");
+		graphicRateUp = new UISWTGraphicImpl(img);
+		
+		boundsRate = img.getBounds();
+		
+		Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dots");
+		graphicsWait = new UISWTGraphicImpl[imgs.length];
+		for(int i = 0 ; i < imgs.length  ;i++) {
+			graphicsWait[i] =  new UISWTGraphicImpl(imgs[i]);
+		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
@@ -181,7 +182,9 @@ public class ColumnActivityActions
 	public void refresh(TableCell cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 		
-		if (entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_RATING_REMINDER)) {
+		if(entry == null) return;
+		
+		if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID()) ) {
 			DownloadManager dm = DataSourceUtils.getDM(entry);
 			if (dm == null) {
 				return;
@@ -383,23 +386,6 @@ public class ColumnActivityActions
 
 		final TOTorrent torrent = torrent0;
 
-		// middle button == refresh rate from platform
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
-				&& event.button == 2) {
-
-			try {
-				final String fHash = torrent.getHashWrapper().toBase32String();
-				PlatformRatingMessenger.getUserRating(new String[] {
-					PlatformRatingMessenger.RATE_TYPE_CONTENT
-				}, new String[] {
-					fHash
-				}, 5000);
-			} catch (TOTorrentException e) {
-				Debug.out(e);
-			}
-			Utils.beep();
-		}
-
 		// only first button
 		if (event.button != 1) {
 			return;
@@ -415,47 +401,56 @@ public class ColumnActivityActions
 			return;
 		}
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-			bMouseDowned = true;
-			return;
-		}
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ) {
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP && bMouseDowned) {
-			Comparable sortValue = event.cell.getSortValue();
-			if (sortValue == null || sortValue.equals(new Long(-1))) {
-				// not set
-				int cellWidth = event.cell.getWidth();
-				int cellHeight = event.cell.getHeight();
-				int x = event.x - ((cellWidth - boundsRateMe.width) / 2);
-				int y = event.y - ((cellHeight - boundsRateMe.height) / 2);
+			//By default, let's cancel the setting
+			boolean cancel = true;
 
-				if (x >= 0 && y >= 0 && x < boundsRateMe.width
-						&& y < boundsRateMe.height) {
+			// Are we in the graphics area? (and not canceling)
+			int cellWidth = event.cell.getWidth();
+			int cellHeight = event.cell.getHeight();
+			int x = event.x - ((cellWidth - boundsRate.width) / 2);
+			int y = event.y - ((cellHeight - boundsRate.height) / 2);
+
+			Graphic currentGraphic = event.cell.getGraphic();
+			
+			if (x >= 0 && y >= 0 && x < boundsRate.width
+					&& y < boundsRate.height ) {
+				//The event is within the graphic, are we on a non-transparent pixel ?
+				int alpha = graphicRate.getImage().getImageData().getAlpha(x,y);
+				if(alpha > 0) {
 					try {
-						final int value = (x < (boundsRateMe.height - y + 1)) ? 1 : 0;
-						refresh(event.cell);
-						PlatformRatingMessenger.setUserRating(torrent, value, true, 0,
-								new PlatformMessengerListener() {
-									public void replyReceived(PlatformMessage message,
-											String replyType, Map reply) {
-										refresh(event.cell);
-									}
-
-									public void messageSent(PlatformMessage message) {
-									}
-								});
+						cancel = false;
+						final int value = (x < (boundsRate.width / 2)) ? 0 : 1;
+						int previousValue = PlatformTorrentUtils.getUserRating(torrent);
+						//Changing the value
+						if(value != previousValue) {
+							
+							PlatformRatingMessenger.setUserRating(torrent, value, true, 0,
+									new PlatformMessengerListener() {
+										public void replyReceived(PlatformMessage message,
+												String replyType, Map reply) {
+											refresh(event.cell);
+										}
+		
+										public void messageSent(PlatformMessage message) {
+										}
+									});
+							refresh(event.cell);
+						}
 					} catch (Exception e) {
 						Debug.out(e);
 					}
 				}
-			} else {
+			}
+			
+			 if(cancel) {
 				// remove setting
 				try {
 					final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
-					if (oldValue == -2) {
+					if (oldValue == -2 || oldValue == -1) {
 						return;
 					}
-					refresh(event.cell);
 					PlatformRatingMessenger.setUserRating(torrent, -1, true, 0,
 							new PlatformMessengerListener() {
 								public void replyReceived(PlatformMessage message,
@@ -466,16 +461,18 @@ public class ColumnActivityActions
 								public void messageSent(PlatformMessage message) {
 								}
 							});
+					refresh(event.cell);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
 			}
 		}
-		bMouseDowned = false;
 	}
 
 	public void cellPaintForRate(GC gc, TableCellSWT cell) {
+
 		Object ds = cell.getDataSource();
+		
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm == null) {
 			return;
@@ -491,32 +488,45 @@ public class ColumnActivityActions
 
 		int rating = PlatformTorrentUtils.getUserRating(torrent);
 
-		Image img = null;
+		/*if (!cell.setSortValue(rating) && cell.isValid()) {
+			if(rating != -2) {
+				return;
+			}
+		}*/
+		
+		
+		
+		if (!cell.isShown()) {
+			return;
+		}
+		
+		UISWTGraphic graphic;
 		switch (rating) {
 			case -2: // waiting
-				img = imgWait;
+				graphic = graphicsWait[0];
 				break;
 
 			case -1: // unrated
-				img = (useButton && !mouseIn) || disabled ? imgRateMeButton
-						: imgRateMe;
+				graphic = graphicRate;
 				break;
 
 			case 0:
-				img = imgDown;
+				graphic = graphicRateDown;
 				break;
 
 			case 1:
-				img = imgUp;
+				graphic = graphicRateUp;
 				break;
 
 			default:
-				img = null;
+				graphic = null;
 		}
 
-		Rectangle drawBounds = getDrawBounds(cell);
-		gc.drawImage(img, drawBounds.x + (drawBounds.width - boundsRateMe.width)
-				/ 2, drawBounds.y + (drawBounds.height - boundsRateMe.height) / 2);
+		if(graphic != null) {
+			Rectangle drawBounds = getDrawBounds(cell);
+			gc.drawImage(graphic.getImage(), drawBounds.x + (drawBounds.width - boundsRate.width)
+					/ 2, drawBounds.y + (drawBounds.height - boundsRate.height) / 2);
+		}
 	}
 	
 	private Rectangle getDrawBounds(TableCellSWT cell) {
