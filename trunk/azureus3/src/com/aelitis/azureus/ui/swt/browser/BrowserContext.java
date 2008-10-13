@@ -131,7 +131,7 @@ public class BrowserContext
 
 		final TimerEventPerformer hideIndicatorPerformer = new TimerEventPerformer() {
 			public void perform(TimerEvent event) {
-				setPageLoading(false);
+				setPageLoading(false, browser.getUrl());
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
@@ -172,7 +172,7 @@ public class BrowserContext
 			browser.setVisible(false);
 		}
 		
-		setPageLoading(false);
+		setPageLoading(false, browser.getUrl());
 		
 		if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 			widgetWaitIndicator.setVisible(false);
@@ -284,7 +284,7 @@ public class BrowserContext
 					timerevent.cancel();
 				}
 				checkURLEventPerformer.perform(null);
-				setPageLoading(false);
+				setPageLoading(false, event.location);
 				if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 					widgetWaitIndicator.setVisible(false);
 				}
@@ -333,7 +333,7 @@ public class BrowserContext
 					browser.back();
 				} else {
 					lastValidURL = event_location;
-					setPageLoading(true);
+					setPageLoading(true, event.location);
 					if(event.top) {
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
 							widgetWaitIndicator.setVisible(true);
@@ -531,10 +531,11 @@ public class BrowserContext
 
 	/**
 	 * @param b
+	 * @param url 
 	 *
 	 * @since 3.1.1.1
 	 */
-	protected void setPageLoading(boolean b) {
+	protected void setPageLoading(boolean b, String url) {
 		if (pageLoading == b) {
 			return;
 		}
@@ -563,7 +564,7 @@ public class BrowserContext
 		Object[] listeners = loadingListeners.toArray();
 		for (int i = 0; i < listeners.length; i++) {
 			loadingListener l = (loadingListener) listeners[i];
-			l.browserLoadingChanged(b);
+			l.browserLoadingChanged(b, url);
 		}
 	}
 
@@ -743,6 +744,6 @@ public class BrowserContext
 	}
 	
 	public static interface loadingListener {
-		public void browserLoadingChanged(boolean loading);
+		public void browserLoadingChanged(boolean loading, String url);
 	}
 }

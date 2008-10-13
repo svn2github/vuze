@@ -158,9 +158,12 @@ public class SWTSkinObjectBrowser
 		context.addMessageListener(new BrowserRpcBuddyListener());
 
 		context.addListener(new loadingListener() {
-			public void browserLoadingChanged(boolean loading) {
+			public void browserLoadingChanged(boolean loading, String url) {
 				if (loading && browser.isVisible()) {
-					SelectedContentManager.clearCurrentlySelectedContent();
+					// hack so search results page doesn't clear cur selected
+					if (PlatformConfigMessenger.urlCanRPC(url)) {
+						SelectedContentManager.clearCurrentlySelectedContent();
+					}
 				}
 			}
 		});

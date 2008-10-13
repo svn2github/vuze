@@ -47,7 +47,7 @@ public class WelcomeView
 
 		browserSkinObject.addListener(new loadingListener() {
 			
-			public void browserLoadingChanged(boolean loading) {
+			public void browserLoadingChanged(boolean loading, String url) {
 				if (!loading) {
 					skinObject.getControl().getParent().layout(true, true);
 				}

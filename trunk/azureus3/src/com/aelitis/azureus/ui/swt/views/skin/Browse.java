@@ -96,7 +96,7 @@ public class Browse
 		}
 
 		browserSkinObject.addListener(new BrowserContext.loadingListener() {
-			public void browserLoadingChanged(boolean loading) {
+			public void browserLoadingChanged(boolean loading, String url) {
 				if (vitalityImage != null) {
 					vitalityImage.setVisible(loading);
 				}
