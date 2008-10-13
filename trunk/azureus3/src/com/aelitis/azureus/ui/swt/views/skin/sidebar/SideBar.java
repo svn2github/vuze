@@ -1684,6 +1684,7 @@ public class SideBar
 		final String id = (String) treeItem.getData("Plugin.viewID");
 		final SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
 
+		System.out.println("ID IS " + id);
 		if (currentSideBarEntry == newSideBarInfo) {
 			return;
 		}
@@ -2531,5 +2532,21 @@ public class SideBar
 	
 	protected void linkTitleInfoToEntry(ViewTitleInfo ti, SideBarEntry entry) {
 		mapTitleInfoToEntry.put(ti, entry);
+	}
+
+	/**
+	 * @param id
+	 *
+	 * @since 3.1.1.1
+	 */
+	public void closeSideBar(final String id) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				SideBarEntrySWT entry = getSideBarInfo(id);
+				if (entry != null && entry.treeItem != null && !entry.treeItem.isDisposed()) {
+					entry.treeItem.dispose();
+				}
+			}
+		});
 	}
 }
