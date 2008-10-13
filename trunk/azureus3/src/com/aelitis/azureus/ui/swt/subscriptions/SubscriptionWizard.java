@@ -21,6 +21,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
@@ -406,7 +407,7 @@ public class SubscriptionWizard {
 		rssBackground.setImage(bg);
 		
 		Label subTitle2 = new Label(composite,SWT.WRAP);
-		subTitle2.setFont(subTitleFont);
+		//subTitle2.setFont(subTitleFont);
 		subTitle2.setText(MessageText.getString("Wizard.Subscription.rss.subtitle2"));
 
 		Label rssBullet = new Label(composite, SWT.NONE);
@@ -591,6 +592,28 @@ public class SubscriptionWizard {
 		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
 		torrentColumn.setWidth(50);
 		
+		final Composite compEmpty = new Composite(composite,SWT.NONE);
+		compEmpty.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+		compEmpty.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		FillLayout fl = new FillLayout();
+		fl.marginHeight = 15;
+		fl.marginWidth = 15;
+		compEmpty.setLayout(fl);
+		compEmpty.setVisible(false);
+		
+		final Link labelEmpty = new Link(compEmpty,SWT.WRAP);
+		labelEmpty.setText(MessageText.getString("Wizard.Subscription.subscribe.library.empty"));
+		labelEmpty.setFont(subTitleFont);
+		
+		
+		labelEmpty.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				if(event.text != null && (event.text.startsWith("http://") || event.text.startsWith("https://") ) ) {
+					Utils.launch(event.text);
+				}
+			}
+		});
+		
 		final Table subscriptionTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		
 		final TableColumn nameColumn = new TableColumn(subscriptionTable, SWT.NONE);
@@ -695,6 +718,10 @@ public class SubscriptionWizard {
 			});
 			
 			libraryTable.setItemCount(availableSubscriptions.length);
+			if(availableSubscriptions.length == 0) {
+				libraryTable.setVisible(false);
+				compEmpty.setVisible(true);
+			}
 		} else {
 			//Test code
 			libraryTable.addListener(SWT.SetData, new Listener() {
@@ -851,7 +878,12 @@ public class SubscriptionWizard {
 		data.right = new FormAttachment(vsep, 0);
 		data.left = new FormAttachment(0, 0);
 		data.bottom = new FormAttachment(100, 0);
-		libraryTable.setLayoutData(data);
+		
+		if(availableSubscriptions != null && availableSubscriptions.length > 0) {
+			libraryTable.setLayoutData(data);
+		} else {
+			compEmpty.setLayoutData(data);
+		}
 
 		data = new FormData();
 		data.top = new FormAttachment(hsep2, 0);
