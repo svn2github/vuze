@@ -1607,6 +1607,44 @@ SubscriptionManagerUI
 		{
 			return( subs.getName());
 		}
+		
+		public void resizeMainBrowser() {
+			if ( mainBrowser != null ){
+				
+				Utils.execSWTThreadLater(0,
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							if ( mainBrowser != null && ! mainBrowser.isDisposed() && mainBrowser.isVisible()){
+							
+								FormData data = (FormData) mainBrowser.getLayoutData();
+								data.bottom = new FormAttachment(100,-1);
+								mainBrowser.getParent().layout(true);
+								Utils.execSWTThreadLater(0,
+										new Runnable() {
+									public void run() {
+										if ( mainBrowser != null && ! mainBrowser.isDisposed() && mainBrowser.isVisible()){
+											
+											FormData data = (FormData) mainBrowser.getLayoutData();
+											data.bottom = new FormAttachment(100,0);
+											mainBrowser.getParent().layout(true);
+										}
+									}
+								}
+								);
+							}
+						}
+					});
+			}
+			
+		}
+		
+		public void resizeSecondaryBrowser() {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	public static class

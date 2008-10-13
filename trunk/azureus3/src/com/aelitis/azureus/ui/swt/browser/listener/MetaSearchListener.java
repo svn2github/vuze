@@ -1403,6 +1403,9 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 												encodeResults( subs, result );
 											
 												sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+												
+												openCloseSearchDetailsListener.resizeMainBrowser();
+												
 											}
 										}
 										
@@ -1422,6 +1425,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							encodeResults( subs, result );
 							
 							sendBrowserMessage( "metasearch", "readSubscriptionResultsCompleted", result );
+					
+							openCloseSearchDetailsListener.resizeMainBrowser();
 						}
 					}
 				}

@@ -555,6 +555,16 @@ public class SearchResultsTabArea
 			}
 		});
 	}
+	
+	public void resizeMainBrowser() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	public void resizeSecondaryBrowser() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	public void anotherSearch(String searchText) {
 		anotherSearch(searchText,false);
