@@ -24,7 +24,6 @@ import java.util.Map;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
-import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -126,6 +125,7 @@ public class VuzeActivitiesEntry
 		setDRM(MapUtils.getMapBoolean(platformEntry, "no-play", false));
 		setTorrentName(MapUtils.getMapString(platformEntry, "related-asset-name",
 				null));
+		setReadOn(MapUtils.getMapLong(platformEntry, "readOn", 0));
 		loadCommonFromMap(platformEntry);
 	}
 
@@ -141,6 +141,7 @@ public class VuzeActivitiesEntry
 		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
 		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
 		setDRM(MapUtils.getMapBoolean(map, "isDRM", false));
+		setReadOn(MapUtils.getMapLong(map, "readOn", SystemTime.getCurrentTime()));
 		loadCommonFromMap(map);
 	}
 
@@ -166,7 +167,6 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
-		setReadOn(MapUtils.getMapLong(map, "readOn", SystemTime.getCurrentTime()));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
