@@ -107,7 +107,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 	private static final Set	active_subs_auth = new HashSet();
 	
-	private static String	pending_play_now_url;
+	private static final Set	pending_play_now_urls = new HashSet();
 	
 	static{
 		TorrentUtils.addTorrentAttributeListener(
@@ -126,13 +126,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 							
 							boolean hook_dm = false;
 							
-							synchronized( MetaSearchListener.class ){
+							synchronized(pending_play_now_urls ){
 								
-								if ( 	pending_play_now_url != null && 
-										torrent_url.equals( pending_play_now_url )){
+								if ( pending_play_now_urls.remove( torrent_url )){
 									
 										// ok, we now have the torrent associated with the URL
-									
+																		
 									hook_dm = true;
 								}
 							}
@@ -1115,7 +1114,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					
 					synchronized( MetaSearchListener.class ){
 						
-						pending_play_now_url = torrentUrl;
+						pending_play_now_urls.add( torrentUrl );
 					}
 				}
 				
