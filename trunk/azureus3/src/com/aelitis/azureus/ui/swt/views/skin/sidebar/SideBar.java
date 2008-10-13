@@ -1114,6 +1114,9 @@ public class SideBar
 		for (int x = 0; x < entries.length; x++) {
 			SideBarEntrySWT sideBarInfo = entries[x];
 			TreeItem treeItem = sideBarInfo.treeItem;
+			if (treeItem == null || treeItem.isDisposed()) {
+				continue;
+			}
 			Rectangle itemBounds = sideBarInfo.getBounds();
 
 			if (sideBarInfo.closeable) {
@@ -1346,7 +1349,8 @@ public class SideBar
 	 */
 	private SideBarEntrySWT createWelcomeSection() {
 		SideBarEntrySWT entry = createEntryFromSkinRef(null,
-				SIDEBAR_SECTION_WELCOME, "main.area.welcome", "Getting Started", null,
+				SIDEBAR_SECTION_WELCOME, "main.area.welcome", MessageText.getString(
+						"v3.MainWindow.menu.getting_started").replaceAll("&", ""), null,
 				null, true, 0);
 		entry.setImageLeftID("image.sidebar.welcome");
 		return entry;
