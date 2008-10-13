@@ -377,7 +377,7 @@ public class ManagerUtils {
 						new String[] {
 							MessageText.getString("Button.yes"),
 							MessageText.getString("Button.no"),
-						}, 1,"deletedata.noconfirm.key",MessageText.getString("deletedata.noprompt"),false,0);
+						}, 1,"deletedata.noconfirm.key2",MessageText.getString("deletedata.noprompt"),false,0);
 				mb.setRememberOnlyIfButton(0);
 				mb.setRelatedObject(dm);
 				mb.setLeftImage(SWT.ICON_WARNING);
