@@ -177,7 +177,8 @@ public class ColumnActivityText
 				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)
 						|| VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
 					try {
-						tooltip = URLDecoder.decode(hitUrl.title, "utf-8");
+						tooltip = hitUrl.title == null ? null : URLDecoder.decode(
+								hitUrl.title, "utf-8");
 					} catch (UnsupportedEncodingException e) {
 					}
 				} else {
