@@ -384,7 +384,7 @@ public class TCPConnectionManager {
         msg += "\n channel=<null>";
       }
       
-      if (ipv6problem || t instanceof UnresolvedAddressException)
+      if (ipv6problem || t instanceof UnresolvedAddressException || t instanceof NoRouteToHostException )
     	  Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING,msg));
       else
     	  Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,msg,t));
