@@ -76,7 +76,9 @@ public class ColumnInfo
 	public void cellAdded(TableCell cell) {
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
-		((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+		if (cell instanceof TableCellSWT) {
+			((TableCellSWT)cell).setCursorID(SWT.CURSOR_HAND);
+		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
