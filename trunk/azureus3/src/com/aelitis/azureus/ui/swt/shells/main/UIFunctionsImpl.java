@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -59,6 +60,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -199,11 +201,25 @@ public class UIFunctionsImpl
 	public void closePluginView(IView view) {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
+			if (uiFunctions != null) {
+				uiFunctions.closePluginView(view);
 			}
 
-			uiFunctions.closePluginView(view);
+			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+			if (sideBarView instanceof SideBar) {
+				SideBar sideBar = (SideBar) sideBarView;
+				String id;
+				if (view instanceof UISWTViewImpl) {
+					id = ((UISWTViewImpl)view).getViewID();
+				} else {
+  				id = view.getClass().getName();
+  				int i = id.lastIndexOf('.');
+  				if (i > 0) {
+  					id = id.substring(i + 1);
+  				}
+				}
+				sideBar.closeSideBar(id);
+			}
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "closePluginView", e));
@@ -215,12 +231,16 @@ public class UIFunctionsImpl
 	public void closePluginViews(String sViewID) {
 		try {
 			UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
-			if (uiFunctions == null) {
-				return;
+			if (uiFunctions != null) {
+				uiFunctions.closePluginViews(sViewID);
 			}
 
-			uiFunctions.closePluginViews(sViewID);
-
+			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+			if (sideBarView instanceof SideBar) {
+				SideBar sideBar = (SideBar) sideBarView;
+				sideBar.closeSideBar(sViewID);
+			}
+			
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "closePluginViews", e));
 		}
