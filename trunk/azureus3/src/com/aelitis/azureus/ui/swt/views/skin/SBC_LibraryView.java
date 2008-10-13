@@ -144,7 +144,7 @@ public class SBC_LibraryView
 				new Long(torrentFilterMode));
 
 		setViewMode(COConfigurationManager.getIntParameter(torrentFilter
-				+ ".viewmode", MODE_BIGTABLE), false);
+				+ ".viewmode"), false);
 
 		SWTSkinObject so;
 		so = getSkinObject(ID + "-button-smalltable");
@@ -295,7 +295,7 @@ public class SBC_LibraryView
 				if (propertyID == TITLE_LOGID) {
 					String id = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
 					int viewMode = COConfigurationManager.getIntParameter(id
-							+ ".viewmode", MODE_BIGTABLE);
+							+ ".viewmode");
 					return id + "-" + viewMode;
 				}
 
@@ -342,7 +342,7 @@ public class SBC_LibraryView
 				if (propertyID == TITLE_LOGID) {
 					String id = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
 					int viewMode = COConfigurationManager.getIntParameter(id
-							+ ".viewmode", MODE_BIGTABLE);
+							+ ".viewmode");
 					return id + "-" + viewMode;
 				}
 
@@ -372,7 +372,7 @@ public class SBC_LibraryView
 					if (propertyID == TITLE_LOGID) {
 						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
 						int viewMode = COConfigurationManager.getIntParameter(id
-								+ ".viewmode", MODE_BIGTABLE);
+								+ ".viewmode");
 						return id + "-" + viewMode;
 					}
 					return null;
@@ -387,7 +387,7 @@ public class SBC_LibraryView
 					if (propertyID == TITLE_LOGID) {
 						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
 						int viewMode = COConfigurationManager.getIntParameter(id
-								+ ".viewmode", MODE_BIGTABLE);
+								+ ".viewmode");
 						return id + "-" + viewMode;
 					} else if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
 						return "" + numUnOpened;
