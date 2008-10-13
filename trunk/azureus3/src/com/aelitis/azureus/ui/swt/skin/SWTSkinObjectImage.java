@@ -33,6 +33,8 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_CENTER = new Long(4);
 
+	protected static final Long DRAW_HCENTER = new Long(5);
+
 	private static boolean ALWAYS_USE_PAINT = false;
 
 	Label label;
@@ -72,6 +74,8 @@ public class SWTSkinObjectImage
 				} else if (drawMode == DRAW_CENTER) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
 							(size.y - imgSrcBounds.height) / 2);
+				} else if (drawMode == DRAW_HCENTER) {
+					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2, 0);
 				} else if (drawMode == DRAW_SCALE) {
 					// TODO: real scale..
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
@@ -253,6 +257,8 @@ public class SWTSkinObjectImage
 					drawMode = DRAW_STRETCH;
 				} else if (sDrawMode.equals("center")) {
 					drawMode = DRAW_CENTER;
+				} else if (sDrawMode.equals("h-center")) {
+					drawMode = DRAW_HCENTER;
 				} else if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
 					drawMode = DRAW_TILE;
 				} else {
@@ -263,7 +269,8 @@ public class SWTSkinObjectImage
 				if (drawMode != DRAW_NORMAL) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
-					if (drawMode != DRAW_CENTER && drawMode != DRAW_STRETCH) {
+					if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
+							&& drawMode != DRAW_STRETCH) {
 						label.setSize(imgBounds.width, imgBounds.height);
 					}
 					label.setData("image", image);
