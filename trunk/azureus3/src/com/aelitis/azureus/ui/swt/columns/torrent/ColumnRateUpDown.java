@@ -56,19 +56,7 @@ public class ColumnRateUpDown
 {
 	public static final String COLUMN_ID = "RateIt";
 
-	private static UISWTGraphicImpl graphicRateMe;
-
-	private static UISWTGraphicImpl graphicUp;
-
-	private static UISWTGraphicImpl graphicDown;
-
 	private static UISWTGraphicImpl graphicWait;
-
-	private static UISWTGraphicImpl graphicRateMeButton;
-
-	private static UISWTGraphicImpl graphicRateMeButtonEnabled;
-
-	private static UISWTGraphicImpl graphicRateMeButtonDisabled;
 	
 	private static UISWTGraphicImpl graphicRate;
 	
@@ -77,8 +65,6 @@ public class ColumnRateUpDown
 	private static UISWTGraphicImpl graphicRateUp;
 	
 	private static UISWTGraphicImpl graphicsWait[];
-
-	private static Rectangle boundsRateMe;
 	
 	private static Rectangle boundsRate;
 
@@ -86,39 +72,14 @@ public class ColumnRateUpDown
 
 	private boolean useButton = false;
 
-	private boolean mouseIn = false;
-
 	private boolean disabled = false;
 	
-	private int i = 0;
 
 	static {
-		Image img = ImageLoaderFactory.getInstance().getImage("icon.rateme");
-		graphicRateMe = new UISWTGraphicImpl(img);
-		boundsRateMe = img.getBounds();
-//		width = boundsRateMe.width;
-
-		img = ImageLoaderFactory.getInstance().getImage("icon.rateme-button");
-		graphicRateMeButtonEnabled = new UISWTGraphicImpl(img);
-		graphicRateMeButton = graphicRateMeButtonEnabled;
-//		width = Math.max(width, img.getBounds().width);
-
-		img = ImageLoaderFactory.getInstance().getImage(
-				"icon.rateme-button-disabled");
-		graphicRateMeButtonDisabled = new UISWTGraphicImpl(img);
-//		width = Math.max(width, img.getBounds().width);
-
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
-		graphicUp = new UISWTGraphicImpl(img);
-//		width = Math.max(width, img.getBounds().width);
-
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.down");
-		graphicDown = new UISWTGraphicImpl(img);
-//		width = Math.max(width, img.getBounds().width);
+		Image img;
 
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
 		graphicWait = new UISWTGraphicImpl(img);
-//		width = Math.max(width, img.getBounds().width);
 		
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
 		graphicRate = new UISWTGraphicImpl(img);
@@ -246,10 +207,8 @@ public class ColumnRateUpDown
 
 		if (useButton) {
 			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
-				mouseIn = true;
 				refresh(event.cell);
 			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
-				mouseIn = false;
 				refresh(event.cell);
 			}
 		}
@@ -278,30 +237,14 @@ public class ColumnRateUpDown
 			return;
 		}
 
-		
-		// no rating if row isn't selected yet
-		TableRow row = event.cell.getTableRow();
-		if (row != null && !row.isSelected()) {
-			return;
-		}
-		
-		if(row != previousSelection) {
-			previousSelection = row;
-			return;
-		}
 
 		if (!PlatformTorrentUtils.isContent(torrent, true)) {
 			return;
 		}
-		
-//		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-//			bMouseDowned = true;
-//			return;
-//		}
 
 
 		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ) {
-			Comparable sortValue = event.cell.getSortValue();
+
 			//By default, let's cancel the setting
 			boolean cancel = true;
 
@@ -345,11 +288,9 @@ public class ColumnRateUpDown
 				// remove setting
 				try {
 					final int oldValue = PlatformTorrentUtils.getUserRating(torrent);
-					System.out.println(oldValue);
-					if (oldValue == -2) {
+					if (oldValue == -2 || oldValue == -1) {
 						return;
 					}
-					i = 0;
 					PlatformRatingMessenger.setUserRating(torrent, -1, true, 0,
 							new PlatformMessengerListener() {
 								public void replyReceived(PlatformMessage message,
@@ -378,8 +319,5 @@ public class ColumnRateUpDown
 
 	public void setDisabled(boolean disabled) {
 		this.disabled = disabled;
-		graphicRateMeButton = disabled ? graphicRateMeButtonDisabled
-				: graphicRateMeButtonEnabled;
-		this.invalidateCells();
 	}
 }
