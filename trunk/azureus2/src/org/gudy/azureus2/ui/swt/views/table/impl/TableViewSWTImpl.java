@@ -2601,6 +2601,7 @@ public class TableViewSWTImpl
 					debug("#swtItemsToRemove=" + swtItemsToRemove.size());
 				}
 
+				boolean hasSelected = false;
 				// pass 2: remove from map and list, add removed to seperate list
 				for (int i = 0; i < dataSources.length; i++) {
 					if (dataSources[i] == null)
@@ -2609,6 +2610,9 @@ public class TableViewSWTImpl
 					// Must remove from map before deleted from gui
 					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.remove(dataSources[i]);
 					if (item != null) {
+						if (item.isSelected()) {
+							hasSelected = true;
+						}
 						itemsToRemove.add(item);
 						sortedRows.remove(item);
 						triggerListenerRowRemoved(item);
@@ -2653,6 +2657,9 @@ public class TableViewSWTImpl
 				
 				if (numSelected != table.getSelectionCount()) {
 					triggerDeselectionListeners(new TableRowCore[0]);
+				}
+				if (hasSelected) {
+					triggerSelectionListeners(getSelectedRows());
 				}
 			}
 		});
