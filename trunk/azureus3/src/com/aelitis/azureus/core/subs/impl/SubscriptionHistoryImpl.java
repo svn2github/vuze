@@ -235,6 +235,11 @@ SubscriptionHistoryImpl
 			auto_dl	= _auto_dl;
 		
 			saveConfig();
+			
+			if ( auto_dl ){
+				
+				downloadNow();
+			}
 		}
 	}
 	
@@ -249,6 +254,23 @@ SubscriptionHistoryImpl
 			auto_dl	= _auto_dl;
 			
 			saveConfig();
+			
+			if ( enabled && auto_dl ){
+				
+				downloadNow();
+			}
+		}
+	}
+	
+	protected void
+	downloadNow()
+	{
+		try{
+			subs.getManager().getScheduler().downloadAsync( subs, false );
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to initiate download", e );
 		}
 	}
 	
