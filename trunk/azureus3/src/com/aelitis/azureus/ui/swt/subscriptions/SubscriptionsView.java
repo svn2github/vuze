@@ -24,6 +24,7 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -127,8 +128,24 @@ public class SubscriptionsView
 		TableRowCore[] rows = view.getSelectedRows();
 		for(int i = 0 ; i < rows.length ; i++) {
 			Subscription subs = (Subscription) rows[i].getDataSource();
-			subs.setSubscribed(false);
-			subs.remove();
+			MessageBoxShell mb = 
+				new MessageBoxShell(
+					Utils.findAnyShell(),
+					MessageText.getString("message.confirm.delete.title"),
+					MessageText.getString("message.confirm.delete.text",
+							new String[] {
+								subs.getName()
+							}), 
+					new String[] {
+						MessageText.getString("Button.yes"),
+						MessageText.getString("Button.no")
+					},
+					1 );
+			
+			int result = mb.open();
+			if (result == 0) {
+				subs.remove();
+			}
 		}
 	}
 	
