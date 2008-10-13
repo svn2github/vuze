@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -38,9 +37,9 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -55,8 +54,6 @@ public class ColumnRateUpDown
 	TableCellMouseListener
 {
 	public static final String COLUMN_ID = "RateIt";
-
-	private static UISWTGraphicImpl graphicWait;
 	
 	private static UISWTGraphicImpl graphicRate;
 	
@@ -77,9 +74,6 @@ public class ColumnRateUpDown
 
 	static {
 		Image img;
-
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
-		graphicWait = new UISWTGraphicImpl(img);
 		
 		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
 		graphicRate = new UISWTGraphicImpl(img);
@@ -205,32 +199,7 @@ public class ColumnRateUpDown
 			return;
 		}
 
-		if (useButton) {
-			if (event.eventType == TableCellMouseEvent.EVENT_MOUSEENTER) {
-				refresh(event.cell);
-			} else if (event.eventType == TableCellMouseEvent.EVENT_MOUSEEXIT) {
-				refresh(event.cell);
-			}
-		}
-
 		final TOTorrent torrent = torrent0;
-
-		// middle button == refresh rate from platform
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
-				&& event.button == 2) {
-
-			try {
-				final String fHash = torrent.getHashWrapper().toBase32String();
-				PlatformRatingMessenger.getUserRating(new String[] {
-					PlatformRatingMessenger.RATE_TYPE_CONTENT
-				}, new String[] {
-					fHash
-				}, 5000);
-			} catch (TOTorrentException e) {
-				Debug.out(e);
-			}
-			Utils.beep();
-		}
 
 		// only first button
 		if (event.button != 1) {
@@ -243,7 +212,7 @@ public class ColumnRateUpDown
 		}
 
 
-		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ) {
+		if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ) {
 
 			//By default, let's cancel the setting
 			boolean cancel = true;
@@ -254,8 +223,10 @@ public class ColumnRateUpDown
 			int x = event.x - ((cellWidth - boundsRate.width) / 2);
 			int y = event.y - ((cellHeight - boundsRate.height) / 2);
 
+			Graphic currentGraphic = event.cell.getGraphic();
+			
 			if (x >= 0 && y >= 0 && x < boundsRate.width
-					&& y < boundsRate.height && ! (graphicWait.equals(event.cell.getGraphic()) ) ) {
+					&& y < boundsRate.height &&  (graphicRate.equals(currentGraphic) || graphicRateUp.equals(currentGraphic) || graphicRateDown.equals(currentGraphic)) ) {
 				//The event is within the graphic, are we on a non-transparent pixel ?
 				int alpha = graphicRate.getImage().getImageData().getAlpha(x,y);
 				if(alpha > 0) {
