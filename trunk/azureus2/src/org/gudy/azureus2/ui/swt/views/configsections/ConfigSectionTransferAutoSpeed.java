@@ -213,14 +213,7 @@ public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 				        	latency_factor.resetToDefault();
 				        	forced_min.resetToDefault();
 				        }
-				    });
-		    
-			BooleanParameter debug_au = new BooleanParameter(
-					cSection, "Auto Upload Speed Debug Enabled",
-					CFG_PREFIX + "enabledebug" );
-			gridData = new GridData();
-			gridData.horizontalSpan = 2;
-			debug_au.setLayoutData(gridData);			
+				    });	
 		}
 
 		return cSection;

@@ -525,6 +525,20 @@ public class ConfigSectionTransferAutoSpeedSelect
         //Add listeners to disable setting when needed.
                 
 
+	      //spacer
+       
+	   spacer = new Label(cSection, SWT.NULL);
+	   gridData = new GridData();
+	   gridData.horizontalSpan=3;
+	   spacer.setLayoutData(gridData);
+       
+		BooleanParameter debug_au = new BooleanParameter(
+				cSection, "Auto Upload Speed Debug Enabled",
+				CFG_PREFIX + "enabledebug" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		debug_au.setLayoutData(gridData);	
+		
         //spacer
         
         spacer = new Label(cSection, SWT.NULL);

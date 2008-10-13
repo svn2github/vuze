@@ -878,7 +878,10 @@ SpeedManagerImpl
 	log(
 		String		str )
 	{
-		logger.log( str );
+		if ( DEBUG ){
+		
+			logger.log( str );
+		}
 	}
 	
 	protected void

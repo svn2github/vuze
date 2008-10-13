@@ -86,6 +86,8 @@ public class SpeedManagerAlgorithmProviderDHTPing
 
         adapter = _adapter;
 
+        SpeedManagerLogger.setAdapter( "dht", adapter );
+        
         limitMonitor = new SpeedLimitMonitor( adapter.getSpeedManager());
         
         COConfigurationManager.addListener( this );

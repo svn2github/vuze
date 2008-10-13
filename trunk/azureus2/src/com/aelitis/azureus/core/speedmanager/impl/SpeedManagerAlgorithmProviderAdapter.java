@@ -67,10 +67,6 @@ SpeedManagerAlgorithmProviderAdapter
     	 */
     public SpeedManagerPingMapper
     createTransientPingMapper();
-
-	public void
-	setLoggingEnabled(
-		boolean	enabled );
 	
 	public void
 	log(

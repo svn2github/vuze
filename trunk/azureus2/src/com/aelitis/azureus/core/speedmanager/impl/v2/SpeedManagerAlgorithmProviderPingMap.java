@@ -67,6 +67,8 @@ public class SpeedManagerAlgorithmProviderPingMap
 
         adapter = _adapter;
 
+        SpeedManagerLogger.setAdapter( "pm", adapter );
+        
         limitMonitor = new SpeedLimitMonitor( adapter.getSpeedManager());
 
         COConfigurationManager.addListener( this );
