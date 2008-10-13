@@ -81,9 +81,10 @@ public class SBC_ActivityTableView
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
 					SelectedContentManager.changeCurrentlySelectedContent(tableID,
-							getCurrentlySelectedContent());
+							getCurrentlySelectedContent(), view);
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-					SelectedContentManager.changeCurrentlySelectedContent(tableID, null);
+					SelectedContentManager.changeCurrentlySelectedContent(tableID, null,
+							view);
 				}
 				return null;
 			}
@@ -167,7 +168,7 @@ public class SBC_ActivityTableView
 						ISelectedContent[] contents = getCurrentlySelectedContent();
 						if (soMain.isVisible()) {
 							SelectedContentManager.changeCurrentlySelectedContent(tableID,
-									contents);
+									contents, view);
 						}
 					}
 				});

@@ -33,10 +33,12 @@ import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -51,6 +53,7 @@ import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * @author TuxPaper
@@ -587,6 +590,20 @@ public class ToolBarView
 			item.setEnabled(enabled);
 		}
 		
+		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+		if (tv != null) {
+			TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
+			if (tc != null && !tc.isVisible()) {
+    		item = getToolBarItem("up");
+    		if (item != null) {
+    			item.setEnabled(false);
+    		}
+    		item = getToolBarItem("down");
+    		if (item != null) {
+    			item.setEnabled(false);
+    		}
+			}
+		}
 	}
 
 	/**

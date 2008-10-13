@@ -50,13 +50,16 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
@@ -355,6 +358,22 @@ public class SideBar
 					VuzeActivitiesEntry entry = allEntries[i];
 					entry.setRead(true);
 				}
+			}
+		});
+	}
+
+	private void addMenuUnwatched() {
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getDefaultPluginInterface();
+		UIManager uim = pi.getUIManager();
+		MenuManager menuManager = uim.getMenuManager();
+
+		MenuItem menuItem = menuManager.addMenuItem("sidebar."
+				+ SIDEBAR_SECTION_ACTIVITIES, "v3.activity.button.watchall");
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				SkinView skinView = SkinViewManager.getBySkinObjectID(SIDEBAR_SECTION_LIBRARY_UNOPENED);
+				
 			}
 		});
 	}
@@ -1692,11 +1711,16 @@ public class SideBar
 				
 				ISelectedContent[] sels = new ISelectedContent[1];
 				sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler)newIView);
-				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels);
+				TableView tv = null;
+				if (newIView instanceof TableView) {
+					tv = (TableView) newIView;
+				}
+				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
+						sels, tv);
 				
 			} else {
 				
-				SelectedContentManager.changeCurrentlySelectedContent(null, null);
+				SelectedContentManager.clearCurrentlySelectedContent();
 				
 			}
 
@@ -1731,10 +1755,14 @@ public class SideBar
 			}
 			if (dm != null) {
 				try {
+					TableView tv = null;
+					if (currentSideBarEntry.iview instanceof TableView) {
+						tv = (TableView) currentSideBarEntry.iview;
+					}
 					SelectedContentManager.changeCurrentlySelectedContent(
 							currentSideBarEntry.id, new ISelectedContent[] {
 								new SelectedContentV3(dm)
-							});
+							}, tv);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

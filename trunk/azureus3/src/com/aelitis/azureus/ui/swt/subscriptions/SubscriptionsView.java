@@ -221,7 +221,8 @@ public class SubscriptionsView
 			public void selected(TableRowCore[] rows) {
 				ISelectedContent[] sels = new ISelectedContent[1];
 				sels[0] = new ToolBarEnablerSelectedContent(SubscriptionsView.this);
-				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler", sels);
+				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
+						sels, view);
 			}
 			
 		}, false) ;

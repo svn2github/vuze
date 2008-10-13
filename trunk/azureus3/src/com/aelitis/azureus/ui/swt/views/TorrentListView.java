@@ -127,10 +127,10 @@ public class TorrentListView
 					Object params) {
 				if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
 					SelectedContentManager.changeCurrentlySelectedContent(getTableID(),
-							getCurrentlySelectedContent());
+							getCurrentlySelectedContent(), TorrentListView.this);
 				} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
 					SelectedContentManager.changeCurrentlySelectedContent(getTableID(),
-							null);
+							null, TorrentListView.this);
 				}
 				return null;
 			}

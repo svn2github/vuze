@@ -117,7 +117,7 @@ public class SBC_LibraryListView
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
 
-		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
+		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null, view);
 
 		core = AzureusCoreFactory.getSingleton();
 

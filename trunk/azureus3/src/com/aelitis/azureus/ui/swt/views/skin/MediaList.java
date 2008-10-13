@@ -95,7 +95,7 @@ public class MediaList
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null);
+		SelectedContentManager.changeCurrentlySelectedContent(PREFIX, null, view);
 
 		core = AzureusCoreFactory.getSingleton();
 		view = new TorrentListView(this, PREFIX, TorrentListView.VIEW_MY_MEDIA,

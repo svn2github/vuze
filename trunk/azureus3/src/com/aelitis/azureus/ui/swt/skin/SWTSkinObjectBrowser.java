@@ -160,7 +160,7 @@ public class SWTSkinObjectBrowser
 		context.addListener(new loadingListener() {
 			public void browserLoadingChanged(boolean loading) {
 				if (loading && browser.isVisible()) {
-					SelectedContentManager.changeCurrentlySelectedContent(null, null);
+					SelectedContentManager.clearCurrentlySelectedContent();
 				}
 			}
 		});

@@ -2262,6 +2262,17 @@ public class ListView
 		}
 		return row.getTableCellSWT(x, y);
 	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableView#getTableColumn(java.lang.String)
+	public TableColumn getTableColumn(String columnName) {
+		for (int i = 0; i < allColumns.length; i++) {
+			TableColumnCore tc = allColumns[i];
+			if (tc.getName().equals(columnName)) {
+				return tc;
+			}
+		}
+		return null;
+	}
 
 	public int indexOf(TableRowCore row) {
 		return rows.indexOf(row);
