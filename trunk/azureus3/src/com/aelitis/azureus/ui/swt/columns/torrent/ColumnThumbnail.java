@@ -213,9 +213,12 @@ public class ColumnThumbnail
 				gc.setInterpolation(SWT.HIGH);
 			} catch (Exception e) {
 			}
-			gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
-					cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
-							+ ((cellBounds.height - dstHeight) / 2), dstWidth, dstHeight);
+			int x = cellBounds.x + ((cellBounds.width - dstWidth) / 2);
+			int y = cellBounds.y + ((cellBounds.height - dstHeight) / 2);
+			if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
+  			gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
+  					x, y, dstWidth, dstHeight);
+			}
 
 			imgThumbnail.dispose();
 		}
