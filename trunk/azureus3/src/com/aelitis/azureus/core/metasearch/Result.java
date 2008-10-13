@@ -22,6 +22,7 @@ package com.aelitis.azureus.core.metasearch;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Random;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang.Entities;
@@ -178,11 +179,27 @@ public abstract class Result {
 		object.put("c", this.getCategory());
 		object.put("n",this.getName());
 		
-		if(this.getNbSeeds() >= 0) {
-			object.put("s","" + this.getNbSeeds());
-		} else {
-			object.put("s","-1");
+		int	super_seeds = getNbSuperSeeds();
+		int	seeds		= getNbSeeds();
+		
+		int	seed_total = -1;
+		
+		if ( super_seeds > 0 ){
+			
+			seed_total = 10*super_seeds + new Random().nextInt(10);
 		}
+		
+		if ( seeds > 0 ){
+			
+			if ( seed_total == -1 ){
+				
+				seed_total = 0;
+			}
+			
+			seed_total += seeds;
+		}
+		
+		object.put("s","" + seed_total);
 			
 		if(this.getNbPeers() >= 0) {
 			object.put("p","" + this.getNbPeers());
