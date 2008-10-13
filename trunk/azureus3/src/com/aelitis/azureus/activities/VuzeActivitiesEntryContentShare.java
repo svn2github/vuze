@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -107,7 +108,7 @@ public class VuzeActivitiesEntryContentShare
   			userInfo.getProfileAHREF(VuzeActivitiesConstants.TYPEID_BUDDYSHARE),
   			contentString,
   			userInfo.displayName,
-  			message
+  			UrlUtils.encode(message)
   		});
   
   		setText(text);
@@ -191,7 +192,7 @@ public class VuzeActivitiesEntryContentShare
 				contentString,
 				buddy.getDisplayName(),
 				URL_USERMESSAGE,
-				userMessage
+  			UrlUtils.encode(userMessage)
 			}));
 		}
 
