@@ -182,17 +182,15 @@ public class PlatformRatingMessenger
 			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#replyReceived(com.aelitis.azureus.core.messenger.PlatformMessage, java.lang.String, java.lang.Object)
 			public void replyReceived(PlatformMessage message, String replyType,
 					Map reply) {
-				if (ratingSucceeded(reply)) {
-					if (PlatformRatingMessenger.ratingSucceeded(reply)) {
-						PlatformTorrentUtils.setUserRating(torrent, (int) rating);
-						if (updateGlobalRatingAfter) {
-							updateGlobalRating(torrent, 2000);
-						}
-					} else {
-						PlatformTorrentUtils.setUserRating(torrent,
-								oldRating == GlobalRatingUtils.RATING_WAITING
-										? GlobalRatingUtils.RATING_NONE : oldRating);
+				if (PlatformRatingMessenger.ratingSucceeded(reply)) {
+					PlatformTorrentUtils.setUserRating(torrent, (int) rating);
+					if (updateGlobalRatingAfter) {
+						updateGlobalRating(torrent, 2000);
 					}
+				} else {
+					PlatformTorrentUtils.setUserRating(torrent,
+							oldRating == GlobalRatingUtils.RATING_WAITING
+									? GlobalRatingUtils.RATING_NONE : oldRating);
 				}
 				if (l != null) {
 					l.replyReceived(message, replyType, reply);
