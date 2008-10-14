@@ -544,7 +544,8 @@ public class BrowserContext
 			pageLoadingStart = SystemTime.getCurrentTime();
 		} else if (pageLoadingStart > 0) {
 			long diff = SystemTime.getCurrentTime() - pageLoadingStart;
-			if (diff > 0 && PlatformConfigMessenger.urlCanRPC(lastValidURL)) {
+			if (org.gudy.azureus2.core3.util.Constants.isCVSVersion() && diff > 0
+					&& PlatformConfigMessenger.urlCanRPC(lastValidURL)) {
 				int i = lastValidURL.lastIndexOf('/') + 1;
 				if (i >= 0 && i < lastValidURL.length()) {
 					int j = lastValidURL.lastIndexOf("azid=") - 1;
