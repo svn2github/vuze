@@ -628,7 +628,12 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			boolean mode = metaSearchManager.isAutoMode();
 			
 			Map params = new HashMap();
+			
 			params.put( "auto", new Boolean( mode ));
+
+			boolean custom = CustomizationManagerFactory.getSingleton().getActiveCustomization() != null;
+						
+			params.put( "is_custom", new Boolean( custom ));
 
 			sendBrowserMessage("metasearch", "getAutoModeResult",params);
 			
