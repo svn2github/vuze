@@ -32,7 +32,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.tableitems.pieces.ReservedByItem;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -45,6 +47,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -88,10 +91,28 @@ public class Browse
 
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
+			final SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
+				
+				sidebar.addListener(new SideBarListener() {
+					long lastSelect = 0;
+					public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
+							SideBarEntrySWT oldSideBarEntry) {
+						if (entry == newSideBarEntry) {
+							if (entry == oldSideBarEntry) {
+								if (lastSelect < SystemTime.getOffsetTime(-1000)) {
+									if (browserSkinObject != null) {
+										browserSkinObject.restart();
+									}
+								}
+							} else {
+								lastSelect = SystemTime.getCurrentTime();
+							}
+						}
+					}
+				});
 			}
 		}
 
