@@ -2384,6 +2384,7 @@ public class GlobalManagerImpl
   checkSeedingOnlyStateSupport()
   {
     boolean seeding 			= false;
+    boolean seeding_set 			= false;
     boolean	potentially_seeding	= false;
     
     List managers = managers_cow;
@@ -2405,19 +2406,34 @@ public class GlobalManagerImpl
         		if ( dm.isDownloadComplete( false )){
         			
         			potentially_seeding = true;
+        		} else {
+
+        			// Queued and Incomplete means we aren't "only seeding".  This
+        			// download WILL start, it just hasn't yet for various reasons
+        			// (1st Priority, etc)
+          		seeding 			= false;
+          		
+          		// can't break out, because we still need to calculate
+          		// potentially_seeding.  Set a flag so we don't set "seeding"
+          		// back to true
+          		seeding_set = true;
+
         		}
         	}
         	
         	continue;
         }
-                
+        
         if ( state == DownloadManager.STATE_DOWNLOADING ){
         	
         	if (!pm.hasDownloadablePiece()){
         		
         			// complete DND file
-        		
-        		seeding = true;
+
+        		if (!seeding_set) {
+        			
+        			seeding = true;
+        		}
         		
         	}else{
         		
@@ -2428,7 +2444,10 @@ public class GlobalManagerImpl
         	}
         }else if ( state == DownloadManager.STATE_SEEDING ){
         	
-        	seeding = true;
+      		if (!seeding_set) {
+
+      			seeding = true;
+      		}
         }
     }
     
