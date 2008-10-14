@@ -131,7 +131,7 @@ public class SharePage
 			}
 		});
 		
-//		content.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+		content.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		content.setBackgroundMode(SWT.INHERIT_FORCE);
 		
 		content.setLayout(new GridLayout(2, false));
@@ -144,6 +144,7 @@ public class SharePage
 
 	private void createContentDetail() {
 		contentDetail = new Composite(content, SWT.NONE);
+		contentDetail.setBackgroundMode(SWT.INHERIT_DEFAULT);
 		GridData gData = new GridData(SWT.FILL, SWT.TOP, true, false);
 		gData.horizontalSpan = 2;
 		contentDetail.setLayoutData(gData);
@@ -157,11 +158,12 @@ public class SharePage
 		contentThumbnail.setLayoutData(gData);
 
 		contentStats = new StyledText(contentDetail, SWT.WRAP);
-		contentStats.setBackground(contentDetail.getBackground());
+		contentStats.setBackground(contentDetail.getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
 		contentStats.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
 		contentStats.getCaret().setVisible(false);
+		contentStats.setEnabled(false);
 		contentStats.setEditable(false);
 	}
 
