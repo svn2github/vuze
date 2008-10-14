@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -55,6 +56,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -377,11 +379,19 @@ public class SideBar
 		MenuManager menuManager = uim.getMenuManager();
 
 		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-				+ SIDEBAR_SECTION_ACTIVITIES, "v3.activity.button.watchall");
+				+ SIDEBAR_SECTION_LIBRARY_UNOPENED, "v3.activity.button.watchall");
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				SkinView skinView = SkinViewManager.getBySkinObjectID(SIDEBAR_SECTION_LIBRARY_UNOPENED);
-				
+				AzureusCore core = AzureusCoreFactory.getSingleton();
+				GlobalManager gm = core.getGlobalManager();
+				List downloadManagers = gm.getDownloadManagers();
+				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
+					DownloadManager dm = (DownloadManager) iter.next();
+					
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
+						PlatformTorrentUtils.setHasBeenOpened(dm, true);
+					}
+				}
 			}
 		});
 	}
@@ -1212,6 +1222,7 @@ public class SideBar
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY,
 				SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
 				MessageText.getString("sidebar.LibraryUnopened"), null, null, false, -1);
+		addMenuUnwatched();
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_BROWSE,
 				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
