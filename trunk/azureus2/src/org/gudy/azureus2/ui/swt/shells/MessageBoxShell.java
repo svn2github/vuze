@@ -34,7 +34,6 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -65,11 +64,11 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 public class MessageBoxShell
 	implements UIFunctionsUserPrompter
 {
-	private final static int MIN_SIZE_X = 300;
+	private final static int MIN_SIZE_X_DEFAULT = 300;
 
-	private final static int MIN_SIZE_Y = 120;
+	private final static int MIN_SIZE_Y_DEFAULT = 120;
 
-	private final static int MAX_SIZE_X = 500;
+	private final static int MAX_SIZE_X_DEFAULT = 500;
 
 	private static final int MIN_BUTTON_SIZE = 70;
 
@@ -77,6 +76,10 @@ public class MessageBoxShell
 
 	private Shell parent;
 
+	private int min_size_x 	= MIN_SIZE_X_DEFAULT;
+	private int min_size_y 	= MIN_SIZE_Y_DEFAULT;
+	private int max_size_x	= MAX_SIZE_X_DEFAULT;
+	
 	private final String title;
 
 	private final String text;
@@ -422,65 +425,68 @@ public class MessageBoxShell
 
 		// Buttons
 
-		Composite cButtons = new Composite(shell, SWT.NONE);
-		FormLayout layout = new FormLayout();
-
-		cButtons.setLayout(layout);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-		cButtons.setLayoutData(gridData);
-
-		Control lastButton = null;
-
-		Listener buttonListener = new Listener() {
-
-			public void handleEvent(Event event) {
-				result[0] = ((Integer) event.widget.getData()).intValue();
-				shell.dispose();
-			}
-
-		};
-
-		int buttonWidth = 0;
-		Button[] swtButtons = new Button[buttons.length];
-		for (int i = 0; i < buttons.length; i++) {
-			Button button = new Button(cButtons, SWT.PUSH);
-			swtButtons[i] = button;
-			button.setData(new Integer(i));
-			button.setText(buttons[i]);
-			button.addListener(SWT.Selection, buttonListener);
-
-			formData = new FormData();
-			if (lastButton != null) {
-				formData.left = new FormAttachment(lastButton, 5);
-			}
-
-			button.setLayoutData(formData);
-
-			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			if (size.x > buttonWidth) {
-				buttonWidth = size.x;
-			}
-
-			if (i == defaultOption) {
-				button.setFocus();
-				shell.setDefaultButton(button);
-			}
-
-			lastButton = button;
-		}
-
-		if (buttonWidth > 0) {
-			if (buttonWidth < MIN_BUTTON_SIZE) {
-				buttonWidth = MIN_BUTTON_SIZE;
-			}
+		if ( buttons.length > 0 ){
+			
+			Composite cButtons = new Composite(shell, SWT.NONE);
+			FormLayout layout = new FormLayout();
+	
+			cButtons.setLayout(layout);
+			gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+			cButtons.setLayoutData(gridData);
+	
+			Control lastButton = null;
+	
+			Listener buttonListener = new Listener() {
+	
+				public void handleEvent(Event event) {
+					result[0] = ((Integer) event.widget.getData()).intValue();
+					shell.dispose();
+				}
+	
+			};
+	
+			int buttonWidth = 0;
+			Button[] swtButtons = new Button[buttons.length];
 			for (int i = 0; i < buttons.length; i++) {
-				Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
-				swtButtons[i].setSize(size);
-				formData = (FormData) swtButtons[i].getLayoutData();
-				formData.width = buttonWidth;
+				Button button = new Button(cButtons, SWT.PUSH);
+				swtButtons[i] = button;
+				button.setData(new Integer(i));
+				button.setText(buttons[i]);
+				button.addListener(SWT.Selection, buttonListener);
+	
+				formData = new FormData();
+				if (lastButton != null) {
+					formData.left = new FormAttachment(lastButton, 5);
+				}
+	
+				button.setLayoutData(formData);
+	
+				Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				if (size.x > buttonWidth) {
+					buttonWidth = size.x;
+				}
+	
+				if (i == defaultOption) {
+					button.setFocus();
+					shell.setDefaultButton(button);
+				}
+	
+				lastButton = button;
+			}
+	
+			if (buttonWidth > 0) {
+				if (buttonWidth < MIN_BUTTON_SIZE) {
+					buttonWidth = MIN_BUTTON_SIZE;
+				}
+				for (int i = 0; i < buttons.length; i++) {
+					Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
+					swtButtons[i].setSize(size);
+					formData = (FormData) swtButtons[i].getLayoutData();
+					formData.width = buttonWidth;
+				}
 			}
 		}
-
+		
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent event) {
 				if (event.detail == SWT.TRAVERSE_ESCAPE) {
@@ -508,16 +514,16 @@ public class MessageBoxShell
 
 		shell.pack();
 		Point size = shell.getSize();
-		if (size.x < MIN_SIZE_X) {
-			size.x = MIN_SIZE_X;
+		if (size.x < min_size_x) {
+			size.x = min_size_x;
 			shell.setSize(size);
-		} else if (size.x > MAX_SIZE_X) {
-			size = shell.computeSize(MAX_SIZE_X, SWT.DEFAULT);
+		} else if (size.x > max_size_x) {
+			size = shell.computeSize(max_size_x, SWT.DEFAULT);
 			shell.setSize(size);
 		}
 
-		if (size.y < MIN_SIZE_Y) {
-			size.y = MIN_SIZE_Y;
+		if (size.y < min_size_y) {
+			size.y = min_size_y;
 			shell.setSize(size);
 		}
 
@@ -845,68 +851,70 @@ public class MessageBoxShell
 
 		// Buttons
 
-		Composite cButtons = new Composite(content, SWT.NONE);
-		FormLayout layout = new FormLayout();
-
-		cButtons.setLayout(layout);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-		cButtons.setLayoutData(gridData);
-
-		Control lastButton = null;
-
-		Listener buttonListener = new Listener() {
-
-			public void handleEvent(Event event) {
-				result[0] = ((Integer) event.widget.getData()).intValue();
-				sShell.close();
-			}
-
-		};
-
-		int buttonWidth = 0;
-		BubbleButton[] swtButtons = new BubbleButton[buttons.length];
-		for (int i = 0; i < buttons.length; i++) {
-			BubbleButton button = new BubbleButton(cButtons);
-			swtButtons[i] = button;
-			button.setData(new Integer(i));
-			button.setText(buttons[i]);
-			button.addListener(SWT.MouseUp, buttonListener);
-
-			formData = new FormData();
-			if (lastButton != null) {
-				formData.left = new FormAttachment(lastButton, 20);
-			}
-
-			button.setLayoutData(formData);
-
-			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			if (size.x > buttonWidth) {
-				buttonWidth = size.x;
-			}
-
-			if (i == defaultOption) {
-				button.setFocus();
-				/*
-				 * KN: TODO: Must implement default button behavior
-				 */
-				//				shell.setDefaultButton(button);
-			}
-
-			lastButton = button;
-		}
-
-		if (buttonWidth > 0) {
-			if (buttonWidth < MIN_BUTTON_SIZE) {
-				buttonWidth = MIN_BUTTON_SIZE;
-			}
+		if ( buttons.length > 0 ){
+			Composite cButtons = new Composite(content, SWT.NONE);
+			FormLayout layout = new FormLayout();
+	
+			cButtons.setLayout(layout);
+			gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+			cButtons.setLayoutData(gridData);
+	
+			Control lastButton = null;
+	
+			Listener buttonListener = new Listener() {
+	
+				public void handleEvent(Event event) {
+					result[0] = ((Integer) event.widget.getData()).intValue();
+					sShell.close();
+				}
+	
+			};
+	
+			int buttonWidth = 0;
+			BubbleButton[] swtButtons = new BubbleButton[buttons.length];
 			for (int i = 0; i < buttons.length; i++) {
-				Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
-				swtButtons[i].setSize(size);
-				formData = (FormData) swtButtons[i].getLayoutData();
-				formData.width = buttonWidth;
+				BubbleButton button = new BubbleButton(cButtons);
+				swtButtons[i] = button;
+				button.setData(new Integer(i));
+				button.setText(buttons[i]);
+				button.addListener(SWT.MouseUp, buttonListener);
+	
+				formData = new FormData();
+				if (lastButton != null) {
+					formData.left = new FormAttachment(lastButton, 20);
+				}
+	
+				button.setLayoutData(formData);
+	
+				Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				if (size.x > buttonWidth) {
+					buttonWidth = size.x;
+				}
+	
+				if (i == defaultOption) {
+					button.setFocus();
+					/*
+					 * KN: TODO: Must implement default button behavior
+					 */
+					//				shell.setDefaultButton(button);
+				}
+	
+				lastButton = button;
+			}
+	
+			if (buttonWidth > 0) {
+				if (buttonWidth < MIN_BUTTON_SIZE) {
+					buttonWidth = MIN_BUTTON_SIZE;
+				}
+				for (int i = 0; i < buttons.length; i++) {
+					Point size = swtButtons[i].computeSize(buttonWidth, SWT.DEFAULT);
+					swtButtons[i].setSize(size);
+					formData = (FormData) swtButtons[i].getLayoutData();
+					formData.width = buttonWidth;
+				}
 			}
 		}
-
+		
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent event) {
 				if (event.detail == SWT.TRAVERSE_ESCAPE) {
@@ -934,17 +942,17 @@ public class MessageBoxShell
 
 		shell.pack();
 		Point size = shell.getSize();
-		if (size.x < MIN_SIZE_X) {
-			size.x = MIN_SIZE_X;
+		if (size.x < min_size_x) {
+			size.x = min_size_x;
 			shell.setSize(size);
-		} else if (size.x > MAX_SIZE_X + (2 * styledShellBorder)) {
-			size = shell.computeSize(MAX_SIZE_X + (2 * styledShellBorder),
+		} else if (size.x > max_size_x + (2 * styledShellBorder)) {
+			size = shell.computeSize(max_size_x + (2 * styledShellBorder),
 					SWT.DEFAULT);
 			shell.setSize(size);
 		}
 
-		if (size.y < MIN_SIZE_Y) {
-			size.y = MIN_SIZE_Y;
+		if (size.y < min_size_y) {
+			size.y = min_size_y;
 			shell.setSize(size);
 		}
 
@@ -995,7 +1003,7 @@ public class MessageBoxShell
 
 		final Canvas canvas = new Canvas(shell, SWT.None) {
 			public Point computeSize(int wHint, int hHint, boolean changed) {
-				Rectangle area = new Rectangle(0, 0, wHint < 0 ? MAX_SIZE_X : wHint,
+				Rectangle area = new Rectangle(0, 0, wHint < 0 ? max_size_x : wHint,
 						5000);
 				GC gc = new GC(this);
 				GCStringPrinter sp = new GCStringPrinter(gc, text, area, true, false,
@@ -1082,6 +1090,15 @@ public class MessageBoxShell
 		this.url = url;
 	}
 
+	public void
+	setSize(
+		int		width,
+		int		height )
+	{
+		min_size_x	= width;
+		max_size_x	= width;
+		min_size_y	= height;
+	}
 	/**
 	 * @return the rememberID
 	 */

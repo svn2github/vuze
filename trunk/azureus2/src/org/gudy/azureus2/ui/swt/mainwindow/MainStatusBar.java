@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.progress.*;
+import org.gudy.azureus2.ui.swt.shells.BrowserShell;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -282,7 +283,12 @@ public class MainStatusBar
 	
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
-					Utils.launch( "http://www.vuze.com/feedback" );
+					
+					String url  = "http://www.vuze.com/feedback";
+					
+					// Utils.launch( url );
+					
+					new BrowserShell( "statusbar.feedback", url, 800, 600 );
 				}
 			};
 			
