@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetai
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionWizard {
 	
@@ -647,7 +648,7 @@ public class SubscriptionWizard {
 		final Link labelEmpty = new Link(compEmpty,SWT.WRAP);
 		labelEmpty.setText(MessageText.getString("Wizard.Subscription.subscribe.library.empty"));
 		labelEmpty.setFont(subTitleFont);
-		
+		labelEmpty.setForeground(ColorCache.getColor(composite.getDisplay(), "#6D6F6E"));
 		
 		labelEmpty.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {

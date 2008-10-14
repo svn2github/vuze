@@ -265,7 +265,7 @@ public class SubscriptionsView
 		
 		view.initialize(viewComposite);
 		
-		final Composite composite = new Composite(viewComposite,SWT.NONE);
+		final Composite composite = new Composite(viewComposite,SWT.BORDER);
 		composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
 		composite.setBackground(ColorCache.getColor(composite.getDisplay(), "#F1F9F8"));
 		
@@ -285,7 +285,7 @@ public class SubscriptionsView
 		textFont2 = new Font(composite.getDisplay(),fDatas);
 		
 		Label preText = new Label(composite,SWT.NONE);
-		preText.setForeground(ColorCache.getColor(composite.getDisplay(), "#3A3A3C"));
+		preText.setForeground(ColorCache.getColor(composite.getDisplay(), "#6D6F6E"));
 		preText.setFont(textFont1);
 		preText.setText(MessageText.getString("subscriptions.view.help.1"));
 		
@@ -293,7 +293,7 @@ public class SubscriptionsView
 		image.setImage(ImageRepository.getImage("btn_add_rss"));
 		
 		Link postText = new Link(composite,SWT.NONE);
-		postText.setForeground(ColorCache.getColor(composite.getDisplay(), "#3A3A3C"));
+		postText.setForeground(ColorCache.getColor(composite.getDisplay(), "#6D6F6E"));
 		postText.setFont(textFont2);
 		postText.setText(MessageText.getString("subscriptions.view.help.2"));
 		
