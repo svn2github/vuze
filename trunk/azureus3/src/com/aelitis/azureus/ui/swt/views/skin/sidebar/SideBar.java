@@ -1837,7 +1837,7 @@ public class SideBar
 			}
 		}
 
-		triggerListener(oldSideBarInfo, newSideBarInfo);
+		triggerListener(newSideBarInfo, oldSideBarInfo);
 	}
 
 	/**
