@@ -542,6 +542,10 @@ public class SBC_LibraryView
 			}
 
 			public void downloadManagerAdded(DownloadManager dm) {
+				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+						|| PlatformTorrentUtils.isUpdateDM(dm)) {
+					return;
+				}
 				dm.addListener(dmListener, false);
 
 				recountUnopened();
