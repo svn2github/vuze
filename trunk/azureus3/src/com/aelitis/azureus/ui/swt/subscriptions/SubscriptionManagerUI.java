@@ -90,8 +90,12 @@ SubscriptionManagerUI
 {
 	public static final Object	SUB_IVIEW_KEY = new Object();
 	
-	private Graphic	icon_rss;
+	private Graphic	icon_rss_big;
 	private Graphic	icon_rss_small;
+	private Graphic	icon_rss_all_add_small;
+	private Graphic	icon_rss_all_add_big;
+	private Graphic	icon_rss_some_add_small;
+	private Graphic	icon_rss_some_add_big;
 	private List	icon_list	= new ArrayList();
 	
 	private SubscriptionManager	subs_man;
@@ -327,11 +331,66 @@ SubscriptionManagerUI
 					if ( torrent != null ){
 						
 						Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
-									
-						int height = cell.getHeight();
-						cell.setGraphic( subs.length > 0? (height >= 22 ? icon_rss : icon_rss_small):null );
+														
+						int	num_subscribed		= 0;
+						int	num_unsubscribed	= 0;
 						
-						cell.setSortValue( subs.length );
+						for (int i=0;i<subs.length;i++){
+							
+							if ( subs[i].isSubscribed()){
+																
+								num_subscribed++;
+								
+							}else{
+								
+								num_unsubscribed++;
+							}
+						}
+						
+						Graphic graphic;
+						String	tooltip;
+						
+						int height = cell.getHeight();
+						
+						int	sort_order = 0;
+						
+						if ( subs.length == 0 ){
+							
+							graphic = null;
+							tooltip	= null;
+							
+						}else{
+						
+							if ( num_subscribed == subs.length ){
+								
+								graphic = height >= 22?icon_rss_all_add_big:icon_rss_all_add_small;
+								
+								tooltip = MessageText.getString( "subscript.all.subscribed" );
+								
+							}else if ( num_subscribed > 0 ){
+								
+								graphic = height >= 22?icon_rss_some_add_big:icon_rss_some_add_small;
+
+								tooltip = MessageText.getString( "subscript.some.subscribed" );
+
+								sort_order	= 10000;
+								
+							}else{
+								
+								graphic = height >= 22?icon_rss_big:icon_rss_small;
+								
+								tooltip = MessageText.getString( "subscript.none.subscribed" );
+								
+								sort_order	= 1000000;
+							}
+						}
+						
+						sort_order += 1000*num_unsubscribed + num_subscribed;
+						
+						cell.setGraphic( graphic );
+						cell.setToolTip( tooltip );
+						
+						cell.setSortValue( sort_order );
 					}else{
 						
 						cell.setSortValue( 0 );
@@ -389,9 +448,15 @@ SubscriptionManagerUI
 							
 							final UISWTInstance	swt = (UISWTInstance)instance;
 							
-							icon_rss			= loadGraphic( swt, "btn_add_rss.png" );
-							icon_rss_small		= loadGraphic( swt, "btn_add_rss_small.png" );
+							icon_rss_small			= loadGraphic( swt, "btn_add_rss.png" );
+							icon_rss_big			= icon_rss_small;
 
+							icon_rss_all_add_small	= loadGraphic( swt, "btn_all_rss.png" );
+							icon_rss_all_add_big	= icon_rss_all_add_small;
+							
+							icon_rss_some_add_small	= icon_rss_all_add_small;
+							icon_rss_some_add_big	= icon_rss_all_add_big;
+							
 							subs_man = SubscriptionManagerFactory.getSingleton();
 							
 							subs_man.addListener(
