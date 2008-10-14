@@ -1190,6 +1190,8 @@ SubscriptionManagerUI
 		
 		private Browser			mainBrowser;
 		private Browser			detailsBrowser;
+
+		private SideBarVitalityImage spinnerImage;
 		
 		protected
 		subscriptionView(
@@ -1255,6 +1257,9 @@ SubscriptionManagerUI
 						handleEvent(
 							Event arg0 )
 						{
+							if (spinnerImage != null) {
+								spinnerImage.setVisible(false);
+							}
 							destroyBrowsers();
 						}				
 					});
@@ -1343,6 +1348,14 @@ SubscriptionManagerUI
 				BrowserContext context = 
 					new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
 				
+				context.addListener(new BrowserContext.loadingListener(){
+					public void browserLoadingChanged(boolean loading, String url) {
+						if (spinnerImage != null) {
+							spinnerImage.setVisible(loading);
+						}
+					}
+				});
+				
 				context.addMessageListener(new TorrentListener());
 				context.addMessageListener(new VuzeListener());
 				context.addMessageListener(new DisplayListener(mainBrowser));
@@ -1364,6 +1377,13 @@ SubscriptionManagerUI
 				detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 				BrowserContext detailsContext = 
 					new BrowserContext("browser-window"	+ Math.random(), detailsBrowser, null, false);
+				detailsContext.addListener(new BrowserContext.loadingListener(){
+					public void browserLoadingChanged(boolean loading, String url) {
+						if (spinnerImage != null) {
+							spinnerImage.setVisible(loading);
+						}
+					}
+				});
 				
 				ClientMessageContext.torrentURLHandler url_handler =
 					new ClientMessageContext.torrentURLHandler()
@@ -1658,6 +1678,15 @@ SubscriptionManagerUI
 			// TODO Auto-generated method stub
 			
 		}
+
+		/**
+		 * @param spinnerImage
+		 *
+		 * @since 3.1.1.1
+		 */
+		public void setSpinnerImage(SideBarVitalityImage spinnerImage) {
+			this.spinnerImage = spinnerImage;
+		}
 	}
 	
 	public static class
@@ -1672,6 +1701,7 @@ SubscriptionManagerUI
 		private boolean				destroyed;
 		
 		private SideBarVitalityImage	warning;
+		private SideBarVitalityImage spinnerImage;
 		
 		protected
 		sideBarItem()
@@ -1687,6 +1717,11 @@ SubscriptionManagerUI
 			sb_entry	= _sb_entry;
 			
 			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
+			spinnerImage = sb_entry.addVitalityImage("image.sidebar.vitality.dots");
+			spinnerImage.setVisible(false);
+			if (view != null) {
+				view.setSpinnerImage(spinnerImage);
+			}
 		}
 		
 		protected TreeItem
@@ -1700,6 +1735,9 @@ SubscriptionManagerUI
 			subscriptionView		_view )
 		{
 			view	= _view;
+			if (view != null) {
+				view.setSpinnerImage(spinnerImage);
+			}
 		}
 		
 		protected subscriptionView
