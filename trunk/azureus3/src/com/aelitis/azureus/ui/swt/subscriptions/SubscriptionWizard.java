@@ -162,6 +162,8 @@ public class SubscriptionWizard {
 			Utils.centreWindow(shell);
 		}
 		
+		shell.setMinimumSize(550,400);
+		
 		display = shell.getDisplay();
 		
 		Utils.setShellIcon(shell);
@@ -933,6 +935,8 @@ public class SubscriptionWizard {
 			//       (makes a white box covering text).  Would be smarter to not
 			//       create the libraryTable at all..
 			libraryTable.dispose();
+			cancelButton.setFocus();
+			shell.setDefaultButton(cancelButton);
 			compEmpty.setLayoutData(data);
 		}
 
