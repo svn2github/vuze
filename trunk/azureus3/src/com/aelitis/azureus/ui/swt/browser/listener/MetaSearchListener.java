@@ -105,6 +105,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_DOWNLOAD_SUBSCRIPTION   		= "download-subscription";
 	public static final String OP_SUBSCRIPTION_SET_AUTODL   	= "subscription-set-auto-download";
 
+	public static final String OP_IS_CUSTOMISED   				= "is-customized";
+
 	private static final Set	active_subs_auth = new HashSet();
 	
 	private static final Set	pending_play_now_urls = new HashSet();
@@ -1581,6 +1583,15 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 				sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
 			}
+		}else if( OP_IS_CUSTOMISED.equals(opid)) {
+			
+			boolean custom = CustomizationManagerFactory.getSingleton().getActiveCustomization() != null;
+			
+			Map params = new HashMap();
+			
+			params.put( "is_custom", new Boolean( custom ));
+
+			sendBrowserMessage( "metasearch", "isCustomizedResult", params );
 		}
 	}
 	
