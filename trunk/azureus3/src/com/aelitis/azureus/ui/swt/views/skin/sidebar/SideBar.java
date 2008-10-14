@@ -493,6 +493,7 @@ public class SideBar
 
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
+			boolean mouseDowned = false;
 
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
@@ -585,7 +586,15 @@ public class SideBar
 						break;
 					}
 
+					case SWT.MouseDown: {
+						mouseDowned = true;
+					}
+
 					case SWT.MouseUp: {
+						if (!mouseDowned) {
+							return;
+						}
+						mouseDowned = false;
 						if (tree.getItemCount() == 0 || event.button != 1) {
 							return;
 						}
@@ -661,6 +670,7 @@ public class SideBar
 
 		// For icons
 		tree.addListener(SWT.MouseUp, treeListener);
+		tree.addListener(SWT.MouseDown, treeListener);
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
