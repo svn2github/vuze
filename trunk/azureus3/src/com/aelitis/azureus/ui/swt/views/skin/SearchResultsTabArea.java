@@ -46,6 +46,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -63,9 +65,13 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.Constants;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -89,7 +95,9 @@ public class SearchResultsTabArea
 	protected String title;
 
 	private MenuItem menuItem;
-	
+
+	private SideBarVitalityImage vitalityImage;
+
 	public static class SearchQuery {
 		public String term;
 		public boolean toSubscribe;
@@ -349,6 +357,34 @@ public class SearchResultsTabArea
 		this.browserSkinObject = browserSkinObject;
 		browserSkinObject.getContext().addMessageListener(
 				new MetaSearchListener(this));
+		
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sidebar != null) {
+			final SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
+			if (entry != null) {
+				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
+				vitalityImage.setVisible(false);
+			}
+		}
+		browserSkinObject.addListener(new loadingListener() {
+			public void browserLoadingChanged(boolean loading, String url) {
+				if (vitalityImage != null) {
+					vitalityImage.setVisible(loading);
+				}
+			}
+		});
+
+		SWTSkinObject soSearchResults = getSkinObject("searchresults-search-results");
+		if (soSearchResults instanceof SWTSkinObjectBrowser) {
+			SWTSkinObjectBrowser browserSearchResults = (SWTSkinObjectBrowser) soSearchResults;
+			browserSearchResults.addListener(new loadingListener() {
+				public void browserLoadingChanged(boolean loading, String url) {
+					if (vitalityImage != null) {
+						vitalityImage.setVisible(loading);
+					}
+				}
+			});
+		}
 	}
 
 	public void restart() {
