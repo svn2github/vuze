@@ -161,8 +161,9 @@ public class ColumnActivityActions
 				}
 				int[] mouseOfs = cell.getMouseOffset();
 				if (mouseOfs != null) {
-					URLInfo hitUrl = sp.getHitUrl(mouseOfs[0] + bounds.x, mouseOfs[1]
-							+ bounds.y);
+					Rectangle realBounds = cell.getBounds();
+					URLInfo hitUrl = sp.getHitUrl(mouseOfs[0] + realBounds.x, mouseOfs[1]
+							+ realBounds.y);
 					if (hitUrl != null) {
 						hitUrl.urlColor = colorLinkHover;
 					}
@@ -260,7 +261,11 @@ public class ColumnActivityActions
 		GCStringPrinter sp = null;
 		GC gc = new GC(Display.getDefault());
 		try {
-			sp = new GCStringPrinter(gc, text, bounds, true, true, SWT.WRAP
+			if (font != null) {
+				gc.setFont(font);
+			}
+			Rectangle drawBounds = getDrawBounds((TableCellSWT) event.cell);
+			sp = new GCStringPrinter(gc, text, drawBounds, true, true, SWT.WRAP
 					| SWT.CENTER);
 			sp.calculateMetrics();
 		} catch (Exception e) {
@@ -355,6 +360,7 @@ public class ColumnActivityActions
 
 		if (invalidateAndRefresh) {
 			event.cell.invalidate();
+			((TableCellSWT)event.cell).redraw();
 		}
 	}
 

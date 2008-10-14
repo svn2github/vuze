@@ -209,7 +209,6 @@ public class ColumnActivityText
 			}
 		}
 
-		event.cell.invalidate();
 		if (invalidateAndRefresh) {
 			event.cell.invalidate();
 			((TableCellSWT)event.cell).redraw();
