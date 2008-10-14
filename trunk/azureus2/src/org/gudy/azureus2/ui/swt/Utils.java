@@ -2381,4 +2381,18 @@ public class Utils
 		}
 		sb.append(Integer.toHexString(h));
 	}
+	
+	public static String
+	getWidgetBGColorURLParam()
+	{
+		Color bg = findAnyShell().getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+		
+		byte[] color = new byte[3];
+		
+		color[0] = (byte) bg.getRed();
+		color[1] = (byte) bg.getGreen();
+		color[2] = (byte) bg.getBlue();
+
+		return( "bg_color=" + ByteFormatter.nicePrint(color));
+	}
 }

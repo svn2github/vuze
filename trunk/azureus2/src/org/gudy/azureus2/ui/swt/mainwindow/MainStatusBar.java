@@ -284,7 +284,7 @@ public class MainStatusBar
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
 					
-					String url  = "http://www.vuze.com/feedback";
+					String url  = "http://www.vuze.com/feedback?" + Utils.getWidgetBGColorURLParam();
 					
 					// Utils.launch( url );
 					
