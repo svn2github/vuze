@@ -49,8 +49,9 @@ public class ShareRatioItem
   private final static String CONFIG_ID = "StartStopManager_iFirstPriority_ShareRatio";
 	public static final String COLUMN_ID = "shareRatio";
   private int iMinShareRatio;
+  private boolean changeFG = true;
 
-  /** Default Constructor */
+	/** Default Constructor */
   public ShareRatioItem(String sTableID) {
     super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
@@ -90,7 +91,7 @@ public class ShareRatioItem
       shareRatio = (sr / 1000) + "." + partial;
     }
     
-    if( cell.setText(shareRatio) ) {
+    if( cell.setText(shareRatio) && changeFG ) {
     	Color color = sr < iMinShareRatio ? Colors.colorWarning : null;
     	cell.setForeground(Utils.colorToIntArray(color));
     }
@@ -100,4 +101,12 @@ public class ShareRatioItem
     iMinShareRatio = COConfigurationManager.getIntParameter(CONFIG_ID);
     invalidateCells();
   }
+
+  public boolean isChangeFG() {
+		return changeFG;
+	}
+
+	public void setChangeFG(boolean changeFG) {
+		this.changeFG = changeFG;
+	}
 }
