@@ -25,6 +25,8 @@ import org.eclipse.swt.browser.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.ui.swt.Utils;
@@ -37,8 +39,9 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
  */
 public class SimpleBrowserWindow
 {
-	private Shell shell;
-
+	private Shell	 	shell;
+	private Browser 	browser;
+	
 	public SimpleBrowserWindow(Shell parent, String url, double wPct, double hPct,
 			boolean allowResize, boolean isModal) {
 		if (parent == null) {
@@ -73,11 +76,28 @@ public class SimpleBrowserWindow
 		shell.setLayout(new FillLayout());
 
 		Utils.setShellIcon(shell);
-
-		Browser browser = null;
 		
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
+			
+			shell.addListener(
+					SWT.Close,
+					new Listener()
+					{
+						public void 
+						handleEvent(
+							Event arg0) 
+						{
+							try{
+								if ( browser != null ){
+								
+									browser.setUrl( "about:blank" );
+									browser.setVisible(false);
+								}
+							}catch( Throwable e ){
+							}
+						}
+					});
 		} catch (Throwable t) {
 			shell.dispose();
 			return;
