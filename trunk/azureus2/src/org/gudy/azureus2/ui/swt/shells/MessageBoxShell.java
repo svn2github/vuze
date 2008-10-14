@@ -113,6 +113,8 @@ public class MessageBoxShell
 
 	private Image iconImage;
 
+	private Browser shell_browser;
+	
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
 		return open(parent, title, text, buttons, defaultOption, null, false, -1);
@@ -233,6 +235,26 @@ public class MessageBoxShell
 		}
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
+		shell.addListener(
+			SWT.Close,
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event arg0) 
+				{
+					try{
+						if ( shell_browser != null ){
+						
+							shell_browser.setUrl( "about:blank" );
+							shell_browser.setVisible(false);
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
+			});
+		
 		GridLayout gridLayout = new GridLayout();
 		
 		if ( squish ){
@@ -279,7 +301,7 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				final Browser browser = new Browser(shell,
+				final Browser browser = shell_browser = new Browser(shell,
 						Utils.getInitialBrowserStyle(SWT.NONE));
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
