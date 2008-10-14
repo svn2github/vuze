@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -66,6 +67,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginConfigListener;
@@ -896,6 +898,37 @@ SubscriptionManagerUI
 			
 			addSubscription( side_bar, subs[i], false );
 		}
+		
+		side_bar.addListener(
+			new SideBarListener() 
+			{
+				private long last_select = 0;
+				
+				public void 
+				sidebarItemSelected(
+					SideBarEntrySWT new_entry,
+					SideBarEntrySWT old_entry ) 
+				{
+					if ( new_entry == old_entry ){
+						
+						IView view = new_entry.getIView();
+						
+						if ( view instanceof subscriptionView ){
+							
+							try{
+								
+								if ( SystemTime.getMonotonousTime() - last_select > 1000 ){
+									
+									((subscriptionView)view).updateBrowser();
+								}
+							}finally{
+								
+								last_select = SystemTime.getMonotonousTime();
+							}
+						}
+					}
+				}
+			});
 	}
 	
 	protected void
