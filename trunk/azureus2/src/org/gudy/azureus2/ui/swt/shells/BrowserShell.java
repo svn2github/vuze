@@ -49,6 +49,8 @@ BrowserShell
 
 		boxShell.setUrl( url );
 
+		boxShell.setBrowserFollowLinks( true );
+		
 		boxShell.setSquish( true );
 		
 		boxShell.setSize( width, height );

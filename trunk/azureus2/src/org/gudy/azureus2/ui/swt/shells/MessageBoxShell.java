@@ -115,6 +115,8 @@ public class MessageBoxShell
 
 	private Browser shell_browser;
 	
+	private boolean	browser_follow_links;
+	
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
 		return open(parent, title, text, buttons, defaultOption, null, false, -1);
@@ -316,7 +318,7 @@ public class MessageBoxShell
 					public void completed(ProgressEvent event) {
 						browser.addLocationListener(new LocationListener() {
 							public void changing(LocationEvent event) {
-								event.doit = false;
+								event.doit = browser_follow_links;
 							}
 
 							public void changed(LocationEvent event) {
@@ -1285,6 +1287,13 @@ public class MessageBoxShell
 		return urlColor;
 	}
 
+	public void
+	setBrowserFollowLinks(
+		boolean		follow )
+	{
+		browser_follow_links = follow;
+	}
+	
 	public void setUrlColor(Color colorURL) {
 		this.urlColor = colorURL;
 	}
