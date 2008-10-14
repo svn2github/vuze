@@ -90,6 +90,7 @@ public class SubscriptionWizard {
 	TabItem   createSearchTabItem;
 	Composite availableSubscriptionComposite;
 	
+	Table libraryTable;
 	Listener rssSaveListener;
 	Listener searchListener;
 	
@@ -244,8 +245,36 @@ public class SubscriptionWizard {
 		
 		shell.layout();
 		shell.open();
+		
+		setInitialViews();
 	}
 	
+	protected void
+	setInitialViews()
+	{
+		if ( availableSubscriptions != null ){
+			
+			for (int i=0;i<availableSubscriptions.length;i++){
+				
+				SubscriptionDownloadDetails details = availableSubscriptions[i];
+				
+				if ( details.getDownload()== download ){
+						
+					final int f_i = i;
+					
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void 
+							run() 
+							{	
+								libraryTable.setTopIndex( f_i );
+							}
+						});
+				}
+			}
+		}
+	}
 	private void populateHeader(Composite header) {
 		header.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
 		title = new Label(header, SWT.WRAP);
@@ -587,7 +616,7 @@ public class SubscriptionWizard {
 		subtitle1.setText(MessageText.getString("Wizard.Subscription.subscribe.library"));
 		subtitle2.setText(MessageText.getString("Wizard.Subscription.subscribe.subscriptions"));
 
-		final Table libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
+		libraryTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		
 		final TableColumn torrentColumn = new TableColumn(libraryTable, SWT.NONE);
 		torrentColumn.setWidth(50);
