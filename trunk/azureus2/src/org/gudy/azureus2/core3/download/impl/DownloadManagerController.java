@@ -2110,6 +2110,9 @@ DownloadManagerController
 		}
 
 		public int nbFiles() {
+			if (delegate == null) {
+				return 0;
+			}
 			return delegate.nbFiles();
 		}
 
