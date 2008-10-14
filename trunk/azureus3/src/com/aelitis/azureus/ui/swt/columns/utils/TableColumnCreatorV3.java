@@ -58,6 +58,10 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, NameItem.COLUMN_ID);
 				tc.setSortAscending(true);
 			}
+			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			if (tcName != null) {
+				tcName.setWidth(220);
+			}
 		}
 
 		// special changes
@@ -71,6 +75,14 @@ public class TableColumnCreatorV3
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
+		}
+		
+		if (big) {
+			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
+			if (tcShareRatioItem != null) {
+				tcShareRatioItem.setChangeFG(false);
+				tcShareRatioItem.setWidth(80);
+			}
 		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
@@ -125,7 +137,7 @@ public class TableColumnCreatorV3
 			}
 			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 			if (tcName != null) {
-				tcName.setWidth(200);
+				tcName.setWidth(140);
 			}
 		}
 
@@ -140,6 +152,13 @@ public class TableColumnCreatorV3
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
+		}
+		if (big) {
+			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
+			if (tcShareRatioItem != null) {
+				tcShareRatioItem.setChangeFG(false);
+				tcShareRatioItem.setWidth(80);
+			}
 		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
@@ -171,6 +190,10 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
+			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			if (tcName != null) {
+				tcName.setWidth(265);
+			}
 		}
 
 		// special changes
@@ -184,6 +207,13 @@ public class TableColumnCreatorV3
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
 		if (tcNameItem != null) {
 			tcNameItem.setShowIcon(false);
+		}
+		if (big) {
+			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
+			if (tcShareRatioItem != null) {
+				tcShareRatioItem.setChangeFG(false);
+				tcShareRatioItem.setWidth(80);
+			}
 		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
@@ -209,6 +239,10 @@ public class TableColumnCreatorV3
 				tcManager.setDefaultSortColumnName(tableID,
 						ColumnActivityDate.COLUMN_ID);
 				tc.setSortAscending(false);
+			}
+			ColumnActivityText tcText = (ColumnActivityText) mapTCs.get(ColumnActivityText.COLUMN_ID);
+			if (tcText != null) {
+				tcText.setWidth(445);
 			}
 		}
 
