@@ -1700,6 +1700,7 @@ public class SideBar
 		final SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
 
 		if (currentSideBarEntry == newSideBarInfo) {
+			triggerListener(newSideBarInfo, newSideBarInfo);
 			return;
 		}
 
@@ -1836,6 +1837,7 @@ public class SideBar
 			}
 		}
 
+		triggerListener(oldSideBarInfo, newSideBarInfo);
 	}
 
 	/**
