@@ -70,6 +70,8 @@ public class AddFriendsPage
 	
 	private SharePage sharePage;
 
+	private String message = null;
+	
 	public AddFriendsPage(MultipageWizard wizard) {
 		this(wizard,null);
 	}
@@ -106,10 +108,14 @@ public class AddFriendsPage
 		browser.setUrl(url);
 
 		getMessageContext();
-
+		
 		return content;
 	}
 
+	public void setMessage(String message) {
+		this.message = message;
+	}
+	
 	public String getPageID() {
 		return ID;
 	}
@@ -223,6 +229,11 @@ public class AddFriendsPage
 					 */
 					context.executeInBrowser("inviteFromShare(" + !isStandalone + ")");
 					context.removeMessageListener(this);
+					
+					if(message != null) {
+						getMessageContext().executeInBrowser(
+								"preSelect(\"" + message + "\")");
+					}
 				}
 			});
 			/*

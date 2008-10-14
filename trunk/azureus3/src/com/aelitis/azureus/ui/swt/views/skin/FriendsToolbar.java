@@ -582,7 +582,7 @@ public class FriendsToolbar
 		content.layout(true);
 	}
 	
-	public void addBuddy() {
+	public void addBuddy(final String message) {
 		if (!VuzeBuddyManager.isEnabled()) {
 			VuzeBuddyManager.showDisabledDialog();
 			return;
@@ -590,13 +590,17 @@ public class FriendsToolbar
 
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
-				_addBuddy();
+				_addBuddy(message);
 			}
 
 		});
 	}
+	
+	public void addBuddy() {
+		addBuddy(null);
+	}
 
-	protected void _addBuddy() {
+	protected void _addBuddy(final String message) {
 		addFriends.setEnabled(false);
 		showHideButton.setEnabled(false);
 		edit.setEnabled(false);
@@ -618,7 +622,11 @@ public class FriendsToolbar
 					UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
 					SWT.DIALOG_TRIM | SWT.RESIZE) {
 				public void createPages() {
-					addPage(new AddFriendsPage(this));
+					AddFriendsPage add = new AddFriendsPage(this);
+					if(message != null) {
+						add.setMessage(message);
+					}
+					addPage(add);
 				}
 			};
 			shell.setText("Vuze - Wizard");

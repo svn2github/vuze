@@ -22,6 +22,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeFriendUtils;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -123,9 +124,14 @@ public class DisplayListener
 			refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
 		} else if (OP_INVITE_FRIEND.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
-			VuzeFriendUtils.getInstance().invite(
-					MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,
-							null));
+			FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
+			if(friendsToolbar != null) {
+				friendsToolbar.addBuddy(MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,	null));
+			}
+			
+//			VuzeFriendUtils.getInstance().invite(
+//					MapUtils.getMapString(decodedMap, OP_INVITE_FRIEND_PARAM_MESSAGE,
+//							null));
 		} else if (OP_SET_SELECTED_CONTENT.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			if (decodedMap != null) {
