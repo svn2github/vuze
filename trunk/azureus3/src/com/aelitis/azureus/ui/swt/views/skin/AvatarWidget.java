@@ -288,7 +288,7 @@ public class AvatarWidget
 										MessageText.getString("v3.buddies.dnd.info.dialog.remember"),
 										false, 0);
 
-								mb.open(false);
+								mb.open();
 
 								creationPercent = 0;
 								isCreatingFile = true;
@@ -1041,7 +1041,7 @@ public class AvatarWidget
 
 		//Testing for == 1 is not good, because closing the shell actually returns -1
 		//which is != 1, and therefore it proceeds with the removal of the buddy.
-		if (0 != mBox.open(false)) {
+		if (0 != mBox.open()) {
 			return;
 		}
 		try {
