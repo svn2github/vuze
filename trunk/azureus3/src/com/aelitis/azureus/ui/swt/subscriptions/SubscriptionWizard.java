@@ -911,6 +911,10 @@ public class SubscriptionWizard {
 		if(availableSubscriptions != null && availableSubscriptions.length > 0) {
 			libraryTable.setLayoutData(data);
 		} else {
+			// hack: dispose libraryTable as it's not needed and draws over controls
+			//       (makes a white box covering text).  Would be smarter to not
+			//       create the libraryTable at all..
+			libraryTable.dispose();
 			compEmpty.setLayoutData(data);
 		}
 
