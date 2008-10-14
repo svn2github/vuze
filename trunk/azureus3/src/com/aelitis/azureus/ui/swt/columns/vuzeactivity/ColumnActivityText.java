@@ -156,7 +156,7 @@ public class ColumnActivityText
 			URLInfo hitUrl = sp.getHitUrl(event.x + bounds.x, event.y + bounds.y);
 			int newCursor;
 			if (hitUrl != null) {
-				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
+				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
 					if (VuzeActivitiesEntryContentShare.URL_USERMESSAGE.equals(hitUrl.url)) {
 						String userMessage = ((VuzeActivitiesEntryContentShare) entry).getUserMessage();
 						Utils.openMessageBox(null, SWT.OK, "", userMessage);
