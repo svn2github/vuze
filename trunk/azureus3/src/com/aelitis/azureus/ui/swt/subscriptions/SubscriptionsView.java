@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -273,6 +274,9 @@ public class SubscriptionsView
 		FontData fDatas[] = font.getFontData();
 		for(int i = 0 ; i < fDatas.length ; i++) {
 			fDatas[i].setHeight(150 * fDatas[i].getHeight() / 100);
+			if(Constants.isWindows) {
+				fDatas[i].setStyle(SWT.BOLD);
+			}
 		}
 		
 		textFont1 = new Font(composite.getDisplay(),fDatas);
