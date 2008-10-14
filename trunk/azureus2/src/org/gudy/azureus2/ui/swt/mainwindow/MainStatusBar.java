@@ -284,13 +284,14 @@ public class MainStatusBar
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
 					
-					String url  = "http://www.vuze.com/feedback?" + Utils.getWidgetBGColorURLParam();
+					String 	host = System.getProperty("platform_address", "www.vuze.com" );
+					String	port = System.getProperty("platform_port", "" );
+
+					String url  = "http://" + host + (port.length()==0?"":(":" + port )) + "/feedback?" + Utils.getWidgetBGColorURLParam();
 					
 					// Utils.launch( url );
-					
-						// 590 x 680
-					
-					new BrowserShell( "statusbar.feedback", url, 600, 690 );
+										
+					new BrowserShell( "statusbar.feedback", url, 600, 520 );
 				}
 			};
 			
