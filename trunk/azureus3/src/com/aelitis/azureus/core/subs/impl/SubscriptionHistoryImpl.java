@@ -34,8 +34,6 @@ public class
 SubscriptionHistoryImpl
 	implements SubscriptionHistory
 {
-	private static final boolean MARK_INITIAL_RESULTS_READ_IF_NOT_MY_SUBS		= false;
-	
 	private SubscriptionManagerImpl		manager;
 	private SubscriptionImpl			subs;
 	
@@ -68,20 +66,14 @@ SubscriptionHistoryImpl
 	{
 		int	new_unread 	= 0;
 		int new_read	= 0;
-		
-		if ( MARK_INITIAL_RESULTS_READ_IF_NOT_MY_SUBS ){
-			
-			if ( last_scan == 0 ){
-				
-					// first download of someone else's feed -> mark all existing as read
-				
-				if ( !subs.isMine()){
 					
-					for (int i=0;i<latest_results.length;i++){
+		if ( last_scan == 0 ){
+				
+					// first download feed -> mark all existing as read
+									
+			for (int i=0;i<latest_results.length;i++){
 						
-						latest_results[i].setReadInternal(true);
-					}
-				}
+				latest_results[i].setReadInternal(true);
 			}
 		}
 		
