@@ -26,12 +26,15 @@ import java.net.URL;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -78,6 +81,8 @@ public class SWTSkinObjectBrowser
 	private String urlToUse;
 
 	private boolean forceVisibleAfterLoad;
+	
+	private static boolean doneTheUglySWTFocusHack = false;
 
 	/**
 	 * @param skin
@@ -130,6 +135,17 @@ public class SWTSkinObjectBrowser
 			return;
 		}
 
+		//TODO [SWT] : Remove this stupid code as soon as we update SWT
+		if(Constants.isOSX && ! doneTheUglySWTFocusHack) {
+			doneTheUglySWTFocusHack = true;
+			Shell shell = new Shell(browser.getDisplay(),SWT.NONE);
+			shell.setSize(1,1);
+			shell.setLocation(-2, -2);
+			shell.open();
+			shell.close();
+			browser.setFocus();
+		}
+		
 		Control widgetIndicator = null;
 		String sIndicatorWidgetID = properties.getStringValue(sConfigID
 				+ ".indicator");
@@ -165,6 +181,7 @@ public class SWTSkinObjectBrowser
 						SelectedContentManager.clearCurrentlySelectedContent();
 					}
 				}
+				
 			}
 		});
 
@@ -205,6 +222,9 @@ public class SWTSkinObjectBrowser
 					}
 					if (browser != null) {
 						browser.setUrl(urlToUse);
+						if(browser.isVisible()) {
+							browser.setFocus();
+						}
 					}
 				}
 				if (sStartURL == null) {
