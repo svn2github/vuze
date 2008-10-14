@@ -1,8 +1,10 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -124,7 +126,19 @@ public class SubscriptionWizard {
 
 		this.download = download;
 		
-		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		SubscriptionDownloadDetails[] allSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		List notYetSubscribed = new ArrayList(allSubscriptions.length);
+		for(int i = 0 ; i < allSubscriptions.length ; i++) {
+			Subscription[] subs = allSubscriptions[i].getSubscriptions();
+			boolean subscribedToAll = true;
+			for(int j = 0 ; j < subs.length ; j++) {
+				subscribedToAll = subscribedToAll && subs[j].isSubscribed();
+			}
+			if(!subscribedToAll) {
+				notYetSubscribed.add(allSubscriptions[i]);
+			}
+		}
+		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);
 		Arrays.sort(availableSubscriptions,new Comparator() {
 			public int compare(Object o1, Object o2) {
 				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
@@ -708,8 +722,6 @@ public class SubscriptionWizard {
 						}
 					});
 					subscriptionTable.setItemCount(subscriptions.length);
-				} else {
-					subscriptionTable.setItemCount((int) (Math.random() * 10 + 1));
 				}
 				
 				addButton.setEnabled(false);
@@ -741,6 +753,11 @@ public class SubscriptionWizard {
 			          }
 			          if(index == 0 && download == null) {
 			        	  libraryTable.setSelection(item);
+			        	  selectionListener.handleEvent(event);
+			          }
+			          if(libraryTable.getSelectionIndex() == index) {
+			        	  //If the item was already selected and we got the SetData afterwards, then let's populate the 
+			        	  //subscriptionsTable
 			        	  selectionListener.handleEvent(event);
 			          }
 				}
