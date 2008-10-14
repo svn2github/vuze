@@ -1113,7 +1113,7 @@ TRTrackerBTAnnouncerImpl
 			  				
 			  		if (udpAnnounceURL != null)
 					{
-						failure_reason = announceUDP(reqUrl, message, true);
+						failure_reason = announceUDP(reqUrl, message, !udp_probe);
 						if ((failure_reason != null || message.size() == 0) && udp_probe)
 						{
 							// automatic UDP probe failed, use HTTP again

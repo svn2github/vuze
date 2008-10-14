@@ -485,10 +485,14 @@ public class TrackerStatus {
 				
 		  		URL udpScrapeURL = null;
 		  		
+		  		boolean auto_probe = false;
+		  		
 		  		if(protocol.equalsIgnoreCase("udp") && udpScrapeEnabled)
 		  			udpScrapeURL = reqUrl;
-		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0 && udpScrapeEnabled)
+		  		else if(protocol.equalsIgnoreCase("http") && !az_tracker && scrapeCount % autoUDPscrapeEvery == 0 && udpScrapeEnabled) {
 		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  			auto_probe = true;
+		  		}
 		  			
 		  		
 		  		try{
@@ -498,7 +502,7 @@ public class TrackerStatus {
 
 			  		if ( udpScrapeURL != null){
 			  			
-			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP, true );
+			  			boolean success = scrapeUDP( reqUrl, message, hashesForUDP, !auto_probe );
 			  			
 			  			if((!success || message.size() == 0) && !protocol.equalsIgnoreCase("udp"))
 			  			{ // automatic UDP probe failed, use HTTP again
