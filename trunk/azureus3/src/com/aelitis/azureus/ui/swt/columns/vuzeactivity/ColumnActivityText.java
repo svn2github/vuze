@@ -26,7 +26,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
@@ -81,7 +80,7 @@ public class ColumnActivityText
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 		String text = entry.getText();
-		Rectangle bounds = getDrawBounds(cell);
+		Rectangle drawBounds = getDrawBounds(cell);
 		
 		if (!entry.isRead()) {
 			if (font == null) {
@@ -92,9 +91,9 @@ public class ColumnActivityText
 			gc.setFont(font);
 		}
 		
-		int style = (bounds.height < 40) ? 0 : SWT.WRAP;
+		int style = (drawBounds.height < 40) ? 0 : SWT.WRAP;
 
-		GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, true,
+		GCStringPrinter sp = new GCStringPrinter(gc, text, drawBounds, true, true,
 				style);
 
 		sp.calculateMetrics();
@@ -112,8 +111,9 @@ public class ColumnActivityText
 			}
 			int[] mouseOfs = cell.getMouseOffset();
 			if (mouseOfs != null) {
-				URLInfo hitUrl = sp.getHitUrl(mouseOfs[0] + bounds.x, mouseOfs[1]
-						+ bounds.y);
+				Rectangle realBounds = cell.getBounds();
+				URLInfo hitUrl = sp.getHitUrl(mouseOfs[0] + realBounds.x, mouseOfs[1]
+						+ realBounds.y);
 				if (hitUrl != null) {
 					hitUrl.urlColor = colorLinkHover;
 				}
@@ -137,6 +137,7 @@ public class ColumnActivityText
 		boolean invalidateAndRefresh = false;
 
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) event.cell.getDataSource();
+		//Rectangle bounds = getDrawBounds((TableCellSWT) event.cell);
 		Rectangle bounds = ((TableCellSWT) event.cell).getBounds();
 
 		String text = entry.getText();
@@ -144,7 +145,11 @@ public class ColumnActivityText
 		GCStringPrinter sp = null;
 		GC gc = new GC(Display.getDefault());
 		try {
-			sp = new GCStringPrinter(gc, text, bounds, true, true, SWT.WRAP);
+			if (!entry.isRead() && font != null) {
+				gc.setFont(font);
+			}
+			Rectangle drawBounds = getDrawBounds((TableCellSWT) event.cell);
+			sp = new GCStringPrinter(gc, text, drawBounds, true, true, SWT.WRAP);
 			sp.calculateMetrics();
 		} catch (Exception e) {
 			Debug.out(e);
@@ -204,17 +209,15 @@ public class ColumnActivityText
 			}
 		}
 
+		event.cell.invalidate();
 		if (invalidateAndRefresh) {
 			event.cell.invalidate();
+			((TableCellSWT)event.cell).redraw();
 		}
 	}
 
 	private Rectangle getDrawBounds(TableCellSWT cell) {
 		Rectangle bounds = cell.getBounds();
-		if (bounds.height < 40) {
-			bounds.height -= 8;
-			bounds.y += 4;
-		}
 		bounds.x += 4;
 		bounds.width -= 4;
 
