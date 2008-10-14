@@ -44,9 +44,6 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.components.shell.StyledShell;
-import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
-import org.gudy.azureus2.ui.swt.components.widgets.MiniCloseButton;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
@@ -102,6 +99,8 @@ public class MessageBoxShell
 
 	private String url;
 
+	private boolean	squish;
+	
 	private boolean autoClosed = false;
 
 	private Object[] relatedObjects;
@@ -185,7 +184,7 @@ public class MessageBoxShell
 		return open(false);
 	}
 
-	public int open(final boolean useCustomShell) {
+	private int open(final boolean useCustomShell) {
 		if (rememberID != null) {
 			int rememberedDecision = RememberedDecisionsManager.getRememberedDecision(rememberID);
 			if (rememberedDecision >= 0) {
@@ -200,11 +199,11 @@ public class MessageBoxShell
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (true == useCustomShell) {
-					result[0] = _open2();
-				} else {
+				//if (true == useCustomShell) {
+				//	result[0] = _open2();
+				//} else {
 					result[0] = _open();
-				}
+				//}
 			}
 		}, false);
 
@@ -235,6 +234,18 @@ public class MessageBoxShell
 		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
 		GridLayout gridLayout = new GridLayout();
+		
+		if ( squish ){
+			gridLayout.verticalSpacing 		= 0;
+			gridLayout.horizontalSpacing	= 0;
+			gridLayout.marginLeft			= 0;
+			gridLayout.marginRight			= 0;
+			gridLayout.marginTop			= 0;
+			gridLayout.marginBottom			= 0;
+			gridLayout.marginWidth			= 0;
+			gridLayout.marginHeight			= 0;
+		}
+			
 		shell.setLayout(gridLayout);
 		Utils.setShellIcon(shell);
 
@@ -259,8 +270,12 @@ public class MessageBoxShell
 		}
 
 		Control linkControl;
-		linkControl = createLinkLabel(textComposite, text);
-
+		if ( text != null && text.length() > 0 ){
+			linkControl = createLinkLabel(textComposite, text);
+		}else{
+			linkControl = null;
+		}
+		
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
@@ -273,6 +288,7 @@ public class MessageBoxShell
 				}
 				GridData gd = new GridData(GridData.FILL_BOTH);
 				gd.heightHint = 200;
+
 				browser.setLayoutData(gd);
 				browser.addProgressListener(new ProgressListener() {
 					public void completed(ProgressEvent event) {
@@ -305,15 +321,21 @@ public class MessageBoxShell
 				}
 			}
 
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			linkControl.setLayoutData(gridData);
+			if ( linkControl != null ){
+				gridData = new GridData(GridData.FILL_HORIZONTAL);
+				linkControl.setLayoutData(gridData);
+			}
 		} else {
-			gridData = new GridData(GridData.FILL_BOTH);
-			linkControl.setLayoutData(gridData);
+			if ( linkControl != null ){
+				gridData = new GridData(GridData.FILL_BOTH);
+				linkControl.setLayoutData(gridData);
+			}
 		}
 
-		Label lblPadding = new Label(shell, SWT.NONE);
-		lblPadding.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		if ( !squish ){
+			Label lblPadding = new Label(shell, SWT.NONE );
+			lblPadding.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
 
 		// Closing in..
 		if (autoCloseInMS > 0) {
@@ -427,11 +449,14 @@ public class MessageBoxShell
 
 		if ( buttons.length > 0 ){
 			
+			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
+			labelSeparator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
 			Composite cButtons = new Composite(shell, SWT.NONE);
 			FormLayout layout = new FormLayout();
 	
 			cButtons.setLayout(layout);
-			gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
+			gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			cButtons.setLayoutData(gridData);
 	
 			Control lastButton = null;
@@ -548,6 +573,7 @@ public class MessageBoxShell
 		return result[0];
 	}
 
+	/*
 	private int _open2() {
 		final int[] result = {
 			-1
@@ -560,9 +586,9 @@ public class MessageBoxShell
 			}
 		}
 
-		/*
-		 * Use a lighter blue color so it shows up better with the dark background
-		 */
+		
+		 // Use a lighter blue color so it shows up better with the dark background
+		 
 		setUrlColor(ColorCache.getColor(parent.getDisplay(), 109, 165, 255));
 
 		MouseTrackAdapter mouseAdapter = null;
@@ -609,9 +635,9 @@ public class MessageBoxShell
 		titleLabel.setLayoutData(new GridData(GridData.FILL_BOTH));
 		Utils.setFontHeight(titleLabel, 12, SWT.NORMAL);
 
-		/*
-		 * Setting cursor and allowing moving of the shell by dragging the title
-		 */
+		
+		 // Setting cursor and allowing moving of the shell by dragging the title
+		
 		titleLabel.setCursor(display.getSystemCursor(SWT.CURSOR_SIZEALL));
 		Listener l = new Listener() {
 			int startX, startY;
@@ -893,9 +919,9 @@ public class MessageBoxShell
 	
 				if (i == defaultOption) {
 					button.setFocus();
-					/*
-					 * KN: TODO: Must implement default button behavior
-					 */
+				
+					 // KN: TODO: Must implement default button behavior
+					
 					//				shell.setDefaultButton(button);
 				}
 	
@@ -976,7 +1002,8 @@ public class MessageBoxShell
 
 		return result[0];
 	}
-
+	*/
+	
 	/**
 	 * Adds mousetracklistener to composite and all it's children
 	 * 
@@ -1142,6 +1169,8 @@ public class MessageBoxShell
 		this.autoCloseInMS = autoCloseInMS;
 	}
 
+	public void setSquish( boolean b ){ squish = b; }
+	
 	/**
 	 * @return the autoClosed
 	 */

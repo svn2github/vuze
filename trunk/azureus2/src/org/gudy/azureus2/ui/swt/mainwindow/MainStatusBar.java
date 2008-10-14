@@ -288,7 +288,9 @@ public class MainStatusBar
 					
 					// Utils.launch( url );
 					
-					new BrowserShell( "statusbar.feedback", url, 800, 600 );
+						// 590 x 680
+					
+					new BrowserShell( "statusbar.feedback", url, 600, 690 );
 				}
 			};
 			
