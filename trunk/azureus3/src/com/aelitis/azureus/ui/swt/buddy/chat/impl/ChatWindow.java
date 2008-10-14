@@ -342,7 +342,7 @@ public class ChatWindow implements DiscussionListener {
 			}
 		}
 
-		hideAllOthers();
+//		hideAllOthers();
 		shell.open();
 		
 		//Need to post to display in order to NOT catch the mouse up event which would hide this window...
@@ -513,7 +513,7 @@ public class ChatWindow implements DiscussionListener {
 	
 	public void show() {
 		if(!shell.isDisposed()) {
-			hideAllOthers();
+//			hideAllOthers();
 			setPosition();
 			shell.setVisible(true);
 			input.setFocus();
