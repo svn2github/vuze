@@ -400,6 +400,10 @@ public class SBC_LibraryView
 		final GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
+				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+						|| PlatformTorrentUtils.isUpdateDM(dm)) {
+					return;
+				}
 				if (dm.getAssumedComplete()) {
 					boolean isSeeding = dm.getState() == DownloadManager.STATE_SEEDING;
 					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
@@ -414,10 +418,6 @@ public class SBC_LibraryView
 						dm.setUserData("wasSeeding", new Boolean(isSeeding));
 					}
 				} else {
-					if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
-							|| PlatformTorrentUtils.isUpdateDM(dm)) {
-						return;
-					}
 					boolean isDownloading = dm.getState() == DownloadManager.STATE_DOWNLOADING;
 					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
 					boolean wasDownloading = wasDownloadingB == null ? false
@@ -451,6 +451,10 @@ public class SBC_LibraryView
 			}
 
 			public void completionChanged(DownloadManager dm, boolean completed) {
+				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+						|| PlatformTorrentUtils.isUpdateDM(dm)) {
+					return;
+				}
 				if (completed) {
 					numComplete++;
 					numIncomplete--;
@@ -523,6 +527,10 @@ public class SBC_LibraryView
 
 		gm.addListener(new GlobalManagerAdapter() {
 			public void downloadManagerRemoved(DownloadManager dm) {
+				if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+						|| PlatformTorrentUtils.isUpdateDM(dm)) {
+					return;
+				}
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					numComplete--;
@@ -557,6 +565,10 @@ public class SBC_LibraryView
 		List downloadManagers = gm.getDownloadManagers();
 		for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
+			if (PlatformTorrentUtils.getAdId(dm.getTorrent()) != null
+					|| PlatformTorrentUtils.isUpdateDM(dm)) {
+				continue;
+			}
 			dm.addListener(dmListener, false);
 			if (dm.getAssumedComplete()) {
 				numComplete++;
