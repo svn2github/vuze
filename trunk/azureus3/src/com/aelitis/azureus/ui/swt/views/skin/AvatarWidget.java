@@ -845,13 +845,13 @@ public class AvatarWidget
 			}
 		});
 
-		canvas.addListener(SWT.Move, new Listener() {
-			public void handleEvent(Event arg0) {
-				if (chatWindow != null && chatWindow.isVisible()) {
-					chatWindow.setPosition();
-				}
-			}
-		});
+//		canvas.addListener(SWT.Move, new Listener() {
+//			public void handleEvent(Event arg0) {
+//				if (chatWindow != null && chatWindow.isVisible()) {
+//					chatWindow.setPosition();
+//				}
+//			}
+//		});
 
 		initMenu();
 	}

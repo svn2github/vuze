@@ -116,7 +116,7 @@ public class ChatWindow implements DiscussionListener {
 		
 		shell.addListener(SWT.Close, new Listener() {
 			public void handleEvent(Event e) {
-					hide();
+					close();
 			}
 		});
 		
@@ -143,6 +143,7 @@ public class ChatWindow implements DiscussionListener {
 		formLayout.marginRight = 0;
 		
 		mainPanel.setLayout(formLayout);
+		mainPanel.setBackgroundMode(SWT.INHERIT_DEFAULT);
 		
 		myNameHighligther = new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -207,66 +208,7 @@ public class ChatWindow implements DiscussionListener {
 		
 		
 		FormData data;
-		
-		final Label close = new Label(mainPanel,SWT.NONE);
-		close.setBackground(mainPanel.getBackground());
-		close.setImage(ImageRepository.getImage("button_skin_close"));
-		close.addMouseTrackListener(new MouseTrackListener() {
-			public void mouseEnter(MouseEvent arg0) {
-				close.setImage(ImageRepository.getImage("button_skin_close-over"));
-			}
-			public void mouseExit(MouseEvent arg0) {
-				close.setImage(ImageRepository.getImage("button_skin_close"));
-			}
-			public void mouseHover(MouseEvent arg0) {
-				
-			}
-		});
-		
-		//close.setText("X");
-		close.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-		close.addListener(SWT.MouseUp, new Listener() {
-			public void handleEvent(Event arg0) {
-				close();
-				
-			}
-		});
-		
-		data = new FormData();
-		data.right = new FormAttachment(100,-border);
-		data.top = new FormAttachment(0,border);
-		close.setLayoutData(data);
-		
-		final Label hide = new Label(mainPanel,SWT.PUSH);
-		hide.setBackground(mainPanel.getBackground());
-		hide.setImage(ImageRepository.getImage("button_dialog_min"));
-		hide.addMouseTrackListener(new MouseTrackListener() {
-			public void mouseEnter(MouseEvent arg0) {
-				hide.setImage(ImageRepository.getImage("button_dialog_min-over"));
-			}
-			public void mouseExit(MouseEvent arg0) {
-				hide.setImage(ImageRepository.getImage("button_dialog_min"));
-			}
-			public void mouseHover(MouseEvent arg0) {
-				
-			}
-		});
-		
-		hide.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-		hide.addListener(SWT.MouseUp, new Listener() {
-			public void handleEvent(Event arg0) {
-				hide();
-			}
-		});
-		
-		
-		data = new FormData();
-		data.right = new FormAttachment(close,-border);
-		data.top = new FormAttachment(0,border);
-		hide.setLayoutData(data);
-		
-		
-	
+			
 		Canvas avatarPicture = new Canvas(mainPanel,SWT.NONE);
 		avatarPicture.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
@@ -284,13 +226,13 @@ public class ChatWindow implements DiscussionListener {
 		avatarPicture.setLayoutData(data);
 		
 		Label avatarName = new Label(mainPanel,SWT.NONE);
-		avatarName.setBackground(mainPanel.getBackground());
+//		avatarName.setBackground(mainPanel.getBackground());
 		avatarName.setFont(nameFont);
 		avatarName.setText(avatar.getVuzeBuddy().getDisplayName());
 		data = new FormData();
 		data.left = new FormAttachment(avatarPicture,spacing);
 		data.top = new FormAttachment(avatarPicture,-6,SWT.CENTER);
-		data.right = new FormAttachment(hide,-5);
+		data.right = new FormAttachment(100,-5);
 		avatarName.setLayoutData(data);
 		
 		/*Label header = new Label(shell,SWT.NONE);
@@ -380,12 +322,12 @@ public class ChatWindow implements DiscussionListener {
 		
 		setPosition();
 		
-		moveListener =  new Listener() {
-			public void handleEvent(Event arg0) {
-				setPosition();
-			}
-		};
-		avatarControl.getShell().addListener(SWT.Move,moveListener);
+//		moveListener =  new Listener() {
+//			public void handleEvent(Event arg0) {
+//				setPosition();
+//			}
+//		};
+//		avatarControl.getShell().addListener(SWT.Move,moveListener);
 		
 		input.setFocus();
 		
@@ -509,7 +451,7 @@ public class ChatWindow implements DiscussionListener {
 	public void close() {
 		discussion.clearAllMessages();
 		discussion.setListener( null );
-		avatar.getControl().getShell().removeListener(SWT.Move, moveListener);
+//		avatar.getControl().getShell().removeListener(SWT.Move, moveListener);
 		shell.dispose();
 		if(textFont != null && !textFont.isDisposed()) {
 			textFont.dispose();
