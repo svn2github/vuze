@@ -7,6 +7,8 @@ import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.OpenWindowListener;
 import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.StatusTextEvent;
+import org.eclipse.swt.browser.StatusTextListener;
 import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -61,6 +63,9 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 public class MessageBoxShell
 	implements UIFunctionsUserPrompter
 {
+	
+	private static final String STATUS_TEXT_CLOSE = "__VUZE__MessageBoxShell__CLOSE";
+	
 	private final static int MIN_SIZE_X_DEFAULT = 300;
 
 	private final static int MIN_SIZE_Y_DEFAULT = 120;
@@ -334,6 +339,18 @@ public class MessageBoxShell
 					public void changed(ProgressEvent event) {
 					}
 				});
+				
+				
+				browser.addStatusTextListener(new StatusTextListener() {
+					public void changed(StatusTextEvent event) {
+						if(STATUS_TEXT_CLOSE.equals(event.text)) {
+							shell.close();
+						}
+						
+					}
+					
+				});
+				
 			} catch (Exception e) {
 				Debug.out(e);
 				if (html != null) {
