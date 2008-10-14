@@ -32,7 +32,7 @@ CHANGE: UI    | Improve performance with single data source dispatch aggregator 
 CHANGE: UI    | Debug messages are no longer displayed by default when running the console UI [amc1]
 CHANGE: UI    | The comment icon column now displays a blank icon if there is no comment (rather than no icon) [amc1]
 CHANGE: UI    | Delete priority is now properly reflected in the Priority column [The 8472]
-CHANGE: UIv3  | Faster UI Startup [TuxPaper]
+CHANGE: UIv3  | Faster Startup [parg,TuxPaper]
 CHANGE: UIv3  | Reduced UI memory footprint [TuxPaper]
 CHANGE: Plug  | Essential plugins are now automatically re-enabled if previously disabled by user [amc1]
                  - the "Start / Stop Rules" plugin was disabled by users in the past, this was causing torrents to be stuck in "waiting" state
