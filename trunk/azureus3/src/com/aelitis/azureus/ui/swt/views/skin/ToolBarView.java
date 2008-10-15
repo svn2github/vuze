@@ -576,18 +576,22 @@ public class ToolBarView
 			if (canRun) {
   			ISelectedContent content = currentContent[0];
   			DownloadManager dm = content.getDM();
-  			
-  			TOTorrent torrent = dm.getTorrent();
-  			if (!dm.getAssumedComplete() && torrent != null
-						&& torrent.isSimpleTorrent()) {
+
+  			if (dm == null) {
   				canRun = false;
-  			} else if (PlatformTorrentUtils.useEMP(torrent)
-						&& PlatformTorrentUtils.embeddedPlayerAvail()
-						&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
-  				// play button enabled and not UMP.. don't need launch
-  				canRun = false;
-  			} else if (PlatformTorrentUtils.getAdId(torrent) != null) {
-  				canRun = false;
+  			} else {
+    			TOTorrent torrent = dm.getTorrent();
+    			if (!dm.getAssumedComplete() && torrent != null
+  						&& torrent.isSimpleTorrent()) {
+    				canRun = false;
+    			} else if (PlatformTorrentUtils.useEMP(torrent)
+  						&& PlatformTorrentUtils.embeddedPlayerAvail()
+  						&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
+    				// play button enabled and not UMP.. don't need launch
+    				canRun = false;
+    			} else if (PlatformTorrentUtils.getAdId(torrent) != null) {
+    				canRun = false;
+    			}
   			}
 			}
 			item.setEnabled(canRun);
