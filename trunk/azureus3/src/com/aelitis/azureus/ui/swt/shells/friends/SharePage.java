@@ -436,12 +436,14 @@ public class SharePage
 
 	private boolean alreadyShown = false;
 	public void performAboutToBeShown() {
-		if(alreadyShown) return;
-		alreadyShown = true;
 		
 		super.performAboutToBeShown();
 		friendsToolbar.enableShareButton(true);
+		
+		if(alreadyShown) return;
+		alreadyShown = true;
 
+		
 		/*
 		 * Init the browser if it was not done already
 		 */
