@@ -122,7 +122,7 @@ public abstract class Result {
 		
 		int superSeeds = getNbSuperSeeds();
 		if(superSeeds > 0) {
-			totalVirtualPeers  += 100 * superSeeds;
+			totalVirtualPeers  += 50 * superSeeds;
 		}
 		
 		int votes = getVotes();
