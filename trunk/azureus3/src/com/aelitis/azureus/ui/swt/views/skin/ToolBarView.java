@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
@@ -454,7 +455,6 @@ public class ToolBarView
 
 		String[] itemsNeedingDMSelection = {
 			"remove",
-			"run",
 			"up",
 			"down",
 			"top",
@@ -568,6 +568,29 @@ public class ToolBarView
 					canStop = true;
 				}
 			}
+		}
+
+		item = getToolBarItem("run");
+		if (item != null) {
+			boolean canRun = has1Selection;
+			if (canRun) {
+  			ISelectedContent content = currentContent[0];
+  			DownloadManager dm = content.getDM();
+  			
+  			TOTorrent torrent = dm.getTorrent();
+  			if (!dm.getAssumedComplete() && torrent != null
+						&& torrent.isSimpleTorrent()) {
+  				canRun = false;
+  			} else if (PlatformTorrentUtils.useEMP(torrent)
+						&& PlatformTorrentUtils.embeddedPlayerAvail()
+						&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
+  				// play button enabled and not UMP.. don't need launch
+  				canRun = false;
+  			} else if (PlatformTorrentUtils.getAdId(torrent) != null) {
+  				canRun = false;
+  			}
+			}
+			item.setEnabled(canRun);
 		}
 		
 		item = getToolBarItem("start");
