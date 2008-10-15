@@ -534,8 +534,16 @@ public class SBC_LibraryView
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					numComplete--;
+					Boolean wasDownloadingB = (Boolean) dm.getUserData("wasDownloading");
+					if (wasDownloadingB != null && wasDownloadingB.booleanValue()) {
+						numDownloading--;
+					}
 				} else {
 					numIncomplete--;
+					Boolean wasSeedingB = (Boolean) dm.getUserData("wasSeeding");
+					if (wasSeedingB != null && wasSeedingB.booleanValue()) {
+						numSeeding--;
+					}
 				}
 				refreshAllLibraries();
 				dm.removeListener(dmListener);
