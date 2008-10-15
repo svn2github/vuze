@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2008.xx.xx | Vuze 4.0.0.1
+
+
+
 2008.10.15 | Vuze 4.0.0.0
 
 FEATURE: Core | Async request processing for non-blocking tracker [Parg]
