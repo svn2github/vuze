@@ -81,8 +81,8 @@ Constants
   
   public static String APP_NAME = "Vuze";
   public static final String AZUREUS_NAME	  = "Azureus";
-  public static final String AZUREUS_VERSION  = "3.1.1.1_CVS";  //3.1.1.1_CVS
-  public static final byte[] VERSION_ID       = ("-" + "AZ" + "3111" + "-").getBytes();  //MUST be 8 chars long!
+  public static final String AZUREUS_VERSION  = "4.0.0.0";  //4.0.0.1_CVS
+  public static final byte[] VERSION_ID       = ("-" + "AZ" + "4000" + "-").getBytes();  //MUST be 8 chars long!
   
   
   public static final String  OSName = System.getProperty("os.name");

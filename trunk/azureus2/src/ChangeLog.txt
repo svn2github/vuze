@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2008.0x.xx | Vuze 3.1.1.1
+2008.10.15 | Vuze 4.0.0.0
 
 FEATURE: Core | Async request processing for non-blocking tracker [Parg]
 FEATURE: Core | Support HTTP redirects between http/https protocols in resource downloader [Parg]
@@ -61,6 +61,7 @@ BUGFIX: Plug  | Various fixes to avoid DHT running out of control under extreme 
 BUGFIX: Plug  | Fix magnet download timeouts [Parg]
 BUGFIX; Plug  | Fix DHT operation timeout bug introduced when moving to async exec [Parg]
 BUGFIX: Plug  | Limit buddy reconnect to avoid thrashing [Parg]
+
 
 
 2008.07.01 | Vuze 3.1.1.0
