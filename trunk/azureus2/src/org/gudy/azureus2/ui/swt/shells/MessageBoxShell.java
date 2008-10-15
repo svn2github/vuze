@@ -344,9 +344,16 @@ public class MessageBoxShell
 				browser.addStatusTextListener(new StatusTextListener() {
 					public void changed(StatusTextEvent event) {
 						if(STATUS_TEXT_CLOSE.equals(event.text)) {
-							shell.close();
+							//For some reason disposing the shell / browser in the same Thread makes
+							//ieframe.dll crash on windows.
+							Utils.execSWTThreadLater(0, new Runnable() {
+								public void run() {
+									if(!browser.isDisposed() && ! shell.isDisposed()) {
+										shell.close();
+									}
+								}
+							});
 						}
-						
 					}
 					
 				});
