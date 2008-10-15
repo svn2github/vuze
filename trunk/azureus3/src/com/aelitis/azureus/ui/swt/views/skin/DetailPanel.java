@@ -28,7 +28,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 public class DetailPanel
 	extends SkinView
@@ -186,7 +186,7 @@ public class DetailPanel
 		/*
 		 * Must bring lightbox back on top when ever a browser component is activated
 		 */
-		if (Constants.isOSX) {
+		if (ConstantsV3.isOSX) {
 			page.setActivationListener(new IDetailPage.ActivationListener() {
 				public void pageActivated() {
 					if (null != getLbShell()) {
@@ -314,7 +314,7 @@ public class DetailPanel
 													/*
 													 * For OSX after the layout operation is done must set focus so the ui will repaint properly
 													 */
-													if (true == Constants.isOSX && true == value) {
+													if (true == ConstantsV3.isOSX && true == value) {
 														content.setFocus();
 													}
 												}

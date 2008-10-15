@@ -65,7 +65,7 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -125,8 +125,8 @@ public class TorrentListViewsUtils
 			return;
 		}
 
-		String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash + ".html?"
-				+ Constants.URL_SUFFIX + "&client_ref=" + ref;
+		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS + hash + ".html?"
+				+ ConstantsV3.URL_SUFFIX + "&client_ref=" + ref;
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
@@ -137,13 +137,13 @@ public class TorrentListViewsUtils
 
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
-		String referal = Constants.DL_REFERAL_UNKNOWN;
+		String referal = ConstantsV3.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
-			referal = Constants.DL_REFERAL_PLAYDASHACTIVITY;
+			referal = ConstantsV3.DL_REFERAL_PLAYDASHACTIVITY;
 		} else if (ds instanceof DownloadManager) {
-			referal = Constants.DL_REFERAL_PLAYDM;
+			referal = ConstantsV3.DL_REFERAL_PLAYDM;
 		} else if (ds instanceof ISelectedContent) {
-			referal = Constants.DL_REFERAL_SELCONTENT;
+			referal = ConstantsV3.DL_REFERAL_SELCONTENT;
 		}
 		playOrStreamDataSource(ds, btn, referal);
 	}
@@ -189,7 +189,7 @@ public class TorrentListViewsUtils
 					}
 				}
 
-				String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD + hash
+				String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DOWNLOAD + hash
 						+ ".torrent?referal=" + referal;
 				dlInfo = new DownloadUrlInfo(url);
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
@@ -526,7 +526,7 @@ public class TorrentListViewsUtils
 
 		debugDCAD("enter - runInMediaPlayer");
 
-		if (Constants.isWindows) {
+		if (ConstantsV3.isWindows) {
 			String wmpEXE = Win32Utils.getWMP();
 			if (new File(wmpEXE).exists()) {
 				try {

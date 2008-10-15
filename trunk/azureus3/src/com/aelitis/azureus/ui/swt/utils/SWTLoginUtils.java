@@ -23,7 +23,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -105,15 +105,15 @@ public class SWTLoginUtils
 	 * @since 3.0.5.3
 	 */
 	public static LightBoxBrowserWindow openLoginWindow(String optionalMessage) {
-		String url = Constants.URL_PREFIX + Constants.URL_LOGIN + "?";
+		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_LOGIN + "?";
 		if (null == optionalMessage || optionalMessage.length() < 1) {
-			url += Constants.URL_SUFFIX;
+			url += ConstantsV3.URL_SUFFIX;
 		} else {
 			url += "msg=" + optionalMessage;
-			url += "&" + Constants.URL_SUFFIX;
+			url += "&" + ConstantsV3.URL_SUFFIX;
 		}
 
-		return new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+		return new LightBoxBrowserWindow(url, ConstantsV3.URL_PAGE_VERIFIER_VALUE,
 				380, 280);
 	}
 

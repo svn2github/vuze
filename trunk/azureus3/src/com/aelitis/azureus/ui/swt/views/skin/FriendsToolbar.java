@@ -42,7 +42,7 @@ import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -157,7 +157,7 @@ public class FriendsToolbar
 		
 		for(int i = 0 ; i < datas.length ; i++) {
 			datas[i].setStyle(SWT.BOLD);
-			if(Constants.isOSX) {
+			if(ConstantsV3.isOSX) {
 				datas[i].setHeight(11);
 			} else {
 				datas[i].setHeight(8);
@@ -167,7 +167,7 @@ public class FriendsToolbar
 		boldFont = new Font(content.getDisplay(),datas);
 		
 		for(int i = 0 ; i < datas.length ; i++) {
-			if(Constants.isOSX) {
+			if(ConstantsV3.isOSX) {
 				datas[i].setHeight(13);
 			} else {
 				datas[i].setHeight(10);

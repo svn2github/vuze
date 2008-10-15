@@ -68,6 +68,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerList
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginConfigListener;
@@ -1460,7 +1461,7 @@ SubscriptionManagerUI
 				context.addMessageListener(new ConfigListener(mainBrowser));
 				context.addMessageListener(
 						new MetaSearchListener( this ));
-				String url = com.aelitis.azureus.util.Constants.URL_PREFIX + "xsearch?subscription=" + subs.getID() + "&" + com.aelitis.azureus.util.Constants.URL_SUFFIX;
+				String url = ConstantsV3.URL_PREFIX + "xsearch?subscription=" + subs.getID() + "&" + ConstantsV3.URL_SUFFIX;
 	
 				mainBrowser.setUrl(url);
 				mainBrowser.setData("StartURL", url);
@@ -1605,7 +1606,7 @@ SubscriptionManagerUI
 					String url = MapUtils.getMapString(params, "url",
 							"http://google.com/search?q=" + Math.random());
 					if (PlatformConfigMessenger.urlCanRPC(url)) {
-						url = com.aelitis.azureus.util.Constants.appendURLSuffix(url);
+						url = ConstantsV3.appendURLSuffix(url);
 					}
 					
 					//Gudy, Not Tux, Listener Added

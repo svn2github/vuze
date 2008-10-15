@@ -34,7 +34,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -306,8 +306,8 @@ public class VuzeActivitiesManager
 
 						String hash = torrent.getHashWrapper().toBase32String();
 						String title;
-						String url = Constants.URL_PREFIX + Constants.URL_DETAILS + hash
-								+ ".html?" + Constants.URL_SUFFIX + "&client_ref=activity-"
+						String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS + hash
+								+ ".html?" + ConstantsV3.URL_SUFFIX + "&client_ref=activity-"
 								+ VuzeActivitiesConstants.TYPEID_RATING_REMINDER;
 						title = "<A HREF=\"" + url + "\">"
 								+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";

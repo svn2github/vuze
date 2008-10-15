@@ -32,7 +32,7 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -92,8 +92,8 @@ public class VuzeActivitiesEntryContentShare
   		String contentString;
   
   		if (ourContent || torrent == null) {
-  			String url = Constants.URL_PREFIX + Constants.URL_DETAILS
-  					+ content.getHash() + ".html?" + Constants.URL_SUFFIX
+  			String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
+  					+ content.getHash() + ".html?" + ConstantsV3.URL_SUFFIX
   					+ "&client_ref=" + VuzeActivitiesConstants.TYPEID_BUDDYSHARE;
   			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
   					+ "</A>";
@@ -178,8 +178,8 @@ public class VuzeActivitiesEntryContentShare
   		String contentString;
   	  
   		if (isPlatformContent() || getTorrent() == null) {
-  			String url = Constants.URL_PREFIX + Constants.URL_DETAILS
-  					+ getAssetHash() + ".html?" + Constants.URL_SUFFIX
+  			String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
+  					+ getAssetHash() + ".html?" + ConstantsV3.URL_SUFFIX
   					+ "&client_ref=" + VuzeActivitiesConstants.TYPEID_BUDDYSHARE;
   			contentString = "<A HREF=\"" + url + "\">" + getTorrentName()
   					+ "</A>";

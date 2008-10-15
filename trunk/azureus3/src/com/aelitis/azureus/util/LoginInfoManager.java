@@ -151,11 +151,11 @@ public class LoginInfoManager
 		public String getProfileAHREF(String referer) {
 			StringBuffer buf = new StringBuffer();
 			buf.append("<A HREF=\"");
-			buf.append(Constants.URL_PREFIX);
-			buf.append(Constants.URL_PROFILE);
+			buf.append(ConstantsV3.URL_PREFIX);
+			buf.append(ConstantsV3.URL_PROFILE);
 			buf.append(UrlUtils.encode(userName));
 			buf.append("?");
-			buf.append(Constants.URL_SUFFIX);
+			buf.append(ConstantsV3.URL_SUFFIX);
 			buf.append("&client_ref=");
 			buf.append(UrlUtils.encode(referer));
 			buf.append("\" TITLE=\"");

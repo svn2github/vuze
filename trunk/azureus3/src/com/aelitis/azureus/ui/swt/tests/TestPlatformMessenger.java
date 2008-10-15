@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -44,8 +44,8 @@ import org.gudy.azureus2.plugins.PluginInterface;
 public class TestPlatformMessenger
 {
 	public void initialize(PluginInterface pi) throws PluginException {
-		Constants.initialize(AzureusCoreFactory.getSingleton());
-		System.out.println(Constants.URL_SUFFIX);
+		ConstantsV3.initialize(AzureusCoreFactory.getSingleton());
+		System.out.println(ConstantsV3.URL_SUFFIX);
 
 		PlatformMessenger.init();
 		Map parameters = new HashMap();

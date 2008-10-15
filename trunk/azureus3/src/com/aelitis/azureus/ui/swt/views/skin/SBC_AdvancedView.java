@@ -43,7 +43,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -103,7 +103,7 @@ public class SBC_AdvancedView
 						lblWait.update();
 
 						Color c = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-						if (Constants.isUnix) {
+						if (ConstantsV3.isUnix) {
 							// Hack: For some reason, if we set the color of a Composite
 							// to the widget background color, it will use the color
 							// of the parent composite, even when backgroundmode is

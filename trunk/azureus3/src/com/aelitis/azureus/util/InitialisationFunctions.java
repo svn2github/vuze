@@ -130,7 +130,7 @@ public class InitialisationFunctions
 					Torrent t = download.getTorrent();
 					if (t == null) {return;}
 					if (!PlatformTorrentUtils.isContent(t, true)) {return;}
-					DownloadUtils.addTrackerExtension(download, EXTENSION_PREFIX, Constants.AZID);	
+					DownloadUtils.addTrackerExtension(download, EXTENSION_PREFIX, ConstantsV3.AZID);	
 					
 					// allow the tracker to manipulate peer sources for dead/unauthorised torrents
 					download.setFlag(Download.FLAG_ALLOW_PERMITTED_PEER_SOURCE_CHANGES, true);

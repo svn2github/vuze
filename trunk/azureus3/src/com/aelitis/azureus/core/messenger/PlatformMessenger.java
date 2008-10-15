@@ -38,7 +38,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler
 import com.aelitis.azureus.core.messenger.browser.*;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -179,7 +179,7 @@ public class PlatformMessenger
 	public static void debug(String string) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
 		diag_logger.log(string);
-		if (Constants.DIAG_TO_STDOUT) {
+		if (ConstantsV3.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + string);
 		}
@@ -321,9 +321,9 @@ public class PlatformMessenger
 		String sURL_RPC;
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
-			sURL_RPC = Constants.URL_RELAY_RPC;
+			sURL_RPC = ConstantsV3.URL_RELAY_RPC;
 		} else {
-			sURL_RPC = Constants.URL_PREFIX + Constants.URL_RPC + server;
+			sURL_RPC = ConstantsV3.URL_PREFIX + ConstantsV3.URL_RPC + server;
 		}
 
 		// Build full url and data to send
@@ -331,8 +331,8 @@ public class PlatformMessenger
 		String sPostData = null;
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			sPostData = Constants.URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
-					+ "&" + Constants.URL_SUFFIX;
+			sPostData = ConstantsV3.URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
+					+ "&" + ConstantsV3.URL_SUFFIX;
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
 					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
@@ -342,12 +342,12 @@ public class PlatformMessenger
 				}
 			}
 		} else {
-			sURL = sURL_RPC + Constants.URL_PLATFORM_MESSAGE + "&"
-					+ urlStem.toString() + "&" + Constants.URL_SUFFIX;
+			sURL = sURL_RPC + ConstantsV3.URL_PLATFORM_MESSAGE + "&"
+					+ urlStem.toString() + "&" + ConstantsV3.URL_SUFFIX;
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
 			} else {
-				debug("GET: " + sURL_RPC + Constants.URL_PLATFORM_MESSAGE);
+				debug("GET: " + sURL_RPC + ConstantsV3.URL_PLATFORM_MESSAGE);
 			}
 		}
 

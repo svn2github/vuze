@@ -69,7 +69,7 @@ import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedManualPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DownloadUtils;
 import com.aelitis.azureus.util.PublishUtils;
 
@@ -1593,7 +1593,7 @@ EnhancedDownloadManager
 			diag_logger.log(str);
 		}
 		
-		if ( Constants.DIAG_TO_STDOUT ) {
+		if ( ConstantsV3.DIAG_TO_STDOUT ) {
 			
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + str);

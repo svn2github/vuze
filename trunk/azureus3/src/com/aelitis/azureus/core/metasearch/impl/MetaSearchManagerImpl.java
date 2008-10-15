@@ -48,7 +48,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 public class 
 MetaSearchManagerImpl
@@ -974,7 +974,7 @@ MetaSearchManagerImpl
 		diag_logger.log( s );
 		diag_logger.log( e );
 		
-		if ( Constants.DIAG_TO_STDOUT ){
+		if ( ConstantsV3.DIAG_TO_STDOUT ){
 			
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + s + ": " + Debug.getNestedExceptionMessage(e));
@@ -989,7 +989,7 @@ MetaSearchManagerImpl
 		
 		diag_logger.log( s );
 		
-		if ( Constants.DIAG_TO_STDOUT ){
+		if ( ConstantsV3.DIAG_TO_STDOUT ){
 			
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + s);

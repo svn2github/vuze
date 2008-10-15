@@ -39,7 +39,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -923,7 +923,7 @@ public class VuzeBuddyManager
 	public static void log(String s) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(s);
-		if (Constants.DIAG_TO_STDOUT) {
+		if (ConstantsV3.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + s);
 		}
@@ -938,7 +938,7 @@ public class VuzeBuddyManager
 	public static void log(Exception e) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(e);
-		if (Constants.DIAG_TO_STDOUT) {
+		if (ConstantsV3.DIAG_TO_STDOUT) {
 			System.err.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] ");
 			e.printStackTrace();
@@ -1731,11 +1731,11 @@ public class VuzeBuddyManager
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
-		buf.append(Constants.URL_PREFIX);
-		buf.append(Constants.URL_PROFILE);
+		buf.append(ConstantsV3.URL_PREFIX);
+		buf.append(ConstantsV3.URL_PROFILE);
 		buf.append(UrlUtils.encode(loginID));
 		buf.append("?");
-		buf.append(Constants.URL_SUFFIX);
+		buf.append(ConstantsV3.URL_SUFFIX);
 		buf.append("&client_ref=");
 		buf.append(UrlUtils.encode(referer));
 		buf.append("\" TITLE=\"");

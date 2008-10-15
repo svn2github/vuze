@@ -36,7 +36,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -98,11 +98,11 @@ public class PlatformAuthorizedSenderImpl
 
 					// Safari doesn't return getText() when results aren't text/html
 					// IE removes /n when in text/html mode
-					String responseType = Constants.isOSX ? "text/html" : "text/plain";
-					final String url = Constants.URL_AUTHORIZED_RPC + "?" + data
+					String responseType = ConstantsV3.isOSX ? "text/html" : "text/plain";
+					final String url = ConstantsV3.URL_AUTHORIZED_RPC + "?" + data
 							+ "&responseType=" + responseType;
 					PlatformMessenger.debug("Open Auth URL: "
-							+ Constants.URL_AUTHORIZED_RPC + " in " + responseType + "\n" + url);
+							+ ConstantsV3.URL_AUTHORIZED_RPC + " in " + responseType + "\n" + url);
 
 					browser.addProgressListener(new ProgressListener() {
 						public void completed(ProgressEvent event) {
@@ -179,7 +179,7 @@ public class PlatformAuthorizedSenderImpl
 				}
 				// On PPC, we get a JVM crash on disposal, so maybe this delay will
 				// fix it.
-				if (Constants.isOSX) {
+				if (ConstantsV3.isOSX) {
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
 							browser.dispose();

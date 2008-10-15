@@ -51,7 +51,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -136,7 +136,7 @@ public class SWTSkinObjectBrowser
 		}
 
 		//TODO [SWT] : Remove this stupid code as soon as we update SWT
-		if(Constants.isOSX && ! doneTheUglySWTFocusHack) {
+		if(ConstantsV3.isOSX && ! doneTheUglySWTFocusHack) {
 			doneTheUglySWTFocusHack = true;
 			Shell shell = new Shell(browser.getDisplay(),SWT.NONE);
 			shell.setSize(1,1);
@@ -215,9 +215,9 @@ public class SWTSkinObjectBrowser
 					if (PlatformConfigMessenger.urlCanRPC(url)
 							&& urlToUse.indexOf("azid=") < 0) {
 						if (urlToUse.indexOf("?") >= 0) {
-							urlToUse += "&" + Constants.URL_SUFFIX;
+							urlToUse += "&" + ConstantsV3.URL_SUFFIX;
 						} else {
-							urlToUse += "?" + Constants.URL_SUFFIX;
+							urlToUse += "?" + ConstantsV3.URL_SUFFIX;
 						}
 					}
 					if (browser != null) {

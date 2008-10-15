@@ -48,7 +48,7 @@ import com.aelitis.azureus.ui.swt.views.list.ListView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -289,7 +289,7 @@ public class TorrentListView
 							TOTorrent torrent = dm.getTorrent();
 							String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 							if (contentHash != null && contentHash.length() > 0) {
-								String url = Constants.URL_PREFIX + Constants.URL_DOWNLOAD
+								String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DOWNLOAD
 										+ contentHash + ".torrent?referal=coq";
 								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
 								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,

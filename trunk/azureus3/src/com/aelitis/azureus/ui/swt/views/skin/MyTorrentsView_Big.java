@@ -12,7 +12,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -92,7 +92,7 @@ public class MyTorrentsView_Big
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
   		TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  				Constants.DL_REFERAL_DBLCLICK);
+  				ConstantsV3.DL_REFERAL_DBLCLICK);
 		}
 	}
 

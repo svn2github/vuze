@@ -50,7 +50,7 @@ import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.PlayUtils;
 
 /**
@@ -110,7 +110,7 @@ public class TorrentUIUtilsV3
 			
 			// If it's going to our URLs, add some extra authenication
 			if (PlatformConfigMessenger.urlCanRPC(url)) {
-				url = Constants.appendURLSuffix(url);
+				url = ConstantsV3.appendURLSuffix(url);
 			}
 
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();

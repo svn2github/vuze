@@ -23,7 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -43,8 +43,8 @@ public class Publish
 		if (o instanceof String) {
 			browserSkinObject.setURL((String) o);
 		} else {
-  		String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH + "?"
-  				+ Constants.URL_SUFFIX;
+  		String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISH + "?"
+  				+ ConstantsV3.URL_SUFFIX;
   		browserSkinObject.setURL(sURL);
 		}
 

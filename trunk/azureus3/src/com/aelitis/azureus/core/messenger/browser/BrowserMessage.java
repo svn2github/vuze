@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSFunctionParametersParser;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -136,7 +137,7 @@ public class BrowserMessage
 			if (t != null) {
 				diag_logger.log(t);
 			}
-			if (com.aelitis.azureus.util.Constants.DIAG_TO_STDOUT) {
+			if (ConstantsV3.DIAG_TO_STDOUT) {
 				System.out.println(out);
 				if (t != null) {
 					t.printStackTrace();

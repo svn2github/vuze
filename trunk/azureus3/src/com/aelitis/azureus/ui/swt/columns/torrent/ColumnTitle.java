@@ -49,7 +49,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
@@ -158,9 +158,9 @@ public class ColumnTitle
 		String sText = name;
 		if (DataSourceUtils.isPlatformContent(dm)) {
 			try {
-				sText = "<A HREF=\"" + Constants.URL_PREFIX + Constants.URL_DETAILS
+				sText = "<A HREF=\"" + ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
 						+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
-						+ Constants.URL_SUFFIX + "\">" + name + "</A>";
+						+ ConstantsV3.URL_SUFFIX + "\">" + name + "</A>";
 			} catch (TOTorrentException e) {
 				Debug.out(e);
 			}

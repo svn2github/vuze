@@ -48,7 +48,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -168,8 +168,8 @@ public class Browse
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
-		browserSkinObject.setURL(Constants.URL_PREFIX + Constants.URL_BIG_BROWSE
-				+ "?" + Constants.URL_SUFFIX);
+		browserSkinObject.setURL(ConstantsV3.URL_PREFIX + ConstantsV3.URL_BIG_BROWSE
+				+ "?" + ConstantsV3.URL_SUFFIX);
 	}
 
 	/**

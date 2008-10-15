@@ -118,8 +118,8 @@ public class UserAreaUtils
 						 * If the user is logged in then go to profile page
 						 */
 						if (null != uiFunctions) {
-							String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE
-									+ "?" + Constants.URL_SUFFIX + "&rand="
+							String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_MY_PROFILE
+									+ "?" + ConstantsV3.URL_SUFFIX + "&rand="
 									+ SystemTime.getCurrentTime();
 							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
 									0, true, true);
@@ -360,8 +360,8 @@ public class UserAreaUtils
 
 				public void widgetSelected(SelectionEvent e) {
 					if (null != uiFunctions) {
-						String url = Constants.URL_PREFIX + Constants.URL_ACCOUNT + "?"
-								+ Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
+						String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_ACCOUNT + "?"
+								+ ConstantsV3.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
 								true, true);
 					}
@@ -387,8 +387,8 @@ public class UserAreaUtils
 						 * If the user is logged in then go to profile page
 						 */
 						if (null != uiFunctions) {
-							String url = Constants.URL_PREFIX + Constants.URL_MY_PROFILE
-									+ "?" + Constants.URL_SUFFIX + "&rand="
+							String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_MY_PROFILE
+									+ "?" + ConstantsV3.URL_SUFFIX + "&rand="
 									+ SystemTime.getCurrentTime();
 							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
 									0, true, true);
@@ -430,8 +430,8 @@ public class UserAreaUtils
 					 * that is loaded will send a 'status:login-update' message which the 
 					 * ILoginInfoListener will respond to and update the UI accordingly
 					 */
-					final String url = Constants.URL_PREFIX + Constants.URL_LOGOUT + "?"
-							+ Constants.URL_SUFFIX;
+					final String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_LOGOUT + "?"
+							+ ConstantsV3.URL_SUFFIX;
 
 					/*
 					 * Loads the page without switching to the On Vuze tab
@@ -446,8 +446,8 @@ public class UserAreaUtils
 						if (null != browser) {
 							String existingURL = browser.getUrl();
 							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setStartURL(Constants.URL_PREFIX
-										+ Constants.URL_BIG_BROWSE + "?" + Constants.URL_SUFFIX);
+								((SWTSkinObjectBrowser) skinObject).setStartURL(ConstantsV3.URL_PREFIX
+										+ ConstantsV3.URL_BIG_BROWSE + "?" + ConstantsV3.URL_SUFFIX);
 							}
 						}
 
@@ -487,9 +487,9 @@ public class UserAreaUtils
 
 					public void widgetSelected(SelectionEvent e) {
 						if (null != uiFunctions) {
-							String url = Constants.URL_PREFIX + Constants.URL_REGISTRATION
-									+ "?" + Constants.URL_SUFFIX;
-							new LightBoxBrowserWindow(url, Constants.URL_PAGE_VERIFIER_VALUE,
+							String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_REGISTRATION
+									+ "?" + ConstantsV3.URL_SUFFIX;
+							new LightBoxBrowserWindow(url, ConstantsV3.URL_PAGE_VERIFIER_VALUE,
 									460, 577);
 						}
 

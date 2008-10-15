@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 /**
  * 
  */
-public class Constants
+public class ConstantsV3
 {
 	// isOS* constants copied from AZ2 for ease of use/access
 	public static boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
@@ -184,7 +184,7 @@ public class Constants
 
 	public static String appendURLSuffix(String url) {
 		if (url.indexOf("azid=") < 0) {
-			url += (url.indexOf('?') < 0 ? "?" : "&") + Constants.URL_SUFFIX;
+			url += (url.indexOf('?') < 0 ? "?" : "&") + ConstantsV3.URL_SUFFIX;
 		}
 		return url;
 	}

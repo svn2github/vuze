@@ -11,9 +11,7 @@ import java.util.*;
 import java.io.File;
 import java.io.IOException;
 
-import com.aelitis.azureus.util.DCAdManager;
-import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.AzpdFileAccess;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -493,7 +491,7 @@ public class PlatformDCAdManager
                 diag_logger.log(e);
                 Debug.out(string, e);
             }
-            if (com.aelitis.azureus.util.Constants.DIAG_TO_STDOUT || DEBUG_ADS) {
+            if (ConstantsV3.DIAG_TO_STDOUT || DEBUG_ADS) {
                 System.out.println(Thread.currentThread().getName() + "|ADS|"
                         + System.currentTimeMillis() + "] " + string);
                 if (e != null) {

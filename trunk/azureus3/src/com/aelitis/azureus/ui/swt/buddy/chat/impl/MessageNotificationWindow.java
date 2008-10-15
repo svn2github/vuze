@@ -25,7 +25,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.chat.ChatMessage;
 import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 public class MessageNotificationWindow {
 	
@@ -92,7 +92,7 @@ public class MessageNotificationWindow {
 		
 		FontData[] fDatas = name.getFont().getFontData();
 		for(int i = 0 ; i < fDatas.length ; i++) {
-			if(Constants.isOSX) {
+			if(ConstantsV3.isOSX) {
 				fDatas[i].setHeight(12);
 			} else {
 				fDatas[i].setHeight(10);

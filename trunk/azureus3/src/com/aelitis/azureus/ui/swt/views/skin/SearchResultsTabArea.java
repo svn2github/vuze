@@ -72,7 +72,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -472,7 +472,7 @@ public class SearchResultsTabArea
 				String url = MapUtils.getMapString(params, "url",
 						"http://google.com/search?q=" + Math.random());
 				if (PlatformConfigMessenger.urlCanRPC(url)) {
-					url = Constants.appendURLSuffix(url);
+					url = ConstantsV3.appendURLSuffix(url);
 				}
 
 				//Gudy, Not Tux, Listener Added
@@ -536,9 +536,9 @@ public class SearchResultsTabArea
 			return null;
 		}
 		String url = browser.getUrl();
-		int i = url.indexOf(Constants.URL_DETAILS);
+		int i = url.indexOf(ConstantsV3.URL_DETAILS);
 		if (i > 0) {
-			i += Constants.URL_DETAILS.length();
+			i += ConstantsV3.URL_DETAILS.length();
 			int end1 = url.indexOf("?", i);
 			int end2 = url.indexOf(".", i);
 			int end = end1 < 0 ? end2 : Math.min(end1, end2);
@@ -608,13 +608,13 @@ public class SearchResultsTabArea
 	
 	public void anotherSearch(String searchText,boolean toSubscribe) {
 		this.searchText = searchText;
-		String url = Constants.URL_PREFIX + Constants.URL_ADD_SEARCH
-				+ UrlUtils.encode(searchText) + "&" + Constants.URL_SUFFIX + "&rand="
+		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_ADD_SEARCH
+				+ UrlUtils.encode(searchText) + "&" + ConstantsV3.URL_SUFFIX + "&rand="
 				+ SystemTime.getCurrentTime();
 
 		if (System.getProperty("metasearch", "1").equals("1")) {
-			url = Constants.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(searchText)
-					+ "&" + Constants.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
+			url = ConstantsV3.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(searchText)
+					+ "&" + ConstantsV3.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 			if(toSubscribe) {
 				url += "&createSubscription=1";
 			}

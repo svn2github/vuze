@@ -63,7 +63,7 @@ import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;

@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -54,7 +54,7 @@ public class PlatformConfigMessenger
 	private static int iRPCVersion = 0;
 
 	private static String DEFAULT_RPC_WHITELIST = "https?://"
-			+ Constants.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
+			+ ConstantsV3.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 	
 	//private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
 
@@ -96,13 +96,13 @@ public class PlatformConfigMessenger
 
 						String url = (String) newReply[i].get("url");
 						if (url != null && !url.startsWith("http://")) {
-							url = Constants.URL_PREFIX + url;
+							url = ConstantsV3.URL_PREFIX + url;
 							if (url.indexOf('?') < 0) {
 								url += "?";
 							} else {
 								url += "&";
 							}
-							url += Constants.URL_SUFFIX;
+							url += ConstantsV3.URL_SUFFIX;
 
 							newReply[i].put("url", url);
 						}

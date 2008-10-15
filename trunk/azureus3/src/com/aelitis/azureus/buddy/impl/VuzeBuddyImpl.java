@@ -37,7 +37,7 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -379,11 +379,11 @@ public class VuzeBuddyImpl
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
-		buf.append(Constants.URL_PREFIX);
-		buf.append(Constants.URL_PROFILE);
+		buf.append(ConstantsV3.URL_PREFIX);
+		buf.append(ConstantsV3.URL_PROFILE);
 		buf.append(UrlUtils.encode(loginID));
 		buf.append("?");
-		buf.append(Constants.URL_SUFFIX);
+		buf.append(ConstantsV3.URL_SUFFIX);
 		buf.append("&client_ref=");
 		buf.append(UrlUtils.encode(referer));
 		buf.append("\" TITLE=\"");
@@ -403,8 +403,8 @@ public class VuzeBuddyImpl
 	}
 
 	public String getProfileUrl(String referer) {
-		return Constants.URL_PREFIX + Constants.URL_PROFILE + getLoginID() + "?"
-				+ Constants.URL_SUFFIX + "&client_ref=" + referer;
+		return ConstantsV3.URL_PREFIX + ConstantsV3.URL_PROFILE + getLoginID() + "?"
+				+ ConstantsV3.URL_SUFFIX + "&client_ref=" + referer;
 	}
 
 	// @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)

@@ -58,7 +58,7 @@ import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
 /**
@@ -111,7 +111,7 @@ public class Initializer
 				Debug.printStackTrace(e);
 			}
 		} else {
-			Constants.initialize(core);
+			ConstantsV3.initialize(core);
 
 			initializePlatformClientMessageContext();
 

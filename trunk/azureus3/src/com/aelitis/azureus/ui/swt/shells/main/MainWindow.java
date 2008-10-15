@@ -96,7 +96,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -199,7 +199,7 @@ public class MainWindow
 
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
-		if (Constants.isWindows
+		if (ConstantsV3.isWindows
 				&& System.getProperty("os.name").indexOf("Vista") > 0
 				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
 			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
@@ -284,9 +284,9 @@ public class MainWindow
 					String text = MessageText.getString("v3.mb.delPublished.text",
 							new String[] {
 								dm.getDisplayName(),
-								Constants.URL_PREFIX,
-								Constants.DEFAULT_ADDRESS,
-								Constants.URL_PUBLISH_INFO
+								ConstantsV3.URL_PREFIX,
+								ConstantsV3.DEFAULT_ADDRESS,
+								ConstantsV3.URL_PUBLISH_INFO
 							});
 
 					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
@@ -617,7 +617,7 @@ public class MainWindow
 				}
 
 				public void shellDeiconified(ShellEvent e) {
-					if (Constants.isOSX
+					if (ConstantsV3.isOSX
 							&& COConfigurationManager.getBooleanParameter("Password enabled")) {
 						shell.setVisible(false);
 						if (PasswordWindow.showPasswordWindow(display)) {
@@ -1601,7 +1601,7 @@ public class MainWindow
 		 * Hides the buddy bar unless a command line parameter is specified
 		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 		 */
-		if (Constants.DISABLE_BUDDIES_BAR) {
+		if (ConstantsV3.DISABLE_BUDDIES_BAR) {
 			COConfigurationManager.setParameter("Footer.visible", false);
 		}
 	}

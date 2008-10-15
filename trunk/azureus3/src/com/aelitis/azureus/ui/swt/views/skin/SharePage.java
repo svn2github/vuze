@@ -68,7 +68,7 @@ import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.FAQTopics;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.JSONUtils;
@@ -207,7 +207,7 @@ public class SharePage
 		optionalMessageDisclaimerLabel = new Label(firstPanel, SWT.NONE);
 		commentText = new Text(contentDetail, SWT.WRAP);
 
-		String url = Constants.URL_FAQ_BY_TOPIC_ENTRY
+		String url = ConstantsV3.URL_FAQ_BY_TOPIC_ENTRY
 				+ FAQTopics.FAQ_TOPIC_WHAT_IS_SECURE_SHARING;
 		optionalMessageDisclaimerLinkLabel = new SkinLinkLabel(firstPanel, url);
 
@@ -800,7 +800,7 @@ public class SharePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(browserPanel, SWT.NONE);
-			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
+			String url = ConstantsV3.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
 
 			if (null != activationListener) {

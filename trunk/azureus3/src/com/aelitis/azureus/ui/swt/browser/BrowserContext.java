@@ -47,7 +47,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSONUtils;
 
 /**
@@ -217,7 +217,7 @@ public class BrowserContext
 				}
 
 				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('"
-						+ Constants.AZID
+						+ ConstantsV3.AZID
 						+ "',"
 						+ "{ 'azv':'"
 						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION

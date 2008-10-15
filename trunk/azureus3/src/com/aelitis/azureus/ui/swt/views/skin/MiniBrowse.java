@@ -41,7 +41,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -85,8 +85,8 @@ public class MiniBrowse
 
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
-		browserSkinObject.setURL(Constants.URL_PREFIX + Constants.URL_MINI_BROWSE
-				+ "?" + Constants.URL_SUFFIX);
+		browserSkinObject.setURL(ConstantsV3.URL_PREFIX + ConstantsV3.URL_MINI_BROWSE
+				+ "?" + ConstantsV3.URL_SUFFIX);
 		//browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
 	}
 

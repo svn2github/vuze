@@ -44,7 +44,7 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -118,7 +118,7 @@ public class SBC_LibraryTableView
 						DownloadManager dm = DataSourceUtils.getDM(ds);
 						if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
   						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  								Constants.DL_REFERAL_DBLCLICK);
+  								ConstantsV3.DL_REFERAL_DBLCLICK);
 						}
 					}
 				});
@@ -152,7 +152,7 @@ public class SBC_LibraryTableView
 									DownloadManager dm = DataSourceUtils.getDM(ds);
 									if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
   									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  											Constants.DL_REFERAL_DBLCLICK);
+  											ConstantsV3.DL_REFERAL_DBLCLICK);
 									}
 								}
 							});

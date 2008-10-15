@@ -29,7 +29,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarCloseListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -60,8 +60,8 @@ public class WelcomeView
 		if (o instanceof String) {
 			browserSkinObject.setURL((String) o);
 		} else {
-  		String sURL = Constants.URL_PREFIX + Constants.URL_WELCOME + "?"
-  				+ Constants.URL_SUFFIX;
+  		String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_WELCOME + "?"
+  				+ ConstantsV3.URL_SUFFIX;
   		System.out.println(sURL);
   		browserSkinObject.setURL(sURL);
 		}

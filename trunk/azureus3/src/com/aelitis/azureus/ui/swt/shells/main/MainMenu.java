@@ -31,7 +31,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 public class MainMenu
 	implements IMainMenu, IMenuConstants
@@ -188,7 +188,7 @@ public class MainMenu
 		/*
 		 * No need for restart and exit on OS X since it's already handled on the application menu
 		 */
-		if (false == Constants.isOSX) {
+		if (false == ConstantsV3.isOSX) {
 			MenuFactory.addSeparatorMenuItem(fileMenu);
 			MenuFactory.addRestartMenuItem(fileMenu);
 			MenuFactory.addExitMenuItem(fileMenu);
@@ -336,8 +336,8 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISHNEW + "?"
-						+ Constants.URL_SUFFIX;
+						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISHNEW + "?"
+						+ ConstantsV3.URL_SUFFIX;
 
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -362,8 +362,8 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISHED + "?"
-								+ Constants.URL_SUFFIX;
+						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISHED + "?"
+								+ ConstantsV3.URL_SUFFIX;
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -390,7 +390,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = Constants.URL_PREFIX + Constants.URL_PUBLISH_ABOUT;
+						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISH_ABOUT;
 						Utils.launch(sURL);
 					}
 				});
@@ -416,7 +416,7 @@ public class MainMenu
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
 		MenuFactory.createPluginsMenuItem(toolsMenu, true);
 
-		if (false == Constants.isOSX) {
+		if (false == ConstantsV3.isOSX) {
 			/*
 			 * Options is on the application menu on OSX
 			 */
@@ -432,7 +432,7 @@ public class MainMenu
 		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
 		Menu helpMenu = helpItem.getMenu();
 
-		if (false == Constants.isOSX) {
+		if (false == ConstantsV3.isOSX) {
 			/*
 			 * The 'About' menu is on the application menu on OSX
 			 */
@@ -448,7 +448,7 @@ public class MainMenu
 					}
 				});
 
-		MenuFactory.addHelpSupportMenuItem( helpMenu, Constants.URL_SUPPORT );
+		MenuFactory.addHelpSupportMenuItem( helpMenu, ConstantsV3.URL_SUPPORT );
 		
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
@@ -507,28 +507,28 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_FORUMS);
+						Utils.launch(ConstantsV3.URL_FORUMS);
 					}
 				});
 		
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_WIKI);
+						Utils.launch(ConstantsV3.URL_WIKI);
 					}
 				});
 		
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_BLOG);
+						Utils.launch(ConstantsV3.URL_BLOG);
 					}
 				});	
 
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(Constants.URL_FAQ);
+						Utils.launch(ConstantsV3.URL_FAQ);
 					}
 				});
 		

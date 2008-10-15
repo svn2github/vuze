@@ -21,7 +21,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 public class InvitePage
 	extends AbstractDetailPage
@@ -61,7 +61,7 @@ public class InvitePage
 	private Browser getBrowser() {
 		if (null == browser) {
 			browser = new Browser(content, SWT.NONE);
-			String url = Constants.URL_PREFIX + "share.start?ts=" + Math.random();
+			String url = ConstantsV3.URL_PREFIX + "share.start?ts=" + Math.random();
 			browser.setUrl(url);
 
 			if (null != activationListener) {

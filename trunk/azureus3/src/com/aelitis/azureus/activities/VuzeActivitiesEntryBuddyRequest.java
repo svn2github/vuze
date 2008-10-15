@@ -21,7 +21,7 @@ package com.aelitis.azureus.activities;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.util.Constants;
+import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -44,7 +44,7 @@ public class VuzeActivitiesEntryBuddyRequest
 	public void init(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
-		urlAccept = Constants.appendURLSuffix(acceptURL);
+		urlAccept = ConstantsV3.appendURLSuffix(acceptURL);
 
 		String textID = "v3.activity.buddy-request";
 		if (attempNumber > 1) {
