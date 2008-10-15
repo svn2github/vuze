@@ -125,13 +125,7 @@ public class PlayUtils
 			return false;
 		}
 		TOTorrent torrent = dm.getTorrent();
-		if (PlatformTorrentUtils.isContent(torrent, false)) {
-			return dm.getAssumedComplete() || canUseEMP(torrent);
-		} else {
-			return canUseEMP(torrent);
-		}
-	
-		
+		return canUseEMP(torrent);
 	}
 
 	private static boolean canPlay(TOTorrent torrent) {
