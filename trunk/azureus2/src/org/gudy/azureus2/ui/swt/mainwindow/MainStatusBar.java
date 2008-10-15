@@ -287,7 +287,10 @@ public class MainStatusBar
 					String 	host = System.getProperty("platform_address", "www.vuze.com" );
 					String	port = System.getProperty("platform_port", "" );
 
-					String url  = "http://" + host + (port.length()==0?"":(":" + port )) + "/feedback?" + Utils.getWidgetBGColorURLParam();
+					String url  = 
+						"http://" + host + (port.length()==0?"":(":" + port )) + 
+							"/feedback?" + Utils.getWidgetBGColorURLParam()
+							+ "&fromWeb=false";
 					
 					// Utils.launch( url );
 										
