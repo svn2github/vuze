@@ -219,7 +219,7 @@ public class SpeedTestFinishPanel extends AbstractWizardPanel
         if(maxKbps==0){
             maxBitsPerSec = MessageText.getString("ConfigView.unlimited");
         }else{
-            maxBitsPerSec = DisplayFormatters.formatByteCountToKiBEtcPerSec( maxKbps );
+            maxBitsPerSec = DisplayFormatters.formatByteCountToBitsPerSec( maxKbps * 1024 );
         }
 
         c3.setText(maxBitsPerSec);
