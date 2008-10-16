@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -13,14 +14,11 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.ConstantsV3;
 
 public class VuzeShareUtils
 {
 
 	private static VuzeShareUtils instance;
-
-	private SharePage sharePage = null;
 
 	public static VuzeShareUtils getInstance() {
 		if (null == instance) {
@@ -49,7 +47,7 @@ public class VuzeShareUtils
 			VuzeBuddyManager.showDisabledDialog();
 			return;
 		}
-		
+
 		//TODO : Gudy : make sure that this private detection method is reliable enough
 		if (currentContent.getDM() != null
 				&& (TorrentUtils.isReallyPrivate(currentContent.getDM().getTorrent()))) {
@@ -60,54 +58,43 @@ public class VuzeShareUtils
 
 		SWTLoginUtils.waitForLogin(new SWTLoginUtils.loginWaitListener() {
 			public void loginComplete() {
-				if (null != sharePage) {
-					try {
-						//sharePage.setShareItem(currentContent, referer);
-						
-						
-						ShareWizard wizard = new ShareWizard(
-								UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
-								SWT.DIALOG_TRIM | SWT.RESIZE);
-						wizard.setText("Vuze - Wizard");
-						wizard.setSize(500, 550);
+				try {
+					//sharePage.setShareItem(currentContent, referer);
 
-						com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
-						newSharePage.setShareItem(currentContent, referer);
+					ShareWizard wizard = new ShareWizard(
+							UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell(),
+							SWT.DIALOG_TRIM | SWT.RESIZE);
+					wizard.setText("Vuze - Wizard");
+					wizard.setSize(500, 550);
 
+					com.aelitis.azureus.ui.swt.shells.friends.SharePage newSharePage = (com.aelitis.azureus.ui.swt.shells.friends.SharePage) wizard.getPage(com.aelitis.azureus.ui.swt.shells.friends.SharePage.ID);
+					newSharePage.setShareItem(currentContent, referer);
+
+					/*
+					 * Opens a centered free-floating shell
+					 */
+
+					UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					if (null == uiFunctions) {
 						/*
-						 * Opens a centered free-floating shell
+						 * Centers on the active monitor
 						 */
-
-						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-						if (null == uiFunctions) {
-							/*
-							 * Centers on the active monitor
-							 */
-							Utils.centreWindow(wizard.getShell());
-						} else {
-							/*
-							 * Centers on the main application window
-							 */
-							Utils.centerWindowRelativeTo(wizard.getShell(),
-									uiFunctions.getMainShell());
-						}
-
-						wizard.open();
-						
-					} catch (Exception e) {
-						e.printStackTrace();
+						Utils.centreWindow(wizard.getShell());
+					} else {
+						/*
+						 * Centers on the main application window
+						 */
+						Utils.centerWindowRelativeTo(wizard.getShell(),
+								uiFunctions.getMainShell());
 					}
+
+					wizard.open();
+
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
 		});
-	}
-
-	public SharePage getSharePage() {
-		return sharePage;
-	}
-
-	public void setSharePage(SharePage sharePage) {
-		this.sharePage = sharePage;
 	}
 
 }

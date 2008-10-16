@@ -1495,13 +1495,11 @@ public class MainWindow
 		Class[] forceInits = new Class[] {
 			BuddiesViewer.class,
 			SideBar.class,
-			DetailPanel.class,
 			FriendsToolbar.class
 		};
 		String[] forceInitsIDs = new String[] {
 			SkinConstants.VIEWID_BUDDIES_VIEWER,
 			SkinConstants.VIEWID_SIDEBAR,
-			SkinConstants.VIEWID_DETAIL_PANEL,
 			SkinConstants.VIEWID_FRIENDS_TOOLBAR
 		};
 

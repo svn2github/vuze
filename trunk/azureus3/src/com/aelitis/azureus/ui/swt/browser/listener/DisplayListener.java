@@ -24,7 +24,6 @@ import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.VuzeFriendUtils;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.MapUtils;
 

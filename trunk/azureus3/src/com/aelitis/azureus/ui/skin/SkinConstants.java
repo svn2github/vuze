@@ -37,8 +37,6 @@ public class SkinConstants
 
 	public static final String VIEWID_BROWSER_PUBLISH = "publish";
 
-	public static final String VIEWID_DETAIL_PANEL = "detail-panel";
-
 	public static final String VIEWID_BUDDIES_VIEWER = "buddies-viewer";
 
 	public static final String VIEWID_PLUGINBAR = "pluginbar";
