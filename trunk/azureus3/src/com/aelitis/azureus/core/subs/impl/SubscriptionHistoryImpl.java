@@ -89,7 +89,7 @@ SubscriptionHistoryImpl
 			
 			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
 					
-			ByteArrayHashMap	map = new ByteArrayHashMap();
+			ByteArrayHashMap	result_key_map = new ByteArrayHashMap();
 			
 			List	new_results = new ArrayList();
 
@@ -97,7 +97,7 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl r = existing_results[i];
 				
-				map.put( r.getKey(), r );
+				result_key_map.put( r.getKey(), r );
 				
 				new_results.add( r );
 				
@@ -118,13 +118,15 @@ SubscriptionHistoryImpl
 
 				SubscriptionResultImpl r = latest_results[i];
 				
-				SubscriptionResultImpl existing = (SubscriptionResultImpl)map.get( r.getKey());
+				SubscriptionResultImpl existing = (SubscriptionResultImpl)result_key_map.get( r.getKey());
 				
 				if ( existing == null ){
 					
 					last_new_result = now;
 					
 					new_results.add( r );
+					
+					result_key_map.put( r.getKey(), r );
 					
 					got_new_or_changed_result = true;
 				
