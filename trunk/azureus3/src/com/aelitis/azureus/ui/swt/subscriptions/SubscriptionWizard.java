@@ -1087,8 +1087,9 @@ public class SubscriptionWizard {
 					
 					SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS );
 					shell.close();
-				} catch (Exception e) {
-					e.printStackTrace();
+				} catch (Throwable e) {
+					
+					Utils.reportError( e );
 				}
 			}
 		};
