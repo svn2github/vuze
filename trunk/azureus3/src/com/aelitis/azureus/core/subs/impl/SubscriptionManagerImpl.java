@@ -551,10 +551,7 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
-		if ( getSubscriptionFromName( name ) != null ){
-			
-			throw ( new SubscriptionException( "Subscription with name '" + name + "' already exists" ));
-		}
+		name = getUniqueName( name );
 		
 		SubscriptionImpl subs = new SubscriptionImpl( this, name, public_subs, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
 		
@@ -648,6 +645,23 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	protected String
+	getUniqueName(
+		String	name )
+	{
+		for ( int i=0;i<1024;i++){
+			
+			String	test_name = name + (i==0?"":(" (" + i + ")"));
+			
+			if ( getSubscriptionFromName( test_name ) == null ){
+
+				return( test_name );
+			}
+		}
+		
+		return( name );
+	}
+	
 	protected Map
 	getSingletonMap(
 		String		name,
@@ -721,10 +735,7 @@ SubscriptionManagerImpl
 		}
 		
 		try{
-			if ( getSubscriptionFromName( name ) != null ){
-				
-				throw ( new SubscriptionException( "Subscription with feed '" + url + "' already exists" ));
-			}
+			name = getUniqueName(name);
 		
 			Engine engine = MetaSearchManagerFactory.getSingleton().getMetaSearch().createRSSEngine( name, url );
 			
@@ -1308,7 +1319,7 @@ SubscriptionManagerImpl
 		return((SubscriptionImpl[])result.toArray( new SubscriptionImpl[result.size()]));
 	}
 	
-	public SubscriptionImpl
+	protected SubscriptionImpl
 	getSubscriptionFromName(
 		String		name )
 	{
