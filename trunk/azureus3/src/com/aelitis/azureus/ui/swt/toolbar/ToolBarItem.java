@@ -145,9 +145,17 @@ public class ToolBarItem
 	}
 	
 	public void addListener(ToolBarItemListener l) {
-		if (listeners == Collections.EMPTY_LIST) {
-			listeners = new ArrayList(1);
+		synchronized (ToolBarItem.class) {
+  		if (listeners == Collections.EMPTY_LIST) {
+  			listeners = new ArrayList(1);
+  		}
+  		listeners.add(l);
 		}
-		listeners.add(l);
+	}
+	
+	public void removeListener(ToolBarItemListener l) {
+		synchronized (ToolBarItem.class) {
+  		listeners.remove(l);
+		}
 	}
 }
