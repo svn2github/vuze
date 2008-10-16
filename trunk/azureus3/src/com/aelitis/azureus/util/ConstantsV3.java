@@ -180,6 +180,7 @@ public class ConstantsV3
 								+ "&locale=" + Locale.getDefault().toString();
 					}
 				});
+		Constants.initialize();
 	}
 
 	public static String appendURLSuffix(String url) {
