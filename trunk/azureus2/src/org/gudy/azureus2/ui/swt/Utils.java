@@ -2395,4 +2395,24 @@ public class Utils
 
 		return( "bg_color=" + ByteFormatter.nicePrint(color));
 	}
+	
+	public static void
+	reportError(
+		Throwable e )
+	{
+		MessageBoxShell mb = 
+			new MessageBoxShell(
+				findAnyShell(),
+				MessageText.getString("ConfigView.section.security.op.error.title"),
+				MessageText.getString("ConfigView.section.security.op.error",
+						new String[] {
+							Debug.getNestedExceptionMessage(e)
+						}), 
+				new String[] {
+					MessageText.getString("Button.ok"),
+				},
+				0 );
+		
+		mb.open();
+	}
 }
