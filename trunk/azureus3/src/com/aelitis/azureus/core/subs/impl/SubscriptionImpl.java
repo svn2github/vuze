@@ -1594,6 +1594,15 @@ SubscriptionImpl
 		manager.removeSubscription( this );
 	}
 	
+	protected boolean
+	isRemoved()
+	{
+		synchronized( this ){
+
+			return( destroyed );
+		}
+	}
+	
 	public void
 	setUserData(
 		Object		key,

@@ -871,11 +871,14 @@ SubscriptionManagerImpl
 	changeSubscription(
 		SubscriptionImpl		subs )
 	{
-		Iterator it = listeners.iterator();
-		
-		while( it.hasNext()){
+		if ( !subs.isRemoved()){
 			
-			((SubscriptionManagerListener)it.next()).subscriptionChanged( subs );
+			Iterator it = listeners.iterator();
+			
+			while( it.hasNext()){
+				
+				((SubscriptionManagerListener)it.next()).subscriptionChanged( subs );
+			}
 		}
 	}
 	
@@ -883,11 +886,14 @@ SubscriptionManagerImpl
 	selectSubscription(
 		SubscriptionImpl		subs )
 	{
-		Iterator it = listeners.iterator();
-		
-		while( it.hasNext()){
+		if ( !subs.isRemoved()){
+
+			Iterator it = listeners.iterator();
 			
-			((SubscriptionManagerListener)it.next()).subscriptionSelected( subs );
+			while( it.hasNext()){
+				
+				((SubscriptionManagerListener)it.next()).subscriptionSelected( subs );
+			}
 		}
 	}
 	
