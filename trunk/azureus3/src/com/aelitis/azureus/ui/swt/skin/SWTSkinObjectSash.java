@@ -338,6 +338,7 @@ public class SWTSkinObjectSash
 						aboveData.width = e.x - above.getBorderWidth();
 						if (aboveData.width < aboveMin) {
 							aboveData.width = aboveMin;
+							e.x = aboveMin;
 						} else {
 							int excess = area.width - (above.getBorderWidth() * 2)
 									- sash.getSize().x;
@@ -351,6 +352,7 @@ public class SWTSkinObjectSash
 						aboveData.height = e.y - above.getBorderWidth();
 						if (aboveData.height < aboveMin) {
 							aboveData.height = aboveMin;
+							e.y = aboveMin;
 						} else {
 							int excess = area.height - (above.getBorderWidth() * 2)
 									- sash.getSize().y;
