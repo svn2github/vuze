@@ -1861,11 +1861,23 @@ public class TableViewSWTImpl
 			public void handleEvent(Event e) {
 				String sToClipboard = "";
 				int iColumn = ((Long) menu.getData("ColumnNo")).intValue();
+				TableColumn tc = (TableColumn) menu.getData("column");
+				if (tc == null) {
+					return;
+				}
+				String columnName = (String) tcColumn.getData("Name");
+				if (columnName == null) {
+					return;
+				}
 				TableItem[] tis = table.getSelection();
 				for (int i = 0; i < tis.length; i++) {
 					if (i != 0)
 						sToClipboard += "\n";
-					sToClipboard += tis[i].getText(iColumn);
+					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
+					TableCellCore cell = row.getTableCellCore(columnName);
+					if (cell != null) {
+						sToClipboard += cell.getText();
+					}
 				}
 				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
 					sToClipboard
