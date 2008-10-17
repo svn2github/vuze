@@ -24,9 +24,8 @@ import java.io.File;
 
 import org.eclipse.swt.SWT;
 
-import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
@@ -147,6 +146,17 @@ public class UIConfigDefaultsSWTv3
 			defaults.addParameter("show_torrents_menu", false);
 			
 			config.save();
+		}
+
+		
+		if (ConfigurationChecker.isNewVersion()) {
+			String lastVersion = COConfigurationManager.getStringParameter("Last Version");
+			if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
+					"4.0.0.1") <= 0) {
+				// one time flip of delete data prompt because the toolbar button
+				// now deletes data..
+				COConfigurationManager.setParameter("Confirm Data Delete", true);
+			}
 		}
 
 		defaults.addParameter("v3.topbar.show.frog", false);
