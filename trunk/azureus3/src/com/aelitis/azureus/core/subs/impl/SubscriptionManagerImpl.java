@@ -790,6 +790,31 @@ SubscriptionManagerImpl
 			addMetaSearchListener();
 		}
 		
+		if ( subs.getCachedPopularity() == -1 ){
+			
+			try{
+				subs.getPopularity(
+					new SubscriptionPopularityListener()
+					{
+						public void
+						gotPopularity(
+							long						popularity )
+						{
+						}
+						
+						public void
+						failed(
+							SubscriptionException		error )
+						{
+						}
+					});
+				
+			}catch( Throwable e ){
+				
+				log( "", e );
+			}
+		}
+		
 		Iterator it = listeners.iterator();
 		
 		while( it.hasNext()){
@@ -2598,9 +2623,18 @@ SubscriptionManagerImpl
 		throws SubscriptionException
 	{
 		try{
-			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
+			PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sid );
 			
-			return( getSubscriptionFromVuzeFileContent( sid, add_type, content ));
+			SubscriptionImpl res = getSubscriptionFromVuzeFileContent( sid, add_type, details.getContent());
+			
+			int	pop = details.getPopularity();
+			
+			if ( pop >= 0 ){
+				
+				res.setCachedPopularity( pop );
+			}
+			
+			return( res );
 			
 		}catch( SubscriptionException e ){
 			
@@ -3607,7 +3641,7 @@ SubscriptionManagerImpl
 		byte[]	sub_id 		= subs.getShortID();
 			
 		try{
-			String content = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
+			PlatformSubscriptionsMessenger.subscriptionDetails details = PlatformSubscriptionsMessenger.getSubscriptionBySID( sub_id );
 			
 			if ( !askIfCanUpgrade( subs, new_version )){
 				
@@ -3616,7 +3650,7 @@ SubscriptionManagerImpl
 			
 			VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
 			
-			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( content ));
+			VuzeFile vf = vfh.loadVuzeFile( Base64.decode( details.getContent()));
 							
 			vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_SUBSCRIPTION );
 			
@@ -3830,7 +3864,11 @@ SubscriptionManagerImpl
 					reportActivity(
 						String	str )
 					{
-						log( "    MagnetDownload: " + str );
+						if ( 	str.indexOf( " found " ) == -1 &&
+								str.indexOf( " is dead " ) == -1 ){
+			
+							log( "    MagnetDownload: " + str );
+						}
 					}
 					
 					public void
@@ -3942,7 +3980,9 @@ SubscriptionManagerImpl
 					
 					log( "Adding download for subscription '" + new String(torrent.getName()) + "'" );
 					
-					PlatformTorrentUtils.setContentTitle(torrent, "Update for subscription '" + name + "'" );
+					boolean is_update = getSubscriptionFromSID( subs_id ) != null;
+					
+					PlatformTorrentUtils.setContentTitle(torrent, (is_update?"Update":"Download") + " for subscription '" + name + "'" );
 					
 						// PlatformTorrentUtils.setContentThumbnail(torrent, thumbnail);
 						

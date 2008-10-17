@@ -99,7 +99,7 @@ PlatformSubscriptionsMessenger
 		}
 	}
 	
-	public static String 
+	public static subscriptionDetails 
 	getSubscriptionBySID(
 		byte[]		sid )
 	
@@ -123,7 +123,7 @@ PlatformSubscriptionsMessenger
 				
 				subscriptionDetails details = new subscriptionDetails( map );
 				
-				return( details.getContent());
+				return( details );
 			}
 		}
 		
@@ -339,6 +339,19 @@ PlatformSubscriptionsMessenger
 		getContent()
 		{
 			return( getString( "content" ));
+		}
+		
+		public int
+		getPopularity()
+		{
+			Long	l_pop = (Long)details.get( "popularity" );
+			
+			if ( l_pop != null ){
+				
+				return( l_pop.intValue());
+			}
+			
+			return( -1 );
 		}
 		
 		protected String
