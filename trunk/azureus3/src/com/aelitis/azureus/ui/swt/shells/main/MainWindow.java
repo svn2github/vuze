@@ -1810,8 +1810,8 @@ public class MainWindow
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-					text.selectAll();
-					text.setFocus();
+					String sSearchText = text.getText().trim();
+					doSearch(sSearchText);
 				}
 			});
 		}
