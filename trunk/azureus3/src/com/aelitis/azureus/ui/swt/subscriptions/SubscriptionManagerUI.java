@@ -1316,15 +1316,28 @@ SubscriptionManagerUI
 		getTitleInfoProperty(
 			int propertyID ) 
 		{
-			switch(propertyID) {
-			case ViewTitleInfo.TITLE_TEXT :
-			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:
-				return subs.getName();
-			case ViewTitleInfo.TITLE_INDICATOR_TEXT :
-				if(subs.getHistory().getNumUnread() > 0) {
-					return ( "" + subs.getHistory().getNumUnread());
+			switch( propertyID ){
+			
+				case ViewTitleInfo.TITLE_TEXT :
+				case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
+				
+					long	pop = subs.getCachedPopularity();
+					
+					String res = subs.getName();
+					
+					if ( pop > 1 ){
+						
+						res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
+					}
+					
+					return( res );
 				}
-				return null;
+				case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
+					if(subs.getHistory().getNumUnread() > 0) {
+						return ( "" + subs.getHistory().getNumUnread());
+					}
+					return null;
+				}
 			}
 			
 			return( null );

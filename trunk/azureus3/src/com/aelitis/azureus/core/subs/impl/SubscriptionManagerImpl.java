@@ -1653,9 +1653,14 @@ SubscriptionManagerImpl
 		if ( sids.size() > 0 ){
 			
 			try{
-				List versions = PlatformSubscriptionsMessenger.setSelected( sids );
+				List[] result = PlatformSubscriptionsMessenger.setSelected( sids );
+				
+				List	versions 		= result[0];
+				List	popularities	= result[1];
 				
 				log( "Popularity update: updated " + sids.size());
+				
+				final List dht_pops = new ArrayList();
 				
 				for (int i=0;i<sids.size();i++){
 					
@@ -1671,6 +1676,45 @@ SubscriptionManagerImpl
 						
 						checkInitialDownload( sub );
 					}
+					
+					if ( latest_version > 0 ){
+						
+						try{
+							long	pop = ((Long)popularities.get(i)).longValue();
+							
+							if ( pop >= 0 && pop != sub.getCachedPopularity()){
+								
+								sub.setCachedPopularity( pop );
+							}
+						}catch( Throwable e ){
+							
+							log( "Popularity update: Failed to extract popularity", e );
+						}
+					}else{
+						
+						dht_pops.add( sub );
+					}
+				}
+				
+				if ( dht_pops.size() <= 3 ){
+					
+					for (int i=0;i<dht_pops.size();i++){
+							
+						updatePopularityFromDHT((SubscriptionImpl)dht_pops.get(i), false );
+					}
+				}else{
+					
+					new AEThread2( "SM:asyncPop", true )
+					{
+						public void
+						run()
+						{
+							for (int i=0;i<dht_pops.size();i++){
+								
+								updatePopularityFromDHT((SubscriptionImpl)dht_pops.get(i), true );
+							}
+						}
+					}.start();
 				}
 			}catch( Throwable e ){
 				
@@ -1710,11 +1754,11 @@ SubscriptionManagerImpl
 								
 								sids.add( sub.getShortID());
 							
-								List versions = PlatformSubscriptionsMessenger.setSelected( sids );
+								List[] result = PlatformSubscriptionsMessenger.setSelected( sids );
 								
 								log( "setSelected: " + sub.getName());
 								
-								int	latest_version = ((Long)versions.get(0)).intValue();
+								int	latest_version = ((Long)result[0].get(0)).intValue();
 								
 								if ( latest_version == 0 ){
 									
@@ -1729,6 +1773,24 @@ SubscriptionManagerImpl
 								}else{
 									
 									checkInitialDownload( sub );
+								}
+								
+								if ( latest_version > 0 ){
+									
+									try{
+										long	pop = ((Long)result[1].get(0)).longValue();
+										
+										if ( pop >= 0 && pop != sub.getCachedPopularity()){
+											
+											sub.setCachedPopularity( pop );
+										}
+									}catch( Throwable e ){
+										
+										log( "Popularity update: Failed to extract popularity", e );
+									}
+								}else{
+									
+									updatePopularityFromDHT( sub, true );
 								}
 							}catch( Throwable e ){
 								
@@ -2167,9 +2229,19 @@ SubscriptionManagerImpl
 			log( "Subscription lookup via platform failed", e );
 		}
 		
+		getPopularityFromDHT( subs, listener, true );
+	}
+	
+	protected void
+	getPopularityFromDHT(
+		final SubscriptionImpl					subs,
+		final SubscriptionPopularityListener	listener,
+		final boolean							sync )
+
+	{
 		if ( dht_plugin != null && !dht_plugin.isInitialising()){
 
-			getPopularitySupport( subs, listener );
+			getPopularitySupport( subs, listener, sync );
 			
 		}else{
 			
@@ -2178,16 +2250,43 @@ SubscriptionManagerImpl
 				public void
 				run()
 				{
-					getPopularitySupport( subs, listener );
+					getPopularitySupport( subs, listener, sync );
 				}
 			}.start();
 		}
 	}
 	
 	protected void
+	updatePopularityFromDHT(
+		final SubscriptionImpl		subs,
+		boolean						sync )
+	{
+		getPopularityFromDHT(
+			subs,
+			new SubscriptionPopularityListener()
+			{
+				public void
+				gotPopularity(
+					long						popularity )
+				{
+					subs.setCachedPopularity( popularity );
+				}
+				
+				public void
+				failed(
+					SubscriptionException		error )
+				{
+					log( "Failed to update subscription popularity from DHT", error );
+				}
+			},
+			sync );
+	}
+	
+	protected void
 	getPopularitySupport(
-		SubscriptionImpl					subs,
-		SubscriptionPopularityListener		listener )
+		final SubscriptionImpl					subs,
+		final SubscriptionPopularityListener	listener,
+		final boolean							sync )
 	{
 		log( "Getting popularity of " + subs.getName() + " from DHT" );
 
@@ -2238,7 +2337,7 @@ SubscriptionManagerImpl
 						
 						if ( hits >= 3 ){
 							
-							sem.release();
+							done();
 						}
 					}
 					
@@ -2267,23 +2366,50 @@ SubscriptionManagerImpl
 							}
 						}
 						
-						sem.release();
+						done();
+					}
+					
+					protected void
+					done()
+					{						
+						if ( sync ){
+			
+							sem.release();
+
+						}else{
+							
+							if ( result[0] == -1 ){
+								
+								log( "Failed to get popularity of " + subs.getName() + " from DHT" );
+					
+								listener.failed( new SubscriptionException( "Timeout" ));
+								
+							}else{
+							
+								log( "Get popularity of " + subs.getName() + " from DHT: " + result[0] );
+					
+								listener.gotPopularity( result[0] );
+							}
+						}
 					}
 				});
 		
-		sem.reserve( timeout );
-		
-		if ( result[0] == -1 ){
+		if ( sync ){
 			
-			log( "Failed to get popularity of " + subs.getName() + " from DHT" );
-
-			listener.failed( new SubscriptionException( "Timeout" ));
+			sem.reserve( timeout );
 			
-		}else{
-		
-			log( "Get popularity of " + subs.getName() + " from DHT: " + result[0] );
-
-			listener.gotPopularity( result[0] );
+			if ( result[0] == -1 ){
+				
+				log( "Failed to get popularity of " + subs.getName() + " from DHT" );
+	
+				listener.failed( new SubscriptionException( "Timeout" ));
+				
+			}else{
+			
+				log( "Get popularity of " + subs.getName() + " from DHT: " + result[0] );
+	
+				listener.gotPopularity( result[0] );
+			}
 		}
 	}
 	

@@ -161,7 +161,7 @@ PlatformSubscriptionsMessenger
 		return( -1 );
 	}
 	
-	public static List 
+	public static List[] 
 	setSelected(
 		List	sids )
 	
@@ -193,7 +193,21 @@ PlatformSubscriptionsMessenger
 			}
 		}
 		
-		return( versions );
+		List	popularities = (List)reply.get( "popularities" );
+		
+		if ( popularities == null ){
+			
+				// migrate
+			
+			popularities = new ArrayList();
+			
+			for (int i=0;i<sids.size();i++){
+				
+				versions.add( new Long(-1));
+			}
+		}
+	
+		return( new List[]{ versions,popularities } );
 	}   
 	
 	protected static Map

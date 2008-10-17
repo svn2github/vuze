@@ -1170,6 +1170,18 @@ SubscriptionImpl
 		return( popularity );
 	}
 	
+	protected void
+	setCachedPopularity(
+		long		pop )
+	{
+		if ( pop != popularity ){
+			
+			popularity		= pop;
+			
+			fireChanged();
+		}
+	}
+	
 	public String
 	getReferer()
 	{
