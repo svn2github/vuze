@@ -1221,6 +1221,7 @@ SubscriptionManagerUI
 				"subs.prop.assoc",
 				"subs.prop.version",
 				"subs.prop.high_version",
+				"subscriptions.listwindow.popularity",
 				"subs.prop.template",
 				"subs.prop.auth",
 			};
@@ -1238,6 +1239,7 @@ SubscriptionManagerUI
 				String.valueOf( subs.getAssociationCount()),
 				String.valueOf( subs.getVersion()),
 				subs.getHighestVersion() > subs.getVersion()?String.valueOf( subs.getHighestVersion()):null,
+				subs.getCachedPopularity()<=1?null:String.valueOf( subs.getCachedPopularity()),
 				engine_str,
 				auth_str,
 			};
@@ -1318,7 +1320,10 @@ SubscriptionManagerUI
 		{
 			switch( propertyID ){
 			
-				case ViewTitleInfo.TITLE_TEXT :
+				case ViewTitleInfo.TITLE_TEXT:{
+					
+					return( subs.getName());
+				}
 				case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
 				
 					long	pop = subs.getCachedPopularity();
