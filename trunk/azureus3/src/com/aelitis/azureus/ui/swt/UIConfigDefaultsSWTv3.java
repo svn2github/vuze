@@ -138,9 +138,6 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("suppress_file_download_dialog", true);
 			
-			// New style messagebox is not ready yet for full usage
-			defaults.addParameter("useNewStyleMessageBox", false);
-			
 			defaults.addParameter("auto_remove_inactive_items", false);
 			
 			defaults.addParameter("show_torrents_menu", false);
