@@ -162,7 +162,15 @@ PropertiesWindow
 		 	
 	 	shell.pack();
 	
-	 	shell.setSize( 400, 300 );
+	 	int	shell_width = 400;
+	 	
+	 	int	main_height = main.computeSize(shell_width, SWT.DEFAULT).y;
+	 	
+	 	int shell_height = main_height + (shell.getSize().y - scrollable.getSize().y);
+	 	
+	 	shell_height = Math.min( shell_height, 600 );
+	 	
+	 	shell.setSize( shell_width, shell_height );
 
 		Utils.centreWindow( shell );
 
