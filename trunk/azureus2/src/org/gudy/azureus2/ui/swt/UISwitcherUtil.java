@@ -101,6 +101,7 @@ public class UISwitcherUtil
 				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
 				COConfigurationManager.setParameter("ui", "az3");
 				COConfigurationManager.setParameter("az3.virgin.switch", true);
+				COConfigurationManager.setParameter("v3.Start Advanced", true);
 				return "az3";
 			}
 			
@@ -140,6 +141,7 @@ public class UISwitcherUtil
       			if (uptime < UPTIME_NEWUSER && uptime >= 0) {
       				COConfigurationManager.setParameter("ui", "az3");
       				COConfigurationManager.setParameter("az3.virgin.switch", true);
+      				COConfigurationManager.setParameter("az3.switch.immediate", true);
       				return "az3";
       			}
   				}
