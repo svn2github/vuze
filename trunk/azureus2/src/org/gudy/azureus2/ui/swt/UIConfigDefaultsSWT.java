@@ -122,7 +122,6 @@ public class UIConfigDefaultsSWT
 			System.setProperty("org.eclipse.swt.browser.XULRunnerPath", xulPath);
 		
 		
-		def.addParameter("useNewStyleMessageBox", false);
 		def.addParameter("MyTorrentsView.table.style", 0);
 	}
 }

@@ -269,9 +269,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			}
 		}
 		
-		new BooleanParameter(cLook, "useNewStyleMessageBox", 
-				MSG_PREFIX + "useNewStyleMessageBox");
-		
 		return cLook;
 	}
 }
