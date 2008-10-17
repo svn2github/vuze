@@ -1810,6 +1810,10 @@ public class MyTorrentsView
 		//tv.refreshTable(false);
 	}
   
+  public boolean isInCurrentCategory(DownloadManager manager) {
+  	return isInCategory(manager, currentCategory);
+  }
+
   private boolean isInCategory(DownloadManager manager, Category category) {
   	if (category == null) {
   		return true;
