@@ -735,8 +735,9 @@ public class MainWindow
 					configID)) {
 				COConfigurationManager.setBooleanDefault(configID, true);
 			}
-			setVisible(WINDOW_ELEMENT_SEARCHBAR,
-					COConfigurationManager.getBooleanParameter(configID));
+			setVisible(WINDOW_ELEMENT_TOPBAR,
+					COConfigurationManager.getBooleanParameter(configID)
+							&& COConfigurationManager.getIntParameter("User Mode") > 1);
 
 			configID = "Friends.visible";
 			if (false == ConfigurationDefaults.getInstance().doesParameterDefaultExist(
@@ -2041,7 +2042,7 @@ public class MainWindow
 			if (null != oldMainWindow) {
 				return oldMainWindow.isVisible(windowElement);
 			}
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
 				return skinObject.isVisible();
@@ -2068,7 +2069,7 @@ public class MainWindow
 				 */
 				oldMainWindow.setVisible(windowElement, value);
 			}
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR
 					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, value, true, true);
@@ -2092,7 +2093,7 @@ public class MainWindow
 				 */
 				return oldMainWindow.getMetrics(windowElement);
 			}
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 			if (skinObject != null) {
@@ -2117,7 +2118,7 @@ public class MainWindow
 		} else if (windowElement == IMainWindow.WINDOW_CONTENT_DISPLAY_AREA) {
 
 			Rectangle r = getMetrics(IMainWindow.WINDOW_CLIENT_AREA);
-			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_SEARCHBAR).height;
+			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TOPBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_TABBAR).height;
 			r.height -= getMetrics(IMainWindow.WINDOW_ELEMENT_STATUSBAR).height;
 			return r;
