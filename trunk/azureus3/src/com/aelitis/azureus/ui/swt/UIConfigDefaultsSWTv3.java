@@ -82,7 +82,10 @@ public class UIConfigDefaultsSWTv3
 		}
 
 		boolean virginSwitch = config.getBooleanParameter("az3.virgin.switch", false);
-		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0 || virginSwitch) {
+		boolean immediateSwitch = config.getBooleanParameter(
+				"az3.switch.immediate", false);
+		if (Constants.compareVersions(sFirstVersion, "3.0.0.0") >= 0
+				|| immediateSwitch) {
 
 			if (!config.isNewInstall()
 					&& Constants.compareVersions(sFirstVersion, "3.0.0.4") < 0) {
