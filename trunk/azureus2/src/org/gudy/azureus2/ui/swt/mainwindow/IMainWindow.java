@@ -11,8 +11,7 @@ public interface IMainWindow
 
 	public static final int WINDOW_ELEMENT_STATUSBAR = 3;
 
-	// 3.2 TODO: Rename to topbar
-	public static final int WINDOW_ELEMENT_SEARCHBAR = 4;
+	public static final int WINDOW_ELEMENT_TOPBAR = 4;
 
 	// 3.2 TODO: rename to searchbar or profilebar or something
 	public static final int WINDOW_ELEMENT_TABBAR = 5;

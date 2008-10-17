@@ -1736,7 +1736,7 @@ public class MainWindow
 
 			return mainStatusBar.getBounds();
 
-		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_SEARCHBAR) {
+		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			//KN: No search bar in classic UI
 
