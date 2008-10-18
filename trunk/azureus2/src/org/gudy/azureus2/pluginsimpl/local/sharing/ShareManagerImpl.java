@@ -672,7 +672,7 @@ ShareManagerImpl
 				old_resource.delete();
 			}
 
-			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive );
+			ShareResourceDirContents new_resource = new ShareResourceDirContentsImpl( this, dir, recursive, true );
 						
 			shares.put( name, new_resource );
 			

@@ -48,7 +48,8 @@ ShareResourceDirContentsImpl
 	ShareResourceDirContentsImpl(
 		ShareManagerImpl	_manager,
 		File				_dir,
-		boolean				_recursive )
+		boolean				_recursive,
+		boolean				_async_check )
 
 		throws ShareException
 	{
@@ -69,7 +70,27 @@ ShareResourceDirContentsImpl
 		
 			// new resource, trigger processing
 		
-		checkConsistency();
+		if ( _async_check ){
+			
+			new AEThread2( "SM:asyncCheck", true )
+			{
+				public void
+				run()
+				{
+					try{
+						checkConsistency();
+						
+					}catch( Throwable e ){
+						
+						Debug.out( "Failed to update consistency", e );
+					}
+				}
+			}.start();
+			
+		}else{
+			
+		      checkConsistency();
+		}
 	}
 	
 	protected
