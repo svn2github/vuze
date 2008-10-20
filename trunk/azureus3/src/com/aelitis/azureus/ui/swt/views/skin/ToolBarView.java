@@ -24,16 +24,16 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -44,7 +44,9 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
@@ -190,7 +192,7 @@ public class ToolBarView
 		addSeperator(so2nd);
 
 		// ==UP
-		item = new ToolBarItem("up", "image.toolbar.up", "iconBar.up") {
+		item = new ToolBarItem("up", "image.toolbar.up", "v3.iconBar.up") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
@@ -233,7 +235,7 @@ public class ToolBarView
 		addSeperator(so2nd);
 
 		// ==down
-		item = new ToolBarItem("down", "image.toolbar.down", "iconBar.down") {
+		item = new ToolBarItem("down", "image.toolbar.down", "v3.iconBar.down") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
