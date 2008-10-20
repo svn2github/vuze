@@ -2513,26 +2513,33 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	public void showItemByTabID(String tabID) {
+	public void showItemByTabID(final String tabID) {
 		if (tabID == null) {
 			return;
 		}
-		// if it matches an existing sidebar item, just use that
-		IView viewFromID = getIViewFromID(tabID);
-		if (viewFromID != null) {
-			showItemByID(tabID);
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (tree.isDisposed()) {
+					return;
+				}
+				// if it matches an existing sidebar item, just use that
+				IView viewFromID = getIViewFromID(tabID);
+				if (viewFromID != null) {
+					showItemByID(tabID);
+				}
 
-		if (tabID.equals("library") || tabID.equals("minilibrary")) {
-			showItemByID(SIDEBAR_SECTION_LIBRARY);
-		} else if (tabID.equals("publish")) {
-			showItemByID(SIDEBAR_SECTION_PUBLISH);
-		} else if (tabID.equals("activities")) {
-			showItemByID(SIDEBAR_SECTION_ACTIVITIES);
-		} else {
-			// everything else can go to browse..
-			showItemByID(SIDEBAR_SECTION_BROWSE);
-		}
+				if (tabID.equals("library") || tabID.equals("minilibrary")) {
+					showItemByID(SIDEBAR_SECTION_LIBRARY);
+				} else if (tabID.equals("publish")) {
+					showItemByID(SIDEBAR_SECTION_PUBLISH);
+				} else if (tabID.equals("activities")) {
+					showItemByID(SIDEBAR_SECTION_ACTIVITIES);
+				} else {
+					// everything else can go to browse..
+					showItemByID(SIDEBAR_SECTION_BROWSE);
+				}
+			}
+		});
 	}
 
 	/**
