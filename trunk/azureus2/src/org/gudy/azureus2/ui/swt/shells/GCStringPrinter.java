@@ -497,7 +497,7 @@ public class GCStringPrinter
 		}
 		
 
-		return size.y <= printArea.height;
+		return !cutoff && size.y <= printArea.height;
 	}
 
 	/**
@@ -596,7 +596,12 @@ public class GCStringPrinter
 		}
 
 		if (!wrap && hasMoreElements && excessPos >= 0) {
-			outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+			int len = outputLine.length();
+			if (len > 2) {
+				len -= 2;
+			}
+			outputLine.setLength(len);
+			outputLine.append("\u2026");
 			cutoff = true;
 		}
 		//drawLine(gc, outputLine, swtFlags, rectDraw);
@@ -639,6 +644,9 @@ public class GCStringPrinter
 
 				if (newWidth > printArea.width) {
 					if (bounds.width + spaceExtent.x < printArea.width || lineInfo.width > 0) {
+						//outputLine.append(space);
+						//outputLine.append(word, 0, 2);
+						//System.out.println("w1 = " + lineInfo.width + ";h=" + lineInfo.height);
 						return 0;
 					}
 				}
@@ -647,17 +655,32 @@ public class GCStringPrinter
 					lineInfo.imageIndexes = new int[] { imgIdx };
 				}
 				
+				
+				int targetWidth = lineInfo.width + newWidth;
+				
 				lineInfo.width = newWidth;
 				lineInfo.height = Math.max(bounds.height, lineInfo.height);
 
-				outputLine.append(space);
-				outputLine.append(word);
-				if (space.length() > 0) {
-					space.delete(0, space.length());
+				Point ptWordSize = gc.stringExtent(word.substring(2) + " ");
+				if (lineInfo.width + ptWordSize.x > printArea.width) {
+					outputLine.append(space);
+					outputLine.append(word, 0, 2);
+					//System.out.println("w8 = " + lineInfo.width + ";h=" + lineInfo.height);
+					return 2;
 				}
-				space.append(' ');
 				
-				return -1;
+				outputLine.append(space);
+				space.setLength(0);
+				outputLine.append(word.substring(0, 2));
+				word = word.substring(2);
+				//outputLine.append(word);
+				//if (space.length() > 0) {
+				//	space.delete(0, space.length());
+				//}
+				//space.append(' ');
+				
+				//System.out.println("w2 = " + lineInfo.width + ";h=" + lineInfo.height);
+				//return -1;
 			}
 		}
 
@@ -666,6 +689,7 @@ public class GCStringPrinter
 		// This will split put a word that is longer than a full line onto a new
 		// line (when the existing line has text).
 		if (bWordLargerThanWidth && lineInfo.width > 0) {
+			//System.out.println("w3 = " + lineInfo.width + ";h=" + lineInfo.height);
 			return 0;
 		}
 		int targetWidth = lineInfo.width + ptWordSize.x;
@@ -739,8 +763,12 @@ public class GCStringPrinter
 					} else if (sLine.length() > 0) {
 						outputLine.append(sLine.charAt(0));
 					}
-				} else if (len > 1) {
-					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+				} else {
+					if (len > 2) {
+						len -= 2;
+					}
+					outputLine.setLength(len);
+					outputLine.append("\u2026");
 					cutoff = true;
 				}
 			}
@@ -748,6 +776,7 @@ public class GCStringPrinter
 			if (DEBUG) {
 				System.out.println("excess " + word.substring(endIndex));
 			}
+			//System.out.println("w9 = " + lineInfo.width + ";h=" + lineInfo.height);
 			return endIndex;
 		}
 
@@ -765,12 +794,18 @@ public class GCStringPrinter
 					} else if (sLine.length() > 0) {
 						outputLine.append(sLine.charAt(0));
 					}
-				} else if (len > 1) {
-					outputLine.replace(outputLine.length() - 1, outputLine.length(), "..");
+				} else {
+					if (len > 2) {
+						len -= 2;
+					}
+					outputLine.setLength(len);
+					outputLine.append("\u2026");
 					cutoff = true;
 				}
+				//System.out.println("w5 = " + lineInfo.width + ";h=" + lineInfo.height);
 				return -1;
 			} else {
+				//System.out.println("w6 = " + lineInfo.width + ";h=" + lineInfo.height);
 				return 0;
 			}
 			//drawLine(gc, outputLine, swtFlags, rectDraw);
@@ -785,6 +820,7 @@ public class GCStringPrinter
 		}
 		space.append(' ');
 
+		//System.out.println("w4 = " + lineInfo.width + ";h=" + lineInfo.height);
 		return -1;
 	}
 
@@ -1121,6 +1157,10 @@ public class GCStringPrinter
 		btnWrap.setText("Wrap");
 		btnWrap.setSelection(true);
 		btnWrap.addListener(SWT.Selection, l);
+		
+		final Label lblInfo = new Label(shell, SWT.WRAP);
+		lblInfo.setText("Welcome");
+		
 
 		Listener l2 = new Listener() {
 			URLInfo lastHitInfo = null;
@@ -1149,7 +1189,9 @@ public class GCStringPrinter
 						if (url1.equals(url2)) {
 							return;
 						}
+						cPaint.redraw();
 						lastHitInfo = hitUrl;
+						return;
 					}
 
 					Rectangle bounds = cPaint.getClientArea();
@@ -1163,9 +1205,14 @@ public class GCStringPrinter
 					sp.setUrlColor(colorURL);
 					URLInfo hitUrl = sp.getHitUrl(pt.x, pt.y);
 					if (hitUrl != null) {
+						shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 						hitUrl.urlColor = colorURL2;
+					} else {
+						shell.setCursor(null);
 					}
-					sp.printString();
+					boolean fit = sp.printString();
+					
+					lblInfo.setText(fit ? "fit" : "no fit");
 
 					bounds.width--;
 					bounds.height--;
@@ -1345,6 +1392,15 @@ public class GCStringPrinter
 
 	public void setImageScales(float[] imageScales) {
 		this.imageScales = imageScales;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.1
+	 */
+	public String getText() {
+		return string;
 	}
 
 	/*
