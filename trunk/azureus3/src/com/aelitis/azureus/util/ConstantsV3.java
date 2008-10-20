@@ -189,4 +189,12 @@ public class ConstantsV3
 		}
 		return url;
 	}
+	
+	public static String urlRelativeToPlatform(String url) {
+		if (!url.startsWith("http")) {
+			url = ConstantsV3.URL_PREFIX
+					+ (url.startsWith("/") ? url.substring(1) : url);
+		}
+		return ConstantsV3.appendURLSuffix(url);
+	}
 }
