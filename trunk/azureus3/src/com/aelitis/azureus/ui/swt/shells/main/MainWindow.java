@@ -96,7 +96,6 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -1559,6 +1558,10 @@ public class MainWindow
   					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true, -1);
 			}
 			
+			if (!COConfigurationManager.getBooleanParameter("ToolBar.showText")) {
+				flipShowText();
+			}
+			
 			final MenuItem itemShowText = new MenuItem(topbarMenu, SWT.CHECK);
 			Messages.setLanguageText(itemShowText, "v3.MainWindow.menu.showActionBarText");
 			itemShowText.addSelectionListener(new SelectionAdapter() {
@@ -1607,17 +1610,30 @@ public class MainWindow
 
 	protected void flipShowText() {
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb != null) {
+		if (tb == null) {
+			SkinViewManager.addListener(new SkinViewManagerListener() {
+				public void skinViewAdded(SkinView skinview) {
+					if (skinview instanceof ToolBarView) {
+						SkinViewManager.RemoveListener(this);
+						flipShowText();
+					}
+				}
+			});
+			return;
+		}
+
+		try {
 			boolean showText = !tb.getShowText();
+			COConfigurationManager.setParameter("ToolBar.showText", showText);
 			tb.setShowText(showText);
-			
+
 			SWTSkinObject skinObject;
 			skinObject = skin.getSkinObject("search-text");
 			if (skinObject != null) {
 				Control control = skinObject.getControl();
 				FormData fd = (FormData) control.getLayoutData();
 				fd.top.offset = showText ? 6 : 5;
-				fd.bottom.offset = showText ? -3 : -2; 
+				fd.bottom.offset = showText ? -3 : -2;
 			}
 			skinObject = skin.getSkinObject("topgap");
 			if (skinObject != null) {
@@ -1636,6 +1652,8 @@ public class MainWindow
 
 			shell.layout(true, true);
 			shell.redraw();
+		} catch (Exception e) {
+			Debug.out(e);
 		}
 	}
 
