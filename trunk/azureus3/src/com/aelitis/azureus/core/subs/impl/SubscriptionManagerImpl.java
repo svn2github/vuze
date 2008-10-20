@@ -3260,12 +3260,14 @@ SubscriptionManagerImpl
 			false,
 			new DHTPluginOperationListener()
 			{
-				private int	hits	= 0;
-				private int	max_ver = 0;
+				private int			hits;
+				private boolean		diversified;
+				private int			max_ver;
 				
 				public void
 				diversified()
 				{
+					diversified = true;
 				}
 				
 				public void 
@@ -3331,13 +3333,13 @@ SubscriptionManagerImpl
 						}
 					}
 					
-					if ( hits < 6 ){			
+					if (( hits == 0 && diversified ) || ( hits < 6 && !diversified )){			
 			
 						log( "    Publishing association '" + subs.getString() + "' -> '" + assoc.getString() + "', existing=" + hits );
 
 						byte flags = DHTPlugin.FLAG_ANON;
 						
-						if ( hits < 3 ){
+						if ( hits < 3 && !diversified ){
 							
 							flags |= DHTPlugin.FLAG_PRECIOUS;
 						}
@@ -3480,17 +3482,21 @@ SubscriptionManagerImpl
 			key.getBytes(),
 			"Subscription presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
-			12,
+			24,
 			60*1000,
 			false,
 			false,
 			new DHTPluginOperationListener()
 			{
-				private int	hits	= 0;
+				private int		hits;
+				private boolean	diversified;
 				
 				public void
 				diversified()
 				{
+					System.out.println( "Check subs pub: diversified " + subs.getName());
+					
+					diversified = true;
 				}
 				
 				public void 
@@ -3532,7 +3538,7 @@ SubscriptionManagerImpl
 				{
 					log( "Checked subscription publication '" + subs.getString() + "' - hits=" + hits );
 
-					if ( hits < 6 ){			
+					if (( hits == 0 && diversified ) || ( hits < 6 && !diversified )){			
 			
 						log( "    Publishing subscription '" + subs.getString() + ", existing=" + hits );
 
@@ -3541,7 +3547,7 @@ SubscriptionManagerImpl
 							
 							byte	flags = DHTPlugin.FLAG_SINGLE_VALUE;
 							
-							if ( hits < 3 ){
+							if ( hits < 3 && !diversified ){
 								
 								flags |= DHTPlugin.FLAG_PRECIOUS;
 							}
