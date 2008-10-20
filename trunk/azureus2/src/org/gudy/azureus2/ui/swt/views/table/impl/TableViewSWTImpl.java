@@ -1431,8 +1431,11 @@ public class TableViewSWTImpl
 				cellBounds.x += 3;
 				cellBounds.width -= 6;
 				if (!cellBounds.isEmpty()) {
-					GCStringPrinter.printString(event.gc, cell.getText(), cellBounds, true,
-							cellBounds.height > 20, style);
+					boolean fit = GCStringPrinter.printString(event.gc, text,
+							cellBounds, true, cellBounds.height > 20, style);
+					if (!fit) {
+						cell.setToolTip(text);
+					}
 				}
 			}
 
