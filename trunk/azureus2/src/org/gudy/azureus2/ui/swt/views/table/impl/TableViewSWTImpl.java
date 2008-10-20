@@ -1434,6 +1434,7 @@ public class TableViewSWTImpl
 					boolean fit = GCStringPrinter.printString(event.gc, text,
 							cellBounds, true, cellBounds.height > 20, style);
 					if (!fit) {
+						// XXX This overrides cell-set tooltip!
 						cell.setToolTip(text);
 					}
 				}
