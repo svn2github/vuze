@@ -157,6 +157,15 @@ public class Browse
   				browserSkinObject.restart();
   			}
   		});
+  		
+  		menuItem = menuManager.addMenuItem("sidebar."
+  				+ SideBar.SIDEBAR_SECTION_BROWSE, "Tux RPC Test");
+  		menuItem.addListener(new MenuItemListener() {
+  			public void selected(MenuItem menu, Object target) {
+  	  		browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
+  			}
+  		});
+  		
 		}
 
 		return null;
