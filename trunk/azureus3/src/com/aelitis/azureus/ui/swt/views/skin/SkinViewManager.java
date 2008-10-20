@@ -121,7 +121,17 @@ public class SkinViewManager
 	}
 	
 	public static void addListener(SkinViewManagerListener l) {
-		listeners.add(l);
+		synchronized (SkinViewManager.class) {
+			if (!listeners.contains(l)) {
+				listeners.add(l);
+			}
+		}
+	}
+	
+	public static void RemoveListener(SkinViewManagerListener l) {
+		synchronized (SkinViewManager.class) {
+			listeners.remove(l);
+		}
 	}
 	
 	private static void triggerListeners(SkinView skinView) {
