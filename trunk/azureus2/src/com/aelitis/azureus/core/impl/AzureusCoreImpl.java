@@ -234,6 +234,9 @@ AzureusCoreImpl
 					this,
 					new SpeedManagerAdapter()
 					{
+						private final int UPLOAD_SPEED_ADJUST_MIN_KB_SEC		= 10;
+						private final int DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC		= 300;
+						
 						private boolean setting_limits;
 						
 						public int
@@ -329,7 +332,12 @@ AzureusCoreImpl
 									
 								}else{
 								
-									k_per_second = bytes_per_second/1024;
+									k_per_second = (bytes_per_second+1023)/1024;
+								}
+								
+								if ( k_per_second > 0 ){
+								
+									k_per_second = Math.max( k_per_second, UPLOAD_SPEED_ADJUST_MIN_KB_SEC );
 								}
 								
 								COConfigurationManager.setParameter( key, k_per_second );
@@ -346,6 +354,11 @@ AzureusCoreImpl
 						setCurrentDownloadLimit(
 							int		bytes_per_second )
 						{
+							if ( bytes_per_second > 0 ){
+								
+								bytes_per_second = Math.max( bytes_per_second, DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC*1024 );
+							}
+							
 							TransferSpeedValidator.setGlobalDownloadRateLimitBytesPerSecond( bytes_per_second );
 						}
 						
