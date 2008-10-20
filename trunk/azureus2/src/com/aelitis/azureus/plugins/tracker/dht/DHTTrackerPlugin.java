@@ -153,6 +153,10 @@ DHTTrackerPlugin
 	
 	private Map					in_progress				= new HashMap();
 	
+		// external config to limit plugin op to pure decentralised only
+	
+	private boolean				track_only_decentralsed = COConfigurationManager.getBooleanParameter( "dhtplugin.track.only.decentralised", false );
+	
 	private BooleanParameter	track_normal_when_offline;
 	private BooleanParameter	track_limited_when_online;
 	
@@ -457,6 +461,19 @@ DHTTrackerPlugin
 	addDownload(
 		final Download	download )
 	{
+		if ( track_only_decentralsed ){
+		
+			Torrent	torrent = download.getTorrent();
+
+			if ( torrent != null ){
+				
+				if ( !TorrentUtils.isDecentralised( torrent.getAnnounceURL())){
+					
+					return;
+				}
+			}
+		}
+		
 		if ( is_running ){
 			
 			String[]	networks = download.getListAttribute( ta_networks );
