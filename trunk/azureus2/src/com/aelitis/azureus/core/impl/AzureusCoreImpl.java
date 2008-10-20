@@ -354,6 +354,11 @@ AzureusCoreImpl
 						setCurrentDownloadLimit(
 							int		bytes_per_second )
 						{
+							if ( bytes_per_second == Integer.MAX_VALUE ){
+								
+								bytes_per_second = 0;
+							}
+							
 							if ( bytes_per_second > 0 ){
 								
 								bytes_per_second = Math.max( bytes_per_second, DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC*1024 );

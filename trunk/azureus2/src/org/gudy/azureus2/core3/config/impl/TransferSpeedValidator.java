@@ -184,7 +184,7 @@ public final class TransferSpeedValidator
 	setGlobalDownloadRateLimitBytesPerSecond(
 		int		bytes_per_second )
 	{
-		COConfigurationManager.setParameter( getDownloadParameter(), bytes_per_second/1024 );
+		COConfigurationManager.setParameter( getDownloadParameter(), (bytes_per_second+1023)/1024 );
 	}
 	
     public static boolean
