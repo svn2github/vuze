@@ -11,6 +11,7 @@ CHANGE: UIvz  | If you hold the mouse down for a period of time on Up and Down t
 BUGFIX: UIvz  | Fixed missing of all incomplete-specific and complete-specific torrent columns in My Library in "big" mode [TuxPaper]
 BUGFIX: UIvz  | If you previously chose top bar to be visible, and you aren't in advanced user mode, there was no way to remove top bar.  Fixed by not showing top bar in non-advanced user mode [TuxPaper]
 BUGFIX: UIvz  | Fixed sidebar sash disappearing when moving beyond minimum size [TuxPaper]
+BUGFIX: UIvz  | Table cells with cutoff text should show tooltip now [TuxPaper]
 BUGFIX: UI    | Fixed copying cell's text to clipboard [TuxPaper] 
 
 
