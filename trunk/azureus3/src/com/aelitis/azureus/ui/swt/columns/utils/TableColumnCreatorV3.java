@@ -32,6 +32,70 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
  */
 public class TableColumnCreatorV3
 {
+	/**
+	 * @param tableMytorrentsAllBig
+	 * @param b
+	 * @return
+	 *
+	 * @since 4.0.0.1
+	 */
+	public static TableColumnCore[] createAllDM(String tableID,
+			boolean big) {
+		final String[] defaultVisibleOrder = {
+			ColumnUnopened.COLUMN_ID,
+			ColumnThumbnail.COLUMN_ID,
+			NameItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			SizeItem.COLUMN_ID,
+			ColumnQuality.COLUMN_ID,
+			ColumnInfo.COLUMN_ID,
+			ColumnRateUpDown.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
+		};
+
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+		Map mapTCs = tcManager.getTableColumnsAsMap(Download.class,
+				tableID);
+
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
+				|| areNoneVisible(mapTCs)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
+				tc.setSortAscending(false);
+			}
+			NameItem tcName = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+			if (tcName != null) {
+				tcName.setWidth(140);
+			}
+		}
+
+		// special changes
+		StatusItem tcStatusItem = (StatusItem) mapTCs.get(StatusItem.COLUMN_ID);
+		if (tcStatusItem != null) {
+			tcStatusItem.setChangeRowFG(false);
+			if (big) {
+				tcStatusItem.setChangeCellFG(false);
+			}
+		}
+		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
+		if (tcNameItem != null) {
+			tcNameItem.setShowIcon(false);
+		}
+		if (big) {
+			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
+			if (tcShareRatioItem != null) {
+				tcShareRatioItem.setChangeFG(false);
+				tcShareRatioItem.setWidth(80);
+			}
+		}
+
+		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbnail.COLUMN_ID,
