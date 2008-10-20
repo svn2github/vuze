@@ -214,6 +214,17 @@ public class TableColumnManager {
   				System.arraycopy(ids2, 0, dstColumnIDs, 0, ids2.length);
   				System.arraycopy(ids1, 0, dstColumnIDs, ids2.length, ids1.length);
   			}
+  		} else if (forDataSourceType.equals(Download.class)) {
+  			listDST = (List) mapDataSourceTypeToColumnIDs.get(DownloadTypeComplete.class);
+  			if (listDST != null && listDST.size() > 0) {
+  				String[] ids = (String[]) listDST.toArray(new String[listDST.size()]);
+  				dstColumnIDs = appendLists(ids, dstColumnIDs);
+  			}
+  			listDST = (List) mapDataSourceTypeToColumnIDs.get(DownloadTypeIncomplete.class);
+  			if (listDST != null && listDST.size() > 0) {
+  				String[] ids = (String[]) listDST.toArray(new String[listDST.size()]);
+  				dstColumnIDs = appendLists(ids, dstColumnIDs);
+  			}
   		}
 		}
 
@@ -256,9 +267,9 @@ public class TableColumnManager {
 		}
 	}
   
-  public TableColumnCore[] appendLists(TableColumnCore[] list1, TableColumnCore[] list2) {
+  public String[] appendLists(String[] list1, String[] list2) {
   	int size = list1.length + list2.length;
-  	TableColumnCore[] list = new TableColumnCore[size];
+  	String[] list = new String[size];
   	System.arraycopy(list1, 0, list, 0, list1.length);
   	System.arraycopy(list2, 0, list, list1.length, list2.length);
   	return list;
