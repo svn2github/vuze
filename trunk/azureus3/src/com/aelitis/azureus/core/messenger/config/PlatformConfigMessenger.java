@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -252,6 +253,10 @@ public class PlatformConfigMessenger
 		if (url == null) {
 			Debug.out("URL null and should be blocked");
 			return false;
+		}
+		
+		if (Constants.isCVSVersion() && url.startsWith("file://")) {
+			return true;
 		}
 
 		String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
