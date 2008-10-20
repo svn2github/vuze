@@ -1164,6 +1164,9 @@ public class MainStatusBar
 			currentProgressImage = newProgressImage;
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					if (progressViewerImageLabel.isDisposed()) {
+						return;
+					}
 					progressViewerImageLabel.setImage(currentProgressImage);
 				}
 			});
