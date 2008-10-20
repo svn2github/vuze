@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -48,6 +49,8 @@ public class BrowserWindow
 	private Shell shell;
 
 	private ClientMessageContext context;
+
+	private Browser browser;
 	
 	public BrowserWindow(Shell parent, String url, double wPct, double hPct,
 			boolean allowResize, boolean isModal) {
@@ -86,7 +89,7 @@ public class BrowserWindow
 
 		Utils.setShellIcon(shell);
 
-		Browser browser = null;
+		browser = null;
 		
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
@@ -129,6 +132,24 @@ public class BrowserWindow
 			}
 
 		});
+		
+		browser.addStatusTextListener(new StatusTextListener() {
+			public void changed(StatusTextEvent event) {
+				if(MessageBoxShell.STATUS_TEXT_CLOSE.equals(event.text)) {
+					//For some reason disposing the shell / browser in the same Thread makes
+					//ieframe.dll crash on windows.
+					Utils.execSWTThreadLater(0, new Runnable() {
+						public void run() {
+							if(!browser.isDisposed() && ! shell.isDisposed()) {
+								shell.close();
+							}
+						}
+					});
+				}
+			}
+			
+		});
+		
 
 		if (w > 0 && h > 0) {
 			shell.setSize(w, h);
