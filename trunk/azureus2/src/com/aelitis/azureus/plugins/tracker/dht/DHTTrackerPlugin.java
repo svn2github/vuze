@@ -1501,21 +1501,21 @@ DHTTrackerPlugin
 		}
 		
 		int leechers 	= scrape.getNonSeedCount();
-		int seeds		= scrape.getSeedCount();
+		// int seeds		= scrape.getSeedCount();
 		
-		int	total = leechers + seeds;
+		int	total = leechers;	// parg - changed to just use leecher count rather than seeds+leechers
 		
-		if ( total >= 500 ){
+		if ( total >= 2000 ){
 			
 			return( 100 );
 			
-		}else if ( total <= 100 ){
+		}else if ( total <= 200 ){
 			
 			return( 0 );
 			
 		}else{
 		
-			return( ( total - 100 ) / 4 );
+			return( ( total - 200 ) / 4 );
 		}
 	}
 	
