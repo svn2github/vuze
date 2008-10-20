@@ -846,15 +846,18 @@ DHTControlImpl
 				
 			HashWrapper	hw = new HashWrapper( encoded_key );
 			
-			if ( things_written.contains( hw )){
+			synchronized( things_written ){
 				
-				// System.out.println( "put: skipping key as already written" );
+				if ( things_written.contains( hw )){
+					
+					// System.out.println( "put: skipping key as already written" );
+					
+					continue;
+				}
 				
-				continue;
+				things_written.add( hw );
 			}
-			
-			things_written.add( hw );
-			
+						
 			final String	this_description = 
 				Arrays.equals( encoded_key, initial_encoded_key )?
 						description:
@@ -1013,140 +1016,154 @@ DHTControlImpl
 				
 				skipped++;
 				
-			}else if ( things_written.contains( contact )){
-				
-					// if we've come back to an already hit contact due to a diversification loop
-					// then ignore it
-				
-				Debug.out( "Put: contact encountered for a second time, ignoring" );
-				
-				skipped++;
-				
 			}else{
 				
-				things_written.add( contact );
-				
-				try{
-
-					for (int j=0;j<value_sets.length;j++){
-							
-						for (int k=0;k<value_sets[j].length;k++){
-							
-							listener.wrote( contact, value_sets[j][k] );
-						}
-					}
-							  
-						// each store is going to report its complete event
+				boolean skip_this = false;
+			
+				synchronized( things_written ){
 					
-					listener.incrementCompletes();
-										
-					contact.sendStore( 
-						new DHTTransportReplyHandlerAdapter()
-						{
-							public void
-							storeReply(
-								DHTTransportContact _contact,
-								byte[]				_diversifications )
-							{
-								try{
-									if ( DHTLog.isOn()){
-										DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
-									}
-																
-									router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+					if ( things_written.contains( contact )){
+				
+					
+							// if we've come back to an already hit contact due to a diversification loop
+							// then ignore it
+						
+						Debug.out( "Put: contact encountered for a second time, ignoring" );
+						
+						skipped++;
+						
+						skip_this	= true;
+						
+					}else{
+						
+						things_written.add( contact );
+					}
+				}
+			
+				if ( !skip_this ){
+					
+					try{
+	
+						for (int j=0;j<value_sets.length;j++){
 								
-										// can be null for old protocol versions
+							for (int k=0;k<value_sets[j].length;k++){
+								
+								listener.wrote( contact, value_sets[j][k] );
+							}
+						}
+								  
+							// each store is going to report its complete event
+						
+						listener.incrementCompletes();
+											
+						contact.sendStore( 
+							new DHTTransportReplyHandlerAdapter()
+							{
+								public void
+								storeReply(
+									DHTTransportContact _contact,
+									byte[]				_diversifications )
+								{
+									try{
+										if ( DHTLog.isOn()){
+											DHTLog.log( "Store OK " + DHTLog.getString( _contact ));
+										}
+																	
+										router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
 									
-									if ( consider_diversification && _diversifications != null ){
-																		
-										for (int j=0;j<_diversifications.length;j++){
-											
-											if ( _diversifications[j] != DHT.DT_NONE && !diversified[j] ){
+											// can be null for old protocol versions
+										
+										if ( consider_diversification && _diversifications != null ){
+																			
+											for (int j=0;j<_diversifications.length;j++){
 												
-												diversified[j]	= true;
+												if ( _diversifications[j] != DHT.DT_NONE && !diversified[j] ){
+													
+													diversified[j]	= true;
+													
+													byte[][]	diversified_keys = 
+														adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false, getMaxDivDepth());
 												
-												byte[][]	diversified_keys = 
-													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false, getMaxDivDepth());
-											
-												
-												logDiversification( _contact, encoded_keys, diversified_keys );
-												
-												for (int k=0;k<diversified_keys.length;k++){
-												
-													put( 	thread_pool,
-															high_priority,
-															diversified_keys[k], 
-															"Diversification of [" + description + "]",
-															value_sets[j], 
-															timeout,
-															false,
-															things_written,
-															put_level + 1,
-															listener );
+													
+													logDiversification( _contact, encoded_keys, diversified_keys );
+													
+													for (int k=0;k<diversified_keys.length;k++){
+													
+														put( 	thread_pool,
+																high_priority,
+																diversified_keys[k], 
+																"Diversification of [" + description + "]",
+																value_sets[j], 
+																timeout,
+																false,
+																things_written,
+																put_level + 1,
+																listener );
+													}
 												}
 											}
 										}
-									}
-								}finally{
-									
-									listener.complete( false );
-								}	
-							}
-							
-							public void
-							failed(
-								DHTTransportContact 	_contact,
-								Throwable 				_error )
-							{
-								try{
-									if ( DHTLog.isOn()){
-										DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
-									}
-																			
-									router.contactDead( _contact.getID(), false );
-									
-								}finally{
-									
-									listener.complete( true );
-								}
-							}
-							
-							public void
-							keyBlockRequest(
-								DHTTransportContact		contact,
-								byte[]					request,
-								byte[]					key_signature )
-							{
-								DHTStorageBlock	key_block = database.keyBlockRequest( null, request, key_signature );
-								
-								if ( key_block != null ){
-									
-										// remove this key for any subsequent publishes. Quickest hack
-										// is to change it into a random key value - this will be rejected
-										// by the recipient as not being close enough anyway
-									
-									for (int i=0;i<encoded_keys.length;i++){
+									}finally{
 										
-										if ( Arrays.equals( encoded_keys[i], key_block.getKey())){
+										listener.complete( false );
+									}	
+								}
+								
+								public void
+								failed(
+									DHTTransportContact 	_contact,
+									Throwable 				_error )
+								{
+									try{
+										if ( DHTLog.isOn()){
+											DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+										}
+																				
+										router.contactDead( _contact.getID(), false );
+										
+									}finally{
+										
+										listener.complete( true );
+									}
+								}
+								
+								public void
+								keyBlockRequest(
+									DHTTransportContact		contact,
+									byte[]					request,
+									byte[]					key_signature )
+								{
+									DHTStorageBlock	key_block = database.keyBlockRequest( null, request, key_signature );
+									
+									if ( key_block != null ){
+										
+											// remove this key for any subsequent publishes. Quickest hack
+											// is to change it into a random key value - this will be rejected
+											// by the recipient as not being close enough anyway
+										
+										for (int i=0;i<encoded_keys.length;i++){
 											
-											byte[]	dummy = new byte[encoded_keys[i].length];
-											
-											new Random().nextBytes( dummy );
-											
-											encoded_keys[i] = dummy;
+											if ( Arrays.equals( encoded_keys[i], key_block.getKey())){
+												
+												byte[]	dummy = new byte[encoded_keys[i].length];
+												
+												new Random().nextBytes( dummy );
+												
+												encoded_keys[i] = dummy;
+											}
 										}
 									}
 								}
-							}
-						},
-						encoded_keys, 
-						value_sets,
-						immediate );
-					
-				}catch( Throwable e ){
-										
-					Debug.printStackTrace(e);
-					
+							},
+							encoded_keys, 
+							value_sets,
+							immediate );
+						
+					}catch( Throwable e ){
+											
+						Debug.printStackTrace(e);
+						
+					}
 				}
 			}
 		}
