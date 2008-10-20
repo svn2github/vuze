@@ -127,7 +127,7 @@ public class SubscriptionWizard {
 
 		this.download = download;
 		
-		SubscriptionDownloadDetails[] allSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		/*SubscriptionDownloadDetails[] allSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
 		List notYetSubscribed = new ArrayList(allSubscriptions.length);
 		for(int i = 0 ; i < allSubscriptions.length ; i++) {
 			Subscription[] subs = allSubscriptions[i].getSubscriptions();
@@ -139,7 +139,8 @@ public class SubscriptionWizard {
 				notYetSubscribed.add(allSubscriptions[i]);
 			}
 		}
-		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);
+		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);*/
+		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
 		Arrays.sort(availableSubscriptions,new Comparator() {
 			public int compare(Object o1, Object o2) {
 				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
@@ -721,7 +722,7 @@ public class SubscriptionWizard {
 							if(! (o1 instanceof Subscription && o2 instanceof Subscription)) return 0;
 							Subscription sub1 = (Subscription) o1;
 							Subscription sub2 = (Subscription) o2;
-							return (int) (sub1.getCachedPopularity() - sub2.getCachedPopularity());
+							return (int) (sub2.getCachedPopularity() - sub1.getCachedPopularity());
 						}
 					});
 					subscriptionTable.setItemCount(subscriptions.length);
@@ -750,6 +751,15 @@ public class SubscriptionWizard {
 			          SubscriptionDownloadDetails subInfo = availableSubscriptions[index];
 			          item.setText (subInfo.getDownload().getDisplayName());
 			          item.setData("subscriptions",subInfo.getSubscriptions());
+			          boolean isSubscribed = false;
+			          Subscription[] subs = subInfo.getSubscriptions();
+			          for(int i = 0 ; i < subs.length ; i++) {
+			        	  if(subs[i].isSubscribed()) isSubscribed = true;
+			          }
+			          if(isSubscribed) {
+			        	  item.setForeground(display.getSystemColor(SWT.COLOR_GRAY));
+			          }
+			          
 			          if(subInfo.getDownload() == download) {
 			        	  libraryTable.setSelection(item);
 			        	  selectionListener.handleEvent(event);
@@ -802,6 +812,10 @@ public class SubscriptionWizard {
 			          item.setImage(rssIcon);
 			          item.setText(0, subscription.getName());
 			          item.setData("popularity", new Long(subscription.getCachedPopularity()));
+			          if(subscription.isSubscribed()) {
+			        	  item.setForeground(display.getSystemColor(SWT.COLOR_GRAY));
+			        	  subscriptionTable.setSelection(item);
+			          }
 				}
 			});
 			
