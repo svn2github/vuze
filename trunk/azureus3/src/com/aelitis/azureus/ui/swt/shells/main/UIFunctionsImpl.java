@@ -61,6 +61,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginView;
 
@@ -577,12 +578,13 @@ public class UIFunctionsImpl
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
+				String realURL = ConstantsV3.urlRelativeToPlatform(url);
 				if (target == null) {
-					BrowserWindow window = new BrowserWindow(mainWindow.shell, url, w, h,
-							allowResize, isModal);
+					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
+							w, h, allowResize, isModal);
 					window.waitUntilClosed();
 				} else {
-					mainWindow.showURL(url, target);
+					mainWindow.showURL(realURL, target);
 				}
 			}
 		});
@@ -594,12 +596,13 @@ public class UIFunctionsImpl
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
+				String realURL = ConstantsV3.urlRelativeToPlatform(url);
 				if (target == null) {
-					BrowserWindow window = new BrowserWindow(mainWindow.shell, url, w, h,
-							allowResize, isModal);
+					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
+							w, h, allowResize, isModal);
 					window.waitUntilClosed();
 				} else {
-					mainWindow.showURL(url, target);
+					mainWindow.showURL(realURL, target);
 				}
 			}
 		});
