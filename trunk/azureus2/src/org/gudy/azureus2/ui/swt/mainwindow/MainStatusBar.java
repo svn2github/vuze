@@ -53,6 +53,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -283,18 +284,14 @@ public class MainStatusBar
 	
 			Listener feedback_listener = new Listener() {
 				public void handleEvent(Event e) {
-					
-					String 	host = System.getProperty("platform_address", "www.vuze.com" );
-					String	port = System.getProperty("platform_port", "" );
 
-					String url  = 
-						"http://" + host + (port.length()==0?"":(":" + port )) + 
-							"/feedback?" + Utils.getWidgetBGColorURLParam()
+					String url = "feedback?" + Utils.getWidgetBGColorURLParam()
 							+ "&fromWeb=false";
 					
 					// Utils.launch( url );
-										
-					new BrowserShell( "statusbar.feedback", url, 600, 520 );
+					
+					UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
+							520, true, false);
 				}
 			};
 			
