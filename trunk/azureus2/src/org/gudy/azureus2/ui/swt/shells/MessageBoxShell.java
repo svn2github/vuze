@@ -64,7 +64,7 @@ public class MessageBoxShell
 	implements UIFunctionsUserPrompter
 {
 	
-	private static final String STATUS_TEXT_CLOSE = "__VUZE__MessageBoxShell__CLOSE";
+	public static final String STATUS_TEXT_CLOSE = "__VUZE__MessageBoxShell__CLOSE";
 	
 	private final static int MIN_SIZE_X_DEFAULT = 300;
 
