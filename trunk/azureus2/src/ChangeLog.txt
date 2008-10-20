@@ -3,6 +3,16 @@ VUZE CHANGELOG
 
 2008.xx.xx | Vuze 4.0.0.1
 
+CHANGE: UIvz  | Image on left of search box now activates search when clicked [TuxPaper]
+CHANGE: UIvz  | Toolbar's "Show Text" state now remembered across sessions [TuxPaper] 
+CHANGE: UIvz  | Classic users upgrading via the installer will start up in My Library in "small" mode (classic My Torrents View).  Previously, only "Advanced UI" users got this. [TuxPaper]
+CHANGE: UIvz  | If you hold the mouse down for a period of time on Up and Down toolbar items, it will move the selected items to the top/bottom (this was present in 4000, but now the tooltip says it) [TuxPaper]  
+
+BUGFIX: UIvz  | Fixed missing of all incomplete-specific and complete-specific torrent columns in My Library in "big" mode [TuxPaper]
+BUGFIX: UIvz  | If you previously chose top bar to be visible, and you aren't in advanced user mode, there was no way to remove top bar.  Fixed by not showing top bar in non-advanced user mode [TuxPaper]
+BUGFIX: UIvz  | Fixed sidebar sash disappearing when moving beyond minimum size [TuxPaper]
+BUGFIX: UI    | Fixed copying cell's text to clipboard [TuxPaper] 
+
 
 
 2008.10.15 | Vuze 4.0.0.0
@@ -23,9 +33,9 @@ FEATURE: Core | Advanced options for specifying TCP select timeouts [Parg]
 FEATURE: UI   | Added "Column Setup" icon to the iconbar [amc1]
 FEATURE: UI   | New console command - "plugin". Displays plugin information and can toggle startup status [amc1]
 FEATURE: UI   | Console command "show" can now filter to list only torrents which are transferring [amc1]
-FEATURE: UIv3 | SideBar (F7 to Hide/Show) [TuxPaper]
-FEATURE: UIv3 | New ToolBar with hideable text [TuxPaper]
-FEATURE: UIv3 | Library now has Large and Small view modes.  Small view mode is classic My Torrents [TuxPaper]
+FEATURE: UIvz | SideBar (F7 to Hide/Show) [TuxPaper]
+FEATURE: UIvz | New ToolBar with hideable text [TuxPaper]
+FEATURE: UIvz | Library now has Large and Small view modes.  Small view mode is classic My Torrents [TuxPaper]
 FEATURE: Plug | Added option to remove originators IP address from stored values [Parg]
 
 CHANGE: Core  | Improve app startup time [Parg]
@@ -36,10 +46,10 @@ CHANGE: UI    | Improve performance with single data source dispatch aggregator 
 CHANGE: UI    | Debug messages are no longer displayed by default when running the console UI [amc1]
 CHANGE: UI    | The comment icon column now displays a blank icon if there is no comment (rather than no icon) [amc1]
 CHANGE: UI    | Delete priority is now properly reflected in the Priority column [The 8472]
-CHANGE: UIv3  | Faster Startup [parg,TuxPaper]
-CHANGE: UIv3  | Reduced UI memory footprint [TuxPaper]
-CHANGE: UIv3  | Friends moved to the bottom of the sidebar [Khai]
-CHANGE: UIv3  | All table views (Library, Notifications) now use native table widget [TuxPaper]
+CHANGE: UIvz  | Faster Startup [parg,TuxPaper]
+CHANGE: UIvz  | Reduced UI memory footprint [TuxPaper]
+CHANGE: UIvz  | Friends moved to the bottom of the sidebar [Khai]
+CHANGE: UIvz  | All table views (Library, Notifications) now use native table widget [TuxPaper]
 CHANGE: Plug  | Essential plugins are now automatically re-enabled if previously disabled by user [amc1]
                  - the "Start / Stop Rules" plugin was disabled by users in the past, this was causing torrents to be stuck in "waiting" state
 CHANGE: Plug  | New command line option - "azureus.safemode", to disable lots of functionality when debugging problems [amc1]                 
