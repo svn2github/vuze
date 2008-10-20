@@ -92,6 +92,7 @@ ShareManagerImpl
 	private Map					shares 		= new HashMap();
 	
 	private shareScanner		current_scanner;
+	private boolean				scanning;
 	
 	private List				listeners	= new ArrayList();
 	
@@ -137,9 +138,7 @@ ShareManagerImpl
 						config.suspendSaving();
 					
 						config.loadConfig(this);
-				
-						checkConsistency();
-						
+										
 					}finally{
 					
 						Iterator it = shares.values().iterator();
@@ -172,6 +171,21 @@ ShareManagerImpl
 				}finally{
 					
 					initialising	= false;
+					
+					new AEThread2( "ShareManager:initScan", true )
+					{
+						public void
+						run()
+						{
+							try{
+								scanShares();
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}.start();
 				}
 			}
 		}finally{
@@ -751,11 +765,40 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID,
-					"ShareManager: scanning resources for changes"));
+		try{
+			this_mon.enter();
 
-		checkConsistency();
+			if ( scanning ){
+				
+				return;
+			}
+			
+			scanning = true;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		try{
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"ShareManager: scanning resources for changes"));
+	
+			checkConsistency();
+			
+		}finally{
+			
+			try{
+				this_mon.enter();
+
+				scanning = false;
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
 	}
 	
 		// bit of a hack this, but to do it properly would require extensive rework to decouple the
@@ -971,42 +1014,36 @@ ShareManagerImpl
 		{
 			current_scanner	= this;
 			
-			Thread t = 
-				new AEThread( "ShareManager::scanner" )
+			new AEThread2( "ShareManager::scanner", true )
+			{
+				public void
+				run()
 				{
-					public void
-					runSupport()
-					{
-						while( current_scanner == shareScanner.this ){
-						
-							try{
-								
-								int		scan_period		= COConfigurationManager.getIntParameter( "Sharing Rescan Period" );
+					while( current_scanner == shareScanner.this ){
+					
+						try{
+							
+							int		scan_period		= COConfigurationManager.getIntParameter( "Sharing Rescan Period" );
 
-								if ( scan_period < 1 ){
-									
-									scan_period	= 1;
-								}
+							if ( scan_period < 1 ){
 								
-								Thread.sleep( scan_period * 1000 );
-								
-								if ( current_scanner == shareScanner.this ){
-									
-									scanShares();
-								}
-
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
+								scan_period	= 1;
 							}
+							
+							Thread.sleep( scan_period * 1000 );
+							
+							if ( current_scanner == shareScanner.this ){
+								
+								scanShares();
+							}
+
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
 						}
 					}
-				};
-				
-			t.setDaemon(true);
-			
-			t.start();
-			
+				}
+			}.start();
 		}
 	}
 }
