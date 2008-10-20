@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -53,7 +54,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnActivityText
 	extends CoreTableColumn
 	implements TableCellSWTPaintListener, TableCellRefreshListener,
-	TableCellMouseMoveListener
+	TableCellMouseMoveListener, TableCellToolTipListener
 {
 	public static final String COLUMN_ID = "activityText";
 
@@ -78,25 +79,7 @@ public class ColumnActivityText
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellPaint(GC gc, TableCellSWT cell) {
-		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
-		String text = entry.getText();
-		Rectangle drawBounds = getDrawBounds(cell);
-		
-		if (!entry.isRead()) {
-			if (font == null) {
-				FontData[] fontData = gc.getFont().getFontData();
-				fontData[0].setStyle(SWT.BOLD);
-				font = new Font(gc.getDevice(), fontData);
-			}
-			gc.setFont(font);
-		}
-		
-		int style = (drawBounds.height < 40) ? 0 : SWT.WRAP;
-
-		GCStringPrinter sp = new GCStringPrinter(gc, text, drawBounds, true, true,
-				style);
-
-		sp.calculateMetrics();
+		GCStringPrinter sp = setupStringPrinter(gc, cell);
 
 		if (sp.hasHitUrl()) {
 			URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
@@ -123,6 +106,30 @@ public class ColumnActivityText
 		sp.printString();
 		gc.setFont(null);
 	}
+	
+	private GCStringPrinter setupStringPrinter(GC gc, TableCellSWT cell) {
+		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
+		String text = entry.getText();
+		Rectangle drawBounds = getDrawBounds(cell);
+		
+		if (!entry.isRead()) {
+			if (font == null) {
+				FontData[] fontData = gc.getFont().getFontData();
+				fontData[0].setStyle(SWT.BOLD);
+				font = new Font(gc.getDevice(), fontData);
+			}
+			gc.setFont(font);
+		}
+		
+		int style = (drawBounds.height < 40) ? 0 : SWT.WRAP;
+
+		GCStringPrinter sp = new GCStringPrinter(gc, text, drawBounds, true, true,
+				style);
+
+		sp.calculateMetrics();
+
+		return sp;
+	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
@@ -142,15 +149,10 @@ public class ColumnActivityText
 
 		String text = entry.getText();
 
-		GCStringPrinter sp = null;
 		GC gc = new GC(Display.getDefault());
+		GCStringPrinter sp = null;
 		try {
-			if (!entry.isRead() && font != null) {
-				gc.setFont(font);
-			}
-			Rectangle drawBounds = getDrawBounds((TableCellSWT) event.cell);
-			sp = new GCStringPrinter(gc, text, drawBounds, true, true, SWT.WRAP);
-			sp.calculateMetrics();
+			sp = setupStringPrinter(gc, (TableCellSWT) event.cell);
 		} catch (Exception e) {
 			Debug.out(e);
 		} finally {
@@ -221,5 +223,36 @@ public class ColumnActivityText
 		bounds.width -= 4;
 
 		return bounds;
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHover(TableCell cell) {
+		if (cell.getToolTip() != null) {
+			return;
+		}
+		if (!(cell instanceof TableCellSWT)) {
+			return;
+		}
+		if (!Utils.isThisThreadSWT()) {
+			System.err.println("you broke it");
+			return;
+		}
+		GC gc = new GC(Display.getDefault());
+		try {
+			GCStringPrinter sp = setupStringPrinter(gc, (TableCellSWT) cell);
+			
+  		if (sp.isCutoff()) {
+  			cell.setToolTip(GeneralUtils.stripOutHyperlinks(sp.getText()));
+  		}
+		} catch (Throwable t) {
+			Debug.out(t);
+		} finally {
+			gc.dispose();
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellHoverComplete(TableCell cell) {
+		cell.setToolTip(null);
 	}
 }
