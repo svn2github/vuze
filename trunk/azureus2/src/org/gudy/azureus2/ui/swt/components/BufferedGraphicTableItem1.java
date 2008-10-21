@@ -93,8 +93,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
         bDoRedraw = true;
       image = img;
     }
-
-    doPaint(bDoRedraw);
+    //doPaint(bDoRedraw);
 
     return bImageSet;
   }
