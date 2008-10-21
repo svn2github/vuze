@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -347,6 +348,13 @@ public class ToolBarView
 						viewActivity.removeSelected();
 					}
 				} else {
+					boolean firstDelete = COConfigurationManager.getBooleanParameter("1st.v3.tb.delete", false);
+					if (firstDelete) {
+						// one time flip of delete data prompt because the toolbar button
+						// now deletes data..
+						COConfigurationManager.setParameter("Confirm Data Delete", true);
+						COConfigurationManager.setParameter("1st.v3.tb.delete", true);
+					}
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms == null) {
 						return;

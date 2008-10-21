@@ -148,16 +148,6 @@ public class UIConfigDefaultsSWTv3
 			config.save();
 		}
 
-		
-		if (ConfigurationChecker.isNewVersion()) {
-			String lastVersion = COConfigurationManager.getStringParameter("Last Version");
-			if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
-					"4.0.0.1") <= 0) {
-				// one time flip of delete data prompt because the toolbar button
-				// now deletes data..
-				COConfigurationManager.setParameter("Confirm Data Delete", true);
-			}
-		}
 
 		defaults.addParameter("v3.topbar.show.frog", false);
 		defaults.addParameter("v3.topbar.show.plugin", false);
