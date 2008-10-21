@@ -53,6 +53,9 @@ RSSItem
 	public Date
 	getPublicationDate();
 	
+	public String
+	getUID();
+	
 		/**
 		 * Gets the items underlying XML node for extraction of extensions 
 		 * @return

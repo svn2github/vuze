@@ -120,6 +120,24 @@ RSSItemImpl
 		return( null );
 	}
 	
+	public String
+	getUID()
+	{
+		SimpleXMLParserDocumentNode uid = node.getChild( is_atom?"id":"guid" );
+
+		if ( uid != null ){
+				
+			String value = uid.getValue().trim();
+			
+			if ( value.length() > 0 ){
+				
+				return( value );
+			}
+		}
+		
+		return( null );
+	}
+	
 	public SimpleXMLParserDocumentNode
 	getNode()
 	{
