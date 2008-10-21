@@ -196,6 +196,6 @@ public class ConstantsV3
 			url = ConstantsV3.URL_PREFIX
 					+ (url.startsWith("/") ? url.substring(1) : url);
 		}
-		return ConstantsV3.appendURLSuffix(url);
+		return url;
 	}
 }

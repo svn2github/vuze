@@ -2043,6 +2043,10 @@ public class MainWindow
 			if (url == null || url.length() == 0) {
 				((SWTSkinObjectBrowser) skinObject).restart();
 			} else {
+				if (PlatformConfigMessenger.urlCanRPC(url)) {
+					url = ConstantsV3.appendURLSuffix(url);
+				}
+
 				((SWTSkinObjectBrowser) skinObject).setURL(url);
 			}
 		}

@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -60,7 +61,6 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginView;
@@ -580,6 +580,9 @@ public class UIFunctionsImpl
 			public void runSupport() {
 				String realURL = ConstantsV3.urlRelativeToPlatform(url);
 				if (target == null) {
+					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
+						realURL = ConstantsV3.appendURLSuffix(realURL);
+					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);
 					window.waitUntilClosed();
@@ -598,6 +601,9 @@ public class UIFunctionsImpl
 			public void runSupport() {
 				String realURL = ConstantsV3.urlRelativeToPlatform(url);
 				if (target == null) {
+					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
+						realURL = ConstantsV3.appendURLSuffix(realURL);
+					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);
 					window.waitUntilClosed();
