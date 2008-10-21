@@ -93,6 +93,8 @@ public class SBC_LibraryView
 
 	private static final long DL_VITALITY_REFRESH_RATE = 15000;
 
+	private static final boolean DL_VITALITY_CONSTANT = true;
+
 	private static int numSeeding = 0;
 
 	private static int numDownloading = 0;
@@ -322,19 +324,21 @@ public class SBC_LibraryView
 
 			infoDL.setTitleInfo(titleInfoDownloading);
 
-			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
-					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
-						public void perform(TimerEvent event) {
-							SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
-							SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
-							for (int i = 0; i < vitalityImages.length; i++) {
-								SideBarVitalityImage vitalityImage = vitalityImages[i];
-								if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
-									refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
-								}
-							}
-						}
-					});
+			if (!DL_VITALITY_CONSTANT) {
+  			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
+  					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
+  						public void perform(TimerEvent event) {
+  							SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+  							SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
+  							for (int i = 0; i < vitalityImages.length; i++) {
+  								SideBarVitalityImage vitalityImage = vitalityImages[i];
+  								if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
+  									refreshDLSpinner((SideBarVitalityImageSWT) vitalityImage);
+  								}
+  							}
+  						}
+  					});
+			}
 		}
 
 		final ViewTitleInfo titleInfoSeeding = new ViewTitleInfo() {
@@ -659,6 +663,10 @@ public class SBC_LibraryView
 	}
 
 	public static void refreshDLSpinner(SideBarVitalityImageSWT vitalityImage) {
+		if (DL_VITALITY_CONSTANT) {
+			return;
+		}
+
 		if (vitalityImage.getImageID().equals(ID_VITALITY_ACTIVE)) {
 			if (!vitalityImage.isVisible()) {
 				return;
