@@ -132,6 +132,7 @@ SubscriptionImpl
 	private boolean			singleton_sp_attempted;
 	
 	private LightWeightSeed	lws;
+	private int				lws_skip_check;
 	
 	private boolean			destroyed;
 	
@@ -1232,6 +1233,29 @@ SubscriptionImpl
 			if ( !isSubscribed()){
 				
 				return;
+			}
+			
+			if ( popularity > 100 ){
+			
+					// one off test on whether to track so we have around 100 active
+				
+				if ( lws_skip_check == 2 ){
+					
+					return;
+					
+				}else if ( lws_skip_check == 0 ){
+									
+					if ( new Random().nextInt((int)(( popularity + 99 ) / 100 )) == 0 ){
+						
+						lws_skip_check = 1;
+						
+					}else{
+						
+						lws_skip_check = 2;
+						
+						return;
+					}
+				}
 			}
 			
 			if ( hash != null ){
