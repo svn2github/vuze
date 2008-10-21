@@ -29,10 +29,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -44,12 +41,15 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -57,6 +57,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -69,7 +70,7 @@ import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
  *
  */
 public class FakeTableCell
-	implements TableCellCore, PaintListener, MouseListener, MouseMoveListener,
+	implements TableCellSWT, PaintListener, MouseListener, MouseMoveListener,
 	MouseTrackListener
 {
 	private AEMonitor this_mon = new AEMonitor("FakeTableCell");
@@ -116,15 +117,21 @@ public class FakeTableCell
 
 	private boolean hadMore;
 
+	private ArrayList cellSWTPaintListeners;
+	
+	private boolean valid;
+
 	/**
 	 * @param columnRateUpDown
 	 */
 	public FakeTableCell(TableColumn column) {
+		valid = false;
 		this.tableColumn = (TableColumnCore) column;
 		setOrientationViaColumn();
 	}
 
 	public FakeTableCell(TableColumnCore column) {
+		valid = false;
 		this.tableColumn = column;
 		setOrientationViaColumn();
 	}
@@ -297,6 +304,60 @@ public class FakeTableCell
 			this_mon.exit();
 		}
 	}
+	
+	/**
+	 * @param listenerObject
+	 *
+	 * @since 4.0.0.1
+	 */
+	private void addSWTPaintListener(TableCellSWTPaintListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellSWTPaintListeners == null)
+				cellSWTPaintListeners = new ArrayList(1);
+
+			cellSWTPaintListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void invokeSWTPaintListeners(GC gc) {
+  	if (tableColumn != null) {
+			Object[] swtPaintListeners = tableColumn.getCellOtherListeners("SWTPaint");
+			if (swtPaintListeners != null) { 
+  			for (int i = 0; i < swtPaintListeners.length; i++) {
+  				try {
+  					TableCellSWTPaintListener l = (TableCellSWTPaintListener) swtPaintListeners[i];
+  
+  					l.cellPaint(gc, this);
+  
+  				} catch (Throwable e) {
+  					Debug.printStackTrace(e);
+  				}
+  			}
+			}
+		}
+
+		if (cellSWTPaintListeners == null) {
+			return;
+		}
+		
+
+		for (int i = 0; i < cellSWTPaintListeners.size(); i++) {
+			try {
+				TableCellSWTPaintListener l = (TableCellSWTPaintListener) (cellSWTPaintListeners.get(i));
+
+				l.cellPaint(gc, this);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#addListeners(java.lang.Object)
 	public void addListeners(Object listenerObject) {
@@ -319,6 +380,10 @@ public class FakeTableCell
 
 		if (listenerObject instanceof TableCellVisibilityListener)
 			addVisibilityListener((TableCellVisibilityListener) listenerObject);
+
+		if (listenerObject instanceof TableCellSWTPaintListener) {
+			addSWTPaintListener((TableCellSWTPaintListener) listenerObject);
+		}
 	}
 
 	public void invokeMouseListeners(TableCellMouseEvent event) {
@@ -564,6 +629,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#invalidate()
 	public void invalidate() {
+		valid = false;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#isDisposed()
@@ -578,8 +644,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#isValid()
 	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+		return valid;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setFillCell(boolean)
@@ -642,13 +707,7 @@ public class FakeTableCell
 		}
 
 		if (composite != null && !composite.isDisposed()) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					if (composite != null && !composite.isDisposed()) {
-						composite.redraw();
-					}
-				}
-			});
+			redraw();
 		}
 
 		graphic = img;
@@ -778,6 +837,8 @@ public class FakeTableCell
 			sp.printString();
 			hadMore = sp.isCutoff();
 		}
+
+		invokeSWTPaintListeners(gc);
 	}
 
 	public boolean refresh() {
@@ -793,6 +854,7 @@ public class FakeTableCell
 						((TableCellRefreshListener) (refreshListeners.get(i))).refresh(FakeTableCell.this);
 					}
 				}
+				valid = true;
 			}
 		});
 		return true;
@@ -1182,6 +1244,112 @@ public class FakeTableCell
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#redraw()
 	public void redraw() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (!isDisposed()) {
+					composite.redraw();
+				}
+			}
+		});
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#doPaint(org.eclipse.swt.graphics.GC)
+	public void doPaint(GC gc) {
+		doPaint(gc, cellArea == null ? composite.getClientArea() : cellArea);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBackgroundImage()
+	public Image getBackgroundImage() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBackgroundSWT()
+	public Color getBackgroundSWT() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBounds()
+	public Rectangle getBounds() {
+		return cellArea == null ? composite.getClientArea() : cellArea;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBufferedTableItem()
+	public BufferedTableItem getBufferedTableItem() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getForegroundSWT()
+	public Color getForegroundSWT() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getGraphicSWT()
+	public Image getGraphicSWT() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getIcon()
+	public Image getIcon() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getSize()
+	public Point getSize() {
+		Rectangle bounds = getBounds();
+		if (bounds == null) {
+			return null;
+		}
+		return new Point(bounds.width, bounds.height);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getTableRowSWT()
+	public TableRowSWT getTableRowSWT() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getTextAlpha()
+	public int getTextAlpha() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setForeground(org.eclipse.swt.graphics.Color)
+	public boolean setForeground(Color color) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setGraphic(org.eclipse.swt.graphics.Image)
+	public boolean setGraphic(Image img) {
+		graphic = null;
+
+		image = img;
+		if (image != null) {
+			imageBounds = image.getBounds();
+		}
+
+		if (composite != null && !composite.isDisposed()) {
+			redraw();
+		}
+		
+		return true;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setIcon(org.eclipse.swt.graphics.Image)
+	public boolean setIcon(Image img) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setTextAlpha(int)
+	public void setTextAlpha(int textOpacity) {
 		// TODO Auto-generated method stub
 		
 	}
