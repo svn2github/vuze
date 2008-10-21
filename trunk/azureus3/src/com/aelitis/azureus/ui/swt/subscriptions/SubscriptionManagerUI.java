@@ -310,133 +310,7 @@ SubscriptionManagerUI
 			}
 		}
 	
-		TableCellRefreshListener	refresh_listener = 
-			new TableCellRefreshListener()
-			{
-				public void 
-				refresh(
-					TableCell cell )
-				{
-					if ( subs_man == null ){
-						
-						return;
-					}
-					
-					Download	dl = (Download)cell.getDataSource();
-					
-					if ( dl == null ){
-						
-						return;
-					}
-					
-					Torrent	torrent = dl.getTorrent();
-					
-					if ( torrent != null ){
-						
-						Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
-														
-						int	num_subscribed		= 0;
-						int	num_unsubscribed	= 0;
-						
-						for (int i=0;i<subs.length;i++){
-							
-							if ( subs[i].isSubscribed()){
-																
-								num_subscribed++;
-								
-							}else{
-								
-								num_unsubscribed++;
-							}
-						}
-						
-						Graphic graphic;
-						String	tooltip;
-						
-						int height = cell.getHeight();
-						
-						int	sort_order = 0;
-						
-						if ( subs.length == 0 ){
-							
-							graphic = null;
-							tooltip	= null;
-							
-						}else{
-						
-							if ( num_subscribed == subs.length ){
-								
-								graphic = height >= 22?icon_rss_all_add_big:icon_rss_all_add_small;
-								
-								tooltip = MessageText.getString( "subscript.all.subscribed" );
-								
-							}else if ( num_subscribed > 0 ){
-								
-								graphic = height >= 22?icon_rss_some_add_big:icon_rss_some_add_small;
-
-								tooltip = MessageText.getString( "subscript.some.subscribed" );
-
-								sort_order	= 10000;
-								
-							}else{
-								
-								graphic = height >= 22?icon_rss_big:icon_rss_small;
-								
-								tooltip = MessageText.getString( "subscript.none.subscribed" );
-								
-								sort_order	= 1000000;
-							}
-						}
-						
-						sort_order += 1000*num_unsubscribed + num_subscribed;
-						
-						cell.setGraphic( graphic );
-						cell.setToolTip( tooltip );
-						
-						cell.setSortValue( sort_order );
-					}else{
-						
-						cell.setSortValue( 0 );
-					}
-				}
-			};
-			
-		TableCellMouseListener	mouse_listener = 
-			new TableCellMouseListener()
-			{
-				public void 
-				cellMouseTrigger(
-					TableCellMouseEvent event )
-				{
-					if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ){
-						
-						
-						TableCell cell = event.cell;
-						
-						Download	dl = (Download)cell.getDataSource();
-						
-						Torrent	torrent = dl.getTorrent();
-						
-						if ( torrent != null ){
-							
-							Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
-							
-							if ( subs.length > 0 ){
-								
-								event.skipCoreFunctionality	= true;
-
-								new SubscriptionWizard(PluginCoreUtils.unwrap(dl));
-								
-								//new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
-							}
-						}
-					}
-				}
-			};
-			
-		// MyTorrents tables
-
-		createSubsColumns(table_manager, refresh_listener, mouse_listener);
+		createSubsColumns( table_manager );
 
 		final UIManager	ui_manager = default_pi.getUIManager();
 		
@@ -561,24 +435,214 @@ SubscriptionManagerUI
 				});
 	}
 
-	private void createSubsColumns(TableManager table_manager,
-			final TableCellRefreshListener refresh_listener,
-			final TableCellMouseListener mouse_listener) {
-		table_manager.registerColumn(Download.class, "azsubs.ui.column.subs", new TableColumnCreationListener() {
-		
-			public void tableColumnCreated(TableColumn result) {
-				result.setAlignment(TableColumn.ALIGN_CENTER);
-				result.setPosition(TableColumn.POSITION_LAST);
-				result.setWidth(75);
-				result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
-				result.setType(TableColumn.TYPE_GRAPHIC);
+	private void 
+	createSubsColumns(
+		TableManager table_manager )
+	{
+		final TableCellRefreshListener	subs_refresh_listener = 
+			new TableCellRefreshListener()
+			{
+				public void 
+				refresh(
+					TableCell cell )
+				{
+					if ( subs_man == null ){
+						
+						return;
+					}
+					
+					Download	dl = (Download)cell.getDataSource();
+					
+					if ( dl == null ){
+						
+						return;
+					}
+					
+					Torrent	torrent = dl.getTorrent();
+					
+					if ( torrent != null ){
+						
+						Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
+														
+						int	num_subscribed		= 0;
+						int	num_unsubscribed	= 0;
+						
+						for (int i=0;i<subs.length;i++){
+							
+							if ( subs[i].isSubscribed()){
+																
+								num_subscribed++;
+								
+							}else{
+								
+								num_unsubscribed++;
+							}
+						}
+						
+						Graphic graphic;
+						String	tooltip;
+						
+						int height = cell.getHeight();
+						
+						int	sort_order = 0;
+						
+						if ( subs.length == 0 ){
+							
+							graphic = null;
+							tooltip	= null;
+							
+						}else{
+						
+							if ( num_subscribed == subs.length ){
+								
+								graphic = height >= 22?icon_rss_all_add_big:icon_rss_all_add_small;
+								
+								tooltip = MessageText.getString( "subscript.all.subscribed" );
+								
+							}else if ( num_subscribed > 0 ){
+								
+								graphic = height >= 22?icon_rss_some_add_big:icon_rss_some_add_small;
+
+								tooltip = MessageText.getString( "subscript.some.subscribed" );
+
+								sort_order	= 10000;
+								
+							}else{
+								
+								graphic = height >= 22?icon_rss_big:icon_rss_small;
+								
+								tooltip = MessageText.getString( "subscript.none.subscribed" );
+								
+								sort_order	= 1000000;
+							}
+						}
+						
+						sort_order += 1000*num_unsubscribed + num_subscribed;
+						
+						cell.setGraphic( graphic );
+						cell.setToolTip( tooltip );
+						
+						cell.setSortValue( sort_order );
+					}else{
+						
+						cell.setSortValue( 0 );
+					}
+				}
+			};
 			
-				result.addCellRefreshListener( refresh_listener );
-				result.addCellMouseListener( mouse_listener );
+		final TableCellMouseListener	subs_mouse_listener = 
+			new TableCellMouseListener()
+			{
+				public void 
+				cellMouseTrigger(
+					TableCellMouseEvent event )
+				{
+					if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ){
+						
+						
+						TableCell cell = event.cell;
+						
+						Download	dl = (Download)cell.getDataSource();
+						
+						Torrent	torrent = dl.getTorrent();
+						
+						if ( torrent != null ){
+							
+							Subscription[] subs = subs_man.getKnownSubscriptions( torrent.getHash());
+							
+							if ( subs.length > 0 ){
+								
+								event.skipCoreFunctionality	= true;
+
+								new SubscriptionWizard(PluginCoreUtils.unwrap(dl));
+								
+								//new SubscriptionListWindow(PluginCoreUtils.unwrap(dl),true);
+							}
+						}
+					}
+				}
+			};
+			
+		table_manager.registerColumn(
+			Download.class, 
+			"azsubs.ui.column.subs", 
+			new TableColumnCreationListener() 
+			{
+				public void tableColumnCreated(TableColumn result) {
+					result.setAlignment(TableColumn.ALIGN_CENTER);
+					result.setPosition(TableColumn.POSITION_LAST);
+					result.setWidth(75);
+					result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+					result.setType(TableColumn.TYPE_GRAPHIC);
 				
-				columns.add(result);
-			}
-		});
+					result.addCellRefreshListener( subs_refresh_listener );
+					result.addCellMouseListener( subs_mouse_listener );
+					
+					columns.add(result);
+				}
+			});
+		
+		final TableCellRefreshListener	link_refresh_listener = 
+			new TableCellRefreshListener()
+			{
+				public void 
+				refresh(
+					TableCell cell )
+				{
+					if ( subs_man == null ){
+						
+						return;
+					}
+					
+					Download	dl = (Download)cell.getDataSource();
+					
+					if ( dl == null ){
+						
+						return;
+					}
+					
+					String	str = "";
+					
+					Torrent	torrent = dl.getTorrent();
+					
+					if ( torrent != null ){
+						
+						byte[]	hash = torrent.getHash();
+						
+						Subscription[] subs = subs_man.getKnownSubscriptions( hash );
+														
+						for (int i=0;i<subs.length;i++){
+							
+							Subscription sub = subs[i];
+							
+							if ( sub.hasAssociation( hash )){
+								
+								str += (i==0?"":"; ") + sub.getName();
+							}
+						}
+					}
+					
+					cell.setText( str );
+				}
+			};
+		
+		table_manager.registerColumn(
+				Download.class, 
+				"azsubs.ui.column.subs_link", 
+				new TableColumnCreationListener() 
+				{
+					public void tableColumnCreated(TableColumn result) {
+						result.setAlignment(TableColumn.ALIGN_LEAD);
+						result.setPosition(TableColumn.POSITION_INVISIBLE);
+						result.setWidth(85);
+						result.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+						result.setType(TableColumn.TYPE_TEXT_ONLY);
+					
+						result.addCellRefreshListener( link_refresh_listener );
+						
+						columns.add(result);
+					}
+				});
 	}
 
 	protected void
@@ -1165,8 +1229,10 @@ SubscriptionManagerUI
 	protected void
 	refreshColumns()
 	{
-		for (Iterator iter = columns.iterator(); iter.hasNext();) {
+		for ( Iterator iter = columns.iterator(); iter.hasNext();){
+			
 			TableColumn column = (TableColumn) iter.next();
+			
 			column.invalidateCells();
 		}
 	}

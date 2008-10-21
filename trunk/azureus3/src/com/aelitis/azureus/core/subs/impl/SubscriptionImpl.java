@@ -1386,6 +1386,26 @@ SubscriptionImpl
 		manager.associationAdded( this, hash);
 	}
 	
+	public boolean
+	hasAssociation(
+		byte[]		hash )
+	{
+		synchronized( this ){
+	
+			for (int i=0;i<associations.size();i++){
+				
+				association assoc = (association)associations.get(i);
+				
+				if ( Arrays.equals( assoc.getHash(), hash )){
+					
+					return( true );
+				}
+			}
+		}
+			
+		return( false );	
+	}
+	
 	public void
 	addPotentialAssociation(
 		String		result_id,

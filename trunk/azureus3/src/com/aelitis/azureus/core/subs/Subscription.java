@@ -118,6 +118,10 @@ Subscription
 	public int
 	getAssociationCount();
 	
+	public boolean
+	hasAssociation(
+		byte[]		hash );
+	
 	public Engine
 	getEngine()
 	

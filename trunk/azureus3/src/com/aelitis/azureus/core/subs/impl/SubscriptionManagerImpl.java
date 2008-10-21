@@ -1484,6 +1484,54 @@ SubscriptionManagerImpl
 		return( new Subscription[0] );
 	}
 	
+	public Subscription[]
+	getLinkedSubscriptions(
+		byte[]						hash )
+	{
+		PluginInterface pi = StaticUtilities.getDefaultPluginInterface();
+
+		try{
+			Download download = pi.getDownloadManager().getDownload( hash );
+			
+			if ( download != null ){
+				
+				Map	m = download.getMapAttribute( ta_subscription_info );
+				
+				if ( m != null ){
+					
+					List s = (List)m.get("s");
+					
+					if ( s != null && s.size() > 0 ){
+						
+						List	result = new ArrayList( s.size());
+						
+						for (int i=0;i<s.size();i++){
+							
+							byte[]	sid = (byte[])s.get(i);
+							
+							SubscriptionImpl subs = getSubscriptionFromSID(sid);
+							
+							if ( subs != null ){
+								
+								if ( subs.hasAssociation( hash )){
+								
+									result.add( subs );
+								}
+							}
+						}
+						
+						return((Subscription[])result.toArray( new Subscription[result.size()]));
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			log( "Failed to get known subscriptions", e );
+		}
+		
+		return( new Subscription[0] );
+	}
+	
 	protected void
 	lookupAssociations(
 		boolean		high_priority )
@@ -3493,9 +3541,7 @@ SubscriptionManagerImpl
 				
 				public void
 				diversified()
-				{
-					System.out.println( "Check subs pub: diversified " + subs.getName());
-					
+				{					
 					diversified = true;
 				}
 				

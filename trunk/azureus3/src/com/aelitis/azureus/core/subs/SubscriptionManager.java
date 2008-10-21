@@ -90,6 +90,10 @@ SubscriptionManager
 	getKnownSubscriptions(
 		byte[]						hash );
 	
+	public Subscription[]
+	getLinkedSubscriptions(
+		byte[]						hash );
+	
 	public SubscriptionScheduler
 	getScheduler();
 	
