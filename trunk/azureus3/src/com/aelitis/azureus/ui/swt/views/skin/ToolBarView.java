@@ -348,12 +348,12 @@ public class ToolBarView
 						viewActivity.removeSelected();
 					}
 				} else {
-					boolean firstDelete = COConfigurationManager.getBooleanParameter("1st.v3.tb.delete", false);
+					boolean firstDelete = COConfigurationManager.getBooleanParameter("1st.v3.tb.delete", true);
 					if (firstDelete) {
 						// one time flip of delete data prompt because the toolbar button
 						// now deletes data..
 						COConfigurationManager.setParameter("Confirm Data Delete", true);
-						COConfigurationManager.setParameter("1st.v3.tb.delete", true);
+						COConfigurationManager.setParameter("1st.v3.tb.delete", false);
 					}
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms == null) {
@@ -674,8 +674,25 @@ public class ToolBarView
 	}
 
 	public void refreshCoreToolBarItems() {
-		updateCoreItems(SelectedContentManager.getCurrentlySelectedContent(),
-				SelectedContentManager.getCurrentySelectedViewID());
+		ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+		String sv = SelectedContentManager.getCurrentySelectedViewID();
+		if (sv != null) {
+			updateCoreItems(sc, sv);
+		} else {
+			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sidebar != null) {
+				SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
+				if (info.iview instanceof IconBarEnabler) {
+					IconBarEnabler enabler = (IconBarEnabler) info.iview;
+					
+					ToolBarItem[] allToolBarItems = getAllToolBarItems();
+					for (int i = 0; i < allToolBarItems.length; i++) {
+						ToolBarItem toolBarItem = allToolBarItems[i];
+						toolBarItem.setEnabled(enabler.isEnabled(toolBarItem.getId()));
+					}
+				}
+			}
+		}
 	}
 
 	public void addToolBarItem(final ToolBarItem item) {
