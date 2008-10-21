@@ -630,9 +630,7 @@ public class TableCellImpl
       	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
   			bufferedTableItem.redraw();
       }
-    }
-    
-    if (img instanceof UISWTGraphic){
+    } else if (img instanceof UISWTGraphic){
     	Image imgSWT = ((UISWTGraphic)img).getImage();
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {
