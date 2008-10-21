@@ -225,6 +225,8 @@ PlatformSubscriptionsMessenger
 					parameters, 
 					0 );
 
+		message.setSendAZID( false );
+		
 		final AESemaphore sem = new AESemaphore( "PlatformMetaSearch:syncInvoke" );
 		
 		final Object[] result = { null };
