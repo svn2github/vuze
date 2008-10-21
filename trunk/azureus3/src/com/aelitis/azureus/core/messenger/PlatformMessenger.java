@@ -334,7 +334,7 @@ public class PlatformMessenger
 		}
 		
 		String suffix = ConstantsV3.URL_SUFFIX;
-		if (sendAZID) {
+		if (!sendAZID) {
 			suffix = suffix.replaceAll("azid=.*&", "");
 		}
 
