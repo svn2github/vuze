@@ -54,6 +54,8 @@ public class PlatformMessage
 	
 	private boolean loginAndRetry = false;
 
+	private boolean sendAZID = true;
+
 	/**
 	 * @param messageID
 	 * @param listenerID
@@ -202,5 +204,21 @@ public class PlatformMessage
 	public String toShortString() {
 		return (requiresAuthorization ? "AUTH: " : "") + getMessageID() + "."
 				+ getListenerID() + "." + getOperationID();
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 3.1.1.1
+	 */
+	public boolean sendAZID() {
+		return sendAZID;
+	}
+	
+	public void setSendAZID(boolean send) {
+		sendAZID = send;
+		if (send && requiresAuthorization) {
+			System.err.println("requiresAuthorization overrides sendAZID disabling");
+		}
 	}
 }

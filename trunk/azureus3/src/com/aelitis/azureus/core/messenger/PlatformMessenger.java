@@ -34,8 +34,8 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
-import com.aelitis.azureus.core.messenger.browser.*;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
 import com.aelitis.azureus.util.ConstantsV3;
@@ -67,6 +67,8 @@ public class PlatformMessenger
 	public static String REPLY_RESULT = "response";
 
 	static private Map mapQueueAuthorized = new LinkedHashMap();
+
+	static private Map mapQueueNoAZID = new LinkedHashMap();
 
 	static private Map mapQueue = new LinkedHashMap();
 
@@ -135,8 +137,10 @@ public class PlatformMessenger
 			if (message != null) {
   			if (message.requiresAuthorization()) {
   				mapQueueAuthorized.put(message, listener);
-  			} else {
+  			} else if (message.sendAZID()) {
   				mapQueue.put(message, listener);
+  			} else {
+  				mapQueueNoAZID.put(message, listener);
   			}
   			fireBefore = message.getFireBefore();
 			} else {
@@ -149,12 +153,15 @@ public class PlatformMessenger
 							public void perform(TimerEvent event) {
 								timerEvent = null;
 								while (mapQueue.size() > 0) {
-									processQueue(mapQueue, false);
+									processQueue(mapQueue, false, true);
 								}
 								if (!authorizedDelayed) {
   								while (mapQueueAuthorized.size() > 0) {
-  									processQueue(mapQueueAuthorized, true);
+  									processQueue(mapQueueAuthorized, true, true);
   								}
+								}
+								while (mapQueueNoAZID.size() > 0) {
+									processQueue(mapQueueNoAZID, false, false);
 								}
 							}
 						});
@@ -202,7 +209,7 @@ public class PlatformMessenger
 
 		Map map = new HashMap(1);
 		map.put(message, listener);
-		processQueue(map, message.requiresAuthorization());
+		processQueue(map, message.requiresAuthorization(), message.sendAZID());
 	}
 
 	/**
@@ -210,7 +217,7 @@ public class PlatformMessenger
 	 * 
 	 */
 	protected static void processQueue(Map mapQueue,
-			final boolean requiresAuthorization) {
+			final boolean requiresAuthorization, final boolean sendAZID) {
 		if (!initialized) {
 			init();
 		}
@@ -324,6 +331,11 @@ public class PlatformMessenger
 			sURL_RPC = ConstantsV3.URL_RELAY_RPC;
 		} else {
 			sURL_RPC = ConstantsV3.URL_PREFIX + ConstantsV3.URL_RPC + server;
+		}
+		
+		String suffix = ConstantsV3.URL_SUFFIX;
+		if (sendAZID) {
+			suffix = suffix.replaceAll("azid=.*&", "");
 		}
 
 		// Build full url and data to send
