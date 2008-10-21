@@ -175,6 +175,7 @@ public class ConstantsV3
 		COConfigurationManager.addAndFireParameterListener("locale",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
+						// Don't change the order of the params
 						URL_SUFFIX = "azid=" + AZID + "&azv="
 								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
 								+ "&locale=" + Locale.getDefault().toString();
