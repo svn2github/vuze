@@ -664,7 +664,7 @@ public class GCStringPrinter
 				Point ptWordSize = gc.stringExtent(word.substring(2) + " ");
 				if (lineInfo.width + ptWordSize.x > printArea.width) {
 					outputLine.append(space);
-					outputLine.append(word, 0, 2);
+					outputLine.append(word.substring(0,2));
 					//System.out.println("w8 = " + lineInfo.width + ";h=" + lineInfo.height);
 					return 2;
 				}
