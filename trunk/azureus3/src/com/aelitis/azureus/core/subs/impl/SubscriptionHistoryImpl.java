@@ -89,7 +89,8 @@ SubscriptionHistoryImpl
 			
 			SubscriptionResultImpl[] existing_results = manager.loadResults( subs );
 					
-			ByteArrayHashMap	result_key_map = new ByteArrayHashMap();
+			ByteArrayHashMap	result_key_map 	= new ByteArrayHashMap();
+			ByteArrayHashMap	result_key2_map = new ByteArrayHashMap();
 			
 			List	new_results = new ArrayList();
 
@@ -97,7 +98,14 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl r = existing_results[i];
 				
-				result_key_map.put( r.getKey(), r );
+				result_key_map.put( r.getKey1(), r );
+				
+				byte[]	key2 = r.getKey2();
+				
+				if ( key2 != null ){
+					
+					result_key2_map.put( key2, r );
+				}
 				
 				new_results.add( r );
 				
@@ -118,7 +126,22 @@ SubscriptionHistoryImpl
 
 				SubscriptionResultImpl r = latest_results[i];
 				
-				SubscriptionResultImpl existing = (SubscriptionResultImpl)result_key_map.get( r.getKey());
+					// we first of all insist on names uniqueness
+				
+				SubscriptionResultImpl existing = (SubscriptionResultImpl)result_key_map.get( r.getKey1());
+				
+				if ( existing == null ){
+					
+						// only if non-unique name do we fall back and use UID to remove duplicate
+						// entries where the name has changed
+					
+					byte[]	key2 = r.getKey2();
+					
+					if ( key2 != null ){
+						
+						existing = (SubscriptionResultImpl)result_key2_map.get( key2 );
+					}
+				}
 				
 				if ( existing == null ){
 					
@@ -126,7 +149,14 @@ SubscriptionHistoryImpl
 					
 					new_results.add( r );
 					
-					result_key_map.put( r.getKey(), r );
+					result_key_map.put( r.getKey1(), r );
+					
+					byte[]	key2 = r.getKey2();
+					
+					if ( key2 != null ){
+						
+						result_key2_map.put( key2, r );
+					}
 					
 					got_new_or_changed_result = true;
 				
@@ -400,7 +430,7 @@ SubscriptionHistoryImpl
 	updateResult(
 		SubscriptionResultImpl 	result )
 	{
-		byte[]	key = result.getKey();
+		byte[]	key = result.getKey1();
 		
 		boolean	changed = false;
 
@@ -410,7 +440,7 @@ SubscriptionHistoryImpl
 						
 			for (int i=0;i<results.length;i++){
 				
-				if ( Arrays.equals( results[i].getKey(), key )){
+				if ( Arrays.equals( results[i].getKey1(), key )){
 					
 					results[i] = result;
 					
@@ -454,7 +484,7 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl result = results[i];
 				
-				if ( !result.isDeleted() && rids.containsKey( result.getKey())){
+				if ( !result.isDeleted() && rids.containsKey( result.getKey1())){
 					
 					changed = true;
 					
@@ -568,7 +598,7 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl result = results[i];
 				
-				Boolean	read = (Boolean)rid_map.get( result.getKey());
+				Boolean	read = (Boolean)rid_map.get( result.getKey1());
 				
 				if ( read != null ){
 					

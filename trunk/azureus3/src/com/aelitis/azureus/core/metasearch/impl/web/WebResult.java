@@ -66,7 +66,7 @@ public class WebResult extends Result {
 	String downloadButtonLink;
 	String playLink;
 	
-	
+	String uid;
 	
 	public WebResult(Engine engine, String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
 		super( engine );
@@ -117,6 +117,19 @@ public class WebResult extends Result {
 				this.category = this.category.substring(separator+1).trim();
 			}*/
 		}
+	}
+	
+	public void
+	setUID(
+		String	_uid )
+	{
+		uid	= _uid;
+	}
+	
+	public String
+	getUID()
+	{
+		return( uid );
 	}
 	
 	public void setNbPeersFromHTML(String nbPeers) {

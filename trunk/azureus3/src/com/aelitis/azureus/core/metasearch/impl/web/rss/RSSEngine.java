@@ -195,6 +195,13 @@ RSSEngine
 						result.setCDPLink(cdp_link.toExternalForm());
 					}
 					
+					String uid = item.getUID();
+					
+					if ( uid != null ){
+						
+						result.setUID( uid );
+					}
+					
 					SimpleXMLParserDocumentNode node = item.getNode();
 					if(node != null) {
 						SimpleXMLParserDocumentNode[] children = node.getChildren();

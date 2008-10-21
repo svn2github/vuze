@@ -37,7 +37,8 @@ SubscriptionResultImpl
 {
 	final private SubscriptionHistoryImpl	history;
 	
-	private byte[]		key;
+	private byte[]		key1;
+	private byte[]		key2;
 	private boolean		read;
 	private boolean		deleted;
 	
@@ -55,18 +56,37 @@ SubscriptionResultImpl
 		result_json 	= JSONUtils.encodeToJSON( map );
 		read			= false;
 		
-		String	key_str =  result.getEngine().getId() + ":" + result.getName();
+		String	key1_str =  result.getEngine().getId() + ":" + result.getName();
 		
 		try{
-			byte[] sha1 = new SHA1Simple().calculateHash( key_str.getBytes( "UTF-8" ));
+			byte[] sha1 = new SHA1Simple().calculateHash( key1_str.getBytes( "UTF-8" ));
 			
-			key = new byte[10];
+			key1 = new byte[10];
 			
-			System.arraycopy( sha1, 0, key, 0, 10 );
+			System.arraycopy( sha1, 0, key1, 0, 10 );
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+		
+		String	uid = result.getUID();
+		
+		if ( uid != null ){
+		
+			String	key2_str = result.getEngine().getId() + ":" + uid;
+			
+			try{
+				byte[] sha1 = new SHA1Simple().calculateHash( key2_str.getBytes( "UTF-8" ));
+				
+				key2 = new byte[10];
+				
+				System.arraycopy( sha1, 0, key2, 0, 10 );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
@@ -77,7 +97,9 @@ SubscriptionResultImpl
 	{
 		history = _history;
 		
-		key			= (byte[])map.get( "key" );
+		key1		= (byte[])map.get( "key" );
+		key2		= (byte[])map.get( "key2" );
+		
 		read		= ((Long)map.get( "read")).intValue()==1;
 		
 		Long	l_deleted = (Long)map.get( "deleted" );
@@ -113,6 +135,7 @@ SubscriptionResultImpl
 			
 		}else{
 			
+			key2		= other.getKey2();
 			result_json = other.getJSON();
 			
 			return( true );
@@ -122,14 +145,20 @@ SubscriptionResultImpl
 	public String
 	getID()
 	{
-		return( Base32.encode( key ));
+		return( Base32.encode( key1 ));
 	}
 	
 	protected byte[]
-	getKey()
+	getKey1()
 	{
-		return( key );
+		return( key1 );
 	}
+	
+	protected byte[]
+	getKey2()
+	{
+   		return( key2 );
+   	}
 	
 	public boolean
 	getRead()
@@ -184,7 +213,12 @@ SubscriptionResultImpl
 	{
 		Map		map	= new HashMap();
 		
-		map.put( "key", key );
+		map.put( "key", key1 );
+		
+		if ( key2 != null ){
+			map.put( "key2", key2 );
+		}
+		
 		map.put( "read", new Long(read?1:0));
 		
 		if ( deleted ){

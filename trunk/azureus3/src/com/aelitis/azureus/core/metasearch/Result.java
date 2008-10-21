@@ -64,6 +64,8 @@ public abstract class Result {
 	
 	public abstract String getSearchQuery();
 	
+	public abstract String getUID();
+	
 	protected
 	Result(
 		Engine		_engine )
@@ -266,6 +268,12 @@ public abstract class Result {
 			object.put("dk",drmKey);
 		}
 		
+			// used by subscriptions...
+		
+		String uid = getUID();
+		if ( uid != null ){
+			object.put( "u", uid );
+		}
 		object.put("pr", this.isPrivate() ? "1" : "0");
 
 		return object;

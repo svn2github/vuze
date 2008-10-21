@@ -170,6 +170,12 @@ PluginResult
 		return(getStringProperty( SearchResult.PR_PLAY_LINK ));
 	}
 	
+	public String 
+	getUID() 
+	{
+		return(getStringProperty( SearchResult.PR_UID ));
+	}
+	
 	public float 
 	getRank() 
 	{
