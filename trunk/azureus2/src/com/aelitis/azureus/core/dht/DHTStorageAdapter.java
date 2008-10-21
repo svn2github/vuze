@@ -38,6 +38,9 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public interface 
 DHTStorageAdapter 
 {
+	public int
+	getNetwork();
+	
 		// local value operations
 	
 		/**

@@ -193,6 +193,12 @@ DHTPluginStorageManager
 		readKeyBlocks();
 	}
 	
+	public int 
+	getNetwork() 
+	{
+		return( network );
+	}
+	
 	protected void
 	importContacts(
 		DHT		dht )

@@ -344,7 +344,16 @@ DHTDBImpl
 			// used to just use K here but this is a little too strict as we end up rejecting
 			// a fair few valid stores - widened to 2*K
 		
-		List closest_contacts = control.getClosestContactsList( key.getHash(), router.getK()*2, true );
+			// dropped a bit, especially on CVS DHT due to smallness
+		
+		int	c_factor = router.getK();
+		
+		if ( adapter.getNetwork() != DHT.NW_CVS ){
+			
+			c_factor += ( c_factor/2 );
+		}
+		
+		List closest_contacts = control.getClosestContactsList( key.getHash(), c_factor, true );
 		
 		boolean	store_it	= false;
 		
@@ -395,7 +404,7 @@ DHTDBImpl
 				
 			byte[]	my_id	= local_contact.getID();
 			
-			closest_contacts = control.getClosestContactsList( my_id, router.getK() * 2, true );
+			closest_contacts = control.getClosestContactsList( my_id, c_factor, true );
 			
 			DHTTransportContact	furthest = (DHTTransportContact)closest_contacts.get( closest_contacts.size()-1);
 						
@@ -1861,6 +1870,12 @@ DHTDBImpl
 			DHTStorageAdapter	_delegate )
 		{
 			delegate = _delegate;
+		}
+		
+		public int 
+		getNetwork() 
+		{
+			return( delegate.getNetwork());
 		}
 		
 		public DHTStorageKey
