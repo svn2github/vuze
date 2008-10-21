@@ -114,6 +114,10 @@ public class ToolBarView
 				"v3.MainWindow.button.download") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				// This is for our CDP pages
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 				if (sc != null && sc.length == 1
@@ -129,6 +133,10 @@ public class ToolBarView
 		item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 				if (sc != null) {
 					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
@@ -155,6 +163,10 @@ public class ToolBarView
 		item = new ToolBarItem("share", "image.button.share", "iconBar.share") {
 			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 			public void triggerToolBarItem() {
+				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {
 					VuzeShareUtils.getInstance().shareTorrent(contents[0], "ToolBar");
@@ -168,6 +180,9 @@ public class ToolBarView
 		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
 				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
@@ -196,6 +211,9 @@ public class ToolBarView
 		item = new ToolBarItem("up", "image.toolbar.up", "v3.iconBar.up") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
 				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
@@ -239,6 +257,9 @@ public class ToolBarView
 		item = new ToolBarItem("down", "image.toolbar.down", "v3.iconBar.down") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
 				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
@@ -282,6 +303,9 @@ public class ToolBarView
 		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.start") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
 				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
@@ -307,6 +331,9 @@ public class ToolBarView
 		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
 				if(isIconBarEnabler && currentContent.length > 0 && currentContent[0] != null && currentContent[0] instanceof ToolBarEnablerSelectedContent ) {
@@ -330,6 +357,9 @@ public class ToolBarView
 		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
 			public void triggerToolBarItem() {
 				String viewID = SelectedContentManager.getCurrentySelectedViewID();
+				if (viewID == null && triggerIViewToolBar(getId())) {
+					return;
+				}
 				boolean isActivityView = "Activity".equals(viewID);
 				
 				boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
@@ -693,6 +723,19 @@ public class ToolBarView
 				}
 			}
 		}
+	}
+	
+	private boolean triggerIViewToolBar(String id) {
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sidebar != null) {
+			SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
+			if (info.iview instanceof IconBarEnabler) {
+				IconBarEnabler enabler = (IconBarEnabler) info.iview;
+				enabler.itemActivated(id);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void addToolBarItem(final ToolBarItem item) {
