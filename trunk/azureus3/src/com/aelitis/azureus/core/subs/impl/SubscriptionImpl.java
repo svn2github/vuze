@@ -1227,6 +1227,13 @@ SubscriptionImpl
 				return;
 			}
 			
+				// nothing to do for unsubscribed ones
+			
+			if ( !isSubscribed()){
+				
+				return;
+			}
+			
 			if ( hash != null ){
 				
 				boolean	create = false;
