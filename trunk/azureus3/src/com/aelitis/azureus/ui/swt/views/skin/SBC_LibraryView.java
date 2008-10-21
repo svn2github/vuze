@@ -385,7 +385,7 @@ public class SBC_LibraryView
 			infoLibraryUn.setTitleInfo(new ViewTitleInfo() {
 				public Object getTitleInfoProperty(int propertyID) {
 					if (propertyID == TITLE_LOGID) {
-						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
+						String id = SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED;
 						int viewMode = COConfigurationManager.getIntParameter(id
 								+ ".viewmode");
 						return id + "-" + viewMode;
