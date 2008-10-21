@@ -1312,13 +1312,16 @@ public class TableViewSWTImpl
 	 */
 	protected void paintItem(Event event) {
 		try {
+			if (event.gc.getClipping().isEmpty()) {
+				return;
+			}
 			TableItem item = (TableItem) event.item;
 			if (item == null || item.isDisposed()) {
 				return;
 			}
 			int iColumnNo = event.index;
 			
-			//System.out.println("paintItem " + table.indexOf(item) + ":" + iColumnNo);
+			//System.out.println(SystemTime.getCurrentTime() + "] paintItem " + table.indexOf(item) + ":" + iColumnNo);
 			if (bSkipFirstColumn) {
 				if (iColumnNo == 0) {
 					return;
