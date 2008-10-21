@@ -71,7 +71,7 @@ public class MySharesView
 extends TableViewTab
 implements ShareManagerListener,
 		TableLifeCycleListener, TableViewSWTMenuFillListener,
-		TableRefreshListener
+		TableRefreshListener, TableSelectionListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -117,6 +117,7 @@ implements ShareManagerListener,
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		tv.addRefreshListener(this, false);
+		tv.addSelectionListener(this, false);
 	}
 	
 	private void defaultSelected(TableRowCore[] rows) {
@@ -603,7 +604,44 @@ implements ShareManagerListener,
   }
 
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
-		// TODO Auto-generated method stub
-		
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#defaultSelected(com.aelitis.azureus.ui.common.table.TableRowCore[], int)
+	public void defaultSelected(TableRowCore[] rows, int stateMask) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void deselected(TableRowCore[] rows) {
+		computePossibleActions();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void focusChanged(TableRowCore focus) {
+		computePossibleActions();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseEnter(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseEnter(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseExit(com.aelitis.azureus.ui.common.table.TableRowCore)
+	public void mouseExit(TableRowCore row) {
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
+	public void selected(TableRowCore[] row) {
+		computePossibleActions();
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 	}
 }

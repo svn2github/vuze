@@ -947,8 +947,6 @@ public class MyTorrentsView
 	public void updateSelectedContent() {
 		if (cTablePanel == null || cTablePanel.isDisposed()
 				|| !cTablePanel.isVisible()) {
-			SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
-					null, tv);
 			return;
 		}
 		DownloadManager[] dms = getSelectedDownloads();
