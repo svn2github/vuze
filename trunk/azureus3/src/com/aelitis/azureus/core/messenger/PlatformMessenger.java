@@ -344,7 +344,7 @@ public class PlatformMessenger
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
 			sPostData = ConstantsV3.URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
-					+ "&" + ConstantsV3.URL_SUFFIX;
+					+ "&" + suffix;
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
 					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
@@ -355,7 +355,7 @@ public class PlatformMessenger
 			}
 		} else {
 			sURL = sURL_RPC + ConstantsV3.URL_PLATFORM_MESSAGE + "&"
-					+ urlStem.toString() + "&" + ConstantsV3.URL_SUFFIX;
+					+ urlStem.toString() + "&" + suffix;
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
 			} else {
