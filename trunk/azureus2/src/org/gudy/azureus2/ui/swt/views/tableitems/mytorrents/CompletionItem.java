@@ -165,7 +165,7 @@ public class CompletionItem
 		
 		//draw begining and end
 		gcImage.drawImage(imgEnd, bounds.x , bounds.y + yOfs);
-		gcImage.drawImage(imgEnd, bounds.x + x1, bounds.y + yOfs);
+		gcImage.drawImage(imgEnd, bounds.x + x1 + 1, bounds.y + yOfs);
 		
 		
 		
@@ -179,7 +179,7 @@ public class CompletionItem
 		
 		gcImage.drawImage(img1, 0, 0, 1, 13, bounds.x + 1, bounds.y + yOfs, limit, 13);
 		if(percentDone < 1000) {
-			gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit - 1, 13);
+			gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit, 13);
 		}
 		
 //		gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
