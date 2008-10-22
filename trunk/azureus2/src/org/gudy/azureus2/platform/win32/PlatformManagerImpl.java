@@ -746,6 +746,16 @@ PlatformManagerImpl
 					name );
 		
 			writeStringToHKCRandHKCU(
+					type,
+					"Content Type",
+					content_type );
+		
+			writeStringToHKCRandHKCU(
+					"MIME\\Database\\Content Type\\" + content_type,
+					"Extension",
+					type );
+		
+			writeStringToHKCRandHKCU(
 					name,
 					"",
 					description );
@@ -766,8 +776,8 @@ PlatformManagerImpl
 					"\"" + az_exe_string + "\" \"%1\"" );
 					
 			writeStringToHKCRandHKCU(
-					name + "\\Content Type" ,
-					"",
+					name,
+					"Content Type",
 					content_type );
 			
 			if ( url_protocol ){
