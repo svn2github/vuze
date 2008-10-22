@@ -795,6 +795,32 @@ DisplayFormatters
 		return( tmp );
 	}
 
+	public static String
+	trimDigits(
+		String		str,
+		int			num_digits )
+	{
+		char[] 	chars 	= str.toCharArray();
+		String 	res 	= "";
+		int		digits 	= 0;
+		
+		for (int i=0;i<chars.length;i++){
+			char c = chars[i];
+			if ( Character.isDigit(c)){
+				digits++;
+				if ( digits <= num_digits ){
+					res += c;
+				}
+			}else if ( c == '.' && digits >= 3 ){
+									
+			}else{
+				res += c;
+			}
+		}
+		
+		return( res );
+	}
+	
   public static String formatPercentFromThousands(int thousands) {
  
     return percentage_format.format(thousands / 1000.0);
