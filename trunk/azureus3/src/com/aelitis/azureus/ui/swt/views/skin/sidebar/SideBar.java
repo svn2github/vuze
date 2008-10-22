@@ -2563,6 +2563,11 @@ public class SideBar
 		return null;
 	}
 	
+	public SideBarEntry[] getSideBarEntries() {
+		return (SideBarEntry[]) mapIdToSideBarInfo.values().toArray(
+				new SideBarEntry[0]);
+	}
+	
 	protected void linkTitleInfoToEntry(ViewTitleInfo ti, SideBarEntry entry) {
 		mapTitleInfoToEntry.put(ti, entry);
 	}
