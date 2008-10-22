@@ -263,8 +263,7 @@ public class TorrentListView
 					TableRowCore[] selectedRows = getSelectedRows();
 					for (int i = 0; i < selectedRows.length; i++) {
 						DownloadManager dm = (DownloadManager) selectedRows[i].getDataSource(true);
-						TorrentListViewsUtils.removeDownload(dm, TorrentListView.this,
-								true, true);
+						TorrentListViewsUtils.removeDownload(dm, TorrentListView.this);
 					}
 				} else if (e.keyCode == SWT.F5) {
 					updateCount();

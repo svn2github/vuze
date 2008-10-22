@@ -26,9 +26,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -61,11 +63,11 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -671,26 +673,66 @@ public class TorrentListViewsUtils
 	}
 
 	public static void removeDownload(final DownloadManager dm,
-			final TableView tableView, final boolean bDeleteTorrent,
-			final boolean bDeleteData) {
+			final TableView tableView) {
 
 		debug("removeDownload");
 
 		AERunnable failure = null;
 		if (tableView != null) {
-  		tableView.removeDataSource(dm, true);
-  
-  		failure = new AERunnable() {
-  			public void runSupport() {
-  				tableView.addDataSource(dm, true);
-  			}
-  		};
+			tableView.removeDataSource(dm, true);
+
+			failure = new AERunnable() {
+				public void runSupport() {
+					tableView.addDataSource(dm, true);
+				}
+			};
 		}
 
-		if (PublishUtils.isPublished(dm)) {
-			ManagerUtils.remove(dm, null, false, false, failure);
+		if (PublishUtils.isPublished(dm) || dm.getDownloadState().getFlag(
+				Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE)) {
+			ManagerUtils.remove(dm, null, true, false, failure);
+			return;
+		}
+
+		boolean deleteTorrent = true;
+		boolean deleteData = true;
+
+
+		if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+			String path = dm.getSaveLocation().toString();
+
+			String title = MessageText.getString("deletedata.title");
+			String text = MessageText.getString("v3.deleteContent.message",
+					new String[] {
+						dm.getDisplayName()
+					});
+					
+			MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(), title,
+					text, new String[] {
+						MessageText.getString("Button.deleteContent.fromLibrary"),
+						MessageText.getString("Button.deleteContent.fromComputer"),
+						MessageText.getString("Button.cancel"),
+					}, 0, null, null, false, 0);
+			mb.setRelatedObject(dm);
+			mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
+
+			int result = mb.open();
+			if (result == 1 || result == 0) {
+				if (result == 0) {
+					deleteData = false;
+				}
+			
+				ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+						deleteTorrent, deleteData, failure);
+			} else {
+				if (failure != null) {
+					failure.runSupport();
+				}
+				return;
+			}
 		} else {
-			ManagerUtils.remove(dm, null, bDeleteTorrent, bDeleteData, failure);
+			ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+					deleteTorrent, deleteData, failure);
 		}
 	}
 

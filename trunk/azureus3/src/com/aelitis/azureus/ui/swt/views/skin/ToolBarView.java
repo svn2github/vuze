@@ -378,13 +378,6 @@ public class ToolBarView
 						viewActivity.removeSelected();
 					}
 				} else {
-					boolean firstDelete = COConfigurationManager.getBooleanParameter("1st.v3.tb.delete", true);
-					if (firstDelete) {
-						// one time flip of delete data prompt because the toolbar button
-						// now deletes data..
-						COConfigurationManager.setParameter("Confirm Data Delete", true);
-						COConfigurationManager.setParameter("1st.v3.tb.delete", false);
-					}
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms == null) {
 						return;
@@ -392,9 +385,7 @@ public class ToolBarView
 					for (int i = 0; i < dms.length; i++) {
 						DownloadManager dm = dms[i];
 						if (dm != null) {
-							boolean delete = !dm.getDownloadState().getFlag(
-									Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE);
-							TorrentListViewsUtils.removeDownload(dm, null, true, delete);
+							TorrentListViewsUtils.removeDownload(dm, null);
 						}
 					}
 				}
