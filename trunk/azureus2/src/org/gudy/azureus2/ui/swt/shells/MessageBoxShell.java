@@ -1248,7 +1248,7 @@ public class MessageBoxShell
 	 * @since 4.0.0.1
 	 */
 	public Object getLeftImage() {
-		return imgLeft;
+		return imgLeft == iconImage ? null : imgLeft;
 	}
 
 	public void setLeftImage(Image imgLeft) {
@@ -1284,6 +1284,7 @@ public class MessageBoxShell
 		} else {
 			iconImage = ImageRepository.getImage(resource);
 		}
+		setLeftImage(iconImage);
 	}
 
 	public static void main(String[] args) {
