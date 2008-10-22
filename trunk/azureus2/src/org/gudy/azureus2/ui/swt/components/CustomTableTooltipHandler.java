@@ -75,8 +75,13 @@ CustomTableTooltipHandler
 				if (item == null)
 					return;
 				
-				Object oToolTip = item.getText(0);
-
+				Object oToolTip = item.getData( "tooltip" );
+				
+				if ( oToolTip == null ){
+				
+					oToolTip = item.getText(0);
+				}
+				
 				// TODO: support composite, image, etc
 				if (oToolTip == null || !(oToolTip instanceof String))
 					return;
