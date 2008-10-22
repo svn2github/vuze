@@ -866,7 +866,9 @@ public class TableViewSWTImpl
 					int iCursorID = 0;
 					if (cell == null) {
 						lastCell = null;
-					} else if (cell != lastCell) {
+					} else if (cell == lastCell) {
+						iCursorID = lastCursorID;
+					} else{
 						iCursorID = cell.getCursorID();
 						lastCell = cell;
 					}
