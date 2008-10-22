@@ -180,6 +180,9 @@ SubscriptionManagerImpl
 	private static final int	SET_SELECTED_FIRST_TICK	= 3*60*1000 /TIMER_PERIOD;
 	private static final int	SET_SELECTED_TICKS		= SET_SELECTED_PERIOD/TIMER_PERIOD;
 
+	private static final Object	SP_LAST_ATTEMPTED	= new Object();
+	private static final Object	SP_CONSEC_FAIL		= new Object();
+	
 	
 	private volatile DHTPlugin	dht_plugin;
 	
@@ -725,7 +728,8 @@ SubscriptionManagerImpl
 	createRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		Map			user_data )
 	
 		throws SubscriptionException 
 	{
@@ -742,6 +746,18 @@ SubscriptionManagerImpl
 			String	json = SubscriptionImpl.getSkeletonJSON( engine, check_interval_mins );
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, true, null, json, SubscriptionImpl.ADD_TYPE_CREATE );
+			
+			if ( user_data != null ){
+				
+				Iterator it = user_data.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry entry = (Map.Entry)it.next();
+					
+					subs.setUserData( entry.getKey(), entry.getValue());
+				}
+			}
 			
 			log( "Created new subscription: " + subs.getString());
 					
@@ -980,6 +996,29 @@ SubscriptionManagerImpl
 			
 		}else{
 			
+			Long	l_last_pub 	= (Long)subs.getUserData( SP_LAST_ATTEMPTED );
+			Long	l_consec_fail = (Long)subs.getUserData( SP_CONSEC_FAIL );
+			
+			if ( l_last_pub != null && l_consec_fail != null ){
+				
+				long	delay = SERVER_PUB_CHECK_PERIOD;
+				
+				for (int i=0;i<l_consec_fail.longValue();i++){
+					
+					delay <<= 1;
+					
+					if ( delay > 24*60*60*1000 ){
+						
+						break;
+					}
+				}
+				
+				if ( l_last_pub.longValue() + delay > SystemTime.getMonotonousTime()){
+					
+					return;
+				}
+			}
+			
 			try{		
 				File vf = getVuzeFile( subs );
 	
@@ -996,6 +1035,9 @@ SubscriptionManagerImpl
 						subs.getVersion(),
 						new String( encoded_subs ));
 				
+				subs.setUserData( SP_LAST_ATTEMPTED, null );
+				subs.setUserData( SP_CONSEC_FAIL, null );
+
 				subs.setServerPublished();
 				
 				log( "    Updated public subscription " + subs.getString());
@@ -1004,6 +1046,10 @@ SubscriptionManagerImpl
 				
 				log( "    Failed to update public subscription " + subs.getString(), e );
 				
+				subs.setUserData( SP_LAST_ATTEMPTED, new Long( SystemTime.getMonotonousTime()));
+				
+				subs.setUserData( SP_CONSEC_FAIL, new Long( l_consec_fail==null?1:(l_consec_fail.longValue()+1)));
+
 				subs.setServerPublicationOutstanding();
 			}
 		}

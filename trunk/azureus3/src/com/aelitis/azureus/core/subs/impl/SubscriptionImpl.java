@@ -1720,7 +1720,14 @@ SubscriptionImpl
 	{
 		synchronized( user_data ){
 			
-			user_data.put( key, data );
+			if ( data == null ){
+				
+				user_data.remove( key );
+				
+			}else{
+				
+				user_data.put( key, data );
+			}
 		}
 	}
 	

@@ -92,7 +92,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class 
 SubscriptionManagerUI 
 {
-	public static final Object	SUB_IVIEW_KEY = new Object();
+	public static final Object	SUB_IVIEW_KEY 		= new Object();
+	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
 	private Graphic	icon_rss_big;
 	private Graphic	icon_rss_small;
@@ -1604,6 +1605,18 @@ SubscriptionManagerUI
 						new MetaSearchListener( this ));
 				String url = ConstantsV3.URL_PREFIX + "xsearch?subscription=" + subs.getID() + "&" + ConstantsV3.URL_SUFFIX;
 	
+				Boolean	edit_mode = (Boolean)subs.getUserData( SUB_EDIT_MODE_KEY );
+				
+				if ( edit_mode != null ){
+				
+					if ( edit_mode.booleanValue()){
+						
+						url += "&editMode=1";
+					}
+					
+					subs.setUserData( SUB_EDIT_MODE_KEY, null );
+				}
+								
 				mainBrowser.setUrl(url);
 				mainBrowser.setData("StartURL", url);
 				

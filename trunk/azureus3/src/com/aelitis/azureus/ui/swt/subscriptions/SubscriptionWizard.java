@@ -4,6 +4,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -1114,7 +1116,11 @@ public class SubscriptionWizard {
 					String url_str = feedUrl.getText();
 					URL	url = new URL(url_str);
 					
-					SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS );
+					Map user_data = new HashMap();
+					
+					user_data.put( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, new Boolean( true ));
+					
+					SubscriptionManagerFactory.getSingleton().createRSS( url_str, url, SubscriptionHistory.DEFAULT_CHECK_INTERVAL_MINS, user_data );
 					shell.close();
 				} catch (Throwable e) {
 					

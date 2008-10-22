@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.subs;
 
 import java.net.URL;
+import java.util.Map;
 
 
 public interface 
@@ -39,7 +40,8 @@ SubscriptionManager
 	createRSS(
 		String		name,
 		URL			url,
-		int			check_interval_mins )
+		int			check_interval_mins,
+		Map			user_data )
 		
 		throws SubscriptionException;
 	
