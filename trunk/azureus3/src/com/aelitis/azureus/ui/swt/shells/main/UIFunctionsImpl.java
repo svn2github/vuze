@@ -64,6 +64,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -749,7 +750,22 @@ public class UIFunctionsImpl
 		UIFunctionsSWT uiFunctions = mainWindow.getOldUIFunctions(false);
 		if (uiFunctions != null) {
 			uiFunctions.closeAllDetails();
+			return;
 		}
+
+		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+		if (sideBarView instanceof SideBar) {
+			SideBar sideBar = (SideBar) sideBarView;
+			SideBarEntry[] sideBarEntries = sideBar.getSideBarEntries();
+			for (int i = 0; i < sideBarEntries.length; i++) {
+				SideBarEntry entry = sideBarEntries[i];
+				String id = entry.getId();
+				if (id != null && id.startsWith("DMDetails_")) {
+					sideBar.closeSideBar(id);
+				}
+			}
+		}
+
 	}
 	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#hasDetailViews()
@@ -758,6 +774,19 @@ public class UIFunctionsImpl
 		if (uiFunctions != null) {
 			return uiFunctions.hasDetailViews();
 		}
+		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
+		if (sideBarView instanceof SideBar) {
+			SideBar sideBar = (SideBar) sideBarView;
+			SideBarEntry[] sideBarEntries = sideBar.getSideBarEntries();
+			for (int i = 0; i < sideBarEntries.length; i++) {
+				SideBarEntry entry = sideBarEntries[i];
+				String id = entry.getId();
+				if (id != null && id.startsWith("DMDetails_")) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 }
