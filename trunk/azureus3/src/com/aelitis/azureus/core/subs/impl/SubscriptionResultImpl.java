@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 
 import com.aelitis.azureus.core.metasearch.Result;
@@ -249,6 +250,17 @@ SubscriptionResultImpl
 		
 		Result.adjustRelativeTerms( map );
 		
+			// migration - trim digits
+		
+		String size = (String)map.get( "l" );
+
+		if ( size != null ){
+			
+			size = DisplayFormatters.trimDigits( size, 3 );
+			
+			map.put( "l", size );
+		}
+		
 		return( map );
 	}
 	
@@ -267,8 +279,8 @@ SubscriptionResultImpl
 		
 		if ( link == null ){
 			
-			link = (String)toJSONMap().get( "dl" );
-		}
+			link = (String)map.get( "dl" );
+		}		
 		
 		return( link );
 	}

@@ -218,23 +218,9 @@ public abstract class Result {
 		if(size >= 0) {
 				// max three digits for display purposes
 			
-			char[] 	size_chars = DisplayFormatters.formatByteCountToKiBEtc( size ).toCharArray();
-			String 	size_str = "";
-			int		digits = 0;
-			
-			for (int i=0;i<size_chars.length;i++){
-				char c = size_chars[i];
-				if ( Character.isDigit(c)){
-					digits++;
-					if ( digits <= 3 ){
-						size_str += c;
-					}
-				}else if ( c == '.' && digits >= 3 ){
-										
-				}else{
-					size_str += c;
-				}
-			}
+			String size_str = DisplayFormatters.formatByteCountToKiBEtc( size );
+		
+			size_str = DisplayFormatters.trimDigits( size_str, 3 );
 			
 			object.put("l", size_str );
 			object.put("lb", "" + size  );
