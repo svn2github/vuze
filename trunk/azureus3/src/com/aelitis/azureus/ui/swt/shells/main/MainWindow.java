@@ -1354,7 +1354,7 @@ public class MainWindow
 									relatedObjects, TOTorrent.class);
 						}
 
-						if (torrent != null) {
+						if (torrent != null && shell.getLeftImage() == null) {
 							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
 							if (contentThumbnail != null) {
 								try {
