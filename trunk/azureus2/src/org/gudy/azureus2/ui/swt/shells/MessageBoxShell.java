@@ -1242,6 +1242,15 @@ public class MessageBoxShell
 		return relatedObjects;
 	}
 
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.1
+	 */
+	public Object getLeftImage() {
+		return imgLeft;
+	}
+
 	public void setLeftImage(Image imgLeft) {
 		this.imgLeft = imgLeft;
 	}
