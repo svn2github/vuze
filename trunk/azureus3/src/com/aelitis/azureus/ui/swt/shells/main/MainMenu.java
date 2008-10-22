@@ -178,8 +178,7 @@ public class MainMenu
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
 		MenuFactory.addCloseWindowMenuItem(fileMenu);
-		MenuFactory.setEnablementKeys(
-				MenuFactory.addCloseDetailsMenuItem(fileMenu), FOR_AZ2 | FOR_AZ3_ADV);
+		MenuFactory.addCloseDetailsMenuItem(fileMenu);
 		MenuFactory.addCloseDownloadBarsToMenu(fileMenu);
 
 		MenuFactory.addSeparatorMenuItem(fileMenu);
