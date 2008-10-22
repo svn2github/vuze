@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
@@ -37,6 +38,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
+
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
@@ -896,6 +899,10 @@ public class SubscriptionWizard {
 			}
 		};
 		
+			// use this as native one end up with progress image overwriting tooltip
+		
+		new CustomTableTooltipHandler( subscriptionTable );
+		
 		subscriptionTable.addListener(SWT.EraseItem, paintListener);
 		subscriptionTable.addListener(SWT.PaintItem, paintListener);
 		subscriptionTable.addListener(SWT.MeasureItem, paintListener);
@@ -1202,8 +1209,6 @@ public class SubscriptionWizard {
 			}
 		}
 		
-		sw.display.dispose();
-		
+		sw.display.dispose();		
 	}
-
 }
