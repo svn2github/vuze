@@ -627,7 +627,7 @@ SubscriptionImpl
 
 				String	engine_name = engine.getNameEx();
 				
-				if ( name.indexOf( engine_name ) == -1 ){
+				if ( name.indexOf( engine_name ) == -1 && engine_name.indexOf( name ) == -1 ){
 					
 					name_ex = name + ": " + engine.getNameEx();
 					
