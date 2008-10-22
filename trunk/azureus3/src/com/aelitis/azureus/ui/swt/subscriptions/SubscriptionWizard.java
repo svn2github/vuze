@@ -810,7 +810,7 @@ public class SubscriptionWizard {
 			          int index = subscriptionTable.indexOf (item);
 			          Subscription subscription = subscriptions[index];
 			          item.setImage(rssIcon);
-			          item.setText(0, subscription.getName());
+			          item.setText(0, subscription.getNameEx());
 			          item.setData("popularity", new Long(subscription.getCachedPopularity()));
 			          if(subscription.isSubscribed()) {
 			        	  item.setForeground(display.getSystemColor(SWT.COLOR_GRAY));

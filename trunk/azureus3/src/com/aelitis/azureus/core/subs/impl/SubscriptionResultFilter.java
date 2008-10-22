@@ -19,6 +19,54 @@ public class SubscriptionResultFilter{
 	long maxSize = -1;
 	String categoryFilter = null;
 	
+	public String
+	getString()
+	{
+		String	res = addString( "", "+", getString(textFilters));
+	
+		res = addString( res, "-", getString(excludeTextFilters));
+		
+		res = addString( res, "regex=", regexFilter );
+
+		res = addString( res, "cat=", categoryFilter );
+
+		return( res );
+	}
+	
+	private String
+	addString(
+		String	existing,
+		String	key,
+		String	rest )
+	{
+		if ( rest == null || rest.length() == 0 ){
+			
+			return( existing );
+		}
+		
+		String str = key + rest;
+		
+		if ( existing == null || existing.length() == 0){
+			
+			return( str );
+		}
+		
+		return( existing + "," + str );
+	}
+		
+	private String
+	getString(
+		String[]		strs )
+	{
+		String	res = "";
+		
+		for( int i=0;i<strs.length;i++){
+			res += (i==0?"":"&") + strs[i]; 
+		}
+		
+		return( res );
+	}
+	
 	public SubscriptionResultFilter(Map filters) {
 		try {
 			textFilters = importStrings(filters,"text_filter"," ");

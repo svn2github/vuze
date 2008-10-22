@@ -98,6 +98,8 @@ SubscriptionImpl
 	private byte[]			private_key;
 	
 	private String			name;
+	private String			name_ex;
+	
 	private int				version;
 	private int				az_version;
 	
@@ -610,6 +612,49 @@ SubscriptionImpl
 		}
 	}
 	
+	public String
+	getNameEx()
+	{
+		if ( name_ex == null ){
+			
+			try{
+				Map map = JSONUtils.decodeJSON( getJSON());
+				
+				String	search_term	= (String)map.get( "search_term" );
+				Map		filters		= (Map)map.get( "filters" );
+	
+				Engine engine = manager.getEngine( this, map, true );
+
+				String	engine_name = engine.getNameEx();
+				
+				if ( name.indexOf( engine_name ) == -1 ){
+					
+					name_ex = name + ": " + engine.getNameEx();
+					
+				}else{
+					
+					name_ex = name;
+				}
+				
+				if ( search_term != null && search_term.length() > 0 ){
+					
+					name_ex += ", query=" + search_term;
+				}
+				
+				if ( filters != null && filters.size() > 0 ){
+					
+					name_ex += ", filters=" + new SubscriptionResultFilter(filters).getString();
+				}
+				
+			}catch( Throwable e ){
+				
+				name_ex = name + ": " + Debug.getNestedExceptionMessage(e);
+			}
+		}
+		
+		return( name_ex );
+	}
+	
 	public boolean
 	isPublic()
 	{
@@ -959,6 +1004,8 @@ SubscriptionImpl
 			}catch( Throwable e ){
 			}
 		}
+		
+		name_ex = null;
 		
 		if ( is_public ){
 			

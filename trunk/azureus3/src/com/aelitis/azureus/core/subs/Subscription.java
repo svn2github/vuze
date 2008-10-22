@@ -39,6 +39,9 @@ Subscription
 		throws SubscriptionException;
 	
 	public String
+	getNameEx();
+	
+	public String
 	getID();
 	
 	public byte[]
