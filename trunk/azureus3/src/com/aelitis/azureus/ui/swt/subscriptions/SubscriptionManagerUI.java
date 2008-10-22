@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -444,8 +445,10 @@ SubscriptionManagerUI
 			{
 				public void 
 				refresh(
-					TableCell cell )
+					TableCell _cell )
 				{
+					TableCellSWT cell = (TableCellSWT)_cell;
+					
 					if ( subs_man == null ){
 						
 						return;
@@ -523,7 +526,12 @@ SubscriptionManagerUI
 						cell.setToolTip( tooltip );
 						
 						cell.setSortValue( sort_order );
+						
+						cell.setCursorID( graphic==null?SWT.CURSOR_ARROW:SWT.CURSOR_HAND );
+
 					}else{
+						
+						cell.setCursorID( SWT.CURSOR_ARROW );
 						
 						cell.setSortValue( 0 );
 					}
@@ -587,8 +595,10 @@ SubscriptionManagerUI
 			{
 				public void 
 				refresh(
-					TableCell cell )
+					TableCell _cell )
 				{
+					TableCellSWT cell = (TableCellSWT)_cell;
+					
 					if ( subs_man == null ){
 						
 						return;
@@ -601,7 +611,7 @@ SubscriptionManagerUI
 						return;
 					}
 					
-					String	str = "";
+					String	str 		= "";
 					
 					Torrent	torrent = dl.getTorrent();
 					
@@ -622,10 +632,56 @@ SubscriptionManagerUI
 						}
 					}
 					
+					cell.setCursorID( str.length() > 0?SWT.CURSOR_HAND:SWT.CURSOR_ARROW );
+					
 					cell.setText( str );
 				}
 			};
 		
+			final TableCellMouseListener	link_mouse_listener = 
+				new TableCellMouseListener()
+				{
+					public void 
+					cellMouseTrigger(
+						TableCellMouseEvent event )
+					{
+						if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN ){
+										
+							TableCell cell = event.cell;
+							
+							Download	dl = (Download)cell.getDataSource();
+							
+							Torrent	torrent = dl.getTorrent();
+							
+							if ( torrent != null ){
+								
+								byte[]	hash = torrent.getHash();
+								
+								Subscription[] subs = subs_man.getKnownSubscriptions( hash );
+																
+								for (int i=0;i<subs.length;i++){
+									
+									Subscription sub = subs[i];
+									
+									if ( sub.hasAssociation( hash )){
+										
+										sideBarItem item = (sideBarItem) sub.getUserData(SubscriptionManagerUI.SUB_IVIEW_KEY);
+										
+										if ( item != null ){
+										
+											event.skipCoreFunctionality	= true;
+
+											item.activate();
+											
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+				};
+				
 		table_manager.registerColumn(
 				Download.class, 
 				"azsubs.ui.column.subs_link", 
@@ -639,6 +695,7 @@ SubscriptionManagerUI
 						result.setType(TableColumn.TYPE_TEXT_ONLY);
 					
 						result.addCellRefreshListener( link_refresh_listener );
+						result.addCellMouseListener( link_mouse_listener );
 						
 						columns.add(result);
 					}

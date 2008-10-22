@@ -674,11 +674,18 @@ public class SubscriptionWizard {
 //		subscriptionTable.setHeaderVisible(true);
 		Listener resizeListener = new Listener() {
 			
+			int last_width;
+			
 			public void handleEvent(Event event) {
 				Table table = (Table)event.widget ;
 				Rectangle rect = table.getClientArea();
 				int width = rect.width - 3;
 				
+				if ( width == last_width ){
+					return;
+				}
+				
+				last_width = width;
 				int nbColumns = table.getColumnCount();
 				
 				if(nbColumns == 1) {
