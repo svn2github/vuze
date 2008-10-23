@@ -103,7 +103,10 @@ CustomizationManagerImpl
 	    
 	    loadCustomizations( app_dir );
 	    
-	    loadCustomizations( user_dir );
+	    if ( !user_dir.equals( app_dir )){
+	    
+	    	loadCustomizations( user_dir );
+	    }
 	    
 	    String active = COConfigurationManager.getStringParameter( "customization.active.name", "" );
 	    
@@ -157,20 +160,28 @@ CustomizationManagerImpl
 					
 					if ( !name.endsWith( ".zip" )){
 						
-						continue;
-					}
-					
-					String[]	bits = name.substring( 0, name.length() - 4 ).split( "_" );
-					
-					if ( bits.length != 2 ){
+						logInvalid( file );
 						
 						continue;
 					}
 					
-					String	lhs = bits[0].trim();
-					String	rhs	= bits[1].trim();
+					String	base = name.substring( 0, name.length() - 4 );
+					
+					int	u_pos = base.lastIndexOf( '_' );
+				
+					if ( u_pos == -1 ){
+						
+						logInvalid( file );
+						
+						continue;
+					}
+					
+					String	lhs = base.substring(0,u_pos).trim();
+					String	rhs	= base.substring(u_pos+1).trim();
 					
 					if ( lhs.length() == 0 || !Constants.isValidVersionFormat( rhs )){
+						
+						logInvalid( file );
 						
 						continue;
 					}
@@ -193,6 +204,13 @@ CustomizationManagerImpl
 				}
 			}
 		}
+	}
+	
+	protected void
+	logInvalid(
+		File file )
+	{
+		Debug.out( "Invalid customization file name '" + file.getAbsolutePath() + "' - format must be <name>_<version>.zip where version is numeric and dot separated" );
 	}
 	
 	protected void
