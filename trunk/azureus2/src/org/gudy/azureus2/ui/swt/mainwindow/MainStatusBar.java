@@ -286,7 +286,7 @@ public class MainStatusBar
 				public void handleEvent(Event e) {
 
 					String url = "feedback?" + Utils.getWidgetBGColorURLParam()
-							+ "&fromWeb=false";
+							+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName);
 					
 					// Utils.launch( url );
 					
