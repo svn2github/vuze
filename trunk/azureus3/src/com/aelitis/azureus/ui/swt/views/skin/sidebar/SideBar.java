@@ -416,6 +416,7 @@ public class SideBar
 							FormData fd = (FormData) ld;
 							fd.width = 0;
 						}
+						soSideBarPopout.setVisible(false);
 
 						Utils.relayout(soSideBarPopout.getControl());
 					}
@@ -428,8 +429,9 @@ public class SideBar
 						Object ld = soSideBarPopout.getControl().getLayoutData();
 						if (ld instanceof FormData) {
 							FormData fd = (FormData) ld;
-							fd.width = 22;
+							fd.width = 24;
 						}
+						soSideBarPopout.setVisible(true);
 						soSideBarPopout.getControl().moveAbove(null);
 						Utils.relayout(soSideBarPopout.getControl());
 					}
