@@ -748,50 +748,6 @@ public class TorrentListViewsUtils
 	 * @since 3.0.2.3
 	 */
 	public static void showHomeHint(final DownloadManager dm) {
-		// Show a popup when user adds a download
-		// if it wasn't added recently, it's not a new download
-		if (SystemTime.getCurrentTime()
-				- dm.getDownloadState().getLongParameter(
-						DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME) < 10000
-				&& !PublishUtils.isPublished(dm)
-				&& !dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-					// 3.2 TODO: properly detect any library
-					if (sideBar == null) {
-						return;
-					}
-					SideBarEntrySWT info = sideBar.getCurrentSideBarInfo();
-					if (info == null) {
-						return;
-					}
-					if (info.id.equals(SideBar.SIDEBAR_SECTION_LIBRARY)) {
-						Display current = Display.getCurrent();
-						// checking focusControl for null doesn't really work
-						// Preferably, we'd check to see if the app has the OS' focus
-						// and not display the popup when it doesn't
-						if (current != null && current.getFocusControl() != null
-								&& !MessageBoxShell.isOpen()) {
-							int ret = MessageBoxShell.open(Utils.findAnyShell(),
-									MessageText.getString("v3.HomeReminder.title"),
-									MessageText.getString("v3.HomeReminder.text", new String[] {
-										dm.getDisplayName()
-									}), new String[] {
-										MessageText.getString("Button.ok"),
-										MessageText.getString("v3.HomeReminder.gohome")
-									}, 0, "downloadinhome",
-									MessageText.getString("MessageBoxWindow.nomoreprompting"),
-									false, 15000);
-
-							if (ret == 1) {
-								sideBar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-							}
-						}
-					}
-				}
-			});
-		}
 	}
 
 	public static void debugDCAD(String s) {
