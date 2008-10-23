@@ -7,6 +7,12 @@ CHANGE: UIvz  | Image on left of search box now activates search when clicked [T
 CHANGE: UIvz  | Toolbar's "Show Text" state now remembered across sessions [TuxPaper] 
 CHANGE: UIvz  | Classic users upgrading via the installer will start up in My Library in "small" mode (classic My Torrents View).  Previously, only "Advanced UI" users got this. [TuxPaper]
 CHANGE: UIvz  | If you hold the mouse down for a period of time on Up and Down toolbar items, it will move the selected items to the top/bottom (this was present in 4000, but now the tooltip says it) [TuxPaper]  
+CHANGE: Core  | Remove restriction on uniqueness of subscriptions names [Parg]
+CHANGE: Core  | Add popularity to subscription properties and size better [Parg]
+CHANGE: Core  | Impose lower limits on download and upload when auto-speed running [Parg]
+CHANGE: Plug  | Reduce derived tracker targets by raising swarm size limits [Parg]
+CHANGE: Core  | Reduce subscription publication concurrency [Parg]
+CHANGE: Core  | Reduce acceptance of inaccurate DHT store operations [Parg] 
 
 BUGFIX: UIvz  | Fixed missing of all incomplete-specific and complete-specific torrent columns in My Library in "big" mode [TuxPaper]
 BUGFIX: UIvz  | If you previously chose top bar to be visible, and you aren't in advanced user mode, there was no way to remove top bar.  Fixed by not showing top bar in non-advanced user mode [TuxPaper]
@@ -16,7 +22,11 @@ BUGFIX: UIvz  | Fixed extremely slow Library view when one column was animating 
 BUGFIX: UI    | Table cells with cutoff text should show tooltip now [TuxPaper]
 BUGFIX: UI    | Fixed copying cell's text to clipboard [TuxPaper] 
 BUGFIX: UI    | Info tab in Torrent Details now displays some columns that it couldn't before [TuxPaper] 
-
+BUGFIX: Core  | Fix 100% CPU problem due to unsafe HashSet modification [Parg]
+BUGFIX: Core  | Remove duplicate results from subscriptions [Parg]
+BUGFIX: Core  | Report subscription creation errors to user [Parg]
+BUGFIX: Core  | If a subscription was deleted which being processed it used to report errors [Parg]
+BUGFIX: Core  | Set subscription popularity on selection [Parg]
 
 
 2008.10.15 | Vuze 4.0.0.0
