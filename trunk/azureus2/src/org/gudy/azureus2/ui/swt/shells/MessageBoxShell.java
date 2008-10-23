@@ -291,7 +291,9 @@ public class MessageBoxShell
 		if (imgLeft != null) {
 			textComposite = new Composite(shell, SWT.NONE);
 			textComposite.setForeground(shell.getForeground());
-			textComposite.setLayout(new GridLayout(2, false));
+			GridLayout gl = new GridLayout(2, false);
+			gl.horizontalSpacing = 10;
+			textComposite.setLayout(gl);
 			textComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
 			Label lblImage = new Label(textComposite, SWT.NONE);
 			lblImage.setImage(imgLeft);
@@ -380,7 +382,8 @@ public class MessageBoxShell
 			}
 		}
 
-		if ( !squish ){
+
+		if (!squish && (autoCloseInMS > 0 || rememberID != null)) {
 			Label lblPadding = new Label(shell, SWT.NONE );
 			lblPadding.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		}
