@@ -18,10 +18,13 @@
 
 package com.aelitis.azureus.activities;
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -59,6 +62,24 @@ public class VuzeActivitiesEntryBuddyRequest
 		setText(text);
 		setTypeID(VuzeActivitiesConstants.TYPEID_BUDDYREQUEST, true);
 		setID(buildID(buddy.getCode()));
+	}
+	
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy#loadCommonFromMap(java.util.Map)
+	public void loadCommonFromMap(Map map) {
+		urlAccept = MapUtils.getMapString(map, "url-accept", urlAccept);
+		if (urlAccept != null) {
+			urlAccept = ConstantsV3.appendURLSuffix(urlAccept);
+		}
+		super.loadCommonFromMap(map);
+	}
+	
+	// @see com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy#toMap()
+	public Map toMap() {
+		Map map = super.toMap();
+		
+		map.put("url-accept", urlAccept);
+		
+		return map;
 	}
 
 	public static String buildID(String code) {
