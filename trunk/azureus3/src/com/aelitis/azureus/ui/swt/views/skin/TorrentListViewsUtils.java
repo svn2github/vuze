@@ -709,16 +709,16 @@ public class TorrentListViewsUtils
 					
 			MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(), title,
 					text, new String[] {
+						MessageText.getString("Button.cancel"),
 						MessageText.getString("Button.deleteContent.fromComputer"),
 						MessageText.getString("Button.deleteContent.fromLibrary"),
-						MessageText.getString("Button.cancel"),
-					}, 1, null, null, false, 0);
+					}, 2, null, null, false, 0);
 			mb.setRelatedObject(dm);
 			mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
 
 			int result = mb.open();
-			if (result == 1 || result == 0) {
-				if (result == 1) {
+			if (result == 1 || result == 2) {
+				if (result == 2) {
 					deleteData = false;
 				}
 			
