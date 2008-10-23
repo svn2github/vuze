@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.swt.layout.FormData;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -29,9 +31,7 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -44,6 +44,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -74,6 +75,8 @@ public class SBC_LibraryView
 	public static final int TORRENTS_INCOMPLETE = 2;
 
 	public static final int TORRENTS_UNOPENED = 3;
+	
+	private static final String CFG_INFOBAR = "Library.infobar";
 
 	public static List allViews = new ArrayList(1);
 
@@ -129,8 +132,11 @@ public class SBC_LibraryView
 
 	private ToolBarItem itemModeBig;
 
+	private SWTSkinObject skinObject;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+		this.skinObject = skinObject;
 		torrentFilter = skinObject.getSkinObjectID();
 		if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_DL)) {
 			torrentFilterMode = TORRENTS_INCOMPLETE;
@@ -288,6 +294,39 @@ public class SBC_LibraryView
 		if (save) {
 			COConfigurationManager.setParameter(torrentFilter + ".viewmode", viewMode);
 		}
+
+		if (torrentFilterMode == TORRENTS_ALL) {
+			final SWTSkinObject soTop = skin.getSkinObject("library-list-info",
+					skinObject.getParent());
+			if (soTop != null) {
+				boolean showTop = COConfigurationManager.getBooleanParameter(
+						CFG_INFOBAR, true);
+				if (showTop) {
+					if (viewMode == MODE_BIGTABLE) {
+						skin.createSkinObject("toptip", "library.top.info", soTop);
+						SWTSkinObject soClose = skin.getSkinObject("close", soTop);
+						if (soClose != null) {
+							SWTSkinButtonUtility btnClose = new SWTSkinButtonUtility(soClose);
+							btnClose.addSelectionListener(new ButtonListenerAdapter() {
+								// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
+								public void pressed(SWTSkinButtonUtility buttonUtility,
+										SWTSkinObject skinObject, int stateMask) {
+									soTop.setVisible(false);
+									COConfigurationManager.setParameter(CFG_INFOBAR, false);
+								}
+							});
+						}
+						soTop.setVisible(true);
+					} else {
+						COConfigurationManager.setParameter(CFG_INFOBAR, false);
+						soTop.setVisible(false);
+					}
+				} else {
+					soTop.setVisible(false);
+				}
+			}
+		}
+		
 	}
 
 	public static void setupViewTitle() {
