@@ -310,6 +310,34 @@ BasicPluginViewImpl
 		});
 
     }
+    
+	composite.addListener(
+			SWT.Hide,
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event arg0 )
+				{
+					log.setText("");
+				}
+			});
+	
+	composite.addListener(
+			SWT.Show,
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event arg0 )
+				{
+				   	String	text = model.getLogArea().getText().trim();
+				   	
+			    	log.setText( text);
+			    	
+			    	log.setTopIndex(log.getLineCount());
+				}
+			});
   }
   
   private void refresh() {
