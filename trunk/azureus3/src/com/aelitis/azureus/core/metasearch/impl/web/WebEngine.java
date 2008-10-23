@@ -670,11 +670,30 @@ WebEngine
 							content_type = content_type.substring(0,pos).trim();
 						}
 						
-						if ( Charset.isSupported( content_type )){
+						try{
+							if ( Charset.isSupported( content_type )){
+								
+								debugLog( "charset: " + content_type );
+								
+								content_charset = content_type;
+							}
+						}catch( Throwable e ){
 							
-							debugLog( "charset: " + content_type );
-							
-							content_charset = content_type;
+							try{
+									// handle lowercase 'utf-8' for example
+								
+								content_type = content_type.toUpperCase();
+								
+								if ( Charset.isSupported( content_type )){
+									
+									debugLog( "charset: " + content_type );
+									
+									content_charset = content_type;
+								}
+							}catch( Throwable f ){
+								
+								log( "Content type '" + content_type + "' not supported", f );
+							}
 						}
 					}
 				}
