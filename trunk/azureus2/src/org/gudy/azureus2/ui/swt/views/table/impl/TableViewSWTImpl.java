@@ -1888,6 +1888,9 @@ public class TableViewSWTImpl
 						sToClipboard += cell.getText();
 					}
 				}
+				if (sToClipboard == null || sToClipboard.length() == 0) {
+					return;
+				}
 				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
 					sToClipboard
 				}, new Transfer[] {
