@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.views.tableitems.files.FirstPieceItem;
 
 /**
  * @author TuxPaper
@@ -87,6 +88,9 @@ public class UISwitcherUtil
 				return "az2";
 			}
 			
+			String lastUI = COConfigurationManager.getStringParameter("ui", "az2");
+			COConfigurationManager.setParameter("lastUI", lastUI);
+			
 			String forceUI = System.getProperty("force.ui");
 			if (forceUI != null) {
 				COConfigurationManager.setParameter("ui", forceUI);
@@ -96,12 +100,21 @@ public class UISwitcherUtil
 			// Flip people who install this client over top of an existing az
 			// to az3ui.  The installer will write a file to the program dir,
 			// while an upgrade won't
-			if (!COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false)
-					&& FileUtil.getApplicationFile("installer.log").exists()) {
+			boolean installLogExists = FileUtil.getApplicationFile("installer.log").exists();
+			boolean alreadySwitched = COConfigurationManager.getBooleanParameter("installer.ui.alreadySwitched", false);
+			if (!alreadySwitched && installLogExists) {
 				COConfigurationManager.setParameter("installer.ui.alreadySwitched", true);
 				COConfigurationManager.setParameter("ui", "az3");
 				COConfigurationManager.setParameter("az3.virgin.switch", true);
-				COConfigurationManager.setParameter("v3.Start Advanced", true);
+				
+				// Anyone who wasn't on az3 and had an old version "advanced mode"
+				if (!lastUI.equals("az3")) {
+					String sFirstVersion = COConfigurationManager.getStringParameter("First Recorded Version", Constants.AZUREUS_VERSION);
+					if (!Constants.getBaseVersion(sFirstVersion).equals(
+							Constants.getBaseVersion(Constants.AZUREUS_VERSION))) {
+						COConfigurationManager.setParameter("v3.Start Advanced", true);
+					}
+				}
 				return "az3";
 			}
 			
@@ -191,6 +204,10 @@ public class UISwitcherUtil
 			if (result[0] == 0) {
 				// Full AZ3UI
 				COConfigurationManager.setParameter("ui", "az3");
+				// Anyone switching to az3 gets the "advanced mode"
+				if (!lastUI.equals("az3")) {
+					COConfigurationManager.setParameter("v3.Start Advanced", true);
+				}
 			} else if (result[0] == 1) {
 				COConfigurationManager.setParameter("ui", "az2");
 			}
