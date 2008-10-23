@@ -310,7 +310,7 @@ public class SubscriptionsView
 		});
 		
 		Label close = new Label(composite,SWT.NONE);
-		close.setImage(ImageLoaderFactory.getInstance().getImage("image.sidebar.closeitem"));
+		close.setImage(ImageLoaderFactory.getInstance().getImage("image.dismissX"));
 		close.setCursor(composite.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		close.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {
