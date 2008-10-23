@@ -215,9 +215,9 @@ BasicPluginViewImpl
     	gridData = new GridData(GridData.FILL_BOTH);
     	gridData.horizontalSpan = 2;
     	log.setLayoutData(gridData);
-    	String	text = model.getLogArea().getText().trim();
-    	log.setText( text);
-    	log.setTopIndex(log.getLineCount());
+    	//String	text = model.getLogArea().getText().trim();
+    	//log.setText( text);
+    	//log.setTopIndex(log.getLineCount());
     	model.getLogArea().addPropertyChangeListener(this);
 
     	Composite bottomSection = new Composite(panel, SWT.NONE);
@@ -358,10 +358,14 @@ BasicPluginViewImpl
     if(display == null || display.isDisposed() || log == null || paused)
       return;
 
+ 
     display.asyncExec(new AERunnable(){
       public void runSupport() {
         if(log.isDisposed())
           return;
+        if ( !log.isVisible()){
+        	return;
+        }
         String old_value = (String)ev.getOldPropertyValue();
         String new_value = (String) ev.getNewPropertyValue();
         
