@@ -28,6 +28,7 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
@@ -79,6 +80,7 @@ public class MainMenu
 
 		addFileMenu();
 		//addViewMenu();
+		addSimpleViewMenu();
 
 		addCommunityMenu();
 		
@@ -191,6 +193,64 @@ public class MainMenu
 			MenuFactory.addSeparatorMenuItem(fileMenu);
 			MenuFactory.addRestartMenuItem(fileMenu);
 			MenuFactory.addExitMenuItem(fileMenu);
+		}
+	}
+
+	private void addSimpleViewMenu() {
+		try {
+			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
+			final Menu viewMenu = viewItem.getMenu();
+			
+			
+			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
+					+ ".view.sidebar", new Listener() {
+				public void handleEvent(Event event) {
+					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+					if (sidebar != null) {
+						sidebar.flipSideBarVisibility();
+					}
+				}
+			});
+
+			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
+					+ ".view.toolbartext", new Listener() {
+				public void handleEvent(Event event) {
+					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+					if (sidebar != null) {
+						sidebar.flipSideBarVisibility();
+					}
+				}
+			});
+
+			viewMenu.addMenuListener(new MenuListener() {
+
+				public void menuShown(MenuEvent e) {
+
+					MenuItem sidebarMenuItem = MenuFactory.findMenuItem(viewMenu,
+							PREFIX_V3 + ".view.sidebar");
+					if (sidebarMenuItem != null) {
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						if (sidebar != null) {
+							sidebarMenuItem.setSelection(sidebar.isVisible());
+						}
+					}
+
+					MenuItem itemShowText = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.toolbartext");
+					if (itemShowText != null) {
+						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						if (tb != null) {
+							itemShowText.setSelection(tb.getShowText());
+						}
+					}
+				}
+
+				public void menuHidden(MenuEvent e) {
+				}
+			});
+			
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
 		}
 	}
 
