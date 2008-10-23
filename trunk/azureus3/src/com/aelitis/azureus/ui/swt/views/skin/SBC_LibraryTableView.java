@@ -19,10 +19,13 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -39,11 +42,13 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -188,6 +193,37 @@ public class SBC_LibraryTableView
 					} else {
 						changed |= rowCore.setAlpha(255);
 						changed |= rowCore.setFontStyle(SWT.NORMAL);
+					}
+				}
+			});
+		}
+		
+		if (tv != null) {
+			tv.addKeyListener(new KeyListener() {
+
+				public void keyReleased(KeyEvent e) {
+				}
+
+				public void keyPressed(KeyEvent e) {
+					if (e.character == 15 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
+						Object[] selectedDataSources = tv.getSelectedDataSources();
+						for (int i = 0; i < selectedDataSources.length; i++) {
+							DownloadManager dm = (DownloadManager) selectedDataSources[i];
+							if (dm != null) {
+								TOTorrent torrent = dm.getTorrent();
+								String contentHash = PlatformTorrentUtils.getContentHash(torrent);
+								if (contentHash != null && contentHash.length() > 0) {
+									String url = ConstantsV3.URL_PREFIX
+											+ ConstantsV3.URL_DOWNLOAD + contentHash
+											+ ".torrent?referal=coq";
+									DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+									TorrentUIUtilsV3.loadTorrent(
+											AzureusCoreFactory.getSingleton(), dlInfo, false, false,
+											true, false);
+								}
+
+							}
+						}
 					}
 				}
 			});
