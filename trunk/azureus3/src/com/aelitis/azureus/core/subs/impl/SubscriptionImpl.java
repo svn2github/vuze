@@ -627,13 +627,17 @@ SubscriptionImpl
 
 				String	engine_name = engine.getNameEx();
 				
-				if ( name.indexOf( engine_name ) == -1 && !engine_name.equals( name )){
+				if ( name.startsWith( engine_name )){
 					
-					name_ex = name + ": " + engine.getNameEx();
+					name_ex = name;
+					
+				}else if ( engine_name.startsWith( name )){
+					
+					name_ex = engine_name;
 					
 				}else{
 					
-					name_ex = name;
+					name_ex = name + ": " + engine.getNameEx();
 				}
 				
 				if ( search_term != null && search_term.length() > 0 ){
