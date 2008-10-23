@@ -241,7 +241,7 @@ public class GlobalManagerImpl
 	        
 	        determineSaveResumeDataInterval();
 	        
-	        if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
+	        if ((loopFactor % saveResumeLoopCount == 0) || ( needsSaving && loadingComplete )) {
 	          	
 	        	saveDownloads( true );
 	        }
