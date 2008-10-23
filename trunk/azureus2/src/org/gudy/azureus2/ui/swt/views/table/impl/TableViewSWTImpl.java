@@ -542,15 +542,10 @@ public class TableViewSWTImpl
 			}
 
 			public void restore(CTabFolderEvent event) {
-				CTabItem[] items = tabFolder.getItems();
-				for (int i = 0; i < items.length; i++) {
-					CTabItem tabItem = items[i];
-					tabItem.getControl().setVisible(true);
-				}
 				tabFolder.setMinimized(false);
 				CTabItem selection = tabFolder.getSelection();
 				if (selection != null) {
-					selection.getControl().moveAbove(null);
+					selection.getControl().setVisible(true);
 				}
 				form.notifyListeners(SWT.Resize, null);
 
@@ -567,6 +562,7 @@ public class TableViewSWTImpl
 			public void widgetSelected(SelectionEvent e) {
 				// make sure its above
 				try {
+					((CTabItem) e.item).getControl().setVisible(true);
 					((CTabItem) e.item).getControl().moveAbove(null);
 				} catch (Exception t) {
 				}
