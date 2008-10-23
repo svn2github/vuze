@@ -314,7 +314,10 @@ SubscriptionSchedulerImpl
 							
 						}finally{
 							
-							active_result_downloaders.remove( key );
+							synchronized( active_result_downloaders ){
+
+								active_result_downloaders.remove( key );
+							}
 							
 							calculateSchedule();
 						}

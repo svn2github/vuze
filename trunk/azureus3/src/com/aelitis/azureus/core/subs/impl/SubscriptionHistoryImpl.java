@@ -460,6 +460,11 @@ SubscriptionHistoryImpl
 			
 			saveConfig();
 		}
+		
+		if ( isAutoDownload() && !result.getRead() && !result.isDeleted()){
+			
+			manager.getScheduler().download( subs, result );		
+		}
 	}
 	
 
@@ -590,6 +595,8 @@ SubscriptionHistoryImpl
 	
 		boolean	changed = false;
 
+		List	newly_unread = new ArrayList();
+		
 		synchronized( this ){
 						
 			SubscriptionResultImpl[] results = manager.loadResults( subs );
@@ -598,15 +605,27 @@ SubscriptionHistoryImpl
 				
 				SubscriptionResultImpl result = results[i];
 				
-				Boolean	read = (Boolean)rid_map.get( result.getKey1());
-				
-				if ( read != null ){
+				if ( result.isDeleted()){
 					
-					if ( result.getRead() != read.booleanValue()){
+					continue;
+				}
+				
+				Boolean	b_read = (Boolean)rid_map.get( result.getKey1());
+				
+				if ( b_read != null ){
+					
+					boolean	read = b_read.booleanValue();
+					
+					if ( result.getRead() != read ){
 						
 						changed = true;
 					
-						result.setReadInternal( read.booleanValue());
+						result.setReadInternal( read );
+						
+						if ( !read ){
+							
+							newly_unread.add( result );
+						}
 					}
 				}
 			}
@@ -622,6 +641,14 @@ SubscriptionHistoryImpl
 		if ( changed ){
 			
 			saveConfig();
+		}
+		
+		if ( isAutoDownload()){
+			
+			for (int i=0;i<newly_unread.size();i++){
+				
+				manager.getScheduler().download( subs, (SubscriptionResult)newly_unread.get(i));
+			}
 		}
 	}
 	
