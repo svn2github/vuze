@@ -840,9 +840,13 @@ public class MainWindow
 			public void runSupport() {
 				String startTab;
 				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
-				if (showWelcome) {
+				boolean startAdv = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
+				if (showWelcome && !startAdv) {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
+					if (showWelcome && startAdv) {
+						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
+					}
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
