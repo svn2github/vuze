@@ -628,7 +628,7 @@ SubscriptionManagerUI
 							
 							if ( sub.hasAssociation( hash )){
 								
-								str += (i==0?"":"; ") + sub.getName();
+								str += (str.length()==0?"":"; ") + sub.getName();
 							}
 						}
 					}
