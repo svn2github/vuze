@@ -945,8 +945,9 @@ public class SubscriptionWizard {
 						long popularity = pop.longValue();
 						//Rank in pixels between 0 and 80
 						//0 -> no subscriber
-						//80 -> 500 subscribers
-						int rank = 80 * (int) popularity / 500;
+						//80 -> 1000 subscribers
+						
+						int rank = 80 * (int) popularity / 1000;
 						if(rank > 80) rank = 80;
 						if(rank < 5) rank = 5;
 						
