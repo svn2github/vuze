@@ -778,6 +778,11 @@ public class SubscriptionWizard {
 					addButton.setEnabled(true);
 //					TableItem item = subscriptionTable.getSelection()[0];
 					Subscription subscription = subscriptions[subscriptionTable.getSelectionIndex()];
+					if(subscription.isSubscribed()) {
+						addButton.setEnabled(false);
+					} else {
+						addButton.setEnabled(true);
+					}
 					addButton.setData("subscription",subscription);
 				} else {
 					addButton.setEnabled(false);
