@@ -547,19 +547,34 @@ public class TableViewSWTImpl
 					CTabItem tabItem = items[i];
 					tabItem.getControl().setVisible(true);
 				}
+				tabFolder.setMinimized(false);
 				CTabItem selection = tabFolder.getSelection();
 				if (selection != null) {
 					selection.getControl().moveAbove(null);
 				}
-				tabFolder.setMinimized(false);
 				form.notifyListeners(SWT.Resize, null);
 
 				refreshSelectedSubView();
 
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
 			}
+			
+			
 		};
 		tabFolder.addCTabFolder2Listener(folderListener);
+		
+		tabFolder.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				// make sure its above
+				try {
+					((CTabItem) e.item).getControl().moveAbove(null);
+				} catch (Exception t) {
+				}
+			}
+		
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 
 		tabFolder.addMouseListener(new MouseAdapter() {
 			public void mouseDown(MouseEvent e) {
