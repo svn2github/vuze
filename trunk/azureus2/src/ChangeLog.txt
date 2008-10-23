@@ -1,9 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
-2008.xx.xx | Vuze 4.0.0.1
+2008.10.xx | Vuze 4.0.0.1
 
 FEATURE: UIvz | Added column to detail the linkage between content and associated subscription, where present [Parg]
+FEATURE: UIvz | Simple view menu
  
 CHANGE: UIvz  | Image on left of search box now activates search when clicked [TuxPaper]
 CHANGE: UIvz  | Toolbar's "Show Text" state now remembered across sessions [TuxPaper] 
@@ -35,6 +36,8 @@ BUGFIX: Core  | Report subscription creation errors to user [Parg]
 BUGFIX: Core  | If a subscription was deleted which being processed it used to report errors [Parg]
 BUGFIX: Core  | Set subscription popularity on selection [Parg]
 BUGFIX: UI    | Clear log view widgets when not visible to reduce memory [Parg]
+
+
 
 2008.10.15 | Vuze 4.0.0.0
 
