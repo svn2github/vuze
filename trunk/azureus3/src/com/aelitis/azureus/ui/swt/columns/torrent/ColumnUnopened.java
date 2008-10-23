@@ -94,7 +94,7 @@ public class ColumnUnopened
 			hasBeenOpened = PlatformTorrentUtils.getHasBeenOpened(dm);
 			sortVal = hasBeenOpened ? 1 : 0;
 		} else {
-			sortVal = -1;
+			sortVal = isSortAscending()?2:-1;
 		}
 
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
