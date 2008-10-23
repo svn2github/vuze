@@ -440,7 +440,7 @@ public class SideBar
 
 	public boolean isVisible() {
 		SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
-		return soSash.getPercent() != 1.0;
+		return soSash.getPercent() != 0.0;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
