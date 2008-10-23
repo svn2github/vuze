@@ -494,6 +494,13 @@ public class SWTSkinObjectSash
 	}
 
 	public double getPercent() {
+		if (noresize) {
+			Long px = (Long) sash.getData("PX");
+			int i = (isVertical) ? parentComposite.getSize().x
+					: parentComposite.getSize().y;
+
+			return px.doubleValue() / i;
+		}
 		return sashPct;
 	}
 
