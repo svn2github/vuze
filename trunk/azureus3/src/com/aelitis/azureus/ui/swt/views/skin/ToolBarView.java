@@ -24,14 +24,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -51,6 +50,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsV3;
@@ -842,4 +842,57 @@ public class ToolBarView
 			item.setEnabled(!disabled);
 		}
 	}
+
+	public void flipShowText() {
+		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+		if (tb == null) {
+			SkinViewManager.addListener(new SkinViewManagerListener() {
+				public void skinViewAdded(SkinView skinview) {
+					if (skinview instanceof ToolBarView) {
+						SkinViewManager.RemoveListener(this);
+						flipShowText();
+					}
+				}
+			});
+			return;
+		}
+
+		try {
+			boolean showText = !tb.getShowText();
+			COConfigurationManager.setParameter("ToolBar.showText", showText);
+			tb.setShowText(showText);
+
+			SWTSkinObject skinObject;
+			skinObject = skin.getSkinObject("search-text");
+			if (skinObject != null) {
+				Control control = skinObject.getControl();
+				FormData fd = (FormData) control.getLayoutData();
+				fd.top.offset = showText ? 6 : 5;
+				fd.bottom.offset = showText ? -3 : -2;
+			}
+			skinObject = skin.getSkinObject("topgap");
+			if (skinObject != null) {
+				Control control = skinObject.getControl();
+				FormData fd = (FormData) control.getLayoutData();
+				fd.height = showText ? 6 : 2;
+			}
+			skinObject = skin.getSkinObject("tabbar");
+			if (skinObject != null) {
+				Control control = skinObject.getControl();
+				FormData fd = (FormData) control.getLayoutData();
+				fd.height = showText ? 50 : 32;
+				//Utils.relayout(control);
+				skinObject.switchSuffix(showText ? "" : "-small", 4, true);
+
+				Shell shell = control.getShell();
+				shell.layout(true, true);
+				shell.redraw();
+			}
+
+			
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
 }

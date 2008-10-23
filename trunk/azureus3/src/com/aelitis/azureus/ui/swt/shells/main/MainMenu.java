@@ -215,9 +215,9 @@ public class MainMenu
 			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
 					+ ".view.toolbartext", new Listener() {
 				public void handleEvent(Event event) {
-					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-					if (sidebar != null) {
-						sidebar.flipSideBarVisibility();
+					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					if (tb != null) {
+						tb.flipShowText();
 					}
 				}
 			});

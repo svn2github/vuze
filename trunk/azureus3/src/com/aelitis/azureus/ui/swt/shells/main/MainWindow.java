@@ -557,7 +557,10 @@ public class MainWindow
 
 				Listener toggleListener = new Listener() {
 					public void handleEvent(Event event) {
-						flipShowText();
+						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						if (tb != null) {
+							tb.flipShowText();
+						}
 					}
 				};
 				shell.addListener(SWT.Expand, toggleListener);
@@ -1563,7 +1566,10 @@ public class MainWindow
 			}
 			
 			if (!COConfigurationManager.getBooleanParameter("ToolBar.showText")) {
-				flipShowText();
+				ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+				if (tb != null) {
+					tb.flipShowText();
+				}
 			}
 			
 			final MenuItem itemShowText = new MenuItem(topbarMenu, SWT.CHECK);
@@ -1571,7 +1577,10 @@ public class MainWindow
 			itemShowText.addSelectionListener(new SelectionAdapter() {
 				// @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
 				public void widgetSelected(SelectionEvent e) {
-					flipShowText();
+					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					if (tb != null) {
+						tb.flipShowText();
+					}
 				}
 			});
 			
@@ -1609,55 +1618,6 @@ public class MainWindow
 		 */
 		if (ConstantsV3.DISABLE_BUDDIES_BAR) {
 			COConfigurationManager.setParameter("Footer.visible", false);
-		}
-	}
-
-	protected void flipShowText() {
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb == null) {
-			SkinViewManager.addListener(new SkinViewManagerListener() {
-				public void skinViewAdded(SkinView skinview) {
-					if (skinview instanceof ToolBarView) {
-						SkinViewManager.RemoveListener(this);
-						flipShowText();
-					}
-				}
-			});
-			return;
-		}
-
-		try {
-			boolean showText = !tb.getShowText();
-			COConfigurationManager.setParameter("ToolBar.showText", showText);
-			tb.setShowText(showText);
-
-			SWTSkinObject skinObject;
-			skinObject = skin.getSkinObject("search-text");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.top.offset = showText ? 6 : 5;
-				fd.bottom.offset = showText ? -3 : -2;
-			}
-			skinObject = skin.getSkinObject("topgap");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.height = showText ? 6 : 2;
-			}
-			skinObject = skin.getSkinObject("tabbar");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.height = showText ? 50 : 32;
-				//Utils.relayout(control);
-				skinObject.switchSuffix(showText ? "" : "-small", 4, true);
-			}
-
-			shell.layout(true, true);
-			shell.redraw();
-		} catch (Exception e) {
-			Debug.out(e);
 		}
 	}
 
