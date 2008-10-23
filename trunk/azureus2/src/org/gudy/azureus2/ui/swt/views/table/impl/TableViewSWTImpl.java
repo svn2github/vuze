@@ -547,6 +547,10 @@ public class TableViewSWTImpl
 					CTabItem tabItem = items[i];
 					tabItem.getControl().setVisible(true);
 				}
+				CTabItem selection = tabFolder.getSelection();
+				if (selection != null) {
+					selection.getControl().moveAbove(null);
+				}
 				tabFolder.setMinimized(false);
 				form.notifyListeners(SWT.Resize, null);
 
