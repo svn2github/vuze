@@ -309,7 +309,7 @@ CustomizationManagerImpl
 									perform(
 										TimerEvent event ) 
 									{
-										synchronized( this ){
+										synchronized( CustomizationManagerImpl.this ){
 											
 											current_customization = null;
 										}
