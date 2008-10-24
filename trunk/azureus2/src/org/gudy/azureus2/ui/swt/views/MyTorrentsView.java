@@ -280,8 +280,8 @@ public class MyTorrentsView
   	composite.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
 				viewActive = true;
-		    refreshIconBar();
 		    updateSelectedContent();
+		    refreshIconBar();
 			}
 		});
   	composite.addListener(SWT.Deactivate, new Listener() {
@@ -918,16 +918,16 @@ public class MyTorrentsView
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])
   public void selected(TableRowCore[] rows) {
-  	refreshIconBar();
-  	refreshTorrentMenu();
   	updateSelectedContent();
+  	refreshTorrentMenu();
+  	refreshIconBar();
   }
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void deselected(TableRowCore[] rows) {
-  	refreshIconBar();
-  	refreshTorrentMenu();
   	updateSelectedContent();
+  	refreshTorrentMenu();
+  	refreshIconBar();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#focusChanged(com.aelitis.azureus.ui.common.table.TableRowCore)
