@@ -95,6 +95,8 @@ SubscriptionManagerUI
 	public static final Object	SUB_IVIEW_KEY 		= new Object();
 	public static final Object	SUB_EDIT_MODE_KEY 	= new Object();
 	
+	private static final String EDIT_MODE_MARKER	= "&editMode=1";
+	
 	private Graphic	icon_rss_big;
 	private Graphic	icon_rss_small;
 	private Graphic	icon_rss_all_add_small;
@@ -1042,7 +1044,7 @@ SubscriptionManagerUI
 								
 								if ( SystemTime.getMonotonousTime() - last_select > 1000 ){
 									
-									((subscriptionView)view).updateBrowser();
+									((subscriptionView)view).updateBrowser( false );
 								}
 							}finally{
 								
@@ -1279,7 +1281,7 @@ SubscriptionManagerUI
 			
 			if ( view != null ){
 				
-				view.updateBrowser();
+				view.updateBrowser( false );
 			}
 		}
 	}
@@ -1572,7 +1574,7 @@ SubscriptionManagerUI
 					{
 						if ( auto ){
 							
-							updateBrowser();
+							updateBrowser( true );
 						}
 					}
 				});
@@ -1611,7 +1613,7 @@ SubscriptionManagerUI
 				
 					if ( edit_mode.booleanValue()){
 						
-						url += "&editMode=1";
+						url += EDIT_MODE_MARKER;
 					}
 					
 					subs.setUserData( SUB_EDIT_MODE_KEY, null );
@@ -1811,7 +1813,8 @@ SubscriptionManagerUI
 		}
 		
 		protected void
-		updateBrowser()
+		updateBrowser(
+			final boolean	is_auto )
 		{
 			if ( mainBrowser != null ){
 				
@@ -1823,7 +1826,19 @@ SubscriptionManagerUI
 						{
 							if ( mainBrowser != null && mainBrowser.isVisible()){
 							
-								mainBrowser.setUrl( (String)mainBrowser.getData( "StartURL" ));
+								String url = (String)mainBrowser.getData( "StartURL" );
+
+									// see if end of edit process indicated by the subscription being
+									// re-downloaded on auto-mode
+								
+								if ( is_auto && url.endsWith( EDIT_MODE_MARKER )){
+									
+									url = url.substring(0,url.lastIndexOf( EDIT_MODE_MARKER ));
+								
+									mainBrowser.setData( "StartURL", url );
+								}
+								
+								mainBrowser.setUrl( url );
 							}
 						}
 					});
