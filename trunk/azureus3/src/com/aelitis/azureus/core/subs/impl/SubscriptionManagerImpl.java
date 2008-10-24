@@ -576,7 +576,7 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
-		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE ));
+		return( createSingletonRSSSupport( name, url, true, check_interval_mins, SubscriptionImpl.ADD_TYPE_CREATE, true ));
 	}
 	
 	protected SubscriptionImpl
@@ -607,7 +607,8 @@ SubscriptionManagerImpl
 		URL			url,
 		boolean		is_public,
 		int			check_interval_mins,
-		int			add_type )
+		int			add_type,
+		boolean		subscribe )
 		
 		throws SubscriptionException
 	{
@@ -631,6 +632,8 @@ SubscriptionManagerImpl
 			Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
 			
 			SubscriptionImpl subs = new SubscriptionImpl( this, name, is_public, singleton_details, json, add_type );
+			
+			subs.setSubscribed( subscribe );
 			
 			log( "Created new singleton subscription: " + subs.getString());
 							
@@ -699,7 +702,8 @@ SubscriptionManagerImpl
 	protected SubscriptionImpl
 	createSingletonSubscription(
 		Map			singleton_details,
-		int			add_type )
+		int			add_type,
+		boolean		subscribe )
 	
 		throws SubscriptionException 
 	{
@@ -712,7 +716,7 @@ SubscriptionManagerImpl
 			
 				// only defined type is singleton rss
 			
-			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type );
+			SubscriptionImpl s = (SubscriptionImpl)createSingletonRSSSupport( name, url, true, check_interval_mins, add_type, subscribe );
 			
 			return( s );
 			
@@ -1227,17 +1231,23 @@ SubscriptionManagerImpl
 								throw( new SubscriptionException( "User declined addition" ));
 							}
 						}
+						
+						if ( existing == null ){
 					
-						SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, check_interval_mins, SubscriptionImpl.ADD_TYPE_IMPORT );
+							SubscriptionImpl new_subs = (SubscriptionImpl)createSingletonRSSSupport( name, url, is_public, check_interval_mins, SubscriptionImpl.ADD_TYPE_IMPORT, true );
 																	
-						log( "Imported new singleton subscription: " + new_subs.getString());
+							log( "Imported new singleton subscription: " + new_subs.getString());
+									
+							return( new_subs );
 							
-						if ( existing != null ){
-								
-							existing.remove();
+						}else{
+							
+							existing.setSubscribed( true );
+							
+							selectSubscription( existing );
+							
+							return( existing );
 						}
-														
-						return( new_subs );
 					}
 				}else{
 					
@@ -2655,7 +2665,7 @@ SubscriptionManagerImpl
 									}
 									
 									try{
-										SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP );
+										SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
 																			
 										listener.complete( association_hash, new Subscription[]{ subs });
 																			
