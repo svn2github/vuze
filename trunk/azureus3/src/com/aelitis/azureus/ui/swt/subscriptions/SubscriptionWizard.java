@@ -672,65 +672,7 @@ public class SubscriptionWizard {
 		final TableColumn rankColumn = new TableColumn(subscriptionTable, SWT.NONE);
 		
 		
-		FormLayout layout = new FormLayout();
-		composite.setLayout(layout);
-		
-		FormData data;
-		
-		data = new FormData();
-		data.top = new FormAttachment(0, 0);
-		data.left = new FormAttachment(40, 0);
-		data.bottom = new FormAttachment(100, 0);
-		vsep.setLayoutData(data);
 
-		data = new FormData();
-		data.top = new FormAttachment(0, 5);
-		data.right = new FormAttachment(vsep, 0);
-		data.left = new FormAttachment(0, 5);
-		subtitle1.setLayoutData(data);
-
-		data = new FormData();
-		data.top = new FormAttachment(0, 5);
-		data.left = new FormAttachment(vsep, 5);
-		data.right = new FormAttachment(100, 0);
-		subtitle2.setLayoutData(data);
-
-		data = new FormData();
-		data.top = new FormAttachment(subtitle1, 5);
-		data.right = new FormAttachment(vsep, 0);
-		data.left = new FormAttachment(0, 0);
-		hsep1.setLayoutData(data);
-
-		data = new FormData();
-		data.top = new FormAttachment(subtitle2, 5);
-		data.left = new FormAttachment(vsep, -1);
-		data.right = new FormAttachment(100, 0);
-		hsep2.setLayoutData(data);
-
-		data = new FormData();
-		data.top = new FormAttachment(hsep1, 0);
-		data.right = new FormAttachment(vsep, 0);
-		data.left = new FormAttachment(0, 0);
-		data.bottom = new FormAttachment(100, 0);
-		
-		if(availableSubscriptions != null && availableSubscriptions.length > 0) {
-			libraryTable.setLayoutData(data);
-		} else {
-			// hack: dispose libraryTable as it's not needed and draws over controls
-			//       (makes a white box covering text).  Would be smarter to not
-			//       create the libraryTable at all..
-			libraryTable.dispose();
-			cancelButton.setFocus();
-			shell.setDefaultButton(cancelButton);
-			compEmpty.setLayoutData(data);
-		}
-
-		data = new FormData();
-		data.top = new FormAttachment(hsep2, 0);
-		data.left = new FormAttachment(vsep, 0);
-		data.right = new FormAttachment(100, 0);
-		data.bottom = new FormAttachment(100, 0);
-		subscriptionTable.setLayoutData(data);
 		
 		//nameColumn.setText("name");
 		//rankColumn.setText("rank");
@@ -986,7 +928,65 @@ public class SubscriptionWizard {
 		subscriptionTable.addListener(SWT.MeasureItem, paintListener);
 		libraryTable.addListener(SWT.MeasureItem, paintListener);
 		
+		FormLayout layout = new FormLayout();
+		composite.setLayout(layout);
 		
+		FormData data;
+		
+		data = new FormData();
+		data.top = new FormAttachment(0, 0);
+		data.left = new FormAttachment(40, 0);
+		data.bottom = new FormAttachment(100, 0);
+		vsep.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(0, 5);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 5);
+		subtitle1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(0, 5);
+		data.left = new FormAttachment(vsep, 5);
+		data.right = new FormAttachment(100, 0);
+		subtitle2.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(subtitle1, 5);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 0);
+		hsep1.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(subtitle2, 5);
+		data.left = new FormAttachment(vsep, -1);
+		data.right = new FormAttachment(100, 0);
+		hsep2.setLayoutData(data);
+
+		data = new FormData();
+		data.top = new FormAttachment(hsep1, 0);
+		data.right = new FormAttachment(vsep, 0);
+		data.left = new FormAttachment(0, 0);
+		data.bottom = new FormAttachment(100, 0);
+		
+		if(availableSubscriptions != null && availableSubscriptions.length > 0) {
+			libraryTable.setLayoutData(data);
+		} else {
+			// hack: dispose libraryTable as it's not needed and draws over controls
+			//       (makes a white box covering text).  Would be smarter to not
+			//       create the libraryTable at all..
+			libraryTable.dispose();
+			cancelButton.setFocus();
+			shell.setDefaultButton(cancelButton);
+			compEmpty.setLayoutData(data);
+		}
+
+		data = new FormData();
+		data.top = new FormAttachment(hsep2, 0);
+		data.left = new FormAttachment(vsep, 0);
+		data.right = new FormAttachment(100, 0);
+		data.bottom = new FormAttachment(100, 0);
+		subscriptionTable.setLayoutData(data);
 		
 		return composite;
 	}
