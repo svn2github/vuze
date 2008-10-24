@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2008.10.xx | Vuze 4.0.0.1
+2008.10.24 | Vuze 4.0.0.2
 
 FEATURE: UIvz | Added column to detail the linkage between content and associated subscription, where present [Parg]
 FEATURE: UIvz | Simple view menu
