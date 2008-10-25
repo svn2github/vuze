@@ -22,6 +22,8 @@ CHANGE: UIvz  | Reduce size shown for downloads to 3 digits max for subscription
 CHANGE: UIVz  | In Library view fix sort so 'new' entries do sort to top [Parg]
 CHANGE: Plug  | Reduce derived tracker targets by raising swarm size limits [Parg]
 
+BUGFIX: Core  | Fix auto-subscription of DHT located singleton subscriptions [Parg]
+BUGFIX: Core  | Subscription to already cached, unsubscribed subscriptions wasn't working [Parg]
 BUGFIX: Core  | Fix 100% CPU problem due to unsafe HashSet modification [Parg]
 BUGFIX: Core  | Remove duplicate results from subscriptions [Parg]
 BUGFIX: Core  | Report subscription creation errors to user [Parg]
