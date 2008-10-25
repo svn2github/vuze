@@ -441,6 +441,16 @@ public class ToolBarView
 				UIFunctionsManagerSWT.getUIFunctionsSWT().refreshTorrentMenu();
 			}
 		});
+		
+		try {
+  		if (!COConfigurationManager.getBooleanParameter("ToolBar.showText")) {
+  			flipShowText();
+  		}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+		
+		
 
 		initComplete = true;
 
@@ -499,6 +509,8 @@ public class ToolBarView
 		};
 
 		String[] itemsRequiring1DMSelection = {};
+		
+		System.out.println(viewID + ";" + SelectedContentManager.getCurrentlySelectedTableView());
 
 		boolean isActivityView = "Activity".equals(viewID);
 		boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);

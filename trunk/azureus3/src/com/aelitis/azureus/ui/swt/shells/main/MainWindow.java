@@ -1565,13 +1565,6 @@ public class MainWindow
   					+ ".visible", SkinConstants.VIEWID_PLUGINBAR, true, -1);
 			}
 			
-			if (!COConfigurationManager.getBooleanParameter("ToolBar.showText")) {
-				ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-				if (tb != null) {
-					tb.flipShowText();
-				}
-			}
-			
 			final MenuItem itemShowText = new MenuItem(topbarMenu, SWT.CHECK);
 			Messages.setLanguageText(itemShowText, "v3.MainWindow.menu.showActionBarText");
 			itemShowText.addSelectionListener(new SelectionAdapter() {
