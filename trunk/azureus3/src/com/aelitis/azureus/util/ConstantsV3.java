@@ -78,11 +78,11 @@ public class ConstantsV3
 	
 	public static final String URL_WELCOME = "welcome.start";
 	
-	public static final String URL_PUBLISHED = "PublishedContent.html";
+	public static final String URL_PUBLISHED = "publish.start";
 
-	public static final String URL_PUBLISHNEW = "PublishNewContent.html";
+	public static final String URL_PUBLISHNEW = "publishnew.start";
 
-	public static final String URL_PUBLISH_ABOUT = "Publish.html";
+	public static final String URL_PUBLISH_ABOUT = "publishinfo.start";
 	
 	public static final String URL_DETAILS = "details/";
 
@@ -106,7 +106,7 @@ public class ConstantsV3
 	 */
 	public static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
 
-	public static final String URL_PUBLISH_INFO = URL_PREFIX + "Publish.html";
+	public static final String URL_PUBLISH_INFO = URL_PREFIX + "publishinfo.start";
 
 	public static final String URL_RPC = "rpc/";
 
