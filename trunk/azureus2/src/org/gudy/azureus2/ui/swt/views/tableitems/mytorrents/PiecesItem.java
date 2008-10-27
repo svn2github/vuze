@@ -267,6 +267,9 @@ public class PiecesItem
 			} else {
 				cell.setGraphic(new UISWTGraphicImpl(image));
 			}
+			if (bImageChanged) {
+				cell.invalidate();
+			}
 			infoObj.setUserData("PiecesImage", image);
 			infoObj.setUserData("PiecesImageBuffer", imageBuffer);
 		}
