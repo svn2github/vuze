@@ -34,15 +34,17 @@ public class TimeFormatter {
 	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d", "y" };
 
 	public static final String[] DATEFORMATS_DESC = new String[] {
+		"EEEE, MMMM d, yyyy GG",
 		"EEEE, MMMM d, yyyy",
 		"EEE, MMMM d, yyyy",
 		"MMMM d, ''yy",
-		"EEE, MMM d, yyyy",
 		"EEE, MMM d, ''yy",
+		"MMM d, yyyy",
 		"MMM d, ''yy",
 		"yyyy/MM/dd",
-		"yyyy/MM",
-		"''yy/MM",
+		"''yy/MM/dd",
+		"MMM dd",
+		"MM/dd",
 	};
 	
 	private static final SimpleDateFormat http_date_format = 
