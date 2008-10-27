@@ -200,6 +200,11 @@ DiskManager
 	public long
 	getRemainingExcludingDND();
 	
+	/**
+	 * Get the percentage done during checking, allocation or initializing
+	 *  
+	 * @return percent done * 1000 (1000 = 100%)
+	 */
 	public int
 	getPercentDone();
 	
