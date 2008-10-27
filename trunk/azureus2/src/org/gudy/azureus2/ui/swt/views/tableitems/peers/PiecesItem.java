@@ -24,14 +24,17 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -52,7 +55,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 public class PiecesItem
        extends CoreTableColumn 
-       implements TableCellAddedListener, TableCellRefreshListener, TableCellDisposeListener
+       implements TableCellAddedListener, TableCellRefreshListener, TableCellDisposeListener, DiskManagerListener
 {
   private final static int INDEX_COLOR_FADEDSTARTS = Colors.BLUES_DARKEST + 1;
   // only supports 0 or 1 border width
@@ -60,6 +63,10 @@ public class PiecesItem
   private final static int borderVerticalSize = 1;
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
+  
+  // DiskManagers we have listeners on
+  private List listDMs = new ArrayList(1);
+  private AEMonitor listDM_mon = new AEMonitor("piecesitem");
 
   /** Default Constructor */
   public PiecesItem(String table_id) {
@@ -69,6 +76,23 @@ public class PiecesItem
 
   public void cellAdded(TableCell cell) {
     cell.setFillCell(true);
+    Object ds = cell.getDataSource();
+    if (ds instanceof PEPeer) {
+			PEPeer peer = (PEPeer) ds;
+			DiskManager diskmanager = peer.getManager().getDiskManager();
+			if (diskmanager != null) {
+				try {
+					listDM_mon.enter();
+
+			    if (!listDMs.contains(diskmanager)) {
+			    	diskmanager.addListener(this);
+			    	listDMs.add(diskmanager);
+			    }
+				} finally {
+					listDM_mon.exit();
+				}
+			}
+		}
   }
 
   public void dispose(TableCell cell) {
@@ -94,7 +118,7 @@ public class PiecesItem
     // Named infoObj so code can be copied easily to the other PiecesItem
     PEPeer infoObj = (PEPeer)cell.getDataSource();
     long lCompleted = (infoObj == null) ? 0 : infoObj.getPercentDoneInThousandNotation();
-    
+
     if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
       return;
     }
@@ -176,7 +200,6 @@ public class PiecesItem
       int nbPieces = available.length;
       
       DiskManager disk_manager = infoObj.getManager().getDiskManager();
-      
       DiskManagerPiece[]  pieces = disk_manager==null?null:disk_manager.getPieces();
                       
       
@@ -236,9 +259,9 @@ public class PiecesItem
             if (iLastIndex == imageBuffer[i]) {
               iWidth++;
             } else {
-              if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+              if (iLastIndex >= INDEX_COLOR_FADEDSTARTS) {
                 gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
-              else
+              } else
                 gcImage.setBackground(Colors.blues[iLastIndex]);
               gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
               iWidth = 1;
@@ -284,9 +307,43 @@ public class PiecesItem
 			} else {
 				cell.setGraphic(new UISWTGraphicImpl(image));
 			}
+			if (bImageChanged || image != oldImage) {
+				cell.invalidate();
+			}
       infoObj.setData("PiecesImage", image);
       infoObj.setData("PiecesImageBuffer", imageBuffer);
     }
   }
+
+	// @see org.gudy.azureus2.core3.disk.DiskManagerListener#fileAccessModeChanged(org.gudy.azureus2.core3.disk.DiskManagerFileInfo, int, int)
+	public void fileAccessModeChanged(DiskManagerFileInfo file, int old_mode,
+			int new_mode) {
+	}
+
+	// @see org.gudy.azureus2.core3.disk.DiskManagerListener#filePriorityChanged(org.gudy.azureus2.core3.disk.DiskManagerFileInfo)
+	public void filePriorityChanged(DiskManagerFileInfo file) {
+	}
+
+	// @see org.gudy.azureus2.core3.disk.DiskManagerListener#pieceDoneChanged(org.gudy.azureus2.core3.disk.DiskManagerPiece)
+	public void pieceDoneChanged(DiskManagerPiece piece) {
+		invalidateCells();
+
+		DiskManager diskmanager = piece.getManager();
+		if (diskmanager.getRemaining() == 0) {
+			diskmanager.removeListener(this);
+
+			try {
+				listDM_mon.enter();
+
+				listDMs.remove(diskmanager);
+			} finally {
+				listDM_mon.exit();
+			}
+		}
+	}
+
+	// @see org.gudy.azureus2.core3.disk.DiskManagerListener#stateChanged(int, int)
+	public void stateChanged(int oldState, int newState) {
+	}
   
 }
