@@ -510,8 +510,6 @@ public class ToolBarView
 
 		String[] itemsRequiring1DMSelection = {};
 		
-		System.out.println(viewID + ";" + SelectedContentManager.getCurrentlySelectedTableView());
-
 		boolean isActivityView = "Activity".equals(viewID);
 		boolean isIconBarEnabler = "IconBarEnabler".equals(viewID);
 		
