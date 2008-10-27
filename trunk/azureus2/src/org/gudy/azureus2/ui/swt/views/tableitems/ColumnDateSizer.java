@@ -65,18 +65,11 @@ public class ColumnDateSizer
 		super(columnID, width, tableID);
 		setAlignment(ALIGN_TRAIL);
 
-		Boolean bShowTime = (Boolean) getUserData("showTime");
-		if (bShowTime != null) {
-			showTime = bShowTime.booleanValue();
-		} else {
-			showTime = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
-		}
-
 		TableContextMenuItem menuShowTime = addContextMenuItem("TableColumn.menu.date_added.time");
 		menuShowTime.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				showTime = !showTime;
-				setUserData("showTime", new Boolean(showTime));
+				setUserData("showTime", new Long(showTime ? 1 : 0));
 				maxWidthUsed = new int[TimeFormatter.DATEFORMATS_DESC.length];
 				maxWidthDate = new Date[TimeFormatter.DATEFORMATS_DESC.length];
 				curFormat = -1;
@@ -86,6 +79,17 @@ public class ColumnDateSizer
 				}
 			}
 		});
+	}
+	
+	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#postConfigLoad()
+	public void postConfigLoad() {
+		Object oShowTime = getUserData("showTime");
+		if (oShowTime instanceof Number) {
+			Number nShowTime = (Number) oShowTime;
+			showTime = nShowTime.byteValue() == 1;
+		} else {
+			showTime = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
