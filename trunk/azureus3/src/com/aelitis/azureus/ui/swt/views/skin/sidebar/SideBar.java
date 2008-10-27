@@ -388,7 +388,8 @@ public class SideBar
 				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
 					DownloadManager dm = (DownloadManager) iter.next();
 					
-					if (!PlatformTorrentUtils.getHasBeenOpened(dm)) {
+					if (!PlatformTorrentUtils.getHasBeenOpened(dm)
+							&& dm.getAssumedComplete()) {
 						PlatformTorrentUtils.setHasBeenOpened(dm, true);
 					}
 				}
