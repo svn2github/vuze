@@ -2410,7 +2410,15 @@ DownloadManagerController
 		
 			throws	Exception
 		{
-			delegate.flushCache();
+			try{
+				this_mon.enter();
+				
+				delegate.flushCache();
+				
+			}finally{
+				
+				this_mon.exit();
+			}
 		}
 		
 		public DirectByteBuffer
@@ -2420,13 +2428,29 @@ DownloadManagerController
 		
 			throws IOException
 		{
-			return( delegate.read( offset, length ));
+			try{
+				this_mon.enter();
+			
+				return( delegate.read( offset, length ));
+				
+			}finally{
+				
+				this_mon.exit();
+			}
 		}
 		
 		public void
 		close()
 		{
-			delegate.close();
+			try{
+				this_mon.enter();
+
+				delegate.close();
+				
+			}finally{
+				
+				this_mon.exit();
+			}
 		}
 		
 		public void
