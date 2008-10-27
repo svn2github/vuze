@@ -663,13 +663,15 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 			
-			// System.out.println( "FMFile::reserveFile:" + canonical_path + "("+ owner.getName() + ")" );
+			// System.out.println( "FMFile::reserveFile:" + canonical_path + "("+ owner.getName() + ")" + " - " + Debug.getCompressedStackTrace() );
 			
 			List	owners = (List)file_map.get(canonical_path);
 			
 			if ( owners == null ){
 				
 				owners = new ArrayList();
+				
+				//System.out.println( "    creating new owners entr" );
 				
 				file_map.put( canonical_path, owners );				
 			}
@@ -678,7 +680,11 @@ FMFileImpl
 				
 				Object[]	entry = (Object[])it.next();
 			
-				if ( owner.getName().equals(((FMFileOwner)entry[0]).getName())){
+				String	entry_name = ((FMFileOwner)entry[0]).getName();
+				
+				//System.out.println( "    existing entry: " + entry_name );
+				
+				if ( owner.getName().equals( entry_name )){
 				
 						// already present, start off read-access
 					
@@ -712,7 +718,7 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 			
-			// System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
+			//System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" + " - " + Debug.getCompressedStackTrace());
 			
 			List	owners = (List)file_map.get( canonical_path );
 			
@@ -729,7 +735,11 @@ FMFileImpl
 					
 				Object[]	entry = (Object[])it.next();
 				
-				if ( owner.getName().equals(((FMFileOwner)entry[0]).getName())){
+				String	entry_name = ((FMFileOwner)entry[0]).getName();
+				
+				//System.out.println( "    existing entry: " + entry_name );
+				
+				if ( owner.getName().equals( entry_name )){
 					
 					my_entry	= entry;
 				}
@@ -816,7 +826,7 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 		
-			// System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
+			// System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" + " - " + Debug.getCompressedStackTrace());
 					
 			List	owners = (List)file_map.get( canonical_path );
 			
