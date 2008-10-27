@@ -3,6 +3,13 @@ VUZE CHANGELOG
 
 2008.xx.xx | Vuze 4.0.0.3
 
+CHANGE: UI    | Date Column auto-sizer now shows day of month (mm/dd) instead of year (yy/mm) when column is small [TuxPaper] 
+
+BUGFIX: UIvz  | "Mark All Watched" now only affects completed content (which is also what Unwatched only shows) [TuxPaper]
+BUGFIX: UI    | "Show Time" state on date columns now remembered accross sessions [TuxPaper]
+BUGFIX: UI    | Fix "Pieces" column in Library view not updating unless you clicked it [TuxPaper]
+
+
 
 2008.10.24 | Vuze 4.0.0.2
 
