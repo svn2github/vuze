@@ -102,10 +102,24 @@ public class Colors implements ParameterListener {
         blues[i] = ColorCache.getColor(display, hslColor.getRed(),
 						hslColor.getGreen(), hslColor.getBlue());
         int iSat = hslColor.getSaturation();
-        if (iSat != 0)
-          hslColor.setSaturation(iSat / 2);
-        else if (bGrayScale) // gray
-        	hslColor.brighten(0.8f);
+        int luminence = hslColor.getLuminence();
+        if (luminence < 20) {
+          if (iSat > 10) {
+            hslColor.setSaturation(iSat / 2);
+            hslColor.brighten(1.25f);
+          } else if (bGrayScale) {
+          	// gray
+          	hslColor.brighten(1.2f);
+          }
+        } else {
+          if (iSat > 10) {
+            hslColor.setSaturation(iSat / 2);
+            hslColor.brighten(0.75f);
+          } else if (bGrayScale) {
+          	// gray
+          	hslColor.brighten(0.8f);
+          }
+        }
 
         faded[i] = ColorCache.getColor(display, hslColor.getRed(),
 						hslColor.getGreen(), hslColor.getBlue());
