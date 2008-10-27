@@ -494,7 +494,7 @@ public class ToolBarView
 			String viewID) {
 		String[] itemsNeedingSelection = {};
 
-		String[] itemsNeedingDMSelection = {
+		String[] itemsNeedingDMSelectionAndTV = {
 			"remove",
 			"up",
 			"down",
@@ -525,16 +525,20 @@ public class ToolBarView
 				item.setEnabled(hasSelection);
 			}
 		}
+		
+		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+		boolean hasTV = tv != null;
+		
 
 		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 		boolean isDMSelection = dms != null && dms.length > 0;
 
-		for (int i = 0; i < itemsNeedingDMSelection.length; i++) {
-			String itemID = itemsNeedingDMSelection[i];
+		for (int i = 0; i < itemsNeedingDMSelectionAndTV.length; i++) {
+			String itemID = itemsNeedingDMSelectionAndTV[i];
 			item = getToolBarItem(itemID);
 
 			if (item != null) {
-				item.setEnabled(hasSelection && isDMSelection);
+				item.setEnabled(hasSelection && isDMSelection && hasTV);
 			}
 		}
 		for (int i = 0; i < itemsRequiring1Selection.length; i++) {
@@ -598,7 +602,7 @@ public class ToolBarView
 				}
 
 			}
-		} else if (currentContent.length > 0) {
+		} else if (currentContent.length > 0 && hasTV) {
 			for (int i = 0; i < currentContent.length; i++) {
 				ISelectedContent content = currentContent[i];
 				DownloadManager dm = content.getDM();
@@ -658,7 +662,6 @@ public class ToolBarView
 			item.setEnabled(enabled);
 		}
 		
-		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
 		if (tv != null) {
 			TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
 			if (tc != null && !tc.isVisible()) {
