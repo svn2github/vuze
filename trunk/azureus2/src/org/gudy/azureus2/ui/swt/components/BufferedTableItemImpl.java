@@ -230,7 +230,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 				if (bounds != null) {
 					Table table = row.getTable();
 					Rectangle dirty = table.getClientArea().intersection(bounds);
-					table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+					if (!dirty.isEmpty()) {
+						table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
+					}
 				}
 			}
 		});
