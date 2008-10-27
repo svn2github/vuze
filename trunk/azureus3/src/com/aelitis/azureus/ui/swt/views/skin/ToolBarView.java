@@ -57,6 +57,7 @@ import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
@@ -494,7 +495,7 @@ public class ToolBarView
 			String viewID) {
 		String[] itemsNeedingSelection = {};
 
-		String[] itemsNeedingDMSelectionAndTV = {
+		String[] itemsNeedingRealDMSelection = {
 			"remove",
 			"up",
 			"down",
@@ -525,20 +526,34 @@ public class ToolBarView
 				item.setEnabled(hasSelection);
 			}
 		}
-		
+
 		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
-		boolean hasTV = tv != null;
+		boolean hasRealDM = tv != null;
+		if (!hasRealDM) {
+  		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+  		if (sidebar != null) {
+  			SideBarEntrySWT entry = sidebar.getCurrentSideBarInfo();
+  			if (entry != null) {
+  				if (entry.datasource instanceof DownloadManager) {
+  					hasRealDM = true;
+  				} else if ((entry.iview instanceof UIPluginView)
+							&& (((UIPluginView) entry.iview).getDataSource() instanceof DownloadManager)) {
+  					hasRealDM = true;
+  				}
+  			}
+  		}
+		}
 		
 
 		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 		boolean isDMSelection = dms != null && dms.length > 0;
 
-		for (int i = 0; i < itemsNeedingDMSelectionAndTV.length; i++) {
-			String itemID = itemsNeedingDMSelectionAndTV[i];
+		for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
+			String itemID = itemsNeedingRealDMSelection[i];
 			item = getToolBarItem(itemID);
 
 			if (item != null) {
-				item.setEnabled(hasSelection && isDMSelection && hasTV);
+				item.setEnabled(hasSelection && isDMSelection && hasRealDM);
 			}
 		}
 		for (int i = 0; i < itemsRequiring1Selection.length; i++) {
@@ -602,7 +617,7 @@ public class ToolBarView
 				}
 
 			}
-		} else if (currentContent.length > 0 && hasTV) {
+		} else if (currentContent.length > 0 && hasRealDM) {
 			for (int i = 0; i < currentContent.length; i++) {
 				ISelectedContent content = currentContent[i];
 				DownloadManager dm = content.getDM();
