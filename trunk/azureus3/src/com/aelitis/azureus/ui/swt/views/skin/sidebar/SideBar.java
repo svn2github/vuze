@@ -2308,7 +2308,7 @@ public class SideBar
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (tree.isDisposed()) {
+				if (tree == null || tree.isDisposed()) {
 					return;
 				}
 
