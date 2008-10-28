@@ -1634,13 +1634,47 @@ public class MainWindow
 	 */
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
+		
+		shell.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				Rectangle clientArea = shell.getClientArea();
+				SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
+				if (soSearch == null) {
+					return;
+				}
+				FormData fd = (FormData) soSearch.getControl().getLayoutData();
+				if (fd == null || fd.width <= 0) {
+					return;
+				}
+				if (clientArea.width > 1024 && fd.width == 260) {
+					return;
+				}
+				SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
+				if (soTabBar == null) {
+					return;
+				}
+				Point size = soTabBar.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+				int oldWidth = fd.width;
+				fd.width = clientArea.width - (size.x - oldWidth) - 5;
+				if (fd.width < 100) {
+					fd.width = 100;
+				} else if (fd.width > 260) {
+					fd.width = 260;
+				}
+				
+				if (oldWidth != fd.width) {
+					((Composite)soTabBar.getControl()).layout(true, true);
+				}
+			}
+		});
 
 		final Text text = new Text(cArea, SWT.NONE);
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
 		text.addListener(SWT.Resize, new Listener() {
-			// @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+			Font lastFont = null;
+
 			public void handleEvent(Event event) {
 				Text text = (Text) event.widget;
 
@@ -1648,15 +1682,18 @@ public class MainWindow
 				Font font = Utils.getFontWithHeight(text.getFont(), null, h);
 				if (font != null) {
 					text.setFont(font);
-					final Font fFont = font;
+
+					Utils.disposeSWTObjects(new Object[] {
+						lastFont
+					});
 
 					text.addDisposeListener(new DisposeListener() {
 						public void widgetDisposed(DisposeEvent e) {
 							Text text = (Text) e.widget;
-							if (!fFont.isDisposed()) {
-								text.setFont(null);
-								fFont.dispose();
-							}
+							text.setFont(null);
+							Utils.disposeSWTObjects(new Object[] {
+								lastFont
+							});
 						}
 					});
 				}
