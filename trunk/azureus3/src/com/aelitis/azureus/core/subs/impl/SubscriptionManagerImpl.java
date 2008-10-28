@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.KeyPair;
@@ -58,6 +59,9 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.custom.Customization;
+import com.aelitis.azureus.core.custom.CustomizationManager;
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
@@ -224,6 +228,77 @@ SubscriptionManagerImpl
 			loadConfig();
 	
 			AEDiagnostics.addEvidenceGenerator( this );
+			
+			CustomizationManager cust_man = CustomizationManagerFactory.getSingleton();
+			
+			Customization cust = cust_man.getActiveCustomization();
+			
+			if ( cust != null ){
+				
+				String cust_name 	= COConfigurationManager.getStringParameter( "subscriptions.custom.name", "" );
+				String cust_version = COConfigurationManager.getStringParameter( "subscriptions.custom.version", "0" );
+				
+				boolean	new_name 	= !cust_name.equals( cust.getName());
+				boolean	new_version = org.gudy.azureus2.core3.util.Constants.compareVersions( cust_version, cust.getVersion() ) < 0;
+				
+				if ( new_name || new_version ){
+
+					log( "Customization: checking templates for " + cust.getName() + "/" + cust.getVersion());
+					
+					try{
+						InputStream[] streams = cust.getResources( Customization.RT_SUBSCRIPTIONS );
+						
+						for (int i=0;i<streams.length;i++){
+							
+							InputStream is = streams[i];
+							
+							try{
+								VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile(is);
+								
+								if ( vf != null ){
+									
+									VuzeFileComponent[] comps = vf.getComponents();
+									
+									for (int j=0;j<comps.length;j++){
+										
+										VuzeFileComponent comp = comps[j];
+										
+										int type = comp.getType();
+										
+										if ( 	type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION ||
+												type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON	){
+											
+											try{
+												importSubscription(
+														type,
+														comp.getContent(),
+														false );
+												
+												comp.setProcessed();
+												
+											}catch( Throwable e ){
+												
+												Debug.printStackTrace(e);
+											}
+										}
+									}
+								}
+							}finally{
+								
+								try{
+									is.close();
+									
+								}catch( Throwable e ){
+								}
+							}
+						}
+					}finally{
+						
+						COConfigurationManager.setParameter( "subscriptions.custom.name", cust.getName());
+						COConfigurationManager.setParameter( "subscriptions.custom.version", cust.getVersion());
+					}
+				}
+			}
 			
 			scheduler = new SubscriptionSchedulerImpl( this );
 			
