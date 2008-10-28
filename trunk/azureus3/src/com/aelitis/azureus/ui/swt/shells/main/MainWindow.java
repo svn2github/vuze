@@ -1154,6 +1154,12 @@ public class MainWindow
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
 
+		Utils.execSWTThreadLater(0, new AERunnable() {
+			public void runSupport() {
+				fixupActionBarSize();
+			}
+		});
+		
 		System.out.println("---------READY AT " + SystemTime.getCurrentTime());
 		isReady = true;
 	}
@@ -1637,34 +1643,7 @@ public class MainWindow
 		
 		shell.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
-				Rectangle clientArea = shell.getClientArea();
-				SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
-				if (soSearch == null) {
-					return;
-				}
-				FormData fd = (FormData) soSearch.getControl().getLayoutData();
-				if (fd == null || fd.width <= 0) {
-					return;
-				}
-				if (clientArea.width > 1024 && fd.width == 260) {
-					return;
-				}
-				SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
-				if (soTabBar == null) {
-					return;
-				}
-				Point size = soTabBar.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
-				int oldWidth = fd.width;
-				fd.width = clientArea.width - (size.x - oldWidth) - 5;
-				if (fd.width < 100) {
-					fd.width = 100;
-				} else if (fd.width > 260) {
-					fd.width = 260;
-				}
-				
-				if (oldWidth != fd.width) {
-					((Composite)soTabBar.getControl()).layout(true, true);
-				}
+				fixupActionBarSize();
 			}
 		});
 
@@ -1826,6 +1805,42 @@ public class MainWindow
 					doSearch(sSearchText);
 				}
 			});
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.1
+	 */
+	protected void fixupActionBarSize() {
+		Rectangle clientArea = shell.getClientArea();
+		SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
+		if (soSearch == null) {
+			return;
+		}
+		FormData fd = (FormData) soSearch.getControl().getLayoutData();
+		if (fd == null || fd.width <= 0) {
+			return;
+		}
+		if (clientArea.width > 1024 && fd.width == 260) {
+			return;
+		}
+		SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
+		if (soTabBar == null) {
+			return;
+		}
+		Point size = soTabBar.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
+		int oldWidth = fd.width;
+		fd.width = clientArea.width - (size.x - oldWidth) - 5;
+		if (fd.width < 100) {
+			fd.width = 100;
+		} else if (fd.width > 260) {
+			fd.width = 260;
+		}
+		
+		if (oldWidth != fd.width) {
+			((Composite)soTabBar.getControl()).layout(true, true);
 		}
 	}
 
