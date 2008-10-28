@@ -293,6 +293,8 @@ public class TableViewSWTImpl
 
 	private Rectangle firstClientArea;
 
+	private int lastHorizontalPos;
+
 	
 	/**
 	 * Main Initializer
@@ -745,13 +747,11 @@ public class TableViewSWTImpl
 			horizontalBar.addSelectionListener(new SelectionListener() {
 				public void widgetDefaultSelected(SelectionEvent e) {
 					calculateClientArea();
-					columnVisibilitiesChanged = true;
 					//updateColumnVisibilities();
 				}
 
 				public void widgetSelected(SelectionEvent e) {
 					calculateClientArea();
-					columnVisibilitiesChanged = true;
 					//updateColumnVisibilities();
 				}
 			});
@@ -976,6 +976,7 @@ public class TableViewSWTImpl
 
 		table.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent event) {
+				calculateClientArea();
 				Object[] listeners = listenersKey.toArray();
 				for (int i = 0; i < listeners.length; i++) {
 					KeyListener l = (KeyListener) listeners[i];
@@ -1071,7 +1072,6 @@ public class TableViewSWTImpl
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				calculateClientArea();
-				columnVisibilitiesChanged = true;
 			}
 		});
 
@@ -1079,13 +1079,18 @@ public class TableViewSWTImpl
 	}
 	
 	protected void calculateClientArea() {
+		Rectangle oldClientArea = clientArea;
 		clientArea = table.getClientArea();
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
 			int pos = horizontalBar.getSelection();
-			if (pos != clientArea.x - firstClientArea.x) {
-				clientArea.x = pos;
+			if (pos != lastHorizontalPos) {
+				lastHorizontalPos = pos;
+				columnVisibilitiesChanged = true;
 			}
+		}
+		if (oldClientArea != null && oldClientArea.x != clientArea.x) {
+			columnVisibilitiesChanged = true;
 		}
 	}
 
