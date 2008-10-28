@@ -291,6 +291,8 @@ public class TableViewSWTImpl
 			}
 		};
 
+	private Rectangle firstClientArea;
+
 	
 	/**
 	 * Main Initializer
@@ -742,11 +744,13 @@ public class TableViewSWTImpl
 		if (horizontalBar != null) {
 			horizontalBar.addSelectionListener(new SelectionListener() {
 				public void widgetDefaultSelected(SelectionEvent e) {
+					calculateClientArea();
 					columnVisibilitiesChanged = true;
 					//updateColumnVisibilities();
 				}
 
 				public void widgetSelected(SelectionEvent e) {
+					calculateClientArea();
 					columnVisibilitiesChanged = true;
 					//updateColumnVisibilities();
 				}
@@ -833,7 +837,7 @@ public class TableViewSWTImpl
 						return;
 
 					// skip if outside client area (ie. scrollbars)
-					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+rTableArea);
+					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+clientArea);
 					Point pMousePosition = new Point(e.x, e.y);
 					if (clientArea.contains(pMousePosition)) {
 						
@@ -1063,9 +1067,10 @@ public class TableViewSWTImpl
 		table.setHeaderVisible(true);
 		
 		clientArea = table.getClientArea();
+		firstClientArea = table.getClientArea();
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
-				clientArea = table.getClientArea();
+				calculateClientArea();
 				columnVisibilitiesChanged = true;
 			}
 		});
@@ -1073,6 +1078,17 @@ public class TableViewSWTImpl
 		initializeTableColumns(table);
 	}
 	
+	protected void calculateClientArea() {
+		clientArea = table.getClientArea();
+		ScrollBar horizontalBar = table.getHorizontalBar();
+		if (horizontalBar != null) {
+			int pos = horizontalBar.getSelection();
+			if (pos != clientArea.x - firstClientArea.x) {
+				clientArea.x = pos;
+			}
+		}
+	}
+
 	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerSelectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	protected void triggerSelectionListeners(TableRowCore[] rows) {
 		//System.out.println("triggerSelectionLis" + rows[0]);
@@ -1497,6 +1513,7 @@ public class TableViewSWTImpl
 			}
 
 			Rectangle size = topRow.getBounds(i);
+			//System.out.println("column " + i + ": size="  + size + "; ca=" + clientArea);
 			size.intersect(clientArea);
 			boolean nowVisible = !size.isEmpty();
 			if (columnsVisible[position] != nowVisible) {
