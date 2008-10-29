@@ -65,6 +65,7 @@ public abstract class Result {
 	public abstract String getSearchQuery();
 	
 	public abstract String getUID();
+	public abstract String getHash();
 	
 	protected
 	Result(
@@ -282,6 +283,11 @@ public abstract class Result {
 		}
 		object.put("pr", this.isPrivate() ? "1" : "0");
 
+		String hash = getHash();
+		if ( hash != null ){
+			object.put( "h", hash );
+		}
+		
 		return object;
 	}
 	

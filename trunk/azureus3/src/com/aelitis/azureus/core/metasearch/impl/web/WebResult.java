@@ -24,6 +24,9 @@ import java.util.Date;
 import java.util.StringTokenizer;
 
 import org.apache.commons.lang.*;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.Result;
@@ -67,6 +70,7 @@ public class WebResult extends Result {
 	String playLink;
 	
 	String uid;
+	String hash;
 	
 	public WebResult(Engine engine, String rootPageURL,String basePageURL,DateParser dateParser,String searchQuery) {
 		super( engine );
@@ -327,6 +331,40 @@ public class WebResult extends Result {
 		this.drmKey = drmKey;
 	}
 	
+	public void
+	setHash(
+		String	_hash )
+	{
+		try{
+			hash = _hash.trim();
+			
+			if ( hash.length() == 32 ){
+				
+					// base 32 hash
+				
+			}else if ( hash.length() == 40 ){
+				
+					// base 16
+				
+				hash = Base32.encode( ByteFormatter.decodeString( hash ));
+				
+			}else{
+				
+				hash = null;
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			hash = null;
+		}
+	}
+	
+	public String
+	getHash()
+	{
+		return( hash );
+	}
 
 	public String getCDPLink() {
 		

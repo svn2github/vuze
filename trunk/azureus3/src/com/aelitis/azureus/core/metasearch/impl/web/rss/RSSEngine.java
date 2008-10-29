@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSChannel;
@@ -211,6 +212,8 @@ RSSEngine
 							String	lc_child_name 		= child.getName().toLowerCase();
 							String	lc_full_child_name 	= child.getFullName().toLowerCase();
 							
+							String	value = child.getValue();
+							
 							if (lc_child_name.equals( "enclosure" )){
 								
 								SimpleXMLParserDocumentAttribute typeAtt = child.getAttribute("type");
@@ -233,17 +236,15 @@ RSSEngine
 								}
 							}else if(lc_child_name.equals( "category" )) {
 								
-								result.setCategory(child.getValue());
+								result.setCategory( value );
 								
 							}else if(lc_child_name.equals( "comments" )){
 								
-								result.setCommentsFromHTML(child.getValue());
+								result.setCommentsFromHTML( value );
 								
 							}else if(lc_child_name.equals( "link" ) || lc_child_name.equals( "guid" )) {
 								
-								try{
-									String value = child.getValue();
-									
+								try{									
 									if (value.toLowerCase().endsWith( ".torrent" )){
 										
 										new URL(value);
@@ -287,23 +288,23 @@ RSSEngine
 								}
 							}else if ( lc_full_child_name.equals( "vuze:size" )){
 								
-								result.setSizeFromHTML( child.getValue());
+								result.setSizeFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:seeds" )){
 								
-								result.setNbSeedsFromHTML( child.getValue());
+								result.setNbSeedsFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:superseeds" )){
 								
-								result.setNbSuperSeedsFromHTML( child.getValue());
+								result.setNbSuperSeedsFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:peers" )){
 								
-								result.setNbPeersFromHTML( child.getValue());
+								result.setNbPeersFromHTML( value );
 								
 							}else if ( lc_full_child_name.equals( "vuze:contenttype" )){
 								
-								String	type = child.getValue().toLowerCase();
+								String	type = value.toLowerCase();
 								
 								if ( type.startsWith( "video" )){
 									
@@ -322,15 +323,19 @@ RSSEngine
 								
 							}else if ( lc_full_child_name.equals( "vuze:downloadurl" )){
 
-								result.setTorrentLink( child.getValue());
+								result.setTorrentLink( value);
 								
 							}else if ( lc_full_child_name.equals( "vuze:playurl" )){
 
-								result.setPlayLink( child.getValue());
+								result.setPlayLink( value);
 								
 							}else if ( lc_full_child_name.equals( "vuze:drmkey" )){
 
-								result.setDrmKey( child.getValue());
+								result.setDrmKey( value);
+								
+							}else if ( lc_full_child_name.equals( "vuze:assethash" )){
+
+								result.setHash( value);
 							}
 						}
 					}

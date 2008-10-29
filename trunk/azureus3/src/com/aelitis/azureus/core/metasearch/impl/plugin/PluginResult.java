@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.metasearch.impl.plugin;
 import java.util.Date;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
@@ -174,6 +175,19 @@ PluginResult
 	getUID() 
 	{
 		return(getStringProperty( SearchResult.PR_UID ));
+	}
+	
+	public String 
+	getHash() 
+	{
+		byte[] hash = getByteArrayProperty( SearchResult.PR_HASH );
+		
+		if ( hash == null ){
+			
+			return( null );
+		}
+		
+		return( Base32.encode( hash ));
 	}
 	
 	public float 
@@ -329,6 +343,21 @@ PluginResult
 			Debug.out( "Invalid value returned for String property " + name );
 			
 			return( def );
+		}
+	}
+	
+	protected byte[]
+	getByteArrayProperty(
+		int		name )
+	{
+		try{
+			return((byte[])getResultProperty( name ));
+				
+		}catch( Throwable e ){
+			
+			Debug.out( "Invalid value returned for byte[] property " + name );
+			
+			return( null );
 		}
 	}
 	
