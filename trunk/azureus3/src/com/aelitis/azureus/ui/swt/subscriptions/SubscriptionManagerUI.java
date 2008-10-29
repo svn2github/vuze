@@ -2029,9 +2029,11 @@ SubscriptionManagerUI
 			
 			String	last_error = history.getLastError();
 
-				// don't report problem until its happened a few times
+			boolean	auth_fail = history.isAuthFail();
 			
-			if ( history.getConsecFails() < 3 ){
+				// don't report problem until its happened a few times, but not for auth fails as this is a perm error
+			
+			if ( history.getConsecFails() < 3 && !auth_fail ){
 				
 				last_error = null;
 			}
@@ -2042,7 +2044,7 @@ SubscriptionManagerUI
 			 
 				warning.setToolTip( last_error );
 				
-				warning.setImageID( history.isAuthFail()?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
+				warning.setImageID( auth_fail?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
 				
 				warning.setVisible( true );
 				
