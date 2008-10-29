@@ -290,4 +290,10 @@ SubscriptionResultImpl
 	{
 		return((String)toJSONMap().get( "pl" ));
 	}
+	
+	public String 
+	getAssetHash() 
+	{
+		return((String)toJSONMap().get( "h" ));
+	}
 }

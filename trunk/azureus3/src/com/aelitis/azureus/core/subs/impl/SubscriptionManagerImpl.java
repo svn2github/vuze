@@ -914,7 +914,13 @@ SubscriptionManagerImpl
 		
 		while( it.hasNext()){
 			
-			((SubscriptionManagerListener)it.next()).subscriptionAdded( subs );
+			try{
+				((SubscriptionManagerListener)it.next()).subscriptionAdded( subs );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		if ( subs.isSubscribed() && subs.isPublic()){
@@ -997,7 +1003,13 @@ SubscriptionManagerImpl
 			
 			while( it.hasNext()){
 				
-				((SubscriptionManagerListener)it.next()).subscriptionChanged( subs );
+				try{
+					((SubscriptionManagerListener)it.next()).subscriptionChanged( subs );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}
@@ -1012,7 +1024,13 @@ SubscriptionManagerImpl
 			
 			while( it.hasNext()){
 				
-				((SubscriptionManagerListener)it.next()).subscriptionSelected( subs );
+				try{
+					((SubscriptionManagerListener)it.next()).subscriptionSelected( subs );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}
@@ -1059,7 +1077,13 @@ SubscriptionManagerImpl
 		
 		while( it.hasNext()){
 			
-			((SubscriptionManagerListener)it.next()).subscriptionRemoved( subs );
+			try{
+				((SubscriptionManagerListener)it.next()).subscriptionRemoved( subs );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	

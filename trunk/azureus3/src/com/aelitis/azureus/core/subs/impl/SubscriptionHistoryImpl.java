@@ -23,10 +23,15 @@ package com.aelitis.azureus.core.subs.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 
@@ -71,10 +76,37 @@ SubscriptionHistoryImpl
 		if ( last_scan == 0 ){
 				
 					// first download feed -> mark all existing as read
-									
-			for (int i=0;i<latest_results.length;i++){
 						
-				latest_results[i].setReadInternal(true);
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			
+			for (int i=0;i<latest_results.length;i++){
+					
+				SubscriptionResultImpl result = latest_results[i];
+				
+				result.setReadInternal(true);
+				
+					// see if we can associate result with existing download
+				
+				try{
+					String hash_str = result.getAssetHash();
+					
+					if ( hash_str != null ){
+						
+						byte[] hash = Base32.decode( hash_str );
+						
+						DownloadManager dm = gm.getDownloadManager( new HashWrapper( hash ));
+						
+						if ( dm != null ){
+							
+							log( "Adding existing association on first read for '" + dm.getDisplayName());
+							
+							subs.addAssociation( hash );
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 		

@@ -1969,7 +1969,7 @@ SubscriptionManagerUI
 		private boolean				destroyed;
 		
 		private SideBarVitalityImage	warning;
-		private SideBarVitalityImage spinnerImage;
+		private SideBarVitalityImage 	spinnerImage;
 		
 		protected
 		sideBarItem()
@@ -1985,9 +1985,13 @@ SubscriptionManagerUI
 			sb_entry	= _sb_entry;
 			
 			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
+			
 			spinnerImage = sb_entry.addVitalityImage("image.sidebar.vitality.dots");
+			
 			spinnerImage.setVisible(false);
-			if (view != null) {
+			
+			if ( view != null ){
+				
 				view.setSpinnerImage(spinnerImage);
 			}
 		}
@@ -2003,8 +2007,10 @@ SubscriptionManagerUI
 			subscriptionView		_view )
 		{
 			view	= _view;
+			
 			if (view != null) {
-				view.setSpinnerImage(spinnerImage);
+				
+				view.setSpinnerImage( spinnerImage );
 			}
 		}
 		
@@ -2068,10 +2074,13 @@ SubscriptionManagerUI
 			destroyed = true;
 		}
 		
-		public void activate() {
+		public void 
+		activate() 
+		{
 			SideBar sideBar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 			
-			if ( sideBar != null ){
+			if ( sideBar != null && sb_entry != null ){
+				
 				sideBar.showItemByID(sb_entry.getId());
 			}
 		}
