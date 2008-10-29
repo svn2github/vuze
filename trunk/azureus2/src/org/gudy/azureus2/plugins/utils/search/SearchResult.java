@@ -44,6 +44,7 @@ SearchResult
 	public static final int	PR_ACCURACY				= 18;	// Long value, 0->100
 	public static final int	PR_VOTES_DOWN			= 19;	// Long
 	public static final int	PR_UID					= 20;	// String
+	public static final int	PR_HASH					= 21;	// byte[] torrent hash
 	
 
 	
