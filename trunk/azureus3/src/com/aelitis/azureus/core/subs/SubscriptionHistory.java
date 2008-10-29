@@ -87,6 +87,9 @@ SubscriptionHistory
 	public boolean
 	isAuthFail();
 	
+	public int
+	getConsecFails();
+	
 	public SubscriptionResult[]
 	getResults(
 		boolean		include_deleted );

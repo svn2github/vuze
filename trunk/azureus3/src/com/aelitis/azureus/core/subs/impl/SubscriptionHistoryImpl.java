@@ -47,6 +47,7 @@ SubscriptionHistoryImpl
 	
 	private String			last_error;
 	private boolean			auth_failed;
+	private int				consec_fails;
 	
 
 	protected
@@ -765,8 +766,17 @@ SubscriptionHistoryImpl
 		String		_last_error,
 		boolean		_auth_failed )
 	{
-		last_error 	= _last_error;
-		auth_failed	= _auth_failed;
+		last_error 		= _last_error;
+		auth_failed		= _auth_failed;
+		
+		if ( last_error == null ){
+			
+			consec_fails = 0;
+			
+		}else{
+			
+			consec_fails++;
+		}
 		
 		subs.fireChanged();
 	}
@@ -781,6 +791,12 @@ SubscriptionHistoryImpl
 	isAuthFail()
 	{
 		return( auth_failed );
+	}
+	
+	public int 
+	getConsecFails() 
+	{
+		return( consec_fails );
 	}
 	
 	protected void

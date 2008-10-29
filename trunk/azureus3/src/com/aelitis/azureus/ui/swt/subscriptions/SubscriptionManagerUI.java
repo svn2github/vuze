@@ -2025,15 +2025,24 @@ SubscriptionManagerUI
 				return;
 			}
 			
-			String	last_error = subs.getHistory().getLastError();
+			SubscriptionHistory history = subs.getHistory();
+			
+			String	last_error = history.getLastError();
 
+				// don't report problem until its happened a few times
+			
+			if ( history.getConsecFails() < 3 ){
+				
+				last_error = null;
+			}
+			
 			boolean	trouble = last_error != null;
 			
 			if ( trouble ){
 			 
 				warning.setToolTip( last_error );
 				
-				warning.setImageID( subs.getHistory().isAuthFail()?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
+				warning.setImageID( history.isAuthFail()?AUTH_IMAGE_ID:ALERT_IMAGE_ID );
 				
 				warning.setVisible( true );
 				
