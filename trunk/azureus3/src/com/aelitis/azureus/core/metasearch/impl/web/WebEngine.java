@@ -741,6 +741,8 @@ WebEngine
 			
 			// e.printStackTrace();
 			
+			debugLog( "Failed to load page: " + Debug.getNestedExceptionMessageAndStack(e));
+			
 			throw( new SearchException( "Failed to load page", e ));
 		}
 	}
