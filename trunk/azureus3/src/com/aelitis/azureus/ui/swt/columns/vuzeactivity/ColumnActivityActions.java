@@ -421,7 +421,6 @@ public class ColumnActivityActions
 					&& y < boundsRate.height ) {
 				
 				int middle = boundsRate.width / 2 + 2;
-				System.out.println(x + ";" + middle);
 				boolean hit = x < middle - 2 || x > middle + 2;
 				//The event is within the graphic, are we on a non-transparent pixel ?
 				//boolean hit = graphicRate.getImage().getImageData().getAlpha(x,y) > 0;
