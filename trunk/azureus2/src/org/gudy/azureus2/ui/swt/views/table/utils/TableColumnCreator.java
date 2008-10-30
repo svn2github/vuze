@@ -21,7 +21,8 @@
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -30,7 +31,9 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
-import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
@@ -43,17 +46,107 @@ public class TableColumnCreator
 	public static int DATE_COLUMN_WIDTH = 110;
 
 	public static TableColumnCore[] createIncompleteDM(String tableID) {
+		final String[] defaultVisibleOrder = {
+			HealthItem.COLUMN_ID,
+			RankItem.COLUMN_ID,
+			NameItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			"Info",
+			CommentIconItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			DownItem.COLUMN_ID,
+			DoneItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			SeedsItem.COLUMN_ID,
+			PeersItem.COLUMN_ID,
+			DownSpeedItem.COLUMN_ID,
+			UpSpeedItem.COLUMN_ID,
+			ETAItem.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID,
+			TrackerStatusItem.COLUMN_ID,
+		};
+
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class, tableID);
+
+		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+				tableID)
+				|| areNoneVisible(mapTCs)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+			RankItem tc = (RankItem) mapTCs.get(RankItem.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID, RankItem.COLUMN_ID);
+				tc.setSortAscending(true);
+			}
+		}
 
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
 	public static TableColumnCore[] createCompleteDM(String tableID) {
+		final String[] defaultVisibleOrder = {
+			HealthItem.COLUMN_ID,
+			RankItem.COLUMN_ID,
+			"SeedingRank",
+			NameItem.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			"Info",
+			"RateIt",
+			CommentIconItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			SeedsItem.COLUMN_ID,
+			PeersItem.COLUMN_ID,
+			UpSpeedItem.COLUMN_ID,
+			ShareRatioItem.COLUMN_ID,
+			UpItem.COLUMN_ID,
+			TrackerStatusItem.COLUMN_ID,
+		};
+
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class, tableID);
-		
+
+		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+				tableID)
+				|| areNoneVisible(mapTCs)) {
+			setVisibility(mapTCs, defaultVisibleOrder);
+
+			RankItem tc = (RankItem) mapTCs.get(RankItem.COLUMN_ID);
+			if (tc != null) {
+				tcManager.setDefaultSortColumnName(tableID, RankItem.COLUMN_ID);
+				tc.setSortAscending(true);
+			}
+		}
+
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
+	}
+
+	private static boolean areNoneVisible(Map mapTCs) {
+		boolean noneVisible = true;
+		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
+			TableColumn tc = (TableColumn) iter.next();
+			if (tc.isVisible()) {
+				noneVisible = false;
+				break;
+			}
+		}
+		return noneVisible;
+	}
+
+	private static void setVisibility(Map mapTCs, String[] defaultVisibleOrder) {
+		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
+			TableColumnCore tc = (TableColumnCore) iter.next();
+			tc.setVisible(false);
+		}
+
+		for (int i = 0; i < defaultVisibleOrder.length; i++) {
+			String id = defaultVisibleOrder[i];
+			TableColumnCore tc = (TableColumnCore) mapTCs.get(id);
+			if (tc != null) {
+				tc.setVisible(true);
+				tc.setPositionNoShift(i);
+			}
+		}
 	}
 
 	/**
