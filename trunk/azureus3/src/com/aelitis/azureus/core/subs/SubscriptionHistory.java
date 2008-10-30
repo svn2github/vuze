@@ -56,6 +56,9 @@ SubscriptionHistory
 	markAllResultsRead();
 	
 	public void
+	markAllResultsUnread();
+	
+	public void
 	markResults(
 		String[]		result_ids,
 		boolean[]		read );

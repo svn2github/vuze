@@ -614,6 +614,41 @@ SubscriptionHistoryImpl
 		}
 	}
 	
+	public void
+	markAllResultsUnread()
+	{
+		boolean	changed = false;
+		
+		synchronized( this ){
+						
+			SubscriptionResultImpl[] results = manager.loadResults( subs );
+
+			for (int i=0;i<results.length;i++){
+				
+				SubscriptionResultImpl result = results[i];
+				
+				if ( result.getRead()){
+					
+					changed = true;
+				
+					result.setReadInternal( false );
+				}
+			}
+			
+			if ( changed ){
+				
+				updateReadUnread( results );
+				
+				manager.saveResults( subs, results );
+			}
+		}
+		
+		if ( changed ){
+			
+			saveConfig();
+		}
+	}
+	
 	public void 
 	markResults(
 		String[] 		result_ids,

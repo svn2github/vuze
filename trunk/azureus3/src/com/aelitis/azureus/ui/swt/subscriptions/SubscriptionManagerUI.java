@@ -108,6 +108,7 @@ SubscriptionManagerUI
 	private SubscriptionManager	subs_man;
 	
 	private MenuItemListener markAllResultsListener;
+	private MenuItemListener unmarkAllResultsListener;
 	private MenuItemListener deleteAllResultsListener;
 	private MenuItemListener resetAuthListener;
 	private MenuItemListener resetResultsListener;
@@ -753,6 +754,17 @@ SubscriptionManagerUI
 			}
 		};
 		
+		unmarkAllResultsListener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Subscription subs = (Subscription) info.getDatasource();
+					subs.getHistory().markAllResultsUnread();
+					refreshView( subs );
+				}
+			}
+		};
+		
 		deleteAllResultsListener = new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				if (target instanceof SideBarEntry) {
@@ -1142,6 +1154,9 @@ SubscriptionManagerUI
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.clearall");
 								menuItem.addListener(markAllResultsListener);
 								
+								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.dirtyall");
+								menuItem.addListener(unmarkAllResultsListener);
+
 								menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.deleteall");
 								menuItem.addListener(deleteAllResultsListener);
 								
