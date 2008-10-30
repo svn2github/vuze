@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -76,7 +78,7 @@ public class ManagerView
 {
 
   private DownloadManager 	manager;
-  private TabFolder folder;
+  private CTabFolder folder;
   private ArrayList tabViews = new ArrayList();
   
   int lastCompleted = -1;
@@ -166,7 +168,7 @@ public class ManagerView
     //TODO : Investigate to see if it's a platform (OSX-Carbon) BUG, and report to SWT team.
     if(Constants.isOSX) {
       if(folder != null && !folder.isDisposed()) {
-        TabItem[] items = folder.getItems();
+        CTabItem[] items = folder.getItems();
         for(int i=0 ; i < items.length ; i++) {
           if (!items[i].isDisposed())
             items[i].dispose();
@@ -193,7 +195,8 @@ public class ManagerView
 
   	this.parent = composite;
 		if (folder == null) {
-			folder = new TabFolder(composite, SWT.LEFT);
+			folder = new CTabFolder(composite, SWT.LEFT);
+			folder.setBorderVisible(true);
 		} else {
 			System.out.println("ManagerView::initialize : folder isn't null !!!");
 		}
@@ -202,6 +205,15 @@ public class ManagerView
   	} else if (composite.getLayout() instanceof GridLayout) {
   		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
   	}
+  	
+  	Label lblClose = new Label(folder, SWT.NONE);
+  	lblClose.setText("x");
+  	lblClose.addListener(SWT.MouseUp, new Listener() {
+			public void handleEvent(Event event) {
+				delete();
+			}
+		});
+  	folder.setTopRight(lblClose);
   	
   	ArrayList iviews_to_use = new ArrayList();
   	iviews_to_use.add(new GeneralView());
@@ -247,7 +259,7 @@ public class ManagerView
     // Initialize view when user selects it
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
-        TabItem item = (TabItem)e.item;
+        CTabItem item = (CTabItem)e.item;
         if (item != null && item.getControl() == null) {
         	IView view = (IView)item.getData("IView");
         	
@@ -271,7 +283,7 @@ public class ManagerView
 			return null;
 		}
 
-		TabItem ti = folder.getItem(index);
+		CTabItem ti = folder.getItem(index);
 		if (ti.isDisposed()) {
 			return null;
 		}
@@ -288,10 +300,10 @@ public class ManagerView
 			if (view != null)
 				view.refresh();
 
-			TabItem[] items = folder.getItems();
+			CTabItem[] items = folder.getItems();
 			
 	    for (int i = 0; i < items.length; i++) {
-	    	TabItem item = items[i];
+	    	CTabItem item = items[i];
 	    	view = (IView) item.getData("IView");
         try {
           if (item.isDisposed())
@@ -302,8 +314,7 @@ public class ManagerView
             item.setText(escapeAccelerators(newTitle));
           }
           String lastToolTip = item.getToolTipText();
-          String newToolTip = view.getFullTitle() + " " +
-					 MessageText.getString("Tab.closeHint");
+          String newToolTip = view.getFullTitle();
           if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
             item.setToolTipText(newToolTip);
           }
@@ -454,7 +465,7 @@ public class ManagerView
 
 		view.dataSourceChanged(dataSource);
 
-		TabItem item = new TabItem(folder, SWT.NULL);
+		CTabItem item = new CTabItem(folder, SWT.NULL);
 		Messages.setLanguageText(item, view.getData());
 		item.setData("IView", view);
 		tabViews.add(view);
