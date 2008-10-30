@@ -112,10 +112,6 @@ public class ColumnRateUpDown
 
 	public void refresh(TableCell cell) {
 		
-		if (cell.getHeight() < 32) {
-			return;
-		}
-
 		Object ds = cell.getDataSource();
 		TOTorrent torrent = null;
 		if (ds instanceof TOTorrent) {
