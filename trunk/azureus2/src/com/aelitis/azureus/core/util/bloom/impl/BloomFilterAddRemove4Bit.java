@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+
 public class 
 BloomFilterAddRemove4Bit
 	extends BloomFilterImpl
@@ -37,6 +39,12 @@ BloomFilterAddRemove4Bit
 		// 4 bits per entry
 	
 		map	= new byte[(getMaxEntries()+1)/2];
+	}
+	
+	public BloomFilter 
+	getReplica() 
+	{
+		return( new BloomFilterAddRemove4Bit( getMaxEntries()));
 	}
 	
 	protected int

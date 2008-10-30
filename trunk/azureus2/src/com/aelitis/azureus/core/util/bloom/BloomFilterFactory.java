@@ -59,4 +59,14 @@ BloomFilterFactory
 	{
 		return( new BloomFilterAddOnly( filter_size ));
 	}
+	
+	public static BloomFilter
+	createRotating(
+		BloomFilter		basis,
+		int				number )
+	{
+		{
+			return( new BloomFilterRotator( basis, number ));
+		}
+	}
 }

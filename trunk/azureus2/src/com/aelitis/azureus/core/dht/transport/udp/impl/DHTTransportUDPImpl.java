@@ -399,11 +399,12 @@ DHTTransportUDPImpl
 	
 	protected void
 	recordSkew(
-		long		skew )
+		InetSocketAddress	originator_address,
+		long				skew )
 	{
 		if ( stats != null ){
 		
-			stats.recordSkew( skew );
+			stats.recordSkew( originator_address, skew );
 		}
 	}
 	

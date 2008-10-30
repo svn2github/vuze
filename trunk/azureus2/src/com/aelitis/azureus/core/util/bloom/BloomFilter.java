@@ -56,4 +56,7 @@ BloomFilter
 	
 	public int
 	getSize();
+	
+	public BloomFilter
+	getReplica();
 }

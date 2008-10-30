@@ -164,7 +164,7 @@ DHTUDPPacketRequest
 		
 		skew = SystemTime.getCurrentTime() - originator_time;
 		
-		transport.recordSkew( skew );
+		transport.recordSkew( originator_address, skew );
 	}
 	
 	protected void

@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+
 public class 
 BloomFilterAddRemove8Bit
 	extends BloomFilterImpl
@@ -35,6 +37,12 @@ BloomFilterAddRemove8Bit
 		super( _max_entries );
 			
 		map	= new byte[getMaxEntries()];
+	}
+	
+	public BloomFilter 
+	getReplica() 
+	{
+		return( new BloomFilterAddRemove8Bit( getMaxEntries()));
 	}
 	
 	protected int

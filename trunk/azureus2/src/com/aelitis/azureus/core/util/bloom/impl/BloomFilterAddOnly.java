@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+
 public class 
 BloomFilterAddOnly
 	extends BloomFilterImpl
@@ -35,6 +37,12 @@ BloomFilterAddOnly
 		super( _max_entries );
 			
 		map	= new byte[(getMaxEntries()+7)/8];
+	}
+	
+	public BloomFilter 
+	getReplica() 
+	{
+		return( new BloomFilterAddOnly( getMaxEntries()));
 	}
 	
 	protected int

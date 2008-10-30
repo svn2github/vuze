@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport.util;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -30,6 +31,8 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketHelper;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  * @author parg
@@ -66,6 +69,10 @@ DHTTransportStatsImpl
 	private long		last_skew_average;
 	private long		last_skew_average_time;
 	
+	private BloomFilter	skew_originator_bloom = 
+		BloomFilterFactory.createRotating(
+				BloomFilterFactory.createAddOnly( SKEW_VALUE_MAX*4 ),
+				2 );
 	protected
 	DHTTransportStatsImpl(
 		byte	_protocol_version )
@@ -487,8 +494,22 @@ DHTTransportStatsImpl
 	
 	public void
 	recordSkew(
-		long		skew )
+		InetSocketAddress	originator_address,
+		long				skew )
 	{
+		byte[]	bytes = originator_address.getAddress().getAddress();
+		
+		if ( skew_originator_bloom.contains( bytes)){
+		
+			//System.out.println( "skipping skew: " + originator_address );
+			
+			return;
+		}
+		
+		skew_originator_bloom.add( bytes );
+		
+		//System.out.println( "adding skew: " + originator_address + "/" + skew );
+		
 		int	i_skew = skew<Integer.MAX_VALUE?(int)skew:(Integer.MAX_VALUE-1);
 		
 			// no sync here as not important so ensure things work ok
