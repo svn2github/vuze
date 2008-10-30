@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
@@ -26,6 +27,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -200,17 +202,16 @@ public class MainMenu
 		try {
 			MenuItem viewItem = MenuFactory.createViewMenuItem(menuBar);
 			final Menu viewMenu = viewItem.getMenu();
-			
-			
-			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
-					+ ".view.sidebar", new Listener() {
-				public void handleEvent(Event event) {
-					SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-					if (sidebar != null) {
-						sidebar.flipSideBarVisibility();
-					}
-				}
-			});
+
+			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3 + ".view.sidebar",
+					new Listener() {
+						public void handleEvent(Event event) {
+							SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+							if (sidebar != null) {
+								sidebar.flipSideBarVisibility();
+							}
+						}
+					});
 
 			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
 					+ ".view.toolbartext", new Listener() {
@@ -218,6 +219,69 @@ public class MainMenu
 					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 					if (tb != null) {
 						tb.flipShowText();
+					}
+				}
+			});
+
+			MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
+					"v3.MainWindow.menu.view.statusbar");
+			Menu menuStatusBar = itemStatusBar.getMenu();
+
+			final String[] statusAreaLangs = {
+				"ConfigView.section.style.status.show_sr",
+				"ConfigView.section.style.status.show_nat",
+				"ConfigView.section.style.status.show_ddb",
+				"ConfigView.section.style.status.show_ipf",
+			};
+			final String[] statusAreaConfig = {
+				"Status Area Show SR",
+				"Status Area Show NAT",
+				"Status Area Show DDB",
+				"Status Area Show IPF",
+			};
+
+			for (int i = 0; i < statusAreaConfig.length; i++) {
+				final String configID = statusAreaConfig[i];
+				String langID = statusAreaLangs[i];
+
+				final MenuItem item = new MenuItem(menuStatusBar, SWT.CHECK);
+				Messages.setLanguageText(item, langID);
+				item.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						COConfigurationManager.setParameter(configID,
+								!COConfigurationManager.getBooleanParameter(configID));
+					}
+				});
+				menuStatusBar.addListener(SWT.Show, new Listener() {
+					public void handleEvent(Event event) {
+						item.setSelection(COConfigurationManager.getBooleanParameter(configID));
+					}
+				});
+			}
+
+			MenuFactory.addSeparatorMenuItem(viewMenu);
+
+			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
+					+ ".view.asSimpleList", new Listener() {
+				public void handleEvent(Event event) {
+					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					if (tb != null) {
+						ToolBarItem item = tb.getToolBarItem("modeBig");
+						if (item != null) {
+							item.triggerToolBarItem();
+						}
+					}
+				}
+			});
+			MenuFactory.addMenuItem(viewMenu, SWT.RADIO, PREFIX_V3
+					+ ".view.asAdvancedList", new Listener() {
+				public void handleEvent(Event event) {
+					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+					if (tb != null) {
+						ToolBarItem item = tb.getToolBarItem("modeSmall");
+						if (item != null) {
+							item.triggerToolBarItem();
+						}
 					}
 				}
 			});
@@ -243,12 +307,45 @@ public class MainMenu
 							itemShowText.setSelection(tb.getShowText());
 						}
 					}
+
+					MenuItem itemShowAsSimple = MenuFactory.findMenuItem(viewMenu,
+							PREFIX_V3 + ".view.asSimpleList");
+					if (itemShowAsSimple != null) {
+						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						if (tb != null) {
+							ToolBarItem item = tb.getToolBarItem("modeBig");
+							if (item != null && item.isEnabled()) {
+								itemShowAsSimple.setEnabled(true);
+								itemShowAsSimple.setSelection(!item.getSkinButton().getSkinObject().getSuffix().equals(
+										""));
+							} else {
+								itemShowAsSimple.setEnabled(false);
+								itemShowAsSimple.setSelection(false);
+							}
+						}
+					}
+					MenuItem itemShowAsAdv = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
+							+ ".view.asAdvancedList");
+					if (itemShowAsAdv != null) {
+						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+						if (tb != null) {
+							ToolBarItem item = tb.getToolBarItem("modeSmall");
+							if (item != null && item.isEnabled()) {
+								itemShowAsAdv.setEnabled(true);
+								itemShowAsAdv.setSelection(!item.getSkinButton().getSkinObject().getSuffix().equals(
+										""));
+							} else {
+								itemShowAsAdv.setSelection(false);
+								itemShowAsAdv.setEnabled(false);
+							}
+						}
+					}
 				}
 
 				public void menuHidden(MenuEvent e) {
 				}
 			});
-			
+
 		} catch (Exception e) {
 			Debug.out("Error creating View Menu", e);
 		}
