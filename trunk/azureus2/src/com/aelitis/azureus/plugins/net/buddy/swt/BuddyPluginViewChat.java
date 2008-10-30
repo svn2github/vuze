@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2ChatListener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 
 public class 
 BuddyPluginViewChat 
@@ -171,7 +172,13 @@ BuddyPluginViewChat
 					
 					BuddyPluginAZ2.chatParticipant	participant = (BuddyPluginAZ2.chatParticipant)participants.get(index);
 					
-					if ( participant.getBuddy().isOnline( false )){
+					BuddyPluginBuddy buddy = participant.getBuddy();
+					
+					if ( buddy == null ){
+						
+						item.setForeground( 0, Colors.red );
+						
+					}else if ( buddy.isOnline( false )){
 						
 						item.setForeground( 0, Colors.black );
 						
