@@ -501,8 +501,7 @@ public class Tab implements ParameterListener, UIUpdatable {
           }
           else if (item instanceof TabItem) {
             String lastToolTip = ((TabItem) item).getToolTipText();
-            String newToolTip = view.getFullTitle() + " " +
-						 MessageText.getString("Tab.closeHint");
+            String newToolTip = view.getFullTitle();
             if (lastToolTip == null || !lastToolTip.equals(newToolTip)) {
               ((TabItem) item).setToolTipText(newToolTip);
             }
