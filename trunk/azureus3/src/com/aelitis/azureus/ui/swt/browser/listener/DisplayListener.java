@@ -9,6 +9,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -32,8 +33,6 @@ import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 public class DisplayListener
 	extends AbstractBrowserMessageListener
@@ -117,6 +116,37 @@ public class DisplayListener
 			bringToFront();
 		} else if (OP_SWITCH_TO_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
+			/*
+			final String viewMode = MapUtils.getMapString(decodedMap, "view-mode",
+					null);
+			if (viewMode != null && viewMode.equals("small")) {
+				final SideBar sb = (SideBar) SkinViewManager.getByClass(SideBar.class);
+				if (sb != null) {
+					sb.addListener(new SideBarListener() {
+						public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
+								SideBarEntrySWT oldSideBarEntry) {
+
+							Utils.execSWTThreadLater(0, new AERunnable() {
+
+								public void runSupport() {
+									ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
+									if (tb != null) {
+										System.out.println("roar2");
+										ToolBarItem tbSmall = tb.getToolBarItem("modeSmall");
+										if (tbSmall != null && tbSmall.isEnabled()) {
+											tbSmall.triggerToolBarItem();
+										}
+									}
+								}
+							});
+
+							sb.removeListener(this);
+						}
+					});
+				}
+			}
+			*/
+
 			switchToTab(MapUtils.getMapString(decodedMap, "target", ""));
 		} else if (OP_REFRESH_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
