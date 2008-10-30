@@ -1089,7 +1089,8 @@ public class TableViewSWTImpl
 				columnVisibilitiesChanged = true;
 			}
 		}
-		if (oldClientArea != null && oldClientArea.x != clientArea.x) {
+		if (oldClientArea != null
+				&& (oldClientArea.x != clientArea.x || oldClientArea.width != clientArea.width)) {
 			columnVisibilitiesChanged = true;
 		}
 	}
