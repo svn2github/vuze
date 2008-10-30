@@ -85,15 +85,17 @@ public class SBC_LibraryTableView
 		if (data instanceof Long) {
 			torrentFilterMode = (int) ((Long) data).longValue();
 		}
+		boolean useBigTable = useBigTable();
 
-		TableColumnCore[] columns = getColumns();
+		// columns not needed for small mode, all torrents
+		TableColumnCore[] columns = useBigTable || torrentFilterMode != SBC_LibraryView.TORRENTS_ALL ? getColumns() : null;
 
 		if (null != columns) {
 			TableColumnManager tcManager = TableColumnManager.getInstance();
 			tcManager.addColumns(columns);
 		}
 
-		if (true == useBigTable()) {
+		if (useBigTable) {
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE
 					|| torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
