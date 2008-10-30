@@ -186,11 +186,11 @@ public class ColumnActivityActions
 		if(entry == null) return;
 		
 		if (VuzeActivitiesConstants.TYPEID_RATING_REMINDER.equals(entry.getTypeID()) ) {
-			DownloadManager dm = DataSourceUtils.getDM(entry);
-			if (dm == null) {
+			TOTorrent torrent = DataSourceUtils.getTorrent(entry);
+			if (torrent == null) {
 				return;
 			}
-			int rating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
+			int rating = PlatformTorrentUtils.getUserRating(torrent);
 
 			if (cell.setSortValue(rating)) {
 				((TableCellSWT) cell).redraw();
@@ -331,6 +331,7 @@ public class ColumnActivityActions
 						}
 					}
 				}
+				Object ds = event.cell.getDataSource();
 
 				newCursor = SWT.CURSOR_HAND;
 				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
@@ -350,7 +351,7 @@ public class ColumnActivityActions
 		}
 
 		Object o = event.cell.getToolTip();
-		if ((o == null) | (o instanceof String)) {
+		if ((o == null) || (o instanceof String)) {
 			String oldTooltip = (String) o;
 			if (!StringCompareUtils.equals(oldTooltip, tooltip)) {
 				invalidateAndRefresh = true;
@@ -370,11 +371,7 @@ public class ColumnActivityActions
 		if (disabled) {
 			return;
 		}
-		DownloadManager dm = DataSourceUtils.getDM(event.cell.getDataSource());
-		if (dm == null) {
-			return;
-		}
-		TOTorrent torrent0 = dm.getTorrent();
+		TOTorrent torrent0 = DataSourceUtils.getTorrent(event.cell.getDataSource());
 
 		if (torrent0 == null) {
 			return;
@@ -422,9 +419,13 @@ public class ColumnActivityActions
 			
 			if (x >= 0 && y >= 0 && x < boundsRate.width
 					&& y < boundsRate.height ) {
+				
+				int middle = boundsRate.width / 2 + 2;
+				System.out.println(x + ";" + middle);
+				boolean hit = x < middle - 2 || x > middle + 2;
 				//The event is within the graphic, are we on a non-transparent pixel ?
-				int alpha = graphicRate.getImage().getImageData().getAlpha(x,y);
-				if(alpha > 0) {
+				//boolean hit = graphicRate.getImage().getImageData().getAlpha(x,y) > 0;
+				if(hit) {
 					try {
 						cancel = false;
 						final int value = (x < (boundsRate.width / 2)) ? 0 : 1;
@@ -448,6 +449,8 @@ public class ColumnActivityActions
 						Debug.out(e);
 					}
 				}
+			} else {
+				cancel = false;
 			}
 			
 			 if(cancel) {
@@ -479,11 +482,7 @@ public class ColumnActivityActions
 
 		Object ds = cell.getDataSource();
 		
-		DownloadManager dm = DataSourceUtils.getDM(ds);
-		if (dm == null) {
-			return;
-		}
-		TOTorrent torrent = dm.getTorrent();
+		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
 
 		if (torrent == null) {
 			return;
