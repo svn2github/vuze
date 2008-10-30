@@ -203,7 +203,7 @@ public class MainStatusBar
 		statusBar = new Composite(parent, SWT.NONE);
 		statusBar.setForeground(fgColor);
 		isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
-
+		
 		GridLayout layout_status = new GridLayout();
 		layout_status.numColumns = 20;
 		layout_status.horizontalSpacing = 0;
@@ -228,6 +228,9 @@ public class MainStatusBar
 		statusText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL));
 
+		addStatusBarMenu(statusText);
+
+		
 		// This is the highest image displayed on the statusbar
 		Image image = ImageRepository.getImage(STATUS_ICON_WARN);
 		int imageHeight = (image == null) ? 20 : image.getBounds().height;
@@ -551,6 +554,57 @@ public class MainStatusBar
 		uiFunctions.getUIUpdater().addUpdater(this);
 		
 		return statusBar;
+	}
+
+	/**
+	 * @param statusBar2
+	 *
+	 * @since 4.0.0.1
+	 */
+	private void addStatusBarMenu(Composite cSB) {
+		if (!Constants.isCVSVersion()) {
+			return;
+		}
+		Menu menu = new Menu(cSB);
+		cSB.setMenu(menu);
+
+		MenuItem itemShow = new MenuItem(menu, SWT.CASCADE);
+		itemShow.setText("Show");
+		Menu menuShow = new Menu(itemShow);
+		itemShow.setMenu(menuShow);
+
+		final String[] statusAreaLangs = {
+			"ConfigView.section.style.status.show_sr",
+			"ConfigView.section.style.status.show_nat",
+			"ConfigView.section.style.status.show_ddb",
+			"ConfigView.section.style.status.show_ipf",
+		};
+		final String[] statusAreaConfig = {
+			"Status Area Show SR",
+			"Status Area Show NAT",
+			"Status Area Show DDB",
+			"Status Area Show IPF",
+		};
+
+		for (int i = 0; i < statusAreaConfig.length; i++) {
+			final String configID = statusAreaConfig[i];
+			String langID = statusAreaLangs[i];
+
+			final MenuItem item = new MenuItem(menuShow, SWT.CHECK);
+			Messages.setLanguageText(item, langID);
+			item.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					COConfigurationManager.setParameter(configID,
+							!COConfigurationManager.getBooleanParameter(configID));
+				}
+			});
+			menuShow.addListener(SWT.Show, new Listener() {
+				public void handleEvent(Event event) {
+					item.setSelection(COConfigurationManager.getBooleanParameter(configID));
+				}
+			});
+		}
+		
 	}
 
 	/**
