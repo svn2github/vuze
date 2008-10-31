@@ -2283,10 +2283,10 @@ public class SideBar
 		}
 		currentSideBarEntry.iview.refresh();
 
-		SideBarEntrySWT sidebarInfo = getSideBarInfo(currentSideBarEntry.id);
-		if (sidebarInfo.pullTitleFromIView && sidebarInfo.treeItem != null) {
-			sidebarInfo.treeItem.setData("text",
-					currentSideBarEntry.iview.getFullTitle());
+		SideBarEntrySWT entry = getSideBarInfo(currentSideBarEntry.id);
+		if (entry.pullTitleFromIView && entry.treeItem != null
+				&& !entry.treeItem.isDisposed()) {
+			entry.treeItem.setData("text", currentSideBarEntry.iview.getFullTitle());
 		}
 	}
 
