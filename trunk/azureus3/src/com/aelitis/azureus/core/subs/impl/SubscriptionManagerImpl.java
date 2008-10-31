@@ -663,10 +663,7 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
-		if ( url.getHost().trim().length() == 0 ){
-			
-			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
-		}
+		checkURL( url );
 		
 		Map	singleton_details = getSingletonMap(name, url, is_public, check_interval_mins);
 		
@@ -687,10 +684,7 @@ SubscriptionManagerImpl
 		
 		throws SubscriptionException
 	{
-		if ( url.getHost().trim().length() == 0 ){
-			
-			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
-		}
+		checkURL( url );
 		
 		try{
 			Subscription existing = lookupSingletonRSS( name, url, is_public, check_interval_mins );
@@ -812,10 +806,7 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException 
 	{
-		if ( url.getHost().trim().length() == 0 ){
-			
-			throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
-		}
+		checkURL( url );
 		
 		try{
 			name = getUniqueName(name);
@@ -852,6 +843,20 @@ SubscriptionManagerImpl
 		}
 	}
 
+	protected void
+	checkURL(
+		URL		url )
+	
+		throws SubscriptionException
+	{
+		if ( url.getHost().trim().length() == 0 ){
+			
+			if ( !url.getProtocol().equalsIgnoreCase( "azplug" )){
+			
+				throw( new SubscriptionException( "Invalid URL '" + url + "'" ));
+			}
+		}
+	}
 	
 	protected SubscriptionImpl
 	addSubscription(
