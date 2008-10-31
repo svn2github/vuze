@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -48,6 +49,28 @@ public class DebugMenuHelper
 			throw new IllegalStateException(
 					"UIFunctionsManagerSWT.getUIFunctionsSWT() is returning null");
 		}
+		
+		item = new MenuItem(menuDebug, SWT.CASCADE);
+		item.setText("DRM");
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				final Shell shell = new Shell(Utils.findAnyShell());
+				//shell.setLayout(new FillLayout());
+				shell.open();
+				final LicenseAquirer la = new LicenseAquirer(shell);
+				Thread t = new Thread() {
+					public void run() {
+						try {
+							la.aquireLicenseFor("SNWEAY7K6RJPAJF2HD52BEX27ERKJXAO");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				};
+				t.setDaemon(true);
+				t.start();
+			}
+		});
 
 		/*
 		item = new MenuItem(menuDebug, SWT.CASCADE);
