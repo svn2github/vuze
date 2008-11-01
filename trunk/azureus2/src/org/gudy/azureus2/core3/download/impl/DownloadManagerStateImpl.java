@@ -132,7 +132,6 @@ DownloadManagerStateImpl
 	private CopyOnWriteMap listeners_read_map_cow  = new CopyOnWriteMap();
 	private CopyOnWriteMap listeners_write_map_cow = new CopyOnWriteMap();
 	
-	private List		will_be_read_list	= new ArrayList();
 	
 	private Map			parameters;
 	private Map			attributes;
@@ -143,6 +142,15 @@ DownloadManagerStateImpl
 	
 	private int supressWrites = 0;
 
+	private static ThreadLocal		tls_wbr	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( new ArrayList(1));
+			}
+		};
 
 	private static DownloadManagerState
 	getDownloadState(
@@ -2196,26 +2204,13 @@ DownloadManagerStateImpl
 			// avoid potential recursion will a will-be-read causing a write that then
 			// causes a further will-be-read...
 		
-		boolean	do_it = false;
-	
-		try{
-			
+		List	will_be_read_list = (List)tls_wbr.get();
+
+		if ( !will_be_read_list.contains( attribute_name )){
+							
+			will_be_read_list.add( attribute_name );
+
 			try{
-				this_mon.enter();
-				
-				if ( !will_be_read_list.contains( attribute_name )){
-					
-					do_it	= true;
-					
-					will_be_read_list.add( attribute_name );
-				}
-			}finally{
-				
-				this_mon.exit();
-				
-			}
-		
-			if ( do_it ){
 				
 				List	listeners_ref = listeners_cow.getList();
 
@@ -2256,21 +2251,9 @@ DownloadManagerStateImpl
 						catch (Throwable t) {Debug.printStackTrace(t);}
 					}
 				}
-				
-			}
-		}finally{
+			}finally{
 			
-			if ( do_it ){
-				
-				try{
-					this_mon.enter();
-					
-					will_be_read_list.remove( attribute_name );
-					
-				}finally{
-					
-					this_mon.exit();
-				}
+				will_be_read_list.remove( attribute_name );
 			}
 		}
 	}
