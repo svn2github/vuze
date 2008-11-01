@@ -244,8 +244,12 @@ RSSEngine
 								
 							}else if(lc_child_name.equals( "link" ) || lc_child_name.equals( "guid" )) {
 								
+								String lc_value = value.toLowerCase();
+								
 								try{									
-									if (value.toLowerCase().endsWith( ".torrent" )){
+									if ( 	lc_value.endsWith( ".torrent" ) ||
+											lc_value.startsWith( "magnet:" ) ||
+											lc_value.startsWith( "dht:" )){
 										
 										new URL(value);
 										
