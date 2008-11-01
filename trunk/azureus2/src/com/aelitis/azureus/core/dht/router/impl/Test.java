@@ -109,7 +109,7 @@ Test
 			
 			byte[]	id = getSHA1();
 			
-			DHTRouterContact cont = router.contactKnown( id, null);
+			router.contactKnown( id, null);
 		}
 		
 		router.print();

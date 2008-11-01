@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeSet;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -49,6 +48,8 @@ import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 import com.aelitis.azureus.core.dht.router.DHTRouterObserver;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  * @author parg
@@ -93,6 +94,11 @@ DHTRouterImpl
 	
 	private final CopyOnWriteList	observers = new CopyOnWriteList();
 
+	private BloomFilter recent_contact_bloom = 
+		BloomFilterFactory.createRotating(
+			BloomFilterFactory.createAddOnly(10*1024),
+			2 );
+	
 	public
 	DHTRouterImpl(
 		int										_K,
@@ -274,12 +280,19 @@ DHTRouterImpl
 		adapter	= _adapter;
 	}
 	
-	public DHTRouterContact
+	public void
 	contactKnown(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment )
 	{
-		return( addContact( node_id, attachment, false ));
+		if ( recent_contact_bloom.contains( node_id )){
+
+			return;
+		}
+		
+		recent_contact_bloom.add( node_id );
+		
+		addContact( node_id, attachment, false );
 	}
 	
 	public DHTRouterContact

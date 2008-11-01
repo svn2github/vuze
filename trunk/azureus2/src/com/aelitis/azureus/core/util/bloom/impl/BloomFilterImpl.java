@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
-import java.math.BigInteger;
 import java.util.Random;
 
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -495,6 +494,12 @@ BloomFilterImpl
 		    return full_address;
 	}
 	 
+	public String
+	getString()
+	{
+		return( "ent=" + entry_count + ",max=" + max_entries );
+	}
+	
 	public static void
 	main(
 		String[]	args )

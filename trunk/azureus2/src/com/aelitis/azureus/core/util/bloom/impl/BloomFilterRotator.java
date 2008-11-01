@@ -154,4 +154,10 @@ BloomFilterRotator
 	{
 		return( new BloomFilterRotator( current_filter, filters.length ));
 	}
+	
+	public String
+	getString()
+	{
+		return( "ind=" + current_filter_index + ",filt=" + current_filter.getString());
+	}
 }

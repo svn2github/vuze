@@ -59,4 +59,7 @@ BloomFilter
 	
 	public BloomFilter
 	getReplica();
+	
+	public String
+	getString();
 }

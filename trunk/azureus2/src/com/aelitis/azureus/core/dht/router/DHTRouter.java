@@ -66,7 +66,7 @@ DHTRouter
 		 * @return
 		 */
 	
-	public DHTRouterContact
+	public void
 	contactKnown(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment );
