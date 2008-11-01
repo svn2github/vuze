@@ -1269,7 +1269,14 @@ DiskManagerImpl
                         // changing to write will cause trouble!
                     }
                 }
-                listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
+                
+                if ( getState() == READY ){
+                
+                		// don't start firing these until we're ready otherwise we send notifications
+                		// for complete pieces during initialisation 
+                	
+                	listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
+                }
             }
         } finally
         {
