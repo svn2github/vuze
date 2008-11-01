@@ -245,6 +245,17 @@ public class UrlUtils
 		}
 	}
 	
+	public static String decode(String s) {
+		if (s == null) {
+			return "";
+		}
+		try {
+			return( URLDecoder.decode(s, "UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			return( URLDecoder.decode(s));
+		}
+	}
+	
 	public static String escapeXML(String s) {
 		if (s == null) {
 			return "";
