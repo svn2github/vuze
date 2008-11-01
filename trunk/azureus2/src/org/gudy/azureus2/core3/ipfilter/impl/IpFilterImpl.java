@@ -77,6 +77,27 @@ IpFilterImpl
 
 	private IpFilterAutoLoaderImpl ipFilterAutoLoader;
 	
+	private boolean	ip_filter_enabled;
+	private boolean	ip_filter_allow;
+	
+	{
+	
+	  COConfigurationManager.addAndFireParameterListeners(
+			new String[] {
+				"Ip Filter Allow",
+				"Ip Filter Enabled"	}, 
+			new ParameterListener() 
+			{
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					ip_filter_enabled 	= COConfigurationManager.getBooleanParameter( "Ip Filter Enabled" );
+					ip_filter_allow 	= COConfigurationManager.getBooleanParameter( "Ip Filter Allow" );
+				}
+			});
+	}
+	
 	private IpFilterImpl() 
 	{
 	  ipFilter = this;
@@ -402,13 +423,6 @@ IpFilterImpl
 			class_mon.exit();
 		}
 	}
-	protected boolean
-	isInRange(
-		IpRange		range,
-		String		address )
-	{
-		return( range_manager.isInRange( range, address ));
-	}
   
   public boolean 
   isInRange(
@@ -467,7 +481,7 @@ IpFilterImpl
 	  	return false;
 	  }
 	  	  
-	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
+	  boolean allow = ip_filter_allow;
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
 
@@ -585,7 +599,7 @@ IpFilterImpl
 	  	return false;
 	  }
 	  	  
-	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
+	  boolean allow = ip_filter_allow;
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
 
@@ -790,9 +804,7 @@ IpFilterImpl
 	public boolean
 	getInRangeAddressesAreAllowed()
 	{
-	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
-	  
-	  return( allow );
+	  return( ip_filter_allow );
 	}
 	
 	public void
@@ -1220,7 +1232,7 @@ IpFilterImpl
 	public boolean
 	isEnabled()
 	{
-		return( COConfigurationManager.getBooleanParameter("Ip Filter Enabled"));	
+		return( ip_filter_enabled );	
 	}
 
 	public void
