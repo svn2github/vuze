@@ -54,6 +54,11 @@ IPAddressRangeManager
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "IPAddressRangeManager" );
 
+	protected
+	IPAddressRangeManager()
+	{
+	}
+	
 	public void
 	addRange(IpRange range)
 	{
@@ -92,6 +97,13 @@ IPAddressRangeManager
 	isInRange(
 		String	ip )
 	{
+			// optimise for pretty normal case where there are no ranges
+		
+		if ( entries.size() == 0 ){
+			
+			return( null );
+		}
+		
 		try{
 			this_mon.enter();
 			
@@ -118,6 +130,13 @@ IPAddressRangeManager
 	isInRange(
 		InetAddress	ip )
 	{
+			// optimise for pretty normal case where there are no ranges
+		
+		if ( entries.size() == 0 ){
+			
+			return( null );
+		}
+		
 		try{
 			this_mon.enter();
 			
@@ -140,33 +159,6 @@ IPAddressRangeManager
 		}
 	}
 	
-	public boolean
-	isInRange(
-		IpRange		range,
-		String		address )
-	{
-		try {
-			this_mon.enter();
-
-			long address_long = PRHelpers.addressToInt(address);
-
-			if (address_long < 0) {
-				address_long += 0x100000000L;
-			}
-
-			return address_long >= range.getStartIpLong()
-					&& address_long <= range.getStartIpLong();
-
-		} catch (UnknownHostException e) {
-
-			return (false);
-
-		} finally {
-
-			this_mon.exit();
-		}
-	}
-
 	protected Object
 	isInRange(
 		long	address_long )
