@@ -709,9 +709,12 @@ public class MainWindow
 					public boolean isFirstPriority(Download dl, int numSeeds,
 							int numPeers, StringBuffer debug) {
 						// FP while our content doesn't have another seed
-						boolean b = dl.getState() == Download.ST_SEEDING
-								&& PublishUtils.isPublished(dl)
-								&& dl.getStats().getAvailability() < 2 && numSeeds == 0;
+						boolean b = 
+							dl.getState() == Download.ST_SEEDING &&
+							numSeeds == 0 &&
+							dl.getStats().getAvailability() < 2 && 
+							PublishUtils.isPublished(dl);	// do last as most costly
+								
 						return b;
 					}
 				});
