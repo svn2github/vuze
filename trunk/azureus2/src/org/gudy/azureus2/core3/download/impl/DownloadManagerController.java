@@ -2101,7 +2101,6 @@ DownloadManagerController
 	
 	protected class FileInfoFacadeSet implements DiskManagerFileInfoSet {
 
-		AEMonitor	facade_mon	= new AEMonitor( "DownloadManagerController:Facade" );
 		DiskManagerFileInfoSet delegate;
 		fileInfoFacade[] facadeFiles = new fileInfoFacade[0];	// default before torrent avail
 
@@ -2137,7 +2136,7 @@ DownloadManagerController
 			final List delayed_prio_changes = new ArrayList();
 			
 			try {
-				facade_mon.enter();
+				this_mon.enter();
 				if (files_facade_destroyed)	return;
 
 				DiskManager dm = DownloadManagerController.this.getDiskManager();
@@ -2189,7 +2188,7 @@ DownloadManagerController
 				delegate = active;
 				
 			} finally {
-				facade_mon.exit();
+				this_mon.exit();
 			}
 			
 			fileFacadeSet.facadeFiles = info;
@@ -2218,7 +2217,7 @@ DownloadManagerController
 		
 		protected void destroyFileInfo() {
 			try {
-				facade_mon.enter();
+				this_mon.enter();
 				if (fileFacadeSet == null || files_facade_destroyed)
 					return;
 
@@ -2227,7 +2226,7 @@ DownloadManagerController
 				for (int i = 0; i < facadeFiles.length; i++)
 					facadeFiles[i].close();
 			} finally {
-				facade_mon.exit();
+				this_mon.exit();
 			}
 		}
 	}
