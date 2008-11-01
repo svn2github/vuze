@@ -1203,7 +1203,7 @@ PluginInitializer
 			
 							}
 			
-						} catch (PluginException e) {
+						} catch ( Throwable e ){
 							// already handled
 						} finally {
 							if (core_operation != null) {
@@ -1335,14 +1335,21 @@ PluginInitializer
 								
 								synchronized (initQueue){
 									
-									if(initQueue.isEmpty()){
+									if (initQueue.isEmpty()){
+										
 										break;
 									}
 									
 									toRun = (Runnable)initQueue.remove(0);
 								}
 								
-								toRun.run();
+								try{
+									toRun.run();
+									
+								}catch( Throwable e ){
+									
+									Debug.out(e);
+								}
 							}
 						}finally{
 							
@@ -1352,16 +1359,27 @@ PluginInitializer
 				};
 			secondaryInitializer.start();
 			
-			while(true)
-			{
+			while(true){
+			
 				Runnable toRun;
-				synchronized (initQueue)
-				{
-					if(initQueue.isEmpty())
+				
+				synchronized( initQueue ){
+					
+					if( initQueue.isEmpty()){
+						
 						break;
+					}
+					
 					toRun = (Runnable)initQueue.remove(0);
 				}
-				toRun.run();
+				
+				try{
+					toRun.run();
+					
+				}catch( Throwable e ){
+					
+					Debug.out(e);
+				}
 			}
 			
 			secondaryInitializer.join();
