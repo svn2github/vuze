@@ -301,20 +301,7 @@ public class WebResult extends Result {
 	}
 	
 	public String getPlayLink() {
-		if(playLink != null) {
-			
-			if(playLink.startsWith("http://") || playLink.startsWith("https://")) {
-				return playLink;
-			}
-			
-			if(playLink.startsWith("/")) {
-				return rootPageURL + playLink;
-			}
-			
-			return basePageURL + playLink;
-		}
-		
-		return "";
+		return( reConstructLink(  playLink ));
 	}
 	
 	public void setCategory(String category) {
@@ -393,21 +380,31 @@ public class WebResult extends Result {
 		
 	}
 	
-	private String reConstructLink(String link) {
-		if(link != null) {
+	private String 
+	reConstructLink(
+		String link) 
+	{
+		if ( link != null ){
 			
-			if(link.startsWith("http://") || link.startsWith("https://")) {
-				return link;
+			String lc_link = link.toLowerCase();
+			
+			if ( 	lc_link.startsWith("http://") || 
+					lc_link.startsWith("https://") ||
+					lc_link.startsWith("magnet:") ||
+					lc_link.startsWith("dht:" )){
+				
+				return( link );
 			}
 			
-			if(link.startsWith("/")) {
-				return rootPageURL + link;
+			if ( link.startsWith("/")){
+				
+				return( rootPageURL + link );
 			}
 			
-			return basePageURL + link;
+			return( basePageURL + link );
 		}
 		
-		return "";
+		return( "" );
 	}
 
 	public String getName() {
