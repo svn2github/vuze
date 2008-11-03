@@ -473,12 +473,12 @@ public class UIFunctionsImpl
 	}
 	
 	// @see com.aelitis.azureus.ui.UIFunctions#showConfig(java.lang.String)
-	public boolean showConfig(String string) {
+	public boolean showConfig(String section) {
 		try {
 			/*
 			 * Show in pop-up in Vuze UI's
 			 */
-			ConfigShell.getInstance().open();
+			ConfigShell.getInstance().open(section);
 			return true;
 
 		} catch (Exception e) {
@@ -509,7 +509,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_CONFIG:
-				ConfigShell.getInstance().open();
+				showConfig((data instanceof String) ? (String) data : null);
 				break;
 
 			case VIEW_DM_DETAILS:
