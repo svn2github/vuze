@@ -33,6 +33,8 @@ public class ConfigShell
 
 	private Shell shell;
 
+	private ConfigView configView;
+
 	public static ConfigShell getInstance() {
 		if (null == instance) {
 			instance = new ConfigShell();
@@ -49,8 +51,9 @@ public class ConfigShell
 	 * @param width
 	 * @param height
 	 */
-	public void open() {
+	public void open(String section) {
 		if (null != shell && false == shell.isDisposed()) {
+			configView.selectSection(section);
 			if (true == shell.getMinimized()) {
 				shell.setMinimized(false);
 			}
@@ -61,8 +64,9 @@ public class ConfigShell
 			shell.setLayout(new GridLayout());
 			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
 			Utils.setShellIcon(shell);
-			final ConfigView cView = new ConfigView(AzureusCoreFactory.getSingleton());
-			cView.initialize(shell);
+			configView = new ConfigView(AzureusCoreFactory.getSingleton());
+			configView.initialize(shell);
+			configView.selectSection(section);
 
 			/*
 			 * Set default size and centers the shell if it's configuration does not exist yet
@@ -89,7 +93,7 @@ public class ConfigShell
 			 */
 			shell.addListener(SWT.Close, new Listener() {
 				public void handleEvent(Event event) {
-					cView.save();
+					configView.save();
 					event.doit = true;
 				}
 			});
