@@ -65,6 +65,12 @@ Subscription
 	public boolean
 	isPublic();
 	
+	public void
+	setPublic(
+		boolean	is_public )
+	
+		throws SubscriptionException;
+	
 	public boolean
 	isUpdateable();
 	
