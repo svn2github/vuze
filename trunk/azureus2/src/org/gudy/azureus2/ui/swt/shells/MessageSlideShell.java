@@ -815,7 +815,7 @@ public class MessageSlideShell
 				} else if (e.type == SWT.MouseUp) {
 					if (sp != null) {
 						URLInfo hitUrl = sp.getHitUrl(e.x, e.y);
-						if (hitUrl != null) {
+						if (hitUrl != null && !hitUrl.url.startsWith(":")) {
 							Utils.launch(hitUrl.url);
 						}
 					}
