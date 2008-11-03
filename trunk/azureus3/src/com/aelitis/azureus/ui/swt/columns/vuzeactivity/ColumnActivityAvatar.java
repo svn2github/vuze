@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy;
+import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyLinkup;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 
@@ -72,6 +73,12 @@ public class ColumnActivityAvatar
 					Rectangle imgBounds = imgAvatar.getBounds();
 					int dstWidth = cellBounds.width - 4;
 					int dstHeight = dstWidth;
+					
+					try {
+						gc.setAdvanced(true);
+					} catch (Exception e) {
+						// ignore
+					}
 
 					gc.drawImage(imgAvatar, 0, 0, imgBounds.width, imgBounds.height,
 							cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
