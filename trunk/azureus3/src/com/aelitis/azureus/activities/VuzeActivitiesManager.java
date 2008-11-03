@@ -659,6 +659,8 @@ public class VuzeActivitiesManager
 			entry = new VuzeActivitiesEntryBuddyRequest();
 		} else if (VuzeActivitiesConstants.TYPEID_BUDDYSHARE.equals(typeID)) {
 			entry = new VuzeActivitiesEntryContentShare();
+		} else if (VuzeActivitiesConstants.TYPEID_BUDDYLINKUP.equals(typeID)) {
+			entry = new VuzeActivitiesEntryBuddyLinkup();
 		} else {
 			entry = new VuzeActivitiesEntry();
 		}
