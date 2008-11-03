@@ -869,7 +869,8 @@ public class SideBar
 						entry
 					}));
 
-			if (currentSideBarEntry.datasource instanceof DownloadManager) {
+			if (currentSideBarEntry != null
+					&& currentSideBarEntry.datasource instanceof DownloadManager) {
 
 				DownloadManager[] downloads = new DownloadManager[] {
 					(DownloadManager) currentSideBarEntry.datasource
