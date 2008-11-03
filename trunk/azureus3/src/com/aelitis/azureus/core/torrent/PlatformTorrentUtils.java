@@ -691,7 +691,7 @@ public class PlatformTorrentUtils
 		if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
 			if (torrent != null) {
   			// try again in a bit
-  			log(torrent, "Exception, retrying later");
+  			log(torrent, "Exception, retrying later (~" + RETRY_METADATA + "ms)");
   			SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
   					+ RETRY_METADATA, new TimerEventPerformer() {
   				public void perform(TimerEvent event) {
