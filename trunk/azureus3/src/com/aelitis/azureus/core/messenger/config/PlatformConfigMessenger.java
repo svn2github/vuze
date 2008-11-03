@@ -65,7 +65,7 @@ public class PlatformConfigMessenger
 
 	private static String playAfterURL = null;
 
-	private static boolean sendStats;
+	private static boolean sendStats = true;
 
 	protected static List listBlack = Collections.EMPTY_LIST;
 
