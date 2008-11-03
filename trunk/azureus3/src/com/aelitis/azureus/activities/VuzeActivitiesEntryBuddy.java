@@ -71,6 +71,9 @@ public class VuzeActivitiesEntryBuddy
 	}
 
 	public VuzeBuddy getBuddy() {
+		if (buddy == null && buddyID != null) {
+			buddy = VuzeBuddyManager.getBuddyByLoginID(buddyID);
+		}
 		return buddy;
 	}
 
