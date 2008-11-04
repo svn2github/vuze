@@ -315,7 +315,7 @@ MagnetURIHandlerImpl
 										
 					try{
 						String	lhs 	= arg.substring( 0, pos ).trim();
-						String	lc_lhs 	= arg.toLowerCase();
+						String	lc_lhs 	= lhs.toLowerCase();
 									
 						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
 
