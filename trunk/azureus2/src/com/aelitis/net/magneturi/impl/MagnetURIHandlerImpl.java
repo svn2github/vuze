@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.png.PNG;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 import com.aelitis.net.magneturi.MagnetURIHandlerListener;
@@ -282,7 +283,9 @@ MagnetURIHandlerImpl
 		
 			// magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C
 		
-		Map		params 			= new HashMap();
+		Map		original_params 			= new HashMap();
+		Map		lc_params					= new HashMap();
+		
 		List 	source_params	= new ArrayList();
 		
 		int	pos	= get.indexOf( '?' );
@@ -302,18 +305,25 @@ MagnetURIHandlerImpl
 				
 				if ( pos == -1 ){
 					
-					params.put( arg.trim().toLowerCase(), "" );
+					String lhs = arg.trim();
+					
+					original_params.put( lhs, "" );
+					
+					lc_params.put( lhs.toLowerCase(), "" );
 					
 				}else{
 										
 					try{
-						String	lhs = arg.substring( 0, pos ).trim().toLowerCase();
-						
+						String	lhs 	= arg.substring( 0, pos ).trim();
+						String	lc_lhs 	= arg.toLowerCase();
+									
 						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
 
-						params.put( lhs, rhs );
+						original_params.put( lhs, rhs );
 						
-						if ( lhs.equalsIgnoreCase( "xsource" )){
+						lc_params.put( lc_lhs, rhs );
+						
+						if ( lc_lhs.equals( "xsource" )){
 							
 							source_params.add( rhs );
 						}
@@ -346,7 +356,7 @@ MagnetURIHandlerImpl
 			
 		}else if ( get.startsWith( "/magnet10/canHandle.img?" )){
 
-			String urn = (String)params.get( "xt" );
+			String urn = (String)lc_params.get( "xt" );
 
 			if ( urn != null && urn.toLowerCase().startsWith( "urn:btih:")){
 			
@@ -411,7 +421,7 @@ MagnetURIHandlerImpl
 			
 			boolean	ok = false;
 			
-			String urn = (String)params.get( "xt" );
+			String urn = (String)lc_params.get( "xt" );
 
 			if ( urn == null ){
 				
@@ -458,7 +468,7 @@ MagnetURIHandlerImpl
 			
 			if ( ok ){
 				
-				if ( "image".equalsIgnoreCase((String)params.get( "result" ))){
+				if ( "image".equalsIgnoreCase((String)lc_params.get( "result" ))){
 					
 					for (int i=0;i<listeners.size();i++){
 
@@ -482,7 +492,7 @@ MagnetURIHandlerImpl
 			
 		}else if ( get.startsWith( "/download/" )){
 			
-			String urn = (String)params.get( "xt" );
+			String urn = (String)lc_params.get( "xt" );
 			
 			if ( urn == null || !( urn.toLowerCase().startsWith( "urn:sha1:") || urn.toLowerCase().startsWith( "urn:btih:"))){
 				if (Logger.isEnabled())
@@ -606,7 +616,7 @@ MagnetURIHandlerImpl
 					
 						// pause on error
 					
-					return( !params.containsKey( "pause_on_error" ));
+					return( !lc_params.containsKey( "pause_on_error" ));
 				}
 			}catch( Throwable e ){
 				
@@ -620,11 +630,11 @@ MagnetURIHandlerImpl
 				
 					// pause on error
 				
-				return( !params.containsKey( "pause_on_error" ));
+				return( !lc_params.containsKey( "pause_on_error" ));
 			}
 		}else if ( get.startsWith( "/getinfo?" )){
 
-			String name = (String)params.get( "name" );
+			String name = (String)lc_params.get( "name" );
 
 			if ( name != null ){
 				
@@ -638,11 +648,14 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-					HashMap paramsCopy = new HashMap();
-					paramsCopy.putAll(params);
-
 					for (int i=0;i<listeners.size() && value == Integer.MIN_VALUE;i++){
 						
+							// no idea why we copy, but let's keep doing so
+						
+						HashMap paramsCopy = new HashMap();
+						
+						paramsCopy.putAll( original_params);
+
 						value = ((MagnetURIHandlerListener)listeners.get(i)).get( name, paramsCopy );
 					}
 				}
@@ -651,7 +664,7 @@ MagnetURIHandlerImpl
 					
 						// no value, see if we have a default
 					
-					String	def_str = (String)params.get( "default" );
+					String	def_str = (String)lc_params.get( "default" );
 
 					if ( def_str != null ){
 						
@@ -667,7 +680,7 @@ MagnetURIHandlerImpl
 					
 						// have a value, see if we have a max
 					
-					String	max_str = (String)params.get( "max" );
+					String	max_str = (String)lc_params.get( "max" );
 
 					if ( max_str != null ){
 						
@@ -707,7 +720,7 @@ MagnetURIHandlerImpl
 
 						// divmod -> encode div+1 as width, mod+1 as height
 					
-					String	div_mod = (String)params.get( "divmod" );
+					String	div_mod = (String)lc_params.get( "divmod" );
 					
 					if ( div_mod != null ){
 						
@@ -718,7 +731,7 @@ MagnetURIHandlerImpl
 						
 					}else{
 						
-						String	div = (String)params.get( "div" );
+						String	div = (String)lc_params.get( "div" );
 						
 						if ( div != null ){
 							
@@ -726,7 +739,7 @@ MagnetURIHandlerImpl
 							
 						}else{
 							
-							String	mod = (String)params.get( "mod" );
+							String	mod = (String)lc_params.get( "mod" );
 							
 							if ( mod != null ){
 								
@@ -735,7 +748,7 @@ MagnetURIHandlerImpl
 						}
 					}
 
-					String	img_type = (String)params.get( "img_type" );
+					String	img_type = (String)lc_params.get( "img_type" );
 					
 					if ( img_type != null && img_type.equals( "png" )){
 						
@@ -764,16 +777,19 @@ MagnetURIHandlerImpl
 			
 		}else if ( get.startsWith( "/setinfo?" )){
 
-			String name 	= (String)params.get( "name" );
+			String name 	= (String)lc_params.get( "name" );
 			
-			HashMap paramsCopy = new HashMap();
-			paramsCopy.putAll(params);
-
 			if ( name != null ){
 
 				boolean	result = false;
 				
 				for (int i=0;i<listeners.size() && !result;i++){
+					
+						// no idea why we copy, but let's keep on doing so
+					
+					HashMap paramsCopy = new HashMap();
+					
+					paramsCopy.putAll( original_params );
 					
 					result = ((MagnetURIHandlerListener)listeners.get(i)).set( name, paramsCopy );
 				}
@@ -781,7 +797,7 @@ MagnetURIHandlerImpl
 				int	width 	= result?20:10;
 				int height 	= result?20:10;
 				
-				String	img_type = (String)params.get( "img_type" );
+				String	img_type = (String)lc_params.get( "img_type" );
 
 				if ( img_type != null && img_type.equals( "png" )){
 					
