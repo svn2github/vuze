@@ -675,16 +675,39 @@ MetaSearchImpl
 		String					headers,
 		int						max_results_per_engine )
 	{
-		return( search( null, original_listener, searchParameters, headers, max_results_per_engine ));
+		return( search( original_listener, searchParameters, headers, new HashMap(), max_results_per_engine ));
 	}
+	
+	public Engine[] 
+  	search(
+  		final ResultListener 	original_listener,
+  		SearchParameter[] 		searchParameters,
+  		String					headers,
+  		Map						context,
+  		int						max_results_per_engine )
+  	{
+  		return( search( null, original_listener, searchParameters, headers, context, max_results_per_engine ));
+  	}
 	
 	public Engine[] 
 	search(
 		Engine					engine,
-		final ResultListener 	original_listener,
-		SearchParameter[] 		searchParameters,
+		final ResultListener 	listener,
+		SearchParameter[] 		search_parameters,
 		String					headers,
 		final int				max_results_per_engine )
+	{
+		return( search( engine, listener, search_parameters, headers, new HashMap(), max_results_per_engine ));
+	}
+	
+	public Engine[] 
+  	search(
+  		Engine					engine,
+  		final ResultListener 	original_listener,
+  		SearchParameter[] 		searchParameters,
+  		String					headers,
+  		Map						context,
+  		final int				max_results_per_engine )
 	{
 		String	param_str = "";
 		
@@ -800,7 +823,7 @@ MetaSearchImpl
 				}
 			};
 			
-		SearchExecuter se = new SearchExecuter(listener);
+		SearchExecuter se = new SearchExecuter( context, listener );
 		
 		if ( engine == null ){
 			

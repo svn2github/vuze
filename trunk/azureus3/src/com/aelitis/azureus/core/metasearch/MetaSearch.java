@@ -41,12 +41,29 @@ MetaSearch
 		int					max_per_engine );
 	
 	public Engine[] 
+  	search(
+  		ResultListener 		listener,
+  		SearchParameter[] 	searchParameters,
+  		String				headers,
+  		Map					context,
+  		int					max_per_engine );
+	
+	public Engine[] 
 	search(
 		Engine				engine,
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters,
 		String				headers,
 		int					max_per_engine );
+	
+	public Engine[] 
+  	search(
+  		Engine				engine,
+  		ResultListener 		listener,
+  		SearchParameter[] 	searchParameters,
+  		String				headers,
+  		Map					context,
+  		int					max_per_engine );
 	
 	public Engine[] 
 	getEngines(
