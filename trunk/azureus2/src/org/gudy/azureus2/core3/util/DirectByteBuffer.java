@@ -706,7 +706,7 @@ DirectByteBuffer
 					
 				}else{
 	    	
-					pool.returnBuffer( this );
+					pool.returnBufferSupport( this );
 					
 					buffer	= null;
 					was_returned_to_pool = true;
@@ -735,7 +735,7 @@ DirectByteBuffer
 				
 				if ( buffer != null ){
 	    	
-					pool.returnBuffer( this );
+					pool.returnBufferSupport( this );
 					
 					buffer	= null;
 					was_returned_to_pool = true;
