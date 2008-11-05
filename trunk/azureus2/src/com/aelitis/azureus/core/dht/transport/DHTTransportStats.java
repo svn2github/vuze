@@ -95,6 +95,14 @@ DHTTransportStats
 	public long
 	getSkewAverage();
 	
+		/**
+		 * -1 if stats not yet available 
+		 * @return
+		 */
+	
+	public int
+	getRouteablePercentage();
+	
 	public String
 	getString();
 }

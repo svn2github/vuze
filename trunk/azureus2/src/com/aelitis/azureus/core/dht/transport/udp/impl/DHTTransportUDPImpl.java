@@ -310,7 +310,7 @@ DHTTransportUDPImpl
 		
 		if ( stats == null ){
 			
-			stats =  new DHTTransportUDPStatsImpl( protocol_version, packet_handler.getStats());
+			stats =  new DHTTransportUDPStatsImpl( this, protocol_version, packet_handler.getStats());
 			
 		}else{
 			
@@ -879,7 +879,8 @@ DHTTransportUDPImpl
 	protected void
 	updateContactStatus(
 		DHTTransportUDPContactImpl	contact,
-		int							status )
+		int							status,
+		boolean						incoming )
 	{
 		try{
 			this_mon.enter();
@@ -892,15 +893,25 @@ DHTTransportUDPImpl
 					
 					boolean	other_routable = (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTABLE) != 0;
 					
+						// only maintain stats on incoming requests so we get a fair sample. 
+						// in general we'll only get replies from routable contacts so if we
+						// take this into account then everything gets skewed
+					
 					if ( other_routable ){
 						
-						other_routable_total++;
+						if ( incoming ){
+							
+							other_routable_total++;
+						}
 						
 						routable_contact_history.put( contact.getTransportAddress(), contact );
 						
 					}else{
 						
-						other_non_routable_total++;
+						if ( incoming ){
+							
+							other_non_routable_total++;
+						}
 					}
 				}
 			}
@@ -909,6 +920,17 @@ DHTTransportUDPImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	public int 
+	getRouteablePercentage() 
+	{
+		if ( other_routable_total + other_non_routable_total < 100 ){
+			
+			return( -1 );
+		}
+		
+		return((int)(( other_routable_total * 100 )/ (other_routable_total + other_non_routable_total )));
 	}
 	
 	protected boolean
@@ -1737,6 +1759,10 @@ DHTTransportUDPImpl
 			
 			request.setID( nid );
 			
+			request.setNodeStatus( getNodeStatus());
+			
+			request.setEstimatedDHTSize( request_handler.getTransportEstimatedDHTSize());
+			
 			requestSendRequestProcessor( contact, request );
 
 			packet_handler.sendAndReceive(
@@ -1767,7 +1793,7 @@ DHTTransportUDPImpl
 							
 							contact.setRandomID( reply.getRandomID());
 														
-							updateContactStatus( contact, reply.getNodeStatus());
+							updateContactStatus( contact, reply.getNodeStatus(), false );
 							
 							request_handler.setTransportEstimatedDHTSize( reply.getEstimatedDHTSize());
 							
@@ -3218,6 +3244,10 @@ DHTTransportUDPImpl
 					
 					if ( acceptable ){
 						
+						updateContactStatus( originating_contact, find_request.getNodeStatus(), true );
+						
+						request_handler.setTransportEstimatedDHTSize( find_request.getEstimatedDHTSize());
+
 						DHTTransportContact[]	res = 
 							request_handler.findNodeRequest(
 										originating_contact,

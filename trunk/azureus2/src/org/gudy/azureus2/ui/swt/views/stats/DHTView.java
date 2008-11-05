@@ -587,7 +587,8 @@ public class DHTView extends AbstractIView {
     DHTTransportStats transportStats = transport.getStats();
     lblUpTime.setText(TimeFormatter.format(controlStats.getRouterUptime() / 1000));
     lblNumberOfUsers.setText("" + controlStats.getEstimatedDHTSize());
-    lblReachable.setText(transport.isReachable()?yes_str:no_str);
+    int percent = transportStats.getRouteablePercentage();
+    lblReachable.setText((transport.isReachable()?yes_str:no_str) + (percent==-1?"":(" " + percent+"%")));
     
     DHTNATPuncher puncher = dht.getNATPuncher();
     
