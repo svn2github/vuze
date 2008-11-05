@@ -3244,10 +3244,13 @@ DHTTransportUDPImpl
 					
 					if ( acceptable ){
 						
-						updateContactStatus( originating_contact, find_request.getNodeStatus(), true );
+						if ( find_request.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_MORE_NODE_STATUS ){
 						
-						request_handler.setTransportEstimatedDHTSize( find_request.getEstimatedDHTSize());
-
+							updateContactStatus( originating_contact, find_request.getNodeStatus(), true );
+											
+							request_handler.setTransportEstimatedDHTSize( find_request.getEstimatedDHTSize());
+						}
+						
 						DHTTransportContact[]	res = 
 							request_handler.findNodeRequest(
 										originating_contact,
