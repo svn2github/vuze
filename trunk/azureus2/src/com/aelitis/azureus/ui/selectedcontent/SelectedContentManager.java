@@ -67,7 +67,15 @@ public class SelectedContentManager
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
 		}
-		//System.out.println("change CURSEL for '" +  viewID + "' to " + currentlySelectedContent.length + ";" + (currentlySelectedContent.length > 0 ? currentlySelectedContent[0]: ""));
+		/*
+		System.out.println("change CURSEL for '"
+				+ viewID
+				+ "' to "
+				+ currentlySelectedContent.length
+				+ ";"
+				+ (currentlySelectedContent.length > 0 ? currentlySelectedContent[0]
+						: "") + Debug.getCompressedStackTrace());
+						*/
 		if (currentlySelectedContent.length == 0
 				&& SelectedContentManager.viewID != null && viewID != null
 				&& !viewID.equals(SelectedContentManager.viewID)) {
@@ -99,6 +107,9 @@ public class SelectedContentManager
 			DownloadManager[] dms = new DownloadManager[sc.length];
 			for (int i = 0; i < sc.length; i++) {
 				ISelectedContent selectedContent = sc[i];
+				if (selectedContent == null) {
+					continue;
+				}
 				dms[x] = selectedContent.getDM();
 				if (dms[x] != null) {
 					x++;
