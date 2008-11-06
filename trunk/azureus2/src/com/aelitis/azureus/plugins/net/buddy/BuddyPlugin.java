@@ -1976,7 +1976,7 @@ BuddyPlugin
 			if ( buddy_to_return == null ){
 				
 				buddy_to_return = 
-					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_INITIAL, 0, 0, null );
+					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_CURRENT, 0, 0, null );
 				
 				buddies.add( buddy_to_return );
 				
