@@ -65,57 +65,117 @@ public class FilePanel extends AbstractWizardPanel {
     layout.numColumns = 3;
     panel.setLayout(layout);
 
-    Label label = new Label(panel, SWT.WRAP);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "configureWizard.file.message1");
+    {
+    	// data
     
-    label = new Label(panel,SWT.NULL);
-    label.setLayoutData(new GridData());
-    Messages.setLanguageText(label, "configureWizard.file.path");
+	    Label label = new Label(panel, SWT.WRAP);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 3;
+	    label.setLayoutData(gridData);
+	    Messages.setLanguageText(label, "configureWizard.file.message3");
+	    
+	    label = new Label(panel,SWT.NULL);
+	    label.setLayoutData(new GridData());
+	    Messages.setLanguageText(label, "configureWizard.file.path");
+	    
+	    final Text textPath = new Text(panel,SWT.BORDER);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.widthHint = 100;
+	    textPath.setLayoutData(gridData);
+	    textPath.setText(((ConfigureWizard)wizard).getDataPath());
+	    
+	    Button browse = new Button(panel,SWT.PUSH);
+	    Messages.setLanguageText(browse, "configureWizard.file.browse");
+	    browse.setLayoutData(new GridData());
+	    browse.addListener(SWT.Selection,new Listener() {
+	      public void handleEvent(Event arg0) {
+	        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
+	        dd.setFilterPath(textPath.getText());
+	        String path = dd.open();
+	        if(path != null) {
+	          textPath.setText(path);
+	        }     
+	      }
+	    });
+	    
+	    textPath.addListener(SWT.Modify, new Listener() {
+	      public void handleEvent(Event event) {
+	        String path = textPath.getText();
+	        ((ConfigureWizard)wizard).setDataPath( path );
+	        try {
+	          File f = new File(path);
+	          if(f.exists() && f.isDirectory()) {
+	            wizard.setErrorMessage("");
+	            wizard.setFinishEnabled(true);
+	          } else {
+	            wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+	            wizard.setFinishEnabled(false);
+	          }            
+	        } catch(Exception e) {
+	          wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+	          wizard.setFinishEnabled(false);
+	        }
+	      }
+	    });
+    }
     
-    final Text textPath = new Text(panel,SWT.BORDER);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.widthHint = 100;
-    textPath.setLayoutData(gridData);
-    textPath.setText(((ConfigureWizard)wizard).torrentPath);
     
-    Button browse = new Button(panel,SWT.PUSH);
-    Messages.setLanguageText(browse, "configureWizard.file.browse");
-    browse.setLayoutData(new GridData());
-    browse.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event arg0) {
-        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
-        dd.setFilterPath(textPath.getText());
-        String path = dd.open();
-        if(path != null) {
-          textPath.setText(path);
-        }     
-      }
-    });
+    {
+    	// torrents
     
-    textPath.addListener(SWT.Modify, new Listener() {
-      public void handleEvent(Event event) {
-        String path = textPath.getText();
-        ((ConfigureWizard)wizard).torrentPath = path;
-        try {
-          File f = new File(path);
-          if(f.exists() && f.isDirectory()) {
-            wizard.setErrorMessage("");
-            wizard.setFinishEnabled(true);
-          } else {
-            wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
-            wizard.setFinishEnabled(false);
-          }            
-        } catch(Exception e) {
-          wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
-          wizard.setFinishEnabled(false);
-        }
-      }
-    });
+	    Label label = new Label(panel, SWT.WRAP);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalSpan = 3;
+	    label.setLayoutData(gridData);
+	    Messages.setLanguageText(label, "configureWizard.file.message1");
+	    
+	    label = new Label(panel,SWT.NULL);
+	    label.setLayoutData(new GridData());
+	    Messages.setLanguageText(label, "configureWizard.file.path");
+	    
+	    final Text textPath = new Text(panel,SWT.BORDER);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.widthHint = 100;
+	    textPath.setLayoutData(gridData);
+	    textPath.setText(((ConfigureWizard)wizard).torrentPath);
+	    
+	    Button browse = new Button(panel,SWT.PUSH);
+	    Messages.setLanguageText(browse, "configureWizard.file.browse");
+	    browse.setLayoutData(new GridData());
+	    browse.addListener(SWT.Selection,new Listener() {
+	      public void handleEvent(Event arg0) {
+	        DirectoryDialog dd = new DirectoryDialog(wizard.getWizardWindow());
+	        dd.setFilterPath(textPath.getText());
+	        String path = dd.open();
+	        if(path != null) {
+	          textPath.setText(path);
+	        }     
+	      }
+	    });
+	    
+	    textPath.addListener(SWT.Modify, new Listener() {
+	      public void handleEvent(Event event) {
+	        String path = textPath.getText();
+	        ((ConfigureWizard)wizard).torrentPath = path;
+	        try {
+	          File f = new File(path);
+	          if(f.exists() && f.isDirectory()) {
+	            wizard.setErrorMessage("");
+	            wizard.setFinishEnabled(true);
+	          } else {
+	            wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+	            wizard.setFinishEnabled(false);
+	          }            
+	        } catch(Exception e) {
+	          wizard.setErrorMessage(MessageText.getString("configureWizard.file.invalidPath"));
+	          wizard.setFinishEnabled(false);
+	        }
+	      }
+	    });
+	    
+	    textPath.setText(((ConfigureWizard)wizard).torrentPath);
+    }
     
-    textPath.setText(((ConfigureWizard)wizard).torrentPath);
     
     /* during config we really shouldn't be confusing the user with questions about fast resume
      * It is extremely unlikely anyone will want to turn it off anyway

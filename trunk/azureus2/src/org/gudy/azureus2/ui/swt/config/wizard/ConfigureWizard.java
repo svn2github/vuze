@@ -45,6 +45,8 @@ public class ConfigureWizard extends Wizard {
   //Server / NAT Settings
   int serverTCPListenPort = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
   //Files / Torrents
+  private String 	_dataPath;
+  private boolean 	_dataPathChanged;
   String torrentPath;
   
   boolean completed = false;
@@ -62,6 +64,15 @@ public class ConfigureWizard extends Wizard {
     } catch(Exception e) {
       torrentPath = ""; 
     }
+    
+    if ( COConfigurationManager.getBooleanParameter( "Use default data dir" )){
+    
+    	_dataPath = COConfigurationManager.getStringParameter( "Default save path" );
+    	
+    }else{
+    	_dataPath = "";
+    }
+    
     this.setFirstPanel(panel);
   }
   
@@ -87,4 +98,24 @@ public class ConfigureWizard extends Wizard {
 
 		super.onClose();
 	}
+  
+  protected String
+  getDataPath()
+  {
+	  return( _dataPath );
+  }
+  
+  protected void
+  setDataPath(
+	String	s )
+  {
+	  _dataPath 		= s;
+	  _dataPathChanged 	= true;
+  }
+  
+  protected boolean
+  hasDataPathChanged()
+  {
+	  return( _dataPathChanged );
+  }
 }
