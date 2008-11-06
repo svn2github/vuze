@@ -26,6 +26,7 @@ import org.eclipse.swt.browser.Browser;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 
@@ -34,6 +35,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -56,6 +58,8 @@ public class ConfigListener
 	public static final String OP_GET_MAGNET_PORT = "get-magnet-port";
 	
 	public static final String OP_LOG_DIAGS = "log-diags";
+
+	public static final String OP_LOG = "log";
 
 	public ConfigListener(String id, Browser browser) {
 		super(id);
@@ -110,6 +114,18 @@ public class ConfigListener
 			}else if ( OP_LOG_DIAGS.equals( opid )){
 				
 				logDiagnostics();
+			} else if ( OP_LOG.equals(opid)) {
+				Map decodedMap = message.getDecodedMap();
+				String loggerName = MapUtils.getMapString(decodedMap, "log-name",
+						"browser");
+				String text = MapUtils.getMapString(decodedMap, "text", "");
+				
+				AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger(loggerName);
+				diag_logger.log(text);
+				if (ConstantsV3.DIAG_TO_STDOUT) {
+					System.out.println(Thread.currentThread().getName() + "|"
+							+ System.currentTimeMillis() + "] " + text);
+				}
 			}
 		} catch (Throwable t) {
 			message.debug("handle Config message", t);
