@@ -327,19 +327,29 @@ public class SBC_LibraryView
 			}
 		}
 		
+		String entryID = null;
+		if (torrentFilterMode == TORRENTS_ALL) {
+			entryID = SideBar.SIDEBAR_SECTION_LIBRARY;
+		} else if (torrentFilterMode == TORRENTS_COMPLETE) {
+			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
+		} else if (torrentFilterMode == TORRENTS_INCOMPLETE) {
+			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
+		} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+			entryID = SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED;
+		}
+		
+		if (entryID != null) {
+  		SideBarEntrySWT entry = SideBar.getSideBarInfo(entryID);
+  		if (entry != null) {
+  			entry.setLogID(entryID + "-" + viewMode);
+  		}
+		}
 	}
 
 	public static void setupViewTitle() {
 
 		final ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_LOGID) {
-					String id = SideBar.SIDEBAR_SECTION_LIBRARY_DL;
-					int viewMode = COConfigurationManager.getIntParameter(id
-							+ ".viewmode");
-					return id + "-" + viewMode;
-				}
-
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					if (numIncomplete > 0)
 						return numIncomplete + ""; // + " of " + numIncomplete;
@@ -382,13 +392,6 @@ public class SBC_LibraryView
 
 		final ViewTitleInfo titleInfoSeeding = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_LOGID) {
-					String id = SideBar.SIDEBAR_SECTION_LIBRARY_CD;
-					int viewMode = COConfigurationManager.getIntParameter(id
-							+ ".viewmode");
-					return id + "-" + viewMode;
-				}
-
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 					return null; //numSeeding + " of " + numComplete;
 				}
@@ -408,31 +411,11 @@ public class SBC_LibraryView
 			infoCD.setTitleInfo(titleInfoSeeding);
 		}
 
-		SideBarEntrySWT infoLibrary = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY);
-		if (infoLibrary != null) {
-			infoLibrary.setTitleInfo(new ViewTitleInfo() {
-				public Object getTitleInfoProperty(int propertyID) {
-					if (propertyID == TITLE_LOGID) {
-						String id = SideBar.SIDEBAR_SECTION_LIBRARY;
-						int viewMode = COConfigurationManager.getIntParameter(id
-								+ ".viewmode");
-						return id + "-" + viewMode;
-					}
-					return null;
-				}
-			});
-		}
-
 		SideBarEntrySWT infoLibraryUn = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
 		if (infoLibraryUn != null) {
 			infoLibraryUn.setTitleInfo(new ViewTitleInfo() {
 				public Object getTitleInfoProperty(int propertyID) {
-					if (propertyID == TITLE_LOGID) {
-						String id = SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED;
-						int viewMode = COConfigurationManager.getIntParameter(id
-								+ ".viewmode");
-						return id + "-" + viewMode;
-					} else if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
+					if (propertyID == TITLE_INDICATOR_TEXT && numUnOpened > 0) {
 						return "" + numUnOpened;
 					}
 					return null;

@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -51,7 +50,6 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesListener;
@@ -1196,19 +1194,12 @@ public class SideBar
 					}
 				} else if (propertyID == TITLE_IMAGEID) {
 					return "image.sidebar.activity";
-				} else if (propertyID == TITLE_LOGID) {
-					String id = SideBar.SIDEBAR_SECTION_ACTIVITIES;
-					int viewMode = COConfigurationManager.getIntParameter(
-							SBC_ActivityView.ID + ".viewmode",
-							SBC_ActivityView.MODE_SMALLTABLE);
-					return id + "-" + viewMode;
 				}
 				return null;
 			}
 		};
 		VuzeActivitiesManager.addListener(new VuzeActivitiesListener() {
 			public void vuzeNewsEntryChanged(VuzeActivitiesEntry entry) {
-				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
 			}
 
 			public void vuzeNewsEntriesRemoved(VuzeActivitiesEntry[] entries) {
@@ -1714,7 +1705,7 @@ public class SideBar
 		final SideBarEntrySWT newSideBarInfo = getSideBarInfo(id);
 
 		if (currentSideBarEntry == newSideBarInfo) {
-			triggerListener(newSideBarInfo, newSideBarInfo);
+			triggerSelectionListener(newSideBarInfo, newSideBarInfo);
 			return;
 		}
 
@@ -1851,7 +1842,7 @@ public class SideBar
 			}
 		}
 
-		triggerListener(newSideBarInfo, oldSideBarInfo);
+		triggerSelectionListener(newSideBarInfo, oldSideBarInfo);
 	}
 
 	/**
@@ -2360,32 +2351,17 @@ public class SideBar
 				}
 
 				sideBarEntry.redraw();
+				
+				String logID = (String) titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_LOGID);
+				if (logID != null) {
+					sideBarEntry.setLogID(logID);
+				}
 			}
 		});
 	}
 
 	public SideBarEntrySWT getCurrentSideBarInfo() {
 		return currentSideBarEntry;
-	}
-
-	public String getLogID(SideBarEntrySWT info) {
-		if (info == null) {
-			return "none";
-		}
-		String id = null;
-		if (info.titleInfo != null) {
-			id = (String) info.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_LOGID);
-		}
-
-		if (id == null) {
-			id = info.id;
-			int i = id.indexOf('_');
-			if (i > 0) {
-				id = id.substring(0, i);
-			}
-		}
-
-		return id;
 	}
 
 	public void addListener(SideBarListener l) {
@@ -2399,14 +2375,14 @@ public class SideBar
 		listeners.remove(l);
 	}
 
-	private void triggerListener(SideBarEntrySWT newSideBarEntry,
+	private void triggerSelectionListener(SideBarEntrySWT newSideBarEntry,
 			SideBarEntrySWT oldSideBarEntry) {
 		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 			SideBarListener l = (SideBarListener) iter.next();
 			l.sidebarItemSelected(newSideBarEntry, oldSideBarEntry);
 		}
 	}
-
+	
 	public IView getIViewFromID(String id) {
 		if (id == null) {
 			return null;

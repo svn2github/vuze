@@ -28,6 +28,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 /**
  * @author TuxPaper
@@ -164,6 +166,12 @@ public class SBC_ActivityView
 
 		if (save) {
 			COConfigurationManager.setParameter(ID + ".viewmode", viewMode);
+		}
+
+		
+		SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_ACTIVITIES);
+		if (entry != null) {
+			entry.setLogID(SideBar.SIDEBAR_SECTION_ACTIVITIES + "-" + viewMode);
 		}
 	}
 

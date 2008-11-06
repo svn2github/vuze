@@ -92,9 +92,7 @@ import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
 import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -107,7 +105,7 @@ import org.gudy.azureus2.plugins.download.Download;
  */
 public class MainWindow
 	implements IMainWindow, ObfusticateShell, SideBarListener,
-	AEDiagnosticsEvidenceGenerator
+	AEDiagnosticsEvidenceGenerator, SideBarLogIdListener
 {
 
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -982,8 +980,13 @@ public class MainWindow
 		try {
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
-				String id = sidebar.getLogID(sidebar.getCurrentSideBarInfo());
-				return id;
+				SideBarEntrySWT curEntry = sidebar.getCurrentSideBarInfo();
+				if (curEntry == null) {
+					return "none";
+				} else {
+					String id = curEntry.getLogID();
+					return id == null ? "null" : id;
+				}
 			}
 		} catch (Exception e) {
 			String name = e.getClass().getName();
@@ -1075,8 +1078,13 @@ public class MainWindow
 							lastShellStatus = null;
 						} else {
 							updateMapTrackUsage(getUsageActiveTabID());
-							lastShellStatus = shell.getMinimized() || !shell.isVisible()
-									? "idle-minimized" : "idle-nofocus";
+							if (shell.getMinimized()) {
+								lastShellStatus = "idle-minimized";
+							} else if (!shell.isVisible()) {
+								lastShellStatus = "idle-invisible";
+							} else {
+								lastShellStatus = "idle-nofocus";
+							}
 							start = SystemTime.getCurrentTime();
 						}
 					}
@@ -1901,6 +1909,7 @@ public class MainWindow
 					}
 					if (newLength > 1000) {
 						mapTrackUsage.put(sTabID, new Long(newLength / 1000));
+						//System.out.println("UPDATE: " + sTabID + ";" + newLength);
 					}
 				}
 
@@ -1912,6 +1921,7 @@ public class MainWindow
 									+ lCurrentTrackTimeIdle;
 					if (newLengthIdle > 1000) {
 						mapTrackUsage.put(id, new Long(newLengthIdle / 1000));
+						//System.out.println("UPDATE: " + id + ";" + newLengthIdle);
 					}
 				}
 			} finally {
@@ -2285,11 +2295,14 @@ public class MainWindow
 		}
 
 		if (mapTrackUsage != null && oldSideBarEntry != null) {
-			String id2;
+			oldSideBarEntry.removeListener((SideBarLogIdListener) this);
+
+			String id2 = null;
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
-				id2 = sidebar.getLogID(oldSideBarEntry);
-			} else {
+				id2 = oldSideBarEntry.getLogID();
+			}
+			if (id2 == null) {
 				id2 = oldSideBarEntry.id;
 			}
 
@@ -2309,8 +2322,21 @@ public class MainWindow
 			}
 			oldMainWindow = oldMW_SB;
 		}
+		
+		if (mapTrackUsage != null) {
+			newSideBarEntry.addListener((SideBarLogIdListener) this);
+		}
 	}
 
+	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarLogIdListener#sidebarLogIdChanged(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT, java.lang.String, java.lang.String)
+	public void sidebarLogIdChanged(SideBarEntrySWT sideBarEntrySWT,
+			String oldID, String newID) {
+		if (oldID == null) {
+			oldID = "null";
+		}
+		updateMapTrackUsage(oldID);
+	}
+	
 	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
 	public void generate(IndentWriter writer) {
 		writer.println("SWT UI");

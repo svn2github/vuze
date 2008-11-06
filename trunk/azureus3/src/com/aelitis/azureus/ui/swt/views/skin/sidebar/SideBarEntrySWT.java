@@ -82,10 +82,15 @@ public class SideBarEntrySWT implements SideBarEntry
 	
 	private List listCloseListeners = Collections.EMPTY_LIST;
 
+	private List listLogIDListeners = Collections.EMPTY_LIST;
+
 	private final SideBar sidebar;
+	
+	private String logID;
 	
 	public SideBarEntrySWT(SideBar sidebar, String id) {
 		this.id = id;
+		this.logID = id;
 		this.sidebar = sidebar;
 	}
 	
@@ -291,4 +296,37 @@ public class SideBarEntrySWT implements SideBarEntry
 			l.sidebarClosed(this);
 		}
 	}
+
+	public void addListener(SideBarLogIdListener l) {
+		if (listLogIDListeners == Collections.EMPTY_LIST) {
+			listLogIDListeners = new ArrayList(1);
+		}
+		listLogIDListeners.add(l);
+	}
+	
+	public void removeListener(SideBarLogIdListener sideBarLogIdListener) {
+		listLogIDListeners.remove(sideBarLogIdListener);
+	}
+
+	protected void triggerLogIDListeners(String oldID) {
+		Object[] list = listLogIDListeners.toArray();
+		for (int i = 0; i < list.length; i++) {
+			SideBarLogIdListener l = (SideBarLogIdListener) list[i];
+			l.sidebarLogIdChanged(this, oldID, logID);
+		}
+	}
+
+	public String getLogID() {
+		return logID;
+	}
+
+	public void setLogID(String logID) {
+		if (logID == null || logID.equals("" + this.logID)) {
+			return;
+		}
+		String oldID = this.logID;
+		this.logID = logID;
+		triggerLogIDListeners(oldID);
+	}
+
 }
