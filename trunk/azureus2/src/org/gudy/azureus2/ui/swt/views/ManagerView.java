@@ -207,7 +207,7 @@ public class ManagerView
   		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
   	}
   	
-  	Label lblClose = new Label(folder, SWT.NONE);
+  	Label lblClose = new Label(folder, SWT.WRAP);
   	lblClose.setText("x");
   	lblClose.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event event) {
@@ -215,6 +215,7 @@ public class ManagerView
 			}
 		});
   	folder.setTopRight(lblClose);
+  	folder.setTabHeight(20);
   	
   	ArrayList iviews_to_use = new ArrayList();
   	iviews_to_use.add(new GeneralView());
