@@ -106,7 +106,7 @@ public class TableColumnCreator
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class, tableID);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class,
 				tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
