@@ -85,6 +85,7 @@ public class ManagerView
 	private UISWTView swtView;
 	private GlobalManagerAdapter gmListener;
 	private Composite parent;
+	protected IView activeView;
   
   /**
 	 * 
@@ -260,13 +261,17 @@ public class ManagerView
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
         CTabItem item = (CTabItem)e.item;
-        if (item != null && item.getControl() == null) {
+        if (item != null) {
         	IView view = (IView)item.getData("IView");
+          activeView = view;
         	
-        	view.initialize(folder);
-        	item.setControl(view.getComposite());
+        	if (item.getControl() == null) {
+          	view.initialize(folder);
+          	item.setControl(view.getComposite());
+        	}
         }
         refresh();
+    		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
       }
     });
     
@@ -275,20 +280,12 @@ public class ManagerView
     folder.getItem(0).setControl(views[0].getComposite());
     views[0].refresh();
     views[0].getComposite().layout(true);
+    activeView = views[0];
+		ViewTitleInfoManager.refreshTitleInfo(this);
   }
   
   private IView getActiveView() {
-		int index = folder.getSelectionIndex();
-		if (index == -1) {
-			return null;
-		}
-
-		CTabItem ti = folder.getItem(index);
-		if (ti.isDisposed()) {
-			return null;
-		}
-
-		return (IView) ti.getData("IView");
+  	return activeView;
   }
 
   private void refresh() {
@@ -516,6 +513,18 @@ public class ManagerView
 	    }
 	    
 	    return s;
+		} else if (propertyID == TITLE_LOGID) {
+			String id;
+			if (activeView instanceof UISWTViewImpl) {
+				id = "" + ((UISWTViewImpl)activeView).getViewID();
+		    id = id.substring(id.lastIndexOf(".")+1);
+			} else if (activeView != null) {
+		    String simpleName = activeView.getClass().getName();
+		    id = simpleName.substring(simpleName.lastIndexOf(".")+1);
+			} else {
+				id = "??";
+			}
+			return "DMDetails-" + id;
 		}
 		return null;
 	}
