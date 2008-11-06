@@ -70,6 +70,8 @@ public class PlatformConfigMessenger
 	protected static List listBlack = Collections.EMPTY_LIST;
 
 	protected static long buddySyncOnShareMinTime;
+
+	private static boolean doUrlQOS = false;
 	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -185,6 +187,7 @@ public class PlatformConfigMessenger
 				
 				try {
 					sendStats = MapUtils.getMapBoolean(reply, "send-stats", true);
+					doUrlQOS = MapUtils.getMapBoolean(reply, "do-url-qos", false);
 				} catch (Exception e) {
 				}
 				
@@ -309,5 +312,14 @@ public class PlatformConfigMessenger
 
 	public static void setBuddySyncOnShareMinTimeSecs(long buddySyncOnShareMinTime) {
 		PlatformConfigMessenger.buddySyncOnShareMinTime = buddySyncOnShareMinTime;
+	}
+
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.1
+	 */
+	public static boolean doUrlQOS() {
+		return doUrlQOS;
 	}
 }
