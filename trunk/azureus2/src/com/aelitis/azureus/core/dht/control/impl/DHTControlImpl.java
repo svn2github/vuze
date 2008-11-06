@@ -3119,7 +3119,22 @@ DHTControlImpl
 			estimateDHTSize( router.getID(), null, router.getK());
 		}
 		
-		return((int)combined_dht_estimate );
+			// with recent changes we pretty much have a router that only contains routeable contacts
+			// therefore the apparent size of the DHT is less than real and we need to adjust by the
+			// routeable percentage to get an accurate figure
+		
+		int	percent = transport.getStats().getRouteablePercentage();
+		
+			// current assumption is that around 50% are firewalled, so if less (at least during migration) assume unusable
+		
+		if ( percent < 25 ){
+			
+			return((int)combined_dht_estimate );
+		}
+		
+		double	mult = 100.0 / percent;
+		
+		return((int)( mult * combined_dht_estimate ));
 	}
 	
 	protected void
