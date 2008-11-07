@@ -297,7 +297,7 @@ public class SBC_LibraryView
 
 		if (torrentFilterMode == TORRENTS_ALL) {
 			final SWTSkinObject soTop = skin.getSkinObject("library-list-info",
-					skinObject.getParent());
+					skinObject);
 			if (soTop != null) {
 				boolean showTop = COConfigurationManager.getBooleanParameter(
 						CFG_INFOBAR, true);
