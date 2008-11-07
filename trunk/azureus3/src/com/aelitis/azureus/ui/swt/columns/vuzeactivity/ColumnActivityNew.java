@@ -47,7 +47,7 @@ public class ColumnActivityNew
 
 	private static Image imgNew;
 
-	private Rectangle imgBounds;
+	private static Image imgOld;
 
 	/**
 	 * @param name
@@ -58,16 +58,19 @@ public class ColumnActivityNew
 
 		initializeAsGraphic(WIDTH);
 		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
-		imgBounds = imgNew.getBounds();
+		imgOld = ImageLoaderFactory.getInstance().getImage("image.activity.read");
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 
-		if (entry.getReadOn() <= 0) {
-			Rectangle cellBounds = cell.getBounds();
-			gc.drawImage(imgNew, cellBounds.x
+		Rectangle cellBounds = cell.getBounds();
+		Image img = entry.getReadOn() <= 0 ? imgNew : imgOld;
+
+		if (img != null && !img.isDisposed()) {
+			Rectangle imgBounds = img.getBounds();
+			gc.drawImage(img, cellBounds.x
 					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
 					+ ((cellBounds.height - imgBounds.height) / 2));
 		}
@@ -98,7 +101,7 @@ public class ColumnActivityNew
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
 			VuzeActivitiesEntry entry = (VuzeActivitiesEntry) event.cell.getDataSource();
-			
+
 			if (entry.canFlipRead()) {
 				entry.setRead(!entry.isRead());
 				event.cell.invalidate();

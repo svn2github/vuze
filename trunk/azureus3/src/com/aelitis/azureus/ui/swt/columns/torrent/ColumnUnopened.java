@@ -43,6 +43,7 @@ public class ColumnUnopened
 	public static final String COLUMN_ID = "unopened";
 
 	private static UISWTGraphicImpl graphicCheck;
+	private static UISWTGraphicImpl graphicUnCheck;
 	private static UISWTGraphicImpl[] graphicsProgress;
 
 	private static int WIDTH = 38; // enough to fit title
@@ -58,6 +59,10 @@ public class ColumnUnopened
 		if (graphicCheck == null) {
 			Image img = ImageLoaderFactory.getInstance().getImage("image.unopened");
 			graphicCheck = new UISWTGraphicImpl(img);
+		}
+		if (graphicUnCheck == null) {
+			Image img = ImageLoaderFactory.getInstance().getImage("image.opened");
+			graphicUnCheck = new UISWTGraphicImpl(img);
 		}
 
 		if (graphicsProgress == null) {
@@ -107,7 +112,7 @@ public class ColumnUnopened
 		}
 		
 		if (complete) {
-			cell.setGraphic(hasBeenOpened ? null : graphicCheck);
+			cell.setGraphic(hasBeenOpened ? graphicUnCheck : graphicCheck);
 		} else {
 			if(dm.getState() == DownloadManager.STATE_DOWNLOADING) {
 				int i = TableCellRefresher.getRefreshIndex(1, graphicsProgress.length);
@@ -128,7 +133,7 @@ public class ColumnUnopened
 			if(!complete) return;
 			boolean hasBeenOpened = !PlatformTorrentUtils.getHasBeenOpened(dm);
 			PlatformTorrentUtils.setHasBeenOpened(dm, hasBeenOpened);
-			event.cell.setGraphic(hasBeenOpened ? null : graphicCheck);
+			event.cell.setGraphic(hasBeenOpened ? graphicUnCheck : graphicCheck);
 			event.cell.invalidate();
 		}
 	}
