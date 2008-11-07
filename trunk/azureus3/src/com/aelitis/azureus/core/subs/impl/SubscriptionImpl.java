@@ -149,6 +149,9 @@ SubscriptionImpl
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
+	private Map				verify_cache_details;
+	private boolean			verify_cache_result;
+	
 	
 	protected static String
 	getSkeletonJSON(
@@ -1539,6 +1542,14 @@ SubscriptionImpl
 	getVerifiedPublicationVersion(
 		Map		details )
 	{
+			// singleton versions always 1 and each instance has separate private key so
+			// verification will always fail so save to just return current version
+		
+		if ( isSingleton()){
+			
+			return( getVersion());
+		}
+		
 		if ( !verifyPublicationDetails( details )){
 			
 			return( -1 );
@@ -1596,12 +1607,28 @@ SubscriptionImpl
 	verifyPublicationDetails(
 		Map		details )
 	{
+		synchronized( this ){
+			
+			if ( BEncoder.mapsAreIdentical( verify_cache_details, details )){
+								
+				return( verify_cache_result );
+			}
+		}
+				
 		byte[]	hash 	= (byte[])details.get( "h" );
 		int		version	= ((Long)details.get( "v" )).intValue();
 		int		size	= ((Long)details.get( "z" )).intValue();
 		byte[]	sig		= (byte[])details.get( "s" );
 		
-		return( SubscriptionBodyImpl.verify( public_key, hash, version, size, sig ));
+		boolean	result = SubscriptionBodyImpl.verify( public_key, hash, version, size, sig );
+		
+		synchronized( this ){
+			
+			verify_cache_details 	= details;
+			verify_cache_result		= result;
+		}
+		
+		return( result );
 	}
 	
 	protected void

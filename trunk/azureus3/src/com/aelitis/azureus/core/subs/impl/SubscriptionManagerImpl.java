@@ -3531,7 +3531,7 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					log( "Checked association '" + subs.getString() + "' -> '" + assoc.getString() + "' - max_ver=" + max_ver + ",hits=" + hits );
+					log( "Checked association '" + subs.getString() + "' -> '" + assoc.getString() + "' - max_ver=" + max_ver + ",hits=" + hits + ",div=" + diversified );
 
 					if ( max_ver > subs.getVersion()){
 						
@@ -3742,7 +3742,7 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					log( "Checked subscription publication '" + subs.getString() + "' - hits=" + hits );
+					log( "Checked subscription publication '" + subs.getString() + "' - hits=" + hits + ",div=" + diversified );
 
 					if (( hits == 0 && diversified ) || ( hits < 6 && !diversified )){			
 			
