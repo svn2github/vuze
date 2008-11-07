@@ -87,8 +87,21 @@ public class ColumnInfo
 		
 		if (PlatformTorrentUtils.isContent(torrent, true)) {
   		Rectangle cellBounds = cell.getBounds();
-  		gc.drawImage(img, cellBounds.x
-  				+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
+  		if (imgBounds.height > cellBounds.height) {
+				int dstW = (imgBounds.width * (cellBounds.height - 4))
+						/ imgBounds.height;
+				try {
+					gc.setAdvanced(true);
+				} catch (Exception e) {
+					//ignore
+				}
+				gc.drawImage(img, 0, 0, imgBounds.width, imgBounds.height, cellBounds.x
+						+ ((cellBounds.width - dstW) / 2), cellBounds.y + 2, dstW,
+						cellBounds.height - 4);
+			} else {
+    		gc.drawImage(img, cellBounds.x
+    				+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y + ((cellBounds.height - imgBounds.height) / 2));
+  		}
 		}
 	}
 
