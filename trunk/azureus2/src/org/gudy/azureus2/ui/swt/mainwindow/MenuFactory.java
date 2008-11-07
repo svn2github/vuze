@@ -762,6 +762,9 @@ public class MenuFactory
 
 		final Listener enableHandler = new Listener() {
 			public void handleEvent(Event event) {
+				if (item.isDisposed()) {
+					return;
+				}
 				Iterator iter = ShellManager.sharedManager().getWindows();
 				boolean hasNonMaximizedShell = false;
 				while (iter.hasNext()) {
