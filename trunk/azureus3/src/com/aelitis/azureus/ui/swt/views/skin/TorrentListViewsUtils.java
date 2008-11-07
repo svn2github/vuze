@@ -26,11 +26,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.ForceRecheckListener;
@@ -41,6 +38,8 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -65,17 +64,12 @@ import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.win32.Win32Utils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
-
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 /**
  * @author TuxPaper
@@ -672,8 +666,86 @@ public class TorrentListViewsUtils
 		}
 	}
 
+	public static void removeDownloads(final DownloadManager[] dms) {
+		if (dms == null) {
+			return;
+		}
+		
+		int doAllAs = -1;
+
+		for (int i = 0; i < dms.length; i++) {
+			DownloadManager dm = dms[i];
+			if (dm != null) {
+				if (PublishUtils.isPublished(dm) || dm.getDownloadState().getFlag(
+						Download.FLAG_DO_NOT_DELETE_DATA_ON_REMOVE)) {
+					ManagerUtils.remove(dm, null, true, false, null);
+					continue;
+				}
+
+				boolean deleteTorrent = true;
+				boolean deleteData = true;
+
+
+				if (!dm.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
+					String path = dm.getSaveLocation().toString();
+
+					String title = MessageText.getString("deletedata.title");
+					String text = MessageText.getString("v3.deleteContent.message",
+							new String[] {
+								dm.getDisplayName()
+							});
+						
+					int result;
+					if (doAllAs < 0) {
+  					MessageBoxShell mb = new MessageBoxShell(Utils.findAnyShell(), title,
+  							text, new String[] {
+  								MessageText.getString("Button.cancel"),
+  								MessageText.getString("Button.deleteContent.fromComputer"),
+  								MessageText.getString("Button.deleteContent.fromLibrary"),
+  							}, 2, null, null, false, 0);
+  					int numLeft = (dms.length - i);
+  					if (numLeft > 1) {
+    					mb.setRememberText(MessageText.getString(
+									"v3.deleteContent.applyToAll", new String[] {
+										"" + numLeft
+									}));
+    					mb.setRememberID("na", false);
+    					mb.setRememberOnlyIfButton(-3);
+  					}
+  					mb.setRelatedObject(dm);
+  					mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
+  
+  					result = mb.open();
+						if (numLeft > 1 && mb.isRemembered()) {
+							doAllAs = result;
+						}
+					} else {
+						result = doAllAs;
+					}
+
+					if (result == 1 || result == 2) {
+						if (result == 2) {
+							deleteData = false;
+						}
+					
+						ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+								deleteTorrent, deleteData, null);
+					} else {
+						if (doAllAs >= 0) {
+							return;
+						}
+						continue;
+					}
+				} else {
+					ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
+							deleteTorrent, deleteData, null);
+				}
+			}
+		}
+	}
+
 	public static void removeDownload(final DownloadManager dm,
-			final TableView tableView) {
+				final TableView tableView) {
 
 		debug("removeDownload");
 
