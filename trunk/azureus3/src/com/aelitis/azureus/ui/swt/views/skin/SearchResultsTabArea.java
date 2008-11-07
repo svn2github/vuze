@@ -23,7 +23,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -35,19 +34,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.UrlUtils;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -59,21 +46,25 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.*;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -402,26 +393,6 @@ public class SearchResultsTabArea
 					if (soSearchResults != null) {
 						SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
 
-						browserSkinObject.addListener(new SWTSkinObjectListener() {
-							public Object eventOccured(SWTSkinObject skinObject,
-									final int eventType, Object params) {
-								Utils.execSWTThread(new AERunnable() {
-									public void runSupport() {
-										if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
-											SelectedContentManager.changeCurrentlySelectedContent(
-													"searchresults", getCurrentlySelectedContent());
-										} else if (eventType == SWTSkinObjectListener.EVENT_HIDE) {
-											SelectedContentManager.changeCurrentlySelectedContent(
-													"searchresults", null);
-										}
-									}
-								});
-								return null;
-							}
-						});
-						SelectedContentManager.changeCurrentlySelectedContent("searchresults",
-								null);
-
 						final Browser browser = browserSkinObject.getBrowser();
 						
 						browser.addTitleListener(new TitleListener() {
@@ -441,18 +412,6 @@ public class SearchResultsTabArea
 						},browser);
 						
 						cookieListener.hook();
-						
-						browser.addLocationListener(new LocationListener() {
-							public void changing(LocationEvent event) {
-								//ViewTitleInfoManager.refreshTitleInfo(titleInfo);
-							}
-
-							public void changed(LocationEvent event) {
-								SelectedContentManager.changeCurrentlySelectedContent("searchresults",
-										getCurrentlySelectedContent());
-								//ViewTitleInfoManager.refreshTitleInfo(titleInfo);
-							}
-						});
 					}
 				}
 			});
@@ -524,39 +483,6 @@ public class SearchResultsTabArea
 		});
 	}
 
-	protected ISelectedContent[] getCurrentlySelectedContent() {
-		SWTSkinObject soSearchResults = getSkinObject("searchresults-search-results");
-		if (soSearchResults == null) {
-			return null;
-		}
-		
-		SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
-		Browser browser = browserSkinObject.getBrowser();
-		if (browser == null) {
-			return null;
-		}
-		String url = browser.getUrl();
-		int i = url.indexOf(ConstantsV3.URL_DETAILS);
-		if (i > 0) {
-			i += ConstantsV3.URL_DETAILS.length();
-			int end1 = url.indexOf("?", i);
-			int end2 = url.indexOf(".", i);
-			int end = end1 < 0 ? end2 : Math.min(end1, end2);
-
-			String hash;
-			if (end < 0 || end < i) {
-				hash = url.substring(i);
-			} else {
-				hash = url.substring(i, end);
-			}
-
-			return new SelectedContentV3[] {
-				new SelectedContentV3(hash, title, true, false)
-			};
-		}
-
-		return null;
-	}
 
 	public void closeSearchResults(final Map params) {
 		Utils.execSWTThread(new AERunnable() {
