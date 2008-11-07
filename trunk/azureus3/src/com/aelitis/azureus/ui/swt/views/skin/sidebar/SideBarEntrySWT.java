@@ -90,12 +90,16 @@ public class SideBarEntrySWT implements SideBarEntry
 	
 	public SideBarEntrySWT(SideBar sidebar, String id) {
 		this.id = id;
-
-		int i = id.indexOf('_');
-		if (i > 0) {
-			logID = id.substring(0, i);
+		
+		if (id == null) {
+			logID = null;
 		} else {
-			logID = id;
+  		int i = id.indexOf('_');
+  		if (i > 0) {
+  			logID = id.substring(0, i);
+  		} else {
+  			logID = id;
+  		}
 		}
 
 		this.sidebar = sidebar;
