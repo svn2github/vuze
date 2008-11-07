@@ -243,7 +243,7 @@ DisplayFormatters
 	percentage_format.setMinimumFractionDigits(1);
 	percentage_format.setMaximumFractionDigits(1);
 	
-		 decimalSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+		 decimalSeparator = new DecimalFormatSymbols().getDecimalSeparator();
    }
   
 	private static String
