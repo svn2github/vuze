@@ -121,6 +121,8 @@ public class MessageBoxShell
 	private Browser shell_browser;
 	
 	private boolean	browser_follow_links;
+
+	protected boolean isRemembered;
 	
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -486,9 +488,9 @@ public class MessageBoxShell
 			checkRemember.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					Button checkRemember = (Button) e.widget;
+					isRemembered = checkRemember != null && checkRemember.getSelection();
 					if (rememberID != null
-							&& checkRemember != null
-							&& checkRemember.getSelection()
+							&& isRemembered
 							&& (rememberOnlyIfButton == -1 || rememberOnlyIfButton == result[0])) {
 						RememberedDecisionsManager.setRemembered(rememberID, result[0]);
 					}
@@ -1342,5 +1344,9 @@ public class MessageBoxShell
 	 */
 	public void setHandleHTML(boolean handleHTML) {
 		this.handleHTML = handleHTML;
+	}
+
+	public boolean isRemembered() {
+		return isRemembered;
 	}
 }
