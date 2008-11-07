@@ -691,18 +691,18 @@ MetaSearchImpl
 	
 	public Engine[] 
 	search(
-		Engine					engine,
+		Engine[]				engines,
 		final ResultListener 	listener,
 		SearchParameter[] 		search_parameters,
 		String					headers,
 		final int				max_results_per_engine )
 	{
-		return( search( engine, listener, search_parameters, headers, new HashMap(), max_results_per_engine ));
+		return( search( engines, listener, search_parameters, headers, new HashMap(), max_results_per_engine ));
 	}
 	
 	public Engine[] 
   	search(
-  		Engine					engine,
+  		Engine[]				engines,
   		final ResultListener 	original_listener,
   		SearchParameter[] 		searchParameters,
   		String					headers,
@@ -825,35 +825,26 @@ MetaSearchImpl
 			
 		SearchExecuter se = new SearchExecuter( context, listener );
 		
-		if ( engine == null ){
+		if ( engines == null ){
 			
-			Engine[] engines = getEngines( true, true );
-	
-			String	engines_str = "";
-			
-			for (int i=0;i<engines.length;i++){
-				
-				engines_str += (i==0?"":",") + engines[i].getId();
-			}
-			
-			log( "Search: params=" + param_str + "; engines=" + engines_str );
-			
-	
-			for (int i=0;i<engines.length;i++){
-				
-				se.search( engines[i], searchParameters, headers, max_results_per_engine );
-			}
-			
-			return( engines );
-			
-		}else{
-			
-			log( "Search: params=" + param_str + "; engine=" + engine.getId());
-
-			se.search( engine, searchParameters, headers, max_results_per_engine );
-			
-			return( new Engine[]{ engine });
+			engines = getEngines( true, true );
 		}
+		
+		String	engines_str = "";
+		
+		for (int i=0;i<engines.length;i++){
+			
+			engines_str += (i==0?"":",") + engines[i].getId();
+		}
+		
+		log( "Search: params=" + param_str + "; engines=" + engines_str );
+		
+		for (int i=0;i<engines.length;i++){
+			
+			se.search( engines[i], searchParameters, headers, max_results_per_engine );
+		}
+		
+		return( engines );
 	}
 	
 	protected Result[]

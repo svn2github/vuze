@@ -50,7 +50,7 @@ MetaSearch
 	
 	public Engine[] 
 	search(
-		Engine				engine,
+		Engine[]			engine,
 		ResultListener 		listener,
 		SearchParameter[] 	searchParameters,
 		String				headers,
@@ -58,7 +58,7 @@ MetaSearch
 	
 	public Engine[] 
   	search(
-  		Engine				engine,
+  		Engine[]			engine,
   		ResultListener 		listener,
   		SearchParameter[] 	searchParameters,
   		String				headers,

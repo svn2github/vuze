@@ -1915,7 +1915,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			
 		}else{
 			
-			metaSearchManager.getMetaSearch().search( target, listener, parameters, headers, max_per_engine );
+			metaSearchManager.getMetaSearch().search( new Engine[]{ target }, listener, parameters, headers, max_per_engine );
 
 		}
 	}
