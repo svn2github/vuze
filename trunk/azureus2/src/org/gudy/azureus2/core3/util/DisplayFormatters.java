@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.util;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
 
@@ -81,6 +82,7 @@ DisplayFormatters
     
     private static boolean	separate_prot_data_stats;
     private static boolean	data_stats_only;
+		private static char decimalSeparator;
     
 	static{
 		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits");
@@ -240,6 +242,8 @@ DisplayFormatters
 	percentage_format = NumberFormat.getPercentInstance();
 	percentage_format.setMinimumFractionDigits(1);
 	percentage_format.setMaximumFractionDigits(1);
+	
+		 decimalSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator();
    }
   
 	private static String
@@ -1072,4 +1076,8 @@ DisplayFormatters
 			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456.999, 0));
 			System.out.println(DisplayFormatters.formatDecimal(0.0/0, 3));
 		}
+
+	public static char getDecimalSeparator() {
+		return decimalSeparator;
+	}
 }
