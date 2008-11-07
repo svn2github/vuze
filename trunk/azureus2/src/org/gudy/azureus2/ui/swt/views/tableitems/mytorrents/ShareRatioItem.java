@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -88,7 +89,8 @@ public class ShareRatioItem
       while (partial.length() < 3) {
         partial = "0" + partial;
       }
-      shareRatio = (sr / 1000) + "." + partial;
+      shareRatio = "" + (sr / 1000) + DisplayFormatters.getDecimalSeparator()
+					+ partial;
     }
     
     if( cell.setText(shareRatio) && changeFG ) {
