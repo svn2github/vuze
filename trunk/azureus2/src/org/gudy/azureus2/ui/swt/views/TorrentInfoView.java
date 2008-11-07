@@ -352,6 +352,8 @@ TorrentInfoView
 			gridData.heightHint = 16;
 			c.setLayoutData(gridData);
 			cell.setControl(c);
+			cell.invalidate();
+			cell.refresh();
 			c.addListener(SWT.MouseHover, new Listener() {
 				public void handleEvent(Event event) {
 					Object toolTip = cell.getToolTip();
