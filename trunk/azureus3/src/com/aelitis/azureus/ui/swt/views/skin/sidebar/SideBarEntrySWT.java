@@ -92,7 +92,7 @@ public class SideBarEntrySWT implements SideBarEntry
 		this.id = id;
 		
 		if (id == null) {
-			logID = null;
+			logID = "null";
 		} else {
   		int i = id.indexOf('_');
   		if (i > 0) {

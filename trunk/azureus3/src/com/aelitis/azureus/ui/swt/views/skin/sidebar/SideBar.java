@@ -1440,8 +1440,7 @@ public class SideBar
 			return sideBarInfo.treeItem;
 		}
 
-		SideBarEntrySWT sideBarInfoParent = getSideBarInfo(parent);
-		TreeItem parentItem = sideBarInfoParent.treeItem;
+		TreeItem parentItem = parent == null ? null : getSideBarInfo(parent).treeItem;
 
 		TreeItem treeItem;
 		if (parentItem != null) {
@@ -1954,8 +1953,7 @@ public class SideBar
 				: (String) sideBarInfo.treeItem.getData("text");
 
 		if (treeItem == null) {
-			SideBarEntrySWT sideBarInfoParent = getSideBarInfo(parentID);
-			TreeItem parentTreeItem = sideBarInfoParent.treeItem;
+			TreeItem parentTreeItem = parentID == null ? null : getSideBarInfo(parentID).treeItem;
 
 			IViewInfo foundViewInfo = null;
 			IViewInfo[] pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginViewsInfo();
@@ -2239,8 +2237,8 @@ public class SideBar
 		};
 		sideBarInfo.eventListener = l;
 
-		SideBarEntrySWT sideBarInfoParent = getSideBarInfo(parentID);
-		TreeItem parentTreeItem = sideBarInfoParent.treeItem;
+		TreeItem parentTreeItem = parentID == null ? null
+				: getSideBarInfo(parentID).treeItem;
 
 		sideBarInfo.parentID = parentID;
 
