@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -190,6 +191,7 @@ public class ColumnThumbnail
 				cellBounds.y += 2;
 				cellBounds.height -= 4;
 			}
+			
 
 			Rectangle imgBounds = imgThumbnail.getBounds();
 
@@ -201,7 +203,7 @@ public class ColumnThumbnail
 				dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
 				if (cellBounds.height < 30) {
 					cellBounds.y += 1;
-					cellBounds.height -= 2;
+					cellBounds.height -= 1;
 				}
 			} else {
 				dstWidth = imgBounds.width;
@@ -216,8 +218,17 @@ public class ColumnThumbnail
 			int x = cellBounds.x + ((cellBounds.width - dstWidth) / 2);
 			int y = cellBounds.y + ((cellBounds.height - dstHeight) / 2);
 			if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
-  			gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
-  					x, y, dstWidth, dstHeight);
+				Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
+				Rectangle lastClipping = gc.getClipping();
+				try {
+					gc.setClipping(cellBounds);
+					gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
+							x, y, dstWidth, dstHeight);
+				} catch (Exception e) {
+					Debug.out(e);
+				} finally {
+					gc.setClipping(lastClipping);
+				}
 			}
 
 			imgThumbnail.dispose();
