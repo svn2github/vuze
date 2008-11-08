@@ -75,7 +75,7 @@ public class ColumnRatingGlobal
 
 	private class Cell
 		implements TableCellSWTPaintListener, TableCellDisposeListener,
-		RatingUpdateListener2, TableCellVisibilityListener
+		RatingUpdateListener2, TableCellVisibilityListener, TableCellRefreshListener
 	{
 		String rating = "--";
 
@@ -98,7 +98,44 @@ public class ColumnRatingGlobal
 					return;
 				}
 			}
+		}
+		
+		// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
+		public void refresh(TableCell cell) {
+			if (!cell.isValid()) {
+				setSortValue(cell);
+			}
+		}
 
+		/**
+		 * @param cell2
+		 *
+		 * @since 4.0.0.3
+		 */
+		private void setSortValue(TableCell cell) {
+			dm = getDM(cell.getDataSource());
+			if (dm == null) {
+				return;
+			}
+			TOTorrent torrent = dm.getTorrent();
+			if (torrent == null) {
+				return;
+			}
+			long count = GlobalRatingUtils.getCount(torrent);
+			String rating = GlobalRatingUtils.getRatingString(torrent);
+			if (rating == null) {
+				rating = "0";
+			}
+			int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
+
+			try {
+				float val = Float.parseFloat(rating) * 1000000 + count;
+				val = (val * 10) + (userRating + 3);
+				cell.setSortValue(val);
+			} catch (Exception e) {
+				e.printStackTrace();
+				cell.setSortValue(count > 0 ? new Float(count) : null);
+			}
 		}
 
 		public void dispose(TableCell cell) {
@@ -129,15 +166,12 @@ public class ColumnRatingGlobal
 			TOTorrent torrent = dm.getTorrent();
 			String rating = GlobalRatingUtils.getRatingString(torrent);
 			long count = GlobalRatingUtils.getCount(torrent);
-			int userRating = -3;
-			if (PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-				userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
-			}
+			int userRating = PlatformTorrentUtils.getUserRating(dm.getTorrent());
 
 			boolean b;
 			try {
 				float val = Float.parseFloat(rating) * 1000000 + count;
-				val += (userRating + 3) * 10000000;
+				val = (val * 10) + (userRating + 3);
 				b = !cell.setSortValue(val);
 			} catch (Exception e) {
 				b = !cell.setSortValue(count > 0 ? new Float(count) : null);
@@ -267,6 +301,7 @@ public class ColumnRatingGlobal
 			try {
 				String hash = dm.getTorrent().getHashWrapper().toBase32String();
 				if (rating.hasHash(hash)) {
+					setSortValue(cell);
 					cell.invalidate();
 				}
 			} catch (Exception e) {
