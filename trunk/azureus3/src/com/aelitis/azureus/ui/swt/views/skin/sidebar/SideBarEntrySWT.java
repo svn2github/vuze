@@ -340,4 +340,8 @@ public class SideBarEntrySWT implements SideBarEntry
 		triggerLogIDListeners(oldID);
 	}
 
+	public SideBar getSidebar() {
+		return sidebar;
+	}
+
 }
