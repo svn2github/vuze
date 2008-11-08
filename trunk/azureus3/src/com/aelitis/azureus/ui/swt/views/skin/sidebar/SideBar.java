@@ -19,20 +19,64 @@
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
-
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Pattern;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
@@ -48,7 +92,12 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.ConfigView;
+import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.LoggerView;
+import org.gudy.azureus2.ui.swt.views.MySharesView;
+import org.gudy.azureus2.ui.swt.views.MyTrackerView;
+import org.gudy.azureus2.ui.swt.views.PeerSuperView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -68,7 +117,12 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
@@ -77,19 +131,11 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.util.MapUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -200,6 +246,8 @@ public class SideBar
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(final DisposeEvent e) {
 				final TreeItem treeItem = (TreeItem) e.widget;
+				final Tree tree = treeItem.getParent();
+				final int itemIndex = tree.indexOf(treeItem);
 				final String id = (String) treeItem.getData("Plugin.viewID");
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
@@ -226,6 +274,20 @@ public class SideBar
 									so.getSkin().removeSkinObject(so);
 								}
 								COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
+
+								if (Constants.isOSX && !tree.isDisposed() && tree.getSelectionCount() == 0) {
+									
+									if (entry.parentID != null) {
+										 entry.getSidebar().showItemByID(entry.parentID);
+									} else {
+										int i = itemIndex;
+										if (i >= tree.getItemCount()) {
+											i = tree.getItemCount() - 1;
+										}
+										TreeItem item = tree.getItem(i);
+										entry.getSidebar().itemSelected(item);
+									}
+								}
 							} catch (Exception e2) {
 								Debug.out(e2);
 							}
@@ -2333,7 +2395,7 @@ public class SideBar
 					}
 				}
 
-				if (sideBarEntry.treeItem.isDisposed()) {
+				if (sideBarEntry.treeItem == null || sideBarEntry.treeItem.isDisposed()) {
 					return;
 				}
 
@@ -2471,6 +2533,8 @@ public class SideBar
 					HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
 					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					ds = gm.getDownloadManager(hw);
+					// XXX Skip auto open DM for now
+					return;
 				}
 				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
 						null, true);
