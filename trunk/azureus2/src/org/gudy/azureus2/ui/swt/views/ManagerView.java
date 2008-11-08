@@ -270,6 +270,8 @@ public class ManagerView
           	view.initialize(folder);
           	item.setControl(view.getComposite());
         	}
+        	
+        	item.getControl().setFocus();
         }
         refresh();
     		ViewTitleInfoManager.refreshTitleInfo(ManagerView.this);
@@ -281,6 +283,7 @@ public class ManagerView
     folder.getItem(0).setControl(views[0].getComposite());
     views[0].refresh();
     views[0].getComposite().layout(true);
+    views[0].getComposite().setFocus();
     activeView = views[0];
 		ViewTitleInfoManager.refreshTitleInfo(this);
   }
