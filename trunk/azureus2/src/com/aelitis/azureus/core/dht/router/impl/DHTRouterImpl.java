@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -99,6 +100,8 @@ DHTRouterImpl
 			BloomFilterFactory.createAddOnly(10*1024),
 			2 );
 	
+	private TimerEventPeriodic	timer_event;
+	
 	public
 	DHTRouterImpl(
 		int										_K,
@@ -145,7 +148,7 @@ DHTRouterImpl
 		
 		root	= new DHTRouterNodeImpl( this, 0, true, buckets );
 		
-		SimpleTimer.addPeriodicEvent(
+		timer_event = SimpleTimer.addPeriodicEvent(
 			"DHTRouter:pinger",
 			10*1000,
 			new TimerEventPerformer()
@@ -1361,6 +1364,8 @@ DHTRouterImpl
 	public void
 	destroy()
 	{
+		timer_event.cancel();
+		
 		notifyDead();
 	}
 }

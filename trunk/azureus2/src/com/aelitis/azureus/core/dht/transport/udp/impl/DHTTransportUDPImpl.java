@@ -84,6 +84,9 @@ DHTTransportUDPImpl
 	public static final long	READ_XFER_REREQUEST_DELAY	= 5000;
 	public static final long	WRITE_REPLY_TIMEOUT			= 60000;		
 	
+	public static final int		MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT	= 5*60*1000;
+	public static final int		MIN_ADDRESS_CHANGE_PERIOD_NEXT_DEFAULT	= 10*60*1000;
+	
 	private static boolean	XFER_TRACE	= false;
 	
 	static{
@@ -94,6 +97,7 @@ DHTTransportUDPImpl
 	
 	
 	private String				external_address;
+	private int					min_address_change_period = MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT;
 	
 	private byte				protocol_version;
 	private int					network;
@@ -204,6 +208,7 @@ DHTTransportUDPImpl
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTransportUDP" );
 
 	private boolean		initial_address_change_deferred;
+	private boolean		address_changing;
 	
 	public
 	DHTTransportUDPImpl(
@@ -751,7 +756,7 @@ DHTTransportUDPImpl
 	
 			long	now = SystemTime.getCurrentTime();
 	
-			if ( now - last_address_change < 5*60*1000 ){
+			if ( now - last_address_change < min_address_change_period ){
 				
 				return;
 			}
@@ -809,6 +814,12 @@ DHTTransportUDPImpl
 			
 			last_address_change	= now;
 			
+				// bump up min period for subsequent changes 
+			
+			if ( min_address_change_period == MIN_ADDRESS_CHANGE_PERIOD_INIT_DEFAULT ){
+				
+				min_address_change_period = MIN_ADDRESS_CHANGE_PERIOD_NEXT_DEFAULT;
+			}
 		}finally{
 			
 			this_mon.exit();
@@ -826,17 +837,46 @@ DHTTransportUDPImpl
 			public void
 			run()
 			{
-				getExternalAddress( new_ip, logger );
-				
-				if ( old_external_address.equals( external_address )){
+				try{
+					this_mon.enter();
+
+					if ( address_changing ){
+						
+						return;
+					}
 					
-						// address hasn't changed, notifier must be perceiving different address
-						// due to proxy or something
-									
-					return;
+					address_changing	= true;
+					
+				}finally{
+					
+					this_mon.exit();
 				}
-				
-				setLocalContact();
+					
+				try{
+					getExternalAddress( new_ip, logger );
+					
+					if ( old_external_address.equals( external_address )){
+						
+							// address hasn't changed, notifier must be perceiving different address
+							// due to proxy or something
+										
+						return;
+					}
+					
+					setLocalContact();
+					
+				}finally{
+					
+					try{
+						this_mon.enter();
+
+						address_changing	= false;
+						
+					}finally{
+						
+						this_mon.exit();
+					}
+				}
 			}
 		}.start();
 	}
@@ -969,6 +1009,8 @@ DHTTransportUDPImpl
 			local_contact = new DHTTransportUDPContactImpl( true, DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
 	
 			logger.log( "External address changed: " + s_address );
+			
+			Debug.out( "DHTTransport: address changed to " + s_address );
 			
 			for (int i=0;i<listeners.size();i++){
 				
