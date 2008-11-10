@@ -135,7 +135,14 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
     }
     
     try{
-      return new MessageAdapter( plug_msg.create( data.getBuffer( DirectByteBuffer.SS_MSG ) ) );
+    	Message message = plug_msg.create( data.getBuffer( DirectByteBuffer.SS_MSG ) );
+    	
+    	if ( message == null ){
+    		
+    		throw( new com.aelitis.azureus.core.peermanager.messaging.MessageException( "Plugin message deserialisation failed" ));
+    	}
+    	
+    	return new MessageAdapter( message );
     }
     catch( MessageException e ) {
       throw new com.aelitis.azureus.core.peermanager.messaging.MessageException( e.getMessage() );
