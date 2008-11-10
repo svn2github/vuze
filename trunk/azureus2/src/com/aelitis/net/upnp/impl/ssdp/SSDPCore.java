@@ -99,7 +99,7 @@ SSDPCore
 
 	private UTTimer			timer;
 	private List			timer_queue = new ArrayList();
-	
+	private long			time_event_next;
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
 
@@ -446,45 +446,53 @@ SSDPCore
 						
 					}else{
 						
-						timer.addEvent( 
-								SystemTime.getCurrentTime() + delay,
-								new UTTimerEventPerformer()
-								{
-									public void
-									perform(
-										UTTimerEvent		event )
+						long	target_time = SystemTime.getCurrentTime() + delay;
+						
+						boolean	schedule_event;
+						
+						synchronized( timer_queue ){
+							
+							timer_queue.add( task );
+							
+							schedule_event = time_event_next == 0 || target_time < time_event_next;
+								
+							if ( schedule_event ){
+								
+								time_event_next = target_time;
+							}
+						}
+
+						if ( schedule_event ){
+							
+							timer.addEvent( 
+									target_time,
+									new UTTimerEventPerformer()
 									{
-											// only actually ever run of these at a time as they
-											// have been seen to back up and flood the timer pool
-										
-										boolean	run_now;
-										
-										synchronized( timer_queue ){
-											
-											timer_queue.add( task );
-											
-											run_now = timer_queue.size() == 1;
-										}
-										
-										if ( run_now ){
+										public void
+										perform(
+											UTTimerEvent		event )
+										{
+												// only actually ever run of these at a time as they
+												// have been seen to back up and flood the timer pool
 											
 											while( true ){
 										
-												Runnable t = null;
+												Runnable t;
 												
 												synchronized( timer_queue ){
 													
 													if ( timer_queue.size() > 0 ){
 														
 														t = (Runnable)timer_queue.remove(0);
+														
+													}else{
+														
+														time_event_next = 0;
+														
+														return;
 													}
 												}
-												
-												if ( t == null ){
-													
-													break;
-												}
-												
+																								
 												try{													
 													t.run();
 													
@@ -494,8 +502,8 @@ SSDPCore
 												}
 											}
 										}
-									}
-								});
+									});
+						}
 					}
 				}
 			}else{
