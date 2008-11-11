@@ -333,10 +333,12 @@ SubscriptionManagerUI
 							icon_rss_small			= loadGraphic( swt, "btn_rss_subscribe_orange_30x14.png" );
 							icon_rss_big			= icon_rss_small;
 
-							icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_green_30x14.png" );
+							//icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_green_30x14.png" );
+							icon_rss_all_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
 							icon_rss_all_add_big	= icon_rss_all_add_small;
 							
-							icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
+							// icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribe_green_30x14.png" );
+							icon_rss_some_add_small	= loadGraphic( swt, "btn_rss_subscribed_gray_30x14.png" );
 							icon_rss_some_add_big	= icon_rss_some_add_small;
 							
 							subs_man = SubscriptionManagerFactory.getSingleton();
