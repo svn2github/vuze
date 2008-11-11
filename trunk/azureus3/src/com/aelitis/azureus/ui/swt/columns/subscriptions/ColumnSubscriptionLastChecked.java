@@ -17,12 +17,10 @@
 
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import com.aelitis.azureus.core.subs.Subscription;
 
@@ -31,34 +29,40 @@ import com.aelitis.azureus.core.subs.Subscription;
  * @created Oct 7, 2008
  *
  */
-public class ColumnSubscriptionLastChecked
-	extends CoreTableColumn
-	implements TableCellRefreshListener
-{
-	
-	SimpleDateFormat format = new SimpleDateFormat("MM/dd/yy hh:mm");
-	
+public class 
+ColumnSubscriptionLastChecked
+	extends ColumnDateSizer
+{	
 	public static String COLUMN_ID = "last-checked";
-
-	/** Default Constructor */
-	public ColumnSubscriptionLastChecked(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 100, sTableID);
+	
+	public 
+	ColumnSubscriptionLastChecked(
+		String sTableID ) 
+	{
+		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID );
+		
 		setMinWidth(100);
+		
+		setMultiline( false );
+		
+		setShowTime( true );
 	}
 
-	public void refresh(TableCell cell) {
-		Date date = null;
-		String dateText = "--";
+	public void 
+	refresh(
+		TableCell 	cell, 
+		long 		timestamp ) 
+	{
+		timestamp = 0;
+				
 		Subscription sub = (Subscription) cell.getDataSource();
-		if (sub != null) {
-			date =  new Date(sub.getHistory().getLastScanTime());
-		}
 		
-		if (date != null) {
-			dateText = format.format(date);
+		if ( sub != null ){
+
+			timestamp = sub.getHistory().getLastScanTime();
 		}
 
-		if (!cell.setSortValue(date) && cell.isValid()) {
+		if (!cell.setSortValue(timestamp) && cell.isValid()) {
 			return;
 		}
 
@@ -66,8 +70,13 @@ public class ColumnSubscriptionLastChecked
 			return;
 		}
 		
-		cell.setText(dateText);
-		return;
+		if ( timestamp <= 0 ){
 		
+			cell.setText( "--" );
+			
+		}else{
+		
+			super.refresh( cell, timestamp );
+		}
 	}
 }
