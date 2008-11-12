@@ -42,6 +42,7 @@ HTMLPageImpl
 	public
 	HTMLPageImpl(
 		InputStream		is,
+		String			charset,
 		boolean			close_file )
 	
 		throws HTMLException
@@ -52,8 +53,13 @@ HTMLPageImpl
 		
 		try{
 			
-			br = new BufferedReader( new InputStreamReader(is));
-			
+			if ( charset == null ){
+				
+				br = new BufferedReader( new InputStreamReader(is));
+			}else{
+				
+				br = new BufferedReader( new InputStreamReader(is, charset));
+			}
 			while(true){
 				
 				String	line = br.readLine();

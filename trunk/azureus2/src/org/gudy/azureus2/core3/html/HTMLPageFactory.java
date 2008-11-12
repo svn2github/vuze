@@ -45,10 +45,31 @@ HTMLPageFactory
 	public static HTMLPage
 	loadPage(
 		InputStream		is,
+		String			charset )
+	
+		throws HTMLException
+	{
+		return( loadPage( is, charset, true ));
+	}
+	
+	public static HTMLPage
+	loadPage(
+		InputStream		is,
 		boolean			close_file )
 	
 		throws HTMLException
 	{
-		return( new HTMLPageImpl( is, close_file ));
+		return(loadPage( is, null, close_file ));
+	}
+	
+	public static HTMLPage
+	loadPage(
+		InputStream		is,
+		String			charset,
+		boolean			close_file )
+	
+		throws HTMLException
+	{
+		return( new HTMLPageImpl( is, charset, close_file ));
 	}
 }

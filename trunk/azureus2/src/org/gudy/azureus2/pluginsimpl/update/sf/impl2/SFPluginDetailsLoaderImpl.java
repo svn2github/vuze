@@ -259,7 +259,7 @@ SFPluginDetailsLoaderImpl
 		
 			p_dl.addListener( this );
 
-			HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download());
+			HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download(), "UTF-8" );
 			
 			if ( !processPluginPage( details, plugin_page )){
 							
