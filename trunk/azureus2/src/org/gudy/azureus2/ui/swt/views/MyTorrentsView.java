@@ -963,7 +963,11 @@ public class MyTorrentsView
 			}
 		}
 		if (pos != dms.length) {
-			System.arraycopy(sc, 0, sc, 0, pos);
+			ISelectedContent[] sc_temp = new ISelectedContent[pos];
+			
+			System.arraycopy(sc, 0, sc_temp, 0, pos);
+			
+			sc = sc_temp;
 		}
 		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), sc, tv);
 	}
