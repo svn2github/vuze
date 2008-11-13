@@ -4,10 +4,21 @@ VUZE CHANGELOG
 2008.xx.xx | Vuze 4.0.0.3
 
 FEATURE: UIvz | Ability to change List modes in View menu [TuxPaper] 
+FEATURE: Core | Added subscription support to customisations [Parg]
+FEATURE: UI   | Added a 'mark all results unread' menu item [Parg]
+FEATURE: Core | Added an 'azplug' URL protocol to allow plugins to handle URLs [Parg]
+FEATURE: Core | Allow subscriptions to handle azplug protocols thus allowing plugins to be the source of subscription content [Parg]
+FEATURE: Core | Allow magnet links in search results [Parg]
+FEATURE: UI   | Added specification of data save directory to config wizard [Parg]
 
 CHANGE: UI    | Date Column auto-sizer now shows day of month (mm/dd) instead of year (yy/mm) when column is small [TuxPaper] 
 CHANGE: UIvz  | Deleting via toolbar now lets you apply action to all selected entries [TuxPaper] 
 CHANGE: UIvz  | Search bar shrinks a bit when there's not enough width to display all toolbar buttons [TuxPaper] 
+CHANGE: Core  | Only show feed errors after 3 consecutive fails to avoid distracting transient errors [Parg]
+CHANGE: Core  | Add asset hash to subscriptions and auto-associate existing content on subscribe if avail [Parg]
+CHANGE: Core  | Various performance improvements [Parg]
+CHANGE: Core  | Modify DHT size calc algorithm to take account of firewalled contact [Parg]
+CHANGE: Plug  | Assume buddies support chat [Parg]
 
 BUGFIX: UIvz  | "Mark All Watched" now only affects completed content (which is also what Unwatched only shows) [TuxPaper]
 BUGFIX: UIvz  | Fix Global Rating column not sorting properly [TuxPaper]
@@ -19,8 +30,13 @@ BUGFIX: UIvz  | Fix default visible columns, order, and sort column for new inst
 BUGFIX: UI    | "Show Time" state on date columns now remembered accross sessions [TuxPaper]
 BUGFIX: UI    | Fix "Pieces" column in Library view not updating unless you clicked it [TuxPaper]
 BUGFIX: UI    | Info tab in Torrent Details now displays more columns that it couldn't before (like share ratio) [TuxPaper]
-
-
+BUGFIX: Core  | Synchonize access to file operations so that an close op can't be interleaved with file facade switching and bork disk channel operation [Parg]
+BUGFIX: Core  | Filter out duplicate skew reports to get more accurate figures [Parg]
+BUGFIX: Core  | Avoid NPE in chat when buddy unauthorised [Parg]
+BUGFIX: Core  | Preserve argument case in magnet link operations [Parg]
+BUGFIX: Core  | Fix mem leak when DHT router IP changed [Parg]
+BUGFIX: UI    | Localize the date in the subscription view correctly [Parg]
+BUGFIX: Plug  | Use UTF-8 when decoding plugin descriptions [Parg]
 
 2008.10.24 | Vuze 4.0.0.2
 
