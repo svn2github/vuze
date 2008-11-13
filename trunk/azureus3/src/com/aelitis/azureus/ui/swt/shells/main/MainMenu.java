@@ -227,6 +227,7 @@ public class MainMenu
 			if (Constants.isCVSVersion()) {
 				MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
 						"v3.MainWindow.menu.view.statusbar");
+				itemStatusBar.setText(itemStatusBar.getText() + " (CVS Only)");
 				Menu menuStatusBar = itemStatusBar.getMenu();
 
 				final String[] statusAreaLangs = {
