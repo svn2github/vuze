@@ -13,6 +13,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -222,41 +223,43 @@ public class MainMenu
 					}
 				}
 			});
+			
+			if (Constants.isCVSVersion()) {
+				MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
+						"v3.MainWindow.menu.view.statusbar");
+				Menu menuStatusBar = itemStatusBar.getMenu();
 
-			MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
-					"v3.MainWindow.menu.view.statusbar");
-			Menu menuStatusBar = itemStatusBar.getMenu();
+				final String[] statusAreaLangs = {
+					"ConfigView.section.style.status.show_sr",
+					"ConfigView.section.style.status.show_nat",
+					"ConfigView.section.style.status.show_ddb",
+					"ConfigView.section.style.status.show_ipf",
+				};
+				final String[] statusAreaConfig = {
+					"Status Area Show SR",
+					"Status Area Show NAT",
+					"Status Area Show DDB",
+					"Status Area Show IPF",
+				};
 
-			final String[] statusAreaLangs = {
-				"ConfigView.section.style.status.show_sr",
-				"ConfigView.section.style.status.show_nat",
-				"ConfigView.section.style.status.show_ddb",
-				"ConfigView.section.style.status.show_ipf",
-			};
-			final String[] statusAreaConfig = {
-				"Status Area Show SR",
-				"Status Area Show NAT",
-				"Status Area Show DDB",
-				"Status Area Show IPF",
-			};
+				for (int i = 0; i < statusAreaConfig.length; i++) {
+					final String configID = statusAreaConfig[i];
+					String langID = statusAreaLangs[i];
 
-			for (int i = 0; i < statusAreaConfig.length; i++) {
-				final String configID = statusAreaConfig[i];
-				String langID = statusAreaLangs[i];
-
-				final MenuItem item = new MenuItem(menuStatusBar, SWT.CHECK);
-				Messages.setLanguageText(item, langID);
-				item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
-						COConfigurationManager.setParameter(configID,
-								!COConfigurationManager.getBooleanParameter(configID));
-					}
-				});
-				menuStatusBar.addListener(SWT.Show, new Listener() {
-					public void handleEvent(Event event) {
-						item.setSelection(COConfigurationManager.getBooleanParameter(configID));
-					}
-				});
+					final MenuItem item = new MenuItem(menuStatusBar, SWT.CHECK);
+					Messages.setLanguageText(item, langID);
+					item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							COConfigurationManager.setParameter(configID,
+									!COConfigurationManager.getBooleanParameter(configID));
+						}
+					});
+					menuStatusBar.addListener(SWT.Show, new Listener() {
+						public void handleEvent(Event event) {
+							item.setSelection(COConfigurationManager.getBooleanParameter(configID));
+						}
+					});
+				}
 			}
 
 			MenuFactory.addSeparatorMenuItem(viewMenu);
