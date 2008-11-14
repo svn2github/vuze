@@ -25,6 +25,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
@@ -32,7 +33,6 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
@@ -72,6 +72,10 @@ public class PlatformConfigMessenger
 	protected static long buddySyncOnShareMinTime;
 
 	private static boolean doUrlQOS = false;
+	
+	private static boolean platformLoginComplete = false;
+
+	protected static List platformLoginCompleteListeners = Collections.EMPTY_LIST;
 	
 	public static void getBrowseSections(String sectionType, long maxDelayMS,
 			final GetBrowseSectionsReplyListener replyListener) {
@@ -205,6 +209,18 @@ public class PlatformConfigMessenger
 				if (mapUserInfo != null) {
 					LoginInfoManager.getInstance().setUserInfo(mapUserInfo);
 				}
+				
+				platformLoginComplete = true;
+				Object[] listeners = platformLoginCompleteListeners.toArray();
+				platformLoginCompleteListeners = Collections.EMPTY_LIST;
+				for (int i = 0; i < listeners.length; i++) {
+					try {
+						PlatformLoginCompleteListener l = (PlatformLoginCompleteListener) listeners[i];
+						l.platformLoginComplete();
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+				}
 			}
 
 			public void messageSent(PlatformMessage message) {
@@ -228,7 +244,9 @@ public class PlatformConfigMessenger
 						"version",
 						version,
 						"timestamp",
-						new Long(timestamp)
+						new Long(timestamp),
+						"ago-ms",
+						new Long(SystemTime.getCurrentTime() - timestamp),
 					}, 5000);
 
 			PlatformMessenger.queueMessage(message, l);
@@ -321,5 +339,28 @@ public class PlatformConfigMessenger
 	 */
 	public static boolean doUrlQOS() {
 		return doUrlQOS;
+	}
+	
+	public static void addPlatformLoginCompleteListener(
+			PlatformLoginCompleteListener l) {
+		try {
+			if (l == null) {
+				return;
+			}
+			if (platformLoginComplete) {
+				l.platformLoginComplete();
+				return;
+			}
+			if (platformLoginCompleteListeners == Collections.EMPTY_LIST) {
+				platformLoginCompleteListeners = new ArrayList(1);
+			}
+			platformLoginCompleteListeners.add(l);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+	
+	public static interface PlatformLoginCompleteListener {
+		public void platformLoginComplete();
 	}
 }
