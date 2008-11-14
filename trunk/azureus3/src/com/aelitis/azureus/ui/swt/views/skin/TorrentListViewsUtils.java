@@ -269,8 +269,18 @@ public class TorrentListViewsUtils
 			}
 
 			String ext = FileUtil.getExtension(sFile);
+			
+			try {
+  			if (ext.equalsIgnoreCase(".exe")
+  					&& DataSourceUtils.isPlatformContent(dm)
+  					&& "Game".equalsIgnoreCase(PlatformTorrentUtils.getContentType(dm.getTorrent()))) {
+  				Utils.launch(sFile);
+  				return true;
+  			}
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 
-			//if (untrusted || !trusted) {
 			String sPrefix = "v3.mb.openFile.";
 			
 
@@ -536,89 +546,6 @@ public class TorrentListViewsUtils
 		return false;
 	}
 
-	private static boolean isTrustedContent(String ext) {
-		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-				"azupnpav", true);
-
-		ArrayList whiteList = new ArrayList();
-		String[] goodExts = null;
-		if (pi != null) {
-			try {
-				goodExts = (String[]) pi.getIPC().invoke("getRecognizedExtensions",
-						null);
-			} catch (Throwable e) {
-				//e.printStackTrace();
-			}
-		}
-
-		if (goodExts == null) {
-			// some defaults if media server isn't installed
-			goodExts = new String[] {
-				"mpg",
-				"avi",
-				"mov",
-				"flv",
-				"flc",
-				"mp4",
-				"mpeg",
-				"divx",
-				"wmv",
-				"asf",
-				"mp3",
-				"wma",
-				"wav",
-				"h264",
-				"mkv",
-			};
-		}
-
-		for (int i = 0; i < goodExts.length; i++) {
-			Program program = Program.findProgram(goodExts[i]);
-			if (program != null) {
-				String name = program.getName();
-				if (!whiteList.contains(name)) {
-					whiteList.add(name);
-				}
-			}
-		}
-
-		Program program = Program.findProgram(ext);
-		if (program == null) {
-			return false;
-		}
-		return whiteList.contains(program.getName());
-	}
-
-	private static boolean isUntrustworthyContent(String ext) {
-		// must be sorted
-		final String[] badExts = new String[] {
-			"bas",
-			"bat",
-			"com",
-			"cmd",
-			"cpl",
-			"exe",
-			"js",
-			"lnk",
-			"mdb",
-			"msi",
-			"osx",
-			"pif",
-			"reg",
-			"scr",
-			"vb",
-			"vbe",
-			"vbs",
-			"wsh",
-			"wsf",
-		};
-
-		if (ext.startsWith(".")) {
-			ext = ext.substring(1);
-		}
-		return Arrays.binarySearch(badExts, ext) >= 0;
-	}
-
 	/**
 	 * XXX DO NOT USE.  Only for EMP <= 2.0.14 support
 	 * @param dm
@@ -806,12 +733,6 @@ public class TorrentListViewsUtils
 			ManagerUtils.asyncStopDelete(dm, DownloadManager.STATE_STOPPED,
 					deleteTorrent, deleteData, failure);
 		}
-	}
-
-	public static void main(String[] args) {
-		AzureusCoreFactory.create();
-		System.out.println(isTrustedContent(FileUtil.getExtension("moo.exep")));
-		System.out.println(isUntrustworthyContent(FileUtil.getExtension("moo.exe")));
 	}
 
 	/**
