@@ -64,11 +64,11 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.launcher.Launcher;
@@ -500,7 +500,15 @@ public class MainWindow
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 			
-			setupUsageTracker();
+			PlatformConfigMessenger.addPlatformLoginCompleteListener(new PlatformLoginCompleteListener() {
+				public void platformLoginComplete() {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							setupUsageTracker();
+						}
+					});
+				}
+			});
 
 			increaseProgress(uiInitializer, "v3.splash.initSkin");
 
