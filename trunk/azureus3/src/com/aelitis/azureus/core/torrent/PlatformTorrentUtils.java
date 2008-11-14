@@ -71,6 +71,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_DESCRIPTION = "Description";
 
+	private static final String TOR_AZ_PROP_CONTENT_TYPE = "Content Type";
+
 	private static final String TOR_AZ_PROP_AUTHOR = "Author";
 
 	private static final String TOR_AZ_PROP_PUBLISHER = "Publisher";
@@ -288,6 +290,10 @@ public class PlatformTorrentUtils
 
 	public static String getContentDescription(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_DESCRIPTION);
+	}
+
+	public static String getContentType(TOTorrent torrent) {
+		return getContentMapString(torrent, TOR_AZ_PROP_CONTENT_TYPE);
 	}
 
 	public static String getContentAuthor(TOTorrent torrent) {
