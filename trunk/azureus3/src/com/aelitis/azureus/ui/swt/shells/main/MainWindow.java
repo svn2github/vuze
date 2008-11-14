@@ -1013,12 +1013,13 @@ public class MainWindow
 	private void setupUsageTracker() {
 		mapTrackUsage_mon.enter();
 		try {
+			File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
+
 			if (COConfigurationManager.getBooleanParameter("Send Version Info")
 					&& PlatformConfigMessenger.allowSendStats()) {
 
 				mapTrackUsage = new HashMap();
 
-				File f = new File(SystemProperties.getUserPath(), "timingstats.dat");
 				if (f.exists()) {
 					Map oldMapTrackUsage = FileUtil.readResilientFile(f);
 					String version = MapUtils.getMapString(oldMapTrackUsage, "version",
@@ -1102,6 +1103,13 @@ public class MainWindow
 
 			} else {
 				mapTrackUsage = null;
+				// No use keeping old usage stats if we are told no one wants them
+				try {
+					if (f.exists()) {
+						f.delete();
+					}
+				} catch (Exception e) {
+				}
 			}
 		} catch (Exception e) {
 			Debug.out(e);
