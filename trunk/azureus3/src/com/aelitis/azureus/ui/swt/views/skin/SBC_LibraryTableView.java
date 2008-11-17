@@ -51,6 +51,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -116,20 +117,6 @@ public class SBC_LibraryTableView
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
 						true, columns);
 
-				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
-					public void defaultSelected(TableRowCore[] rows, int stateMask) {
-						if (rows == null || rows.length > 1) {
-							return;
-						}
-						Object ds = rows[0].getDataSource(true);
-						DownloadManager dm = DataSourceUtils.getDM(ds);
-						if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
-  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  								ConstantsV3.DL_REFERAL_DBLCLICK);
-						}
-					}
-				});
-
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 				view = new MyTorrentsView(AzureusCoreFactory.getSingleton(), tableID,
 						false, columns);
@@ -163,9 +150,40 @@ public class SBC_LibraryTableView
 									}
 								}
 							});
+							MyTorrentsView torrentview = getTorrentview();
+							if (torrentview != null) {
+								torrentview.overrideDefaultSelected(new TableSelectionAdapter() {
+									public void defaultSelected(TableRowCore[] rows, int stateMask) {
+										if (rows == null || rows.length > 1) {
+											return;
+										}
+										Object ds = rows[0].getDataSource(true);
+										if (PlayUtils.canPlayDS(ds)) {
+											TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+													ConstantsV3.DL_REFERAL_DBLCLICK);
+										}
+									}
+								});
+							}
 						}
 					}
 				};
+			}
+			
+			if (view instanceof MyTorrentsView) {
+				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
+					public void defaultSelected(TableRowCore[] rows, int stateMask) {
+						if (rows == null || rows.length > 1) {
+							return;
+						}
+						Object ds = rows[0].getDataSource(true);
+						DownloadManager dm = DataSourceUtils.getDM(ds);
+						if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+  						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
+  								ConstantsV3.DL_REFERAL_DBLCLICK);
+						}
+					}
+				});
 			}
 		}
 		
