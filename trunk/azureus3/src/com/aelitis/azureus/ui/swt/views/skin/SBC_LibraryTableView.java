@@ -139,7 +139,7 @@ public class SBC_LibraryTableView
 						if (seedingview != null) {
 							seedingview.overrideDefaultSelected(new TableSelectionAdapter() {
 								public void defaultSelected(TableRowCore[] rows, int stateMask) {
-									if (rows == null || rows.length > 1) {
+									if (rows == null || rows.length != 1) {
 										return;
 									}
 									Object ds = rows[0].getDataSource(true);
@@ -154,7 +154,7 @@ public class SBC_LibraryTableView
 							if (torrentview != null) {
 								torrentview.overrideDefaultSelected(new TableSelectionAdapter() {
 									public void defaultSelected(TableRowCore[] rows, int stateMask) {
-										if (rows == null || rows.length > 1) {
+										if (rows == null || rows.length != 1) {
 											return;
 										}
 										Object ds = rows[0].getDataSource(true);
@@ -173,7 +173,7 @@ public class SBC_LibraryTableView
 			if (view instanceof MyTorrentsView) {
 				((MyTorrentsView) view).overrideDefaultSelected(new TableSelectionAdapter() {
 					public void defaultSelected(TableRowCore[] rows, int stateMask) {
-						if (rows == null || rows.length > 1) {
+						if (rows == null || rows.length != 1) {
 							return;
 						}
 						Object ds = rows[0].getDataSource(true);
