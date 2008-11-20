@@ -103,6 +103,11 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
+	private static final String TOR_AZ_PROP_CONTENT_NETWORK = "Content Network";
+	
+	public static final long	CONTENT_NETWORK_VUZE		= 1;
+	public static final long	CONTENT_NETWORK_RFN			= 2;
+
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
 
 	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
@@ -329,6 +334,14 @@ public class PlatformTorrentUtils
 		setContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, cla);
 	}
 
+	public static long getContentNetwork(TOTorrent torrent) {
+		return getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, CONTENT_NETWORK_VUZE );
+	}
+
+	public static void setContentNetwork(TOTorrent torrent, long cnet) {
+		setContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, cnet);
+	}
+	
 	private static void putOrRemove(Map map, String key, Object obj) {
 		if (obj == null || obj.equals(null)) {
 			map.remove(key);
