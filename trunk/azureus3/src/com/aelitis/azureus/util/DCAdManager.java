@@ -484,7 +484,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 				// each reply from getAdvert will in turn decreaseCheckingForAds()
 				increaseCheckingForAds();
-				PlatformDCAdManager.getAdvert(dm, 2000, this);
+				PlatformDCAdManager.getAdvert(dm, 500, this);
 			}
 
 		} catch (Exception e) {
