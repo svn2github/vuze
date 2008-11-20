@@ -36,6 +36,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformTorrentMessenger;
@@ -105,8 +106,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_CONTENT_NETWORK = "Content Network";
 	
-	public static final long	CONTENT_NETWORK_VUZE		= 1;
-	public static final long	CONTENT_NETWORK_RFN			= 2;
+	public static final long	CONTENT_NETWORK_VUZE		= ContentNetwork.CONTENT_NETWORK_VUZE;
+	public static final long	CONTENT_NETWORK_RFN			= ContentNetwork.CONTENT_NETWORK_RFN;
 
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
 

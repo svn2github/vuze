@@ -23,6 +23,7 @@
 package com.aelitis.azureus.util;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
@@ -55,6 +56,8 @@ public class InitialisationFunctions
 		AzureusPlatformContentDirectory.register();
 
 		CacheDiscovery.initialise( dme );
+		
+		ContentNetworkManagerFactory.preInitialise();
 		
 		MetaSearchManagerFactory.preInitialise();
 		
