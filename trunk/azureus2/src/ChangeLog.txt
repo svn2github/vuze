@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+200x.xx.xx | Vuze 4.0.0.5
+
+
 2008.11.20 | Vuze 4.0.0.4
 
 FEATURE: UIvz | Ability to change List modes in View menu [TuxPaper]
