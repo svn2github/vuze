@@ -145,6 +145,15 @@ RSSEngine
 		return( false );
 	}
 	
+	public int 
+	getAutoDownloadSupported() 
+	{
+			// unknown until a successful feed download has occurred so that we know the
+			// status of the feed tag
+		
+		return((int)getLocalLong( LD_AUTO_DL_SUPPORTED, AUTO_DL_SUPPORTED_UNKNOWN ));
+	}
+	
 	protected Result[] 
 	searchSupport(
 		SearchParameter[] 	searchParameters, 
@@ -163,6 +172,7 @@ RSSEngine
 		String	page = page_details.getContent();
 		
 		if ( listener != null ){
+			
 			listener.contentReceived( this, page );
 		}
 			
@@ -172,20 +182,49 @@ RSSEngine
 		}
 		
 		try {
-			ByteArrayInputStream bais = new ByteArrayInputStream(page.getBytes("UTF-8"));
-			RSSFeed rssFeed = StaticUtilities.getRSSFeed(bais);
+			ByteArrayInputStream bais = new ByteArrayInputStream( page.getBytes("UTF-8"));
+			
+			RSSFeed rssFeed = StaticUtilities.getRSSFeed( bais );
+			
 			RSSChannel[] channels = rssFeed.getChannels();
 			
 			List results = new ArrayList();
 			
-			for(int i = 0 ; i < channels.length ; i++) {
+			for ( int i=0; i<channels.length; i++ ){
+				
 				RSSChannel channel = channels[i];
+				
+				SimpleXMLParserDocumentNode[] channel_kids = channel.getNode().getChildren();
+				
+				int	auto_dl_state = AUTO_DL_SUPPORTED_YES;
+				
+				for ( int j=0; j<channel_kids.length; j++ ){
+
+					SimpleXMLParserDocumentNode child = channel_kids[j];
+
+					String	lc_full_child_name 	= child.getFullName().toLowerCase();
+
+					if ( lc_full_child_name.equals( "vuze:auto_dl_enabled" )){
+						
+						if ( !child.getValue().equalsIgnoreCase( "true" )){
+							
+							auto_dl_state = AUTO_DL_SUPPORTED_NO;
+						}
+					}
+				}			
+				
+				setLocalLong( LD_AUTO_DL_SUPPORTED, auto_dl_state );
+				
 				RSSItem[] items = channel.getItems();
-				for(int j = 0 ; j < items.length ; j++) {
+
+				for ( int j=0 ; j<items.length; j++ ){
+					
 					RSSItem item = items[j];
+					
 					WebResult result = new WebResult(this,getRootPage(),getBasePage(),getDateParser(),"");
 					
 					result.setPublishedDate(item.getPublicationDate());
+					
 					result.setNameFromHTML(item.getTitle());
 					
 					URL cdp_link = item.getLink();
@@ -203,9 +242,13 @@ RSSEngine
 					}
 					
 					SimpleXMLParserDocumentNode node = item.getNode();
-					if(node != null) {
+					
+					if ( node != null ){
+						
 						SimpleXMLParserDocumentNode[] children = node.getChildren();
-						for(int k = 0 ; k < children.length ; k++) {
+						
+						for ( int k=0; k<children.length; k++ ){
+							
 							SimpleXMLParserDocumentNode child = children[k];
 							
 							String	lc_child_name 		= child.getName().toLowerCase();

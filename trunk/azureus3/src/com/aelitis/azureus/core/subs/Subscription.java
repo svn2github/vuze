@@ -136,6 +136,9 @@ Subscription
 	
 		throws SubscriptionException;
 	
+	public boolean
+	isAutoDownloadSupported();
+	
 	public VuzeFile
 	getVuzeFile()
 	

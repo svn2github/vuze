@@ -1159,6 +1159,12 @@ SubscriptionImpl
 		}
 	}
 	
+	public boolean 
+	isAutoDownloadSupported() 
+	{
+		return( history.isAutoDownloadSupported());
+	}
+	
 	public void
 	getPopularity(
 		final SubscriptionPopularityListener	listener )

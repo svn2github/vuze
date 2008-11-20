@@ -714,6 +714,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									new Boolean( 	engine.supportsField( Engine.FIELD_TORRENTLINK ) ||
 													engine.supportsField( Engine.FIELD_DOWNLOADBTNLINK )));
 					
+					params.put( "auto_dl_supported", new Boolean( engine.getAutoDownloadSupported() == Engine.AUTO_DL_SUPPORTED_YES ));
+
 					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
 					
 				}catch( Throwable e ){
@@ -1224,6 +1226,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					result.put( "is_public", new Boolean( shareable && subs.isPublic()));
 					result.put( "is_author", new Boolean( subs.isMine()));
 					result.put( "is_shareable", new Boolean( shareable ));
+					result.put( "auto_dl_supported", new Boolean( subs.isAutoDownloadSupported()));
 					
 					SubscriptionHistory history = subs.getHistory();
 					

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 
@@ -54,7 +55,8 @@ SubscriptionHistoryImpl
 	private boolean			auth_failed;
 	private int				consec_fails;
 	
-
+	private boolean			auto_dl_supported;
+	
 	protected
 	SubscriptionHistoryImpl(
 		SubscriptionManagerImpl		_manager,
@@ -68,8 +70,11 @@ SubscriptionHistoryImpl
 	
 	protected SubscriptionResultImpl[]
 	reconcileResults(
+		Engine							engine,
 		SubscriptionResultImpl[]		latest_results )
 	{
+		auto_dl_supported	= engine.getAutoDownloadSupported() == Engine.AUTO_DL_SUPPORTED_YES;
+		
 		int	new_unread 	= 0;
 		int new_read	= 0;
 					
@@ -828,6 +833,12 @@ SubscriptionHistoryImpl
 		num_unread	= new_unread;
 	}
 	
+	protected boolean
+	isAutoDownloadSupported()
+	{
+		return( auto_dl_supported );
+	}
+	
 	protected void
 	setLastError(
 		String		_last_error,
@@ -876,7 +887,7 @@ SubscriptionHistoryImpl
 		
 		Long	l_auto_dl	= (Long)map.get( "auto_dl" );		
 		auto_dl				= l_auto_dl==null?false:l_auto_dl.longValue()==1;
-
+		
 		Long	l_last_scan = (Long)map.get( "last_scan" );		
 		last_scan			= l_last_scan==null?0:l_last_scan.longValue();
 		
@@ -888,6 +899,13 @@ SubscriptionHistoryImpl
 
 		Long	l_num_read 	= (Long)map.get( "num_read" );		
 		num_read			= l_num_read==null?0:l_num_read.intValue();
+		
+			// migration - if we've already downloaded this feed then we default to being
+			// enabled
+		
+		Long	l_auto_dl_s	= (Long)map.get( "auto_dl_supported" );		
+		auto_dl_supported	= l_auto_dl_s==null?(last_scan>0):l_auto_dl_s.longValue()==1;
+
 	}
 	
 	protected void
@@ -897,6 +915,7 @@ SubscriptionHistoryImpl
 		
 		map.put( "enabled", new Long( enabled?1:0 ));
 		map.put( "auto_dl", new Long( auto_dl?1:0 ));
+		map.put( "auto_dl_supported", new Long( auto_dl_supported?1:0));
 		map.put( "last_scan", new Long( last_scan ));
 		map.put( "last_new", new Long( last_new_result ));
 		map.put( "num_unread", new Long( num_unread ));

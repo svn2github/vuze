@@ -138,6 +138,9 @@ EngineImpl
 	protected static final String		LD_UPDATE_CHECK_SECS	= "update_check_secs";
 	protected static final String		LD_CREATED_BY_ME		= "mine";
 	
+	protected static final String		LD_AUTO_DL_SUPPORTED	= "auto_dl_supported";
+
+	
 	private MetaSearchImpl	meta_search;
 	
 	private int			type;
@@ -1047,6 +1050,19 @@ EngineImpl
 		setLocalLong( LD_LAST_UPDATE_CHECK, when );
 	}
 	
+	public int 
+	getAutoDownloadSupported() 
+	{
+			// default impl based on availability of fields that permit auto-dl
+			// overridden in RSS engine ( for example ) to be based on explicit
+			// channel tag
+		
+		boolean ok =
+			supportsField( Engine.FIELD_TORRENTLINK ) || 
+			supportsField( Engine.FIELD_DOWNLOADBTNLINK );
+
+		return( ok?AUTO_DL_SUPPORTED_YES:AUTO_DL_SUPPORTED_NO );
+	}
 	protected void
 	configDirty()
 	{

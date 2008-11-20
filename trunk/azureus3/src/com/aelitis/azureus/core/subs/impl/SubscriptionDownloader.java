@@ -114,7 +114,7 @@ SubscriptionDownloader
 				s_results[i] = s_result;
 			}
 			
-			SubscriptionResultImpl[] all_results = history.reconcileResults( s_results );
+			SubscriptionResultImpl[] all_results = history.reconcileResults( engine, s_results );
 						
 			checkAutoDownload( all_results );
 			

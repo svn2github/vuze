@@ -83,6 +83,10 @@ Engine
 	public static final int	SEL_STATE_AUTO_SELECTED			= 1;
 	public static final int	SEL_STATE_MANUAL_SELECTED		= 2;
 	
+	public static final int AUTO_DL_SUPPORTED_UNKNOWN		= 0;
+	public static final int AUTO_DL_SUPPORTED_YES			= 1;
+	public static final int AUTO_DL_SUPPORTED_NO			= 2;
+	
 		/**
 		 * don't change these as they are externalised
 		 */
@@ -177,6 +181,13 @@ Engine
 	
 	public boolean
 	isShareable();
+	
+		/**
+		 * @return one of AUTO_DL constants above
+		 */
+	
+	public int
+	getAutoDownloadSupported();
 	
 	public int
 	getAZVersion();
