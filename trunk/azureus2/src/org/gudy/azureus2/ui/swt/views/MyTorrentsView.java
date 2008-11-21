@@ -140,8 +140,8 @@ public class MyTorrentsView
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
 	private boolean forceHeaderVisible = false;
-	private Label lblFilter;
 	private TableSelectionListener defaultSelectedListener;
+	private Composite cFilterArea;
 
 	public
 	MyTorrentsView() {
@@ -296,7 +296,6 @@ public class MyTorrentsView
     GridData gridData;
     cTableParentPanel = new Composite(composite, SWT.NULL);
     GridLayout layout = new GridLayout();
-    layout.numColumns = 2;
     layout.horizontalSpacing = 0;
     layout.verticalSpacing = 0;
     layout.marginHeight = 0;
@@ -309,7 +308,6 @@ public class MyTorrentsView
     if (EXPERIMENT) {
     	Composite cHeaders = new Composite(cTableParentPanel, SWT.NONE);
     	gridData = new GridData(GridData.FILL_HORIZONTAL);
-    	gridData.horizontalSpan = 2;
     	GC gc = new GC(cHeaders);
     	int h = gc.textExtent("alyup").y + 2;
     	gc.dispose();
@@ -323,7 +321,6 @@ public class MyTorrentsView
     cTablePanel.setForeground(composite.getDisplay().getSystemColor(SWT.COLOR_LIST_FOREGROUND));
 
     gridData = new GridData(GridData.FILL_BOTH);
-    gridData.horizontalSpan = 2;
     cTablePanel.setLayoutData(gridData);
 
     layout = new GridLayout(1, false);
@@ -372,7 +369,32 @@ public class MyTorrentsView
       if (cCategories == null) {
         Composite parent = cTableParentPanel;
 
-        cCategories = new Composite(parent, SWT.NONE);
+        cHeader = new Composite(parent, SWT.NONE);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        gridData.horizontalIndent = 5;
+        cHeader.setLayoutData(gridData);
+        GridLayout layout = new GridLayout();
+        layout.numColumns = 3;
+        layout.marginHeight = 0;
+        layout.marginWidth = 0;
+        layout.horizontalSpacing = 2;
+        layout.verticalSpacing = 0;
+        cHeader.setLayout(layout);
+        
+        
+        lblHeader = new Label(cHeader, SWT.WRAP);
+        gridData = new GridData();
+        lblHeader.setLayoutData(gridData);
+        updateTableLabel();
+
+        cFilterArea = new Composite(cHeader, SWT.NONE);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        cFilterArea.setLayoutData(gridData);
+        layout = new GridLayout();
+        layout.numColumns = 5;
+        cFilterArea.setLayout(layout);
+                
+        cCategories = new Composite(cHeader, SWT.NONE);
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
         cCategories.setLayoutData(gridData);
         RowLayout rowLayout = new RowLayout();
@@ -385,34 +407,18 @@ public class MyTorrentsView
         new Label(cCategories, SWT.NONE);
         cCategories.setLayout(rowLayout);
 
-        cHeader = new Composite(parent, SWT.NONE);
-        gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.horizontalIndent = 5;
-        cHeader.setLayoutData(gridData);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 6;
-        layout.marginHeight = 0;
-        layout.marginWidth = 0;
-        layout.horizontalSpacing = 2;
-        layout.verticalSpacing = 0;
-        cHeader.setLayout(layout);
-        
-        lblHeader = new Label(cHeader, SWT.WRAP);
-        gridData = new GridData();
-        lblHeader.setLayoutData(gridData);
-        updateTableLabel();
 
-        Label lblSep = new Label(cHeader, SWT.SEPARATOR | SWT.VERTICAL);
+        Label lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
         gridData = new GridData(GridData.FILL_VERTICAL);
         gridData.heightHint = 5;
         lblSep.setLayoutData(gridData);
         
-        lblFilter = new Label(cHeader, SWT.WRAP);
+        Label lblFilter = new Label(cFilterArea, SWT.WRAP);
         gridData = new GridData(GridData.BEGINNING);
         lblFilter.setLayoutData(gridData);
         Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
 
-		lblX = new Label(cHeader, SWT.WRAP);
+        lblX = new Label(cFilterArea, SWT.WRAP);
         Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
         gridData = new GridData(SWT.TOP);
         lblX.setLayoutData(gridData);
@@ -422,11 +428,12 @@ public class MyTorrentsView
         		if (e.y <= 10) {
           		sLastSearch = "";
           		updateLastSearch();
+              cFilterArea.setVisible(false);
         		}
         	}
         });
         
-        txtFilter = new Text(cHeader, SWT.BORDER);
+        txtFilter = new Text(cFilterArea, SWT.BORDER);
         Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
         txtFilter.addKeyListener(this);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -452,13 +459,13 @@ public class MyTorrentsView
         	}
         });
         
-        lblSep = new Label(cHeader, SWT.SEPARATOR | SWT.VERTICAL);
+        lblSep = new Label(cFilterArea, SWT.SEPARATOR | SWT.VERTICAL);
         gridData = new GridData(GridData.FILL_VERTICAL);
         gridData.heightHint = 5;
         lblSep.setLayoutData(gridData);
         
         cHeader.moveAbove(null);
-        cCategories.moveBelow(cHeader);
+        parent.layout(true);
       } else {
         Control[] controls = cCategories.getChildren();
         for (int i = 0; i < controls.length; i++) {
@@ -466,9 +473,7 @@ public class MyTorrentsView
         }
       }
       
-      txtFilter.setVisible(showCat);
-      lblX.setVisible(showCat);
-      lblFilter.setVisible(showCat);
+      cFilterArea.setVisible(showCat);
 
       if (showCat) {
       	buildCat(categories);
@@ -817,40 +822,40 @@ public class MyTorrentsView
 		cCategories.layout();
 		getComposite().layout();
 
-		// layout hack - relayout
-		if (catResizeAdapter == null) {
-			catResizeAdapter = new ControlAdapter() {
-				public void controlResized(ControlEvent event) {
-					if (getComposite().isDisposed() || cCategories.isDisposed())
-						return;
-
-					GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
-
-					int parentWidth = cCategories.getParent().getClientArea().width;
-					int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-					// give text a 5 pixel right padding
-					int textWidth = 5 + cHeader.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
-							+ cHeader.getBorderWidth() * 2;
-
-					Object layoutData = cHeader.getLayoutData();
-					if (layoutData instanceof GridData) {
-						GridData labelGrid = (GridData) layoutData;
-						textWidth += labelGrid.horizontalIndent;
-					}
-
-					if (textWidth + catsWidth > parentWidth) {
-						gridData.widthHint = parentWidth - textWidth;
-					}
-					cCategories.setLayoutData(gridData);
-					cCategories.getParent().layout(true);
-
-				}
-			};
-
-			tv.getTableComposite().addControlListener(catResizeAdapter);
-		}
-
-		catResizeAdapter.controlResized(null);
+//		// layout hack - relayout
+//		if (catResizeAdapter == null) {
+//			catResizeAdapter = new ControlAdapter() {
+//				public void controlResized(ControlEvent event) {
+//					if (getComposite().isDisposed() || cCategories.isDisposed())
+//						return;
+//
+//					GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+//
+//					int parentWidth = cCategories.getParent().getClientArea().width;
+//					int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+//					// give text a 5 pixel right padding
+//					int textWidth = 5 + cHeader.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
+//							+ cHeader.getBorderWidth() * 2;
+//
+//					Object layoutData = cHeader.getLayoutData();
+//					if (layoutData instanceof GridData) {
+//						GridData labelGrid = (GridData) layoutData;
+//						textWidth += labelGrid.horizontalIndent;
+//					}
+//
+//					if (textWidth + catsWidth > parentWidth) {
+//						gridData.widthHint = parentWidth - textWidth;
+//					}
+//					cCategories.setLayoutData(gridData);
+//					cCategories.getParent().layout(true);
+//
+//				}
+//			};
+//
+//			tv.getTableComposite().addControlListener(catResizeAdapter);
+//		}
+//
+//		catResizeAdapter.controlResized(null);
 	}
 
 	public boolean isOurDownloadManager(DownloadManager dm) {
@@ -1422,9 +1427,7 @@ public class MyTorrentsView
 			createTabs();
 
 		if (txtFilter != null && !txtFilter.isDisposed()) {
-			txtFilter.setVisible(true);
-			lblX.setVisible(true);
-			lblFilter.setVisible(true);
+      cFilterArea.setVisible(true);
 
 			if (!sLastSearch.equals(txtFilter.getText())) { 
 				txtFilter.setText(sLastSearch);
