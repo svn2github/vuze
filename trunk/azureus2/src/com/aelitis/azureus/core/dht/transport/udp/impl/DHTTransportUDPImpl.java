@@ -30,6 +30,7 @@ import java.net.InetSocketAddress;
 import java.security.SecureRandom;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
@@ -62,6 +63,8 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacke
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketReceiver;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
+import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -170,8 +173,9 @@ DHTTransportUDPImpl
 		};
 			
 		
-	private long	other_routable_total;
-	private long	other_non_routable_total;
+	private long					other_routable_total;
+	private long					other_non_routable_total;
+	private MovingImmediateAverage	routeable_percentage_average = AverageFactory.MovingImmediateAverage(8);
 	
 	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
 
@@ -255,6 +259,13 @@ DHTTransportUDPImpl
 			logger.log( e );
 		}
 		
+		int last_pct = COConfigurationManager.getIntParameter( "dht.udp.net" + network + ".routeable_pct", -1 );
+		
+		if ( last_pct > 0 ){
+			
+			routeable_percentage_average.update( last_pct );
+		}
+		
 		createPacketHandler();
 		
 		SimpleTimer.addPeriodicEvent(
@@ -262,11 +273,13 @@ DHTTransportUDPImpl
 			STATS_PERIOD,
 			new TimerEventPerformer()
 			{
+				private int tick_count;
+				
 				public void
 				perform(
 					TimerEvent	event )
 				{
-					updateStats();
+					updateStats( tick_count++);
 				}
 			});
 		
@@ -324,7 +337,8 @@ DHTTransportUDPImpl
 	}
 	
 	protected void
-	updateStats()
+	updateStats(
+		int	tick_count )
 	{
 		long	alien_count	= 0;
 		
@@ -395,6 +409,13 @@ DHTTransportUDPImpl
 					}	
 				}
 			}
+		}
+		
+		int	pct = getRouteablePercentage();
+			
+		if ( pct > 0 ){
+			
+			COConfigurationManager.setParameter("dht.udp.net" + network + ".routeable_pct", pct );
 		}
 		
 		// System.out.println( "routables=" + other_routable_total + ", non=" + other_non_routable_total );
@@ -965,12 +986,65 @@ DHTTransportUDPImpl
 	public int 
 	getRouteablePercentage() 
 	{
-		if ( other_routable_total + other_non_routable_total < 100 ){
-			
-			return( -1 );
-		}
+		synchronized( routeable_percentage_average ){
 		
-		return((int)(( other_routable_total * 100 )/ (other_routable_total + other_non_routable_total )));
+			double	average = routeable_percentage_average.getAverage();
+			
+			long	both_total = other_routable_total + other_non_routable_total;
+			
+			int	current_percent;
+			
+			if ( both_total == 0 ){
+				
+				current_percent = 0;
+				
+			}else{
+				
+				current_percent = (int)(( other_routable_total * 100 )/ both_total );
+			}
+			 
+			if ( both_total >= 300 ){
+				
+					// add current to average and reset
+				
+				if ( current_percent > 0 ){
+				
+					average = routeable_percentage_average.update( current_percent );
+					
+					other_routable_total = other_non_routable_total = 0;
+				}
+			}else if ( both_total >= 100 ){
+				
+					// if we have enough samples and no existing average then use current
+				
+				if ( average == 0 ){
+					
+					average = current_percent;
+					
+				}else{
+					
+						// factor in current percantage
+					
+					int samples = routeable_percentage_average.getSampleCount();
+					
+					if ( samples > 0 ){
+						
+						average = (( samples * average ) + current_percent ) / ( samples + 1 );
+					}
+				}
+			}
+			
+			int result = (int)average;
+			
+			if ( result == 0 ){
+				
+					// -1 indicates we have no usable value
+				
+				result = -1;
+			}
+			
+			return( result );
+		}
 	}
 	
 	protected boolean
