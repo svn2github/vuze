@@ -94,7 +94,8 @@ public class SelectedContentV3
 		if (dm != null) {
 			try {
 				setHash(dm.getTorrent().getHashWrapper().toBase32String());
-			} catch (TOTorrentException e) {
+			} catch (Exception e) {
+				setHash(null);
 			}
   		setPlatformContent(PlatformTorrentUtils.isContent(dm.getTorrent(), true));
   		setDisplayName(PlatformTorrentUtils.getContentTitle2(dm));
