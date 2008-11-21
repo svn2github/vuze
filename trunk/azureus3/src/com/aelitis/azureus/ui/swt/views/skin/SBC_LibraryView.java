@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -279,6 +280,8 @@ public class SBC_LibraryView
 				soOldViewArea.setVisible(false);
 			}
 		}
+		
+		SelectedContentManager.clearCurrentlySelectedContent();
 
 		SWTSkinObject soViewArea = getSkinObject(modeViewIDs[viewMode]);
 		if (soViewArea == null) {
