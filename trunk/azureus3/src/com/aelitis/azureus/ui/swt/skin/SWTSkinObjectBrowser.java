@@ -308,8 +308,8 @@ public class SWTSkinObjectBrowser
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setVisible(boolean)
-	public void setIsVisible(final boolean visible) {
-		super.setIsVisible(visible);
+	public void setIsVisible(final boolean visible, boolean walkup) {
+		super.setIsVisible(visible, walkup);
 
 		// notify browser after we've fully processed visibility 
 		Utils.execSWTThreadLater(0, new AERunnable() {

@@ -216,4 +216,18 @@ public class SWTSkinObjectContainer
 			}
 		}
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setIsVisible(boolean)
+	protected void setIsVisible(boolean visible, boolean walkup) {
+		super.setIsVisible(visible, walkup);
+		
+		SWTSkinObject[] children = getChildren();
+		for (int i = 0; i < children.length; i++) {
+			if (children[i] instanceof SWTSkinObjectBasic) {
+				SWTSkinObjectBasic child = ((SWTSkinObjectBasic)children[i]);
+				child.setIsVisible(child.getControl().isVisible(), false);
+			}
+		}
+		
+	}
 }

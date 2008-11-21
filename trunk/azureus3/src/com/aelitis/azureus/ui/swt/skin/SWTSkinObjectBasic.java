@@ -193,47 +193,34 @@ public class SWTSkinObjectBasic
 				// isVisible will be correct for listener triggers
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
-						//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control)event.widget).isVisible());
+						//System.out.println(">>show/hide " + ((event.widget).getData("SkinObject")) + ";" + ((Control) event.widget).isVisible());
 						if (control == null || control.isDisposed()) {
-							setIsVisible(false);
+							setIsVisible(false, true);
 							return;
 						}
 
 						if (event.widget == control) {
-							setIsVisible(toBeVisible);
+							setIsVisible(toBeVisible, true);
 							return;
 						}
 
 						if (!toBeVisible || control.isVisible()) {
-							setIsVisible(toBeVisible);
+							setIsVisible(toBeVisible, true);
 							return;
 						}
-						setIsVisible(control.isVisible());
+						setIsVisible(control.isVisible(), true);
 					}
 				});
 			}
 		};
-		setIsVisible(control.isVisible());
+		setIsVisible(control.isVisible(), false);
 
-		final ArrayList listenersToRemove = new ArrayList(2);
-		Control walkUp = control;
-		do {
-			listenersToRemove.add(walkUp);
-			walkUp.addListener(SWT.Show, lShowHide);
-			walkUp.addListener(SWT.Hide, lShowHide);
-			walkUp = walkUp.getParent();
-		} while (walkUp != null);
+		control.addListener(SWT.Show, lShowHide);
+		control.addListener(SWT.Hide, lShowHide);
 
 		control.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				disposed = true;
-				for (Iterator iter = listenersToRemove.iterator(); iter.hasNext();) {
-					Control control = (Control) iter.next();
-					if (control != null && !control.isDisposed()) {
-						control.removeListener(SWT.Show, lShowHide);
-						control.removeListener(SWT.Hide, lShowHide);
-					}
-				}
 				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
@@ -259,7 +246,7 @@ public class SWTSkinObjectBasic
 	 *
 	 * @since 3.0.4.3
 	 */
-	protected void setIsVisible(boolean visible) {
+	protected void setIsVisible(boolean visible, boolean walkup) {
 		if (visible == isVisible) {
 			return;
 		}
@@ -267,6 +254,12 @@ public class SWTSkinObjectBasic
 		switchSuffix(null, 0, false);
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
+		
+		if (walkup) {
+  		if (parent instanceof SWTSkinObjectBasic) {
+  			((SWTSkinObjectBasic) parent).setIsVisible(visible, walkup);
+  		}
+		}
 	}
 
 	public Control getControl() {
@@ -426,7 +419,7 @@ public class SWTSkinObjectBasic
 						Utils.relayout(control);
 					}
 					control.setVisible(visible);
-					setIsVisible(visible);
+					setIsVisible(visible, true);
 				}
 			}
 		});
