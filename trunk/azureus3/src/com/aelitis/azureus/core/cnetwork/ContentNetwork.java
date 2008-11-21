@@ -27,4 +27,6 @@ ContentNetwork
 	public static final long	CONTENT_NETWORK_VUZE		= 1;
 	public static final long	CONTENT_NETWORK_RFN			= 2;
 
+	public long
+	getID();
 }

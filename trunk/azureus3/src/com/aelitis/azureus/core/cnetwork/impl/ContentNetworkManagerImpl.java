@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.cnetwork.impl;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -68,5 +69,19 @@ ContentNetworkManagerImpl
 	getSingleton()
 	{
 		return( singleton );
+	}
+	
+	private ContentNetwork[] 		networks;
+	
+	protected
+	ContentNetworkManagerImpl()
+	{
+		networks = new ContentNetwork[]{ new ContentNetworkImpl( ContentNetwork.CONTENT_NETWORK_VUZE ) };
+	}
+	
+	public ContentNetwork[] 
+	getContentNetworks() 
+	{
+		return( networks );
 	}
 }

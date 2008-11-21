@@ -19,11 +19,26 @@
  */
 
 
-package com.aelitis.azureus.core.cnetwork;
+package com.aelitis.azureus.core.cnetwork.impl;
 
-public interface 
-ContentNetworkManager 
+import com.aelitis.azureus.core.cnetwork.*;
+
+public class 
+ContentNetworkImpl
+	implements ContentNetwork
 {
-	public ContentNetwork[]
-	getContentNetworks();
+	private long		id;
+	
+	protected
+	ContentNetworkImpl(
+		long			_id )
+	{
+		id		= _id;
+	}
+	
+	public long 
+	getID() 
+	{
+		return( id );
+	}
 }
