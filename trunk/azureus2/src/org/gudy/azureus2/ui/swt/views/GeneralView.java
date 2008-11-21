@@ -824,7 +824,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     TOTorrent	torrent = manager.getTorrent();
     
     String creation_date = DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000);
-    byte[] created_by = torrent.getCreatedBy();
+    byte[] created_by = torrent == null ? null : torrent.getCreatedBy();
     if (created_by != null) {
     	try {
     		creation_date = MessageText.getString("GeneralView.torrent_created_on_and_by", new String[] {
@@ -845,7 +845,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       manager.getTorrentComment(),
       creation_date,
       manager.getDownloadState().getUserComment(),
-      MessageText.getString("GeneralView."+(torrent.getPrivate()?"yes":"no"))
+      MessageText.getString("GeneralView."+(torrent != null && torrent.getPrivate()?"yes":"no"))
       );
     
     
