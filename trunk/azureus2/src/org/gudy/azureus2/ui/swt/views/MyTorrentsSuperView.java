@@ -115,8 +115,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginWidth = 0;
     child1.setLayout(layout);
     torrentview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, tableIncompleteItems);
-    torrentview.initialize(child1);
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, tableIncompleteItems,
+				child1);
 
     final Sash sash = new Sash(form, SWT.HORIZONTAL);
 
@@ -129,8 +129,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginWidth = 0;
     child2.setLayout(layout);
     seedingview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_COMPLETE, true, tableCompleteItems);
-    seedingview.initialize(child2);
+				TableManager.TABLE_MYTORRENTS_COMPLETE, true, tableCompleteItems,
+				child2);
 
     FormData formData;
 
@@ -327,7 +327,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	}
 
 	public void viewActivated() {
-    IView currentView = getCurrentView();
+		SelectedContentManager.clearCurrentlySelectedContent();
+
+		IView currentView = getCurrentView();
     if (currentView instanceof IViewExtension) {
     	((IViewExtension)currentView).viewActivated();
     }
@@ -342,6 +344,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     if (currentView instanceof IViewExtension) {
     	((IViewExtension)currentView).viewDeactivated();
     }
+    /*
     String ID = currentView.getShortTitle();
     if (currentView instanceof MyTorrentsView) {
     	ID = ((MyTorrentsView)currentView).getTableView().getTableID();
@@ -351,7 +354,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
     if (currentView instanceof MyTorrentsView) {
     	tv = ((MyTorrentsView) currentView).getTableView();    	
     }
+    //SelectedContentManager.clearCurrentlySelectedContent();
     SelectedContentManager.changeCurrentlySelectedContent(ID, null, tv);
+    */
 	}
 	
 	/**
@@ -379,11 +384,24 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	 * @param _azureus_core
 	 * @param isSeedingView
 	 * @param columns
+	 * @param child1 
 	 * @return
 	 */
 	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
-			String tableID, boolean isSeedingView, TableColumnCore[] columns) {
-		return new MyTorrentsView(_azureus_core, tableID, isSeedingView, columns);
+			String tableID, boolean isSeedingView, TableColumnCore[] columns, Composite c) {
+		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID, isSeedingView, columns);
+    view.initialize(c);
+		c.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				viewActivated();
+			}
+		});
+		c.addListener(SWT.Deactivate, new Listener() {
+			public void handleEvent(Event event) {
+				viewDeactivated();
+			}
+		});
+		return view;
 	}
 
 
