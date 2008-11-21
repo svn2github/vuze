@@ -153,8 +153,27 @@ public class SWTSkinObjectContainer
 		}
 	}
 
-	// TODO: Need find child(view id)
 	public SWTSkinObject[] getChildren() {
+		if (!Utils.isThisThreadSWT()) {
+			System.err.println("Tux: Fix this " + Debug.getCompressedStackTrace());
+			return oldgetChildren();
+		}
+
+		Control[] swtChildren = ((Composite)control).getChildren();
+		ArrayList list = new ArrayList(swtChildren.length);
+		for (int i = 0; i < swtChildren.length; i++) {
+			Control childControl = swtChildren[i];
+			SWTSkinObject so = (SWTSkinObject) childControl.getData("SkinObject");
+			if (so != null) {
+				list.add(so);
+			}
+		}
+
+		return (SWTSkinObject[]) list.toArray(new SWTSkinObject[list.size()]);
+	}
+
+	// TODO: Need find child(view id)
+	public SWTSkinObject[] oldgetChildren() {
 		String[] widgets = properties.getStringArray(sConfigID + ".widgets");
 		if (widgets == null) {
 			return new SWTSkinObject[0];
@@ -231,6 +250,5 @@ public class SWTSkinObjectContainer
 				}
 			}
 		}
-		
 	}
 }
