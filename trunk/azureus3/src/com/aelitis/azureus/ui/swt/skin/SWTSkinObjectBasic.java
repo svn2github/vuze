@@ -217,10 +217,15 @@ public class SWTSkinObjectBasic
 
 		control.addListener(SWT.Show, lShowHide);
 		control.addListener(SWT.Hide, lShowHide);
+		final Shell shell = control.getShell();
+		shell.addListener(SWT.Show, lShowHide);
+		shell.addListener(SWT.Hide, lShowHide);
 
 		control.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				disposed = true;
+				shell.removeListener(SWT.Show, lShowHide);
+				shell.removeListener(SWT.Hide, lShowHide);
 				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
