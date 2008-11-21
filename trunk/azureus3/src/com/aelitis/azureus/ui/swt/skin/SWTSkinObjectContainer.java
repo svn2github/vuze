@@ -225,7 +225,10 @@ public class SWTSkinObjectContainer
 		for (int i = 0; i < children.length; i++) {
 			if (children[i] instanceof SWTSkinObjectBasic) {
 				SWTSkinObjectBasic child = ((SWTSkinObjectBasic)children[i]);
-				child.setIsVisible(child.getControl().isVisible(), false);
+				Control childControl = child.getControl();
+				if (childControl != null && !childControl.isDisposed()) {
+					child.setIsVisible(childControl.isVisible(), false);
+				}
 			}
 		}
 		
