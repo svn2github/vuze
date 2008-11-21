@@ -18,6 +18,9 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -40,10 +43,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -317,9 +321,10 @@ public class SBC_LibraryTableView
 			if (view instanceof MyTorrentsView) {
 				MyTorrentsView torrentsView = (MyTorrentsView) view;
 				TableViewSWT tv = torrentsView.getTableView();
-				Object[] dataSources = tv.getDataSources();
-				for (int i = 0; i < dataSources.length; i++) {
-					DownloadManager dm = (DownloadManager) dataSources[i];
+				List dms = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers();
+				for (Iterator iter = dms.iterator(); iter.hasNext();) {
+					DownloadManager dm = (DownloadManager) iter.next();
+
 					if (!torrentsView.isOurDownloadManager(dm)) {
 						tv.removeDataSource(dm);
 					} else {
