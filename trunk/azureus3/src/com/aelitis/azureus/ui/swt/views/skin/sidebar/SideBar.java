@@ -673,7 +673,7 @@ public class SideBar
 						Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
 						if (closeArea != null && closeArea.contains(event.x, event.y)) {
 							treeItem.dispose();
-						} else if (currentSideBarEntry != sideBarInfo) {
+						} else if (currentSideBarEntry != sideBarInfo && Constants.isOSX) {
 							itemSelected(sideBarInfo.treeItem);
 						}
 
