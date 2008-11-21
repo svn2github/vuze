@@ -133,7 +133,6 @@ public class ColumnRatingGlobal
 				val = (val * 10) + (userRating + 3);
 				cell.setSortValue(val);
 			} catch (Exception e) {
-				e.printStackTrace();
 				cell.setSortValue(count > 0 ? new Float(count) : null);
 			}
 		}
