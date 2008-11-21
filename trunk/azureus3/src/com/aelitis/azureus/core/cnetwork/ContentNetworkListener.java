@@ -1,5 +1,5 @@
 /*
- * Created on Nov 20, 2008
+ * Created on Nov 21, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,17 +21,14 @@
 
 package com.aelitis.azureus.core.cnetwork;
 
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-
 public interface 
-ContentNetwork 
+ContentNetworkListener 
 {
-	public static final long	CONTENT_NETWORK_VUZE		= 1;
-	public static final long	CONTENT_NETWORK_RFN			= 2;
-
-	public long
-	getID();
+	public void
+	networkAdded(
+		ContentNetwork	network );
 	
-	public VuzeFile
-	getVuzeFile();
+	public void
+	networkRemoved(
+		ContentNetwork	network );
 }

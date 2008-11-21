@@ -26,4 +26,17 @@ ContentNetworkManager
 {
 	public ContentNetwork[]
 	getContentNetworks();
+	
+	public ContentNetwork
+	getContentNetwork(
+		long			id );
+	
+	public void
+	addListener(
+		ContentNetworkListener		listener );
+	
+	public void
+	removeListener(
+		ContentNetworkListener		listener );
+
 }
