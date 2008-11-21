@@ -52,6 +52,6 @@ public class RunningAverage implements Average {
    /**
     * Return average-so-far.
     */
-   public double getAverage() { return sum / count; }
+   public double getAverage() { return count==0?0:(sum / count ); }
 
 }
