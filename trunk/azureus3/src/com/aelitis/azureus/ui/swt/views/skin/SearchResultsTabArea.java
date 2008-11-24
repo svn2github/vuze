@@ -536,7 +536,7 @@ public class SearchResultsTabArea
 	
 	public void anotherSearch(String searchText,boolean toSubscribe) {
 		this.searchText = searchText;
-		URL url = 
+		String url = 
 			ConstantsV3.DEFAULT_CONTENT_NETWORK.getSearchService( searchText );
 
 		if (System.getProperty("metasearch", "1").equals("1")) {
@@ -545,7 +545,7 @@ public class SearchResultsTabArea
 		}
 
 		closeSearchResults(null);
-		browserSkinObject.setURL(url.toExternalForm());
+		browserSkinObject.setURL(url);
 		ViewTitleInfoManager.refreshTitleInfo(this);
 	}
 

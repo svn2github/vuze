@@ -22,9 +22,7 @@
 package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.util.*;
-import java.net.URL;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
@@ -51,7 +49,7 @@ ContentNetworkVuze
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
-	private Map<Integer, URL>		service_map = new HashMap<Integer, URL>();
+	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 	
 	
 	protected
@@ -68,45 +66,19 @@ ContentNetworkVuze
 		int		type,
 		String	url_str )
 	{
-		try{
-			 service_map.put( type, new URL( url_str ));
-			 
-		}catch( Throwable e ){
-			
-			Debug.out( "Failed to add service " + type + ": " + url_str );
-		}
+		 service_map.put( type, url_str );
 	}
 	
-	public URL
+	public String
 	getServiceURL(
 		int			service_type )
 	{
 		return( service_map.get( service_type ));
 	}
 	
-	public URL
-	getServiceURL(
-		int			service_type,
-		Object[]	params )
-	{
-		String	url_str = getServiceURLSupport( service_type, params );
-		
-		if ( url_str != null ){
-			
-			try{
-				return( new URL( url_str ));
-				
-			}catch( Throwable e ){
-				
-				Debug.out( "Failed to construct service URL: " + service_type + "/" + params );
-			}
-		}
-		
-		return( null );
-	}
 	
 	public String	
-	getServiceURLSupport(
+	getServiceURL(
 		int			service_type,
 		Object[]	params )
 	{

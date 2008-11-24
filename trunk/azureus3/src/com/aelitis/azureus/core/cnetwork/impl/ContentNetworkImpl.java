@@ -84,14 +84,14 @@ ContentNetworkImpl
 		return( getServiceURL( service_type ) != null );
 	}
 		
-	public URL
+	public String
 	getSearchService(
 		String		query )
 	{
 		return( getServiceURL( SERVICE_SEARCH, new Object[]{ query } ));
 	}
 	
-	public URL
+	public String
 	getXSearchService(
 		String		query,
 		boolean		to_subscribe )

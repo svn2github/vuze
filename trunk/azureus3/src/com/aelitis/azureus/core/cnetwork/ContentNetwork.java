@@ -21,8 +21,6 @@
 
 package com.aelitis.azureus.core.cnetwork;
 
-import java.net.URL;
-
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
@@ -59,7 +57,7 @@ ContentNetwork
 		 * @return
 		 */
 	
-	public URL
+	public String
 	getServiceURL(
 		int			service_type );
 	
@@ -70,7 +68,7 @@ ContentNetwork
 		 * @return
 		 */
 	
-	public URL
+	public String
 	getServiceURL(
 		int			service_type,
 		Object[]	params );
@@ -81,12 +79,12 @@ ContentNetwork
 		 * @return
 		 */
 	
-	public URL
+	public String
 	getSearchService(
 		String		query );
 	
 	
-	public URL
+	public String
 	getXSearchService(
 		String		query,
 		boolean		to_subscribe );
