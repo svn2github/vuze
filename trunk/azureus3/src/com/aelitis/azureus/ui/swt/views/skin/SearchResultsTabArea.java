@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -40,6 +41,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
@@ -534,20 +536,16 @@ public class SearchResultsTabArea
 	
 	public void anotherSearch(String searchText,boolean toSubscribe) {
 		this.searchText = searchText;
-		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_ADD_SEARCH
-				+ UrlUtils.encode(searchText) + "&" + ConstantsV3.URL_SUFFIX + "&rand="
-				+ SystemTime.getCurrentTime();
+		URL url = 
+			ConstantsV3.DEFAULT_CONTENT_NETWORK.getSearchService( searchText );
 
 		if (System.getProperty("metasearch", "1").equals("1")) {
-			url = ConstantsV3.URL_PREFIX + "xsearch?q=" + UrlUtils.encode(searchText)
-					+ "&" + ConstantsV3.URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
-			if(toSubscribe) {
-				url += "&createSubscription=1";
-			}
+			
+			url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getXSearchService( searchText, toSubscribe );
 		}
 
 		closeSearchResults(null);
-		browserSkinObject.setURL(url);
+		browserSkinObject.setURL(url.toExternalForm());
 		ViewTitleInfoManager.refreshTitleInfo(this);
 	}
 

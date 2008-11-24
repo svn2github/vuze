@@ -32,7 +32,7 @@ ContentNetworkManagerFactory
 		ContentNetworkManagerImpl.preInitialise();
 	}
 	
-	public ContentNetworkManager
+	public static ContentNetworkManager
 	getSingleton()
 	{
 		return( ContentNetworkManagerImpl.getSingleton());

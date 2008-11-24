@@ -21,6 +21,7 @@
  */
 package com.aelitis.azureus.util;
 
+import java.net.URL;
 import java.util.Locale;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -28,6 +29,8 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Base32;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 
 /**
@@ -42,6 +45,12 @@ public class ConstantsV3
 
 	public static boolean isUnix = org.gudy.azureus2.core3.util.Constants.isUnix;
 
+	public static final ContentNetwork	DEFAULT_CONTENT_NETWORK = ContentNetworkManagerFactory.getSingleton().getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE );
+
+	/**
+	 * Most of these to go away!
+	 */
+	
 	public static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
 
 	public static final String DEFAULT_PORT = "80";
@@ -64,7 +73,6 @@ public class ConstantsV3
 
 	public static String URL_SUFFIX;
 
-	public static final String URL_ADD_SEARCH = "search?q=";
 
 	public static final String URL_PLATFORM_MESSAGE = "?service=rpc";
 

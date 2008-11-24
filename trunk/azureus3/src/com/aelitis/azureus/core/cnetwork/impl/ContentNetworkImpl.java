@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.cnetwork.impl;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 import com.aelitis.azureus.core.cnetwork.*;
@@ -28,15 +30,26 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
-public class 
+public abstract class 
 ContentNetworkImpl
 	implements ContentNetwork
 {
 	protected static ContentNetworkImpl
 	importFromBencodedMap(
 		Map		map )
+	
+		throws IOException
 	{
-		return( new ContentNetworkImpl(((Long)map.get("id")).longValue()));
+		long	id = (Long)map.get("id");
+		
+		if ( id == CONTENT_NETWORK_VUZE ){
+			
+			return( new ContentNetworkVuze());
+			
+		}else{
+		
+			throw( new IOException( "Unsupported network: " + id ));
+		}
 	}
 	
 	private long		id;
@@ -62,6 +75,28 @@ ContentNetworkImpl
 	getID() 
 	{
 		return( id );
+	}
+	
+	public boolean 
+	isServiceSupported(
+		int service_type )
+	{
+		return( getServiceURL( service_type ) != null );
+	}
+		
+	public URL
+	getSearchService(
+		String		query )
+	{
+		return( getServiceURL( SERVICE_SEARCH, new Object[]{ query } ));
+	}
+	
+	public URL
+	getXSearchService(
+		String		query,
+		boolean		to_subscribe )
+	{
+		return( getServiceURL( SERVICE_XSEARCH, new Object[]{ query, to_subscribe } ));
 	}
 	
 	public VuzeFile

@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.cnetwork.impl;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -64,9 +65,16 @@ ContentNetworkManagerImpl
 							
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK ){
 								
-								((ContentNetworkManagerImpl)getSingleton()).importNetwork( comp.getContent());
+								try{
 								
-								comp.setProcessed();
+									((ContentNetworkManagerImpl)getSingleton()).importNetwork( comp.getContent());
+								
+									comp.setProcessed();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
 						}
 					}
@@ -87,12 +95,14 @@ ContentNetworkManagerImpl
 	protected
 	ContentNetworkManagerImpl()
 	{
-		addNetwork( new ContentNetworkImpl( ContentNetwork.CONTENT_NETWORK_VUZE ));
+		addNetwork( new ContentNetworkVuze());
 	}
 	
 	protected void
 	importNetwork(
 		Map		content )
+	
+		throws IOException
 	{
 		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMap( content );
 		

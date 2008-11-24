@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.cnetwork;
 
+import java.net.URL;
+
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
@@ -29,8 +31,70 @@ ContentNetwork
 	public static final long	CONTENT_NETWORK_VUZE		= 1;
 	public static final long	CONTENT_NETWORK_RFN			= 2;
 
+	public static final int		SERVICE_SEARCH				= 1;	// String - query text
+	public static final int		SERVICE_XSEARCH				= 2;	// String - query text; Boolean - toSubscribe
+	
+		/**
+		 * Returns one of the above CONTENT_NETWORK constants
+		 * @return
+		 */
+	
 	public long
 	getID();
+	
+		/**
+		 * Test if the network supports a particular service
+		 * @param service_type
+		 * @return
+		 */
+	
+	public boolean
+	isServiceSupported(
+		int			service_type );
+	
+		/**
+		 * Returns the base URL of the service. If not parameterised then this is sufficient to
+		 * invoke the service
+		 * @param service_type
+		 * @return
+		 */
+	
+	public URL
+	getServiceURL(
+		int			service_type );
+	
+		/**
+		 * Generic parameterised service method
+		 * @param service_type
+		 * @param params
+		 * @return
+		 */
+	
+	public URL
+	getServiceURL(
+		int			service_type,
+		Object[]	params );
+	
+		/**
+		 * search service helper method
+		 * @param query
+		 * @return
+		 */
+	
+	public URL
+	getSearchService(
+		String		query );
+	
+	
+	public URL
+	getXSearchService(
+		String		query,
+		boolean		to_subscribe );
+	
+		/**
+		 * export to vuze file
+		 * @return
+		 */
 	
 	public VuzeFile
 	getVuzeFile();
