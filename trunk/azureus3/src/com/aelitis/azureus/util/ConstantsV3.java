@@ -71,10 +71,6 @@ public class ConstantsV3
 	public static String URL_SUFFIX;
 
 
-	public static final String URL_PLATFORM_MESSAGE = "?service=rpc";
-
-	public static final String URL_POST_PLATFORM_DATA = "service=rpc";
-
 	public static final String URL_BIG_BROWSE = "browse.start";
 
 	public static final String URL_PUBLISH = "publish.start";

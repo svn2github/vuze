@@ -57,6 +57,12 @@ public class PlatformMessenger
 {
 	private static final boolean DEBUG_URL = System.getProperty("platform.messenger.debug.url", "0").equals("1");
 
+	private static final String URL_PLATFORM_MESSAGE = "?service=rpc";
+
+	private static final String URL_POST_PLATFORM_DATA = "service=rpc";
+
+
+	
 	private static final int MAX_POST_LENGTH = 1024 * 512 * 3; // 1.5M
 
 	private static boolean USE_HTTP_POST = true;
@@ -326,6 +332,9 @@ public class PlatformMessenger
 		}
 
 		// Build base RPC url based on listener and server
+		
+		// one day all this URL hacking should be moved into the ContentNetwork...
+		
 		String sURL_RPC;
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
@@ -346,7 +355,7 @@ public class PlatformMessenger
 		String sPostData = null;
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			sPostData = ConstantsV3.URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
+			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
 					+ "&" + suffix;
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
@@ -357,12 +366,12 @@ public class PlatformMessenger
 				}
 			}
 		} else {
-			sURL = sURL_RPC + ConstantsV3.URL_PLATFORM_MESSAGE + "&"
+			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&"
 					+ urlStem.toString() + "&" + suffix;
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
 			} else {
-				debug("GET: " + sURL_RPC + ConstantsV3.URL_PLATFORM_MESSAGE);
+				debug("GET: " + sURL_RPC + URL_PLATFORM_MESSAGE);
 			}
 		}
 
