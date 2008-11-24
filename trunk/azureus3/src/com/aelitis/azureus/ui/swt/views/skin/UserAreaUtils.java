@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
@@ -446,8 +447,8 @@ public class UserAreaUtils
 						if (null != browser) {
 							String existingURL = browser.getUrl();
 							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setStartURL(ConstantsV3.URL_PREFIX
-										+ ConstantsV3.URL_BIG_BROWSE + "?" + ConstantsV3.URL_SUFFIX);
+								((SWTSkinObjectBrowser) skinObject).setStartURL(
+										ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_BIG_BROWSE ));
 							}
 						}
 

@@ -70,19 +70,7 @@ public class ConstantsV3
 
 	public static String URL_SUFFIX;
 
-
-	public static final String URL_BIG_BROWSE = "browse.start";
-
-	public static final String URL_PUBLISH = "publish.start";
-	
-	public static final String URL_WELCOME = "welcome.start";
-	
-	public static final String URL_PUBLISHED = "publish.start";
-
-	public static final String URL_PUBLISHNEW = "publishnew.start";
-
-	public static final String URL_PUBLISH_ABOUT = "publishinfo.start";
-	
+			
 	public static final String URL_DETAILS = "details/";
 
 	public static final String URL_COMMENTS = "comment/";

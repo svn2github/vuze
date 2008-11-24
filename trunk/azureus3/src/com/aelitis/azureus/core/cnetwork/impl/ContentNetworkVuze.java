@@ -50,6 +50,8 @@ ContentNetworkVuze
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
+	private static final String URL_SUFFIX	= ConstantsV3.URL_SUFFIX;
+	
 	private static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS + ":443/rpc";
 
 	private static String URL_RELAY_RPC = System.getProperty("relay_url",
@@ -74,6 +76,12 @@ ContentNetworkVuze
 		 addService( SERVICE_RPC, 			URL_PREFIX + "rpc/" );
 		 addService( SERVICE_RELAY_RPC, 	URL_RELAY_RPC );
 		 addService( SERVICE_AUTH_RPC, 		URL_AUTHORIZED_RPC );
+		 addService( SERVICE_BIG_BROWSE, 	URL_PREFIX + "browse.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH, 		URL_PREFIX + "publish.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_WELCOME, 		URL_PREFIX + "welcome.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH_NEW, 	URL_PREFIX + "publishnew.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH_ABOUT, URL_PREFIX + "publishinfo.start" );
+		 
 	}
 	
 	protected void

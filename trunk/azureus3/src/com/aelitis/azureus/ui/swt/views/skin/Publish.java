@@ -20,6 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
@@ -43,8 +44,7 @@ public class Publish
 		if (o instanceof String) {
 			browserSkinObject.setURL((String) o);
 		} else {
-  		String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISH + "?"
-  				+ ConstantsV3.URL_SUFFIX;
+  		String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH );
   		browserSkinObject.setURL(sURL);
 		}
 

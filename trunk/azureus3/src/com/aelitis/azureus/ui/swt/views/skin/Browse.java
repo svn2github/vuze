@@ -38,6 +38,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.pieces.ReservedByItem;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -177,8 +178,7 @@ public class Browse
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
-		browserSkinObject.setURL(ConstantsV3.URL_PREFIX + ConstantsV3.URL_BIG_BROWSE
-				+ "?" + ConstantsV3.URL_SUFFIX);
+		browserSkinObject.setURL( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_BIG_BROWSE ));
 	}
 
 	/**

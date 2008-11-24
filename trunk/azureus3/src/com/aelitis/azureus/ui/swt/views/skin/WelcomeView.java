@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -60,8 +61,7 @@ public class WelcomeView
 		if (o instanceof String) {
 			browserSkinObject.setURL((String) o);
 		} else {
-  		String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_WELCOME + "?"
-  				+ ConstantsV3.URL_SUFFIX;
+  		String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_WELCOME );
   		System.out.println(sURL);
   		browserSkinObject.setURL(sURL);
 		}

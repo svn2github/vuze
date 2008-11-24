@@ -34,6 +34,11 @@ ContentNetwork
 	public static final int		SERVICE_RPC					= 3;
 	public static final int		SERVICE_RELAY_RPC			= 4;
 	public static final int		SERVICE_AUTH_RPC			= 5;
+	public static final int		SERVICE_BIG_BROWSE			= 6;
+	public static final int		SERVICE_PUBLISH				= 7;
+	public static final int		SERVICE_WELCOME				= 8;
+	public static final int		SERVICE_PUBLISH_NEW			= 9;
+	public static final int		SERVICE_PUBLISH_ABOUT		= 10;
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants

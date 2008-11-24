@@ -26,6 +26,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.files.FirstPieceItem;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
@@ -496,8 +497,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISHNEW + "?"
-						+ ConstantsV3.URL_SUFFIX;
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_NEW );
 
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -522,8 +522,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISHED + "?"
-								+ ConstantsV3.URL_SUFFIX;
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH );
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -550,7 +549,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.URL_PREFIX + ConstantsV3.URL_PUBLISH_ABOUT;
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_ABOUT );
 						Utils.launch(sURL);
 					}
 				});
