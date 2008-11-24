@@ -722,7 +722,7 @@ public class PlatformTorrentUtils
 			}
 		} else {
 			Map jsonMapMetaData = hash == null ? null : (Map) mapHashes.get(hash);
-			if (jsonMapMetaData != null) {
+			if (jsonMapMetaData != null && !jsonMapMetaData.isEmpty()) {
 				long oldLastUpdated = getContentLastUpdated(torrent);
 				long expireyMins = 0;
 

@@ -96,7 +96,7 @@ public class PlatformDCAdManager
 
 
 		//deal with response.
-        PlatformMessenger.queueMessage(message, new PlatformMessengerListener(){
+    PlatformMessengerListener l = new PlatformMessengerListener(){
 
                 public void messageSent(PlatformMessage message) {
                     debug("getAdvert - messageSent");
@@ -145,11 +145,16 @@ public class PlatformDCAdManager
 					replyListener.replyReceived(replyType, reply);
 				}
 			}//replyReceived
-		}//class PlatformMessengerListener
-		);
+		};//class PlatformMessengerListener
 
-        debug("leave - PlatformDCDdManager.getAdvert");
-    }//getAdvert
+		if (maxDelayMS == 0) {
+			PlatformMessenger.pushMessageNow(message, l);
+		} else {
+			PlatformMessenger.queueMessage(message, l);
+		}
+
+		debug("leave - PlatformDCDdManager.getAdvert");
+	}//getAdvert
 
 	/**
 	 * create a temporary azpd file.

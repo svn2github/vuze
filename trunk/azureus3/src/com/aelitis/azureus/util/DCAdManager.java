@@ -127,7 +127,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 				downloadManagerAddedHook(new DownloadManager[] {
 						dm
-				});
+				}, 0);
 			}//downloadManagerAdded
 
 		}, false); //addListener
@@ -147,7 +147,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 						&& PlatformTorrentUtils.isContentAdEnabled(dm.getTorrent())) {
 					downloadManagerAddedHook(new DownloadManager[] {
 							dm
-					});
+					}, 0);
 				}
 			}
 		});
@@ -182,15 +182,11 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 
 	/**
-	 * Wait file minutes after start-up then slowly go through the list of
-	 * azpd files to update the ones that are out of date. After the check is
-	 * done this thread goes away.
 	 * @param dms - DownloadManager[]
 	 */
 	private void startLazyAzpdFileCheckThread(final DownloadManager[] dms){
 
 		final String THREAD_NAME = "azpdFileExpireThread";
-		final long CALL_WAIT_TIME = 1000 * 5; //wait 5 seconds between check.
 
 		AEThread2 thread = new AEThread2(THREAD_NAME,true){
 
@@ -225,19 +221,12 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 						if(f==null)
 							continue;
 
-						debug(THREAD_NAME+": checking "+f.getAbsolutePath());
+						//debug(THREAD_NAME+": checking "+f.getAbsolutePath());
 						if( AzpdFileAccess.isAzpdFileExpired(f) ){
 
 							debug(THREAD_NAME+": found expired azpd file "+f+". Will refresh. ");
 							//refresh this file.
-							downloadManagerAddedHook( new DownloadManager[] { dm } );
-
-							//wait a little to spread out this work.
-							try{ Thread.sleep(CALL_WAIT_TIME); }
-							catch(InterruptedException ie){
-								debug(THREAD_NAME+": interrupted before while running.");
-								return;
-							}
+							downloadManagerAddedHook( new DownloadManager[] { dm }, 500 );
 						}
 
 					}//if - isAdEnabledContent
@@ -248,7 +237,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 				debug(THREAD_NAME+": finished.");
 			}
 		};
-
+		
+		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
 
@@ -435,8 +425,8 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 	 * 
 	 * @param dms -
 	 */
-	private void downloadManagerAddedHook(final DownloadManager[] dms) {
-
+	private void downloadManagerAddedHook(final DownloadManager[] dms,
+			final int delay) {
 		AEThread2 thread = new AEThread2("downloadManagerAddedHook", true) {
 			public void run() {
 				debug("enter - downloadManagerAddedHook");
@@ -457,7 +447,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 						return;
 					} else {
 						//Add GetAdvert here.
-						callGetAdvert(adSupportedContentList);
+						callGetAdvert(adSupportedContentList, delay);
 					}
 
 				} finally {
@@ -471,7 +461,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		thread.run();
 	}//downloadManagerAddedHook
 
-	private void callGetAdvert(List adSupportedContentList) {
+	private void callGetAdvert(List adSupportedContentList, int delay) {
 		try {
 			increaseCheckingForAds();
 			debug("sending ad request for " + adSupportedContentList.size()
@@ -484,7 +474,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 				// each reply from getAdvert will in turn decreaseCheckingForAds()
 				increaseCheckingForAds();
-				PlatformDCAdManager.getAdvert(dm, 500, this);
+				PlatformDCAdManager.getAdvert(dm, delay, this);
 			}
 
 		} catch (Exception e) {
@@ -1005,13 +995,24 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 		return adSupportedContentList;
 	}//initDownloadManagerList
 
+
+	/**
+	 * Call when you want to refresh via getAdvert call (non-immediate)
+	 * @param dm - DownloadManager
+	 */
+	public void refreshAd(DownloadManager dm){
+		refreshAd(dm, false);
+	}
+
 	/**
 	 * Call when you want to refresh via getAdvert call.
 	 * @param dm - DownloadManager
 	 */
-	public void refreshAd(DownloadManager dm){
+	public void refreshAd(DownloadManager dm, boolean immediate){
 
-		downloadManagerAddedHook( new DownloadManager[] { dm }  );
+		downloadManagerAddedHook(new DownloadManager[] {
+			dm
+		}, immediate ? 0 : 1000);
 
 	}//refreshAd
 
