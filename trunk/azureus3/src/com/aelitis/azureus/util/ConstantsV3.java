@@ -68,9 +68,6 @@ public class ConstantsV3
 	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
 			+ URL_PORT + "/";
 
-	public static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS
-			+ ":443/rpc";
-
 	public static String URL_SUFFIX;
 
 
@@ -114,23 +111,12 @@ public class ConstantsV3
 
 	public static final String URL_PUBLISH_INFO = URL_PREFIX + "publishinfo.start";
 
-	public static final String URL_RPC = "rpc/";
-
 	public static final String URL_BLOG = "http://blog.vuze.com/";
 	
 	public static final String URL_FORUMS = "http://forum.vuze.com/";
 	
 	public static final String URL_WIKI = "http://wiki.vuze.com/";
 	
-	public static String URL_RELAY_RPC = System.getProperty("relay_url",
-			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
-					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT)
-					+ "/msgrelay/rpc");
-
-	public static final String URL_AUTHORIZED_RPC = System.getProperty(
-			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
-			+ "app";
-
 	public static final String URL_POP_UP = "?popup";
 
 	public static final String URL_LOGIN = "login.start";

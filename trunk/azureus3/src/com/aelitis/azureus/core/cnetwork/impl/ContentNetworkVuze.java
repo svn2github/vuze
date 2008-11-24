@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
@@ -49,6 +50,17 @@ ContentNetworkVuze
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
+	private static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS + ":443/rpc";
+
+	private static String URL_RELAY_RPC = System.getProperty("relay_url",
+			"http://" + System.getProperty("relay_address", DEFAULT_RELAY_ADDRESS)
+					+ ":" + System.getProperty("relay_port", DEFAULT_RELAY_PORT)
+					+ "/msgrelay/rpc");
+
+	private static final String URL_AUTHORIZED_RPC = System.getProperty(
+			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
+			+ "app";
+	
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 	
 	
@@ -57,8 +69,11 @@ ContentNetworkVuze
 	{
 		 super( ContentNetwork.CONTENT_NETWORK_VUZE );
 		 
-		 addService( SERVICE_SEARCH, 	URL_PREFIX + "search?q=" );
-		 addService( SERVICE_XSEARCH, 	URL_PREFIX + "xsearch?q=" );
+		 addService( SERVICE_SEARCH, 		URL_PREFIX + "search?q=" );
+		 addService( SERVICE_XSEARCH, 		URL_PREFIX + "xsearch?q=" );
+		 addService( SERVICE_RPC, 			URL_PREFIX + "rpc/" );
+		 addService( SERVICE_RELAY_RPC, 	URL_RELAY_RPC );
+		 addService( SERVICE_AUTH_RPC, 		URL_AUTHORIZED_RPC );
 	}
 	
 	protected void
@@ -82,17 +97,25 @@ ContentNetworkVuze
 		int			service_type,
 		Object[]	params )
 	{
+		String	base = getServiceURL( service_type );
+		
+		if ( base == null ){
+			
+			Debug.out( "Unknown service type '" + service_type + "'" );
+			
+			return( null );
+		}
+		
 		switch( service_type ){
 		
 			case SERVICE_SEARCH:{
 				
 				String	query = (String)params[0];
 				
-				return( 
-					getServiceURL( ContentNetwork.SERVICE_SEARCH ) +
-							UrlUtils.encode(query) + 
-							"&" + ConstantsV3.URL_SUFFIX + 
-							"&rand=" + SystemTime.getCurrentTime());
+				return(	base +
+						UrlUtils.encode(query) + 
+						"&" + ConstantsV3.URL_SUFFIX + 
+						"&rand=" + SystemTime.getCurrentTime());
 			}
 			
 			case SERVICE_XSEARCH:{
@@ -101,7 +124,7 @@ ContentNetworkVuze
 				boolean	to_subscribe	= (Boolean)params[1];
 				
 				String url_str = 
-					getServiceURL( ContentNetwork.SERVICE_XSEARCH ) +
+							base +
 							UrlUtils.encode(query) + 
 							"&" + ConstantsV3.URL_SUFFIX + 
 							"&rand=" + SystemTime.getCurrentTime();
@@ -115,9 +138,8 @@ ContentNetworkVuze
 			}
 			default:{
 				
-				return( null );
+				return( base );
 			}
 		}
 	}
-
 }

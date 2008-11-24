@@ -34,6 +34,7 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
@@ -328,9 +329,11 @@ public class PlatformMessenger
 		String sURL_RPC;
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
-			sURL_RPC = ConstantsV3.URL_RELAY_RPC;
+			
+			sURL_RPC = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_RELAY_RPC );
+
 		} else {
-			sURL_RPC = ConstantsV3.URL_PREFIX + ConstantsV3.URL_RPC + server;
+			sURL_RPC = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_RPC ) + server;
 		}
 		
 		String suffix = ConstantsV3.URL_SUFFIX;

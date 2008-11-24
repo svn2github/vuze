@@ -31,6 +31,9 @@ ContentNetwork
 
 	public static final int		SERVICE_SEARCH				= 1;	// String - query text
 	public static final int		SERVICE_XSEARCH				= 2;	// String - query text; Boolean - toSubscribe
+	public static final int		SERVICE_RPC					= 3;
+	public static final int		SERVICE_RELAY_RPC			= 4;
+	public static final int		SERVICE_AUTH_RPC			= 5;
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants

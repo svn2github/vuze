@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -99,10 +100,13 @@ public class PlatformAuthorizedSenderImpl
 					// Safari doesn't return getText() when results aren't text/html
 					// IE removes /n when in text/html mode
 					String responseType = ConstantsV3.isOSX ? "text/html" : "text/plain";
-					final String url = ConstantsV3.URL_AUTHORIZED_RPC + "?" + data
+					
+					String	auth_rpc = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_AUTH_RPC );
+					
+					final String url = auth_rpc + "?" + data
 							+ "&responseType=" + responseType;
 					PlatformMessenger.debug("Open Auth URL: "
-							+ ConstantsV3.URL_AUTHORIZED_RPC + " in " + responseType + "\n" + url);
+							+ auth_rpc + " in " + responseType + "\n" + url);
 
 					browser.addProgressListener(new ProgressListener() {
 						public void completed(ProgressEvent event) {
