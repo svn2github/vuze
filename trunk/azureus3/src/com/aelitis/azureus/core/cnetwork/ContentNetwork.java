@@ -40,6 +40,11 @@ ContentNetwork
 	public static final int		SERVICE_PUBLISH_NEW			= 9;
 	public static final int		SERVICE_PUBLISH_ABOUT		= 10;
 	public static final int		SERVICE_CONTENT_DETAILS		= 11;	// String - hash; String (can be null) - client ref
+	public static final int		SERVICE_COMMENT				= 12;	// String - hash
+	public static final int		SERVICE_PROFILE				= 13;	// String - hash; String - client ref
+
+	
+	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
 		 * @return
@@ -100,6 +105,15 @@ ContentNetwork
 	public String
 	getContentDetailsService(
 		String		hash,
+		String		client_ref );
+	
+	public String
+	getCommentService(
+		String		hash );
+	
+	public String
+	getProfileService(
+		String		login_id,
 		String		client_ref );
 	
 		/**

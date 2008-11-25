@@ -101,9 +101,25 @@ ContentNetworkImpl
 	
 	public String 
 	getContentDetailsService(
-		String hash, String client_ref ) 
+		String 		hash, 
+		String 		client_ref ) 
 	{
 		return( getServiceURL( SERVICE_CONTENT_DETAILS, new Object[]{ hash, client_ref }));
+	}
+	
+	public String 
+	getCommentService(
+		String hash )
+	{
+		return( getServiceURL( SERVICE_COMMENT, new Object[]{ hash }));
+	}
+	
+	public String 
+	getProfileService(
+		String 		login_id, 
+		String 		client_ref ) 
+	{
+		return( getServiceURL( SERVICE_PROFILE, new Object[]{ login_id, client_ref }));
 	}
 	
 	public VuzeFile

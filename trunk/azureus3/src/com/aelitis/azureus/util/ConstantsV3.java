@@ -45,6 +45,8 @@ public class ConstantsV3
 
 	public static boolean isUnix = org.gudy.azureus2.core3.util.Constants.isUnix;
 
+	public static final String AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
+
 	public static final ContentNetwork	DEFAULT_CONTENT_NETWORK = ContentNetworkManagerFactory.getSingleton().getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE );
 
 	/**
@@ -65,18 +67,39 @@ public class ConstantsV3
 	public static String URL_PORT = System.getProperty("platform_port",
 			DEFAULT_PORT);
 
+	
+		// **** EMP dependencies start
+	
 	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
 			+ URL_PORT + "/";
 
-	public static String URL_SUFFIX;
-
-			
+	
+		// used in azemp so can't fix up properly until that changes...
+	
 	public static final String URL_COMMENTS = "comment/";
 
-	public static final String URL_SHARE = "share/";
+	public static String URL_SUFFIX;
 
-	public static final String URL_PROFILE = "profile/";
+	public static void initialize( AzureusCore core ){}
+	
+	static{
 
+			// this is purely here to support azemp's direct use of URL_SUFFIX until we fix
+		
+		COConfigurationManager.addAndFireParameterListener("locale",
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						// Don't change the order of the params
+						URL_SUFFIX = "azid=" + AZID + "&azv="
+								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+								+ "&locale=" + Locale.getDefault().toString();
+					}
+				});
+		Constants.initialize();
+	}
+			
+		// EMP dependencies end
+	
 	public static final String URL_BUDDY_ACCEPT = "buddy-accept/";
 
 	public static final String URL_DOWNLOAD = "download/";
@@ -140,24 +163,6 @@ public class ConstantsV3
 
 	public static final String DL_REFERAL_DASHACTIVITY = "dashboardactivity";
 	
-
-	public static String AZID;
-
-	public static void initialize(AzureusCore core) {
-		AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
-
-		COConfigurationManager.addAndFireParameterListener("locale",
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						// Don't change the order of the params
-						URL_SUFFIX = "azid=" + AZID + "&azv="
-								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-								+ "&locale=" + Locale.getDefault().toString();
-					}
-				});
-		Constants.initialize();
-	}
-
 	public static String appendURLSuffix(String url) {
 		if (url.indexOf("azid=") < 0) {
 			url += (url.indexOf('?') < 0 ? "?" : "&") + ConstantsV3.URL_SUFFIX;

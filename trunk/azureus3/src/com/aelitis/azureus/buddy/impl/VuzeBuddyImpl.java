@@ -379,13 +379,7 @@ public class VuzeBuddyImpl
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
-		buf.append(ConstantsV3.URL_PREFIX);
-		buf.append(ConstantsV3.URL_PROFILE);
-		buf.append(UrlUtils.encode(loginID));
-		buf.append("?");
-		buf.append(ConstantsV3.URL_SUFFIX);
-		buf.append("&client_ref=");
-		buf.append(UrlUtils.encode(referer));
+		buf.append(getProfileUrl(referer));
 		buf.append("\" TITLE=\"");
 		buf.append(displayName);
 		if (!loginID.equals(displayName)) {
@@ -403,8 +397,7 @@ public class VuzeBuddyImpl
 	}
 
 	public String getProfileUrl(String referer) {
-		return ConstantsV3.URL_PREFIX + ConstantsV3.URL_PROFILE + getLoginID() + "?"
-				+ ConstantsV3.URL_SUFFIX + "&client_ref=" + referer;
+		return( ConstantsV3.DEFAULT_CONTENT_NETWORK.getProfileService(getLoginID(), referer));
 	}
 
 	// @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)

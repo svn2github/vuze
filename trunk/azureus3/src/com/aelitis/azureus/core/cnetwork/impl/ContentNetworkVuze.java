@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -50,7 +52,28 @@ ContentNetworkVuze
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
-	private static final String URL_SUFFIX	= ConstantsV3.URL_SUFFIX;
+	private static String URL_SUFFIX;
+	
+	static{
+
+		COConfigurationManager.addAndFireParameterListener(
+			"locale",
+			new ParameterListener() {
+				public void parameterChanged(String parameterName) {
+						// Don't change the order of the params as there's some code somewhere
+						// that depends on them (I think its code that removes the azid so
+						// we can fix this up when that code's migrated here I guess
+					
+					URL_SUFFIX = "azid=" + ConstantsV3.AZID + "&azv="
+							+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
+							+ "&locale=" + Locale.getDefault().toString();
+				}
+			});
+	}
+	
+	
+	
+	
 	
 	private static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS + ":443/rpc";
 
@@ -82,6 +105,9 @@ ContentNetworkVuze
 		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start" + "?" + URL_SUFFIX );
 		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
 		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
+		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
+		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
+		 
 	}
 	
 	protected void
@@ -122,7 +148,7 @@ ContentNetworkVuze
 				
 				return(	base +
 						UrlUtils.encode(query) + 
-						"&" + ConstantsV3.URL_SUFFIX + 
+						"&" + URL_SUFFIX + 
 						"&rand=" + SystemTime.getCurrentTime());
 			}
 			
@@ -134,7 +160,7 @@ ContentNetworkVuze
 				String url_str = 
 							base +
 							UrlUtils.encode(query) + 
-							"&" + ConstantsV3.URL_SUFFIX + 
+							"&" + URL_SUFFIX + 
 							"&rand=" + SystemTime.getCurrentTime();
 				
 				if ( to_subscribe ){
@@ -149,16 +175,28 @@ ContentNetworkVuze
 				String	hash 		= (String)params[0];
 				String	client_ref 	= (String)params[1];
 				
-				String url_str = base + hash + ".html?" + ConstantsV3.URL_SUFFIX;
+				String url_str = base + hash + ".html?" + URL_SUFFIX;
 				
 				if ( client_ref != null ){
 					
-					url_str += "&client_ref=" + client_ref;
+					url_str += "&client_ref=" +  UrlUtils.encode( client_ref );
 				}
 				
 				return( url_str );
 			}
+			case SERVICE_COMMENT:{
+				
+				String	hash 		= (String)params[0];
+				
+				return( base + hash + ".html?" + URL_SUFFIX	+ "&rnd=" + Math.random());
+			}
+			case SERVICE_PROFILE:{
 			
+				String	login_id 	= (String)params[0];
+				String	client_ref 	= (String)params[1];
+				
+				return( base + UrlUtils.encode( login_id ) + "?" + URL_SUFFIX + "&client_ref=" +  UrlUtils.encode( client_ref ));
+			}
 			default:{
 				
 				return( base );

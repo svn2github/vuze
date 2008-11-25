@@ -111,7 +111,6 @@ public class Initializer
 				Debug.printStackTrace(e);
 			}
 		} else {
-			ConstantsV3.initialize(core);
 
 			initializePlatformClientMessageContext();
 

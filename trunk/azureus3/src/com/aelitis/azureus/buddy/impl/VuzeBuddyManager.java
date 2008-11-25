@@ -1731,13 +1731,7 @@ public class VuzeBuddyManager
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
-		buf.append(ConstantsV3.URL_PREFIX);
-		buf.append(ConstantsV3.URL_PROFILE);
-		buf.append(UrlUtils.encode(loginID));
-		buf.append("?");
-		buf.append(ConstantsV3.URL_SUFFIX);
-		buf.append("&client_ref=");
-		buf.append(UrlUtils.encode(referer));
+		buf.append(ConstantsV3.DEFAULT_CONTENT_NETWORK.getProfileService(loginID,referer));
 		buf.append("\" TITLE=\"");
 		buf.append(displayName);
 		if (!loginID.equals(displayName)) {
