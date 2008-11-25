@@ -95,18 +95,6 @@ public class ConstantsV3
 			
 		// EMP dependencies end
 			
-	public static final String URL_POP_UP = "?popup";
-
-	public static final String URL_LOGIN = "login.start";
-
-	public static final String URL_LOGOUT = "logout.start";
-
-	public static final String URL_REGISTRATION = "register.start";
-
-	public static final String URL_MY_PROFILE = "profile.start";
-
-	public static final String URL_ACCOUNT = "account.start";
-
 	// WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
 	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty(
 			"debug.buddies.bar", "1").equals("0");

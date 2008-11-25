@@ -137,6 +137,13 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_FAQ_TOPIC, new Object[]{ topic }));
 	}
 	
+	public String 
+	getLoginService(
+		String 	message )
+	{
+		return( getServiceURL( SERVICE_LOGIN, new Object[]{ message }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

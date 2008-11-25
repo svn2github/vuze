@@ -50,7 +50,14 @@ ContentNetwork
 	public static final int		SERVICE_BLOG				= 19;
 	public static final int		SERVICE_FORUMS				= 20;
 	public static final int		SERVICE_WIKI				= 21;
-
+	public static final int		SERVICE_LOGIN				= 22;	// String - message (can be null)
+	public static final int		SERVICE_LOGOUT				= 23;
+	public static final int		SERVICE_REGISTER			= 24;
+	public static final int		SERVICE_MY_PROFILE			= 25;
+	public static final int		SERVICE_MY_ACCOUNT			= 26;
+	
+	
+	
 	public static final int		PROPERTY_SITE_HOST			= 1;
 
 	
@@ -141,6 +148,10 @@ ContentNetwork
 	public String
 	getFAQTopicService(
 		String		topic );
+	
+	public String
+	getLoginService(
+		String		message );
 	
 		/**
 		 * export to vuze file

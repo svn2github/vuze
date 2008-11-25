@@ -108,10 +108,10 @@ ContentNetworkVuze
 		 addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
 		 addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
 		 addService( SERVICE_AUTH_RPC, 			URL_AUTHORIZED_RPC );
-		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" + URL_SUFFIX );
+		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" + URL_SUFFIX );
 		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
 		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
 		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
@@ -124,6 +124,11 @@ ContentNetworkVuze
 		 addService( SERVICE_BLOG,				URL_BLOG );
 		 addService( SERVICE_FORUMS,			URL_FORUMS );
 		 addService( SERVICE_WIKI,				URL_WIKI );
+		 addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
+		 addService( SERVICE_LOGOUT,			URL_PREFIX + "logout.start?" + URL_SUFFIX );
+		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" + URL_SUFFIX );
+		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" + URL_SUFFIX );
+		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" + URL_SUFFIX );
 
 	}
 	
@@ -154,7 +159,7 @@ ContentNetworkVuze
 	getServiceURL(
 		int			service_type )
 	{
-		return( service_map.get( service_type ));
+		return( getServiceURL( service_type, new Object[0]));
 	}
 	
 	
@@ -163,7 +168,7 @@ ContentNetworkVuze
 		int			service_type,
 		Object[]	params )
 	{
-		String	base = getServiceURL( service_type );
+		String	base = service_map.get( service_type );
 		
 		if ( base == null ){
 			
@@ -249,7 +254,30 @@ ContentNetworkVuze
 				
 				return( base + topic );
 			}
-			
+			case SERVICE_LOGIN:{
+				
+				String	message 		= (String)params[0];
+				
+				if ( message == null || message.length() == 0 ){
+					
+					base += ConstantsV3.URL_SUFFIX;
+					
+				}else{
+					
+					base += "msg=" + UrlUtils.encode( message );
+					
+					base += "&" + ConstantsV3.URL_SUFFIX;
+				}
+				
+				return( base );
+			}
+			case SERVICE_MY_PROFILE:
+			case SERVICE_MY_ACCOUNT:{
+				
+				base += "&rand=" + SystemTime.getCurrentTime();
+				
+				return( base );
+			}
 			default:{
 				
 				return( base );

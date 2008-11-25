@@ -105,13 +105,7 @@ public class SWTLoginUtils
 	 * @since 3.0.5.3
 	 */
 	public static LightBoxBrowserWindow openLoginWindow(String optionalMessage) {
-		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_LOGIN + "?";
-		if (null == optionalMessage || optionalMessage.length() < 1) {
-			url += ConstantsV3.URL_SUFFIX;
-		} else {
-			url += "msg=" + optionalMessage;
-			url += "&" + ConstantsV3.URL_SUFFIX;
-		}
+		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getLoginService( optionalMessage );
 
 		return new LightBoxBrowserWindow(url, ConstantsV3.URL_PAGE_VERIFIER_VALUE,
 				380, 280);
