@@ -44,7 +44,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 public class TestPlatformMessenger
 {
 	public void initialize(PluginInterface pi) throws PluginException {
-		ConstantsV3.initialize(AzureusCoreFactory.getSingleton());
 
 		PlatformMessenger.init();
 		Map parameters = new HashMap();

@@ -48,29 +48,33 @@ public class ConstantsV3
 	public static final String AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
 
 	public static final ContentNetwork	DEFAULT_CONTENT_NETWORK = ContentNetworkManagerFactory.getSingleton().getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE );
-
-	/**
-	 * Most of these to go away!
-	 */
-	
-	private static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
-
-	private static final String DEFAULT_PORT = "80";
-
-	private static String URL_ADDRESS = System.getProperty("platform_address",DEFAULT_ADDRESS);
-
-	private static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
 	
 		// **** EMP dependencies start
 	
-	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
+		/**
+		 * DON'T USE THIS CONSTANT
+		 * @deprecated
+		 */
 	
-		// used in azemp so can't fix up properly until that changes...
+	public static final String URL_PREFIX = DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SITE );
+	
+		/**
+		 * DON'T USE THIS CONSTANT
+		 * @deprecated
+		 */	
 	
 	public static final String URL_COMMENTS = "comment/";
 
+		/**
+		 * DON'T USE THIS CONSTANT
+		 * @deprecated
+		 */	
 	public static String URL_SUFFIX;
 
+		/**
+		 * @deprecated
+		 */
+	
 	public static void initialize( AzureusCore core ){}
 	
 	static{
@@ -96,6 +100,7 @@ public class ConstantsV3
 		// EMP dependencies end
 			
 	// WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
+	
 	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty(
 			"debug.buddies.bar", "1").equals("0");
 
@@ -123,19 +128,4 @@ public class ConstantsV3
 	public static final String DL_REFERAL_TOOLBAR = "toolbar";
 
 	public static final String DL_REFERAL_DASHACTIVITY = "dashboardactivity";
-	
-	public static String appendURLSuffix(String url) {
-		if (url.indexOf("azid=") < 0) {
-			url += (url.indexOf('?') < 0 ? "?" : "&") + ConstantsV3.URL_SUFFIX;
-		}
-		return url;
-	}
-	
-	public static String urlRelativeToPlatform(String url) {
-		if (!url.startsWith("http")) {
-			url = ConstantsV3.URL_PREFIX
-					+ (url.startsWith("/") ? url.substring(1) : url);
-		}
-		return url;
-	}
 }

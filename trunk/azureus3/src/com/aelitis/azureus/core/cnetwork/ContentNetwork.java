@@ -156,7 +156,8 @@ ContentNetwork
 	
 	public String
 	getSiteRelativeURL(
-		String		relative_url );
+		String		relative_url,
+		boolean		append_suffix );
 	
 	public String
 	getAddFriendURL(

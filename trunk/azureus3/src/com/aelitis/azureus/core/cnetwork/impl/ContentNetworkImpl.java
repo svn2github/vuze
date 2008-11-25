@@ -146,9 +146,10 @@ ContentNetworkImpl
 	
 	public String 
 	getSiteRelativeURL(
-		String 	relative_url )
+		String 		relative_url,
+		boolean		append_suffix )
 	{
-		return( getServiceURL( SERVICE_SITE_RELATIVE, new Object[]{ relative_url }));
+		return( getServiceURL( SERVICE_SITE_RELATIVE, new Object[]{ relative_url, append_suffix }));
 	}
 	
 	public String 

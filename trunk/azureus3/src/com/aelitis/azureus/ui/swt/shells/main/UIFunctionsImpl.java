@@ -579,10 +579,13 @@ public class UIFunctionsImpl
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
-				String realURL = ConstantsV3.urlRelativeToPlatform(url);
+				String realURL = url;
+				if ( !realURL.startsWith( "http" )){
+					realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL(realURL, false );
+				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.appendURLSuffix(realURL);
+						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);
@@ -600,10 +603,13 @@ public class UIFunctionsImpl
 
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
-				String realURL = ConstantsV3.urlRelativeToPlatform(url);
+				String realURL = url;
+				if ( !realURL.startsWith( "http" )){
+					realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL(realURL, false );
+				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.appendURLSuffix(realURL);
+						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);

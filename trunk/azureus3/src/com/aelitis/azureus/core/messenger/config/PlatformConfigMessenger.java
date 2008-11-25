@@ -105,8 +105,8 @@ public class PlatformConfigMessenger
 						newReply[i] = (Map) array.get(i);
 
 						String url = (String) newReply[i].get("url");
-						if (url != null && !url.startsWith("http://")) {
-							url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL( url );
+						if (url != null && !url.startsWith("http")) {
+							url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL( url, true );
 
 							newReply[i].put("url", url);
 						}

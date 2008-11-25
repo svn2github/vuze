@@ -284,19 +284,14 @@ ContentNetworkVuze
 			case SERVICE_SITE_RELATIVE:{
 				
 				String	relative_url 	= (String)params[0];
+				boolean	append_suffix	= (Boolean)params[1];
 				
-				base += relative_url;
+				base += relative_url.startsWith("/")?relative_url.substring(1):relative_url;
 				
-				if ( base.indexOf( '?' ) < 0 ){
-					
-					base += "?";
-					
-				}else{
-					
-					base += "&";
+				if ( append_suffix ){
+
+					base = appendURLSuffix( base, true );
 				}
-				
-				base += URL_SUFFIX;
 				
 				return( base );
 			}
