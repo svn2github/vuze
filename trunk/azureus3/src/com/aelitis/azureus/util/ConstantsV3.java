@@ -94,17 +94,7 @@ public class ConstantsV3
 	}
 			
 		// EMP dependencies end
-	
-	public static final String URL_SUPPORT = URL_PREFIX + "support/";
-
-	public static final String URL_FAQ = "http://faq.vuze.com/";
-	
-	/**
-	 * To use this append the topic number to the end or use a pre-defined topic constant found in
-	 * <code>FAQTopics</code>
-	 */
-	public static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
-
+		
 	public static final String URL_PUBLISH_INFO = URL_PREFIX + "publishinfo.start";
 
 	public static final String URL_BLOG = "http://blog.vuze.com/";

@@ -607,7 +607,7 @@ public class MainMenu
 					}
 				});
 
-		MenuFactory.addHelpSupportMenuItem( helpMenu, ConstantsV3.URL_SUPPORT );
+		MenuFactory.addHelpSupportMenuItem( helpMenu, ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SUPPORT ));
 		
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
@@ -687,7 +687,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ConstantsV3.URL_FAQ);
+						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_FAQ ));
 					}
 				});
 		

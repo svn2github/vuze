@@ -130,6 +130,13 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_TORRENT_DOWNLOAD, new Object[]{ hash, client_ref }));
 	}
 	
+	public String 
+	getFAQTopicService(
+		String topic )
+	{
+		return( getServiceURL( SERVICE_FAQ_TOPIC, new Object[]{ topic }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

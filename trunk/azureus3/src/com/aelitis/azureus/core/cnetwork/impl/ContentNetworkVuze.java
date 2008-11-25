@@ -84,6 +84,12 @@ ContentNetworkVuze
 			"authorized_rpc", "1").equals("1") ? DEFAULT_AUTHORIZED_RPC : URL_PREFIX
 			+ "app";
 	
+	private static final String URL_FAQ = "http://faq.vuze.com/";
+	private static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
+
+	
+	
+	
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 	
 	
@@ -107,6 +113,11 @@ ContentNetworkVuze
 		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
 		 addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
 		 addService( SERVICE_SITE,				URL_PREFIX );
+		 addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
+		 addService( SERVICE_FAQ,				URL_FAQ );
+		 addService( SERVICE_FAQ_TOPIC,			URL_FAQ_BY_TOPIC_ENTRY ); 
+		 
+		 
 	}
 	
 	protected void
@@ -225,6 +236,13 @@ ContentNetworkVuze
 				
 				return( url_str );
 			}
+			case SERVICE_FAQ_TOPIC:{
+				
+				String	topic 		= (String)params[0];
+				
+				return( base + topic );
+			}
+			
 			default:{
 				
 				return( base );
