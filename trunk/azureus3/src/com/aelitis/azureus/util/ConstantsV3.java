@@ -53,22 +53,17 @@ public class ConstantsV3
 	 * Most of these to go away!
 	 */
 	
-	public static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
+	private static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
 
-	public static final String DEFAULT_PORT = "80";
+	private static final String DEFAULT_PORT = "80";
 
-	public static String URL_ADDRESS = System.getProperty("platform_address",
-			DEFAULT_ADDRESS);
+	private static String URL_ADDRESS = System.getProperty("platform_address",DEFAULT_ADDRESS);
 
-	public static String URL_PORT = System.getProperty("platform_port",
-			DEFAULT_PORT);
-
+	private static String URL_PORT = System.getProperty("platform_port", DEFAULT_PORT);
 	
 		// **** EMP dependencies start
 	
-	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":"
-			+ URL_PORT + "/";
-
+	public static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 	
 		// used in azemp so can't fix up properly until that changes...
 	

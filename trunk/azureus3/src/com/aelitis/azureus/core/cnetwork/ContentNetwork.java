@@ -43,8 +43,10 @@ ContentNetwork
 	public static final int		SERVICE_COMMENT				= 12;	// String - hash
 	public static final int		SERVICE_PROFILE				= 13;	// String - login_id; String - client ref
 	public static final int		SERVICE_TORRENT_DOWNLOAD	= 14;	// String - hash; String (can be null) - client ref
+	public static final int		SERVICE_SITE				= 15;
 
-	
+	public static final int		PROPERTY_SITE_HOST			= 1;
+
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
@@ -53,6 +55,10 @@ ContentNetwork
 	
 	public long
 	getID();
+	
+	public String
+	getProperty(
+		int			property );
 	
 		/**
 		 * Test if the network supports a particular service

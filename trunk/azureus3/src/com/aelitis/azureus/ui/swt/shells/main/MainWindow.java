@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
@@ -64,6 +65,7 @@ import com.aelitis.azureus.buddy.VuzeBuddyCreator;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.*;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
@@ -278,11 +280,16 @@ public class MainWindow
 				TOTorrent torrent = dm.getTorrent();
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
+					
+					String site = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SITE );
+					
+					String site_host = ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
+					
 					String text = MessageText.getString("v3.mb.delPublished.text",
 							new String[] {
 								dm.getDisplayName(),
-								ConstantsV3.URL_PREFIX,
-								ConstantsV3.DEFAULT_ADDRESS,
+								site,
+								site_host,
 								ConstantsV3.URL_PUBLISH_INFO
 							});
 

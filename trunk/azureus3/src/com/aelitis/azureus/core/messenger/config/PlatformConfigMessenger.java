@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
@@ -54,8 +55,10 @@ public class PlatformConfigMessenger
 
 	private static int iRPCVersion = 0;
 
+	private static String default_site_host = ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
+
 	private static String DEFAULT_RPC_WHITELIST = "https?://"
-			+ ConstantsV3.URL_ADDRESS.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
+			+ default_site_host.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 	
 	//private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
 

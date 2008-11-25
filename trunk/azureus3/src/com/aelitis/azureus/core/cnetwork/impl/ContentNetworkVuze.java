@@ -44,11 +44,9 @@ ContentNetworkVuze
 
 	private static final String DEFAULT_RELAY_PORT = "80";
 
-	private static String URL_ADDRESS = System.getProperty("platform_address",
-			DEFAULT_ADDRESS);
+	private static String URL_ADDRESS = System.getProperty( "platform_address", DEFAULT_ADDRESS );
 
-	private static String URL_PORT = System.getProperty("platform_port",
-			DEFAULT_PORT);
+	private static String URL_PORT = System.getProperty( "platform_port", DEFAULT_PORT );
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
@@ -108,7 +106,7 @@ ContentNetworkVuze
 		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
 		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
 		 addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
-		 
+		 addService( SERVICE_SITE,				URL_PREFIX );
 	}
 	
 	protected void
@@ -119,6 +117,21 @@ ContentNetworkVuze
 		 service_map.put( type, url_str );
 	}
 	
+	public String 
+	getProperty(
+		int property ) 
+	{
+		if ( property == PROPERTY_SITE_HOST ){
+			
+			return( URL_ADDRESS );
+			
+		}else{
+			
+			Debug.out( "Unknown property" );
+			
+			return( null );
+		}
+	}
 	public String
 	getServiceURL(
 		int			service_type )
