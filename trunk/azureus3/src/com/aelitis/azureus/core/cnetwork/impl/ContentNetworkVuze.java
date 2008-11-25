@@ -87,7 +87,12 @@ ContentNetworkVuze
 	private static final String URL_FAQ = "http://faq.vuze.com/";
 	private static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
 
+	private static final String URL_BLOG = "http://blog.vuze.com/";
 	
+	private static final String URL_FORUMS = "http://forum.vuze.com/";
+	
+	private static final String URL_WIKI = "http://wiki.vuze.com/";
+
 	
 	
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
@@ -116,8 +121,10 @@ ContentNetworkVuze
 		 addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
 		 addService( SERVICE_FAQ,				URL_FAQ );
 		 addService( SERVICE_FAQ_TOPIC,			URL_FAQ_BY_TOPIC_ENTRY ); 
-		 
-		 
+		 addService( SERVICE_BLOG,				URL_BLOG );
+		 addService( SERVICE_FORUMS,			URL_FORUMS );
+		 addService( SERVICE_WIKI,				URL_WIKI );
+
 	}
 	
 	protected void

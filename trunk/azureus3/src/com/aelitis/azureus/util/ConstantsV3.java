@@ -94,15 +94,7 @@ public class ConstantsV3
 	}
 			
 		// EMP dependencies end
-		
-	public static final String URL_PUBLISH_INFO = URL_PREFIX + "publishinfo.start";
-
-	public static final String URL_BLOG = "http://blog.vuze.com/";
-	
-	public static final String URL_FORUMS = "http://forum.vuze.com/";
-	
-	public static final String URL_WIKI = "http://wiki.vuze.com/";
-	
+			
 	public static final String URL_POP_UP = "?popup";
 
 	public static final String URL_LOGIN = "login.start";

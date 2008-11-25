@@ -290,7 +290,7 @@ public class MainWindow
 								dm.getDisplayName(),
 								site,
 								site_host,
-								ConstantsV3.URL_PUBLISH_INFO
+								ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_ABOUT )
 							});
 
 					MessageBoxShell mb = new MessageBoxShell(shell, title, text,

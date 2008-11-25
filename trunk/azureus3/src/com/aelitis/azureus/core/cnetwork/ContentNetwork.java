@@ -47,7 +47,10 @@ ContentNetwork
 	public static final int		SERVICE_SUPPORT				= 16;
 	public static final int		SERVICE_FAQ					= 17;
 	public static final int		SERVICE_FAQ_TOPIC			= 18;	// String - topic entry
-	
+	public static final int		SERVICE_BLOG				= 19;
+	public static final int		SERVICE_FORUMS				= 20;
+	public static final int		SERVICE_WIKI				= 21;
+
 	public static final int		PROPERTY_SITE_HOST			= 1;
 
 	

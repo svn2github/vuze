@@ -666,21 +666,21 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ConstantsV3.URL_FORUMS);
+						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_FORUMS ));
 					}
 				});
 		
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ConstantsV3.URL_WIKI);
+						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_WIKI ));
 					}
 				});
 		
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ConstantsV3.URL_BLOG);
+						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_BLOG ));
 					}
 				});	
 
