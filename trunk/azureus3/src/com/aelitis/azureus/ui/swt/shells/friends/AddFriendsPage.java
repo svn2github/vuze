@@ -104,7 +104,9 @@ public class AddFriendsPage
 		color[2] = (byte) bg.getBlue();
 		
 		browser = new Browser(content, SWT.NONE);
-		String url = ConstantsV3.URL_PREFIX + "/user/AddFriend.html?ts=" + Math.random() + "&bg_color=" + ByteFormatter.nicePrint(color);
+		
+		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getAddFriendURL( ByteFormatter.nicePrint(color));		
+
 		browser.setUrl(url);
 
 		getMessageContext();

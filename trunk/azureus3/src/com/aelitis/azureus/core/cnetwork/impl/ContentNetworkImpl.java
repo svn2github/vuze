@@ -144,6 +144,20 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_LOGIN, new Object[]{ message }));
 	}
 	
+	public String 
+	getSiteRelativeURL(
+		String 	relative_url )
+	{
+		return( getServiceURL( SERVICE_SITE_RELATIVE, new Object[]{ relative_url }));
+	}
+	
+	public String 
+	getAddFriendURL(
+		String 	colour )
+	{
+		return( getServiceURL( SERVICE_ADD_FRIEND, new Object[]{ colour }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

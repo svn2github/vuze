@@ -55,8 +55,8 @@ ContentNetwork
 	public static final int		SERVICE_REGISTER			= 24;
 	public static final int		SERVICE_MY_PROFILE			= 25;
 	public static final int		SERVICE_MY_ACCOUNT			= 26;
-	
-	
+	public static final int		SERVICE_SITE_RELATIVE		= 27;	// String - relative URL
+	public static final int		SERVICE_ADD_FRIEND			= 28;	// String - bg colour
 	
 	public static final int		PROPERTY_SITE_HOST			= 1;
 
@@ -152,6 +152,14 @@ ContentNetwork
 	public String
 	getLoginService(
 		String		message );
+	
+	public String
+	getSiteRelativeURL(
+		String		relative_url );
+	
+	public String
+	getAddFriendURL(
+		String		bg_colour );
 	
 		/**
 		 * export to vuze file

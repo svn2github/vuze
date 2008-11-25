@@ -106,13 +106,7 @@ public class PlatformConfigMessenger
 
 						String url = (String) newReply[i].get("url");
 						if (url != null && !url.startsWith("http://")) {
-							url = ConstantsV3.URL_PREFIX + url;
-							if (url.indexOf('?') < 0) {
-								url += "?";
-							} else {
-								url += "&";
-							}
-							url += ConstantsV3.URL_SUFFIX;
+							url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL( url );
 
 							newReply[i].put("url", url);
 						}

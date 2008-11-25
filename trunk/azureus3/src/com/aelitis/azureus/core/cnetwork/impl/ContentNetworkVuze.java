@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -129,7 +130,9 @@ ContentNetworkVuze
 		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" + URL_SUFFIX );
 		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" + URL_SUFFIX );
 		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" + URL_SUFFIX );
-
+		 addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
+		 addService( SERVICE_ADD_FRIEND,		URL_PREFIX + "/user/AddFriend.html?" );
+		 
 	}
 	
 	protected void
@@ -276,6 +279,33 @@ ContentNetworkVuze
 				
 				base += "&rand=" + SystemTime.getCurrentTime();
 				
+				return( base );
+			}
+			case SERVICE_SITE_RELATIVE:{
+				
+				String	relative_url 	= (String)params[0];
+				
+				base += relative_url;
+				
+				if ( base.indexOf( '?' ) < 0 ){
+					
+					base += "?";
+					
+				}else{
+					
+					base += "&";
+				}
+				
+				base += ConstantsV3.URL_SUFFIX;
+				
+				return( base );
+			}
+			case SERVICE_ADD_FRIEND:{
+				
+				String	colour 	= (String)params[0];
+				
+				base += "ts=" + Math.random() + "&bg_color=" + colour;
+
 				return( base );
 			}
 			default:{
