@@ -158,6 +158,13 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_ADD_FRIEND, new Object[]{ colour }));
 	}
 	
+	public String 
+	getSubscriptionURL(
+		String 	subs_id )
+	{
+		return( getServiceURL( SERVICE_SUBSCRIPTION, new Object[]{ subs_id }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

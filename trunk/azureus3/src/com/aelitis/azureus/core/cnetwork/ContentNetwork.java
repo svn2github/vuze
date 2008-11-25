@@ -57,6 +57,7 @@ ContentNetwork
 	public static final int		SERVICE_MY_ACCOUNT			= 26;
 	public static final int		SERVICE_SITE_RELATIVE		= 27;	// String - relative URL
 	public static final int		SERVICE_ADD_FRIEND			= 28;	// String - bg colour
+	public static final int		SERVICE_SUBSCRIPTION		= 29;	// String - subscription ID
 	
 	public static final int		PROPERTY_SITE_HOST			= 1;
 
@@ -160,6 +161,15 @@ ContentNetwork
 	public String
 	getAddFriendURL(
 		String		bg_colour );
+	
+	public String
+	getSubscriptionURL(
+		String		subs_id );
+	
+	public String
+	appendURLSuffix(
+		String		url_in,
+		boolean		include_azid );
 	
 		/**
 		 * export to vuze file

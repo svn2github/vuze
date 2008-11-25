@@ -1622,8 +1622,9 @@ SubscriptionManagerUI
 				context.addMessageListener(new ConfigListener(mainBrowser));
 				context.addMessageListener(
 						new MetaSearchListener( this ));
-				String url = ConstantsV3.URL_PREFIX + "xsearch?subscription=" + subs.getID() + "&" + ConstantsV3.URL_SUFFIX;
-	
+				
+				String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSubscriptionURL( subs.getID());
+					
 				Boolean	edit_mode = (Boolean)subs.getUserData( SUB_EDIT_MODE_KEY );
 				
 				if ( edit_mode != null ){

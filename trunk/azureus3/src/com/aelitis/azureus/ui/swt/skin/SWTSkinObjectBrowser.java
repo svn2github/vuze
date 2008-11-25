@@ -212,13 +212,9 @@ public class SWTSkinObjectBrowser
 					browser.setText("");
 				} else {
 					String urlToUse = url;
-					if (PlatformConfigMessenger.urlCanRPC(url)
-							&& urlToUse.indexOf("azid=") < 0) {
-						if (urlToUse.indexOf("?") >= 0) {
-							urlToUse += "&" + ConstantsV3.URL_SUFFIX;
-						} else {
-							urlToUse += "?" + ConstantsV3.URL_SUFFIX;
-						}
+					if (PlatformConfigMessenger.urlCanRPC(url)){
+						
+						urlToUse = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix( urlToUse, true );
 					}
 					if (browser != null) {
 						browser.setUrl(urlToUse);

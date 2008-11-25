@@ -25,7 +25,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -132,7 +131,8 @@ ContentNetworkVuze
 		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" + URL_SUFFIX );
 		 addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
 		 addService( SERVICE_ADD_FRIEND,		URL_PREFIX + "/user/AddFriend.html?" );
-		 
+		 addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
+		 	
 	}
 	
 	protected void
@@ -263,13 +263,13 @@ ContentNetworkVuze
 				
 				if ( message == null || message.length() == 0 ){
 					
-					base += ConstantsV3.URL_SUFFIX;
+					base += URL_SUFFIX;
 					
 				}else{
 					
 					base += "msg=" + UrlUtils.encode( message );
 					
-					base += "&" + ConstantsV3.URL_SUFFIX;
+					base += "&" + URL_SUFFIX;
 				}
 				
 				return( base );
@@ -296,7 +296,7 @@ ContentNetworkVuze
 					base += "&";
 				}
 				
-				base += ConstantsV3.URL_SUFFIX;
+				base += URL_SUFFIX;
 				
 				return( base );
 			}
@@ -308,10 +308,47 @@ ContentNetworkVuze
 
 				return( base );
 			}
+			case SERVICE_SUBSCRIPTION:{
+				
+				String	subs_id 	= (String)params[0];
+				
+				base += "subscription=" + subs_id + "&" + URL_SUFFIX;
+
+				return( base );
+			}
 			default:{
 				
 				return( base );
 			}
+		}
+	}
+	
+	public String 
+	appendURLSuffix(
+		String 		url_in, 
+		boolean 	include_azid ) 
+	{
+		if ( url_in.indexOf( "azid=" ) != -1 ){
+	
+				// already present
+			
+			return( url_in );
+		}
+	
+		String suffix = URL_SUFFIX;
+		
+		if ( !include_azid ){
+			
+			suffix = suffix.replaceAll( "azid=.*&", "" );
+		}
+		
+		if ( url_in.indexOf("?") >= 0 ){
+
+			return( url_in + "&" + suffix );
+			
+		}else{
+			
+			return( url_in + "?" + suffix );
 		}
 	}
 }

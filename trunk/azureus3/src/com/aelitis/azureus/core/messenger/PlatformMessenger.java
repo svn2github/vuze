@@ -335,28 +335,29 @@ public class PlatformMessenger
 		
 		// one day all this URL hacking should be moved into the ContentNetwork...
 		
+		ContentNetwork content_network = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+		
 		String sURL_RPC;
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
 			
-			sURL_RPC = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_RELAY_RPC );
+			sURL_RPC = content_network.getServiceURL( ContentNetwork.SERVICE_RELAY_RPC );
 
 		} else {
-			sURL_RPC = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_RPC ) + server;
+			sURL_RPC = content_network.getServiceURL( ContentNetwork.SERVICE_RPC ) + server;
 		}
 		
-		String suffix = ConstantsV3.URL_SUFFIX;
-		if (!sendAZID) {
-			suffix = suffix.replaceAll("azid=.*&", "");
-		}
+
 
 		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString()
-					+ "&" + suffix;
+			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
+			
+			sPostData = content_network.appendURLSuffix( sPostData, sendAZID );
+				
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
 					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
@@ -367,7 +368,10 @@ public class PlatformMessenger
 			}
 		} else {
 			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&"
-					+ urlStem.toString() + "&" + suffix;
+					+ urlStem.toString();
+			
+			sURL = content_network.appendURLSuffix( sURL, sendAZID );
+
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
 			} else {

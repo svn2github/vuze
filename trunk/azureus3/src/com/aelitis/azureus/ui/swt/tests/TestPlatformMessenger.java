@@ -45,7 +45,6 @@ public class TestPlatformMessenger
 {
 	public void initialize(PluginInterface pi) throws PluginException {
 		ConstantsV3.initialize(AzureusCoreFactory.getSingleton());
-		System.out.println(ConstantsV3.URL_SUFFIX);
 
 		PlatformMessenger.init();
 		Map parameters = new HashMap();
