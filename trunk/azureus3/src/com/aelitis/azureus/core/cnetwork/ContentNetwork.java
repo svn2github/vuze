@@ -41,7 +41,8 @@ ContentNetwork
 	public static final int		SERVICE_PUBLISH_ABOUT		= 10;
 	public static final int		SERVICE_CONTENT_DETAILS		= 11;	// String - hash; String (can be null) - client ref
 	public static final int		SERVICE_COMMENT				= 12;	// String - hash
-	public static final int		SERVICE_PROFILE				= 13;	// String - hash; String - client ref
+	public static final int		SERVICE_PROFILE				= 13;	// String - login_id; String - client ref
+	public static final int		SERVICE_TORRENT_DOWNLOAD	= 14;	// String - hash; String (can be null) - client ref
 
 	
 	
@@ -114,6 +115,11 @@ ContentNetwork
 	public String
 	getProfileService(
 		String		login_id,
+		String		client_ref );
+	
+	public String
+	getTorrentDownloadService(
+		String		hash,
 		String		client_ref );
 	
 		/**

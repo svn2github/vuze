@@ -57,10 +57,6 @@ public class ConstantsV3
 
 	public static final String DEFAULT_PORT = "80";
 
-	public static final String DEFAULT_RELAY_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Drelay_address=ip override instead
-
-	public static final String DEFAULT_RELAY_PORT = "80";
-
 	public static String URL_ADDRESS = System.getProperty("platform_address",
 			DEFAULT_ADDRESS);
 
@@ -87,23 +83,23 @@ public class ConstantsV3
 			// this is purely here to support azemp's direct use of URL_SUFFIX until we fix
 		
 		COConfigurationManager.addAndFireParameterListener("locale",
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
+				new ParameterListener() 
+				{
+					public void 
+					parameterChanged(String parameterName) 
+					{
 						// Don't change the order of the params
 						URL_SUFFIX = "azid=" + AZID + "&azv="
 								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
 								+ "&locale=" + Locale.getDefault().toString();
+						
+						Constants.update();
 					}
 				});
-		Constants.initialize();
 	}
 			
 		// EMP dependencies end
 	
-	public static final String URL_BUDDY_ACCEPT = "buddy-accept/";
-
-	public static final String URL_DOWNLOAD = "download/";
-
 	public static final String URL_SUPPORT = URL_PREFIX + "support/";
 
 	public static final String URL_FAQ = "http://faq.vuze.com/";

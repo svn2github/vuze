@@ -184,8 +184,7 @@ public class TorrentListViewsUtils
 					}
 				}
 
-				String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DOWNLOAD + hash
-						+ ".torrent?referal=" + referal;
+				String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService( hash, referal );
 				dlInfo = new DownloadUrlInfo(url);
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
 			} else if (dlInfo != null) {

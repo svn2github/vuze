@@ -122,6 +122,14 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_PROFILE, new Object[]{ login_id, client_ref }));
 	}
 	
+	public String 
+	getTorrentDownloadService(
+		String 		hash, 
+		String 		client_ref ) 
+	{
+		return( getServiceURL( SERVICE_TORRENT_DOWNLOAD, new Object[]{ hash, client_ref }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

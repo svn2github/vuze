@@ -66,7 +66,7 @@ AzureusPlatformContentDirectory
 			return( null );
 		}
 		
-		String	url_str = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DOWNLOAD + Base32.encode( hash ) + ".torrent";
+		String	url_str = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService( Base32.encode( hash ), null );
 		
 		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 		

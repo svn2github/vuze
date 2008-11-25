@@ -18,7 +18,6 @@
  
 package com.aelitis.azureus.util;
 
-import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * Stupid EMP uses this class.  Who wrote such a crappy plugin.
@@ -38,7 +37,7 @@ public class Constants
 	public static final String URL_PREFIX = ConstantsV3.URL_PREFIX;
 	public static String URL_SUFFIX; 
 	
-	public static void initialize() {
+	public static void update() {
 		URL_SUFFIX = ConstantsV3.URL_SUFFIX;
 	}
 }

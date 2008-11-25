@@ -107,6 +107,7 @@ ContentNetworkVuze
 		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
 		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
 		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
+		 addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
 		 
 	}
 	
@@ -196,6 +197,20 @@ ContentNetworkVuze
 				String	client_ref 	= (String)params[1];
 				
 				return( base + UrlUtils.encode( login_id ) + "?" + URL_SUFFIX + "&client_ref=" +  UrlUtils.encode( client_ref ));
+			}
+			case SERVICE_TORRENT_DOWNLOAD:{
+				
+				String	hash 		= (String)params[0];
+				String	client_ref 	= (String)params[1];
+
+				String url_str = base + hash + ".torrent";
+				
+				if ( client_ref != null ){
+					
+					url_str += "?referal=" +  UrlUtils.encode( client_ref );
+				}
+				
+				return( url_str );
 			}
 			default:{
 				

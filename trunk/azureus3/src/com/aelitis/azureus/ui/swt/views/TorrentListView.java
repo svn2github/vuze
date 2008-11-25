@@ -288,8 +288,8 @@ public class TorrentListView
 							TOTorrent torrent = dm.getTorrent();
 							String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 							if (contentHash != null && contentHash.length() > 0) {
-								String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DOWNLOAD
-										+ contentHash + ".torrent?referal=coq";
+								String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService(contentHash, "coq" );
+
 								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
 								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,
 										false);
