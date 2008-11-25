@@ -39,7 +39,7 @@ ContentNetwork
 	public static final int		SERVICE_WELCOME				= 8;
 	public static final int		SERVICE_PUBLISH_NEW			= 9;
 	public static final int		SERVICE_PUBLISH_ABOUT		= 10;
-	
+	public static final int		SERVICE_CONTENT_DETAILS		= 11;	// String - hash; String (can be null) - client ref
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
 		 * @return
@@ -96,6 +96,11 @@ ContentNetwork
 	getXSearchService(
 		String		query,
 		boolean		to_subscribe );
+	
+	public String
+	getContentDetailsService(
+		String		hash,
+		String		client_ref );
 	
 		/**
 		 * export to vuze file

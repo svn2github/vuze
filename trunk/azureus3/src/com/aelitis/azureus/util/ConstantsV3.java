@@ -71,8 +71,6 @@ public class ConstantsV3
 	public static String URL_SUFFIX;
 
 			
-	public static final String URL_DETAILS = "details/";
-
 	public static final String URL_COMMENTS = "comment/";
 
 	public static final String URL_SHARE = "share/";

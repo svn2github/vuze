@@ -99,6 +99,13 @@ ContentNetworkImpl
 		return( getServiceURL( SERVICE_XSEARCH, new Object[]{ query, to_subscribe } ));
 	}
 	
+	public String 
+	getContentDetailsService(
+		String hash, String client_ref ) 
+	{
+		return( getServiceURL( SERVICE_CONTENT_DETAILS, new Object[]{ hash, client_ref }));
+	}
+	
 	public VuzeFile
 	getVuzeFile()
 	{

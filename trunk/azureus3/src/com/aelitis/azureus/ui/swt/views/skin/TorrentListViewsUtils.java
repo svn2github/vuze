@@ -121,8 +121,7 @@ public class TorrentListViewsUtils
 			return;
 		}
 
-		String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS + hash + ".html?"
-				+ ConstantsV3.URL_SUFFIX + "&client_ref=" + ref;
+		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( hash, ref );
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {

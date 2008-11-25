@@ -71,17 +71,17 @@ ContentNetworkVuze
 	{
 		 super( ContentNetwork.CONTENT_NETWORK_VUZE );
 		 
-		 addService( SERVICE_SEARCH, 		URL_PREFIX + "search?q=" );
-		 addService( SERVICE_XSEARCH, 		URL_PREFIX + "xsearch?q=" );
-		 addService( SERVICE_RPC, 			URL_PREFIX + "rpc/" );
-		 addService( SERVICE_RELAY_RPC, 	URL_RELAY_RPC );
-		 addService( SERVICE_AUTH_RPC, 		URL_AUTHORIZED_RPC );
-		 addService( SERVICE_BIG_BROWSE, 	URL_PREFIX + "browse.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH, 		URL_PREFIX + "publish.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_WELCOME, 		URL_PREFIX + "welcome.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_NEW, 	URL_PREFIX + "publishnew.start" + "?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_ABOUT, URL_PREFIX + "publishinfo.start" );
-		 
+		 addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
+		 addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
+		 addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
+		 addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
+		 addService( SERVICE_AUTH_RPC, 			URL_AUTHORIZED_RPC );
+		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start" + "?" + URL_SUFFIX );
+		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
+		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
 	}
 	
 	protected void
@@ -144,6 +144,21 @@ ContentNetworkVuze
 				
 				return( url_str );
 			}
+			case SERVICE_CONTENT_DETAILS:{
+				
+				String	hash 		= (String)params[0];
+				String	client_ref 	= (String)params[1];
+				
+				String url_str = base + hash + ".html?" + ConstantsV3.URL_SUFFIX;
+				
+				if ( client_ref != null ){
+					
+					url_str += "&client_ref=" + client_ref;
+				}
+				
+				return( url_str );
+			}
+			
 			default:{
 				
 				return( base );

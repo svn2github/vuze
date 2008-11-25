@@ -92,9 +92,8 @@ public class VuzeActivitiesEntryContentShare
   		String contentString;
   
   		if (ourContent || torrent == null) {
-  			String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
-  					+ content.getHash() + ".html?" + ConstantsV3.URL_SUFFIX
-  					+ "&client_ref=" + VuzeActivitiesConstants.TYPEID_BUDDYSHARE;
+  			String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( content.getHash(), VuzeActivitiesConstants.TYPEID_BUDDYSHARE );
+ 
   			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
   					+ "</A>";
   		} else {
@@ -178,9 +177,8 @@ public class VuzeActivitiesEntryContentShare
   		String contentString;
   	  
   		if (isPlatformContent() || getTorrent() == null) {
-  			String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
-  					+ getAssetHash() + ".html?" + ConstantsV3.URL_SUFFIX
-  					+ "&client_ref=" + VuzeActivitiesConstants.TYPEID_BUDDYSHARE;
+  			String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( getAssetHash(), VuzeActivitiesConstants.TYPEID_BUDDYSHARE );
+ 
   			contentString = "<A HREF=\"" + url + "\">" + getTorrentName()
   					+ "</A>";
   		} else {

@@ -158,9 +158,7 @@ public class ColumnTitle
 		String sText = name;
 		if (DataSourceUtils.isPlatformContent(dm)) {
 			try {
-				sText = "<A HREF=\"" + ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS
-						+ dm.getTorrent().getHashWrapper().toBase32String() + ".html?"
-						+ ConstantsV3.URL_SUFFIX + "\">" + name + "</A>";
+				sText = "<A HREF=\"" + ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( dm.getTorrent().getHashWrapper().toBase32String(), null) + "\">" + name + "</A>";
 			} catch (TOTorrentException e) {
 				Debug.out(e);
 			}

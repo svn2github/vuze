@@ -306,9 +306,8 @@ public class VuzeActivitiesManager
 
 						String hash = torrent.getHashWrapper().toBase32String();
 						String title;
-						String url = ConstantsV3.URL_PREFIX + ConstantsV3.URL_DETAILS + hash
-								+ ".html?" + ConstantsV3.URL_SUFFIX + "&client_ref=activity-"
-								+ VuzeActivitiesConstants.TYPEID_RATING_REMINDER;
+						String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( hash, "activity-" + VuzeActivitiesConstants.TYPEID_RATING_REMINDER );
+
 						title = "<A HREF=\"" + url + "\">"
 								+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
 						entry.setAssetHash(hash);
