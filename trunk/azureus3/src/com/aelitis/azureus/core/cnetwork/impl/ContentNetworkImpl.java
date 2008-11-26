@@ -247,4 +247,10 @@ ContentNetworkImpl
 		
 		return( vf );
 	}
+	
+	protected String
+	getString()
+	{
+		return( getName() + ": version=" + getVersion() + ", site=" + getProperty( PROPERTY_SITE_HOST ));
+	}
 }

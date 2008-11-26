@@ -22,15 +22,25 @@
 package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.custom.Customization;
+import com.aelitis.azureus.core.custom.CustomizationManager;
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.impl.SubscriptionImpl;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -39,7 +49,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 
 public class 
 ContentNetworkManagerImpl 
-	implements ContentNetworkManager
+	implements ContentNetworkManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final String CONFIG_FILE		= "cnetworks.config";
 	
@@ -100,6 +110,73 @@ ContentNetworkManagerImpl
 		loadConfig();
 		
 		addNetwork( new ContentNetworkVuze());
+		
+		AEDiagnostics.addEvidenceGenerator( this );
+		
+		CustomizationManager cust_man = CustomizationManagerFactory.getSingleton();
+		
+		Customization cust = cust_man.getActiveCustomization();
+		
+		if ( cust != null ){
+			
+			String cust_name 	= COConfigurationManager.getStringParameter( "cnetworks.custom.name", "" );
+			String cust_version = COConfigurationManager.getStringParameter( "cnetworks.custom.version", "0" );
+			
+			boolean	new_name 	= !cust_name.equals( cust.getName());
+			boolean	new_version = org.gudy.azureus2.core3.util.Constants.compareVersions( cust_version, cust.getVersion() ) < 0;
+			
+			if ( new_name || new_version ){
+				
+				try{
+					InputStream[] streams = cust.getResources( Customization.RT_CNETWORKS );
+					
+					for (int i=0;i<streams.length;i++){
+						
+						InputStream is = streams[i];
+						
+						try{
+							VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile(is);
+							
+							if ( vf != null ){
+								
+								VuzeFileComponent[] comps = vf.getComponents();
+								
+								for (int j=0;j<comps.length;j++){
+									
+									VuzeFileComponent comp = comps[j];
+									
+									int type = comp.getType();
+									
+									if ( type == VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK ){
+										
+										try{
+											importNetwork( comp.getContent());
+											
+											comp.setProcessed();
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+										}
+									}
+								}
+							}
+						}finally{
+							
+							try{
+								is.close();
+								
+							}catch( Throwable e ){
+							}
+						}
+					}
+				}finally{
+					
+					COConfigurationManager.setParameter( "cnetworks.custom.name", cust.getName());
+					COConfigurationManager.setParameter( "cnetworks.custom.version", cust.getVersion());
+				}
+			}
+		}
 	}
 	
 	protected void
@@ -316,5 +393,31 @@ ContentNetworkManagerImpl
 		ContentNetworkListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Content Networks" );
+			
+		try{
+			writer.indent();
+
+			synchronized( this ){
+				
+				Iterator<ContentNetworkImpl> it = networks.iterator();
+				
+				while( it.hasNext()){
+					
+					ContentNetworkImpl network = it.next();
+					
+					writer.println( network.getString());
+				}
+			}			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }
