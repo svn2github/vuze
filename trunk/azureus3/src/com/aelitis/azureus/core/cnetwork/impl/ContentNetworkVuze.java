@@ -21,20 +21,14 @@
 
 package com.aelitis.azureus.core.cnetwork.impl;
 
-import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import java.io.File;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.util.ConstantsV3;
 
 public class 
 ContentNetworkVuze 
-	extends ContentNetworkImpl
+	extends ContentNetworkVuzeGeneric
 {
 	private static final String DEFAULT_ADDRESS = "www.vuze.com"; //DO NOT TOUCH !!!!  use the -Dplatform_address=ip override instead
 
@@ -44,33 +38,12 @@ ContentNetworkVuze
 
 	private static final String DEFAULT_RELAY_PORT = "80";
 
-	private static String URL_ADDRESS = System.getProperty( "platform_address", DEFAULT_ADDRESS );
+	private static final String URL_ADDRESS = System.getProperty( "platform_address", DEFAULT_ADDRESS );
 
-	private static String URL_PORT = System.getProperty( "platform_port", DEFAULT_PORT );
+	private static final String URL_PORT 	= System.getProperty( "platform_port", DEFAULT_PORT );
 
 	private static final String URL_PREFIX = "http://" + URL_ADDRESS + ":" + URL_PORT + "/";
 
-	private static String URL_SUFFIX;
-	
-	static{
-
-		COConfigurationManager.addAndFireParameterListener(
-			"locale",
-			new ParameterListener() {
-				public void parameterChanged(String parameterName) {
-						// Don't change the order of the params as there's some code somewhere
-						// that depends on them (I think its code that removes the azid so
-						// we can fix this up when that code's migrated here I guess
-					
-					URL_SUFFIX = "azid=" + ConstantsV3.AZID + "&azv="
-							+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-							+ "&locale=" + Locale.getDefault().toString();
-				}
-			});
-	}
-	
-	
-	
 	
 	
 	private static final String DEFAULT_AUTHORIZED_RPC = "https://" + URL_ADDRESS + ":443/rpc";
@@ -85,7 +58,6 @@ ContentNetworkVuze
 			+ "app";
 	
 	private static final String URL_FAQ = "http://faq.vuze.com/";
-	private static final String URL_FAQ_BY_TOPIC_ENTRY = "http://faq.vuze.com/?View=entry&EntryID=";
 
 	private static final String URL_BLOG = "http://blog.vuze.com/";
 	
@@ -93,257 +65,48 @@ ContentNetworkVuze
 	
 	private static final String URL_WIKI = "http://wiki.vuze.com/";
 
-	
-	
-	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
-	
-	
 	protected
 	ContentNetworkVuze()
 	{
-		 super( ContentNetwork.CONTENT_NETWORK_VUZE );
-		 
-		 addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
-		 addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
-		 addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
-		 addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
-		 addService( SERVICE_AUTH_RPC, 			URL_AUTHORIZED_RPC );
-		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" + URL_SUFFIX );
-		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
-		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
-		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
-		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
-		 addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
-		 addService( SERVICE_SITE,				URL_PREFIX );
-		 addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
-		 addService( SERVICE_FAQ,				URL_FAQ );
-		 addService( SERVICE_FAQ_TOPIC,			URL_FAQ_BY_TOPIC_ENTRY ); 
-		 addService( SERVICE_BLOG,				URL_BLOG );
-		 addService( SERVICE_FORUMS,			URL_FORUMS );
-		 addService( SERVICE_WIKI,				URL_WIKI );
-		 addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
-		 addService( SERVICE_LOGOUT,			URL_PREFIX + "logout.start?" + URL_SUFFIX );
-		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" + URL_SUFFIX );
-		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" + URL_SUFFIX );
-		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" + URL_SUFFIX );
-		 addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
-		 addService( SERVICE_ADD_FRIEND,		URL_PREFIX + "/user/AddFriend.html?" );
-		 addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
-		 	
+		super( 	ContentNetwork.CONTENT_NETWORK_VUZE,
+				1,
+				"Vuze HD Network",
+				URL_ADDRESS,
+				URL_PREFIX,
+				URL_RELAY_RPC,
+				URL_AUTHORIZED_RPC,
+				URL_FAQ,
+				URL_BLOG,
+				URL_FORUMS,
+				URL_WIKI );
 	}
 	
-	protected void
-	addService(
-		int		type,
-		String	url_str )
+	public static void
+	main(
+		String[]	args )
 	{
-		 service_map.put( type, url_str );
-	}
-	
-	public String 
-	getProperty(
-		int property ) 
-	{
-		if ( property == PROPERTY_SITE_HOST ){
-			
-			return( URL_ADDRESS );
-			
-		}else{
-			
-			Debug.out( "Unknown property" );
-			
-			return( null );
-		}
-	}
-	public String
-	getServiceURL(
-		int			service_type )
-	{
-		return( getServiceURL( service_type, new Object[0]));
-	}
-	
-	
-	public String	
-	getServiceURL(
-		int			service_type,
-		Object[]	params )
-	{
-		String	base = service_map.get( service_type );
+		ContentNetworkManagerImpl.getSingleton();
 		
-		if ( base == null ){
+		ContentNetwork test = 
+			new ContentNetworkVuzeGeneric(
+				ContentNetwork.CONTENT_NETWORK_RFN,
+				1,
+				"RF Network",
+				"azdev02.azureus.com",
+				"http://azdev02.azureus.com:8080/",
+				"http://azdev02.azureus.com:8080/msgrelay/rpc",
+				"https://azdev02.azureus.com:443/rpc",
+				"http://www.google.com",
+				"http://www.ibm.com",
+				"http://www.yahoo.com",
+				"http://www.bbc.com" );
+				
+		try{
+			test.getVuzeFile().write( new File( "C:\\temp\\rfn.vuze"));
 			
-			Debug.out( "Unknown service type '" + service_type + "'" );
+		}catch( Throwable e ){
 			
-			return( null );
-		}
-		
-		switch( service_type ){
-		
-			case SERVICE_SEARCH:{
-				
-				String	query = (String)params[0];
-				
-				return(	base +
-						UrlUtils.encode(query) + 
-						"&" + URL_SUFFIX + 
-						"&rand=" + SystemTime.getCurrentTime());
-			}
-			
-			case SERVICE_XSEARCH:{
-				
-				String	query 			= (String)params[0];
-				boolean	to_subscribe	= (Boolean)params[1];
-				
-				String url_str = 
-							base +
-							UrlUtils.encode(query) + 
-							"&" + URL_SUFFIX + 
-							"&rand=" + SystemTime.getCurrentTime();
-				
-				if ( to_subscribe ){
-					
-					url_str += "&createSubscription=1";
-				}
-				
-				return( url_str );
-			}
-			case SERVICE_CONTENT_DETAILS:{
-				
-				String	hash 		= (String)params[0];
-				String	client_ref 	= (String)params[1];
-				
-				String url_str = base + hash + ".html?" + URL_SUFFIX;
-				
-				if ( client_ref != null ){
-					
-					url_str += "&client_ref=" +  UrlUtils.encode( client_ref );
-				}
-				
-				return( url_str );
-			}
-			case SERVICE_COMMENT:{
-				
-				String	hash 		= (String)params[0];
-				
-				return( base + hash + ".html?" + URL_SUFFIX	+ "&rnd=" + Math.random());
-			}
-			case SERVICE_PROFILE:{
-			
-				String	login_id 	= (String)params[0];
-				String	client_ref 	= (String)params[1];
-				
-				return( base + UrlUtils.encode( login_id ) + "?" + URL_SUFFIX + "&client_ref=" +  UrlUtils.encode( client_ref ));
-			}
-			case SERVICE_TORRENT_DOWNLOAD:{
-				
-				String	hash 		= (String)params[0];
-				String	client_ref 	= (String)params[1];
-
-				String url_str = base + hash + ".torrent";
-				
-				if ( client_ref != null ){
-					
-					url_str += "?referal=" +  UrlUtils.encode( client_ref );
-				}
-				
-				return( url_str );
-			}
-			case SERVICE_FAQ_TOPIC:{
-				
-				String	topic 		= (String)params[0];
-				
-				return( base + topic );
-			}
-			case SERVICE_LOGIN:{
-				
-				String	message 		= (String)params[0];
-				
-				if ( message == null || message.length() == 0 ){
-					
-					base += URL_SUFFIX;
-					
-				}else{
-					
-					base += "msg=" + UrlUtils.encode( message );
-					
-					base += "&" + URL_SUFFIX;
-				}
-				
-				return( base );
-			}
-			case SERVICE_MY_PROFILE:
-			case SERVICE_MY_ACCOUNT:{
-				
-				base += "&rand=" + SystemTime.getCurrentTime();
-				
-				return( base );
-			}
-			case SERVICE_SITE_RELATIVE:{
-				
-				String	relative_url 	= (String)params[0];
-				boolean	append_suffix	= (Boolean)params[1];
-				
-				base += relative_url.startsWith("/")?relative_url.substring(1):relative_url;
-				
-				if ( append_suffix ){
-
-					base = appendURLSuffix( base, true );
-				}
-				
-				return( base );
-			}
-			case SERVICE_ADD_FRIEND:{
-				
-				String	colour 	= (String)params[0];
-				
-				base += "ts=" + Math.random() + "&bg_color=" + colour;
-
-				return( base );
-			}
-			case SERVICE_SUBSCRIPTION:{
-				
-				String	subs_id 	= (String)params[0];
-				
-				base += "subscription=" + subs_id + "&" + URL_SUFFIX;
-
-				return( base );
-			}
-			default:{
-				
-				return( base );
-			}
-		}
-	}
-	
-	public String 
-	appendURLSuffix(
-		String 		url_in, 
-		boolean 	include_azid ) 
-	{
-		if ( url_in.indexOf( "azid=" ) != -1 ){
-	
-				// already present
-			
-			return( url_in );
-		}
-	
-		String suffix = URL_SUFFIX;
-		
-		if ( !include_azid ){
-			
-			suffix = suffix.replaceAll( "azid=.*&", "" );
-		}
-		
-		if ( url_in.indexOf("?") >= 0 ){
-
-			return( url_in + "&" + suffix );
-			
-		}else{
-			
-			return( url_in + "?" + suffix );
+			e.printStackTrace();
 		}
 	}
 }

@@ -22,59 +22,121 @@
 package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.*;
+
+import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
 ContentNetworkImpl
 	implements ContentNetwork
 {
+	protected static final long	TYPE_VUZE_GENERIC		= 1;
+	
 	protected static ContentNetworkImpl
 	importFromBencodedMap(
 		Map		map )
 	
 		throws IOException
 	{
-		long	id = (Long)map.get("id");
+		long type	= ImportExportUtils.importLong( map, "type" );
 		
-		if ( id == CONTENT_NETWORK_VUZE ){
+		if ( type == TYPE_VUZE_GENERIC ){
 			
-			return( new ContentNetworkVuze());
+			return( new ContentNetworkVuzeGeneric( map ));
 			
 		}else{
 		
-			throw( new IOException( "Unsupported network: " + id ));
+			throw( new IOException( "Unsupported network type: " + type ));
 		}
 	}
 	
+	private long		type;
+	private long		version;
 	private long		id;
+	private String		name;
 	
 	protected
 	ContentNetworkImpl(
-		long			_id )
+		long			_type,
+		long			_id,
+		long			_version,
+		String			_name )
 	{
-		id		= _id;
+		type		= _type;
+		version		= _version;
+		id			= _id;
+		name		= _name;
 	}
 	
-	protected Map
-	exportToBencodedMap()
+	protected
+	ContentNetworkImpl(
+		Map		map )
+	
+		throws IOException
 	{
-		Map	result = new HashMap();
-		
-		result.put( "id", new Long( id ));
-		
-		return( result );
+		type	= ImportExportUtils.importLong( map, "type" );
+		id		= ImportExportUtils.importLong( map, "id" );
+		version	= ImportExportUtils.importLong( map, "version" );
+		name 	= ImportExportUtils.importString( map, "name" );
+	}
+	
+	protected void
+	exportToBencodedMap(
+		Map			map )
+	
+		throws IOException
+	{
+		ImportExportUtils.exportLong( map, "type", type );
+		ImportExportUtils.exportLong( map, "id", id );
+		ImportExportUtils.exportLong( map, "version", version );
+		ImportExportUtils.exportString( map, "name", name );
 	}
 	
 	public long 
 	getID() 
 	{
 		return( id );
+	}
+	
+	protected long
+	getVersion()
+	{
+		return( version );
+	}
+	
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
+	protected boolean
+	isSameAs(
+		ContentNetworkImpl		other )
+	{
+		try{
+			Map	map1 = new HashMap();
+			Map map2 = new HashMap();
+			
+			exportToBencodedMap( map1 );
+			
+			other.exportToBencodedMap( map2 );
+			
+			return( BEncoder.mapsAreIdentical( map1, map2 ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}
 	}
 	
 	public boolean 
@@ -171,9 +233,17 @@ ContentNetworkImpl
 	{
 		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
 		
-		vf.addComponent(
-			VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK,
-			exportToBencodedMap());
+		Map	map = new HashMap();
+		
+		try{
+			exportToBencodedMap( map );
+		
+			vf.addComponent( VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK, map );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
 		
 		return( vf );
 	}

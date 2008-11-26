@@ -71,6 +71,9 @@ ContentNetwork
 	getID();
 	
 	public String
+	getName();
+	
+	public String
 	getProperty(
 		int			property );
 	

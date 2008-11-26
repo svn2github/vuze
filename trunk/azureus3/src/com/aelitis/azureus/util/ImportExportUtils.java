@@ -121,6 +121,15 @@ public final class ImportExportUtils {
 	}
 
 	public final static void
+	exportLong(
+		Map		map,
+		String	key,
+		long	value )
+	{
+		map.put( key, value );
+	}
+	
+	public final static void
 	exportBoolean(
 		Map		map,
 		String	key,

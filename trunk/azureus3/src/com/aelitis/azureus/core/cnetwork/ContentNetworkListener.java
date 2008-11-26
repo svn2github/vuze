@@ -29,6 +29,10 @@ ContentNetworkListener
 		ContentNetwork	network );
 	
 	public void
+	networkChanged(
+		ContentNetwork	network );
+
+	public void
 	networkRemoved(
 		ContentNetwork	network );
 }

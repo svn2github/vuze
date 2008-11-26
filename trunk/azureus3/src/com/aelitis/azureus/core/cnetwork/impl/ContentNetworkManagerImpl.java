@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkListener;
@@ -40,6 +41,8 @@ public class
 ContentNetworkManagerImpl 
 	implements ContentNetworkManager
 {
+	private static final String CONFIG_FILE		= "cnetworks.config";
+	
 	private static ContentNetworkManagerImpl singleton = new ContentNetworkManagerImpl();
 	
 	public static void
@@ -65,8 +68,7 @@ ContentNetworkManagerImpl
 							
 							if ( comp.getType() == VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK ){
 								
-								try{
-								
+								try{								
 									((ContentNetworkManagerImpl)getSingleton()).importNetwork( comp.getContent());
 								
 									comp.setProcessed();
@@ -88,13 +90,15 @@ ContentNetworkManagerImpl
 		return( singleton );
 	}
 	
-	private List					networks = new ArrayList();
+	private List<ContentNetworkImpl>	networks = new ArrayList<ContentNetworkImpl>();
 	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	
 	protected
 	ContentNetworkManagerImpl()
 	{
+		loadConfig();
+		
 		addNetwork( new ContentNetworkVuze());
 	}
 	
@@ -118,7 +122,7 @@ ContentNetworkManagerImpl
 		}
 	}
 	
-	public ContentNetwork 
+	public ContentNetworkImpl 
 	getContentNetwork(
 		long id ) 
 	{
@@ -126,7 +130,7 @@ ContentNetworkManagerImpl
 			
 			for ( int i=0;i<networks.size();i++ ){
 					
-				ContentNetwork network = (ContentNetwork)networks.get(i);
+				ContentNetworkImpl network = networks.get(i);
 				
 				if ( network.getID() == id ){
 				
@@ -140,28 +144,56 @@ ContentNetworkManagerImpl
 	
 	protected void
 	addNetwork(
-		ContentNetwork		network )
+		ContentNetworkImpl		network )
 	{
+		boolean	replace = false;
+		
 		synchronized( this ){
 		
-			for ( int i=0;i<networks.size();i++ ){
+			Iterator<ContentNetworkImpl> it = networks.iterator();
+			
+			while( it.hasNext()){
 				
-				if ( ((ContentNetwork)networks.get(i)).getID() == network.getID()){
+				ContentNetworkImpl existing_network = it.next();
+				
+				if ( existing_network.getID() == network.getID()){
 					
-					return;
+					if ( network.getVersion() > existing_network.getVersion()){
+						
+						it.remove();
+						
+						break;
+						
+					}else{
+						
+						return;
+					}
 				}
 			}
-			
+
 			networks.add( network );
+		
+				// we never persist the vuze network
+			
+			if ( network.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
+				
+				saveConfig();
+			}
 		}
 		
-		Iterator	 it = listeners.iterator();
+		Iterator<ContentNetworkListener>	 it = (Iterator<ContentNetworkListener>)listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((ContentNetworkListener)it.next()).networkAdded( network );
-				
+				if ( replace ){
+					
+					it.next().networkChanged( network );
+					
+				}else{
+					
+					it.next().networkAdded( network );
+				}
 			}catch( Throwable e ){
 				
 				Debug.out( e );
@@ -179,19 +211,96 @@ ContentNetworkManagerImpl
 				
 				return;
 			}
+		
+			saveConfig();
 		}
 		
-		Iterator	 it = listeners.iterator();
+		Iterator<ContentNetworkListener>	 it = (Iterator<ContentNetworkListener>)listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((ContentNetworkListener)it.next()).networkRemoved( network );
+				it.next().networkRemoved( network );
 				
 			}catch( Throwable e ){
 				
 				Debug.out( e );
 			}
+		}
+	}
+	
+	protected void
+	loadConfig()
+	{
+		if ( FileUtil.resilientConfigFileExists( CONFIG_FILE )){
+			
+			Map	map = FileUtil.readResilientConfigFile( CONFIG_FILE );
+			
+			List list = (List)map.get( "networks" );
+			
+			if ( list != null ){
+				
+				for (int i=0;i<list.size();i++){
+					
+					Map	cnet_map = (Map)list.get(i);
+					
+					try{
+						
+						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMap( cnet_map );
+						
+						if ( cn.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
+							
+							networks.add( cn );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( "Failed to import " + cnet_map, e );
+					}
+				}
+			}
+		}
+	}
+	
+	protected void
+	saveConfig()
+	{
+		Map	map = new HashMap();
+		
+		List list = new ArrayList();
+		
+		map.put( "networks", list );
+		
+		Iterator<ContentNetworkImpl> it = networks.iterator();
+		
+		while( it.hasNext()){
+			
+			ContentNetworkImpl network = it.next();
+
+			if ( network.getID() == ContentNetwork.CONTENT_NETWORK_VUZE ){
+				
+				continue;
+			}
+			
+			Map	cnet_map = new HashMap();
+			
+			try{
+				network.exportToBencodedMap( cnet_map );
+			
+				list.add( cnet_map );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to export " + network.getName(), e );
+			}
+		}
+		
+		if ( list.size() == 0 ){
+			
+			FileUtil.deleteResilientConfigFile( CONFIG_FILE );
+			
+		}else{
+			
+			FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
 		}
 	}
 	
