@@ -28,19 +28,28 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkException;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.impl.SubscriptionImpl;
+import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger;
+import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger.contentNetworkDetails;
+
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -54,7 +63,8 @@ ContentNetworkManagerImpl
 	private static final String CONFIG_FILE		= "cnetworks.config";
 	
 	private static ContentNetworkManagerImpl singleton = new ContentNetworkManagerImpl();
-	
+		
+
 	public static void
 	preInitialise()
 	{
@@ -85,6 +95,8 @@ ContentNetworkManagerImpl
 									
 								}catch( Throwable e ){
 									
+									log( "Failed to import from vuze file", e );
+							
 									Debug.out( e );
 								}
 							}
@@ -123,7 +135,7 @@ ContentNetworkManagerImpl
 			String cust_version = COConfigurationManager.getStringParameter( "cnetworks.custom.version", "0" );
 			
 			boolean	new_name 	= !cust_name.equals( cust.getName());
-			boolean	new_version = org.gudy.azureus2.core3.util.Constants.compareVersions( cust_version, cust.getVersion() ) < 0;
+			boolean	new_version = Constants.compareVersions( cust_version, cust.getVersion() ) < 0;
 			
 			if ( new_name || new_version ){
 				
@@ -156,7 +168,7 @@ ContentNetworkManagerImpl
 											
 										}catch( Throwable e ){
 											
-											Debug.printStackTrace(e);
+											log( "Failed to import customisation network", e );
 										}
 									}
 								}
@@ -177,6 +189,67 @@ ContentNetworkManagerImpl
 				}
 			}
 		}
+		
+		
+		SimpleTimer.addPeriodicEvent(
+				"MetaSearchRefresh",
+				23*60860*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent 	event ) 
+					{
+						checkForUpdates();
+					}
+				});
+		
+		if ( networks.size() > 1 ){
+			
+			new AEThread2( "CNetwork:init",	true )
+			{
+				public void
+				run()
+				{
+					checkForUpdates();
+				}
+			}.start();
+		}
+	}
+	
+	protected void
+	checkForUpdates()
+	{
+		synchronized( this ){
+			
+				// vuze network always present, no need to check this for updates as we don't auto
+				// update it
+			
+			if ( networks.size() < 2 ){
+			
+				return;
+			}
+		}
+		
+		try{
+			List<contentNetworkDetails> cnets = PlatformContentNetworkMessenger.listNetworks();
+										
+			for ( contentNetworkDetails details: cnets ){
+				
+				ContentNetwork existing = getContentNetwork( details.getID());
+				
+				if ( existing != null ){
+					
+					ContentNetworkImpl new_net = createNetwork( details );
+					
+					addNetwork( new_net );
+				}
+			}
+			
+		}catch( Throwable e ){
+
+			log( "Failed to load network list", e );
+		}
 	}
 	
 	protected void
@@ -185,7 +258,7 @@ ContentNetworkManagerImpl
 	
 		throws IOException
 	{
-		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMap( content );
+		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMapStatic( content );
 		
 		addNetwork( network );
 	}
@@ -193,10 +266,51 @@ ContentNetworkManagerImpl
 	public ContentNetwork 
 	addContentNetwork(
 		long 	id ) 
+	
+		throws ContentNetworkException
 	{
-		return null;
+		try{
+			List<contentNetworkDetails> cnets = PlatformContentNetworkMessenger.listNetworks();
+										
+			for ( contentNetworkDetails details: cnets ){
+				
+				if ( details.getID() == id ){
+					
+					ContentNetworkImpl new_net = createNetwork( details );
+					
+					return( addNetwork( new_net ));
+				}
+			}
+			
+			throw( new ContentNetworkException( "Content Network with id " + id + " not found" ));
+
+		}catch( Throwable e ){
+			
+			throw( new ContentNetworkException( "Failed to list permitted networks", e ));
+		}
 	}
 	
+	protected ContentNetworkImpl
+	createNetwork(
+		contentNetworkDetails		details )
+	{	
+			// TODO:
+		
+		return( 
+			new ContentNetworkVuzeGeneric( 
+					details.getID(),
+					details.getVersion(),
+					"plop",
+					"www.plop.com",
+					"http://www.plop.com/",
+					null,
+					null,
+					null,
+					null,
+					null,
+					null ));
+
+	}
 	public ContentNetwork[] 
 	getContentNetworks() 
 	{
@@ -226,7 +340,7 @@ ContentNetworkManagerImpl
 		}
 	}
 	
-	protected void
+	protected ContentNetworkImpl
 	addNetwork(
 		ContentNetworkImpl		network )
 	{
@@ -244,19 +358,40 @@ ContentNetworkManagerImpl
 					
 					if ( network.getVersion() > existing_network.getVersion()){
 						
-						it.remove();
+						try{
+							existing_network.updateFrom( network );
+						
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+						}
+						
+						network = existing_network;
+						
+						replace = true;
 						
 						break;
 						
 					}else{
 						
-						return;
+						log( "Network " + existing_network.getString() + " already up to date" );
+						
+						return( existing_network );
 					}
 				}
 			}
 
-			networks.add( network );
-		
+			if ( replace ){
+			
+				log( "Updated network: " + network.getString());
+				
+			}else{
+				
+				log( "Added network: " + network.getString());
+				
+				networks.add( network );
+			}
+			
 				// we never persist the vuze network
 			
 			if ( network.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
@@ -283,11 +418,13 @@ ContentNetworkManagerImpl
 				Debug.out( e );
 			}
 		}
+		
+		return( network );
 	}
 	
 	protected void
 	removeNetwork(
-		ContentNetwork		network )
+		ContentNetworkImpl		network )
 	{
 		synchronized( this ){
 
@@ -298,6 +435,8 @@ ContentNetworkManagerImpl
 		
 			saveConfig();
 		}
+		
+		log( "Removed network: " + network.getString());
 		
 		Iterator<ContentNetworkListener>	 it = (Iterator<ContentNetworkListener>)listeners.iterator();
 		
@@ -330,7 +469,7 @@ ContentNetworkManagerImpl
 					
 					try{
 						
-						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMap( cnet_map );
+						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMapStatic( cnet_map );
 						
 						if ( cn.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
 							
@@ -338,7 +477,7 @@ ContentNetworkManagerImpl
 						}
 					}catch( Throwable e ){
 						
-						Debug.out( "Failed to import " + cnet_map, e );
+						log( "Failed to load " + cnet_map, e );
 					}
 				}
 			}
@@ -374,7 +513,7 @@ ContentNetworkManagerImpl
 				
 			}catch( Throwable e ){
 				
-				Debug.out( "Failed to export " + network.getName(), e );
+				log( "Failed to save " + network.getName(), e );
 			}
 		}
 		
@@ -426,5 +565,25 @@ ContentNetworkManagerImpl
 			
 			writer.exdent();
 		}
+	}
+	
+	public static void 
+	log(
+		String 		s,
+		Throwable 	e )
+	{
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( "CNetworks" );
+
+		diag_logger.log( s );
+		diag_logger.log( e );
+	}
+	
+	public static void 
+	log(
+		String 	s )
+	{	
+		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger( "CNetworks" );
+
+		diag_logger.log( s );
 	}
 }

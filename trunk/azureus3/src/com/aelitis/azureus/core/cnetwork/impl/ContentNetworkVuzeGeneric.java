@@ -65,14 +65,14 @@ ContentNetworkVuzeGeneric
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 
 
-	private final String	SITE_HOST;
-	private final String	URL_PREFIX;
-	private final String	URL_RELAY_RPC;
-	private final String	URL_AUTHORIZED_RPC;
-	private final String	URL_FAQ;
-	private final String	URL_BLOG;
-	private final String	URL_FORUMS;
-	private final String	URL_WIKI;
+	private String	SITE_HOST;
+	private String	URL_PREFIX;
+	private String	URL_RELAY_RPC;
+	private String	URL_AUTHORIZED_RPC;
+	private String	URL_FAQ;
+	private String	URL_BLOG;
+	private String	URL_FORUMS;
+	private String	URL_WIKI;
 
 	protected
 	ContentNetworkVuzeGeneric(
@@ -88,18 +88,18 @@ ContentNetworkVuzeGeneric
 		String		_url_forums,
 		String		_url_wiki )
 	{
-		 super( TYPE_VUZE_GENERIC, _content_network, _version, _name );
+		super( TYPE_VUZE_GENERIC, _content_network, _version, _name );
 		 
-		 SITE_HOST				= _site_host;
-		 URL_PREFIX 			= _url_prefix;
-		 URL_RELAY_RPC			= _url_relay_rpc;
-		 URL_AUTHORIZED_RPC		= _url_authorised_rpc;
-		 URL_FAQ				= _url_faq;
-		 URL_BLOG				= _url_blog;
-		 URL_FORUMS				= _url_forums;
-		 URL_WIKI				= _url_wiki;
+		SITE_HOST				= _site_host;
+		URL_PREFIX 				= _url_prefix;
+		URL_RELAY_RPC			= _url_relay_rpc;
+		URL_AUTHORIZED_RPC		= _url_authorised_rpc;
+		URL_FAQ					= _url_faq;
+		URL_BLOG				= _url_blog;
+		URL_FORUMS				= _url_forums;
+		URL_WIKI				= _url_wiki;
 		 
-		 init();
+		init();
 	}
 	
 	protected
@@ -108,18 +108,27 @@ ContentNetworkVuzeGeneric
 	
 		throws IOException
 	{
-		super( map );
+		importFromBEncodedMap( map );
+	}
+	
+	protected void
+	importFromBEncodedMap(
+		Map			map )
+	
+		throws IOException
+	{		
+		super.importFromBencodedMap( map );
 		
-		 SITE_HOST				= ImportExportUtils.importString(map, "vg_site" );
-		 URL_PREFIX 			= ImportExportUtils.importString(map, "vg_prefix" );
-		 URL_RELAY_RPC			= ImportExportUtils.importString(map, "vg_relay_rpc" );
-		 URL_AUTHORIZED_RPC		= ImportExportUtils.importString(map, "vg_auth_rpc" );
-		 URL_FAQ				= ImportExportUtils.importString(map, "vg_faq" );
-		 URL_BLOG				= ImportExportUtils.importString(map, "vg_blog" );
-		 URL_FORUMS				= ImportExportUtils.importString(map, "vg_forums" );
-		 URL_WIKI				= ImportExportUtils.importString(map, "vg_wiki" );
+		SITE_HOST				= ImportExportUtils.importString(map, "vg_site" );
+		URL_PREFIX 				= ImportExportUtils.importString(map, "vg_prefix" );
+		URL_RELAY_RPC			= ImportExportUtils.importString(map, "vg_relay_rpc" );
+		URL_AUTHORIZED_RPC		= ImportExportUtils.importString(map, "vg_auth_rpc" );
+		URL_FAQ					= ImportExportUtils.importString(map, "vg_faq" );
+		URL_BLOG				= ImportExportUtils.importString(map, "vg_blog" );
+		URL_FORUMS				= ImportExportUtils.importString(map, "vg_forums" );
+		URL_WIKI				= ImportExportUtils.importString(map, "vg_wiki" );
 		 
-		 init();
+		init();
 	}
 	
 	protected void
@@ -130,49 +139,74 @@ ContentNetworkVuzeGeneric
 	{
 		super.exportToBencodedMap( map );
 		
-		 ImportExportUtils.exportString(map, "vg_site", 		SITE_HOST );
-		 ImportExportUtils.exportString(map, "vg_prefix", 		URL_PREFIX );
-		 ImportExportUtils.exportString(map, "vg_relay_rpc", 	URL_RELAY_RPC );
-		 ImportExportUtils.exportString(map, "vg_auth_rpc", 	URL_AUTHORIZED_RPC );
-		 ImportExportUtils.exportString(map, "vg_faq", 			URL_FAQ );
-		 ImportExportUtils.exportString(map, "vg_blog", 		URL_BLOG );
-		 ImportExportUtils.exportString(map, "vg_forums",		URL_FORUMS );
-		 ImportExportUtils.exportString(map, "vg_wiki",			URL_WIKI );
+		ImportExportUtils.exportString(map, "vg_site", 		SITE_HOST );
+		ImportExportUtils.exportString(map, "vg_prefix", 	URL_PREFIX );
+		ImportExportUtils.exportString(map, "vg_relay_rpc", URL_RELAY_RPC );
+		ImportExportUtils.exportString(map, "vg_auth_rpc", 	URL_AUTHORIZED_RPC );
+		ImportExportUtils.exportString(map, "vg_faq", 		URL_FAQ );
+		ImportExportUtils.exportString(map, "vg_blog", 		URL_BLOG );
+		ImportExportUtils.exportString(map, "vg_forums",	URL_FORUMS );
+		ImportExportUtils.exportString(map, "vg_wiki",		URL_WIKI );
 	}
 	
 	protected void
 	init()
 	{
-		 addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
-		 addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
-		 addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
-		 addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
-		 addService( SERVICE_AUTH_RPC, 			URL_AUTHORIZED_RPC );
-		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
-		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
-		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
-		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" );
-		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
-		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
-		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
-		 addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
-		 addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
-		 addService( SERVICE_SITE,				URL_PREFIX );
-		 addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
-		 addService( SERVICE_FAQ,				URL_FAQ );
-		 addService( SERVICE_FAQ_TOPIC,			URL_FAQ + "?View=entry&EntryID=" ); 
-		 addService( SERVICE_BLOG,				URL_BLOG );
-		 addService( SERVICE_FORUMS,			URL_FORUMS );
-		 addService( SERVICE_WIKI,				URL_WIKI );
-		 addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
-		 addService( SERVICE_LOGOUT,			URL_PREFIX + "logout.start?" );
-		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" );
-		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" );
-		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" );
-		 addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
-		 addService( SERVICE_ADD_FRIEND,		URL_PREFIX + "user/AddFriend.html?" );
-		 addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
-		 	
+		service_map.clear();
+		
+		addService( SERVICE_SEARCH, 			URL_PREFIX + "search?q=" );
+		addService( SERVICE_XSEARCH, 			URL_PREFIX + "xsearch?q=" );
+		addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
+		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
+		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
+		addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
+		addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" );
+		addService( SERVICE_PUBLISH_ABOUT, 		URL_PREFIX + "publishinfo.start" );
+		addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
+		addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
+		addService( SERVICE_PROFILE,			URL_PREFIX + "profile/" );
+		addService( SERVICE_TORRENT_DOWNLOAD,	URL_PREFIX + "download/" );
+		addService( SERVICE_SITE,				URL_PREFIX );
+		addService( SERVICE_SUPPORT,			URL_PREFIX + "support/" );
+		addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
+		addService( SERVICE_LOGOUT,				URL_PREFIX + "logout.start?" );
+		addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" );
+		addService( SERVICE_MY_PROFILE,			URL_PREFIX + "profile.start?" );
+		addService( SERVICE_MY_ACCOUNT,			URL_PREFIX + "account.start?" );
+		addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
+		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
+		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
+		 
+		if ( URL_RELAY_RPC != null ){
+			 
+			addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
+		}
+		 
+		if ( URL_AUTHORIZED_RPC != null ){
+			 
+			addService( SERVICE_AUTH_RPC, 		URL_AUTHORIZED_RPC );
+		}
+		 
+		if ( URL_FAQ != null ){
+		 
+			addService( SERVICE_FAQ,			URL_FAQ );
+			addService( SERVICE_FAQ_TOPIC,		URL_FAQ + "?View=entry&EntryID=" );
+		}
+		 
+		if ( URL_BLOG != null ){
+		 
+			addService( SERVICE_BLOG,			URL_BLOG );
+		}
+		 
+		if ( URL_FORUMS != null ){
+		 
+			addService( SERVICE_FORUMS,			URL_FORUMS );
+		}
+		 
+		if ( URL_WIKI != null ){
+			 
+			addService( SERVICE_WIKI,			URL_WIKI );
+		} 
 	}
 	
 	protected void

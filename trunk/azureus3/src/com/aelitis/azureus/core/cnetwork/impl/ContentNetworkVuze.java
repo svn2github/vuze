@@ -90,8 +90,8 @@ ContentNetworkVuze
 		ContentNetwork test = 
 			new ContentNetworkVuzeGeneric(
 				ContentNetwork.CONTENT_NETWORK_RFN,
-				1,
-				"RF Network",
+				2,
+				"RF Network 2",
 				"azdev02.azureus.com",
 				"http://azdev02.azureus.com:8080/",
 				"http://azdev02.azureus.com:8080/msgrelay/rpc",

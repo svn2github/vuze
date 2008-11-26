@@ -1,5 +1,5 @@
 /*
- * Created on Nov 20, 2008
+ * Created on Nov 26, 2008
  * Created by Paul Gardner
  * 
  * Copyright 2008 Vuze, Inc.  All rights reserved.
@@ -21,28 +21,22 @@
 
 package com.aelitis.azureus.core.cnetwork;
 
-public interface 
-ContentNetworkManager 
+public class 
+ContentNetworkException 
+	extends Exception
 {
-	public ContentNetwork[]
-	getContentNetworks();
-	
-	public ContentNetwork
-	getContentNetwork(
-		long			id );
+	public 
+	ContentNetworkException(
+		String			str )
+	{
+		super( str );
+	}
 
-	public ContentNetwork
-	addContentNetwork(
-		long			id )
-	
-		throws ContentNetworkException;
-	
-	public void
-	addListener(
-		ContentNetworkListener		listener );
-	
-	public void
-	removeListener(
-		ContentNetworkListener		listener );
-
+	public 
+	ContentNetworkException(
+		String			str,
+		Throwable 		cause )
+	{
+		super( str, cause );
+	}
 }

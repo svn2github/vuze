@@ -40,7 +40,7 @@ ContentNetworkImpl
 	protected static final long	TYPE_VUZE_GENERIC		= 1;
 	
 	protected static ContentNetworkImpl
-	importFromBencodedMap(
+	importFromBencodedMapStatic(
 		Map		map )
 	
 		throws IOException
@@ -78,7 +78,12 @@ ContentNetworkImpl
 	}
 	
 	protected
-	ContentNetworkImpl(
+	ContentNetworkImpl()
+	{
+	}
+	
+	protected void
+	importFromBencodedMap(
 		Map		map )
 	
 		throws IOException
@@ -87,6 +92,7 @@ ContentNetworkImpl
 		id		= ImportExportUtils.importLong( map, "id" );
 		version	= ImportExportUtils.importLong( map, "version" );
 		name 	= ImportExportUtils.importString( map, "name" );
+
 	}
 	
 	protected void
@@ -99,6 +105,19 @@ ContentNetworkImpl
 		ImportExportUtils.exportLong( map, "id", id );
 		ImportExportUtils.exportLong( map, "version", version );
 		ImportExportUtils.exportString( map, "name", name );
+	}
+	
+	protected void
+	updateFrom(
+		ContentNetworkImpl	other )
+	
+		throws IOException
+	{
+		Map	map = new HashMap();
+		
+		other.exportToBencodedMap(map);
+		
+		importFromBencodedMap( map );
 	}
 	
 	public long 
@@ -268,6 +287,6 @@ ContentNetworkImpl
 	protected String
 	getString()
 	{
-		return( getName() + ": version=" + getVersion() + ", site=" + getProperty( PROPERTY_SITE_HOST ));
+		return( getID() + " - " + getName() + ": version=" + getVersion() + ", site=" + getProperty( PROPERTY_SITE_HOST ));
 	}
 }
