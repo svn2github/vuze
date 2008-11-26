@@ -30,6 +30,10 @@ ContentNetworkManager
 	public ContentNetwork
 	getContentNetwork(
 		long			id );
+
+	public ContentNetwork
+	addContentNetwork(
+		long			id );
 	
 	public void
 	addListener(

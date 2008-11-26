@@ -62,6 +62,8 @@ ContentNetworkImpl
 	private long		id;
 	private String		name;
 	
+	private Map<Object,Object>	transient_properties = Collections.synchronizedMap( new HashMap<Object,Object>());
+	
 	protected
 	ContentNetworkImpl(
 		long			_type,
@@ -246,6 +248,21 @@ ContentNetworkImpl
 		}
 		
 		return( vf );
+	}
+	
+	public void
+	setTransientProperty(
+		Object		key,
+		Object		value )
+	{
+		transient_properties.put( key, value );
+	}
+	
+	public Object
+	getTransientProperty(
+		Object		key )
+	{
+		return( transient_properties.get( key ));
 	}
 	
 	protected String

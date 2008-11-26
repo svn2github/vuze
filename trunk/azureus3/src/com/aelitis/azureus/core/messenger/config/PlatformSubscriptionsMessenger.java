@@ -24,28 +24,25 @@ package com.aelitis.azureus.core.messenger.config;
 import java.security.Signature;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.json.simple.JSONArray;
 
 
-import com.aelitis.azureus.core.messenger.PlatformMessage;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
-import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 
 public class 
 PlatformSubscriptionsMessenger 
 {
-	public static final String LISTENER_ID_TEMPLATE = "subscription";
+	private static final PlatformMessengerConfig	dispatcher = 
+		new PlatformMessengerConfig( "subscription", false );
 
-	public static final String OP_CREATE_SUBS					= "create-subscription";
-	public static final String OP_UPDATE_SUBS					= "update-subscription";
-	public static final String OP_GET_SUBS_BY_SID				= "get-subscriptions";
-	public static final String OP_GET_POP_BY_SID				= "get-subscription-infos";
-	public static final String OP_SET_SELECTED					= "set-selected";
+	private static final String OP_CREATE_SUBS					= "create-subscription";
+	private static final String OP_UPDATE_SUBS					= "update-subscription";
+	private static final String OP_GET_SUBS_BY_SID				= "get-subscriptions";
+	private static final String OP_GET_POP_BY_SID				= "get-subscription-infos";
+	private static final String OP_SET_SELECTED					= "set-selected";
 
 	public static void
 	updateSubscription(
@@ -91,7 +88,7 @@ PlatformSubscriptionsMessenger
 			
 			parameters.put( "signature", Base32.encode( sig_bytes ));
 
-			syncInvoke(	create?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
+			dispatcher.syncInvoke(	create?OP_CREATE_SUBS:OP_UPDATE_SUBS, parameters ); 
 			
 		}catch( Throwable e ){
 			
@@ -113,7 +110,7 @@ PlatformSubscriptionsMessenger
 		
 		parameters.put( "subscription_ids", sid_list);
 		
-		Map reply = syncInvoke(	OP_GET_SUBS_BY_SID, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_GET_SUBS_BY_SID, parameters ); 
 
 		for (int i=0;i<sid_list.size();i++){
 			
@@ -144,7 +141,7 @@ PlatformSubscriptionsMessenger
 					
 		parameters.put( "subscription_ids", sid_list );
 		
-		Map reply = syncInvoke(	OP_GET_POP_BY_SID, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_GET_POP_BY_SID, parameters ); 
 		
 		for (int i=0;i<sid_list.size();i++){
 			
@@ -177,7 +174,7 @@ PlatformSubscriptionsMessenger
 		
 		parameters.put( "subscription_ids", sid_list);
 		
-		Map reply = syncInvoke(	OP_SET_SELECTED, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_SET_SELECTED, parameters ); 
 		
 		List	versions = (List)reply.get( "version_numbers" );
 		
@@ -210,95 +207,6 @@ PlatformSubscriptionsMessenger
 		return( new List[]{ versions,popularities } );
 	}   
 	
-	protected static Map
-	syncInvoke(
-		String 						operationID, 
-		Map 						parameters )
-	
-		throws PlatformMessengerException
-	{
-		PlatformMessage message = 
-			new PlatformMessage( 
-					"AZMSG", 
-					LISTENER_ID_TEMPLATE,
-					operationID, 
-					parameters, 
-					0 );
-
-		message.setSendAZID( false );
-		
-		final AESemaphore sem = new AESemaphore( "PlatformMetaSearch:syncInvoke" );
-		
-		final Object[] result = { null };
-		
-		PlatformMessenger.queueMessage( 
-			message, 
-			new PlatformMessengerListener()
-			{
-				public void 
-				messageSent(
-					PlatformMessage 	message ) 
-				{
-				}
-	
-				public void 
-				replyReceived(
-					PlatformMessage 	message, 
-					String 				replyType,
-					Map 				reply )
-				{
-					try{
-						if ( replyType.equals( PlatformMessenger.REPLY_EXCEPTION )){
-							
-							String		e_message 	= (String)reply.get( "message" );
-
-							if ( e_message != null ){
-								
-								result[0] = new PlatformMessengerException( e_message );
-
-							}else{
-								
-								String		text 	= (String)reply.get( "text" );
-								
-								Throwable	e 		= (Throwable)reply.get( "Throwable" );
-								
-								if ( text == null && e == null ){
-									
-									result[0] = new PlatformMessengerException( "Unknown error" );
-									
-								}else if ( text == null ){
-									
-									result[0] = new PlatformMessengerException( "Failed to send RPC", e );
-									
-								}else if ( e == null ){
-									
-									result[0] = new PlatformMessengerException( text );
-									
-								}else{
-									
-									result[0] = new PlatformMessengerException( text, e );
-								}
-							}
-						}else{
-							
-							result[0] = reply;
-						}
-					}finally{
-						
-						sem.release();
-					}
-				}
-			});
-		
-		sem.reserve();
-		
-		if ( result[0] instanceof PlatformMessengerException ){
-			
-			throw((PlatformMessengerException)result[0]);
-		}
-		
-		return((Map)result[0]);
-	}
 	
 	public static class
 	subscriptionInfo

@@ -182,4 +182,20 @@ ContentNetwork
 	
 	public VuzeFile
 	getVuzeFile();
+	
+		/**
+		 * Set a non-persistent property of the content network
+		 * @param key
+		 * @param value
+		 */
+	
+	public void
+	setTransientProperty(
+		Object		key,
+		Object		value );
+	
+	public Object
+	getTransientProperty(
+		Object		key );
+	
 }

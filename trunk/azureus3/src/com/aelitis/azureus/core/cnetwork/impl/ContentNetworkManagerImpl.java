@@ -190,6 +190,13 @@ ContentNetworkManagerImpl
 		addNetwork( network );
 	}
 	
+	public ContentNetwork 
+	addContentNetwork(
+		long 	id ) 
+	{
+		return null;
+	}
+	
 	public ContentNetwork[] 
 	getContentNetworks() 
 	{

@@ -21,29 +21,24 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AESemaphore;
-
-
-import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerException;
-import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 
 public class 
 PlatformMetaSearchMessenger 
 {
 	private static final int MAX_TEMPLATE_LIST		= 512;
 	
-	public static final String LISTENER_ID_TEMPLATE = "searchtemplate";
+	private static final PlatformMessengerConfig	dispatcher = 
+			new PlatformMessengerConfig( "searchtemplate", true );
 
-	public static final String OP_GET_TEMPLATE					= "get-template";
-	public static final String OP_GET_TEMPLATES					= "get-templates";
-	public static final String OP_LIST_POPULAR_TEMPLATES 		= "list-popular";
-	public static final String OP_LIST_FEATURED_TEMPLATES 		= "list-featured";
-	public static final String OP_TEMPLATE_SELECTED				= "template-selected";
+	private static final String OP_GET_TEMPLATE					= "get-template";
+	private static final String OP_GET_TEMPLATES				= "get-templates";
+	private static final String OP_LIST_POPULAR_TEMPLATES 		= "list-popular";
+	private static final String OP_LIST_FEATURED_TEMPLATES 		= "list-featured";
+	private static final String OP_TEMPLATE_SELECTED			= "template-selected";
 
 
 	public static templateDetails 
@@ -52,7 +47,7 @@ PlatformMetaSearchMessenger
 	
 		throws PlatformMessengerException
 	{
-		Map reply = syncInvoke(	OP_GET_TEMPLATE, getParameter( template_id ) ); 
+		Map reply = dispatcher.syncInvoke(	OP_GET_TEMPLATE, getParameter( template_id ) ); 
 
 		templateInfo info = getTemplateInfo( reply );
 		
@@ -111,7 +106,7 @@ PlatformMetaSearchMessenger
    		
    		parameters.put( "templateIds", str );
 
-   		Map reply = syncInvoke(	OP_GET_TEMPLATES, parameters ); 
+   		Map reply = dispatcher.syncInvoke(	OP_GET_TEMPLATES, parameters ); 
 
    		return( getTemplatesInfo( reply ));
    	}
@@ -123,7 +118,7 @@ PlatformMetaSearchMessenger
 	{
 		Map parameters = new HashMap();
 		
-		Map reply = syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
 
 		return( getTemplatesInfo( reply ));
 	}
@@ -138,7 +133,7 @@ PlatformMetaSearchMessenger
    		parameters.put( "page-num", new Long( 1 ));
    		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));
 
-   		Map reply = syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
+   		Map reply = dispatcher.syncInvoke(	OP_LIST_POPULAR_TEMPLATES, parameters ); 
 
    		return( getTemplatesInfo( reply ));
    	}
@@ -153,7 +148,7 @@ PlatformMetaSearchMessenger
 		parameters.put( "page-num", new Long( 1 ));
 		parameters.put( "items-per-page", new Long( MAX_TEMPLATE_LIST ));
 
-		Map reply = syncInvoke(	OP_LIST_FEATURED_TEMPLATES, parameters ); 
+		Map reply = dispatcher.syncInvoke(	OP_LIST_FEATURED_TEMPLATES, parameters ); 
 
 		return( getTemplatesInfo( reply ));
 	}
@@ -240,90 +235,9 @@ PlatformMetaSearchMessenger
 		parameters.put( "userId", user_id );
 		parameters.put( "selected", new Boolean( is_selected ));
 		
-		syncInvoke(	OP_TEMPLATE_SELECTED, parameters ); 
+		dispatcher.syncInvoke(	OP_TEMPLATE_SELECTED, parameters ); 
 	}
 	
-	
-	
-	protected static Map
-	syncInvoke(
-		String 						operationID, 
-		Map 						parameters )
-	
-		throws PlatformMessengerException
-	{
-		PlatformMessage message = 
-			new PlatformMessage( 
-					"AZMSG", 
-					LISTENER_ID_TEMPLATE,
-					operationID, 
-					parameters, 
-					0 );
-
-		final AESemaphore sem = new AESemaphore( "PlatformMetaSearch:syncInvoke" );
-		
-		final Object[] result = { null };
-		
-		PlatformMessenger.queueMessage( 
-			message, 
-			new PlatformMessengerListener()
-			{
-				public void 
-				messageSent(
-					PlatformMessage 	message ) 
-				{
-				}
-	
-				public void 
-				replyReceived(
-					PlatformMessage 	message, 
-					String 				replyType,
-					Map 				reply )
-				{
-					try{
-						if ( replyType.equals( PlatformMessenger.REPLY_EXCEPTION )){
-							
-							String		text 	= (String)reply.get( "text" );
-							
-							Throwable	e 		= (Throwable)reply.get( "Throwable" );
-							
-							if ( text == null && e == null ){
-								
-								result[0] = new PlatformMessengerException( "Unknown error" );
-								
-							}else if ( text == null ){
-								
-								result[0] = new PlatformMessengerException( "Failed to send RPC", e );
-								
-							}else if ( e == null ){
-								
-								result[0] = new PlatformMessengerException( text );
-								
-							}else{
-								
-								result[0] = new PlatformMessengerException( text, e );
-							}
-						}else{
-							
-							result[0] = reply;
-						}
-					}finally{
-						
-						sem.release();
-					}
-				}
-			});
-		
-		sem.reserve();
-		
-		if ( result[0] instanceof PlatformMessengerException ){
-			
-			throw((PlatformMessengerException)result[0]);
-		}
-		
-		return((Map)result[0]);
-	}
-
 	protected static Map
 	getParameter(
 		long		template_id )
