@@ -244,7 +244,7 @@ public class SWTBGImagePainter
 		inEvent = true;
 
 		Point size = control.getSize();
-		if (size.x <= 0 || size.y <= 0) {
+		if (size.x <= 0 || size.y <= 0 || imgSrc == null || imgSrc.isDisposed()) {
 			inEvent = false;
 			if (DEBUG) {
 				System.out.println("- size " + control.getData("ConfigID"));
