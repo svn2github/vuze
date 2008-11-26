@@ -169,8 +169,8 @@ public class FilesView
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(final Menu menu) {
 		Shell shell = menu.getShell();
-		Object[] infos = tv.getSelectedDataSources();
-		boolean hasSelection = (infos.length > 0);
+		Object[] data_sources = tv.getSelectedDataSources();
+		boolean hasSelection = (data_sources.length > 0);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open");
@@ -253,69 +253,71 @@ public class FilesView
 	boolean	all_priority		= true;
 	boolean	all_not_priority	= true;
 		
-	DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[infos.length];
-	System.arraycopy(infos, 0, dmi_array, 0, infos.length);
+	DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
+	
+	System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
+	
 	int[] storage_types = manager.getStorageType(dmi_array);
 		
-		for (int i = 0; i < infos.length; i++) {
-			
-			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
+	for (int i = 0; i < dmi_array.length; i++) {
 
-			if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
+		DiskManagerFileInfo file_info = dmi_array[i];
 
-				open = false;
-			}
+		if (open && file_info.getAccessMode() != DiskManagerFileInfo.READ) {
 
-			if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT) {
-				all_compact = false;
-			}
+			open = false;
+		}
 
-			if (all_skipped || all_priority || all_not_priority) {
-				if ( file_info.isSkipped()){
-					all_priority		= false;
-					all_not_priority	= false;
-				}else{
-					all_skipped = false;
-					
-					// Only do this check if we need to.
-					if (all_not_priority || all_priority) {
-						if (file_info.isPriority()){
-							all_not_priority = false;
-						}else{
-							all_priority = false;
-						}
+		if (all_compact && storage_types[i] != DiskManagerFileInfo.ST_COMPACT) {
+			all_compact = false;
+		}
+
+		if (all_skipped || all_priority || all_not_priority) {
+			if ( file_info.isSkipped()){
+				all_priority		= false;
+				all_not_priority	= false;
+			}else{
+				all_skipped = false;
+
+				// Only do this check if we need to.
+				if (all_not_priority || all_priority) {
+					if (file_info.isPriority()){
+						all_not_priority = false;
+					}else{
+						all_priority = false;
 					}
 				}
 			}
 		}
+	}
 
-		// we can only open files if they are read-only
+	// we can only open files if they are read-only
 
-		itemOpen.setEnabled(open);
+	itemOpen.setEnabled(open);
 
-		// can't rename files for non-persistent downloads (e.g. shares) as these
-		// are managed "externally"
+	// can't rename files for non-persistent downloads (e.g. shares) as these
+	// are managed "externally"
 
-		itemRenameOrRetarget.setEnabled(manager.isPersistent());
-		itemRename.setEnabled(manager.isPersistent());
-		itemRetarget.setEnabled(manager.isPersistent());
+	itemRenameOrRetarget.setEnabled(manager.isPersistent());
+	itemRename.setEnabled(manager.isPersistent());
+	itemRetarget.setEnabled(manager.isPersistent());
 
-		itemSkipped.setEnabled( !all_skipped );
-	
-		itemHigh.setEnabled( !all_priority );
-		
-		itemLow.setEnabled( !all_not_priority );
-		
-		itemDelete.setEnabled( !all_compact );
+	itemSkipped.setEnabled( !all_skipped );
 
-    itemOpen.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-      public void run(TableRowCore row) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
-        	Utils.launch(fileInfo.getFile(true).toString());
-        }
-      }
-    });
+	itemHigh.setEnabled( !all_priority );
+
+	itemLow.setEnabled( !all_not_priority );
+
+	itemDelete.setEnabled( !all_compact );
+
+	itemOpen.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+		public void run(TableRowCore row) {
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+			if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ) {
+				Utils.launch(fileInfo.getFile(true).toString());
+			}
+		}
+	});
     
     Listener rename_listener = new Listener() {
     	public void handleEvent(Event event) {
@@ -536,7 +538,7 @@ public class FilesView
 	boolean requires_pausing = false;
 
 	for (int i=0; i<infos.length; i++) {
-		int existing_storage_type = existing_storage_types[infos[i].getIndex()];  
+		int existing_storage_type = existing_storage_types[i];  
 		int new_storage_type = DiskManagerFileInfo.ST_LINEAR;
 		if (skipped) {
 
