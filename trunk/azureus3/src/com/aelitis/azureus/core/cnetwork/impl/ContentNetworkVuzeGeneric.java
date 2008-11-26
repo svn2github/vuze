@@ -148,10 +148,10 @@ ContentNetworkVuzeGeneric
 		 addService( SERVICE_RPC, 				URL_PREFIX + "rpc/" );
 		 addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
 		 addService( SERVICE_AUTH_RPC, 			URL_AUTHORIZED_RPC );
-		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" + URL_SUFFIX );
-		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" + URL_SUFFIX );
-		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" + URL_SUFFIX );
+		 addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
+		 addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
+		 addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
+		 addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" );
 		 addService( SERVICE_PUBLISH_ABOUT, 	URL_PREFIX + "publishinfo.start" );
 		 addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
 		 addService( SERVICE_COMMENT,			URL_PREFIX + "comment/" );
@@ -165,10 +165,10 @@ ContentNetworkVuzeGeneric
 		 addService( SERVICE_FORUMS,			URL_FORUMS );
 		 addService( SERVICE_WIKI,				URL_WIKI );
 		 addService( SERVICE_LOGIN,				URL_PREFIX + "login.start?" );
-		 addService( SERVICE_LOGOUT,			URL_PREFIX + "logout.start?" + URL_SUFFIX );
-		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" + URL_SUFFIX );
-		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" + URL_SUFFIX );
-		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" + URL_SUFFIX );
+		 addService( SERVICE_LOGOUT,			URL_PREFIX + "logout.start?" );
+		 addService( SERVICE_REGISTER,			URL_PREFIX + "register.start?" );
+		 addService( SERVICE_MY_PROFILE,		URL_PREFIX + "profile.start?" );
+		 addService( SERVICE_MY_ACCOUNT,		URL_PREFIX + "account.start?" );
 		 addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
 		 addService( SERVICE_ADD_FRIEND,		URL_PREFIX + "user/AddFriend.html?" );
 		 addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
@@ -317,7 +317,7 @@ ContentNetworkVuzeGeneric
 			case SERVICE_MY_PROFILE:
 			case SERVICE_MY_ACCOUNT:{
 				
-				base += "&rand=" + SystemTime.getCurrentTime();
+				base += URL_SUFFIX + "&rand=" + SystemTime.getCurrentTime();
 				
 				return( base );
 			}
@@ -350,6 +350,14 @@ ContentNetworkVuzeGeneric
 				base += "subscription=" + subs_id + "&" + URL_SUFFIX;
 
 				return( base );
+			}
+			case SERVICE_BIG_BROWSE:
+			case SERVICE_PUBLISH:
+			case SERVICE_WELCOME:
+			case SERVICE_LOGOUT:
+			case SERVICE_REGISTER:{
+				
+				 return( base + URL_SUFFIX );
 			}
 			default:{
 				
