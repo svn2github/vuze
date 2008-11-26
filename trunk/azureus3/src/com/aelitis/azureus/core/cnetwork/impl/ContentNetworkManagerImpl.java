@@ -433,6 +433,8 @@ ContentNetworkManagerImpl
 				return;
 			}
 		
+			network.destroy();
+			
 			saveConfig();
 		}
 		

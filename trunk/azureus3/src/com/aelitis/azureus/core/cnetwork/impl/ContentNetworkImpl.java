@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.cnetwork.impl;
 import java.io.IOException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -282,6 +283,45 @@ ContentNetworkImpl
 		Object		key )
 	{
 		return( transient_properties.get( key ));
+	}
+	
+	protected String
+	getPropertiesKey()
+	{
+		return( "cnetwork.net." + id + ".props" );
+	}
+	
+	public void
+	setPersistentProperty(
+		String		name,
+		Object		value )
+	{
+		String	key = getPropertiesKey();
+		
+		Map props = new HashMap( COConfigurationManager.getMapParameter( key , new HashMap()));
+		
+		props.put( name, value );
+		
+		COConfigurationManager.setParameter( key, props );
+	}
+	
+	public Object
+	getPersistentProperty(
+		String		name )
+	{
+		String	key = getPropertiesKey();
+		
+		Map props = COConfigurationManager.getMapParameter( key , new HashMap());
+
+		return( props.get( name ));
+	}
+	
+	protected void
+	destroy()
+	{
+		String	key = getPropertiesKey();
+
+		COConfigurationManager.setParameter( key, new HashMap());
 	}
 	
 	protected String

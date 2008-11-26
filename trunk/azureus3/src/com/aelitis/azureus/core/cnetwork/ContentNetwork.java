@@ -61,6 +61,7 @@ ContentNetwork
 	
 	public static final int		PROPERTY_SITE_HOST			= 1;
 
+	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
@@ -182,6 +183,23 @@ ContentNetwork
 	
 	public VuzeFile
 	getVuzeFile();
+	
+		/**
+		 * Sets a locally persistent property. Name should be from the PP_ names above so keep track
+		 * of what attributes exist
+		 * 
+		 * @param name	PP_ constant
+		 * @param value	must be bencodable!
+		 */
+	
+	public void
+	setPersistentProperty(
+		String		name,
+		Object		value );
+	
+	public Object
+	getPersistentProperty(
+		String		name );
 	
 		/**
 		 * Set a non-persistent property of the content network
