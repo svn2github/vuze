@@ -29,6 +29,7 @@ Customization
 {
 	public static final String RT_META_SEARCH_TEMPLATES	= "metasearch";	// InputStream[]
 	public static final String RT_SUBSCRIPTIONS			= "subs";		// InputStream[]
+	public static final String RT_CNETWORKS				= "cnetworks";	// InputStream[]
 	
 	public String
 	getName();
