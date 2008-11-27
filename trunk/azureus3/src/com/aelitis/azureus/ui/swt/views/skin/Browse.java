@@ -67,8 +67,6 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 public class Browse
 	extends SkinView
 {
-	public static boolean PULL_TABS = false;
-
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	public SWTSkinObjectBrowser getBrowserSkinObject() {
@@ -81,12 +79,22 @@ public class Browse
 
 	private SideBarVitalityImage vitalityImage;
 
+	private ContentNetwork contentNetwork;
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	 */
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		this.soMain = skinObject;
 		skin = skinObject.getSkin();
+		Object creationParams = skinObject.getData("CreationParams");
+		
+		if (creationParams instanceof ContentNetwork) {
+			contentNetwork = (ContentNetwork) creationParams;
+		} else {
+			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK; 
+		}
+
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_BROWSE, soMain);
 
@@ -125,26 +133,7 @@ public class Browse
 			}
 		});
 
-		if (PULL_TABS) {
-			PlatformConfigMessenger.getBrowseSections(
-					PlatformConfigMessenger.SECTION_TYPE_BIGBROWSE, 0,
-					new PlatformConfigMessenger.GetBrowseSectionsReplyListener() {
-
-						public void replyReceived(final Map[] browseSections) {
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									createBrowseTabs(browserSkinObject, browseSections);
-								}
-							});
-						}
-
-						public void messageSent() {
-						}
-
-					});
-		} else {
-			createBrowseArea(browserSkinObject);
-		}
+		createBrowseArea(browserSkinObject);
 		
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
   		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
@@ -172,95 +161,9 @@ public class Browse
 		return null;
 	}
 	
-	/**
-	 * 
-	 */
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
-		browserSkinObject.setURL( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_BIG_BROWSE ));
-	}
-
-	/**
-	 * @param browseSections
-	 */
-	protected void createBrowseTabs(SWTSkinObject skinObject,
-			final Map[] browseSections) {
-		AzureusCore core = AzureusCoreFactory.getSingleton();
-
-		FormData formData;
-		Composite cArea = (Composite) skinObject.getControl();
-
-		final Browser browser = new Browser(cArea,
-				Utils.getInitialBrowserStyle(SWT.NONE));
-		final ClientMessageContext context = new BrowserContext("big", browser,
-				null, true);
-		context.addMessageListener(new TorrentListener(core));
-		context.addMessageListener(new VuzeListener());
-		
-		formData = new FormData();
-		formData.top = new FormAttachment(0, 0);
-		formData.left = new FormAttachment(0, 0);
-		formData.right = new FormAttachment(100, 0);
-		formData.bottom = new FormAttachment(100, 0);
-		browser.setLayoutData(formData);
-
-		skinObject = skin.getSkinObject("browse-tabs");
-		if (skinObject == null) {
-			return;
-		}
-
-		Control previousControl = null;
-		SWTSkinTabSet tabSet = null;
-		for (int i = 0; i < browseSections.length; i++) {
-			String sTabName = (String) browseSections[i].get("title");
-			String sTabID = "internal.browse.tab." + i;
-			SWTSkinObject skinTab = skin.createTab(sTabID, "tab", skinObject);
-
-			if (skinTab == null) {
-				continue;
-			}
-
-			if (tabSet == null) {
-				tabSet = skin.getTabSet(skinTab);
-			}
-
-			Control currentControl = skinTab.getControl();
-			if (previousControl != null) {
-				formData = (FormData) skinTab.getControl().getLayoutData();
-				if (formData == null) {
-					formData = new FormData();
-				}
-				formData.left = new FormAttachment(previousControl, 1);
-				currentControl.setLayoutData(formData);
-			}
-
-			previousControl = currentControl;
-
-			SWTSkinObject tabText = skin.getSkinObject("browse-tab-text", skinTab);
-			if (tabText instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) tabText).setText(sTabName);
-			}
-
-			if (i == 0) {
-				tabSet.addListener(new SWTSkinTabSetListener() {
-					public void tabChanged(SWTSkinTabSet tabSet, String oldTabID,
-							String newTabID) {
-						System.out.println(newTabID);
-						browser.stop();
-						browser.execute("document.clear(); document.write('Loading..');");
-
-						char c = newTabID.charAt(newTabID.length() - 1);
-						int i = c - '0';
-						if (i >= 0 && i < browseSections.length) {
-							browser.setUrl((String) browseSections[i].get("url"));
-							System.out.println(browser.getUrl());
-						}
-					}
-				});
-				tabSet.setActiveTabByID(sTabID);
-			}
-		}
-		cArea.getParent().layout(true);
+		browserSkinObject.setURL(contentNetwork.getServiceURL(ContentNetwork.SERVICE_BIG_BROWSE));
 	}
 }
