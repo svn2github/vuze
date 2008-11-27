@@ -105,6 +105,9 @@ import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -135,6 +138,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -1683,6 +1687,9 @@ public class SideBar
 	}
 
 	public static SideBarEntrySWT getSideBarInfo(String id) {
+		if ("ContentNetwork.1".equals(id)) {
+			id = SIDEBAR_SECTION_BROWSE;
+		}
 		SideBarEntrySWT sidebarInfo = (SideBarEntrySWT) mapIdToSideBarInfo.get(id);
 		if (sidebarInfo == null) {
 			sidebarInfo = new SideBarEntrySWT(instance, id);
@@ -2576,6 +2583,44 @@ public class SideBar
 					showItemByID(SIDEBAR_SECTION_PUBLISH);
 				} else if (tabID.equals("activities")) {
 					showItemByID(SIDEBAR_SECTION_ACTIVITIES);
+				} else if (tabID.startsWith("ContentNetwork.")) {
+					try {
+						ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
+						if (cnManager == null) {
+							showItemByID(SIDEBAR_SECTION_BROWSE);
+							return;
+						}
+
+						long networkID = Long.parseLong(tabID.substring(15));
+						if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
+							showItemByID(SIDEBAR_SECTION_BROWSE);
+							return;
+						}
+						ContentNetwork contentNetwork = cnManager.getContentNetwork(networkID);
+						if (contentNetwork == null) {
+							showItemByID(SIDEBAR_SECTION_BROWSE);
+							return;
+						}
+
+						if (!showItemByID(tabID)) {
+							String name = contentNetwork.getName();
+							SideBarEntrySWT entryBrowse = getSideBarInfo(SIDEBAR_SECTION_BROWSE);
+							int position = entryBrowse == null ? 3 : tree.indexOf(entryBrowse.getTreeItem()) + 1;
+							
+							boolean closeable = true;
+							//boolean closeable = contentNetwork.isCloseable();
+							SideBarEntrySWT entry = createEntryFromSkinRef(null, tabID,
+									"main.area.browsetab", name, null, contentNetwork, closeable,
+									position);
+							// 4010 TODO: read image url
+							//entry.setImageLeftID("image.sidebar.vuze");
+							showItemByID(tabID);
+							return;
+						}
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+					showItemByID(SIDEBAR_SECTION_BROWSE);
 				} else {
 					// everything else can go to browse..
 					showItemByID(SIDEBAR_SECTION_BROWSE);
