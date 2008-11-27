@@ -1,32 +1,23 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.views.tableitems.files.FirstPieceItem;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
@@ -85,6 +76,8 @@ public class MainMenu
 		addFileMenu();
 		//addViewMenu();
 		addSimpleViewMenu();
+		
+		addContentNetworksMenu();
 
 		addCommunityMenu();
 		
@@ -114,6 +107,158 @@ public class MainMenu
 		 * which menus are enabled when we're in Vuze vs. Vuze Advanced
 		 */
 		MenuFactory.updateEnabledStates(menuBar);
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.3
+	 */
+	private void addContentNetworksMenu() {
+		try {
+			MenuItem contentNetworkItem = MenuFactory.createTopLevelMenuItem(menuBar,
+					MENU_ID_CONTENT_NETWORKS);
+			// XXX Until we have the finalized name, hard code title
+			contentNetworkItem.setText("HD &Networks");
+			final Menu contentNetworkMenu = contentNetworkItem.getMenu();
+
+			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
+			if (cnManager == null) {
+				return;
+			}
+			ContentNetwork[] contentNetworks = cnManager.getContentNetworks();
+			for (int i = 0; i < contentNetworks.length; i++) {
+				ContentNetwork contentNetwork = contentNetworks[i];
+				addNetwork(contentNetworkMenu, contentNetwork);
+			}
+
+			cnManager.addListener(new ContentNetworkListener() {
+
+				public void networkRemoved(final ContentNetwork network) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							MenuItem[] items = contentNetworkMenu.getItems();
+							for (int i = 0; i < items.length; i++) {
+								MenuItem item = items[i];
+								ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
+								if (contentNetwork != null
+										&& contentNetwork.getID() == network.getID()) {
+									item.dispose();
+								}
+							}
+						}
+					});
+				}
+
+				public void networkAdded(final ContentNetwork network) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							addNetwork(contentNetworkMenu, network);
+						}
+					});
+				}
+
+				public void networkChanged(final ContentNetwork network) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							MenuItem[] items = contentNetworkMenu.getItems();
+							for (int i = 0; i < items.length; i++) {
+								MenuItem item = items[i];
+								ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
+								if (contentNetwork != null
+										&& contentNetwork.getID() == network.getID()) {
+									item.setText(network.getName());
+								}
+							}
+						}
+					});
+				}
+			});
+
+		} catch (Exception e) {
+			Debug.out("Error creating View Menu", e);
+		}
+	}
+
+	/**
+	 * @param contentNetworkMenu
+	 * @param contentNetwork
+	 *
+	 * @since 4.0.0.3
+	 */
+	private void addNetwork(Menu contentNetworkMenu, ContentNetwork contentNetwork) {
+		if (contentNetwork == null) {
+			return;
+		}
+
+		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu, SWT.CHECK,
+				PREFIX_V3 + ".view.ContentNetwork." + contentNetwork.getID(),
+				new Listener() {
+					public void handleEvent(Event event) {
+						MenuItem item = (MenuItem) event.widget;
+						ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
+						if (contentNetwork == null) {
+							return;
+						}
+
+						SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						if (sideBar == null) {
+							return;
+						}
+						long id = contentNetwork.getID();
+						String sidebarID = "ContentNetwork." + id;
+						boolean show = false;
+						
+						// XXX Handle unselection properly
+						SideBarEntrySWT entry = sideBar.getCurrentSideBarInfo();
+						if (entry == null || !sidebarID.equals(entry.getId())) {
+							show = true;
+							sideBar.showItemByTabID(sidebarID);
+						} else {
+							// XXX Uncomment me when we have this function
+							//if (!contentNetwork.canClose()) {
+							if (id == ContentNetwork.CONTENT_NETWORK_VUZE
+									|| id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+								show = true;
+							} else {
+								sideBar.closeSideBar(sidebarID);
+							}
+						}
+					}
+				});
+
+		item.setText(contentNetwork.getName());
+
+		item.setData("ContentNetwork", contentNetwork);
+		
+		contentNetworkMenu.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event) {
+				ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
+				if (contentNetwork == null) {
+					return;
+				}
+				//if (!contentNetwork.canClose()) {
+				//	item.setSelection(true);
+				//} else {
+				{
+  				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+  				if (sideBar == null) {
+  					return;
+  				}
+					long id = contentNetwork.getID();
+  				SideBarEntrySWT entry = sideBar.getSideBarInfo("ContentNetwork." + id);
+					item.setSelection(entry.getTreeItem() != null);
+				}
+			}
+		});
+
+		long id = contentNetwork.getID();
+		// XXX Uncomment me when we have this function
+		//if (!contentNetwork.canClose()) {
+		if (id == ContentNetwork.CONTENT_NETWORK_VUZE
+				|| id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+			item.setSelection(true);
+		}
 	}
 
 	/**
