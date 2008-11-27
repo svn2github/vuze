@@ -226,7 +226,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 
 							debug(THREAD_NAME+": found expired azpd file "+f+". Will refresh. ");
 							//refresh this file.
-							downloadManagerAddedHook( new DownloadManager[] { dm }, 500 );
+							downloadManagerAddedHook( new DownloadManager[] { dm }, 1000 );
 						}
 
 					}//if - isAdEnabledContent
