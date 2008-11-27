@@ -91,5 +91,11 @@ PlatformContentNetworkMessenger
 		{
 			return(((Long)details.get( "version" )).longValue());
 		}
+		
+		public String
+		getName()
+		{
+			return((String)details.get( "name" ));
+		}
 	}
 }

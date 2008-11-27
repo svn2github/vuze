@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkException;
@@ -300,7 +299,7 @@ ContentNetworkManagerImpl
 			new ContentNetworkVuzeGeneric( 
 					details.getID(),
 					details.getVersion(),
-					"plop",
+					details.getName(),
 					"www.plop.com",
 					"http://www.plop.com/",
 					null,
