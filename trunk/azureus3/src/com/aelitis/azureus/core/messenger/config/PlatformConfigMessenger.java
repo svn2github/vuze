@@ -55,7 +55,7 @@ public class PlatformConfigMessenger
 
 	private static int iRPCVersion = 0;
 
-	private static String default_site_host = ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
+	private static String default_site_host = (String)ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
 
 	private static String DEFAULT_RPC_WHITELIST = "https?://"
 			+ default_site_host.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";

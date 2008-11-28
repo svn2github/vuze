@@ -283,7 +283,7 @@ public class MainWindow
 					
 					String site = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SITE );
 					
-					String site_host = ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
+					String site_host = (String)ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
 					
 					String text = MessageText.getString("v3.mb.delPublished.text",
 							new String[] {

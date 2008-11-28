@@ -58,8 +58,11 @@ ContentNetwork
 	public static final int		SERVICE_SITE_RELATIVE		= 27;	// String - relative URL
 	public static final int		SERVICE_ADD_FRIEND			= 28;	// String - bg colour
 	public static final int		SERVICE_SUBSCRIPTION		= 29;	// String - subscription ID
+	public static final int		SERVICE_GET_ICON			= 30;	
+	public static final int		SERVICE_AUTHORIZE			= 31;	
 	
-	public static final int		PROPERTY_SITE_HOST			= 1;
+	public static final int		PROPERTY_SITE_HOST			= 1;	// String
+	public static final int		PROPERTY_REMOVEABLE			= 2;	// Boolean
 
 	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";
 	
@@ -74,7 +77,7 @@ ContentNetwork
 	public String
 	getName();
 	
-	public String
+	public Object
 	getProperty(
 		int			property );
 	
