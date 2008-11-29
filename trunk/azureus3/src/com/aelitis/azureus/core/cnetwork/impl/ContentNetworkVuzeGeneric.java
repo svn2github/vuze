@@ -217,13 +217,21 @@ ContentNetworkVuzeGeneric
 		 service_map.put( type, url_str );
 	}
 	
-	public String 
+	public Object 
 	getProperty(
 		int property ) 
 	{
 		if ( property == PROPERTY_SITE_HOST ){
 			
 			return( SITE_HOST );
+			
+		}else if ( property == PROPERTY_REMOVEABLE ){
+
+			return( getID() != CONTENT_NETWORK_VUZE );
+			
+		}else if ( property == PROPERTY_ORDER ){
+			
+			return( getID() == CONTENT_NETWORK_VUZE?1:2 );
 			
 		}else{
 			

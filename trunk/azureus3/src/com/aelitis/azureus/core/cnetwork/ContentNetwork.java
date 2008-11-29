@@ -63,6 +63,7 @@ ContentNetwork
 	
 	public static final int		PROPERTY_SITE_HOST			= 1;	// String
 	public static final int		PROPERTY_REMOVEABLE			= 2;	// Boolean
+	public static final int		PROPERTY_ORDER				= 3;	// Integer
 
 	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";
 	
