@@ -88,6 +88,8 @@ public class BrowserContext
 	private torrentURLHandler		torrentURLHandler;
 
 	private List loadingListeners = Collections.EMPTY_LIST;
+
+	private long pageLoadTime;
 	
 	/**
 	 * Creates a context and registers the given browser.
@@ -542,24 +544,11 @@ public class BrowserContext
 		pageLoading = b;
 		if (pageLoading) {
 			pageLoadingStart = SystemTime.getCurrentTime();
+			pageLoadTime = -1;
 		} else if (pageLoadingStart > 0) {
-			long diff = SystemTime.getCurrentTime() - pageLoadingStart;
-			if (PlatformConfigMessenger.doUrlQOS() && diff > 0
-					&& PlatformConfigMessenger.urlCanRPC(lastValidURL)) {
-				int i = lastValidURL.lastIndexOf('/') + 1;
-				if (i >= 0 && i < lastValidURL.length()) {
-					int j = lastValidURL.lastIndexOf("azid=") - 1;
-					String s;
-					if (j > i) {
-						s = lastValidURL.substring(i, j);
-					} else {
-						s = lastValidURL.substring(i);
-					}
-					s = s.replaceAll(";jsessionid.*\\?", "\\?");
-					//System.out.println("web:" + s + "  = " + diff);
-					MainWindow.addUsageStat("web:" + s, diff);
-				}
-			}
+			pageLoadTime = SystemTime.getCurrentTime() - pageLoadingStart;
+			executeInBrowser("clientSetLoadTime(" + pageLoadTime + ");");
+			
 			pageLoadingStart = 0;
 		}
 		Object[] listeners = loadingListeners.toArray();
