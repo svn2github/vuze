@@ -354,9 +354,10 @@ public class PlatformMessenger
 		String sPostData = null;
 		if (USE_HTTP_POST) {
 			sURL = sURL_RPC;
-			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
+			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString() + "&" + ConstantsV3.URL_SUFFIX;
 			
-			sPostData = content_network.appendURLSuffix( sPostData, sendAZID );
+			// This call puts the suffix on with a "?" instead of an "&"
+			//sPostData = content_network.appendURLSuffix( sPostData, sendAZID );
 				
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
