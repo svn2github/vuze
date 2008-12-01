@@ -2089,7 +2089,7 @@ public class MainWindow
 				((SWTSkinObjectBrowser) skinObject).restart();
 			} else {
 				if (PlatformConfigMessenger.urlCanRPC(url)) {
-					url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, true);
+					url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
 				}
 
 				((SWTSkinObjectBrowser) skinObject).setURL(url);

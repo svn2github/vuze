@@ -175,9 +175,19 @@ ContentNetwork
 	getSubscriptionURL(
 		String		subs_id );
 	
+		/**
+		 * I'd rather this function we embedded into the ContentNetwork service getting logic, but for
+		 * the moment expose it for simplicity
+		 * @param url_in			base URL onto which the suffix should be appended
+		 * @param for_post			whether this is for an HTTP 'POST' operation, in which case the parameter
+		 * 							separator is always an '&' (for 'GET' the first param uses a '?' sep)
+		 * @param include_azid		whether or not we should include the azid in the suffix
+		 * @return
+		 */
 	public String
 	appendURLSuffix(
 		String		url_in,
+		boolean		for_post,
 		boolean		include_azid );
 	
 		/**

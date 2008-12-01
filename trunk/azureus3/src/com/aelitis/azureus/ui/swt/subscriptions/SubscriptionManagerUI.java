@@ -1780,7 +1780,7 @@ SubscriptionManagerUI
 					String url = MapUtils.getMapString(params, "url",
 							"http://google.com/search?q=" + Math.random());
 					if (PlatformConfigMessenger.urlCanRPC(url)) {
-						url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, true);
+						url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
 					}
 					
 					//Gudy, Not Tux, Listener Added

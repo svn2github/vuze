@@ -110,7 +110,7 @@ public class TorrentUIUtilsV3
 			
 			// If it's going to our URLs, add some extra authenication
 			if (PlatformConfigMessenger.urlCanRPC(url)) {
-				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, true);
+				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
 			}
 
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();

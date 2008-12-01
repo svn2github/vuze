@@ -585,7 +585,7 @@ public class UIFunctionsImpl
 				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, true);
+						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);
@@ -609,7 +609,7 @@ public class UIFunctionsImpl
 				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, true);
+						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);

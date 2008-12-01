@@ -372,7 +372,7 @@ ContentNetworkVuzeGeneric
 				
 				if ( append_suffix ){
 
-					base = appendURLSuffix( base, true );
+					base = appendURLSuffix( base, false, true );
 				}
 				
 				return( base );
@@ -411,6 +411,7 @@ ContentNetworkVuzeGeneric
 	public String 
 	appendURLSuffix(
 		String 		url_in, 
+		boolean		for_post,
 		boolean 	include_azid ) 
 	{
 		if ( url_in.indexOf( "azid=" ) != -1 ){
@@ -427,13 +428,26 @@ ContentNetworkVuzeGeneric
 			suffix = suffix.replaceAll( "azid=.*&", "" );
 		}
 		
-		if ( url_in.indexOf("?") >= 0 ){
-
-			return( url_in + "&" + suffix );
+		if ( for_post ){
 			
+			if ( url_in.length() == 0 ){
+				
+				return( suffix );
+				
+			}else{
+				
+				return( url_in + "&" + suffix  );
+			}
 		}else{
 			
-			return( url_in + "?" + suffix );
+			if ( url_in.indexOf("?") >= 0 ){
+	
+				return( url_in + "&" + suffix );
+				
+			}else{
+				
+				return( url_in + "?" + suffix );
+			}
 		}
 	}
 }
