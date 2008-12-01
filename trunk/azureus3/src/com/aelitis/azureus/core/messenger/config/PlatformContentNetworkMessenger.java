@@ -97,5 +97,11 @@ PlatformContentNetworkMessenger
 		{
 			return((String)details.get( "name" ));
 		}
+		
+		public String
+		getMainURL()
+		{
+			return((String)details.get( "main_url" ));
+		}
 	}
 }

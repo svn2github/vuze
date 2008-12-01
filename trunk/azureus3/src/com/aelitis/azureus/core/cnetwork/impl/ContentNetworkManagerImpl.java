@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -292,16 +293,32 @@ ContentNetworkManagerImpl
 	protected ContentNetworkImpl
 	createNetwork(
 		contentNetworkDetails		details )
+	
+		throws ContentNetworkException
 	{	
 			// TODO:
+		
+		String main_url = details.getMainURL();
+		
+		String site_dns;
+		
+		try{
+			site_dns = new URL( main_url ).getHost();
+			
+		}catch( Throwable e ){
+			
+			log( "Failed to get main-url host", e );
+			
+			throw( new ContentNetworkException( "main url invald", e ));
+		}
 		
 		return( 
 			new ContentNetworkVuzeGeneric( 
 					details.getID(),
 					details.getVersion(),
 					details.getName(),
-					"www.plop.com",
-					"http://www.plop.com/",
+					site_dns,
+					main_url,
 					null,
 					null,
 					null,
@@ -310,6 +327,7 @@ ContentNetworkManagerImpl
 					null ));
 
 	}
+	
 	public ContentNetwork[] 
 	getContentNetworks() 
 	{

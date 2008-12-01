@@ -231,7 +231,7 @@ ContentNetworkVuzeGeneric
 			
 		}else if ( property == PROPERTY_ORDER ){
 			
-			return( getID() == CONTENT_NETWORK_VUZE?1:2 );
+			return( String.valueOf( getID()));
 			
 		}else{
 			
