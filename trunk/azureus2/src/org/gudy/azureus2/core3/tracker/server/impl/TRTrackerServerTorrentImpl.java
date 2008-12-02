@@ -2067,21 +2067,39 @@ TRTrackerServerTorrentImpl
 						
 					int	index = 0;
 					
+					int	num_ipv4 = 0;
+					int num_ipv6 = 0;
+					
 					while( it.hasNext()){
 						
 						Map	rep_peer = (Map)it.next();
 						
 						byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
-						int		port	= ((Long)rep_peer.get( "port" )).intValue();
 						
-						int	pos = index*6;
-						
-						System.arraycopy( ip, 0, compact_peers, pos, 4 );
-						
-						pos += 4;
-						
-						compact_peers[pos++] = (byte)(port>>8);
-						compact_peers[pos++] = (byte)(port&0xff);
+						if ( ip.length > 4 ){
+							
+							num_ipv6++;
+							
+								// continue and fill in crypto return
+
+						}else{
+
+							num_ipv4++;
+							
+							if ( num_ipv6 == 0 ){
+								
+								int		port	= ((Long)rep_peer.get( "port" )).intValue();
+								
+								int	pos = index*6;
+								
+								System.arraycopy( ip, 0, compact_peers, pos, 4 );
+								
+								pos += 4;
+								
+								compact_peers[pos++] = (byte)(port>>8);
+								compact_peers[pos++] = (byte)(port&0xff);
+							}
+						}
 						
 						if ( crypto_flags != null ){
 							
@@ -2092,9 +2110,68 @@ TRTrackerServerTorrentImpl
 						
 						index++;
 					}
-										
-					root.put( "peers", compact_peers );
 					
+						// inefficient hack to support ipv6 compact for the moment
+					
+					if ( num_ipv6 > 0 ){
+						
+						byte[]	compact_peers_v4 = new byte[num_ipv4*6];
+						byte[]	compact_peers_v6 = new byte[num_ipv6*18];
+
+						it	= rep_peers.iterator();
+
+						int	v4_index	= 0;
+						int v6_index	= 0;
+						
+						while( it.hasNext()){
+							
+							Map	rep_peer = (Map)it.next();
+							
+							byte[] 	ip 		= (byte[])rep_peer.get( "ip" );
+							
+							int		port	= ((Long)rep_peer.get( "port" )).intValue();
+
+							if ( ip.length > 4 ){
+													
+								int	pos = v6_index*18;
+								
+								System.arraycopy( ip, 0, compact_peers_v6, pos, 16 );
+								
+								pos += 16;
+								
+								compact_peers_v6[pos++] = (byte)(port>>8);
+								compact_peers_v6[pos++] = (byte)(port&0xff);
+								
+								v6_index++;
+								
+							}else{
+								
+								int	pos = v4_index*6;
+								
+								System.arraycopy( ip, 0, compact_peers_v4, pos, 4 );
+								
+								pos += 4;
+								
+								compact_peers_v4[pos++] = (byte)(port>>8);
+								compact_peers_v4[pos++] = (byte)(port&0xff);
+
+								v4_index++;
+							}
+						}
+					
+						if ( compact_peers_v4.length > 0 ){
+							
+							root.put( "peers", compact_peers_v4 );
+						}
+						
+						if ( compact_peers_v6.length > 0 ){
+							
+							root.put( "peers6", compact_peers_v6 );
+						}
+					}else{
+					
+						root.put( "peers", compact_peers );
+					}
 				}else{
 					
 					int	index = 0;
