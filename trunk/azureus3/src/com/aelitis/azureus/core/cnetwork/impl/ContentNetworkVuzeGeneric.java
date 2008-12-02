@@ -177,6 +177,11 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
 		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
 		 
+			// HACK for TUX
+		
+		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start" );
+		addService( SERVICE_GET_ICON,			"http://play.aelitis.com:88/parg/mudflap.gif" );
+
 		if ( URL_RELAY_RPC != null ){
 			 
 			addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
