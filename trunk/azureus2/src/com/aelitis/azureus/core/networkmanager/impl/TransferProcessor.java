@@ -59,18 +59,20 @@ public class TransferProcessor {
   private final HashMap connections = new HashMap();
   private final AEMonitor connections_mon;
 
+  private final boolean	multi_threaded;
   
   /**
    * Create new transfer processor for the given read/write type, limited to the given max rate.
    * @param processor_type read or write processor
    * @param max_rate_limit to use
    */
-  public TransferProcessor( int processor_type, LimitedRateGroup max_rate_limit ) {
-    this.max_rate = max_rate_limit;
+  public TransferProcessor( int processor_type, LimitedRateGroup max_rate_limit, boolean multi_threaded ) {
+    this.max_rate 		= max_rate_limit;
+    this.multi_threaded	= multi_threaded;
     
     connections_mon = new AEMonitor( "TransferProcessor:" +processor_type );
 
-    main_bucket = new ByteBucket( max_rate.getRateLimitBytesPerSecond() ); 
+    main_bucket = createBucket( max_rate.getRateLimitBytesPerSecond() ); 
 
     main_controller = new EntityHandler( processor_type, new RateHandler() {
       public int getCurrentNumBytesAllowed() {
@@ -109,7 +111,7 @@ public class TransferProcessor {
     	  GroupData group_data = (GroupData)group_buckets.get( group );
 	      if( group_data == null ) {
 	        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
-	        group_data = new GroupData( new ByteBucket( limit ) );
+	        group_data = new GroupData( createBucket( limit ) );
 	        group_buckets.put( group, group_data );
 	      }
 	      group_data.group_size++;
@@ -197,7 +199,7 @@ public class TransferProcessor {
 		    	  
 		    	  int limit = NetworkManagerUtilities.getGroupRateLimit( group );
 
-		    	  group_data = new GroupData( new ByteBucket( limit ) );
+		    	  group_data = new GroupData( createBucket( limit ) );
 
 		    	  group_buckets.put( group, group_data );
 		      }
@@ -393,7 +395,19 @@ public class TransferProcessor {
   }
   
   
-
+  private ByteBucket
+  createBucket(
+	int	bytes_per_sec )
+  {
+	  if ( multi_threaded ){
+		  
+		  return( new ByteBucketMT( bytes_per_sec ));
+		  
+	  }else{
+		  
+		  return( new ByteBucketST( bytes_per_sec ));
+	  }
+  }
   
   private static class ConnectionData {
     private static final int STATE_NORMAL   = 0;

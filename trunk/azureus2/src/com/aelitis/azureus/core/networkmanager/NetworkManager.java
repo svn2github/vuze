@@ -158,20 +158,58 @@ public class NetworkManager {
   }
   
   
-  private final TransferProcessor upload_processor = new TransferProcessor( TransferProcessor.TYPE_UPLOAD, new LimitedRateGroup(){
-    public int getRateLimitBytesPerSecond() {  return max_upload_rate_bps;  }
-  });
-  private final TransferProcessor download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
-    public int getRateLimitBytesPerSecond() {  return max_download_rate_bps;  }
-  });
+  private final TransferProcessor upload_processor = 
+	  new TransferProcessor( 
+		TransferProcessor.TYPE_UPLOAD, 
+		new LimitedRateGroup()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{  
+				return max_upload_rate_bps;  
+			}
+		},
+		write_controllers.size() > 1 );
+  
+  private final TransferProcessor download_processor = 
+	  new TransferProcessor( 
+		TransferProcessor.TYPE_DOWNLOAD, 
+		new LimitedRateGroup()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{
+				return max_download_rate_bps;  
+			}
+		},
+		read_controllers.size() > 1 );
   
   
-  private final TransferProcessor lan_upload_processor = new TransferProcessor( TransferProcessor.TYPE_UPLOAD, new LimitedRateGroup(){
-    public int getRateLimitBytesPerSecond() {  return max_lan_upload_rate_bps;  }
-  });
-  private final TransferProcessor lan_download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
-    public int getRateLimitBytesPerSecond() {  return max_lan_download_rate_bps;  }
-  });
+  private final TransferProcessor lan_upload_processor = 
+	  new TransferProcessor( 
+		TransferProcessor.TYPE_UPLOAD, 
+		new LimitedRateGroup()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{  
+				return max_lan_upload_rate_bps;  
+			}
+		},
+		write_controllers.size() > 1 );
+  
+  private final TransferProcessor lan_download_processor = 
+	  new TransferProcessor( 
+		TransferProcessor.TYPE_DOWNLOAD, 
+		new LimitedRateGroup()
+		{
+			public int 
+			getRateLimitBytesPerSecond() 
+			{  
+				return max_lan_download_rate_bps;  
+			}
+		},
+		read_controllers.size() > 1 );
      
   public static boolean
   isLANRateEnabled()
