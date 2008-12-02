@@ -79,6 +79,7 @@ public class ReadController implements AzureusCoreStatsProvider{
   
   private EventWaiter 	read_waiter = new EventWaiter();
 
+  private int			entity_count;
   
   public ReadController() {
      
@@ -361,6 +362,8 @@ public class ReadController implements AzureusCoreStatsProvider{
         norm_new.add( entity );
         normal_priority_entities = norm_new;
       }
+      
+      entity_count = normal_priority_entities.size() + high_priority_entities.size();
     }
     finally {  entities_mon.exit();  }
   }
@@ -384,7 +387,15 @@ public class ReadController implements AzureusCoreStatsProvider{
         norm_new.remove( entity );
         normal_priority_entities = norm_new;
       }
+      
+      entity_count = normal_priority_entities.size() + high_priority_entities.size();
     }
     finally {  entities_mon.exit();  }
+  }
+  
+  public int
+  getEntityCount()
+  {
+	  return( entity_count );
   }
 }

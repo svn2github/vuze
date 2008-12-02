@@ -74,6 +74,8 @@ public class WriteController implements AzureusCoreStatsProvider{
   
   private EventWaiter 	write_waiter = new EventWaiter();
   
+  private int	entity_count = 0;
+  
   /**
    * Create a new write controller.
    */
@@ -358,6 +360,8 @@ public class WriteController implements AzureusCoreStatsProvider{
         norm_new.add( entity );
         normal_priority_entities = norm_new;
       }
+      
+      entity_count = normal_priority_entities.size() + high_priority_entities.size();
     }
     finally {  entities_mon.exit();  }
   }
@@ -381,7 +385,15 @@ public class WriteController implements AzureusCoreStatsProvider{
         norm_new.remove( entity );
         normal_priority_entities = norm_new;
       }
+      
+      entity_count = normal_priority_entities.size() + high_priority_entities.size();
     }
     finally {  entities_mon.exit();  }
+  }
+  
+  public int
+  getEntityCount()
+  {
+	  return( entity_count );
   }
 }

@@ -26,6 +26,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.nat"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp.nonblocking"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol.azplug"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.metasearch.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.nat"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.diskmanager"/>

@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -131,9 +133,30 @@ public class NetworkManager {
   }
 
   
-  private final WriteController write_controller = new WriteController();
-  private final ReadController read_controller = new ReadController();
-
+  
+  private final List<WriteController> 	write_controllers;
+  private final List<ReadController> 	read_controllers;
+  
+  {
+	 int	num_read = COConfigurationManager.getIntParameter( "network.control.read.processor.count" );
+	 
+	 read_controllers = new ArrayList<ReadController>(num_read);
+	 
+	 for (int i=0;i<num_read;i++){
+		 
+		 read_controllers.add( new ReadController());
+	 }
+	 
+	 int	num_write = COConfigurationManager.getIntParameter( "network.control.write.processor.count" );
+	 
+	 write_controllers = new ArrayList<WriteController>(num_write);
+	 
+	 for (int i=0;i<num_write;i++){
+		 
+		 write_controllers.add( new WriteController());
+	 }
+  }
+  
   
   private final TransferProcessor upload_processor = new TransferProcessor( TransferProcessor.TYPE_UPLOAD, new LimitedRateGroup(){
     public int getRateLimitBytesPerSecond() {  return max_upload_rate_bps;  }
@@ -322,7 +345,18 @@ public class NetworkManager {
    * @param entity to add
    */
   public void addWriteEntity( RateControlledEntity entity ) {
-    write_controller.addWriteEntity( entity );
+	  if ( write_controllers.size() == 1 ){
+		  write_controllers.get(0).addWriteEntity(entity);
+	  }else{
+		  WriteController best = null;
+		  for (WriteController write_controller: write_controllers ){
+			  if ( best == null || write_controller.getEntityCount() < best.getEntityCount()){
+				  
+				  best = write_controller;
+			  }
+		  }
+		  best.addWriteEntity( entity );
+	  }
   }
   
   
@@ -331,7 +365,13 @@ public class NetworkManager {
    * @param entity to remove
    */
   public void removeWriteEntity( RateControlledEntity entity ) {
-    write_controller.removeWriteEntity( entity );
+	  if ( write_controllers.size() == 1 ){
+		  write_controllers.get(0).removeWriteEntity( entity );
+	  }else{
+		  for (WriteController write_controller: write_controllers ){
+			  write_controller.removeWriteEntity( entity );
+		  }
+	  }
   }
   
   
@@ -340,7 +380,18 @@ public class NetworkManager {
    * @param entity to add
    */
   public void addReadEntity( RateControlledEntity entity ) {
-    read_controller.addReadEntity( entity );
+	  if ( read_controllers.size() == 1 ){
+		  read_controllers.get(0).addReadEntity(entity);
+	  }else{
+		  ReadController best = null;
+		  for (ReadController read_controller: read_controllers ){
+			  if ( best == null || read_controller.getEntityCount() < best.getEntityCount()){
+				  
+				  best = read_controller;
+			  }
+		  }
+		  best.addReadEntity( entity );
+	  }
   }
   
   
@@ -349,7 +400,13 @@ public class NetworkManager {
    * @param entity to remove
    */
   public void removeReadEntity( RateControlledEntity entity ) {
-    read_controller.removeReadEntity( entity );
+	  if ( read_controllers.size() == 1 ){
+		  read_controllers.get(0).removeReadEntity( entity );
+	  }else{
+		  for (ReadController read_controller: read_controllers ){
+			  read_controller.removeReadEntity( entity );
+		  }
+	  }
   }  
   
   
