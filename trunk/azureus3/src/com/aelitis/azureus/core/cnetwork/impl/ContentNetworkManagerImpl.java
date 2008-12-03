@@ -193,7 +193,7 @@ ContentNetworkManagerImpl
 		
 		SimpleTimer.addPeriodicEvent(
 				"MetaSearchRefresh",
-				23*60860*1000,
+				23*60*60*1000,
 				new TimerEventPerformer()
 				{
 					public void 
@@ -233,8 +233,12 @@ ContentNetworkManagerImpl
 		
 		try{
 			List<contentNetworkDetails> cnets = PlatformContentNetworkMessenger.listNetworks();
-										
+				
+			String	str = "";
+			
 			for ( contentNetworkDetails details: cnets ){
+			
+				str += (str.length()==0?"":", ") + details.getString();
 				
 				ContentNetwork existing = getContentNetwork( details.getID());
 				
@@ -245,6 +249,8 @@ ContentNetworkManagerImpl
 					addNetwork( new_net );
 				}
 			}
+			
+			log( "Latest networks: " + str );
 			
 		}catch( Throwable e ){
 

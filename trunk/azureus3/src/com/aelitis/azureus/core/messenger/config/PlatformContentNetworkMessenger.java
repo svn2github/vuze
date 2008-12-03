@@ -34,7 +34,7 @@ public class
 PlatformContentNetworkMessenger 
 {
 	private static final PlatformMessengerConfig	dispatcher = 
-			new PlatformMessengerConfig( "cnetwork", true );
+			new PlatformMessengerConfig( "cnetworks", true );
 
 	private static final String OP_LIST_CNETORKS	= "list-networks";
 
@@ -108,6 +108,12 @@ PlatformContentNetworkMessenger
 		getMainURL()
 		{
 			return((String)details.get( "baseUrl" ));
+		}
+		
+		public String
+		getString()
+		{
+			return( "id=" + getID() + ";version=" + getVersion() + ";name=" + getName());
 		}
 	}
 }
