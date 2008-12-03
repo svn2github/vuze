@@ -99,9 +99,15 @@ PlatformContentNetworkMessenger
 		}
 		
 		public String
+		getIconURL()
+		{
+			return((String)details.get( "iconUrl" ));
+		}
+		
+		public String
 		getMainURL()
 		{
-			return((String)details.get( "main_url" ));
+			return((String)details.get( "baseUrl" ));
 		}
 	}
 }

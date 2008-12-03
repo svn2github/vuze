@@ -73,6 +73,7 @@ ContentNetworkVuze
 				"Vuze HD Network",
 				URL_ADDRESS,
 				URL_PREFIX,
+				null,			// no icon
 				URL_RELAY_RPC,
 				URL_AUTHORIZED_RPC,
 				URL_FAQ,
@@ -90,16 +91,17 @@ ContentNetworkVuze
 		ContentNetwork test = 
 			new ContentNetworkVuzeGeneric(
 				ContentNetwork.CONTENT_NETWORK_RFN,
-				2,
-				"RF Network 2",
+				3,
+				"RF Network 3",
 				"azdev02.azureus.com",
 				"http://azdev02.azureus.com:8080/",
-				"http://azdev02.azureus.com:8080/msgrelay/rpc",
-				"https://azdev02.azureus.com:443/rpc",
-				"http://www.google.com",
-				"http://www.ibm.com",
-				"http://www.yahoo.com",
-				"http://www.bbc.com" );
+				"http://play.aelitis.com:88/parg/mudflap.gif",
+				null,
+				null,
+				null,
+				null,
+				null,
+				null );
 				
 		try{
 			test.getVuzeFile().write( new File( "C:\\temp\\rfn.vuze"));

@@ -296,9 +296,8 @@ ContentNetworkManagerImpl
 	
 		throws ContentNetworkException
 	{	
-			// TODO:
-		
 		String main_url = details.getMainURL();
+		String icon_url	= details.getIconURL();
 		
 		String site_dns;
 		
@@ -319,6 +318,7 @@ ContentNetworkManagerImpl
 					details.getName(),
 					site_dns,
 					main_url,
+					icon_url,
 					null,
 					null,
 					null,

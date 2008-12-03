@@ -67,6 +67,7 @@ ContentNetworkVuzeGeneric
 
 	private String	SITE_HOST;
 	private String	URL_PREFIX;
+	private String	URL_ICON;
 	private String	URL_RELAY_RPC;
 	private String	URL_AUTHORIZED_RPC;
 	private String	URL_FAQ;
@@ -81,6 +82,7 @@ ContentNetworkVuzeGeneric
 		String		_name,
 		String		_site_host,
 		String		_url_prefix,
+		String		_url_icon,
 		String		_url_relay_rpc,
 		String		_url_authorised_rpc,
 		String		_url_faq,
@@ -92,6 +94,7 @@ ContentNetworkVuzeGeneric
 		 
 		SITE_HOST				= _site_host;
 		URL_PREFIX 				= _url_prefix;
+		URL_ICON				= _url_icon;
 		URL_RELAY_RPC			= _url_relay_rpc;
 		URL_AUTHORIZED_RPC		= _url_authorised_rpc;
 		URL_FAQ					= _url_faq;
@@ -121,6 +124,7 @@ ContentNetworkVuzeGeneric
 		
 		SITE_HOST				= ImportExportUtils.importString(map, "vg_site" );
 		URL_PREFIX 				= ImportExportUtils.importString(map, "vg_prefix" );
+		URL_ICON 				= ImportExportUtils.importString(map, "vg_icon" );
 		URL_RELAY_RPC			= ImportExportUtils.importString(map, "vg_relay_rpc" );
 		URL_AUTHORIZED_RPC		= ImportExportUtils.importString(map, "vg_auth_rpc" );
 		URL_FAQ					= ImportExportUtils.importString(map, "vg_faq" );
@@ -141,6 +145,7 @@ ContentNetworkVuzeGeneric
 		
 		ImportExportUtils.exportString(map, "vg_site", 		SITE_HOST );
 		ImportExportUtils.exportString(map, "vg_prefix", 	URL_PREFIX );
+		ImportExportUtils.exportString(map, "vg_icon", 		URL_ICON );
 		ImportExportUtils.exportString(map, "vg_relay_rpc", URL_RELAY_RPC );
 		ImportExportUtils.exportString(map, "vg_auth_rpc", 	URL_AUTHORIZED_RPC );
 		ImportExportUtils.exportString(map, "vg_faq", 		URL_FAQ );
@@ -180,7 +185,7 @@ ContentNetworkVuzeGeneric
 			// HACK for TUX
 		
 		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start" );
-		addService( SERVICE_GET_ICON,			"http://play.aelitis.com:88/parg/mudflap.gif" );
+		addService( SERVICE_GET_ICON,			URL_ICON );
 
 		if ( URL_RELAY_RPC != null ){
 			 
