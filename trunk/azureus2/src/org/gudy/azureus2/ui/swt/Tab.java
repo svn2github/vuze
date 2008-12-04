@@ -234,19 +234,37 @@ public class Tab implements ParameterListener, UIUpdatable {
 					return;
 				}
 
-				if (useCustomTab) {
+				if (useCustomTab && !folder.isDisposed()) {
+					CTabItem[] items = ((CTabFolder) folder).getItems();
 					CTabItem item = (CTabItem) event.item;
-					if (item != null && !item.isDisposed() && !folder.isDisposed()) {
-						try {
-							((CTabFolder) folder).setSelection(item);
-							Control control = item.getControl();
-							if (control != null) {
-								control.setVisible(true);
-								control.setFocus();
+					for (int i = 0; i < items.length; i++) {
+						CTabItem tabItem = items[i];
+						if (tabItem == null || tabItem.isDisposed()) {
+							continue;
+						}
+						if (tabItem == item) {
+							try {
+								((CTabFolder) folder).setSelection(tabItem);
+								Control control = getView(tabItem).getComposite();
+								if (control != null) {
+									control.setVisible(true);
+									control.setFocus();
+								}
+								
+							} catch (Throwable e) {
+								Debug.printStackTrace(e);
+								//Do nothing
 							}
-						} catch (Throwable e) {
-							Debug.printStackTrace(e);
-							//Do nothing
+						} else {
+							try {
+								Control control = getView(tabItem).getComposite();
+								if (control != null) {
+									control.setVisible(false);
+								}
+							} catch (Throwable e) {
+								Debug.printStackTrace(e);
+								//Do nothing
+							}
 						}
 					}
 				}
