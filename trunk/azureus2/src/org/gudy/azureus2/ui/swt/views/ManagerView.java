@@ -59,6 +59,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -74,7 +75,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo, UISWTViewCoreEventListener, IconBarEnabler
+	ViewTitleInfo, UISWTViewCoreEventListener, IconBarEnabler, UIUpdatable
 {
 
   private DownloadManager 	manager;
@@ -104,6 +105,8 @@ public class ManagerView
 			}
 		};
 		gm.addListener(gmListener, false);
+		
+		UIFunctionsManagerSWT.getUIFunctionsSWT().getUIUpdater().addUpdater(this);
 	}
   
   private void dataSourceChanged(Object newDataSource) {
@@ -292,6 +295,9 @@ public class ManagerView
   	return activeView;
   }
 
+  /**
+   * Called when view is visible
+   */
   private void refresh() {
 		if (folder == null || folder.isDisposed())
 			return;
@@ -329,8 +335,6 @@ public class ManagerView
 			if (uiFunctions != null) {
 				uiFunctions.refreshIconBar(); // For edit columns view
 			}
-
-			refreshTitle();
 
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -567,5 +571,15 @@ public class ManagerView
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
 	public boolean isSelected(String itemKey) {
 		return false;
+	}
+	
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		return "DMDetails";
+	}
+	
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
+	public void updateUI() {
+		refreshTitle();
 	}
 }
