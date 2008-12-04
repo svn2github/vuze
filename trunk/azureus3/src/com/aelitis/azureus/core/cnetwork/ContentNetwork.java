@@ -27,7 +27,18 @@ public interface
 ContentNetwork 
 {
 	public static final long	CONTENT_NETWORK_VUZE		= 1;
+	
+		/**
+		 * You should normally NOT refer explicitly to this constant without consideration
+		 * as we don't want network-specific code proliferating
+		 */
+	
 	public static final long	CONTENT_NETWORK_RFN			= 2;
+	
+		// test networks
+	
+	public static final long	CONTENT_NETWORK_JR			= 10000;
+
 
 	public static final int		SERVICE_SEARCH				= 1;	// String - query text
 	public static final int		SERVICE_XSEARCH				= 2;	// String - query text; Boolean - toSubscribe

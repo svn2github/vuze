@@ -105,10 +105,7 @@ public class PlatformTorrentUtils
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final String TOR_AZ_PROP_CONTENT_NETWORK = "Content Network";
-	
-	public static final long	CONTENT_NETWORK_VUZE		= ContentNetwork.CONTENT_NETWORK_VUZE;
-	public static final long	CONTENT_NETWORK_RFN			= ContentNetwork.CONTENT_NETWORK_RFN;
-
+		
 	private static final String TOR_AZ_PROP_AD_ID = "Ad ID";
 
 	private static final String TOR_AZ_PROP_AD_ENABLED = "Ad Enabled";
@@ -336,7 +333,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static long getContentNetwork(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, CONTENT_NETWORK_VUZE );
+		return getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, ContentNetwork.CONTENT_NETWORK_VUZE );
 	}
 
 	public static void setContentNetwork(TOTorrent torrent, long cnet) {
