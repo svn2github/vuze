@@ -150,6 +150,7 @@ public class ManagerView
   	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
   	if (uiFunctions != null) {
   		uiFunctions.removeManagerView(manager);
+  		uiFunctions.getUIUpdater().removeUpdater(this);
   	}
   	if (manager != null) {
   		manager.removeListener(this);
