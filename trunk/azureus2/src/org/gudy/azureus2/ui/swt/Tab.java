@@ -316,7 +316,7 @@ public class Tab implements ParameterListener, UIUpdatable {
 
   
 
-	public Item createTabItem(IView _view, boolean bFocus) {
+	public Item createTabItem(final IView _view, boolean bFocus) {
 		if (folder.isDisposed()) {
 			return null;
 		}
@@ -368,7 +368,10 @@ public class Tab implements ParameterListener, UIUpdatable {
 								return;
 							}
 							alreadyHere = true;
-							Utils.disposeComposite(tabArea);
+							Item tab = getTab(_view);
+							if (tab != null) {
+								closed(tab);
+							}
 						}
 					});
 				}
