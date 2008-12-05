@@ -49,6 +49,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 /**
  * @author TuxPaper
@@ -104,14 +105,14 @@ public class TorrentListView
 			tableID = TABLE_IDS[viewMode] + ((bMiniMode) ? "-Mini" : "");
 		}
 		SWTSkinObject soData = skinView.getSkinObject(skinPrefix + "list");
-		SWTSkinObject soHeaders = skinView.getSkinObject(skinPrefix + "list-headers");
+		SWTSkinObject soHeaders = skinView.getSkinObject(skinPrefix
+				+ "list-headers");
 
-		init(tableID, skinView.getSkin().getSkinProperties(), 
-				soData == null ? null : (Composite) soData.getControl(),
-				soHeaders == null ? null : (Composite) soHeaders.getControl(),
-				bAllowScrolling ? SWT.V_SCROLL : SWT.NONE);
+		init(tableID, skinView.getSkin().getSkinProperties(), soData == null ? null
+				: (Composite) soData.getControl(), soHeaders == null ? null
+				: (Composite) soHeaders.getControl(), bAllowScrolling ? SWT.V_SCROLL
+				: SWT.NONE);
 
-		
 		this.core = AzureusCoreFactory.getSingleton();
 		SWTSkinObject soExtra = skinView.getSkinObject(skinPrefix + "titlextra");
 		if (soExtra instanceof SWTSkinObjectText) {
@@ -288,7 +289,8 @@ public class TorrentListView
 							TOTorrent torrent = dm.getTorrent();
 							String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 							if (contentHash != null && contentHash.length() > 0) {
-								String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService(contentHash, "coq" );
+								String url = DataSourceUtils.getContentNetwork(torrent).getTorrentDownloadService(
+										contentHash, "coq");
 
 								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
 								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,
@@ -332,8 +334,7 @@ public class TorrentListView
 
 			tableColumns = (TableColumnCore[]) listTableColumns.toArray(new TableColumnCore[listTableColumns.size()]);
 
-			setColumnList(tableColumns, DateCompletedItem.COLUMN_ID, false,
-					true);
+			setColumnList(tableColumns, DateCompletedItem.COLUMN_ID, false, true);
 			String[] autoHideOrder = new String[] {
 				ColumnQuality.COLUMN_ID,
 				SizeItem.COLUMN_ID,
@@ -448,7 +449,7 @@ public class TorrentListView
 			tcManager.setAutoHideOrder(getTableID(), autoHideOrder);
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.swt.views.list.ListView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String, boolean, boolean)
 	public void setColumnList(TableColumnCore[] columns,
 			String defaultSortColumnID, boolean defaultSortAscending,

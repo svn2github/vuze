@@ -26,6 +26,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
+import javax.naming.Context;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -1623,7 +1625,8 @@ SubscriptionManagerUI
 				context.addMessageListener(
 						new MetaSearchListener( this ));
 				
-				String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSubscriptionURL( subs.getID());
+				String url = context.getContentNetwork().getSubscriptionURL(
+						subs.getID());
 					
 				Boolean	edit_mode = (Boolean)subs.getUserData( SUB_EDIT_MODE_KEY );
 				

@@ -133,7 +133,7 @@ public class ColumnInfo
 		// only first button
 		if (event.button == 1 && event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
 			try {
-				TorrentListViewsUtils.viewDetails(torrent.getHashWrapper().toBase32String(), "info-column");
+				TorrentListViewsUtils.viewDetailsFromDS(torrent, "info-column");
 			}catch (Exception e) {
 				// TODO: handle exception
 			}

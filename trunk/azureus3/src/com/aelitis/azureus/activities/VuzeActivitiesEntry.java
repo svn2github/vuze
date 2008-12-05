@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
@@ -86,6 +88,8 @@ public class VuzeActivitiesEntry
 	private long readOn;
 
 	private GlobalManagerAdapter globalManagerAdapter;
+	
+	private long contentNetworkID;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -167,6 +171,8 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
+		setContentNetworkID(MapUtils.getMapLong(map, "contentNetworkID",
+				ContentNetwork.CONTENT_NETWORK_VUZE));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -270,6 +276,8 @@ public class VuzeActivitiesEntry
 		}
 		
 		map.put("readOn", new Long(readOn));
+		
+		map.put("contentNetworkID", new Long(contentNetworkID));
 
 		return map;
 	}
@@ -466,6 +474,8 @@ public class VuzeActivitiesEntry
 			assetHash = torrent.getHashWrapper().toBase32String();
 		} catch (Exception e) {
 		}
+		
+		setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
 
 		setDRM(torrent == null ? false : PlatformTorrentUtils.isContentDRM(torrent));
 		setIsPlatformContent(torrent == null ? false
@@ -586,5 +596,21 @@ public class VuzeActivitiesEntry
 		} else {
 			return ofs > (-1 * readOn);
 		}
+	}
+
+	public long getContentNetworkID() {
+		return contentNetworkID;
+	}
+	
+	public ContentNetwork getContentNetwork() {
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
+		if (cn == null) {
+			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+		}
+		return cn;
+	}
+
+	public void setContentNetworkID(long contentNetworkID) {
+		this.contentNetworkID = contentNetworkID;
 	}
 }

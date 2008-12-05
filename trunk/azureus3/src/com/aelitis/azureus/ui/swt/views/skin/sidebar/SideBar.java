@@ -18,65 +18,23 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Pattern;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.LightHashMap;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
@@ -92,17 +50,13 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventCancelledException;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.ConfigView;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.LoggerView;
-import org.gudy.azureus2.ui.swt.views.MySharesView;
-import org.gudy.azureus2.ui.swt.views.MyTrackerView;
-import org.gudy.azureus2.ui.swt.views.PeerSuperView;
+import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -120,26 +74,31 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.MapUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
  * @author TuxPaper
@@ -164,7 +123,7 @@ public class SideBar
 
 	public static final String SIDEBAR_SECTION_TOOLS = "Tools";
 
-	public static final String SIDEBAR_SECTION_BROWSE = "Browse";
+	public static String SIDEBAR_SECTION_BROWSE = "ContentNetwork.1";
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 
@@ -247,6 +206,8 @@ public class SideBar
 	public static SideBar instance = null;
 
 	static {
+		SIDEBAR_SECTION_BROWSE = ContentNetworkUI.getTarget(ConstantsV3.DEFAULT_CONTENT_NETWORK);
+
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(final DisposeEvent e) {
 				final TreeItem treeItem = (TreeItem) e.widget;
@@ -1115,7 +1076,11 @@ public class SideBar
 			Rectangle bounds = imageLeft.getBounds();
 			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - bounds.width) / 2);
 			int y = itemBounds.y + ((itemBounds.height - bounds.height) / 2);
+			Rectangle clipping = gc.getClipping();
+			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
+					itemBounds.height);
 			gc.drawImage(imageLeft, x, y);
+			gc.setClipping(clipping);
 			//			0, 0, bounds.width, bounds.height,
 			//					x0IndicatorOfs, itemBounds.y
 			//							+ ((itemBounds.height - IMAGELEFT_SIZE) / 2), IMAGELEFT_SIZE,
@@ -1687,7 +1652,7 @@ public class SideBar
 	}
 
 	public static SideBarEntrySWT getSideBarInfo(String id) {
-		if ("ContentNetwork.1".equals(id)) {
+		if ("Browse".equals(id)) {
 			id = SIDEBAR_SECTION_BROWSE;
 		}
 		SideBarEntrySWT sidebarInfo = (SideBarEntrySWT) mapIdToSideBarInfo.get(id);
@@ -2562,71 +2527,143 @@ public class SideBar
 	 *
 	 * @since 3.1.0.1
 	 */
-	public void showItemByTabID(final String tabID) {
+	public String showItemByTabID(String tabID) {
 		if (tabID == null) {
-			return;
+			return null;
 		}
+		
+		String id;
+		IView viewFromID = getIViewFromID(tabID);
+		if (viewFromID != null) {
+			id = tabID;
+		} else if (tabID.equals("library") || tabID.equals("minilibrary")) {
+			id = SIDEBAR_SECTION_LIBRARY;
+		} else if (tabID.equals("publish")) {
+			id = SIDEBAR_SECTION_PUBLISH;
+		} else if (tabID.equals("activities")) {
+			id = SIDEBAR_SECTION_ACTIVITIES;
+		} else if (tabID.startsWith("ContentNetwork.")) {
+			id = tabID;
+		} else {
+			// everything else can go to browse..
+			id = SIDEBAR_SECTION_BROWSE;
+		}
+		
+		final String itemID = id;
+		
+		SideBarEntrySWT entry = getSideBarInfo(itemID);
+		if (entry.treeItem != null) {
+			itemSelected(entry.treeItem);
+			return id;
+		}
+
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (tree.isDisposed()) {
 					return;
 				}
-				// if it matches an existing sidebar item, just use that
-				IView viewFromID = getIViewFromID(tabID);
-				if (viewFromID != null) {
-					showItemByID(tabID);
-				}
-
-				if (tabID.equals("library") || tabID.equals("minilibrary")) {
-					showItemByID(SIDEBAR_SECTION_LIBRARY);
-				} else if (tabID.equals("publish")) {
-					showItemByID(SIDEBAR_SECTION_PUBLISH);
-				} else if (tabID.equals("activities")) {
-					showItemByID(SIDEBAR_SECTION_ACTIVITIES);
-				} else if (tabID.startsWith("ContentNetwork.")) {
-					try {
-						ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
-						if (cnManager == null) {
-							showItemByID(SIDEBAR_SECTION_BROWSE);
-							return;
-						}
-
-						long networkID = Long.parseLong(tabID.substring(15));
-						if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
-							showItemByID(SIDEBAR_SECTION_BROWSE);
-							return;
-						}
-						ContentNetwork contentNetwork = cnManager.getContentNetwork(networkID);
-						if (contentNetwork == null) {
-							showItemByID(SIDEBAR_SECTION_BROWSE);
-							return;
-						}
-
-						if (!showItemByID(tabID)) {
-							String name = contentNetwork.getName();
-							SideBarEntrySWT entryBrowse = getSideBarInfo(SIDEBAR_SECTION_BROWSE);
-							int position = entryBrowse == null ? 3 : tree.indexOf(entryBrowse.getTreeItem()) + 1;
-							
-							boolean closeable = true;
-							//boolean closeable = contentNetwork.isCloseable();
-							SideBarEntrySWT entry = createEntryFromSkinRef(null, tabID,
-									"main.area.browsetab", name, null, contentNetwork, closeable,
-									position);
-							// 4010 TODO: read image url
-							//entry.setImageLeftID("image.sidebar.vuze");
-							showItemByID(tabID);
-							return;
-						}
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-					showItemByID(SIDEBAR_SECTION_BROWSE);
+				if (itemID.startsWith("ContentNetwork.")) {
+					long networkID = Long.parseLong(itemID.substring(15));
+					handleContentNetworkSwitch(itemID, networkID);
 				} else {
-					// everything else can go to browse..
-					showItemByID(SIDEBAR_SECTION_BROWSE);
+					showItemByID(itemID);
 				}
 			}
 		});
+		return id;
+	}
+
+	/**
+	 * @param tabID
+	 *
+	 * @since 4.0.0.3
+	 */
+	protected void handleContentNetworkSwitch(String tabID, long networkID) {
+		try {
+			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
+			if (cnManager == null) {
+				showItemByID(SIDEBAR_SECTION_BROWSE);
+				return;
+			}
+
+			if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
+				showItemByID(SIDEBAR_SECTION_BROWSE);
+				return;
+			}
+			ContentNetwork contentNetwork = cnManager.getContentNetwork(networkID);
+			if (contentNetwork == null) {
+				showItemByID(SIDEBAR_SECTION_BROWSE);
+				return;
+			}
+			
+			boolean doneAuth = false;
+			Object oDoneAuth = contentNetwork.getPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN);
+			if (oDoneAuth instanceof Boolean) {
+				doneAuth = ((Boolean) oDoneAuth).booleanValue();
+			}
+			
+			if (!doneAuth) {
+				String authURL = contentNetwork.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE);
+				if (authURL != null) {
+					if (!AuthorizeWindow.openAuthorizeWindow(contentNetwork)) {
+						return;
+					}
+				}
+			}
+
+			if (!showItemByID(tabID)) {
+				String name = contentNetwork.getName();
+				SideBarEntrySWT entryBrowse = getSideBarInfo(SIDEBAR_SECTION_BROWSE);
+				int position = entryBrowse == null ? 3
+						: tree.indexOf(entryBrowse.getTreeItem()) + 1;
+
+				Object prop = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+				boolean closeable = (prop instanceof Boolean)
+						? ((Boolean) prop).booleanValue() : false;
+				final SideBarEntrySWT entry = createEntryFromSkinRef(null, tabID,
+						"main.area.browsetab", name, null, contentNetwork, closeable,
+						position);
+				
+				String imgURL = contentNetwork.getServiceURL(ContentNetwork.SERVICE_GET_ICON);
+				if (imgURL != null) {
+					final File cache = new File(SystemProperties.getUserPath(), "cache"
+							+ File.separator + imgURL.hashCode() + ".ico");
+					boolean loadImage = true;
+					if (cache.exists()) {
+						try {
+							FileInputStream fis = new FileInputStream(cache);
+
+							try {
+								byte[] content = FileUtil.readInputStreamAsByteArray(fis);
+								entry.setImageLeft(content);
+							} finally {
+								fis.close();
+							}
+							loadImage = false;
+						} catch (Throwable e) {
+							Debug.printStackTrace(e);
+						}
+
+					}
+					if (loadImage) {
+						ImageDownloader.loadImage(imgURL,
+								new ImageDownloader.ImageDownloaderListener() {
+									public void imageDownloaded(byte[] image) {
+										entry.setImageLeft(image);
+
+										FileUtil.writeBytesAsFile(cache.getAbsolutePath(), image);
+									}
+								});
+					}
+				}
+				showItemByID(tabID);
+				return;
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		showItemByID(SIDEBAR_SECTION_BROWSE);
 	}
 
 	/**

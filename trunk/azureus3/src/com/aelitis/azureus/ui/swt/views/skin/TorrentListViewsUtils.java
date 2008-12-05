@@ -47,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.messenger.config.PlatformDCAdManager;
@@ -62,6 +63,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.*;
@@ -98,7 +100,9 @@ public class TorrentListViewsUtils
 	}
 
 	public static void viewDetails(TableRowCore row, String ref) {
-		viewDetails(DataSourceUtils.getHash(row.getDataSource(true)), ref);
+		Object ds = row.getDataSource(true);
+		viewDetails(DataSourceUtils.getContentNetwork(ds),
+				DataSourceUtils.getHash(ds), ref);
 	}
 
 	public static void viewDetails(DownloadManager dm, String ref) {
@@ -110,23 +114,43 @@ public class TorrentListViewsUtils
 		}
 
 		try {
-			viewDetails(dm.getTorrent().getHashWrapper().toBase32String(), ref);
+			viewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
+					dm.getTorrent().getHashWrapper().toBase32String(), ref);
 		} catch (TOTorrentException e) {
 			Debug.out(e);
 		}
 	}
 
-	public static void viewDetails(String hash, String ref) {
+	public static void viewDetails(ContentNetwork cn, String hash, String ref) {
 		if (hash == null) {
 			return;
 		}
 
-		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( hash, ref );
+		String url = cn.getContentDetailsService( hash, ref );
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
-			functions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0, false,
+			functions.viewURL(url, ContentNetworkUI.getTarget(cn), 0, 0, false,
 					false);
+		}
+	}
+
+
+	/**
+	 * @param ds
+	 * @param ref
+	 *
+	 * @since 4.0.0.5
+	 */
+	public static void viewDetailsFromDS(Object ds, String ref) {
+		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
+		if (torrent == null) {
+			return;
+		}
+		try {
+			viewDetails(DataSourceUtils.getContentNetwork(ds),
+					torrent.getHashWrapper().toBase32String(), ref);
+		} catch (TOTorrentException e) {
 		}
 	}
 
@@ -177,14 +201,15 @@ public class TorrentListViewsUtils
 
 			String hash = DataSourceUtils.getHash(ds);
 			if (hash != null) {
+				ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
 				if (ds instanceof VuzeActivitiesEntry) {
 					if (((VuzeActivitiesEntry) ds).isDRM()) {
-						TorrentListViewsUtils.viewDetails(hash, "drm-play");
+						TorrentListViewsUtils.viewDetails(cn, hash, "drm-play");
 						return;
 					}
 				}
 
-				String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService( hash, referal );
+				String url = cn.getTorrentDownloadService(hash, referal);
 				dlInfo = new DownloadUrlInfo(url);
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, false, true, true);
 			} else if (dlInfo != null) {

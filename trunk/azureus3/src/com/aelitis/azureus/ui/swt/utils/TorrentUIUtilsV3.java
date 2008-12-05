@@ -108,11 +108,6 @@ public class TorrentUIUtilsV3
 			}
 			
 			
-			// If it's going to our URLs, add some extra authenication
-			if (PlatformConfigMessenger.urlCanRPC(url)) {
-				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
-			}
-
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
 				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
@@ -164,7 +159,7 @@ public class TorrentUIUtilsV3
 
 										if (forceDRMtoCDP && (PlatformTorrentUtils.isContentDRM(torrent)
 												|| PlatformTorrentUtils.isContentPurchased(torrent))) {
-											TorrentListViewsUtils.viewDetails(hw.toBase32String(),
+											TorrentListViewsUtils.viewDetailsFromDS(torrent,
 													"loadtorrent");
 											return;
 										}

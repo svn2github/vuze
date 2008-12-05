@@ -27,6 +27,8 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
@@ -133,6 +135,32 @@ public class DataSourceUtils
 		return null;
 	}
 
+	public static ContentNetwork getContentNetwork(Object ds) {
+		long id = ContentNetwork.CONTENT_NETWORK_VUZE;
+		try {
+			if (ds instanceof DownloadManager) {
+				id = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
+			} else if (ds instanceof TOTorrent) {
+				id = PlatformTorrentUtils.getContentNetworkID((TOTorrent) ds);
+			} else if (ds instanceof VuzeActivitiesEntry) {
+				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
+				return getContentNetwork(entry.getTorrent());
+			} else if (ds instanceof ISelectedContent) {
+				return getContentNetwork(((ISelectedContent)ds).getDM());
+			} else {
+				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
+			}
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+				id);
+		if (cn == null) {
+			return ConstantsV3.DEFAULT_CONTENT_NETWORK;
+		}
+		return cn;
+	}
+	
 	/**
 	 * @param ds
 	 *

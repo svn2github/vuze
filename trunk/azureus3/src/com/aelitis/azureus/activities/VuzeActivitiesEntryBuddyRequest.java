@@ -47,7 +47,7 @@ public class VuzeActivitiesEntryBuddyRequest
 	public void init(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
-		urlAccept = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(urlAccept, false, true);
+		urlAccept = getContentNetwork().appendURLSuffix(urlAccept, false, true);
 
 		String textID = "v3.activity.buddy-request";
 		if (attempNumber > 1) {
@@ -66,11 +66,12 @@ public class VuzeActivitiesEntryBuddyRequest
 	
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy#loadCommonFromMap(java.util.Map)
 	public void loadCommonFromMap(Map map) {
+		super.loadCommonFromMap(map);
+
 		urlAccept = MapUtils.getMapString(map, "url-accept", urlAccept);
 		if (urlAccept != null) {
-			urlAccept = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(urlAccept, false, true);
+			urlAccept = getContentNetwork().appendURLSuffix(urlAccept, false, true);
 		}
-		super.loadCommonFromMap(map);
 	}
 	
 	// @see com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy#toMap()

@@ -1,5 +1,8 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
@@ -76,11 +79,9 @@ public class MainMenu
 		addFileMenu();
 		//addViewMenu();
 		addSimpleViewMenu();
-		
-		addContentNetworksMenu();
 
 		addCommunityMenu();
-		
+
 		addPublishMenu();
 
 		addToolsMenu();
@@ -93,6 +94,8 @@ public class MainMenu
 		}
 
 		addWindowMenu();
+
+		addContentNetworksMenu();
 
 		// ===== Debug menu (development only)====
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
@@ -122,62 +125,60 @@ public class MainMenu
 			contentNetworkItem.setText("HD &Networks");
 			final Menu contentNetworkMenu = contentNetworkItem.getMenu();
 
-			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
-			if (cnManager == null) {
-				return;
-			}
-			ContentNetwork[] contentNetworks = cnManager.getContentNetworks();
-			for (int i = 0; i < contentNetworks.length; i++) {
-				ContentNetwork contentNetwork = contentNetworks[i];
-				addNetwork(contentNetworkMenu, contentNetwork);
-			}
+			contentNetworkMenu.addListener(SWT.Show, new Listener() {
+				private boolean isAZ3_ADV = MenuFactory.isAZ3_ADV;
 
-			cnManager.addListener(new ContentNetworkListener() {
+				public void handleEvent(Event event) {
+					try {
+						MenuItem[] menuItems = contentNetworkMenu.getItems();
+						Utils.disposeSWTObjects(menuItems);
 
-				public void networkRemoved(final ContentNetwork network) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							MenuItem[] items = contentNetworkMenu.getItems();
-							for (int i = 0; i < items.length; i++) {
-								MenuItem item = items[i];
-								ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
-								if (contentNetwork != null
-										&& contentNetwork.getID() == network.getID()) {
-									item.dispose();
-								}
-							}
-						}
-					});
-				}
+						buildContentNetworkMenu(contentNetworkMenu);
 
-				public void networkAdded(final ContentNetwork network) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							addNetwork(contentNetworkMenu, network);
-						}
-					});
-				}
+					} catch (Exception e) {
+						Debug.out("Error creating Menu", e);
+					}
 
-				public void networkChanged(final ContentNetwork network) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							MenuItem[] items = contentNetworkMenu.getItems();
-							for (int i = 0; i < items.length; i++) {
-								MenuItem item = items[i];
-								ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
-								if (contentNetwork != null
-										&& contentNetwork.getID() == network.getID()) {
-									item.setText(network.getName());
-								}
-							}
-						}
-					});
 				}
 			});
-
 		} catch (Exception e) {
-			Debug.out("Error creating View Menu", e);
+			Debug.out("Error creating Menu", e);
 		}
+	}
+
+	/**
+	 * @param contentNetworkMenu
+	 *
+	 * @since 4.0.0.3
+	 */
+	protected void buildContentNetworkMenu(final Menu contentNetworkMenu) {
+		ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
+		if (cnManager == null) {
+			return;
+		}
+		ContentNetwork[] contentNetworks = cnManager.getContentNetworks();
+		Arrays.sort(contentNetworks, new Comparator() {
+			public int compare(Object o1, Object o2) {
+				String p1 = ""
+						+ ((ContentNetwork) o1).getProperty(ContentNetwork.PROPERTY_ORDER);
+				String p2 = ""
+						+ ((ContentNetwork) o2).getProperty(ContentNetwork.PROPERTY_ORDER);
+
+				return p1.compareTo(p2);
+			}
+		});
+		for (int i = 0; i < contentNetworks.length; i++) {
+			ContentNetwork contentNetwork = contentNetworks[i];
+			addContentNetworkItem(contentNetworkMenu, contentNetwork);
+		}
+		
+		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
+		MenuFactory.addMenuItem(contentNetworkMenu, "About HD Networks", new Listener() {
+			public void handleEvent(Event event) {
+				Utils.openMessageBox(null, 0, "About HD Networks",
+								"HD Networks are Networks with an HD in front of them");
+			}			
+		});
 	}
 
 	/**
@@ -186,12 +187,14 @@ public class MainMenu
 	 *
 	 * @since 4.0.0.3
 	 */
-	private void addNetwork(Menu contentNetworkMenu, ContentNetwork contentNetwork) {
+	private void addContentNetworkItem(Menu contentNetworkMenu,
+			ContentNetwork contentNetwork) {
 		if (contentNetwork == null) {
 			return;
 		}
 
-		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu, SWT.CHECK,
+		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu,
+				SWT.CHECK,
 				PREFIX_V3 + ".view.ContentNetwork." + contentNetwork.getID(),
 				new Listener() {
 					public void handleEvent(Event event) {
@@ -208,17 +211,16 @@ public class MainMenu
 						long id = contentNetwork.getID();
 						String sidebarID = "ContentNetwork." + id;
 						boolean show = false;
-						
+
 						// XXX Handle unselection properly
 						SideBarEntrySWT entry = sideBar.getCurrentSideBarInfo();
 						if (entry == null || !sidebarID.equals(entry.getId())) {
 							show = true;
 							sideBar.showItemByTabID(sidebarID);
 						} else {
-							// XXX Uncomment me when we have this function
-							//if (!contentNetwork.canClose()) {
-							if (id == ContentNetwork.CONTENT_NETWORK_VUZE
-									|| id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+							Object o = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+							boolean canClose = (o instanceof Boolean) ? ((Boolean) o).booleanValue() : true;
+							if (canClose) {
 								show = true;
 							} else {
 								sideBar.closeSideBar(sidebarID);
@@ -230,34 +232,21 @@ public class MainMenu
 		item.setText(contentNetwork.getName());
 
 		item.setData("ContentNetwork", contentNetwork);
-		
-		contentNetworkMenu.addListener(SWT.Show, new Listener() {
-			public void handleEvent(Event event) {
-				ContentNetwork contentNetwork = (ContentNetwork) item.getData("ContentNetwork");
-				if (contentNetwork == null) {
-					return;
-				}
-				//if (!contentNetwork.canClose()) {
-				//	item.setSelection(true);
-				//} else {
-				{
-  				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-  				if (sideBar == null) {
-  					return;
-  				}
-					long id = contentNetwork.getID();
-  				SideBarEntrySWT entry = sideBar.getSideBarInfo("ContentNetwork." + id);
-					item.setSelection(entry.getTreeItem() != null);
-				}
-			}
-		});
 
-		long id = contentNetwork.getID();
-		// XXX Uncomment me when we have this function
-		//if (!contentNetwork.canClose()) {
-		if (id == ContentNetwork.CONTENT_NETWORK_VUZE
-				|| id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+		Object o = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+		boolean canClose = (o instanceof Boolean) ? ((Boolean) o).booleanValue()
+				: true;
+
+		if (!canClose) {
 			item.setSelection(true);
+		} else {
+			SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+			if (sideBar == null) {
+				return;
+			}
+			long id = contentNetwork.getID();
+			SideBarEntrySWT entry = sideBar.getSideBarInfo("ContentNetwork." + id);
+			item.setSelection(entry.getTreeItem() != null);
 		}
 	}
 
@@ -369,7 +358,7 @@ public class MainMenu
 					}
 				}
 			});
-			
+
 			if (Constants.isCVSVersion()) {
 				MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
 						"v3.MainWindow.menu.view.statusbar");
@@ -637,37 +626,12 @@ public class MainMenu
 		});
 
 	}
-	
+
 	private void addPublishMenuItems(Menu publishMenu) {
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_NEW );
-
-				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
-				if (entry.getIView() == null) {
-					entry = sidebar.createEntryFromSkinRef(
-							SideBar.SIDEBAR_SECTION_BROWSE,
-							SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
-							"Publish", null, sURL, true, -1);
-				} else {
-					UISWTViewEventListener eventListener = entry.getEventListener();
-					if (eventListener instanceof UISWTViewEventListenerSkinObject) {
-						SWTSkinObject so = ((UISWTViewEventListenerSkinObject)eventListener).getSkinObject();
-						if (so instanceof SWTSkinObjectBrowser) {
-							((SWTSkinObjectBrowser) so).setURL(sURL);
-						}
-					}
-				}
-				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
-					}
-				});
-
-		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
-				new Listener() {
-					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH );
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_PUBLISH_NEW);
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
@@ -679,7 +643,32 @@ public class MainMenu
 						} else {
 							UISWTViewEventListener eventListener = entry.getEventListener();
 							if (eventListener instanceof UISWTViewEventListenerSkinObject) {
-								SWTSkinObject so = ((UISWTViewEventListenerSkinObject)eventListener).getSkinObject();
+								SWTSkinObject so = ((UISWTViewEventListenerSkinObject) eventListener).getSkinObject();
+								if (so instanceof SWTSkinObjectBrowser) {
+									((SWTSkinObjectBrowser) so).setURL(sURL);
+								}
+							}
+						}
+						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+					}
+				});
+
+		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
+				new Listener() {
+					public void handleEvent(Event event) {
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_PUBLISH);
+
+						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
+						if (entry.getIView() == null) {
+							entry = sidebar.createEntryFromSkinRef(
+									SideBar.SIDEBAR_SECTION_BROWSE,
+									SideBar.SIDEBAR_SECTION_PUBLISH, "publishtab.area",
+									"Publish", null, sURL, true, -1);
+						} else {
+							UISWTViewEventListener eventListener = entry.getEventListener();
+							if (eventListener instanceof UISWTViewEventListenerSkinObject) {
+								SWTSkinObject so = ((UISWTViewEventListenerSkinObject) eventListener).getSkinObject();
 								if (so instanceof SWTSkinObjectBrowser) {
 									((SWTSkinObjectBrowser) so).setURL(sURL);
 								}
@@ -694,7 +683,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_ABOUT );
+						String sURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_PUBLISH_ABOUT);
 						Utils.launch(sURL);
 					}
 				});
@@ -752,8 +741,10 @@ public class MainMenu
 					}
 				});
 
-		MenuFactory.addHelpSupportMenuItem( helpMenu, ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SUPPORT ));
-		
+		MenuFactory.addHelpSupportMenuItem(
+				helpMenu,
+				ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_SUPPORT));
+
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
 		if (false == SystemProperties.isJavaWebStartInstance()) {
@@ -807,42 +798,40 @@ public class MainMenu
 				MENU_ID_COMMUNITY);
 		Menu communityMenu = item.getMenu();
 
-		
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_FORUMS ));
+						Utils.launch(ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_FORUMS));
 					}
 				});
-		
+
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_WIKI ));
+						Utils.launch(ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_WIKI));
 					}
 				});
-		
+
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_BLOG ));
-					}
-				});	
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ,
-				new Listener() {
-					public void handleEvent(Event e) {
-						Utils.launch( ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_FAQ ));
+						Utils.launch(ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_BLOG));
 					}
 				});
-		
+
+		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ, new Listener() {
+			public void handleEvent(Event e) {
+				Utils.launch(ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_FAQ));
+			}
+		});
+
 		MenuFactory.addSeparatorMenuItem(communityMenu);
 
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_ADD_FRIENDS,
 				new Listener() {
 					public void handleEvent(Event e) {
 						FriendsToolbar friendsToolbar = (FriendsToolbar) SkinViewManager.getByClass(FriendsToolbar.class);
-						if(friendsToolbar != null) {
+						if (friendsToolbar != null) {
 							friendsToolbar.addBuddy();
 						}
 					}

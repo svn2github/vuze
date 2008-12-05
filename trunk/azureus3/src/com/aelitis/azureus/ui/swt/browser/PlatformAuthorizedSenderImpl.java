@@ -21,7 +21,9 @@ package com.aelitis.azureus.ui.swt.browser;
 import java.net.URL;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Shell;
@@ -31,7 +33,6 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -101,12 +102,10 @@ public class PlatformAuthorizedSenderImpl
 					// IE removes /n when in text/html mode
 					String responseType = ConstantsV3.isOSX ? "text/html" : "text/plain";
 					
-					String	auth_rpc = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_AUTH_RPC );
-					
-					final String url = auth_rpc + "?" + data
+					final String fullUrl = url + "?" + data
 							+ "&responseType=" + responseType;
 					PlatformMessenger.debug("Open Auth URL: "
-							+ auth_rpc + " in " + responseType + "\n" + url);
+							+ url + " in " + responseType + "\n" + fullUrl);
 
 					browser.addProgressListener(new ProgressListener() {
 						public void completed(ProgressEvent event) {
@@ -118,7 +117,7 @@ public class PlatformAuthorizedSenderImpl
 						}
 					});
 					
-					browser.setUrl(url);
+					browser.setUrl(fullUrl);
 
 				} catch (Throwable e) {
 

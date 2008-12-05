@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
@@ -57,6 +58,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -580,12 +582,13 @@ public class UIFunctionsImpl
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
+				ContentNetwork cn = ContentNetworkUI.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
-					realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL(realURL, false );
+					realURL = cn.getSiteRelativeURL(realURL, false );
 				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, false, true);
+						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);
@@ -604,12 +607,13 @@ public class UIFunctionsImpl
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
+				ContentNetwork cn = ContentNetworkUI.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
-					realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL(realURL, false );
+					realURL = cn.getSiteRelativeURL(realURL, false );
 				}
 				if (target == null) {
 					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
-						realURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(realURL, false, true);
+						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
 							w, h, allowResize, isModal);

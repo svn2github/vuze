@@ -30,11 +30,13 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -146,9 +148,11 @@ public class VuzeActivitiesManager
 				SimpleTimer.addEvent("GetVuzeNews",
 						SystemTime.getOffsetTime(refreshInMS), new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								PlatformVuzeActivitiesMessenger.getEntries(Math.min(
-										SystemTime.getCurrentTime() - lastVuzeNewsAt, MAX_LIFE_MS),
-										5000, replyListener);
+								// 4010 Tux: Do all networks
+								PlatformVuzeActivitiesMessenger.getEntries(
+										ContentNetwork.CONTENT_NETWORK_VUZE, Math.min(
+												SystemTime.getCurrentTime() - lastVuzeNewsAt,
+												MAX_LIFE_MS), 5000, replyListener);
 								lastVuzeNewsAt = SystemTime.getCurrentTime();
 							}
 						});
@@ -306,7 +310,8 @@ public class VuzeActivitiesManager
 
 						String hash = torrent.getHashWrapper().toBase32String();
 						String title;
-						String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getContentDetailsService( hash, "activity-" + VuzeActivitiesConstants.TYPEID_RATING_REMINDER );
+						ContentNetwork cn = DataSourceUtils.getContentNetwork(dm);
+						String url = cn.getContentDetailsService( hash, "activity-" + VuzeActivitiesConstants.TYPEID_RATING_REMINDER );
 
 						title = "<A HREF=\"" + url + "\">"
 								+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
@@ -337,8 +342,10 @@ public class VuzeActivitiesManager
 	 * @since 3.0.4.3
 	 */
 	public static void pullActivitiesNow(long delay) {
-		PlatformVuzeActivitiesMessenger.getEntries(Math.min(
-				SystemTime.getCurrentTime() - lastVuzeNewsAt, MAX_LIFE_MS), delay,
+		// 4010 Tux: Do all networks
+		PlatformVuzeActivitiesMessenger.getEntries(
+				ContentNetwork.CONTENT_NETWORK_VUZE, Math.min(
+						SystemTime.getCurrentTime() - lastVuzeNewsAt, MAX_LIFE_MS), delay,
 				replyListener);
 		lastVuzeNewsAt = SystemTime.getCurrentTime();
 	}
@@ -352,7 +359,9 @@ public class VuzeActivitiesManager
 	 * @since 3.0.4.3
 	 */
 	public static void pullActivitiesNow(long agoMS, long delay) {
-		PlatformVuzeActivitiesMessenger.getEntries(agoMS, delay, replyListener);
+		// 4010 Tux: Do all networks
+		PlatformVuzeActivitiesMessenger.getEntries(
+				ContentNetwork.CONTENT_NETWORK_VUZE, agoMS, delay, replyListener);
 		lastVuzeNewsAt = SystemTime.getCurrentTime();
 	}
 

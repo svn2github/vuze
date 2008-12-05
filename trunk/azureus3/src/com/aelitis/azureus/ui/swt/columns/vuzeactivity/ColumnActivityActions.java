@@ -284,9 +284,9 @@ public class ColumnActivityActions
 						Object ds = event.cell.getDataSource();
 						if (ds instanceof VuzeActivitiesEntry) {
 							if (((VuzeActivitiesEntry) ds).isDRM()) {
-								String hash = getHash(event.cell.getDataSource(), true);
-								if (hash != null) {
-									TorrentListViewsUtils.viewDetails(hash, "activity-dl");
+								if (DataSourceUtils.isPlatformContent(ds)) {
+									TorrentListViewsUtils.viewDetailsFromDS(
+											event.cell.getDataSource(), "activity-dl");
 								}
 								return;
 							}
@@ -302,9 +302,9 @@ public class ColumnActivityActions
 						if (ds instanceof VuzeActivitiesEntry) {
 							if (((VuzeActivitiesEntry) ds).isDRM()
 									&& ((VuzeActivitiesEntry) ds).getDownloadManger() == null) {
-								String hash = getHash(event.cell.getDataSource(), true);
-								if (hash != null) {
-									TorrentListViewsUtils.viewDetails(hash, "thumb");
+								if (DataSourceUtils.isPlatformContent(ds)) {
+									TorrentListViewsUtils.viewDetailsFromDS(
+											event.cell.getDataSource(), "thumb");
 								}
 								return;
 							}
@@ -542,12 +542,4 @@ public class ColumnActivityActions
 
 		return bounds;
 	}
-
-	private String getHash(Object ds, boolean onlyOurs) {
-		if (onlyOurs && !DataSourceUtils.isPlatformContent(ds)) {
-			return null;
-		}
-		return DataSourceUtils.getHash(ds);
-	}
-
 }

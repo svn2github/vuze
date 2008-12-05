@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
@@ -90,6 +91,8 @@ public class BrowserContext
 	private List loadingListeners = Collections.EMPTY_LIST;
 
 	private long pageLoadTime;
+	
+	private ContentNetwork contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
 	
 	/**
 	 * Creates a context and registers the given browser.
@@ -735,5 +738,13 @@ public class BrowserContext
 	
 	public static interface loadingListener {
 		public void browserLoadingChanged(boolean loading, String url);
+	}
+
+	public ContentNetwork getContentNetwork() {
+		return contentNetwork;
+	}
+
+	public void setContentNetwork(ContentNetwork contentNetwork) {
+		this.contentNetwork = contentNetwork;
 	}
 }

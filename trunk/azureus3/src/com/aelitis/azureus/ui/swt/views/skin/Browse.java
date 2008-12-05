@@ -39,6 +39,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.pieces.ReservedByItem;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -46,9 +48,8 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
 import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
 import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -65,7 +66,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
  *
  */
 public class Browse
-	extends SkinView
+	extends SkinView implements SideBarCloseListener
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
@@ -95,13 +96,16 @@ public class Browse
 			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK; 
 		}
 
-		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
-				SkinConstants.VIEWID_BROWSER_BROWSE, soMain);
-
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		
+		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
+		
+		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
 			final SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
 			if (entry != null) {
+				
+				entry.addListener(this);
+				
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
 				
@@ -140,21 +144,38 @@ public class Browse
   		PluginInterface pi = pm.getDefaultPluginInterface();
   		UIManager uim = pi.getUIManager();
   		MenuManager menuManager = uim.getMenuManager();
-  		MenuItem menuItem = menuManager.addMenuItem("sidebar."
-  				+ SideBar.SIDEBAR_SECTION_BROWSE, "Button.reset");
+  		
+  		String menuID = "sidebar." + ContentNetworkUI.getTarget(contentNetwork); 
+  		
+  		MenuItem menuItem = menuManager.addMenuItem(menuID, "Button.reset");
   		menuItem.addListener(new MenuItemListener() {
   			public void selected(MenuItem menu, Object target) {
   				browserSkinObject.restart();
   			}
   		});
   		
-  		menuItem = menuManager.addMenuItem("sidebar."
-  				+ SideBar.SIDEBAR_SECTION_BROWSE, "Tux RPC Test");
+  		menuItem = menuManager.addMenuItem(menuID, "Tux RPC Test");
   		menuItem.addListener(new MenuItemListener() {
   			public void selected(MenuItem menu, Object target) {
   	  		browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
   			}
   		});
+  		
+  		if (contentNetwork != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
+    		menuItem = menuManager.addMenuItem(menuID, "Remove HD Network");
+    		menuItem.addListener(new MenuItemListener() {
+    			public void selected(MenuItem menu, Object target) {
+    				if (sidebar != null) {
+    					final SideBarEntrySWT entry = sidebar.getSideBarEntry(Browse.this);
+    					if (entry != null) {
+    						entry.removeListener(Browse.this);
+    					}
+    					sidebar.closeSideBar(ContentNetworkUI.getTarget(contentNetwork));
+    				}
+    				contentNetwork.remove();
+    			}
+    		});
+  		}
   		
 		}
 
@@ -165,5 +186,14 @@ public class Browse
 		this.browserSkinObject = browserSkinObject;
 
 		browserSkinObject.setURL(contentNetwork.getServiceURL(ContentNetwork.SERVICE_BIG_BROWSE));
+	}
+
+	public void sidebarClosed(SideBarEntrySWT entry) {
+		
+		Utils.openMessageBox(
+				null,
+				SWT.OK,
+				"You closed a sidebar entry",
+				"OMG OMG! Did you know you just closed a sidebar entry?\n\nYou can get it back by asking the frog gods");
 	}
 }

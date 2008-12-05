@@ -237,7 +237,8 @@ public class SBC_LibraryTableView
 								TOTorrent torrent = dm.getTorrent();
 								String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 								if (contentHash != null && contentHash.length() > 0) {
-									String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService( contentHash, "coq" );
+									String url = DataSourceUtils.getContentNetwork(torrent).getTorrentDownloadService(
+											contentHash, "coq");
 									DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
 									TorrentUIUtilsV3.loadTorrent(
 											AzureusCoreFactory.getSingleton(), dlInfo, false, false,

@@ -89,7 +89,7 @@ public class TestPlatformMessenger
 				});
 
 		System.out.println(SystemTime.getCurrentTime() + ": queueMessage gr");
-		PlatformRatingMessenger.getUserRating(
+		PlatformRatingMessenger.getUserRating(1l,
 				new String[] { PlatformRatingMessenger.RATE_TYPE_CONTENT
 				}, new String[] { "11"
 				}, 500);

@@ -332,7 +332,7 @@ public class PlatformTorrentUtils
 		setContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, cla);
 	}
 
-	public static long getContentNetwork(TOTorrent torrent) {
+	public static long getContentNetworkID(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, ContentNetwork.CONTENT_NETWORK_VUZE );
 	}
 
@@ -636,7 +636,7 @@ public class PlatformTorrentUtils
 	/**
 	 * @param torrent
 	 * @param maxDelayMS TODO
-	 */
+	 *
 	public static void updateMetaData(final TOTorrent[] torrents, long maxDelayMS) {
 		if (torrents == null) {
 			log("no torrents to update MD on");
@@ -659,7 +659,7 @@ public class PlatformTorrentUtils
 			}
 		});
 	}
-
+*/
 	/**
 	 * @param torrent
 	 * @param maxDelayMS TODO
@@ -673,17 +673,18 @@ public class PlatformTorrentUtils
 
 		log(torrent, "updateMD");
 
-		PlatformTorrentMessenger.getMetaData(new TOTorrent[] {
-			torrent
-		}, maxDelayMS, new PlatformTorrentMessenger.GetMetaDataReplyListener() {
+		PlatformTorrentMessenger.getMetaData(getContentNetworkID(torrent),
+				new TOTorrent[] {
+					torrent
+				}, maxDelayMS, new PlatformTorrentMessenger.GetMetaDataReplyListener() {
 
-			public void messageSent() {
-			}
+					public void messageSent() {
+					}
 
-			public void replyReceived(String replyType, Map mapHashes) {
-				updateMetaData_handleReply(torrent, null, replyType, mapHashes);
-			}
-		});
+					public void replyReceived(String replyType, Map mapHashes) {
+						updateMetaData_handleReply(torrent, null, replyType, mapHashes);
+					}
+				});
 	}
 
 	private static void updateMetaData_handleReply(TOTorrent torrent,

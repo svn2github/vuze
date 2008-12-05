@@ -105,7 +105,9 @@ public class TorrentListener
 				DownloadManager dm = core.getGlobalManager().getDownloadManager(
 						new HashWrapper(Base32.decode(hash)));
 				if (dm != null && dm.getTorrent() != null) {
-					PlatformRatingMessenger.getUserRating(new String[] {
+					PlatformRatingMessenger.getUserRating(
+							PlatformTorrentUtils.getContentNetworkID(dm.getTorrent()),
+							new String[] {
 						PlatformRatingMessenger.RATE_TYPE_CONTENT
 					}, new String[] {
 						hash

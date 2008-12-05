@@ -404,4 +404,24 @@ public class SWTSkinUtils
 		}
 
 	}
+
+
+	public static SWTSkinObjectBrowser findBrowserSO(SWTSkinObject so) {
+		if (so instanceof SWTSkinObjectBrowser) {
+			return (SWTSkinObjectBrowser) so;
+		}
+		if (so instanceof SWTSkinObjectContainer) {
+			SWTSkinObjectContainer soContainer = (SWTSkinObjectContainer) so;
+			SWTSkinObject[] children = soContainer.getChildren();
+			for (int i = 0; i < children.length; i++) {
+				SWTSkinObject child = children[i];
+				SWTSkinObjectBrowser found = findBrowserSO(child);
+				if (found != null) {
+					return found;
+				}
+			}
+		}
+		return null;
+	}
+
 }

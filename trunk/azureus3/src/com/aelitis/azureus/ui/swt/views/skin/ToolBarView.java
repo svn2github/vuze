@@ -395,7 +395,7 @@ public class ToolBarView
 
 		// == mode big
 		item = new ToolBarItem("modeBig", "image.toolbar.table_large", null);
-		addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
+		addToolBarItem(item, "toolbar.area.vitem.left", so2nd);
 		item.setEnabled(false);
 		
 		Control bigItem = item.getSkinButton().getSkinObject().getControl();
@@ -410,7 +410,7 @@ public class ToolBarView
 
 		// == mode small
 		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal", null);
-		addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
+		addToolBarItem(item, "toolbar.area.vitem.right", so2nd);
 		item.setEnabled(false);
 		
 		Control smallItem = item.getSkinButton().getSkinObject().getControl();

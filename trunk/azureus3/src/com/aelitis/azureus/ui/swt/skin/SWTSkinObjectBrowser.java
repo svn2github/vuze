@@ -213,8 +213,8 @@ public class SWTSkinObjectBrowser
 				} else {
 					String urlToUse = url;
 					if (PlatformConfigMessenger.urlCanRPC(url)){
-						
-						urlToUse = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix( urlToUse, false, true );
+						urlToUse = context.getContentNetwork().appendURLSuffix(urlToUse,
+								false, true);
 					}
 					if (browser != null) {
 						browser.setUrl(urlToUse);

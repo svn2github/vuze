@@ -18,12 +18,16 @@
  
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
@@ -84,9 +88,13 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	private List listLogIDListeners = Collections.EMPTY_LIST;
 
+	private List listOpenListeners = Collections.EMPTY_LIST;
+
 	private final SideBar sidebar;
 	
 	private String logID;
+
+	private Image imageLeft;
 	
 	public SideBarEntrySWT(SideBar sidebar, String id) {
 		this.id = id;
@@ -275,9 +283,22 @@ public class SideBarEntrySWT implements SideBarEntry
 	
 	public void setImageLeftID(String id) {
 		imageLeftID = id;
+		imageLeft = null;
+	}
+	
+	/**
+	 * @param imageLeft the imageLeft to set
+	 */
+	public void setImageLeft(Image imageLeft) {
+		this.imageLeft = imageLeft;
+		imageLeftID = null;
+		redraw();
 	}
 	
 	public Image getImageLeft(String suffix) {
+		if (imageLeft != null) {
+			return imageLeft;
+		}
 		if (imageLeftID == null) {
 			return null;
 		}
@@ -300,6 +321,10 @@ public class SideBarEntrySWT implements SideBarEntry
 		listCloseListeners.add(l);
 	}
 	
+	public void removeListener(SideBarCloseListener l) {
+		listCloseListeners.remove(l);
+	}
+
 	protected void triggerCloseListeners() {
 		Object[] list = listCloseListeners.toArray();
 		for (int i = 0; i < list.length; i++) {
@@ -327,6 +352,28 @@ public class SideBarEntrySWT implements SideBarEntry
 		}
 	}
 
+	public void addListener(SideBarOpenListener l) {
+		if (listOpenListeners == Collections.EMPTY_LIST) {
+			listOpenListeners = new ArrayList(1);
+		}
+		listOpenListeners.add(l);
+		if (treeItem != null) {
+			l.sideBarEntryOpen(this);
+		}
+	}
+	
+	public void removeListener(SideBarOpenListener l) {
+		listOpenListeners.remove(l);
+	}
+
+	protected void triggerOpenListeners() {
+		Object[] list = listLogIDListeners.toArray();
+		for (int i = 0; i < list.length; i++) {
+			SideBarOpenListener l = (SideBarOpenListener) list[i];
+			l.sideBarEntryOpen(this);
+		}
+	}
+
 	public String getLogID() {
 		return logID;
 	}
@@ -342,6 +389,26 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public SideBar getSidebar() {
 		return sidebar;
+	}
+
+	/**
+	 * @param image
+	 *
+	 * @since 4.0.0.3
+	 */
+	public void setImageLeft(final byte[] imageBytes) {
+		Utils.execSWTThread(new AERunnable() {
+		
+			public void runSupport() {
+				InputStream is = new ByteArrayInputStream(imageBytes);
+				Image image = new Image(Display.getCurrent(), is);
+				try {
+					is.close();
+				} catch (IOException e) {
+				}
+				setImageLeft(image);
+			}
+		});
 	}
 
 }

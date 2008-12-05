@@ -27,8 +27,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginEvent;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.ui.common.util.UserAlerts;
 import org.gudy.azureus2.ui.swt.*;
@@ -44,6 +42,7 @@ import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -58,8 +57,10 @@ import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.InitialisationFunctions;
+
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 
 /**
  * @author TuxPaper
@@ -116,7 +117,7 @@ public class Initializer
 
 			PlatformMessenger.setAuthorizedTransferListener(new PlatformAuthorizedSenderImpl());
 
-			PlatformConfigMessenger.login(0);
+			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
 			// typically the caller will call run() now 
 		}
 	}

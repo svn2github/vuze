@@ -75,7 +75,8 @@ public class WelcomeView
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
-  					startTab = SideBar.SIDEBAR_SECTION_BROWSE;
+  					startTab = "ContentNetwork."
+							+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
   				}
 
 					sidebar.showItemByID(startTab);

@@ -99,6 +99,7 @@ import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -281,16 +282,18 @@ public class MainWindow
 				if (PublishUtils.isPublished(dm)) {
 					String title = MessageText.getString("v3.mb.delPublished.title");
 					
-					String site = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SITE );
-					
-					String site_host = (String)ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
-					
+					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
+
+					String site = cn.getServiceURL(ContentNetwork.SERVICE_SITE);
+
+					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
+
 					String text = MessageText.getString("v3.mb.delPublished.text",
 							new String[] {
 								dm.getDisplayName(),
 								site,
 								site_host,
-								ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_PUBLISH_ABOUT )
+								cn.getServiceURL(ContentNetwork.SERVICE_PUBLISH_ABOUT)
 							});
 
 					MessageBoxShell mb = new MessageBoxShell(shell, title, text,
@@ -417,7 +420,8 @@ public class MainWindow
 		if (isContent) {
 			if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
 				PlatformTorrentUtils.setUserRating(torrent, -1);
-				PlatformRatingMessenger.getUserRating(new String[] {
+				PlatformRatingMessenger.getUserRating(
+						PlatformTorrentUtils.getContentNetworkID(torrent), new String[] {
 					PlatformRatingMessenger.RATE_TYPE_CONTENT
 				}, new String[] {
 					hash
@@ -869,7 +873,8 @@ public class MainWindow
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
-  					startTab = SideBar.SIDEBAR_SECTION_BROWSE;
+  					startTab = "ContentNetwork."
+								+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
   				}
 				}
 				sidebar.showItemByID(startTab);
@@ -2030,7 +2035,7 @@ public class MainWindow
 	 * @param url
 	 * @param target
 	 */
-	public void showURL(String url, String target) {
+	public void showURL(final String url, String target) {
 
 		if (url.startsWith("AZMSG%3B") && false) {
 			try {
@@ -2058,45 +2063,42 @@ public class MainWindow
 			target = target.substring(4);
 		}
 
-		// redirect any minibrowse targets to browse
-		if (target.equals(SkinConstants.VIEWID_BROWSER_MINI)) {
-			target = SkinConstants.VIEWID_BROWSER_BROWSE;
-		}
-
-		// This will create the skin object if we have UnattachedView.[target]
-		// in the skin
-		SWTSkinObject skinObject = skin.getSkinObject(target);
-
-		if (skinObject == null) {
+		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		String id = sideBar.showItemByTabID(target);
+		if (id == null) {
 			Utils.launch(url);
 			return;
 		}
+		
+		SideBarEntrySWT entry = SideBar.getSideBarInfo(id);
+		entry.addListener(new SideBarOpenListener() {
+		
+			public void sideBarEntryOpen(SideBarEntrySWT entry) {
+				entry.removeListener(this);
 
-		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		if (target.equals(SkinConstants.VIEWID_BROWSER_PUBLISH)) {
-			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
-		} else {
-			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);
-		}
+				setVisible(true);
 
-		setVisible(true);
+				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+				
+				if (soBrowser != null) {
+					//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
+					if (url == null || url.length() == 0) {
+						soBrowser.restart();
+					} else {
+						String fullURL = url;
+						if (PlatformConfigMessenger.urlCanRPC(url)) {
+							// 4010 Tux: This shouldn't be.. either determine ContentNetwork from
+							//           url or target, or do something..
+							fullURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+						}
 
-		skinObject = skin.getSkinObject(target);
-
-		if (skinObject instanceof SWTSkinObjectBrowser) {
-			//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
-			if (url == null || url.length() == 0) {
-				((SWTSkinObjectBrowser) skinObject).restart();
-			} else {
-				if (PlatformConfigMessenger.urlCanRPC(url)) {
-					url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+						soBrowser.setURL(fullURL);
+					}
 				}
-
-				((SWTSkinObjectBrowser) skinObject).setURL(url);
 			}
-		}
+		});
 	}
-
+	
 	protected MainStatusBar getMainStatusBar() {
 		return statusBar;
 	}
