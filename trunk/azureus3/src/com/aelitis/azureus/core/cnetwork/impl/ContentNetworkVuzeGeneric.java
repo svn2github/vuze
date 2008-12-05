@@ -345,6 +345,8 @@ ContentNetworkVuzeGeneric
 					url_str += "?referal=" +  UrlUtils.encode( client_ref );
 				}
 				
+				url_str = appendURLSuffix(url_str, false, true);
+				
 				return( url_str );
 			}
 			case SERVICE_FAQ_TOPIC:{
