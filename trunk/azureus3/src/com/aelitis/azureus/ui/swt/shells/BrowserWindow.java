@@ -27,6 +27,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -88,6 +89,8 @@ public class BrowserWindow
 		shell.setLayout(new FillLayout());
 
 		Utils.setShellIcon(shell);
+		
+		shell.setText(url);
 
 		browser = null;
 		
@@ -150,6 +153,19 @@ public class BrowserWindow
 			
 		});
 		
+		SimpleTimer.addEvent("showWin", SystemTime.getOffsetTime(3000), new TimerEventPerformer() {
+		
+			public void perform(TimerEvent event) {
+				Utils.execSWTThread(new AERunnable() {
+				
+					public void runSupport() {
+						if (shell != null && !shell.isDisposed()) {
+							shell.open();
+						}
+					}
+				});
+			}
+		});
 
 		if (w > 0 && h > 0) {
 			shell.setSize(w, h);
