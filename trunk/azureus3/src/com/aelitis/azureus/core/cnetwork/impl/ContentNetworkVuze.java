@@ -93,12 +93,12 @@ ContentNetworkVuze
 		ContentNetwork test = 
 			new ContentNetworkVuzeGeneric(
 				null,
-				ContentNetwork.CONTENT_NETWORK_RFN,
-				3,
-				"RF Network 3",
-				"azdev02.azureus.com",
-				"http://azdev02.azureus.com:8080/",
-				"http://play.aelitis.com:88/parg/mudflap.gif",
+				ContentNetwork.CONTENT_NETWORK_CHUN,
+				1,
+				"Chun's Network",
+				"192.168.0.74",
+				"http://192.168.0.74::8082/",
+				"http://play.aelitis.com:88/parg/chun.gif",
 				null,
 				null,
 				null,
@@ -107,7 +107,7 @@ ContentNetworkVuze
 				null );
 				
 		try{
-			test.getVuzeFile().write( new File( "C:\\temp\\rfn.vuze"));
+			test.getVuzeFile().write( new File( "C:\\temp\\rfn_chun.vuze"));
 			
 		}catch( Throwable e ){
 			

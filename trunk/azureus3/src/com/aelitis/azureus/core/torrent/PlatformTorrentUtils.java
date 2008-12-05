@@ -336,7 +336,7 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, ContentNetwork.CONTENT_NETWORK_VUZE );
 	}
 
-	public static void setContentNetwork(TOTorrent torrent, long cnet) {
+	public static void setContentNetworkID(TOTorrent torrent, long cnet) {
 		setContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, cnet);
 	}
 	
