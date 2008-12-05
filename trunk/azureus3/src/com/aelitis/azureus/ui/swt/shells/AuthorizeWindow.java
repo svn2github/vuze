@@ -38,8 +38,7 @@ public class AuthorizeWindow
 				true);
 	
 		final Boolean[] b = new Boolean[1];
-		// XXX 4010 TEMP! Should default to false
-		b[0] = Boolean.TRUE;
+		b[0] = Boolean.FALSE;
 		
 		ClientMessageContext context = browserWindow.getContext();
 		context.addMessageListener(new AbstractBrowserMessageListener(
