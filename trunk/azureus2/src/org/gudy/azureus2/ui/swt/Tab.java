@@ -186,6 +186,7 @@ public class Tab implements ParameterListener, UIUpdatable {
 					eventCloseAllowed = true;
 					if (selectedItem != null) {
 						((CTabFolder) folder).setSelection((CTabItem) selectedItem);
+						ensureVisibilities();
 					}
 				}
 			});
@@ -235,38 +236,7 @@ public class Tab implements ParameterListener, UIUpdatable {
 				}
 
 				if (useCustomTab && !folder.isDisposed()) {
-					CTabItem[] items = ((CTabFolder) folder).getItems();
-					CTabItem item = (CTabItem) event.item;
-					for (int i = 0; i < items.length; i++) {
-						CTabItem tabItem = items[i];
-						if (tabItem == null || tabItem.isDisposed()) {
-							continue;
-						}
-						if (tabItem == item) {
-							try {
-								((CTabFolder) folder).setSelection(tabItem);
-								Control control = getView(tabItem).getComposite();
-								if (control != null) {
-									control.setVisible(true);
-									control.setFocus();
-								}
-								
-							} catch (Throwable e) {
-								Debug.printStackTrace(e);
-								//Do nothing
-							}
-						} else {
-							try {
-								Control control = getView(tabItem).getComposite();
-								if (control != null) {
-									control.setVisible(false);
-								}
-							} catch (Throwable e) {
-								Debug.printStackTrace(e);
-								//Do nothing
-							}
-						}
-					}
+					ensureVisibilities();
 				}
 
 				mainwindow.getUIFunctions().refreshIconBar();
@@ -334,6 +304,49 @@ public class Tab implements ParameterListener, UIUpdatable {
 
   
 
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.5
+	 */
+	protected void ensureVisibilities() {
+		if (!(folder instanceof CTabFolder)) {
+			return;
+		}
+		CTabItem[] items = ((CTabFolder) folder).getItems();
+		CTabItem item = ((CTabFolder) folder).getSelection();
+		for (int i = 0; i < items.length; i++) {
+			CTabItem tabItem = items[i];
+			if (tabItem == null || tabItem.isDisposed()) {
+				continue;
+			}
+			if (tabItem == item) {
+				try {
+					((CTabFolder) folder).setSelection(tabItem);
+					Control control = getView(tabItem).getComposite();
+					if (control != null) {
+						control.setVisible(true);
+						control.setFocus();
+					}
+					
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
+					//Do nothing
+				}
+			} else {
+				try {
+					Control control = getView(tabItem).getComposite();
+					if (control != null) {
+						control.setVisible(false);
+					}
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
+					//Do nothing
+				}
+			}
+		}
+	}
+
 	public Item createTabItem(final IView _view, boolean bFocus) {
 		if (folder.isDisposed()) {
 			return null;
@@ -399,16 +412,19 @@ public class Tab implements ParameterListener, UIUpdatable {
 				((CTabItem) tabItem).setControl(tabArea);
 				// Disabled for SWT 3.2RC5.. CTabItem tooltip doesn't always disappear
 				//				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
-				if (bFocus)
+				if (bFocus) {
 					((CTabFolder) folder).setSelection((CTabItem) tabItem);
+					ensureVisibilities();
+				}
 			} else {
 				((TabItem) tabItem).setControl(tabArea);
 				((TabItem) tabItem).setToolTipText(_view.getFullTitle());
 				TabItem items[] = {
 					(TabItem) tabItem
 				};
-				if (bFocus)
+				if (bFocus) {
 					((TabFolder) folder).setSelection(items);
+				}
 			}
 		} catch (Exception e) {
 			tabs.remove(tabItem);
@@ -681,6 +697,7 @@ public class Tab implements ParameterListener, UIUpdatable {
       else if(index < 0)
         index = tabFolder.getItemCount() - 1;
       tabFolder.setSelection(index);
+			ensureVisibilities();
     }
   }
 
@@ -782,6 +799,7 @@ public class Tab implements ParameterListener, UIUpdatable {
 		if (folder != null && !folder.isDisposed()) {
 			if (useCustomTab) {
 				((CTabFolder) folder).setSelection((CTabItem) item);
+				ensureVisibilities();
 			} else {
 				TabItem items[] = {
 					(TabItem) item
