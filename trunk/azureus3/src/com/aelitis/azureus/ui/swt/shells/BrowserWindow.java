@@ -168,7 +168,9 @@ public class BrowserWindow
 		});
 
 		if (w > 0 && h > 0) {
-			shell.setSize(w, h);
+			Rectangle computeTrim = shell.computeTrim(0, 0, w, h);
+			shell.setSize(computeTrim.width, computeTrim.height);
+			//shell.setSize(w, h);
 		}
 
 		Utils.centerWindowRelativeTo(shell, parent);
