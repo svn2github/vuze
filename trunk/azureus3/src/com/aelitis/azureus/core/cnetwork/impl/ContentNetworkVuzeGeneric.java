@@ -77,20 +77,21 @@ ContentNetworkVuzeGeneric
 
 	protected
 	ContentNetworkVuzeGeneric(
-		long		_content_network,
-		long		_version,
-		String		_name,
-		String		_site_host,
-		String		_url_prefix,
-		String		_url_icon,
-		String		_url_relay_rpc,
-		String		_url_authorised_rpc,
-		String		_url_faq,
-		String		_url_blog,
-		String		_url_forums,
-		String		_url_wiki )
+		ContentNetworkManagerImpl	_manager,
+		long						_content_network,
+		long						_version,
+		String						_name,
+		String						_site_host,
+		String						_url_prefix,
+		String						_url_icon,
+		String						_url_relay_rpc,
+		String						_url_authorised_rpc,
+		String						_url_faq,
+		String						_url_blog,
+		String						_url_forums,
+		String						_url_wiki )
 	{
-		super( TYPE_VUZE_GENERIC, _content_network, _version, _name );
+		super( _manager, TYPE_VUZE_GENERIC, _content_network, _version, _name );
 		 
 		SITE_HOST				= _site_host;
 		URL_PREFIX 				= _url_prefix;
@@ -107,11 +108,14 @@ ContentNetworkVuzeGeneric
 	
 	protected
 	ContentNetworkVuzeGeneric(
-		Map			map )
+		ContentNetworkManagerImpl	_manager,
+		Map							_map )
 	
 		throws IOException
 	{
-		importFromBEncodedMap( map );
+		super( _manager );
+		
+		importFromBEncodedMap( _map );
 	}
 	
 	protected void

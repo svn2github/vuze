@@ -121,7 +121,7 @@ ContentNetworkManagerImpl
 	{
 		loadConfig();
 		
-		addNetwork( new ContentNetworkVuze());
+		addNetwork( new ContentNetworkVuze( this ));
 		
 		AEDiagnostics.addEvidenceGenerator( this );
 		
@@ -162,7 +162,12 @@ ContentNetworkManagerImpl
 									if ( type == VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK ){
 										
 										try{
-											importNetwork( comp.getContent());
+											ContentNetwork imported = importNetwork( comp.getContent());
+											
+											if ( imported != null ){
+												
+												imported.setPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION, true );
+											}
 											
 											comp.setProcessed();
 											
@@ -258,15 +263,24 @@ ContentNetworkManagerImpl
 		}
 	}
 	
-	protected void
+	protected ContentNetworkImpl
 	importNetwork(
 		Map		content )
 	
 		throws IOException
 	{
-		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMapStatic( content );
+		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMapStatic( this, content );
 		
-		addNetwork( network );
+		if ( addNetwork( network ) == network ){
+			
+			return( network );
+			
+		}else{
+			
+				// already present network - not imported
+			
+			return( null );
+		}
 	}
 	
 	public ContentNetwork 
@@ -319,6 +333,7 @@ ContentNetworkManagerImpl
 		
 		return( 
 			new ContentNetworkVuzeGeneric( 
+					this,
 					details.getID(),
 					details.getVersion(),
 					details.getName(),
@@ -494,7 +509,7 @@ ContentNetworkManagerImpl
 					
 					try{
 						
-						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMapStatic( cnet_map );
+						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMapStatic( this, cnet_map );
 						
 						if ( cn.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
 							

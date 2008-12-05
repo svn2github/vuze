@@ -66,9 +66,11 @@ ContentNetworkVuze
 	private static final String URL_WIKI = "http://wiki.vuze.com/";
 
 	protected
-	ContentNetworkVuze()
+	ContentNetworkVuze(
+		ContentNetworkManagerImpl	manager )
 	{
-		super( 	ContentNetwork.CONTENT_NETWORK_VUZE,
+		super( 	manager,
+				ContentNetwork.CONTENT_NETWORK_VUZE,
 				1,
 				"Vuze HD Network",
 				URL_ADDRESS,
@@ -90,6 +92,7 @@ ContentNetworkVuze
 		
 		ContentNetwork test = 
 			new ContentNetworkVuzeGeneric(
+				null,
 				ContentNetwork.CONTENT_NETWORK_RFN,
 				3,
 				"RF Network 3",

@@ -72,11 +72,16 @@ ContentNetwork
 	public static final int		SERVICE_GET_ICON			= 30;	
 	public static final int		SERVICE_AUTHORIZE			= 31;	
 	
+		// content network properties
+	
 	public static final int		PROPERTY_SITE_HOST			= 1;	// String
 	public static final int		PROPERTY_REMOVEABLE			= 2;	// Boolean
 	public static final int		PROPERTY_ORDER				= 3;	// String (Tux prefers to Integer)
 
-	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";
+		// persistent (and local) properties
+	
+	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean
+	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
@@ -241,4 +246,6 @@ ContentNetwork
 	getTransientProperty(
 		Object		key );
 	
+	public void
+	remove();
 }

@@ -42,7 +42,8 @@ ContentNetworkImpl
 	
 	protected static ContentNetworkImpl
 	importFromBencodedMapStatic(
-		Map		map )
+		ContentNetworkManagerImpl	manager,
+		Map							map )
 	
 		throws IOException
 	{
@@ -50,7 +51,7 @@ ContentNetworkImpl
 		
 		if ( type == TYPE_VUZE_GENERIC ){
 			
-			return( new ContentNetworkVuzeGeneric( map ));
+			return( new ContentNetworkVuzeGeneric( manager, map ));
 			
 		}else{
 		
@@ -58,20 +59,23 @@ ContentNetworkImpl
 		}
 	}
 	
-	private long		type;
-	private long		version;
-	private long		id;
-	private String		name;
+	private ContentNetworkManagerImpl	manager;
+	private long						type;
+	private long						version;
+	private long						id;
+	private String						name;
 	
 	private Map<Object,Object>	transient_properties = Collections.synchronizedMap( new HashMap<Object,Object>());
 	
 	protected
 	ContentNetworkImpl(
-		long			_type,
-		long			_id,
-		long			_version,
-		String			_name )
+		ContentNetworkManagerImpl	_manager,
+		long						_type,
+		long						_id,
+		long						_version,
+		String						_name )
 	{
+		manager		= _manager;
 		type		= _type;
 		version		= _version;
 		id			= _id;
@@ -79,8 +83,10 @@ ContentNetworkImpl
 	}
 	
 	protected
-	ContentNetworkImpl()
+	ContentNetworkImpl(
+		ContentNetworkManagerImpl	_manager )
 	{
+		manager	= _manager;
 	}
 	
 	protected void
@@ -322,6 +328,12 @@ ContentNetworkImpl
 		String	key = getPropertiesKey();
 
 		COConfigurationManager.setParameter( key, new HashMap());
+	}
+	
+	public void
+	remove()
+	{
+		manager.removeNetwork( this );
 	}
 	
 	protected String
