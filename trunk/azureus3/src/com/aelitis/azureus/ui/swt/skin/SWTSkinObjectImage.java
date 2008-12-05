@@ -339,6 +339,18 @@ public class SWTSkinObjectImage
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
+		if (!ImageLoader.isRealImage(image)) {
+			for (int i = suffixes.length - 1; i >= 0; i--) {
+				String suffixToRemove = suffixes[i];
+				if (suffixToRemove != null) {
+					sImageID = sImageID.substring(0, sImageID.length() - suffixToRemove.length());
+					image = imageLoader.getImage(sImageID);
+					if (ImageLoader.isRealImage(image)) {
+						break;
+					}
+				}
+			}
+		}
 		if (debug) {
 			System.out.println(sImageID + image + ";" + ImageLoader.isRealImage(image));
 		}
