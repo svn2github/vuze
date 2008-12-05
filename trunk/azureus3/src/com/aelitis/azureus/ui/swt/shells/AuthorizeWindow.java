@@ -33,14 +33,17 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 public class AuthorizeWindow
 {
 	public static boolean openAuthorizeWindow(ContentNetwork cn) {
-		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(), cn.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE), 600, 400, false, true);
+		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
+				cn.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE), 560, 300, false,
+				true);
 	
 		final Boolean[] b = new Boolean[1];
 		// XXX 4010 TEMP! Should default to false
 		b[0] = Boolean.TRUE;
 		
 		ClientMessageContext context = browserWindow.getContext();
-		context.addMessageListener(new AbstractBrowserMessageListener("ContentNetwork") {
+		context.addMessageListener(new AbstractBrowserMessageListener(
+				"contentnetwork") {
 			public void handleMessage(BrowserMessage message) {
 				String opid = message.getOperationId();
 				
