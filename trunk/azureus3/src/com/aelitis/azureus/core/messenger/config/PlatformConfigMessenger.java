@@ -49,10 +49,6 @@ public class PlatformConfigMessenger
 {
 	public static final String LISTENER_ID = "config";
 
-	public static final String SECTION_TYPE_BIGBROWSE = "browse";
-
-	public static final String SECTION_TYPE_MINIBROWSE = "minibrowse";
-
 	private static int iRPCVersion = 0;
 
 	private static String default_site_host = (String)ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
@@ -80,48 +76,7 @@ public class PlatformConfigMessenger
 
 	protected static List platformLoginCompleteListeners = Collections.EMPTY_LIST;
 	
-	public static void getBrowseSections(String sectionType, long maxDelayMS,
-			final GetBrowseSectionsReplyListener replyListener) {
-
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				"get-browse-sections", new Object[] {
-					"section-type",
-					sectionType,
-					"locale",
-					Locale.getDefault().toString()
-				}, maxDelayMS);
-
-		PlatformMessengerListener listener = new PlatformMessengerListener() {
-			public void messageSent(PlatformMessage message) {
-				replyListener.messageSent();
-			}
-
-			public void replyReceived(PlatformMessage message, String replyType,
-					Map reply) {
-				if (reply != null) {
-					List array = (List) reply.get("value");
-					Map[] newReply = new HashMap[array.size()];
-					for (int i = 0; i < newReply.length; i++) {
-						newReply[i] = (Map) array.get(i);
-
-						String url = (String) newReply[i].get("url");
-						if (url != null && !url.startsWith("http")) {
-							url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getSiteRelativeURL( url, true );
-
-							newReply[i].put("url", url);
-						}
-					}
-					replyListener.replyReceived(newReply);
-				} else {
-					replyListener.replyReceived(new Map[0]);
-				}
-			}
-		};
-
-		PlatformMessenger.queueMessage(message, listener);
-	}
-
-	public static void login(long maxDelayMS) {
+	public static void login(long contentNetworkID, long maxDelayMS) {
 		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
 		String azComputerID = "";
 		try {
@@ -141,6 +96,7 @@ public class PlatformConfigMessenger
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
+		message.setContentNetworkID(contentNetworkID);
 		message.setRequiresAuthorizationNoCheck();
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {

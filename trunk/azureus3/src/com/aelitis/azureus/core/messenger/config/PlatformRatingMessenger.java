@@ -58,7 +58,7 @@ public class PlatformRatingMessenger
 
 	public static final ArrayList listeners = new ArrayList();
 
-	public static void getUserRating(String[] rateTypes,
+	public static void getUserRating(Long contentNetworkID, String[] rateTypes,
 			final String[] torrentHashes, long maxDelayMS) {
 
 		PlatformMessage message = new PlatformMessage("AZMSG", "rating",
@@ -68,6 +68,7 @@ public class PlatformRatingMessenger
 					"torrent-hash",
 					torrentHashes,
 				}, maxDelayMS);
+		message.setContentNetworkID(contentNetworkID);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 			public void messageSent(PlatformMessage message) {
@@ -164,6 +165,7 @@ public class PlatformRatingMessenger
 					"ratings",
 					array
 				}, maxDelayMS);
+		message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
 
 		final int oldRating = PlatformTorrentUtils.getUserRating(torrent);
 		final RatingInfoList ratingReply = new SingleUserRatingInfo(torrent);

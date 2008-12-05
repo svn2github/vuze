@@ -27,6 +27,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesManager;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -42,13 +43,14 @@ public class PlatformVuzeActivitiesMessenger
 
 	public static final long DEFAULT_RETRY_MS = 1000L * 60 * 60 * 24;
 
-	public static void getEntries(final long agoMS, long maxDelayMS,
-			final GetEntriesReplyListener replyListener) {
+	public static void getEntries(long contentNetworkID, final long agoMS,
+			long maxDelayMS, final GetEntriesReplyListener replyListener) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_GET,
 				new Object[] {
 					"ago-ms",
 					new Long(agoMS),
 				}, maxDelayMS);
+		message.setContentNetworkID(contentNetworkID);
 
 		PlatformMessengerListener listener = null;
 		if (replyListener != null) {

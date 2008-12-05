@@ -57,8 +57,8 @@ public class PlatformTorrentMessenger
 	 *
 	 * @since 3.0.0.7
 	 */
-	public static void getMetaData(TOTorrent[] torrents, long maxDelayMS,
-			final GetMetaDataReplyListener replyListener) {
+	public static void getMetaData(long contentNetworkID, TOTorrent[] torrents,
+			long maxDelayMS, final GetMetaDataReplyListener replyListener) {
 		Map mapParameters = new HashMap();
 		List listContent = new ArrayList();
 		List listHashes = new ArrayList();
@@ -136,6 +136,7 @@ public class PlatformTorrentMessenger
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_STREAMCOMPLETE, mapParameters, 3000);
+		message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
 
 		PlatformMessenger.queueMessage(message, null);
 	}
@@ -157,6 +158,7 @@ public class PlatformTorrentMessenger
 
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				OP_STREAMCOMPLETE, mapParameters, 3000);
+		message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
 
 		PlatformMessenger.queueMessage(message, null);
 	}

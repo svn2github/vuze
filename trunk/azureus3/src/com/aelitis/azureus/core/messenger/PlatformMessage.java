@@ -25,6 +25,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.LoginInfoManager;
@@ -55,6 +56,8 @@ public class PlatformMessage
 	private boolean loginAndRetry = false;
 
 	private boolean sendAZID = true;
+	
+	private long contentNetworkID;
 
 	/**
 	 * @param messageID
@@ -70,6 +73,7 @@ public class PlatformMessage
 		this.listenerID = listenerID;
 		this.operationID = operationID;
 		this.parameters = JSONUtils.encodeToJSONObject(parameters);
+		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE; 
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -83,6 +87,7 @@ public class PlatformMessage
 		this.operationID = operationID;
 
 		this.parameters = JSONUtils.encodeToJSONObject(parseParams(parameters));
+		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE; 
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -220,5 +225,13 @@ public class PlatformMessage
 		if (send && requiresAuthorization) {
 			System.err.println("requiresAuthorization overrides sendAZID disabling");
 		}
+	}
+
+	public long getContentNetworkID() {
+		return contentNetworkID;
+	}
+
+	public void setContentNetworkID(long contentNetworkID) {
+		this.contentNetworkID = contentNetworkID;
 	}
 }

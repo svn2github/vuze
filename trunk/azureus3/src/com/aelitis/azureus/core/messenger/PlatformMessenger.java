@@ -35,6 +35,7 @@ import org.json.simple.JSONObject;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
@@ -55,14 +56,13 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
  */
 public class PlatformMessenger
 {
-	private static final boolean DEBUG_URL = System.getProperty("platform.messenger.debug.url", "0").equals("1");
+	private static final boolean DEBUG_URL = System.getProperty(
+			"platform.messenger.debug.url", "0").equals("1");
 
 	private static final String URL_PLATFORM_MESSAGE = "?service=rpc";
 
 	private static final String URL_POST_PLATFORM_DATA = "service=rpc";
 
-
-	
 	private static final int MAX_POST_LENGTH = 1024 * 512 * 3; // 1.5M
 
 	private static boolean USE_HTTP_POST = true;
@@ -73,11 +73,14 @@ public class PlatformMessenger
 
 	public static String REPLY_RESULT = "response";
 
-	static private Map mapQueueAuthorized = new LinkedHashMap();
+	/** Key: id of queue;  Value: Map of queued messages & listeners */
+	static private Map<String, Map> mapQueues = new HashMap();
 
-	static private Map mapQueueNoAZID = new LinkedHashMap();
+	private static final String QUEUE_AUTH = "Auth.";
 
-	static private Map mapQueue = new LinkedHashMap();
+	private static final String QUEUE_NOAZID = "noazid.";
+
+	private static final String QUEUE_NORMAL = "msg.";
 
 	static private AEMonitor queue_mon = new AEMonitor(
 			"v3.PlatformMessenger.queue");
@@ -129,7 +132,8 @@ public class PlatformMessenger
 		}
 
 		if (message != null) {
-			debug("q " + message.toShortString() + ": " + message + " for "
+			debug("q " + message.toShortString() + ": " + message + " for cn"
+					+ message.getContentNetworkID() + "@"
 					+ new Date(message.getFireBefore()) + "; in "
 					+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
 			if (message.requiresAuthorization() && authorizedDelayed) {
@@ -142,14 +146,24 @@ public class PlatformMessenger
 		try {
 			long fireBefore;
 			if (message != null) {
-  			if (message.requiresAuthorization()) {
-  				mapQueueAuthorized.put(message, listener);
-  			} else if (message.sendAZID()) {
-  				mapQueue.put(message, listener);
-  			} else {
-  				mapQueueNoAZID.put(message, listener);
-  			}
-  			fireBefore = message.getFireBefore();
+				String queueID;
+				if (message.requiresAuthorization()) {
+					queueID = QUEUE_AUTH;
+				} else if (!message.sendAZID()) {
+					queueID = QUEUE_NOAZID;
+				} else {
+					queueID = QUEUE_NORMAL;
+				}
+				queueID += message.getContentNetworkID();
+
+				Map<PlatformMessage, PlatformMessengerListener> mapQueue = (Map) mapQueues.get(queueID);
+				if (mapQueue == null) {
+					mapQueue = new LinkedHashMap<PlatformMessage, PlatformMessengerListener>();
+					mapQueues.put(queueID, mapQueue);
+				}
+				mapQueue.put(message, listener);
+
+				fireBefore = message.getFireBefore();
 			} else {
 				fireBefore = SystemTime.getCurrentTime();
 			}
@@ -159,27 +173,23 @@ public class PlatformMessenger
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								timerEvent = null;
-								while (mapQueue.size() > 0) {
-									processQueue(mapQueue, false, true);
-								}
-								if (!authorizedDelayed) {
-  								while (mapQueueAuthorized.size() > 0) {
-  									processQueue(mapQueueAuthorized, true, true);
-  								}
-								}
-								while (mapQueueNoAZID.size() > 0) {
-									processQueue(mapQueueNoAZID, false, false);
+								Object[] keys = mapQueues.keySet().toArray();
+								for (int i = 0; i < keys.length; i++) {
+									Map mapQueue = mapQueues.get(keys[i]);
+									while (mapQueue != null && mapQueue.size() > 0) {
+										processQueue(mapQueue);
+									}
 								}
 							}
 						});
 			} else {
 				// Move the time up if we have to
 				try {
-  				if (fireBefore < timerEvent.getWhen()) {
-  					timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
-  				}
+					if (fireBefore < timerEvent.getWhen()) {
+						timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
+					}
 				} catch (Exception e) {
-					
+
 				}
 			}
 		} finally {
@@ -203,7 +213,6 @@ public class PlatformMessenger
 		debug(string + "\n\t" + Debug.getCompressedStackTrace(e, 1, 80));
 	}
 
-	
 	/**
 	 * Sends the message almost immediately, skipping delayauthorization check 
 	 * @param message
@@ -211,20 +220,20 @@ public class PlatformMessenger
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static void pushMessageNow(PlatformMessage message, PlatformMessengerListener listener) {
+	public static void pushMessageNow(PlatformMessage message,
+			PlatformMessengerListener listener) {
 		debug("push " + message.toShortString() + ": " + message);
 
 		Map map = new HashMap(1);
 		map.put(message, listener);
-		processQueue(map, message.requiresAuthorization(), message.sendAZID());
+		processQueue(map);
 	}
 
 	/**
 	 * @param requiresAuthorization 
 	 * 
 	 */
-	protected static void processQueue(Map mapQueue,
-			final boolean requiresAuthorization, final boolean sendAZID) {
+	protected static void processQueue(Map mapQueue) {
 		if (!initialized) {
 			init();
 		}
@@ -232,6 +241,9 @@ public class PlatformMessenger
 		final Map mapProcessing = new HashMap();
 
 		boolean loginAndRetry = false;
+		boolean requiresAuthorization = false;
+		boolean sendAZID = true;
+		long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		// Create urlStem (or post data)
 		// determine which server to use
@@ -250,7 +262,10 @@ public class PlatformMessenger
 
 				boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
 				if (first) {
+					requiresAuthorization = message.requiresAuthorization();
+					sendAZID = message.sendAZID();
 					isRelayServerBatch = isRelayServer;
+					contentNetworkID = message.getContentNetworkID();
 					first = false;
 				} else if (isRelayServerBatch != isRelayServer) {
 					break;
@@ -332,32 +347,35 @@ public class PlatformMessenger
 		}
 
 		// Build base RPC url based on listener and server
-		
+
 		// one day all this URL hacking should be moved into the ContentNetwork...
-		
-		ContentNetwork content_network = ConstantsV3.DEFAULT_CONTENT_NETWORK;
-		
+
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+				contentNetworkID);
+		if (cn == null) {
+			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+		}
+
 		String sURL_RPC;
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
-			
-			sURL_RPC = content_network.getServiceURL( ContentNetwork.SERVICE_RELAY_RPC );
+
+			sURL_RPC = cn.getServiceURL(ContentNetwork.SERVICE_RELAY_RPC);
 
 		} else {
-			sURL_RPC = content_network.getServiceURL( ContentNetwork.SERVICE_RPC ) + server;
+			sURL_RPC = cn.getServiceURL(ContentNetwork.SERVICE_RPC) + server;
 		}
-		
-
 
 		// Build full url and data to send
 		String sURL;
 		String sPostData = null;
-		if (USE_HTTP_POST) {
-			sURL = sURL_RPC;
+		if (USE_HTTP_POST || requiresAuthorization) {
+			sURL = requiresAuthorization
+					? cn.getServiceURL(ContentNetwork.SERVICE_AUTH_RPC) : sURL_RPC;
+
 			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
-			
-			sPostData = content_network.appendURLSuffix( sPostData, true, sendAZID );
-				
+			sPostData = cn.appendURLSuffix(sPostData, true, sendAZID);
+
 			if (!requiresAuthorization) {
 				if (DEBUG_URL) {
 					debug("POST for " + mapProcessing.size() + ": " + sURL + "?"
@@ -367,10 +385,9 @@ public class PlatformMessenger
 				}
 			}
 		} else {
-			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&"
-					+ urlStem.toString();
-			
-			sURL = content_network.appendURLSuffix( sURL, false, sendAZID );
+			sURL = sURL_RPC + URL_PLATFORM_MESSAGE + "&" + urlStem.toString();
+
+			sURL = cn.appendURLSuffix(sURL, false, sendAZID);
 
 			if (DEBUG_URL) {
 				debug("GET: " + sURL);
@@ -382,13 +399,14 @@ public class PlatformMessenger
 		final String fURL = sURL;
 		final String fPostData = sPostData;
 		final boolean fLoginAndRetry = loginAndRetry;
+		final boolean fReqAuth = requiresAuthorization;
 
 		// proccess queue on a new thread
 		AEThread2 thread = new AEThread2("v3.PlatformMessenger", true) {
 			public void run() {
 				try {
-					processQueueAsync(fURL, fPostData, mapProcessing,
-							requiresAuthorization, fLoginAndRetry);
+					processQueueAsync(fURL, fPostData, mapProcessing, fReqAuth,
+							fLoginAndRetry);
 				} catch (Throwable e) {
 					if (e instanceof ResourceDownloaderException) {
 						debug("Error while sending message(s) to Platform: " + e.toString());
@@ -421,8 +439,8 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing, boolean requiresAuthorization,
-			boolean loginAndRetry) throws Exception {
+			Map mapProcessing, boolean requiresAuthorization, boolean loginAndRetry)
+			throws Exception {
 		URL url;
 		url = new URL(sURL);
 		AzureusCore core = AzureusCoreFactory.getSingleton();
@@ -662,15 +680,13 @@ public class PlatformMessenger
 	private static class fakeContext
 		extends ClientMessageContextImpl
 	{
-		private void
-		log(
-			String str )
-		{
-			if ( System.getProperty( "browser.route.all.external.stimuli.for.testing", "false" ).equalsIgnoreCase( "true" )){
-				
-				System.err.println( str );
+		private void log(String str) {
+			if (System.getProperty("browser.route.all.external.stimuli.for.testing",
+					"false").equalsIgnoreCase("true")) {
+
+				System.err.println(str);
 			}
-			debug( str );
+			debug(str);
 		}
 
 		public fakeContext() {
@@ -682,39 +698,40 @@ public class PlatformMessenger
 		}
 
 		public void displayBrowserMessage(String message) {
-			log("displayBrowserMessage - " + message );
+			log("displayBrowserMessage - " + message);
 		}
 
 		public boolean executeInBrowser(String javascript) {
-			log("executeInBrowser - " + javascript );
+			log("executeInBrowser - " + javascript);
 			return false;
 		}
 
 		public Object getBrowserData(String key) {
-			log("getBrowserData - " + key );
+			log("getBrowserData - " + key);
 			return null;
 		}
 
 		public boolean sendBrowserMessage(String key, String op) {
-			log("sendBrowserMessage - " + key + "/" + op );
+			log("sendBrowserMessage - " + key + "/" + op);
 			return false;
 		}
 
 		public boolean sendBrowserMessage(String key, String op, Map params) {
-			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
+			log("sendBrowserMessage - " + key + "/" + op + "/" + params);
 			return false;
 		}
 
 		public void setBrowserData(String key, Object value) {
-			log("setBrowserData - " + key + "/" + value );
+			log("setBrowserData - " + key + "/" + value);
 		}
 
 		public boolean sendBrowserMessage(String key, String op, Collection params) {
-			log("sendBrowserMessage - " + key + "/" + op + "/" + params );
+			log("sendBrowserMessage - " + key + "/" + op + "/" + params);
 			return false;
 		}
+
 		public void setTorrentURLHandler(torrentURLHandler handler) {
-			log("setTorrentURLHandler - " + handler );
+			log("setTorrentURLHandler - " + handler);
 		}
 	}
 
@@ -726,8 +743,25 @@ public class PlatformMessenger
 	public static void setAuthorizedDelayed(boolean authorizedDelayed) {
 		debug("setDelayAuthorized " + authorizedDelayed);
 		PlatformMessenger.authorizedDelayed = authorizedDelayed;
-		if (!authorizedDelayed && mapQueueAuthorized.size() > 0) {
-			queueMessage(null, null);
+		if (!authorizedDelayed) {
+			boolean fireQueue = false;
+			queue_mon.enter();
+			try {
+				for (String key : mapQueues.keySet()) {
+					if (key.startsWith(QUEUE_AUTH)) {
+						Map map = mapQueues.get(key);
+						if (map != null && map.size() > 0) {
+							fireQueue = true;
+							break;
+						}
+					}
+				}
+			} finally {
+				queue_mon.exit();
+			}
+			if (fireQueue) {
+				queueMessage(null, null);
+			}
 		}
 	}
 

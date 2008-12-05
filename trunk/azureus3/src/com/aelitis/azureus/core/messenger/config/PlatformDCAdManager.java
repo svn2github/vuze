@@ -68,8 +68,9 @@ public class PlatformDCAdManager
 
 		//prepare the parameters to send
         String contentHash="";
+        TOTorrent torrent = adEnabledDownload.getTorrent();
         try{
-            contentHash = adEnabledDownload.getTorrent().getHashWrapper().toBase32String();
+            contentHash = torrent.getHashWrapper().toBase32String();
         }catch(TOTorrentException te){
             debug("Failed to get currentHash",te);
             te.printStackTrace();
@@ -87,6 +88,7 @@ public class PlatformDCAdManager
         params.put("hashes",contentList);
         params.put("ads",adList);
         PlatformMessage message = new PlatformMessage("AZMSG",RPC_LISTENER_ID,OP_GETADVERT,params, maxDelayMS);
+        message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
 
 		//create a default azpd file.
 		if( !azpdFileFound(message) ){
