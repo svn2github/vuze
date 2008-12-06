@@ -26,6 +26,9 @@ package com.aelitis.azureus.core.networkmanager;
  * Allows for grouping of connections under a singular limit.
  */
 public interface LimitedRateGroup {
+	
+  public String getName();
+  
   /**
    * Get the current rate limit.
    * @return rate in bytes per second, 0 for unlimited, -1 for disabled

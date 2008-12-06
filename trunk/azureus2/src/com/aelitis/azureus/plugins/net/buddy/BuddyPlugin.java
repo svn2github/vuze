@@ -219,23 +219,35 @@ BuddyPlugin
 	
 	private RateLimiter	inbound_limiter = 
 		new RateLimiter()
+	{
+		public String 
+		getName() 
 		{
-			public int 
-			getRateLimitBytesPerSecond() 
-			{
-				return( inbound_limit );
-			}
-		};
+			return( "buddy_up" );
+		}
+
+		public int 
+		getRateLimitBytesPerSecond() 
+		{
+			return( inbound_limit );
+		}
+	};
 		
 	private RateLimiter	outbound_limiter = 
 		new RateLimiter()
+	{
+		public String 
+		getName() 
 		{
-			public int 
-			getRateLimitBytesPerSecond() 
-			{
-				return( outbound_limit );
-			}
-		};
+			return( "buddy_down" );
+		}
+
+		public int 
+		getRateLimitBytesPerSecond() 
+		{
+			return( outbound_limit );
+		}
+	};
 			
 	private boolean		config_dirty;
 	

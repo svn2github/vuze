@@ -163,6 +163,11 @@ public class NetworkManager {
 		TransferProcessor.TYPE_UPLOAD, 
 		new LimitedRateGroup()
 		{
+			public String 
+			getName() 
+			{
+				return( "global_up" );
+			}
 			public int 
 			getRateLimitBytesPerSecond() 
 			{  
@@ -176,6 +181,11 @@ public class NetworkManager {
 		TransferProcessor.TYPE_DOWNLOAD, 
 		new LimitedRateGroup()
 		{
+			public String 
+			getName() 
+			{
+				return( "global_down" );
+			}
 			public int 
 			getRateLimitBytesPerSecond() 
 			{
@@ -190,6 +200,11 @@ public class NetworkManager {
 		TransferProcessor.TYPE_UPLOAD, 
 		new LimitedRateGroup()
 		{
+			public String 
+			getName() 
+			{
+				return( "global_lan_up" );
+			}
 			public int 
 			getRateLimitBytesPerSecond() 
 			{  
@@ -203,6 +218,11 @@ public class NetworkManager {
 		TransferProcessor.TYPE_DOWNLOAD, 
 		new LimitedRateGroup()
 		{
+			public String 
+			getName() 
+			{
+				return( "global_lan_down" );
+			}
 			public int 
 			getRateLimitBytesPerSecond() 
 			{  

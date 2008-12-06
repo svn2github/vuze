@@ -43,6 +43,11 @@ public class CategoryImpl implements Category, Comparable {
   private LimitedRateGroup upload_limiter = 
 	  new LimitedRateGroup()
 	  {
+		  public String 
+		  getName() 
+		  {
+			  return( "cat_up: " + sName);
+		  }
 		  public int 
 		  getRateLimitBytesPerSecond()
 		  {
@@ -53,6 +58,11 @@ public class CategoryImpl implements Category, Comparable {
   private LimitedRateGroup download_limiter = 
 	  new LimitedRateGroup()
   {
+	  public String 
+	  getName() 
+	  {
+		  return( "cat_down: " + sName);
+	  }
 	  public int 
 	  getRateLimitBytesPerSecond()
 	  {

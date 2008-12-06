@@ -286,12 +286,22 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private volatile BloomFilter	prefer_udp_bloom;
 	
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
+		public String 
+		getName() 
+		{
+			return( "per_dl_up: " + getDisplayName());
+		}
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getUploadRateLimitBytesPerSecond();
 		}
 	};
 
 	private final LimitedRateGroup download_limited_rate_group = new LimitedRateGroup() {
+		public String 
+		getName() 
+		{
+			return( "per_dl_down: " + getDisplayName());
+		}
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getDownloadRateLimitBytesPerSecond();
 		}

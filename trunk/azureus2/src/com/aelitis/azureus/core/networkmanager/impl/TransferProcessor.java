@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -108,20 +109,36 @@ public class TransferProcessor {
     
       for (int i=0;i<groups.length;i++){
     	  LimitedRateGroup group = groups[i];
+    	  
+		  // boolean log = group.getName().contains("parg");
+
     	  GroupData group_data = (GroupData)group_buckets.get( group );
 	      if( group_data == null ) {
 	        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
 	        group_data = new GroupData( createBucket( limit ) );
 	        group_buckets.put( group, group_data );
+	        
+	        /*
+	        if ( log ){
+	    	  System.out.println( "Creating RL1: " + group.getName() + " -> " + group_data );
+	        }
+	        */
 	      }
 	      group_data.group_size++;
 	      
 	      group_datas[i] = group_data;
+	      
+	      /*
+	      if ( log ){
+	    	  System.out.println( "Applying RL1: " + group.getName() + " -> " + connection );
+	      }
+	      */
       }
       conn_data.groups = groups;
       conn_data.group_datas = group_datas;
       conn_data.state = ConnectionData.STATE_NORMAL;
      
+      
       connections.put( connection, conn_data );
     }
     finally {  connections_mon.exit();  }
@@ -193,6 +210,8 @@ public class TransferProcessor {
 				  }
 			  }
 			  
+			  // boolean log = group.getName().contains("parg");
+			  
 	    	  GroupData group_data = (GroupData)group_buckets.get( group );
 	    	  
 		      if ( group_data == null ){
@@ -201,8 +220,20 @@ public class TransferProcessor {
 
 		    	  group_data = new GroupData( createBucket( limit ) );
 
+		    	  /*
+		    	  if ( log ){
+		    		  System.out.println( "Creating RL2: " + group.getName() + " -> " + group_data );
+		    	  }
+				  */
+		    	  
 		    	  group_buckets.put( group, group_data );
 		      }
+		      
+		      /*
+		      if ( log ){
+		    	  System.out.println( "Applying RL2: " + group.getName() + " -> " + connection );
+		      }
+			  */
 		      
 		      group_data.group_size++;
 		   
@@ -295,6 +326,8 @@ public class TransferProcessor {
   }
   
 
+  // private static long last_log = 0;
+  
   /**
    * Upgrade the given connection to a high-speed transfer handler.
    * @param connection to upgrade
@@ -331,9 +364,24 @@ public class TransferProcessor {
 	          
 	          try{
 		           for (int i=0;i<conn_data.group_datas.length;i++){
+		        	   
+		        	  LimitedRateGroup group = conn_data.groups[i];
+		        	  
+		     		  //boolean log = group.getName().contains("parg");
+
 			          int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.groups[i] );
 			          
 			          ByteBucket group_bucket = conn_data.group_datas[i].bucket;
+			          
+			          /*
+			          if ( log ){
+			        	  long now = SystemTime.getCurrentTime();
+			        	  if ( now - last_log > 500 ){
+			        		  last_log = now;
+			        		  System.out.println( "    " + group.getName() + " -> " + group_rate + "/" + group_bucket.getAvailableByteCount());
+			        	  }
+			          }
+			          */
 			          
 			          if ( group_bucket.getRate() != group_rate ){
 			        	  
