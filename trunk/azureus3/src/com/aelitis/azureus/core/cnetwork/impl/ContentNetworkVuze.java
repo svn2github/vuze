@@ -98,7 +98,7 @@ ContentNetworkVuze
 				"Chun's Network",
 				"192.168.0.74",
 				"http://192.168.0.74:8082/",
-				"http://play.aelitis.com:88/parg/chun.gif",
+				"http://play.aelitis.com:88/parg/chun.png",
 				null,
 				null,
 				null,
