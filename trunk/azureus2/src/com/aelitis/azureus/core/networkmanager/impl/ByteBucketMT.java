@@ -131,6 +131,9 @@ ByteBucketMT
 	    }
 	    this.rate = rate_bytes_per_sec;
 	    this.burst_rate = burst_rate;
+	    if ( avail_bytes > burst_rate ){
+	    	avail_bytes = burst_rate;
+	    }
 	    ensureByteBucketMinBurstRate();
 	  }
 	  
