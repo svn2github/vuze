@@ -2941,7 +2941,18 @@ public class ListView
 	 * Adds row to selection list
 	 */
 	protected void rowSetSelected(ListRow row, boolean bSelected) {
-		if (row == null || (selectedRows.indexOf(row) >= 0) == bSelected) {
+		if (row == null) {
+			return;
+		}
+		if (indexOf(row) < 0) {
+			if (DEBUGADDREMOVE) {
+				logADDREMOVE("Trying to set selected row to removed row. "
+						+ Debug.getCompressedStackTrace());
+			}
+			return;
+		}
+		if ((selectedRows.indexOf(row) >= 0) == bSelected) {
+			// already selected
 			return;
 		}
 		selectedRows_mon.enter();
