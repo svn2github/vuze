@@ -47,7 +47,7 @@ public class VuzeActivitiesEntryBuddyRequest
 	public void init(VuzeBuddy buddy, String acceptURL, long attempNumber) {
 		this.buddy = buddy;
 
-		urlAccept = getContentNetwork().appendURLSuffix(urlAccept, false, true);
+		urlAccept = getContentNetwork().appendURLSuffix(acceptURL, false, true);
 
 		String textID = "v3.activity.buddy-request";
 		if (attempNumber > 1) {
