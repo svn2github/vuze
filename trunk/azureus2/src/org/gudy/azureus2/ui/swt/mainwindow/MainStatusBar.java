@@ -277,36 +277,56 @@ public class MainStatusBar
 
 		if ( isAZ3 ){
 		
-			/*
-			 * Feedback
-			 * 
-			 */
+			try{
+				/*
+				 * Feedback
+				 * 
+				 */
+				
+					// only show after restart after 15 mins uptime
+				
+				OverallStats stats = StatsFactory.getStats();
+				
+				long secs_uptime = stats.getTotalUpTime();
+				
+				long last_uptime = COConfigurationManager.getLongParameter( "statusbar.feedback.uptime", 0 );
+				
+				if ( last_uptime == 0 ){
+					
+					COConfigurationManager.setParameter( "statusbar.feedback.uptime", secs_uptime );
+					
+				}else if ( secs_uptime - last_uptime > 15*60 ){
+					
+					CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
+					feedback.setText(MessageText.getString("statusbar.feedback"));
 			
-			CLabelPadding feedback = new CLabelPadding(statusBar, borderFlag);
-			feedback.setText(MessageText.getString("statusbar.feedback"));
-	
-			Listener feedback_listener = new Listener() {
-				public void handleEvent(Event e) {
-
-					String url = "feedback?"
-							+ Utils.getWidgetBGColorURLParam()
-							+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
-							+ "&os.version="
-							+ UrlUtils.encode(System.getProperty("os.version"))
-							+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
+					Listener feedback_listener = new Listener() {
+						public void handleEvent(Event e) {
+		
+							String url = "feedback?"
+									+ Utils.getWidgetBGColorURLParam()
+									+ "&fromWeb=false&os.name=" + UrlUtils.encode(Constants.OSName)
+									+ "&os.version="
+									+ UrlUtils.encode(System.getProperty("os.version"))
+									+ "&java.version=" + UrlUtils.encode(Constants.JAVA_VERSION);
+							
+							// Utils.launch( url );
+							
+							UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
+									520, true, false);
+						}
+					};
 					
-					// Utils.launch( url );
-					
-					UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, null, 600,
-							520, true, false);
+					feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
+					feedback.setCursor(Cursors.handCursor);
+					feedback.setForeground(Colors.blue);
+					feedback.addListener(SWT.MouseUp, feedback_listener);
+					feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
 				}
-			};
-			
-			feedback.setToolTipText(MessageText.getString("statusbar.feedback.tooltip"));
-			feedback.setCursor(Cursors.handCursor);
-			feedback.setForeground(Colors.blue);
-			feedback.addListener(SWT.MouseUp, feedback_listener);
-			feedback.addListener(SWT.MouseDoubleClick, feedback_listener);
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		/*
