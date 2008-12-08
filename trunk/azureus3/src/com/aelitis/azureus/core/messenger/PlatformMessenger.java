@@ -210,7 +210,8 @@ public class PlatformMessenger
 	}
 
 	protected static void debug(String string, Throwable e) {
-		debug(string + "\n\t" + Debug.getCompressedStackTrace(e, 1, 80));
+		debug(string + "\n\t" + e.getMessage() + ":"
+				+ Debug.getCompressedStackTrace(e, 1, 80));
 	}
 
 	/**
