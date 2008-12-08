@@ -58,7 +58,7 @@ public class PlatformRatingMessenger
 
 	public static final ArrayList listeners = new ArrayList();
 
-	public static void getUserRating(Long contentNetworkID, String[] rateTypes,
+	public static void getUserRating(long contentNetworkID, String[] rateTypes,
 			final String[] torrentHashes, long maxDelayMS) {
 
 		PlatformMessage message = new PlatformMessage("AZMSG", "rating",
