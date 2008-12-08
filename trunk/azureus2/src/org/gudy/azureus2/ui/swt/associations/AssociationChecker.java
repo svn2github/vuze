@@ -187,11 +187,15 @@ AssociationChecker
 
 		shell.open ();
 		
+		/*
+		 * parg - removed this as causing UI hang when assoc checker and key-unlock dialogs
+		 * open together
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
 			}
 		}
+		*/
 	}
 					   
 	protected void
