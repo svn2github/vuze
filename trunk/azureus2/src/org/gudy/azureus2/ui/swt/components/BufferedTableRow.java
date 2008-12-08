@@ -286,6 +286,9 @@ BufferedTableRow
 	
 	private boolean _isVisible() {
 		// Least time consuming checks first
+		if (!table.isVisible()) {
+			return false;
+		}
 		
 		int index = table.indexOf(item);
 		if (index == -1)

@@ -2630,6 +2630,11 @@ public class TableViewSWTImpl
 				int iTopIndex = table.getTopIndex();
 				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 				boolean bRefresh = false;
+				
+				if (DEBUGADDREMOVE) {
+					debug("--- Remove: vis rows " + iTopIndex + " to " + iBottomIndex);
+				}
+				
 
 				// pass one: get the SWT indexes of the items we are going to remove
 				//           This will re-link them if they lost their link
@@ -2710,6 +2715,9 @@ public class TableViewSWTImpl
 				if (bRefresh) {
 					fillRowGaps(false);
 					refreshVisibleRows();
+					if (DEBUGADDREMOVE) {
+						debug("-- Fill row gaps and refresh after remove");
+					}
 				}
 
 				if (DEBUGADDREMOVE)
@@ -3188,8 +3196,9 @@ public class TableViewSWTImpl
 	}
 
 	public TableRowSWT[] getVisibleRows() {
-		if (table == null || table.isDisposed())
+		if (table == null || table.isDisposed() || !table.isVisible()) {
 			return new TableRowSWT[0];
+		}
 
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -3288,8 +3297,15 @@ public class TableViewSWTImpl
 
 		// put to array instead of synchronised iterator, so that runner can remove
 		TableRowCore[] rows = getRows();
-		int iTopIndex = table.getTopIndex();
-		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+		int iTopIndex;
+		int iBottomIndex;
+		if (table.isVisible()) {
+			iTopIndex = table.getTopIndex();
+			iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+		} else {
+			iTopIndex = -1;
+			iBottomIndex = -2;
+		}
 
 		for (int i = 0; i < rows.length; i++) {
 			runner.run(rows[i], i >= iTopIndex && i <= iBottomIndex);
@@ -3853,6 +3869,9 @@ public class TableViewSWTImpl
 	
 	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public boolean isRowVisible(TableRowCore row) {
+		if (!table.isVisible()) {
+			return false;
+		}
 		int i = row.getIndex();
 		if (Utils.SWT32_TABLEPAINT) {
 			int iTopIndex = table.getTopIndex();
@@ -3965,7 +3984,7 @@ public class TableViewSWTImpl
 	}
 
 	public Image obfusticatedImage(final Image image, Point shellOffset) {
-		if (table.getItemCount() == 0) {
+		if (table.getItemCount() == 0 || !table.isVisible()) {
 			return image;
 		}
 
@@ -4029,9 +4048,9 @@ public class TableViewSWTImpl
 
 	void debug(String s) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("table");
-		diag_logger.log(s);
+		diag_logger.log(SystemTime.getCurrentTime() + ":" + sTableID + ": " + s);
 
-		System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
+		//System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
 	}
 
 	// from common.TableView

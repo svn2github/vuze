@@ -991,14 +991,14 @@ public class Utils
 	}
 
 	/**
-	 * Bottom Index may be negative
+	 * Bottom Index may be negative. Returns bottom index even if invisible.
 	 */
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
 
 		int itemCount = table.getItemCount();
-		if (!table.isVisible() || iTopIndex >= itemCount)
+		if (iTopIndex >= itemCount)
 			return -1;
 
 		if (Constants.isOSX) {
