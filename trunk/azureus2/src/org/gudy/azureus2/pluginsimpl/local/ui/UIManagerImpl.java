@@ -75,9 +75,9 @@ UIManagerImpl
 	protected static CopyOnWriteList		ui_listeners		= new CopyOnWriteList();
 	protected static CopyOnWriteList		ui_event_listeners	= new CopyOnWriteList();
 	
-	protected static List		ui_factories		= new ArrayList();
-	protected static List		ui_event_history	= new ArrayList();
-	protected static List 		configModels 		= new ArrayList();
+	protected static List<UIInstanceFactory>		ui_factories		= new ArrayList<UIInstanceFactory>();
+	protected static List<UIManagerEventAdapter>	ui_event_history	= new ArrayList<UIManagerEventAdapter>();
+	protected static List<BasicPluginConfigModel>	configModels 		= new ArrayList<BasicPluginConfigModel>();
 	
 	
 	protected PluginInterface		pi;
@@ -137,7 +137,7 @@ UIManagerImpl
 	{
 		final BasicPluginViewModel	model = new BasicPluginViewModelImpl( this, name );
 				
-		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED, model );
+		fireEvent( pi, UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED, model );
 		
 		return( model );
 	}
@@ -146,7 +146,7 @@ UIManagerImpl
 	destroy(
 		final BasicPluginViewModel		model )
 	{
-		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED, model );
+		fireEvent( pi, UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED, model );
 	}
 	
 	public BasicPluginConfigModel
@@ -174,7 +174,7 @@ UIManagerImpl
 			class_mon.exit();
 		}
 		
-		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED, model );
+		fireEvent( pi, UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED, model );
 		
 		return( model );
 	}
@@ -193,7 +193,7 @@ UIManagerImpl
 			class_mon.exit();
 		}
 		
-		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED, model );
+		fireEvent( pi, UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED, model );
 	}
 
 	public PluginConfigModel[] 
@@ -216,7 +216,7 @@ UIManagerImpl
 	
 		throws UIException
 	{
-		boolean ok = fireEvent( UIManagerEvent.ET_COPY_TO_CLIPBOARD, data );
+		boolean ok = fireEvent( pi, UIManagerEvent.ET_COPY_TO_CLIPBOARD, data );
 		
 		if ( !ok ){
 			
@@ -230,7 +230,7 @@ UIManagerImpl
 	
 		throws UIException
 	{
-		boolean ok = fireEvent( UIManagerEvent.ET_OPEN_URL, url );
+		boolean ok = fireEvent( pi, UIManagerEvent.ET_OPEN_URL, url );
 		
 		if ( !ok ){
 			
@@ -487,15 +487,16 @@ UIManagerImpl
  	
 	public static boolean
  	fireEvent(
- 		int			type,
- 		Object		data )
+ 		PluginInterface	pi,
+ 		int				type,
+ 		Object			data )
  	{
-		return( fireEvent( new UIManagerEventAdapter( type, data )));
+		return( fireEvent( new UIManagerEventAdapter( pi, type, data )));
  	}
 	
  	public static boolean
  	fireEvent(
- 		UIManagerEvent	event )
+ 		UIManagerEventAdapter	event )
  	{
  		boolean	delivered	= false;
  		
@@ -584,7 +585,7 @@ UIManagerImpl
 		final String		message_resource,
 		final String		contents )
 	{
-		fireEvent( UIManagerEvent.ET_SHOW_TEXT_MESSAGE, new String[]{ title_resource, message_resource, contents });
+		fireEvent( pi, UIManagerEvent.ET_SHOW_TEXT_MESSAGE, new String[]{ title_resource, message_resource, contents });
 	}		
 
 	public long
@@ -595,6 +596,7 @@ UIManagerImpl
 	{
 		UIManagerEventAdapter event = 
 			new UIManagerEventAdapter(
+					pi,
 					UIManagerEvent.ET_SHOW_MSG_BOX, 
 					new Object[]{ title_resource, message_resource, new Long( message_map ) });
 		
@@ -611,15 +613,15 @@ UIManagerImpl
 	openTorrent(
 		Torrent torrent) 
 	{
-		fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_TORRENT, torrent );
+		fireEvent( pi, UIManagerEvent.ET_OPEN_TORRENT_VIA_TORRENT, torrent );
 	}
 	
- 	public void openFile(File file) {fireEvent(UIManagerEvent.ET_FILE_OPEN, file);}
- 	public void showFile(File file) {fireEvent(UIManagerEvent.ET_FILE_SHOW, file);}
+ 	public void openFile(File file) {fireEvent(pi,UIManagerEvent.ET_FILE_OPEN, file);}
+ 	public void showFile(File file) {fireEvent(pi,UIManagerEvent.ET_FILE_SHOW, file);}
 	
 	public boolean showConfigSection(String sectionID) {
 		UIManagerEventAdapter event = new UIManagerEventAdapter(
-				UIManagerEvent.ET_SHOW_CONFIG_SECTION, sectionID);
+				pi, UIManagerEvent.ET_SHOW_CONFIG_SECTION, sectionID);
 		if (!fireEvent(event))
 			return false;
 
@@ -661,4 +663,39 @@ UIManagerImpl
 		return model;
 	}
  	 	
+	public static void
+	unload(
+		PluginInterface	pi )
+	{
+		try{
+  			class_mon.enter();
+  			
+			Iterator it = ui_listeners.iterator();
+
+			while( it.hasNext()){
+				
+				Object[]	entry = (Object[])it.next();
+				
+				if ( pi == (PluginInterface)entry[1] ){
+										
+					it.remove();
+				}
+			}
+  
+			Iterator<UIManagerEventAdapter> ev_it = ui_event_history.iterator();
+			
+			while( ev_it.hasNext()){
+				
+				UIManagerEventAdapter event = ev_it.next();
+				
+				if ( event.getPluginInterface() == pi ){
+									
+					ev_it.remove();
+				}				
+			}
+  		}finally{
+  			
+  			class_mon.exit();
+  		}	
+	}
 }

@@ -54,7 +54,7 @@ public class TableManagerImpl implements TableManager
 
 			public void UIAttached(UIInstance instance) {
 				UIManagerEventAdapter event = new UIManagerEventAdapter(
-						UIManagerEvent.ET_CREATE_TABLE_COLUMN, column);
+						ui_manager.getPluginInterface(), UIManagerEvent.ET_CREATE_TABLE_COLUMN, column);
 
 				UIManagerImpl.fireEvent(event);
 				// event.result used to have the TableColumn which we would populate
@@ -72,7 +72,7 @@ public class TableManagerImpl implements TableManager
 
 			public void UIAttached(UIInstance instance) {
 				UIManagerEventAdapter event = new UIManagerEventAdapter(
-						UIManagerEvent.ET_REGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
+						ui_manager.getPluginInterface(), UIManagerEvent.ET_REGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
 				UIManagerImpl.fireEvent(event);
 			}
 		});
@@ -85,7 +85,7 @@ public class TableManagerImpl implements TableManager
 
 			public void UIAttached(UIInstance instance) {
 				UIManagerEventAdapter event = new UIManagerEventAdapter(
-						UIManagerEvent.ET_UNREGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
+						ui_manager.getPluginInterface(), UIManagerEvent.ET_UNREGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
 				UIManagerImpl.fireEvent(event);
 			}
 		});
@@ -102,7 +102,7 @@ public class TableManagerImpl implements TableManager
 
 			public void UIAttached(UIInstance instance) {
 				UIManagerEventAdapter event = new UIManagerEventAdapter(
-						UIManagerEvent.ET_ADD_TABLE_COLUMN, tableColumn);
+						ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_TABLE_COLUMN, tableColumn);
 				UIManagerImpl.fireEvent(event);
 			}
 		});
@@ -120,19 +120,18 @@ public class TableManagerImpl implements TableManager
 		}
 		TableContextMenuItemImpl item = new TableContextMenuItemImpl(
 				(TableContextMenuItemImpl) parent, resourceKey);
-		UIManagerImpl.fireEvent(UIManagerEvent.ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM,
+		UIManagerImpl.fireEvent(ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_TABLE_CONTEXT_SUBMENU_ITEM,
 				new Object[] {item, parent});
 		return item;
 	}
 
 	public TableContextMenuItem addContextMenuItem(String tableID,
 			String resourceKey) {
-		TableContextMenuItemImpl item = new TableContextMenuItemImpl(tableID,
-				resourceKey);
+		TableContextMenuItemImpl item = new TableContextMenuItemImpl(ui_manager, tableID, resourceKey);
 
 		// this event is replayed for us on UI attaches so no extra work
 
-		UIManagerImpl.fireEvent(UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM, item);
+		UIManagerImpl.fireEvent(ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM, item);
 		
 		return item;
 	}

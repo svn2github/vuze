@@ -29,7 +29,9 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -112,6 +114,21 @@ public class TableStructureEventDispatcher implements
 			}
 	}
 
+	public void tableStructureChangedSWTThread( final boolean columnAddedOrRemoved ) {
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					tableStructureChanged( columnAddedOrRemoved );
+					
+				}catch( Throwable e ){
+					
+					Debug.out(e);
+				}
+			}
+		});
+	}
+	
 	public void columnSizeChanged(TableColumnCore tableColumn) {
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {

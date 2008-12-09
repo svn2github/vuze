@@ -39,6 +39,9 @@ import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
  * amc1: This class was largely derived from TableContextMenuImpl.
  */
 public class MenuItemImpl implements MenuItem {
+	
+	private UIManagerImpl	uiManager;
+	
 	private String sMenuID;
 
 	private String sName;
@@ -66,12 +69,14 @@ public class MenuItemImpl implements MenuItem {
 	
 	private MenuContextImpl menu_context = null;
 
-	public MenuItemImpl(String menuID, String key) {
+	public MenuItemImpl(UIManagerImpl _uiManager, String menuID, String key) {
+		uiManager = _uiManager;
 		sMenuID = menuID;
 		sName = key;
 	}
 
 	public MenuItemImpl(MenuItemImpl ti, String key) {
+		uiManager = ti.uiManager;
 		this.parent = ti;
 		this.parent.addChildMenuItem(this);
 		this.sMenuID = this.parent.getMenuID();
@@ -230,12 +235,12 @@ public class MenuItemImpl implements MenuItem {
 	protected void removeWithEvents(int root_menu_event, int sub_menu_event) {
 		removeAllChildItems();
 		if (this.parent != null) {
-			UIManagerImpl.fireEvent(sub_menu_event, new Object[]{this.parent, this});
+			UIManagerImpl.fireEvent(uiManager.getPluginInterface(),sub_menu_event, new Object[]{this.parent, this});
 			parent.children.remove(this);
 			this.parent = null;
 		}
 		else {
-			UIManagerImpl.fireEvent(root_menu_event, this);
+			UIManagerImpl.fireEvent(uiManager.getPluginInterface(),root_menu_event, this);
 		}
 		this.data = null;
 		this.graphic = null;

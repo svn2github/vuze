@@ -207,7 +207,7 @@ DownloadManagerImpl
 	addDownload(
 		final File fileName ) 
 	{
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE, fileName );
+		UIManagerImpl.fireEvent( null, UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE, fileName );
 	}
 
 	public void 
@@ -250,7 +250,7 @@ DownloadManagerImpl
 		boolean		auto_download,
 		Map			request_properties )
 	{
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download ), request_properties });
+		UIManagerImpl.fireEvent( null, UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new Object[]{ url, referrer, new Boolean( auto_download ), request_properties });
 	}
 	
 

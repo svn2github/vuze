@@ -37,7 +37,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -52,8 +51,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
 {
 	private static int SASH_WIDTH = 5;
 
-	final TableColumnCore[] tableIncompleteItems = getIncompleteColumns();
-	final TableColumnCore[] tableCompleteItems = getCompleteColumns();
 	
 	private AzureusCore	azureus_core;
   
@@ -73,8 +70,8 @@ public class MyTorrentsSuperView extends AbstractIView implements
   	azureus_core		= _azureus_core;
 
     TableColumnManager tcManager = TableColumnManager.getInstance();
-    tcManager.addColumns(tableCompleteItems);
-    tcManager.addColumns(tableIncompleteItems);
+    tcManager.addColumns(getCompleteColumns());
+    tcManager.addColumns(getIncompleteColumns());
   }
 
   public Composite getComposite() {
@@ -115,7 +112,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginWidth = 0;
     child1.setLayout(layout);
     torrentview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, tableIncompleteItems,
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE, false, getIncompleteColumns(),
 				child1);
 
     final Sash sash = new Sash(form, SWT.HORIZONTAL);
@@ -129,7 +126,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
     layout.marginWidth = 0;
     child2.setLayout(layout);
     seedingview = createTorrentView(azureus_core,
-				TableManager.TABLE_MYTORRENTS_COMPLETE, true, tableCompleteItems,
+				TableManager.TABLE_MYTORRENTS_COMPLETE, true, getCompleteColumns(),
 				child2);
 
     FormData formData;

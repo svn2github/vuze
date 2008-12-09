@@ -811,19 +811,9 @@ public class TableColumnImpl
 		
 		TableColumnManager.getInstance().removeColumns( new TableColumnCore[]{ this });
 			
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				try {
-					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
+		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 					
-					tsed.tableStructureChanged(true);
-					
-				}catch( Throwable e ){
-					
-					Debug.out(e);
-				}
-			}
-		});
+		tsed.tableStructureChangedSWTThread(true);
 	}
 
 	public boolean 
@@ -1020,7 +1010,7 @@ public class TableColumnImpl
 		}
 
 		// Hack.. should be using our own implementation..
-		TableContextMenuItemImpl item = new TableContextMenuItemImpl("", key);
+		TableContextMenuItemImpl item = new TableContextMenuItemImpl(null,"", key);
 		menuItems.add(item);
 		return item;
 	}

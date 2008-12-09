@@ -434,6 +434,8 @@ PluginInterfaceImpl
   unloadSupport()
   {
 	  ipc_interface.unload();
+	  
+	  UIManagerImpl.unload( this );
   }
   
   public boolean isUnloadable() {

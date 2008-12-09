@@ -30,11 +30,13 @@ import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
  */
 public class MenuManagerImpl implements MenuManager {
 	
-	public MenuManagerImpl(UIManagerImpl ui_manager) {}
+	private UIManagerImpl ui_manager;
+	
+	public MenuManagerImpl(UIManagerImpl _ui_manager) { ui_manager = _ui_manager; }
 	
     public MenuItem addMenuItem(String menuID, String resource_key) {
-    	MenuItemImpl item = new MenuItemImpl(menuID, resource_key);
-    	UIManagerImpl.fireEvent(UIManagerEvent.ET_ADD_MENU_ITEM, item);
+    	MenuItemImpl item = new MenuItemImpl(ui_manager, menuID, resource_key);
+    	UIManagerImpl.fireEvent(ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_MENU_ITEM, item);
     	return item;
     }
     
@@ -57,7 +59,7 @@ public class MenuManagerImpl implements MenuManager {
 		}
 		
 		MenuItemImpl item = new MenuItemImpl((MenuItemImpl)parent, resource_key);
-		UIManagerImpl.fireEvent( UIManagerEvent.ET_ADD_SUBMENU_ITEM, new Object[] {item, parent});
+		UIManagerImpl.fireEvent( ui_manager.getPluginInterface(), UIManagerEvent.ET_ADD_SUBMENU_ITEM, new Object[] {item, parent});
 		return item;
 
     }

@@ -22,23 +22,37 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 
 public class 
 UIManagerEventAdapter
 	implements UIManagerEvent
 {
-	private int		type;
-	private Object	data;
-	private Object	result;
+	private PluginInterface		pi;
+	private int					type;
+	private Object				data;
+	private Object				result;
 	
 	public 
 	UIManagerEventAdapter(
-		int		_type,
-		Object	_data )
+		PluginInterface	_pi,
+		int				_type,
+		Object			_data )
 	{
+		pi			= _pi;
 		type		= _type;
 		data		= _data;
+	}
+	
+		/**
+		 * @return very occasionally this may be NULL
+		 */
+	
+	protected PluginInterface
+	getPluginInterface()
+	{
+		return( pi );
 	}
 	
 	public int
