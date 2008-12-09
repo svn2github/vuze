@@ -455,7 +455,7 @@ public class MediaList
 	 * 
 	 */
 	protected void doFilter() {
-		view.tableStructureChanged();
+		view.tableStructureChanged(false);
 	}
 
 	private void updateDetailsInfo() {

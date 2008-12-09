@@ -3286,7 +3286,7 @@ public class ListView
 		getVisibleColumns();
 	}
 
-	public void tableStructureChanged() {
+	public void tableStructureChanged(boolean columnAddedOrRemoved) {
 		// force an eventual recalc of visible row widths
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 

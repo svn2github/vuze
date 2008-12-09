@@ -534,7 +534,7 @@ public class SBC_LibraryListView
 	 * 
 	 */
 	protected void doFilter() {
-		view.tableStructureChanged();
+		view.tableStructureChanged(false);
 	}
 
 	private void updateDetailsInfo() {
