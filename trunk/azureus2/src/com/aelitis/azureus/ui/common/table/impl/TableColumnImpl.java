@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -134,7 +135,7 @@ public class TableColumnImpl
 	
 	private Map userData;
 
-	private Class forDataSourceType;
+	// private Class forDataSourceType;
 
 	/** Create a column object for the specified table.
 	 *
@@ -159,6 +160,7 @@ public class TableColumnImpl
 		bSortAscending = iSortDirection == 1 ? false : true;
 	}
 	
+	/*
 	public TableColumnImpl(Class forDataSourceType, String columnID) {
 		this((String) null, columnID);
 		this.forDataSourceType = forDataSourceType;
@@ -169,7 +171,8 @@ public class TableColumnImpl
 		}
 		sTableID = "datasource." + sTableID;
 	}
-
+	*/
+	
 	public void initialize(int iAlignment, int iPosition, int iWidth,
 			int iInterval) {
 		if (bColumnAdded) {
@@ -797,6 +800,26 @@ public class TableColumnImpl
 		userData.remove(key);
 		if(userData.size() < 1)
 			userData = null;
+	}
+	
+	public void
+	remove()
+	{
+		TableColumnManager.getInstance().removeColumns( new TableColumnCore[]{ this });
+			
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
+					
+					tsed.tableStructureChanged();
+					
+				}catch( Throwable e ){
+					
+					Debug.out(e);
+				}
+			}
+		});
 	}
 
 	public final void loadSettings(Map mapSettings) {

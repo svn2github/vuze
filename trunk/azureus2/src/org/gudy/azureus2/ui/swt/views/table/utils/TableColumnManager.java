@@ -152,6 +152,30 @@ public class TableColumnManager {
 		}
 	}
 
+  /** Adds a column definition to the list
+   * @param item The column definition object
+   */
+  public void removeColumns(TableColumnCore[] itemsToRemove) {
+		try {
+			items_mon.enter();
+			for (int i = 0; i < itemsToRemove.length; i++) {
+				TableColumnCore item = itemsToRemove[i];
+				String name = item.getName();
+				String sTableID = item.getTableID();
+				Map mTypes = (Map) items.get(sTableID);
+				if (mTypes != null) {
+					if ( mTypes.remove(name) != null ){
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("Error while adding Table Column Extension");
+			Debug.printStackTrace(e);
+		} finally {
+			items_mon.exit();
+		}
+	}
+  
   /** Retrieves TableColumnCore objects of a particular type.
    * @param sTableID TABLE_* constant.  See {@link TableColumn} for list 
    * of constants

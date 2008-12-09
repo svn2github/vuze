@@ -515,4 +515,12 @@ public interface TableColumn {
 	 * @since 2.4.0.3 
 	 */
 	void setObfustication(boolean hideData);
+	
+	/**
+	 * @since 4005
+	 */
+	
+	public void
+	remove();
+	
 }
