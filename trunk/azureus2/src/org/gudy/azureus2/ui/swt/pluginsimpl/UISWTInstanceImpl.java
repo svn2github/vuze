@@ -76,6 +76,7 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
@@ -394,6 +395,24 @@ UISWTInstanceImpl
 					
 					throw(new UIRuntimeException("TableManager.addColumn(..) can only add columns created by createColumn(..)"));
 				}
+				
+				break;
+			} 
+			case UIManagerEvent.ET_REGISTER_COLUMN:{
+				
+				Object[] params = (Object[])data;
+				
+				TableColumnManager tcManager = TableColumnManager.getInstance();
+				tcManager.registerColumn((Class)params[0], (String)params[1], (TableColumnCreationListener)params[2]);
+				
+				break;
+			} 
+			case UIManagerEvent.ET_UNREGISTER_COLUMN:{
+				
+				Object[] params = (Object[])data;
+				
+				TableColumnManager tcManager = TableColumnManager.getInstance();
+				tcManager.unregisterColumn((Class)params[0], (String)params[1], (TableColumnCreationListener)params[2]);
 				
 				break;
 			} 

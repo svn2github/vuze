@@ -55,7 +55,9 @@ UIManagerEvent
 	public static final int ET_OPEN_TORRENT_VIA_TORRENT			= 22;		// data is Torrent
 	public static final int ET_FILE_SHOW                        = 23;       // data is File
 	public static final int ET_FILE_OPEN                        = 24;       // data is File
-	
+	public static final int ET_REGISTER_COLUMN                  = 25;       // data is Class, String, TableColumnCreationListener
+	public static final int ET_UNREGISTER_COLUMN                = 26;       // data is Class, String, TableColumnCreationListener
+
 	
 	public static final int ET_CALLBACK_MSG_SELECTION			= 100;		// data is Long - MT_OK etc
 	

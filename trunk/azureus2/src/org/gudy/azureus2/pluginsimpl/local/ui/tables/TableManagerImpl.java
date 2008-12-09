@@ -20,7 +20,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
@@ -66,18 +65,32 @@ public class TableManagerImpl implements TableManager
 		return column;
 	}
 	
-  // @see org.gudy.azureus2.plugins.ui.tables.TableManager#registerColumn(java.lang.Class, java.lang.String, org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener)
-  public void registerColumn(Class forDataSourceType, String cellID,
-  		TableColumnCreationListener listener) {
-  	TableColumnManager tcManager = TableColumnManager.getInstance();
-  	tcManager.registerColumn(forDataSourceType, cellID, listener);
+	public void registerColumn(final Class forDataSourceType, final String cellID, final TableColumnCreationListener listener) {
+		ui_manager.addUIListener(new UIManagerListener() {
+			public void UIDetached(UIInstance instance) {
+			}
+
+			public void UIAttached(UIInstance instance) {
+				UIManagerEventAdapter event = new UIManagerEventAdapter(
+						UIManagerEvent.ET_REGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
+				UIManagerImpl.fireEvent(event);
+			}
+		});
 	}
 
-  public void unregisterColumn(Class forDataSourceType, String cellID,
-	  		TableColumnCreationListener listener) {
-	  	TableColumnManager tcManager = TableColumnManager.getInstance();
-	  	tcManager.unregisterColumn(forDataSourceType, cellID, listener);
-		}
+	public void unregisterColumn(final Class forDataSourceType, final String cellID, final TableColumnCreationListener listener) {
+		ui_manager.addUIListener(new UIManagerListener() {
+			public void UIDetached(UIInstance instance) {
+			}
+
+			public void UIAttached(UIInstance instance) {
+				UIManagerEventAdapter event = new UIManagerEventAdapter(
+						UIManagerEvent.ET_UNREGISTER_COLUMN, new Object[]{ forDataSourceType, cellID, listener });
+				UIManagerImpl.fireEvent(event);
+			}
+		});
+	}
+  
 	public void addColumn(final TableColumn tableColumn) {
 		if (!(tableColumn instanceof TableColumnCore))
 			throw (new UIRuntimeException(
