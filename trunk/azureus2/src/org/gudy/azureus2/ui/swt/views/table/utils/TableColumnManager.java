@@ -126,6 +126,9 @@ public class TableColumnManager {
 			items_mon.enter();
 			for (int i = 0; i < itemsToAdd.length; i++) {
 				TableColumnCore item = itemsToAdd[i];
+				if ( item.isRemoved()){
+					continue;
+				}
 				String name = item.getName();
 				String sTableID = item.getTableID();
 				Map mTypes = (Map) items.get(sTableID);

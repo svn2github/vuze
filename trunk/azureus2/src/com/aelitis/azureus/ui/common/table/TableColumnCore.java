@@ -333,4 +333,11 @@ public interface TableColumnCore
 	 * @since 3.1.1.1
 	 */
 	Object[] getCellOtherListeners(String listenerID);
+	
+	/**
+	 * @since 4005
+	 * @return
+	 */
+	public boolean
+	isRemoved();
 }

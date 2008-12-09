@@ -291,7 +291,7 @@ public class TableViewSWTImpl
 			}
 		};
 
-	private Rectangle firstClientArea;
+	// private Rectangle firstClientArea;
 
 	private int lastHorizontalPos;
 
@@ -348,8 +348,12 @@ public class TableViewSWTImpl
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		if (tcManager.getTableColumnCount(sTableID) != basicItems.length) {
-			tcManager.addColumns(basicItems);
+		
+		if ( basicItems != null ){
+			if (tcManager.getTableColumnCount(sTableID) != basicItems.length) {
+				tcManager.addColumns(basicItems);
+			}
+			basicItems = null;
 		}
 
 		// fixup order
@@ -1068,7 +1072,7 @@ public class TableViewSWTImpl
 		table.setHeaderVisible(true);
 		
 		clientArea = table.getClientArea();
-		firstClientArea = table.getClientArea();
+		//firstClientArea = table.getClientArea();
 		table.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				calculateClientArea();

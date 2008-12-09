@@ -135,6 +135,8 @@ public class TableColumnImpl
 	
 	private Map userData;
 
+	private boolean removed;
+	
 	// private Class forDataSourceType;
 
 	/** Create a column object for the specified table.
@@ -805,6 +807,8 @@ public class TableColumnImpl
 	public void
 	remove()
 	{
+		removed = true;
+		
 		TableColumnManager.getInstance().removeColumns( new TableColumnCore[]{ this });
 			
 		Utils.execSWTThread(new AERunnable() {
@@ -822,6 +826,12 @@ public class TableColumnImpl
 		});
 	}
 
+	public boolean 
+	isRemoved() 
+	{
+		return( removed );
+	}
+	
 	public final void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
 		// Value[] = { visible, width, position, autotooltip, sortorder }
