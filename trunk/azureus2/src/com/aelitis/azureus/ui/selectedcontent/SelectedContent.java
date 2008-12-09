@@ -20,8 +20,10 @@ package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.HashWrapper;
+
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
@@ -46,10 +48,16 @@ public class SelectedContent implements ISelectedContent
 	 * @param dm2
 	 * @throws Exception 
 	 */
-	public SelectedContent(DownloadManager dm)
-			throws Exception {
+	public SelectedContent(DownloadManager dm){
 		setDM(dm);
-		setHash(dm.getTorrent().getHashWrapper().toBase32String());
+		TOTorrent t = dm.getTorrent();
+		if ( t != null ){
+			try{
+				setHash(t.getHashWrapper().toBase32String());
+				
+			}catch( Throwable e ){
+			}
+		}
 		setDisplayName(dm.getDisplayName());
 	}
 
