@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 import java.awt.*;
 import java.io.File;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -894,15 +895,15 @@ UISWTInstanceImpl
 	instanceWrapper
 		implements UISWTInstance
 	{
-		private PluginInterface			pi;
-		private UISWTInstanceImpl		delegate;
+		private WeakReference<PluginInterface>		pi_ref;
+		private UISWTInstanceImpl					delegate;
 		
 		protected
 		instanceWrapper(
 			PluginInterface		_pi,
 			UISWTInstanceImpl	_delegate )
 		{
-			pi			= _pi;
+			pi_ref		= new WeakReference<PluginInterface>(_pi );
 			delegate	= _delegate;
 		}
 		
@@ -924,6 +925,13 @@ UISWTInstanceImpl
 		loadImage(
 			String	resource )
 		{
+			PluginInterface pi = pi_ref.get();
+			
+			if ( pi == null ){
+				
+				return( null );
+			}
+			
 			return( delegate.loadImage( pi, resource ));
 		}
 		
