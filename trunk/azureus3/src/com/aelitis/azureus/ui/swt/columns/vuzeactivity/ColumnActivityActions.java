@@ -152,7 +152,9 @@ public class ColumnActivityActions
 				URLInfo[] hitUrlInfo = sp.getHitUrlInfo();
 				for (int i = 0; i < hitUrlInfo.length; i++) {
 					URLInfo info = hitUrlInfo[i];
-					info.urlUnderline = cell.getTableRow().isSelected();
+						// handle fake row when showing in column editor
+					
+					info.urlUnderline = cell.getTableRow() == null || cell.getTableRow().isSelected();
 					if (info.urlUnderline) {
 						info.urlColor = null;
 					} else {
