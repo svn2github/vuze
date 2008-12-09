@@ -64,6 +64,7 @@ import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -383,9 +384,11 @@ UISWTInstanceImpl
 				
 				if ( _col instanceof TableColumnImpl ){
 					
-					TableColumnManager.getInstance().addColumns(new TableColumnCore[] {
-						(TableColumnCore) _col
-					});
+					TableColumnManager.getInstance().addColumns(new TableColumnCore[] {	(TableColumnCore) _col });
+					
+					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(_col.getTableID());
+					
+					tsed.tableStructureChanged(true);
 					
 				}else{
 					

@@ -108,6 +108,16 @@ public interface TableManager
   public void registerColumn(Class forDataSourceType, String cellID,
 			TableColumnCreationListener listener);
 
+  /**
+   * unregister a listener added by @link {@link #registerColumn(Class, String, TableColumnCreationListener)}
+   * @param forDataSourceType
+   * @param cellID
+   * @param listener
+   * @since 4005
+   */
+  public void unregisterColumn(Class forDataSourceType, String cellID,
+			TableColumnCreationListener listener);
+
   /** Adds a column to an Azureus UI table.
    *
    * @param tableColumn a column previously created with {@link #createColumn}

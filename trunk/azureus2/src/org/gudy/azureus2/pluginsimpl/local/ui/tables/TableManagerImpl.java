@@ -73,6 +73,11 @@ public class TableManagerImpl implements TableManager
   	tcManager.registerColumn(forDataSourceType, cellID, listener);
 	}
 
+  public void unregisterColumn(Class forDataSourceType, String cellID,
+	  		TableColumnCreationListener listener) {
+	  	TableColumnManager tcManager = TableColumnManager.getInstance();
+	  	tcManager.unregisterColumn(forDataSourceType, cellID, listener);
+		}
 	public void addColumn(final TableColumn tableColumn) {
 		if (!(tableColumn instanceof TableColumnCore))
 			throw (new UIRuntimeException(

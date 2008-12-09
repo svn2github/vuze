@@ -474,4 +474,13 @@ public class TableColumnManager {
 		}
 		list.add(cellID);
 	}
+	
+	public void unregisterColumn(Class forDataSourceType, String cellID,
+			TableColumnCreationListener listener) {
+		mapColumnIDsToListener.remove(cellID);
+		List list = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+		if (list != null) {
+			list.remove(cellID);
+		}
+	}
 }
