@@ -56,7 +56,6 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.PlayUtils;
 
-import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
@@ -495,7 +494,7 @@ public class ToolBarView
 			"bottom",
 		};
 
-		String[] itemsRequiring1Selection = {
+		String[] itemsRequiring1SelectionWithHash = {
 			"share",
 			"details",
 			"comment",
@@ -509,6 +508,8 @@ public class ToolBarView
 		int numSelection = currentContent.length;
 		boolean hasSelection = numSelection > 0;
 		boolean has1Selection = numSelection == 1;
+		boolean has1SelectionWithHash = has1Selection&&currentContent[0].getHash()!=null;
+
 		ToolBarItem item;
 		for (int i = 0; i < itemsNeedingSelection.length; i++) {
 			String itemID = itemsNeedingSelection[i];
@@ -548,12 +549,12 @@ public class ToolBarView
 				item.setEnabled(hasSelection && isDMSelection && hasRealDM);
 			}
 		}
-		for (int i = 0; i < itemsRequiring1Selection.length; i++) {
-			String itemID = itemsRequiring1Selection[i];
+		for (int i = 0; i < itemsRequiring1SelectionWithHash.length; i++) {
+			String itemID = itemsRequiring1SelectionWithHash[i];
 			item = getToolBarItem(itemID);
 
 			if (item != null) {
-				item.setEnabled(has1Selection);
+				item.setEnabled(has1SelectionWithHash);
 			}
 		}
 		for (int i = 0; i < itemsRequiring1DMSelection.length; i++) {
@@ -633,15 +634,24 @@ public class ToolBarView
   				canRun = false;
   			} else {
     			TOTorrent torrent = dm.getTorrent();
-    			if (!dm.getAssumedComplete() && torrent != null
-  						&& torrent.isSimpleTorrent()) {
+    			
+    			if ( torrent == null ){
+    				
     				canRun = false;
+    				
+    			}else if (!dm.getAssumedComplete() && torrent.isSimpleTorrent()) {
+    				
+    				canRun = false;
+    				
     			} else if (PlatformTorrentUtils.useEMP(torrent)
   						&& PlatformTorrentUtils.embeddedPlayerAvail()
   						&& PlayUtils.canProgressiveOrIsComplete(torrent)) {
     				// play button enabled and not UMP.. don't need launch
+    				
     				canRun = false;
+    				
     			} else if (PlatformTorrentUtils.getAdId(torrent) != null) {
+    				
     				canRun = false;
     			}
   			}
