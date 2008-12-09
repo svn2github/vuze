@@ -26,7 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
-import javax.naming.Context;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
