@@ -1917,7 +1917,7 @@ public class TableViewSWTImpl
 					}
 				}
 				
-				tableStructureChanged();
+				tableStructureChanged(false);
 			}
 		});
 
@@ -2839,10 +2839,15 @@ public class TableViewSWTImpl
 	}
 
 	// ITableStructureModificationListener
-	public void tableStructureChanged() {
+	public void tableStructureChanged(boolean columnAddedOrRemoved) {
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
 		removeAllTableRows();
+		
+		if ( columnAddedOrRemoved ){
+			tableColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray( dataSourceType, sTableID);
+		}
+		
 		initializeTableColumns(table);
 		refreshTable(false);
 
@@ -2858,7 +2863,7 @@ public class TableViewSWTImpl
 			// Pre SWT 3.1
 			// This shouldn't really happen, since this function only gets triggered
 			// from SWT >= 3.1
-			tableStructureChanged();
+			tableStructureChanged(false);
 		}
 	}
 

@@ -812,7 +812,7 @@ public class TableColumnImpl
 				try {
 					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 					
-					tsed.tableStructureChanged();
+					tsed.tableStructureChanged(true);
 					
 				}catch( Throwable e ){
 					

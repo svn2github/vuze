@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.HashMap;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -98,12 +99,16 @@ public class TableStructureEventDispatcher implements
 		}
 	}
 
-	public void tableStructureChanged() {
+	public void tableStructureChanged( boolean columnAddedOrRemoved ) {
 
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
-				listener.tableStructureChanged();
+				try{
+					listener.tableStructureChanged(columnAddedOrRemoved);
+				}catch( Throwable e ){
+					Debug.printStackTrace(e);
+				}
 			}
 	}
 

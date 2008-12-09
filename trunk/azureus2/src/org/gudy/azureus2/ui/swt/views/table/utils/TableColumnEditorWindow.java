@@ -365,7 +365,7 @@ public class TableColumnEditorWindow {
 			tableColumn.setVisible(bChecked);
 		}
 		TableColumnManager.getInstance().saveTableColumns(dataSourceType, tableID);
-		listener.tableStructureChanged();
+		listener.tableStructureChanged(true);
 	}
 }
 
