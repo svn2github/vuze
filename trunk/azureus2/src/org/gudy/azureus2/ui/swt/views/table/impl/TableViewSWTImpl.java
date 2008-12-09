@@ -1900,7 +1900,26 @@ public class TableViewSWTImpl
 		
 		item = new MenuItem(menuThisColumn, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
-		item.setEnabled(false);
+
+		item.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				TableColumn tc = (TableColumn) menu.getData("column");
+				if (tc == null) {
+					return;
+				}
+				String columnName = (String) tcColumn.getData("Name");
+				if (columnName == null) {
+					return;
+				}
+				for (int i=0;i<tableColumns.length;i++){
+					if ( tableColumns[i].getName().equals(columnName)){
+						tableColumns[i].setVisible( false );
+					}
+				}
+				
+				tableStructureChanged();
+			}
+		});
 
 		item = new MenuItem(menuThisColumn, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.toClipboard");
