@@ -60,8 +60,8 @@ public class TableColumnManager {
    *           key = column name
    *           value = TableColumnCore object
    */
-  private Map 			items;
-  private AEMonitor 	items_mon 	= new AEMonitor( "TableColumnManager:items" );
+  private Map<String,Map>	items;
+  private AEMonitor 		items_mon 	= new AEMonitor( "TableColumnManager:items" );
   
   /**
    * Holds the order in which the columns are auto-hidden
@@ -97,7 +97,7 @@ public class TableColumnManager {
 
   
   private TableColumnManager() {
-   items = new HashMap();
+   items = new HashMap<String,Map>();
 
    mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
   }
@@ -291,6 +291,21 @@ public class TableColumnManager {
 		}
 	}
   
+  	public String[]
+  	getTableIDs()
+  	{
+		try {
+			items_mon.enter();
+
+			Set<String> ids = items.keySet();
+			
+			return( ids.toArray( new String[ids.size()]));
+			
+		} finally {
+			items_mon.exit();
+		}
+	}
+  	
   public String[] appendLists(String[] list1, String[] list2) {
   	int size = list1.length + list2.length;
   	String[] list = new String[size];

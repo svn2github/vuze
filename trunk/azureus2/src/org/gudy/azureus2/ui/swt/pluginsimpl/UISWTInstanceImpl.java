@@ -403,7 +403,30 @@ UISWTInstanceImpl
 				Object[] params = (Object[])data;
 				
 				TableColumnManager tcManager = TableColumnManager.getInstance();
-				tcManager.registerColumn((Class)params[0], (String)params[1], (TableColumnCreationListener)params[2]);
+				
+				Class 	dataSource 	= (Class)params[0];
+				String	columnName	= (String)params[1];
+				
+				tcManager.registerColumn(dataSource, columnName, (TableColumnCreationListener)params[2]);
+				
+				String[] tables = tcManager.getTableIDs();
+				
+				for ( String tid: tables ){
+					
+					TableColumnCore[] cols = tcManager.getAllTableColumnCoreAsArray(dataSource, tid );
+					
+					for ( TableColumnCore col: cols ){
+					
+						if ( col.getName().equals( columnName )){
+							
+							TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance( tid );
+							
+							tsed.tableStructureChanged(true);
+							
+							break;
+						}
+					}
+				}
 				
 				break;
 			} 
@@ -412,7 +435,28 @@ UISWTInstanceImpl
 				Object[] params = (Object[])data;
 				
 				TableColumnManager tcManager = TableColumnManager.getInstance();
-				tcManager.unregisterColumn((Class)params[0], (String)params[1], (TableColumnCreationListener)params[2]);
+				
+				Class 	dataSource 	= (Class)params[0];
+				String	columnName	= (String)params[1];
+
+				tcManager.unregisterColumn(dataSource, columnName, (TableColumnCreationListener)params[2]);
+				
+				String[] tables = tcManager.getTableIDs();
+				
+				for ( String tid: tables ){
+					
+					TableColumnCore[] cols = tcManager.getAllTableColumnCoreAsArray(dataSource, tid );
+					
+					for ( TableColumnCore col: cols ){
+					
+						if ( col.getName().equals( columnName )){
+							
+							col.remove();
+							
+							break;
+						}
+					}
+				}
 				
 				break;
 			} 
