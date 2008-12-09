@@ -39,6 +39,7 @@ ContentNetwork
 	
 	public static final long	CONTENT_NETWORK_JR			= 10000;
 	public static final long	CONTENT_NETWORK_CHUN		= 10001;
+	public static final long	CONTENT_NETWORK_SOUK		= 10002;
 
 
 	public static final int		SERVICE_SEARCH				= 1;	// String - query text

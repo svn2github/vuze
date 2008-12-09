@@ -93,12 +93,12 @@ ContentNetworkVuze
 		ContentNetwork test = 
 			new ContentNetworkVuzeGeneric(
 				null,
-				ContentNetwork.CONTENT_NETWORK_CHUN,
+				ContentNetwork.CONTENT_NETWORK_SOUK,
 				1,
-				"Chun's Network",
-				"192.168.0.74",
-				"http://192.168.0.74:8082/",
-				"http://play.aelitis.com:88/parg/chun.png",
+				"Souk's Network",
+				"192.168.0.150",
+				"http://192.168.0.150:8082/",
+				"http://play.aelitis.com:88/parg/souk.png",
 				null,
 				null,
 				null,
@@ -107,7 +107,7 @@ ContentNetworkVuze
 				null );
 				
 		try{
-			test.getVuzeFile().write( new File( "C:\\temp\\rfn_chun.vuze"));
+			test.getVuzeFile().write( new File( "C:\\temp\\rfn_souk.vuze"));
 			
 		}catch( Throwable e ){
 			
