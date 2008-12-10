@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -154,22 +155,28 @@ public class SWTSkinObjectContainer
 	}
 
 	public SWTSkinObject[] getChildren() {
-		if (!Utils.isThisThreadSWT()) {
-			System.err.println("Tux: Fix this " + Debug.getCompressedStackTrace());
+		SWTSkinObject[] so = (SWTSkinObject[]) Utils.execSWTThreadWithObject(
+				"getChildren", new AERunnableObject() {
+
+					public Object runSupport() {
+						Control[] swtChildren = ((Composite) control).getChildren();
+						ArrayList list = new ArrayList(swtChildren.length);
+						for (int i = 0; i < swtChildren.length; i++) {
+							Control childControl = swtChildren[i];
+							SWTSkinObject so = (SWTSkinObject) childControl.getData("SkinObject");
+							if (so != null) {
+								list.add(so);
+							}
+						}
+
+						return (SWTSkinObject[]) list.toArray(new SWTSkinObject[list.size()]);
+					}
+				}, 2000);
+		if (so == null) {
+			System.err.println("Tell Tux to fix this " + Debug.getCompressedStackTrace());
 			return oldgetChildren();
 		}
-
-		Control[] swtChildren = ((Composite)control).getChildren();
-		ArrayList list = new ArrayList(swtChildren.length);
-		for (int i = 0; i < swtChildren.length; i++) {
-			Control childControl = swtChildren[i];
-			SWTSkinObject so = (SWTSkinObject) childControl.getData("SkinObject");
-			if (so != null) {
-				list.add(so);
-			}
-		}
-
-		return (SWTSkinObject[]) list.toArray(new SWTSkinObject[list.size()]);
+		return so;
 	}
 
 	// TODO: Need find child(view id)
