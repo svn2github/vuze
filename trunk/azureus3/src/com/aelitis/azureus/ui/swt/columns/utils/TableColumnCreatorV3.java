@@ -409,6 +409,11 @@ public class TableColumnCreatorV3
 					ac,
 					all
 				}));
+		c.put(ColumnAzProduct.COLUMN_ID, new cInfo(ColumnAzProduct.class,
+				new Class[] {
+					ac,
+					all
+				}));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 

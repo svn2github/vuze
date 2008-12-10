@@ -13,8 +13,11 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -65,20 +68,34 @@ public class ColumnAzProduct
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void refresh(TableCell cell) {
-		boolean isContent = DataSourceUtils.isPlatformContent(cell.getDataSource());
+	public void refresh(final TableCell cell) {
+		Object ds = cell.getDataSource();
+		boolean isContent = DataSourceUtils.isPlatformContent(ds);
 
-		long sortVal = (isContent) ? 1 : 0;
-
+		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
+		long cnID = cn.getID();
+		long sortVal = (isContent) ? cnID : -1;
+		
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
 			return;
+		}
+
+		if (isContent) {
+  		ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
+  			public void contentNetworkImageLoaded(Long contentNetworkID, Image image) {
+  				cell.setGraphic(new UISWTGraphicImpl(image));
+  				// don't invalidate
+  			}
+  		});
+		} else {
+			cell.setGraphic(graphicProductGlobe);
 		}
 
 		if (!cell.isShown()) {
 			return;
 		}
 
-		cell.setGraphic(isContent ? graphicProductAzureus : graphicProductGlobe);
+		//cell.setGraphic(isContent ? graphicProductAzureus : graphicProductGlobe);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
