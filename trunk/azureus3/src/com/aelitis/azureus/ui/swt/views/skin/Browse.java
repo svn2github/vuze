@@ -169,6 +169,21 @@ public class Browse
     				contentNetwork.remove();
     			}
     		});
+
+    		menuItem = menuManager.addMenuItem(menuID, "Reset IP Flag && Close");
+    		menuItem.addListener(new MenuItemListener() {
+    			public void selected(MenuItem menu, Object target) {
+  					contentNetwork.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
+  							Boolean.FALSE);
+    				if (sidebar != null) {
+    					final SideBarEntrySWT entry = sidebar.getSideBarEntry(Browse.this);
+    					if (entry != null) {
+    						entry.removeListener(Browse.this);
+    					}
+    					sidebar.closeSideBar(ContentNetworkUI.getTarget(contentNetwork));
+    				}
+    			}
+    		});
   		}
   		
 		}
@@ -179,7 +194,8 @@ public class Browse
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
-		browserSkinObject.setURL(contentNetwork.getServiceURL(ContentNetwork.SERVICE_BIG_BROWSE));
+		browserSkinObject.setURL(ContentNetworkUI.getUrl(contentNetwork,
+				ContentNetwork.SERVICE_BIG_BROWSE));
 	}
 
 	public void sidebarClosed(SideBarEntrySWT entry) {
