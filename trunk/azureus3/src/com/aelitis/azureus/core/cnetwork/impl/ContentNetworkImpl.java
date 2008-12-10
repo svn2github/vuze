@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.cnetwork.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -66,6 +67,8 @@ ContentNetworkImpl
 	private String						name;
 	
 	private Map<Object,Object>	transient_properties = Collections.synchronizedMap( new HashMap<Object,Object>());
+	
+	private CopyOnWriteList		persistent_listeners = new CopyOnWriteList();
 	
 	protected
 	ContentNetworkImpl(
@@ -300,46 +303,87 @@ ContentNetworkImpl
 	public void
 	setPersistentProperty(
 		String		name,
-		Object		value )
+		Object		new_value )
 	{
-		String	key = getPropertiesKey();
-		
-		if ( value instanceof Boolean ){
+		synchronized( this ){
 			
-			value = new Long(((Boolean)value)?1:0);
+			String	key = getPropertiesKey();
+			
+			if ( new_value instanceof Boolean ){
+				
+				new_value = new Long(((Boolean)new_value)?1:0);
+			}
+			
+			Map props = new HashMap( COConfigurationManager.getMapParameter( key , new HashMap()));
+			
+			Object old_value = props.get( key );
+			
+			if ( BEncoder.objectsAreIdentical( old_value, new_value )){
+					
+				return;
+			}
+			
+			props.put( name, new_value );
+			
+			COConfigurationManager.setParameter( key, props );
 		}
 		
-		Map props = new HashMap( COConfigurationManager.getMapParameter( key , new HashMap()));
+		Iterator it = persistent_listeners.iterator();
 		
-		props.put( name, value );
-		
-		COConfigurationManager.setParameter( key, props );
+		while( it.hasNext()){
+			
+			try{
+				
+				((ContentNetworkPropertyChangeListener)it.next()).propertyChanged(name);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public Object
 	getPersistentProperty(
 		String		name )
 	{
-		String	key = getPropertiesKey();
-		
-		Map props = COConfigurationManager.getMapParameter( key , new HashMap());
-
-		Object obj = props.get( name );
-		
-		if ( 	name == PP_AUTH_PAGE_SHOWN ||
-				name == PP_IS_CUSTOMIZATION ){
+		synchronized( this ){
 			
-			if ( obj == null ){
+			String	key = getPropertiesKey();
+			
+			Map props = COConfigurationManager.getMapParameter( key , new HashMap());
+	
+			Object obj = props.get( name );
+			
+			if ( 	name == PP_AUTH_PAGE_SHOWN ||
+					name == PP_IS_CUSTOMIZATION ){
 				
-				return( false );
-				
-			}else{
-				
-				return(((Long)obj)==1);
+				if ( obj == null ){
+					
+					return( false );
+					
+				}else{
+					
+					return(((Long)obj)==1);
+				}
 			}
+			
+			return( obj );
 		}
-		
-		return( obj );
+	}
+	
+	public void
+	addPersistentPropertyChangeListener(
+		ContentNetworkPropertyChangeListener	listener )
+	{
+		persistent_listeners.add( listener );
+	}
+	
+	public void
+	removePersistentPropertyChangeListener(
+		ContentNetworkPropertyChangeListener	listener )
+	{
+		persistent_listeners.remove( listener );
 	}
 	
 	protected void

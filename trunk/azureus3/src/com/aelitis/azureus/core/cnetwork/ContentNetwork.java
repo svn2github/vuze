@@ -82,8 +82,8 @@ ContentNetwork
 
 		// persistent (and local) properties
 	
-	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean
-	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean
+	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean, default false
+	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
@@ -232,6 +232,14 @@ ContentNetwork
 	public Object
 	getPersistentProperty(
 		String		name );
+	
+	public void
+	addPersistentPropertyChangeListener(
+		ContentNetworkPropertyChangeListener	listener );
+	
+	public void
+	removePersistentPropertyChangeListener(
+		ContentNetworkPropertyChangeListener	listener );
 	
 		/**
 		 * Set a non-persistent property of the content network
