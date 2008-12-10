@@ -169,13 +169,6 @@ ContentNetworkImpl
 			return( false );
 		}
 	}
-	
-	public boolean 
-	isServiceSupported(
-		int service_type )
-	{
-		return( getServiceURL( service_type ) != null );
-	}
 		
 	public String
 	getSearchService(

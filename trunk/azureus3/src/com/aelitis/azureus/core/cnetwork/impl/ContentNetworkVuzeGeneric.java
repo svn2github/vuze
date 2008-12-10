@@ -254,6 +254,13 @@ ContentNetworkVuzeGeneric
 			return( null );
 		}
 	}
+	public boolean 
+	isServiceSupported(
+		int service_type )
+	{
+		return( service_map.containsKey( service_type ));
+	}
+	
 	public String
 	getServiceURL(
 		int			service_type )
