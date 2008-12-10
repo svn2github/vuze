@@ -60,6 +60,8 @@ public class
 ContentNetworkManagerImpl 
 	implements ContentNetworkManager, AEDiagnosticsEvidenceGenerator
 {
+	private static final boolean LOAD_ALL_NETWORKS	= true;
+	
 	private static final String CONFIG_FILE		= "cnetworks.config";
 	
 	private static ContentNetworkManagerImpl singleton = new ContentNetworkManagerImpl();
@@ -209,7 +211,7 @@ ContentNetworkManagerImpl
 					}
 				});
 		
-		if ( networks.size() > 1 ){
+		if ( networks.size() > 1 || LOAD_ALL_NETWORKS ){
 			
 			new AEThread2( "CNetwork:init",	true )
 			{
@@ -230,7 +232,7 @@ ContentNetworkManagerImpl
 				// vuze network always present, no need to check this for updates as we don't auto
 				// update it
 			
-			if ( networks.size() < 2 ){
+			if ( networks.size() < 2 && !LOAD_ALL_NETWORKS ){
 			
 				return;
 			}
@@ -252,6 +254,15 @@ ContentNetworkManagerImpl
 					ContentNetworkImpl new_net = createNetwork( details );
 					
 					addNetwork( new_net );
+					
+				}else{
+					
+					if ( LOAD_ALL_NETWORKS ){
+						
+						ContentNetworkImpl new_net = createNetwork( details );
+						
+						addNetwork( new_net );
+					}
 				}
 			}
 			
