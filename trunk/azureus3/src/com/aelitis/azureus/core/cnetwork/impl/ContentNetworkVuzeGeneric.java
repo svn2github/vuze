@@ -258,7 +258,7 @@ ContentNetworkVuzeGeneric
 	isServiceSupported(
 		int service_type )
 	{
-		return( service_map.containsKey( service_type ));
+		return( service_map.get( service_type ) != null );
 	}
 	
 	public String
