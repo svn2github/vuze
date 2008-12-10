@@ -82,6 +82,7 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ImageDownloader;
@@ -2609,7 +2610,8 @@ public class SideBar
 			}
 
 			if (!doneAuth) {
-				String authURL = cn.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE);
+				String authURL = ContentNetworkUI.getUrl(cn,
+						ContentNetwork.SERVICE_AUTHORIZE);
 				if (authURL != null) {
 					// ensure we can RPC
 					UrlFilter.getInstance().addUrlWhitelist(authURL);
@@ -2631,38 +2633,12 @@ public class SideBar
 				final SideBarEntrySWT entry = createEntryFromSkinRef(null, tabID,
 						"main.area.browsetab", name, null, cn, closeable, position);
 
-				String imgURL = cn.getServiceURL(ContentNetwork.SERVICE_GET_ICON);
-				if (imgURL != null) {
-					final File cache = new File(SystemProperties.getUserPath(), "cache"
-							+ File.separator + imgURL.hashCode() + ".ico");
-					boolean loadImage = true;
-					if (cache.exists()) {
-						try {
-							FileInputStream fis = new FileInputStream(cache);
-
-							try {
-								byte[] content = FileUtil.readInputStreamAsByteArray(fis);
-								entry.setImageLeft(content);
-							} finally {
-								fis.close();
-							}
-							loadImage = false;
-						} catch (Throwable e) {
-							Debug.printStackTrace(e);
-						}
-
+				ContentNetworkUI.loadImage(networkID, new ContentNetworkImageLoadedListener() {
+					public void contentNetworkImageLoaded(Long contentNetworkID,
+							Image image) {
+						entry.setImageLeft(image);
 					}
-					if (loadImage) {
-						ImageDownloader.loadImage(imgURL,
-								new ImageDownloader.ImageDownloaderListener() {
-									public void imageDownloaded(byte[] image) {
-										entry.setImageLeft(image);
-
-										FileUtil.writeBytesAsFile(cache.getAbsolutePath(), image);
-									}
-								});
-					}
-				}
+				});
 				showItemByID(tabID);
 				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 				return;
