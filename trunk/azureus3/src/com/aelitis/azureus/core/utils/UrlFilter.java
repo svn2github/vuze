@@ -95,21 +95,20 @@ public class UrlFilter
 		if (network == null) {
 			return;
 		}
-		String url = network.getServiceURL(ContentNetwork.SERVICE_SITE);
-		if (url != null) {
-			addUrlWhitelist(url + ".*");
-		}
-		url = network.getServiceURL(ContentNetwork.SERVICE_AUTH_RPC);
-		if (url != null) {
-			addUrlWhitelist(url + ".*");
-		}
-		url = network.getServiceURL(ContentNetwork.SERVICE_RELAY_RPC);
-		if (url != null) {
-			addUrlWhitelist(url + ".*");
-		}
-		url = network.getServiceURL(ContentNetwork.SERVICE_RPC);
-		if (url != null) {
-			addUrlWhitelist(url + ".*");
+		
+		int[] whitelist_services = {
+				ContentNetwork.SERVICE_SITE,
+				ContentNetwork.SERVICE_AUTH_RPC,
+				ContentNetwork.SERVICE_RELAY_RPC,
+				ContentNetwork.SERVICE_RPC,	
+		};
+		
+		for ( int service: whitelist_services ){
+
+			if ( network.isServiceSupported( service )){
+	
+				addUrlWhitelist( network.getServiceURL( service ) + ".*" );
+			}
 		}
 	}
 
