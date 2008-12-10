@@ -26,6 +26,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -330,8 +331,6 @@ public class DisplayListener
 		 * Refreshes all except the currently active tab
 		 */
 		if (true == VZ_NON_ACTIVE.equals(tabID)) {
-			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-
 			// 3.2 TODO: Need to fix this up
 
 			List browserViewIDs = new ArrayList();
@@ -348,6 +347,16 @@ public class DisplayListener
 	}
 
 	private void refreshBrowser(String browserID) {
+		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+
+		SideBarEntrySWT entry = SideBar.getSideBarInfo(browserID);
+		SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+
+		if (soBrowser != null) {
+			soBrowser.refresh();
+			return;
+		}
+
 		SWTSkin skin = SWTSkinFactory.getInstance();
 		SWTSkinObject skinObject = skin.getSkinObject(browserID);
 		if (skinObject instanceof SWTSkinObjectBrowser) {
