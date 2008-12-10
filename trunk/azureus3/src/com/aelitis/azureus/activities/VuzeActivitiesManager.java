@@ -20,22 +20,24 @@ package com.aelitis.azureus.activities;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -70,7 +72,8 @@ public class VuzeActivitiesManager
 
 	private static AEDiagnosticsLogger diag_logger;
 
-	private static long lastVuzeNewsAt;
+	/** Key: NetworkID, Value: last time we pulled news **/ 
+	private static Map<String, Long> lastNewsAt = new HashMap();
 
 	private static boolean skipAutoSave = true;
 
@@ -110,6 +113,27 @@ public class VuzeActivitiesManager
 		});
 
 		loadEvents();
+
+		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
+		if (cnm != null) {
+			ContentNetwork[] contentNetworks = cnm.getContentNetworks();
+			cnm.addListener(new ContentNetworkListener() {
+
+				public void networkRemoved(ContentNetwork network) {
+				}
+
+				public void networkChanged(ContentNetwork network) {
+				}
+
+				public void networkAdded(ContentNetwork cn) {
+					setupContentNetwork(cn);
+				}
+			});
+			
+			for (ContentNetwork cn : contentNetworks) {
+				setupContentNetwork(cn);
+			}
+		}
 		
 		{	
 			//TODO TUX : could we remove the dl-related entries from the "removed/deleted" list too ?
@@ -148,12 +172,7 @@ public class VuzeActivitiesManager
 				SimpleTimer.addEvent("GetVuzeNews",
 						SystemTime.getOffsetTime(refreshInMS), new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
-								// 4010 Tux: Do all networks
-								PlatformVuzeActivitiesMessenger.getEntries(
-										ContentNetwork.CONTENT_NETWORK_VUZE, Math.min(
-												SystemTime.getCurrentTime() - lastVuzeNewsAt,
-												MAX_LIFE_MS), 5000, replyListener);
-								lastVuzeNewsAt = SystemTime.getCurrentTime();
+								pullActivitiesNow(5000);
 							}
 						});
 			}
@@ -243,6 +262,28 @@ public class VuzeActivitiesManager
 		} finally {
 			allEntries_mon.exit();
 		}
+	}
+
+	/**
+	 * @param cn
+	 *
+	 * @since 4.0.0.5
+	 */
+	private static void setupContentNetwork(final ContentNetwork cn) {
+		cn.addPersistentPropertyChangeListener(new ContentNetworkPropertyChangeListener() {
+			// @see com.aelitis.azureus.core.cnetwork.ContentNetworkPropertyChangeListener#propertyChanged(java.lang.String)
+			public void propertyChanged(String name) {
+				if (!ContentNetwork.PP_ACTIVE.equals(name)) {
+					return;
+				}
+				Object oIsActive = cn.getPersistentProperty(ContentNetwork.PP_ACTIVE);
+				boolean isActive = (oIsActive instanceof Boolean)
+						? ((Boolean) oIsActive).booleanValue() : false;
+				if (isActive) {
+					pullActivitiesNow(2000);
+				}
+			}
+		});
 	}
 
 	/**
@@ -337,32 +378,46 @@ public class VuzeActivitiesManager
 	/**
 	 * Pull entries from webapp
 	 * 
-	 * @param delay max time to wait before running request
-	 *
-	 * @since 3.0.4.3
-	 */
-	public static void pullActivitiesNow(long delay) {
-		// 4010 Tux: Do all networks
-		PlatformVuzeActivitiesMessenger.getEntries(
-				ContentNetwork.CONTENT_NETWORK_VUZE, Math.min(
-						SystemTime.getCurrentTime() - lastVuzeNewsAt, MAX_LIFE_MS), delay,
-				replyListener);
-		lastVuzeNewsAt = SystemTime.getCurrentTime();
-	}
-
-	/**
-	 * Pull entries from webapp
-	 * 
 	 * @param agoMS Pull all events within this timespan (ms)
 	 * @param delay max time to wait before running request
 	 *
 	 * @since 3.0.4.3
 	 */
-	public static void pullActivitiesNow(long agoMS, long delay) {
-		// 4010 Tux: Do all networks
-		PlatformVuzeActivitiesMessenger.getEntries(
-				ContentNetwork.CONTENT_NETWORK_VUZE, agoMS, delay, replyListener);
-		lastVuzeNewsAt = SystemTime.getCurrentTime();
+	public static void pullActivitiesNow(long delay) {
+		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
+		if (cnm == null) {
+			return;
+		}
+		
+		ContentNetwork[] contentNetworks = cnm.getContentNetworks();
+		for (ContentNetwork cn : contentNetworks) {
+			if (cn == null) {
+				continue;
+			}
+			
+			Object oIsActive = cn.getPersistentProperty(ContentNetwork.PP_ACTIVE);
+			boolean isActive = (oIsActive instanceof Boolean)
+					? ((Boolean) oIsActive).booleanValue() : false;
+			if (!isActive) {
+				return;
+			}
+			
+			String id = "" + cn.getID();
+			Long oLastPullTime = lastNewsAt.get(id);
+			long lastPullTime = oLastPullTime != null ? oLastPullTime.longValue() : 0;
+			long now = SystemTime.getCurrentTime();
+			long diff = now - lastPullTime;
+			if (diff > MAX_LIFE_MS) {
+				diff = MAX_LIFE_MS;
+			}
+			PlatformVuzeActivitiesMessenger.getEntries(cn.getID(), diff, delay,
+					replyListener);
+			lastNewsAt.put(id, new Long(now));
+		}
+	}
+	
+	public static void clearLastPullTimes() {
+		lastNewsAt = new HashMap();
 	}
 
 	/**
@@ -397,10 +452,24 @@ public class VuzeActivitiesManager
 		try {
 			Map map = FileUtil.readResilientConfigFile(SAVE_FILENAME);
 
-			lastVuzeNewsAt = MapUtils.getMapLong(map, "LastCheck", 0);
 			long cutoffTime = getCutoffTime();
-			if (lastVuzeNewsAt < cutoffTime) {
-				lastVuzeNewsAt = cutoffTime;
+
+			try {
+				lastNewsAt = MapUtils.getMapMap(map, "LastChecks", new HashMap());
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+
+			// "LastCheck" backward compat
+			if (lastNewsAt.size() == 0) {
+  			long lastVuzeNewsAt = MapUtils.getMapLong(map, "LastCheck", 0);
+  			if (lastVuzeNewsAt > 0) {
+    			if (lastVuzeNewsAt < cutoffTime) {
+    				lastVuzeNewsAt = cutoffTime;
+    			}
+  				lastNewsAt.put("" + ContentNetwork.CONTENT_NETWORK_VUZE, new Long(
+  						lastVuzeNewsAt));
+  			}
 			}
 
 			Object value;
@@ -465,7 +534,7 @@ public class VuzeActivitiesManager
 			config_mon.enter();
 
 			Map mapSave = new HashMap();
-			mapSave.put("LastCheck", new Long(lastVuzeNewsAt));
+			mapSave.put("LastChecks", lastNewsAt);
 
 			List entriesList = new ArrayList();
 
