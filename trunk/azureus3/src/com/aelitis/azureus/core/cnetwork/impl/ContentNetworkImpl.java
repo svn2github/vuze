@@ -304,6 +304,11 @@ ContentNetworkImpl
 	{
 		String	key = getPropertiesKey();
 		
+		if ( value instanceof Boolean ){
+			
+			value = new Long(((Boolean)value)?1:0);
+		}
+		
 		Map props = new HashMap( COConfigurationManager.getMapParameter( key , new HashMap()));
 		
 		props.put( name, value );
@@ -319,7 +324,22 @@ ContentNetworkImpl
 		
 		Map props = COConfigurationManager.getMapParameter( key , new HashMap());
 
-		return( props.get( name ));
+		Object obj = props.get( name );
+		
+		if ( 	name == PP_AUTH_PAGE_SHOWN ||
+				name == PP_IS_CUSTOMIZATION ){
+			
+			if ( obj == null ){
+				
+				return( false );
+				
+			}else{
+				
+				return(((Long)obj)==1);
+			}
+		}
+		
+		return( obj );
 	}
 	
 	protected void
