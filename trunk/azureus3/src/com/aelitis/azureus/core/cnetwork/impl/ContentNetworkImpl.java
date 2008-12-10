@@ -401,6 +401,13 @@ ContentNetworkImpl
 		manager.removeNetwork( this );
 	}
 	
+	protected void
+	debug(
+		String		str )
+	{
+		Debug.out( getString() + ": " + str );
+	}
+	
 	protected String
 	getString()
 	{

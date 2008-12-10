@@ -249,7 +249,7 @@ ContentNetworkVuzeGeneric
 			
 		}else{
 			
-			Debug.out( "Unknown property" );
+			debug( "Unknown property" );
 			
 			return( null );
 		}
@@ -271,7 +271,7 @@ ContentNetworkVuzeGeneric
 		
 		if ( base == null ){
 			
-			Debug.out( "Unknown service type '" + service_type + "'" );
+			debug( "Unknown service type '" + service_type + "'" );
 			
 			return( null );
 		}
