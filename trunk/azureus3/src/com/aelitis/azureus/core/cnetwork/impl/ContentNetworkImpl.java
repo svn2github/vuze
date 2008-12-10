@@ -356,7 +356,8 @@ ContentNetworkImpl
 			Object obj = props.get( name );
 			
 			if ( 	name == PP_AUTH_PAGE_SHOWN ||
-					name == PP_IS_CUSTOMIZATION ){
+					name == PP_IS_CUSTOMIZATION ||
+					name == PP_ACTIVE ){
 				
 				if ( obj == null ){
 					

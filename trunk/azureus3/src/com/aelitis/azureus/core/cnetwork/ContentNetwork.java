@@ -84,6 +84,7 @@ ContentNetwork
 	
 	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean, default false
 	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
+	public static final String	PP_ACTIVE			          = "active";	// Boolean
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants
