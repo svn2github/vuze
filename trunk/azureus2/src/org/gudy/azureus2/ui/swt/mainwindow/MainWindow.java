@@ -1782,7 +1782,7 @@ public class MainWindow
 	 */
 	public boolean hasDetailViews() {
 		if (mainTabSet != null) {
-			mainTabSet.hasDetails();
+			return( mainTabSet.hasDetails());
 		}
 		return false;
 	}

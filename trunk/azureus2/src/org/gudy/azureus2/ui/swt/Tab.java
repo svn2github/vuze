@@ -52,6 +52,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 
 /**
  * @author Olivier
@@ -621,6 +622,9 @@ public class Tab implements ParameterListener, UIUpdatable {
               {
                   hasDetails = true;
                   break;
+              }else if ( view instanceof UIPluginView && ((UIPluginView)view).getViewID().equals( "DMView" )){
+            	  hasDetails = true;
+                  break;
               }
           }
       }
@@ -650,6 +654,8 @@ public class Tab implements ParameterListener, UIUpdatable {
     for (int i = 0; i < tab_items.length; i++) {
         IView view = (IView) tabs.get(tab_items[i]);
         if (view instanceof ManagerView) {
+          closed(tab_items[i]);
+        }else if ( view instanceof UIPluginView && ((UIPluginView)view).getViewID().equals( "DMView" )){
           closed(tab_items[i]);
         }
       }
