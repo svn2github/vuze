@@ -15,12 +15,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.utils;
+
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ImageDownloader;
+import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 /**
  * @author TuxPaper
@@ -29,20 +42,124 @@ import com.aelitis.azureus.util.ConstantsV3;
  */
 public class ContentNetworkUI
 {
+	public static Map<Long, Image> mapImages = new HashMap();
+
 	public static ContentNetwork getContentNetworkFromTarget(String target) {
 		ContentNetwork cn = null;
 		if (target.startsWith("ContentNetwork.")) {
 			long networkID = Long.parseLong(target.substring(15));
-			cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(networkID);
+			cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+					networkID);
 		}
-		
+
 		if (cn == null) {
 			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
 		}
 		return cn;
 	}
-	
+
 	public static String getTarget(ContentNetwork cn) {
 		return "ContentNetwork." + cn.getID();
 	}
+
+	/**
+	 * @param cn
+	 * @param cnImageLoadedListener
+	 *
+	 * @since 4.0.0.5
+	 */
+	public static void loadImage(final long contentNetworkID,
+			final ContentNetworkImageLoadedListener cnImageLoadedListener) {
+		Image image = mapImages.get(new Long(contentNetworkID));
+		if (image != null && cnImageLoadedListener != null) {
+			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
+			return;
+		}
+
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+				contentNetworkID);
+		if (cn.getID() != contentNetworkID) {
+			return;
+		}
+		String imgURL = ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_GET_ICON);
+		if (imgURL != null) {
+			final File cache = new File(SystemProperties.getUserPath(), "cache"
+					+ File.separator + imgURL.hashCode() + ".ico");
+			boolean loadImage = true;
+			if (cache.exists()) {
+				try {
+					FileInputStream fis = new FileInputStream(cache);
+
+					try {
+						byte[] imageBytes = FileUtil.readInputStreamAsByteArray(fis);
+						InputStream is = new ByteArrayInputStream(imageBytes);
+						image = new Image(Display.getCurrent(), is);
+						try {
+							is.close();
+						} catch (IOException e) {
+						}
+						mapImages.put(new Long(contentNetworkID), image);
+						if (cnImageLoadedListener != null) {
+							cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID,
+									image);
+						}
+					} finally {
+						fis.close();
+					}
+					loadImage = false;
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
+				}
+
+			}
+			if (loadImage) {
+				ImageDownloader.loadImage(imgURL,
+						new ImageDownloader.ImageDownloaderListener() {
+							public void imageDownloaded(byte[] imageBytes) {
+								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
+								InputStream is = new ByteArrayInputStream(imageBytes);
+								Image image = new Image(Display.getCurrent(), is);
+								try {
+									is.close();
+								} catch (IOException e) {
+								}
+								mapImages.put(new Long(contentNetworkID), image);
+								if (cnImageLoadedListener != null) {
+									cnImageLoadedListener.contentNetworkImageLoaded(
+											contentNetworkID, image);
+								}
+							}
+						});
+			}
+		} else if (contentNetworkID == ContentNetwork.CONTENT_NETWORK_VUZE
+				&& cnImageLoadedListener != null) {
+			image = ImageLoaderFactory.getInstance().getImage("image.sidebar.vuze");
+			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
+		}
+	}
+
+	/**
+	 * Get content network url based on service id.
+	 * @param cn
+	 * @param serviceID
+	 * @return null if service is not supported
+	 *
+	 * @since 4.0.0.5
+	 */
+	public static String getUrl(ContentNetwork cn, int serviceID) {
+		try {
+			if (!cn.isServiceSupported(serviceID)) {
+				return null;
+			}
+			return cn.getServiceURL(serviceID);
+		} catch (Throwable t) {
+			return null;
+		}
+	}
+
+	public static interface ContentNetworkImageLoadedListener
+	{
+		public void contentNetworkImageLoaded(Long contentNetworkID, Image image);
+	}
+
 }
