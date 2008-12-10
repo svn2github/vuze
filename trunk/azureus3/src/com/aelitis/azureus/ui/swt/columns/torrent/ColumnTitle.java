@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -243,7 +244,7 @@ public class ColumnTitle
 				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP
 							&& event.button == 1) {
-						if (PlatformConfigMessenger.isURLBlocked(hitUrl.url)) {
+						if (UrlFilter.getInstance().urlIsBlocked(hitUrl.url)) {
 							Utils.launch(hitUrl.url);
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();

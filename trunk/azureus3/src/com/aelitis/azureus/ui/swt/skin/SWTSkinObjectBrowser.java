@@ -43,7 +43,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
@@ -177,7 +177,7 @@ public class SWTSkinObjectBrowser
 			public void browserLoadingChanged(boolean loading, String url) {
 				if (loading && browser.isVisible()) {
 					// hack so search results page doesn't clear cur selected
-					if (PlatformConfigMessenger.urlCanRPC(url)) {
+					if (UrlFilter.getInstance().urlCanRPC(url)) {
 						SelectedContentManager.clearCurrentlySelectedContent();
 					}
 				}
@@ -212,7 +212,7 @@ public class SWTSkinObjectBrowser
 					browser.setText("");
 				} else {
 					String urlToUse = url;
-					if (PlatformConfigMessenger.urlCanRPC(url)){
+					if (UrlFilter.getInstance().urlCanRPC(url)){
 						urlToUse = context.getContentNetwork().appendURLSuffix(urlToUse,
 								false, true);
 					}

@@ -42,9 +42,9 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddyRequest;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -321,7 +321,7 @@ public class ColumnActivityActions
 						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
 								ConstantsV3.DL_REFERAL_LAUNCH);
 						
-					} else if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -336,7 +336,7 @@ public class ColumnActivityActions
 				Object ds = event.cell.getDataSource();
 
 				newCursor = SWT.CURSOR_HAND;
-				if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+				if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 					tooltip = hitUrl.title;
 				} else {
 					tooltip = hitUrl.url;

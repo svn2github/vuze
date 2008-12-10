@@ -49,7 +49,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -63,7 +63,6 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.util.ConstantsV3;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
@@ -587,7 +586,7 @@ public class UIFunctionsImpl
 					realURL = cn.getSiteRelativeURL(realURL, false );
 				}
 				if (target == null) {
-					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
+					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
@@ -612,7 +611,7 @@ public class UIFunctionsImpl
 					realURL = cn.getSiteRelativeURL(realURL, false );
 				}
 				if (target == null) {
-					if (PlatformConfigMessenger.urlCanRPC(realURL)) {
+					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
 					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,

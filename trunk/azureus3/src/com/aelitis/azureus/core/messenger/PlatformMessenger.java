@@ -132,8 +132,8 @@ public class PlatformMessenger
 		}
 
 		if (message != null) {
-			debug("q " + message.toShortString() + ": " + message + " for cn"
-					+ message.getContentNetworkID() + "@"
+			debug("q cn" + message.getContentNetworkID() + " "
+					+ message.toShortString() + ": " + message + " @ "
 					+ new Date(message.getFireBefore()) + "; in "
 					+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
 			if (message.requiresAuthorization() && authorizedDelayed) {
@@ -210,8 +210,8 @@ public class PlatformMessenger
 	}
 
 	protected static void debug(String string, Throwable e) {
-		debug(string + "\n\t" + e.getMessage() + ":"
-				+ Debug.getCompressedStackTrace(e, 1, 80));
+		debug(string + "\n\t" + e.getClass().getName() + ": " + e.getMessage()
+				+ ", " + Debug.getCompressedStackTrace(e, 1, 80));
 	}
 
 	/**
@@ -371,8 +371,13 @@ public class PlatformMessenger
 		String sURL;
 		String sPostData = null;
 		if (USE_HTTP_POST || requiresAuthorization) {
-			sURL = requiresAuthorization
-					? cn.getServiceURL(ContentNetwork.SERVICE_AUTH_RPC) : sURL_RPC;
+			sURL = sURL_RPC;
+			if (requiresAuthorization) {
+				String sAuthUrl = cn.getServiceURL(ContentNetwork.SERVICE_AUTH_RPC);
+				if (sAuthUrl != null) {
+					sURL = sAuthUrl;
+				}
+			}
 
 			sPostData = URL_POST_PLATFORM_DATA + "&" + urlStem.toString();
 			sPostData = cn.appendURLSuffix(sPostData, true, sendAZID);
@@ -681,6 +686,8 @@ public class PlatformMessenger
 	private static class fakeContext
 		extends ClientMessageContextImpl
 	{
+		private ContentNetwork contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+
 		private void log(String str) {
 			if (System.getProperty("browser.route.all.external.stimuli.for.testing",
 					"false").equalsIgnoreCase("true")) {
@@ -733,6 +740,16 @@ public class PlatformMessenger
 
 		public void setTorrentURLHandler(torrentURLHandler handler) {
 			log("setTorrentURLHandler - " + handler);
+		}
+
+		// @see com.aelitis.azureus.core.messenger.ClientMessageContext#getContentNetwork()
+		public ContentNetwork getContentNetwork() {
+			return contentNetwork ;
+		}
+
+		// @see com.aelitis.azureus.core.messenger.ClientMessageContext#setContentNetwork(com.aelitis.azureus.core.cnetwork.ContentNetwork)
+		public void setContentNetwork(ContentNetwork contentNetwork) {
+			this.contentNetwork = contentNetwork;
 		}
 	}
 

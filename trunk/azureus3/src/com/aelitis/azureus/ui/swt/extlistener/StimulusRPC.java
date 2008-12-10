@@ -30,7 +30,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
@@ -94,9 +94,9 @@ public class StimulusRPC
 						String url = MapUtils.getMapString(decodedMap, "url", null);
 						if (!decodedMap.containsKey("target")) {
 							context.debug("no target for url: " + url);
-						} else if (PlatformConfigMessenger.isURLBlocked(url)) {
+						} else if (UrlFilter.getInstance().urlIsBlocked(url)) {
 							context.debug("url blocked: " + url);
-						} else if (!PlatformConfigMessenger.urlCanRPC(url)) {
+						} else if (!UrlFilter.getInstance().urlCanRPC(url)) {
 							context.debug("url not in whitelistL " + url);
 						} else {
 							// implicit bring to front
@@ -126,7 +126,7 @@ public class StimulusRPC
 						} else if (decodedMap.containsKey("url")) {
 							String url = MapUtils.getMapString(decodedMap, "url", null);
 
-							boolean blocked = PlatformConfigMessenger.isURLBlocked(url);
+							boolean blocked = UrlFilter.getInstance().urlIsBlocked(url);
 							// Security: Only allow torrents from whitelisted urls
 							if (blocked) {
 								Debug.out("stopped loading torrent URL because it's not in whitelist");

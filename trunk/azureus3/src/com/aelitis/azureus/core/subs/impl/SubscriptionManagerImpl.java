@@ -21,11 +21,7 @@
 
 package com.aelitis.azureus.core.subs.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.KeyPair;
@@ -40,21 +36,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
-import org.gudy.azureus2.plugins.download.DownloadManager;
-import org.gudy.azureus2.plugins.download.DownloadManagerListener;
-import org.gudy.azureus2.plugins.download.DownloadPeerListener;
-import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.utils.DelayedTask;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -65,36 +46,33 @@ import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionAssociationLookup;
-import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
-import com.aelitis.azureus.core.subs.SubscriptionException;
-import com.aelitis.azureus.core.subs.SubscriptionLookupListener;
-import com.aelitis.azureus.core.subs.SubscriptionManager;
-import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
-import com.aelitis.azureus.core.subs.SubscriptionPopularityListener;
-import com.aelitis.azureus.core.subs.SubscriptionResult;
-import com.aelitis.azureus.core.subs.SubscriptionScheduler;
+import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.core.vuzefile.VuzeFile;
-import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
-import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
-import com.aelitis.azureus.plugins.dht.DHTPluginContact;
-import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
-import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
-import com.aelitis.azureus.plugins.dht.DHTPluginValue;
+import com.aelitis.azureus.core.utils.UrlFilter;
+import com.aelitis.azureus.core.vuzefile.*;
+import com.aelitis.azureus.plugins.dht.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.util.ImportExportUtils;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 
 public class 
@@ -1288,7 +1266,7 @@ SubscriptionManagerImpl
 					
 					SubscriptionImpl existing = lookupSingletonRSS(name, url, is_public, check_interval_mins );
 					
-					if ( PlatformConfigMessenger.urlCanRPC( url.toExternalForm())){
+					if ( UrlFilter.getInstance().urlCanRPC( url.toExternalForm())){
 						
 						warn_user = false;
 					}

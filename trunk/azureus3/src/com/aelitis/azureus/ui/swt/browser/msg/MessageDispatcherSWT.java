@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.utils.UrlFilter;
 
 /**
  * Dispatches messages to listeners registered with unique IDs. Each message sent
@@ -210,7 +210,7 @@ public class MessageDispatcherSWT
 			return;
 		}
 		String referer = message.getReferer();
-		if (referer != null && !PlatformConfigMessenger.urlCanRPC(referer)) {
+		if (referer != null && !UrlFilter.getInstance().urlCanRPC(referer)) {
 			context.debug("blocked " + message + "\n  " + referer);
 			return;
 		}

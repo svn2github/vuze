@@ -26,7 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -39,7 +38,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -53,10 +51,10 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -89,6 +87,8 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class 
 SubscriptionManagerUI 
@@ -1781,7 +1781,7 @@ SubscriptionManagerUI
 				public void runSupport() {
 					String url = MapUtils.getMapString(params, "url",
 							"http://google.com/search?q=" + Math.random());
-					if (PlatformConfigMessenger.urlCanRPC(url)) {
+					if (UrlFilter.getInstance().urlCanRPC(url)) {
 						url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
 					}
 					

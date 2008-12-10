@@ -21,7 +21,6 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -35,17 +34,17 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -432,7 +431,7 @@ public class SearchResultsTabArea
 				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 				String url = MapUtils.getMapString(params, "url",
 						"http://google.com/search?q=" + Math.random());
-				if (PlatformConfigMessenger.urlCanRPC(url)) {
+				if (UrlFilter.getInstance().urlCanRPC(url)) {
 					url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
 				}
 

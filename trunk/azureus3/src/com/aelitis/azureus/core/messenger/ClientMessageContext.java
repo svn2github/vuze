@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.messenger;
 import java.util.Collection;
 import java.util.Map;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
@@ -117,4 +118,18 @@ public interface ClientMessageContext
 		handleTorrentURL(
 			String		url );
 	}
+
+	/**
+	 * @param contentNetwork
+	 *
+	 * @since 4.0.0.5
+	 */
+	void setContentNetwork(ContentNetwork contentNetwork);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.5
+	 */
+	ContentNetwork getContentNetwork();
 }

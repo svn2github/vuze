@@ -20,33 +20,15 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.browser.LocationListener;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.tableitems.pieces.ReservedByItem;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
-import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
-import com.aelitis.azureus.ui.swt.browser.listener.VuzeListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
@@ -81,6 +63,11 @@ public class Browse
 	private SideBarVitalityImage vitalityImage;
 
 	private ContentNetwork contentNetwork;
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		return super.skinObjectCreated(skinObject, params);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.views.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -96,6 +83,11 @@ public class Browse
 			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK; 
 		}
 
+		// Vuze network login happens in Initializer.  The rest can be initialized
+		// when browser area is created (here)
+		if (contentNetwork.getID() != ContentNetwork.CONTENT_NETWORK_VUZE) {
+			PlatformConfigMessenger.login(contentNetwork.getID(), 0);
+		}
 		
 		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
 		
@@ -136,6 +128,8 @@ public class Browse
 				}
 			}
 		});
+		
+		browserSkinObject.getContext().setContentNetwork(contentNetwork);
 
 		createBrowseArea(browserSkinObject);
 		
@@ -189,6 +183,7 @@ public class Browse
 	}
 
 	public void sidebarClosed(SideBarEntrySWT entry) {
+		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.FALSE);
 		
 		Utils.openMessageBox(
 				null,

@@ -23,17 +23,16 @@ package com.aelitis.azureus.core.messenger.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.MapUtils;
@@ -51,22 +50,9 @@ public class PlatformConfigMessenger
 
 	private static int iRPCVersion = 0;
 
-	private static String default_site_host = (String)ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
-
-	private static String DEFAULT_RPC_WHITELIST = "https?://"
-			+ default_site_host.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
-	
-	//private static String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
-
-	private static String[] sURLWhiteList = new String[] {
-		DEFAULT_RPC_WHITELIST,
-	};
-
 	private static String playAfterURL = null;
 
 	private static boolean sendStats = true;
-
-	protected static List listBlack = Collections.EMPTY_LIST;
 
 	protected static long buddySyncOnShareMinTime;
 
@@ -111,21 +97,27 @@ public class PlatformConfigMessenger
 					List listURLs = (List) MapUtils.getMapObject(reply, "url-whitelist",
 							null, List.class);
 					if (listURLs != null) {
-						String[] sNewWhiteList = new String[listURLs.size() + 1];
-						sNewWhiteList[0] = DEFAULT_RPC_WHITELIST;
-
 						for (int i = 0; i < listURLs.size(); i++) {
 							String string = (String) listURLs.get(i);
-							PlatformMessenger.debug("v3.login: got whitelist of " + string);
-							sNewWhiteList[i + 1] = string;
+							UrlFilter.getInstance().addUrlWhitelist(string);
 						}
-						sURLWhiteList = sNewWhiteList;
 					}
 				} catch (Exception e) {
 					Debug.out(e);
 				}
-				
-				listBlack = MapUtils.getMapList(reply, "url-blacklist", Collections.EMPTY_LIST);
+
+				try {
+					List listURLs = (List) MapUtils.getMapObject(reply, "url-blacklist",
+							null, List.class);
+					if (listURLs != null) {
+						for (int i = 0; i < listURLs.size(); i++) {
+							String string = (String) listURLs.get(i);
+							UrlFilter.getInstance().addUrlBlacklist(string);
+						}
+					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 				
 
 				try {
@@ -140,6 +132,10 @@ public class PlatformConfigMessenger
 					}
 				} catch (Exception e) {
 					Debug.out(e);
+				}
+				
+				if (message.getContentNetworkID() != ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+					return;
 				}
 				
 				try {
@@ -215,53 +211,7 @@ public class PlatformConfigMessenger
 		public void replyReceived(Map[] browseSections);
 	}
 
-	public static String[] getURLWhitelist() {
-		return sURLWhiteList;
-	}
-
-	public static boolean urlCanRPC(String url) {
-		return urlCanRPC(url, false);
-	}
 	
-	public static boolean urlCanRPC(String url,boolean showDebug) {
-		if (url == null) {
-			Debug.out("URL null and should be blocked");
-			return false;
-		}
-		
-		if (Constants.isCVSVersion() && url.startsWith("file://")) {
-			return true;
-		}
-
-		String[] whitelist = PlatformConfigMessenger.getURLWhitelist();
-		for (int i = 0; i < whitelist.length; i++) {
-			if (url.matches(whitelist[i])) {
-				return true;
-			}
-		}
-		if(showDebug) {
-			Debug.out("urlCanRPC: URL '" + url + "' " + " does not match one of the "
-					+ whitelist.length + " whitelist entries");
-		}
-		return false;
-	}
-	
-	public static boolean isURLBlocked(String url) {
-		if (url == null) {
-			Debug.out("URL null and should be blocked");
-			return true;
-		}
-
-		for (Iterator iter = listBlack.iterator(); iter.hasNext();) {
-			String blackListed = (String) iter.next();
-			if (url.matches(blackListed)) {
-				Debug.out("URL '" + url + "' " + " is blocked by " + blackListed);
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * @return the iRPCVersion
 	 */

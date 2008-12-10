@@ -50,13 +50,13 @@ public class PlatformMessage
 	private final long messageCreatedOn;
 
 	private long lSequenceNo = -1;
-	
+
 	private boolean requiresAuthorization = false;
-	
+
 	private boolean loginAndRetry = false;
 
 	private boolean sendAZID = true;
-	
+
 	private long contentNetworkID;
 
 	/**
@@ -73,7 +73,7 @@ public class PlatformMessage
 		this.listenerID = listenerID;
 		this.operationID = operationID;
 		this.parameters = JSONUtils.encodeToJSONObject(parameters);
-		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE; 
+		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -87,7 +87,7 @@ public class PlatformMessage
 		this.operationID = operationID;
 
 		this.parameters = JSONUtils.encodeToJSONObject(parseParams(parameters));
-		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE; 
+		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -153,6 +153,9 @@ public class PlatformMessage
 	public String toString() {
 		String paramString = parameters.toString();
 		return "PlaformMessage {"
+				+ "cn"
+				+ contentNetworkID
+				+ ", "
 				+ lSequenceNo
 				+ ", "
 				+ messageID
@@ -169,10 +172,9 @@ public class PlatformMessage
 	 * @param requiresAuthorization the requiresAuthorization to set
 	 * @throws NotLoggedInException 
 	 */
-	public void setRequiresAuthorization(
-		boolean requiresAuthorization,
-		boolean promptUser)
-	throws NotLoggedInException {
+	public void setRequiresAuthorization(boolean requiresAuthorization,
+			boolean promptUser)
+			throws NotLoggedInException {
 		this.requiresAuthorization = requiresAuthorization;
 		this.loginAndRetry = promptUser;
 
@@ -184,7 +186,7 @@ public class PlatformMessage
 	public void setRequiresAuthorizationNoCheck() {
 		this.requiresAuthorization = true;
 	}
-	
+
 	/**
 	 * @return the requiresAuthorization
 	 */
@@ -205,7 +207,7 @@ public class PlatformMessage
 	public boolean getLoginAndRetry() {
 		return loginAndRetry;
 	}
-	
+
 	public String toShortString() {
 		return (requiresAuthorization ? "AUTH: " : "") + getMessageID() + "."
 				+ getListenerID() + "." + getOperationID();
@@ -219,7 +221,7 @@ public class PlatformMessage
 	public boolean sendAZID() {
 		return sendAZID;
 	}
-	
+
 	public void setSendAZID(boolean send) {
 		sendAZID = send;
 		if (send && requiresAuthorization) {

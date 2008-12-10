@@ -42,8 +42,8 @@ import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesEntryBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -830,7 +830,7 @@ public class ColumnVuzeActivity
 				int newCursor;
 				if (hitUrl != null) {
 					if (event.eventType == TableCellMouseEvent.EVENT_MOUSEUP) {
-						if (!PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+						if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 							Utils.launch(hitUrl.url);
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -844,7 +844,7 @@ public class ColumnVuzeActivity
 					}
 
 					newCursor = SWT.CURSOR_HAND;
-					if (PlatformConfigMessenger.urlCanRPC(hitUrl.url)) {
+					if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 						tooltip = hitUrl.title;
 					} else {
 						tooltip = hitUrl.url;

@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class AbstractStatusListener
@@ -20,6 +22,13 @@ public abstract class AbstractStatusListener
 	}
 
 	public void handleMessage(BrowserMessage message) {
+		if (context != null
+				&& context.getContentNetwork() != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
+			context.debug("ERROR: Got Login JS RPC from non default network.  Ignoring");
+			Debug.out("ERROR: Got Login JS RPC from non default network.  Ignoring");
+			return;
+		}
+
 		String opID = message.getOperationId();
 		if (true == Constants.isCVSVersion()) {
 			System.out.println("\tLogin status message: " + message.getFullMessage());//KN: sysout

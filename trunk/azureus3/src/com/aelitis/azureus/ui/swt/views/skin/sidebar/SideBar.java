@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -56,7 +55,6 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesListener;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -64,6 +62,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -74,7 +73,6 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -99,6 +97,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -202,7 +202,7 @@ public class SideBar
 	private Image imgTwist;
 
 	private Shell shellFade;
-	
+
 	public static SideBar instance = null;
 
 	static {
@@ -225,7 +225,7 @@ public class SideBar
 							try {
 								SideBarEntrySWT entry = getSideBarInfo(id);
 								entry.treeItem = null;
-								
+
 								entry.triggerCloseListeners();
 
 								if (entry.iview != null) {
@@ -240,10 +240,11 @@ public class SideBar
 								}
 								COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
 
-								if (Constants.isOSX && !tree.isDisposed() && tree.getSelectionCount() == 0) {
-									
+								if (Constants.isOSX && !tree.isDisposed()
+										&& tree.getSelectionCount() == 0) {
+
 									if (entry.parentID != null) {
-										 entry.getSidebar().showItemByID(entry.parentID);
+										entry.getSidebar().showItemByID(entry.parentID);
 									} else {
 										int i = itemIndex;
 										if (i >= tree.getItemCount()) {
@@ -277,7 +278,7 @@ public class SideBar
 			}
 		};
 	}
-	
+
 	public SideBar() {
 		if (instance == null) {
 			instance = this;
@@ -412,7 +413,7 @@ public class SideBar
 				List downloadManagers = gm.getDownloadManagers();
 				for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
 					DownloadManager dm = (DownloadManager) iter.next();
-					
+
 					if (!PlatformTorrentUtils.getHasBeenOpened(dm)
 							&& dm.getAssumedComplete()) {
 						PlatformTorrentUtils.setHasBeenOpened(dm, true);
@@ -521,6 +522,7 @@ public class SideBar
 
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
+
 			boolean mouseDowned = false;
 
 			public void handleEvent(final Event event) {
@@ -1270,7 +1272,7 @@ public class SideBar
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
 				titleInfoActivityView, null, false, -1);
 		addMenuNotifications();
-		
+
 		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
 
@@ -1471,7 +1473,8 @@ public class SideBar
 			return sideBarInfo.treeItem;
 		}
 
-		TreeItem parentItem = parent == null ? null : getSideBarInfo(parent).treeItem;
+		TreeItem parentItem = parent == null ? null
+				: getSideBarInfo(parent).treeItem;
 
 		TreeItem treeItem;
 		if (parentItem != null) {
@@ -1768,22 +1771,22 @@ public class SideBar
 		}
 
 		if (newIView != null) {
-			
-			if(newIView instanceof ToolBarEnabler) {
-				
+
+			if (newIView instanceof ToolBarEnabler) {
+
 				ISelectedContent[] sels = new ISelectedContent[1];
-				sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler)newIView);
+				sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler) newIView);
 				TableView tv = null;
 				if (newIView instanceof TableView) {
 					tv = (TableView) newIView;
 				}
 				SelectedContentManager.changeCurrentlySelectedContent("IconBarEnabler",
 						sels, tv);
-				
+
 			} else {
-				
+
 				SelectedContentManager.clearCurrentlySelectedContent();
-				
+
 			}
 
 			disabledViewModes();
@@ -1987,7 +1990,8 @@ public class SideBar
 				: (String) sideBarInfo.treeItem.getData("text");
 
 		if (treeItem == null) {
-			TreeItem parentTreeItem = parentID == null ? null : getSideBarInfo(parentID).treeItem;
+			TreeItem parentTreeItem = parentID == null ? null
+					: getSideBarInfo(parentID).treeItem;
 
 			IViewInfo foundViewInfo = null;
 			IViewInfo[] pluginViewsInfo = PluginsMenuHelper.getInstance().getPluginViewsInfo();
@@ -2383,7 +2387,7 @@ public class SideBar
 				}
 
 				sideBarEntry.redraw();
-				
+
 				String logID = (String) titleIndicator.getTitleInfoProperty(ViewTitleInfo.TITLE_LOGID);
 				if (logID != null) {
 					sideBarEntry.setLogID(logID);
@@ -2414,7 +2418,7 @@ public class SideBar
 			l.sidebarItemSelected(newSideBarEntry, oldSideBarEntry);
 		}
 	}
-	
+
 	public IView getIViewFromID(String id) {
 		if (id == null) {
 			return null;
@@ -2531,7 +2535,7 @@ public class SideBar
 		if (tabID == null) {
 			return null;
 		}
-		
+
 		String id;
 		IView viewFromID = getIViewFromID(tabID);
 		if (viewFromID != null) {
@@ -2548,16 +2552,15 @@ public class SideBar
 			// everything else can go to browse..
 			id = SIDEBAR_SECTION_BROWSE;
 		}
-		
+
 		final String itemID = id;
-		
+
 		SideBarEntrySWT entry = getSideBarInfo(itemID);
 		if (entry.treeItem != null) {
 			itemSelected(entry.treeItem);
 			return id;
 		}
 
-		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (tree.isDisposed()) {
@@ -2587,45 +2590,48 @@ public class SideBar
 				return;
 			}
 
+			ContentNetwork cn = cnManager.getContentNetwork(networkID);
+			if (cn == null) {
+				showItemByID(SIDEBAR_SECTION_BROWSE);
+				return;
+			}
+
 			if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
 				showItemByID(SIDEBAR_SECTION_BROWSE);
+				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 				return;
 			}
-			ContentNetwork contentNetwork = cnManager.getContentNetwork(networkID);
-			if (contentNetwork == null) {
-				showItemByID(SIDEBAR_SECTION_BROWSE);
-				return;
-			}
-			
+
 			boolean doneAuth = false;
-			Object oDoneAuth = contentNetwork.getPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN);
+			Object oDoneAuth = cn.getPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN);
 			if (oDoneAuth instanceof Boolean) {
 				doneAuth = ((Boolean) oDoneAuth).booleanValue();
 			}
-			
+
 			if (!doneAuth) {
-				String authURL = contentNetwork.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE);
+				String authURL = cn.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE);
 				if (authURL != null) {
-					if (!AuthorizeWindow.openAuthorizeWindow(contentNetwork)) {
+					// ensure we can RPC
+					UrlFilter.getInstance().addUrlWhitelist(authURL);
+					if (!AuthorizeWindow.openAuthorizeWindow(cn)) {
 						return;
 					}
 				}
 			}
 
 			if (!showItemByID(tabID)) {
-				String name = contentNetwork.getName();
+				String name = cn.getName();
 				SideBarEntrySWT entryBrowse = getSideBarInfo(SIDEBAR_SECTION_BROWSE);
 				int position = entryBrowse == null ? 3
 						: tree.indexOf(entryBrowse.getTreeItem()) + 1;
 
-				Object prop = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+				Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
 				boolean closeable = (prop instanceof Boolean)
 						? ((Boolean) prop).booleanValue() : false;
 				final SideBarEntrySWT entry = createEntryFromSkinRef(null, tabID,
-						"main.area.browsetab", name, null, contentNetwork, closeable,
-						position);
-				
-				String imgURL = contentNetwork.getServiceURL(ContentNetwork.SERVICE_GET_ICON);
+						"main.area.browsetab", name, null, cn, closeable, position);
+
+				String imgURL = cn.getServiceURL(ContentNetwork.SERVICE_GET_ICON);
 				if (imgURL != null) {
 					final File cache = new File(SystemProperties.getUserPath(), "cache"
 							+ File.separator + imgURL.hashCode() + ".ico");
@@ -2658,7 +2664,10 @@ public class SideBar
 					}
 				}
 				showItemByID(tabID);
+				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 				return;
+			} else {
+				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 			}
 		} catch (Exception e) {
 			Debug.out(e);
@@ -2686,12 +2695,12 @@ public class SideBar
 		}
 		return null;
 	}
-	
+
 	public SideBarEntry[] getSideBarEntries() {
 		return (SideBarEntry[]) mapIdToSideBarInfo.values().toArray(
 				new SideBarEntry[0]);
 	}
-	
+
 	protected void linkTitleInfoToEntry(ViewTitleInfo ti, SideBarEntry entry) {
 		mapTitleInfoToEntry.put(ti, entry);
 	}
@@ -2705,7 +2714,8 @@ public class SideBar
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				SideBarEntrySWT entry = getSideBarInfo(id);
-				if (entry != null && entry.treeItem != null && !entry.treeItem.isDisposed()) {
+				if (entry != null && entry.treeItem != null
+						&& !entry.treeItem.isDisposed()) {
 					entry.treeItem.dispose();
 				}
 			}

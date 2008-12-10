@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.io.*;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
@@ -66,13 +65,15 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.messenger.*;
+import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
@@ -99,7 +100,6 @@ import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 
 /**
  * @author TuxPaper
@@ -2086,7 +2086,7 @@ public class MainWindow
 						soBrowser.restart();
 					} else {
 						String fullURL = url;
-						if (PlatformConfigMessenger.urlCanRPC(url)) {
+						if (UrlFilter.getInstance().urlCanRPC(url)) {
 							// 4010 Tux: This shouldn't be.. either determine ContentNetwork from
 							//           url or target, or do something..
 							fullURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);

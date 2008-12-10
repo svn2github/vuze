@@ -35,21 +35,21 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.utils.StaticUtilities;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSONUtils;
+
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 /**
  * Manages the context for a single SWT {@link Browser} component,
@@ -265,7 +265,7 @@ public class BrowserContext
 					public void changing(LocationEvent event) {
 						event.doit = false;
 						System.out.println("SubBrowser URL : " + event.location);
-						if (!PlatformConfigMessenger.isURLBlocked(event.location)
+						if (!UrlFilter.getInstance().urlIsBlocked(event.location)
 								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
 							Program.launch(event.location);
 						}
@@ -329,7 +329,7 @@ public class BrowserContext
 					return;
 				}
 
-				boolean blocked = PlatformConfigMessenger.isURLBlocked(event_location);
+				boolean blocked = UrlFilter.getInstance().urlIsBlocked(event_location);
 
 				if (blocked) {
 					event.doit = false;
@@ -357,7 +357,7 @@ public class BrowserContext
 						} else {
 							//If it's not obviously a web page
 							
-							boolean	can_rpc = PlatformConfigMessenger.urlCanRPC(event_location);
+							boolean	can_rpc = UrlFilter.getInstance().urlCanRPC(event_location);
 							
 							boolean	test_for_torrent 	= !can_rpc && event_location.indexOf(".htm") == -1;
 							boolean	test_for_vuze		= can_rpc &&  ( event_location.endsWith( ".xml" ) || event_location.endsWith( ".vuze" ));
