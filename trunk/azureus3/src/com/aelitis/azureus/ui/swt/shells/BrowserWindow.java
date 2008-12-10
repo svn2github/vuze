@@ -22,6 +22,8 @@ package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -91,6 +93,15 @@ public class BrowserWindow
 		Utils.setShellIcon(shell);
 		
 		shell.setText(url);
+		
+		shell.addTraverseListener(new TraverseListener() {
+			public void keyTraversed(TraverseEvent e) {
+    		if (e.detail == SWT.TRAVERSE_ESCAPE) {
+    			shell.dispose();
+    			e.doit = false;
+    		}
+			}
+		});
 
 		browser = null;
 		
