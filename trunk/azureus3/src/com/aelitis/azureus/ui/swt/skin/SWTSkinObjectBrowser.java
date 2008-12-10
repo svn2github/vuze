@@ -323,4 +323,15 @@ public class SWTSkinObjectBrowser
 		}
 	}
 
+	public void refresh() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (browser != null && !browser.isDisposed()) {
+					browser.refresh();
+				}
+			}
+		});
+		
+	}
+
 }
