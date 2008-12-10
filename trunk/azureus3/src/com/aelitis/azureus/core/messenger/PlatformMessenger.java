@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.MessageCompletionListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRelayMessenger;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.MapUtils;
@@ -361,10 +362,11 @@ public class PlatformMessenger
 		boolean isRelayServer = (PlatformRelayMessenger.MSG_ID + "-" + PlatformRelayMessenger.LISTENER_ID).equals(server);
 		if (isRelayServer) {
 
-			sURL_RPC = cn.getServiceURL(ContentNetwork.SERVICE_RELAY_RPC);
+			sURL_RPC = ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_RELAY_RPC);
 
 		} else {
-			sURL_RPC = cn.getServiceURL(ContentNetwork.SERVICE_RPC) + server;
+			sURL_RPC = ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_RPC)
+					+ server;
 		}
 
 		// Build full url and data to send
@@ -373,7 +375,8 @@ public class PlatformMessenger
 		if (USE_HTTP_POST || requiresAuthorization) {
 			sURL = sURL_RPC;
 			if (requiresAuthorization) {
-				String sAuthUrl = cn.getServiceURL(ContentNetwork.SERVICE_AUTH_RPC);
+				String sAuthUrl = ContentNetworkUI.getUrl(cn,
+						ContentNetwork.SERVICE_AUTH_RPC);
 				if (sAuthUrl != null) {
 					sURL = sAuthUrl;
 				}

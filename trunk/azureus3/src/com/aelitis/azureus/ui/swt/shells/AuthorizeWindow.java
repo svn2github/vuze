@@ -24,6 +24,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 
 /**
  * @author TuxPaper
@@ -32,10 +33,10 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
  */
 public class AuthorizeWindow
 {
-	public static boolean openAuthorizeWindow(ContentNetwork cn) {
+	public static boolean openAuthorizeWindow(final ContentNetwork cn) {
 		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
-				cn.getServiceURL(ContentNetwork.SERVICE_AUTHORIZE), 560, 300, false,
-				true);
+				ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_AUTHORIZE), 560,
+				300, false, true);
 	
 		final Boolean[] b = new Boolean[1];
 		b[0] = Boolean.FALSE;
@@ -47,6 +48,8 @@ public class AuthorizeWindow
 				String opid = message.getOperationId();
 				
 				if ("authorize".equals(opid)) {
+					cn.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
+							Boolean.TRUE);
 					b[0] = Boolean.TRUE;
 				}
 			}
