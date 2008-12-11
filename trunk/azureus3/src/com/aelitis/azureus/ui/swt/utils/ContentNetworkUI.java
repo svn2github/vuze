@@ -60,7 +60,7 @@ public class ContentNetworkUI
 
 		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 				contentNetworkID);
-		if (cn.getID() != contentNetworkID) {
+		if (cn == null) {
 			return;
 		}
 		String imgURL = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_GET_ICON);
