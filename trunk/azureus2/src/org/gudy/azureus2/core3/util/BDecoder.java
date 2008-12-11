@@ -992,7 +992,7 @@ public class BDecoder
 	main(
 			String[]	args )
 	{	  
-		print( 	new File( "C:\\Temp\\b.torrent" ),
-				new File( "C:\\Temp\\b.txt" ));
+		print( 	new File( "C:\\Temp\\tables.config" ),
+				new File( "C:\\Temp\\tables.txt" ));
 	}
 }

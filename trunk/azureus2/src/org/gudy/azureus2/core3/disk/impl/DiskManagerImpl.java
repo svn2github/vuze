@@ -238,7 +238,6 @@ DiskManagerImpl
     private AEMonitor   start_stop_mon  = new AEMonitor( "DiskManager:startStop" );
     private AEMonitor   file_piece_mon  = new AEMonitor( "DiskManager:filePiece" );
 
-    private static WeakHashMap blah = new WeakHashMap();
     
     public
     DiskManagerImpl(
@@ -247,11 +246,7 @@ DiskManagerImpl
     {
         torrent             = _torrent;
         download_manager    = _dmanager;
-
-        blah.put( this, "" );
-        
-        Debug.out( "DiskManagerImpl: tot = " + blah.size());
-        
+       
         pieces      = new DiskManagerPieceImpl[0];  // in case things go wrong later
 
         setState( INITIALIZING );

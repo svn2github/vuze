@@ -414,19 +414,13 @@ UISWTInstanceImpl
 				
 				for ( String tid: tables ){
 					
-					TableColumnCore[] cols = tcManager.getAllTableColumnCoreAsArray(dataSource, tid );
+						// we don't know which tables are affected at this point to refresh all. 
+						// if this proves to be a performance issue then we would have to use the
+						// datasource to derive affected tables somehow
 					
-					for ( TableColumnCore col: cols ){
-					
-						if ( col.getName().equals( columnName )){
+					TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance( tid );
 							
-							TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance( tid );
-							
-							tsed.tableStructureChangedSWTThread(true);
-							
-							break;
-						}
-					}
+					tsed.tableStructureChangedSWTThread(true);
 				}
 				
 				break;
@@ -446,16 +440,11 @@ UISWTInstanceImpl
 				
 				for ( String tid: tables ){
 					
-					TableColumnCore[] cols = tcManager.getAllTableColumnCoreAsArray(dataSource, tid );
+					TableColumnCore col = tcManager.getTableColumnCore( tid, columnName );
 					
-					for ( TableColumnCore col: cols ){
+					if ( col != null ){
 					
-						if ( col.getName().equals( columnName )){
-							
-							col.remove();
-							
-							break;
-						}
+						col.remove();
 					}
 				}
 				
