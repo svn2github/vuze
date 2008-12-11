@@ -164,12 +164,13 @@ ContentNetworkManagerImpl
 									if ( type == VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK ){
 										
 										try{
+												// change here as we always add all networks upfront so
+												// we always set the customisation flag regardless of
+												// whether existing or not
+											
 											ContentNetwork imported = importNetwork( comp.getContent());
 											
-											if ( imported != null ){
-												
-												imported.setPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION, true );
-											}
+											imported.setPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION, true );
 											
 											comp.setProcessed();
 											
@@ -282,16 +283,7 @@ ContentNetworkManagerImpl
 	{
 		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMapStatic( this, content );
 		
-		if ( addNetwork( network ) == network ){
-			
-			return( network );
-			
-		}else{
-			
-				// already present network - not imported
-			
-			return( null );
-		}
+		return( addNetwork( network ));
 	}
 	
 	public ContentNetwork 
