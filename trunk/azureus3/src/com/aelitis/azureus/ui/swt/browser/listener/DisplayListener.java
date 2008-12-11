@@ -265,7 +265,7 @@ public class DisplayListener
 	 *
 	 * @since 3.0.0.7
 	 */
-	private void switchToTab(String tabID) {
+	public static void switchToTab(String tabID) {
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sideBar == null) {
 			return;

@@ -193,7 +193,12 @@ public class StimulusRPC
 						if (DisplayListener.OP_REFRESH_TAB.equals(opId)) {
 							Map decodedMap = browserMsg.getDecodedMap();
 							DisplayListener.refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
+						} else if (DisplayListener.OP_SWITCH_TO_TAB.equals(opId)) {
+							Map decodedMap = browserMsg.getDecodedMap();
+							DisplayListener.switchToTab(MapUtils.getMapString(decodedMap,
+									"target", ""));
 						}
+
 					}
 
 					if (System.getProperty(
