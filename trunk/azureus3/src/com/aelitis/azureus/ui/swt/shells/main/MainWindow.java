@@ -146,7 +146,7 @@ public class MainWindow
 
 	private boolean disposedOrDisposing;
 
-	private Object[] dms_Startup;
+	private DownloadManager[] dms_Startup;
 
 	protected boolean isReady = false;
 
@@ -251,7 +251,7 @@ public class MainWindow
 		// un-"wait state" the rating
 		// TODO: smart refreshing of meta data ("Refresh On" attribute)
 		GlobalManager gm = core.getGlobalManager();
-		dms_Startup = gm.getDownloadManagers().toArray();
+		dms_Startup = (DownloadManager[]) gm.getDownloadManagers().toArray(new DownloadManager[0]);
 		gm.addListener(new GlobalManagerListener() {
 
 			public void seedingStatusChanged(boolean seeding_only_mode, boolean b) {
@@ -261,7 +261,9 @@ public class MainWindow
 			}
 
 			public void downloadManagerAdded(final DownloadManager dm) {
-				downloadAdded(dm);
+				downloadAdded(new DownloadManager[] {
+					dm
+				});
 			}
 
 			public void destroyed() {
@@ -366,10 +368,7 @@ public class MainWindow
 					return;
 				}
 
-				for (int i = 0; i < dms_Startup.length; i++) {
-					DownloadManager dm = (DownloadManager) dms_Startup[i];
-					downloadAdded(dm);
-				}
+				downloadAdded(dms_Startup);
 
 				dms_Startup = null;
 
@@ -380,98 +379,110 @@ public class MainWindow
 		thread.setPriority(Thread.MIN_PRIORITY);
 		thread.start();
 	}
+	
+	private void downloadAdded(final DownloadManager[] dms) {
+		ArrayList<TOTorrent> toUpdateGlobalRating = new ArrayList();
+		for (final DownloadManager dm : dms) {
+			if (dm == null) {
+				continue;
+			}
 
-	private void downloadAdded(final DownloadManager dm) {
-		final TOTorrent torrent = dm.getTorrent();
-		if (torrent == null) {
-			return;
+			final TOTorrent torrent = dm.getTorrent();
+			if (torrent == null) {
+				continue;
+			}
+
+			String hash = null;
+			try {
+				hash = torrent.getHashWrapper().toBase32String();
+			} catch (TOTorrentException e) {
+				Debug.out(e);
+			}
+
+			String title = PlatformTorrentUtils.getContentTitle(torrent);
+			if (title != null && title.length() > 0
+					&& dm.getDownloadState().getDisplayName() == null) {
+				dm.getDownloadState().setDisplayName(title);
+			}
+
+			if (ConfigurationChecker.isNewVersion() && dm.getAssumedComplete()) {
+				String lastVersion = COConfigurationManager.getStringParameter("Last Version");
+				if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
+						"3.1.1.1") <= 0) {
+					long completedTime = dm.getDownloadState().getLongParameter(
+							DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
+					if (completedTime < SystemTime.getOffsetTime(-(1000 * 60))) {
+						PlatformTorrentUtils.setHasBeenOpened(dm, true);
+					}
+				}
+			}
+
+			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
+
+			final String fHash = hash;
+
+			if (isContent) {
+				if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
+					PlatformTorrentUtils.setUserRating(torrent, -1);
+					PlatformRatingMessenger.getUserRating(
+							PlatformTorrentUtils.getContentNetworkID(torrent), new String[] {
+								PlatformRatingMessenger.RATE_TYPE_CONTENT
+							}, new String[] {
+								hash
+							}, 5000);
+				}
+
+				long now = SystemTime.getCurrentTime();
+				long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
+				if (mdRefreshOn < now) {
+					PlatformTorrentUtils.log(torrent, "addDM, update MD NOW");
+					PlatformTorrentUtils.updateMetaData(torrent, 5000);
+				} else {
+					PlatformTorrentUtils.log(torrent, "addDM, update MD on "
+							+ new Date(mdRefreshOn));
+					SimpleTimer.addEvent("Update MD", mdRefreshOn,
+							new TimerEventPerformer() {
+								public void perform(TimerEvent event) {
+									PlatformTorrentUtils.updateMetaData(torrent, 15000);
+								}
+							});
+				}
+
+				long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
+				if (grRefreshOn <= now) {
+					toUpdateGlobalRating.add(torrent);
+				} else {
+					SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
+							new TimerEventPerformer() {
+								public void perform(TimerEvent event) {
+									PlatformRatingMessenger.updateGlobalRating(torrent, 15000);
+								}
+							});
+				}
+
+				long expiresOn = PlatformTorrentUtils.getExpiresOn(torrent);
+				if (expiresOn > now) {
+					SimpleTimer.addEvent("dm Expirey", expiresOn,
+							new TimerEventPerformer() {
+								public void perform(TimerEvent event) {
+									dm.getDownloadState().setFlag(
+											DownloadManagerState.FLAG_LOW_NOISE, true);
+									ManagerUtils.remove(dm, null, true, true);
+								}
+							});
+				}
+
+				if (PublishUtils.isPublished(dm)
+						&& dm.getStats().getShareRatio() < 1000 && !dm.isForceStart()) {
+					dm.setForceStart(true);
+				}
+			} // isContent
 		}
-
-		String hash = null;
-		try {
-			hash = torrent.getHashWrapper().toBase32String();
-		} catch (TOTorrentException e) {
-			Debug.out(e);
+		
+		if (toUpdateGlobalRating.size() > 0) {
+			TOTorrent[] torrents = toUpdateGlobalRating.toArray(new TOTorrent[0]);
+			PlatformRatingMessenger.updateGlobalRating(torrents, 5000);
 		}
-
-		String title = PlatformTorrentUtils.getContentTitle(torrent);
-		if (title != null && title.length() > 0
-				&& dm.getDownloadState().getDisplayName() == null) {
-			dm.getDownloadState().setDisplayName(title);
-		}
-
-		if (ConfigurationChecker.isNewVersion() && dm.getAssumedComplete()) {
-			String lastVersion = COConfigurationManager.getStringParameter("Last Version");
-			if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
-					"3.1.1.1") <= 0) {
-  			long completedTime = dm.getDownloadState().getLongParameter(
-  					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
-  			if (completedTime < SystemTime.getOffsetTime(-(1000 * 60))) {
-  				PlatformTorrentUtils.setHasBeenOpened(dm, true);
-  			}
-			}
-		}
-
-		boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
-
-		final String fHash = hash;
-
-		if (isContent) {
-			if (PlatformTorrentUtils.getUserRating(torrent) == -2) {
-				PlatformTorrentUtils.setUserRating(torrent, -1);
-				PlatformRatingMessenger.getUserRating(
-						PlatformTorrentUtils.getContentNetworkID(torrent), new String[] {
-					PlatformRatingMessenger.RATE_TYPE_CONTENT
-				}, new String[] {
-					hash
-				}, 5000);
-			}
-
-			long now = SystemTime.getCurrentTime();
-			long mdRefreshOn = PlatformTorrentUtils.getMetaDataRefreshOn(torrent);
-			if (mdRefreshOn < now) {
-				PlatformTorrentUtils.log(torrent, "addDM, update MD NOW");
-				PlatformTorrentUtils.updateMetaData(torrent, 5000);
-			} else {
-				PlatformTorrentUtils.log(torrent, "addDM, update MD on "
-						+ new Date(mdRefreshOn));
-				SimpleTimer.addEvent("Update MD", mdRefreshOn,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								PlatformTorrentUtils.updateMetaData(torrent, 15000);
-							}
-						});
-			}
-
-			long grRefreshOn = GlobalRatingUtils.getRefreshOn(torrent);
-			if (grRefreshOn <= now) {
-				PlatformRatingMessenger.updateGlobalRating(torrent, 5000);
-			} else {
-				SimpleTimer.addEvent("Update G.Rating", grRefreshOn,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								PlatformRatingMessenger.updateGlobalRating(torrent, 15000);
-							}
-						});
-			}
-
-			long expiresOn = PlatformTorrentUtils.getExpiresOn(torrent);
-			if (expiresOn > now) {
-				SimpleTimer.addEvent("dm Expirey", expiresOn,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								dm.getDownloadState().setFlag(
-										DownloadManagerState.FLAG_LOW_NOISE, true);
-								ManagerUtils.remove(dm, null, true, true);
-							}
-						});
-			}
-
-			if (PublishUtils.isPublished(dm) && dm.getStats().getShareRatio() < 1000
-					&& !dm.isForceStart()) {
-				dm.setForceStart(true);
-			}
-		} // isContent
 	}
 
 	/**

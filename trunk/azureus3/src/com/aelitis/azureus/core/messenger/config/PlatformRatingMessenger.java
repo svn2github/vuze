@@ -253,24 +253,47 @@ public class PlatformRatingMessenger
 		}
 	}
 
-	public static void updateGlobalRating(final TOTorrent torrent, long maxDelayMS) {
-		try {
-			final String hash = torrent.getHashWrapper().toBase32String();
-			if (PlatformTorrentUtils.DEBUG_CACHING) {
-				PlatformTorrentUtils.log("v3.GR.caching: updateFromPlatform for "
-						+ torrent);
+	public static void updateGlobalRating(final TOTorrent[] torrents, long maxDelayMS) {
+		ArrayList hashes = new ArrayList(torrents.length);
+		for (TOTorrent torrent : torrents) {
+			if (torrent != null) {
+				try {
+					hashes.add(torrent.getHashWrapper().toBase32String());
+				} catch (TOTorrentException e) {
+				}
 			}
-			PlatformRatingMessenger.getGlobalRating(new String[] {
-				PlatformRatingMessenger.RATE_TYPE_CONTENT
-			}, new String[] {
-				hash
-			}, 5000, new GetRatingReplyListener() {
-				public void replyReceived(String replyType, RatingInfoList reply) {
-					if (PlatformTorrentUtils.DEBUG_CACHING) {
-						PlatformTorrentUtils.log("v3.GR.caching: reply '" + replyType
-								+ "' for " + torrent);
-					}
-					if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+		}
+		
+		if (hashes.size() == 0) {
+			return;
+		}
+		
+		final String[] hashesArray = (String[]) hashes.toArray(new String[hashes.size()]);
+
+		if (PlatformTorrentUtils.DEBUG_CACHING) {
+			PlatformTorrentUtils.log("v3.GR.caching: updateFromPlatform for "
+					+ hashes.size());
+		}
+		PlatformRatingMessenger.getGlobalRating(new String[] {
+			PlatformRatingMessenger.RATE_TYPE_CONTENT
+		}, hashesArray, 5000, new GetRatingReplyListener() {
+			public void replyReceived(String replyType, RatingInfoList reply) {
+				if (PlatformTorrentUtils.DEBUG_CACHING) {
+					PlatformTorrentUtils.log("v3.GR.caching: reply '" + replyType + "'");
+				}
+				if (replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+					ArrayList hashes = new ArrayList(torrents.length);
+					for (TOTorrent torrent : torrents) {
+						String hash = null;
+						if (torrent != null) {
+							try {
+								hash = torrent.getHashWrapper().toBase32String();
+							} catch (TOTorrentException e) {
+							}
+						}
+						if (hash == null) {
+							continue;
+						}
 						String type = PlatformRatingMessenger.RATE_TYPE_CONTENT;
 						String rating = reply.getRatingString(hash, type);
 						String color = reply.getRatingColor(hash, type);
@@ -286,29 +309,31 @@ public class PlatformRatingMessenger
 
 						GlobalRatingUtils.setRating(torrent, rating, color, count,
 								refreshOn);
-					} else if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
-						// try again in a bit
-						SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
-								+ GLOBAL_RETRY_UPDATERATING, new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								if (PlatformTorrentUtils.DEBUG_CACHING) {
-									PlatformTorrentUtils.log("v3.GR.caching: retrying..");
-								}
-								updateGlobalRating(torrent, 15000);
-							}
-						});
-
 					}
+				} else if (replyType.equals(PlatformMessenger.REPLY_EXCEPTION)) {
+					// try again in a bit
+					SimpleTimer.addEvent("Update MD Retry", SystemTime.getCurrentTime()
+							+ GLOBAL_RETRY_UPDATERATING, new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							if (PlatformTorrentUtils.DEBUG_CACHING) {
+								PlatformTorrentUtils.log("v3.GR.caching: retrying..");
+							}
+							updateGlobalRating(torrents, 15000);
+						}
+					});
 
 				}
+			}
 
-				public void messageSent() {
-				}
-			});
-		} catch (TOTorrentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			public void messageSent() {
+			}
+		});
+	}
+
+	public static void updateGlobalRating(TOTorrent torrent, long maxDelayMS) {
+		updateGlobalRating(new TOTorrent[] {
+			torrent
+		}, maxDelayMS);
 	}
 
 	// Old EMP needs this class

@@ -89,6 +89,10 @@ public class GlobalRatingUtils
 
 	public static void setRating(final TOTorrent torrent, String rating,
 			String color, long count, long refreshOn) {
+		if (torrent == null) {
+			return;
+		}
+
 		Map mapContent = getTempGlobalRatingContentMap(torrent);
 		if (rating == null) {
 			mapContent.remove(GLOBAL_RATING_STRING);
@@ -111,9 +115,12 @@ public class GlobalRatingUtils
 		}
 
 		if (PlatformTorrentUtils.DEBUG_CACHING) {
-			PlatformTorrentUtils.log("v3.GR.caching: setRating to " + rating
-					+ " for " + torrent + ".  Next refresh in "
-					+ (refreshOn - SystemTime.getCurrentTime()));
+			try {
+				PlatformTorrentUtils.log("v3.GR.caching: setRating to " + rating
+						+ " for " + torrent.getHashWrapper().toBase32String() + ".  Next refresh in "
+						+ (refreshOn - SystemTime.getCurrentTime()));
+			} catch (TOTorrentException e) {
+			}
 		}
 		SimpleTimer.addEvent("Update G.Rating", refreshOn,
 				new TimerEventPerformer() {
