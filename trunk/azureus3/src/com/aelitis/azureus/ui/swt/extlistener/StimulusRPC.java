@@ -189,6 +189,11 @@ public class StimulusRPC
 							ConfigListener.logDiagnostics();
 							return true;
 						}
+					} else if (DisplayListener.DEFAULT_LISTENER_ID.equals(lId)) {
+						if (DisplayListener.OP_REFRESH_TAB.equals(opId)) {
+							Map decodedMap = browserMsg.getDecodedMap();
+							DisplayListener.refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
+						}
 					}
 
 					if (System.getProperty(

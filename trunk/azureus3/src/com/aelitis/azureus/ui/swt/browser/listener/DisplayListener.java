@@ -320,7 +320,7 @@ public class DisplayListener
 	 *
 	 * @since 3.0.5.0
 	 */
-	private void refreshTab(String tabID) {
+	public static void refreshTab(String tabID) {
 		if (null == tabID || tabID.length() < 1) {
 			return;
 		}
@@ -346,7 +346,7 @@ public class DisplayListener
 		}
 	}
 
-	private void refreshBrowser(String browserID) {
+	private static void refreshBrowser(String browserID) {
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 		SideBarEntrySWT entry = SideBar.getSideBarInfo(browserID);
