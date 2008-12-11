@@ -54,12 +54,12 @@ import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.core.vuzefile.*;
 import com.aelitis.azureus.plugins.dht.*;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;

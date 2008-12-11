@@ -49,7 +49,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -58,11 +57,12 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.util.ContentNetworkUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
@@ -581,7 +581,7 @@ public class UIFunctionsImpl
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
-				ContentNetwork cn = ContentNetworkUI.getContentNetworkFromTarget(target);
+				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
 					realURL = cn.getSiteRelativeURL(realURL, false );
 				}
@@ -606,7 +606,7 @@ public class UIFunctionsImpl
 		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
-				ContentNetwork cn = ContentNetworkUI.getContentNetworkFromTarget(target);
+				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
 				if ( !realURL.startsWith( "http" )){
 					realURL = cn.getSiteRelativeURL(realURL, false );
 				}

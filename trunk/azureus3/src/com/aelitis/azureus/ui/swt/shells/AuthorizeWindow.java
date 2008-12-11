@@ -24,7 +24,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 
 /**
  * @author TuxPaper
@@ -35,7 +35,7 @@ public class AuthorizeWindow
 {
 	public static boolean openAuthorizeWindow(final ContentNetwork cn) {
 		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
-				ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_AUTHORIZE), 560,
+				ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_AUTHORIZE), 560,
 				300, false, true);
 	
 		final Boolean[] b = new Boolean[1];

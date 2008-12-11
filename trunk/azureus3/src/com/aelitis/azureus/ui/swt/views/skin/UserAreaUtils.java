@@ -46,7 +46,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -360,7 +359,7 @@ public class UserAreaUtils
 
 				public void widgetSelected(SelectionEvent e) {
 					if (null != uiFunctions) {
-						String url = ContentNetworkUI.getUrl(
+						String url = ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_MY_ACCOUNT);
 						if (url == null) {
@@ -391,7 +390,7 @@ public class UserAreaUtils
 						 * If the user is logged in then go to profile page
 						 */
 						if (null != uiFunctions) {
-							String url = ContentNetworkUI.getUrl(
+							String url = ContentNetworkUtils.getUrl(
 									ConstantsV3.DEFAULT_CONTENT_NETWORK,
 									ContentNetwork.SERVICE_MY_PROFILE);
 							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
@@ -434,7 +433,7 @@ public class UserAreaUtils
 					 * that is loaded will send a 'status:login-update' message which the 
 					 * ILoginInfoListener will respond to and update the UI accordingly
 					 */
-					final String url = ContentNetworkUI.getUrl(
+					final String url = ContentNetworkUtils.getUrl(
 							ConstantsV3.DEFAULT_CONTENT_NETWORK,
 							ContentNetwork.SERVICE_LOGOUT);
 
@@ -451,7 +450,7 @@ public class UserAreaUtils
 						if (null != browser) {
 							String existingURL = browser.getUrl();
 							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setStartURL(ContentNetworkUI.getUrl(
+								((SWTSkinObjectBrowser) skinObject).setStartURL(ContentNetworkUtils.getUrl(
 										ConstantsV3.DEFAULT_CONTENT_NETWORK,
 										ContentNetwork.SERVICE_BIG_BROWSE));
 							}
@@ -493,7 +492,7 @@ public class UserAreaUtils
 
 					public void widgetSelected(SelectionEvent e) {
 						if (null != uiFunctions) {
-							String url = ContentNetworkUI.getUrl(
+							String url = ContentNetworkUtils.getUrl(
 									ConstantsV3.DEFAULT_CONTENT_NETWORK,
 									ContentNetwork.SERVICE_REGISTER);
 							if (url == null) {

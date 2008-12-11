@@ -73,7 +73,6 @@ import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
@@ -91,7 +90,6 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.extlistener.StimulusRPC;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.TopBarView;
 import com.aelitis.azureus.ui.swt.views.skin.*;
@@ -285,7 +283,7 @@ public class MainWindow
 					
 					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
 
-					String site = ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_SITE);
+					String site = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_SITE);
 
 					String site_host = (String) cn.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
 
@@ -294,7 +292,7 @@ public class MainWindow
 								dm.getDisplayName(),
 								site,
 								site_host,
-								ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_PUBLISH_ABOUT)
+								ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_PUBLISH_ABOUT)
 							});
 
 					MessageBoxShell mb = new MessageBoxShell(shell, title, text,

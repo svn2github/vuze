@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.ImageDownloader;
 import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
@@ -43,24 +43,6 @@ import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 public class ContentNetworkUI
 {
 	public static Map<Long, Image> mapImages = new HashMap();
-
-	public static ContentNetwork getContentNetworkFromTarget(String target) {
-		ContentNetwork cn = null;
-		if (target.startsWith("ContentNetwork.")) {
-			long networkID = Long.parseLong(target.substring(15));
-			cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-					networkID);
-		}
-
-		if (cn == null) {
-			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
-		}
-		return cn;
-	}
-
-	public static String getTarget(ContentNetwork cn) {
-		return "ContentNetwork." + cn.getID();
-	}
 
 	/**
 	 * @param cn
@@ -81,7 +63,7 @@ public class ContentNetworkUI
 		if (cn.getID() != contentNetworkID) {
 			return;
 		}
-		String imgURL = ContentNetworkUI.getUrl(cn, ContentNetwork.SERVICE_GET_ICON);
+		String imgURL = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_GET_ICON);
 		if (imgURL != null) {
 			final File cache = new File(SystemProperties.getUserPath(), "cache"
 					+ File.separator + imgURL.hashCode() + ".ico");
@@ -135,25 +117,6 @@ public class ContentNetworkUI
 				&& cnImageLoadedListener != null) {
 			image = ImageLoaderFactory.getInstance().getImage("image.sidebar.vuze");
 			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
-		}
-	}
-
-	/**
-	 * Get content network url based on service id.
-	 * @param cn
-	 * @param serviceID
-	 * @return null if service is not supported
-	 *
-	 * @since 4.0.0.5
-	 */
-	public static String getUrl(ContentNetwork cn, int serviceID) {
-		try {
-			if (!cn.isServiceSupported(serviceID)) {
-				return null;
-			}
-			return cn.getServiceURL(serviceID);
-		} catch (Throwable t) {
-			return null;
 		}
 	}
 

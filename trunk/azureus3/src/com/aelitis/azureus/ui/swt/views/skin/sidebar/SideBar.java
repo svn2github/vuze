@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -62,7 +63,6 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -84,9 +84,7 @@ import com.aelitis.azureus.ui.swt.utils.*;
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -207,7 +205,7 @@ public class SideBar
 	public static SideBar instance = null;
 
 	static {
-		SIDEBAR_SECTION_BROWSE = ContentNetworkUI.getTarget(ConstantsV3.DEFAULT_CONTENT_NETWORK);
+		SIDEBAR_SECTION_BROWSE = ContentNetworkUtils.getTarget(ConstantsV3.DEFAULT_CONTENT_NETWORK);
 
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(final DisposeEvent e) {
@@ -2610,7 +2608,7 @@ public class SideBar
 			}
 
 			if (!doneAuth) {
-				String authURL = ContentNetworkUI.getUrl(cn,
+				String authURL = ContentNetworkUtils.getUrl(cn,
 						ContentNetwork.SERVICE_AUTHORIZE);
 				if (authURL != null) {
 					// ensure we can RPC

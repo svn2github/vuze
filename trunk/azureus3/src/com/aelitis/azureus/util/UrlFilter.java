@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package com.aelitis.azureus.core.utils;
+package com.aelitis.azureus.util;
 
 import java.util.*;
 
@@ -26,7 +26,6 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper

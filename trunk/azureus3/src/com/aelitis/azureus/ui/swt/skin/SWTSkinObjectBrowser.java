@@ -43,7 +43,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.utils.UrlFilter;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
@@ -53,6 +52,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
+import com.aelitis.azureus.util.UrlFilter;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 

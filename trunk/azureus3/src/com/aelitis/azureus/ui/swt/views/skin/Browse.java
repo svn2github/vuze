@@ -30,9 +30,9 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -139,7 +139,7 @@ public class Browse
   		UIManager uim = pi.getUIManager();
   		MenuManager menuManager = uim.getMenuManager();
   		
-  		String menuID = "sidebar." + ContentNetworkUI.getTarget(contentNetwork); 
+  		String menuID = "sidebar." + ContentNetworkUtils.getTarget(contentNetwork); 
   		
   		MenuItem menuItem = menuManager.addMenuItem(menuID, "Button.reset");
   		menuItem.addListener(new MenuItemListener() {
@@ -164,7 +164,7 @@ public class Browse
     					if (entry != null) {
     						entry.removeListener(Browse.this);
     					}
-    					sidebar.closeSideBar(ContentNetworkUI.getTarget(contentNetwork));
+    					sidebar.closeSideBar(ContentNetworkUtils.getTarget(contentNetwork));
     				}
     				contentNetwork.remove();
     			}
@@ -180,7 +180,7 @@ public class Browse
     					if (entry != null) {
     						entry.removeListener(Browse.this);
     					}
-    					sidebar.closeSideBar(ContentNetworkUI.getTarget(contentNetwork));
+    					sidebar.closeSideBar(ContentNetworkUtils.getTarget(contentNetwork));
     				}
     			}
     		});
@@ -194,7 +194,7 @@ public class Browse
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
-		browserSkinObject.setURL(ContentNetworkUI.getUrl(contentNetwork,
+		browserSkinObject.setURL(ContentNetworkUtils.getUrl(contentNetwork,
 				ContentNetwork.SERVICE_BIG_BROWSE));
 	}
 

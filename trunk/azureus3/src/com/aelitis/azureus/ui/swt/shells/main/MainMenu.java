@@ -28,7 +28,6 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -36,6 +35,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
 import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 
 public class MainMenu
 	implements IMainMenu, IMenuConstants
@@ -636,7 +636,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.new",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUI.getUrl(
+						String sURL = ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_PUBLISH_NEW);
 
@@ -663,7 +663,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.mine",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUI.getUrl(
+						String sURL = ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_PUBLISH);
 
@@ -692,7 +692,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(publishMenu, PREFIX_V3 + ".publish.about",
 				new Listener() {
 					public void handleEvent(Event event) {
-						String sURL = ContentNetworkUI.getUrl(
+						String sURL = ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_PUBLISH_ABOUT);
 						Utils.launch(sURL);
@@ -754,7 +754,7 @@ public class MainMenu
 
 		MenuFactory.addHelpSupportMenuItem(
 				helpMenu,
-				ContentNetworkUI.getUrl(
+				ContentNetworkUtils.getUrl(
 				ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_SUPPORT));
 
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
@@ -813,7 +813,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_FORUMS,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUI.getUrl(
+						Utils.launch(ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_FORUMS));
 					}
@@ -822,7 +822,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_WIKI,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUI.getUrl(
+						Utils.launch(ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_WIKI));
 					}
@@ -831,7 +831,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_COMMUNITY_BLOG,
 				new Listener() {
 					public void handleEvent(Event e) {
-						Utils.launch(ContentNetworkUI.getUrl(
+						Utils.launch(ContentNetworkUtils.getUrl(
 								ConstantsV3.DEFAULT_CONTENT_NETWORK,
 								ContentNetwork.SERVICE_BLOG));
 					}
@@ -839,7 +839,7 @@ public class MainMenu
 
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ, new Listener() {
 			public void handleEvent(Event e) {
-				Utils.launch(ContentNetworkUI.getUrl(
+				Utils.launch(ContentNetworkUtils.getUrl(
 						ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_FAQ));
 			}
 		});

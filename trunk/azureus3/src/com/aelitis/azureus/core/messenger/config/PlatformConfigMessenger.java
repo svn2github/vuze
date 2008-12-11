@@ -32,10 +32,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.core.utils.UrlFilter;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.LoginInfoManager;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
