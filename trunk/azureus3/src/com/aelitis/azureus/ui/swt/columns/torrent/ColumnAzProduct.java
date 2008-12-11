@@ -72,21 +72,28 @@ public class ColumnAzProduct
 		Object ds = cell.getDataSource();
 		boolean isContent = DataSourceUtils.isPlatformContent(ds);
 
-		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
-		long cnID = cn.getID();
+		long cnID;
+
+		if (ds instanceof DownloadManager) {
+			cnID = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
+		} else {
+			ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
+			cnID = cn.getID();
+		}
+
 		long sortVal = (isContent) ? cnID : -1;
-		
+
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
 			return;
 		}
 
 		if (isContent) {
-  		ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
-  			public void contentNetworkImageLoaded(Long contentNetworkID, Image image) {
-  				cell.setGraphic(new UISWTGraphicImpl(image));
-  				// don't invalidate
-  			}
-  		});
+			ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
+				public void contentNetworkImageLoaded(Long contentNetworkID, Image image) {
+					cell.setGraphic(new UISWTGraphicImpl(image));
+					// don't invalidate
+				}
+			});
 		} else {
 			cell.setGraphic(graphicProductGlobe);
 		}
