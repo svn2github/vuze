@@ -108,6 +108,10 @@ public class ColumnAzProduct
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
 		if (Constants.isCVSVersion()) {
+			Object ds = cell.getDataSource();
+			if (!(ds instanceof DownloadManager)) {
+				return;
+			}
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm == null) {
 				return;
