@@ -25,6 +25,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -378,8 +379,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		configModel.addBooleanParameter2(
 				"StartStopManager_bFirstPriority_ignore0Peer",
-				"ConfigView.label.seeding.firstPriority.ignore0Peer", false);
+				"ConfigView.label.seeding.firstPriority.ignore0Peer",
+				!COConfigurationManager.getStringParameter("ui", "").equals("az2"));
 
+		configModel.addIntParameter2(
+				"StartStopManager_iFirstPriority_ignoreIdleHours",
+				"ConfigView.label.seeding.firstPriority.ignoreIdleHours", 24);
+		
 		// seeding subsection
 		configModel.addIntParameter2("StartStopManager_iAddForSeedingDLCopyCount",
 				"ConfigView.label.seeding.addForSeedingDLCopyCount", 1);

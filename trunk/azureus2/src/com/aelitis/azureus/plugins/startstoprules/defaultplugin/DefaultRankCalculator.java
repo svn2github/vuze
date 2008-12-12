@@ -148,6 +148,8 @@ public class DefaultRankCalculator implements Comparable {
 
 	private static int iFirstPriorityActiveMinutes;
 
+	private static int iFirstPriorityIgnoreIdleHours;
+	
 	private static long minTimeAlive;
 
 	private static boolean bAutoStart0Peers;
@@ -265,6 +267,8 @@ public class DefaultRankCalculator implements Comparable {
 				+ "iFirstPriority_ignoreSPRatio");
 		bFirstPriorityIgnore0Peer = cfg.getUnsafeBooleanParameter(PREFIX
 				+ "bFirstPriority_ignore0Peer");
+		iFirstPriorityIgnoreIdleHours = cfg.getUnsafeIntParameter(PREFIX
+				+ "iFirstPriority_ignoreIdleHours");
 	}
 
 	/** Sort first by SeedingRank Descending, then by Position Ascending.
@@ -755,6 +759,19 @@ public class DefaultRankCalculator implements Comparable {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: 0 peers\n";
 			return false;
+		}
+
+		if (iFirstPriorityIgnoreIdleHours > 0) {
+			long lastUploadSecs = dl.getStats().getSecondsSinceLastUpload();
+			if (lastUploadSecs < 0) {
+				lastUploadSecs = dl.getStats().getSecondsOnlySeeding();
+			}
+			if (lastUploadSecs > 60 * 60 * iFirstPriorityIgnoreIdleHours) {
+				if (rules.bDebugLog)
+					sExplainFP += "Not FP: " + lastUploadSecs + "s > "
+							+ iFirstPriorityIgnoreIdleHours + "h of no upload\n";
+				return false;
+			}
 		}
 
 		int shareRatio = dl.getStats().getShareRatio();

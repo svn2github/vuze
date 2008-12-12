@@ -87,7 +87,7 @@ AEDiagnostics
 		}
 	}
 	
-	private static final int	MAX_FILE_SIZE	= 256*1024;	// get two of these per logger type
+	private static final int	MAX_FILE_SIZE	= 256*1024*4;	// get two of these per logger type
 	
 	private static final String	CONFIG_KEY	= "diagnostics.tidy_close";
 	

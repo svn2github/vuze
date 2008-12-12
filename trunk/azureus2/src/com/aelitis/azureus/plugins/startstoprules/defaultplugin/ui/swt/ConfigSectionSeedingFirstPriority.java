@@ -40,26 +40,28 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalcu
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
-  public String configSectionGetParentSection() {
-    return "queue.seeding";
-  }
+public class ConfigSectionSeedingFirstPriority
+	implements UISWTConfigSection
+{
+	public String configSectionGetParentSection() {
+		return "queue.seeding";
+	}
 
-  public String configSectionGetName() {
-    return "queue.seeding.firstPriority";
-  }
+	public String configSectionGetName() {
+		return "queue.seeding.firstPriority";
+	}
 
-  public void configSectionSave() {
-  }
+	public void configSectionSave() {
+	}
 
-  public void configSectionDelete() {
-  }
-  
+	public void configSectionDelete() {
+	}
+
 	public int maxUserMode() {
 		return 0;
 	}
 
-  public Composite configSectionCreate(Composite parent) {
+	public Composite configSectionCreate(Composite parent) {
     // Seeding Automation Setup
     GridData gridData;
     GridLayout layout;
@@ -210,7 +212,26 @@ public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
     new BooleanParameter(cIgnoreFP,
                          "StartStopManager_bFirstPriority_ignore0Peer", 
                          "ConfigView.label.seeding.firstPriority.ignore0Peer");
-	
+
+		label = new Label(cIgnoreFP, SWT.NULL);
+
+    // Ignore idle hours
+		label = new Label(cIgnoreFP, SWT.NULL);
+		Messages.setLanguageText(label,
+				"ConfigView.label.seeding.firstPriority.ignoreIdleHours");
+		int[] availIdleHours = { 2, 3, 4, 5, 6, 7, 8, 12, 18, 24, 48, 72, 168 };
+		String ignoreIdleHoursLabels[] = new String[availIdleHours.length + 1];
+		int ignoreIdleHoursValues[] = new int[availIdleHours.length + 1];
+		ignoreIdleHoursLabels[0] = MessageText.getString("ConfigView.text.ignore");
+		ignoreIdleHoursValues[0] = 0;
+		for (int i = 0; i < availIdleHours.length; i++) {
+			ignoreIdleHoursLabels[i + 1] = availIdleHours[i] + " " + sHours;
+			ignoreIdleHoursValues[i + 1] = availIdleHours[i];
+		}
+		new IntListParameter(cIgnoreFP,
+				"StartStopManager_iFirstPriority_ignoreIdleHours", 0,
+				ignoreIdleHoursLabels, ignoreIdleHoursValues);
+
 	//	 row
 	cArea1 = new Composite(cIgnoreFP, SWT.NULL);
     layout = new GridLayout();

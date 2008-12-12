@@ -74,6 +74,8 @@ public class SWTVersionGetter {
 			}
 		}
     
+    currentVersion = 3500;
+    
     /* hack no longer needed as most (all?) CVS users will have rolled back by now and
      * we're shipping with 3.1.1
      

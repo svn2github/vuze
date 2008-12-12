@@ -58,5 +58,6 @@ public class TimeSinceUploadItem
       return;
 
     cell.setText(value==-2?"":(value==-1?Constants.INFINITY_STRING:TimeFormatter.format(value)));
+    //cell.setText("" + value);
   }
 }

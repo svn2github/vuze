@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.common.table.TableView;
 
@@ -67,7 +68,7 @@ public class SelectedContentManager
 		if (currentlySelectedContent == null) {
 			currentlySelectedContent = new ISelectedContent[0];
 		}
-		/*
+		/**/
 		System.out.println("change CURSEL for '"
 				+ viewID
 				+ "' to "
@@ -75,12 +76,12 @@ public class SelectedContentManager
 				+ ";"
 				+ (currentlySelectedContent.length > 0 ? currentlySelectedContent[0]
 						: "") + Debug.getCompressedStackTrace());
-						*/
+						/**/
 		if (currentlySelectedContent.length == 0
 				&& SelectedContentManager.viewID != null && viewID != null
 				&& !viewID.equals(SelectedContentManager.viewID)) {
 			// don't allow clearing if someone else set the currently selected
-			//System.out.println("-->abort because it's not " + SelectedContentManager.viewID);
+			System.out.println("-->abort because it's not " + SelectedContentManager.viewID);
 			return;
 		}
 
