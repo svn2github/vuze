@@ -131,11 +131,6 @@ public class ColumnThumbnail
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		Object ds = cell.getDataSource();
 		
-		TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
-		if (torrent == null) {
-			return;
-		}
-
 		/*
 		 * Try to get the image bytes if available
 		 */
@@ -144,6 +139,7 @@ public class ColumnThumbnail
 			imageBytes = ((VuzeActivitiesEntry) ds).getImageBytes();
 		}
 		if (imageBytes == null) {
+			TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
 			imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
 		}
 
@@ -158,6 +154,8 @@ public class ColumnThumbnail
 			imgThumbnail = new Image(Display.getDefault(), bis);
 
 		} else {
+			TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
+
 			DownloadManager dm = DataSourceUtils.getDM(ds);
 			/*
 			 * Try to get an image from the OS
@@ -166,18 +164,19 @@ public class ColumnThumbnail
 			// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 			String path = null;
 			if (dm == null) {
-				if (torrent != null) {
-					TOTorrentFile[] files = torrent.getFiles();
-					if (files.length > 0) {
-						path = files[0].getRelativePath();
-					}
+				if (torrent == null) {
+					return;
+				}
+				TOTorrentFile[] files = torrent.getFiles();
+				if (files.length > 0) {
+					path = files[0].getRelativePath();
 				}
 			} else {
 				path = dm.getDownloadState().getPrimaryFile();
 			}
 			if (path != null) {
-				Image icon = ImageRepository.getPathIcon(path, cellBounds.height >= 32
-						&& cellBounds.width >= 32, torrent != null
+				Image icon = ImageRepository.getPathIcon(path, cellBounds.height >= 22
+						&& cellBounds.width >= 22, torrent != null
 						&& !torrent.isSimpleTorrent());
 				if(icon != null) {
 					imgThumbnail = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
@@ -194,6 +193,8 @@ public class ColumnThumbnail
 			
 
 			Rectangle imgBounds = imgThumbnail.getBounds();
+			Rectangle srcBounds = new Rectangle(imgBounds.x, imgBounds.y,
+					imgBounds.width, imgBounds.height);
 
 			int dstWidth;
 			int dstHeight;
@@ -205,6 +206,16 @@ public class ColumnThumbnail
 					cellBounds.y += 1;
 					cellBounds.height -= 1;
 				}
+				/*
+				int trim = (int) (imgBounds.width * 0.2);
+				if (imgBounds.width - cellBounds.width > trim) {
+					srcBounds.x += trim;
+					srcBounds.width -= trim * 2;
+					trim = (int) (imgBounds.height * 0.2);
+					srcBounds.y += trim;
+					srcBounds.height -= trim * 2;
+				}
+				*/
 			} else {
 				dstWidth = imgBounds.width;
 				dstHeight = imgBounds.height;
@@ -222,8 +233,9 @@ public class ColumnThumbnail
 				Rectangle lastClipping = gc.getClipping();
 				try {
 					gc.setClipping(cellBounds);
-					gc.drawImage(imgThumbnail, 0, 0, imgBounds.width, imgBounds.height,
-							x, y, dstWidth, dstHeight);
+					
+					gc.drawImage(imgThumbnail, srcBounds.x, srcBounds.y, srcBounds.width,
+							srcBounds.height, x, y, dstWidth, dstHeight);
 				} catch (Exception e) {
 					Debug.out(e);
 				} finally {
