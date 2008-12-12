@@ -274,6 +274,8 @@ public class TableViewSWTImpl
 
 	private Rectangle clientArea;
 
+	private boolean isVisible;		
+
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
 		{
@@ -735,7 +737,7 @@ public class TableViewSWTImpl
 			// SWT 3.2 only.  Code Ok -- Only called in SWT 3.2 mode
 			table.addListener(SWT.PaintItem, new Listener() {
 				public void handleEvent(Event event) {
-					visibleRowsChanged();
+					//visibleRowsChanged();
 					paintItem(event);
 				}
 			});
@@ -745,6 +747,12 @@ public class TableViewSWTImpl
 			//	}
 			//});
 		}
+		
+		table.addListener(SWT.Activate, new Listener() {
+			public void handleEvent(Event event) {
+				refreshVisibleRows();
+			}
+		});
 		
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
@@ -981,6 +989,8 @@ public class TableViewSWTImpl
 		table.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent event) {
 				calculateClientArea();
+				visibleRowsChanged();
+
 				Object[] listeners = listenersKey.toArray();
 				for (int i = 0; i < listeners.length; i++) {
 					KeyListener l = (KeyListener) listeners[i];
@@ -1061,6 +1071,7 @@ public class TableViewSWTImpl
 		if (bar != null) {
 			bar.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
+					visibleRowsChanged();
 					// Bug: Scroll is slow when table is not focus
 					if (!table.isFocusControl()) {
 						table.setFocus();
@@ -1165,8 +1176,8 @@ public class TableViewSWTImpl
 		void cleanup(Text toClean);
 	}
 	
-	private SourceReplaceListener cellEditNotifier;	
-	
+	private SourceReplaceListener cellEditNotifier;
+
 	private void editCell(final int column, final int row)
 	{
 		Text oldInput = (Text)editor.getEditor();
@@ -2021,6 +2032,10 @@ public class TableViewSWTImpl
 		// don't refresh while there's no table
 		if (table == null)
 			return;
+		
+		// call to trigger invalidation if visibility changes
+		isVisible();
+		
 		
 		// XXX Try/Finally used to be there for monitor.enter/exit, however
 		//     this doesn't stop re-entry from the same thread while already in
@@ -3224,7 +3239,7 @@ public class TableViewSWTImpl
 	}
 
 	public TableRowSWT[] getVisibleRows() {
-		if (table == null || table.isDisposed() || !table.isVisible()) {
+		if (!isVisible()) {
 			return new TableRowSWT[0];
 		}
 
@@ -3327,7 +3342,7 @@ public class TableViewSWTImpl
 		TableRowCore[] rows = getRows();
 		int iTopIndex;
 		int iBottomIndex;
-		if (table.isVisible()) {
+		if (isVisible()) {
 			iTopIndex = table.getTopIndex();
 			iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 		} else {
@@ -3897,7 +3912,7 @@ public class TableViewSWTImpl
 	
 	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public boolean isRowVisible(TableRowCore row) {
-		if (!table.isVisible()) {
+		if (!isVisible()) {
 			return false;
 		}
 		int i = row.getIndex();
@@ -3910,11 +3925,7 @@ public class TableViewSWTImpl
 	}
 
 	private void visibleRowsChanged() {
-		if (Utils.SWT32_TABLEPAINT) {
-			return;
-		}
-
-		if (!table.isVisible()) {
+		if (!isVisible()) {
 			lastTopIndex = 0;
 			lastBottomIndex = -1;
 			return;
@@ -4012,7 +4023,7 @@ public class TableViewSWTImpl
 	}
 
 	public Image obfusticatedImage(final Image image, Point shellOffset) {
-		if (table.getItemCount() == 0 || !table.isVisible()) {
+		if (table.getItemCount() == 0 || !isVisible()) {
 			return image;
 		}
 
@@ -4355,4 +4366,18 @@ public class TableViewSWTImpl
 		}
 	}
 
+  public boolean isVisible() {
+  	boolean wasVisible = isVisible;
+  	isVisible = table != null && !table.isDisposed() && table.isVisible();
+  	if (isVisible != wasVisible) {
+  		if (isVisible) {
+  			runForVisibleRows(new TableGroupRowRunner() {
+  				public void run(TableRowCore row) {
+  					row.invalidate();
+  				}
+  			});
+  		}
+  	}
+  	return isVisible;
+  }
 }
