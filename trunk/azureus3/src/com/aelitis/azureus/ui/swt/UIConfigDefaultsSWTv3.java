@@ -137,8 +137,6 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("update.autodownload", true);
 			
-			defaults.addParameter("bFirstPriority_ignore0Peer", true);
-
 			defaults.addParameter("suppress_file_download_dialog", true);
 			
 			defaults.addParameter("auto_remove_inactive_items", false);
