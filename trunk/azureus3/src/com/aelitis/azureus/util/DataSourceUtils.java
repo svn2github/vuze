@@ -144,7 +144,7 @@ public class DataSourceUtils
 				id = PlatformTorrentUtils.getContentNetworkID((TOTorrent) ds);
 			} else if (ds instanceof VuzeActivitiesEntry) {
 				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				return getContentNetwork(entry.getTorrent());
+				return entry.getContentNetwork();
 			} else if (ds instanceof ISelectedContent) {
 				return getContentNetwork(((ISelectedContent)ds).getDM());
 			} else {
