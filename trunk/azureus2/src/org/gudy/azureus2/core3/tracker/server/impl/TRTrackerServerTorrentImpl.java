@@ -321,7 +321,7 @@ TRTrackerServerTorrentImpl
 					
 					if ( ip_override && !old_peer.isIPOverride()){
 						
-						throw( new TRTrackerServerException( "IP Override denied" ));
+						throw( new TRTrackerServerException( "IP Override denied (existing is not override)" ));
 					}
 					
 					last_contact_time	= old_peer.getLastContactTime();
@@ -403,7 +403,7 @@ TRTrackerServerTorrentImpl
 							
 							if ( !biased_peer_set.contains( original_address )){
 								
-								throw( new TRTrackerServerException( "IP Override denied" ));
+								throw( new TRTrackerServerException( "IP Override denied (you are " + original_address + ")" ));
 							}
 						}
 						
@@ -478,7 +478,7 @@ TRTrackerServerTorrentImpl
 
 						if ( biased_peer_set == null || !biased_peer_set.contains( original_address )){
 
-							throw( new TRTrackerServerException( "IP Override denied" ));
+							throw( new TRTrackerServerException( "IP Override denied (you are " + original_address + ")"));
 						}
 					}
 					
@@ -486,7 +486,7 @@ TRTrackerServerTorrentImpl
 				
 					if ( !peer.isIPOverride()){
 					
-						throw( new TRTrackerServerException( "IP Override denied" ));
+						throw( new TRTrackerServerException( "IP Override denied (existing entry not override)" ));
 					}
 				}
 
