@@ -214,21 +214,21 @@ public class MainMenu
 							return;
 						}
 						long id = contentNetwork.getID();
-						String sidebarID = "ContentNetwork." + id;
+						String sidebarID = ContentNetworkUtils.getTarget(contentNetwork);
 						boolean show = false;
 
 						// XXX Handle unselection properly
-						SideBarEntrySWT entry = sideBar.getCurrentSideBarInfo();
+						SideBarEntrySWT entry = sideBar.getCurrentEntry();
 						if (entry == null || !sidebarID.equals(entry.getId())) {
 							show = true;
-							sideBar.showItemByTabID(sidebarID);
+							sideBar.showEntryByTabID(sidebarID);
 						} else {
 							Object o = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
 							boolean canClose = (o instanceof Boolean) ? ((Boolean) o).booleanValue() : true;
 							if (canClose) {
 								show = true;
 							} else {
-								sideBar.closeSideBar(sidebarID);
+								sideBar.closeEntry(sidebarID);
 							}
 						}
 					}
@@ -250,7 +250,7 @@ public class MainMenu
 				return;
 			}
 			long id = contentNetwork.getID();
-			SideBarEntrySWT entry = sideBar.getSideBarInfo("ContentNetwork." + id);
+			SideBarEntrySWT entry = sideBar.getEntry("ContentNetwork." + id);
 			item.setSelection(entry.getTreeItem() != null);
 		}
 	}
@@ -612,21 +612,21 @@ public class MainMenu
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".browse", new Listener() {
 			public void handleEvent(Event event) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_BROWSE);
+				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_BROWSE);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".library", new Listener() {
 			public void handleEvent(Event event) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 			}
 		});
 
 		MenuFactory.addMenuItem(viewMenu, PREFIX_V3 + ".publish", new Listener() {
 			public void handleEvent(Event event) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-				sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+				sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 			}
 		});
 
@@ -641,7 +641,7 @@ public class MainMenu
 								ContentNetwork.SERVICE_PUBLISH_NEW);
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
+						SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_PUBLISH);
 						if (entry.getIView() == null) {
 							entry = sidebar.createEntryFromSkinRef(
 									SideBar.SIDEBAR_SECTION_BROWSE,
@@ -656,7 +656,7 @@ public class MainMenu
 								}
 							}
 						}
-						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 					}
 				});
 
@@ -668,7 +668,7 @@ public class MainMenu
 								ContentNetwork.SERVICE_PUBLISH);
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_PUBLISH);
+						SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_PUBLISH);
 						if (entry.getIView() == null) {
 							entry = sidebar.createEntryFromSkinRef(
 									SideBar.SIDEBAR_SECTION_BROWSE,
@@ -683,7 +683,7 @@ public class MainMenu
 								}
 							}
 						}
-						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_PUBLISH);
+						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_PUBLISH);
 					}
 				});
 
@@ -748,7 +748,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event event) {
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
+						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
 					}
 				});
 

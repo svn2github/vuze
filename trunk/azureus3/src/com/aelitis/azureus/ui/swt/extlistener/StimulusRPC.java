@@ -170,9 +170,9 @@ public class StimulusRPC
 							if (tabID.length() > 0) {
 								// 3.2 TODO: Should we be checking for partial matches?
 								SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-								SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
-								if (info != null) {
-									return info.id.equals(tabID);
+								SideBarEntrySWT entry = sidebar.getCurrentEntry();
+								if (entry != null) {
+									return entry.id.equals(tabID);
 								}
 							}
 						}

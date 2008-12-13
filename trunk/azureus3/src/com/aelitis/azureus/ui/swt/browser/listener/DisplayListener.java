@@ -270,7 +270,7 @@ public class DisplayListener
 		if (sideBar == null) {
 			return;
 		}
-		sideBar.showItemByTabID(tabID);
+		sideBar.showEntryByTabID(tabID);
 	}
 
 	/**
@@ -349,7 +349,7 @@ public class DisplayListener
 	private static void refreshBrowser(String browserID) {
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
-		SideBarEntrySWT entry = SideBar.getSideBarInfo(browserID);
+		SideBarEntrySWT entry = SideBar.getEntry(browserID);
 		SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
 
 		if (soBrowser != null) {

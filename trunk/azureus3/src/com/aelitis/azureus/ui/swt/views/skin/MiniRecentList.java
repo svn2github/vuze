@@ -59,7 +59,7 @@ public class MiniRecentList
 				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
 					SideBar sidebar = (SideBar)SkinViewManager.getByClass(SideBar.class);
 					if (sidebar != null) {
-						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 					}
 				}
 			});

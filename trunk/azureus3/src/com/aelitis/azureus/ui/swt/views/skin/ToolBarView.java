@@ -525,7 +525,7 @@ public class ToolBarView
 		if (!hasRealDM) {
   		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
   		if (sidebar != null) {
-  			SideBarEntrySWT entry = sidebar.getCurrentSideBarInfo();
+  			SideBarEntrySWT entry = sidebar.getCurrentEntry();
   			if (entry != null) {
   				if (entry.datasource instanceof DownloadManager) {
   					hasRealDM = true;
@@ -702,9 +702,9 @@ public class ToolBarView
 	protected void activateViaSideBar(ToolBarItem toolBarItem) {
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
-			if (info.iview instanceof IconBarEnabler) {
-				IconBarEnabler enabler = (IconBarEnabler) info.iview;
+			SideBarEntrySWT entry = sidebar.getCurrentEntry();
+			if (entry.iview instanceof IconBarEnabler) {
+				IconBarEnabler enabler = (IconBarEnabler) entry.iview;
 				enabler.itemActivated(toolBarItem.getId());
 			}
 		}
@@ -732,9 +732,9 @@ public class ToolBarView
 		} else {
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
-				SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
-				if (info.iview instanceof IconBarEnabler) {
-					IconBarEnabler enabler = (IconBarEnabler) info.iview;
+				SideBarEntrySWT entry = sidebar.getCurrentEntry();
+				if (entry.iview instanceof IconBarEnabler) {
+					IconBarEnabler enabler = (IconBarEnabler) entry.iview;
 					
 					ToolBarItem[] allToolBarItems = getAllToolBarItems();
 					for (int i = 0; i < allToolBarItems.length; i++) {
@@ -749,9 +749,9 @@ public class ToolBarView
 	private boolean triggerIViewToolBar(String id) {
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			SideBarEntrySWT info = sidebar.getCurrentSideBarInfo();
-			if (info.iview instanceof IconBarEnabler) {
-				IconBarEnabler enabler = (IconBarEnabler) info.iview;
+			SideBarEntrySWT entry = sidebar.getCurrentEntry();
+			if (entry.iview instanceof IconBarEnabler) {
+				IconBarEnabler enabler = (IconBarEnabler) entry.iview;
 				enabler.itemActivated(id);
 				return true;
 			}

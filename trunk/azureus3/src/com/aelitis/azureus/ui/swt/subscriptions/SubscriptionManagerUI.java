@@ -724,7 +724,7 @@ SubscriptionManagerUI
 			side_bar_setup = true;
 		}
 		
-		SideBarEntrySWT mainSBEntry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
+		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS);
 		if (mainSBEntry != null) {
 			SideBarVitalityImage addSub = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			addSub.setToolTip("Add Subscription");
@@ -1137,7 +1137,7 @@ SubscriptionManagerUI
 										false, 
 										show );
 								
-								SideBarEntrySWT	entry = SideBar.getSideBarInfo( key );
+								SideBarEntrySWT	entry = SideBar.getEntry( key );
 																
 								new_si.setTreeItem( tree_item, entry );
 								
@@ -2101,7 +2101,7 @@ SubscriptionManagerUI
 			
 			if ( sideBar != null && sb_entry != null ){
 				
-				sideBar.showItemByID(sb_entry.getId());
+				sideBar.showEntryByID(sb_entry.getId());
 			}
 		}
 	}

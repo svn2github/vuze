@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.utils;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
@@ -61,7 +62,7 @@ public class ImageLoader
 
 	public static Image noImage;
 
-	private final Map mapImages;
+	private final Map<String, imageInfo> mapImages;
 
 	private final ArrayList notFound;
 
@@ -71,10 +72,29 @@ public class ImageLoader
 
 	private int disabledOpacity;
 
+	private class imageInfo
+	{
+		Image[] images;
+
+		long refcount;
+
+		public imageInfo(Image[] images) {
+			this.images = images;
+			refcount = 1;
+		}
+
+		public imageInfo(Image image) {
+			this.images = new Image[] {
+				image
+			};
+			refcount = 1;
+		}
+	}
+
 	public ImageLoader(ClassLoader classLoader, Display display,
 			SkinProperties skinProperties) {
 		this.classLoader = classLoader;
-		mapImages = new HashMap();
+		mapImages = new ConcurrentHashMap<String, imageInfo>();
 		notFound = new ArrayList();
 		this.display = display;
 		this.skinProperties = skinProperties;
@@ -102,22 +122,22 @@ public class ImageLoader
 					boolean bFoundOne = false;
 					Image[] images = parseValuesString(sKey, sParentFiles, sSuffix);
 					if (images != null) {
-  					for (int j = 0; j < images.length; j++) {
-  						Image image = images[j];
-  						if (isRealImage(image)) {
-  							bFoundOne = true;
-  						}
-  					}
-  					if (!bFoundOne) {
-  						for (int j = 0; j < images.length; j++) {
-  							Image image = images[j];
-  							if (isRealImage(image)) {
-  								image.dispose();
-  							}
-  						}
-  					} else {
-  						return images;
-  					}
+						for (int j = 0; j < images.length; j++) {
+							Image image = images[j];
+							if (isRealImage(image)) {
+								bFoundOne = true;
+							}
+						}
+						if (!bFoundOne) {
+							for (int j = 0; j < images.length; j++) {
+								Image image = images[j];
+								if (isRealImage(image)) {
+									image.dispose();
+								}
+							}
+						} else {
+							return images;
+						}
 					}
 				} else {
 					// maybe there's another suffix..
@@ -145,7 +165,7 @@ public class ImageLoader
 	 */
 	private Image[] parseValuesString(String sKey, String[] values, String suffix) {
 		Image[] images = null;
-		
+
 		int splitX = 0;
 		int locationStart = 0;
 		if (values[0].equals("multi") && values.length > 2) {
@@ -163,13 +183,12 @@ public class ImageLoader
 					images[i] = loadImage(display, sTryFile, sKey);
 
 					if (images[i] == null) {
-						sTryFile = values[i].substring(0, index)
-								+ suffix.replace('-', '_')
+						sTryFile = values[i].substring(0, index) + suffix.replace('-', '_')
 								+ values[i].substring(index);
 						images[i] = loadImage(display, sTryFile, sKey);
 					}
 				}
-				
+
 				if (images[i] == null) {
 					images[i] = getNoImage();
 				}
@@ -184,8 +203,7 @@ public class ImageLoader
 				image = loadImage(display, sTryFile, sKey);
 
 				if (image == null) {
-					sTryFile = origFile.substring(0, index)
-							+ suffix.replace('-', '_')
+					sTryFile = origFile.substring(0, index) + suffix.replace('-', '_')
 							+ origFile.substring(index);
 					image = loadImage(display, sTryFile, sKey);
 				}
@@ -193,20 +211,20 @@ public class ImageLoader
 			if (image == null) {
 				image = loadImage(display, values[locationStart], sKey);
 			}
-			
+
 			if (image != null) {
-  			Rectangle bounds = image.getBounds();
-  			images = new Image[(bounds.width + splitX - 1) / splitX];
-  			for (int i = 0; i < images.length; i++) {
-  				Image imgBG = Utils.createAlphaImage(display, splitX,
-  						bounds.height, (byte) 0);
-  				images[i] = Utils.blitImage(display, image, new Rectangle(i * splitX,
-  					0, splitX, bounds.height), imgBG, new Point(0, 0));
-  				imgBG.dispose();
-  			}
+				Rectangle bounds = image.getBounds();
+				images = new Image[(bounds.width + splitX - 1) / splitX];
+				for (int i = 0; i < images.length; i++) {
+					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
+							(byte) 0);
+					images[i] = Utils.blitImage(display, image, new Rectangle(i * splitX,
+							0, splitX, bounds.height), imgBG, new Point(0, 0));
+					imgBG.dispose();
+				}
 			}
 		}
-		
+
 		return images;
 	}
 
@@ -298,10 +316,8 @@ public class ImageLoader
 	public void unLoadImages() {
 		Iterator iter;
 		if (DEBUG_UNLOAD) {
-			iter = mapImages.keySet().iterator();
-			while (iter.hasNext()) {
-				Object key = iter.next();
-				Image[] images = (Image[]) mapImages.get(key);
+			for (String key : mapImages.keySet()) {
+				Image[] images = mapImages.get(key).images;
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
@@ -313,9 +329,8 @@ public class ImageLoader
 				}
 			}
 		} else {
-			iter = mapImages.values().iterator();
-			while (iter.hasNext()) {
-				Image[] images = (Image[]) iter.next();
+			for (imageInfo imageInfo : mapImages.values()) {
+				Image[] images = imageInfo.images;
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
@@ -329,15 +344,18 @@ public class ImageLoader
 	}
 
 	public Image[] getImages(String sKey) {
+		//System.out.println("getImages " + sKey);
 		if (sKey == null) {
 			return new Image[0];
 		}
 
-		Image[] images = (Image[]) mapImages.get(sKey);
-
-		if (images != null) {
-			return images;
+		imageInfo imageInfo = mapImages.get(sKey);
+		if (imageInfo != null && imageInfo.images != null) {
+			imageInfo.refcount++;
+			return imageInfo.images;
 		}
+
+		Image[] images;
 		String[] locations = skinProperties.getStringArray(sKey);
 		//		System.out.println(sKey + "=" + properties.getStringValue(sKey)
 		//				+ ";" + ((locations == null) ? "null" : "" + locations.length));
@@ -356,8 +374,8 @@ public class ImageLoader
 		} else {
 			images = parseValuesString(sKey, locations, "");
 		}
-
-		mapImages.put(sKey, images);
+		
+		mapImages.put(sKey, new imageInfo(images));
 
 		return images;
 	}
@@ -368,6 +386,14 @@ public class ImageLoader
 			return getNoImage();
 		}
 		return images[0];
+	}
+	
+	public void releaseImage(String sKey) {
+		imageInfo imageInfo = mapImages.get(sKey);
+		if (imageInfo != null) {
+			imageInfo.refcount--;
+			// TODO: cleanup
+		}
 	}
 
 	private static Image getNoImage() {
@@ -386,13 +412,15 @@ public class ImageLoader
 	}
 
 	public boolean imageExists(String name) {
-		return isRealImage(getImage(name));
+		boolean exists = isRealImage(getImage(name));
+		releaseImage(name);
+		return exists;
 	}
 
 	public static boolean isRealImage(Image image) {
 		return image != null && image != getNoImage() && !image.isDisposed();
 	}
-	
+
 	public int getAnimationDelay(String sKey) {
 		return skinProperties.getIntValue(sKey + ".delay", 100);
 	}

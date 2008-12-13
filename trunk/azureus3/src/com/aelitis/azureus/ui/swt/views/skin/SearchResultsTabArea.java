@@ -352,7 +352,7 @@ public class SearchResultsTabArea
 		
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			final SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
+			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);

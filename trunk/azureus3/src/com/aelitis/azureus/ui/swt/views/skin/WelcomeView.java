@@ -67,8 +67,8 @@ public class WelcomeView
   		browserSkinObject.setURL(sURL);
 		}
 		
-		SideBarEntrySWT sideBarInfo = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_WELCOME);
-		sideBarInfo.addListener(new SideBarCloseListener() {
+		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
+		entry.addListener(new SideBarCloseListener() {
 			public void sidebarClosed(SideBarEntrySWT entry) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				if (sidebar != null) {
@@ -80,7 +80,7 @@ public class WelcomeView
 							+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
   				}
 
-					sidebar.showItemByID(startTab);
+					sidebar.showEntryByID(startTab);
 				}
 			}
 		});

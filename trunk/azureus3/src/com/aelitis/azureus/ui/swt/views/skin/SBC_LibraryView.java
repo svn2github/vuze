@@ -342,7 +342,7 @@ public class SBC_LibraryView
 		}
 		
 		if (entryID != null) {
-  		SideBarEntrySWT entry = SideBar.getSideBarInfo(entryID);
+  		SideBarEntrySWT entry = SideBar.getEntry(entryID);
   		if (entry != null) {
   			entry.setLogID(entryID + "-" + viewMode);
   		}
@@ -366,7 +366,7 @@ public class SBC_LibraryView
 				return null;
 			}
 		};
-		SideBarEntrySWT infoDL = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+		SideBarEntrySWT infoDL = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
 		if (infoDL != null) {
 			SideBarVitalityImage vitalityImage = infoDL.addVitalityImage(ID_VITALITY_ACTIVE);
 			vitalityImage.setVisible(false);
@@ -380,7 +380,7 @@ public class SBC_LibraryView
   			SimpleTimer.addPeriodicEvent("DLVitalityRefresher",
   					DL_VITALITY_REFRESH_RATE, new TimerEventPerformer() {
   						public void perform(TimerEvent event) {
-  							SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+  							SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
   							SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
   							for (int i = 0; i < vitalityImages.length; i++) {
   								SideBarVitalityImage vitalityImage = vitalityImages[i];
@@ -406,7 +406,7 @@ public class SBC_LibraryView
 				return null;
 			}
 		};
-		SideBarEntrySWT infoCD = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		SideBarEntrySWT infoCD = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		if (infoCD != null) {
 			SideBarVitalityImage vitalityImage = infoCD.addVitalityImage(ID_VITALITY_ALERT);
 			vitalityImage.setVisible(false);
@@ -414,7 +414,7 @@ public class SBC_LibraryView
 			infoCD.setTitleInfo(titleInfoSeeding);
 		}
 
-		SideBarEntrySWT infoLibraryUn = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		SideBarEntrySWT infoLibraryUn = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
 		if (infoLibraryUn != null) {
 			infoLibraryUn.setTitleInfo(new ViewTitleInfo() {
 				public Object getTitleInfoProperty(int propertyID) {
@@ -653,7 +653,7 @@ public class SBC_LibraryView
 	 * @since 3.1.1.1
 	 */
 	protected static void refreshAllLibraries() {
-		SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
+		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL);
 		SideBarVitalityImage[] vitalityImages = entry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImage vitalityImage = vitalityImages[i];
@@ -671,7 +671,7 @@ public class SBC_LibraryView
 		}
 		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
 
-		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
+		entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_CD);
 		vitalityImages = entry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImage vitalityImage = vitalityImages[i];
@@ -683,7 +683,7 @@ public class SBC_LibraryView
 			}
 		}
 
-		entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
+		entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED);
 		ViewTitleInfoManager.refreshTitleInfo(entry.getTitleInfo());
 	}
 

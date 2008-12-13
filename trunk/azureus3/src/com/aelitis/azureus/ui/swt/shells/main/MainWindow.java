@@ -819,7 +819,7 @@ public class MainWindow
 								if (sideBar == null) {
 									return;
 								}
-								sideBar.showItemByTabID(args[0]);
+								sideBar.showEntryByTabID(args[0]);
 
 								if (uif != null) {
 
@@ -878,7 +878,7 @@ public class MainWindow
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
 					if (showWelcome && startAdv) {
-						sidebar.showItemByID(SideBar.SIDEBAR_SECTION_WELCOME);
+						sidebar.showEntryByID(SideBar.SIDEBAR_SECTION_WELCOME);
 					}
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
@@ -887,7 +887,7 @@ public class MainWindow
 								+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
   				}
 				}
-				sidebar.showItemByID(startTab);
+				sidebar.showEntryByID(startTab);
 			}
 		});
 
@@ -1010,7 +1010,7 @@ public class MainWindow
 		try {
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
-				SideBarEntrySWT curEntry = sidebar.getCurrentSideBarInfo();
+				SideBarEntrySWT curEntry = sidebar.getCurrentEntry();
 				if (curEntry == null) {
 					return "none";
 				} else {
@@ -1926,7 +1926,7 @@ public class MainWindow
 				entry.setImageLeftID("image.sidebar.search");
 			}
 		}
-		sidebar.showItemByID(id);
+		sidebar.showEntryByID(id);
 	}
 
 	/**
@@ -2007,7 +2007,7 @@ public class MainWindow
 
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sideBar != null) {
-			sideBar.showItemByID(SideBar.SIDEBAR_SECTION_ADVANCED);
+			sideBar.showEntryByID(SideBar.SIDEBAR_SECTION_ADVANCED);
 		}
 
 		SkinView skinView = SkinViewManager.getByClass(SBC_AdvancedView.class);
@@ -2074,13 +2074,13 @@ public class MainWindow
 		}
 
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-		String id = sideBar.showItemByTabID(target);
+		String id = sideBar.showEntryByTabID(target);
 		if (id == null) {
 			Utils.launch(url);
 			return;
 		}
 		
-		SideBarEntrySWT entry = SideBar.getSideBarInfo(id);
+		SideBarEntrySWT entry = SideBar.getEntry(id);
 		entry.addListener(new SideBarOpenListener() {
 		
 			public void sideBarEntryOpen(SideBarEntrySWT entry) {
@@ -2265,7 +2265,7 @@ public class MainWindow
 
 		IView viewFromID = sideBar.getIViewFromID(id);
 		if (viewFromID != null) {
-			sideBar.showItemByID(id);
+			sideBar.showEntryByID(id);
 		}
 
 		final String _id = id;
@@ -2283,7 +2283,7 @@ public class MainWindow
 							Debug.out(e);
 						}
 					} else {
-						if (sideBar.showItemByID(_id)) {
+						if (sideBar.showEntryByID(_id)) {
 							return;
 						}
 						if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
@@ -2298,7 +2298,7 @@ public class MainWindow
 							sideBar.createTreeItemFromIViewClass(parentID, _id, null, cla,
 									null, null, data, null, true);
 						}
-						sideBar.showItemByID(_id);
+						sideBar.showEntryByID(_id);
 					}
 				}
 			}
@@ -2311,7 +2311,7 @@ public class MainWindow
 		if (sideBar == null) {
 			return false;
 		}
-		SideBarEntrySWT currentSB = sideBar.getCurrentSideBarInfo();
+		SideBarEntrySWT currentSB = sideBar.getCurrentEntry();
 		if (currentSB == null) {
 			return false;
 		}

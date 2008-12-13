@@ -66,6 +66,14 @@ public class Browse
 	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
+		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		if (sidebar != null) {
+			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
+			if (entry != null) {
+				entry.addListener(this);
+			}
+		}
+
 		return super.skinObjectCreated(skinObject, params);
 	}
 
@@ -93,11 +101,8 @@ public class Browse
 		
 		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
-			final SideBarEntrySWT entry = sidebar.getSideBarEntry(this);
+			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
 			if (entry != null) {
-				
-				entry.addListener(this);
-				
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
 				
@@ -160,11 +165,11 @@ public class Browse
     		menuItem.addListener(new MenuItemListener() {
     			public void selected(MenuItem menu, Object target) {
     				if (sidebar != null) {
-    					final SideBarEntrySWT entry = sidebar.getSideBarEntry(Browse.this);
+    					final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
     					if (entry != null) {
     						entry.removeListener(Browse.this);
     					}
-    					sidebar.closeSideBar(ContentNetworkUtils.getTarget(contentNetwork));
+    					sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
     				}
     				contentNetwork.remove();
     			}
@@ -176,11 +181,11 @@ public class Browse
   					contentNetwork.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
   							Boolean.FALSE);
     				if (sidebar != null) {
-    					final SideBarEntrySWT entry = sidebar.getSideBarEntry(Browse.this);
+    					final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
     					if (entry != null) {
     						entry.removeListener(Browse.this);
     					}
-    					sidebar.closeSideBar(ContentNetworkUtils.getTarget(contentNetwork));
+    					sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
     				}
     			}
     		});

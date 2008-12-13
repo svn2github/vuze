@@ -169,7 +169,7 @@ public class SBC_ActivityView
 		}
 
 		
-		SideBarEntrySWT entry = SideBar.getSideBarInfo(SideBar.SIDEBAR_SECTION_ACTIVITIES);
+		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_ACTIVITIES);
 		if (entry != null) {
 			entry.setLogID(SideBar.SIDEBAR_SECTION_ACTIVITIES + "-" + viewMode);
 		}

@@ -48,7 +48,7 @@ public class SideBarToolTips
 
 	private final SideBar sidebar;
 
-	private SideBarEntrySWT sideBarInfo;
+	private SideBarEntrySWT sidebarEntry;
 
 	private Point lastMouseHoverPos;
 
@@ -109,7 +109,7 @@ public class SideBarToolTips
 			return;
 		}
 		String id = (String) treeItem.getData("Plugin.viewID");
-		sideBarInfo = SideBar.getSideBarInfo(id);
+		sidebarEntry = SideBar.getEntry(id);
 
 		String sToolTip = getToolTip(mousePos);
 		if (sToolTip == null) {
@@ -190,7 +190,7 @@ public class SideBarToolTips
 	 * @since 3.1.1.1
 	 */
 	private String getToolTip(Point mousePos) {
-		SideBarVitalityImage[] vitalityImages = sideBarInfo.getVitalityImages();
+		SideBarVitalityImage[] vitalityImages = sidebarEntry.getVitalityImages();
 		for (int i = 0; i < vitalityImages.length; i++) {
 			SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
 			String indicatorToolTip = vitalityImage.getToolTip();
@@ -206,8 +206,8 @@ public class SideBarToolTips
 			}
 		}
 
-		if (sideBarInfo.titleInfo != null) {
-			return (String) sideBarInfo.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
+		if (sidebarEntry.titleInfo != null) {
+			return (String) sidebarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP);
 		}
 
 		return null;
@@ -223,7 +223,7 @@ public class SideBarToolTips
 		if (toolTipLabel == null || toolTipLabel.isDisposed()) {
 			return;
 		}
-		if (sideBarInfo == null || sideBarInfo.titleInfo == null) {
+		if (sidebarEntry == null || sidebarEntry.titleInfo == null) {
 			return;
 		}
 		String sToolTip = getToolTip(lastMouseHoverPos);

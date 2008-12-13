@@ -221,7 +221,7 @@ public class UIFunctionsImpl
   					id = id.substring(i + 1);
   				}
 				}
-				sideBar.closeSideBar(id);
+				sideBar.closeEntry(id);
 			}
 
 		} catch (Exception e) {
@@ -241,7 +241,7 @@ public class UIFunctionsImpl
 			SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 			if (sideBarView instanceof SideBar) {
 				SideBar sideBar = (SideBar) sideBarView;
-				sideBar.closeSideBar(sViewID);
+				sideBar.closeEntry(sViewID);
 			}
 			
 		} catch (Exception e) {
@@ -342,7 +342,7 @@ public class UIFunctionsImpl
 				sideBar.createTreeItemFromEventListener(sidebarParentID, null, l, sViewID,
 						true, dataSource);
 				if (bSetFocus) {
-					sideBar.showItemByID(sViewID);
+					sideBar.showEntryByID(sViewID);
 				}
 			}
 		} catch (Exception e) {
@@ -545,7 +545,7 @@ public class UIFunctionsImpl
 				SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
 				if (sideBar != null) {
-					sideBar.showItemByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+					sideBar.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
 				}
 			}
 				break;
@@ -765,12 +765,12 @@ public class UIFunctionsImpl
 		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;
-			SideBarEntry[] sideBarEntries = sideBar.getSideBarEntries();
+			SideBarEntry[] sideBarEntries = sideBar.getEntries();
 			for (int i = 0; i < sideBarEntries.length; i++) {
 				SideBarEntry entry = sideBarEntries[i];
 				String id = entry.getId();
 				if (id != null && id.startsWith("DMDetails_")) {
-					sideBar.closeSideBar(id);
+					sideBar.closeEntry(id);
 				}
 			}
 		}
@@ -786,7 +786,7 @@ public class UIFunctionsImpl
 		SkinView sideBarView = SkinViewManager.getByClass(SideBar.class);
 		if (sideBarView instanceof SideBar) {
 			SideBar sideBar = (SideBar) sideBarView;
-			SideBarEntry[] sideBarEntries = sideBar.getSideBarEntries();
+			SideBarEntry[] sideBarEntries = sideBar.getEntries();
 			for (int i = 0; i < sideBarEntries.length; i++) {
 				SideBarEntry entry = sideBarEntries[i];
 				String id = entry.getId();
