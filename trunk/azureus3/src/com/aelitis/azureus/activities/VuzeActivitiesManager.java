@@ -721,14 +721,20 @@ public class VuzeActivitiesManager
 		saveEvents();
 	}
 
+	public static VuzeActivitiesEntry createEntryFromMap(Map map,
+			boolean internalMap) {
+		return createEntryFromMap(ContentNetwork.CONTENT_NETWORK_VUZE, map,
+				internalMap);
+	}
+
 	/**
 	 * @param map
 	 * @return
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeActivitiesEntry createEntryFromMap(Map map,
-			boolean internalMap) {
+	public static VuzeActivitiesEntry createEntryFromMap(
+			long defaultContentNetworkID, Map map, boolean internalMap) {
 		VuzeActivitiesEntry entry;
 		String typeID = MapUtils.getMapString(map, "typeID", MapUtils.getMapString(
 				map, "type-id", null));
@@ -741,6 +747,7 @@ public class VuzeActivitiesManager
 		} else {
 			entry = new VuzeActivitiesEntry();
 		}
+		entry.setContentNetworkID(defaultContentNetworkID);
 		if (internalMap) {
 			entry.loadFromInternalMap(map);
 		} else {

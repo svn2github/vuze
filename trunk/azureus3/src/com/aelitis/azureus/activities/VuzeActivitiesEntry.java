@@ -89,7 +89,7 @@ public class VuzeActivitiesEntry
 
 	private GlobalManagerAdapter globalManagerAdapter;
 	
-	private long contentNetworkID;
+	private long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
@@ -172,7 +172,7 @@ public class VuzeActivitiesEntry
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
 		setContentNetworkID(MapUtils.getMapLong(map, "contentNetworkID",
-				ContentNetwork.CONTENT_NETWORK_VUZE));
+				contentNetworkID));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
