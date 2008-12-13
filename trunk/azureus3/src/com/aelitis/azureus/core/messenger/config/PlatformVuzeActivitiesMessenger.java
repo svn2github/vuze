@@ -43,7 +43,7 @@ public class PlatformVuzeActivitiesMessenger
 
 	public static final long DEFAULT_RETRY_MS = 1000L * 60 * 60 * 24;
 
-	public static void getEntries(long contentNetworkID, final long agoMS,
+	public static void getEntries(final long contentNetworkID, final long agoMS,
 			long maxDelayMS, final GetEntriesReplyListener replyListener) {
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID, OP_GET,
 				new Object[] {
@@ -73,7 +73,7 @@ public class PlatformVuzeActivitiesMessenger
 							}
 							
 							entries[i] = VuzeActivitiesManager.createEntryFromMap(
-									platformEntry, false);
+									contentNetworkID, platformEntry, false);
 							if (entries[i] != null) {
 								i++;
 							}
