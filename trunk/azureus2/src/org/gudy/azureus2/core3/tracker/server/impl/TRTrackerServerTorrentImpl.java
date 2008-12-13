@@ -321,7 +321,7 @@ TRTrackerServerTorrentImpl
 					
 					if ( ip_override && !old_peer.isIPOverride()){
 						
-						throw( new TRTrackerServerException( "IP Override denied (existing is not override)" ));
+						throw( new TRTrackerServerException( "IP Override denied (existing '" + reuse_key + "' is not override)" ));
 					}
 					
 					last_contact_time	= old_peer.getLastContactTime();
