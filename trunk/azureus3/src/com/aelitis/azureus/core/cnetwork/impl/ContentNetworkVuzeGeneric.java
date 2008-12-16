@@ -185,7 +185,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
 		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
 		 		
-		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start" );
+		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start?" );
 		addService( SERVICE_GET_ICON,			URL_ICON );
 
 		if ( URL_RELAY_RPC != null ){
