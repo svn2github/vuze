@@ -193,9 +193,9 @@ public class SideBar
 
 	private Image lastImage;
 
-	private Image imgUntwist;
+	//private Image imgUntwist;
 
-	private Image imgTwist;
+	//private Image imgTwist;
 
 	private Shell shellFade;
 
@@ -292,8 +292,8 @@ public class SideBar
 		imageLoader = skin.getImageLoader(skinObject.getProperties());
 		imgClose = imageLoader.getImage("image.sidebar.closeitem");
 		imgCloseSelected = imageLoader.getImage("image.sidebar.closeitem-selected");
-		imgTwist = imageLoader.getImage("image.sidebar.twist");
-		imgUntwist = imageLoader.getImage("image.sidebar.untwist");
+		//imgTwist = imageLoader.getImage("image.sidebar.twist");
+		//imgUntwist = imageLoader.getImage("image.sidebar.untwist");
 
 		// addTestMenus();
 
@@ -483,6 +483,13 @@ public class SideBar
 		} catch (Exception e) {
 			Debug.out(e);
 		}
+
+		imageLoader = skin.getImageLoader(skinObject.getProperties());
+		if (imageLoader != null) {
+			imageLoader.releaseImage("image.sidebar.closeitem");
+			imageLoader.releaseImage("image.sidebar.closeitem-selected");
+		}
+
 		return null;
 	}
 
@@ -1066,8 +1073,11 @@ public class SideBar
 			}
 		}
 
-		Image imageLeft = sideBarEntry.getImageLeft(selected ? "-selected" : null);
+		String suffix = selected ? "-selected" : null;
+		Image imageLeft = sideBarEntry.getImageLeft(suffix);
 		if (imageLeft == null && selected) {
+			sideBarEntry.releaseImageLeft(suffix);
+			suffix = null;
 			imageLeft = sideBarEntry.getImageLeft(null);
 		}
 		if (imageLeft != null) {
@@ -1078,6 +1088,7 @@ public class SideBar
 			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
 					itemBounds.height);
 			gc.drawImage(imageLeft, x, y);
+			sideBarEntry.releaseImageLeft(suffix);
 			gc.setClipping(clipping);
 			//			0, 0, bounds.width, bounds.height,
 			//					x0IndicatorOfs, itemBounds.y

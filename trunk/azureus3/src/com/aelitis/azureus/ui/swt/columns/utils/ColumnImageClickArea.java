@@ -87,12 +87,22 @@ public class ColumnImageClickArea
 	 * @since 3.0.1.5
 	 */
 	public void setImageID(String imageID) {
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		if (imgOver != null) {
+			imageLoader.releaseImage(this.imageID + "-over");
+		}
+		if (imgOnRow != null) {
+			imageLoader.releaseImage(this.imageID + "-mouseonrow");
+		}
+		if (imgOffRow != null) {
+			imageLoader.releaseImage(this.imageID);
+		}
+
 		this.imageID = imageID;
 		if (imageID == null) {
 			imgOffRow = null;
 			imgOnRow = null;
 		} else {
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 			imgOnRow = imageLoader.getImage(imageID + "-mouseonrow");
 			imgOver = imageLoader.getImage(imageID + "-over");
 			imgOffRow = imageLoader.getImage(imageID);

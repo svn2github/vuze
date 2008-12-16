@@ -176,6 +176,7 @@ public class SubscriptionsView
 		if(textFont2 != null && ! textFont2.isDisposed()) {
 			textFont2.dispose();
 		}
+		ImageLoaderFactory.getInstance().releaseImage("image.dismissX");
 	}
 	
 	public void generateDiagnostics(IndentWriter writer) {

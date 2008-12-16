@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinProperties;
@@ -47,9 +48,12 @@ import com.aelitis.azureus.ui.skin.SkinProperties;
  *
  */
 public class ImageLoader
+	implements AEDiagnosticsEvidenceGenerator
 {
 
 	private static final boolean DEBUG_UNLOAD = false;
+
+	private static final boolean DEBUG_REFCOUNT = false;
 
 	private final String[] sSuffixChecks = {
 		"-over",
@@ -64,7 +68,7 @@ public class ImageLoader
 
 	private final Map<String, imageInfo> mapImages;
 
-	private final ArrayList notFound;
+	private final ArrayList<String> notFound;
 
 	private SkinProperties skinProperties;
 
@@ -100,6 +104,7 @@ public class ImageLoader
 		this.skinProperties = skinProperties;
 		disabledOpacity = skinProperties.getIntValue(
 				"imageloader.disabled-opacity", -1);
+		AEDiagnostics.addEvidenceGenerator(this);
 	}
 
 	private Image loadImage(Display display, String key) {
@@ -274,7 +279,8 @@ public class ImageLoader
 
 				if (img == null) {
 					if (sKey.endsWith("-disabled") || sKey.endsWith("_disabled")) {
-						Image imgToFade = getImage(sKey.substring(0, sKey.length() - 9));
+						String id = sKey.substring(0, sKey.length() - 9);
+						Image imgToFade = getImage(id);
 						if (isRealImage(imgToFade)) {
 							ImageData imageData = imgToFade.getImageData();
 							// decrease alpha
@@ -301,6 +307,7 @@ public class ImageLoader
 								bg.dispose();
 							}
 						}
+						releaseImage(id);
 					}
 					//System.err.println("ImageRepository:loadImage:: Resource not found: " + res);
 				}
@@ -352,6 +359,10 @@ public class ImageLoader
 		imageInfo imageInfo = mapImages.get(sKey);
 		if (imageInfo != null && imageInfo.images != null) {
 			imageInfo.refcount++;
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: ++ refcount of " + sKey + " now "
+						+ imageInfo.refcount + " via " + Debug.getCompressedStackTrace());
+			}
 			return imageInfo.images;
 		}
 
@@ -374,7 +385,7 @@ public class ImageLoader
 		} else {
 			images = parseValuesString(sKey, locations, "");
 		}
-		
+
 		mapImages.put(sKey, new imageInfo(images));
 
 		return images;
@@ -387,11 +398,15 @@ public class ImageLoader
 		}
 		return images[0];
 	}
-	
+
 	public void releaseImage(String sKey) {
 		imageInfo imageInfo = mapImages.get(sKey);
 		if (imageInfo != null) {
 			imageInfo.refcount--;
+			if (DEBUG_REFCOUNT) {
+				System.out.println("ImageLoader: -- refcount of " + sKey + " now "
+						+ imageInfo.refcount + " via " + Debug.getCompressedStackTrace());
+			}
 			// TODO: cleanup
 		}
 	}
@@ -423,5 +438,51 @@ public class ImageLoader
 
 	public int getAnimationDelay(String sKey) {
 		return skinProperties.getIntValue(sKey + ".delay", 100);
+	}
+
+	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	public void generate(IndentWriter writer) {
+
+		writer.println("ImageLoader for " + skinProperties);
+		writer.indent();
+		long sizeCouldBeFree = 0;
+		long totalSizeEstimate = 0;
+		try {
+			writer.indent();
+			try {
+				for (String key : mapImages.keySet()) {
+					imageInfo info = mapImages.get(key);
+					String line = key + ": " + info.refcount;
+					if (Utils.isThisThreadSWT()) {
+						long sizeEstimate = 0;
+						for (int i = 0; i < info.images.length; i++) {
+							Image img = info.images[i];
+							if (img != null) {
+								Rectangle bounds = img.getBounds();
+								long est = bounds.width * bounds.height * 4l;
+								sizeEstimate += est;
+								totalSizeEstimate += est;
+								if (info.refcount == 0) {
+									sizeCouldBeFree += est;
+								}
+							}
+						}
+						line += "; est " + sizeEstimate + " bytes";
+					}
+					writer.println(line);
+				}
+			} finally {
+				writer.exdent();
+			}
+			if (totalSizeEstimate > 0) {
+				writer.println((totalSizeEstimate / 1024)
+						+ "k estimated used for images");
+			}
+			if (sizeCouldBeFree > 0) {
+				writer.println((sizeCouldBeFree / 1024) + "k could be freed");
+			}
+		} finally {
+			writer.exdent();
+		}
 	}
 }

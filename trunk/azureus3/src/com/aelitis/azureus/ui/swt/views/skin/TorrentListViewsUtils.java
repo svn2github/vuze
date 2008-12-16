@@ -665,6 +665,8 @@ public class TorrentListViewsUtils
   					mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
   
   					result = mb.open();
+
+  					ImageLoaderFactory.getInstance().releaseImage("image.trash");
 						if (numLeft > 1 && mb.isRemembered()) {
 							doAllAs = result;
 						}
@@ -738,6 +740,8 @@ public class TorrentListViewsUtils
 			mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
 
 			int result = mb.open();
+			ImageLoaderFactory.getInstance().releaseImage("image.trash");
+
 			if (result == 1 || result == 2) {
 				if (result == 2) {
 					deleteData = false;

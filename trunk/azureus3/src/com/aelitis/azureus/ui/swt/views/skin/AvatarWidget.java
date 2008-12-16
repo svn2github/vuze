@@ -17,7 +17,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -844,6 +843,14 @@ public class AvatarWidget
 
 			}
 		});
+		
+		canvas.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (image != null && vuzeBuddy != null) {
+					vuzeBuddy.releaseAvatarImage(image);
+				}
+			}
+		});
 
 //		canvas.addListener(SWT.Move, new Listener() {
 //			public void handleEvent(Event arg0) {
@@ -1171,6 +1178,9 @@ public class AvatarWidget
 	}
 
 	public void refreshVisual() {
+		if (image != null) {
+			vuzeBuddy.releaseAvatarImage(image);
+		}
 
 		/*
 		 * Resets the image and image bounds since this is the only info cached;
@@ -1220,6 +1230,12 @@ public class AvatarWidget
 			if (chatWindow != null && !chatWindow.isDisposed()) {
 				chatWindow.close();
 			}
+			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			imageLoader.releaseImage("image.buddy.remove");
+			imageLoader.releaseImage("image.buddy.add.to.share");
+			imageLoader.releaseImage("image.buddy.remove-over");
+			imageLoader.releaseImage("image.buddy.add.to.share-selected");
+
 			if (true == animate) {
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
@@ -1298,10 +1314,6 @@ public class AvatarWidget
 
 	public Image getAvatarImage() {
 		return image;
-	}
-
-	public void setAvatarImage(Image avatarImage) {
-		this.image = avatarImage;
 	}
 
 	public Color getImageBorderColor() {

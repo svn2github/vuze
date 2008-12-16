@@ -133,6 +133,16 @@ public class SideBarVitalityImageSWT
 
 		this.sideBarEntry = entry;
 		
+		entry.addListener(new SideBarCloseListener() {
+		
+			public void sidebarClosed(SideBarEntrySWT entry) {
+				ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+				if (fullImageID != null) {
+					imageLoader.releaseImage(fullImageID);
+				}
+			}
+		});
+		
 		setImageID(imageID);
 	}
 
@@ -261,14 +271,18 @@ public class SideBarVitalityImageSWT
 	}
 
 	public void setImageID(String id) {
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		if (fullImageID != null) {
+			imageLoader.releaseImage(fullImageID);
+		}
 		String newFullImageID = id + suffix;
 		if (newFullImageID.equals(fullImageID)) {
 			return;
 		}
 		this.imageID = id;
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 		images = imageLoader.getImages(newFullImageID);
 		if (images == null || images.length == 0) {
+			imageLoader.releaseImage(newFullImageID);
 			newFullImageID = id;
 			images = imageLoader.getImages(id);
 		}

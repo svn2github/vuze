@@ -42,6 +42,7 @@ import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
  */
 public class ContentNetworkUI
 {
+	// If we ever clear mapImages, don't forget to ImageLoderFactory.releaseImage if needed
 	public static Map<Long, Image> mapImages = new HashMap();
 
 	/**
@@ -116,9 +117,12 @@ public class ContentNetworkUI
 		} else if (contentNetworkID == ContentNetwork.CONTENT_NETWORK_VUZE
 				&& cnImageLoadedListener != null) {
 			image = ImageLoaderFactory.getInstance().getImage("image.sidebar.vuze");
+			mapImages.put(new Long(contentNetworkID), image);
 			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
 		}
 	}
+	
+	
 
 	public static interface ContentNetworkImageLoadedListener
 	{

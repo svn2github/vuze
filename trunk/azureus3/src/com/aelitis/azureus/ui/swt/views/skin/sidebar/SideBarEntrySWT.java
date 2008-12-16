@@ -314,6 +314,12 @@ public class SideBarEntrySWT implements SideBarEntry
 		return null;
 	}
 	
+	public void releaseImageLeft(String suffix) {
+		if (imageLeft != null) {
+			ImageLoaderFactory.getInstance().releaseImage(imageLeftID + suffix);
+		}
+	}
+	
 	public void addListener(SideBarCloseListener l) {
 		if (listCloseListeners == Collections.EMPTY_LIST) {
 			listCloseListeners = new ArrayList(1);

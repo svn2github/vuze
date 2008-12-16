@@ -32,6 +32,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 /**
@@ -48,6 +49,8 @@ public class VuzeBuddySWTImpl
 	private boolean needsImageRebuilt = true;
 
 	private boolean ourAvatarImage;
+	
+	private String avatarImageRefId;
 
 	/**
 	 * 
@@ -71,14 +74,19 @@ public class VuzeBuddySWTImpl
 			
 			byte[] avatarBytes = getAvatar();
 			if (avatarBytes == null) {
+				ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 				try {
-					avatarImage = ImageLoaderFactory.getInstance().getImage(
-							"image.buddy.default.avatar");
+					avatarImageRefId = "image.buddy.default.avatar"; 
+					avatarImage = imageLoader.getImage(avatarImageRefId);
 				} catch (Exception e) {
+					imageLoader.releaseImage(avatarImageRefId);
+					avatarImageRefId = null;
 					avatarImage = ImageRepository.getImage("azureus64");
 				}
 				ourAvatarImage = false;
 			} else {
+				// 4010 TODO: store built image in imageLoader so it can be
+				//            auto-disposed when no references
 				Display display = Utils.getDisplay();
 				if (display == null) {
 					return null;
@@ -107,6 +115,13 @@ public class VuzeBuddySWTImpl
 		
 		return avatarImage;
 	}
+	
+	public void releaseAvatarImage(Image image) {
+		if (image == avatarImage && avatarImageRefId != null) {
+			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			imageLoader.releaseImage(avatarImageRefId);
+		}
+	}
 
 	public void setAvatarImage(final Image avatarImage) {
 		disposeOldAvatarImage();
@@ -117,7 +132,7 @@ public class VuzeBuddySWTImpl
 		if (avatarImage != null) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					ImageLoader loader = new ImageLoader();
+					org.eclipse.swt.graphics.ImageLoader loader = new org.eclipse.swt.graphics.ImageLoader();
 					ByteArrayOutputStream os = new ByteArrayOutputStream();
 					loader.data = new ImageData[] {
 						avatarImage.getImageData()

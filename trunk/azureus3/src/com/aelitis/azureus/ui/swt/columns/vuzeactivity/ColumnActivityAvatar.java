@@ -83,6 +83,7 @@ public class ColumnActivityAvatar
 					gc.drawImage(imgAvatar, 0, 0, imgBounds.width, imgBounds.height,
 							cellBounds.x + ((cellBounds.width - dstWidth) / 2), cellBounds.y
 									+ ((cellBounds.height - dstWidth) / 2), dstWidth, dstHeight);
+					buddySWT.releaseAvatarImage(imgAvatar);
 				}
 			}
 

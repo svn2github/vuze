@@ -4,6 +4,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -96,6 +97,8 @@ public class SWTSkinObjectBasic
 	protected boolean customTooltipID = false;
 
 	private Listener resizeBGListener;
+	
+	private String[] imagesToRelease = null;
 
 	/**
 	 * @param properties TODO
@@ -168,7 +171,7 @@ public class SWTSkinObjectBasic
 				}
 			}
 		};
-
+		
 		this.control = control;
 		control.setData("ConfigID", sConfigID);
 		control.setData("SkinObject", this);
@@ -226,6 +229,16 @@ public class SWTSkinObjectBasic
 				disposed = true;
 				shell.removeListener(SWT.Show, lShowHide);
 				shell.removeListener(SWT.Hide, lShowHide);
+
+				ImageLoader imageLoader = skin.getImageLoader(properties);
+				if (imagesToRelease != null && imageLoader != null) {
+					for (int i = 0; i < imagesToRelease.length; i++) {
+						String key = imagesToRelease[i];
+						imageLoader.releaseImage(key);
+					}
+					imagesToRelease = null;
+				}
+
 				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
@@ -296,24 +309,49 @@ public class SWTSkinObjectBasic
 		if (sConfigID == null) {
 			return;
 		}
-
+		
 		ImageLoader imageLoader = skin.getImageLoader(properties);
+
+		if (imagesToRelease != null) {
+			for (int i = 0; i < imagesToRelease.length; i++) {
+				String key = imagesToRelease[i];
+				imageLoader.releaseImage(key);
+			}
+			imagesToRelease = null;
+		}
+
 		String s = properties.getStringValue(sConfigID + sSuffix, (String) null);
 		if (s != null && s.length() > 0) {
 			Image[] images = imageLoader.getImages(sConfigID + sSuffix);
 			if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
+				imagesToRelease = new String[] {
+					sConfigID + sSuffix,
+					sConfigID + sSuffix + "-left",
+					sConfigID + sSuffix + "-right",
+				};
+
 				imageBG = images[0];
-				imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+				imageBGLeft = imageLoader.getImage(imagesToRelease[1]);
+				imageBGRight = imageLoader.getImage(imagesToRelease[2]);
 			} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
+				imagesToRelease = new String[] {
+					sConfigID + sSuffix,
+				};
 				imageBGLeft = images[0];
 				imageBG = images[1];
 				imageBGRight = images[2];
 			} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
+				imagesToRelease = new String[] {
+					sConfigID + sSuffix,
+					sConfigID + sSuffix + "-right",
+				};
 				imageBGLeft = images[0];
 				imageBG = images[1];
-				imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+				imageBGRight = imageLoader.getImage(imagesToRelease[1]);
 			} else {
+				imagesToRelease = new String[] {
+					sConfigID + sSuffix,
+				};
 				//if (sSuffix.length() > 0) {
 				//	setBackground(sConfigID, "");
 				//}

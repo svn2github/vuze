@@ -72,7 +72,8 @@ public class ColumnActivityType
 		Image imgIcon;
 		if (entry.getIconID() != null) {
 			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
-			imgIcon = imageLoader.getImage(entry.getIconID());
+			String iconID = entry.getIconID();
+			imgIcon = imageLoader.getImage(iconID);
 			if (ImageLoader.isRealImage(imgIcon)) {
 				Rectangle cellBounds = cell.getBounds();
 				Rectangle imgBounds = imgIcon.getBounds();
@@ -80,6 +81,7 @@ public class ColumnActivityType
 						+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
 						+ ((cellBounds.height - imgBounds.height) / 2));
 			}
+			imageLoader.releaseImage(iconID);
 		}
 	}
 

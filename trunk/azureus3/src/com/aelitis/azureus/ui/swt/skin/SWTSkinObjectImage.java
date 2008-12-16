@@ -4,8 +4,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
@@ -42,6 +41,8 @@ public class SWTSkinObjectImage
 	private boolean customImage;
 
 	private String customImageID;
+	
+	private String currentImageID;
 
 	private static PaintListener paintListener;
 
@@ -181,6 +182,7 @@ public class SWTSkinObjectImage
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
 		if (!ImageLoader.isRealImage(image)) {
+			imageLoader.releaseImage(sImageID);
 			sImageID = sConfigID + ".image";
 			image = imageLoader.getImage(sImageID);
 		}
@@ -188,6 +190,17 @@ public class SWTSkinObjectImage
 		if (ImageLoader.isRealImage(image)) {
 			setLabelImage(sConfigID, sImageID, null);
 		}
+		imageLoader.releaseImage(sImageID);
+		
+		label.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				String oldImageID = (String) label.getData("ImageID");
+				ImageLoader imageLoader = skin.getImageLoader(properties);
+				if (oldImageID != null) {
+					imageLoader.releaseImage(oldImageID);
+				}
+			}
+		});
 
 		//		SWTBGImagePainter painter = (SWTBGImagePainter) parent.getData("BGPainter");
 		//		if (painter != null) {
@@ -212,11 +225,17 @@ public class SWTSkinObjectImage
 					return null;
 				}
 
-				if (sImageID != null && sImageID.equals(label.getData("ImageID"))) {
+				String oldImageID = (String) label.getData("ImageID");
+				if (sImageID != null && sImageID.equals(oldImageID)) {
 					return label.getImage();
 				}
 
 				ImageLoader imageLoader = skin.getImageLoader(properties);
+				
+				if (oldImageID != null) {
+					imageLoader.releaseImage(oldImageID);
+				}
+
 				Image[] images = sImageID == null || sImageID.length() == 0 ? null
 						: imageLoader.getImages(sImageID);
 				
@@ -302,12 +321,12 @@ public class SWTSkinObjectImage
 				} else {
 					Image oldImage = label.getImage();
 					label.setImage(image);
-					label.setData("ImageID", sImageID);
 					if (oldImage == null || image == null
 							|| !oldImage.getBounds().equals(image.getBounds())) {
 						Utils.relayout(label);
 					}
 				}
+				label.setData("ImageID", sImageID);
 
 				label.redraw();
 
@@ -338,23 +357,21 @@ public class SWTSkinObjectImage
 		
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image image = imageLoader.getImage(sImageID);
-		if (!ImageLoader.isRealImage(image)) {
+		boolean imageExists = imageLoader.imageExists(sImageID); 
+		if (!imageExists) {
 			for (int i = suffixes.length - 1; i >= 0; i--) {
 				String suffixToRemove = suffixes[i];
 				if (suffixToRemove != null) {
 					sImageID = sImageID.substring(0, sImageID.length() - suffixToRemove.length());
-					image = imageLoader.getImage(sImageID);
-					if (ImageLoader.isRealImage(image)) {
+					if (imageLoader.imageExists(sImageID)) {
+						imageExists = true;
 						break;
 					}
 				}
 			}
 		}
-		if (debug) {
-			System.out.println(sImageID + image + ";" + ImageLoader.isRealImage(image));
-		}
-		if (image != ImageLoader.noImage) {
+
+		if (imageExists) {
 			setLabelImage(sImageID, null);
 		}
 		return suffix;
@@ -397,6 +414,7 @@ public class SWTSkinObjectImage
 		} else {
 			setLabelImage(sConfigID, sConfigID, callback);
 		}
+		imageLoader.releaseImage(sImageID);
 		return;
 	}
 }

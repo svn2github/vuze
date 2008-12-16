@@ -30,7 +30,20 @@ import com.aelitis.azureus.buddy.VuzeBuddy;
 public interface VuzeBuddySWT
 	extends VuzeBuddy
 {
+	/**
+	 * After using, please {@link #releaseAvatarImage(Image)}
+	 * @return
+	 *
+	 * @since 4.0.0.5
+	 */
 	Image getAvatarImage();
 
 	void setAvatarImage(Image avatarImage);
+
+	/**
+	 * @param image
+	 *
+	 * @since 4.0.0.5
+	 */
+	void releaseAvatarImage(Image image);
 }

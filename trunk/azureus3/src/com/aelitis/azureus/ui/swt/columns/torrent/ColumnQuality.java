@@ -58,20 +58,24 @@ public class ColumnQuality
 		TOTorrent torrent = DataSourceUtils.getTorrent(cell.getDataSource());
 
 		String quality = PlatformTorrentUtils.getContentQuality(torrent);
-		Image img = ImageLoaderFactory.getInstance().getImage(
-				"icon.quality." + quality);
-		if (ImageLoader.isRealImage(img)) {
-			Rectangle imgBounds = img.getBounds();
-
-			if (imgBounds.height <= cellBounds.height) {
-				gc.drawImage(img, cellBounds.x
-						+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
-						+ ((cellBounds.height - imgBounds.height) / 2));
-				return;
-			}
+		String imageID = "icon.quality." + quality;
+		Image img = ImageLoaderFactory.getInstance().getImage(imageID);
+		try {
+  		if (ImageLoader.isRealImage(img)) {
+  			Rectangle imgBounds = img.getBounds();
+  
+  			if (imgBounds.height <= cellBounds.height) {
+  				gc.drawImage(img, cellBounds.x
+  						+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
+  						+ ((cellBounds.height - imgBounds.height) / 2));
+  				return;
+  			}
+  		}
+  		GCStringPrinter.printString(gc, quality, cellBounds, true, false,
+  				SWT.CENTER);
+		} finally {
+			ImageLoaderFactory.getInstance().releaseImage(imageID);
 		}
-		GCStringPrinter.printString(gc, quality, cellBounds, true, false,
-				SWT.CENTER);
 	}
 
 	public void refresh(TableCell cell) {

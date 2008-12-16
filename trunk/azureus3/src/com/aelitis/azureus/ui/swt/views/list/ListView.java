@@ -23,7 +23,9 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
@@ -33,7 +35,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -42,7 +46,9 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
-import org.gudy.azureus2.ui.swt.views.table.utils.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -4003,6 +4009,17 @@ public class ListView
 			headerArea,
 			listCanvas
 		});
+		
+		ImageLoader imgLoader = ImageLoaderFactory.getInstance();
+		if (imgLoader != null) {
+			if (imgSortAsc != null) {
+				imgLoader.releaseImage("image.sort.asc");
+			}
+			if (imgSortDesc != null) {
+				imgLoader.releaseImage("image.sort.desc");
+			}
+		}
+
 		TableColumnManager.getInstance().saveTableColumns(null, sTableID);
 	}
 

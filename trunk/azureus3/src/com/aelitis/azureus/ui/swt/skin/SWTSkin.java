@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -67,7 +68,7 @@ public class SWTSkin
 
 	static boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
 
-	private Map mapImageLoaders = new HashMap();
+	private Map<SkinProperties, ImageLoader> mapImageLoaders = new ConcurrentHashMap<SkinProperties, ImageLoader>();
 
 	private SWTSkinProperties skinProperties;
 
@@ -122,6 +123,7 @@ public class SWTSkin
 		this.skinProperties = skinProperties;
 		ImageLoaderFactory.createInstance(classLoader, Display.getDefault(),
 				skinProperties);
+		mapImageLoaders.put(skinProperties, ImageLoaderFactory.getInstance());
 
 		ontopPaintListener = new Listener() {
 			public void handleEvent(Event event) {
@@ -1541,8 +1543,8 @@ public class SWTSkin
 
 		if (skinObject == null) {
 			if (intoSkinObject == null) {
-				skinObject = new SWTSkinObjectImageContainer(this, properties, sID,
-						sConfigID, parentSkinObject);
+				//skinObject = new SWTSkinObjectImageContainer(this, properties, sID,
+				//		sConfigID, parentSkinObject);
 				addToControlMap(skinObject);
 			} else {
 				skinObject = intoSkinObject;
@@ -1598,7 +1600,7 @@ public class SWTSkin
 	}
 
 	private SWTSkinObject createImageLabel2(SWTSkinProperties properties,
-			String sConfigID, SWTSkinObject parentSkinObject) {
+			final String sConfigID, SWTSkinObject parentSkinObject) {
 		Composite createOn;
 		if (parentSkinObject == null) {
 			createOn = shell;
@@ -1609,10 +1611,22 @@ public class SWTSkin
 		final Canvas drawable = new Canvas(createOn, SWT.NO_BACKGROUND);
 		drawable.setVisible(false);
 
-		ImageLoader imageLoader = getImageLoader(properties);
+		final ImageLoader imageLoader = getImageLoader(properties);
 		Image image = imageLoader.getImage(sConfigID);
 		if (ImageLoader.isRealImage(image)) {
+			imageLoader.releaseImage(sConfigID);
 			image = imageLoader.getImage(sConfigID + ".image");
+			drawable.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					imageLoader.releaseImage(sConfigID + ".image");
+				}
+			});
+		} else {
+			drawable.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					imageLoader.releaseImage(sConfigID);
+				}
+			});
 		}
 		drawable.setData("image", image);
 

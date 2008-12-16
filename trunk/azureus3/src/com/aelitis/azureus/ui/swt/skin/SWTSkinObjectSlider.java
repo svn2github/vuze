@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -30,6 +31,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
@@ -82,18 +84,25 @@ public class SWTSkinObjectSlider
 	private double draggingPercent;
 	
 	private boolean disabled;
+	
+	private List<String> imagesToRelease = new ArrayList<String>();
 
 	public SWTSkinObjectSlider(SWTSkin skin, SWTSkinProperties skinProperties,
 			String sID, String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "slider", parent);
 
 		String sSuffix = ".complete";
-		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image[] images = imageLoader.getImages(sConfigID + sSuffix);
+		final ImageLoader imageLoader = skin.getImageLoader(properties);
+		
+		String imagePrefix = sConfigID + sSuffix;
+		Image[] images = imageLoader.getImages(imagePrefix);
+		imagesToRelease.add(imagePrefix);
 		if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
 			imageFG = images[0];
-			imageFGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-			imageFGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+			imageFGLeft = imageLoader.getImage(imagePrefix + "-left");
+			imageFGRight = imageLoader.getImage(imagePrefix + "-right");
+			imagesToRelease.add(imagePrefix + "-left");
+			imagesToRelease.add(imagePrefix + "-right");
 		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
 			imageFGLeft = images[0];
 			imageFG = images[1];
@@ -105,11 +114,15 @@ public class SWTSkinObjectSlider
 		}
 
 		sSuffix = ".incomplete";
-		images = imageLoader.getImages(sConfigID + sSuffix);
+		imagePrefix = sConfigID + sSuffix;
+		images = imageLoader.getImages(imagePrefix);
+		imagesToRelease.add(imagePrefix);
 		if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
 			imageBG = images[0];
-			imageBGLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-			imageBGRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+			imageBGLeft = imageLoader.getImage(imagePrefix + "-left");
+			imageBGRight = imageLoader.getImage(imagePrefix + "-right");
+			imagesToRelease.add(imagePrefix + "-left");
+			imagesToRelease.add(imagePrefix + "-right");
 		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
 			imageBGLeft = images[0];
 			imageBG = images[1];
@@ -121,11 +134,15 @@ public class SWTSkinObjectSlider
 		}
 
 		sSuffix = ".thumb";
-		images = imageLoader.getImages(sConfigID + sSuffix);
+		imagePrefix = sConfigID + sSuffix;
+		images = imageLoader.getImages(imagePrefix);
+		imagesToRelease.add(imagePrefix);
 		if (images.length == 1) {
 			imageThumb = images[0];
-			imageThumbLeft = imageLoader.getImage(sConfigID + sSuffix + "-left");
-			imageThumbRight = imageLoader.getImage(sConfigID + sSuffix + "-right");
+			imageThumbLeft = imageLoader.getImage(imagePrefix + "-left");
+			imageThumbRight = imageLoader.getImage(imagePrefix + "-right");
+			imagesToRelease.add(imagePrefix + "-left");
+			imagesToRelease.add(imagePrefix + "-right");
 		} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
 			imageThumbLeft = images[0];
 			imageThumb = images[1];
@@ -165,6 +182,18 @@ public class SWTSkinObjectSlider
 				: maxSize.x, maxSize.y));
 		canvas.setSize(SWT.DEFAULT, maxSize.y);
 		setControl(canvas);
+		
+		canvas.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				try {
+  				for (String key : imagesToRelease) {
+  					imageLoader.releaseImage(key);
+  				}
+				} catch (Exception ex) {
+					Debug.out(ex);
+				}
+			}
+		});
 
 		setAlwaysHookPaintListener(true);
 		canvas.addMouseListener(this);
