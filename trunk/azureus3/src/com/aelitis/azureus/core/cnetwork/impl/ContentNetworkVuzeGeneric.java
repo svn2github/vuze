@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
@@ -185,9 +184,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_SITE_RELATIVE,		URL_PREFIX );
 		addService( SERVICE_ADD_FRIEND,			URL_PREFIX + "user/AddFriend.html?" );
 		addService( SERVICE_SUBSCRIPTION,		URL_PREFIX + "xsearch?" );
-		 
-			// HACK for TUX
-		
+		 		
 		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start" );
 		addService( SERVICE_GET_ICON,			URL_ICON );
 
@@ -420,7 +417,8 @@ ContentNetworkVuzeGeneric
 			case SERVICE_PUBLISH:
 			case SERVICE_WELCOME:
 			case SERVICE_LOGOUT:
-			case SERVICE_REGISTER:{
+			case SERVICE_REGISTER:
+			case SERVICE_AUTHORIZE:{
 				
 				 return( base + URL_SUFFIX );
 			}
