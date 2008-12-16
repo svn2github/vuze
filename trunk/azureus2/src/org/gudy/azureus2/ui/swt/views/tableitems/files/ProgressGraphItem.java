@@ -117,7 +117,14 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 			// we want to run through the image part once one the transition from with a disk manager (running)
 			// to without a disk manager (stopped) in order to clear the pieces view
 			boolean running = manager != null;
-			final boolean bImageBufferValid = (lastPercentDone == percentDone) && cell.isValid() && bNoRed && running == was_running;
+			boolean hasGraphic = false;
+			Graphic graphic = cell.getGraphic();
+			if (graphic instanceof UISWTGraphic) {
+				Image img = ((UISWTGraphic) graphic).getImage();
+				hasGraphic = img != null && !img.isDisposed();
+			}
+			final boolean bImageBufferValid = (lastPercentDone == percentDone)
+					&& cell.isValid() && bNoRed && running == was_running && hasGraphic;
 			
 			if (bImageBufferValid)
 				return;
@@ -126,7 +133,6 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 			lastPercentDone = percentDone;
 			Image piecesImage = null;
 			
-			Graphic graphic = cell.getGraphic();
 			if (graphic instanceof UISWTGraphic)
 				piecesImage = ((UISWTGraphic) graphic).getImage();
 			if (piecesImage != null && !piecesImage.isDisposed())
