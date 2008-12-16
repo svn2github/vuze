@@ -211,13 +211,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		startedOn = SystemTime.getCurrentTime();
 
 		pi = _plugin_interface;
-		download_manager = pi.getDownloadManager();
 
-		pi.getPluginconfig().setPluginConfigKeyPrefix("");
+		plugin_config = pi.getPluginconfig();
+
+		plugin_config.setPluginConfigKeyPrefix("");
+
+		download_manager = pi.getDownloadManager();
 
 		// Create a configModel for StartStopRules
 		// We always need to do this in order to set up configuration defaults
 		UIManager manager = pi.getUIManager();
+		
 		// TODO: don't name it Q
 		final BasicPluginConfigModel configModel = manager.createBasicPluginConfigModel(
 				ConfigSection.SECTION_ROOT, "Q");
@@ -255,8 +259,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"Default StartStopRules Plugin Initialisation");
 
 		COConfigurationManager.addListener(this);
-
-		plugin_config = pi.getPluginconfig();
 
 		try {
 			pi.getUIManager().addUIListener(new UIManagerListener() {
