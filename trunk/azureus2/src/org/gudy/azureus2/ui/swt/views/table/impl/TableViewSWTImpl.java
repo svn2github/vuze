@@ -988,9 +988,6 @@ public class TableViewSWTImpl
 
 		table.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent event) {
-				calculateClientArea();
-				visibleRowsChanged();
-
 				Object[] listeners = listenersKey.toArray();
 				for (int i = 0; i < listeners.length; i++) {
 					KeyListener l = (KeyListener) listeners[i];
@@ -1056,6 +1053,9 @@ public class TableViewSWTImpl
 			}
 
 			public void keyReleased(KeyEvent event) {
+				calculateClientArea();
+				visibleRowsChanged();
+
 				Object[] listeners = listenersKey.toArray();
 				for (int i = 0; i < listeners.length; i++) {
 					KeyListener l = (KeyListener) listeners[i];
@@ -1398,6 +1398,13 @@ public class TableViewSWTImpl
 			if (row == null) {
 				//System.out.println("no row");
 				return;
+			}
+			
+			int rowPos = indexOf(row);
+			if (rowPos < lastTopIndex || rowPos > lastBottomIndex) {
+				// this refreshes whole row (perhaps multiple), saving the many
+				// cell.refresh calls later because !cell.isUpToDate()
+				visibleRowsChanged();
 			}
 			
 			int rowAlpha = row.getAlpha();
@@ -4089,7 +4096,7 @@ public class TableViewSWTImpl
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("table");
 		diag_logger.log(SystemTime.getCurrentTime() + ":" + sTableID + ": " + s);
 
-		//System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
+		System.out.println(SystemTime.getCurrentTime() + ": " + sTableID + ": " + s);
 	}
 
 	// from common.TableView

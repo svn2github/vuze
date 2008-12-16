@@ -996,12 +996,15 @@ public class Utils
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
 		// on Linux, getItemHeight is slow AND WRONG. so is getItem(x).getBounds().y 
 		// getItem(Point) is slow on OSX
+		
+		// On Windows, in rare cases, getItem(Point(2,y)) doesn't return the item
+		// (such as within a paint event)
 
 		int itemCount = table.getItemCount();
 		if (iTopIndex >= itemCount)
 			return -1;
 
-		if (Constants.isOSX) {
+		if (Constants.isOSX || Constants.isWindows) {
 			try {
 				TableItem item = table.getItem(iTopIndex);
 				Rectangle bounds = item.getBounds();
