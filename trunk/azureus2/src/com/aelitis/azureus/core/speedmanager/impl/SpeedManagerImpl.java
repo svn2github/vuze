@@ -60,6 +60,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.impl.v1.SpeedManagerAlgorithmProviderV1;
 import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v3.SpeedManagerAlgorithmProviderV3;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
@@ -384,7 +385,7 @@ SpeedManagerImpl
             
         }else if ( provider_version == 3 ){
 
-            provider = new SpeedManagerAlgorithmProviderV2( this );
+            provider = new SpeedManagerAlgorithmProviderV3( this );
 
         }else{
 						

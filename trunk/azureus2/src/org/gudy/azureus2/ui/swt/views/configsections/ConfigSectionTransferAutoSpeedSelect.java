@@ -152,14 +152,17 @@ public class ConfigSectionTransferAutoSpeedSelect
 
         String AutoSpeedClassic = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.classic");
         String AutoSpeedBeta = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.beta");
+        String AutoSpeedNeural = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.neural");
         String[] modeNames = {
                 AutoSpeedClassic,
-                AutoSpeedBeta
+                AutoSpeedBeta,
+                AutoSpeedNeural,
                };
         
         String[] modes = {
                 "1",
                 "2",
+                "3",
         };
 
         //versionList = new StringListParameter(modeGroup,
