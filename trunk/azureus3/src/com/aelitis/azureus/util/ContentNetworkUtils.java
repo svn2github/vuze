@@ -50,7 +50,7 @@ public class ContentNetworkUtils
 
 	public static ContentNetwork getContentNetworkFromTarget(String target) {
 		ContentNetwork cn = null;
-		if (target.startsWith("ContentNetwork.")) {
+		if (target != null && target.startsWith("ContentNetwork.")) {
 			long networkID = Long.parseLong(target.substring(15));
 			cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 					networkID);
