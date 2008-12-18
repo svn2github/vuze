@@ -107,9 +107,9 @@ public class NeuralSpeedLimiter {
 			if(latency > maxLatency) maxLatency = latency;
 			if(latency < minLatency) minLatency = latency;
 			
-			double downloadFactor = dlSpeed / maxDlSpeed;
-			double uploadFactor = ulSpeed / maxUlSpeed;
-			double latencyFactor = (latency - minLatency) / maxLatency;
+			double downloadFactor = (double)dlSpeed / maxDlSpeed;
+			double uploadFactor = (double)ulSpeed / maxUlSpeed;
+			double latencyFactor = ((double)latency - (double)minLatency) / maxLatency;
 			
 			neuralNetwork.setInput(0, downloadFactor);
 			neuralNetwork.setInput(1, uploadFactor);
@@ -124,6 +124,12 @@ public class NeuralSpeedLimiter {
 	private void feedForward() {
 		neuralNetwork.feedForward();
 		dirty = false;
+		System.out.println("input : " + (double)dlSpeed/maxDlSpeed + ", " +  (double)ulSpeed/maxUlSpeed + ", " + ((double)latency-(double)minLatency)/maxLatency);
+		System.out.println("output : " + neuralNetwork.getOutput(0) + ", " + 
+				neuralNetwork.getOutput(1) + ", " +
+				neuralNetwork.getOutput(2) + ", " +
+				neuralNetwork.getOutput(3));
+		
 	}
 	
 	public void setMaxDlSpeed(long maxDlSpeed) {
@@ -177,7 +183,7 @@ public class NeuralSpeedLimiter {
 	
 	public boolean shouldLimitDownload() {
 		if(dirty) feedForward();
-		return neuralNetwork.getOutput(0) > 0.5;
+		return neuralNetwork.getOutput(0) < 0.5;
 	}
 	
 	public long getDownloadLimit() {
@@ -188,7 +194,7 @@ public class NeuralSpeedLimiter {
 	
 	public boolean shouldLimitUpload() {
 		if(dirty) feedForward();
-		return neuralNetwork.getOutput(2) > 0.5;
+		return neuralNetwork.getOutput(2) < 0.5;
 	}
 	
 	public long getUploadLimit() {
