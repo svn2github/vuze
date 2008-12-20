@@ -65,6 +65,8 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -874,6 +876,12 @@ public class MainWindow
 				String startTab;
 				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
 				boolean startAdv = COConfigurationManager.getBooleanParameter("v3.Start Advanced");
+
+				ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
+				if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
+					showWelcome = false;
+				}
+
 				if (showWelcome && !startAdv) {
 					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
 				} else {
@@ -883,8 +891,7 @@ public class MainWindow
   				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
-  					startTab = "ContentNetwork."
-								+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
+  					startTab = "ContentNetwork." + startupCN.getID();
   				}
 				}
 				sidebar.showEntryByID(startTab);
