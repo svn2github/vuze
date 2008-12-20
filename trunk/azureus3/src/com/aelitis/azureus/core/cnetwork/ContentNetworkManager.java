@@ -32,6 +32,9 @@ ContentNetworkManager
 		long			id );
 
 	public ContentNetwork
+	getStartupContentNetwork();
+
+	public ContentNetwork
 	addContentNetwork(
 		long			id )
 	

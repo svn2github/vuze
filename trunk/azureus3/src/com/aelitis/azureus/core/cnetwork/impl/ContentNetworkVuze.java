@@ -73,6 +73,7 @@ ContentNetworkVuze
 				ContentNetwork.CONTENT_NETWORK_VUZE,
 				1,
 				"Vuze HD Network",
+				null,
 				URL_ADDRESS,
 				URL_PREFIX,
 				null,			// no icon
@@ -96,6 +97,7 @@ ContentNetworkVuze
 				ContentNetwork.CONTENT_NETWORK_SOUK,
 				1,
 				"Souk's Network",
+				null,
 				"192.168.0.150",
 				"http://192.168.0.150:8082/",
 				"http://play.aelitis.com:88/parg/souk.png",

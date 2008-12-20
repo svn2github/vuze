@@ -74,12 +74,13 @@ ContentNetworkVuzeGeneric
 	private String	URL_FORUMS;
 	private String	URL_WIKI;
 
-	protected
+	public
 	ContentNetworkVuzeGeneric(
 		ContentNetworkManagerImpl	_manager,
 		long						_content_network,
 		long						_version,
 		String						_name,
+		Map<String,Object>			_pprop_defaults,
 		String						_site_host,
 		String						_url_prefix,
 		String						_url_icon,
@@ -90,7 +91,7 @@ ContentNetworkVuzeGeneric
 		String						_url_forums,
 		String						_url_wiki )
 	{
-		super( _manager, TYPE_VUZE_GENERIC, _content_network, _version, _name );
+		super( _manager, TYPE_VUZE_GENERIC, _content_network, _version, _name, _pprop_defaults );
 		 
 		SITE_HOST				= _site_host;
 		URL_PREFIX 				= _url_prefix;

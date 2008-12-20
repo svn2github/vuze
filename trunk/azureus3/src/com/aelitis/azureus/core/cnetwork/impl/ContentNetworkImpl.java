@@ -66,6 +66,8 @@ ContentNetworkImpl
 	private long						id;
 	private String						name;
 	
+	private Map<String,Object>	pprop_defaults;
+	
 	private Map<Object,Object>	transient_properties = Collections.synchronizedMap( new HashMap<Object,Object>());
 	
 	private CopyOnWriteList		persistent_listeners = new CopyOnWriteList();
@@ -76,13 +78,16 @@ ContentNetworkImpl
 		long						_type,
 		long						_id,
 		long						_version,
-		String						_name )
+		String						_name,
+		Map<String,Object>			_pprop_defaults )
 	{
 		manager		= _manager;
 		type		= _type;
 		version		= _version;
 		id			= _id;
 		name		= _name;
+		
+		pprop_defaults	= _pprop_defaults;
 	}
 	
 	protected
@@ -94,7 +99,7 @@ ContentNetworkImpl
 	
 	protected void
 	importFromBencodedMap(
-		Map		map )
+		Map<String,Object>		map )
 	
 		throws IOException
 	{
@@ -103,11 +108,12 @@ ContentNetworkImpl
 		version	= ImportExportUtils.importLong( map, "version" );
 		name 	= ImportExportUtils.importString( map, "name" );
 
+		pprop_defaults = (Map<String,Object>)map.get( "pprop_defaults" );
 	}
 	
 	protected void
 	exportToBencodedMap(
-		Map			map )
+		Map<String,Object>			map )
 	
 		throws IOException
 	{
@@ -115,6 +121,11 @@ ContentNetworkImpl
 		ImportExportUtils.exportLong( map, "id", id );
 		ImportExportUtils.exportLong( map, "version", version );
 		ImportExportUtils.exportString( map, "name", name );
+		
+		if ( pprop_defaults != null ){
+			
+			map.put( "pprop_defaults", pprop_defaults );
+		}
 	}
 	
 	protected void
@@ -123,7 +134,7 @@ ContentNetworkImpl
 	
 		throws IOException
 	{
-		Map	map = new HashMap();
+		Map<String,Object>	map = new HashMap<String,Object>();
 		
 		other.exportToBencodedMap(map);
 		
@@ -153,8 +164,8 @@ ContentNetworkImpl
 		ContentNetworkImpl		other )
 	{
 		try{
-			Map	map1 = new HashMap();
-			Map map2 = new HashMap();
+			Map<String,Object>	map1 = new HashMap<String,Object>();
+			Map<String,Object>  map2 = new HashMap<String,Object>();
 			
 			exportToBencodedMap( map1 );
 			
@@ -352,6 +363,11 @@ ContentNetworkImpl
 					name == PP_IS_CUSTOMIZATION ||
 					name == PP_ACTIVE ){
 				
+				if ( obj == null && pprop_defaults != null ){
+					
+					obj = pprop_defaults.get( name );
+				}
+				
 				if ( obj == null ){
 					
 					return( false );
@@ -364,6 +380,12 @@ ContentNetworkImpl
 			
 			return( obj );
 		}
+	}
+	
+	protected Map<String,Object>
+	getPersistentPropertyDefaults()
+	{
+		return( pprop_defaults );
 	}
 	
 	public void

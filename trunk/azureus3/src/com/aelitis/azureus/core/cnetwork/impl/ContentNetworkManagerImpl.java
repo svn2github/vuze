@@ -313,6 +313,22 @@ ContentNetworkManagerImpl
 		}
 	}
 	
+	public ContentNetwork
+	getStartupContentNetwork()
+	{
+		ContentNetwork[] networks = getContentNetworks();
+		
+		for ( ContentNetwork network: networks ){
+			
+			if ((Boolean)network.getPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION )){
+				
+				return( network );
+			}
+		}
+		
+		return( getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE ));
+	}
+	
 	protected ContentNetworkImpl
 	createNetwork(
 		contentNetworkDetails		details )
@@ -334,12 +350,24 @@ ContentNetworkManagerImpl
 			throw( new ContentNetworkException( "main url invald", e ));
 		}
 		
+			// propagate persistent property defaults as currently not returned by webapp
+		
+		ContentNetworkImpl existing = getContentNetwork( details.getID());
+		
+		Map<String,Object> pprop_defaults = null;
+		
+		if ( existing != null ){
+			
+			pprop_defaults = existing.getPersistentPropertyDefaults();
+		}
+		
 		return( 
 			new ContentNetworkVuzeGeneric( 
 					this,
 					details.getID(),
 					details.getVersion(),
 					details.getName(),
+					pprop_defaults,
 					site_dns,
 					main_url,
 					icon_url,
