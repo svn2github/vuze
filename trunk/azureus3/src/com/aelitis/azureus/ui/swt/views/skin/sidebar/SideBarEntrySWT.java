@@ -396,25 +396,4 @@ public class SideBarEntrySWT implements SideBarEntry
 	public SideBar getSidebar() {
 		return sidebar;
 	}
-
-	/**
-	 * @param image
-	 *
-	 * @since 4.0.0.3
-	 */
-	public void setImageLeft(final byte[] imageBytes) {
-		Utils.execSWTThread(new AERunnable() {
-		
-			public void runSupport() {
-				InputStream is = new ByteArrayInputStream(imageBytes);
-				Image image = new Image(Display.getCurrent(), is);
-				try {
-					is.close();
-				} catch (IOException e) {
-				}
-				setImageLeft(image);
-			}
-		});
-	}
-
 }

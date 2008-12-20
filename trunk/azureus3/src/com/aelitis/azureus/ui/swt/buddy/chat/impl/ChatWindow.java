@@ -8,41 +8,19 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseTrackListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.chat.Chat;
-import com.aelitis.azureus.buddy.chat.ChatDiscussion;
-import com.aelitis.azureus.buddy.chat.ChatMessage;
-import com.aelitis.azureus.buddy.chat.DiscussionListener;
+import com.aelitis.azureus.buddy.chat.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
 import com.aelitis.azureus.util.ConstantsV3;
@@ -212,8 +190,10 @@ public class ChatWindow implements DiscussionListener {
 		Canvas avatarPicture = new Canvas(mainPanel,SWT.NONE);
 		avatarPicture.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				Rectangle size = avatar.getAvatarImage().getBounds();
-				e.gc.drawImage(avatar.getAvatarImage(), 0, 0, size.width,size.height,0,0,30,30);
+				Image avatarImage = avatar.getVuzeBuddy().getAvatarImage();
+				Rectangle size = avatarImage.getBounds();
+				e.gc.drawImage(avatarImage, 0, 0, size.width,size.height,0,0,30,30);
+				avatar.getVuzeBuddy().releaseAvatarImage(avatarImage);
 			}
 		});
 		

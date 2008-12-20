@@ -46,11 +46,6 @@ import com.aelitis.azureus.util.ConstantsV3;
  * @created Apr 14, 2008
  *
  */
-/**
- * @author TuxPaper
- * @created May 11, 2008
- *
- */
 public class VuzeBuddyImpl
 	implements VuzeBuddy
 {

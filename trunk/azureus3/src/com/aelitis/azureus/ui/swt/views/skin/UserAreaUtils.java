@@ -46,7 +46,9 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
@@ -152,84 +154,7 @@ public class UserAreaUtils
 			
 			// @see com.aelitis.azureus.util.ILoginInfoListener#avatarURLUpdated()
 			public void avatarURLUpdated(String newAvatarURL) {
-				
-				final File cache = new File(SystemProperties.getUserPath(), "friends"
-						+ File.separator + newAvatarURL.hashCode() + ".ico");
-
-				if ( cache.exists()){
-					
-					try{
-						FileInputStream fis = new FileInputStream(cache);
-						
-						try{
-							byte[] content = FileUtil.readInputStreamAsByteArray(fis);
-							
-							VuzeBuddyManager.log( "Using cached login avatar");
-							
-							updateImage( content );
-							
-							return;
-							
-						}finally{
-							
-							fis.close();
-						}
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-				
-				VuzeBuddyManager.log( "Downloading login avatar");
-
-				ImageDownloader.loadImage(newAvatarURL,
-						new ImageDownloader.ImageDownloaderListener() {
-							public void 
-							imageDownloaded(
-								byte[] image) 
-							{
-								updateImage( image );
-								
-								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), image);
-
-							}
-						});
-			}
-			
-			protected void
-			updateImage(
-				final byte[]		image )
-			{
-				Utils.execSWTThread(new AERunnable() {
-
-					public void runSupport() {
-
-						if (soImage != null) {
-							Display display = Utils.getDisplay();
-							if (display == null) {
-								return;
-							}
-							InputStream is = new ByteArrayInputStream(image);
-							Image bigAvatarImage = new Image(display, is);
-							Image avatarImage = new Image(display, 40, 40);
-							GC gc = new GC(avatarImage);
-							try {
-								Rectangle bounds = bigAvatarImage.getBounds();
-								try {
-									gc.setInterpolation(SWT.HIGH);
-								} catch (Exception e) {
-								}
-								gc.drawImage(bigAvatarImage, 0, 0, bounds.width,
-										bounds.height, 0, 0, 40, 40);
-							} finally {
-								gc.dispose();
-							}
-							bigAvatarImage.dispose();
-
-							soImage.setImage(avatarImage);
-						}
-					}
-				});
+				soImage.setImageUrl(newAvatarURL);
 			}
 		});
 	}

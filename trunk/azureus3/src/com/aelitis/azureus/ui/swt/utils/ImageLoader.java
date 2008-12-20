@@ -19,7 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.utils;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.skin.SkinProperties;
+import com.aelitis.azureus.util.ImageDownloader;
 
 /**
  * Loads images from skin.  
@@ -50,10 +51,11 @@ import com.aelitis.azureus.ui.skin.SkinProperties;
 public class ImageLoader
 	implements AEDiagnosticsEvidenceGenerator
 {
-
 	private static final boolean DEBUG_UNLOAD = false;
 
 	private static final boolean DEBUG_REFCOUNT = false;
+
+	private static final int GC_INTERVAL = 0;// 60 * 1000;
 
 	private final String[] sSuffixChecks = {
 		"-over",
@@ -105,6 +107,35 @@ public class ImageLoader
 		disabledOpacity = skinProperties.getIntValue(
 				"imageloader.disabled-opacity", -1);
 		AEDiagnostics.addEvidenceGenerator(this);
+		if (GC_INTERVAL > 0) {
+			SimpleTimer.addPeriodicEvent("GC_ImageLoader", GC_INTERVAL,
+					new TimerEventPerformer() {
+						public void perform(TimerEvent event) {
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									int numRemoved = 0;
+									for (Iterator iter = mapImages.keySet().iterator(); iter.hasNext();) {
+										String key = (String) iter.next();
+										imageInfo info = (imageInfo) mapImages.get(key);
+
+										if (info != null && info.refcount <= 0) {
+											iter.remove();
+											numRemoved++;
+
+											for (int j = 0; j < info.images.length; j++) {
+												Image image = info.images[j];
+												if (image != null && !image.isDisposed()) {
+													image.dispose();
+												}
+											}
+										}
+									}
+									System.out.println("ImageLoader: GC'd " + numRemoved);
+								}
+							});
+						}
+					});
+		}
 	}
 
 	private Image loadImage(Display display, String key) {
@@ -374,7 +405,32 @@ public class ImageLoader
 			images = findResources(sKey);
 
 			if (images == null) {
-				images = new Image[0];
+				final File cache = new File(SystemProperties.getUserPath(), "cache"
+						+ File.separator + sKey.hashCode() + ".ico");
+				if (cache.exists()) {
+					try {
+						FileInputStream fis = new FileInputStream(cache);
+
+						try {
+							byte[] imageBytes = FileUtil.readInputStreamAsByteArray(fis);
+							InputStream is = new ByteArrayInputStream(imageBytes);
+							images = new Image[] { new Image(Display.getCurrent(), is) };
+							try {
+								is.close();
+							} catch (IOException e) {
+							}
+						} finally {
+							fis.close();
+						}
+					} catch (Throwable e) {
+						Debug.printStackTrace(e);
+					}
+				}
+
+
+				if (images == null) {
+					images = new Image[0];
+				}
 			}
 
 			for (int i = 0; i < images.length; i++) {
@@ -393,7 +449,7 @@ public class ImageLoader
 
 	public Image getImage(String sKey) {
 		Image[] images = getImages(sKey);
-		if (images == null || images.length == 0) {
+		if (images == null || images.length == 0 || images[0].isDisposed()) {
 			return getNoImage();
 		}
 		return images[0];
@@ -403,11 +459,41 @@ public class ImageLoader
 		imageInfo imageInfo = mapImages.get(sKey);
 		if (imageInfo != null) {
 			imageInfo.refcount--;
+			if (imageInfo.refcount < 0 && false) {
+				System.out.println("ImageLoader refcount < 0 for "
+						+ sKey
+						+ " by "
+						+ Debug.getCompressedStackTrace()
+						+ "\n  "
+						+ (imageInfo.images == null ? "null" : (""
+								+ imageInfo.images.length + ";" + (imageInfo.images.length == 0
+								? "0" : "" + (imageInfo.images[0] == noImage)))));
+			}
 			if (DEBUG_REFCOUNT) {
 				System.out.println("ImageLoader: -- refcount of " + sKey + " now "
 						+ imageInfo.refcount + " via " + Debug.getCompressedStackTrace());
 			}
 			// TODO: cleanup
+		}
+	}
+
+	/**
+	 * Adds image to repository.  refcount will be 1, or if key already exists,
+	 * refcount will increase.
+	 * 
+	 * @param key
+	 * @param image
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void addImage(String key, Image image) {
+		imageInfo info = mapImages.get(key);
+		if (info == null) {
+			mapImages.put(key, new imageInfo(image));
+		} else {
+			// should probably fail if refcount > 0
+			info.images = new Image[] { image };
+			info.refcount++;
 		}
 	}
 
@@ -439,7 +525,63 @@ public class ImageLoader
 	public int getAnimationDelay(String sKey) {
 		return skinProperties.getIntValue(sKey + ".delay", 100);
 	}
+	
+	public void getUrlImage(final String url, final ImageDownloaderListener l) {
+		if (l == null || url == null) {
+			return;
+		}
 
+		if (imageExists(url)) {
+			l.imageDownloaded(getImage(url));
+			return;
+		}
+
+		final File cache = new File(SystemProperties.getUserPath(), "cache"
+				+ File.separator + url.hashCode() + ".ico");
+		if (cache.exists()) {
+			try {
+				FileInputStream fis = new FileInputStream(cache);
+
+				try {
+					byte[] imageBytes = FileUtil.readInputStreamAsByteArray(fis);
+					InputStream is = new ByteArrayInputStream(imageBytes);
+					Image image = new Image(Display.getCurrent(), is);
+					try {
+						is.close();
+					} catch (IOException e) {
+					}
+					mapImages.put(url, new imageInfo(image));
+					l.imageDownloaded(image);
+					return;
+				} finally {
+					fis.close();
+				}
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+
+		ImageDownloader.loadImage(url,
+				new ImageDownloader.ImageDownloaderListener() {
+					public void imageDownloaded(byte[] imageBytes) {
+						FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
+						InputStream is = new ByteArrayInputStream(imageBytes);
+						Image image = new Image(Display.getCurrent(), is);
+						try {
+							is.close();
+						} catch (IOException e) {
+						}
+						mapImages.put(url, new imageInfo(image));
+						l.imageDownloaded(image);
+						return;
+					}
+				});
+	}
+
+	public static interface ImageDownloaderListener {
+		public void imageDownloaded(Image image);
+	}
+	
 	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
 	public void generate(IndentWriter writer) {
 
@@ -458,12 +600,16 @@ public class ImageLoader
 						for (int i = 0; i < info.images.length; i++) {
 							Image img = info.images[i];
 							if (img != null) {
-								Rectangle bounds = img.getBounds();
-								long est = bounds.width * bounds.height * 4l;
-								sizeEstimate += est;
-								totalSizeEstimate += est;
-								if (info.refcount == 0) {
-									sizeCouldBeFree += est;
+								if (img.isDisposed()) {
+									line += "; *DISPOSED*";
+								} else {
+  								Rectangle bounds = img.getBounds();
+  								long est = bounds.width * bounds.height * 4l;
+  								sizeEstimate += est;
+  								totalSizeEstimate += est;
+  								if (info.refcount == 0) {
+  									sizeCouldBeFree += est;
+  								}
 								}
 							}
 						}

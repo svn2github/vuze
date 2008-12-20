@@ -48,8 +48,6 @@ public class VuzeBuddySWTImpl
 	
 	private boolean needsImageRebuilt = true;
 
-	private boolean ourAvatarImage;
-	
 	private String avatarImageRefId;
 
 	/**
@@ -69,12 +67,11 @@ public class VuzeBuddySWTImpl
 	}
 
 	public Image getAvatarImage() {
-		if (needsImageRebuilt) {
-			disposeOldAvatarImage();
-			
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		if (needsImageRebuilt || !imageLoader.imageExists(avatarImageRefId)) {
+
 			byte[] avatarBytes = getAvatar();
 			if (avatarBytes == null) {
-				ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 				try {
 					avatarImageRefId = "image.buddy.default.avatar"; 
 					avatarImage = imageLoader.getImage(avatarImageRefId);
@@ -83,10 +80,7 @@ public class VuzeBuddySWTImpl
 					avatarImageRefId = null;
 					avatarImage = ImageRepository.getImage("azureus64");
 				}
-				ourAvatarImage = false;
 			} else {
-				// 4010 TODO: store built image in imageLoader so it can be
-				//            auto-disposed when no references
 				Display display = Utils.getDisplay();
 				if (display == null) {
 					return null;
@@ -101,16 +95,19 @@ public class VuzeBuddySWTImpl
 						gc.setInterpolation(SWT.HIGH);
 					} catch (Exception e) {
 					}
-					gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0, 40,
-							40);
+					gc.drawImage(bigAvatarImage, 0, 0, bounds.width, bounds.height, 0, 0,
+							40, 40);
 				} finally {
 					gc.dispose();
 				}
 				bigAvatarImage.dispose();
-				ourAvatarImage = true;
+				avatarImageRefId = "image.buddy.avatar." + getLoginID();
+				imageLoader.addImage(avatarImageRefId, avatarImage);
 			}
 			
 			needsImageRebuilt = false;
+		} else {
+			avatarImage = imageLoader.getImage(avatarImageRefId);
 		}
 		
 		return avatarImage;
@@ -124,10 +121,9 @@ public class VuzeBuddySWTImpl
 	}
 
 	public void setAvatarImage(final Image avatarImage) {
-		disposeOldAvatarImage();
-
+		releaseAvatarImage(this.avatarImage);
+		
 		this.avatarImage = avatarImage;
-		ourAvatarImage = false;
 
 		if (avatarImage != null) {
 			Utils.execSWTThread(new AERunnable() {
@@ -144,27 +140,8 @@ public class VuzeBuddySWTImpl
 		}
 	}
 
-	private void disposeOldAvatarImage() {
-		if (ourAvatarImage && avatarImage != null && !avatarImage.isDisposed()) {
-			final Image avatarImageToDispose = avatarImage;
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					if (!avatarImageToDispose.isDisposed()) {
-						avatarImageToDispose.dispose();
-					}
-				}
-			});
-		}
-	}
-
 	// @see com.aelitis.azureus.buddy.impl.VuzeBuddyImpl#toDebugString()
 	public String toDebugString() {
 		return "SWT" + super.toDebugString();
-	}
-
-	// @see java.lang.Object#finalize()
-	protected void finalize() throws Throwable {
-		disposeOldAvatarImage();
-		super.finalize();
 	}
 }

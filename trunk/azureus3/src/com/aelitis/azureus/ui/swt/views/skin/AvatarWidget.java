@@ -103,12 +103,6 @@ public class AvatarWidget
 
 	private boolean sharedAlready = false;
 
-	private Image image = null;
-
-	//private Image imageDefaultAvatar = null;
-
-	private Rectangle sourceImageBounds = null;
-
 	private Menu menu;
 
 	private static Font fontDisplayName;
@@ -218,12 +212,6 @@ public class AvatarWidget
 
 		decorator_add_to_share = new Rectangle(highlightBorder + imageBorder + 1,
 				highlightBorder + imageBorder + 1, 12, 12);
-		/*
-		 * Get the avatar image and create a default image if none was found
-		 */
-		image = vuzeBuddy.getAvatarImage();
-
-		sourceImageBounds = null == image ? null : image.getBounds();
 
 		int operations = DND.DROP_COPY;
 		Transfer[] types = new Transfer[] {
@@ -443,22 +431,26 @@ public class AvatarWidget
 				 * Draw highlight borders if the widget is activated (being hovered over)
 				 */
 
+				Image imgAvatar = vuzeBuddy.getAvatarImage();
+
 				/*
 				 * Draw the avatar image
 				 */
-				if (null == image || image.isDisposed()) {
+				if (null == imgAvatar || imgAvatar.isDisposed()) {
 					/*
 					 * Paint nothing if the buddy has no avatar AND the default image is not found,
 					 * OR the image has been disposed
 					 */
 					Debug.out("No avatar image found and no default image supplies?");
 				} else {
+					Rectangle sourceImageBounds = imgAvatar.getBounds();
+
 					if (true == viewer.isEditMode()) {
 						e.gc.setAlpha((int) (getAlpha() * .7));
 						/*
 						 * Image
 						 */
-						e.gc.drawImage(image, 0, 0, sourceImageBounds.width,
+						e.gc.drawImage(imgAvatar, 0, 0, sourceImageBounds.width,
 								sourceImageBounds.height, imageBounds.x, imageBounds.y,
 								imageBounds.width, imageBounds.height);
 						e.gc.setAlpha(getAlpha());
@@ -477,7 +469,7 @@ public class AvatarWidget
 						/*
 						 * Image
 						 */
-						e.gc.drawImage(image, 0, 0, sourceImageBounds.width,
+						e.gc.drawImage(imgAvatar, 0, 0, sourceImageBounds.width,
 								sourceImageBounds.height, imageBounds.x, imageBounds.y,
 								imageBounds.width, imageBounds.height);
 						/*
@@ -493,6 +485,8 @@ public class AvatarWidget
 						}
 					}
 				}
+				
+				vuzeBuddy.releaseAvatarImage(imgAvatar);
 
 				if (isSharedAlready()) {
 					add_to_share_Image = add_to_share_Image_selected;
@@ -844,14 +838,6 @@ public class AvatarWidget
 			}
 		});
 		
-		canvas.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				if (image != null && vuzeBuddy != null) {
-					vuzeBuddy.releaseAvatarImage(image);
-				}
-			}
-		});
-
 //		canvas.addListener(SWT.Move, new Listener() {
 //			public void handleEvent(Event arg0) {
 //				if (chatWindow != null && chatWindow.isVisible()) {
@@ -1178,17 +1164,6 @@ public class AvatarWidget
 	}
 
 	public void refreshVisual() {
-		if (image != null) {
-			vuzeBuddy.releaseAvatarImage(image);
-		}
-
-		/*
-		 * Resets the image and image bounds since this is the only info cached;
-		 * all other info is asked for on-demand so no need to update them 
-		 */
-		image = vuzeBuddy.getAvatarImage();
-
-		sourceImageBounds = null == image ? null : image.getBounds();
 		tooltip = vuzeBuddy.getDisplayName() + " (" + vuzeBuddy.getLoginID() + ")";
 
 		Utils.execSWTThread(new AERunnable() {
@@ -1310,10 +1285,6 @@ public class AvatarWidget
 
 	public void setAvatarNameSize(Point avatarNameSize) {
 		this.nameAreaSize = avatarNameSize;
-	}
-
-	public Image getAvatarImage() {
-		return image;
 	}
 
 	public Color getImageBorderColor() {

@@ -80,7 +80,10 @@ public class MessageNotificationWindow {
 		Canvas image = new Canvas(shell,SWT.NONE);
 		image.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				e.gc.drawImage(avatar.getAvatarImage(), 0, 0,40,40,0,0,30,30);
+				Image avatarImage = avatar.getVuzeBuddy().getAvatarImage();
+				Rectangle size = avatarImage.getBounds();
+				e.gc.drawImage(avatarImage, 0, 0, 40, 40, 0, 0, 30, 30);
+				avatar.getVuzeBuddy().releaseAvatarImage(avatarImage);
 			}
 		});
 		

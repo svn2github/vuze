@@ -4,7 +4,6 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.*;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -98,8 +97,6 @@ public class SWTSkinObjectBasic
 
 	private Listener resizeBGListener;
 	
-	private String[] imagesToRelease = null;
-
 	/**
 	 * @param properties TODO
 	 * 
@@ -230,15 +227,6 @@ public class SWTSkinObjectBasic
 				shell.removeListener(SWT.Show, lShowHide);
 				shell.removeListener(SWT.Hide, lShowHide);
 
-				ImageLoader imageLoader = skin.getImageLoader(properties);
-				if (imagesToRelease != null && imageLoader != null) {
-					for (int i = 0; i < imagesToRelease.length; i++) {
-						String key = imagesToRelease[i];
-						imageLoader.releaseImage(key);
-					}
-					imagesToRelease = null;
-				}
-
 				skin.removeSkinObject(SWTSkinObjectBasic.this);
 			}
 		});
@@ -312,46 +300,27 @@ public class SWTSkinObjectBasic
 		
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 
-		if (imagesToRelease != null) {
-			for (int i = 0; i < imagesToRelease.length; i++) {
-				String key = imagesToRelease[i];
-				imageLoader.releaseImage(key);
-			}
-			imagesToRelease = null;
-		}
-
+		String id = null;
+		String idLeft = null;
+		String idRight = null;
+		
 		String s = properties.getStringValue(sConfigID + sSuffix, (String) null);
 		if (s != null && s.length() > 0) {
 			Image[] images = imageLoader.getImages(sConfigID + sSuffix);
 			if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
-				imagesToRelease = new String[] {
-					sConfigID + sSuffix,
-					sConfigID + sSuffix + "-left",
-					sConfigID + sSuffix + "-right",
-				};
-
-				imageBG = images[0];
-				imageBGLeft = imageLoader.getImage(imagesToRelease[1]);
-				imageBGRight = imageLoader.getImage(imagesToRelease[2]);
+				id = sConfigID + sSuffix;
+				idLeft = id + "-left";
+				idRight = id + "-right";
 			} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
-				imagesToRelease = new String[] {
-					sConfigID + sSuffix,
-				};
-				imageBGLeft = images[0];
-				imageBG = images[1];
-				imageBGRight = images[2];
+				id = sConfigID + sSuffix;
+				idLeft = id;
+				idRight = id;
 			} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
-				imagesToRelease = new String[] {
-					sConfigID + sSuffix,
-					sConfigID + sSuffix + "-right",
-				};
-				imageBGLeft = images[0];
-				imageBG = images[1];
-				imageBGRight = imageLoader.getImage(imagesToRelease[1]);
+				id = sConfigID + sSuffix;
+				idLeft = id;
+				idRight = id + "-right";
 			} else {
-				imagesToRelease = new String[] {
-					sConfigID + sSuffix,
-				};
+				id = sConfigID + sSuffix;
 				//if (sSuffix.length() > 0) {
 				//	setBackground(sConfigID, "");
 				//}
@@ -383,11 +352,12 @@ public class SWTSkinObjectBasic
 
 			String sTileMode = properties.getStringValue(sConfigID + ".drawmode");
 			int tileMode = SWTSkinUtils.getTileMode(sTileMode);
-			painter = new SWTBGImagePainter(control, imageBGLeft, imageBGRight,
-					imageBG, tileMode);
+//			painter = new SWTBGImagePainter(control, imageBGLeft, imageBGRight,
+//					imageBG, tileMode);
+			painter = new SWTBGImagePainter(control, idLeft, idRight, id, tileMode);
 		} else {
 			//System.out.println("setImage " + sConfigID + "  " + sSuffix);
-			painter.setImage(imageBGLeft, imageBGRight, imageBG);
+			painter.setImage(idLeft, idRight, id);
 		}
 
 		// XXX Is this needed?  It causes flicker and slows things down.

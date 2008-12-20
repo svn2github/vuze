@@ -3,6 +3,8 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -17,6 +19,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 /**
  * @author TuxPaper
@@ -33,6 +36,12 @@ public class SWTBGImagePainter
 	private Rectangle lastResizeRect = new Rectangle(0, 0, 0, 0);
 
 	private final Shell shell;
+
+	private String imgSrcID;
+
+	private String imgSrcLeftID;
+
+	private String imgSrcRightID;
 
 	private Image imgSrc;
 
@@ -95,6 +104,26 @@ public class SWTBGImagePainter
 		control.addListener(SWT.Dispose, this);
 	}
 
+	public SWTBGImagePainter(Control control, String bgImageLeftId,
+			String bgImageRightId, String bgImageId, int tileMode) {
+		this(control, tileMode);
+		setImage(bgImageLeftId, bgImageRightId, bgImageId);
+
+		if (bDirty) {
+			if (control.isVisible()) {
+				buildBackground(control);
+			}
+		}
+
+		if (!TEST_SWT_PAINTING) {
+			control.addListener(SWT.Resize, this);
+			control.addListener(SWT.Paint, this);
+			control.getShell().addListener(SWT.Show, this);
+		}
+
+		control.addListener(SWT.Dispose, this);
+	}
+
 	public void dispose() {
 		if (control == null || control.isDisposed()) {
 			return;
@@ -133,6 +162,20 @@ public class SWTBGImagePainter
 		}
 	}
 
+	public void setImage(String idLeft, String idRight, String id) {
+		setImages(idLeft, idRight, id);
+		if (bDirty) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (!control.isVisible()) {
+						return;
+					}
+					buildBackground(control);
+				}
+			});
+		}
+	}
+
 	private boolean imagesEqual(Image image1, Image image2) {
 		if (image1 == image2) {
 			return true;
@@ -153,6 +196,11 @@ public class SWTBGImagePainter
 			}
 			return;
 		}
+		
+		imgSrcLeftID = null;
+		imgSrcRightID = null;
+		imgSrcID = null;
+
 
 		if (DEBUG) {
 			System.out.println("SI " + bgImageLeft + ";" + bgImageRight + ";"
@@ -232,6 +280,85 @@ public class SWTBGImagePainter
 		}
 
 	}
+	
+	/**
+	 * @param bgImageLeftId
+	 * @param bgImageRightId
+	 * @param bgImageId
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void setImages(String bgImageLeftId, String bgImageRightId,
+			String bgImageId) {
+		imgSrcLeftID = bgImageLeftId;
+		imgSrcRightID = bgImageRightId;
+		imgSrcID = bgImageId;
+
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		
+		if (imgSrcID != null) {
+			Image imgSrc = imageLoader.getImage(imgSrcID);
+			imgSrcBounds = imgSrc.getBounds();
+			imageLoader.releaseImage(imgSrcID);
+		}
+		if (imgSrcLeftID != null) {
+			Image imgSrcLeft = imageLoader.getImage(imgSrcLeftID);
+			imgSrcLeftBounds = imgSrcLeft.getBounds();
+			imageLoader.releaseImage(imgSrcLeftID);
+		}
+		if (imgSrcRightID != null) {
+			Image imgSrcRight = imageLoader.getImage(imgSrcRightID);
+			imgSrcRightBounds = imgSrcRight.getBounds();
+			imageLoader.releaseImage(imgSrcRightID);
+		}
+
+		if (TEST_SWT_PAINTING) {
+			control.removeListener(SWT.Resize, this);
+			control.removeListener(SWT.Paint, this);
+
+			control.addListener(SWT.Resize, this);
+			control.addListener(SWT.Paint, this);
+			bDirty = true;
+			buildBackground(control);
+		} else {
+			bDirty = true;
+		}
+
+
+		if ((tileMode & SWTSkinUtils.TILE_BOTH) != SWTSkinUtils.TILE_BOTH) {
+			int width = SWT.DEFAULT;
+			int height = SWT.DEFAULT;
+
+			if (tileMode == SWTSkinUtils.TILE_Y || tileMode == SWTSkinUtils.TILE_NONE) {
+				width = imgSrcBounds.width + imgSrcLeftBounds.width
+						+ imgSrcRightBounds.width;
+			}
+			if (tileMode == SWTSkinUtils.TILE_X || tileMode == SWTSkinUtils.TILE_NONE) {
+				height = imgSrcBounds.height;
+			}
+			FormData fd = (FormData) control.getLayoutData();
+			if (fd == null) {
+				fd = new FormData();
+			}
+
+			if (fd.width == fdWidth || fd.height == fdHeight) {
+
+				if (fd.width == fdWidth) {
+					fdWidth = fd.width = width;
+				}
+				if (fd.height == fdHeight) {
+					fdHeight = fd.height = height;
+				}
+				control.setLayoutData(fd);
+				if (control.isVisible()) {
+					bDirty = true;
+					control.getParent().layout(true, true);
+				}
+			}
+		}
+
+	}
+
 
 	public void buildBackground(Control control) {
 		if (inEvent || shell == null || shell.isDisposed() || control == null
@@ -242,17 +369,65 @@ public class SWTBGImagePainter
 		//System.out.println("BB: " + control.getData("ConfigID"));
 
 		inEvent = true;
+		
+		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		
+		ArrayList<String> imagesToRelease = new ArrayList<String>(0);
+		
+		if (imgSrcLeftID != null && imageLoader.imageExists(imgSrcLeftID)) {
+			imagesToRelease.add(imgSrcLeftID);
+			imgSrcLeft = imageLoader.getImage(imgSrcLeftID);
+			imgSrcLeftBounds = imgSrcLeft.getBounds();
+		}
+		if (imgSrcRightID != null && imageLoader.imageExists(imgSrcRightID)) {
+			imagesToRelease.add(imgSrcRightID);
+			imgSrcRight = imageLoader.getImage(imgSrcRightID);
+			imgSrcRightBounds = imgSrcRight.getBounds();
+		}
+		if (imgSrcID != null) {
+			Image[] images = imageLoader.getImages(imgSrcID);
+			imagesToRelease.add(imgSrcID);
+			if (images.length == 1) {
+  			imgSrc = images[0];
+  			imgSrcBounds = imgSrc.getBounds();
+			} else if (images.length == 2) {
+				imgSrcLeft = images[0];
+				imgSrcLeftBounds = imgSrcLeft.getBounds();
+  			imgSrc = images[1];
+  			imgSrcBounds = imgSrc.getBounds();
+				imgSrcRight = images[1];
+				imgSrcRightBounds = imgSrcRight.getBounds();
+			} else if (images.length == 3) {
+				imgSrcLeft = images[0];
+				imgSrcLeftBounds = imgSrcLeft.getBounds();
+  			imgSrc = images[1];
+  			imgSrcBounds = imgSrc.getBounds();
+				imgSrcRight = images[2];
+				imgSrcRightBounds = imgSrcRight.getBounds();
+			}
+		}
+		
+		try {
 
 		Point size = control.getSize();
 		if (size.x <= 0 || size.y <= 0 || imgSrc == null || imgSrc.isDisposed()) {
-			inEvent = false;
 			if (DEBUG) {
 				System.out.println("- size " + control.getData("ConfigID"));
 			}
 			Image image = new Image(shell.getDisplay(), 1, 1);
 			control.setBackgroundImage(image);
 
+			if (lastImage != null) {
+				lastImage.dispose();
+			}
+
+			lastImage = image;
+			imgSrc = image;
+			imgSrcBounds = new Rectangle(0,0,1,1);
+
 			lastBounds = control.getBounds();
+
+			inEvent = false;
 			return;
 		}
 
@@ -298,7 +473,6 @@ public class SWTBGImagePainter
 		}
 
 		//control.setRedraw(false);
-		try {
 			if (DEBUG) {
 				System.out.println(System.currentTimeMillis() + "@"
 						+ Integer.toHexString(hashCode()) + "BGPain: "
@@ -425,6 +599,19 @@ public class SWTBGImagePainter
 			bDirty = false;
 
 		} finally {
+			for (String key : imagesToRelease) {
+				imageLoader.releaseImage(key);
+			}
+			if (imgSrcID != null && imgSrc != null) {
+				imgSrc = null;
+			}
+			if (imgSrcLeftID != null && imgSrcLeft != null) {
+				imgSrcLeft = null;
+			}
+			if (imgSrcRightID != null && imgSrcRight != null) {
+				imgSrcRight = null;
+			}
+			
 			//control.setRedraw(true);
 			//control.update();
 			//control.getShell().update();

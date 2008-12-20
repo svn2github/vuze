@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ImageLoader.ImageDownloaderListener;
 
 /**
  * @author TuxPaper
@@ -34,14 +35,14 @@ public class SWTSkinObjectImage
 
 	protected static final Long DRAW_HCENTER = new Long(5);
 
-	private static boolean ALWAYS_USE_PAINT = false;
+	private static boolean ALWAYS_USE_PAINT = true;
 
 	Label label;
 
 	private boolean customImage;
 
 	private String customImageID;
-	
+
 	private String currentImageID;
 
 	private static PaintListener paintListener;
@@ -53,6 +54,7 @@ public class SWTSkinObjectImage
 	static {
 		paintListener = new PaintListener() {
 			public void paintControl(PaintEvent e) {
+
 				try {
 					e.gc.setAdvanced(true);
 					e.gc.setInterpolation(SWT.HIGH);
@@ -61,18 +63,39 @@ public class SWTSkinObjectImage
 
 				Label label = (Label) e.widget;
 				Image imgSrc = (Image) label.getData("image");
+				Image imgRight = null;
+				Image imgLeft = null;
+				String idToRelease = null;
+				ImageLoader imageLoader = null;
+
 				if (imgSrc == null) {
-					return;
+					SWTSkinObjectImage soImage = (SWTSkinObjectImage) label.getData("SkinObject");
+					imageLoader = soImage.getSkin().getImageLoader(
+							soImage.getProperties());
+					String imageID = (String) label.getData("ImageID");
+					if (imageLoader.imageExists(imageID)) {
+						idToRelease = imageID;
+						Image[] images = imageLoader.getImages(imageID);
+						if (images.length == 3) {
+							imgLeft = images[0];
+							imgSrc = images[1];
+							imgRight = images[2];
+						} else {
+							imgSrc = images[0];
+						}
+					} else {
+						return;
+					}
 				}
 				Rectangle imgSrcBounds = imgSrc.getBounds();
 				Point size = label.getSize();
-				
+
 				Long drawMode = (Long) label.getData("drawmode");
-				
+
 				if (drawMode == DRAW_STRETCH) {
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
 							0, 0, size.x, size.y);
-				} else if (drawMode == DRAW_CENTER) {
+				} else if (drawMode == DRAW_CENTER || drawMode == DRAW_NORMAL) {
 					e.gc.drawImage(imgSrc, (size.x - imgSrcBounds.width) / 2,
 							(size.y - imgSrcBounds.height) / 2);
 				} else if (drawMode == DRAW_HCENTER) {
@@ -82,36 +105,43 @@ public class SWTSkinObjectImage
 					e.gc.drawImage(imgSrc, 0, 0, imgSrcBounds.width, imgSrcBounds.height,
 							0, 0, size.x, size.y);
 				} else {
-  				int x0 = 0;
-  				int y0 = 0;
-  				int x1 = size.x;
-  				int y1 = size.y;
-  
-  				Image imgRight = (Image) label.getData("image-right");
-  				if (imgRight != null) {
-  					int width = imgRight.getBounds().width;
-  
-  					x1 -= width;
-  				}
-  
-  				Image imgLeft = (Image) label.getData("image-left");
-  				if (imgLeft != null) {
-  					// TODO: Tile down
-  					e.gc.drawImage(imgLeft, 0, 0);
-  
-  					x0 += imgLeft.getBounds().width;
-  				}
-  
-  				for (int y = y0; y < y1; y += imgSrcBounds.height) {
-  					for (int x = x0; x < x1; x += imgSrcBounds.width) {
-  						e.gc.drawImage(imgSrc, x, y);
-  					}
-  				}
-  
-  				if (imgRight != null) {
-  					// TODO: Tile down
-  					e.gc.drawImage(imgRight, x1, 0);
-  				}
+					int x0 = 0;
+					int y0 = 0;
+					int x1 = size.x;
+					int y1 = size.y;
+
+					if (imgRight == null) {
+						imgRight = (Image) label.getData("image-right");
+					}
+					if (imgRight != null) {
+						int width = imgRight.getBounds().width;
+
+						x1 -= width;
+					}
+
+					if (imgLeft == null) {
+						imgLeft = (Image) label.getData("image-left");
+					}
+					if (imgLeft != null) {
+						// TODO: Tile down
+						e.gc.drawImage(imgLeft, 0, 0);
+
+						x0 += imgLeft.getBounds().width;
+					}
+
+					for (int y = y0; y < y1; y += imgSrcBounds.height) {
+						for (int x = x0; x < x1; x += imgSrcBounds.width) {
+							e.gc.drawImage(imgSrc, x, y);
+						}
+					}
+
+					if (imgRight != null) {
+						// TODO: Tile down
+						e.gc.drawImage(imgRight, x1, 0);
+					}
+				}
+				if (idToRelease != null && imageLoader != null) {
+					imageLoader.releaseImage(idToRelease);
 				}
 			}
 		};
@@ -139,7 +169,7 @@ public class SWTSkinObjectImage
 				style |= h_align;
 			}
 		}
-		
+
 		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style |= SWT.BORDER;
 		}
@@ -180,23 +210,21 @@ public class SWTSkinObjectImage
 		}
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
-		Image image = imageLoader.getImage(sImageID);
-		if (!ImageLoader.isRealImage(image)) {
-			imageLoader.releaseImage(sImageID);
+		boolean imageExists = imageLoader.imageExists(sImageID);
+		if (!imageExists) {
 			sImageID = sConfigID + ".image";
-			image = imageLoader.getImage(sImageID);
+			imageExists = imageLoader.imageExists(sImageID);
 		}
 
-		if (ImageLoader.isRealImage(image)) {
+		if (imageExists) {
 			setLabelImage(sConfigID, sImageID, null);
 		}
-		imageLoader.releaseImage(sImageID);
-		
+
 		label.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				String oldImageID = (String) label.getData("ImageID");
 				ImageLoader imageLoader = skin.getImageLoader(properties);
-				if (oldImageID != null) {
+				if (oldImageID != null && label.getData("image") != null) {
 					imageLoader.releaseImage(oldImageID);
 				}
 			}
@@ -227,18 +255,18 @@ public class SWTSkinObjectImage
 
 				String oldImageID = (String) label.getData("ImageID");
 				if (sImageID != null && sImageID.equals(oldImageID)) {
-					return label.getImage();
+					return null;
 				}
 
 				ImageLoader imageLoader = skin.getImageLoader(properties);
-				
-				if (oldImageID != null) {
+
+				if (oldImageID != null && label.getData("image") != null) {
 					imageLoader.releaseImage(oldImageID);
 				}
 
 				Image[] images = sImageID == null || sImageID.length() == 0 ? null
 						: imageLoader.getImages(sImageID);
-				
+
 				Image image = null;
 
 				if (images.length == 3) {
@@ -246,9 +274,9 @@ public class SWTSkinObjectImage
 					if (ImageLoader.isRealImage(imageLeft)) {
 						label.setData("image-left", imageLeft);
 					}
-					
+
 					image = images[1];
-					
+
 					Image imageRight = images[2];
 					if (ImageLoader.isRealImage(imageRight)) {
 						label.setData("image-right", imageRight);
@@ -256,7 +284,7 @@ public class SWTSkinObjectImage
 				} else if (images.length > 0) {
 					image = images[0];
 				}
-				
+
 				if (image == null) {
 					image = ImageLoader.noImage;
 				}
@@ -268,7 +296,7 @@ public class SWTSkinObjectImage
 				}
 
 				//allowImageDimming = sDrawMode.equalsIgnoreCase("dim");
-				
+
 				Long drawMode;
 				if (sDrawMode.equals("scale")) {
 					drawMode = DRAW_SCALE;
@@ -278,32 +306,33 @@ public class SWTSkinObjectImage
 					drawMode = DRAW_CENTER;
 				} else if (sDrawMode.equals("h-center")) {
 					drawMode = DRAW_HCENTER;
-				} else if (sDrawMode.equalsIgnoreCase("tile") || ALWAYS_USE_PAINT) {
+				} else if (sDrawMode.equalsIgnoreCase("tile")) {
 					drawMode = DRAW_TILE;
 				} else {
 					drawMode = DRAW_NORMAL;
 				}
 				label.setData("drawmode", drawMode);
 
-				if (drawMode != DRAW_NORMAL) {
+				if (drawMode != DRAW_NORMAL || ALWAYS_USE_PAINT) {
 					noSetLabelImage = true;
 					Rectangle imgBounds = image.getBounds();
 					if (drawMode != DRAW_CENTER && drawMode != DRAW_HCENTER
 							&& drawMode != DRAW_STRETCH) {
 						label.setSize(imgBounds.width, imgBounds.height);
 					}
-					label.setData("image", image);
+					//label.setData("image", image);
 
-					if (drawMode == DRAW_TILE) {
-  					// XXX Huh? A tile of one? :)
-  					FormData fd = (FormData) label.getLayoutData();
-  					if (fd == null) {
-  						fd = new FormData(imgBounds.width, imgBounds.height);
-  					} else {
-  						fd.width = imgBounds.width;
-  						fd.height = imgBounds.height;
-  					}
-  					label.setLayoutData(fd);
+					if (drawMode == DRAW_TILE || drawMode == DRAW_NORMAL) {
+						// XXX Huh? A tile of one? :)
+						FormData fd = (FormData) label.getLayoutData();
+						if (fd == null) {
+							fd = new FormData(imgBounds.width, imgBounds.height);
+						} else {
+							fd.width = imgBounds.width;
+							fd.height = imgBounds.height;
+						}
+						label.setLayoutData(fd);
+						Utils.relayout(label);
 					}
 
 					// remove in case already added
@@ -317,7 +346,7 @@ public class SWTSkinObjectImage
 					Rectangle imgBounds = image.getBounds();
 					label.setSize(imgBounds.width, imgBounds.height);
 					label.setData("image", image);
-					
+
 				} else {
 					Image oldImage = label.getImage();
 					label.setImage(image);
@@ -331,7 +360,8 @@ public class SWTSkinObjectImage
 				label.redraw();
 
 				SWTSkinUtils.addMouseImageChangeListeners(label);
-				return image;
+				imageLoader.releaseImage(sImageID);
+				return null;
 			}
 		});
 	}
@@ -342,7 +372,8 @@ public class SWTSkinObjectImage
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#switchSuffix(java.lang.String)
-	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+	public String switchSuffix(String suffix, int level, boolean walkUp,
+			boolean walkDown) {
 		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 		if (customImage) {
 			return suffix;
@@ -354,15 +385,15 @@ public class SWTSkinObjectImage
 		String sImageID = (customImageID == null ? (sConfigID + ".image")
 				: customImageID)
 				+ suffix;
-		
 
 		ImageLoader imageLoader = skin.getImageLoader(properties);
-		boolean imageExists = imageLoader.imageExists(sImageID); 
+		boolean imageExists = imageLoader.imageExists(sImageID);
 		if (!imageExists) {
 			for (int i = suffixes.length - 1; i >= 0; i--) {
 				String suffixToRemove = suffixes[i];
 				if (suffixToRemove != null) {
-					sImageID = sImageID.substring(0, sImageID.length() - suffixToRemove.length());
+					sImageID = sImageID.substring(0, sImageID.length()
+							- suffixToRemove.length());
 					if (imageLoader.imageExists(sImageID)) {
 						imageExists = true;
 						break;
@@ -405,7 +436,7 @@ public class SWTSkinObjectImage
 		}
 		customImage = false;
 		customImageID = sConfigID;
-		
+
 		String sImageID = sConfigID + getSuffix();
 		ImageLoader imageLoader = skin.getImageLoader(properties);
 		Image image = imageLoader.getImage(sImageID);
@@ -416,5 +447,22 @@ public class SWTSkinObjectImage
 		}
 		imageLoader.releaseImage(sImageID);
 		return;
+	}
+
+	public void setImageUrl(final String url) {
+		if (customImage == false && customImageID != null
+				&& customImageID.equals(url)) {
+			return;
+		}
+		customImage = false;
+		customImageID = url;
+
+		final ImageLoader imageLoader = skin.getImageLoader(properties);
+		imageLoader.getUrlImage(url, new ImageDownloaderListener() {
+			public void imageDownloaded(Image image) {
+				setLabelImage(url, null);
+				imageLoader.releaseImage(url);
+			}
+		});
 	}
 }

@@ -147,6 +147,8 @@ public class LoginInfoManager
 		 * The public key that the webapp thinks we have
 		 */
 		public final String pk = LoginInfoManager.this.pk;
+		
+		public final String avatarUrl = LoginInfoManager.this.avatarURL;
 
 		public String getProfileAHREF(String referer) {
 			StringBuffer buf = new StringBuffer();

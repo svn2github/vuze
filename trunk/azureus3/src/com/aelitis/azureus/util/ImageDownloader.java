@@ -15,12 +15,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.util;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
@@ -34,24 +36,61 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdap
  */
 public class ImageDownloader
 {
-	public static void loadImage(String url, final ImageDownloaderListener l) {
+	static final Map<String, List<ImageDownloaderListener>> map = new HashMap<String, List<ImageDownloaderListener>>();
+
+	static final AEMonitor mon_map = new AEMonitor("ImageDownloaderMap");
+
+	public static void loadImage(final String url, final ImageDownloaderListener l) {
+		//System.out.println("download " + url);
+		mon_map.enter();
+		try {
+			List<ImageDownloaderListener> list = map.get(url);
+			if (list != null) {
+				list.add(l);
+				return;
+			} else {
+				list = new ArrayList<ImageDownloaderListener>(1);
+				list.add(l);
+				map.put(url, list);
+			}
+		} finally {
+			mon_map.exit();
+		}
+
 		try {
 			ResourceDownloader rd = ResourceDownloaderFactoryImpl.getSingleton().create(
 					new URL(url));
 			rd.addListener(new ResourceDownloaderAdapter() {
 				public boolean completed(ResourceDownloader downloader, InputStream is) {
+					mon_map.enter();
 					try {
-						if (is != null && is.available() > 0) {
-							byte[] newImageBytes = new byte[is.available()];
-							is.read(newImageBytes);
-							if (l != null) {
-								l.imageDownloaded(newImageBytes);
+						List<ImageDownloaderListener> list = map.get(url);
+						
+						if (list != null) {
+							try {
+								if (is != null && is.available() > 0) {
+									byte[] newImageBytes = new byte[is.available()];
+									is.read(newImageBytes);
+
+									for (ImageDownloaderListener l : list) {
+										try {
+											l.imageDownloaded(newImageBytes);
+										} catch (Exception e) {
+											Debug.out(e);
+										}
+									}
+								}
+							} catch (Exception e) {
+								Debug.out(e);
 							}
+							
 						}
-						return true;
-					} catch (Exception e) {
-						Debug.out(e);
+						
+						map.remove(url);
+					} finally {
+						mon_map.exit();
 					}
+
 					return false;
 				}
 			});
@@ -60,8 +99,9 @@ public class ImageDownloader
 			Debug.out(e);
 		}
 	}
-	
-	public static interface ImageDownloaderListener {
+
+	public static interface ImageDownloaderListener
+	{
 		public void imageDownloaded(byte[] image);
 	}
 }
