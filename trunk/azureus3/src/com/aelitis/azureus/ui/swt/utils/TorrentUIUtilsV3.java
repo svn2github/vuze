@@ -52,6 +52,7 @@ import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.PlayUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 /**
  * @author TuxPaper
@@ -107,6 +108,11 @@ public class TorrentUIUtilsV3
   			}
 			}
 			
+			// If it's going to our URLs, add some extra authenication
+			if (UrlFilter.getInstance().urlCanRPC(url)) {
+				// 4010 TODO: should kinda be the right network..
+				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+			}
 			
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
