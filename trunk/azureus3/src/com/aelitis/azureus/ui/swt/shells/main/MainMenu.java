@@ -213,46 +213,15 @@ public class MainMenu
 						if (sideBar == null) {
 							return;
 						}
-						long id = contentNetwork.getID();
 						String sidebarID = ContentNetworkUtils.getTarget(contentNetwork);
-						boolean show = false;
 
-						// XXX Handle unselection properly
-						SideBarEntrySWT entry = sideBar.getCurrentEntry();
-						if (entry == null || !sidebarID.equals(entry.getId())) {
-							show = true;
-							sideBar.showEntryByTabID(sidebarID);
-						} else {
-							Object o = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
-							boolean canClose = (o instanceof Boolean) ? ((Boolean) o).booleanValue() : true;
-							if (canClose) {
-								show = true;
-							} else {
-								sideBar.closeEntry(sidebarID);
-							}
-						}
+						sideBar.showEntryByTabID(sidebarID);
 					}
 				});
 
 		item.setText(contentNetwork.getName());
 
 		item.setData("ContentNetwork", contentNetwork);
-
-		Object o = contentNetwork.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
-		boolean canClose = (o instanceof Boolean) ? ((Boolean) o).booleanValue()
-				: true;
-
-		if (!canClose) {
-			item.setSelection(true);
-		} else {
-			SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
-			if (sideBar == null) {
-				return;
-			}
-			long id = contentNetwork.getID();
-			SideBarEntrySWT entry = sideBar.getEntry("ContentNetwork." + id);
-			item.setSelection(entry.getTreeItem() != null);
-		}
 	}
 
 	/**
