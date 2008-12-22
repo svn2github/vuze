@@ -280,7 +280,9 @@ public class MainMenu
 		MenuFactory.addOpenTorrentForTrackingMenuItem(openSubMenu);
 		MenuFactory.addOpenVuzeFileMenuItem(openSubMenu);
 
-		if (true == MenuFactory.isAZ3_ADV) {
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+		if ( MenuFactory.isAZ3_ADV || userMode > 0 ){
 			Menu shareSubMenu = MenuFactory.createShareMenuItem(fileMenu).getMenu();
 			MenuFactory.addShareFileMenuItem(shareSubMenu);
 			MenuFactory.addShareFolderMenuItem(shareSubMenu);
