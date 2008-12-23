@@ -456,6 +456,9 @@ public class ImageLoader
 	}
 
 	public void releaseImage(String sKey) {
+		if (sKey == null) {
+			return;
+		}
 		imageInfo imageInfo = mapImages.get(sKey);
 		if (imageInfo != null) {
 			imageInfo.refcount--;
