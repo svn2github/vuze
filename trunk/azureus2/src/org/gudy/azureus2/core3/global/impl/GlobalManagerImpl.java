@@ -211,9 +211,10 @@ public class GlobalManagerImpl
     int loopFactor;
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
-    private int saveResumeLoopCount = 5*60*1000 / waitTime;
-    private int natCheckLoopCount	= 30*1000 / waitTime;
-    private int seedPieceCheckCount	= 30*1000 / waitTime;
+    private int saveResumeLoopCount 	= 5*60*1000 / waitTime;
+    private int initSaveResumeLoopCount = 60*1000 / waitTime;
+    private int natCheckLoopCount		= 30*1000 / waitTime;
+    private int seedPieceCheckCount		= 30*1000 / waitTime;
            
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
@@ -241,7 +242,8 @@ public class GlobalManagerImpl
 	        
 	        determineSaveResumeDataInterval();
 	        
-	        if ((loopFactor % saveResumeLoopCount == 0) || ( needsSaving && loadingComplete )) {
+	        if (	( loopFactor % saveResumeLoopCount == 0 ) || 
+	        		( needsSaving && loadingComplete && loopFactor > initSaveResumeLoopCount )) {
 	          	
 	        	saveDownloads( true );
 	        }
