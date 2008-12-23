@@ -206,6 +206,45 @@ public class PeerDatabase {
 	  }
   }
   
+  public PeerItem[]
+  getDiscoveredPeers(
+	String	address )
+  {
+	  List<PeerItem>	result = null;
+	  
+	  try{  
+		  map_mon.enter();
+	  
+		  for (int i=0;i<discovered_peers.size();i++){
+			  
+			  PeerItem peer = (PeerItem)discovered_peers.get(i);
+			  
+			  if( peer.getIP().equals( address )){
+				  
+				  if ( result == null ){
+					  
+					  result = new ArrayList<PeerItem>();
+				  }
+				  
+				  result.add( peer );
+			  }
+		  }
+	  }finally{  
+		
+		  map_mon.exit();  
+	  }
+	  
+	  if ( result == null ){
+		  
+		  return( new PeerItem[0]);
+		  
+	  }else{
+		  
+		  return( result.toArray( new PeerItem[result.size()] ));
+
+	  }
+  }
+  
   public int
   getDiscoveredPeerCount()
   {

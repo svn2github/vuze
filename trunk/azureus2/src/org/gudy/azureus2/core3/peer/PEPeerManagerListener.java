@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+
 /**
  * @author parg
  *
@@ -43,6 +45,8 @@ PEPeerManagerListener
    * @param peer removed
    */
   public void peerRemoved( PEPeerManager manager, PEPeer peer );
+  
+  public void peerDiscovered( PEPeerManager manager, PeerItem peer, PEPeer finder );
   
   public void destroyed();
 }

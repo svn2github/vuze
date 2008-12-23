@@ -30,6 +30,8 @@ package org.gudy.azureus2.core3.peer.impl;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+
 
 public interface
 PEPeerControl
@@ -99,4 +101,9 @@ PEPeerControl
 		int					piece_number );
 	
 	public boolean isRTA();
+	
+	public void
+	peerDiscovered(
+		PEPeerTransport		finder,
+		PeerItem			pi );
 }

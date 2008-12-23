@@ -56,6 +56,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
 
 
@@ -404,6 +405,14 @@ LightWeightSeed
 							last_activity_time = SystemTime.getMonotonousTime();
 						}
 						
+						public void 
+						peerDiscovered(
+							PEPeerManager manager,
+							PeerItem peer, 
+							PEPeer finder) 
+						{
+						}
+						 
 						public void
 						destroyed()
 						{

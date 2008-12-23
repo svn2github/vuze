@@ -127,6 +127,8 @@ public class PeerItem implements PeerDescriptor {
   
   public byte getCryptoLevel() { return crypto_level; }
   
+  public boolean useCrypto() { return( crypto_level != PeerItemFactory.HANDSHAKE_TYPE_PLAIN ); }
+  
   public boolean equals( Object obj ) {
     if( this == obj )  return true;
     if( obj != null && obj instanceof PeerItem ) {

@@ -197,6 +197,9 @@ PEPeerManager
 		String	address );
 	
 	public PeerDescriptor[]
+   	getPendingPeers();
+	
+	public PeerDescriptor[]
 	getPendingPeers(
 		String	address );
 	
@@ -214,6 +217,7 @@ PEPeerManager
    * @param udp_port of peer to inject (0 if unknown)
    * @param use_crypto use encrypted transport
    */
+	
 	public void 
 	addPeer( 
 		String 		ip_address, 

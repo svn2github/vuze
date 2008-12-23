@@ -33,4 +33,7 @@ PeerDescriptor
 	  
 	public int 
 	getUDPPort();
+	
+	public boolean
+	useCrypto();
 }

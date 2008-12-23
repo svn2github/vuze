@@ -161,6 +161,10 @@ PEPeerManagerAdapter
 	isPeerSourceEnabled(
 		String peer_source );
 	
+	public void
+	priorityConnectionChanged(
+		boolean	added );
+	
 	public boolean
-	hasBuddies();
+	hasPriorityConnection();
 }

@@ -26,8 +26,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
-import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
-
 
 
 /**
@@ -86,7 +84,7 @@ public class SeedingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_buddies ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList all_peers, boolean force_refresh, boolean check_priority_connections ) {
 	  
 	int max_optimistic = ((max_to_unchoke - 1) / 5) + 1;  //one optimistic unchoke for every 5 upload slots
 	  
@@ -188,7 +186,7 @@ public class SeedingUnchoker implements Unchoker {
       
     }
        
-    if( check_buddies ) {
+    if( check_priority_connections ) {
     	//add Friend peers preferentially, leaving room for 1 non-friend peer for every 5 upload slots
     	setBuddyUnchokes( max_to_unchoke - max_optimistic, all_peers );
     }
@@ -207,7 +205,7 @@ public class SeedingUnchoker implements Unchoker {
 	  for( int i=0; i < all_peers.size(); i++ ) {
 		  PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
 	    	
-		  if( peer.getUserData( BuddyPluginTracker.PEER_KEY ) != null && UnchokerUtil.isUnchokable( peer, true ) ) {
+		  if( peer.isPriorityConnection() && UnchokerUtil.isUnchokable( peer, true ) ) {
 			  buddies.add( peer );	    		
 		  }
 	  }

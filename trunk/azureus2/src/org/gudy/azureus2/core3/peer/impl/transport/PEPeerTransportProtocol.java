@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
@@ -61,7 +62,6 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
-import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 
 public class 
@@ -221,6 +221,8 @@ implements PEPeerTransport
 	//certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
 	//lazy mode makes sure we never send a complete (seed) bitfield
 	protected static boolean ENABLE_LAZY_BITFIELD;
+	
+	private boolean priority_connection;
 	
 	private static final class DisconnectedTransportQueue extends LinkedHashMap
 	{
@@ -474,6 +476,16 @@ implements PEPeerTransport
 		udp_listen_port	= _udp_port;
 		crypto_level	= _crypto_level;
 		data			= _initial_user_data;
+				
+		if ( data != null ){
+			
+			Boolean pc = (Boolean)data.get( Peer.PR_PRIORITY_CONNECTION );
+			
+			if ( pc != null && pc.booleanValue()){
+				
+				setPriorityConnection( true );
+			}
+		}
 		
 		udp_non_data_port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
 
@@ -575,8 +587,18 @@ implements PEPeerTransport
 			
 		}else if ( manager.isRTA()){
 			
+			if ( PeerClassifier.isAzureusIP( ip )){
+				
+				priority = ProtocolEndpoint.CONNECT_PRIORITY_SUPER_HIGHEST;
+				
+			}else{
+			
+				priority = ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST;
+			}
+		}else if ( PeerClassifier.isAzureusIP( ip )){
+			
 			priority = ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST;
-
+			
 		}else{
 		
 			priority = ProtocolEndpoint.CONNECT_PRIORITY_MEDIUM;
@@ -808,6 +830,7 @@ implements PEPeerTransport
 			manager.peerConnectionClosed( this, connect_failed, network_failure );
 		}
 		
+		setPriorityConnection( false );
 		/*
 		 *  all managed references should have been removed by now
 		 *  add to recently disconnected list and null some stuff to make the object lighter
@@ -2129,8 +2152,7 @@ implements PEPeerTransport
 		//make sure we haven't reached our connection limit
 		final int maxAllowed = manager.getMaxNewConnectionsAllowed();
 		if (	 maxAllowed ==0 &&
-				!manager.doOptimisticDisconnect( 
-					isLANLocal(), getUserData( BuddyPluginTracker.PEER_KEY) != null ))
+				!manager.doOptimisticDisconnect( isLANLocal(), isPriorityConnection()))
 		{
 			final String msg = "too many existing peer connections [p" +
 			PeerIdentityManager.getIdentityCount( my_peer_data_id )
@@ -3402,7 +3424,9 @@ implements PEPeerTransport
 		if( peer_exchange_supported && peer_exchange_item != null && manager.isPeerExchangeEnabled()){
 			if( added != null ) {
 				for( int i=0; i < added.length; i++ ) {
-					peer_exchange_item.addConnectedPeer( added[i] );
+					PeerItem pi = added[i];
+					manager.peerDiscovered( this, pi );
+					peer_exchange_item.addConnectedPeer( pi );
 				}
 			}
 
@@ -3645,7 +3669,32 @@ implements PEPeerTransport
 		return AzureusCoreImpl.getSingleton().getGlobalManager().getMainlineDHTProvider();
 	}
 	
-
+	public void
+	setPriorityConnection(
+		boolean		is_priority )
+	{
+		synchronized( this ){
+	
+			if ( priority_connection == is_priority ){
+				
+				return;
+			}
+			
+			priority_connection = is_priority;
+		}
+		
+		manager.getAdapter().priorityConnectionChanged( is_priority );
+	}
+	
+	public boolean
+	isPriorityConnection()
+	{
+		synchronized( this ){
+		
+			return( priority_connection );
+		}
+	}
+			
 	public void
 	generateEvidence(
 			IndentWriter	writer )

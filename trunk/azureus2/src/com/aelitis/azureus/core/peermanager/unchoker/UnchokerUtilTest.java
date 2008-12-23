@@ -222,6 +222,14 @@ public class UnchokerUtilTest {
 			// TODO Auto-generated method stub
 			
 		}
+		public boolean isPriorityConnection() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+		public void setPriorityConnection(boolean is_priority) {
+			// TODO Auto-generated method stub
+			
+		}
       };
       
      f_stats[0] = new PEPeerStats() {

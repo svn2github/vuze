@@ -43,6 +43,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
 public class 
 PeerManagerImpl
@@ -122,27 +123,34 @@ PeerManagerImpl
 					 }
 				 }
 				 
-				public void
-				destroyed()
-				{	
-					synchronized( foreign_map ){
-						
-						destroyed	= true;
-						
-						Iterator it = foreign_map.values().iterator();
-						
-						while( it.hasNext()){
-							
-							try{
-								((PeerForeignDelegate)it.next()).stop();
-								
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace( e );
-							}
-						}
-					}
-				}
+				 public void 
+				 peerDiscovered(
+					PEPeerManager manager,
+					PeerItem peer, 
+					PEPeer finder) 
+				 {
+				 }
+				 public void
+				 destroyed()
+				 {	
+					 synchronized( foreign_map ){
+
+						 destroyed	= true;
+
+						 Iterator it = foreign_map.values().iterator();
+
+						 while( it.hasNext()){
+
+							 try{
+								 ((PeerForeignDelegate)it.next()).stop();
+
+							 }catch( Throwable e ){
+
+								 Debug.printStackTrace( e );
+							 }
+						 }
+					 }
+				 }
 			});
 	}
 
@@ -386,6 +394,11 @@ PeerManagerImpl
 	}
 	
 
+	public PeerDescriptor[]
+  	getPendingPeers()
+  	{
+  		return( manager.getPendingPeers());
+  	}
 	
 	public PeerDescriptor[]
 	getPendingPeers(
@@ -509,39 +522,48 @@ PeerManagerImpl
 	{
 		try{
 			this_mon.enter();
-		
-			final Map	peer_map = new HashMap();
-			
-      PEPeerManagerListener core_listener = new PEPeerManagerListener() {
-        public void peerAdded( PEPeerManager manager, PEPeer peer ) {
-          PeerImpl pi = getPeerForPEPeer( peer );
-          peer_map.put( peer, pi );
-          l.peerAdded( PeerManagerImpl.this, pi );
-        }
 
-        public void peerRemoved( PEPeerManager manager, PEPeer peer ) {
-          PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
-          
-          if ( pi == null ){
-            // somewhat inconsistently we get told here about the removal of
-            // peers that never connected (and weren't added)
-            // Debug.out( "PeerManager: peer not found");
-          }
-          else{         
-            l.peerRemoved( PeerManagerImpl.this, pi );
-          }
-        }
-        public void
-        destroyed()
-        {
-        }
-      };
-      
+			final Map	peer_map = new HashMap();
+
+			PEPeerManagerListener core_listener = new PEPeerManagerListener() {
+				public void peerAdded( PEPeerManager manager, PEPeer peer ) {
+					PeerImpl pi = getPeerForPEPeer( peer );
+					peer_map.put( peer, pi );
+					l.peerAdded( PeerManagerImpl.this, pi );
+				}
+
+				public void peerRemoved( PEPeerManager manager, PEPeer peer ) {
+					PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
+
+					if ( pi == null ){
+						// somewhat inconsistently we get told here about the removal of
+						// peers that never connected (and weren't added)
+						// Debug.out( "PeerManager: peer not found");
+					}
+					else{         
+						l.peerRemoved( PeerManagerImpl.this, pi );
+					}
+				}
+				
+				public void 
+				peerDiscovered(
+					PEPeerManager manager,
+					PeerItem peer, 
+					PEPeer finder) 
+				{
+				}
+				
+				public void
+				destroyed()
+				{
+				}
+			};
+
 			listener_map.put( l, core_listener );
-		
+
 			manager.addListener( core_listener );
 		}finally{
-			
+
 			this_mon.exit();
 		}
 	}
@@ -549,6 +571,144 @@ PeerManagerImpl
 	public void
 	removeListener(
 		PeerManagerListener	l )
+	{
+		try{
+			this_mon.enter();
+		
+			PEPeerManagerListener core_listener	= (PEPeerManagerListener)listener_map.remove( l );
+		
+			if ( core_listener != null ){
+				manager.removeListener( core_listener );
+			}
+      
+		}finally{
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	addListener(
+		final PeerManagerListener2	l )
+	{
+		try{
+			this_mon.enter();
+
+			final Map<PEPeer, Peer>	peer_map = new HashMap<PEPeer, Peer>();
+
+			PEPeerManagerListener core_listener = new 
+				PEPeerManagerListener() 
+				{
+					public void 
+					peerAdded( 
+						PEPeerManager manager, PEPeer peer )
+					{
+						PeerImpl pi = getPeerForPEPeer( peer );
+						
+						peer_map.put( peer, pi );
+						
+						fireEvent(
+							PeerManagerEvent.ET_PEER_ADDED,
+							pi,
+							null );
+				}
+
+				public void 
+				peerRemoved( 
+					PEPeerManager manager, 
+					PEPeer peer ) 
+				{
+					PeerImpl  pi = (PeerImpl)peer_map.remove( peer );
+
+					if ( pi == null ){
+
+					}else{
+						
+						fireEvent(
+							PeerManagerEvent.ET_PEER_REMOVED,
+							pi,
+							null );
+					}
+				}
+				
+				public void 
+				peerDiscovered(
+					PEPeerManager 	manager,
+					PeerItem 		peer_item, 
+					PEPeer 			finder ) 
+				{
+					PeerImpl	pi;
+					
+					if ( finder != null ){
+						
+						pi = getPeerForPEPeer( finder );
+						
+						peer_map.put( finder, pi );
+						
+					}else{
+						
+						pi = null;
+					}
+					
+					fireEvent(
+						PeerManagerEvent.ET_PEER_DISCOVERED,
+						pi,
+						peer_item );
+				}
+				
+				protected void
+				fireEvent(
+					final int			type,
+					final Peer			peer,
+					final PeerItem		peer_item )
+				{
+					l.eventOccurred(
+						new PeerManagerEvent()
+						{
+							public PeerManager
+							getPeerManager()
+							{
+								return( PeerManagerImpl.this );
+							}
+							
+							public int
+							getType()
+							{
+								return( type );
+							}
+							
+							public Peer
+							getPeer()
+							{
+								return( peer );
+							}
+							
+							public PeerDescriptor
+							getPeerDescriptor()
+							{
+								return( peer_item );
+							}
+						});
+				}
+					
+					
+				public void
+				destroyed()
+				{
+				}
+			};
+
+			listener_map.put( l, core_listener );
+
+			manager.addListener( core_listener );
+		}finally{
+
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	removeListener(
+		PeerManagerListener2	l )
 	{
 		try{
 			this_mon.enter();

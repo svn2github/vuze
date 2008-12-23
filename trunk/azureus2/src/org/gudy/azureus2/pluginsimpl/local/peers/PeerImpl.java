@@ -516,10 +516,17 @@ PeerImpl
 		}
 	}
 	
-	public Map
-	getProperties()
+	public boolean 
+	isPriorityConnection() 
 	{
-		return( new HashMap());
+		return( delegate.isPriorityConnection());
+	}
+	
+	public void 
+	setPriorityConnection(
+		boolean is_priority ) 
+	{
+		delegate.setPriorityConnection ( is_priority );
 	}
 	
 	public void

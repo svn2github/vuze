@@ -267,10 +267,17 @@ LWSPeerManagerAdapter
 		return( true );
 	}
 	
-	public boolean
-	hasBuddies()
+
+	public boolean 
+	hasPriorityConnection() 
 	{
 		return( false );
+	}
+	
+	public void 
+	priorityConnectionChanged(
+		boolean added )
+	{
 	}
 	
 	public LogRelation

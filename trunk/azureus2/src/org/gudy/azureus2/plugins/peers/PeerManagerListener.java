@@ -24,8 +24,9 @@ package org.gudy.azureus2.plugins.peers;
 
 /**
  * @author parg
- *
+ * @deprecated Use PeerManagerListener2
  */
+
 public interface 
 PeerManagerListener 
 {

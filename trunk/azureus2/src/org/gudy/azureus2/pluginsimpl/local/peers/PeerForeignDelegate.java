@@ -68,6 +68,8 @@ PeerForeignDelegate
 	
 	private BitFlags	bit_flags;
 	
+	private boolean		priority_connection;
+	
 	private Map			data;
 
 	private HashMap		peer_listeners;
@@ -898,6 +900,19 @@ PeerForeignDelegate
 	setHaveAggregationEnabled(
 		boolean		enabled )
 	{
+	}
+	
+	public void
+	setPriorityConnection(
+		boolean		is_priority )
+	{
+		priority_connection = is_priority;
+	}
+	
+	public boolean 
+	isPriorityConnection() 
+	{
+		return( priority_connection );
 	}
 	
 	public void

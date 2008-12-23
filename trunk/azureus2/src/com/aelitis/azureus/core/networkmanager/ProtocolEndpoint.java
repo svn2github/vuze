@@ -32,10 +32,11 @@ ProtocolEndpoint
 	public static final int	PROTOCOL_TCP	= 1;
 	public static final int	PROTOCOL_UDP	= 2;
 
-	public static final int CONNECT_PRIORITY_HIGHEST	= 0;
-	public static final int CONNECT_PRIORITY_HIGH		= 1;
-	public static final int CONNECT_PRIORITY_MEDIUM		= 2;
-	public static final int CONNECT_PRIORITY_LOW		= 3;
+	public static final int CONNECT_PRIORITY_SUPER_HIGHEST	= 0;
+	public static final int CONNECT_PRIORITY_HIGHEST		= 1;
+	public static final int CONNECT_PRIORITY_HIGH			= 2;
+	public static final int CONNECT_PRIORITY_MEDIUM			= 3;
+	public static final int CONNECT_PRIORITY_LOW			= 4;
 	  
 
 	public int

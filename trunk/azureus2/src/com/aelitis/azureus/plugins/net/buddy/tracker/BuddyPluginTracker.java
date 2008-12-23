@@ -69,8 +69,7 @@ public class
 BuddyPluginTracker 
 	implements BuddyPluginListener, DownloadManagerListener, BuddyPluginAZ2TrackerListener, DownloadPeerListener
 {
-	public static final Object	PEER_KEY		= new Object();		// maps to Download object
-	public static final Object	DOWNLOAD_KEY	= new Object();		// maps to Integer count of buddy peers
+	private  static final Object	PEER_KEY		= new Object();		// maps to Download object
 	
 	private static final Object	PEER_STATS_KEY	= new Object();
 	
@@ -404,6 +403,8 @@ BuddyPluginTracker
 				Map	user_data = new LightHashMap();
 				
 				user_data.put( PEER_KEY, download );
+				
+				user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
 				
 				c_pm.addPeer( ip.getHostAddress(), tcp_port, udp_port, true, user_data );
 			}
@@ -1153,20 +1154,9 @@ outer:
 				
 				peer.setUserData( PEER_KEY, download );
 				
-				Integer count = (Integer)download.getUserData( DOWNLOAD_KEY );
-				
-				if ( count == null ){
-					
-					count = new Integer(1);
-					
-				}else{
-					
-					count = new Integer( count.intValue() + 1 );
-				}
-				
-				download.setUserData( DOWNLOAD_KEY, count );
-				
-				log( download.getName() + ": adding buddy peer " + peer.getIp() + ", count=" + count );
+				peer.setPriorityConnection( true );
+								
+				log( download.getName() + ": adding buddy peer " + peer.getIp());
 
 				peer.addListener(
 					new PeerListener2()
@@ -1231,28 +1221,12 @@ outer:
 					}
 				}
 				
-				Integer count = (Integer)download.getUserData( DOWNLOAD_KEY );
-				
-				int	val = 0;
-				
-				if ( count != null ){
-					
-					val = count.intValue() - 1;
-					
-					if ( val == 0 ){
-						
-						download.setUserData( DOWNLOAD_KEY, null );
-						
-					}else{
-	
-						download.setUserData( DOWNLOAD_KEY, new Integer( val ));
-					}
-				}
-				
-				log( download.getName() + ": removing buddy peer " + peer.getIp() + ", count=" + val );
+				log( download.getName() + ": removing buddy peer " + peer.getIp());
 			}
 			
 			peer.setUserData( PEER_KEY, null );
+			
+			peer.setPriorityConnection( false );
 		}	
 		
 		if ( state_changed ){

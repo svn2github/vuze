@@ -63,7 +63,6 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
-import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 public class 
 DownloadManagerController 
@@ -192,6 +191,8 @@ DownloadManagerController
 	private volatile long				activation_count_time;
 	
 	private boolean	 piece_checking_enabled	= true;
+	
+	private long		priority_connection_count;
 	
 	
 	protected
@@ -2051,10 +2052,30 @@ DownloadManagerController
 		}
 	}
 	
-	public boolean
-	hasBuddies()
+	public void
+	priorityConnectionChanged(
+		boolean	added )
 	{
-		return( download_manager.getUserData( BuddyPluginTracker.DOWNLOAD_KEY ) != null );
+		synchronized( this ){
+			
+			if ( added ){
+				
+				priority_connection_count++;
+				
+			}else{
+				
+				priority_connection_count--;
+			}
+		}
+	}
+	
+	public boolean
+	hasPriorityConnection()
+	{
+		synchronized( this ){
+			
+			return( priority_connection_count > 0 ); 
+		}
 	}
 	
 	public String 

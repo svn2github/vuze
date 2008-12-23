@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -56,7 +57,6 @@ import com.aelitis.azureus.core.peermanager.uploadslots.UploadSlotManager;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
-import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 /**
  * manages all peer transports for a torrent
@@ -617,10 +617,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	public PeerDescriptor[]
-	                      getPendingPeers(
-	                    		  String	address )
+  	getPendingPeers()
+  	{
+  		return((PeerDescriptor[])peer_database.getDiscoveredPeers());
+  	}
+	
+	public PeerDescriptor[]
+	getPendingPeers(
+		String	address )
 	{
-		return((PeerDescriptor[])peer_database.getDiscoveredPeers());
+		return((PeerDescriptor[])peer_database.getDiscoveredPeers( address ));
 	}
 
 	public void
@@ -855,6 +861,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 						crypto_level,
 						peer.getUploadSpeed());
 
+				peerDiscovered( null, item );
+				
 				peer_database.addDiscoveredPeer( item );
 			}
 
@@ -895,14 +903,24 @@ DiskManagerCheckRequestListener, IPFilterListener
 		//make sure we need a new connection
 		final int needed = getMaxNewConnectionsAllowed();
 
-		boolean	force = user_data != null && user_data.get( BuddyPluginTracker.PEER_KEY ) != null;
+		boolean	is_priority_connection = false;
+		
+		if ( user_data != null ){
+			
+			Boolean pc = (Boolean)user_data.get( Peer.PR_PRIORITY_CONNECTION );
+			
+			if ( pc != null && pc.booleanValue()){
+				
+				is_priority_connection = true;
+			}
+		}
 		
 		if( needed == 0 ){
 
 			if ( 	peer_source != PEPeerSource.PS_PLUGIN ||
 					!doOptimisticDisconnect(
 							AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO,
-							force )){
+							is_priority_connection )){
 
 				return "Too many connections";
 			}
@@ -1628,7 +1646,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
 
-				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh, adapter.hasBuddies());
+				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh, adapter.hasPriorityConnection());
 
 				ArrayList	chokes 		= unchoker.getChokes();
 				ArrayList	unchokes	= unchoker.getUnchokes();
@@ -4245,6 +4263,24 @@ DiskManagerCheckRequestListener, IPFilterListener
 		String peer_source ) 
 	{
 		return( adapter.isPeerSourceEnabled( peer_source ));
+	}
+	
+	public void
+	peerDiscovered(
+		PEPeerTransport		finder,
+		PeerItem			pi )
+	{
+		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+
+		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+			try{
+				((PEPeerManagerListener)peer_manager_listeners.get(i)).peerDiscovered( this, pi, finder );
+						
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public void

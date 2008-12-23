@@ -359,4 +359,8 @@ PEPeer
 	
 	public String getClientNameFromPeerID();
 	public String getClientNameFromExtensionHandshake();
+	
+	public boolean isPriorityConnection();
+	
+	public void setPriorityConnection( boolean is_priority ); 
 }

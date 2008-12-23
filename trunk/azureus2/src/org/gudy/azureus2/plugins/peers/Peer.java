@@ -27,7 +27,6 @@ package org.gudy.azureus2.plugins.peers;
  */
 
 import java.util.List;
-import java.util.Map;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.messaging.Message;
@@ -44,7 +43,8 @@ Peer
 	public final static int DISCONNECTED 	= PEPeer.DISCONNECTED;
   
 
-  
+	public final static Object PR_PRIORITY_CONNECTION = new Object();
+	
 	public PeerManager
 	getManager();
 	
@@ -244,14 +244,6 @@ Peer
    */
   public Message[] getSupportedMessages();
 
-  /**
-   * Get a set of properties associated with the peer
-   * @return
-   */
-  
-  public Map
-  getProperties();
-  
   public void
   setUserData(
 	Object	key,
@@ -262,4 +254,11 @@ Peer
 	Object	key );
   
   public byte[] getHandshakeReservedBytes();
+  
+  public boolean
+  isPriorityConnection();
+  
+  public void
+  setPriorityConnection(
+		boolean		is_priority );
 }

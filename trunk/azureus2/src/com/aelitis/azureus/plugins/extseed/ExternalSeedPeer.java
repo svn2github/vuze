@@ -869,4 +869,11 @@ ExternalSeedPeer
 	public byte[] getHandshakeReservedBytes() {
 		return null;
 	}
+	
+	public boolean isPriorityConnection() {
+		return false;
+	}
+	
+	public void setPriorityConnection(boolean is_priority) {
+	}
 }

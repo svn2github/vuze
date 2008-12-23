@@ -86,6 +86,14 @@ PeerManager
 		String		address );
 	
 		/**
+		 * Get the list of currently pending peers
+		 * @since 4005
+		 * @return
+		 */
+	
+	public PeerDescriptor[]
+   	getPendingPeers();
+		/**
 		 * returns the pending connections to the given address
 		 * @param address
 		 * @return
@@ -136,4 +144,12 @@ PeerManager
 	public void
 	removeListener(
 		PeerManagerListener	l );
+	
+	public void
+	addListener(
+		PeerManagerListener2	l );
+	
+	public void
+	removeListener(
+		PeerManagerListener2	l );
 }
