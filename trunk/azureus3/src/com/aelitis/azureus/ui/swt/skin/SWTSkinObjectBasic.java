@@ -354,10 +354,11 @@ public class SWTSkinObjectBasic
 			int tileMode = SWTSkinUtils.getTileMode(sTileMode);
 //			painter = new SWTBGImagePainter(control, imageBGLeft, imageBGRight,
 //					imageBG, tileMode);
-			painter = new SWTBGImagePainter(control, idLeft, idRight, id, tileMode);
+			painter = new SWTBGImagePainter(control, imageLoader, idLeft, idRight,
+					id, tileMode);
 		} else {
 			//System.out.println("setImage " + sConfigID + "  " + sSuffix);
-			painter.setImage(idLeft, idRight, id);
+			painter.setImage(imageLoader, idLeft, idRight, id);
 		}
 
 		// XXX Is this needed?  It causes flicker and slows things down.

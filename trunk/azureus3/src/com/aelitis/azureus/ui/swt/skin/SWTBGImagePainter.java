@@ -73,6 +73,8 @@ public class SWTBGImagePainter
 
 	private int fdHeight = -1;
 
+	private ImageLoader imageLoader = null;
+
 	private SWTBGImagePainter(Control control, int tileMode) {
 		this.control = control;
 		this.shell = control.getShell();
@@ -104,10 +106,11 @@ public class SWTBGImagePainter
 		control.addListener(SWT.Dispose, this);
 	}
 
-	public SWTBGImagePainter(Control control, String bgImageLeftId,
+	public SWTBGImagePainter(Control control, ImageLoader imageLoader,
+			String bgImageLeftId,
 			String bgImageRightId, String bgImageId, int tileMode) {
 		this(control, tileMode);
-		setImage(bgImageLeftId, bgImageRightId, bgImageId);
+		setImage(imageLoader, bgImageLeftId, bgImageRightId, bgImageId);
 
 		if (bDirty) {
 			if (control.isVisible()) {
@@ -162,8 +165,9 @@ public class SWTBGImagePainter
 		}
 	}
 
-	public void setImage(String idLeft, String idRight, String id) {
-		setImages(idLeft, idRight, id);
+	public void setImage(ImageLoader imageLoader, String idLeft, String idRight,
+			String id) {
+		setImages(imageLoader, idLeft, idRight, id);
 		if (bDirty) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
@@ -288,14 +292,13 @@ public class SWTBGImagePainter
 	 *
 	 * @since 4.0.0.5
 	 */
-	public void setImages(String bgImageLeftId, String bgImageRightId,
+	public void setImages(ImageLoader imageLoader, String bgImageLeftId, String bgImageRightId,
 			String bgImageId) {
+		this.imageLoader = imageLoader;
 		imgSrcLeftID = bgImageLeftId;
 		imgSrcRightID = bgImageRightId;
 		imgSrcID = bgImageId;
 
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
-		
 		if (imgSrcID != null) {
 			Image imgSrc = imageLoader.getImage(imgSrcID);
 			imgSrcBounds = imgSrc.getBounds();
@@ -369,8 +372,6 @@ public class SWTBGImagePainter
 		//System.out.println("BB: " + control.getData("ConfigID"));
 
 		inEvent = true;
-		
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
 		
 		ArrayList<String> imagesToRelease = new ArrayList<String>(0);
 		
