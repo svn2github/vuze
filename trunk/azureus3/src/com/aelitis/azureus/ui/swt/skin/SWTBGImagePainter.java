@@ -33,7 +33,7 @@ public class SWTBGImagePainter
 
 	private static boolean TEST_SWT_PAINTING = Constants.isOSX;
 
-	private Rectangle lastResizeRect = new Rectangle(0, 0, 0, 0);
+	private Rectangle lastResizeRect = Utils.EMPTY_RECT;
 
 	private final Shell shell;
 
@@ -59,7 +59,7 @@ public class SWTBGImagePainter
 
 	boolean inEvent = false;
 
-	Rectangle lastBounds = new Rectangle(0, 0, 0, 0);
+	Rectangle lastBounds = Utils.EMPTY_RECT;
 
 	Point lastShellBGSize = new Point(0, 0);
 
@@ -222,14 +222,14 @@ public class SWTBGImagePainter
 			imgSrcLeftBounds = imgSrcLeft.getBounds();
 		} else {
 			imgSrcLeft = null;
-			imgSrcLeftBounds = new Rectangle(0, 0, 0, 0);
+			imgSrcLeftBounds = Utils.EMPTY_RECT;
 		}
 		if (ImageLoader.isRealImage(bgImageRight)) {
 			imgSrcRight = bgImageRight;
 			imgSrcRightBounds = imgSrcRight.getBounds();
 		} else {
 			imgSrcRight = null;
-			imgSrcRightBounds = new Rectangle(0, 0, 0, 0);
+			imgSrcRightBounds = Utils.EMPTY_RECT;
 		}
 		
 
@@ -298,22 +298,26 @@ public class SWTBGImagePainter
 		imgSrcLeftID = bgImageLeftId;
 		imgSrcRightID = bgImageRightId;
 		imgSrcID = bgImageId;
+		
+		imgSrcLeftBounds = Utils.EMPTY_RECT;
+		imgSrcRightBounds = Utils.EMPTY_RECT;
 
 		if (imgSrcID != null) {
 			Image imgSrc = imageLoader.getImage(imgSrcID);
 			imgSrcBounds = imgSrc.getBounds();
 			imageLoader.releaseImage(imgSrcID);
 		}
-		if (imgSrcLeftID != null) {
-			Image imgSrcLeft = imageLoader.getImage(imgSrcLeftID);
+		Image imgSrcLeft = imageLoader.getImage(imgSrcLeftID);
+		if (ImageLoader.isRealImage(imgSrcLeft)) {
 			imgSrcLeftBounds = imgSrcLeft.getBounds();
-			imageLoader.releaseImage(imgSrcLeftID);
 		}
-		if (imgSrcRightID != null) {
-			Image imgSrcRight = imageLoader.getImage(imgSrcRightID);
+		imageLoader.releaseImage(imgSrcLeftID);
+		
+		Image imgSrcRight = imageLoader.getImage(imgSrcRightID);
+		if (ImageLoader.isRealImage(imgSrcRight)) {
 			imgSrcRightBounds = imgSrcRight.getBounds();
-			imageLoader.releaseImage(imgSrcRightID);
 		}
+		imageLoader.releaseImage(imgSrcRightID);
 
 		if (TEST_SWT_PAINTING) {
 			control.removeListener(SWT.Resize, this);
