@@ -56,7 +56,7 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_VIEW = "MainWindow.menu.view";
 
-	public static final String MENU_ID_CONTENT_NETWORKS = "MainWindow.menu.contentnetworks";
+	public static final String MENU_ID_CONTENT_NETWORKS = "v3.MainWindow.menu.contentnetworks";
 
 	public static final String MENU_ID_TORRENT = "MainWindow.menu.torrent";
 
