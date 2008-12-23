@@ -26,9 +26,10 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -159,6 +160,9 @@ public class SWTSkinObjectContainer
 				"getChildren", new AERunnableObject() {
 
 					public Object runSupport() {
+						if (control.isDisposed()) {
+							return new SWTSkinObject[0];
+						}
 						Control[] swtChildren = ((Composite) control).getChildren();
 						ArrayList list = new ArrayList(swtChildren.length);
 						for (int i = 0; i < swtChildren.length; i++) {
