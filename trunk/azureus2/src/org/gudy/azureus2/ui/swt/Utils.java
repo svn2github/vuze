@@ -127,6 +127,8 @@ public class Utils
 	private static ArrayList queue;
 
 	private static AEDiagnosticsLogger diag_logger;
+	
+	public static final Rectangle EMPTY_RECT = new Rectangle(0, 0, 0, 0);
 
 	static {
 		if (DEBUG_SWTEXEC) {
