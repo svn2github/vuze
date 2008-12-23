@@ -26,6 +26,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
@@ -126,13 +127,9 @@ public class MainMenu
 		try {
 			MenuItem contentNetworkItem = MenuFactory.createTopLevelMenuItem(menuBar,
 					MENU_ID_CONTENT_NETWORKS);
-			// XXX Until we have the finalized name, hard code title
-			contentNetworkItem.setText("HD &Networks");
 			final Menu contentNetworkMenu = contentNetworkItem.getMenu();
 
 			contentNetworkMenu.addListener(SWT.Show, new Listener() {
-				private boolean isAZ3_ADV = MenuFactory.isAZ3_ADV;
-
 				public void handleEvent(Event event) {
 					try {
 						MenuItem[] menuItems = contentNetworkMenu.getItems();
@@ -178,10 +175,12 @@ public class MainMenu
 		}
 		
 		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
-		MenuFactory.addMenuItem(contentNetworkMenu, "About HD Networks", new Listener() {
+		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
+				+ ".about", new Listener() {
 			public void handleEvent(Event event) {
-				Utils.openMessageBox(null, 0, "About HD Networks",
-								"HD Networks are Networks with an HD in front of them");
+				String url = "AboutHDNetworks.start";
+				UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(url, "_blank", 0,
+						0, true, false);
 			}			
 		});
 	}
@@ -200,7 +199,7 @@ public class MainMenu
 
 		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu,
 				SWT.CHECK,
-				PREFIX_V3 + ".view.ContentNetwork." + contentNetwork.getID(),
+				null,
 				new Listener() {
 					public void handleEvent(Event event) {
 						MenuItem item = (MenuItem) event.widget;
