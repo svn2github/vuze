@@ -418,6 +418,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.download"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.remote"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.impl"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.utils"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.peer"/>
         <file path="/azureus3/.project"/>
@@ -454,6 +455,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.xml.util"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.utils"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.speedmanager.impl.v3"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.auth"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peer.cache.cachelogic"/>
@@ -465,6 +467,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.client"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.splash"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.client.impl.bt"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.neuronal"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.networkmanager.impl.test"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.remote.ipfilter"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.logging"/>
