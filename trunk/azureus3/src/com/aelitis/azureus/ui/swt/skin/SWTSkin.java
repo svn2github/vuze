@@ -104,6 +104,8 @@ public class SWTSkin
 
 	private int currentSkinObjectcreationCount = 0;
 
+	private ImageLoader imageLoader;
+
 	/**
 	 * 
 	 */
@@ -121,9 +123,18 @@ public class SWTSkin
 
 	private void init(SWTSkinProperties skinProperties) {
 		this.skinProperties = skinProperties;
-		ImageLoaderFactory.createInstance(classLoader, Display.getDefault(),
-				skinProperties);
-		mapImageLoaders.put(skinProperties, ImageLoaderFactory.getInstance());
+		// the first skin gets the default image loader.  We don't add it to
+		// the mapImageLoaders because non-skin objects may use the image loader
+		// mapImageLoaders is used to dispose of images when the skin is disposed
+		if (ImageLoaderFactory.getInstance() == null) {
+			imageLoader = ImageLoaderFactory.createInstance(classLoader,
+					Display.getDefault(), skinProperties);
+
+		} else {
+			imageLoader = new ImageLoader(classLoader, Display.getDefault(),
+					skinProperties);
+			mapImageLoaders.put(skinProperties, imageLoader);
+		}
 
 		ontopPaintListener = new Listener() {
 			public void handleEvent(Event event) {
@@ -161,6 +172,9 @@ public class SWTSkin
 	}
 
 	public ImageLoader getImageLoader(SkinProperties properties) {
+		if (properties == this.skinProperties) {
+			return imageLoader;
+		}
 		ImageLoader loader = (ImageLoader) mapImageLoaders.get(properties);
 
 		if (loader != null) {
@@ -318,7 +332,7 @@ public class SWTSkin
 
 	public SWTSkinObject getSkinObject(String sViewID) {
 		SWTSkinObject[] objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(sViewID);
-		if (objects == null) {
+		if (objects == null || objects.length == 0) {
 			if (!Utils.isThisThreadSWT()) {
 				Debug.out("View "
 						+ sViewID
