@@ -22,9 +22,7 @@
 package com.aelitis.azureus.core.cnetwork.impl;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -63,7 +61,8 @@ ContentNetworkVuzeGeneric
 
 	private Map<Integer, String>		service_map = new HashMap<Integer, String>();
 
-
+	private Set<Integer>				service_exclusions;
+	
 	private String	SITE_HOST;
 	private String	URL_PREFIX;
 	private String	URL_ICON;
@@ -81,6 +80,7 @@ ContentNetworkVuzeGeneric
 		long						_version,
 		String						_name,
 		Map<String,Object>			_pprop_defaults,
+		Set<Integer>				_service_exclusions,
 		String						_site_host,
 		String						_url_prefix,
 		String						_url_icon,
@@ -103,13 +103,15 @@ ContentNetworkVuzeGeneric
 		URL_FORUMS				= _url_forums;
 		URL_WIKI				= _url_wiki;
 		 
+		service_exclusions		= _service_exclusions;
+		
 		init();
 	}
 	
 	protected
 	ContentNetworkVuzeGeneric(
 		ContentNetworkManagerImpl	_manager,
-		Map							_map )
+		Map<String,Object>			_map )
 	
 		throws IOException
 	{
@@ -120,7 +122,7 @@ ContentNetworkVuzeGeneric
 	
 	protected void
 	importFromBEncodedMap(
-		Map			map )
+		Map<String,Object>			map )
 	
 		throws IOException
 	{		
@@ -136,6 +138,18 @@ ContentNetworkVuzeGeneric
 		URL_FORUMS				= ImportExportUtils.importString(map, "vg_forums" );
 		URL_WIKI				= ImportExportUtils.importString(map, "vg_wiki" );
 		 
+		List<Long>	sex = (List<Long>)map.get( "vg_sex" );
+		
+		if ( sex != null ){
+			
+			service_exclusions = new HashSet<Integer>();
+			
+			for ( Long l: sex ){
+				
+				service_exclusions.add( l.intValue());
+			}
+		}
+		
 		init();
 	}
 	
@@ -156,6 +170,18 @@ ContentNetworkVuzeGeneric
 		ImportExportUtils.exportString(map, "vg_blog", 		URL_BLOG );
 		ImportExportUtils.exportString(map, "vg_forums",	URL_FORUMS );
 		ImportExportUtils.exportString(map, "vg_wiki",		URL_WIKI );
+		
+		if ( service_exclusions != null ){
+			
+			List<Long> sex = new ArrayList<Long>();
+			
+			for (Integer i: service_exclusions){
+			
+				sex.add( i.longValue());
+			}
+			
+			map.put( "vg_sex", sex );
+		}
 	}
 	
 	protected void
@@ -229,6 +255,12 @@ ContentNetworkVuzeGeneric
 		 service_map.put( type, url_str );
 	}
 	
+	protected Set<Integer>
+	getServiceExclusions()
+	{
+		return( service_exclusions );
+	}
+	
 	public Object 
 	getProperty(
 		int property ) 
@@ -252,10 +284,16 @@ ContentNetworkVuzeGeneric
 			return( null );
 		}
 	}
+	
 	public boolean 
 	isServiceSupported(
 		int service_type )
 	{
+		if ( service_exclusions != null && service_exclusions.contains( service_type )){
+			
+			return( false );
+		}
+		
 		return( service_map.get( service_type ) != null );
 	}
 	
@@ -272,6 +310,13 @@ ContentNetworkVuzeGeneric
 		int			service_type,
 		Object[]	params )
 	{
+		if ( service_exclusions != null && service_exclusions.contains( service_type )){
+			
+			debug( "Service type '" + service_type + "' is excluded" );
+
+			return( null );
+		}
+		
 		String	base = service_map.get( service_type );
 		
 		if ( base == null ){

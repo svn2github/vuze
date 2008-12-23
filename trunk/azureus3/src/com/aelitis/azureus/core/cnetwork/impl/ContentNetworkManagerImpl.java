@@ -350,15 +350,21 @@ ContentNetworkManagerImpl
 			throw( new ContentNetworkException( "main url invald", e ));
 		}
 		
-			// propagate persistent property defaults as currently not returned by webapp
+			// propagate persistent property defaults and exclusions as currently not returned by webapp
 		
 		ContentNetworkImpl existing = getContentNetwork( details.getID());
 		
-		Map<String,Object> pprop_defaults = null;
+		Map<String,Object> 	pprop_defaults		= null;
+		Set<Integer>		service_exclusions	= null;
 		
 		if ( existing != null ){
 			
 			pprop_defaults = existing.getPersistentPropertyDefaults();
+			
+			if ( existing instanceof ContentNetworkVuzeGeneric ){
+				
+				service_exclusions	= ((ContentNetworkVuzeGeneric)existing).getServiceExclusions();
+			}
 		}
 		
 		return( 
@@ -368,6 +374,7 @@ ContentNetworkManagerImpl
 					details.getVersion(),
 					details.getName(),
 					pprop_defaults,
+					service_exclusions,
 					site_dns,
 					main_url,
 					icon_url,
