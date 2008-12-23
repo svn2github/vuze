@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -43,12 +44,13 @@ public class WelcomeView
 {
 	private SWTSkinObjectBrowser browserSkinObject;
 
-	public Object skinObjectInitialShow(final SWTSkinObject skinObject, Object params) {
+	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
+			Object params) {
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_WELCOME, soMain);
 
 		browserSkinObject.addListener(new loadingListener() {
-			
+
 			public void browserLoadingChanged(boolean loading, String url) {
 				if (!loading) {
 					skinObject.getControl().getParent().layout(true, true);
@@ -57,34 +59,34 @@ public class WelcomeView
 		});
 
 		COConfigurationManager.setParameter("v3.Show Welcome", false);
-		
+
 		Object o = skinObject.getData("CreationParams");
 		if (o instanceof String) {
 			browserSkinObject.setURL((String) o);
 		} else {
-  		String sURL = ContentNetworkUtils.getUrl(
+			String sURL = ContentNetworkUtils.getUrl(
 					ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_WELCOME);
-  		browserSkinObject.setURL(sURL);
+			browserSkinObject.setURL(sURL);
 		}
-		
+
 		SideBarEntrySWT entry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
 		entry.addListener(new SideBarCloseListener() {
 			public void sidebarClosed(SideBarEntrySWT entry) {
 				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 				if (sidebar != null) {
-  				String startTab;
-  				if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
-  					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-  				} else {
-  					startTab = "ContentNetwork."
-							+ ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
-  				}
+					String startTab;
+					if (COConfigurationManager.getBooleanParameter("v3.Start Advanced")) {
+						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
+					} else {
+						ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
+						startTab = "ContentNetwork." + startupCN.getID();
+					}
 
 					sidebar.showEntryByID(startTab);
 				}
 			}
 		});
-		
+
 		return null;
 	}
 }
