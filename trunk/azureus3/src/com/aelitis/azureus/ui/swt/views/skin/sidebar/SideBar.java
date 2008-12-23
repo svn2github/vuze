@@ -1700,32 +1700,6 @@ public class SideBar
 		return entry.treeItem != null;
 	}
 
-	public boolean showEntryByID(String id) {
-		SideBarEntrySWT entry = getEntry(id);
-		if (entry.treeItem != null) {
-			itemSelected(entry.treeItem);
-			return true;
-		}
-		if (id.equals(SIDEBAR_SECTION_ADVANCED)) {
-			SideBarEntrySWT entryAdv = createEntryFromSkinRef(null,
-					SIDEBAR_SECTION_ADVANCED, "main.area.advancedtab", "Advanced", null,
-					null, false, -1);
-			itemSelected(entryAdv.treeItem);
-			return true;
-		} else if (id.equals(SIDEBAR_SECTION_WELCOME)) {
-			SideBarEntrySWT entryWelcome = createWelcomeSection();
-			itemSelected(entryWelcome.treeItem);
-			return true;
-		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
-			SideBarEntrySWT entryPublish = createEntryFromSkinRef(
-					SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH, "publishtab.area",
-					"Publish", null, null, true, -1);
-			itemSelected(entryPublish.treeItem);
-			return true;
-		}
-		return false;
-	}
-
 	/**
 	 * @param treeItem
 	 *
@@ -2550,6 +2524,36 @@ public class SideBar
 		}
 	}
 
+	public boolean showEntryByID(String id) {
+		SideBarEntrySWT entry = getEntry(id);
+		if (entry.treeItem != null) {
+			itemSelected(entry.treeItem);
+			return true;
+		}
+		if (id.equals(SIDEBAR_SECTION_ADVANCED)) {
+			SideBarEntrySWT entryAdv = createEntryFromSkinRef(null,
+					SIDEBAR_SECTION_ADVANCED, "main.area.advancedtab", "Advanced", null,
+					null, false, -1);
+			itemSelected(entryAdv.treeItem);
+			return true;
+		} else if (id.equals(SIDEBAR_SECTION_WELCOME)) {
+			SideBarEntrySWT entryWelcome = createWelcomeSection();
+			itemSelected(entryWelcome.treeItem);
+			return true;
+		} else if (id.equals(SIDEBAR_SECTION_PUBLISH)) {
+			SideBarEntrySWT entryPublish = createEntryFromSkinRef(
+					SIDEBAR_SECTION_BROWSE, SIDEBAR_SECTION_PUBLISH, "publishtab.area",
+					"Publish", null, null, true, -1);
+			itemSelected(entryPublish.treeItem);
+			return true;
+		} else if (id.startsWith("ContentNetwork.")) {
+				long networkID = Long.parseLong(id.substring(15));
+				handleContentNetworkSwitch(id, networkID);
+				return true;
+		}
+		return false;
+	}
+
 	/**
 	 * @param tabID
 	 *
@@ -2590,12 +2594,7 @@ public class SideBar
 				if (tree.isDisposed()) {
 					return;
 				}
-				if (itemID.startsWith("ContentNetwork.")) {
-					long networkID = Long.parseLong(itemID.substring(15));
-					handleContentNetworkSwitch(itemID, networkID);
-				} else {
-					showEntryByID(itemID);
-				}
+				showEntryByID(itemID);
 			}
 		});
 		return id;
@@ -2644,13 +2643,9 @@ public class SideBar
 				}
 			}
 
-			if (!showEntryByID(tabID)) {
 				createContentNetworkSideBarEntry(cn);
 				showEntryByID(tabID);
 				return;
-			} else {
-				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
-			}
 		} catch (Exception e) {
 			Debug.out(e);
 		}
