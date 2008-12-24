@@ -28,8 +28,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
 import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -48,8 +51,11 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
  *
  */
 public class Browse
-	extends SkinView implements SideBarCloseListener
+	extends SkinView
+	implements SideBarCloseListener
 {
+	protected static final String CFG_SHOWCLOSE = "contentnetwork.close.reminder";
+
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	public SWTSkinObjectBrowser getBrowserSkinObject() {
@@ -63,7 +69,7 @@ public class Browse
 	private SideBarVitalityImage vitalityImage;
 
 	private ContentNetwork contentNetwork;
-	
+
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
@@ -84,11 +90,11 @@ public class Browse
 		this.soMain = skinObject;
 		skin = skinObject.getSkin();
 		Object creationParams = skinObject.getData("CreationParams");
-		
+
 		if (creationParams instanceof ContentNetwork) {
 			contentNetwork = (ContentNetwork) creationParams;
 		} else {
-			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK; 
+			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
 		}
 
 		// Vuze network login happens in Initializer.  The rest can be initialized
@@ -96,18 +102,19 @@ public class Browse
 		if (contentNetwork.getID() != ContentNetwork.CONTENT_NETWORK_VUZE) {
 			PlatformConfigMessenger.login(contentNetwork.getID(), 0);
 		}
-		
+
 		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
-		
+
 		final SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
 			final SideBarEntrySWT entry = sidebar.getEntryBySkinView(this);
 			if (entry != null) {
 				vitalityImage = entry.addVitalityImage("image.sidebar.vitality.dots");
 				vitalityImage.setVisible(false);
-				
+
 				sidebar.addListener(new SideBarListener() {
 					long lastSelect = 0;
+
 					public void sidebarItemSelected(SideBarEntrySWT newSideBarEntry,
 							SideBarEntrySWT oldSideBarEntry) {
 						if (entry == newSideBarEntry) {
@@ -133,69 +140,70 @@ public class Browse
 				}
 			}
 		});
-		
+
 		browserSkinObject.getContext().setContentNetwork(contentNetwork);
 
 		createBrowseArea(browserSkinObject);
-		
-		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
-  		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
-  		PluginInterface pi = pm.getDefaultPluginInterface();
-  		UIManager uim = pi.getUIManager();
-  		MenuManager menuManager = uim.getMenuManager();
-  		
-  		String menuID = "sidebar." + ContentNetworkUtils.getTarget(contentNetwork); 
-  		
-  		MenuItem menuItem = menuManager.addMenuItem(menuID, "Button.reset");
-  		menuItem.addListener(new MenuItemListener() {
-  			public void selected(MenuItem menu, Object target) {
-  				browserSkinObject.restart();
-  			}
-  		});
-  		
-  		menuItem = menuManager.addMenuItem(menuID, "Tux RPC Test");
-  		menuItem.addListener(new MenuItemListener() {
-  			public void selected(MenuItem menu, Object target) {
-  	  		browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
-  			}
-  		});
-  		
-  		if (contentNetwork != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
-    		menuItem = menuManager.addMenuItem(menuID, "Remove HD Network");
-    		menuItem.addListener(new MenuItemListener() {
-    			public void selected(MenuItem menu, Object target) {
-    				if (sidebar != null) {
-    					final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
-    					if (entry != null) {
-    						entry.removeListener(Browse.this);
-    					}
-    					sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
-    				}
-    				contentNetwork.remove();
-    			}
-    		});
 
-    		menuItem = menuManager.addMenuItem(menuID, "Reset IP Flag && Close");
-    		menuItem.addListener(new MenuItemListener() {
-    			public void selected(MenuItem menu, Object target) {
-  					contentNetwork.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
-  							Boolean.FALSE);
-    				if (sidebar != null) {
-    					final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
-    					if (entry != null) {
-    						entry.removeListener(Browse.this);
-    					}
-    					sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
-    				}
-    			}
-    		});
-  		}
-  		
+		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
+			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+			PluginInterface pi = pm.getDefaultPluginInterface();
+			UIManager uim = pi.getUIManager();
+			MenuManager menuManager = uim.getMenuManager();
+
+			String menuID = "sidebar."
+					+ ContentNetworkUtils.getTarget(contentNetwork);
+
+			MenuItem menuItem = menuManager.addMenuItem(menuID, "Button.reset");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					browserSkinObject.restart();
+				}
+			});
+
+			menuItem = menuManager.addMenuItem(menuID, "Tux RPC Test");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
+				}
+			});
+
+			if (contentNetwork != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
+				menuItem = menuManager.addMenuItem(menuID, "Remove HD Network");
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						if (sidebar != null) {
+							final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
+							if (entry != null) {
+								entry.removeListener(Browse.this);
+							}
+							sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
+						}
+						contentNetwork.remove();
+					}
+				});
+
+				menuItem = menuManager.addMenuItem(menuID, "Reset IP Flag && Close");
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						contentNetwork.setPersistentProperty(
+								ContentNetwork.PP_AUTH_PAGE_SHOWN, Boolean.FALSE);
+						if (sidebar != null) {
+							final SideBarEntrySWT entry = sidebar.getEntryBySkinView(Browse.this);
+							if (entry != null) {
+								entry.removeListener(Browse.this);
+							}
+							sidebar.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
+						}
+					}
+				});
+			}
+
 		}
 
 		return null;
 	}
-	
+
 	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
 		this.browserSkinObject = browserSkinObject;
 
@@ -204,7 +212,36 @@ public class Browse
 	}
 
 	public void sidebarClosed(SideBarEntrySWT entry) {
-		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.FALSE);
-		new SkinnedDialog("close-notification.body");
+		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
+				Boolean.FALSE);
+
+		int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
+		if (decision != 1) {
+			final SkinnedDialog closeDialog = new SkinnedDialog(
+					"close-notification.body");
+			SWTSkin skin = closeDialog.getSkin();
+			SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
+
+			if (soButton != null) {
+				soButton.addSelectionListener(new ButtonListenerAdapter() {
+					public void pressed(SWTSkinButtonUtility buttonUtility,
+							SWTSkinObject skinObject, int stateMask) {
+						closeDialog.close();
+					}
+				});
+			}
+
+			closeDialog.addCloseListener(new SkinnedDialogClosedListener() {
+				public void skinDialogClosed(SkinnedDialog dialog) {
+					SWTSkin skin = closeDialog.getSkin();
+					SWTSkinObjectCheckbox soCheck = (SWTSkinObjectCheckbox) skin.getSkinObject("noshowagain");
+					if (soCheck != null && soCheck.isChecked()) {
+						RememberedDecisionsManager.setRemembered(CFG_SHOWCLOSE, 1);
+					}
+				}
+			});
+
+			closeDialog.open();
+		}
 	}
 }

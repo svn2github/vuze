@@ -18,13 +18,18 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 
@@ -37,14 +42,21 @@ public class SkinnedDialog
 {
 	private final String shellSkinObjectID;
 
+	private Shell shell;
+
+	private SWTSkin skin;
+
+	private List<SkinnedDialogClosedListener> closeListeners = new CopyOnWriteArrayList<SkinnedDialogClosedListener>();
+
 	public SkinnedDialog(String shellSkinObjectID) {
 		this.shellSkinObjectID = shellSkinObjectID;
 
-		final Shell shell = ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.RESIZE);
-		
+		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+		shell = ShellFactory.createShell(mainShell, SWT.DIALOG_TRIM | SWT.RESIZE);
+
 		Utils.setShellIcon(shell);
 
-		SWTSkin skin = SWTSkinFactory.getNonPersistentInstance(
+		skin = SWTSkinFactory.getNonPersistentInstance(
 				SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
 				"skin3_close_notification.properties");
 
@@ -61,11 +73,44 @@ public class SkinnedDialog
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				//skin.destroy;
+				for (SkinnedDialogClosedListener l : closeListeners) {
+					try {
+						l.skinDialogClosed(SkinnedDialog.this);
+					} catch (Exception e2) {
+						Debug.out(e2);
+					}
+				}
 			}
 		});
-		
+
 		skin.layout();
 
+		Utils.centerWindowRelativeTo(shell, mainShell);
+	}
+
+	public void open() {
 		shell.open();
+	}
+
+	public SWTSkin getSkin() {
+		return skin;
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void close() {
+		shell.close();
+	}
+
+	public void addCloseListener(SkinnedDialogClosedListener l) {
+		closeListeners.add(l);
+	}
+
+	public interface SkinnedDialogClosedListener
+	{
+		public void skinDialogClosed(SkinnedDialog dialog);
 	}
 }
