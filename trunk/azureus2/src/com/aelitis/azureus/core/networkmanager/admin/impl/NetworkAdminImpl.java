@@ -114,6 +114,19 @@ NetworkAdminImpl
 	
 	private List as_history = new ArrayList();
 	
+	private AsyncDispatcher		async_asn_dispacher 	= new AsyncDispatcher();
+	private static final int	MAX_ASYNC_ASN_LOOKUPS	= 1024;
+	
+	private Map<InetAddress, NetworkAdminASN>	async_asn_history = 
+		new LinkedHashMap<InetAddress, NetworkAdminASN>(256,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<InetAddress, NetworkAdminASN> eldest) 
+			{
+				return size() > 256;
+			}
+		};
 		
 	public
 	NetworkAdminImpl()
@@ -1164,6 +1177,72 @@ NetworkAdminImpl
 		return( result );
 	}
 		
+	public void
+	lookupASN(
+		final InetAddress					address,
+		final NetworkAdminASNListener		listener )
+	{
+		synchronized( async_asn_history ){
+			
+			NetworkAdminASN existing = async_asn_history.get( address );
+			
+			if ( existing != null ){
+				
+				listener.success( existing );
+			}
+		}
+		
+		int	queue_size = async_asn_dispacher.getQueueSize();
+				
+		if ( queue_size >= MAX_ASYNC_ASN_LOOKUPS ){
+			
+			listener.failed( new NetworkAdminException( "Too many outstanding lookups" ));
+			
+		}else{
+			
+			async_asn_dispacher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						synchronized( async_asn_history ){
+							
+							NetworkAdminASN existing = async_asn_history.get( address );
+							
+							if ( existing != null ){
+								
+								listener.success( existing );
+								
+								return;
+							}
+						}
+						
+						try{				
+							NetworkAdminASNLookupImpl lookup = new NetworkAdminASNLookupImpl( address );
+					
+							NetworkAdminASNImpl result = lookup.lookup();
+
+							synchronized( async_asn_history ){
+
+								async_asn_history.put( address, result );
+							}
+							
+							listener.success( result );
+							
+						}catch( NetworkAdminException e ){
+							
+							listener.failed( e );
+							
+						}catch( Throwable e ){
+							
+							listener.failed( new NetworkAdminException( "lookup failed", e ));
+						}
+					}
+				});
+		}
+	}
+	
 	protected void
 	addToASHistory(
 		NetworkAdminASN	asn )

@@ -143,6 +143,13 @@ NetworkAdmin
 		InetAddress		address )
 	
 		throws NetworkAdminException;
+	
+	public abstract void
+	lookupASN(
+		InetAddress					address,
+		NetworkAdminASNListener		listener );
+	
+	
 	public abstract boolean
 	canTraceRoute();
 	

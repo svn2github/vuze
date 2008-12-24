@@ -103,6 +103,7 @@ public class PeersView
 			new PeerByteIDItem(table_id),
 			new HandshakeReservedBytesItem(table_id),
 			new ClientIdentificationItem(table_id),	
+			new ASItem(table_id),
 		};
 	}
 	
