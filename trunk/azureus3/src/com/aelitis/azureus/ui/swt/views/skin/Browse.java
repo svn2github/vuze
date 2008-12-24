@@ -205,11 +205,6 @@ public class Browse
 
 	public void sidebarClosed(SideBarEntrySWT entry) {
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.FALSE);
-		
-		Utils.openMessageBox(
-				null,
-				SWT.OK,
-				"You closed a sidebar entry",
-				"OMG OMG! Did you know you just closed a sidebar entry?\n\nYou can get it back by asking the frog gods");
+		new SkinnedDialog("close-notification.body");
 	}
 }
