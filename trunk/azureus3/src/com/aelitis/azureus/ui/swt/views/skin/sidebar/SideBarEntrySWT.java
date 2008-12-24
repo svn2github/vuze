@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -335,7 +336,11 @@ public class SideBarEntrySWT implements SideBarEntry
 		Object[] list = listCloseListeners.toArray();
 		for (int i = 0; i < list.length; i++) {
 			SideBarCloseListener l = (SideBarCloseListener) list[i];
-			l.sidebarClosed(this);
+			try {
+				l.sidebarClosed(this);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
 		}
 	}
 
