@@ -80,7 +80,7 @@ public class SkinPropertiesImpl
 		rb = new IntegratedResourceBundle(bundle, Collections.EMPTY_MAP);
 		rb.setUseNullList(true);
 
-		String sFiles = rb.getString("skin.include");
+		String sFiles = rb.getString("skin.include", null);
 		if (sFiles != null) {
 			String[] sFilesArray = sFiles.split(",");
 			for (int i = 0; i < sFilesArray.length; i++) {
