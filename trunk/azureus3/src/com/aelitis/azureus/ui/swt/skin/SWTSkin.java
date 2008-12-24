@@ -1431,6 +1431,9 @@ public class SWTSkin
 			} else if (sType.equals("button")) {
 				skinObject = createButton(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("checkbox")) {
+				skinObject = createCheckbox(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
 			}
@@ -1474,6 +1477,20 @@ public class SWTSkin
 			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
 
 		SWTSkinObject skinObject = new SWTSkinObjectButton(this, properties, id,
+				configID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		if (bLayoutComplete) {
+			attachControl(skinObject);
+		}
+
+		return skinObject;
+	}
+
+	private SWTSkinObject createCheckbox(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+
+		SWTSkinObject skinObject = new SWTSkinObjectCheckbox(this, properties, id,
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
