@@ -588,6 +588,19 @@ public class SWTSkin
 		if (fg != null) {
 			shell.setForeground(fg);
 		}
+		
+		
+		int width = skinProperties.getIntValue(startID + ".width", -1);
+		int height = skinProperties.getIntValue(startID + ".height", -1);
+		if (width > 0 && height > 0) {
+			shell.setSize(width, height);
+		}
+		
+		String title = skinProperties.getStringValue(startID + ".title",
+				(String) null);
+		if (title != null) {
+			shell.setText(title);
+		}
 
 		String[] sMainGroups = skinProperties.getStringArray(startID + ".widgets");
 		if (sMainGroups == null) {
