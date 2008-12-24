@@ -86,9 +86,9 @@ public class MainMenu
 		//addViewMenu();
 		addSimpleViewMenu();
 
-		addCommunityMenu();
-
 		addContentNetworksMenu();
+
+		addCommunityMenu();
 
 		addPublishMenu();
 
