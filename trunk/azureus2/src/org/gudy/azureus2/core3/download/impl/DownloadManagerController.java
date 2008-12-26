@@ -25,10 +25,8 @@ package org.gudy.azureus2.core3.download.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
@@ -497,6 +495,27 @@ DownloadManagerController
 							if ( !ok ){
 								
 								dms.setPeerSourcePermitted( s, false );
+							}
+						}
+						
+						PEPeerManager pm = getPeerManager();
+						
+						if ( pm != null ){
+							
+							Set<String>	allowed = new HashSet<String>();
+							
+							allowed.addAll( Arrays.asList( allowed_sources ));
+							
+							Iterator<PEPeer> it = pm.getPeers().iterator();
+						
+							while( it.hasNext()){
+								
+								PEPeer peer = it.next();
+								
+								if ( !allowed.contains( peer.getPeerSource())){
+									
+									pm.removePeer( peer, "Peer source not permitted" );
+								}
 							}
 						}
 					}

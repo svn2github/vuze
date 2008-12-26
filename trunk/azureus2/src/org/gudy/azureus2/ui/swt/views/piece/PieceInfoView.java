@@ -20,6 +20,8 @@
 
 package org.gudy.azureus2.ui.swt.views.piece;
 
+import java.util.Iterator;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.PaintEvent;
@@ -354,9 +356,9 @@ public class PieceInfoView
 		byte[] uploadingPieces = new byte[dm_pieces.length];
 
 		// find upload pieces
-		PEPeer[] peers = (PEPeer[]) pm.getPeers().toArray(new PEPeer[0]);
-		for (int i = 0; i < peers.length; i++) {
-			PEPeer peer = peers[i];
+		Iterator<PEPeer> peer_it = pm.getPeers().iterator();
+		while( peer_it.hasNext()){
+			PEPeer peer = peer_it.next();
 			int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
 			if (peerRequestedPieces != null && peerRequestedPieces.length > 0) {
 				int pieceNum = peerRequestedPieces[0];

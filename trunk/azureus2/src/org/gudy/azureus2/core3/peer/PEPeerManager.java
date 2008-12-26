@@ -189,10 +189,10 @@ PEPeerManager
 	createPeerStats(
 		PEPeer	owner );
 	
-	public List
+	public List<PEPeer>
 	getPeers();
 	
-	public List
+	public List<PEPeer>
 	getPeers(
 		String	address );
 	

@@ -147,7 +147,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private volatile boolean	is_running 		= false;  
 	private volatile boolean	is_destroyed 	= false;  
 
-	private volatile ArrayList	peer_transports_cow = new ArrayList();	// Copy on write!
+	private volatile ArrayList<PEPeer>	peer_transports_cow = new ArrayList<PEPeer>();	// Copy on write!
 	private final AEMonitor     peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
 
 	protected final PEPeerManagerAdapter	adapter;
@@ -589,19 +589,19 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
-	public List
+	public List<PEPeer>
 	getPeers()
 	{
 		return( peer_transports_cow );
 	}
 
-	public List
+	public List<PEPeer>
 	getPeers(
-			String	address )
+		String	address )
 	{		
-		List	result = new ArrayList();
+		List<PEPeer>	result = new ArrayList<PEPeer>();
 
-		Iterator	it = peer_transports_cow.iterator();
+		Iterator<PEPeer>	it = peer_transports_cow.iterator();
 
 		while( it.hasNext()){
 
