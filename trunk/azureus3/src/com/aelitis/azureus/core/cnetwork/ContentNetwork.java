@@ -74,6 +74,8 @@ ContentNetwork
 	public static final int		SERVICE_SUBSCRIPTION		= 29;	// String - subscription ID
 	public static final int		SERVICE_GET_ICON			= 30;	
 	public static final int		SERVICE_AUTHORIZE			= 31;	
+	public static final int		SERVICE_PREPLAYBACK   = 32;
+	public static final int		SERVICE_POSTPLAYBACK  = 33;
 	
 		// content network properties
 	
@@ -86,6 +88,7 @@ ContentNetwork
 	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean, default false
 	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
 	public static final String	PP_ACTIVE			          = "active";	// Boolean
+
 	
 		/**
 		 * Returns one of the above CONTENT_NETWORK constants

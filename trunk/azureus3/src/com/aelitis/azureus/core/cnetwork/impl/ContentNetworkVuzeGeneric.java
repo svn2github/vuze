@@ -215,6 +215,9 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_AUTHORIZE,			URL_PREFIX + "ip.start?" );
 		addService( SERVICE_GET_ICON,			URL_ICON );
 
+		addService( SERVICE_PREPLAYBACK,		URL_PREFIX + "emp/load/" );
+		addService( SERVICE_POSTPLAYBACK, 		URL_PREFIX + "emp/recommend/" );
+		
 		if ( URL_RELAY_RPC != null ){
 			 
 			addService( SERVICE_RELAY_RPC, 		URL_RELAY_RPC );
@@ -367,6 +370,15 @@ ContentNetworkVuzeGeneric
 					
 					url_str += "&client_ref=" +  UrlUtils.encode( client_ref );
 				}
+				
+				return( url_str );
+			}
+			case SERVICE_POSTPLAYBACK:
+			case SERVICE_PREPLAYBACK:{
+				
+				String	hash 		= (String)params[0];
+				
+				String url_str = base + hash + "?" + URL_SUFFIX;
 				
 				return( url_str );
 			}
