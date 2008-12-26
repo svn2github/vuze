@@ -147,28 +147,28 @@ public class NeuralSpeedLimiter {
 	}
 
 	public void setMinLatency(long minLatency) {
-		if(minLatency > 0) {
+		if(minLatency >= 0) {
 			this.minLatency = minLatency;
 		}
 		resetInput();
 	}
 
 	public void setUlSpeed(long ulSpeed) {
-		if(ulSpeed > 0) {
+		if(ulSpeed >= 0) {
 			this.ulSpeed = ulSpeed;
 		}
 		resetInput();
 	}
 
 	public void setDlSpeed(long dlSpeed) {
-		if(dlSpeed > 0) {
+		if(dlSpeed >= 0) {
 			this.dlSpeed = dlSpeed;
 		}
 		resetInput();
 	}
 
 	public void setLatency(long latency) {
-		if(latency > 0) {
+		if(latency >= 0) {
 			this.latency = latency;
 		}
 		resetInput();
