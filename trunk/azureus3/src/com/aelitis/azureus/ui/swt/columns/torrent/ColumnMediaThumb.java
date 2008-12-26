@@ -398,15 +398,7 @@ public class ColumnMediaThumb
 			int imgSizeHalf = (int) (IMG_SIZE_HALF * scale);
 			int border = (int) (4 * scale);
 			
-			boolean canShare = dm != null;
-			if (!canShare && (ds instanceof VuzeActivitiesEntry)) {
-				try {
-					ISelectedContent sc = ((VuzeActivitiesEntry)ds).createSelectedContentObject();
-					canShare = sc != null;
-				} catch (Exception e) {
-					canShare = false;
-				}
-			}
+			boolean canShare = VuzeShareUtils.getInstance().canShare(ds);
 			
 			int yPos = ICONS_BELOW ? cellHeight - imgSize - 2 :  cellHeight / 2 - imgSizeHalf;
 

@@ -2,11 +2,15 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
@@ -14,6 +18,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 public class VuzeShareUtils
 {
@@ -39,6 +45,12 @@ public class VuzeShareUtils
 
 	public void shareTorrent(final SelectedContentV3 currentContent,
 			final String referer) {
+		
+		if (!canShare(currentContent)) {
+			Debug.out("Tried to share " + currentContent.getHash()
+					+ " but not shareable");
+			return;
+		}
 
 		PlatformBuddyMessenger.startShare(referer,
 				currentContent.isPlatformContent() ? currentContent.getHash() : null);
@@ -95,6 +107,19 @@ public class VuzeShareUtils
 				}
 			}
 		});
+	}
+	
+	public boolean canShare(Object datasource) {
+		TOTorrent torrent = DataSourceUtils.getTorrent(datasource);
+		if (torrent == null) {
+			if (DataSourceUtils.getHash(datasource) != null) {
+				return true;
+			}
+			return false;
+		}
+		
+		long id = PlatformTorrentUtils.getContentNetworkID(torrent);
+		return id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
 	}
 
 }
