@@ -91,7 +91,12 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  * @future dataSourcesToRemove should be removed after a certain amount of time
  *          has passed.  Currently, dataSourcesToRemove is processed every
  *          refresh IF the table is visible, or it is processed when we collect
- *          20 items to remove. 
+ *          20 items to remove.
+ *          
+ * @note 4005: We set a text cell's measured width to the columns prefered width
+ *             instead of setting it to the actual space needed for the text.
+ *             We should really store the last measured width in TableCell and
+ *             use that.
  */
 public class TableViewSWTImpl
 	extends TableViewImpl
@@ -771,6 +776,18 @@ public class TableViewSWTImpl
 		
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
+				int iColumnNo = event.index;
+				
+				if (bSkipFirstColumn) {
+					iColumnNo--;
+				}
+
+				if (iColumnNo >= 0 && iColumnNo < columnsOrdered.length) {
+					TableColumnCore tc = columnsOrdered[iColumnNo];
+					int preferredWidth = tc.getPreferredWidth();
+					event.width = tc.getPreferredWidth();
+				}
+
 				int defaultHeight = getRowDefaultHeight();
 				if (event.height < defaultHeight) {
 					event.height = defaultHeight;
@@ -1476,9 +1493,11 @@ public class TableViewSWTImpl
 			if (cell.needsPainting()) {
 				cell.doPaint(event.gc);
 			} else if (text.length() > 0) {
+				int ofsx = 0;
 				Image image = item.getImage(event.index);
 				if (image != null) {
 					int ofs = image.getBounds().width;
+					ofsx += ofs;
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
 				}
@@ -1492,14 +1511,24 @@ public class TableViewSWTImpl
 					event.gc.setAlpha(textOpacity);
 				}
 				// put some padding on text
+				ofsx += 6;
 				cellBounds.x += 3;
 				cellBounds.width -= 6;
 				if (!cellBounds.isEmpty()) {
-					boolean fit = GCStringPrinter.printString(event.gc, text,
+					GCStringPrinter sp = new GCStringPrinter(event.gc, text,
 							cellBounds, true, cellBounds.height > 20, style);
+					
+					boolean fit = sp.printString();
 					if (!fit) {
 						// XXX This overrides cell-set tooltip!
 						cell.setToolTip(text);
+					}
+
+					Point size = sp.getCalculatedSize();
+					size.x += ofsx;
+
+					if (cell.getTableColumn().getPreferredWidth() < size.x) {
+						cell.getTableColumn().setPreferredWidth(size.x);
 					}
 				}
 			}
