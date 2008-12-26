@@ -495,7 +495,6 @@ public class ToolBarView
 		};
 
 		String[] itemsRequiring1SelectionWithHash = {
-			"share",
 			"details",
 			"comment",
 		};
@@ -621,6 +620,13 @@ public class ToolBarView
 					canStop = true;
 				}
 			}
+		}
+
+		item = getToolBarItem("share");
+		if (item != null) {
+			boolean canShare = has1SelectionWithHash
+					&& VuzeShareUtils.getInstance().canShare(currentContent[0]);
+			item.setEnabled(canShare);
 		}
 
 		item = getToolBarItem("run");
