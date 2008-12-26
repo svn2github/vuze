@@ -467,7 +467,7 @@ public class GCStringPrinter
 
 				for (Iterator iter = lines.iterator(); iter.hasNext();) {
 					LineInfo lineInfo = (LineInfo) iter.next();
-					size.x += Math.max(lineInfo.width, size.x);
+					size.x = Math.max(lineInfo.width, size.x);
 					size.y += lineInfo.height;
 				}
 				
