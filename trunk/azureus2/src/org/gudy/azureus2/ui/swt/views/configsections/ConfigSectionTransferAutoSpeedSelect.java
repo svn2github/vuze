@@ -153,6 +153,7 @@ public class ConfigSectionTransferAutoSpeedSelect
         String AutoSpeedClassic = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.classic");
         String AutoSpeedBeta = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.beta");
         String AutoSpeedNeural = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.neural");
+        
         String[] modeNames = {
                 AutoSpeedClassic,
                 AutoSpeedBeta,
@@ -177,6 +178,9 @@ public class ConfigSectionTransferAutoSpeedSelect
         }else if( verNum==2 ){
             //SpeedManagerAlgorithmProviderV2
             versionList.setValue(modes[1]);
+        }else if( verNum==3 ){
+            //SpeedManagerAlgorithmProviderV2
+            versionList.setValue(modes[2]);
         }else{
             //Default is currently version ...V1.
             versionList.setValue(modes[0]);
