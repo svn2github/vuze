@@ -33,11 +33,13 @@ import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
@@ -249,8 +251,7 @@ PeerManagerImpl
 	{
 		manager.requestCanceled((DiskManagerReadRequest)request );
 	}
-	
-	
+
 	
 		// these are foreign peers
 	
@@ -283,11 +284,12 @@ PeerManagerImpl
 		String 	ip_address, 
 		int 	tcp_port ) 
 	{
-		checkIfPrivate();
-		
-		manager.addPeer( ip_address, tcp_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ), null );
+		addPeer(
+			ip_address, 
+			tcp_port, 
+			0, 
+			NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
 	}
-  
 	
 	public void 
 	addPeer( 
@@ -295,12 +297,7 @@ PeerManagerImpl
 		int 		tcp_port, 
 		boolean 	use_crypto ) 
 	{
-		checkIfPrivate();
-		
-		if ( pluginPeerSourceEnabled()){
-		
-			manager.addPeer( ip_address, tcp_port, 0, use_crypto, null );	
-		}
+		addPeer( ip_address, tcp_port, 0, use_crypto );
 	}
   
 	public void 
@@ -309,12 +306,26 @@ PeerManagerImpl
 		int 		tcp_port, 
 		int			udp_port,
 		boolean 	use_crypto ) 
+	{		
+		addPeer( ip_address, tcp_port, udp_port, use_crypto, null );
+	}
+
+	public void 
+	addPeer( 
+		String 		ip_address, 
+		int 		tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto,
+		Map			user_data )
 	{
 		checkIfPrivate();
 		
-		manager.addPeer( ip_address, tcp_port, udp_port, use_crypto, null );
+		if ( pluginPeerSourceEnabled()){
+
+			manager.addPeer( ip_address, tcp_port, udp_port, use_crypto, user_data );
+		}
 	}
-	
+		
 	protected boolean
 	pluginPeerSourceEnabled()
 	{
@@ -349,7 +360,7 @@ PeerManagerImpl
 		
 		if ( t != null ){
 			
-			if ( t.isPrivate()){
+			if (  TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( t ))){
 				
 				throw( new RuntimeException( "Torrent is private, peer addition not permitted" ));
 			}

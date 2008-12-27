@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.peers;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.disk.*;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
@@ -68,6 +70,14 @@ PeerManager
 		int		udp_port,
 		boolean use_crypto );
   
+	public void 
+	addPeer( 
+		String 				ip_address, 
+		int 				tcp_port, 
+		int					udp_port,
+		boolean 			use_crypto,
+		Map<Object,Object>	user_data );
+	
 	public void
 	removePeer(
 		Peer		peer );

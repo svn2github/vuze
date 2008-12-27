@@ -142,16 +142,16 @@ DHTTrackerPlugin
 	private TorrentAttribute 	ta_networks;
 	private TorrentAttribute 	ta_peer_sources;
 
-	private Map					interesting_downloads 	= new HashMap();
-	private int					interesting_published	= 0;
-	private int					interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
-	private Map					running_downloads 		= new HashMap();
-	private Map					registered_downloads 	= new HashMap();
+	private Map<Download,Long>		interesting_downloads 	= new HashMap<Download,Long>();
+	private int						interesting_published	= 0;
+	private int						interesting_pub_max		= INTERESTING_PUB_MAX_DEFAULT;
+	private Map<Download,Integer>	running_downloads 		= new HashMap<Download,Integer>();
+	private Map<Download,RegistrationDetails>	registered_downloads 	= new HashMap<Download,RegistrationDetails>();
 	
-	private Map					limited_online_tracking	= new HashMap();
-	private Map					query_map			 	= new HashMap();
+	private Map<Download,Boolean>	limited_online_tracking	= new HashMap<Download,Boolean>();
+	private Map<Download,Long>		query_map			 	= new HashMap<Download,Long>();
 	
-	private Map					in_progress				= new HashMap();
+	private Map<Download,Integer>	in_progress				= new HashMap<Download,Integer>();
 	
 		// external config to limit plugin op to pure decentralised only
 	
@@ -162,7 +162,7 @@ DHTTrackerPlugin
 	
 	private LoggerChannel		log;
 	
-	private Map					scrape_injection_map = new WeakHashMap();
+	private Map<Download,int[]>					scrape_injection_map = new WeakHashMap<Download,int[]>();
 	
 	private Random				random = new Random();
 	private boolean				is_running;				
@@ -1113,12 +1113,12 @@ DHTTrackerPlugin
 		
 		putDetails	put_details = new putDetails( value_to_put, override_ip, tcp_port, udp_port );
 		
-		ArrayList	rds;
+		ArrayList<Download>	rds;
 		
 		try{
 			this_mon.enter();
 
-			rds = new ArrayList(running_downloads.keySet());
+			rds = new ArrayList<Download>(running_downloads.keySet());
 			
 		}finally{
 			
@@ -1130,13 +1130,13 @@ DHTTrackerPlugin
 		
 		if ( full_processing ){
 			
-			Iterator	it = rds.iterator();
+			Iterator<Download>	rds_it = rds.iterator();
 			
-			List interesting = new ArrayList();
+			List<Object[]> interesting = new ArrayList<Object[]>();
 			
-			while( it.hasNext()){
+			while( rds_it.hasNext()){
 				
-				Download	dl = (Download)it.next();
+				Download	dl = rds_it.next();
 				
 				int	reg_type = REG_TYPE_NONE;
 				
@@ -1166,16 +1166,13 @@ DHTTrackerPlugin
 			
 			Collections.sort(
 				interesting,
-				new Comparator()
+				new Comparator<Object[]>()
 				{
 					public int 
 					compare(
-						Object o1, 
-						Object o2) 
-					{
-						Object[] entry1 = (Object[])o1;
-						Object[] entry2 = (Object[])o2;
-						
+						Object[] entry1, 
+						Object[] entry2) 
+					{						
 						long	res = ((Long)entry2[1]).longValue() - ((Long)entry1[1]).longValue();
 						
 						if( res < 0 ){
@@ -1193,13 +1190,13 @@ DHTTrackerPlugin
 					}
 				});
 			
-			it	= interesting.iterator();
+			Iterator<Object[]> it	= interesting.iterator();
 			
 			int	num = 0;
 			
 			while( it.hasNext()){
 				
-				Object[] entry = (Object[])it.next();
+				Object[] entry = it.next();
 				
 				Download	dl 		= (Download)entry[0];
 				long		metric	= ((Long)entry[1]).longValue();
@@ -1235,13 +1232,13 @@ DHTTrackerPlugin
 			}
 		}
 		
-		Iterator	it = rds.iterator();
+		Iterator<Download>	rds_it = rds.iterator();
 		
 			// first off do any puts
 		
-		while( it.hasNext()){
+		while( rds_it.hasNext()){
 			
-			final Download	dl = (Download)it.next();
+			Download	dl = rds_it.next();
 			
 			int	reg_type = REG_TYPE_NONE;
 			
@@ -1319,13 +1316,13 @@ DHTTrackerPlugin
 		
 			// second any removals
 		
-		it = registered_downloads.entrySet().iterator();
+		Iterator<Map.Entry<Download,RegistrationDetails>> rd_it = registered_downloads.entrySet().iterator();
 		
-		while( it.hasNext()){
+		while( rd_it.hasNext()){
 			
-			Map.Entry	entry = (Map.Entry)it.next();
+			Map.Entry<Download,RegistrationDetails>	entry = rd_it.next();
 			
-			final Download	dl = (Download)entry.getKey();
+			final Download	dl = entry.getKey();
 
 			boolean	unregister;
 			
@@ -1344,7 +1341,7 @@ DHTTrackerPlugin
 				log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 						"Unregistering download '" + dl.getName() + "'");
 								
-				it.remove();
+				rd_it.remove();
 				
 				try{
 					this_mon.enter();
@@ -1356,17 +1353,17 @@ DHTTrackerPlugin
 					this_mon.exit();
 				}
 				
-				trackerRemove( dl, (RegistrationDetails)entry.getValue());
+				trackerRemove( dl, entry.getValue());
 			}
 		}
 		
 			// lastly gets
 		
-		it = rds.iterator();
+		rds_it = rds.iterator();
 		
-		while( it.hasNext()){
+		while( rds_it.hasNext()){
 			
-			final Download	dl = (Download)it.next();
+			final Download	dl = (Download)rds_it.next();
 			
 			Long	next_time;
 			
@@ -1645,11 +1642,11 @@ DHTTrackerPlugin
 					false, false,
 					new DHTPluginOperationListener()
 					{
-						List	addresses 	= new ArrayList();
-						List	ports		= new ArrayList();
-						List	udp_ports	= new ArrayList();
-						List	is_seeds	= new ArrayList();
-						List	flags		= new ArrayList();
+						List<String>	addresses 	= new ArrayList<String>();
+						List<Integer>	ports		= new ArrayList<Integer>();
+						List<Integer>	udp_ports	= new ArrayList<Integer>();
+						List<Boolean>	is_seeds	= new ArrayList<Boolean>();
+						List<String>	flags		= new ArrayList<String>();
 						
 						int		seed_count;
 						int		leecher_count;
@@ -1798,7 +1795,7 @@ DHTTrackerPlugin
 							
 							int	peers_found = addresses.size();
 							
-							List	peers_for_announce = new ArrayList();
+							List<DownloadAnnounceResultPeer>	peers_for_announce = new ArrayList<DownloadAnnounceResultPeer>();
 							
 								// scale min and max based on number of active torrents
 								// we don't want more than a few announces a minute
@@ -1945,22 +1942,26 @@ DHTTrackerPlugin
 										
 										// try some limited direct injection
 									
-									List	temp = new ArrayList( peers_for_announce );
+									List<DownloadAnnounceResultPeer>	temp = new ArrayList<DownloadAnnounceResultPeer>( peers_for_announce );
 									
 									Random rand = new Random();
 									
 									for (int i=0;i<DIRECT_INJECT_PEER_MAX && temp.size() > 0; i++ ){
 										
-										DownloadAnnounceResultPeer peer = (DownloadAnnounceResultPeer)temp.remove( rand.nextInt( temp.size()));
+										DownloadAnnounceResultPeer peer = temp.remove( rand.nextInt( temp.size()));
 										
-										log.log( "    Injecting " + peer.getAddress());
+										log.log( "    Injecting derived peer " + peer.getAddress() + " into " + download.getName());
 										
+										Map<Object,Object>	user_data = new HashMap<Object,Object>();
+																				
+										user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+
 										pm.addPeer( 
 												peer.getAddress(),
 												peer.getPort(),
 												peer.getUDPPort(),
-												peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT );
-												
+												peer.getProtocol() == DownloadAnnounceResultPeer.PROTOCOL_CRYPT,
+												user_data );
 									}
 								}
 							}
@@ -2328,16 +2329,16 @@ DHTTrackerPlugin
 			// unfortunately getting scrape results can acquire locks and there is a vague
 			// possibility of deadlock here, so pre-fetch the scrape results
 		
-		List	to_scrape = new ArrayList();
+		List<Download>	to_scrape = new ArrayList<Download>();
 		
 		try{
 			this_mon.enter();
 
-			Iterator	it = interesting_downloads.keySet().iterator();
+			Iterator<Download>	it = interesting_downloads.keySet().iterator();
 			
 			while( it.hasNext() && ready_download == null ){
 				
-				Download	download = (Download)it.next();
+				Download	download = it.next();
 				
 				Torrent	torrent = download.getTorrent();
 				
@@ -2346,7 +2347,7 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				Integer state = (Integer)running_downloads.get( download );
+				Integer state = running_downloads.get( download );
 
 				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
 					
@@ -2360,7 +2361,7 @@ DHTTrackerPlugin
 			this_mon.exit();
 		}
 		
-		Map scrapes = new HashMap();
+		Map<Download,DownloadScrapeResult> scrapes = new HashMap<Download,DownloadScrapeResult>();
 		
 		for (int i=0;i<to_scrape.size();i++){
 			
@@ -2372,11 +2373,11 @@ DHTTrackerPlugin
 		try{
 			this_mon.enter();
 
-			Iterator	it = interesting_downloads.keySet().iterator();
+			Iterator<Download>	it = interesting_downloads.keySet().iterator();
 			
 			while( it.hasNext() && ready_download == null ){
 				
-				Download	download = (Download)it.next();
+				Download	download = it.next();
 				
 				Torrent	torrent = download.getTorrent();
 				
@@ -2385,7 +2386,7 @@ DHTTrackerPlugin
 					continue;
 				}
 				
-				Integer state = (Integer)running_downloads.get( download );
+				Integer state = running_downloads.get( download );
 				
 				if ( state == null || state.intValue() == REG_TYPE_DERIVED ){
 					
@@ -2629,11 +2630,11 @@ DHTTrackerPlugin
 		try{
 			this_mon.enter();
 
-			Iterator it = query_map.entrySet().iterator();
+			Iterator<Map.Entry<Download,Long>> it = query_map.entrySet().iterator();
 			
 			while( it.hasNext()){
 				
-				Map.Entry	entry = (Map.Entry)it.next();
+				Map.Entry<Download,Long>	entry = it.next();
 				
 				entry.setValue( now );
 			}
@@ -2853,10 +2854,10 @@ DHTTrackerPlugin
 	{
 		private static final int DERIVED_ACTIVE_MIN_MILLIS	= 2*60*60*1000;
 		
-		private putDetails		put_details;
-		private byte			flags;
-		private trackerTarget[]	put_targets;
-		private List			not_put_targets;
+		private putDetails			put_details;
+		private byte				flags;
+		private trackerTarget[]		put_targets;
+		private List<trackerTarget>	not_put_targets;
 		
 		private long			derived_active_start	= -1;
 		private long			previous_metric;
@@ -2967,7 +2968,7 @@ DHTTrackerPlugin
 				
 			}else{
 			
-				List	result = new ArrayList( Arrays.asList( put_targets ));
+				List<trackerTarget>	result = new ArrayList<trackerTarget>( Arrays.asList( put_targets ));
 				
 				for (int i=0;i<not_put_targets.size()&& i < 2; i++ ){
 					
@@ -2991,7 +2992,7 @@ DHTTrackerPlugin
     	{
     		byte[]	torrent_hash = download.getTorrent().getHash();
     		
-    		List	result = new ArrayList();
+    		List<trackerTarget>	result = new ArrayList<trackerTarget>();
     		
     		if ( type == REG_TYPE_FULL ){
     			
@@ -3063,7 +3064,7 @@ DHTTrackerPlugin
     			derived_active_start = now;
     		}
      		  
-    		List	skipped_targets = null;
+    		List<trackerTarget>	skipped_targets = null;
     		
     		if ( do_it ){
     			
@@ -3080,7 +3081,7 @@ DHTTrackerPlugin
 	    					
 	    					if ( pos.isValid()){
 	    						
-	    						List	derived_results = getVivaldiTargets( torrent_hash, pos.getLocation());
+	    						List<Object[]>	derived_results = getVivaldiTargets( torrent_hash, pos.getLocation());
 	    						
 	    		    			int	num_to_add = metric.intValue() * derived_results.size() / 100;
     				 			
@@ -3088,7 +3089,7 @@ DHTTrackerPlugin
 	    		    			
 	    						for (int j=0;j<derived_results.size();j++){
 	    							
-	    							Object[] entry = (Object[])derived_results.get(j);
+	    							Object[] entry = derived_results.get(j);
 	    							
 	    							// int	distance = ((Integer)entry[0]).intValue();
 	    							
@@ -3102,7 +3103,7 @@ DHTTrackerPlugin
 	    								
 	    								if ( skipped_targets == null ){
 	    									
-	    									skipped_targets = new ArrayList();
+	    									skipped_targets = new ArrayList<trackerTarget>();
 	    								}
 	    								
 	    								skipped_targets.add( target );
@@ -3117,7 +3118,7 @@ DHTTrackerPlugin
 	    		}
     		}
     		
-    		put_targets 	= (trackerTarget[])result.toArray( new trackerTarget[result.size()]);
+    		put_targets 	= result.toArray( new trackerTarget[result.size()]);
     		not_put_targets = skipped_targets;
     		
     		return( newly_active );
@@ -3142,12 +3143,12 @@ DHTTrackerPlugin
 		return( res );
 	}
 	
-	public static List
+	public static List<Object[]>
 	getVivaldiTargets(
 		byte[]					torrent_hash,
 		double[]				loc )
 	{
-		List	derived_results = new ArrayList();
+		List<Object[]>	derived_results = new ArrayList<Object[]>();
 				
 		String	loc_str = "";
 		
@@ -3237,16 +3238,13 @@ DHTTrackerPlugin
 		
 		Collections.sort(
 			derived_results,
-			new Comparator()
+			new Comparator<Object[]>()
 			{
 				public int 
 				compare(
-					Object 	o1, 
-					Object 	o2 ) 
+					Object[] 	entry1, 
+					Object[] 	entry2 ) 
 				{
-					Object[]	entry1 = (Object[])o1;
-					Object[]	entry2 = (Object[])o2;
-					
 					int	d1 = ((Integer)entry1[0]).intValue();
 					int	d2 = ((Integer)entry2[0]).intValue();
 					
