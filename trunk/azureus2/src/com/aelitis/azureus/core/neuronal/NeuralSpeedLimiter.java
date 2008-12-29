@@ -28,19 +28,19 @@ public class NeuralSpeedLimiter {
 			
 			//no download, high upload, mid-high latency => limit upload
 			{0.0,		1.0,		1.0,		0.9,			0.9,		0.1,			0.1},
-			{0.0,		1.0,		0.5,		0.9,			0.9,		0.1,			0.1},
+			{0.0,		1.0,		0.3,		0.9,			0.9,		0.1,			0.1},
 			
 			//no download, high upload, low-mid latency => some limit upload
-			{0.0,		1.0,		0.2,		0.9,			0.9,		0.1,			0.8},
-			{0.0,		1.0,		0.3,		0.9,			0.9,		0.1,			0.6},
+			{0.0,		1.0,		0.1,		0.9,			0.9,		0.1,			0.8},
+			{0.0,		1.0,		0.2,		0.9,			0.9,		0.1,			0.6},
 			
 			//no upload, high download, mid-high latency => limit download
-			{1.0,		0.0,		1.0,		0.1,			0.7,		0.9,			0.9},
-			{1.0,		0.0,		0.5,		0.1,			0.7,		0.9,			0.9},
+			{1.0,		0.0,		1.0,		0.1,			0.5,		0.9,			0.9},
+			{1.0,		0.0,		0.3,		0.1,			0.6,		0.9,			0.9},
 			
 			//no upload, high download, low-mid latency => some limit download
-			{1.0,		0.0,		0.2,		0.1,			0.9,		0.9,			0.9},
-			{1.0,		0.0,		0.3,		0.1,			0.8,		0.9,			0.9},
+			{1.0,		0.0,		0.1,		0.1,			0.9,		0.9,			0.9},
+			{1.0,		0.0,		0.2,		0.1,			0.8,		0.9,			0.9},
 	};
 	
 	public NeuralSpeedLimiter() {
@@ -79,25 +79,6 @@ public class NeuralSpeedLimiter {
 			
 			c++;
 		}
-		
-		
-		//System.out.println(neuralNetwork);
-		
-//		for(int i = 0 ; i <trainingSet.length ; i++) {
-//			neuralNetwork.setInput(0, trainingSet[i][0]);
-//			neuralNetwork.setInput(1, trainingSet[i][1]);
-//			neuralNetwork.setInput(2, trainingSet[i][2]);
-//			
-//			neuralNetwork.feedForward();
-//			
-//			System.out.print(trainingSet[i][0] + ", " + trainingSet[i][1] + ", " + trainingSet[i][2] + " > expecting :\n\t\t");
-//			System.out.print(trainingSet[i][3] + ",\t" + trainingSet[i][4] + ",\t" + trainingSet[i][5] + ",\t" + trainingSet[i][6] + "\t> output :\n\t\t");
-//			System.out.println(neuralNetwork.getOutput(0) + ",\t" + neuralNetwork.getOutput(1) + ",\t" + neuralNetwork.getOutput(2) + ",\t" + neuralNetwork.getOutput(3));
-//			
-//			neuralNetwork.feedForward();
-//			
-//		}
-		
 	}
 
 	private void resetInput() {
