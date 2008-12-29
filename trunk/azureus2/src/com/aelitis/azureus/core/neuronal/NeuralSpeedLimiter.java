@@ -17,6 +17,8 @@ public class NeuralSpeedLimiter {
 	
 	private boolean dirty;
 	
+	private double currentULTarget = 0.6;
+	
 	double trainingSet[][] = new double[][] {
 			//dl speed,	ul speed,	latency,	no_down_limit,	down_limit,	no_up_limit,	up_limit
 			
@@ -102,14 +104,57 @@ public class NeuralSpeedLimiter {
 		}
 	}
 	
+	private void retrain(double ulTarget) {
+		resetInput();
+		neuralNetwork.feedForward();
+		double shouldLimitDownload = neuralNetwork.getOutput(0);
+		double downloadLimit = neuralNetwork.getOutput(1);
+		
+		double downloadFactor = (double)dlSpeed / maxDlSpeed;
+		double uploadFactor = (double)ulSpeed / maxUlSpeed;
+		double latencyFactor = ((double)latency - (double)minLatency) / maxLatency;
+		
+		
+		double error = 1.0;
+		int c = 0;
+		//Only 100 loops at a time
+		while(error > 0.002 && c < 100) {
+			neuralNetwork.setInput(0, downloadFactor);
+			neuralNetwork.setInput(1, uploadFactor);
+			neuralNetwork.setInput(2, latencyFactor);
+			
+			neuralNetwork.setDesiredOutput(0, shouldLimitDownload);
+			neuralNetwork.setDesiredOutput(1, downloadLimit);
+			neuralNetwork.setDesiredOutput(2, 0.9);
+			neuralNetwork.setDesiredOutput(3, ulTarget);
+			
+			neuralNetwork.feedForward();
+			error = neuralNetwork.calculateError();
+			neuralNetwork.backPropagate();
+		}
+	}
+	
 	private void feedForward() {
 		neuralNetwork.feedForward();
 		dirty = false;
-		System.out.println("input : " + (double)dlSpeed/maxDlSpeed + ", " +  (double)ulSpeed/maxUlSpeed + ", " + ((double)latency-(double)minLatency)/maxLatency);
+		
+		double latencyFactor = ((double)latency - (double)minLatency) / maxLatency;
+		
+		if(latencyFactor >= 0.2) {
+			//So, we have a high latency, let's re-train the neural network to lower upload speed in this case
+			currentULTarget = currentULTarget * 0.99;
+			retrain(currentULTarget);
+		} else if(latencyFactor < 0.5) {
+			//So, we have a low latency, let's re-train the neural network to increase upload speed in this case
+			currentULTarget = currentULTarget * 1.005;
+			retrain(currentULTarget);
+		}
+		
+		/*System.out.println("input : " + (double)dlSpeed/maxDlSpeed + ", " +  (double)ulSpeed/maxUlSpeed + ", " + ((double)latency-(double)minLatency)/maxLatency);
 		System.out.println("output : " + neuralNetwork.getOutput(0) + ", " + 
 				neuralNetwork.getOutput(1) + ", " +
 				neuralNetwork.getOutput(2) + ", " +
-				neuralNetwork.getOutput(3));
+				neuralNetwork.getOutput(3));*/
 		
 	}
 	
