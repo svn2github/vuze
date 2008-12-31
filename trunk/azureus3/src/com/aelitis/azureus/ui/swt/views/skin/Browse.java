@@ -21,7 +21,12 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -29,6 +34,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -214,6 +221,46 @@ public class Browse
 	public void sidebarClosed(SideBarEntrySWT entry) {
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
 				Boolean.FALSE);
+		
+		// send sidebar close event to webapp
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Shell shell = null;
+				
+				String url = ContentNetworkUtils.getUrl(contentNetwork,
+						ContentNetwork.SERVICE_SIDEBAR_CLOSE);
+				if (url == null) {
+					return;
+				}
+				
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+					shell = uiFunctions.getMainShell();
+				}
+				
+				if (shell == null) {
+					return;
+				}
+				final Browser browser = new Browser(shell, SWT.NONE);
+				browser.setVisible(false);
+
+				browser.addProgressListener(new ProgressListener() {
+					public void completed(ProgressEvent event) {
+						Utils.execSWTThreadLater(1000, new AERunnable() {
+							public void runSupport() {
+								browser.setUrl("about:blank");
+								browser.dispose();
+							}
+						});
+					}
+
+					public void changed(ProgressEvent event) {
+					}
+				});
+				
+				browser.setUrl(url);
+			}
+		});
 
 		int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
 		if (decision != 1) {
