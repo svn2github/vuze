@@ -212,6 +212,14 @@ public class SideBar
 				final String id = (String) treeItem.getData("Plugin.viewID");
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
+						// even though execThreadLater will not run on close off app because
+						// the display is disposed, do a double chek of tree disposal just
+						// in case.  We don't want to trigger close listeners or
+						// remove autoopen parameters if the user is closing the app (as
+						// opposed to closing  the sidebar)
+						if (tree.isDisposed()) {
+							return;
+						}
 
 						listTreeItemsNoTitleInfo.remove(treeItem);
 
