@@ -217,6 +217,7 @@ ContentNetworkVuzeGeneric
 
 		addService( SERVICE_PREPLAYBACK,		URL_PREFIX + "emp/load/" );
 		addService( SERVICE_POSTPLAYBACK, 		URL_PREFIX + "emp/recommend/" );
+		addService( SERVICE_SIDEBAR_CLOSE, 		URL_PREFIX + "sidebar.close" );
 		
 		if ( URL_RELAY_RPC != null ){
 			 

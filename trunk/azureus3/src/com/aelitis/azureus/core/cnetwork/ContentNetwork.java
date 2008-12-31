@@ -76,6 +76,7 @@ ContentNetwork
 	public static final int		SERVICE_AUTHORIZE			= 31;	
 	public static final int		SERVICE_PREPLAYBACK   = 32;
 	public static final int		SERVICE_POSTPLAYBACK  = 33;
+	public static final int		SERVICE_SIDEBAR_CLOSE  = 34;
 	
 		// content network properties
 	
