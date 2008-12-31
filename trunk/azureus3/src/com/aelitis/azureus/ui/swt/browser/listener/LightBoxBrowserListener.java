@@ -75,7 +75,7 @@ public class LightBoxBrowserListener
 
 		if (null != getDisplayMessage()) {
 			try {
-				BrowserMessage displayMessage = new BrowserMessage(getStatusMessage());
+				BrowserMessage displayMessage = new BrowserMessage(getDisplayMessage());
 
 				/*
 				 * Only the OPEN_URL operation really has any effect here since the rest of the operations
