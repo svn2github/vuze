@@ -680,6 +680,7 @@ public class ImageLoader
 					writeEvidenceLine(writer, key, info, totalSizeEstimate,
 							sizeCouldBeFree);
 				}
+				writer.exdent();
 			} finally {
 				writer.exdent();
 			}
