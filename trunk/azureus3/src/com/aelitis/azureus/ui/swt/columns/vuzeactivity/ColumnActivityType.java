@@ -30,8 +30,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -71,7 +70,7 @@ public class ColumnActivityType
 
 		Image imgIcon;
 		if (entry.getIconID() != null) {
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			ImageLoader imageLoader = ImageLoader.getInstance();
 			String iconID = entry.getIconID();
 			imgIcon = imageLoader.getImage(iconID);
 			if (ImageLoader.isRealImage(imgIcon)) {

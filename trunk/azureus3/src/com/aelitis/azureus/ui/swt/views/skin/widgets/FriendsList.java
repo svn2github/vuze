@@ -30,11 +30,11 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.views.skin.BuddiesViewer;
 
@@ -250,10 +250,6 @@ public class FriendsList
 
 		private VuzeBuddy buddy;
 
-		private Image closeButton;
-
-		private Image closeButton_over;
-
 		private Rectangle closeButtonBounds;
 
 		private Rectangle textAreaBounds;
@@ -276,19 +272,10 @@ public class FriendsList
 			this.parent = parent;
 			this.buddy = buddy;
 
-			if (null == ImageRepository.getImage("button_skin_close")) {
-				ImageRepository.addPath(
-						"com/aelitis/azureus/ui/images/button_skin_close.png",
-						"button_skin_close");
-				ImageRepository.addPath(
-						"com/aelitis/azureus/ui/images/button_skin_close-over.png",
-						"button_skin_close-over");
-			}
-
-			closeButton = ImageRepository.getImage("button_skin_close");
-			closeButton_over = ImageRepository.getImage("button_skin_close-over");
-			closeButtonBounds = new Rectangle(0, 0, closeButton.getImageData().width,
-					closeButton.getImageData().height);
+			final ImageLoader imageLoader = ImageLoader.getInstance();
+			
+			closeButtonBounds = imageLoader.getImage("button_skin_close").getBounds();
+			imageLoader.releaseImage("button_skin_close");
 
 			//			activeColor = SWTSkinFactory.getInstance().getSkinProperties().getColor(
 			//					"color.row.selected");
@@ -451,13 +438,11 @@ public class FriendsList
 					 * Paint the close button
 					 */
 					if (false == isEmailDisplayOnly()) {
-						if (true == closeIsActive) {
-							e.gc.drawImage(closeButton_over, closeButtonBounds.x,
-									closeButtonBounds.y);
-						} else {
-							e.gc.drawImage(closeButton, closeButtonBounds.x,
-									closeButtonBounds.y);
-						}
+						String id = closeIsActive ? "button_skin_close-over"
+								: "button_skin_close";
+						Image img = imageLoader.getImage(id);
+						e.gc.drawImage(img, closeButtonBounds.x, closeButtonBounds.y);
+						imageLoader.releaseImage(id);
 					}
 				}
 			});

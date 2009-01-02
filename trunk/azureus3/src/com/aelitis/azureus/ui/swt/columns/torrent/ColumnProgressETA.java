@@ -13,7 +13,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -24,6 +23,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 
@@ -59,17 +59,7 @@ public class ColumnProgressETA
 	private Color cBorder;
 
 	private Color cText;
-	
-	static {
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_end.png", "dl_bar_end");
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_0.png", "dl_bar_0");
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_1.png", "dl_bar_1");
-	}
-	
-	Image imgEnd;
-	Image img1;
-	Image img0;
-	
+		
 	Color textColor;
 
 	/**
@@ -100,11 +90,6 @@ public class ColumnProgressETA
 		if (cText == null) {
 			cText = Colors.black;
 		}
-		
-		imgEnd = ImageRepository.getImage("dl_bar_end");
-		img0 = ImageRepository.getImage("dl_bar_0");
-		img1 = ImageRepository.getImage("dl_bar_1");
-
 	}
 
 	public void cellAdded(TableCell cell) {
@@ -207,7 +192,12 @@ public class ColumnProgressETA
 					+ DisplayFormatters.formatByteCountToKiBEtcPerSec(lSpeed, true) + ")";
 
 			if (bDrawProgressBar && percentDone < 1000) {
-				
+
+		    ImageLoader imageLoader = ImageLoader.getInstance();
+				Image imgEnd = imageLoader.getImage("dl_bar_end");
+				Image img0 = imageLoader.getImage("dl_bar_0");
+				Image img1 = imageLoader.getImage("dl_bar_1");
+
 				gcImage.drawImage(imgEnd, x0, y0+y1);
 				gcImage.drawImage(imgEnd, x0 + progressX2 - x1 + 1, y0+y1);
 				
@@ -230,6 +220,9 @@ public class ColumnProgressETA
 //							progressY2 - y1);
 				}
 
+				imageLoader.releaseImage("dl_bar_end");
+				imageLoader.releaseImage("dl_bar_0");
+				imageLoader.releaseImage("dl_bar_1");
 			}
 
 			if (sETALine == null) {

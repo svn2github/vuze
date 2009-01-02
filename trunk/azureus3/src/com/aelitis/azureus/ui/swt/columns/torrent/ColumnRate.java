@@ -45,10 +45,10 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -105,32 +105,32 @@ public class ColumnRate
 	private boolean allowRate = true;
 
 	static {
-		imgRateMe = ImageLoaderFactory.getInstance().getImage("icon.rateme");
+		imgRateMe = ImageLoader.getInstance().getImage("icon.rateme");
 		boundsRateMe = imgRateMe.getBounds();
 		width = boundsRateMe.width;
 
-		imgRateMeButtonEnabled = ImageLoaderFactory.getInstance().getImage(
+		imgRateMeButtonEnabled = ImageLoader.getInstance().getImage(
 				"icon.rateme-button");
 		imgRateMeButton = imgRateMeButtonEnabled;
 		width = Math.max(width, imgRateMeButton.getBounds().width);
 
-		imgRateMeButtonDisabled = ImageLoaderFactory.getInstance().getImage(
+		imgRateMeButtonDisabled = ImageLoader.getInstance().getImage(
 				"icon.rateme-button-disabled");
 		width = Math.max(width, imgRateMeButtonDisabled.getBounds().width);
 
-		imgRateMeUp = ImageLoaderFactory.getInstance().getImage("icon.rateme.up");
-		imgRateMeDown = ImageLoaderFactory.getInstance().getImage(
+		imgRateMeUp = ImageLoader.getInstance().getImage("icon.rateme.up");
+		imgRateMeDown = ImageLoader.getInstance().getImage(
 				"icon.rateme.down");
 
-		imgWait = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
+		imgWait = ImageLoader.getInstance().getImage("icon.rate.wait");
 		width = Math.max(width, imgWait.getBounds().width);
 
-		imgDown = ImageLoaderFactory.getInstance().getImage("icon.rate.down");
-		imgUp = ImageLoaderFactory.getInstance().getImage("icon.rate.up");
+		imgDown = ImageLoader.getInstance().getImage("icon.rate.down");
+		imgUp = ImageLoader.getInstance().getImage("icon.rate.up");
 
-		imgDownSmall = ImageLoaderFactory.getInstance().getImage(
+		imgDownSmall = ImageLoader.getInstance().getImage(
 				"icon.rate.small.down");
-		imgUpSmall = ImageLoaderFactory.getInstance().getImage("icon.rate.small.up");
+		imgUpSmall = ImageLoader.getInstance().getImage("icon.rate.small.up");
 	}
 
 	public ColumnRate(String sTableID) {

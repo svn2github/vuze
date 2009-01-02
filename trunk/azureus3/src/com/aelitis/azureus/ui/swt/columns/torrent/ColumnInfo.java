@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -59,7 +59,7 @@ public class ColumnInfo
 	private TableRow previousSelection;
 
 	static {
-		img = ImageLoaderFactory.getInstance().getImage("icon.info");
+		img = ImageLoader.getInstance().getImage("icon.info");
 		imgBounds = img.getBounds();
 //		width = boundsRateMe.width;
 	}

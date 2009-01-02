@@ -54,9 +54,8 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -275,7 +274,7 @@ public class ListView
 		this.style = style;
 		this.headerArea = headerArea;
 		if (headerArea != null) {
-			ImageLoader imgLoader = ImageLoaderFactory.getInstance();
+			ImageLoader imgLoader = ImageLoader.getInstance();
 			if (imgLoader != null) {
 				imgSortAsc = imgLoader.getImage("image.sort.asc");
 				imgSortDesc = imgLoader.getImage("image.sort.desc");
@@ -4010,7 +4009,7 @@ public class ListView
 			listCanvas
 		});
 		
-		ImageLoader imgLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imgLoader = ImageLoader.getInstance();
 		if (imgLoader != null) {
 			if (imgSortAsc != null) {
 				imgLoader.releaseImage("image.sort.asc");

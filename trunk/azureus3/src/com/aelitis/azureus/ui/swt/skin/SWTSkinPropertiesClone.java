@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.util.ResourceBundle;
+
 import org.eclipse.swt.graphics.Color;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -338,5 +340,15 @@ public class SWTSkinPropertiesClone
 		}
 
 		return properties.getReferenceID(sTemplateConfigID + name);
+	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#addResourceBundle(java.util.ResourceBundle)
+	public void addResourceBundle(ResourceBundle subBundle) {
+		properties.addResourceBundle(subBundle);
+	}
+	
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getClassLoader()
+	public ClassLoader getClassLoader() {
+		return properties.getClassLoader();
 	}
 }

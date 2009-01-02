@@ -21,19 +21,18 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author Olivier Chalouhi
@@ -46,12 +45,7 @@ public class ColumnSubscriptionName
 {
 	public static String COLUMN_ID = "name";
 	
-	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/ic_view.png", "ic_view");
-	}
 	
-	
-	Image viewImage;
 	int imageWidth = -1;
 	int imageHeight = -1;
 
@@ -59,8 +53,6 @@ public class ColumnSubscriptionName
 	public ColumnSubscriptionName(String sTableID) {
 		super(COLUMN_ID, POSITION_LAST, 350, sTableID);
 		setMinWidth(300);
-		
-		viewImage = ImageRepository.getImage("ic_view");
 	}
 
 	public void refresh(TableCell cell) {
@@ -87,6 +79,9 @@ public class ColumnSubscriptionName
 	
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		Rectangle bounds = cell.getBounds();
+		
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image viewImage = imageLoader.getImage("ic_view");
 		if(imageWidth == -1 || imageHeight == -1) {
 			imageWidth = viewImage.getBounds().width;
 			imageHeight = viewImage.getBounds().height;
@@ -96,6 +91,8 @@ public class ColumnSubscriptionName
 		
 		GCStringPrinter.printString(gc, cell.getText(), bounds,true,false,SWT.LEFT);
 		gc.drawImage(viewImage, bounds.x + bounds.width, bounds.y + bounds.height / 2 - imageHeight / 2);
+
+		imageLoader.releaseImage("ic_view");
 		
 		//gc.drawText(cell.getText(), bounds.x,bounds.y);
 	}

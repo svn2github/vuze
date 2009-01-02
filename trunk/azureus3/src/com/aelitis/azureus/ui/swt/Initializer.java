@@ -148,8 +148,6 @@ public class Initializer
 
 		UIConfigDefaultsSWTv3.initialize(core);
 
-		ImageRepository.loadImagesForSplashWindow(display);
-
 		if (COConfigurationManager.getBooleanParameter("Show Splash")) {
 			display.asyncExec(new AERunnable() {
 				public void runSupport() {

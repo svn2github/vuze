@@ -12,8 +12,8 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader.ImageDownloaderListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 
 /**
  * @author TuxPaper

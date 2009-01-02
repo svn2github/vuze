@@ -47,9 +47,8 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.columns.utils.ColumnImageClickArea;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
 import com.aelitis.azureus.util.ConstantsV3;
@@ -168,7 +167,7 @@ public class ColumnMediaThumb
 	}
 
 	private void loadImages() {
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		imgPlay = imageLoader.getImage("image.thumb.play");
 		if (imgPlay != null) {
 			imgPlayBounds = imgPlay.getBounds();

@@ -14,7 +14,6 @@ import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -34,10 +33,9 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
 import com.aelitis.azureus.ui.swt.buddy.chat.impl.ChatWindow;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.util.LoginInfoManager;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -139,19 +137,6 @@ public class AvatarWidget
 
 	private SharePage sharePage = null;
 	
-	static {
-		ImageRepository.addPath(
-				"com/aelitis/azureus/ui/images/friend_online_icon.png",
-				"friend_online_icon");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/grey_bubble.png",
-				"grey_bubble");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/red_bubble.png",
-				"red_bubble");
-		ImageRepository.addPath(
-				"com/aelitis/azureus/ui/images/large_red_bubble.png",
-				"large_red_bubble");
-	}
-
 	public AvatarWidget(BuddiesViewer viewer, Point avatarSize,
 			Point avatarImageSize, Point avatarNameSize, VuzeBuddySWT vuzeBuddy) {
 
@@ -180,7 +165,7 @@ public class AvatarWidget
 
 	private void init() {
 
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		final ImageLoader imageLoader = ImageLoader.getInstance();
 		removeImage_normal = imageLoader.getImage("image.buddy.remove");
 		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
 		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
@@ -554,7 +539,7 @@ public class AvatarWidget
   					Image icon = null;
   
   					if (SHOW_ONLINE_BORDER && vuzeBuddy.isOnline(true)) {
-  						icon = ImageRepository.getImage("friend_online_icon");
+  						icon = ImageLoader.getInstance().getImage("friend_online_icon");
   						width += icon.getBounds().width + 3;
   					}
   
@@ -586,6 +571,7 @@ public class AvatarWidget
   						e.gc.drawImage(icon, offset + nameAreaBounds.x,
   								nameAreaBounds.y + 1);
   						offset += icon.getBounds().width + 1;
+  						ImageLoader.getInstance().releaseImage("friend_online_icon");
   					}
   
   					e.gc.drawText(displayed.toString(), offset + nameAreaBounds.x,
@@ -601,9 +587,10 @@ public class AvatarWidget
 									+ vuzeBuddy.getDisplayName(), nameAreaBounds, false, false,
 									SWT.TOP | SWT.CENTER | SWT.WRAP);
 							stringPrinter.setImages(new Image[] {
-								ImageRepository.getImage("friend_online_icon")
+								ImageLoader.getInstance().getImage("friend_online_icon")
 							});
 							stringPrinter.printString();
+							ImageLoader.getInstance().releaseImage("friend_online_icon");
 						} else {
 							GCStringPrinter.printString(e.gc, vuzeBuddy.getDisplayName(),
 									nameAreaBounds, false, false, SWT.TOP | SWT.CENTER | SWT.WRAP);
@@ -641,12 +628,14 @@ public class AvatarWidget
 					if (nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
 						int startPixel = 0;
 						if (nbMessages >= 10) {
-							e.gc.drawImage(ImageRepository.getImage("large_red_bubble"), 35,
+							e.gc.drawImage(imageLoader.getImage("large_red_bubble"), 35,
 									-1);
 							startPixel = 49;
+							imageLoader.releaseImage("large_red_bubble");
 						} else {
-							e.gc.drawImage(ImageRepository.getImage("red_bubble"), 40, 0);
+							e.gc.drawImage(imageLoader.getImage("red_bubble"), 40, 0);
 							startPixel = 52;
+							imageLoader.releaseImage("red_bubble");
 						}
 
 						e.gc.setForeground(ColorCache.getColor(e.gc.getDevice(), 255, 255,
@@ -655,7 +644,8 @@ public class AvatarWidget
 						e.gc.drawText("" + nbMessages, startPixel - textSize.x / 2, 3, true);
 
 					} else {
-						e.gc.drawImage(ImageRepository.getImage("grey_bubble"), 40, 0);
+						e.gc.drawImage(imageLoader.getImage("grey_bubble"), 40, 0);
+						imageLoader.releaseImage("grey_bubble");
 					}
 				} else {
 					chatAreaBounds = null;
@@ -1205,7 +1195,7 @@ public class AvatarWidget
 			if (chatWindow != null && !chatWindow.isDisposed()) {
 				chatWindow.close();
 			}
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			ImageLoader imageLoader = ImageLoader.getInstance();
 			imageLoader.releaseImage("image.buddy.remove");
 			imageLoader.releaseImage("image.buddy.add.to.share");
 			imageLoader.releaseImage("image.buddy.remove-over");

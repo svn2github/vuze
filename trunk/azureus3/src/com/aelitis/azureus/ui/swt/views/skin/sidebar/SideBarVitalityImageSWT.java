@@ -30,8 +30,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
@@ -136,7 +135,7 @@ public class SideBarVitalityImageSWT
 		entry.addListener(new SideBarCloseListener() {
 		
 			public void sidebarClosed(SideBarEntrySWT entry) {
-				ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+				ImageLoader imageLoader = ImageLoader.getInstance();
 				if (fullImageID != null) {
 					imageLoader.releaseImage(fullImageID);
 				}
@@ -237,7 +236,7 @@ public class SideBarVitalityImageSWT
 			timerEvent.cancel();
 		}
 		if (images.length > 1) {
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			ImageLoader imageLoader = ImageLoader.getInstance();
 			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
 					: delayTime;
 			
@@ -271,7 +270,7 @@ public class SideBarVitalityImageSWT
 	}
 
 	public void setImageID(String id) {
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		if (fullImageID != null) {
 			imageLoader.releaseImage(fullImageID);
 		}

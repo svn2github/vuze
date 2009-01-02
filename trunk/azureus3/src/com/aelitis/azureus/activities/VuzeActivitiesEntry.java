@@ -36,8 +36,9 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader.ImageDownloaderListener;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 /**
  * 
@@ -209,7 +210,7 @@ public class VuzeActivitiesEntry
 		}
 
 		assetImageURL = url;
-		ImageDownloader.loadImage(url, new ImageDownloaderListener() {
+		ImageBytesDownloader.loadImage(url, new ImageDownloaderListener() {
 			public void imageDownloaded(byte[] image) {
 				setImageBytes(image);
 				VuzeActivitiesManager.triggerEntryChanged(VuzeActivitiesEntry.this);

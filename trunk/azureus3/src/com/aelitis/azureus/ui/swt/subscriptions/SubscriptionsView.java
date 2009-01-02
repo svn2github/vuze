@@ -1,29 +1,19 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
-import javax.swing.plaf.FontUIResource;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -33,23 +23,16 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
+import com.aelitis.azureus.ui.swt.columns.subscriptions.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 public class SubscriptionsView
 	implements UIUpdatable, IView, SubscriptionManagerListener, ToolBarEnabler
@@ -64,16 +47,7 @@ public class SubscriptionsView
 	
 	private Font textFont2;
 	
-	private Image rssImage;
-	
-	static {
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/btn_add_rss.png", "btn_add_rss");
-	}
-	
 	public SubscriptionsView() {
-		
-		
-		
 	}
 	
 	
@@ -176,7 +150,6 @@ public class SubscriptionsView
 		if(textFont2 != null && ! textFont2.isDisposed()) {
 			textFont2.dispose();
 		}
-		ImageLoaderFactory.getInstance().releaseImage("image.dismissX");
 	}
 	
 	public void generateDiagnostics(IndentWriter writer) {
@@ -295,7 +268,7 @@ public class SubscriptionsView
 		preText.setText(MessageText.getString("subscriptions.view.help.1"));
 		
 		Label image = new Label(composite,SWT.NONE);
-		image.setImage(ImageRepository.getImage("btn_add_rss"));
+		ImageLoader.getInstance().setLabelImage(image, "btn_rss_add");
 		
 		Link postText = new Link(composite,SWT.NONE);
 		postText.setForeground(ColorCache.getColor(composite.getDisplay(), "#6D6F6E"));
@@ -310,8 +283,8 @@ public class SubscriptionsView
 			}
 		});
 		
-		Label close = new Label(composite,SWT.NONE);
-		close.setImage(ImageLoaderFactory.getInstance().getImage("image.dismissX"));
+		Label close = new Label(composite,SWT.NONE);		
+		ImageLoader.getInstance().setLabelImage(close, "image.dismissX");
 		close.setCursor(composite.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		close.addListener(SWT.MouseUp, new Listener() {
 			public void handleEvent(Event arg0) {

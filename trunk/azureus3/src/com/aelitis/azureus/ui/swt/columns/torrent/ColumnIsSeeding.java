@@ -25,7 +25,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -47,7 +47,7 @@ public class ColumnIsSeeding
 	private static int width;
 
 	static {
-		Image img = ImageLoaderFactory.getInstance().getImage("image.check");
+		Image img = ImageLoader.getInstance().getImage("image.check");
 		width = img.getBounds().width;
 		graphicCheck = new UISWTGraphicImpl(img);
 	}

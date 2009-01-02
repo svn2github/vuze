@@ -36,8 +36,8 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * BuddyPluginBuddy plus some vuze specific stuff
@@ -119,8 +119,8 @@ public class VuzeBuddyImpl
 			if (!StringCompareUtils.equals(newAvatarURL, avatarURL) || !hasAvatar()) {
 				avatarURL = newAvatarURL;
 				if (avatarURL != null) {
-					ImageDownloader.loadImage(avatarURL,
-							new ImageDownloader.ImageDownloaderListener() {
+					ImageBytesDownloader.loadImage(avatarURL,
+							new ImageBytesDownloader.ImageDownloaderListener() {
 								public void imageDownloaded(byte[] image) {
 									VuzeBuddyManager.log("Got new avatar! " + toDebugString());
 									setAvatar(image);

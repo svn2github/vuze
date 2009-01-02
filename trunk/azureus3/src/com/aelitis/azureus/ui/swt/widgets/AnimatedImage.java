@@ -1,23 +1,12 @@
 package com.aelitis.azureus.ui.swt.widgets;
 
-import java.io.InputStream;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class AnimatedImage {
 	
@@ -31,6 +20,8 @@ public class AnimatedImage {
 	
 	private Image[] images;
 	private int currentImage = 0;
+
+	private String imageName;
 	
 	public AnimatedImage(Composite parent) {
 		canvas = new Canvas(parent,SWT.NONE);
@@ -119,35 +110,9 @@ public class AnimatedImage {
 	}
 	
 	public void setImageFromName(String imageName) {
-		InputStream is = ImageRepository.getImageAsStream(imageName);
-
-		if (null == is) {
-			return;
-		}
-		ImageLoader loader = new ImageLoader();
-		ImageData[] imageDataArray = loader.load(is);
-
-		images = new Image[imageDataArray.length];
-		for (int i = 0; i < imageDataArray.length; i++) {
-			ImageData imageData = imageDataArray[i];
-			/*
-			 * Setting the transparent pixel to be black
-			 */
-			imageData.transparentPixel = 0;
-
-			images[i] = new Image(canvas.getDisplay(), imageData.width,
-					imageData.height);
-			GC offScreenImageGC = new GC(images[i]);
-			offScreenImageGC.setBackground(canvas.getBackground());
-			offScreenImageGC.fillRectangle(0, 0, imageData.width,
-					imageData.height);
-
-			Image tempImage = new Image(canvas.getDisplay(), imageData);
-			offScreenImageGC.drawImage(tempImage, 0, 0);
-
-			tempImage.dispose();
-			offScreenImageGC.dispose();
-		}
+		this.imageName = imageName;
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		images = imageLoader.getImages(imageName);
 	}
 	
 	private void setImages(Image[] images) {
@@ -157,11 +122,9 @@ public class AnimatedImage {
 
 	private void disposeImages() {
 		if(images != null) {
-			for(int i = 0 ; i < images.length ; i++) {
-				if(images[i] != null && !images[i].isDisposed()) {
-					images[i].dispose();
-				}
-			}
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			imageLoader.releaseImage(imageName);
+			images = null;
 		}
 	}
 

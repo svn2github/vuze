@@ -39,9 +39,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
@@ -305,9 +304,9 @@ public class SideBarEntrySWT implements SideBarEntry
 		}
 		Image img = null;
 		if (suffix == null) {
-			img = ImageLoaderFactory.getInstance().getImage(imageLeftID);
+			img = ImageLoader.getInstance().getImage(imageLeftID);
 		} else {
-			img = ImageLoaderFactory.getInstance().getImage(imageLeftID + suffix);
+			img = ImageLoader.getInstance().getImage(imageLeftID + suffix);
 		}
 		if (ImageLoader.isRealImage(img)) {
 			return img;
@@ -317,7 +316,7 @@ public class SideBarEntrySWT implements SideBarEntry
 	
 	public void releaseImageLeft(String suffix) {
 		if (imageLeft != null) {
-			ImageLoaderFactory.getInstance().releaseImage(imageLeftID + suffix);
+			ImageLoader.getInstance().releaseImage(imageLeftID + suffix);
 		}
 	}
 	
@@ -400,5 +399,12 @@ public class SideBarEntrySWT implements SideBarEntry
 
 	public SideBar getSidebar() {
 		return sidebar;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isInTree() {
+		return treeItem != null && !treeItem.isDisposed();
 	}
 }

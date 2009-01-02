@@ -31,9 +31,10 @@ import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader.ImageDownloaderListener;
 import com.aelitis.azureus.util.ContentNetworkUtils;
-import com.aelitis.azureus.util.ImageDownloader;
-import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 /**
  * @author TuxPaper
@@ -96,8 +97,8 @@ public class ContentNetworkUI
 
 			}
 			if (loadImage) {
-				ImageDownloader.loadImage(imgURL,
-						new ImageDownloader.ImageDownloaderListener() {
+				ImageBytesDownloader.loadImage(imgURL,
+						new ImageBytesDownloader.ImageDownloaderListener() {
 							public void imageDownloaded(byte[] imageBytes) {
 								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
 								InputStream is = new ByteArrayInputStream(imageBytes);
@@ -116,7 +117,7 @@ public class ContentNetworkUI
 			}
 		} else if (contentNetworkID == ContentNetwork.CONTENT_NETWORK_VUZE
 				&& cnImageLoadedListener != null) {
-			image = ImageLoaderFactory.getInstance().getImage("image.sidebar.vuze");
+			image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
 			mapImages.put(new Long(contentNetworkID), image);
 			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
 		}

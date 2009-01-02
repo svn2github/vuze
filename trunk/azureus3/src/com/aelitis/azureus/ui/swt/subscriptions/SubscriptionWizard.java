@@ -1,55 +1,25 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
 
-
-import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
-import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
-import com.aelitis.azureus.core.subs.SubscriptionUtils;
+import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -110,25 +80,14 @@ public class SubscriptionWizard {
 	Subscription[] subscriptions;
 	
 	DownloadManager download;
-	
-	static {
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/rss.png","rss");
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/btn_add_rss.png","btn_rss_add");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/ic_add.png","btn_sidebar_add");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_bullet_check.png", "icon_check");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/rss_bg.png", "rss_bg");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/search_bg.png", "search_bg");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/icon_rss.png", "icon_rss");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/ranking_bars.png", "ranking_bars");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/wizard_header_bg.png", "wizard_header_bg");
-		
-	}
+	private ImageLoader imageLoader;
 	
 	public SubscriptionWizard() {
 		this(null);
 	}
 	
 	public SubscriptionWizard(DownloadManager download) {
+		imageLoader = ImageLoader.getInstance();
 
 		this.download = download;
 		
@@ -174,7 +133,7 @@ public class SubscriptionWizard {
 		
 		Utils.setShellIcon(shell);
 		
-		rankingBars = ImageRepository.getImage("ranking_bars");
+		rankingBars = imageLoader.getImage("ranking_bars");
 		rankingBorderColor = new Color(display,200,200,200);
 		
 		createFonts();
@@ -183,6 +142,9 @@ public class SubscriptionWizard {
 		
 		shell.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
+				imageLoader.releaseImage("ranking_bars");
+				imageLoader.releaseImage("wizard_header_bg");
+				imageLoader.releaseImage("icon_rss");
 				
 				if(titleFont != null && !titleFont.isDisposed()) {
 					titleFont.dispose();
@@ -209,7 +171,7 @@ public class SubscriptionWizard {
 		
 		Composite header = new Composite(shell, SWT.NONE);
 		header.setBackgroundMode(SWT.INHERIT_DEFAULT);
-		header.setBackgroundImage(ImageRepository.getImage("wizard_header_bg"));
+		header.setBackgroundImage(imageLoader.getImage("wizard_header_bg"));
 		Label topSeparator = new Label(shell,SWT.SEPARATOR |SWT.HORIZONTAL);
 		main = new Composite(shell, SWT.NONE);
 		Label bottomSeparator = new Label(shell,SWT.SEPARATOR |SWT.HORIZONTAL);
@@ -420,9 +382,6 @@ public class SubscriptionWizard {
 	private Composite createCreateRSSComposite(Composite parent) {
 		Composite composite = new Composite(parent,SWT.NONE);
 
-		Image bg = ImageRepository.getImage("rss_bg");
-		int width = bg.getBounds().width;
-		
 		Label subTitle1 = new Label(composite,SWT.WRAP);
 		subTitle1.setFont(subTitleFont);
 		subTitle1.setText(MessageText.getString("Wizard.Subscription.rss.subtitle1"));
@@ -456,15 +415,15 @@ public class SubscriptionWizard {
 		});
 		
 		Label rssBackground = new Label(composite,SWT.NONE);
-		rssBackground.setImage(bg);
+		imageLoader.setLabelImage(rssBackground, "rss_bg");
+		int width = rssBackground.getImage().getBounds().width;
 		
 		Label subTitle2 = new Label(composite,SWT.WRAP);
 		//subTitle2.setFont(subTitleFont);
 		subTitle2.setText(MessageText.getString("Wizard.Subscription.rss.subtitle2"));
 
 		Label rssBullet = new Label(composite, SWT.NONE);
-		Image rssIcon = ImageRepository.getImage("rss");
-		rssBullet.setImage(rssIcon);
+		imageLoader.setLabelImage(rssBullet, "rss");
 
 		Label subTitle3 = new Label(composite,SWT.WRAP);
 		subTitle3.setFont(subTitleFont);
@@ -518,9 +477,6 @@ public class SubscriptionWizard {
 	private Composite createCreateSearchComposite(Composite parent) {
 		Composite composite = new Composite(parent,SWT.NONE);
 		
-		Image bg = ImageRepository.getImage("search_bg");
-		int width = bg.getBounds().width;
-		
 		Label subTitle1 = new Label(composite,SWT.WRAP);
 		subTitle1.setFont(subTitleFont);
 		subTitle1.setText(MessageText.getString("Wizard.Subscription.search.subtitle1"));
@@ -542,17 +498,17 @@ public class SubscriptionWizard {
 		searchInput.addListener (SWT.DefaultSelection, searchListener);
 		
 		Label searchBackground = new Label(composite,SWT.NONE);
-		searchBackground.setImage(bg);
+		imageLoader.setLabelImage(searchBackground, "search_bg");
+		int width = searchBackground.getImage().getBounds().width;
 		
 		Label subTitle2 = new Label(composite,SWT.WRAP);
 		subTitle2.setFont(subTitleFont);
 		subTitle2.setText(MessageText.getString("Wizard.Subscription.search.subtitle2"));
 
-		Image checkIcon = ImageRepository.getImage("icon_check");
 		Label checkBullet1 = new Label(composite, SWT.NONE);
-		checkBullet1.setImage(checkIcon);
+		imageLoader.setLabelImage(checkBullet1, "icon_check");
 		Label checkBullet2 = new Label(composite, SWT.NONE);
-		checkBullet2.setImage(checkIcon);
+		imageLoader.setLabelImage(checkBullet2, "icon_check");
 
 		Label description1 = new Label(composite,SWT.NONE);
 		description1.setText(MessageText.getString("Wizard.Subscription.search.subtitle2.sub1"));
@@ -823,7 +779,7 @@ public class SubscriptionWizard {
 		subscriptionTable.addListener(SWT.Selection,subscriptionSelectionListener );
 		
 
-		final Image rssIcon = ImageRepository.getImage("icon_rss");
+		final Image rssIcon = imageLoader.getImage("icon_rss");
 		if(availableSubscriptions != null) {
 			subscriptionTable.addListener(SWT.SetData, new Listener() {
 				public void handleEvent(Event event) {

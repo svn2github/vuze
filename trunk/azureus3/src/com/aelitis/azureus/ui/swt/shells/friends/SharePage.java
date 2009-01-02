@@ -1,40 +1,26 @@
 package com.aelitis.azureus.ui.swt.shells.friends;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.LightBoxShell;
 import org.gudy.azureus2.ui.swt.progress.ProgressReportMessage;
@@ -42,31 +28,26 @@ import org.gudy.azureus2.ui.swt.shells.AbstractWizardPage;
 import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.AbstractBuddyPageListener;
-import com.aelitis.azureus.ui.swt.browser.listener.AbstractStatusListener;
-import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
-import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.BuddiesViewer;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
-
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.widgets.FriendsList;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.ImageDownloader;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
+import com.aelitis.azureus.ui.utils.ImageBytesDownloader.ImageDownloaderListener;
 import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.ImageDownloader.ImageDownloaderListener;
 
 public class SharePage
 	extends AbstractWizardPage
@@ -108,12 +89,6 @@ public class SharePage
 	private StyledText contentStats;
 
 	private Font contentTitleFont = null;
-
-	static {
-		ImageRepository.addPath(
-				"com/aelitis/azureus/ui/images/buddy_prompt_image.png",
-				"buddy_prompt_image");
-	}
 
 	public SharePage(MultipageWizard wizard) {
 		super(wizard);
@@ -179,10 +154,17 @@ public class SharePage
 	private void createExistingFriendsList(Composite parent) {
 		buddyList = new FriendsList(parent);
 		buddyList.setBuddiesViewer(buddiesViewer);
+		
 
 		buddyList.setDefault_prompt_text(MessageText.getString("message.prompt.add.friends"));
-		buddyList.setDefault_prompt_image(ImageRepository.getImage("buddy_prompt_image"));
-
+		Image imageBuddyPrompt = ImageLoader.getInstance().getImage(
+				"buddy_prompt_image");
+		buddyList.setDefault_prompt_image(imageBuddyPrompt);
+		parent.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				ImageLoader.getInstance().releaseImage("buddy_prompt_image");
+			}
+		});
 	}
 
 	private void createNewFriendsList(Composite parent) {
@@ -303,7 +285,7 @@ public class SharePage
 		}
 
 		if (content != null && content.getThumbURL() != null) {
-			ImageDownloader.loadImage(content.getThumbURL(),
+			ImageBytesDownloader.loadImage(content.getThumbURL(),
 					new ImageDownloaderListener() {
 						public void imageDownloaded(final byte[] image) {
 							Utils.execSWTThread(new AERunnable() {
@@ -462,41 +444,18 @@ public class SharePage
 			buddiesViewer.setShareMode(true, this);
 		}
 
-		byte[] imageBytes = shareItem.getImageBytes();
-		if (imageBytes == null && null != dm && null != dm.getTorrent()) {
-			imageBytes = PlatformTorrentUtils.getContentThumbnail(dm.getTorrent());
-		}
 
-		Image img = null;
-		if (null != imageBytes && imageBytes.length > 0) {
-			ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-			img = new Image(Display.getDefault(), bis);
-
-			/*
-			 * Dispose this image when the canvas is disposed
-			 */
-			final Image img_final = img;
-			contentDetail.addDisposeListener(new DisposeListener() {
-
-				public void widgetDisposed(DisposeEvent e) {
-					if (null != img_final && false == img_final.isDisposed()) {
-						img_final.dispose();
-					}
-				}
-			});
-
-		} else if (dm != null) {
-			String path = dm.getDownloadState().getPrimaryFile();
-			if (path != null) {
-				img = ImageRepository.getPathIcon(path, true, dm.getTorrent() != null
-						&& !dm.getTorrent().isSimpleTorrent());
-				/*
-				 * DO NOT dispose the image from .getPathIcon()!!!!
-				 */
+		TorrentUIUtilsV3.getContentImage(shareItem, new ContentImageLoadedListener() {
+			public void contentImageLoaded(Image image, boolean wasReturned) {
+				contentThumbnail.setImage(image);
 			}
-		}
-
-		contentThumbnail.setImage(img);
+		});
+		
+		contentDetail.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				TorrentUIUtilsV3.releaseContentImage(shareItem);
+			}
+		});
 
 		updateContentStats();
 

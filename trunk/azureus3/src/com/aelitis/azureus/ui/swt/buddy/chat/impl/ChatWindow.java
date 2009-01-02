@@ -17,7 +17,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.chat.*;
@@ -60,12 +59,6 @@ public class ChatWindow implements DiscussionListener {
 	Listener linkListener;
 	
 	String lastSender;
-	
-	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/button_dialog_min.png", "button_dialog_min");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/button_dialog_min-over.png", "button_dialog_min-over");
-		
-	}
 	
 	public ChatWindow(AvatarWidget _avatar,Chat _chat,ChatDiscussion _discussion) {
 		this.avatar = _avatar;
@@ -191,8 +184,10 @@ public class ChatWindow implements DiscussionListener {
 		avatarPicture.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Image avatarImage = avatar.getVuzeBuddy().getAvatarImage();
-				Rectangle size = avatarImage.getBounds();
-				e.gc.drawImage(avatarImage, 0, 0, size.width,size.height,0,0,30,30);
+				if (avatarImage != null) {
+					Rectangle size = avatarImage.getBounds();
+					e.gc.drawImage(avatarImage, 0, 0, size.width,size.height,0,0,30,30);
+				}
 				avatar.getVuzeBuddy().releaseAvatarImage(avatarImage);
 			}
 		});

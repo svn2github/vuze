@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -50,7 +49,9 @@ import com.aelitis.azureus.ui.common.table.TableCountChangeListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectImage;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
@@ -92,6 +93,9 @@ public class MediaList
 	private Label lblX;
 
 	private TimerEvent searchUpdateEvent;
+
+	private Image imgSmallX;
+	private Image imgSmallXGray;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -427,12 +431,12 @@ public class MediaList
 				Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 			}
 		}
-		if (lblX != null && !lblX.isDisposed()) {
-			Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
-					: "smallx-gray");
-
-			lblX.setImage(img);
-		}
+		//if (lblX != null && !lblX.isDisposed()) {
+		//	Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
+		//			: "smallx-gray");
+		//
+		//	lblX.setImage(img);
+		//}
 
 		if (searchUpdateEvent != null) {
 			searchUpdateEvent.cancel();

@@ -14,8 +14,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -59,7 +58,7 @@ public class ColumnQuality
 
 		String quality = PlatformTorrentUtils.getContentQuality(torrent);
 		String imageID = "icon.quality." + quality;
-		Image img = ImageLoaderFactory.getInstance().getImage(imageID);
+		Image img = ImageLoader.getInstance().getImage(imageID);
 		try {
   		if (ImageLoader.isRealImage(img)) {
   			Rectangle imgBounds = img.getBounds();
@@ -74,7 +73,7 @@ public class ColumnQuality
   		GCStringPrinter.printString(gc, quality, cellBounds, true, false,
   				SWT.CENTER);
 		} finally {
-			ImageLoaderFactory.getInstance().releaseImage(imageID);
+			ImageLoader.getInstance().releaseImage(imageID);
 		}
 	}
 

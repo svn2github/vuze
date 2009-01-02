@@ -29,7 +29,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.subs.Subscription;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier Chalouhi
@@ -59,7 +59,7 @@ public class ColumnSubscriptionNew
 		setMinWidth(WIDTH);
 		setMaxWidth(WIDTH);
 		setVisible(true);
-		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
+		imgNew = ImageLoader.getInstance().getImage("image.activity.unread");
 		imgBounds = imgNew.getBounds();
 	}
 

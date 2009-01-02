@@ -54,8 +54,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.skin.SkinProperties;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author TuxPaper
@@ -67,6 +66,8 @@ public class SWTSkin
 	private static final SWTSkinObjectListener[] NOLISTENERS = new SWTSkinObjectListener[0];
 
 	static boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
+	
+	private static int numSkins = 0;
 
 	private Map<SkinProperties, ImageLoader> mapImageLoaders = new ConcurrentHashMap<SkinProperties, ImageLoader>();
 
@@ -122,16 +123,16 @@ public class SWTSkin
 	}
 
 	private void init(SWTSkinProperties skinProperties) {
+		numSkins++;
 		this.skinProperties = skinProperties;
 		// the first skin gets the default image loader.  We don't add it to
 		// the mapImageLoaders because non-skin objects may use the image loader
 		// mapImageLoaders is used to dispose of images when the skin is disposed
-		if (ImageLoaderFactory.getInstance() == null) {
-			imageLoader = ImageLoaderFactory.createInstance(classLoader,
-					Display.getDefault(), skinProperties);
-
+		if (numSkins == 1) {
+			imageLoader = ImageLoader.getInstance();
+			imageLoader.addSkinProperties(skinProperties);
 		} else {
-			imageLoader = new ImageLoader(classLoader, Display.getDefault(),
+			imageLoader = new ImageLoader(Display.getDefault(),
 					skinProperties);
 			mapImageLoaders.put(skinProperties, imageLoader);
 		}
@@ -181,7 +182,7 @@ public class SWTSkin
 			return loader;
 		}
 
-		loader = new ImageLoader(classLoader, Display.getDefault(), properties);
+		loader = new ImageLoader(Display.getDefault(), properties);
 		mapImageLoaders.put(properties, loader);
 
 		return loader;
@@ -491,13 +492,7 @@ public class SWTSkin
 
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				for (Iterator iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
-					ImageLoader loader = (ImageLoader) iter.next();
-					loader.unLoadImages();
-				}
-				if (ourSkinProperties) {
-					//skinProperties.dispose();
-				}
+				disposeSkin();
 			}
 		});
 
@@ -620,6 +615,22 @@ public class SWTSkin
 			}
 
 			linkIDtoParent(skinProperties, sID, sID, null, false, true);
+		}
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.5
+	 */
+	private void disposeSkin() {
+		numSkins--;
+		for (Iterator iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
+			ImageLoader loader = (ImageLoader) iter.next();
+			loader.unLoadImages();
+		}
+		if (ourSkinProperties) {
+			//skinProperties.dispose();
 		}
 	}
 

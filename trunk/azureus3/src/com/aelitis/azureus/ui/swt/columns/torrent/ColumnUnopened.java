@@ -26,7 +26,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -57,11 +57,11 @@ public class ColumnUnopened
 		super(COLUMN_ID, tableID);
 		
 		if (graphicCheck == null) {
-			Image img = ImageLoaderFactory.getInstance().getImage("image.unopened");
+			Image img = ImageLoader.getInstance().getImage("image.unopened");
 			graphicCheck = new UISWTGraphicImpl(img);
 		}
 		if (graphicUnCheck == null) {
-			Image img = ImageLoaderFactory.getInstance().getImage("image.opened");
+			Image img = ImageLoader.getInstance().getImage("image.opened");
 			graphicUnCheck = new UISWTGraphicImpl(img);
 		}
 
@@ -69,7 +69,7 @@ public class ColumnUnopened
 			
 			
 			
-			Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dl");
+			Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dl");
 			graphicsProgress = new UISWTGraphicImpl[imgs.length];
 			for(int i = 0 ; i < imgs.length ; i++) {
 				graphicsProgress[i] = new UISWTGraphicImpl(imgs[i]);

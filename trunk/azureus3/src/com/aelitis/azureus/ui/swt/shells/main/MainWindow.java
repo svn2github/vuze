@@ -501,9 +501,6 @@ public class MainWindow
 
 		increaseProgress(uiInitializer, "splash.initializeGui");
 
-		ImageRepository.loadImagesForSplashWindow(display);
-		ImageRepository.loadImages(display);
-		
 		System.out.println("UIFunctions/ImageLoad took "
 				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		startTime = SystemTime.getCurrentTime();
@@ -894,7 +891,7 @@ public class MainWindow
   					startTab = "ContentNetwork." + startupCN.getID();
   				}
 				}
-				sidebar.showEntryByID(startTab);
+				sidebar.showEntryByTabID(startTab);
 			}
 		});
 
@@ -1348,8 +1345,6 @@ public class MainWindow
 		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_BIG, SBC_ActivityTableView.class);
 		views.put(SkinConstants.VIEWID_SIDEBAR_ACTIVITY_SMALL, SBC_ActivityTableView.class);
 		
-		//		views.put(SkinConstants.VIEWID_LIBRARY_TOOLBAR, LibraryToolbar.class);
-
 		SWTSkinObjectListener l = new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {

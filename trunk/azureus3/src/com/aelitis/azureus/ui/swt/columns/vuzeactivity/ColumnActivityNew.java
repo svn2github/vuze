@@ -27,7 +27,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -57,8 +57,8 @@ public class ColumnActivityNew
 		super(COLUMN_ID, tableID);
 
 		initializeAsGraphic(WIDTH);
-		imgNew = ImageLoaderFactory.getInstance().getImage("image.activity.unread");
-		imgOld = ImageLoaderFactory.getInstance().getImage("image.activity.read");
+		imgNew = ImageLoader.getInstance().getImage("image.activity.unread");
+		imgOld = ImageLoader.getInstance().getImage("image.activity.read");
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)

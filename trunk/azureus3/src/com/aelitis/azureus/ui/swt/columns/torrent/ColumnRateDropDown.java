@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.RateItListView;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
@@ -72,7 +72,7 @@ public class ColumnRateDropDown
 	public ColumnRateDropDown(String sTableID) {
 		super(COLUMN_ID, sTableID);
 		if (imgDD == null) {
-			imgDD = ImageLoaderFactory.getInstance().getImage("image.rateitdd");
+			imgDD = ImageLoader.getInstance().getImage("image.rateitdd");
 			imgDDbounds = imgDD.getBounds();
 		}
 		initializeAsGraphic(imgDDbounds.width);
@@ -98,7 +98,7 @@ public class ColumnRateDropDown
 			cell.setMarginHeight(0);
 
 			int i = (int) (Math.random() * ICON_NAMES.length);
-			imgRating = ImageLoaderFactory.getInstance().getImage(ICON_NAMES[i]);
+			imgRating = ImageLoader.getInstance().getImage(ICON_NAMES[i]);
 		}
 
 		public void refresh(TableCell cell) {
@@ -186,7 +186,7 @@ public class ColumnRateDropDown
 					((ListView) listCell.getRow().getView()).getControl().setFocus();
 
 					String id = (String) rows[0].getDataSource(true);
-					imgRating = ImageLoaderFactory.getInstance().getImage(id);
+					imgRating = ImageLoader.getInstance().getImage(id);
 					event.cell.invalidate();
 				}
 

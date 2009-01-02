@@ -72,6 +72,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -80,7 +81,6 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.utils.*;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.*;
@@ -1069,7 +1069,7 @@ public class SideBar
 			}
 			vitalityImage.switchSuffix(selected ? "-selected" : "");
 			Image image = vitalityImage.getImage();
-			if (image != null) {
+			if (image != null && !image.isDisposed()) {
 				Rectangle bounds = image.getBounds();
 				bounds.x = treeArea.width - bounds.width - SIDEBAR_SPACING
 						- x1IndicatorOfs;
@@ -1260,7 +1260,7 @@ public class SideBar
 		});
 
 		SideBarEntrySWT entry;
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 
 		entry = createEntryFromSkinRef(null, SIDEBAR_SECTION_LIBRARY, "library",
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_LIBRARY), null,
@@ -1686,7 +1686,7 @@ public class SideBar
 	}
 
 	public static SideBarEntrySWT getEntry(String id) {
-		if ("Browse".equals(id)) {
+		if ("Browse".equalsIgnoreCase(id)) {
 			id = SIDEBAR_SECTION_BROWSE;
 		}
 		SideBarEntrySWT entry = (SideBarEntrySWT) mapIdToEntries.get(id);
@@ -1698,7 +1698,7 @@ public class SideBar
 	}
 
 	public static boolean entryExists(String id) {
-		if ("Browse".equals(id)) {
+		if ("Browse".equalsIgnoreCase(id)) {
 			id = SIDEBAR_SECTION_BROWSE;
 		}
 		SideBarEntrySWT entry = (SideBarEntrySWT) mapIdToEntries.get(id);

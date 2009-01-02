@@ -26,7 +26,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -48,7 +48,7 @@ public class ColumnComplete
 	private static int width;
 
 	static {
-		Image img = ImageLoaderFactory.getInstance().getImage("icon.rate.wait");
+		Image img = ImageLoader.getInstance().getImage("icon.rate.wait");
 		width = img.getBounds().width;
 		graphicWait = new UISWTGraphicImpl(img);
 	}

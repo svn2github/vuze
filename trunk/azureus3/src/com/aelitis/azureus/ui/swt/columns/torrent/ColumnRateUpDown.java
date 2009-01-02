@@ -37,7 +37,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -75,18 +75,18 @@ public class ColumnRateUpDown
 	static {
 		Image img;
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
+		img = ImageLoader.getInstance().getImage("icon.rate.library");
 		graphicRate = new UISWTGraphicImpl(img);
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.down");
+		img = ImageLoader.getInstance().getImage("icon.rate.library.down");
 		graphicRateDown = new UISWTGraphicImpl(img);
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.up");
+		img = ImageLoader.getInstance().getImage("icon.rate.library.up");
 		graphicRateUp = new UISWTGraphicImpl(img);
 		
 		boundsRate = img.getBounds();
 		
-		Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dots");
+		Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dots");
 		graphicsWait = new UISWTGraphicImpl[imgs.length];
 		for(int i = 0 ; i < imgs.length  ;i++) {
 			graphicsWait[i] =  new UISWTGraphicImpl(imgs[i]);

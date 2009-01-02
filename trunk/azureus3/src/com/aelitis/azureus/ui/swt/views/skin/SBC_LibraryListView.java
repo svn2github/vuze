@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -54,7 +53,9 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
-import com.aelitis.azureus.ui.swt.skin.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectImage;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.TorrentListView;
 import com.aelitis.azureus.ui.swt.views.TorrentListViewListener;
 import com.aelitis.azureus.ui.swt.views.list.ListRow;
@@ -95,7 +96,7 @@ public class SBC_LibraryListView
 
 	private boolean bRegexSearch;
 
-	private Label lblX;
+	//private Label lblX;
 
 	private TimerEvent searchUpdateEvent;
 
@@ -506,12 +507,12 @@ public class SBC_LibraryListView
 				Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 			}
 		}
-		if (lblX != null && !lblX.isDisposed()) {
-			Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
-					: "smallx-gray");
+		//if (lblX != null && !lblX.isDisposed()) {
+		//	Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
+		//			: "smallx-gray");
 
-			lblX.setImage(img);
-		}
+		//	lblX.setImage(img);
+		//}
 
 		if (searchUpdateEvent != null) {
 			searchUpdateEvent.cancel();

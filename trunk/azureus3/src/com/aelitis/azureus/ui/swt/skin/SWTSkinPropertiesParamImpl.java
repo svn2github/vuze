@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.util.ResourceBundle;
+
 import org.eclipse.swt.graphics.Color;
 
 /**
@@ -114,5 +116,15 @@ public class SWTSkinPropertiesParamImpl
 	// @see com.aelitis.azureus.ui.skin.SkinProperties#getReferenceID(java.lang.String)
 	public String getReferenceID(String name) {
 		return properties.getReferenceID(name);
+	}
+
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#addResourceBundle(java.util.ResourceBundle)
+	public void addResourceBundle(ResourceBundle subBundle) {
+		properties.addResourceBundle(subBundle);
+	}
+
+	// @see com.aelitis.azureus.ui.skin.SkinProperties#getClassLoader()
+	public ClassLoader getClassLoader() {
+		return properties.getClassLoader();
 	}
 }

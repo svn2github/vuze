@@ -82,6 +82,8 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_THUMBNAIL = "Thumbnail";
 
+	private static final String TOR_AZ_PROP_THUMBNAIL_URL = "Thumbnail.url";
+
 	private static final String TOR_AZ_PROP_QUALITY = "Quality";
 
 	private static final String TOR_AZ_PROP_USER_RATING = "UserRating";
@@ -382,6 +384,10 @@ public class PlatformTorrentUtils
 		}
 
 		return null;
+	}
+
+	public static String getContentThumbnailUrl(TOTorrent torrent) {
+		return getContentMapString(torrent, TOR_AZ_PROP_THUMBNAIL_URL);
 	}
 
 	public static void setContentThumbnail(TOTorrent torrent, byte[] thumbnail) {

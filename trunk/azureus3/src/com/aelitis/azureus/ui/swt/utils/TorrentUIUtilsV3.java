@@ -20,10 +20,14 @@
 
 package com.aelitis.azureus.ui.swt.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -33,26 +37,24 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.PlayUtils;
-import com.aelitis.azureus.util.UrlFilter;
+import com.aelitis.azureus.util.*;
 
 /**
  * @author TuxPaper
@@ -64,15 +66,10 @@ public class TorrentUIUtilsV3
 	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
-	public static void 
-	loadTorrent(
-		final AzureusCore core,
-		DownloadUrlInfo dlInfo,
-		final boolean playNow,			// open player
-		final boolean playPrepare,		// as for open player but don't actually open it
-		final boolean bringToFront,
-		final boolean forceDRMtoCDP)
-	{
+	public static void loadTorrent(final AzureusCore core,
+			DownloadUrlInfo dlInfo, final boolean playNow, // open player
+			final boolean playPrepare, // as for open player but don't actually open it
+			final boolean bringToFront, final boolean forceDRMtoCDP) {
 		if (dlInfo instanceof DownloadUrlInfoSWT) {
 			DownloadUrlInfoSWT dlInfoSWT = (DownloadUrlInfoSWT) dlInfo;
 			dlInfoSWT.invoke(playNow ? "play" : "download");
@@ -81,43 +78,47 @@ public class TorrentUIUtilsV3
 
 		String url = dlInfo.getDownloadURL();
 		try {
-			if (playNow || playPrepare ) {
-  			Matcher m = hashPattern.matcher(url);
-  			if (m.find()) {
-  				String hash = m.group(1);
-  				GlobalManager gm = core.getGlobalManager();
-  				final DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
-  				if (dm != null) {
-  					new AEThread2("playExisting", true) {
-						
+			if (playNow || playPrepare) {
+				Matcher m = hashPattern.matcher(url);
+				if (m.find()) {
+					String hash = m.group(1);
+					GlobalManager gm = core.getGlobalManager();
+					final DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+							Base32.decode(hash)));
+					if (dm != null) {
+						new AEThread2("playExisting", true) {
+
 							public void run() {
-								if ( playNow ){
-									Debug.outNoStack("loadTorrent already exists.. playing", false);
+								if (playNow) {
+									Debug.outNoStack("loadTorrent already exists.. playing",
+											false);
 
 									TorrentListViewsUtils.playOrStream(dm);
-								}else{
-									Debug.outNoStack("loadTorrent already exists.. preparing", false);
+								} else {
+									Debug.outNoStack("loadTorrent already exists.. preparing",
+											false);
 
 									PlayUtils.prepareForPlay(dm);
 								}
 							}
-						
+
 						}.start();
-  					return;
-  				}
-  			}
+						return;
+					}
+				}
 			}
-			
+
 			// If it's going to our URLs, add some extra authenication
 			if (UrlFilter.getInstance().urlCanRPC(url)) {
 				// 4010 TODO: should kinda be the right network..
-				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false,
+						true);
 			}
-			
+
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
 			if (uiFunctions != null) {
 				if (!COConfigurationManager.getBooleanParameter("add_torrents_silently")) {
-					if ( bringToFront ){
+					if (bringToFront) {
 						uiFunctions.bringToFront();
 					}
 				}
@@ -125,7 +126,7 @@ public class TorrentUIUtilsV3
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {
 					new FileDownloadWindow(core, shell, url, dlInfo.getReferer(),
-							dlInfo.getRequestProperties(), 
+							dlInfo.getRequestProperties(),
 							new TorrentDownloaderCallBackInterface() {
 
 								public void TorrentDownloaderEvent(int state,
@@ -154,7 +155,7 @@ public class TorrentUIUtilsV3
 											Debug.out("stopped loading torrent because it's not in whitelist");
 											return;
 										}
-										
+
 										HashWrapper hw;
 										try {
 											hw = torrent.getHashWrapper();
@@ -163,8 +164,8 @@ public class TorrentUIUtilsV3
 											return;
 										}
 
-										if (forceDRMtoCDP && (PlatformTorrentUtils.isContentDRM(torrent)
-												|| PlatformTorrentUtils.isContentPurchased(torrent))) {
+										if (forceDRMtoCDP
+												&& (PlatformTorrentUtils.isContentDRM(torrent) || PlatformTorrentUtils.isContentPurchased(torrent))) {
 											TorrentListViewsUtils.viewDetailsFromDS(torrent,
 													"loadtorrent");
 											return;
@@ -172,12 +173,12 @@ public class TorrentUIUtilsV3
 
 										GlobalManager gm = core.getGlobalManager();
 
-										if (playNow || playPrepare ) {
+										if (playNow || playPrepare) {
 											DownloadManager existingDM = gm.getDownloadManager(hw);
 											if (existingDM != null) {
-												if ( playNow ){
+												if (playNow) {
 													TorrentListViewsUtils.playOrStream(existingDM);
-												}else{
+												} else {
 													PlayUtils.prepareForPlay(existingDM);
 												}
 												return;
@@ -227,10 +228,10 @@ public class TorrentUIUtilsV3
 					}
 
 					boolean showHomeHint = true;
-					if (playNow || playPrepare ) {
-						if ( playNow ){
+					if (playNow || playPrepare) {
+						if (playNow) {
 							showHomeHint = !TorrentListViewsUtils.playOrStream(dm);
-						}else{
+						} else {
 							PlayUtils.prepareForPlay(dm);
 							showHomeHint = false;
 						}
@@ -244,7 +245,7 @@ public class TorrentUIUtilsV3
 			}
 		}.start();
 	}
-	
+
 	/**
 	 * No clue if we have a easy way to add a TOTorrent to the GM, so here it is
 	 * @param torrent
@@ -260,7 +261,6 @@ public class TorrentUIUtilsV3
 			String filename = tempTorrentFile.getAbsolutePath();
 			torrent.serialiseToBEncodedFile(tempTorrentFile);
 
-
 			String savePath = COConfigurationManager.getStringParameter("Default save path");
 			if (savePath == null || savePath.length() == 0) {
 				savePath = ".";
@@ -273,5 +273,154 @@ public class TorrentUIUtilsV3
 			return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Retrieves the thumbnail for the content, pulling it from the web if
+	 * it can
+	 * 
+	 * @param datasource
+	 * @param l When the thumbnail is available, this listener is triggered
+	 * @return If the image is immediately available, the image will be returned
+	 *         as well as the trigger being fired.  If the image isn't available
+	 *         null will be returned and the listener will trigger when avail
+	 *
+	 * @since 4.0.0.5
+	 */
+	public static Image getContentImage(Object datasource,
+			final ContentImageLoadedListener l) {
+		if (l == null) {
+			return null;
+		}
+		TOTorrent torrent = DataSourceUtils.getTorrent(datasource);
+		if (torrent == null) {
+			l.contentImageLoaded(null, true);
+			return null;
+		}
+
+		ImageLoader imageLoader = ImageLoader.getInstance();
+
+		String thumbnailUrl = PlatformTorrentUtils.getContentThumbnailUrl(torrent);
+
+		if (thumbnailUrl != null && imageLoader.imageExists(thumbnailUrl)) {
+			l.contentImageLoaded(imageLoader.getImage(thumbnailUrl), true);
+			return null;
+		}
+
+
+		String hash = null;
+		try {
+			hash = torrent.getHashWrapper().toBase32String();
+		} catch (TOTorrentException e) {
+		}
+		if (hash == null) {
+			l.contentImageLoaded(null, true);
+			return null;
+		}
+
+		String id = "Thumbnail." + hash;
+
+		Image image = imageLoader.imageAdded(id) ? imageLoader.getImage(id) : null;
+		if (image != null && !image.isDisposed()) {
+			l.contentImageLoaded(image, true);
+			return image;
+		}
+
+		final byte[] imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
+		if (imageBytes != null) {
+			image = (Image) Utils.execSWTThreadWithObject("thumbcreator",
+					new AERunnableObject() {
+						public Object runSupport() {
+
+							ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
+							Image image = new Image(Display.getDefault(), bis);
+
+							return image;
+						}
+					}, 500);
+		}
+		if ((image == null || image.isDisposed()) && thumbnailUrl != null) {
+			imageLoader.getUrlImage(thumbnailUrl, new ImageDownloaderListener() {
+				public void imageDownloaded(Image image) {
+					l.contentImageLoaded(image, false);
+				}
+			});
+			return image;
+		}
+		if (image == null || image.isDisposed()) {
+			DownloadManager dm = DataSourceUtils.getDM(datasource);
+			/*
+			 * Try to get an image from the OS
+			 */
+
+			String path = null;
+			if (dm == null) {
+				if (torrent != null) {
+					TOTorrentFile[] files = torrent.getFiles();
+					if (files.length > 0) {
+						path = files[0].getRelativePath();
+					}
+				}
+			} else {
+				path = dm.getDownloadState().getPrimaryFile();
+			}
+			if (path != null) {
+				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
+				Image icon = ImageRepository.getPathIcon(path, true, torrent != null
+						&& !torrent.isSimpleTorrent());
+				if (icon != null) {
+					image = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
+				}
+			}
+
+			if (image == null) {
+				imageLoader.addImage(id, ImageLoader.noImage);
+			} else {
+				imageLoader.addImage(id, image);
+			}
+		} else {
+			imageLoader.addImage(id, image);
+		}
+
+		l.contentImageLoaded(image, true);
+		return image;
+	}
+
+	public static void releaseContentImage(Object datasource) {
+		TOTorrent torrent = DataSourceUtils.getTorrent(datasource);
+		if (torrent == null) {
+			return;
+		}
+
+		ImageLoader imageLoader = ImageLoader.getInstance();
+
+		String thumbnailUrl = PlatformTorrentUtils.getContentThumbnailUrl(torrent);
+
+		if (thumbnailUrl != null) {
+			imageLoader.releaseImage(thumbnailUrl);
+		} else {
+			String hash = null;
+			try {
+				hash = torrent.getHashWrapper().toBase32String();
+			} catch (TOTorrentException e) {
+			}
+			if (hash == null) {
+				return;
+			}
+
+			String id = "Thumbnail." + hash;
+			imageLoader.releaseImage(id);
+		}
+	}
+
+	public static interface ContentImageLoadedListener
+	{
+		/**
+		 * @param image
+		 * @param wasReturned  Image was also returned from getContentImage 
+		 *
+		 * @since 4.0.0.5
+		 */
+		public void contentImageLoaded(Image image, boolean wasReturned);
 	}
 }

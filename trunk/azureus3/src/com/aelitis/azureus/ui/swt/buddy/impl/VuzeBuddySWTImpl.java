@@ -27,13 +27,11 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyImpl;
 import com.aelitis.azureus.ui.swt.buddy.VuzeBuddySWT;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author TuxPaper
@@ -67,7 +65,7 @@ public class VuzeBuddySWTImpl
 	}
 
 	public Image getAvatarImage() {
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		if (needsImageRebuilt || !imageLoader.imageExists(avatarImageRefId)) {
 
 			byte[] avatarBytes = getAvatar();
@@ -78,7 +76,7 @@ public class VuzeBuddySWTImpl
 				} catch (Exception e) {
 					imageLoader.releaseImage(avatarImageRefId);
 					avatarImageRefId = null;
-					avatarImage = ImageRepository.getImage("azureus64");
+					avatarImage = null;
 				}
 			} else {
 				Display display = Utils.getDisplay();
@@ -115,7 +113,7 @@ public class VuzeBuddySWTImpl
 	
 	public void releaseAvatarImage(Image image) {
 		if (image == avatarImage && avatarImageRefId != null) {
-			ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+			ImageLoader imageLoader = ImageLoader.getInstance();
 			imageLoader.releaseImage(avatarImageRefId);
 		}
 	}

@@ -11,8 +11,6 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -20,7 +18,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.DockPosition;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
@@ -38,6 +35,7 @@ import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
@@ -87,18 +85,9 @@ public class FriendsToolbar
 	private Font friendsFont;
 
 	private Listener hoverListener;
+	private ImageLoader imageLoader;
 	
 	
-	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch.png", "btn_collapse");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_hide_notch_over.png", "btn_collapse_over");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_show_notch.png", "btn_expand");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/icon_show_notch_over.png", "btn_expand_over");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/sb/friends_bg.png", "friends_bg");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share.png", "add_to_share");
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/buddy_add_to_share_selected.png", "add_to_share_selected");
-	}
-
 	public FriendsToolbar() {
 	}
 
@@ -116,6 +105,8 @@ public class FriendsToolbar
 	}
 
 	private void init() {
+		imageLoader = ImageLoader.getInstance();
+
 		if (null == parent || true == parent.isDisposed()) {
 			throw new NullPointerException("Parent cannot be null or disposed");
 		}
@@ -150,7 +141,7 @@ public class FriendsToolbar
 
 		content = new Composite(parent, SWT.NONE);
 		content.setBackgroundMode(SWT.INHERIT_DEFAULT);
-		content.setBackgroundImage(ImageRepository.getImage("friends_bg"));
+		imageLoader.setBackgroundImage(content, "friends_bg");
 		
 		
 		FontData[] datas = content.getFont().getFontData();
@@ -249,16 +240,14 @@ public class FriendsToolbar
 			switch (event.type) {
 				case SWT.MouseEnter:
 					showHideButton.setData("over",new Boolean(true));
-					showHideButton.setImage(isExpanded
-							? ImageRepository.getImage("btn_collapse_over")
-							: ImageRepository.getImage("btn_expand_over"));
+					imageLoader.setLabelImage(showHideButton, isExpanded
+								? "btn_collapse_over" : "btn_expand_over");
 					break;
 	
 				case SWT.MouseExit:
 					showHideButton.setData("over",new Boolean(false));
-					showHideButton.setImage(isExpanded
-							? ImageRepository.getImage("btn_collapse")
-							: ImageRepository.getImage("btn_expand"));
+					imageLoader.setLabelImage(showHideButton, isExpanded
+							? "btn_collapse" : "btn_expand");
 					break;
 			}
 			}	
@@ -484,7 +473,7 @@ public class FriendsToolbar
 		shareWithAllPanel.setLayout(new FormLayout());
 
 		image = new Label(shareWithAllPanel, SWT.NONE);
-		image.setImage(ImageRepository.getImage("add_to_share"));
+		imageLoader.setLabelImage(image, "add_to_share");
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,0);
@@ -544,11 +533,11 @@ public class FriendsToolbar
 		BuddiesViewer viewer = (BuddiesViewer) SkinViewManager.getByClass(BuddiesViewer.class);
 		if (null != viewer) {
 			if (true == value) {
-				image.setImage(ImageRepository.getImage("add_to_share_selected"));
+				imageLoader.setLabelImage(image, "add_to_share_selected");
 				viewer.addAllToShare();
 
 			} else {
-				image.setImage(ImageRepository.getImage("add_to_share"));
+				imageLoader.setLabelImage(image, "add_to_share");
 				viewer.removeAllFromShare();
 			}
 		}
@@ -786,13 +775,11 @@ public class FriendsToolbar
 		boolean isOver = overB != null ? overB.booleanValue() : false;
 		
 		if(isOver) {
-			showHideButton.setImage(isExpanded
-				? ImageRepository.getImage("btn_collapse_over")
-				: ImageRepository.getImage("btn_expand_over"));
+			imageLoader.setLabelImage(showHideButton, isExpanded
+					? "btn_collapse_over" : "btn_expand_over");
 		} else {
-			showHideButton.setImage(isExpanded
-					? ImageRepository.getImage("btn_collapse")
-					: ImageRepository.getImage("btn_expand"));
+			imageLoader.setLabelImage(showHideButton, isExpanded
+					? "btn_collapse" : "btn_expand");
 		}
 
 	}

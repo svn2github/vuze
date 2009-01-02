@@ -15,8 +15,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
 
@@ -41,12 +41,12 @@ public class ColumnAzProduct
 	private static int width;
 
 	static {
-		Image img = ImageLoaderFactory.getInstance().getImage(
+		Image img = ImageLoader.getInstance().getImage(
 				"column.azproduct.product");
 		width = img.getBounds().width;
 		graphicProductAzureus = new UISWTGraphicImpl(img);
 
-		img = ImageLoaderFactory.getInstance().getImage("column.azproduct.globe");
+		img = ImageLoader.getInstance().getImage("column.azproduct.globe");
 		width = Math.max(width, img.getBounds().width);
 		graphicProductGlobe = new UISWTGraphicImpl(img);
 	}

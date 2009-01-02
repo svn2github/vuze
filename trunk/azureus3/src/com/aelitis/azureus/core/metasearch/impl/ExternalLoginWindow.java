@@ -385,7 +385,6 @@ public class ExternalLoginWindow {
 	
 	public static void main(String[] args) {
 		Display display = new Display();
-		ImageRepository.loadImages(display);
 		ExternalLoginWindow slw = 
 			new ExternalLoginWindow(
 				new ExternalLoginListener()

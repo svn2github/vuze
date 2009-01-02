@@ -24,7 +24,6 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
-import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,20 +31,16 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
+import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -102,8 +97,7 @@ public class ColumnThumbnail
 		//System.out.println(view.getComposite());
 		//view.getTableComposite().redraw(0, 0, 5000, 5000, true);
 		//view.getTableComposite().update();
-		
-		
+
 		/*
 		 * For sorting we only create 2 buckets... Vuze content and non-vuze content
 		 */
@@ -128,122 +122,83 @@ public class ColumnThumbnail
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
-	public void cellPaint(GC gc, TableCellSWT cell) {
+	public void cellPaint(GC gc, final TableCellSWT cell) {
 		Object ds = cell.getDataSource();
-		
-		/*
-		 * Try to get the image bytes if available
-		 */
-		byte[] imageBytes = null;
-		if (ds instanceof VuzeActivitiesEntry) {
-			imageBytes = ((VuzeActivitiesEntry) ds).getImageBytes();
-		}
-		if (imageBytes == null) {
-			TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
-			imageBytes = PlatformTorrentUtils.getContentThumbnail(torrent);
+
+		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
+				new ContentImageLoadedListener() {
+					public void contentImageLoaded(Image image, boolean wasReturned) {
+						if (!wasReturned) {
+							// this may be triggered many times, so only invalidate and don't
+							// force a refresh()
+							cell.invalidate();
+						}
+					}
+				});
+
+		if (imgThumbnail == null) {
+			// don't need to release a null image
+			return;
 		}
 
-		Image imgThumbnail = null;
 		Rectangle cellBounds = cell.getBounds();
 
-		if (imageBytes != null) {
-			/*
-			 * Creates an image from what's given
-			 */
-			ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes);
-			imgThumbnail = new Image(Display.getDefault(), bis);
+		if (cellBounds.height > 30) {
+			cellBounds.y += 2;
+			cellBounds.height -= 4;
+		}
 
+		Rectangle imgBounds = imgThumbnail.getBounds();
+		Rectangle srcBounds = new Rectangle(imgBounds.x, imgBounds.y,
+				imgBounds.width, imgBounds.height);
+
+		int dstWidth;
+		int dstHeight;
+		if (imgBounds.width > cellBounds.width
+				|| imgBounds.height > cellBounds.height) {
+			dstWidth = cellBounds.width - 4;
+			dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
+			if (cellBounds.height < 30) {
+				cellBounds.y += 1;
+				cellBounds.height -= 1;
+			}
+			/*
+			int trim = (int) (imgBounds.width * 0.2);
+			if (imgBounds.width - cellBounds.width > trim) {
+				srcBounds.x += trim;
+				srcBounds.width -= trim * 2;
+				trim = (int) (imgBounds.height * 0.2);
+				srcBounds.y += trim;
+				srcBounds.height -= trim * 2;
+			}
+			*/
 		} else {
-			TOTorrent torrent = (TOTorrent) mapCellTorrent.get(cell);
-
-			DownloadManager dm = DataSourceUtils.getDM(ds);
-			/*
-			 * Try to get an image from the OS
-			 */
-
-			// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-			String path = null;
-			if (dm == null) {
-				if (torrent == null) {
-					return;
-				}
-				TOTorrentFile[] files = torrent.getFiles();
-				if (files.length > 0) {
-					path = files[0].getRelativePath();
-				}
-			} else {
-				path = dm.getDownloadState().getPrimaryFile();
-			}
-			if (path != null) {
-				Image icon = ImageRepository.getPathIcon(path, cellBounds.height >= 22
-						&& cellBounds.width >= 22, torrent != null
-						&& !torrent.isSimpleTorrent());
-				if(icon != null) {
-					imgThumbnail = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);
-				}
-			}
-
+			dstWidth = imgBounds.width;
+			dstHeight = imgBounds.height;
 		}
 
-		if (null != imgThumbnail) {
-			if (cellBounds.height > 30) {
-				cellBounds.y += 2;
-				cellBounds.height -= 4;
-			}
-			
-
-			Rectangle imgBounds = imgThumbnail.getBounds();
-			Rectangle srcBounds = new Rectangle(imgBounds.x, imgBounds.y,
-					imgBounds.width, imgBounds.height);
-
-			int dstWidth;
-			int dstHeight;
-			if (imgBounds.width > cellBounds.width
-					|| imgBounds.height > cellBounds.height) {
-				dstWidth = cellBounds.width - 4;
-				dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
-				if (cellBounds.height < 30) {
-					cellBounds.y += 1;
-					cellBounds.height -= 1;
-				}
-				/*
-				int trim = (int) (imgBounds.width * 0.2);
-				if (imgBounds.width - cellBounds.width > trim) {
-					srcBounds.x += trim;
-					srcBounds.width -= trim * 2;
-					trim = (int) (imgBounds.height * 0.2);
-					srcBounds.y += trim;
-					srcBounds.height -= trim * 2;
-				}
-				*/
-			} else {
-				dstWidth = imgBounds.width;
-				dstHeight = imgBounds.height;
-			}
-
+		try {
+			gc.setAdvanced(true);
+			gc.setInterpolation(SWT.HIGH);
+		} catch (Exception e) {
+		}
+		int x = cellBounds.x + ((cellBounds.width - dstWidth) / 2);
+		int y = cellBounds.y + ((cellBounds.height - dstHeight) / 2);
+		if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
+			Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
+			Rectangle lastClipping = gc.getClipping();
 			try {
-				gc.setAdvanced(true);
-				gc.setInterpolation(SWT.HIGH);
-			} catch (Exception e) {
-			}
-			int x = cellBounds.x + ((cellBounds.width - dstWidth) / 2);
-			int y = cellBounds.y + ((cellBounds.height - dstHeight) / 2);
-			if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
-				Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
-				Rectangle lastClipping = gc.getClipping();
-				try {
-					gc.setClipping(cellBounds);
-					
-					gc.drawImage(imgThumbnail, srcBounds.x, srcBounds.y, srcBounds.width,
-							srcBounds.height, x, y, dstWidth, dstHeight);
-				} catch (Exception e) {
-					Debug.out(e);
-				} finally {
-					gc.setClipping(lastClipping);
-				}
-			}
+				gc.setClipping(cellBounds);
 
-			imgThumbnail.dispose();
+				gc.drawImage(imgThumbnail, srcBounds.x, srcBounds.y, srcBounds.width,
+						srcBounds.height, x, y, dstWidth, dstHeight);
+			} catch (Exception e) {
+				Debug.out(e);
+			} finally {
+				gc.setClipping(lastClipping);
+			}
 		}
+
+		TorrentUIUtilsV3.releaseContentImage(ds);
 	}
 }

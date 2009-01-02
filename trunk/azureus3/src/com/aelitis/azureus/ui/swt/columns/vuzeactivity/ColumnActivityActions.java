@@ -47,9 +47,9 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.*;
 
@@ -104,18 +104,18 @@ public class ColumnActivityActions
 
 		Image img;
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library");
+		img = ImageLoader.getInstance().getImage("icon.rate.library");
 		graphicRate = new UISWTGraphicImpl(img);
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.down");
+		img = ImageLoader.getInstance().getImage("icon.rate.library.down");
 		graphicRateDown = new UISWTGraphicImpl(img);
 		
-		img = ImageLoaderFactory.getInstance().getImage("icon.rate.library.up");
+		img = ImageLoader.getInstance().getImage("icon.rate.library.up");
 		graphicRateUp = new UISWTGraphicImpl(img);
 		
 		boundsRate = img.getBounds();
 		
-		Image[] imgs = ImageLoaderFactory.getInstance().getImages("image.sidebar.vitality.dots");
+		Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dots");
 		graphicsWait = new UISWTGraphicImpl[imgs.length];
 		for(int i = 0 ; i < imgs.length  ;i++) {
 			graphicsWait[i] =  new UISWTGraphicImpl(imgs[i]);

@@ -62,8 +62,8 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.win32.Win32Utils;
@@ -662,11 +662,11 @@ public class TorrentListViewsUtils
     					mb.setRememberOnlyIfButton(-3);
   					}
   					mb.setRelatedObject(dm);
-  					mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
+  					mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
   
   					result = mb.open();
 
-  					ImageLoaderFactory.getInstance().releaseImage("image.trash");
+  					ImageLoader.getInstance().releaseImage("image.trash");
 						if (numLeft > 1 && mb.isRemembered()) {
 							doAllAs = result;
 						}
@@ -737,10 +737,10 @@ public class TorrentListViewsUtils
 						MessageText.getString("Button.deleteContent.fromLibrary"),
 					}, 2, null, null, false, 0);
 			mb.setRelatedObject(dm);
-			mb.setLeftImage(ImageLoaderFactory.getInstance().getImage("image.trash"));
+			mb.setLeftImage(ImageLoader.getInstance().getImage("image.trash"));
 
 			int result = mb.open();
-			ImageLoaderFactory.getInstance().releaseImage("image.trash");
+			ImageLoader.getInstance().releaseImage("image.trash");
 
 			if (result == 1 || result == 2) {
 				if (result == 2) {

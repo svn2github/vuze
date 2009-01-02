@@ -503,7 +503,6 @@ public class SubscriptionListWindow implements SubscriptionLookupListener {
 	
 	public static void main(String[] args) {
 		Display display = new Display();
-		ImageRepository.loadImages(display);
 		SubscriptionListWindow slw = new SubscriptionListWindow(null,false);
 		while(!slw.shell.isDisposed()) {
 			if(!display.readAndDispatch()) {

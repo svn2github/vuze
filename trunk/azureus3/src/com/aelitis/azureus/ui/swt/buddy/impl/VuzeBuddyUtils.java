@@ -18,8 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.buddy.impl;
 
-import org.gudy.azureus2.ui.swt.ImageRepository;
-
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 
@@ -45,7 +43,7 @@ public class VuzeBuddyUtils
 		VuzeBuddySWTImpl buddy = new VuzeBuddySWTImpl();
 		buddy.setLoginID("Login" + x);
 		buddy.setDisplayName("Mr Random " + x);
-		buddy.setAvatarImage(ImageRepository.getRandomImage());
+		//buddy.setAvatarImage(ImageRepository.getRandomImage());
 
 		VuzeBuddyManager.addBuddy(buddy, false);
 

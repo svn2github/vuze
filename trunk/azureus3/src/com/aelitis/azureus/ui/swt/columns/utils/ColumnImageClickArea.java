@@ -25,9 +25,8 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -87,7 +86,7 @@ public class ColumnImageClickArea
 	 * @since 3.0.1.5
 	 */
 	public void setImageID(String imageID) {
-		ImageLoader imageLoader = ImageLoaderFactory.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		if (imgOver != null) {
 			imageLoader.releaseImage(this.imageID + "-over");
 		}

@@ -1,29 +1,17 @@
 package com.aelitis.azureus.ui.swt.buddy.chat.impl;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.graphics.Region;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 
 import com.aelitis.azureus.buddy.chat.ChatMessage;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.AvatarWidget;
 import com.aelitis.azureus.util.ConstantsV3;
 
@@ -34,16 +22,12 @@ public class MessageNotificationWindow {
 	public static int nbOpen = 0;
 	public static int currentOffset = 0;
 	
-	static {
-		ImageRepository.addPath("com/aelitis/azureus/ui/images/chatNotification.png", "chatNotification");
-	}
-	
 	public MessageNotificationWindow(final AvatarWidget avatar,final ChatMessage message) {
 		final org.eclipse.swt.widgets.Display display = avatar.getControl().getDisplay();
 		
 		final Shell shell = new Shell(display,SWT.NO_TRIM |  SWT.ON_TOP);
 		
-		Image background = ImageRepository.getImage("chatNotification");
+		Image background = ImageLoader.getInstance().getImage("chatNotification");
 		final Region region = new Region();
 		final ImageData imageData = background.getImageData();
 		if (imageData.alphaData != null) {
@@ -81,8 +65,9 @@ public class MessageNotificationWindow {
 		image.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Image avatarImage = avatar.getVuzeBuddy().getAvatarImage();
-				Rectangle size = avatarImage.getBounds();
-				e.gc.drawImage(avatarImage, 0, 0, 40, 40, 0, 0, 30, 30);
+				if (avatarImage != null) {
+					e.gc.drawImage(avatarImage, 0, 0, 40, 40, 0, 0, 30, 30);
+				}
 				avatar.getVuzeBuddy().releaseAvatarImage(avatarImage);
 			}
 		});
@@ -210,6 +195,12 @@ public class MessageNotificationWindow {
 		} catch (Throwable t) {
 			//Do nothing
 		}
+		
+		shell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				ImageLoader.getInstance().releaseImage("chatNotification");
+			}
+		});
 		
 		shell.open();
 		shell.setActive();
