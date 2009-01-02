@@ -663,7 +663,7 @@ public class ImageLoader
 				writer.indent();
 				for (String key : mapImages.keySet()) {
 					ImageLoaderRefInfo info = mapImages.get(key);
-					if (info.isNonDisposable()) {
+					if (!info.isNonDisposable()) {
 						continue;
 					}
 					writeEvidenceLine(writer, key, info, totalSizeEstimate,
