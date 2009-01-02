@@ -1,8 +1,9 @@
 package org.gudy.azureus2.plugins.ui.tables;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -21,12 +22,42 @@ public class TableCellRefresher {
 	
 	private  AEThread2 refresher;
 	
-	private  List	cells;
+	private Map<TableCell, TableColumn> mapCellsToColumn = new HashMap<TableCell, TableColumn>();
 	
 	private  long iterationNumber;
 	
+	private boolean inProgress = false;
+
+	private AERunnable runnable;
+	
 	private TableCellRefresher() {
-		cells = new ArrayList();
+		runnable = new AERunnable() {
+			public void runSupport() {
+				try {
+					Map<TableCell, TableColumn> cellsCopy;
+  				synchronized (mapCellsToColumn) {
+  					cellsCopy = new HashMap<TableCell, TableColumn>(mapCellsToColumn);
+  					mapCellsToColumn.clear();
+  				}
+
+  				for (TableCell cell : cellsCopy.keySet()) {
+  					TableColumn column = (TableColumn) cellsCopy.get(cell);
+
+  					try {
+  						//cc.cell.invalidate();
+  						if (column instanceof TableCellRefreshListener) {
+  							((TableCellRefreshListener) column).refresh(cell);
+  						}
+  
+  					} catch (Throwable t) {
+  						t.printStackTrace();
+  					}
+  				}
+				} finally {
+					inProgress = false;
+				}
+			}
+		};
 		
 		refresher = new AEThread2("Cell Refresher",true) {
 			public void run() {
@@ -34,37 +65,15 @@ public class TableCellRefresher {
 					
 					iterationNumber = 0;
 					
-					while(true) {
-						
-						List cellsCopy;
-						
-						synchronized (cells) {
-							 cellsCopy = new ArrayList(cells.size());
-							 cellsCopy.addAll(cells);
-							 cells.clear();
-						}
-						
-						for(int i = 0 ; i < cellsCopy.size()  ;i++) {
-							final ColumnCell cc = (ColumnCell) cellsCopy.get(i);
-							try {
-								//cc.cell.invalidate();
-								if(cc.column instanceof TableCellRefreshListener) {
-									Utils.execSWTThread( new Runnable() {
-										public void run() {
-											((TableCellRefreshListener)cc.column).refresh(cc.cell);
-										}
-									});
-									
-								}
-							} catch (Throwable t) {
-								t.printStackTrace();
-							}
-							
-							
+					while (true) {
+
+						if (mapCellsToColumn.size() > 0 && !inProgress) {
+							inProgress = true;
+  						Utils.execSWTThread(runnable);
 						}
 
-						Thread.sleep(100);
-						
+						Thread.sleep(200);
+
 						iterationNumber++;
 					}
 				}catch (Exception e) {
@@ -77,17 +86,12 @@ public class TableCellRefresher {
 	}
 	
 	
-	private class ColumnCell {
-		TableColumn column;
-		TableCell cell;
-	}
-	
 	private void _addColumnCell(TableColumn column,TableCell cell) {
-		ColumnCell cc = new ColumnCell();
-		cc.column = column;
-		cc.cell = cell;
-		synchronized (cells) {
-			cells.add(cc);
+		synchronized (mapCellsToColumn) {
+			if (mapCellsToColumn.containsKey(cell)) {
+				return;
+			}
+			mapCellsToColumn.put(cell, column);
 		}
 	}
 	
