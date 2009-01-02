@@ -20,35 +20,26 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemProperties;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
-import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ImageLoaderFactory;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.ui.swt.utils.ImageLoader.ImageDownloaderListener;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
@@ -365,24 +356,27 @@ public class UserAreaUtils
 					/*
 					 * Loads the page without switching to the On Vuze tab
 					 */
-					SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_BROWSER_BROWSE);
-					if (skinObject instanceof SWTSkinObjectBrowser) {
-
-						/*
-						 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
-						 */
-						Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
-						if (null != browser) {
-							String existingURL = browser.getUrl();
-							if (null == existingURL || existingURL.length() < 1) {
-								((SWTSkinObjectBrowser) skinObject).setStartURL(ContentNetworkUtils.getUrl(
-										ConstantsV3.DEFAULT_CONTENT_NETWORK,
-										ContentNetwork.SERVICE_BIG_BROWSE));
+					SideBarEntrySWT entry = SideBar.getEntry(SkinConstants.VIEWID_BROWSER_BROWSE);
+					if (entry != null && entry.isInTree()) {
+						SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+						if (soBrowser != null) {
+							/*
+							 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
+							 */
+							Browser browser = soBrowser.getBrowser();
+							if (null != browser) {
+								String existingURL = browser.getUrl();
+								if (null == existingURL || existingURL.length() < 1) {
+									soBrowser.setStartURL(ContentNetworkUtils.getUrl(
+											ConstantsV3.DEFAULT_CONTENT_NETWORK,
+											ContentNetwork.SERVICE_BIG_BROWSE));
+								}
 							}
-						}
 
-						((SWTSkinObjectBrowser) skinObject).setURL(url);
+							soBrowser.setURL(url);
+						}
 					}
+
 				}
 			});
 
