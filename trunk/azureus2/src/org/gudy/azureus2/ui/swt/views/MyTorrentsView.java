@@ -71,6 +71,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
@@ -422,7 +423,8 @@ public class MyTorrentsView
         Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
         gridData = new GridData(SWT.TOP);
         lblX.setLayoutData(gridData);
-        lblX.setImage(ImageRepository.getImage("smallx-gray"));
+        ImageLoader.getInstance().setLabelImage(lblX, "smallx-gray");
+        lblX.setData("ImageID", "smallx-gray");
         lblX.addMouseListener(new MouseAdapter() {
         	public void mouseUp(MouseEvent e) {
         		if (e.y <= 10) {
@@ -1450,10 +1452,13 @@ public class MyTorrentsView
 			}
 		}
 		if (lblX != null && !lblX.isDisposed()) {
-			Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
-					: "smallx-gray");
 
-			lblX.setImage(img);
+			String oldID = (String) lblX.getData("ImageID");
+      String id = sLastSearch.length() > 0 ? "smallx" : "smallx-gray";
+      if (oldID == null || !oldID.equals(id)) {
+      	ImageLoader.getInstance().setLabelImage(lblX, id);
+      	lblX.setData("ImageID", id);
+      }
 		}
 
 		if (searchUpdateEvent != null) {

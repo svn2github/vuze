@@ -24,16 +24,20 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -46,7 +50,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  */
 public class HealthItem
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellRefreshListener
+	implements TableCellAddedListener, TableCellRefreshListener, TableCellSWTPaintListener
 {
 	static final int COLUMN_WIDTH = 16;
 
@@ -83,45 +87,77 @@ public class HealthItem
 		if (!cell.setSortValue(health + (ht == null ? 0 : 256)) && cell.isValid())
 			return;
 
-		String image_name;
+
 		String sHelpID = null;
 
 		if (health == DownloadManager.WEALTH_KO) {
-			image_name = "st_ko";
 			sHelpID = "health.explain.red";
 		} else if (health == DownloadManager.WEALTH_OK) {
-			image_name = "st_ok";
 			sHelpID = "health.explain.green";
 		} else if (health == DownloadManager.WEALTH_NO_TRACKER) {
-			image_name = "st_no_tracker";
 			sHelpID = "health.explain.blue";
 		} else if (health == DownloadManager.WEALTH_NO_REMOTE) {
-			image_name = "st_no_remote";
 			sHelpID = "health.explain.yellow";
+		} else if (health == DownloadManager.WEALTH_ERROR) {
+		} else {
+			sHelpID = "health.explain.grey";
+		}
+
+		String sToolTip = (health == DownloadManager.WEALTH_ERROR && dm != null)
+				? dm.getErrorDetails() : MessageText.getString(sHelpID);
+		if (ht != null)
+			sToolTip += "\n" + MessageText.getString("health.explain.share");
+		cell.setToolTip(sToolTip);
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
+	public void cellPaint(GC gc, TableCellSWT cell) {
+		
+		Comparable sortValue = cell.getSortValue();
+		if (!(sortValue instanceof Long)) {
+			return;
+		}
+		boolean isShare = false;
+		long health = ((Long) sortValue).longValue();
+		if (health >= 256) {
+			health -= 256;
+			isShare = true;
+		}
+
+		String image_name;
+
+		if (health == DownloadManager.WEALTH_KO) {
+			image_name = "st_ko";
+		} else if (health == DownloadManager.WEALTH_OK) {
+			image_name = "st_ok";
+		} else if (health == DownloadManager.WEALTH_NO_TRACKER) {
+			image_name = "st_no_tracker";
+		} else if (health == DownloadManager.WEALTH_NO_REMOTE) {
+			image_name = "st_no_remote";
 		} else if (health == DownloadManager.WEALTH_ERROR) {
 			image_name = "st_error";
 		} else {
 			image_name = "st_stopped";
-			sHelpID = "health.explain.grey";
 		}
 
-		if (ht != null) {
+		if (isShare) {
 			image_name += "_shared";
 		}
 
-		boolean graphicWasSet = false;
-		if (cell instanceof TableCellSWT) {
-			graphicWasSet = ((TableCellSWT) cell).setGraphic(ImageRepository.getImage(image_name));
-		} else {
-			graphicWasSet = cell.setGraphic(new UISWTGraphicImpl(ImageRepository.getImage(image_name)));
-		}
-		if (graphicWasSet) {
-			String sToolTip = (health == DownloadManager.WEALTH_ERROR)
-					? dm.getErrorDetails() : MessageText.getString(sHelpID);
-			if (ht != null)
-				sToolTip += "\n" + MessageText.getString("health.explain.share");
-			cell.setToolTip(sToolTip);
-		}
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image img = imageLoader.getImage(image_name);
 
+		try {
+  		Rectangle cellBounds = cell.getBounds();
+  
+  		if (img != null && !img.isDisposed()) {
+  			Rectangle imgBounds = img.getBounds();
+  			gc.drawImage(img, cellBounds.x
+  					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
+  					+ ((cellBounds.height - imgBounds.height) / 2));
+  		}
+		} finally {
+			imageLoader.releaseImage(image_name);
+		}
 	}
 }

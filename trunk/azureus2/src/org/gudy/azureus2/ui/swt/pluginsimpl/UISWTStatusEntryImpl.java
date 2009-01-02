@@ -3,19 +3,23 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.custom.CLabel;
+
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.plugins.ui.menus.MenuContext;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
+import org.gudy.azureus2.plugins.ui.menus.MenuContext;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
 
 /**
  * @author Allan Crooks
@@ -39,6 +43,8 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	private boolean is_destroyed = false;
 	
 	private Menu menu;
+
+	private String lastImageName = null;
 	
 	private void checkDestroyed() {
 		if (is_destroyed) {throw new RuntimeException("object is destroyed, cannot be reused");}
@@ -117,6 +123,11 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			
 			// Remove any existing menu items.
 			MenuItemManager.getInstance().removeAllMenuItems(this.menu_context.context);
+
+			if (lastImageName != null) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				imageLoader.releaseImage(lastImageName);
+			}
 		}
 		finally {
 			this_mon.exit();
@@ -139,7 +150,12 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 				img_name = "grayled";
 				break;
 		}
-		this.setImage(ImageRepository.getImage(img_name));
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		if (lastImageName != null) {
+			imageLoader.releaseImage(lastImageName);
+		}
+		lastImageName = img_name;
+		this.setImage(imageLoader.getImage(img_name));
 	}
 
 	public void setImage(Image image) {

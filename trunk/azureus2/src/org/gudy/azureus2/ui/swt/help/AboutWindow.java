@@ -20,36 +20,35 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import java.util.Properties;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 
-import java.util.Properties;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier
  *
  */
 public class AboutWindow {
+	private final static String IMG_SPLASH = "azureus_splash";
 
   static Image image;
   static AEMonitor	class_mon	= new AEMonitor( "AboutWindow" );
@@ -80,37 +79,42 @@ public class AboutWindow {
     GridData gridData;
     window.setLayout(new GridLayout(3, false));
 
-    image = ImageRepository.getImage("azureus_splash");
-    int w = image.getBounds().width;
-    int ow = w;
-    if (w > 350) {
-    	w = 350;
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    image = imageLoader.getImage(IMG_SPLASH);
+    if (image != null) {
+      int w = image.getBounds().width;
+      int ow = w;
+      if (w > 350) {
+      	w = 350;
+      }
+      int h = image.getBounds().height;
+      h = 220;
+      imgSrc = new Image(display, w, h);
+      GC gc = new GC(imgSrc);
+      gc.drawImage(image, (w - ow) / 2, 0);
+      gc.dispose();
+      
+      Image imgGray = new Image(display, imageLoader.getImage(IMG_SPLASH),
+					SWT.IMAGE_GRAY);
+      imageLoader.releaseImage(IMG_SPLASH);
+      gc = new GC(imgGray);
+      if (Constants.isOSX) {
+      	gc.drawImage(imgGray, (w - ow) / 2, 0);
+      } else {
+      	gc.copyArea(0, 0, ow, h, (w - ow) / 2, 0);
+      }
+      gc.dispose();
+      
+      Image image2 = new Image(display, w, h);
+      gc = new GC(image2);
+      gc.setBackground(Colors.black);
+      gc.fillRectangle(image2.getBounds());
+      gc.dispose();
+      image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
+      image2.dispose();
+      imgGray.dispose();
     }
-    int h = image.getBounds().height;
-    h = 220;
-    imgSrc = new Image(display, w, h);
-    GC gc = new GC(imgSrc);
-    gc.drawImage(image, (w - ow) / 2, 0);
-    gc.dispose();
-    
-    Image imgGray = new Image(display,
-				ImageRepository.getImage("azureus_splash"), SWT.IMAGE_GRAY);
-    gc = new GC(imgGray);
-    if (Constants.isOSX) {
-    	gc.drawImage(imgGray, (w - ow) / 2, 0);
-    } else {
-    	gc.copyArea(0, 0, ow, h, (w - ow) / 2, 0);
-    }
-    gc.dispose();
-    
-    Image image2 = new Image(display, w, h);
-    gc = new GC(image2);
-    gc.setBackground(Colors.black);
-    gc.fillRectangle(image2.getBounds());
-    gc.dispose();
-    image = Utils.renderTransparency(display, image2, imgGray, new Point(0, 0), 180);
-    image2.dispose();
-    imgGray.dispose();
+    imageLoader.releaseImage(IMG_SPLASH);
     
     Group gDevelopers = new Group(window, SWT.NULL);
     gDevelopers.setLayout(new GridLayout());
@@ -273,7 +277,6 @@ public class AboutWindow {
   {
   	try{
   		class_mon.enter();
-      ImageRepository.unloadImage("azureus_splash");
 	    if(image != null && ! image.isDisposed())
 	      image.dispose();
 	    image = null;
@@ -286,4 +289,15 @@ public class AboutWindow {
   	}
   }
 
+  public static void main(String[] args) {
+  	try {
+  		new Display();
+  		Colors.getInstance();
+			SWTThread.createInstance(null);
+			show(Display.getCurrent());
+		} catch (SWTThreadAlreadyInstanciatedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

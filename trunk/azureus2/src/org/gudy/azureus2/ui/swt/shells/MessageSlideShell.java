@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
 import com.aelitis.azureus.ui.swt.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -296,32 +297,6 @@ public class MessageSlideShell
 		sDetails = popupParams.details;
 
 		// Load Images
-		// Disable BG Image on OSX
-		if (imgPopup == null) {
-			if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
-				USE_SWT32_BG_SET = false;
-				imgPopup = null;
-			} else {
-				imgPopup = ImageRepository.getImage("popup");
-			}
-		}
-		Rectangle imgPopupBounds;
-		if (imgPopup != null) {
-			shellWidth = imgPopup.getBounds().width;
-			
-			/*
-			 * KN: The buttons at the bottom of the shell has an automatic horizontal spacing on OSX;
-			 * compensating the shellWidth so that the buttons will not overlap the image at the bottom left
-			 * of the shell
-			 */
-			if (true == Constants.isOSX) {
-				shellWidth += 30;
-			}
-			imgPopupBounds = imgPopup.getBounds();
-		} else {
-			shellWidth = SHELL_DEF_WIDTH;
-			imgPopupBounds = null;
-		}
 		Image imgIcon = popupParams.iconID <= 0 ? null
 				: display.getSystemImage(popupParams.iconID);
 
@@ -371,6 +346,38 @@ public class MessageSlideShell
 		}
 		Utils.setShellIcon(shell);
 		shell.setText(popupParams.title);
+
+		// Disable BG Image on OSX
+		if (imgPopup == null) {
+			if (Constants.isOSX && (SWT.getVersion() < 3221 || !USE_SWT32_BG_SET)) {
+				USE_SWT32_BG_SET = false;
+				imgPopup = null;
+			} else {
+				imgPopup = ImageLoader.getInstance().getImage("popup");
+				shell.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+						ImageLoader.getInstance().releaseImage("popup");
+					}
+				});
+			}
+		}
+		Rectangle imgPopupBounds;
+		if (imgPopup != null) {
+			shellWidth = imgPopup.getBounds().width;
+			
+			/*
+			 * KN: The buttons at the bottom of the shell has an automatic horizontal spacing on OSX;
+			 * compensating the shellWidth so that the buttons will not overlap the image at the bottom left
+			 * of the shell
+			 */
+			if (true == Constants.isOSX) {
+				shellWidth += 30;
+			}
+			imgPopupBounds = imgPopup.getBounds();
+		} else {
+			shellWidth = SHELL_DEF_WIDTH;
+			imgPopupBounds = null;
+		}
 
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageSlideShell.class.toString());
@@ -1153,8 +1160,6 @@ public class MessageSlideShell
 	}
 
 	public static void test(Display display) {
-
-		ImageRepository.loadImages(display);
 
 		String title = "This is the title that never ends, never ends!";
 		String text = "This is a very long message with lots of information and "

@@ -15,6 +15,8 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
 /**
  * 
  * @author knguyen
@@ -264,9 +266,10 @@ public class ProgressReporterPanel
 		 * Action labels
 		 */
 
-		actionLabel_cancel.setImage(ImageRepository.getImage("progress_cancel"));
-		actionLabel_remove.setImage(ImageRepository.getImage("progress_remove"));
-		actionLabel_retry.setImage(ImageRepository.getImage("progress_retry"));
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.setLabelImage(actionLabel_cancel, "progress_cancel");
+		imageLoader.setLabelImage(actionLabel_remove, "progress_remove");
+		imageLoader.setLabelImage(actionLabel_retry, "progress_retry");
 		
 		actionLabel_cancel.setToolTipText(MessageText.getString("Progress.reporting.action.label.cancel.tooltip"));
 		actionLabel_remove.setToolTipText(MessageText.getString("Progress.reporting.action.label.remove.tooltip"));

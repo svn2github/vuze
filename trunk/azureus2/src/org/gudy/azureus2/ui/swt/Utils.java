@@ -92,6 +92,7 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier
@@ -127,7 +128,16 @@ public class Utils
 	private static ArrayList queue;
 
 	private static AEDiagnosticsLogger diag_logger;
-	
+
+	private static Image[] shellIcons = null;
+
+	private final static String[] shellIconNames = {
+		"azureus",
+		"azureus32",
+		"azureus64",
+		"azureus128"
+	};
+
 	public static final Rectangle EMPTY_RECT = new Rectangle(0, 0, 0, 0);
 
 	static {
@@ -577,8 +587,17 @@ public class Utils
 	 * @see <a href="http://developer.apple.com/documentation/UserExperience/Conceptual/OSXHIGuidelines/XHIGMenus/chapter_7_section_3.html#//apple_ref/doc/uid/TP30000356/TPXREF116">Apple HIG</a>
 	 */
 	public static void setMenuItemImage(final MenuItem item, final String repoKey) {
-		if (!Constants.isOSX)
-			item.setImage(ImageRepository.getImage(repoKey));
+		if (Constants.isOSX || repoKey == null) {
+			return;
+		}
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		item.setImage(imageLoader.getImage(repoKey));
+		item.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				imageLoader.releaseImage(repoKey);
+			}
+		});
 	}
 
 	public static void setMenuItemImage(final MenuItem item, final Image image) {
@@ -593,34 +612,31 @@ public class Utils
 	 * @param shell
 	 */
 	public static void setShellIcon(Shell shell) {
-		final String[] sImageNames = {
-			"azureus",
-			"azureus32",
-			"azureus64",
-			"azureus128"
-		};
-
-		if (Constants.isOSX)
+		if (Constants.isOSX) {
 			return;
+		}
 
 		try {
-			ArrayList list = new ArrayList(sImageNames.length);
+			if (shellIcons == null) {
 
-			for (int i = 0; i < sImageNames.length; i++) {
-				Image image = ImageRepository.getImage(sImageNames[i]);
-				if (image != null)
-					list.add(image);
+				ArrayList<Image> listShellIcons = new ArrayList<Image>(
+						shellIconNames.length);
+
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				for (int i = 0; i < shellIconNames.length; i++) {
+					// never release images since they are always used and stored
+					// in an array
+					Image image = imageLoader.getImage(shellIconNames[i]);
+					if (ImageLoader.isRealImage(image)) {
+						listShellIcons.add(image);
+					}
+				}
+				shellIcons = (Image[]) listShellIcons.toArray(new Image[listShellIcons.size()]);
 			}
 
-			if (list.size() == 0)
-				return;
-
-			shell.setImages((Image[]) list.toArray(new Image[list.size()]));
+			shell.setImages(shellIcons);
 		} catch (NoSuchMethodError e) {
 			// SWT < 3.0
-			Image image = ImageRepository.getImage(sImageNames[0]);
-			if (image != null)
-				shell.setImage(image);
 		}
 	}
 

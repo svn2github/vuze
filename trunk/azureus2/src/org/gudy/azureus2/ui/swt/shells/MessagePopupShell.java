@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.animations.Animator;
@@ -48,6 +47,7 @@ import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 /**
@@ -121,13 +121,14 @@ public class MessagePopupShell implements AnimableShell {
     }
     shell.setLayout(layout);
     
-    Image popup_image = ImageRepository.getImage("popup");
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    Image popup_image = imageLoader.getImage("popup");
 
 		// this code is here to ensure that we can still show error messages even if images
 		// are failing to load (e.g. coz there's a ! in AZ install dir... )
 
 		GC gcImage = null;
-		if (popup_image != null) {
+		if (ImageLoader.isRealImage(popup_image)) {
 			shellImg = new Image(display, popup_image, SWT.IMAGE_COPY);
 	    popupWidth = popup_image.getBounds().width; 
 	    popupHeight = popup_image.getBounds().height;
@@ -135,20 +136,21 @@ public class MessagePopupShell implements AnimableShell {
 			shellImg = new Image(display,
 					new Rectangle(0, 0, popupWidth, popupHeight));
 		}
+    imageLoader.releaseImage("popup");
 
     shell.setSize(popupWidth, popupHeight);
 
 		gcImage = new GC(shellImg);
 
-		Image imgIcon = ImageRepository.getImage(icon);
+		Image imgIcon = imageLoader.getImage(icon);
 		int iconWidth = 0;
 		int iconHeight = 15;
-		if (imgIcon != null) {
-			imgIcon.setBackground(shell.getBackground());
+		if (ImageLoader.isRealImage(imgIcon)) {
 			gcImage.drawImage(imgIcon, 5, 5);
 	    iconWidth = imgIcon.getBounds().width;
 			iconHeight = imgIcon.getBounds().height;
 		}
+    imageLoader.releaseImage(icon);
 	    
 
 		Font tempFont = shell.getFont();

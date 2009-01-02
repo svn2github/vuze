@@ -25,7 +25,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
@@ -46,8 +45,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 /**
- * Download Basket.  For System Try, see {@link SystemTraySWT}
+ * Download Basket.  For System Tray, see {@link SystemTraySWT}
  * 
  * @author Olivier
  * 
@@ -83,9 +83,8 @@ public class TrayWindow
     minimized = ShellFactory.createShell(mainShell, SWT.ON_TOP);
     minimized.setText("Vuze"); //$NON-NLS-1$
     label = new Label(minimized, SWT.NULL);
-    Image img = ImageRepository.getImage("tray");
-    label.setImage(img); //$NON-NLS-1$
-    final Rectangle bounds = img.getBounds();
+    ImageLoader.getInstance().setLabelImage(label, "tray");
+    final Rectangle bounds = label.getImage().getBounds();
     label.setSize(bounds.width, bounds.height);
     minimized.setSize(bounds.width + 2, bounds.height + 2);
     screen = display.getClientArea();

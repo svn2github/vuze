@@ -28,6 +28,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -38,7 +39,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.DualChangeSelectionActionPerformer;
@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -89,6 +90,10 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 	List pluginIFs;
 
 	private Table table;
+	
+	private Image imgRedLed;
+	
+	private Image imgGreenLed;
 	
 	class FilterComparator implements Comparator {
 		boolean ascending = true;
@@ -276,6 +281,9 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 
 	public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("redled");
+		imageLoader.releaseImage("greenled");
 	}
 
 	public Composite configSectionCreate(final Composite parent) {
@@ -283,6 +291,10 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		GridData gridData;
 
 		Label label;
+		
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imgRedLed = imageLoader.getImage("redled");
+		imgGreenLed = imageLoader.getImage("greenled");
 
 		Composite infoGroup = new Composite(parent, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
@@ -530,8 +542,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 
 				for (int i = 0; i < COLUMN_HEADERS.length; i++) {
 					if (i == FilterComparator.FIELD_NAME)
-						item.setImage(i, ImageRepository.getImage(pluginIF.getPluginState().isOperational()
-								? "greenled" : "redled")); 
+						item.setImage(i, pluginIF.getPluginState().isOperational()
+								? imgGreenLed : imgRedLed); 
 					
 					String sText = comparator.getFieldValue(i, pluginIF);
 					if (sText == null)

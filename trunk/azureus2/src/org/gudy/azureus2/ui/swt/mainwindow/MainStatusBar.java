@@ -23,8 +23,7 @@ import java.text.NumberFormat;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -41,7 +40,6 @@ import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.progress.*;
-import org.gudy.azureus2.ui.swt.shells.BrowserShell;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -54,6 +52,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -85,6 +84,8 @@ public class MainStatusBar
 
 	private String statusImageKey = null;
 
+	private Image statusImage = null;
+
 	private AZProgressBar progressBar;
 
 	private CLabel ipBlocked;
@@ -109,6 +110,8 @@ public class MainStatusBar
 	private int last_sr_status = -1;
 
 	private int lastNATstatus = -1;
+
+	private String lastNATimageID = null;
 
 	private int lastDHTstatus = -1;
 
@@ -171,6 +174,8 @@ public class MainStatusBar
 
 	protected AEMonitor latestReport_mon = new AEMonitor("latestReport");
 
+	private String lastSRimageID = null;
+
 	/**
 	 * 
 	 */
@@ -195,6 +200,7 @@ public class MainStatusBar
 		this.globalManager = globalManager;
 		this.azureusCore = core;
 		this.uiFunctions = UIFunctionsManager.getUIFunctions();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 
 		FormData formData;
 
@@ -230,14 +236,9 @@ public class MainStatusBar
 
 		addStatusBarMenu(statusText);
 
-		
-		// This is the highest image displayed on the statusbar
-		Image image = ImageRepository.getImage(STATUS_ICON_WARN);
-		int imageHeight = (image == null) ? 20 : image.getBounds().height;
-
 		GC gc = new GC(statusText);
 		// add 6, because CLabel forces a 3 pixel indent
-		int height = Math.max(imageHeight, gc.getFontMetrics().getHeight()) + 6;
+		int height = Math.max(16, gc.getFontMetrics().getHeight()) + 6;
 		gc.dispose();
 
 		formData = new FormData();
@@ -332,9 +333,10 @@ public class MainStatusBar
 		/*
 		 * Progress reporting window image label
 		 */
-		progress_error_img = ImageRepository.getImage("progress_error");
-		progress_info_img = ImageRepository.getImage("progress_info");
-		progress_viewer_img = ImageRepository.getImage("progress_viewer");
+		// TODO: get image only when needed, release on switch
+		progress_error_img = imageLoader.getImage("progress_error");
+		progress_info_img = imageLoader.getImage("progress_info");
+		progress_viewer_img = imageLoader.getImage("progress_viewer");
 
 		progressViewerImageLabel = new CLabelPadding(statusBar, SWT.NONE);
 		// image set below after adding listener
@@ -369,6 +371,14 @@ public class MainStatusBar
 						}
 					}
 				}
+			}
+		});
+		progressViewerImageLabel.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				imageLoader.releaseImage("progress_error");
+				imageLoader.releaseImage("progress_info");
+				imageLoader.releaseImage("progress_viewer");
 			}
 		});
 
@@ -443,7 +453,7 @@ public class MainStatusBar
 				});
 
 		statusDown = new CLabelPadding(statusBar, borderFlag);
-		statusDown.setImage(ImageRepository.getImage("down"));
+		statusDown.setImage(imageLoader.getImage("down"));
 		statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusDown,
 				"MainWindow.status.updowndetails.tooltip");
@@ -455,7 +465,7 @@ public class MainStatusBar
 		};
 
 		statusUp = new CLabelPadding(statusBar, borderFlag);
-		statusUp.setImage(ImageRepository.getImage("up"));
+		statusUp.setImage(imageLoader.getImage("up"));
 		statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/"n/a");
 		Messages.setLanguageText(statusUp,
 				"MainWindow.status.updowndetails.tooltip");
@@ -633,7 +643,7 @@ public class MainStatusBar
 	 */
 	public void setStatusText(String keyedSentence) {
 		this.statusTextKey = keyedSentence == null ? "" : keyedSentence;
-		statusImageKey = null;
+		setStatusImageKey(null);
 		this.clickListener = null;
 		if (statusTextKey.length() == 0) { // reset
 			resetStatus();
@@ -641,15 +651,31 @@ public class MainStatusBar
 
 		updateStatusText();
 	}
+	
+	private void setStatusImageKey(String newStatusImageKey) {
+		if (("" + statusImageKey).equals("" + newStatusImageKey)) {
+			return;
+		}
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		if (statusImageKey != null) {
+			imageLoader.releaseImage(statusImageKey);
+		}
+		statusImageKey = newStatusImageKey;
+		if (statusImageKey != null) {
+			statusImage = imageLoader.getImage(statusImageKey);
+		} else {
+			statusImage = null;
+		}
+	}
 
 	private void resetStatus() {
 		if (Constants.isCVSVersion()) {
 			statusTextKey = "MainWindow.status.unofficialversion ("
 					+ Constants.AZUREUS_VERSION + ")";
-			statusImageKey = STATUS_ICON_WARN;
+			setStatusImageKey(STATUS_ICON_WARN);
 		} else if (!Constants.isOSX) { //don't show official version numbers for OSX L&F
 			statusTextKey = Constants.APP_NAME + " " + Constants.AZUREUS_VERSION;
-			statusImageKey = null;
+			setStatusImageKey(null);
 		}
 
 	}
@@ -669,12 +695,12 @@ public class MainStatusBar
 
 		this.clickListener = l;
 		if (statustype == UIFunctions.STATUSICON_WARNING) {
-			statusImageKey = STATUS_ICON_WARN;
+			setStatusImageKey(STATUS_ICON_WARN);
 		}
 		if (statustype == UIFunctions.STATUSICON_WARNING) {
-			statusImageKey = STATUS_ICON_WARN;
+			setStatusImageKey(STATUS_ICON_WARN);
 		} else {
-			statusImageKey = null;
+			setStatusImageKey(null);
 		}
 
 		updateStatusText();
@@ -697,8 +723,7 @@ public class MainStatusBar
 			public void runSupport() {
 				if (statusText != null && !statusText.isDisposed()) {
 					statusText.setText(MessageText.getStringForSentence(text));
-					statusText.setImage((statusImageKey == null) ? null
-							: ImageRepository.getImage(statusImageKey));
+					statusText.setImage(statusImage);
 				}
 			}
 		});
@@ -823,7 +848,8 @@ public class MainStatusBar
 		}
 
 		if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
-			Image img = ImageRepository.getImage("sb_count");
+			boolean hasImage = dhtStatus.getImage() != null;
+			boolean needImage = true;
 			switch (dht_status) {
 				case DHTPlugin.STATUS_RUNNING:
 
@@ -863,11 +889,20 @@ public class MainStatusBar
 					break;
 
 				default:
-					img = null;
+					needImage = false;
 					break;
 			}
 
-			dhtStatus.setImage(img);
+			if (hasImage != needImage) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				if (needImage) {
+					Image img = imageLoader.getImage("sb_count");
+					dhtStatus.setImage(img);
+				} else {
+					imageLoader.releaseImage("sb_count");
+					dhtStatus.setImage(null);
+				}
+			}
 			lastDHTstatus = dht_status;
 			lastDHTcount = dht_count;
 		}
@@ -913,8 +948,16 @@ public class MainStatusBar
 					statusID = "MainWindow.nat.status.bad";
 					break;
 			}
+			
+			if (!imgID.equals(lastNATimageID)) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				if (lastNATimageID != null) {
+					imageLoader.releaseImage(lastNATimageID);
+				}
+				lastNATimageID = imgID;
+				natStatus.setImage(imageLoader.getImage(imgID));
+			}
 
-			natStatus.setImage(ImageRepository.getImage(imgID));
 			natStatus.setToolTipText(MessageText.getString(tooltipID));
 			natStatus.setText(MessageText.getString(statusID));
 			lastNATstatus = nat_status;
@@ -964,8 +1007,15 @@ public class MainStatusBar
 					break;
 			}
 
-			srStatus.setImage(ImageRepository.getImage(imgID));
-
+			if (!imgID.equals(lastSRimageID)) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				if (lastSRimageID != null) {
+					imageLoader.releaseImage(lastSRimageID);
+				}
+				lastSRimageID  = imgID;
+				srStatus.setImage(imageLoader.getImage(imgID));
+			}
+			
 			last_sr_status = sr_status;
 		}
 

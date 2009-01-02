@@ -117,8 +117,8 @@ public class NameItem extends CoreTableColumn implements
 					icon = null;
 				} else {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
-
+					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath(),
+							false, false);
 				}
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use

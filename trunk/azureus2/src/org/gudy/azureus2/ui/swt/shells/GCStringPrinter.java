@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
 /**
  * @author Olivier Chalouhi
  * @author TuxPaper (rewrite)
@@ -1080,13 +1082,13 @@ public class GCStringPrinter
 		final Display display = Display.getDefault();
 		final Shell shell = new Shell(display, SWT.SHELL_TRIM);
 
-		ImageRepository.loadImagesForSplashWindow(display);
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		
 		final Image[] images = {
-			ImageRepository.getImage("azureus32"),
-			ImageRepository.getImage("azureus64"),
-			ImageRepository.getImage("azureus"),
-			ImageRepository.getImage("azureus128"),
+			imageLoader.getImage("azureus32"),
+			imageLoader.getImage("azureus64"),
+			imageLoader.getImage("azureus"),
+			imageLoader.getImage("azureus128"),
 		};
 
 		//final String text = "Opil Wrir, Na Poys Iysk, Yann Only. test of the string printer averlongwordthisisyesindeed";

@@ -24,8 +24,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -39,6 +38,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier
@@ -56,9 +56,25 @@ public class IconBar {
 	private Composite cIconBar;
 	
 	private static List listeners = new ArrayList(0);
+
+	private Listener listenerToolItem;
   
   public IconBar(Composite parent) {
     this.parent = parent;
+    
+    listenerToolItem = new Listener() {
+			public void handleEvent(Event e) {
+				if (e.type == SWT.Selection) {
+					if (currentEnabler != null) {
+						currentEnabler.itemActivated((String) e.widget.getData("key"));
+					}
+				} else if (e.type == SWT.Dispose) {
+					ImageLoader.getInstance().releaseImage(
+							(String) e.widget.getData("ImageID"));
+				}
+			}
+		};
+    
     cIconBar = new Composite(parent, SWT.NONE);
     
     GridLayout layout = new GridLayout(2, false);
@@ -88,7 +104,7 @@ public class IconBar {
 			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			tbSwitch.setLayoutData(gridData);
 			ToolItem tiSwitch = new ToolItem(tbSwitch, SWT.PUSH);
-			tiSwitch.setImage(ImageRepository.getImage("cb_switch"));
+			tiSwitch.setImage(ImageLoader.getInstance().getImage("cb_switch"));
 			Messages.setLanguageText(tiSwitch, "iconBar.switch.tooltip", true);
 			tiSwitch.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
@@ -112,6 +128,11 @@ public class IconBar {
 				}
 
 				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			tiSwitch.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					ImageLoader.getInstance().releaseImage("cb_switch");
 				}
 			});
 		}
@@ -157,19 +178,16 @@ public class IconBar {
     }
   }
   
-  private BufferedToolItem createBufferedToolItem(ToolBar toolBar,int style,String key,String imageName,String toolTipKey) {    
+  private BufferedToolItem createBufferedToolItem(ToolBar toolBar,int style,String key,final String imageName,String toolTipKey) {    
     final BufferedToolItem bufferedToolItem = new BufferedToolItem(toolBar,style);
     bufferedToolItem.setData("key",key);
-    Messages.setLanguageText(bufferedToolItem.getWidget(),toolTipKey,true);   
-    bufferedToolItem.setImage(ImageRepository.getImage(imageName));
+    bufferedToolItem.setData("ImageID",key);
+    Messages.setLanguageText(bufferedToolItem.getWidget(),toolTipKey,true);
+    bufferedToolItem.setImage(ImageLoader.getInstance().getImage(imageName));
    
-    
-    bufferedToolItem.addListener(SWT.Selection,new Listener() {
-      public void handleEvent(Event e) {
-        if(currentEnabler != null)
-          currentEnabler.itemActivated((String)bufferedToolItem.getData("key"));        	
-      }
-    });
+    bufferedToolItem.addListener(SWT.Selection, listenerToolItem);
+    bufferedToolItem.addListener(SWT.Dispose, listenerToolItem);
+
     itemKeyToControl.put(key,bufferedToolItem);
     return bufferedToolItem;
   }  
@@ -234,7 +252,6 @@ public class IconBar {
   public static void main(String args[]) {
     Display display = new Display();
     Shell shell = new Shell(display);
-    ImageRepository.loadImages(display);
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;

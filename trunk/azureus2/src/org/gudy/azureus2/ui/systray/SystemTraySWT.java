@@ -25,6 +25,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -43,6 +44,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier Chalouhi
@@ -61,6 +63,10 @@ public class SystemTraySWT
 	TrayItem trayItem;
 
 	Menu menu;
+	
+	Image imgAzureus;
+	Image imgAzureusGray;
+	Image imgAzureusWhite;
 
 	public SystemTraySWT() {
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -68,12 +74,17 @@ public class SystemTraySWT
 
 		tray = display.getSystemTray();
 		trayItem = new TrayItem(tray, SWT.NULL);
-
-		if(!Constants.isOSX) {
-			trayItem.setImage(ImageRepository.getImage("azureus"));
+		
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		if (Constants.isOSX) {
+			imgAzureusGray = imageLoader.getImage("azureus_grey");
+			imgAzureusWhite = imageLoader.getImage("azureus_white");
+			trayItem.setImage(imgAzureusGray);
 		} else {
-			trayItem.setImage(ImageRepository.getImage("azureus_grey"));
+			imgAzureus = imageLoader.getImage("azureus");
+			trayItem.setImage(imgAzureus);
 		}
+
 		trayItem.setVisible(true);
 
 		menu = new Menu(uiFunctions.getMainShell(), SWT.POP_UP);
@@ -82,7 +93,7 @@ public class SystemTraySWT
 
 			public void menuHidden(MenuEvent _menu) {
 				if(Constants.isOSX) {
-					trayItem.setImage(ImageRepository.getImage("azureus_grey"));
+					trayItem.setImage(imgAzureusGray);
 				}
 			}
 		});
@@ -117,7 +128,7 @@ public class SystemTraySWT
 						lastTime = now;
 					}
 				} else if (Constants.isOSX) {
-					trayItem.setImage(ImageRepository.getImage("azureus_white"));
+					trayItem.setImage(imgAzureusWhite);
 					menu.setVisible(true);
 				}
 			}
@@ -287,6 +298,14 @@ public class SystemTraySWT
 			public void runSupport() {
 				if (trayItem != null && !trayItem.isDisposed()) {
 					trayItem.dispose();
+				}
+
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				if (Constants.isOSX) {
+					imageLoader.releaseImage("azureus_grey");
+					imageLoader.releaseImage("azureus_white");
+				} else {
+					imageLoader.releaseImage("azureus");
 				}
 			}
 		});

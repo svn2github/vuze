@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -45,7 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @since 2.0.8.5
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener, ObfusticateCellText, TableCellDisposeListener
+		TableCellRefreshListener, ObfusticateCellText
 {
 	private static boolean bShowIcon;
 
@@ -71,51 +72,19 @@ public class NameItem extends CoreTableColumn implements
 		//setText returns true only if the text is updated
 
 		if (cell.setText(name) || !cell.isValid()) {
-
-			if (bShowIcon) {
-				boolean folder_icon = false;
-
-				// for non-simple torrents the target is always a directory
-
-				if (item != null) {
-
-					TOTorrent torrent = item.getTorrent();
-
-					if (torrent != null && !torrent.isSimpleTorrent()) {
-
-						folder_icon = true;
-					}
-				}
-
-				if (folder_icon) {
-
-					Image icon = ImageRepository.getFolderImage();
-
-					((TableCellSWT) cell).setIcon(icon);
-
-				} else {
-
-					int sep = name.lastIndexOf('.');
-
-					if (sep < 0)
-						sep = 0;
-
-					String ext = name.substring(sep);
-					Image icon = ImageRepository.getIconFromExtension(ext);
-
-					if (Constants.isWindows && icon != null) {
-						// recomposite to avoid artifacts - transparency mask does not work
-						final Image dstImage = new Image(Display.getCurrent(),
-								icon.getBounds().width, icon.getBounds().height);
-						GC gc = new GC(dstImage);
-						gc.drawImage(icon, 0, 0);
-						gc.dispose();
-						icon = dstImage;
-					}
-
-					// cheat for core, since we really know it's a TabeCellImpl and want to use
-					// those special functions not available to Plugins
-					((TableCellSWT) cell).setIcon(icon);
+			if (item != null && item.getTorrent() != null && bShowIcon 
+					&& (cell instanceof TableCellSWT)) {
+				try {
+  				TOTorrent torrent = item.getTorrent();
+  				String path = torrent.getFiles()[0].getRelativePath();
+  				
+  				if (path != null) {
+  					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
+  					Image icon = ImageRepository.getPathIcon(path, false, torrent != null
+  							&& !torrent.isSimpleTorrent());
+  					((TableCellSWT) cell).setIcon(icon);
+  				}
+				} catch (Exception e) {
 				}
 			}
 		}
@@ -133,18 +102,5 @@ public class NameItem extends CoreTableColumn implements
 		if (name == null)
 			name = "";
 		return name;
-	}
-
-	public void dispose(TableCell cell) {
-		if (bShowIcon && Constants.isWindows) {
-			final Image img = ((TableCellSWT) cell).getIcon();
-			Image icon = ImageRepository.getFolderImage();
-			if (img != null && !img.equals(icon)) {
-				((TableCellSWT) cell).setIcon(null);
-				if (!img.isDisposed()) {
-					img.dispose();
-				}
-			}
-		}
 	}
 }

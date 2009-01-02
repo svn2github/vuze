@@ -30,10 +30,11 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
@@ -101,12 +102,11 @@ public class ConfigSectionQueue implements UISWTConfigSection
 		gridData.horizontalSpan = 2;
 		cMaxActiveOptionsArea.setLayoutData(gridData);
 
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		label = new Label(cMaxActiveOptionsArea, SWT.NULL);
-		Image img = ImageRepository.getImage("subitem");
-		img.setBackground(label.getBackground());
+		imageLoader.setLabelImage(label, "subitem");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		label.setLayoutData(gridData);
-		label.setImage(img);
 
 		gridData = new GridData();
 		BooleanParameter maxActiveWhenSeedingEnabled = new BooleanParameter(

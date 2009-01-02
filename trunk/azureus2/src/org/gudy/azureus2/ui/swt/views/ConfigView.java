@@ -20,83 +20,37 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnection;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionAdvanced;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionEncryption;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnectionProxy;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFile;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileMove;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFilePerformance;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileTorrents;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionFileTorrentsDecoding;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionIPFilter;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterface;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceAlerts;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceColor;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceDisplay;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceLanguage;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionInterfaceStart;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionLogging;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionMode;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionPlugins;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionSecurity;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionSharing;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionStats;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTracker;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTrackerClient;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTrackerServer;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransfer;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeed;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedBeta;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferAutoSpeedSelect;
-import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionTransferLAN;
+import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 
 /**
  * @author Olivier
@@ -124,6 +78,9 @@ public class ConfigView extends AbstractIView {
 	private String filterText = "";
 	private Label lblX;
 	private Listener scResizeListener;
+	
+	private Image imgSmallX;
+	private Image imgSmallXGray;
 
   public 
   ConfigView() 
@@ -208,10 +165,14 @@ public class ConfigView extends AbstractIView {
 				}
 			});
       txtFilter.setFocus();
+      
+      ImageLoader imageLoader = ImageLoader.getInstance();
+      imgSmallXGray = imageLoader.getImage("smallx-gray");
+      imgSmallX = imageLoader.getImage("smallx");
 
   		lblX = new Label(cFilterArea, SWT.WRAP);
       Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
-      lblX.setImage(ImageRepository.getImage("smallx-gray"));
+      lblX.setImage(imgSmallXGray);
       lblX.addMouseListener(new MouseAdapter() {
       	public void mouseUp(MouseEvent e) {
       		txtFilter.setText("");
@@ -219,7 +180,7 @@ public class ConfigView extends AbstractIView {
       });
       
       Label lblSearch = new Label(cFilterArea, SWT.NONE);
-      lblSearch.setImage(ImageRepository.getImage("search"));
+      imageLoader.setLabelImage(lblSearch, "search");
   
       tree = new Tree(cLeftSide, SWT.NONE);
       FontData[] fontData = tree.getFont().getFontData();
@@ -518,8 +479,7 @@ public class ConfigView extends AbstractIView {
 		}
 		
 		if (lblX != null && !lblX.isDisposed()) {
-			Image img = ImageRepository.getImage(filterText.length() > 0 ? "smallx"
-					: "smallx-gray");
+			Image img = filterText.length() > 0 ? imgSmallX : imgSmallXGray;
 
 			lblX.setImage(img);
 		}
@@ -912,6 +872,10 @@ public class ConfigView extends AbstractIView {
   	Utils.disposeSWTObjects(new Object[] { headerFont, filterFoundFont });
 		headerFont = null;
 		filterFoundFont = null;
+
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    imageLoader.releaseImage("smallx-gray");
+    imageLoader.releaseImage("smallx");
   }
 
   public String getFullTitle() {

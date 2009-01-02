@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class ConfigSectionTransfer implements UISWTConfigSection {
 	
@@ -68,6 +69,8 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 	}
 
 	public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("subitem");
 	}
 	
 	public int maxUserMode() {
@@ -119,8 +122,10 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		cMaxUploadSpeedOptionsArea.setLayoutData(gridData);
 
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image img = imageLoader.getImage("subitem");
+
 		label = new Label(cMaxUploadSpeedOptionsArea, SWT.NULL);
-		Image img = ImageRepository.getImage("subitem");
 		img.setBackground(label.getBackground());
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		label.setLayoutData(gridData);
@@ -322,7 +327,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData.horizontalSpan = 2;
 			cMaxUploadsOptionsArea.setLayoutData(gridData);
 			label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
-			img = ImageRepository.getImage("subitem");
 			img.setBackground(label.getBackground());
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 			label.setLayoutData(gridData);
@@ -373,7 +377,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			gridData.horizontalSpan = 2;
 			cMaxPeersOptionsArea.setLayoutData(gridData);
 			label = new Label(cMaxPeersOptionsArea, SWT.NULL);
-			img = ImageRepository.getImage("subitem");
 			img.setBackground(label.getBackground());
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 			label.setLayoutData(gridData);

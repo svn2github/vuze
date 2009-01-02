@@ -32,18 +32,18 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
-import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
-import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
-import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 public class ConfigSectionFileMove implements UISWTConfigSection
 {
+	private Image imgOpenFolder;
+
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_FILES;
 	}
@@ -56,6 +56,8 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 	}
 
 	public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
 	}
 	
 	public int maxUserMode() {
@@ -73,6 +75,9 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 		layout.numColumns = 2;
 		layout.marginHeight = 0;
 		gFile.setLayout(layout);
+
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imgOpenFolder = imageLoader.getImage("openFolderButton");
 
 		// Move on complete / deletion.
 		createMoveOnEventGrouping(gFile, "ConfigView.label.movecompleted",
@@ -111,9 +116,6 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 			String move_when_in_save_dir_setting,
 			String move_partial_downloads_setting)
 	{
-
-		Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
-
 		BooleanParameter moveCompleted = new BooleanParameter(gFile,
 				move_when_done_setting, enable_section_label);
 		GridData gridData = new GridData();

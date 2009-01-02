@@ -37,6 +37,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * The initial Splash Screen shown while azureus loads 
@@ -44,6 +46,7 @@ import com.aelitis.azureus.ui.InitializerListener;
 public class SplashWindow
 	implements InitializerListener
 {
+	private static final String IMG_SPLASH = "azureus_splash";
 
 	// config 1 : PB_HEIGHT = 3, PB_INVERTED = false
 	// config 2 : PB_HEIGHT = 3, PB_INVERTED = true, PB_INVERTED_BG_HEIGHT = 3
@@ -102,7 +105,6 @@ public class SplashWindow
 
 	public static void main(String args[]) {
 		Display display = new Display();
-		ImageRepository.loadImagesForSplashWindow(display);
 
 		final SplashWindow splash = new SplashWindow(display);
 
@@ -144,15 +146,31 @@ public class SplashWindow
 		splash.setLayout(new FillLayout());
 		canvas = new Canvas(splash, SWT.DOUBLE_BUFFERED);
 
-		background = ImageRepository.getImage("azureus_splash");
-		current = new Image(display, background, SWT.IMAGE_COPY);
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    background = imageLoader.getImage(IMG_SPLASH);
+    if (ImageLoader.isRealImage(background)) {
+    	width = background.getBounds().width;
+    	height = background.getBounds().height;
+    } else {
+    	width = 400;
+    	height = 80;
+    	background = new Image(display, width, height);
+    	GC gc = new GC(background);
+    	try {
+    		gc.setBackground(ColorCache.getColor(display, 255, 255, 255));
+    		gc.fillRectangle(0, 0, width, height);
+    		gc.drawRectangle(0, 0, width - 1, height - 1);
+    		gc.drawText(Constants.APP_NAME, 5, 5, true);
+    	} finally {
+    		gc.dispose();
+    	}
+    }
+  	current = new Image(display, background, SWT.IMAGE_COPY);
 
 		progressBarColor = new Color(display, 21, 92, 198);
 		textColor = new Color(display, 90, 90, 90);
 		fadedGreyColor = new Color(display, 170, 170, 170);
 
-		width = background.getBounds().width;
-		height = background.getBounds().height;
 		
 		pbX = OFFSET_LEFT;
 		pbY = height - OFFSET_BOTTOM;
@@ -166,8 +184,10 @@ public class SplashWindow
 
 		canvas.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
-				GC gc = event.gc;
-				gc.drawImage(current, 0, 0);
+				if (current == null) {
+					return;
+				}
+				event.gc.drawImage(current, 0, 0);
 			}
 		});
 
@@ -204,7 +224,6 @@ public class SplashWindow
 						initializer.removeListener(SplashWindow.this);
 					if (splash != null && !splash.isDisposed())
 						splash.dispose();
-					ImageRepository.unloadImage("azureus_splash");
 					if (current != null && !current.isDisposed()) {
 						current.dispose();
 					}
@@ -220,6 +239,10 @@ public class SplashWindow
 					if (textFont != null && !textFont.isDisposed()) {
 						textFont.dispose();
 					}
+
+			    ImageLoader imageLoader = ImageLoader.getInstance();
+			    imageLoader.releaseImage(IMG_SPLASH);
+			    imageLoader.collectGarbage();
 
 				} catch (Exception e) {
 					//ignore

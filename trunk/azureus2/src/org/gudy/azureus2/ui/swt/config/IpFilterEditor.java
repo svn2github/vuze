@@ -29,8 +29,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.ipfilter.IpRange;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -64,9 +62,7 @@ public class IpFilterEditor {
 
     final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(shell,"ConfigView.section.ipfilter.editFilter");
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("ipfilter"));
-    }
+    Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     shell.setLayout(layout);

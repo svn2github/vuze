@@ -90,7 +90,8 @@ public class NameItem extends CoreTableColumn implements
 				if (path != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 					TOTorrent torrent = dm.getTorrent();
-					Image icon = ImageRepository.getPathIcon(path,torrent != null && !torrent.isSimpleTorrent());
+					Image icon = ImageRepository.getPathIcon(path, false, torrent != null
+							&& !torrent.isSimpleTorrent());
 					((TableCellSWT) cell).setIcon(icon);
 				}
 			}

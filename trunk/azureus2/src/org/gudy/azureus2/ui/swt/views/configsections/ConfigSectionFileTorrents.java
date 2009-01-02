@@ -33,10 +33,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
@@ -53,6 +54,8 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
   }
 
   public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
   }
   
 	public int maxUserMode() {
@@ -62,7 +65,9 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
   
 
   public Composite configSectionCreate(final Composite parent) {
-    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgOpenFolder = imageLoader.getImage("openFolderButton");
+
     GridData gridData;
     GridLayout layout;
 

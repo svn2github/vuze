@@ -1,38 +1,18 @@
 package org.gudy.azureus2.ui.swt.components.shell;
 
-import java.io.InputStream;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.ShellAdapter;
-import org.eclipse.swt.events.ShellEvent;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class LightBoxShell
 {
@@ -75,11 +55,6 @@ public class LightBoxShell
 	 * The canvas to display the spinner
 	 */
 	private Canvas spinnerCanvas = null;
-
-	/**
-	 * This GC is used to directly draw the progress spinner on the spinnerCanvas
-	 */
-	private GC spinnerGC = null;
 
 	private Rectangle shellBounds = null;
 
@@ -191,19 +166,7 @@ public class LightBoxShell
 				 * Disposing all the spinner images
 				 */
 				if (null != spinnerImages) {
-					for (int i = 0; i < spinnerImages.length; i++) {
-						if (null != spinnerImages[i]
-								&& false == spinnerImages[i].isDisposed()) {
-							spinnerImages[i].dispose();
-						}
-					}
-				}
-
-				/*
-				 * DIsposing the shellGC
-				 */
-				if (null != spinnerGC && false == spinnerGC.isDisposed()) {
-					spinnerGC.dispose();
+					spinnerImages = null;
 				}
 			}
 
@@ -403,6 +366,9 @@ public class LightBoxShell
 	 * @param delayInMilli the delay in milliseconds before the spinner is shown; is only in effect when isBusy is <code>true</code>
 	 */
 	public void showBusy(boolean value, long delayInMilli) {
+		if (value == isBusy) {
+			return;
+		}
 		isBusy = value;
 
 		if (true == isBusy && false == busyAlready) {
@@ -417,39 +383,28 @@ public class LightBoxShell
 		 * we will use these to draw onto the canvas to animate the spinner
 		 */
 		if (null == spinnerImages) {
-			InputStream is = ImageRepository.getImageAsStream("spinner_big");
-
-			if (null == is) {
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			spinnerImages = imageLoader.getImages("spinner_big");
+			if (spinnerImages.length == 0) {
 				return;
 			}
-			ImageLoader loader = new ImageLoader();
-			ImageData[] imageDataArray = loader.load(is);
-			spinnerBounds = new Rectangle(0, 0, loader.logicalScreenWidth,
-					loader.logicalScreenHeight);
 
-			spinnerImages = new Image[imageDataArray.length];
-			for (int i = 0; i < imageDataArray.length; i++) {
-				ImageData imageData = imageDataArray[i];
-				/*
-				 * Setting the transparent pixel to be black
-				 */
-				imageData.transparentPixel = 0;
-
-				spinnerImages[i] = new Image(display, spinnerBounds.width,
-						spinnerBounds.height);
-				GC offScreenImageGC = new GC(spinnerImages[i]);
-				offScreenImageGC.setBackground(lbShell.getBackground());
-				offScreenImageGC.fillRectangle(0, 0, spinnerBounds.width,
-						spinnerBounds.height);
-
-				Image tempImage = new Image(display, imageData);
-				offScreenImageGC.drawImage(tempImage, 0, 0, imageData.width,
-						imageData.height, imageData.x, imageData.y, imageData.width,
-						imageData.height);
-
-				tempImage.dispose();
-				offScreenImageGC.dispose();
+			int w = 0;
+			int h = 0;
+			for (int i = 0; i < spinnerImages.length; i++) {
+				Image image = spinnerImages[i];
+				Rectangle bounds = image.getBounds();
+				w = Math.max(w, bounds.width);
+				h = Math.max(w, bounds.height);
 			}
+			spinnerBounds = new Rectangle(0, 0, w, h);
+			
+			lbShell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					ImageLoader imageLoader = ImageLoader.getInstance();
+					imageLoader.releaseImage("spinner_big");
+				}
+			});
 		}
 
 		/*
@@ -460,94 +415,50 @@ public class LightBoxShell
 		spinnerBounds.x = to_lbShell.x;
 		spinnerBounds.y = to_lbShell.y;
 
+		final int[] imageDataIndex = new int[1];
 		/*
 		 * Create the canvas for the spinner; size the canvas to be just enough for the image
 		 */
 		if (null == spinnerCanvas) {
-			spinnerCanvas = new Canvas(lbShell, SWT.NO_BACKGROUND);
+			spinnerCanvas = new Canvas(lbShell, SWT.NONE);
+			spinnerCanvas.addPaintListener(new PaintListener() {
+				public void paintControl(PaintEvent e) {
+					e.gc.drawImage(spinnerImages[imageDataIndex[0]], 0, 0);
+				}
+			});
 		}
+		spinnerCanvas.setBackground(lbShell.getBackground());
 		spinnerCanvas.setBounds(spinnerBounds);
-		if (null == spinnerGC) {
-			spinnerGC = new GC(spinnerCanvas);
-			spinnerGC.setBackground(lbShell.getBackground());
-		}
 
 		/*
 		 * Spinner animation 
 		 */
-
-		AEThread2 spinnerThread = new AEThread2("spinner-animator", true) {
-			public void run() {
-				final int[] imageDataIndex = new int[1];
+		
+		Utils.execSWTThreadLater(100, new AERunnable() {
+			public void runSupport() {
+				if (!isBusy || spinnerImages == null) {
+					busyAlready = false;
+					return;
+				}
+				
 				busyAlready = true;
+				if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
+					spinnerCanvas.redraw();
+					spinnerCanvas.update();
+				}
 
 				/* 
-				 * First we sleep for the specified delay before we start painting; if during this time
-				 * isBusy is set to false (by another thread) then it's not necessary to show the spinner. 
+				 * If we have just drawn the last image start over from the beginning
 				 */
-				if (delayInMilli > 0) {
-					try {
-						Thread.sleep(delayInMilli);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				/*
-				 * Loop through and draw the images sequentially until we're no longer busy
-				 */
-				while (true == isBusy) {
-					if (null == lbShell || true == lbShell.isDisposed()) {
-						break;
-					}
-
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							/* 
-							 * Draw the image onto the canvas. 
-							 */
-							if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
-								spinnerGC.drawImage(spinnerImages[imageDataIndex[0]], 0, 0);
-							}
-						}
-					});
-
-					/* 
-					 * If we have just drawn the last image start over from the beginning
-					 */
-					if (imageDataIndex[0] == spinnerImages.length - 1) {
-						imageDataIndex[0] = 0;
-					} else {
-						imageDataIndex[0]++;
-					}
-
-					/* 
-					 * Sleep for a bit.
-					 */
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						Debug.out(e);
-					}
-
+				if (imageDataIndex[0] == spinnerImages.length - 1) {
+					imageDataIndex[0] = 0;
+				} else {
+					imageDataIndex[0]++;
 				}
 
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						/* 
-						 * Fill the image area with lbShell background color to 'erase' the last image drawn 
-						 */
-						if (null != spinnerCanvas && false == spinnerCanvas.isDisposed()) {
-							spinnerGC.fillRectangle(spinnerCanvas.getClientArea());
-						}
-					}
-				});
-
-				busyAlready = false;
+				Utils.execSWTThreadLater(100, this);
 			}
-
-		};
-		spinnerThread.start();
-
+		});
 	}
 
 	public int getStyleMask() {

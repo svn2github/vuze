@@ -21,22 +21,18 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /** Seeding Automation Specific options
  * @author TuxPaper
@@ -138,12 +134,10 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     gridData.horizontalSpan = 2;
     cFullCopyOptionsArea.setLayoutData(gridData);
     
-    label = new Label(cFullCopyOptionsArea, SWT.NULL);
-    Image img = ImageRepository.getImage("subitem");
-    img.setBackground(label.getBackground());
+		label = new Label(cFullCopyOptionsArea, SWT.NULL);
+		ImageLoader.getInstance().setLabelImage(label, "subitem");
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
-    label.setImage(img);
     
     label = new Label(cFullCopyOptionsArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");

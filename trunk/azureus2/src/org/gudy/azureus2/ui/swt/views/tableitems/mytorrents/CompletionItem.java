@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
@@ -68,16 +69,6 @@ public class CompletionItem
 
 	private int marginHeight = -1;
 
-	static {
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_end.png", "dl_bar_end");
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_0.png", "dl_bar_0");
-		ImageRepository.addPath("org/gudy/azureus2/ui/icons/dl_bar_1.png", "dl_bar_1");
-	}
-	
-	Image imgEnd;
-	Image img1;
-	Image img0;
-	
 	Color textColor;
 	
 	
@@ -96,11 +87,6 @@ public class CompletionItem
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 150);
 		setMinWidth(100);
-		
-		imgEnd = ImageRepository.getImage("dl_bar_end");
-		img0 = ImageRepository.getImage("dl_bar_0");
-		img1 = ImageRepository.getImage("dl_bar_1");
-
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -163,6 +149,11 @@ public class CompletionItem
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 		
 		
+    ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgEnd = imageLoader.getImage("dl_bar_end");
+		Image img0 = imageLoader.getImage("dl_bar_0");
+		Image img1 = imageLoader.getImage("dl_bar_1");
+
 		//draw begining and end
 		gcImage.drawImage(imgEnd, bounds.x , bounds.y + yOfs);
 		gcImage.drawImage(imgEnd, bounds.x + x1 + 1, bounds.y + yOfs);
@@ -181,6 +172,10 @@ public class CompletionItem
 		if(percentDone < 1000) {
 			gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit, 13);
 		}
+
+		imageLoader.releaseImage("dl_bar_end");
+		imageLoader.releaseImage("dl_bar_0");
+		imageLoader.releaseImage("dl_bar_1");
 		
 //		gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
 //		gcImage.fillRectangle(bounds.x + 1, bounds.y + 1 + yOfs, limit, y1);

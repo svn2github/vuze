@@ -26,12 +26,9 @@ import java.io.InputStream;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -52,6 +49,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 ProgressWindow 
@@ -88,6 +86,8 @@ ProgressWindow
 	private volatile boolean 		task_complete;
 	
 	private final 	String	 resource;
+	private Image[] spinImages;
+	protected int curSpinIndex = 0;
 	
 	protected 
 	ProgressWindow(
@@ -272,167 +272,47 @@ ProgressWindow
 		layout.numColumns = 2;
 		shell.setLayout(layout);
 
-		InputStream	is = ImageRepository.getImageAsStream( "working" );
+		spinImages = ImageLoader.getInstance().getImages("working");
 		
-		if ( is == null ){
+		if ( spinImages.length == 0 || spinImages == null ){
 			
 			new Label( shell, SWT.NULL );
 			
 		}else{
-			
-			final ImageLoader loader = new ImageLoader();
-			
-			final Color	background = shell.getBackground();
 
-		    loader.load( is );
-		    		    
+			final Rectangle spinBounds = spinImages[0].getBounds();
 		    final Canvas	canvas =
 		    	new Canvas( shell, SWT.NULL )
 		    	{
 		    		public Point computeSize(int wHint, int hHint,boolean changed )
 		    		{
-		    			return( new Point(loader.logicalScreenWidth,loader.logicalScreenWidth));
+		    			return( new Point(spinBounds.width, spinBounds.height));
 		    		}
 		    	};
+		    	
+		    	canvas.addPaintListener(new PaintListener() {
+						public void paintControl(PaintEvent e) {
+							e.gc.drawImage(spinImages[curSpinIndex ], 0, 0);
+						}
+					});
+		    	
+		    	Utils.execSWTThreadLater(100, new AERunnable() {
+						public void runSupport() {
+							if (canvas == null || canvas.isDisposed()) {
+								return;
+							}
+
+							canvas.redraw();
+							canvas.update();
+							if (curSpinIndex == spinImages.length - 1) {
+								curSpinIndex = 0;
+							} else {
+								curSpinIndex++;
+							}
+							Utils.execSWTThreadLater(100, this);
+						}
+					});
 		    			    		    
-		    final GC canvas_gc = new GC( canvas );
-
-	        new AEThread2("GifAnim", true )
-	        {
-	        	private Image	image;
-	        	private boolean useGIFBackground;
-	        	
-	        	public void 
-	        	run()
-	        	{
-	        		Display display = shell.getDisplay();  
-	        	
-	        		ImageData[]	image_data = loader.data;
-	        		
-	        			/* Create an off-screen image to draw on, and fill it with the shell background. */
-	        		
-	        		Image offScreenImage = new Image(display, loader.logicalScreenWidth, loader.logicalScreenHeight);
-	        		
-	        		GC offScreenImageGC = new GC(offScreenImage);
-	        		
-	        		offScreenImageGC.setBackground(background);
-	        		
-	        		offScreenImageGC.fillRectangle(0, 0, loader.logicalScreenWidth, loader.logicalScreenHeight);
-
-	        		try{
-	        				/* Create the first image and draw it on the off-screen image. */
-	        			
-	        			int imageDataIndex = 0;
-	        			
-	        			ImageData imageData = image_data[imageDataIndex];
-	        			
-	        			if (image != null && !image.isDisposed()) image.dispose();
-	        			
-	        			image = new Image(display, imageData);
-	        			
-	        			offScreenImageGC.drawImage(
-	        					image,
-	        					0,
-	        					0,
-	        					imageData.width,
-	        					imageData.height,
-	        					imageData.x,
-	        					imageData.y,
-	        					imageData.width,
-	        					imageData.height);
-
-		        			/* Now loop through the images, creating and drawing each one
-		        			 * on the off-screen image before drawing it on the shell. */
-		        			
-	        			int repeatCount = loader.repeatCount;
-	        			
-	        			while ( !task_complete && loader.repeatCount == 0 || repeatCount > 0) {
-	        				
-	        				switch (imageData.disposalMethod){
-	        				
-		        				case SWT.DM_FILL_BACKGROUND:
-		        					
-		        						/* Fill with the background color before drawing. */
-		        					
-		        					Color bgColor = null;
-		        					
-		        					if (useGIFBackground && loader.backgroundPixel != -1) {
-		        						
-		        						bgColor = new Color(display, imageData.palette.getRGB(loader.backgroundPixel));
-		        					}
-		        					
-		        					offScreenImageGC.setBackground(bgColor != null ? bgColor : background);
-		        					
-		        					offScreenImageGC.fillRectangle(imageData.x, imageData.y, imageData.width, imageData.height);
-		        					
-		        					if (bgColor != null) bgColor.dispose();
-		        					
-		        					break;
-		        					
-		        				case SWT.DM_FILL_PREVIOUS:
-		        					
-		        						/* Restore the previous image before drawing. */
-		        					
-		        					offScreenImageGC.drawImage(
-		        							image,
-		        							0,
-		        							0,
-		        							imageData.width,
-		        							imageData.height,
-		        							imageData.x,
-		        							imageData.y,
-		        							imageData.width,
-		        							imageData.height);
-		        					break;
-	        				}
-
-	        				imageDataIndex = (imageDataIndex + 1) % image_data.length;
-	        				
-	        				imageData = image_data[imageDataIndex];
-	        				
-	        				image.dispose();
-	        				
-	        				image = new Image(display, imageData);
-	        				
-	        				offScreenImageGC.drawImage(
-	        						image,
-	        						0,
-	        						0,
-	        						imageData.width,
-	        						imageData.height,
-	        						imageData.x,
-	        						imageData.y,
-	        						imageData.width,
-	        						imageData.height);
-
-	        					/* Draw the off-screen image to the shell. */
-	        				
-	        				canvas_gc.drawImage(offScreenImage, 0, 0);
-
-	        					/* Sleep for the specified delay time (adding commonly-used slow-down fudge factors). */
-	        				
-	        				try {
-	        					int ms = imageData.delayTime * 10;
-	        					if (ms < 20) ms += 30;
-	        					if (ms < 30) ms += 10;
-	        					
-	        					Thread.sleep(ms);
-	        				} catch (InterruptedException e) {
-	        				}
-
-	        					/* If we have just drawn the last image, decrement the repeat count and start again. */
-	        				
-	        				if (imageDataIndex == image_data.length - 1) repeatCount--;
-	        			}
-	        		} catch (SWTException ex) {
-	        			ex.printStackTrace();
-	        		} finally {
-	        			if (offScreenImage != null && !offScreenImage.isDisposed()) offScreenImage.dispose();
-	        			if (offScreenImageGC != null && !offScreenImageGC.isDisposed()) offScreenImageGC.dispose();
-	        			if (image != null && !image.isDisposed()) image.dispose();
-	        		}
-	        	}
-	        }.start();
 		}
 		
 		
@@ -474,6 +354,11 @@ ProgressWindow
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+
+		if (spinImages != null) {
+			ImageLoader.getInstance().releaseImage("working");
+			spinImages =  null;
 		}
 	}
 }

@@ -25,11 +25,12 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -41,10 +42,19 @@ public class CommentIconItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellMouseListener
 {
-	static final UISWTGraphic graphicComment = new UISWTGraphicImpl(ImageRepository.getImage("comment"));
-	static final UISWTGraphic noGraphicComment = new UISWTGraphicImpl(ImageRepository.getImage("no_comment"));
-	public static final String COLUMN_ID = "commenticon";
+	static final UISWTGraphic graphicComment;
+
+	static final UISWTGraphic noGraphicComment;
 	
+	public static final String COLUMN_ID = "commenticon";
+
+	static {
+		graphicComment = new UISWTGraphicImpl(
+				ImageLoader.getInstance().getImage("comment"));
+		noGraphicComment = new UISWTGraphicImpl(
+				ImageLoader.getInstance().getImage("no_comment"));
+	}
+
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
 		super(COLUMN_ID, CommentIconItem.POSITION_LAST, 20, sTableID);

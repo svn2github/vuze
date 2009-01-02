@@ -30,8 +30,9 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Olivier
@@ -41,7 +42,7 @@ public class HealthHelpWindow
 {
 
 	public static void show(Display display) {
-		final ArrayList imagesToDispose = new ArrayList();
+		final ArrayList<String> imagesToRelease = new ArrayList();
 
 		final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(
 				display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -67,13 +68,14 @@ public class HealthHelpWindow
 		}
 		window.setLayout(layout);
 
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		for (Iterator iter = mapIDs.keySet().iterator(); iter.hasNext();) {
 			String key = (String) iter.next();
 			String value = (String) mapIDs.get(key);
 
-			Image img = new Image(display, ImageRepository.getImage(value),
-					SWT.IMAGE_COPY);
-			imagesToDispose.add(img);
+			
+			Image img = imageLoader.getImage(value);
+			imagesToRelease.add(value);
 
 			CLabel lbl = new CLabel(window, SWT.NONE);
 			lbl.setImage(img);
@@ -104,8 +106,10 @@ public class HealthHelpWindow
 
 		window.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent arg0) {
-				Utils.disposeSWTObjects(imagesToDispose);
-				imagesToDispose.clear();
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				for (String id : imagesToRelease) {
+					imageLoader.releaseImage(id);
+				}
 			}
 		});
 

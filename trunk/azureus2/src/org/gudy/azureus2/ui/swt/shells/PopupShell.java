@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
 /**
  * @author Olivier Chalouhi
  *
@@ -76,7 +78,7 @@ public class PopupShell {
   
   protected void layout() {
     Label label = new Label(shell,SWT.NULL);
-    label.setImage(ImageRepository.getImage("popup"));
+		ImageLoader.getInstance().setLabelImage(label, "popup");
     
     FormData formData = new FormData();
     formData.left = new FormAttachment(0,0);

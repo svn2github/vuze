@@ -1,49 +1,14 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationEvent;
-import org.eclipse.swt.browser.LocationListener;
-import org.eclipse.swt.browser.OpenWindowListener;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.browser.StatusTextEvent;
-import org.eclipse.swt.browser.StatusTextListener;
-import org.eclipse.swt.browser.WindowEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.MouseTrackListener;
-import org.eclipse.swt.events.TraverseEvent;
-import org.eclipse.swt.events.TraverseListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.browser.*;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -53,6 +18,7 @@ import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.UISkinnableManagerSWT;
 import com.aelitis.azureus.ui.swt.UISkinnableSWTListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -123,6 +89,8 @@ public class MessageBoxShell
 	private boolean	browser_follow_links;
 
 	protected boolean isRemembered;
+
+	private String iconImageID;
 	
 	public static int open(final Shell parent, final String title,
 			final String text, final String[] buttons, final int defaultOption) {
@@ -263,6 +231,14 @@ public class MessageBoxShell
 					}
 				}
 			});
+		
+		shell.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				if (iconImageID != null) {
+					ImageLoader.getInstance().releaseImage(iconImageID);
+				}
+			}
+		});
 		
 		GridLayout gridLayout = new GridLayout();
 		
@@ -1277,6 +1253,7 @@ public class MessageBoxShell
 	}
 
 	public void setIconResource(String resource) {
+		iconImageID = null;
 		if (resource.equals("info")) {
 			iconImage = Display.getDefault().getSystemImage(SWT.ICON_INFORMATION);
 
@@ -1287,7 +1264,8 @@ public class MessageBoxShell
 			iconImage = Display.getDefault().getSystemImage(SWT.ICON_ERROR);
 
 		} else {
-			iconImage = ImageRepository.getImage(resource);
+			iconImage = ImageLoader.getInstance().getImage(resource);
+			iconImageID = resource;
 		}
 		setLeftImage(iconImage);
 	}

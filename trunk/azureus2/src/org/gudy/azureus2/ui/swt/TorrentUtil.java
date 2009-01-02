@@ -202,8 +202,7 @@ public class TorrentUtil {
 
 				}
 				int state = dm.getState();
-				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_QUEUED)
-						&& dm.isDownloadComplete(false);
+				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_QUEUED);;
 
 				/**
 				 * Only perform a test on disk if:

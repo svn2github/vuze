@@ -44,13 +44,13 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
@@ -145,11 +145,16 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
   	if (filter != null) {
   		filter.removeListener(filterListener);
   	}
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
+		imageLoader.releaseImage("subitem");
   }
 
   public Composite configSectionCreate(final Composite parent) {
-    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
-    String sCurConfigID;
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgOpenFolder = imageLoader.getImage("openFolderButton");			
+
+		String sCurConfigID;
 
     GridData gridData;
 
@@ -239,9 +244,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     layout.marginWidth = 0;
     cIndent.setLayout(layout);
     
+		Image img = imageLoader.getImage("subitem");
 		Label label = new Label(cIndent, SWT.NULL);
-		Image img = ImageRepository.getImage("subitem");
-		img.setBackground(label.getBackground());
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 		label.setLayoutData(gridData);
 		label.setImage(img);

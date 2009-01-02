@@ -23,7 +23,6 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -33,7 +32,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author parg
@@ -64,9 +64,7 @@ DirectoryParameter
 	    controls[0].setLayoutData(gridData);
 	    
 	    Button browse = new Button(pluginGroup, SWT.PUSH);
-	    Image imgOpenFolder = ImageRepository.getImage(getBrowseImageResource());
-	    browse.setImage(imgOpenFolder);
-	    imgOpenFolder.setBackground(browse.getBackground());
+	    ImageLoader.getInstance().setButtonImage(browse, getBrowseImageResource());
 	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
 
 	    browse.addListener(SWT.Selection, new Listener() {

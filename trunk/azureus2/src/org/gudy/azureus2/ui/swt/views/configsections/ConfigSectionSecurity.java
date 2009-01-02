@@ -22,10 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.LineNumberReader;
-import java.io.PrintWriter;
+import java.io.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -36,40 +33,27 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
-import org.gudy.azureus2.ui.swt.config.BooleanParameter;
-import org.gudy.azureus2.ui.swt.config.Parameter;
-import org.gudy.azureus2.ui.swt.config.ParameterChangeAdapter;
-import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
-import com.aelitis.azureus.core.security.CryptoHandler;
-import com.aelitis.azureus.core.security.CryptoManager;
-import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 /**
  * @author parg
@@ -99,6 +83,8 @@ ConfigSectionSecurity
 	public void 
 	configSectionDelete() 
 	{
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
 	}
 	
 	public int maxUserMode() {
@@ -153,7 +139,8 @@ ConfigSectionSecurity
 	    
 	    Messages.setLanguageText(lStatsPath, "ConfigView.section.security.toolsdir"); //$NON-NLS-1$
 
-	    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			Image imgOpenFolder = imageLoader.getImage("openFolderButton");			
 	    
 	    gridData = new GridData();
 	    

@@ -23,7 +23,6 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -33,6 +32,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 
 import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 
@@ -97,12 +97,7 @@ MessageBoxWindow
 	    
 	    Label label = new Label(shell,SWT.NONE);
 
-	    Image image = ImageRepository.getImage(icon);
-
-	    if ( image != null ){
-	    	
-	    	label.setImage( image );
-	    }
+	    ImageLoader.getInstance().setLabelImage(label, icon);
 	    
 	    	// buffered label handles & in the text properly
 	    

@@ -49,6 +49,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
 public class ConfigSectionStats implements UISWTConfigSection {
 	
   private static final int defaultStatsPeriod = 30;
@@ -73,6 +75,8 @@ public class ConfigSectionStats implements UISWTConfigSection {
   }
 
   public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
   }
   
 	public int maxUserMode() {
@@ -82,8 +86,10 @@ public class ConfigSectionStats implements UISWTConfigSection {
   
 
   public Composite configSectionCreate(final Composite parent) {
-    Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
-    GridData gridData;
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgOpenFolder = imageLoader.getImage("openFolderButton");			
+
+		GridData gridData;
     GridLayout layout;
 
     Composite gStats = new Composite(parent, SWT.NULL);

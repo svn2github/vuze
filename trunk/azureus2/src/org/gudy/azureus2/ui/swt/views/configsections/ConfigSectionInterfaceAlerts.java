@@ -46,6 +46,8 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+
 public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 {
 	private final static String INTERFACE_PREFIX = "ConfigView.section.interface.";
@@ -71,6 +73,8 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 	}
 
 	public void configSectionDelete() {
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
 	}
 	
 	public int maxUserMode() {
@@ -79,6 +83,12 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 
 	public Composite configSectionCreate(final Composite parent) {
+		Image imgOpenFolder = null;
+		if (!Constants.isOSX) {
+			ImageLoader imageLoader = ImageLoader.getInstance();
+			imgOpenFolder = imageLoader.getImage("openFolderButton");			
+		}
+
 		GridData gridData;
 		GridLayout layout;
 
@@ -173,7 +183,6 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 		//Option disabled on OS X, as impossible to make it work correctly
 		if (!Constants.isOSX) {
-			Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
 
 			// download info
 
@@ -292,7 +301,6 @@ public class ConfigSectionInterfaceAlerts implements UISWTConfigSection
 
 		//Option disabled on OS X, as impossible to make it work correctly
 		if (!Constants.isOSX) {
-			Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
 
 			// file info
 

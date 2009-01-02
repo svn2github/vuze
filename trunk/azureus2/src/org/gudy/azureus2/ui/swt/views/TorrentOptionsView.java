@@ -29,23 +29,25 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 TorrentOptionsView
@@ -247,11 +249,9 @@ TorrentOptionsView
 			cMaxUploadsOptionsArea.setLayoutData(gridData);
 			
 			label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
-			Image img = ImageRepository.getImage("subitem");
-			img.setBackground(label.getBackground());
+			ImageLoader.getInstance().setLabelImage(label, "subitem");
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 			label.setLayoutData(gridData);
-			label.setImage(img);
 	
 			gridData = new GridData();
 			GenericBooleanParameter	max_uploads_when_seeding_enabled = 
@@ -305,11 +305,9 @@ TorrentOptionsView
 			cMaxPeersOptionsArea.setLayoutData(gridData);
 			
 			label = new Label(cMaxPeersOptionsArea, SWT.NULL);
-			img = ImageRepository.getImage("subitem");
-			img.setBackground(label.getBackground());
+			ImageLoader.getInstance().setLabelImage(label, "subitem");
 			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
 			label.setLayoutData(gridData);
-			label.setImage(img);
 	
 			gridData = new GridData();
 			GenericBooleanParameter	max_peers_when_seeding_enabled = 

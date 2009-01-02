@@ -68,6 +68,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * Torrent Opener Window.
@@ -1286,8 +1287,10 @@ public class OpenTorrentWindow
 		rLayout.fill = true;
 		cTorrentListRight.setLayout(rLayout);
 
+		ImageLoader imageLoader = ImageLoader.getInstance();
+
 		Button torMoveUp = new Button(cTorrentListRight, SWT.PUSH);
-		torMoveUp.setImage(ImageRepository.getImage("up"));
+		imageLoader.setButtonImage(torMoveUp, "up");
 		torMoveUp.setToolTipText(MessageText.getString("Button.moveUp"));
 		torMoveUp.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -1313,7 +1316,7 @@ public class OpenTorrentWindow
 		});
 
 		Button torMoveDown = new Button(cTorrentListRight, SWT.PUSH);
-		torMoveDown.setImage(ImageRepository.getImage("down"));
+		imageLoader.setButtonImage(torMoveDown, "down");
 		torMoveDown.setToolTipText(MessageText.getString("Button.moveDown"));
 		torMoveDown.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -1341,7 +1344,7 @@ public class OpenTorrentWindow
 
 		Button torMoveRemove = new Button(cTorrentListRight, SWT.PUSH);
 		torMoveRemove.setToolTipText(MessageText.getString("OpenTorrentWindow.torrent.remove"));
-		torMoveRemove.setImage(ImageRepository.getImage("delete"));
+		imageLoader.setButtonImage(torMoveRemove, "delete");
 		torMoveRemove.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				deleteSelected(torrentTable, torrentList);
@@ -3022,7 +3025,6 @@ public class OpenTorrentWindow
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
 
-		ImageRepository.loadImages(display);
 		Colors.getInstance();
 
 		invoke(null, core.getGlobalManager());

@@ -7,8 +7,8 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -31,28 +31,15 @@ public class BubbleButton
 	public BubbleButton(Composite parent) {
 		super(parent);
 
-		if (null == ImageRepository.getImage("button_dialog_left")) {
-			ImageRepository.addPath(imagePath + "button_dialog_left.png",
-					"button_dialog_left");
-			ImageRepository.addPath(imagePath + "button_dialog_center.png",
-					"button_dialog_center");
-			ImageRepository.addPath(imagePath + "button_dialog_right.png",
-					"button_dialog_right");
-			ImageRepository.addPath(imagePath + "button_dialog_left-over.png",
-					"button_dialog_left-over");
-			ImageRepository.addPath(imagePath + "button_dialog_center-over.png",
-					"button_dialog_center-over");
-			ImageRepository.addPath(imagePath + "button_dialog_right-over.png",
-					"button_dialog_right-over");
-		}
+		final ImageLoader imageLoader = ImageLoader.getInstance();
+		
+		backgroundImages[0] = imageLoader.getImage("button_dialog_left");
+		backgroundImages[1] = imageLoader.getImage("button_dialog_center");
+		backgroundImages[2] = imageLoader.getImage("button_dialog_right");
 
-		backgroundImages[0] = ImageRepository.getImage("button_dialog_left");
-		backgroundImages[1] = ImageRepository.getImage("button_dialog_center");
-		backgroundImages[2] = ImageRepository.getImage("button_dialog_right");
-
-		backgroundImages_hover[0] = ImageRepository.getImage("button_dialog_left-over");
-		backgroundImages_hover[1] = ImageRepository.getImage("button_dialog_center-over");
-		backgroundImages_hover[2] = ImageRepository.getImage("button_dialog_right-over");
+		backgroundImages_hover[0] = imageLoader.getImage("button_dialog_left-over");
+		backgroundImages_hover[1] = imageLoader.getImage("button_dialog_center-over");
+		backgroundImages_hover[2] = imageLoader.getImage("button_dialog_right-over");
 
 		foregroundColors[0] = ColorCache.getColor(parent.getDisplay(), 194, 194,
 				194);
@@ -77,6 +64,12 @@ public class BubbleButton
 				if (null != newFont && false == newFont.isDisposed()) {
 					newFont.dispose();
 				}
+				imageLoader.releaseImage("button_dialog_left");
+				imageLoader.releaseImage("button_dialog_center");
+				imageLoader.releaseImage("button_dialog_right");
+				imageLoader.releaseImage("button_dialog_left-over");
+				imageLoader.releaseImage("button_dialog_center-over");
+				imageLoader.releaseImage("button_dialog_right-over");
 			}
 		});
 	}

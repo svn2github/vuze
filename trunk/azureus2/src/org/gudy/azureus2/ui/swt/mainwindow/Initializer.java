@@ -182,15 +182,12 @@ Initializer
 
 			UIConfigDefaultsSWT.initialize();
 			
-	    //The splash window, if displayed will need some images. 
-	    ImageRepository.loadImagesForSplashWindow(display);
-	    
 	    //Splash Window is not always shown
 	    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
 	      SplashWindow.create(display,this);
 	    }
 	    	    
-	    setNbTasks(7);
+	    setNbTasks(6);
 	    
 	    nextTask(); 
 	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
@@ -219,11 +216,6 @@ Initializer
 	    new CertificateTrustWindow();
 
 	    InstallPluginWizard.register( azureus_core, display );
-	    
-	    nextTask(); 	    
-	    reportCurrentTaskByKey("splash.loadingImages");
-	    
-	    ImageRepository.loadImages(display);
 	    
 	    nextTask();
 	    reportCurrentTaskByKey("splash.initializeGM");

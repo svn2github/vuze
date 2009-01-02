@@ -23,34 +23,19 @@ package org.gudy.azureus2.ui.swt.minibar;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
-import org.eclipse.swt.events.MouseMoveListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Monitor;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
  * @author Allan Crooks
@@ -273,7 +258,12 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    
 	    lDrag = new Label(splash, SWT.NULL);
 	    if(!Constants.isOSX) {
-	      lDrag.setImage(ImageRepository.getImage("dragger"));
+	      lDrag.setImage(ImageLoader.getInstance().getImage("dragger"));
+	      lDrag.addDisposeListener(new DisposeListener() {
+					public void widgetDisposed(DisposeEvent e) {
+			      ImageLoader.getInstance().releaseImage("dragger");
+					}
+				});
 	    }
 	    lDrag.pack();
 	    
