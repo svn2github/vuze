@@ -489,7 +489,7 @@ IntegratedResourceBundle
 	
 	public void
 	addString(String key, String value) {
-		used_messages.put(key, value);
+		messages.put(key, value);
 	}
 
 	public boolean getUseNullList() {
