@@ -286,6 +286,9 @@ public class MainWindow
 					String title = MessageText.getString("v3.mb.delPublished.title");
 					
 					ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
+					if (cn == null) {
+						return;
+					}
 
 					String site = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_SITE);
 

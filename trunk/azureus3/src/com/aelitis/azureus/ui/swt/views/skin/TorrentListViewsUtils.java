@@ -121,7 +121,7 @@ public class TorrentListViewsUtils
 	}
 
 	public static void viewDetails(ContentNetwork cn, String hash, String ref) {
-		if (hash == null) {
+		if (hash == null || cn == null) {
 			return;
 		}
 
@@ -201,6 +201,9 @@ public class TorrentListViewsUtils
 			String hash = DataSourceUtils.getHash(ds);
 			if (hash != null) {
 				ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
+				if (cn == null) {
+					return;
+				}
 				if (ds instanceof VuzeActivitiesEntry) {
 					if (((VuzeActivitiesEntry) ds).isDRM()) {
 						TorrentListViewsUtils.viewDetails(cn, hash, "drm-play");

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
@@ -89,14 +90,19 @@ public class VuzeActivitiesEntryContentShare
 
   		String contentString;
   
+  		String displayName = content.getDisplayName();
   		if (ourContent || torrent == null) {
-  			String url = DataSourceUtils.getContentNetwork(content).getContentDetailsService(
-						content.getHash(), VuzeActivitiesConstants.TYPEID_BUDDYSHARE);
- 
-  			contentString = "<A HREF=\"" + url + "\">" + content.getDisplayName()
-  					+ "</A>";
-  		} else {
-  			contentString = content.getDisplayName();
+				ContentNetwork cn = DataSourceUtils.getContentNetwork(content);
+				if (cn == null) {
+					contentString = displayName;
+				} else {
+					String url = cn.getContentDetailsService(content.getHash(),
+							VuzeActivitiesConstants.TYPEID_BUDDYSHARE);
+
+					contentString = "<A HREF=\"" + url + "\">" + displayName + "</A>";
+				}
+			} else {
+  			contentString = displayName;
   		}
   
   		String textid = (message == null || message.length() == 0)

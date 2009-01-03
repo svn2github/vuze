@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.*;
@@ -289,8 +290,13 @@ public class TorrentListView
 							TOTorrent torrent = dm.getTorrent();
 							String contentHash = PlatformTorrentUtils.getContentHash(torrent);
 							if (contentHash != null && contentHash.length() > 0) {
-								String url = DataSourceUtils.getContentNetwork(torrent).getTorrentDownloadService(
-										contentHash, "coq");
+								ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
+								if (cn == null) {
+									Utils.openMessageBox(null, SWT.OK, "coq",
+											"Not in Content Network List");
+									return;
+								}
+								String url = cn.getTorrentDownloadService(contentHash, "coq");
 
 								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
 								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,

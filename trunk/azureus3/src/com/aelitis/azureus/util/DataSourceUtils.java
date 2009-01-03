@@ -136,7 +136,7 @@ public class DataSourceUtils
 	}
 
 	public static ContentNetwork getContentNetwork(Object ds) {
-		long id = ContentNetwork.CONTENT_NETWORK_VUZE;
+		long id = -1;
 		try {
 			if (ds instanceof DownloadManager) {
 				id = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
@@ -155,9 +155,6 @@ public class DataSourceUtils
 		}
 		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 				id);
-		if (cn == null) {
-			return ConstantsV3.DEFAULT_CONTENT_NETWORK;
-		}
 		return cn;
 	}
 	

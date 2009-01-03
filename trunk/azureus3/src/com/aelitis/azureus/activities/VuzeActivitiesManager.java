@@ -352,10 +352,15 @@ public class VuzeActivitiesManager
 						String hash = torrent.getHashWrapper().toBase32String();
 						String title;
 						ContentNetwork cn = DataSourceUtils.getContentNetwork(dm);
-						String url = cn.getContentDetailsService( hash, "activity-" + VuzeActivitiesConstants.TYPEID_RATING_REMINDER );
+						if (cn == null) {
+							title = PlatformTorrentUtils.getContentTitle2(dm);
+						} else {
+							String url = cn.getContentDetailsService(hash, "activity-"
+									+ VuzeActivitiesConstants.TYPEID_RATING_REMINDER);
 
-						title = "<A HREF=\"" + url + "\">"
-								+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
+							title = "<A HREF=\"" + url + "\">"
+									+ PlatformTorrentUtils.getContentTitle2(dm) + "</A>";
+						}
 						entry.setAssetHash(hash);
 
 						entry.setDownloadManager(dm);

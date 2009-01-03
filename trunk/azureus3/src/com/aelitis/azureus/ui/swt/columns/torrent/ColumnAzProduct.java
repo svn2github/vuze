@@ -3,6 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -10,6 +11,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -70,24 +72,17 @@ public class ColumnAzProduct
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(final TableCell cell) {
 		Object ds = cell.getDataSource();
-		boolean isContent = DataSourceUtils.isPlatformContent(ds);
 
-		long cnID;
+		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
 
-		if (ds instanceof DownloadManager) {
-			cnID = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
-		} else {
-			ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
-			cnID = cn.getID();
-		}
-
-		long sortVal = (isContent) ? cnID : -1;
+		long cnID = cn == null ? -1 : cn.getID();
+		long sortVal = cnID;
 
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
 			return;
 		}
 
-		if (isContent) {
+		if (cnID > 0) {
 			ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
 				public void contentNetworkImageLoaded(Long contentNetworkID, Image image) {
 					cell.setGraphic(new UISWTGraphicImpl(image));

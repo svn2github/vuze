@@ -163,7 +163,7 @@ public class ColumnTitle
 						+ DataSourceUtils.getContentNetwork(dm).getContentDetailsService(
 								dm.getTorrent().getHashWrapper().toBase32String(), null)
 						+ "\">" + name + "</A>";
-			} catch (TOTorrentException e) {
+			} catch (Exception e) {
 				Debug.out(e);
 			}
 		}

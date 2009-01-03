@@ -144,6 +144,11 @@ public class PlatformMessenger
 		try {
 			long fireBefore;
 			if (message != null) {
+				long networkID = message.getContentNetworkID();
+				if (networkID <= 0) {
+					debug("Content Network invalid for " + message);
+					return;
+				}
 				String queueID;
 				if (message.requiresAuthorization()) {
 					queueID = QUEUE_AUTH;
@@ -152,7 +157,7 @@ public class PlatformMessenger
 				} else {
 					queueID = QUEUE_NORMAL;
 				}
-				queueID += message.getContentNetworkID();
+				queueID += networkID;
 
 				Map<PlatformMessage, PlatformMessengerListener> mapQueue = (Map) mapQueues.get(queueID);
 				if (mapQueue == null) {

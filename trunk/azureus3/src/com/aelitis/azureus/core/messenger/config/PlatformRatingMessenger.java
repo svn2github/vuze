@@ -61,6 +61,10 @@ public class PlatformRatingMessenger
 	public static void getUserRating(long contentNetworkID, String[] rateTypes,
 			final String[] torrentHashes, long maxDelayMS) {
 
+		if (contentNetworkID <= 0) {
+			return;
+		}
+
 		PlatformMessage message = new PlatformMessage("AZMSG", "rating",
 				"get-user", new Object[] {
 					"rating-type",
