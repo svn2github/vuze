@@ -26,6 +26,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.security.KeyPair;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -50,6 +51,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.MetaSearchListener;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -1602,11 +1604,14 @@ SubscriptionManagerImpl
 							
 							byte[]	sid = (byte[])s.get(i);
 							
-							Subscription subs = getSubscriptionFromSID(sid);
+							SubscriptionImpl subs = getSubscriptionFromSID(sid);
 							
 							if ( subs != null ){
 								
-								result.add( subs );
+								if ( isVisible( subs )){
+								
+									result.add( subs );
+								}
 							}
 						}
 						
@@ -1622,6 +1627,43 @@ SubscriptionManagerImpl
 		return( new Subscription[0] );
 	}
 	
+	protected boolean
+	isVisible(
+		SubscriptionImpl		subs )
+	{
+			// to avoid development links polluting production we filter out such subscriptions
+		
+		if ( Constants.isCVSVersion() || subs.isSubscribed()){
+			
+			return( true );
+		}
+		
+		try{
+			Engine engine = subs.getEngine( true );
+			
+			if ( engine instanceof WebEngine ){
+				
+				String url = ((WebEngine)engine).getSearchUrl();
+				
+				try{
+					String host = new URL( url ).getHost();
+					
+					return( !Pattern.compile( "azdev[0-9]+\\.azureus\\.com" ).matcher( host ).matches());
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			log( "isVisible failed for " + subs.getString(), e );
+			
+			return( false );
+		}
+	}
+		
 	public Subscription[]
 	getLinkedSubscriptions(
 		byte[]						hash )
