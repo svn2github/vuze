@@ -196,6 +196,8 @@ SubscriptionManagerImpl
 	
 	private boolean					meta_search_listener_added;
 	
+	private Pattern					exclusion_pattern = Pattern.compile( "azdev[0-9]+\\.azureus\\.com" );
+	
 	private AEDiagnosticsLogger		logger;
 	
 	
@@ -1648,7 +1650,7 @@ SubscriptionManagerImpl
 				try{
 					String host = new URL( url ).getHost();
 					
-					return( !Pattern.compile( "azdev[0-9]+\\.azureus\\.com" ).matcher( host ).matches());
+					return( !exclusion_pattern.matcher( host ).matches());
 					
 				}catch( Throwable e ){
 				}
