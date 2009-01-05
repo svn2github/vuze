@@ -444,7 +444,8 @@ GenericMessageConnectionIndirect
 	private boolean					incoming;
 	private boolean					closed;
 	
-	private LinkedList	send_queue		= new LinkedList();
+	private LinkedList<byte[]>	send_queue		= new LinkedList<byte[]>();
+	
 	private AESemaphore	send_queue_sem	= new AESemaphore( "GenericMessageConnectionIndirect:sendq" );
 	
 	private volatile long		last_message_sent;
@@ -630,11 +631,11 @@ GenericMessageConnectionIndirect
 					
 					listener.connectSuccess();
 
-					List	replies = (List)reply.get( "data" );
+					List<byte[]>	replies = (List<byte[]>)reply.get( "data" );
 					
 					for (int i=0;i<replies.size();i++){
 							
-						owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap((byte[])replies.get(i))), false ));
+						owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap(replies.get(i))), false ));
 					}
 					
 				}else{
@@ -724,11 +725,11 @@ GenericMessageConnectionIndirect
 	
 				}else if ( reply_type == MESSAGE_TYPE_DATA ){
 					
-					List	replies = (List)reply.get( "data" );
+					List<byte[]>	replies = (List<byte[]>)reply.get( "data" );
 											
 					for (int i=0;i<replies.size();i++){
 							
-						owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap((byte[])replies.get(i))), false ));
+						owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap(replies.get(i))), false ));
 					}
 					
 						// if there's more data queued force a keep alive to pick it up but delay 
@@ -774,9 +775,9 @@ GenericMessageConnectionIndirect
 		}
 	}
 	
-	protected List
+	protected List<byte[]>
 	receive(
-		List		messages )
+		List<byte[]>		messages )
 	{
 		if ( TRACE ){	
 			trace( "receive: " + messages );
@@ -786,10 +787,10 @@ GenericMessageConnectionIndirect
 		
 		for (int i=0;i<messages.size();i++){
 			
-			owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap((byte[])messages.get(i))), false ));
+			owner.receive( new GenericMessage(msg_id, msg_desc, new DirectByteBuffer(ByteBuffer.wrap(messages.get(i))), false ));
 		}
 		
-		List	reply = new ArrayList();
+		List<byte[]>	reply = new ArrayList<byte[]>();
 		
 			// hang around a bit to see if we can piggyback a reply
 		
@@ -810,7 +811,7 @@ GenericMessageConnectionIndirect
 				
 				while( send_queue.size() > 0 ){
 						
-					byte[]	data = (byte[])send_queue.getFirst();
+					byte[]	data = send_queue.getFirst();
 					
 					if ( total > 0 && total + data.length > max ){
 												
@@ -828,11 +829,20 @@ GenericMessageConnectionIndirect
 				}
 			}
 			
-				// grab sems for any entries other than the initial one grabbed above
-			
-			for (int i=1;i<reply.size();i++){
+			if ( reply.size() == 0 ){
 				
-				send_queue_sem.reserve();
+					// another thread stole our reply, release semaphore we grabbed above that
+					// doesn't have a matching queue removal 
+				
+				send_queue_sem.release();
+				
+			}else{
+					// grab sems for any entries other than the initial one grabbed above
+				
+				for (int i=1;i<reply.size();i++){
+					
+					send_queue_sem.reserve();
+				}
 			}
 		}
 		
