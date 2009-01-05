@@ -517,11 +517,11 @@ public class SWTSkinObjectBasic
 					return;
 				}
 
-				control.removeListener(SWT.Resize, resizeBGListener);
-
 				boolean needPaintHook = false;
 
 				if (properties.hasKey(sConfigID + ".color" + sSuffix)) {
+					control.removeListener(SWT.Resize, resizeBGListener);
+
 					Color color = properties.getColor(sConfigID + ".color" + sSuffix);
 					bgColor = color;
 					String colorStyle = properties.getStringValue(sConfigID
