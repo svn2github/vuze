@@ -30,7 +30,7 @@ public class SWTBGImagePainter
 {
 	private static boolean DEBUG = false;
 
-	private static boolean TEST_SWT_PAINTING = Constants.isOSX;
+	private static boolean TEST_SWT_PAINTING = false; //Constants.isOSX;
 
 	private Rectangle lastResizeRect = Utils.EMPTY_RECT;
 
