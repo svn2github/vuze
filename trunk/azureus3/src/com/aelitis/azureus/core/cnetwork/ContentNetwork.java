@@ -26,6 +26,8 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 public interface 
 ContentNetwork 
 {
+	public static final long	CONTENT_NETWORK_UNKNOWN		= -1;
+	
 	public static final long	CONTENT_NETWORK_VUZE		= 1;
 	
 		/**
@@ -74,9 +76,9 @@ ContentNetwork
 	public static final int		SERVICE_SUBSCRIPTION		= 29;	// String - subscription ID
 	public static final int		SERVICE_GET_ICON			= 30;	
 	public static final int		SERVICE_AUTHORIZE			= 31;	
-	public static final int		SERVICE_PREPLAYBACK   = 32;
-	public static final int		SERVICE_POSTPLAYBACK  = 33;
-	public static final int		SERVICE_SIDEBAR_CLOSE  = 34;
+	public static final int		SERVICE_PREPLAYBACK  		= 32;
+	public static final int		SERVICE_POSTPLAYBACK  		= 33;
+	public static final int		SERVICE_SIDEBAR_CLOSE  		= 34;
 	
 		// content network properties
 	
@@ -88,7 +90,7 @@ ContentNetwork
 	
 	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean, default false
 	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
-	public static final String	PP_ACTIVE			          = "active";	// Boolean
+	public static final String	PP_ACTIVE			        = "active";		// Boolean
 
 	
 		/**
