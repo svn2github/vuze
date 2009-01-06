@@ -155,8 +155,10 @@ public class CompletionItem
 		Image img1 = imageLoader.getImage("dl_bar_1");
 
 		//draw begining and end
-		gcImage.drawImage(imgEnd, bounds.x , bounds.y + yOfs);
-		gcImage.drawImage(imgEnd, bounds.x + x1 + 1, bounds.y + yOfs);
+		if (!imgEnd.isDisposed()) {
+			gcImage.drawImage(imgEnd, bounds.x , bounds.y + yOfs);
+			gcImage.drawImage(imgEnd, bounds.x + x1 + 1, bounds.y + yOfs);
+		}
 		
 		
 		
@@ -168,9 +170,15 @@ public class CompletionItem
 
 		int limit = (x1 * percentDone) / 1000;
 		
-		gcImage.drawImage(img1, 0, 0, 1, 13, bounds.x + 1, bounds.y + yOfs, limit, 13);
-		if(percentDone < 1000) {
-			gcImage.drawImage(img0, 0, 0, 1, 13, bounds.x + limit +1, bounds.y + yOfs, x1 - limit, 13);
+		if (!img1.isDisposed() && limit > 0) {
+			Rectangle imgBounds = img1.getBounds();
+			gcImage.drawImage(img1, 0, 0, imgBounds.width, imgBounds.height,
+					bounds.x + 1, bounds.y + yOfs, limit, imgBounds.height);
+		}
+		if (percentDone < 1000 && !img0.isDisposed()) {
+			Rectangle imgBounds = img0.getBounds();
+			gcImage.drawImage(img0, 0, 0, imgBounds.width, imgBounds.height, bounds.x
+					+ limit + 1, bounds.y + yOfs, x1 - limit, imgBounds.height);
 		}
 
 		imageLoader.releaseImage("dl_bar_end");
