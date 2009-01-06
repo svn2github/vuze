@@ -211,7 +211,7 @@ public class TorrentUtil {
 				 *       amounts of files across multiple torrents before we generate a menu.
 				 */
 				if (bChangeDir && dms.length == 1) {
-					bChangeDir = !dm.filesExist();
+					bChangeDir = dm.isDataAlreadyAllocated() && dm.filesExist( true );
 				}
 
 				boolean scan = dm.getDownloadState().getFlag(DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES);
@@ -541,7 +541,7 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemCheckFilesExist, "MyTorrentsView.menu.checkfilesexist");
 		itemCheckFilesExist.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager dm) {
-				dm.filesExist();
+				dm.filesExist( true );
 			}
 		});
 
@@ -1348,7 +1348,7 @@ public class TorrentUtil {
 
 					dm.setTorrentSaveDir(sSavePath);
 
-					if (dm.filesExist()) {
+					if (dm.filesExist(true)) {
 
 						dm.stopIt(DownloadManager.STATE_STOPPED, false, false);
 

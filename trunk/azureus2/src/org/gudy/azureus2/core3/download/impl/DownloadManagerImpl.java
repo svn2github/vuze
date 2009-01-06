@@ -1300,10 +1300,21 @@ DownloadManagerImpl
 	}
 	*/
 	
+	/**
+	 * @deprecated
+	 */
+	
 	public boolean 
-	filesExist() 
+	filesExist()
 	{
-		return( controller.filesExist());
+		return( filesExist( true ));
+	}
+	
+	public boolean 
+	filesExist(
+		boolean expected_to_be_allocated )
+	{
+		return( controller.filesExist( expected_to_be_allocated ));
 	}
 	
 	
@@ -1436,7 +1447,7 @@ DownloadManagerImpl
 		// If a torrent that is assumed complete, verify that it actually has the
 		// files, before we create the diskManager, which will try to allocate
 		// disk space.
-		if (assumedComplete && !filesExist()) {
+		if (assumedComplete && !filesExist( true )) {
 			// filesExist() has set state to error for us
 
 			// If the user wants to re-download the missing files, they must

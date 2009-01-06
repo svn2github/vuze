@@ -1166,7 +1166,7 @@ DownloadManagerController
 	      
   		if ( call_filesExist ){
   			
-  			filesExist();
+  			filesExist( true );
   		}
   		
   		if ( _inform_changed ){
@@ -1563,8 +1563,17 @@ DownloadManagerController
 
 	
 	public boolean 
-	filesExist() 
+	filesExist(
+		boolean	expected_to_be_allocated )
 	{
+		if ( !expected_to_be_allocated ){
+			
+			if ( !download_manager.isDataAlreadyAllocated()){
+				
+				return( false );
+			}
+		}
+		
 		DiskManager dm = getDiskManager();
 
 		if (dm != null) {
@@ -2533,7 +2542,7 @@ DownloadManagerController
 				writer.println("Force Start");
 			}
 
-			writer.println("FilesExist? " + filesExist());
+			writer.println("FilesExist? " + filesExist(download_manager.isDataAlreadyAllocated()));
 			
 		} finally {
 			writer.exdent();

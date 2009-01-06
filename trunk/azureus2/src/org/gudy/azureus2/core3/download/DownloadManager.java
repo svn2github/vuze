@@ -299,15 +299,26 @@ DownloadManager
     getNbPeers();
 
     /**
+     * Same as filesExist( true );
+     * @deprecated Use {@link #filesExist(boolean)} - to be removed when EMP dependency removed
+     * @return
+     */
+    
+    public boolean
+    filesExist();
+    
+    /**
      * Checks if all the files the user wants to download from this torrent
      * actually exist on their filesystem.
      * <p>
      * If a file does not exist, the download will be set to error state.
-     * 
+     * @param expected_to_be_allocated if this is false and allocation <b>hasn't<b> been attempted then the method will return with false without marking the download as in an error state
      * @return Whether all the non-skipped (non-DND) files exist
      */
+    
     public boolean
-    filesExist();
+    filesExist(
+    	boolean	expected_to_be_allocated );
 
     public String
     getErrorDetails();
