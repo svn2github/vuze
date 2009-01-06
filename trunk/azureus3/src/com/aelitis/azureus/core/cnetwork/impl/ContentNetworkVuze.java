@@ -22,8 +22,6 @@
 package com.aelitis.azureus.core.cnetwork.impl;
 
 
-import java.io.File;
-
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 
 public class 
@@ -84,38 +82,5 @@ ContentNetworkVuze
 				URL_BLOG,
 				URL_FORUMS,
 				URL_WIKI );
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		ContentNetworkManagerImpl.getSingleton();
-		
-		ContentNetwork test = 
-			new ContentNetworkVuzeGeneric(
-				null,
-				ContentNetwork.CONTENT_NETWORK_SOUK,
-				1,
-				"Souk's Network",
-				null,
-				null,
-				"192.168.0.150",
-				"http://192.168.0.150:8082/",
-				"http://play.aelitis.com:88/parg/souk.png",
-				null,
-				null,
-				null,
-				null,
-				null,
-				null );
-				
-		try{
-			test.getVuzeFile().write( new File( "C:\\temp\\rfn_souk.vuze"));
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 }

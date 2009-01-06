@@ -965,7 +965,7 @@ public class DCAdManager implements PlatformDCAdManager.GetAdvertDataReplyListen
 						DownloadManager dm = (DownloadManager)adsDMList.get(i);
 				
 						// Make sure it's started
-						if (dm.getAssumedComplete() && dm.filesExist()) {
+						if (dm.getAssumedComplete() && dm.filesExist(true)) {
 							dm.setForceStart(false);
 						} else {
 							if (dm.getState() == DownloadManager.STATE_ERROR) {
