@@ -335,10 +335,11 @@ public class PlatformTorrentUtils
 	}
 
 	public static long getContentNetworkID(TOTorrent torrent) {
-		long id = getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, -1);
-		if (id == -1) {
+		long id = getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK,
+				ContentNetwork.CONTENT_NETWORK_UNKNOWN);
+		if (id == ContentNetwork.CONTENT_NETWORK_UNKNOWN) {
 			return isContent(torrent, false) ? ContentNetwork.CONTENT_NETWORK_VUZE
-					: -1;
+					: ContentNetwork.CONTENT_NETWORK_UNKNOWN;
 		}
 		return id;
 	}
