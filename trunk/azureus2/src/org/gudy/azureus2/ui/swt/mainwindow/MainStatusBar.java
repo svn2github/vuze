@@ -1138,19 +1138,24 @@ public class MainStatusBar
 			if (!isVisible()) {
 				return (new Point(0, 0));
 			}
-			Point pt = super.computeSize(wHint, hHint, changed);
-			pt.x += 4;
-
-			long now = System.currentTimeMillis();
-			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
-				pt.x = lastWidth;
-			} else {
-				if (lastWidth != pt.x)
-					lastWidth = pt.x;
-				widthSetOn = now;
+			try {
+				Point pt = super.computeSize(wHint, hHint, changed);
+  			pt.x += 4;
+  
+  			long now = System.currentTimeMillis();
+  			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
+  				pt.x = lastWidth;
+  			} else {
+  				if (lastWidth != pt.x)
+  					lastWidth = pt.x;
+  				widthSetOn = now;
+  			}
+  
+  			return pt;
+			} catch (Throwable t) {
+				Debug.out("Error while computing size for CLabel with text:" + getText());
+				return new Point(0, 0);
 			}
-
-			return pt;
 		}
 	}
 
