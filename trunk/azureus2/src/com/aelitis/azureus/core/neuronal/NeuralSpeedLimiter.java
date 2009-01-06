@@ -142,13 +142,13 @@ public class NeuralSpeedLimiter {
 		
 		double latencyFactor = ((double)latency - (double)minLatency) / maxLatency;
 		
-		if(latencyFactor >= 0.2) {
+		if(latencyFactor >= 0.15) {
 			//So, we have a high latency, let's re-train the neural network to lower upload speed in this case
-			currentULTarget = currentULTarget * 0.99;
+			currentULTarget = currentULTarget * 0.97;
 			retrain(currentULTarget);
-		} else if(latencyFactor < 0.5) {
+		} else if(latencyFactor < 0.05) {
 			//So, we have a low latency, let's re-train the neural network to increase upload speed in this case
-			currentULTarget = currentULTarget * 1.005;
+			currentULTarget = currentULTarget * 1.02;
 			retrain(currentULTarget);
 		}
 		
