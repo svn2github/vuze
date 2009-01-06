@@ -38,6 +38,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformVuzeActivitiesMessenger;
 import com.aelitis.azureus.core.messenger.config.RatingUpdateListener2;
 import com.aelitis.azureus.core.torrent.*;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -340,9 +341,11 @@ public class VuzeActivitiesManager
 
 		try {
 			if (isContent) {
+				long networkID = PlatformTorrentUtils.getContentNetworkID(torrent);
 				long completedOn = dm.getDownloadState().getLongParameter(
 						DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 				if (completedOn > 0
+						&& networkID == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()
 						&& SystemTime.getCurrentTime() - completedOn > RATING_REMINDER_DELAY) {
 					int userRating = PlatformTorrentUtils.getUserRating(torrent);
 					if (userRating < 0) {
