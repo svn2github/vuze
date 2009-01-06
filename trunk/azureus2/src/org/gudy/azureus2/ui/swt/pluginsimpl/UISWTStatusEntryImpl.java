@@ -61,6 +61,12 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 				menu = null;
 			}
 			label.dispose();
+			
+			if (lastImageName != null) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				imageLoader.releaseImage(lastImageName);
+			}
+			
 			return;
 		}
 		
@@ -123,11 +129,6 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 			
 			// Remove any existing menu items.
 			MenuItemManager.getInstance().removeAllMenuItems(this.menu_context.context);
-
-			if (lastImageName != null) {
-				ImageLoader imageLoader = ImageLoader.getInstance();
-				imageLoader.releaseImage(lastImageName);
-			}
 		}
 		finally {
 			this_mon.exit();
