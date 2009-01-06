@@ -131,6 +131,8 @@ public class NeuralSpeedLimiter {
 			neuralNetwork.feedForward();
 			error = neuralNetwork.calculateError();
 			neuralNetwork.backPropagate();
+			
+			c++;
 		}
 	}
 	
