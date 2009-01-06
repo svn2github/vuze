@@ -118,7 +118,7 @@ public class NeuralSpeedLimiter {
 		double error = 1.0;
 		int c = 0;
 		//Only 100 loops at a time
-		while(error > 0.002 && c < 100) {
+		while(error > 0.002 && c < 400) {
 			neuralNetwork.setInput(0, downloadFactor);
 			neuralNetwork.setInput(1, uploadFactor);
 			neuralNetwork.setInput(2, latencyFactor);
