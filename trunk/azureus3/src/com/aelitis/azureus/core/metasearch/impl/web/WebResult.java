@@ -390,6 +390,7 @@ public class WebResult extends Result {
 			
 			if ( 	lc_link.startsWith("http://") || 
 					lc_link.startsWith("https://") ||
+					lc_link.startsWith("azplug:") ||
 					lc_link.startsWith("magnet:") ||
 					lc_link.startsWith("dht:" )){
 				
@@ -398,10 +399,10 @@ public class WebResult extends Result {
 			
 			if ( link.startsWith("/")){
 				
-				return( rootPageURL + link );
+				return((rootPageURL==null?"":rootPageURL) + link );
 			}
 			
-			return( basePageURL + link );
+			return((basePageURL==null?"":basePageURL) + link );
 		}
 		
 		return( "" );

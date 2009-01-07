@@ -22,14 +22,18 @@
 
 package com.aelitis.azureus.util;
 
+import java.net.URL;
+
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
+import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.AZ3Functions;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
@@ -64,6 +68,29 @@ public class InitialisationFunctions
 		SubscriptionManagerFactory.preInitialise();
 		
 		NavigationHelper.initialise();
+		
+		AZ3Functions.setProvider(
+			new AZ3Functions.provider()
+			{
+				public void 
+				subscribeToRSS(
+					String		name,
+					URL 		url,
+					int			interval,
+					boolean		is_public )
+				
+					throws Exception
+				{
+					Subscription subs =
+						SubscriptionManagerFactory.getSingleton().createSingletonRSS(
+						name, url, interval );
+					
+					if ( subs.isPublic() != is_public ){
+						
+						subs.setPublic( is_public );
+					}
+				}
+			});
 	}
 
 	public static void 
