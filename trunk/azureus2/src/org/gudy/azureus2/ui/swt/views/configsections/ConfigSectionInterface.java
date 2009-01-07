@@ -100,35 +100,45 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		layout.marginHeight = 0;
 		cDisplay.setLayout(layout);
 
-		new BooleanParameter(cDisplay, "Open Details", LBLKEY_PREFIX
-				+ "opendetails");
+		/////////////
+    Group gAutoOpen = new Group(cDisplay, SWT.NULL);
+    Messages.setLanguageText(gAutoOpen, LBLKEY_PREFIX + "autoopen");
+    layout = new GridLayout(3, false);
+    gAutoOpen.setLayout(layout);
+    gAutoOpen.setLayoutData(new GridData());
 
-		/**
-		 * Old-style speed menus.
-		 */
-		new BooleanParameter(cDisplay, "GUI_SWT_bOldSpeedMenu", LBLKEY_PREFIX
-				+ "use_old_speed_menus");
+
+		label = new Label(gAutoOpen, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "autoopen.detailstab");
+		new BooleanParameter(gAutoOpen, "Open Details", LBLKEY_PREFIX
+				+ "autoopen.dl");
+		new BooleanParameter(gAutoOpen, "Open Seeding Details", LBLKEY_PREFIX
+				+ "autoopen.cd");
+
+
+		label = new Label(gAutoOpen, SWT.NULL);
+		Messages.setLanguageText(label, LBLKEY_PREFIX + "autoopen.downloadbars");
+		new BooleanParameter(gAutoOpen, "Open Bar Incomplete", LBLKEY_PREFIX + "autoopen.dl");
+		new BooleanParameter(gAutoOpen, "Open Bar Complete", LBLKEY_PREFIX + "autoopen.cd");
 		
-		Composite cBars = new Composite(cDisplay, SWT.NULL);
-		layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		layout.numColumns = 2;
-		cBars.setLayout(layout);
-		cBars.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-		new BooleanParameter(cBars, "Open Bar Incomplete", LBLKEY_PREFIX + "openbar.incomplete");
-		new BooleanParameter(cBars, "Open Bar Complete", LBLKEY_PREFIX + "openbar.complete");
+		/////////////
+		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
 		if (!Constants.isOSX || SWT.getVersion() >= 3300) {
 
-			BooleanParameter est = new BooleanParameter(cDisplay,
+	    Group gSysTray = new Group(cDisplay, SWT.NULL);
+	    Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");
+	    layout = new GridLayout();
+	    gSysTray.setLayout(layout);
+	    gSysTray.setLayoutData(new GridData());
+
+			BooleanParameter est = new BooleanParameter(gSysTray,
 					"Enable System Tray", KEY_PREFIX + "enabletray");
 
-			BooleanParameter ctt = new BooleanParameter(cDisplay, "Close To Tray",
+			BooleanParameter ctt = new BooleanParameter(gSysTray, "Close To Tray",
 					LBLKEY_PREFIX + "closetotray");
-			BooleanParameter mtt = new BooleanParameter(cDisplay, "Minimize To Tray",
+			BooleanParameter mtt = new BooleanParameter(gSysTray, "Minimize To Tray",
 					LBLKEY_PREFIX + "minimizetotray");
 
 			est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(ctt

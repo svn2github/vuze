@@ -97,8 +97,8 @@ UserAlerts
 						public void runSupport() {
 							boolean complete = manager.isDownloadComplete(false);
 
-							if (!complete
-									&& COConfigurationManager.getBooleanParameter("Open Details")) {
+							if ((!complete && COConfigurationManager.getBooleanParameter("Open Details"))
+									|| (complete && COConfigurationManager.getBooleanParameter("Open Seeding Details"))) {
 								UIFunctionsManagerSWT.getUIFunctionsSWT().openView(
 										UIFunctions.VIEW_DM_DETAILS, manager);
 							}

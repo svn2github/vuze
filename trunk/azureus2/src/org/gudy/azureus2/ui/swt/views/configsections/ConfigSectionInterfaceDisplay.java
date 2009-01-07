@@ -81,15 +81,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout.numColumns = 1;
 		cLook.setLayout(layout);
 
-		BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab", MSG_PREFIX + "useCustomTabs");
-		Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", 
-				MSG_PREFIX + "useFancyTabs").getControl();
-
-		Control[] controls = { cFancyTab };
-		bpCustomTab
-				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-						controls));
-
 		new BooleanParameter(cLook, "Show Download Basket", MSG_PREFIX
 				+ "showdownloadbasket");
 

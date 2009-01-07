@@ -46,6 +46,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Show Download Basket", false);
 		def.addParameter("config.style.refreshMT", 0);
 		def.addParameter("Open Details", false);
+		def.addParameter("Open Seeding Details", false);
 		def.addParameter("IconBar.enabled", true);
 
 		def.addParameter("DefaultDir.BestGuess", true);
