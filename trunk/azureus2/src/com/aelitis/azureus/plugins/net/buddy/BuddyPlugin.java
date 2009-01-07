@@ -1855,8 +1855,11 @@ BuddyPlugin
 						Long l_ver = (Long)details.get("v");
 						
 						int	ver = l_ver==null?VERSION_INITIAL:l_ver.intValue();
-								
-						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, ver, last_seq, last_time_online, recent_ygm );
+													
+						String	loc_cat = decodeString((byte[])details.get( "lc" ));
+						String	rem_cat = decodeString((byte[])details.get( "rc" ));
+						
+						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
 						
 						logMessage( "Loaded buddy " + buddy.getString());
 						
@@ -1938,6 +1941,14 @@ BuddyPlugin
 					
 					map.put( "v", new Long( buddy.getVersion()));
 					
+					if ( buddy.getLocalAuthorisedRSSCategories() != null ){
+						map.put( "lc", buddy.getLocalAuthorisedRSSCategories());
+					}
+					
+					if ( buddy.getRemoteAuthorisedRSSCategories() != null ){
+						map.put( "rc", buddy.getRemoteAuthorisedRSSCategories());
+					}
+
 					buddies_config.add( map );
 				}
 				
@@ -2013,7 +2024,7 @@ BuddyPlugin
 			if ( buddy_to_return == null ){
 				
 				buddy_to_return = 
-					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_CURRENT, 0, 0, null );
+					new BuddyPluginBuddy( this, subsystem, authorised, key, null, VERSION_CURRENT, null, null, 0, 0, null );
 				
 				buddies.add( buddy_to_return );
 				
@@ -3152,6 +3163,7 @@ BuddyPlugin
 		
 		String		pk 			= null;
 		String		category	= "All";
+		byte[]		hash		= null;
 		
 		for (String arg: args ){
 			
@@ -3167,6 +3179,10 @@ BuddyPlugin
 			}else if ( lhs.equals( "cat" )){
 				
 				category = rhs;
+				
+			}else if ( lhs.equals( "hash" )){
+				
+				hash	= Base32.decode(rhs);
 			}
 		}
 		
@@ -3192,6 +3208,10 @@ BuddyPlugin
 		try{
 			msg.put( "cat", category.getBytes( "UTF-8" ));
 			
+			if ( hash != null ){
+				
+				msg.put( "hash", hash );
+			}
 		}catch( Throwable e ){
 			
 			Debug.out( e );
@@ -3200,6 +3220,7 @@ BuddyPlugin
 		final Object[] 		result 		= { null };
 		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:rss" );
 		
+		final boolean is_torrent_get = hash != null;
 		
 		az2_handler.sendAZ2RSSMessage( 
 			buddy,
@@ -3211,10 +3232,8 @@ BuddyPlugin
 					BuddyPluginBuddy	buddy,
 					Map					message )
 				{
-					try{
-						System.out.println( "Received RSS: " + message );
-						
-						byte[] bytes = (byte[])message.get( "rss" );
+					try{						
+						byte[] bytes = (byte[])message.get( is_torrent_get?"torrent":"rss" );
 					
 						ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 						
@@ -3234,9 +3253,7 @@ BuddyPlugin
 				messageFailed(
 					BuddyPluginBuddy	buddy,
 					Throwable			cause )
-				{
-					System.out.println( "Received RSS: " + Debug.getNestedExceptionMessage(cause));
-					
+				{					
 					result[0] = new IPCException( "Read failed", cause );
 					
 					result_sem.release();
@@ -3264,20 +3281,20 @@ BuddyPlugin
 		BuddyPluginBuddy		buddy,
 		String					category )
 	
-		throws IOException
+		throws BuddyPluginException
 	{
-		if ( true ){
+		if ( !buddy.isLocalRSSCategoryAuthorised( category )){
 			
-			throw( new IOException( "Unauthorised" ));
+			throw( new BuddyPluginException( "Unauthorised category '" + category + "'" ));
 		}
 		
 		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
 		
 		List<Download>	selected_dls = new ArrayList<Download>();
 
-		for (int j=0;j<downloads.length;j++){
+		for (int i=0;i<downloads.length;i++){
 			
-			Download download = downloads[j];
+			Download download = downloads[i];
 			
 			Torrent torrent = download.getTorrent();
 			
@@ -3300,92 +3317,149 @@ BuddyPlugin
 		
 		ByteArrayOutputStream	os = new ByteArrayOutputStream();
 			
-		PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
-		
-		pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
-		
-		pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
-		
-		pw.println( "<channel>" );
-		
-		pw.println( "<title>" + escape( category ) + "</title>" );
-		
-		Collections.sort(
-			selected_dls,
-			new Comparator<Download>()
-			{
-				public int 
-				compare(
-					Download d1, 
-					Download d2) 
+		try{
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
+			
+			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+			
+			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+			
+			pw.println( "<channel>" );
+			
+			pw.println( "<title>" + escape( category ) + "</title>" );
+			
+			Collections.sort(
+				selected_dls,
+				new Comparator<Download>()
 				{
-					long	added1 = getAddedTime( d1 )/1000;
-					long	added2 = getAddedTime( d2 )/1000;
-	
-					return((int)(added2 - added1 ));
+					public int 
+					compare(
+						Download d1, 
+						Download d2) 
+					{
+						long	added1 = getAddedTime( d1 )/1000;
+						long	added2 = getAddedTime( d2 )/1000;
+		
+						return((int)(added2 - added1 ));
+					}
+				});
+								
+			String	feed_date_key = "feed_date.category." + category;
+			
+			PluginConfig pc = plugin_interface.getPluginconfig();
+			
+			long	feed_date = pc.getPluginLongParameter( feed_date_key, 0 );
+		
+			if ( selected_dls.size() > 0 ){
+				
+				long newest = getAddedTime( selected_dls.get(0));
+				
+				if ( newest > feed_date ){
+					
+					feed_date = newest;
+					
+					pc.setPluginParameter( feed_date_key, feed_date );
 				}
-			});
+			}
 							
-		String	feed_date_key = "feed_date.category." + category;
+			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
 		
-		PluginConfig pc = plugin_interface.getPluginconfig();
+			for (int i=0;i<selected_dls.size();i++){
+				
+				Download download = (Download)selected_dls.get( i );
+				
+				DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+				
+				Torrent torrent = download.getTorrent();
+				
+				pw.println( "<item>" );
+				
+				pw.println( "<title>" + escape( download.getName()) + "</title>" );
+				
+				long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+				
+				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
+				
+				pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
+				pw.println(	"<vuze:assethash>" + Base32.encode( torrent.getHash())+ "</vuze:assethash>" );
+				
+				String url = "azplug:?id=azbuddy&name=Friends&arg=";
+				
+				String arg = "pk=" + getPublicKey() + "&cat=" + category + "&hash=" + Base32.encode(torrent.getHash());
+
+				url += URLEncoder.encode( arg, "UTF-8" );
+			
+				pw.println( "<vuze:downloadurl>" + escape( url ) + "</vuze:downloadurl>" );
 		
-		long	feed_date = pc.getPluginLongParameter( feed_date_key, 0 );
-	
-		if ( selected_dls.size() > 0 ){
-			
-			long newest = getAddedTime( selected_dls.get(0));
-			
-			if ( newest > feed_date ){
+				DownloadScrapeResult scrape = download.getLastScrapeResult();
 				
-				feed_date = newest;
+				if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+					
+					pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
+					pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+				}
 				
-				pc.setPluginParameter( feed_date_key, feed_date );
-			}
-		}
-						
-		pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
-	
-		for (int i=0;i<selected_dls.size();i++){
-			
-			Download download = (Download)selected_dls.get( i );
-			
-			DownloadManager	core_download = PluginCoreUtils.unwrap( download );
-			
-			Torrent torrent = download.getTorrent();
-			
-			pw.println( "<item>" );
-			
-			pw.println( "<title>" + escape( download.getName()) + "</title>" );
-			
-			long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
-			
-			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
-			
-			pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
-			pw.println(	"<vuze:assethash>" + Base32.encode( torrent.getHash())+ "</vuze:assethash>" );
-			pw.println( "<vuze:downloadurl>magnet:?xt=urn:btih:" + Base32.encode(torrent.getHash()) + "</vuze:downloadurl>" );
-	
-			DownloadScrapeResult scrape = download.getLastScrapeResult();
-			
-			if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
-				
-				pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
-				pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+				pw.println( "</item>" );
 			}
 			
-			pw.println( "</item>" );
+			pw.println( "</channel>" );
+			
+			pw.println( "</rss>" );
+		
+			pw.flush();
+			
+			return( os.toByteArray());
+			
+		}catch( IOException e ){
+			
+			throw( new BuddyPluginException( "", e ));
 		}
-		
-		pw.println( "</channel>" );
-		
-		pw.println( "</rss>" );
-	
-		pw.flush();
-		
-		return( os.toByteArray());
 	}
 	
+	public byte[]
+	getRSSTorrent(
+		BuddyPluginBuddy		buddy,
+		String					category,
+		byte[]					hash )
+	
+		throws BuddyPluginException
+	{
+		if ( !buddy.isLocalRSSCategoryAuthorised( category )){
+			
+			throw( new BuddyPluginException( "Unauthorised category '" + category + "'" ));
+		}
+		
+		try{
+			Download download = plugin_interface.getDownloadManager().getDownload( hash );
+			
+			if ( download != null ){
+				
+				Torrent	torrent = download.getTorrent();
+			
+				if ( torrent != null ){
+								
+					String dl_cat = download.getAttribute( ta_category );
+					
+					if ( 	category.equalsIgnoreCase( "all" ) ||
+							( dl_cat != null && dl_cat.equals( category ))){
+						
+						if ( !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
+							
+							torrent = torrent.removeAdditionalProperties();
+							
+							return( torrent.writeToBEncodedData());
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			throw( new BuddyPluginException( "getTorrent failed", e ));
+		}
+		
+		throw( new BuddyPluginException( "Not found" ));
+	}		
+
 	protected long
 	getAddedTime(
 		Download	download )

@@ -121,6 +121,9 @@ BuddyPluginBuddy
 	
 	private long last_auto_reconnect	= -1;
 	
+	private String			rss_local_cats;
+	private String			rss_remote_cats;
+	
 	private volatile boolean	closing;
 	private volatile boolean	destroyed;
 	
@@ -132,6 +135,8 @@ BuddyPluginBuddy
 		String		_pk,
 		String		_nick_name,
 		int			_version,
+		String		_rss_local_cats,
+		String		_rss_remote_cats,
 		int			_last_status_seq,
 		long		_last_time_online,
 		List		_recent_ygm )
@@ -142,6 +147,8 @@ BuddyPluginBuddy
 		public_key 			= _pk;
 		nick_name			= _nick_name;
 		version				= Math.max( version, _version );
+		rss_local_cats		= _rss_local_cats;
+		rss_remote_cats		= _rss_remote_cats;
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
@@ -260,6 +267,150 @@ BuddyPluginBuddy
 			
 			plugin.fireDetailsChanged( this );
 		}
+	}
+	
+	public String
+	getLocalAuthorisedRSSCategories()
+	{
+		return( rss_local_cats );
+	}
+	
+	public void
+	setLocalAuthorisedRSSCategories(
+		String		new_cats )
+	{		
+		if ( !catsIdentical( new_cats, rss_local_cats) ){
+			
+			rss_local_cats = new_cats;
+			
+			plugin.setConfigDirty();
+			
+			plugin.fireDetailsChanged( this );
+		}	
+	}
+	
+	public String
+  	getRemoteAuthorisedRSSCategories()
+  	{
+  		return( rss_remote_cats );
+  	}
+	
+	protected void
+	setRemoteAuthorisedRSSCategories(
+		String		new_cats )
+	{
+		if ( !catsIdentical( new_cats, rss_remote_cats) ){
+			
+			rss_remote_cats = new_cats;
+			
+			plugin.setConfigDirty();
+			
+			plugin.fireDetailsChanged( this );
+		}
+	}
+	
+	protected boolean
+	isLocalRSSCategoryAuthorised(
+		String	category )
+	{
+		if ( rss_local_cats != null ){
+		
+			for (String s: stringToCats( rss_local_cats )){
+				
+				if ( s.equals( category )){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
+	}
+	
+	public boolean
+	isRemoteRSSCategoryAuthorised(
+		String	category )
+	{
+		if ( rss_remote_cats != null ){
+		
+			for ( String s: stringToCats( rss_remote_cats )){
+				
+				if ( s.equals( category )){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
+	}
+	protected String
+	catsToString(
+		String[]	cats )
+	{
+		if ( cats == null || cats.length == 0 ){
+			
+			return( null );
+		}
+		
+		String	str = "";
+		
+		for (String s:cats ){
+			
+			str += (s.length()==0?"":",") + s;
+		}
+		
+		return( str );
+	}
+	
+	protected boolean
+	catsIdentical(
+		String	c1,
+		String	c2 )
+	{
+		if ( c1 == null && c2 == null ){
+			
+			return( true );
+			
+		}else if ( c1 == null || c2 == null ){
+			
+			return( false );
+			
+		}else{
+			
+			return( c1.equals( c2 ));
+		}
+	}
+	
+	protected String[]
+	stringToCats(
+		String	str )
+	{
+		if ( str == null ){
+			
+			return( null );
+		}
+		
+		String[] bits = str.split( "," );
+		
+		List<String> res = new ArrayList<String>( bits.length );
+		
+		for ( String b: bits ){
+			
+			b = b.trim();
+			
+			if ( b.length() > 0 ){
+				
+				res.add( b );
+			}
+		}
+		
+		if ( res.size() == 0 ){
+			
+			return( null );
+		}
+		
+		return( res.toArray( new String[res.size()]));
 	}
 	
 	public int
@@ -2285,6 +2436,12 @@ BuddyPluginBuddy
 			send_map.put( "oz", new Long( plugin.getOnlineStatus()));
 			send_map.put( "v", new Long( BuddyPlugin.VERSION_CURRENT ));
 			
+			String	loc_cat = getLocalAuthorisedRSSCategories();
+			
+			if ( loc_cat != null ){
+				send_map.put( "cat", loc_cat );
+			}
+			
 			try{
 				// logMessage( "Sending " + msg.getString() + " to " + getString());
 
@@ -2334,6 +2491,17 @@ BuddyPluginBuddy
 				if ( l_ver != null ){
 					
 					setVersion( l_ver.intValue());
+				}
+				
+				byte[]	b_rem_cat = (byte[])data_map.get( "cat" );
+				
+				if ( b_rem_cat == null ){
+					
+					setRemoteAuthorisedRSSCategories( null );
+					
+				}else{
+					
+					setRemoteAuthorisedRSSCategories( new String( b_rem_cat, "UTF-8" ));
 				}
 				
 				if ( type == RT_REQUEST_DATA ){
@@ -2388,6 +2556,12 @@ BuddyPluginBuddy
 					reply_map.put( "id", data_map.get( "id" ) );
 					reply_map.put( "oz", new Long( plugin.getOnlineStatus()));
 
+					String	loc_cat = getLocalAuthorisedRSSCategories();
+					
+					if ( loc_cat != null ){
+						reply_map.put( "cat", loc_cat );
+					}
+					
 					reply_map.put( "rep", reply );
 					
 						// don't record as active here as (1) we recorded as active above when 

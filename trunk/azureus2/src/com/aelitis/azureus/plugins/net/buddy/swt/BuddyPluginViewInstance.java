@@ -22,6 +22,8 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -81,6 +83,7 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddyMessage;
@@ -429,6 +432,8 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.lastseen", 
 				"azbuddy.ui.table.last_ygm", 
 				"azbuddy.ui.table.last_msg",
+				"azbuddy.ui.table.loc_cat",
+				"azbuddy.ui.table.rem_cat",
 				"azbuddy.ui.table.con",
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
@@ -437,9 +442,9 @@ BuddyPluginViewInstance
 				"MyTrackerView.bytesout",
 				"azbuddy.ui.table.ss" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 75, 75, 75, 75, 75, 75, 40 };
+		int[] sizes = { 250, 100, 100, 100, 200, 100, 100, 75, 75, 75, 75, 75, 75, 40 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -458,13 +463,15 @@ BuddyPluginViewInstance
 	    columns[2].setData(new Integer(FilterComparator.FIELD_LAST_SEEN));
 	    columns[3].setData(new Integer(FilterComparator.FIELD_YGM));
 	    columns[4].setData(new Integer(FilterComparator.FIELD_LAST_MSG));
-	    columns[5].setData(new Integer(FilterComparator.FIELD_CON));
-	    columns[6].setData(new Integer(FilterComparator.FIELD_MSG_IN));
-	    columns[7].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
-	    columns[8].setData(new Integer(FilterComparator.FIELD_QUEUED));
-	    columns[9].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
-	    columns[10].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
-	    columns[11].setData(new Integer(FilterComparator.FIELD_SS));
+	    columns[5].setData(new Integer(FilterComparator.FIELD_LOC_CAT));
+	    columns[6].setData(new Integer(FilterComparator.FIELD_REM_CAT));
+	    columns[7].setData(new Integer(FilterComparator.FIELD_CON));
+	    columns[8].setData(new Integer(FilterComparator.FIELD_MSG_IN));
+	    columns[9].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
+	    columns[10].setData(new Integer(FilterComparator.FIELD_QUEUED));
+	    columns[11].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
+	    columns[12].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
+	    columns[13].setData(new Integer(FilterComparator.FIELD_SS));
 	    
 	    
 	    final FilterComparator comparator = new FilterComparator();
@@ -551,17 +558,29 @@ BuddyPluginViewInstance
 					
 					item.setText(4, lm==null?"":lm);
 					
-					item.setText(5, "" + buddy.getConnectionsString());
+					String loc_cat = buddy.getLocalAuthorisedRSSCategories();
+					if ( loc_cat == null ){
+						loc_cat = "";
+					}
+					item.setText(5, "" + loc_cat);
+
+					String rem_cat = buddy.getRemoteAuthorisedRSSCategories();
+					if ( rem_cat == null ){
+						rem_cat = "";
+					}
+					item.setText(6, "" + rem_cat);
+
+					item.setText(7, "" + buddy.getConnectionsString());
 					
 					String in_frag = buddy.getMessageInFragmentDetails();
 					
-					item.setText(6, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
-					item.setText(7, "" + buddy.getMessageOutCount());
-					item.setText(8, "" + buddy.getMessageHandler().getMessageCount());
-					item.setText(9, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
-					item.setText(10, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+					item.setText(8, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
+					item.setText(9, "" + buddy.getMessageOutCount());
+					item.setText(10, "" + buddy.getMessageHandler().getMessageCount());
+					item.setText(11, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(12, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
-					item.setText(11, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
+					item.setText(13, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
 					
 					item.setData( buddy );
 				}
@@ -1205,6 +1224,161 @@ BuddyPluginViewInstance
 			});
 				
 		
+			// cats
+		
+		Menu cat_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+		MenuItem cat_item = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(cat_item, "azbuddy.ui.menu.cat" );
+		cat_item.setMenu(cat_menu);
+
+			// cats - share
+		
+		final MenuItem cat_share_item = new MenuItem(cat_menu, SWT.PUSH);
+
+		cat_share_item.setText( lu.getLocalisedMessageText( "azbuddy.ui.menu.cat.share" ) );
+
+		cat_share_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent event ) 
+				{
+					UIInputReceiver prompter = ui_instance.getInputReceiver();
+					
+					prompter.setLocalisedTitle( lu.getLocalisedMessageText( "azbuddy.ui.menu.cat.set" ));
+					prompter.setLocalisedMessage( lu.getLocalisedMessageText( "azbuddy.ui.menu.cat.set_msg" ));
+					
+					prompter.prompt();
+					
+					String cats = prompter.getSubmittedInput();
+					
+					if ( cats != null ){
+					
+						cats = cats.trim();
+						
+						if ( cats.equalsIgnoreCase( "None" )){
+							
+							cats = "";
+						}
+						
+						TableItem[] selection = buddy_table.getSelection();
+						
+						for (int i=0;i<selection.length;i++){
+							
+							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+							
+							buddy.setLocalAuthorisedRSSCategories( cats );
+						}
+					}
+				};
+			});
+		
+			// cats - subscribe
+		
+		final Menu cat_subs_menu = new Menu(cat_menu.getShell(), SWT.DROP_DOWN);
+		final MenuItem cat_subs_item = new MenuItem(cat_menu, SWT.CASCADE);
+		Messages.setLanguageText(cat_subs_item, "azbuddy.ui.menu.cat_subs" );
+		cat_subs_item.setMenu(cat_subs_menu);
+
+		cat_subs_menu.addMenuListener(
+			new MenuListener()
+			{
+				public void 
+				menuShown(
+					MenuEvent arg0 ) 
+				{
+					MenuItem[] items = cat_subs_menu.getItems();
+					
+					for (int i = 0; i < items.length; i++){
+						
+						items[i].dispose();
+					}
+					
+					final AZ3Functions.provider az3 = AZ3Functions.getProvider();
+					
+					if ( az3 != null ){
+						
+						final TableItem[] selection = buddy_table.getSelection();
+						
+						Set<String> avail_cats = new TreeSet<String>();
+						
+						for (int i=0;i<selection.length;i++){
+							
+							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+							
+							String cats = buddy.getRemoteAuthorisedRSSCategories();
+							
+							if ( cats != null ){
+								
+								String[] bits = cats.split( "," );
+								
+								for (String bit: bits ){
+									
+									bit = bit.trim();
+									
+									if ( bit.length() > 0 ){
+										
+										avail_cats.add( bit );
+									}
+								}
+							}
+						}
+						
+						for ( final String cat: avail_cats ){
+							
+							final MenuItem subs_item = new MenuItem( cat_subs_menu, SWT.PUSH );
+	
+							subs_item.setText( cat );
+	
+							subs_item.addSelectionListener(
+								new SelectionAdapter() 
+								{
+									public void 
+									widgetSelected(
+										SelectionEvent event ) 
+									{
+										for (int i=0;i<selection.length;i++){
+											
+											BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
+
+											if ( buddy.isRemoteRSSCategoryAuthorised( cat )){
+												
+												String url = "azplug:?id=azbuddy&name=Friends&arg=";
+												
+												String arg = "pk=" + buddy.getPublicKey() + "&cat=" + cat;
+
+												try{
+													url += URLEncoder.encode( arg, "UTF-8" );
+													
+													az3.subscribeToRSS( 
+														buddy.getName() + ": " + cat, 
+														new URL( url ), 
+														15,
+														false );
+													
+												}catch( Throwable e ){
+													
+													print( "Failed to add subscription", e );
+												}
+											}
+										}
+									}
+								});
+						}
+					}
+				}
+				
+				public void 
+				menuHidden(
+					MenuEvent arg0 ) 
+				{
+				}
+			});
+		
+		
+			// done with menus
+		
 		buddy_table.setMenu( menu );
 			
 		menu.addMenuListener(
@@ -1603,13 +1777,15 @@ BuddyPluginViewInstance
 		static final int FIELD_LAST_SEEN 	= 2;
 		static final int FIELD_YGM		 	= 3;
 		static final int FIELD_LAST_MSG 	= 4;
-		static final int FIELD_CON		 	= 5;
-		static final int FIELD_MSG_IN	 	= 6;
-		static final int FIELD_MSG_OUT	 	= 7;
-		static final int FIELD_QUEUED	 	= 8;
-		static final int FIELD_BYTES_IN 	= 9;
-		static final int FIELD_BYTES_OUT 	= 10;
-		static final int FIELD_SS		 	= 11;
+		static final int FIELD_LOC_CAT	 	= 5;
+		static final int FIELD_REM_CAT 		= 6;
+		static final int FIELD_CON		 	= 7;
+		static final int FIELD_MSG_IN	 	= 8;
+		static final int FIELD_MSG_OUT	 	= 9;
+		static final int FIELD_QUEUED	 	= 10;
+		static final int FIELD_BYTES_IN 	= 11;
+		static final int FIELD_BYTES_OUT 	= 12;
+		static final int FIELD_SS		 	= 13;
 
 		int field = FIELD_NAME;
 
@@ -1625,55 +1801,53 @@ BuddyPluginViewInstance
 			
 			if(field == FIELD_NAME){				
 				 res = b1.getName().compareTo( b2.getName());
-			}
-			
-			if(field == FIELD_ONLINE){
+			}else if(field == FIELD_ONLINE){
 				res = ( b1.isOnline( false )?1:0 ) - ( b2.isOnline( false )?1:0 );
-			}
-			
-			if(field == FIELD_LAST_SEEN){
+			}else if(field == FIELD_LAST_SEEN){
 				res = sortInt( b1.getLastTimeOnline() - b2.getLastTimeOnline());
-			}
-			
-			if(field == FIELD_YGM){
+			}else if(field == FIELD_YGM){
 				res = sortInt( b1.getLastMessagePending() - b2.getLastMessagePending());
-			}
-			
-			if(field == FIELD_LAST_MSG){
+			}else if(field == FIELD_LAST_MSG){
 				res = b1.getLastMessageReceived().compareTo( b2.getLastMessageReceived());
-			}
-			
-			if(field == FIELD_CON){
+			}else if(field == FIELD_LOC_CAT){
+				res = compareStrings( b1.getLocalAuthorisedRSSCategories(), b2.getLocalAuthorisedRSSCategories());
+			}else if(field == FIELD_REM_CAT){
+				res = compareStrings( b1.getRemoteAuthorisedRSSCategories(), b2.getRemoteAuthorisedRSSCategories());
+			}else if(field == FIELD_CON){
 				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
-			}
-			
-			if(field == FIELD_MSG_IN){
+			}else if(field == FIELD_MSG_IN){
 				res = b1.getMessageInCount() - b2.getMessageInCount();
-			}
-			
-			if(field == FIELD_MSG_OUT){
+			}else if(field == FIELD_MSG_OUT){
 				res = b1.getMessageOutCount() - b2.getMessageOutCount();
-			}
-			
-			if(field == FIELD_QUEUED){
+			}else if(field == FIELD_QUEUED){
 				res = b1.getMessageHandler().getMessageCount() - b2.getMessageHandler().getMessageCount();
-			}
-			
-			if(field == FIELD_BYTES_IN){
+			}else if(field == FIELD_BYTES_IN){
 				res = b1.getBytesInCount() - b2.getBytesInCount();
-			}
-			
-			if(field == FIELD_BYTES_OUT){
+			}else if(field == FIELD_BYTES_OUT){
 				res = b1.getBytesOutCount() - b2.getBytesOutCount();
-			}
-			
-			if(field == FIELD_SS){
+			}else if(field == FIELD_SS){
 				res =  b1.getSubsystem() - b2.getSubsystem();
 			}
 			
 			return(( ascending ? 1 : -1) * res );
 		}
 
+		protected int
+		compareStrings(
+			String	s1,
+			String	s2 )
+		{
+			if ( s1 == null && s2 == null ){
+				return(0);
+			}else if ( s1 == null ){
+				return(-1);
+			}else if ( s2 == null ){
+				return( 1 );
+			}else{
+				return( s1.compareTo(s2));
+			}
+		}
+		
 		protected int
 		sortInt(
 			long	l )

@@ -239,19 +239,29 @@ BuddyPluginAZ2
 		}else if (  type == RT_AZ2_REQUEST_RSS ){
 				
 			try{
-				Map msg = (Map)request.get( "msg" );
-
-				String category = new String((byte[])msg.get( "cat"), "UTF-8" );
-				
-				byte[] data = plugin.getRSS( from_buddy, category );			
-
 				Map<String,Object> res = new HashMap<String, Object>();
 
 				reply.put( "msg", res );
 				reply.put( "type", new Long( RT_AZ2_REPLY_RSS ));
 
-				res.put( "rss", data );
-								
+				Map msg = (Map)request.get( "msg" );
+
+				String category = new String((byte[])msg.get( "cat"), "UTF-8" );
+				
+				byte[] hash	= (byte[])msg.get( "hash" );
+				
+				if ( hash == null ){
+					
+					res.put( "rss", plugin.getRSS( from_buddy, category ));
+					
+				}else{
+					
+					res.put( "torrent", plugin.getRSSTorrent( from_buddy, category, hash ));
+				}
+			}catch( BuddyPluginException e  ){
+				
+				throw( e );
+				
 			}catch( Throwable e ){
 				
 				throw( new BuddyPluginException( "Failed to handle rss", e ));
