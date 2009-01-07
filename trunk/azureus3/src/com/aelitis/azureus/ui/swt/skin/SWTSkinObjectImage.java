@@ -459,7 +459,7 @@ public class SWTSkinObjectImage
 
 		final ImageLoader imageLoader = skin.getImageLoader(properties);
 		imageLoader.getUrlImage(url, new ImageDownloaderListener() {
-			public void imageDownloaded(Image image) {
+			public void imageDownloaded(Image image, boolean returnedImmediately) {
 				setLabelImage(url, null);
 				imageLoader.releaseImage(url);
 			}

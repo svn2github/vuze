@@ -340,11 +340,12 @@ public class TorrentUIUtilsV3
 					}, 500);
 		}
 		if ((image == null || image.isDisposed()) && thumbnailUrl != null) {
-			imageLoader.getUrlImage(thumbnailUrl, new ImageDownloaderListener() {
-				public void imageDownloaded(Image image) {
-					l.contentImageLoaded(image, false);
-				}
-			});
+			image = imageLoader.getUrlImage(thumbnailUrl,
+					new ImageDownloaderListener() {
+						public void imageDownloaded(Image image, boolean returnedImmediately) {
+							l.contentImageLoaded(image, returnedImmediately);
+						}
+					});
 			return image;
 		}
 		if (image == null || image.isDisposed()) {

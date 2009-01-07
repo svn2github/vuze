@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -45,7 +46,7 @@ public class ColumnActivityType
 	implements TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "activityType";
-	
+
 	private static int WIDTH = 42; // enough to fit title in most cases
 
 	private static SimpleDateFormat timeFormat = new SimpleDateFormat(
@@ -65,14 +66,31 @@ public class ColumnActivityType
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void cellPaint(GC gc, TableCellSWT cell) {
+	public void cellPaint(GC gc, final TableCellSWT cell) {
 		VuzeActivitiesEntry entry = (VuzeActivitiesEntry) cell.getDataSource();
 
-		Image imgIcon;
-		if (entry.getIconID() != null) {
+		Image imgIcon = null;
+		String iconID = entry.getIconID();
+		if (iconID != null) {
 			ImageLoader imageLoader = ImageLoader.getInstance();
-			String iconID = entry.getIconID();
-			imgIcon = imageLoader.getImage(iconID);
+			if (iconID.startsWith("http")) {
+				imgIcon = imageLoader.getUrlImage(iconID,
+						new ImageDownloaderListener() {
+							public void imageDownloaded(Image image,
+									boolean returnedImmediately) {
+								if (returnedImmediately) {
+									return;
+								}
+								cell.invalidate();
+							}
+						});
+				if (imgIcon == null) {
+					return;
+				}
+			} else {
+				imgIcon = imageLoader.getImage(iconID);
+			}
+
 			if (ImageLoader.isRealImage(imgIcon)) {
 				Rectangle cellBounds = cell.getBounds();
 				Rectangle imgBounds = imgIcon.getBounds();
