@@ -588,14 +588,15 @@ public class ImageLoader
 		return 100;
 	}
 
-	public void getUrlImage(final String url, final ImageDownloaderListener l) {
+	public Image getUrlImage(final String url, final ImageDownloaderListener l) {
 		if (l == null || url == null) {
-			return;
+			return null;
 		}
 
 		if (imageExists(url)) {
-			l.imageDownloaded(getImage(url));
-			return;
+			Image image = getImage(url);
+			l.imageDownloaded(image, true);
+			return image;
 		}
 
 		final File cache = new File(SystemProperties.getUserPath(), "cache"
@@ -613,8 +614,8 @@ public class ImageLoader
 					} catch (IOException e) {
 					}
 					mapImages.put(url, new ImageLoaderRefInfo(image));
-					l.imageDownloaded(image);
-					return;
+					l.imageDownloaded(image, true);
+					return image;
 				} finally {
 					fis.close();
 				}
@@ -634,15 +635,16 @@ public class ImageLoader
 						} catch (IOException e) {
 						}
 						mapImages.put(url, new ImageLoaderRefInfo(image));
-						l.imageDownloaded(image);
+						l.imageDownloaded(image, false);
 						return;
 					}
 				});
+		return null;
 	}
 
 	public static interface ImageDownloaderListener
 	{
-		public void imageDownloaded(Image image);
+		public void imageDownloaded(Image image, boolean returnedImmediately);
 	}
 
 	// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
