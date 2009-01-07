@@ -48,7 +48,9 @@ BuddyPluginAZ2
 	public static final int RT_AZ2_REQUEST_TRACK		= 7;
 	public static final int RT_AZ2_REPLY_TRACK			= 8;
 
-	
+	public static final int RT_AZ2_REQUEST_RSS			= 9;
+	public static final int RT_AZ2_REPLY_RSS			= 10;
+
 	public static final int CHAT_MSG_TYPE_TEXT						= 1;
 	public static final int CHAT_MSG_TYPE_PARTICIPANTS_ADDED		= 2;
 	public static final int CHAT_MSG_TYPE_PARTICIPANTS_REMOVED		= 3;
@@ -234,6 +236,26 @@ BuddyPluginAZ2
 			
 				throw( new BuddyPluginException( "Unhandled request type " + type ));
 			}
+		}else if (  type == RT_AZ2_REQUEST_RSS ){
+				
+			try{
+				Map msg = (Map)request.get( "msg" );
+
+				String category = new String((byte[])msg.get( "cat"), "UTF-8" );
+				
+				byte[] data = plugin.getRSS( from_buddy, category );			
+
+				Map<String,Object> res = new HashMap<String, Object>();
+
+				reply.put( "msg", res );
+				reply.put( "type", new Long( RT_AZ2_REPLY_RSS ));
+
+				res.put( "rss", data );
+								
+			}catch( Throwable e ){
+				
+				throw( new BuddyPluginException( "Failed to handle rss", e ));
+			}
 		}else{
 			
 			throw( new BuddyPluginException( "Unrecognised request type " + type ));
@@ -415,6 +437,56 @@ BuddyPluginAZ2
 		}catch( Throwable e ){
 			
 			logMessageAndPopup( "Send message failed", e );
+		}
+	}
+	
+	public void
+	sendAZ2RSSMessage(
+		BuddyPluginBuddy						buddy,
+		Map										msg,
+		final BuddyPluginAZ2TrackerListener		listener )
+	{
+		logMessage( "AZ2 request sent: " + buddy.getString() + " <- " + msg );
+
+		try{
+			Map	request = new HashMap();
+			
+			request.put( "type", new Long( RT_AZ2_REQUEST_RSS ));
+			request.put( "msg", msg );
+			
+			buddy.sendMessage(
+				BuddyPlugin.SUBSYSTEM_AZ2,
+				request,
+				SEND_TIMEOUT,
+				new BuddyPluginBuddyReplyListener()
+				{
+					public void
+					replyReceived(
+						BuddyPluginBuddy		from_buddy,
+						Map						reply )
+					{
+						int type = ((Long)reply.get( "type")).intValue();
+						
+						if ( type != RT_AZ2_REPLY_RSS ){
+							
+							sendFailed( from_buddy, new BuddyPluginException( "Mismatched reply type" ));
+						}
+						
+						listener.messageReceived( from_buddy, (Map)reply.get( "msg" ));
+					}
+					
+					public void
+					sendFailed(
+						BuddyPluginBuddy		to_buddy,
+						BuddyPluginException	cause )
+					{
+						listener.messageFailed( to_buddy, cause );
+					}
+				});
+				
+		}catch( Throwable e ){
+			
+			logMessage( "Send message failed", e );
 		}
 	}
 	

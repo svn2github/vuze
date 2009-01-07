@@ -21,12 +21,22 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -39,9 +49,14 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.Plugin;
+import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -53,6 +68,8 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.messaging.MessageException;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
@@ -61,6 +78,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -80,7 +98,10 @@ import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+
+import sun.awt.image.ByteArrayImageSource;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -275,6 +296,8 @@ BuddyPlugin
 	
 	private BuddyPluginTracker	buddy_tracker;
 	
+	private TorrentAttribute	ta_category;
+
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -292,6 +315,8 @@ BuddyPlugin
 	{		
 		plugin_interface	= _plugin_interface;
 		
+		ta_category		= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
+
 		az2_handler = new BuddyPluginAZ2( this );
 				
 		sec_man = plugin_interface.getUtilities().getSecurityManager();
@@ -3115,6 +3140,266 @@ BuddyPlugin
 		
 			throw( new BuddyPluginException( reason, e ));
 		}
+	}
+	
+	public InputStream
+	handleURLProtocol(
+		String		arg_str )
+	
+		throws IPCException
+	{
+		String[]	args = arg_str.split( "&" );
+		
+		String		pk 			= null;
+		String		category	= "All";
+		
+		for (String arg: args ){
+			
+			String[]	bits = arg.split( "=" );
+			
+			String	lhs = bits[0];
+			String	rhs	= UrlUtils.decode( bits[1] );
+			
+			if ( lhs.equals( "pk" )){
+				
+				pk		= rhs;
+				
+			}else if ( lhs.equals( "cat" )){
+				
+				category = rhs;
+			}
+		}
+		
+		if ( pk == null ){
+			
+			throw( new IPCException( "Public key missing from '" + arg_str + "'" ));
+		}
+		
+		BuddyPluginBuddy	buddy	= getBuddyFromPublicKey( pk );
+
+		if ( buddy == null ){
+			
+			throw( new IPCException( "Buddy with public key '" + pk + "' not found" ));
+		}
+		
+		if ( !buddy.isOnline( true )){
+			
+			throw( new IPCException( "Buddy isn't online" ));
+		}
+		
+		Map<String,Object>	msg = new HashMap<String, Object>();
+		
+		try{
+			msg.put( "cat", category.getBytes( "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		final Object[] 		result 		= { null };
+		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:rss" );
+		
+		
+		az2_handler.sendAZ2RSSMessage( 
+			buddy,
+			msg,
+			new BuddyPluginAZ2TrackerListener()
+			{
+				public Map
+				messageReceived(
+					BuddyPluginBuddy	buddy,
+					Map					message )
+				{
+					try{
+						System.out.println( "Received RSS: " + message );
+						
+						byte[] bytes = (byte[])message.get( "rss" );
+					
+						ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+						
+						result[0] = bais;
+						
+						result_sem.release();
+						
+					}catch( Throwable e ){
+					
+						messageFailed( buddy, e );
+					}
+					
+					return( null );
+				}
+				
+				public void
+				messageFailed(
+					BuddyPluginBuddy	buddy,
+					Throwable			cause )
+				{
+					System.out.println( "Received RSS: " + Debug.getNestedExceptionMessage(cause));
+					
+					result[0] = new IPCException( "Read failed", cause );
+					
+					result_sem.release();
+				}
+			});
+		
+		result_sem.reserve( 30*1000 );
+		
+		if ( result[0] == null ){
+			
+			throw( new IPCException( "Timeout" ));
+			
+		}else if ( result[0] instanceof InputStream ){
+			
+			return((InputStream)result[0]);
+			
+		}else{
+			
+			throw((IPCException)result[0]);
+		}
+	}
+	
+	public byte[]
+	getRSS(
+		BuddyPluginBuddy		buddy,
+		String					category )
+	
+		throws IOException
+	{
+		if ( true ){
+			
+			throw( new IOException( "Unauthorised" ));
+		}
+		
+		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
+		
+		List<Download>	selected_dls = new ArrayList<Download>();
+
+		for (int j=0;j<downloads.length;j++){
+			
+			Download download = downloads[j];
+			
+			Torrent torrent = download.getTorrent();
+			
+			if ( torrent == null ){
+				
+				continue;
+			}
+			
+			String dl_cat = download.getAttribute( ta_category );
+		
+			if ( 	category.equalsIgnoreCase( "all" ) ||
+					( dl_cat != null && dl_cat.equals( category ))){
+				
+				if ( !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
+					
+					selected_dls.add( download );
+				}
+			}
+		}
+		
+		ByteArrayOutputStream	os = new ByteArrayOutputStream();
+			
+		PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
+		
+		pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+		
+		pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+		
+		pw.println( "<channel>" );
+		
+		pw.println( "<title>" + escape( category ) + "</title>" );
+		
+		Collections.sort(
+			selected_dls,
+			new Comparator<Download>()
+			{
+				public int 
+				compare(
+					Download d1, 
+					Download d2) 
+				{
+					long	added1 = getAddedTime( d1 )/1000;
+					long	added2 = getAddedTime( d2 )/1000;
+	
+					return((int)(added2 - added1 ));
+				}
+			});
+							
+		String	feed_date_key = "feed_date.category." + category;
+		
+		PluginConfig pc = plugin_interface.getPluginconfig();
+		
+		long	feed_date = pc.getPluginLongParameter( feed_date_key, 0 );
+	
+		if ( selected_dls.size() > 0 ){
+			
+			long newest = getAddedTime( selected_dls.get(0));
+			
+			if ( newest > feed_date ){
+				
+				feed_date = newest;
+				
+				pc.setPluginParameter( feed_date_key, feed_date );
+			}
+		}
+						
+		pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
+	
+		for (int i=0;i<selected_dls.size();i++){
+			
+			Download download = (Download)selected_dls.get( i );
+			
+			DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+			
+			Torrent torrent = download.getTorrent();
+			
+			pw.println( "<item>" );
+			
+			pw.println( "<title>" + escape( download.getName()) + "</title>" );
+			
+			long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+			
+			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
+			
+			pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
+			pw.println(	"<vuze:assethash>" + Base32.encode( torrent.getHash())+ "</vuze:assethash>" );
+			pw.println( "<vuze:downloadurl>magnet:?xt=urn:btih:" + Base32.encode(torrent.getHash()) + "</vuze:downloadurl>" );
+	
+			DownloadScrapeResult scrape = download.getLastScrapeResult();
+			
+			if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+				
+				pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
+				pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+			}
+			
+			pw.println( "</item>" );
+		}
+		
+		pw.println( "</channel>" );
+		
+		pw.println( "</rss>" );
+	
+		pw.flush();
+		
+		return( os.toByteArray());
+	}
+	
+	protected long
+	getAddedTime(
+		Download	download )
+	{
+		DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+		
+		return( core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME));
+	}
+	
+	protected String
+	escape(
+		String	str )
+	{
+		return( XUXmlWriter.escapeXML(str));
 	}
 	
 	public void
