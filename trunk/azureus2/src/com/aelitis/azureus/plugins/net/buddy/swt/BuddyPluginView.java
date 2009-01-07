@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
@@ -57,7 +58,10 @@ BuddyPluginView
 	
 	private BuddyPluginViewInstance		current_instance;
 	
-	private String lastIconID = null;
+	private Image iconNLI;
+	private Image iconIDLE;
+	private Image iconIN;
+	private Image iconOUT;
 		
 	public
 	BuddyPluginView(
@@ -113,6 +117,17 @@ BuddyPluginView
 						new statusUpdater(ui_instance);
 					}
 				});
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+
+				iconNLI = imageLoader.getImage( "bbb_nli" );
+				iconIDLE = imageLoader.getImage( "bbb_idle" );
+				iconIN = imageLoader.getImage( "bbb_in" );
+				iconOUT = imageLoader.getImage( "bbb_out" );
+			}
+		});
 	}
 	
 	public boolean 
@@ -132,6 +147,7 @@ BuddyPluginView
 			}
 			case UISWTViewEvent.TYPE_INITIALIZE:{
 				
+
 				current_instance = new BuddyPluginViewInstance(plugin, ui_instance, (Composite)event.getData());
 				
 				break;
@@ -147,14 +163,6 @@ BuddyPluginView
 				}finally{
 					
 					current_instance = null;
-				}
-				
-				
-				if (lastIconID != null) {
-					ImageLoader imageLoader = ImageLoader.getInstance();
-					imageLoader.releaseImage(lastIconID);
-
-					lastIconID = null;
 				}
 				
 				break;
@@ -343,7 +351,7 @@ BuddyPluginView
 				
 				if ( has_buddies && !crypto_ok ){
 					
-					setStatusImage( status, "bbb_nli" );
+					status.setImage( iconNLI );
 					
 					status.setTooltipText( MessageText.getString( "azbuddy.tracker.bbb.status.nli" ));
 
@@ -355,7 +363,7 @@ BuddyPluginView
 					
 					if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_IDLE ){
 						
-						setStatusImage( status, "bbb_idle" );
+						status.setImage( iconIDLE );
 						
 						status.setTooltipText( MessageText.getString( "azbuddy.tracker.bbb.status.idle" ));
 						
@@ -363,13 +371,13 @@ BuddyPluginView
 						
 					}else if ( network_status == BuddyPluginTracker.BUDDY_NETWORK_INBOUND ){
 						
-						setStatusImage( status, "bbb_in" );
+						status.setImage( iconIN );
 						
 						enableUpdates();
 						
 					}else{
 						
-						setStatusImage( status, "bbb_out" );
+						status.setImage( iconOUT );
 						
 						enableUpdates();
 					}
@@ -444,21 +452,5 @@ BuddyPluginView
 		{
 			updateStatus();
 		}
-	}
-
-	/**
-	 * @param status 
-	 * @param string
-	 *
-	 * @since 4.0.0.5
-	 */
-	public void setStatusImage(UISWTStatusEntry status, String key) {
-		ImageLoader imageLoader = ImageLoader.getInstance();
-		
-		imageLoader.releaseImage(lastIconID);
-		
-		Image image = imageLoader.getImage(key);
-		status.setImage(image);
-		lastIconID = key;
 	}
 }
