@@ -3,7 +3,7 @@ VUZE CHANGELOG
 
 2009.xx.xx | Vuze 4.0.0.5
 
-FEATURE: UIvz | Support multipe Content Networks [parg,tuxpaper]
+FEATURE: UIvz | Support multiple Content Networks [parg,tuxpaper]
 FEATURE: UI   | Experimental neuronal speed algorithm [Gudy]
 FEATURE: Core | New FP Ignore rule: Ignore 1st Priority after X hours of idle upload speed (default 24h) [TuxPaper] 
 
