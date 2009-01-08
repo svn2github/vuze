@@ -20,6 +20,7 @@ package com.aelitis.azureus.util;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
@@ -95,6 +96,15 @@ public class DataSourceUtils
 		if (ds instanceof ISelectedContent) {
 			return getTorrent(((ISelectedContent)ds).getDM());
 		}
+		
+		if (ds instanceof String) {
+			String hash = (String) ds;
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+			if (dm != null) {
+				return dm.getTorrent();
+			}
+		}
 
 		return null;
 	}
@@ -128,6 +138,8 @@ public class DataSourceUtils
 				return entry.getAssetHash();
 			} else if (ds instanceof ISelectedContent) {
 				return ((ISelectedContent)ds).getHash();
+			} else if (ds instanceof String) {
+				return (String) ds;
 			}
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
@@ -147,6 +159,9 @@ public class DataSourceUtils
 				return entry.getContentNetwork();
 			} else if (ds instanceof ISelectedContent) {
 				return getContentNetwork(((ISelectedContent)ds).getDM());
+			} else if ((ds instanceof String) && ((String)ds).length() == 32) {
+				// assume 32 byte string is a hash and that it belongs to the def. network
+				id = ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
 			} else {
 				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
 			}
