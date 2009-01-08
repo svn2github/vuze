@@ -121,8 +121,8 @@ BuddyPluginBuddy
 	
 	private long last_auto_reconnect	= -1;
 	
-	private String			rss_local_cats;
-	private String			rss_remote_cats;
+	private Set<String>			rss_local_cats;
+	private Set<String>			rss_remote_cats;
 	
 	private volatile boolean	closing;
 	private volatile boolean	destroyed;
@@ -147,8 +147,8 @@ BuddyPluginBuddy
 		public_key 			= _pk;
 		nick_name			= _nick_name;
 		version				= Math.max( version, _version );
-		rss_local_cats		= _rss_local_cats;
-		rss_remote_cats		= _rss_remote_cats;
+		rss_local_cats		= stringToCats( _rss_local_cats );
+		rss_remote_cats		= stringToCats( _rss_remote_cats );
 		last_status_seq		= _last_status_seq;
 		last_time_online	= _last_time_online;
 		recent_ygm			= _recent_ygm;
@@ -272,35 +272,23 @@ BuddyPluginBuddy
 	public String
 	getLocalAuthorisedRSSCategoriesAsString()
 	{
-		return( rss_local_cats );
+		return( catsToString( rss_local_cats ));
 	}
 	
 	public void
 	addLocalAuthorisedRSSCategory(
-		String	str )
+		String	category )
 	{
-		if ( str == "all" ){
-			
-			str = "All";
-		}
+		category = normaliseCat( category );
 		
 		if ( rss_local_cats == null ){
 			
-			rss_local_cats = str;
-			
-		}else{
+			rss_local_cats = new HashSet<String>();
+		}
 		
-			String[] x = stringToCats( rss_local_cats );
+		if ( !rss_local_cats.contains( category )){
 			
-			for ( String s: x ){
-				
-				if ( s.equals( str )){
-					
-					return;
-				}
-			}
-			
-			rss_local_cats += "," + str;
+			rss_local_cats.add( category );
 			
 			plugin.setConfigDirty();
 			
@@ -312,10 +300,7 @@ BuddyPluginBuddy
 	removeLocalAuthorisedRSSCategory(
 		String	str )
 	{
-		if ( str == "all" ){
-			
-			str = "All";
-		}
+		str = normaliseCat( str );
 		
 		if ( rss_local_cats == null ){
 			
@@ -323,22 +308,8 @@ BuddyPluginBuddy
 			
 		}else{
 		
-			String[] x = stringToCats( rss_local_cats );
-			
-			String updated = "";
-			
-			for ( String s: x ){
-				
-				if ( !s.equals( str )){
-					
-					updated += (updated.length()==0?"":",") + s;
-				}
-			}
-			
-			if ( !updated.equals(rss_local_cats)){
-			
-				rss_local_cats = updated;
-			
+			if ( rss_local_cats.remove( str )){
+						
 				plugin.setConfigDirty();
 			
 				plugin.fireDetailsChanged( this );
@@ -348,22 +319,16 @@ BuddyPluginBuddy
 	
 	public void
 	setLocalAuthorisedRSSCategories(
-		String		new_cats )
+		String			new_cats )
+	{
+		setLocalAuthorisedRSSCategories( stringToCats( new_cats ));
+	}
+	
+	public void
+	setLocalAuthorisedRSSCategories(
+		Set<String>		new_cats )
 	{	
-		if ( new_cats != null ){
-			
-			String[] x = stringToCats( new_cats );
-			
-			for (int i=0;i<x.length;i++){
-				
-				if ( x[i].equalsIgnoreCase( "all" )){
-					
-					x[i] = "All";
-				}
-			}
-			
-			new_cats = catsToString( x );
-		}
+		normaliseCats( new_cats );
 		
 		if ( !catsIdentical( new_cats, rss_local_cats) ){
 			
@@ -375,16 +340,24 @@ BuddyPluginBuddy
 		}	
 	}
 	
-	public String
+	public Set<String>
   	getRemoteAuthorisedRSSCategories()
   	{
   		return( rss_remote_cats );
   	}
 	
+	public String
+	getRemoteAuthorisedRSSCategoriesAsString()
+	{
+		return( catsToString( rss_remote_cats ));
+	}
+	
 	protected void
 	setRemoteAuthorisedRSSCategories(
-		String		new_cats )
+		Set<String>		new_cats )
 	{
+		normaliseCats( new_cats );
+		
 		if ( !catsIdentical( new_cats, rss_remote_cats) ){
 			
 			rss_remote_cats = new_cats;
@@ -401,13 +374,7 @@ BuddyPluginBuddy
 	{
 		if ( rss_local_cats != null ){
 		
-			for (String s: stringToCats( rss_local_cats )){
-				
-				if ( s.equals( category )){
-					
-					return( true );
-				}
-			}
+			return( rss_local_cats.contains( normaliseCat( category )));
 		}
 		
 		return( false );
@@ -419,23 +386,62 @@ BuddyPluginBuddy
 	{
 		if ( rss_remote_cats != null ){
 		
-			for ( String s: stringToCats( rss_remote_cats )){
-				
-				if ( s.equals( category )){
-					
-					return( true );
-				}
-			}
+			return( rss_remote_cats.contains( category ));
 		}
 		
 		return( false );
 	}
 	
+	protected void
+	normaliseCats(
+		Set<String>	cats )
+	{
+		if ( cats != null ){
+			
+			boolean	all_found = false;
+			
+			Iterator<String> it = cats.iterator();
+			
+			while( it.hasNext()){
+				
+				if ( it.next().toLowerCase().equals( "all" )){
+					
+					it.remove();
+					
+					all_found = true;
+				}
+			}
+			
+			if ( all_found ){
+				
+				cats.add( "All" );
+			}
+		}
+	}
+	
+	protected String
+	normaliseCat(
+		String		str )
+	{
+		if ( str == null ){
+			
+			return( null );
+			
+		}else if ( str.toLowerCase().equals( "all" )){
+			
+			return( "All" );
+			
+		}else{
+			
+			return( str );
+		}
+	}
+	
 	protected String
 	catsToString(
-		String[]	cats )
+		Set<String>	cats )
 	{
-		if ( cats == null || cats.length == 0 ){
+		if ( cats == null || cats.size() == 0 ){
 			
 			return( null );
 		}
@@ -452,8 +458,8 @@ BuddyPluginBuddy
 	
 	protected boolean
 	catsIdentical(
-		String	c1,
-		String	c2 )
+		Set<String>	c1,
+		Set<String>	c2 )
 	{
 		if ( c1 == null && c2 == null ){
 			
@@ -469,7 +475,7 @@ BuddyPluginBuddy
 		}
 	}
 	
-	protected String[]
+	protected Set<String>
 	stringToCats(
 		String	str )
 	{
@@ -480,7 +486,7 @@ BuddyPluginBuddy
 		
 		String[] bits = str.split( "," );
 		
-		List<String> res = new ArrayList<String>( bits.length );
+		Set<String> res = new HashSet<String>( bits.length );
 		
 		for ( String b: bits ){
 			
@@ -497,7 +503,7 @@ BuddyPluginBuddy
 			return( null );
 		}
 		
-		return( res.toArray( new String[res.size()]));
+		return( res );
 	}
 	
 	public int
@@ -2588,7 +2594,7 @@ BuddyPluginBuddy
 					
 				}else{
 					
-					setRemoteAuthorisedRSSCategories( new String( b_rem_cat, "UTF-8" ));
+					setRemoteAuthorisedRSSCategories( stringToCats( new String( b_rem_cat, "UTF-8" )));
 				}
 				
 				if ( type == RT_REQUEST_DATA ){

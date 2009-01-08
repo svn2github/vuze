@@ -564,7 +564,7 @@ BuddyPluginViewInstance
 					}
 					item.setText(5, "" + loc_cat);
 
-					String rem_cat = buddy.getRemoteAuthorisedRSSCategories();
+					String rem_cat = buddy.getRemoteAuthorisedRSSCategoriesAsString();
 					if ( rem_cat == null ){
 						rem_cat = "";
 					}
@@ -1307,21 +1307,11 @@ BuddyPluginViewInstance
 							
 							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 							
-							String cats = buddy.getRemoteAuthorisedRSSCategories();
+							Set<String> cats = buddy.getRemoteAuthorisedRSSCategories();
 							
 							if ( cats != null ){
 								
-								String[] bits = cats.split( "," );
-								
-								for (String bit: bits ){
-									
-									bit = bit.trim();
-									
-									if ( bit.length() > 0 ){
-										
-										avail_cats.add( bit );
-									}
-								}
+								avail_cats.addAll( cats );
 							}
 						}
 						
@@ -1812,7 +1802,7 @@ BuddyPluginViewInstance
 			}else if(field == FIELD_LOC_CAT){
 				res = compareStrings( b1.getLocalAuthorisedRSSCategoriesAsString(), b2.getLocalAuthorisedRSSCategoriesAsString());
 			}else if(field == FIELD_REM_CAT){
-				res = compareStrings( b1.getRemoteAuthorisedRSSCategories(), b2.getRemoteAuthorisedRSSCategories());
+				res = compareStrings( b1.getRemoteAuthorisedRSSCategoriesAsString(), b2.getRemoteAuthorisedRSSCategoriesAsString());
 			}else if(field == FIELD_CON){
 				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
 			}else if(field == FIELD_MSG_IN){
