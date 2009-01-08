@@ -141,6 +141,7 @@ public class FileDownloadWindow
 
 		downloader = TorrentDownloaderFactory.create(this, original_url, referrer,
 				request_properties, dirName);
+		downloader.setIgnoreReponseCode(true);
 		downloader.start();
 	}
 
@@ -185,6 +186,7 @@ public class FileDownloadWindow
 								downloader = TorrentDownloaderFactory.create(
 										FileDownloadWindow.this, original_url, referrer,
 										request_properties, dirName);
+								downloader.setIgnoreReponseCode(true);
 								downloader.start();
 							}
 							break;

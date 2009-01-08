@@ -101,4 +101,16 @@ public interface TorrentDownloader {
 		 * @param deleteFileOnCancel
 		 */
 		void setDeleteFileOnCancel(boolean deleteFileOnCancel);
+		/**
+		 * @return
+		 *
+		 * @since 4.0.0.5
+		 */
+		boolean isIgnoreReponseCode();
+		/**
+		 * @param ignoreReponseCode
+		 *
+		 * @since 4.0.0.5
+		 */
+		void setIgnoreReponseCode(boolean ignoreReponseCode);
 }

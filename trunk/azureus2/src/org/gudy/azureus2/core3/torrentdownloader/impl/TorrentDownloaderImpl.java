@@ -24,10 +24,7 @@
 
 package org.gudy.azureus2.core3.torrentdownloader.impl;
 
-import java.io.InputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -71,6 +68,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   private byte[] buf = new byte[1020];
   private int bufBytes = 0;
   private boolean deleteFileOnCancel = true;
+  private boolean ignoreReponseCode = false;
   
 
   private AEMonitor this_mon 	= new AEMonitor( "TorrentDownloader" );
@@ -242,11 +240,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       	}
       }
       
-      int response = this.con.getResponseCode();
-      if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
-        this.error(response, Integer.toString(response) + ": " + this.con.getResponseMessage());
-        return;
-      }
+  		int response = this.con.getResponseCode();
+    	if (!ignoreReponseCode) {
+        if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
+          this.error(response, Integer.toString(response) + ": " + this.con.getResponseMessage());
+          return;
+        }
+    	}
 
       /*
       Map headerFields = this.con.getHeaderFields();
@@ -451,6 +451,15 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 			
 		try{
 			in = this.con.getInputStream();
+		
+		} catch (FileNotFoundException e) {
+			if (ignoreReponseCode) {
+
+				in = this.con.getErrorStream();
+			} else {
+
+				throw e;
+			}
 				
 		}finally{
 			
@@ -708,4 +717,13 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   public boolean getDeleteFileOnCancel() {
   	return deleteFileOnCancel;
   }
+
+  public boolean isIgnoreReponseCode() {
+		return ignoreReponseCode;
+	}
+
+	public void setIgnoreReponseCode(boolean ignoreReponseCode) {
+		this.ignoreReponseCode = ignoreReponseCode;
+	}
+
 }
