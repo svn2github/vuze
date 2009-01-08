@@ -65,7 +65,7 @@ public class SimpleReorderableListLayout extends Layout {
 				}
 				if(center) {
 					width = 2 * borderW + (margin + maxWidth) * itemsPerRow - margin;
-					extraSpacing = (wHint - width) / (itemsPerRow+1);
+					extraSpacing = itemsPerRow == 0 ? 0 : (wHint - width) / (itemsPerRow);
 				} else {
 					extraSpacing = 0;
 				}
@@ -111,10 +111,12 @@ public class SimpleReorderableListLayout extends Layout {
 			int xn = i % itemsPerRow;
 			int yn = i / itemsPerRow;
 			Control control = (Control) sortedControls.get(i);
-			int x = borderW + (margin + maxWidth + extraSpacing) * xn + extraSpacing;
+			//int x = borderW + (margin + maxWidth + extraSpacing) * xn + extraSpacing;
+			int x = borderW + (margin + maxWidth + extraSpacing) * xn;
 			int y = borderH + (margin + maxHeight) * yn;
 			control.setLocation(x,y);
-			control.setBounds(x,y,maxWidth,maxHeight);
+			//control.setBounds(x,y,maxWidth,maxHeight);
+			control.setBounds(x,y,maxWidth + extraSpacing,maxHeight);
 		}
 	
 	}

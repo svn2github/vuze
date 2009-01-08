@@ -391,13 +391,19 @@ public class AvatarWidget
 					// ignore.. some of these may not be avail
 				}
 
+				Rectangle bounds = canvas.getBounds();
 				if(isActivated) {
 					e.gc.setForeground(highlightedColor);
-					Rectangle bounds = canvas.getBounds();
 					e.gc.drawRoundRectangle(highlightBorder, highlightBorder,
 							bounds.width - (2 * highlightBorder)-1, bounds.height
 									- (2 * highlightBorder)-1, 6, 6);
+					
 				}
+				
+				nameAreaBounds = new Rectangle(2,
+						imageBounds.y + imageBounds.height + 2, bounds.width - 2,
+						nameAreaSize.y);
+
 				
 				/*
 				 * Draw background if the widget is activated or selected
@@ -435,8 +441,10 @@ public class AvatarWidget
 						/*
 						 * Image
 						 */
+						int x = (bounds.width - imageBounds.width) / 2;
+						int y = imageBounds.y;
 						e.gc.drawImage(imgAvatar, 0, 0, sourceImageBounds.width,
-								sourceImageBounds.height, imageBounds.x, imageBounds.y,
+								sourceImageBounds.height, x, y,
 								imageBounds.width, imageBounds.height);
 						e.gc.setAlpha(getAlpha());
 						/*
@@ -445,7 +453,7 @@ public class AvatarWidget
 						if (imageBorder > 0 && imageBorderColor != null) {
 							e.gc.setForeground(imageBorderColor);
 							e.gc.setLineWidth(imageBorder);
-							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
+							e.gc.drawRectangle(x - imageBorder, y
 									- imageBorder, imageBounds.width + imageBorder,
 									imageBounds.height + imageBorder);
 							e.gc.setForeground(canvas.getForeground());
@@ -454,8 +462,10 @@ public class AvatarWidget
 						/*
 						 * Image
 						 */
+						int x = (bounds.width - imageBounds.width) / 2;
+						int y = imageBounds.y;
 						e.gc.drawImage(imgAvatar, 0, 0, sourceImageBounds.width,
-								sourceImageBounds.height, imageBounds.x, imageBounds.y,
+								sourceImageBounds.height, x, y,
 								imageBounds.width, imageBounds.height);
 						/*
 						 * Image border
@@ -463,7 +473,7 @@ public class AvatarWidget
 						if (imageBorder > 0 && imageBorderColor != null) {
 							e.gc.setForeground(imageBorderColor);
 							e.gc.setLineWidth(imageBorder);
-							e.gc.drawRectangle(imageBounds.x - imageBorder, imageBounds.y
+							e.gc.drawRectangle(x - imageBorder, y
 									- imageBorder, imageBounds.width + imageBorder,
 									imageBounds.height + imageBorder);
 							e.gc.setForeground(canvas.getForeground());
@@ -628,13 +638,16 @@ public class AvatarWidget
 					if (nbMessages > 0 && (chatWindow == null || !chatWindow.isVisible())) {
 						int startPixel = 0;
 						if (nbMessages >= 10) {
-							e.gc.drawImage(imageLoader.getImage("large_red_bubble"), 35,
-									-1);
-							startPixel = 49;
+							Image img = imageLoader.getImage("large_red_bubble");
+							int x = bounds.width - img.getBounds().width;
+							e.gc.drawImage(img, x, -1);
+							startPixel = x + 14;
 							imageLoader.releaseImage("large_red_bubble");
 						} else {
-							e.gc.drawImage(imageLoader.getImage("red_bubble"), 40, 0);
-							startPixel = 52;
+							Image img = imageLoader.getImage("red_bubble");
+							int x = bounds.width - img.getBounds().width;
+							e.gc.drawImage(img, x, 0);
+							startPixel = x + 13;
 							imageLoader.releaseImage("red_bubble");
 						}
 
