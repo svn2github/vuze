@@ -21,6 +21,7 @@ package com.aelitis.azureus.buddy;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
@@ -88,6 +89,12 @@ public interface VuzeBuddy
 	public String getCode();
 
 	public void setCode(String code);
+
+	public Set<String>
+	getSubscribableCategories();
+	
+	public Set<String>
+	getPublishedCategories();
 
 	String getProfileUrl(String referer);
 
@@ -158,6 +165,9 @@ public interface VuzeBuddy
 	 */
 	VuzeBuddyListener[] getListeners();
 	
+	public int
+	getStoredChatMessageCount();
+
 	public List
 	getStoredChatMessages();
 	

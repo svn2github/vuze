@@ -2,6 +2,11 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.io.File;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -15,6 +20,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.shells.InputShell;
@@ -906,17 +912,6 @@ public class AvatarWidget
 		item.setText(vuzeBuddy.getDisplayName());
 		item = new MenuItem(menu, SWT.SEPARATOR);
 		
-		
-		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
-				if (aw != null) {
-					aw.doLinkClicked();
-				}
-			}
-		});
-		
 		item = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(item, "v3.buddy.menu.viewprofile");
 		item.addSelectionListener(new SelectionAdapter() {
@@ -1016,6 +1011,19 @@ public class AvatarWidget
 				}
 			});
 		}
+		
+		item = new MenuItem(menu, SWT.SEPARATOR);
+		
+		item = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(item, "Subscription.menu.properties");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
+				if (aw != null) {
+					aw.doProperties();
+				}
+			}
+		});
 	}
 
 	private void doRemoveBuddy() {
@@ -1142,6 +1150,61 @@ public class AvatarWidget
 		}
 	}
 
+	public void
+	doProperties()
+	{
+		SimpleDateFormat df = new SimpleDateFormat();
+
+		String[] keys = {
+				"v3.buddy.prop.dn",
+				"v3.buddy.prop.un",
+				"v3.buddy.prop.on",
+				"v3.buddy.prop.lupd",
+				"v3.buddy.prop.pks",
+				"v3.buddy.prop.pc",
+				"v3.buddy.prop.catout",
+				"v3.buddy.prop.catin",
+			};
+		
+		String[] values = { 
+				vuzeBuddy.getDisplayName(),
+				vuzeBuddy.getLoginID(),
+				MessageText.getString( vuzeBuddy.isOnline( true )?"GeneralView.yes":"GeneralView.no" ),
+				df.format( new Date( vuzeBuddy.getLastUpdated())),
+				String.valueOf( vuzeBuddy.getPublicKeys().length ),
+				String.valueOf(vuzeBuddy.getStoredChatMessageCount()),
+				getString( vuzeBuddy.getPublishedCategories()),
+				getString( vuzeBuddy.getSubscribableCategories()),
+			};
+		
+		new PropertiesWindow( vuzeBuddy.getDisplayName(), keys, values );
+	}
+	
+	protected String
+	getString(
+		Set<String>		cats )
+	{
+		if ( cats == null || cats.size() == 0 ){
+			
+			return( "" );
+			
+		}else{
+			
+			String	str = "";
+			
+			cats = new TreeSet<String>( cats );
+			
+			Iterator<String> it = cats.iterator();
+			
+			while( it.hasNext()){
+				
+				str += (str.length()==0?"":", ") + it.next();
+			}
+			
+			return( str );
+		}
+	}
+	
 	public Control getControl() {
 		return canvas;
 	}

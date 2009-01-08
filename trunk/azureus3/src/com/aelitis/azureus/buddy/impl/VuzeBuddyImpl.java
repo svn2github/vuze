@@ -447,6 +447,25 @@ public class VuzeBuddyImpl
 		return (VuzeBuddyListener[]) listeners.toArray(new VuzeBuddyListener[0]);
 	}
 
+	public int
+	getStoredChatMessageCount()
+	{
+		Iterator it = pluginBuddies.iterator();
+
+		int	res = 0;
+
+		while (it.hasNext()) {
+
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+
+			List msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
+
+			res += msgs.size();
+		}
+
+		return( res );
+	}
+	
 	public List
 	getStoredChatMessages()
 	{
@@ -519,5 +538,49 @@ public class VuzeBuddyImpl
 
 			pm.delete();
 		}
+	}
+	
+	public Set<String>
+	getSubscribableCategories()
+	{
+		Iterator it = pluginBuddies.iterator();
+
+		Set<String> result = new HashSet<String>();
+
+		while (it.hasNext()) {
+
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+
+			Set<String> x = pluginBuddy.getRemoteAuthorisedRSSCategories();
+			
+			if ( x != null ){
+				
+				result.addAll(x);
+			}
+		}
+		
+		return( result );
+	}
+	
+	public Set<String>
+	getPublishedCategories()
+		{
+		Iterator it = pluginBuddies.iterator();
+
+		Set<String> result = new HashSet<String>();
+
+		while (it.hasNext()) {
+
+			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+
+			Set<String> x = pluginBuddy.getLocalAuthorisedRSSCategories();
+			
+			if ( x != null ){
+				
+				result.addAll(x);
+			}
+		}
+		
+		return( result );
 	}
 }
