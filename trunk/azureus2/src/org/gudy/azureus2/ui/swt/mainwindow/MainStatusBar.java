@@ -951,11 +951,12 @@ public class MainStatusBar
 			
 			if (!imgID.equals(lastNATimageID)) {
 				ImageLoader imageLoader = ImageLoader.getInstance();
+				natStatus.setImage(imageLoader.getImage(imgID));
+
 				if (lastNATimageID != null) {
 					imageLoader.releaseImage(lastNATimageID);
 				}
 				lastNATimageID = imgID;
-				natStatus.setImage(imageLoader.getImage(imgID));
 			}
 
 			natStatus.setToolTipText(MessageText.getString(tooltipID));
