@@ -3,11 +3,15 @@
  */
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
+import java.util.Iterator;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
@@ -18,8 +22,6 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuContext;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuContextImpl;
 
 /**
  * @author Allan Crooks
@@ -44,7 +46,8 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	
 	private Menu menu;
 
-	private String lastImageName = null;
+	private CopyOnWriteArrayList<String> imageIDstoDispose = new CopyOnWriteArrayList<String>();
+	private String imageID = null;
 	
 	private void checkDestroyed() {
 		if (is_destroyed) {throw new RuntimeException("object is destroyed, cannot be reused");}
@@ -61,11 +64,11 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 				menu = null;
 			}
 			label.dispose();
-			
-			if (lastImageName != null) {
-				ImageLoader imageLoader = ImageLoader.getInstance();
-				imageLoader.releaseImage(lastImageName);
+
+			if (imageID != null) {
+				imageIDstoDispose.add(imageID);
 			}
+			releaseOldImages();
 			
 			return;
 		}
@@ -83,11 +86,30 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 		}
 	}
 	
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.5
+	 */
+	private void releaseOldImages() {
+		if (imageIDstoDispose.size() > 0) {
+			ImageLoader imageLoader = ImageLoader.getInstance();
+
+			for (Iterator iter = imageIDstoDispose.iterator(); iter.hasNext();) {
+				String id = (String) iter.next();
+				imageLoader.releaseImage(id);
+				iter.remove();
+			}
+		}
+	}
+
 	private void update0(final CLabel label) {
 		label.setText(text);
 		label.setToolTipText(tooltip);
 		label.setImage(image_enabled ? image : null);
 		label.setVisible(this.is_visible);
+		
+		releaseOldImages();
 		
 		MenuItem[] items = MenuItemManager.getInstance().getAllAsArray(menu_context.context);
 		if (items.length > 0 & menu == null) {
@@ -136,27 +158,29 @@ public class UISWTStatusEntryImpl implements UISWTStatusEntry, MainStatusBar.CLa
 	}
 
 	public void setImage(int image_id) {
-		String img_name;
+		// we can't release the old image here because the label is still using it
+		// Put it into a list until the label is updated with the new image, then
+		// release the old
+		if (imageID != null) {
+			imageIDstoDispose.add(imageID);
+		}
+
 		switch (image_id) {
 			case IMAGE_LED_GREEN:
-				img_name = "greenled";
+				imageID = "greenled";
 				break;
 			case IMAGE_LED_RED:
-				img_name = "redled";
+				imageID = "redled";
 				break;
 			case IMAGE_LED_YELLOW:
-				img_name = "yellowled";
+				imageID = "yellowled";
 				break;
 			default:
-				img_name = "grayled";
+				imageID = "grayled";
 				break;
 		}
 		ImageLoader imageLoader = ImageLoader.getInstance();
-		if (lastImageName != null) {
-			imageLoader.releaseImage(lastImageName);
-		}
-		lastImageName = img_name;
-		this.setImage(imageLoader.getImage(img_name));
+		this.setImage(imageLoader.getImage(imageID));
 	}
 
 	public void setImage(Image image) {
