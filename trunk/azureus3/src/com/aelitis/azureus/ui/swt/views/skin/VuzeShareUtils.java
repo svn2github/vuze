@@ -8,6 +8,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
@@ -119,7 +120,8 @@ public class VuzeShareUtils
 		}
 		
 		long id = PlatformTorrentUtils.getContentNetworkID(torrent);
-		return id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
+		return id == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()
+				|| id == ContentNetwork.CONTENT_NETWORK_UNKNOWN;
 	}
 
 }
