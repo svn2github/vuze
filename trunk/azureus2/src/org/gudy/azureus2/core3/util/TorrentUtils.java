@@ -1056,6 +1056,9 @@ TorrentUtils
 			
 			writeToFile( torrent );
 			
+		} catch (TOTorrentException e) {
+			// ignore, file probably not torrent
+			
 		}catch( Throwable e ){
 			
 			Debug.out( e );
