@@ -33,51 +33,55 @@ public class ImageLoaderRefInfo
 	// -2: non-disposable; -1: someone over unref'd; 0: no refs (dispose!)
 	private long refcount;
 
-	public ImageLoaderRefInfo(Image[] images) {
+	protected ImageLoaderRefInfo(Image[] images) {
 		this.images = images;
 		refcount = 1;
 	}
 
-	public ImageLoaderRefInfo(Image image) {
+	protected ImageLoaderRefInfo(Image image) {
 		this.images = new Image[] {
 			image
 		};
 		refcount = 1;
 	}
 	
-	public void setNonDisposable() {
+	protected void setNonDisposable() {
 		refcount = -2;
 	}
 	
-	public boolean isNonDisposable() {
+	protected boolean isNonDisposable() {
 		return refcount == -2;
 	}
 	
-	public void addref() {
-		if (refcount >= 0) {
-			refcount++;
+	protected void addref() {
+		synchronized (this) {
+  		if (refcount >= 0) {
+  			refcount++;
+  		}
 		}
 	}
 	
-	public void unref() {
-		if (refcount >= 0) {
-			refcount--;
+	protected void unref() {
+		synchronized (this) {
+			if (refcount >= 0) {
+				refcount--;
+			}
 		}
 	}
 	
-	public boolean canDispose() {
+	protected boolean canDispose() {
 		return refcount == 0 || refcount == -1;
 	}
 	
-	public long getRefCount() {
+	protected long getRefCount() {
 		return refcount;
 	}
 	
-	public Image[] getImages() {
+	protected Image[] getImages() {
 		return images;
 	}
 	
-	public void setImages(Image[] images) {
+	protected void setImages(Image[] images) {
 		this.images = images;
 	}
 }

@@ -75,7 +75,7 @@ public class ImageLoader
 
 	public static Image noImage;
 
-	private final Map<String, ImageLoaderRefInfo> mapImages;
+	private final ConcurrentHashMap<String, ImageLoaderRefInfo> mapImages;
 
 	private final ArrayList<String> notFound;
 
@@ -392,6 +392,10 @@ public class ImageLoader
 	}
 
 	public Image[] getImages(String sKey) {
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("getImages called on non-SWT thread");
+			return new Image[0];
+		}
 		//System.out.println("getImages " + sKey);
 		if (sKey == null) {
 			return new Image[0];
@@ -518,31 +522,35 @@ public class ImageLoader
 	 * @since 4.0.0.5
 	 */
 	public void addImage(String key, Image image) {
-		ImageLoaderRefInfo info = mapImages.get(key);
-		if (info == null) {
-			mapImages.put(key, new ImageLoaderRefInfo(image));
-		} else {
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("addImage called on non-SWT thread");
+			return;
+		}
+		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+				new ImageLoaderRefInfo(image));
+		if (existing != null) {
 			// should probably fail if refcount > 0
-			info.setImages(new Image[] {
+			existing.setImages(new Image[] {
 				image
 			});
-			info.addref();
+			existing.addref();
 		}
 	}
 
 	public void addImageNoDipose(String key, Image image) {
-		ImageLoaderRefInfo info = mapImages.get(key);
-		if (info == null) {
-			info = new ImageLoaderRefInfo(image);
-			info.setNonDisposable();
-			mapImages.put(key, info);
-		} else {
-			info.setNonDisposable();
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("addImageNoDispose called on non-SWT thread");
+			return;
+		}
+		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+				new ImageLoaderRefInfo(image));
+		if (existing != null) {
+			existing.setNonDisposable();
 			// should probably fail if refcount > 0
-			info.setImages(new Image[] {
+			existing.setImages(new Image[] {
 				image
 			});
-			info.addref();
+			existing.addref();
 		}
 	}
 
@@ -589,6 +597,10 @@ public class ImageLoader
 	}
 
 	public Image getUrlImage(final String url, final ImageDownloaderListener l) {
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("getUrlImage called on non-SWT thread");
+			return null;
+		}
 		if (l == null || url == null) {
 			return null;
 		}
@@ -626,17 +638,20 @@ public class ImageLoader
 
 		ImageBytesDownloader.loadImage(url,
 				new ImageBytesDownloader.ImageDownloaderListener() {
-					public void imageDownloaded(byte[] imageBytes) {
-						FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
-						InputStream is = new ByteArrayInputStream(imageBytes);
-						Image image = new Image(Display.getCurrent(), is);
-						try {
-							is.close();
-						} catch (IOException e) {
-						}
-						mapImages.put(url, new ImageLoaderRefInfo(image));
-						l.imageDownloaded(image, false);
-						return;
+					public void imageDownloaded(final byte[] imageBytes) {
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
+								InputStream is = new ByteArrayInputStream(imageBytes);
+								Image image = new Image(Display.getCurrent(), is);
+								try {
+									is.close();
+								} catch (IOException e) {
+								}
+								mapImages.put(url, new ImageLoaderRefInfo(image));
+								l.imageDownloaded(image, false);
+							}
+						});
 					}
 				});
 		return null;
@@ -752,6 +767,8 @@ public class ImageLoader
 					String key = iter.next();
 					ImageLoaderRefInfo info = mapImages.get(key);
 
+					// no one can addref in between canDispose and dispose because
+					// all our addrefs are in SWT threads.
 					if (info != null && info.canDispose()) {
 						iter.remove();
 						numRemoved++;
