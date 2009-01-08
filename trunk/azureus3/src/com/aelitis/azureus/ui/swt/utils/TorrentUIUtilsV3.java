@@ -137,8 +137,18 @@ public class TorrentUIUtilsV3
 										file.deleteOnExit();
 
 										// Do a quick check to see if it's a torrent
-										if (!TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
-												file.getName())) {
+										if (!TorrentUtil.isFileTorrent(file, null, file.getName())) {
+											Matcher m = hashPattern.matcher(inf.getURL());
+											if (m.find()) {
+												String hash = m.group(1);
+												
+												TorrentListViewsUtils.viewDetailsFromDS(hash,
+												"loadtorrent");
+											} else {
+												TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
+														file.getName());
+											}
+
 											return;
 										}
 
