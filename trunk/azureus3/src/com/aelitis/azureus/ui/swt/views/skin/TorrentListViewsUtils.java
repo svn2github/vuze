@@ -142,15 +142,11 @@ public class TorrentListViewsUtils
 	 * @since 4.0.0.5
 	 */
 	public static void viewDetailsFromDS(Object ds, String ref) {
-		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
-		if (torrent == null) {
+		String hash = DataSourceUtils.getHash(ds);
+		if (hash == null) {
 			return;
 		}
-		try {
-			viewDetails(DataSourceUtils.getContentNetwork(ds),
-					torrent.getHashWrapper().toBase32String(), ref);
-		} catch (TOTorrentException e) {
-		}
+		viewDetails(DataSourceUtils.getContentNetwork(ds), hash, ref);
 	}
 
 
