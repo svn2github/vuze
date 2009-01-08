@@ -1946,8 +1946,8 @@ BuddyPlugin
 						map.put( "lc", buddy.getLocalAuthorisedRSSCategoriesAsString());
 					}
 					
-					if ( buddy.getRemoteAuthorisedRSSCategories() != null ){
-						map.put( "rc", buddy.getRemoteAuthorisedRSSCategories());
+					if ( buddy.getRemoteAuthorisedRSSCategoriesAsString() != null ){
+						map.put( "rc", buddy.getRemoteAuthorisedRSSCategoriesAsString());
 					}
 
 					buddies_config.add( map );

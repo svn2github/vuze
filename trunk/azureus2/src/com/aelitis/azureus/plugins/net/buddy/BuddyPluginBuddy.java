@@ -275,6 +275,12 @@ BuddyPluginBuddy
 		return( catsToString( rss_local_cats ));
 	}
 	
+	public Set<String>
+  	getLocalAuthorisedRSSCategories()
+  	{
+  		return( rss_local_cats );
+  	}
+	
 	public void
 	addLocalAuthorisedRSSCategory(
 		String	category )
