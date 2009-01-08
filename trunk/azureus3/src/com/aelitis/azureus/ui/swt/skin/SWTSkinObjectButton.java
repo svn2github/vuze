@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
@@ -44,7 +46,7 @@ public class SWTSkinObjectButton
 	private Button button;
 	private ArrayList buttonListeners = new ArrayList(1);
 
-	public SWTSkinObjectButton(SWTSkin skin, SWTSkinProperties properties,
+	public SWTSkinObjectButton(SWTSkin skin, final SWTSkinProperties properties,
 			String id, String configID, SWTSkinObject parentSkinObject) {
 		super(skin, properties, id, configID, "button", parentSkinObject);
 
@@ -108,6 +110,24 @@ public class SWTSkinObjectButton
 			public void runSupport() {
 				if (button != null && !button.isDisposed()) {
 					button.setText(text);
+					int width = properties.getIntValue(sConfigID + ".width", -1);
+					if (width == -1) {
+  					int minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
+  					if (minWidth >= 0) {
+    					FormData fd = (FormData) button.getLayoutData();
+    					if (fd == null) {
+    						fd = new FormData();
+    					}
+    					Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+    					if (size.x < minWidth) {
+    						fd.width = minWidth;
+    					} else {
+    						fd.width = -1;
+    					}
+    					button.setLayoutData(fd);
+    					Utils.relayout(control);
+  					}
+					}
 				}
 			}
 		});
