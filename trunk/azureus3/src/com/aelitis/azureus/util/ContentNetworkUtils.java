@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.util;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -55,7 +55,7 @@ public class ContentNetworkUtils
 			cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 					networkID);
 		}
-	
+
 		if (cn == null) {
 			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
 		}
@@ -63,7 +63,9 @@ public class ContentNetworkUtils
 	}
 
 	public static String getTarget(ContentNetwork cn) {
-		return "ContentNetwork." + cn.getID();
+		return "ContentNetwork."
+				+ (cn == null ? ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()
+						: cn.getID());
 	}
 
 }
