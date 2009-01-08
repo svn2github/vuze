@@ -225,8 +225,9 @@ BuddyPlugin
 	
 	private CryptoHandler ecc_handler = CryptoManagerFactory.getSingleton().getECCHandler();
 
-	private List	buddies 	= new ArrayList();
-	private Map		buddies_map	= new HashMap();
+	private List<BuddyPluginBuddy>	buddies 	= new ArrayList<BuddyPluginBuddy>();
+	
+	private Map<String,BuddyPluginBuddy>		buddies_map	= new HashMap<String,BuddyPluginBuddy>();
 	
 	private CopyOnWriteList		listeners 			= new CopyOnWriteList();
 	private CopyOnWriteList		request_listeners	= new CopyOnWriteList(); 
@@ -1941,8 +1942,8 @@ BuddyPlugin
 					
 					map.put( "v", new Long( buddy.getVersion()));
 					
-					if ( buddy.getLocalAuthorisedRSSCategories() != null ){
-						map.put( "lc", buddy.getLocalAuthorisedRSSCategories());
+					if ( buddy.getLocalAuthorisedRSSCategoriesAsString() != null ){
+						map.put( "lc", buddy.getLocalAuthorisedRSSCategoriesAsString());
 					}
 					
 					if ( buddy.getRemoteAuthorisedRSSCategories() != null ){
@@ -2881,12 +2882,12 @@ BuddyPlugin
 		 * Returns authorised buddies only
 		 */
 	
-	public List
+	public List<BuddyPluginBuddy>
 	getBuddies()
 	{
 		synchronized( this ){
 			
-			List	result = new ArrayList();
+			List<BuddyPluginBuddy>	result = new ArrayList<BuddyPluginBuddy>();
 			
 			for (int i=0;i<buddies.size();i++){
 				

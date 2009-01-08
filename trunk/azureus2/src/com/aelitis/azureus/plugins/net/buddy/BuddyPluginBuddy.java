@@ -270,15 +270,101 @@ BuddyPluginBuddy
 	}
 	
 	public String
-	getLocalAuthorisedRSSCategories()
+	getLocalAuthorisedRSSCategoriesAsString()
 	{
 		return( rss_local_cats );
 	}
 	
 	public void
+	addLocalAuthorisedRSSCategory(
+		String	str )
+	{
+		if ( str == "all" ){
+			
+			str = "All";
+		}
+		
+		if ( rss_local_cats == null ){
+			
+			rss_local_cats = str;
+			
+		}else{
+		
+			String[] x = stringToCats( rss_local_cats );
+			
+			for ( String s: x ){
+				
+				if ( s.equals( str )){
+					
+					return;
+				}
+			}
+			
+			rss_local_cats += "," + str;
+			
+			plugin.setConfigDirty();
+			
+			plugin.fireDetailsChanged( this );
+		}
+	}
+	
+	public void
+	removeLocalAuthorisedRSSCategory(
+		String	str )
+	{
+		if ( str == "all" ){
+			
+			str = "All";
+		}
+		
+		if ( rss_local_cats == null ){
+			
+			return;
+			
+		}else{
+		
+			String[] x = stringToCats( rss_local_cats );
+			
+			String updated = "";
+			
+			for ( String s: x ){
+				
+				if ( !s.equals( str )){
+					
+					updated += (updated.length()==0?"":",") + s;
+				}
+			}
+			
+			if ( !updated.equals(rss_local_cats)){
+			
+				rss_local_cats = updated;
+			
+				plugin.setConfigDirty();
+			
+				plugin.fireDetailsChanged( this );
+			}
+		}
+	}
+	
+	public void
 	setLocalAuthorisedRSSCategories(
 		String		new_cats )
-	{		
+	{	
+		if ( new_cats != null ){
+			
+			String[] x = stringToCats( new_cats );
+			
+			for (int i=0;i<x.length;i++){
+				
+				if ( x[i].equalsIgnoreCase( "all" )){
+					
+					x[i] = "All";
+				}
+			}
+			
+			new_cats = catsToString( x );
+		}
+		
 		if ( !catsIdentical( new_cats, rss_local_cats) ){
 			
 			rss_local_cats = new_cats;
@@ -309,7 +395,7 @@ BuddyPluginBuddy
 		}
 	}
 	
-	protected boolean
+	public boolean
 	isLocalRSSCategoryAuthorised(
 		String	category )
 	{
@@ -344,6 +430,7 @@ BuddyPluginBuddy
 		
 		return( false );
 	}
+	
 	protected String
 	catsToString(
 		String[]	cats )
@@ -357,7 +444,7 @@ BuddyPluginBuddy
 		
 		for (String s:cats ){
 			
-			str += (s.length()==0?"":",") + s;
+			str += (str.length()==0?"":",") + s;
 		}
 		
 		return( str );
@@ -2436,7 +2523,7 @@ BuddyPluginBuddy
 			send_map.put( "oz", new Long( plugin.getOnlineStatus()));
 			send_map.put( "v", new Long( BuddyPlugin.VERSION_CURRENT ));
 			
-			String	loc_cat = getLocalAuthorisedRSSCategories();
+			String	loc_cat = getLocalAuthorisedRSSCategoriesAsString();
 			
 			if ( loc_cat != null ){
 				send_map.put( "cat", loc_cat );
@@ -2556,7 +2643,7 @@ BuddyPluginBuddy
 					reply_map.put( "id", data_map.get( "id" ) );
 					reply_map.put( "oz", new Long( plugin.getOnlineStatus()));
 
-					String	loc_cat = getLocalAuthorisedRSSCategories();
+					String	loc_cat = getLocalAuthorisedRSSCategoriesAsString();
 					
 					if ( loc_cat != null ){
 						reply_map.put( "cat", loc_cat );

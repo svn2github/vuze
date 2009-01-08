@@ -64,6 +64,8 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -73,8 +75,10 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 /** Displays a list of torrents in a table view.
  *
@@ -514,7 +518,7 @@ public class MyTorrentsView
 				catButton.setLayoutData(rd);
 			}
 
-			String name = category.getName();
+			final String name = category.getName();
 			if (category.getType() == Category.TYPE_USER)
 				catButton.setText(name);
 			else
@@ -778,7 +782,7 @@ public class MyTorrentsView
 					// Queue
 
 					final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
-					Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue"); //$NON-NLS-1$
+					Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
 					Utils.setMenuItemImage(itemQueue, "start");
 					itemQueue.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
@@ -790,7 +794,7 @@ public class MyTorrentsView
 					// Stop
 
 					final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-					Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+					Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
 					Utils.setMenuItemImage(itemStop, "stop");
 					itemStop.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
@@ -799,6 +803,75 @@ public class MyTorrentsView
 					});
 					itemStop.setEnabled(stop);
 
+					// share with friends
+					
+					PluginInterface bpi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByClass( BuddyPlugin.class );
+					
+					int cat_type = category.getType();
+					
+					if ( bpi != null && cat_type != Category.TYPE_UNCATEGORIZED ){
+						
+						BuddyPlugin	buddy_plugin = (BuddyPlugin)bpi.getPlugin();
+						
+						if ( buddy_plugin.isEnabled()){
+							
+							final Menu share_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+							final MenuItem share_item = new MenuItem(menu, SWT.CASCADE);
+							Messages.setLanguageText(share_item, "azbuddy.ui.menu.cat.share" );
+							share_item.setMenu(share_menu);
+
+						
+							List<BuddyPluginBuddy> buddies = buddy_plugin.getBuddies();
+							
+							for ( final BuddyPluginBuddy buddy: buddies ){
+								
+								if ( buddy.getNickName() == null ){
+									
+									continue;
+								}
+								
+								final String cname;
+								
+								if ( cat_type == Category.TYPE_ALL ){
+									
+									cname = "All";
+									
+								}else{
+									
+									cname = category.getName();
+								}
+								
+								final boolean auth = buddy.isLocalRSSCategoryAuthorised( cname );
+								
+								final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK );
+								
+								itemShare.setText( buddy.getName());
+								
+								itemShare.setSelection( auth );
+								
+								itemShare.addListener(
+									SWT.Selection, 
+									new Listener() 
+									{
+										public void 
+										handleEvent(
+											Event event) 
+										{
+											if ( auth ){
+											
+												buddy.removeLocalAuthorisedRSSCategory( cname );
+												
+											}else{
+												
+												buddy.addLocalAuthorisedRSSCategory( cname );
+											}
+										}
+									});
+								
+							}
+						}
+					}
+					
 					// options
 
 					MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);

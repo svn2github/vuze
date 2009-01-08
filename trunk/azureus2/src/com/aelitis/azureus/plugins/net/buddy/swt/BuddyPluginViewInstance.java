@@ -558,7 +558,7 @@ BuddyPluginViewInstance
 					
 					item.setText(4, lm==null?"":lm);
 					
-					String loc_cat = buddy.getLocalAuthorisedRSSCategories();
+					String loc_cat = buddy.getLocalAuthorisedRSSCategoriesAsString();
 					if ( loc_cat == null ){
 						loc_cat = "";
 					}
@@ -1810,7 +1810,7 @@ BuddyPluginViewInstance
 			}else if(field == FIELD_LAST_MSG){
 				res = b1.getLastMessageReceived().compareTo( b2.getLastMessageReceived());
 			}else if(field == FIELD_LOC_CAT){
-				res = compareStrings( b1.getLocalAuthorisedRSSCategories(), b2.getLocalAuthorisedRSSCategories());
+				res = compareStrings( b1.getLocalAuthorisedRSSCategoriesAsString(), b2.getLocalAuthorisedRSSCategoriesAsString());
 			}else if(field == FIELD_REM_CAT){
 				res = compareStrings( b1.getRemoteAuthorisedRSSCategories(), b2.getRemoteAuthorisedRSSCategories());
 			}else if(field == FIELD_CON){
