@@ -1010,11 +1010,11 @@ public class MainStatusBar
 
 			if (!imgID.equals(lastSRimageID)) {
 				ImageLoader imageLoader = ImageLoader.getInstance();
+				srStatus.setImage(imageLoader.getImage(imgID));
 				if (lastSRimageID != null) {
 					imageLoader.releaseImage(lastSRimageID);
 				}
 				lastSRimageID  = imgID;
-				srStatus.setImage(imageLoader.getImage(imgID));
 			}
 			
 			last_sr_status = sr_status;
