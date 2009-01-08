@@ -64,9 +64,9 @@ public class SWTSkinObjectText2
 	private int antialiasMode = SWT.DEFAULT;
 
 	private boolean isAllcaps;
-	
+
 	private boolean hasShadow;
-	
+
 	private int hpadding;
 
 	private int vpadding;
@@ -78,14 +78,14 @@ public class SWTSkinObjectText2
 	private static Font font = null;
 
 	private GCStringPrinter lastStringPrinter;
-	
+
 	private Color colorUrl;
 
 	public SWTSkinObjectText2(SWTSkin skin,
 			final SWTSkinProperties skinProperties, String sID,
 			final String sConfigID, String[] typeParams, SWTSkinObject parent) {
 		super(skin, skinProperties, sID, sConfigID, "text", parent);
-		
+
 		style = SWT.WRAP;
 
 		String sAlign = skinProperties.getStringValue(sConfigID + ".align");
@@ -100,11 +100,11 @@ public class SWTSkinObjectText2
 		if (sVAlign != null) {
 			int align = SWTSkinUtils.getAlignment(sVAlign, SWT.NONE);
 			if (align != SWT.CENTER) {
-  			if (align != SWT.NONE) {
-  				style |= align;
-  			} else {
-  				style |= SWT.TOP;
-  			}
+				if (align != SWT.NONE) {
+					style |= align;
+				} else {
+					style |= SWT.TOP;
+				}
 			}
 		} else {
 			style |= SWT.TOP;
@@ -120,7 +120,7 @@ public class SWTSkinObjectText2
 			antialiasMode = (sAntiAlias.equals("1") || sAntiAlias.toLowerCase().equals(
 					"true")) ? SWT.ON : SWT.OFF;
 		}
-		
+
 		relayoutOnTextChange = skinProperties.getBooleanValue(sConfigID
 				+ ".text.relayoutOnChange", true);
 
@@ -161,9 +161,13 @@ public class SWTSkinObjectText2
 					}
 				}
 
-				pt = gc.textExtent(sDisplayText);
-				pt.x += border + hpadding;
-				pt.y += border + vpadding;
+				GCStringPrinter sp = new GCStringPrinter(gc, sDisplayText,
+						new Rectangle(0, 0, wHint == -1 ? 999999 : wHint, hHint == -1
+								? 999999 : hHint), true, false, style & SWT.WRAP);
+				sp.calculateMetrics();
+				pt = sp.getCalculatedSize();
+				pt.x += border + hpadding * 2;
+				pt.y += border + vpadding * 2;
 				gc.dispose();
 
 				if (isUnderline) {
@@ -210,14 +214,14 @@ public class SWTSkinObjectText2
 		if (typeParams.length > 1) {
 			bIsTextDefault = true;
 			sText = typeParams[1];
-			
+
 			for (int i = 2; i < typeParams.length; i++) {
 				sText += ", " + typeParams[i];
 			}
 			this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
 					: sText;
 		}
-		
+
 		canvas.addMouseListener(new MouseListener() {
 			public void mouseUp(MouseEvent e) {
 				if (lastStringPrinter != null) {
@@ -227,19 +231,20 @@ public class SWTSkinObjectText2
 					}
 				}
 			}
-		
+
 			public void mouseDown(MouseEvent e) {
 			}
-		
+
 			public void mouseDoubleClick(MouseEvent e) {
 			}
 		});
-		
+
 		canvas.addMouseMoveListener(new MouseMoveListener() {
 			public void mouseMove(MouseEvent e) {
 				if (lastStringPrinter != null && lastStringPrinter.hasHitUrl()) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
-					canvas.setCursor(hitUrl == null ? null : canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+					canvas.setCursor(hitUrl == null ? null
+							: canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				}
 			}
 		});
@@ -249,7 +254,8 @@ public class SWTSkinObjectText2
 		updateFont("");
 	}
 
-	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+	public String switchSuffix(String suffix, int level, boolean walkUp,
+			boolean walkDown) {
 		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 		if (suffix == null) {
 			return null;
@@ -291,7 +297,7 @@ public class SWTSkinObjectText2
 		if (color != null) {
 			canvas.setData("color", color);
 		}
-		
+
 		hpadding = properties.getIntValue(sPrefix + ".h-padding", 0);
 		vpadding = properties.getIntValue(sPrefix + ".v-padding", 0);
 
@@ -338,7 +344,7 @@ public class SWTSkinObjectText2
 							iFontWeight |= SWT.ITALIC;
 						}
 						bNewFont = true;
-						isItalic  = true;
+						isItalic = true;
 					} else {
 						isItalic = false;
 					}
@@ -372,7 +378,7 @@ public class SWTSkinObjectText2
 					if (s.equals("normal")) {
 						bNewFont = true;
 					}
-					
+
 					if (s.equals("shadow")) {
 						hasShadow = true;
 					}
@@ -447,7 +453,6 @@ public class SWTSkinObjectText2
 				canvas.setData("Font" + suffix, canvasFont);
 			}
 		}
-		
 
 		canvas.redraw();
 	}
@@ -465,7 +470,8 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = text;
-		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
+				: sText;
 		this.sKey = null;
 		bIsTextDefault = false;
 		// Doing execSWTThreadLater delays the relayout for too long at skin startup
@@ -489,11 +495,15 @@ public class SWTSkinObjectText2
 		if (sText == null || sText.length() == 0) {
 			return;
 		}
-		
+
 		super.paintControl(gc);
 
 		Composite composite = (Composite) control;
 		Rectangle clientArea = composite.getClientArea();
+		clientArea.x += hpadding;
+		clientArea.width -= hpadding * 2;
+		clientArea.y += vpadding;
+		clientArea.height -= vpadding * 2;
 
 		Font existingFont = (Font) canvas.getData("font");
 		Color existingColor = (Color) canvas.getData("color");
@@ -501,7 +511,7 @@ public class SWTSkinObjectText2
 		if (existingFont != null) {
 			gc.setFont(existingFont);
 		}
-		
+
 		if (existingColor != null) {
 			gc.setForeground(existingColor);
 		}
@@ -513,23 +523,22 @@ public class SWTSkinObjectText2
 				// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 			}
 		}
-	
+
 		if (hasShadow) {
-			Rectangle r = new Rectangle(clientArea.x + 1, clientArea.y + 1, clientArea.width,
-					clientArea.height);
-			
+			Rectangle r = new Rectangle(clientArea.x + 1, clientArea.y + 1,
+					clientArea.width, clientArea.height);
+
 			Color foreground = gc.getForeground();
 			Color color = ColorCache.getColor(gc.getDevice(), 0, 0, 0);
 			gc.setForeground(color);
 			gc.setAlpha(64);
-			GCStringPrinter.printString(gc, sDisplayText, r, true, false,
-					style);
+			GCStringPrinter.printString(gc, sDisplayText, r, true, false, style);
 			gc.setAlpha(255);
 			gc.setForeground(foreground);
 		}
-		
-		lastStringPrinter = new GCStringPrinter(gc, sDisplayText, clientArea, true, false,
-				style);
+
+		lastStringPrinter = new GCStringPrinter(gc, sDisplayText, clientArea, true,
+				false, style);
 		if (colorUrl != null) {
 			lastStringPrinter.setUrlColor(colorUrl);
 		}
@@ -546,7 +555,8 @@ public class SWTSkinObjectText2
 		}
 
 		this.sText = MessageText.getString(key);
-		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
+				: sText;
 		this.sKey = key;
 		bIsTextDefault = false;
 
@@ -570,12 +580,12 @@ public class SWTSkinObjectText2
 		 * KN: disabling the caching of the key since this is parameterized it may be called
 		 * multiple times with different parameters
 		 */
-//		else if (key.equals(sKey)) {
-//			return;
-//		}
-
+		//		else if (key.equals(sKey)) {
+		//			return;
+		//		}
 		this.sText = MessageText.getString(key, params);
-		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase() : sText;
+		this.sDisplayText = isAllcaps && sText != null ? sText.toUpperCase()
+				: sText;
 		this.sKey = key;
 		bIsTextDefault = false;
 
