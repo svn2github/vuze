@@ -104,7 +104,7 @@ SubscriptionManagerUI
 	private Graphic	icon_rss_all_add_big;
 	private Graphic	icon_rss_some_add_small;
 	private Graphic	icon_rss_some_add_big;
-	private List	icon_list	= new ArrayList();
+	private List<Graphic>	icon_list	= new ArrayList<Graphic>();
 	
 	private SubscriptionManager	subs_man;
 	
@@ -123,7 +123,7 @@ SubscriptionManagerUI
 	
 	private boolean		side_bar_setup;
 
-	private List columns = new ArrayList();
+	private List<TableColumn> columns = new ArrayList<TableColumn>();
 	
 	public
 	SubscriptionManagerUI(
@@ -252,7 +252,7 @@ SubscriptionManagerUI
 								rows = new TableRow[]{ (TableRow)target };
 							}
 							
-							final List	hashes = new ArrayList();
+							final List<byte[]>	hashes = new ArrayList<byte[]>();
 							
 							for (int i=0;i<rows.length;i++){
 								
@@ -300,7 +300,7 @@ SubscriptionManagerUI
 											{
 												for (int i=0;i<hashes.size();i++){
 													
-													sub.addAssociation( (byte[])hashes.get(i));
+													sub.addAssociation( hashes.get(i));
 												}
 											}
 										});
@@ -1307,9 +1307,9 @@ SubscriptionManagerUI
 	protected void
 	refreshColumns()
 	{
-		for ( Iterator iter = columns.iterator(); iter.hasNext();){
+		for ( Iterator<TableColumn> iter = columns.iterator(); iter.hasNext();){
 			
-			TableColumn column = (TableColumn) iter.next();
+			TableColumn column = iter.next();
 			
 			column.invalidateCells();
 		}
@@ -1356,6 +1356,7 @@ SubscriptionManagerUI
 				"subs.prop.enabled",
 				"subs.prop.is_public",
 				"subs.prop.is_auto",
+				"subs.prop.update_period",
 				"subs.prop.last_scan",
 				"subs.prop.last_result",
 				"subs.prop.next_scan",
@@ -1374,6 +1375,7 @@ SubscriptionManagerUI
 				String.valueOf( history.isEnabled()),
 				String.valueOf( subs.isPublic()),
 				String.valueOf( history.isAutoDownload()),
+				String.valueOf( history.getCheckFrequencyMins() + " " + MessageText.getString( "ConfigView.text.minutes")),
 				df.format(new Date( history.getLastScanTime())),
 				df.format(new Date( history.getLastNewResultTime())),
 				df.format(new Date( history.getNextScanTime())),
