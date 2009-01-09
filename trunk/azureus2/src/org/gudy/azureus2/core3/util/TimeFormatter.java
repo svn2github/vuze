@@ -192,6 +192,21 @@ public class TimeFormatter {
 		}
     }
     
+    public static long
+    parseHTTPDate(
+    	String		date )
+    {
+    	try{
+    		return( http_date_format.parse( date ).getTime());
+    		
+    	}catch( Throwable e ){
+    		
+    		Debug.out("Failed to parse HTTP date '" + date + "'" );
+    		
+    		return( 0 );
+    	}
+    }
+    
     public static String
     milliStamp()
     {
