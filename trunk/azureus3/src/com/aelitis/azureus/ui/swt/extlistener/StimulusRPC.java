@@ -26,6 +26,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -33,6 +35,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -136,8 +139,18 @@ public class StimulusRPC
 									"play-prepare", false);
 							boolean bringToFront = MapUtils.getMapBoolean(decodedMap,
 									"bring-to-front", true);
+							
+							// Content Network of context is invalid because it's the
+							// internal one used for anythin. Get network id from params instead
+							long contentNetworkID = MapUtils.getMapLong(decodedMap,
+									"content-network", ConstantsV3.DEFAULT_CONTENT_NETWORK.getID());
+							ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
+							if (cn == null) {
+								cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+							}
 
-							DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+							DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
+									cn);
 							dlInfo.setReferer(MapUtils.getMapString(decodedMap, "referer",
 									null));
 

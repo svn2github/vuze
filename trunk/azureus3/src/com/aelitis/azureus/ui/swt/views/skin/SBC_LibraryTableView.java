@@ -49,6 +49,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -245,7 +246,8 @@ public class SBC_LibraryTableView
 										return;
 									}
 									String url = cn.getTorrentDownloadService(contentHash, "coq");
-									DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+									DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(
+											url, cn);
 									TorrentUIUtilsV3.loadTorrent(
 											AzureusCoreFactory.getSingleton(), dlInfo, false, false,
 											true, false);

@@ -20,6 +20,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
@@ -89,7 +90,8 @@ public class TorrentListener
 						Debug.printStackTrace(e);
 					}
 				}
-				DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+				DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
+						context.getContentNetwork());
 				dlInfo.setReferer(message.getReferer());
 				
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,

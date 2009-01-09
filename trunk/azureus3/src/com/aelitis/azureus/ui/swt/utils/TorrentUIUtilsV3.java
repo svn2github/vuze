@@ -22,6 +22,7 @@ package com.aelitis.azureus.ui.swt.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,9 +47,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -67,7 +70,7 @@ public class TorrentUIUtilsV3
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
 	public static void loadTorrent(final AzureusCore core,
-			DownloadUrlInfo dlInfo, final boolean playNow, // open player
+			final DownloadUrlInfo dlInfo, final boolean playNow, // open player
 			final boolean playPrepare, // as for open player but don't actually open it
 			final boolean bringToFront, final boolean forceDRMtoCDP) {
 		if (dlInfo instanceof DownloadUrlInfoSWT) {
@@ -141,9 +144,16 @@ public class TorrentUIUtilsV3
 											Matcher m = hashPattern.matcher(inf.getURL());
 											if (m.find()) {
 												String hash = m.group(1);
-												
-												TorrentListViewsUtils.viewDetailsFromDS(hash,
-												"loadtorrent");
+
+												ContentNetwork cn = null;
+												if (dlInfo instanceof DownloadUrlInfoContentNetwork) {
+													cn = ((DownloadUrlInfoContentNetwork) dlInfo).getContentNetwork();
+												}
+												if (cn == null) {
+													cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+												}
+												TorrentListViewsUtils.viewDetails(cn, hash,
+														"loadtorrent");
 											} else {
 												TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
 														file.getName());

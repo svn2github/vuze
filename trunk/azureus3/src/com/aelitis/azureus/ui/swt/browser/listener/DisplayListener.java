@@ -223,7 +223,8 @@ public class DisplayListener
 			content.setThumbURL(MapUtils.getMapString(decodedMap, "thumbnail.url",
 					null));
 
-			DownloadUrlInfo dlInfo = new DownloadUrlInfo(dlURL);
+			DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(dlURL,
+					context.getContentNetwork());
 			dlInfo.setReferer(dlReferer);
 			if (dlCookies != null) {
 				if (dlHeader == null) {

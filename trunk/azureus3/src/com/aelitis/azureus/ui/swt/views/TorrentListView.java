@@ -298,7 +298,8 @@ public class TorrentListView
 								}
 								String url = cn.getTorrentDownloadService(contentHash, "coq");
 
-								DownloadUrlInfo dlInfo = new DownloadUrlInfo(url);
+								DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
+										cn);
 								TorrentUIUtilsV3.loadTorrent(core, dlInfo, false, false, true,
 										false);
 							}
