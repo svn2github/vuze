@@ -3,6 +3,8 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
@@ -14,6 +16,8 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -27,6 +31,7 @@ import org.gudy.azureus2.ui.swt.shells.InputShell;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.chat.ChatDiscussion;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -125,9 +130,9 @@ public class AvatarWidget
 
 	private Image add_to_share_Image_normal = null;
 
-	private Image removeImage_over = null;
+	//private Image removeImage_over = null;
 
-	private Image add_to_share_Image_over = null;
+	//private Image add_to_share_Image_over = null;
 
 	private boolean isDragging = false;
 
@@ -174,7 +179,7 @@ public class AvatarWidget
 		final ImageLoader imageLoader = ImageLoader.getInstance();
 		removeImage_normal = imageLoader.getImage("image.buddy.remove");
 		add_to_share_Image_normal = imageLoader.getImage("image.buddy.add.to.share");
-		removeImage_over = imageLoader.getImage("image.buddy.remove-over");
+		//removeImage_over = imageLoader.getImage("image.buddy.remove-over");
 		add_to_share_Image_selected = imageLoader.getImage("image.buddy.add.to.share-selected");
 
 		removeImage = removeImage_normal;
@@ -934,6 +939,147 @@ public class AvatarWidget
 			}
 		});
 
+			// subs
+		
+		Menu subs_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+		MenuItem subs_item = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(subs_item, "ConfigView.section.Subscriptions" );
+		subs_item.setMenu(subs_menu);
+
+		final Menu subs_out_menu = new Menu(subs_menu.getShell(), SWT.DROP_DOWN);
+		MenuItem subs_out_item = new MenuItem(subs_menu, SWT.CASCADE);
+		Messages.setLanguageText(subs_out_item, "v3.buddy.set.catout" );
+		subs_out_item.setMenu(subs_out_menu);
+
+		final Menu subs_in_menu = new Menu(subs_menu.getShell(), SWT.DROP_DOWN);
+		MenuItem subs_in_item = new MenuItem(subs_menu, SWT.CASCADE);
+		Messages.setLanguageText(subs_in_item, "v3.buddy.set.catin" );
+		subs_in_item.setMenu(subs_in_menu);
+
+		subs_menu.addMenuListener(
+			new MenuListener()
+			{
+				public void 
+				menuShown(
+					MenuEvent arg0 ) 
+				{
+					MenuItem[] items = subs_out_menu.getItems();
+					
+					for (int i = 0; i < items.length; i++){
+						items[i].dispose();
+					}
+					
+					items = subs_in_menu.getItems();
+					
+					for (int i = 0; i < items.length; i++){
+						items[i].dispose();
+					}
+					
+					AvatarWidget aw = (AvatarWidget) canvas.getData("AvatarWidget");
+				
+					if ( aw == null ){
+						
+						return;
+					}
+					
+					Category[] cats = CategoryManager.getCategories();
+					
+					Arrays.sort(
+						cats,
+						new Comparator<Category>()
+						{
+							public int 
+							compare(
+								Category o1, 
+								Category o2 )
+							{
+								return( o1.getName().compareTo(o2.getName()));
+							}
+						});
+					
+					for ( Category c: cats ){
+						
+						int type = c.getType();
+						
+						if ( type == Category.TYPE_UNCATEGORIZED ){
+							
+							continue;
+						}
+						
+						final MenuItem item = new MenuItem(subs_out_menu, SWT.CHECK );
+						
+						final String cname;
+						
+						if ( type == Category.TYPE_ALL ){
+							
+							cname = "All";
+							
+						}else{
+							
+							cname = c.getName();
+						}
+						
+						item.setText( cname);
+						
+						//item.setSelection( asdasd );
+						
+						item.addListener(
+							SWT.Selection, 
+							new Listener() 
+							{
+								public void 
+								handleEvent(
+									Event event) 
+								{
+									
+								}
+							});
+					}
+					
+					VuzeBuddy vb = aw.getVuzeBuddy();
+					
+					String[] subscribable = vb.getSubscribableCategories().toArray( new String[0]);
+					
+					Arrays.sort(
+						subscribable,
+						new Comparator<String>()
+						{
+							public int 
+							compare(
+								String o1, 
+								String o2 )
+							{
+								return( o1.compareTo(o2));
+							}
+						});
+					
+					for ( String cat: subscribable ){
+						
+						final MenuItem item = new MenuItem(subs_in_menu, SWT.CHECK );
+						
+						item.setText( cat);
+												
+						item.addListener(
+							SWT.Selection, 
+							new Listener() 
+							{
+								public void 
+								handleEvent(
+									Event event) 
+								{
+									
+								}
+							});
+					}
+				}
+					
+				public void 
+				menuHidden(
+					MenuEvent arg0 )
+				{
+				}
+			});
+		
 		if (Constants.isCVSVersion()) {
 			MenuItem itemMenuDebug = new MenuItem(menu, SWT.CASCADE);
 			itemMenuDebug.setText("Debug");
