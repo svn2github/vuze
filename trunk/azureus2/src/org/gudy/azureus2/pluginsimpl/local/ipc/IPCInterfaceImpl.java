@@ -36,100 +36,61 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
  *
  */
 
-public class IPCInterfaceImpl implements IPCInterface {
-
+public class 
+IPCInterfaceImpl 
+	implements IPCInterface 
+{
 	private Plugin 				target_use_accessor;
 	private String				plugin_class;
 	private PluginInitializer	plugin_initializer;
 
-	public IPCInterfaceImpl ( PluginInitializer _plugin_initializer, Plugin _target ) {
+	public 
+	IPCInterfaceImpl( 
+		PluginInitializer 	_plugin_initializer, 
+		Plugin 				_target ) 
+	{
 		plugin_initializer	= _plugin_initializer;
+		
 		target_use_accessor = _target;
+		
 		plugin_class		= _target.getClass().getName();
 	}
 
-	public Object invoke( String methodName, Object[] params )
-	throws IPCException {
-
+	public boolean 
+	canInvoke(
+		String 		methodName, 
+		Object[] 	params )
+	{
+		try{
+			Plugin	target = getTarget();
+			
+			Method mtd = getMethod( target, methodName, params );
+			
+			if ( mtd != null ){
+				
+				return( true );
+			}
+		}catch( Throwable e ){	
+		}
+		
+		return( false );
+	}
+	
+	public Object 
+	invoke( 
+		String 		methodName, 
+		Object[] 	params )
+	
+		throws IPCException 
+	{
 		Plugin	target = getTarget();
 		
-		try {
-			if (params == null) {
-				params = new Object[0];
-			}
-
-			Class[] paramTypes = new Class[params.length];
-			for (int i=0;i<params.length;i++) {
-				if (params[i] instanceof Boolean) {
-					paramTypes[i] = boolean.class;
-				} else if (params[i] instanceof Integer) {
-					paramTypes[i] = int.class;
-				} else if (params[i] instanceof Long) {
-					paramTypes[i] = long.class;
-				} else if (params[i] instanceof Float) {
-					paramTypes[i] = float.class;
-				} else if (params[i] instanceof Double) {
-					paramTypes[i] = double.class;
-				} else if (params[i] instanceof Byte) {
-					paramTypes[i] = byte.class;
-				} else if (params[i] instanceof Character) {
-					paramTypes[i] = char.class;
-				} else if (params[i] instanceof Short) {
-					paramTypes[i] = short.class;
-				} else
-					paramTypes[i] = params[i].getClass();
-			}
-			
-			Method mtd	= null;
-			
-			try{
-				mtd = target.getClass().getMethod(methodName,paramTypes);
-				
-			}catch( NoSuchMethodException e ){
-				
-				Method[]	methods = target.getClass().getMethods();
-				
-				for (int i=0;i<methods.length;i++){
-					
-					Method	method = methods[i];
-					
-					Class[] method_params = method.getParameterTypes();
-					
-					if ( method.getName().equals( methodName ) && method_params.length == paramTypes.length ){
-						
-						boolean	ok = true;
-						
-						for (int j=0;j<method_params.length;j++){
-							
-							Class	declared 	= method_params[j];
-							Class	supplied	= paramTypes[j];
-							
-							if ( !declared.isAssignableFrom( supplied )){
-						
-								ok	= false;
-								
-								break;
-							}
-						}
-						
-						if ( ok ){
-							
-							mtd = method;
-							
-							break;
-						}
-					}
-				}
-				
-				if ( mtd == null ){
-					
-					throw( e );
-				}
-			}
+		try{
+			Method mtd = getMethod( target, methodName, params );
 			
 			return mtd.invoke(target, params);
 			
-		} catch (Throwable e) {
+		}catch( Throwable e ){
 			
 			if ( e instanceof InvocationTargetException ){
 				
@@ -141,6 +102,92 @@ public class IPCInterfaceImpl implements IPCInterface {
 			
 			throw new IPCException(e);
 		}
+	}
+	
+	protected Method
+	getMethod(
+		Plugin		target,
+		String 		methodName, 
+		Object[] 	params )
+	
+		throws Throwable
+	{
+		if ( params == null ){
+			
+			params = new Object[0];
+		}
+
+		Class[] paramTypes = new Class[params.length];
+		
+		for (int i=0;i<params.length;i++) {
+			if (params[i] instanceof Boolean) {
+				paramTypes[i] = boolean.class;
+			} else if (params[i] instanceof Integer) {
+				paramTypes[i] = int.class;
+			} else if (params[i] instanceof Long) {
+				paramTypes[i] = long.class;
+			} else if (params[i] instanceof Float) {
+				paramTypes[i] = float.class;
+			} else if (params[i] instanceof Double) {
+				paramTypes[i] = double.class;
+			} else if (params[i] instanceof Byte) {
+				paramTypes[i] = byte.class;
+			} else if (params[i] instanceof Character) {
+				paramTypes[i] = char.class;
+			} else if (params[i] instanceof Short) {
+				paramTypes[i] = short.class;
+			} else
+				paramTypes[i] = params[i].getClass();
+		}
+		
+		Method mtd	= null;
+		
+		try{
+			mtd = target.getClass().getMethod(methodName,paramTypes);
+			
+		}catch( NoSuchMethodException e ){
+			
+			Method[]	methods = target.getClass().getMethods();
+			
+			for (int i=0;i<methods.length;i++){
+				
+				Method	method = methods[i];
+				
+				Class[] method_params = method.getParameterTypes();
+				
+				if ( method.getName().equals( methodName ) && method_params.length == paramTypes.length ){
+					
+					boolean	ok = true;
+					
+					for (int j=0;j<method_params.length;j++){
+						
+						Class	declared 	= method_params[j];
+						Class	supplied	= paramTypes[j];
+						
+						if ( !declared.isAssignableFrom( supplied )){
+					
+							ok	= false;
+							
+							break;
+						}
+					}
+					
+					if ( ok ){
+						
+						mtd = method;
+						
+						break;
+					}
+				}
+			}
+			
+			if ( mtd == null ){
+				
+				throw( e );
+			}
+		}
+		
+		return( mtd );
 	}
 	
 	protected Plugin

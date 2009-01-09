@@ -73,4 +73,12 @@ public interface IPCInterface {
 	 */
 	public Object invoke (String methodName, Object[] params) throws IPCException;
 
+	/**
+	 * Test for existance of IPC method - params as above
+	 * @param methodName
+	 * @param params
+	 * @return
+	 */
+	
+	public boolean canInvoke( String methodName, Object[] params );
 }
