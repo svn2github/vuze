@@ -26,7 +26,6 @@ import java.util.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -37,7 +36,6 @@ import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
  * @author parg
@@ -48,8 +46,12 @@ public class
 AZPluginConnection
 	extends HttpURLConnection
 {
-	private InputStream		input_stream;
-		
+	private int		response_code	= HTTP_OK;
+	private String	response_msg	= "OK";
+	
+	private InputStream					input_stream;
+	private Map<String,List<String>> 	headers = new HashMap<String, List<String>>();
+	
 	protected
 	AZPluginConnection(
 		URL		_url )
@@ -114,8 +116,14 @@ AZPluginConnection
 		IPCInterface ipc = pi.getIPC();
 		
 		try{
-			input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new String[]{ arg });
+			if ( ipc.canInvoke( "handleURLProtocol", new Object[]{ this, arg })){
+					
+				input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ this, arg });
+
+			}else{
 			
+				input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new Object[]{ arg });
+			}
 		}catch( IPCException ipce ){
 			
 			Throwable e = ipce;
@@ -129,6 +137,43 @@ AZPluginConnection
 		}
 	}
 	
+    public Map<String,List<String>> 
+    getHeaderFields() 
+    {
+        return( headers );
+    }
+    
+    public String
+    getHeaderField(
+    	String	name )
+    {
+    	List<String> values = headers.get( name );
+    	
+    	if ( values == null || values.size() == 0 ){
+    		
+    		return( null );
+    	}
+    	
+    	return( values.get( values.size()-1 ));
+    }
+    
+    public void
+    setHeaderField(
+    	String	name,
+    	String	value )
+    {
+       	List<String> values = headers.get( name );
+       	
+       	if ( values == null ){
+       		
+       		values = new ArrayList<String>();
+       		
+       		headers.put( name, values );
+       	}
+
+       	values.add( value );
+    }
+    
 	public InputStream
 	getInputStream()
 	
@@ -137,16 +182,25 @@ AZPluginConnection
 		return( input_stream );
 	}
 	
+	public void
+	setResponse(
+		int		_code,
+		String	_msg )
+	{
+		response_code		= _code;
+		response_msg		= _msg;
+	}
+	
 	public int
 	getResponseCode()
 	{
-		return( HTTP_OK );
+		return( response_code );
 	}
 	
 	public String
 	getResponseMessage()
 	{
-		return( "OK" );
+		return( response_msg );
 	}
 	
 	public boolean
