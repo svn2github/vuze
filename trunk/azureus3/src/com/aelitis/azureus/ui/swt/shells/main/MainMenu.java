@@ -29,6 +29,8 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUIManagerWindow;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -183,19 +185,41 @@ public class MainMenu
 						0, true, false);
 			}			
 		});
+
+		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
+				+ ".manage", new Listener() {
+			public void handleEvent(Event event) {
+				new ContentNetworkUIManagerWindow();
+			}			
+		});
 	}
 
 	/**
 	 * @param contentNetworkMenu
-	 * @param contentNetwork
+	 * @param cn
 	 *
 	 * @since 4.0.0.3
 	 */
 	private void addContentNetworkItem(Menu contentNetworkMenu,
-			ContentNetwork contentNetwork) {
-		if (contentNetwork == null) {
+			ContentNetwork cn) {
+		if (cn == null) {
 			return;
 		}
+
+		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+		boolean removable = (prop instanceof Boolean) ? ((Boolean) prop).booleanValue()
+				: false;
+		
+		if (removable) {
+  		prop = cn.getPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU);
+  		boolean show = (prop instanceof Boolean) ? ((Boolean) prop).booleanValue()
+  				: true;
+  		
+  		if (!show) {
+  			return;
+  		}
+		}
+
 
 		final MenuItem item = MenuFactory.addMenuItem(contentNetworkMenu,
 				SWT.CHECK,
@@ -218,9 +242,9 @@ public class MainMenu
 					}
 				});
 
-		item.setText(contentNetwork.getName());
+		item.setText(cn.getName());
 
-		item.setData("ContentNetwork", contentNetwork);
+		item.setData("ContentNetwork", cn);
 	}
 
 	/**
