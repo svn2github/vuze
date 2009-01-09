@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
@@ -31,8 +32,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -80,7 +83,7 @@ public class ContentNetworkUIManagerWindow
 				boolean removable = (prop instanceof Boolean)
 						? ((Boolean) prop).booleanValue() : false;
 				if (removable) {
-					Button button = new Button(parent, SWT.CHECK);
+					final Button button = new Button(parent, SWT.CHECK);
 					button.setText(cn.getName());
 
 					prop = cn.getPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU);
@@ -98,6 +101,15 @@ public class ContentNetworkUIManagerWindow
 					fd.left = new FormAttachment(0, 5);
 					button.setLayoutData(fd);
 					
+
+					ContentNetworkUI.loadImage(cn.getID(),
+							new ContentNetworkImageLoadedListener() {
+								public void contentNetworkImageLoaded(Long contentNetworkID,
+										Image image) {
+									button.setImage(image);
+								}
+							});
+
 					lastButton = button;
 
 					button.addSelectionListener(new SelectionListener() {
