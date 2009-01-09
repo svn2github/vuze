@@ -1061,7 +1061,7 @@ public class Utils
 	}
 
 	public static void launch(String sFile) {
-		if (sFile == null) {
+		if (sFile == null || sFile.trim().length() == 0) {
 			return;
 		}
 
