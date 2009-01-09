@@ -24,6 +24,8 @@ package com.aelitis.azureus.plugins.net.buddy;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -45,6 +47,8 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
+
+import com.aelitis.azureus.core.util.AZ3Functions;
 
 
 public class 
@@ -396,6 +400,53 @@ BuddyPluginBuddy
 		}
 		
 		return( false );
+	}
+	
+	public URL
+	getSubscriptionURL(
+		String		cat )
+	{
+		String url = "azplug:?id=azbuddy&name=Friends&arg=";
+		
+		String arg = "pk=" + getPublicKey() + "&cat=" + cat;
+
+		try{
+			url += URLEncoder.encode( arg, "UTF-8" );
+			
+			return( new URL( url ));
+			
+		}catch( Throwable e ){
+	
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
+	public void
+	subscribeToCategory(
+		String	cat )
+	
+		throws BuddyPluginException
+	{
+		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+
+		if ( az3 == null ){
+			
+			throw( new BuddyPluginException( "AZ3 subsystem not available" ));
+		}
+		
+		try{
+			az3.subscribeToRSS( 
+				getName() + ": " + cat, 
+				getSubscriptionURL(cat),
+				15,
+				false );
+				
+		}catch( Throwable e ){
+				
+			throw( new BuddyPluginException( "Failed to add subscription", e ));
+		}
 	}
 	
 	protected void

@@ -26,9 +26,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.protocol.azplug.AZPluginConnection;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
@@ -3156,7 +3157,8 @@ BuddyPlugin
 	
 	public InputStream
 	handleURLProtocol(
-		String		arg_str )
+		final AZPluginConnection	connection,
+		String						arg_str )
 	
 		throws IPCException
 	{
@@ -3205,7 +3207,9 @@ BuddyPlugin
 		}
 		
 		Map<String,Object>	msg = new HashMap<String, Object>();
-		
+
+		final String if_mod 	= connection.getRequestProperty( "If-Modified-Since" );
+
 		try{
 			msg.put( "cat", category.getBytes( "UTF-8" ));
 			
@@ -3213,6 +3217,14 @@ BuddyPlugin
 				
 				msg.put( "hash", hash );
 			}
+						
+			if ( if_mod != null ){
+				
+				msg.put( "if_mod", if_mod );
+			}
+			
+			// String etag		= connection.getRequestProperty( "If-None-Match" );
+					
 		}catch( Throwable e ){
 			
 			Debug.out( e );
@@ -3222,6 +3234,8 @@ BuddyPlugin
 		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:rss" );
 		
 		final boolean is_torrent_get = hash != null;
+		
+		final String	etag = pk + "-" + category;
 		
 		az2_handler.sendAZ2RSSMessage( 
 			buddy,
@@ -3239,6 +3253,22 @@ BuddyPlugin
 						ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 						
 						result[0] = bais;
+						
+						connection.setHeaderField( "ETag", etag );
+						
+						byte[] b_last_mod = (byte[])message.get( "last_mod" );
+						
+						if ( b_last_mod != null ){
+						
+							String	last_mod = new String( b_last_mod, "UTF-8" );
+							
+							connection.setHeaderField( "Last-Modified", last_mod );
+							
+							if ( if_mod != null && if_mod.equals( last_mod ) && bytes.length == 0 ){
+								
+								connection.setResponse( HttpURLConnection.HTTP_NOT_MODIFIED, "Not Modified" );
+							}
+						}
 						
 						result_sem.release();
 						
@@ -3277,10 +3307,11 @@ BuddyPlugin
 		}
 	}
 	
-	public byte[]
+	public feedDetails
 	getRSS(
 		BuddyPluginBuddy		buddy,
-		String					category )
+		String					category,
+		String					if_mod )
 	
 		throws BuddyPluginException
 	{
@@ -3292,7 +3323,9 @@ BuddyPlugin
 		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
 		
 		List<Download>	selected_dls = new ArrayList<Download>();
-
+		
+		long	fingerprint	= 0;
+		
 		for (int i=0;i<downloads.length;i++){
 			
 			Download download = downloads[i];
@@ -3312,10 +3345,51 @@ BuddyPlugin
 				if ( !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
 					
 					selected_dls.add( download );
+					
+					byte[] hash = torrent.getHash();
+					
+					int	num = (hash[0]<<24)&0xff000000 | (hash[1] << 16)&0x00ff0000 | (hash[2] << 8)&0x0000ff00 | hash[3]&0x000000ff;
+
+					fingerprint += num;
 				}
 			}
 		}
 		
+		PluginConfig pc = plugin_interface.getPluginconfig();
+
+		String	feed_finger_key = "feed_finger.category." + category;
+		String	feed_date_key 	= "feed_date.category." + category;
+
+		long	existing_fingerprint 	= pc.getPluginLongParameter( feed_finger_key, 0 );
+		long	feed_date 				= pc.getPluginLongParameter( feed_date_key, 0 );
+
+		if ( existing_fingerprint != fingerprint ){
+			
+			pc.setPluginParameter( feed_finger_key, fingerprint );
+			
+			long	now = SystemTime.getCurrentTime();
+			
+				// ensure feed date goes up
+			
+			if ( now <= feed_date ){
+				
+				feed_date++;
+				
+			}else{
+				
+				feed_date = now;
+			}
+			
+			pc.setPluginParameter( feed_date_key, feed_date );
+		}
+		
+		String last_modified = TimeFormatter.getHTTPDate( feed_date );
+
+		if ( if_mod != null && if_mod.equals( last_modified )){
+			
+			return( new feedDetails( new byte[0], last_modified ));
+		}
+				
 		ByteArrayOutputStream	os = new ByteArrayOutputStream();
 			
 		try{
@@ -3345,25 +3419,8 @@ BuddyPlugin
 					}
 				});
 								
-			String	feed_date_key = "feed_date.category." + category;
-			
-			PluginConfig pc = plugin_interface.getPluginconfig();
-			
-			long	feed_date = pc.getPluginLongParameter( feed_date_key, 0 );
-		
-			if ( selected_dls.size() > 0 ){
-				
-				long newest = getAddedTime( selected_dls.get(0));
-				
-				if ( newest > feed_date ){
-					
-					feed_date = newest;
-					
-					pc.setPluginParameter( feed_date_key, feed_date );
-				}
-			}
 							
-			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
+			pw.println(	"<pubDate>" + last_modified + "</pubDate>" );
 		
 			for (int i=0;i<selected_dls.size();i++){
 				
@@ -3409,7 +3466,7 @@ BuddyPlugin
 		
 			pw.flush();
 			
-			return( os.toByteArray());
+			return( new feedDetails( os.toByteArray(), last_modified ));
 			
 		}catch( IOException e ){
 			
@@ -3713,5 +3770,33 @@ BuddyPlugin
 		
 		public byte[]
 		getPayload();
+	}
+	
+	protected class
+	feedDetails
+	{
+		private byte[]		contents;
+		private String		last_modified;
+		
+		protected
+		feedDetails(
+			byte[]		_contents,
+			String		_last_modified )
+		{
+			contents		= _contents;
+			last_modified	= _last_modified;
+		}
+		
+		protected byte[]
+		getContent()
+		{
+			return( contents );
+		}
+		
+		protected String
+		getLastModified()
+		{
+			return( last_modified );
+		}
 	}
 }

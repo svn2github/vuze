@@ -1334,22 +1334,12 @@ BuddyPluginViewInstance
 
 											if ( buddy.isRemoteRSSCategoryAuthorised( cat )){
 												
-												String url = "azplug:?id=azbuddy&name=Friends&arg=";
-												
-												String arg = "pk=" + buddy.getPublicKey() + "&cat=" + cat;
-
 												try{
-													url += URLEncoder.encode( arg, "UTF-8" );
-													
-													az3.subscribeToRSS( 
-														buddy.getName() + ": " + cat, 
-														new URL( url ), 
-														15,
-														false );
+													buddy.subscribeToCategory( cat );
 													
 												}catch( Throwable e ){
 													
-													print( "Failed to add subscription", e );
+													print( "Failed", e );
 												}
 											}
 										}

@@ -252,7 +252,13 @@ BuddyPluginAZ2
 				
 				if ( hash == null ){
 					
-					res.put( "rss", plugin.getRSS( from_buddy, category ));
+					byte[]	if_mod 	= (byte[])msg.get( "if_mod" );
+					
+					BuddyPlugin.feedDetails feed = plugin.getRSS( from_buddy, category, if_mod==null?null:new String( if_mod, "UTF-8" ));
+					
+					res.put( "rss", feed.getContent());
+					
+					res.put( "last_mod", feed.getLastModified());
 					
 				}else{
 					
