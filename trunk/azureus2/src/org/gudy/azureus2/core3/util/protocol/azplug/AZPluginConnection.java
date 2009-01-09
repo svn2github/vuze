@@ -116,7 +116,14 @@ AZPluginConnection
 		try{
 			input_stream = (InputStream)ipc.invoke( "handleURLProtocol", new String[]{ arg });
 			
-		}catch( IPCException e ){
+		}catch( IPCException ipce ){
+			
+			Throwable e = ipce;
+			
+			if ( e.getCause() != null ){
+				
+				e = e.getCause();
+			}
 			
 			throw( new IOException( "Communication error with plugin '" + plugin_str + "': " + Debug.getNestedExceptionMessage(e)));
 		}
