@@ -152,6 +152,7 @@ SubscriptionImpl
 	private Map				verify_cache_details;
 	private boolean			verify_cache_result;
 	
+	private String			creator_ref;
 	
 	protected static String
 	getSkeletonJSON(
@@ -400,6 +401,11 @@ SubscriptionImpl
 			
 			map.put( "history", history_map );
 			
+			if ( creator_ref != null ){
+				
+				map.put( "cref", creator_ref.getBytes( "UTF-8" ));
+			}
+			
 			return( map );
 		}
 	}
@@ -411,7 +417,7 @@ SubscriptionImpl
 		throws IOException
 	{
 		name				= new String((byte[])map.get( "name"), "UTF-8" );
-		public_key	= (byte[])map.get( "public_key" );
+		public_key			= (byte[])map.get( "public_key" );
 		private_key			= (byte[])map.get( "private_key" );
 		version				= ((Long)map.get( "version" )).intValue();
 		az_version			= (int)ImportExportUtils.importLong( map, "az_version", AZ_VERSION );
@@ -462,6 +468,13 @@ SubscriptionImpl
 		if ( history_map == null ){
 			
 			history_map = new HashMap();
+		}
+		
+		byte[] b_cref = (byte[])map.get( "cref" );
+		
+		if ( b_cref != null ){
+			
+			creator_ref = new String( b_cref, "UTF-8" );
 		}
 	}
 	
@@ -1635,6 +1648,21 @@ SubscriptionImpl
 		}
 		
 		return( result );
+	}
+	
+	public void
+	setCreatorRef(
+		String	ref )
+	{
+		creator_ref = ref;
+		
+		fireChanged();
+	}
+	
+	public String
+	getCreatorRef()
+	{
+		return( creator_ref );
 	}
 	
 	protected void

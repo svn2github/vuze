@@ -633,27 +633,13 @@ public class VuzeBuddyImpl
 		BuddyPluginBuddy		buddy,
 		String					cat )
 	{
-		String	url = buddy.getSubscriptionURL( cat ).toExternalForm();
-		
 		Subscription[] subs = SubscriptionManagerFactory.getSingleton().getSubscriptions();
 		
 		for ( Subscription s: subs ){
 			
-			try{
-				Engine engine = s.getEngine();
+			if ( buddy.isSubscribedToCategory( cat, s.getCreatorRef())){
 				
-				if ( engine.getType() == Engine.ENGINE_TYPE_RSS ){
-					
-					RSSEngine rss_engine = (RSSEngine)engine;
-					
-					if ( url.equals( rss_engine.getSearchUrl())){
-						
-						return( s );
-					}
-				}
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				return( s );
 			}
 		}
 		

@@ -145,6 +145,13 @@ Subscription
 		throws SubscriptionException;
 		
 	public void
+	setCreatorRef(
+		String	str );
+	
+	public String
+	getCreatorRef();
+	
+	public void
 	remove();
 	
 	public SubscriptionManager

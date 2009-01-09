@@ -77,7 +77,8 @@ public class InitialisationFunctions
 					String		name,
 					URL 		url,
 					int			interval,
-					boolean		is_public )
+					boolean		is_public,
+					String		creator_ref )
 				
 					throws Exception
 				{
@@ -88,6 +89,11 @@ public class InitialisationFunctions
 					if ( subs.isPublic() != is_public ){
 						
 						subs.setPublic( is_public );
+					}
+					
+					if ( creator_ref != null ){
+						
+						subs.setCreatorRef( creator_ref );
 					}
 				}
 			});
