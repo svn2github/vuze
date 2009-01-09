@@ -219,6 +219,12 @@ public class Browse
 	}
 
 	public void sidebarClosed(SideBarEntrySWT entry) {
+		boolean wasActive = false;
+		Object prop = contentNetwork.getPersistentProperty(ContentNetwork.PP_ACTIVE);
+		if (prop instanceof Boolean) {
+			prop = ((Boolean) prop).booleanValue();
+		}
+		
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
 				Boolean.FALSE);
 		
@@ -262,10 +268,14 @@ public class Browse
 			}
 		});
 
+		if (!wasActive) {
+			return;
+		}
+
 		int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
 		if (decision != 1) {
 			final SkinnedDialog closeDialog = new SkinnedDialog(
-					"close-notification.body");
+					"skin3_close_notification", "close-notification.body");
 			SWTSkin skin = closeDialog.getSkin();
 			SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
 

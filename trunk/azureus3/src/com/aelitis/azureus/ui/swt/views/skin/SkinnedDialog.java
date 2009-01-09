@@ -48,7 +48,7 @@ public class SkinnedDialog
 
 	private List<SkinnedDialogClosedListener> closeListeners = new CopyOnWriteArrayList<SkinnedDialogClosedListener>();
 
-	public SkinnedDialog(String shellSkinObjectID) {
+	public SkinnedDialog(String skinFile, String shellSkinObjectID) {
 		this.shellSkinObjectID = shellSkinObjectID;
 
 		Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
@@ -58,7 +58,7 @@ public class SkinnedDialog
 
 		skin = SWTSkinFactory.getNonPersistentInstance(
 				SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
-				"skin3_close_notification.properties");
+				skinFile + ".properties");
 
 		skin.initialize(shell, shellSkinObjectID);
 
