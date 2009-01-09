@@ -93,9 +93,27 @@ public interface VuzeBuddy
 	public Set<String>
 	getSubscribableCategories();
 	
+	public boolean
+	isSubscribedToCategory(
+		String		category );
+	
+	public void
+	setSubscribedToCategory(
+		String		category,
+		boolean		subscribed );
+
 	public Set<String>
 	getPublishedCategories();
 
+	public boolean
+	isPublishedCategory(
+		String		category );
+	
+	public void
+	setPublishedCategory(
+		String		category,
+		boolean		published );
+	
 	String getProfileUrl(String referer);
 
 	/**

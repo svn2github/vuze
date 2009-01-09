@@ -21,6 +21,7 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -30,6 +31,10 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
+import com.aelitis.azureus.core.metasearch.Engine;
+import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
@@ -297,11 +302,10 @@ public class VuzeBuddyImpl
 			String[] ret = new String[pluginBuddies.size()];
 			int x = 0;
 
-			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
-				if (pluginBuddy != null) {
-					ret[x++] = pluginBuddy.getPublicKey();
-				}
+			for (Iterator<BuddyPluginBuddy> iter = pluginBuddies.iterator(); iter.hasNext();) {
+				BuddyPluginBuddy pluginBuddy = iter.next();
+				
+				ret[x++] = pluginBuddy.getPublicKey();
 			}
 			return ret;
 		} finally {
@@ -543,13 +547,13 @@ public class VuzeBuddyImpl
 	public Set<String>
 	getSubscribableCategories()
 	{
-		Iterator it = pluginBuddies.iterator();
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
 
 		Set<String> result = new HashSet<String>();
 
-		while (it.hasNext()) {
+		while (it.hasNext()){
 
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+			BuddyPluginBuddy pluginBuddy = it.next();
 
 			Set<String> x = pluginBuddy.getRemoteAuthorisedRSSCategories();
 			
@@ -562,16 +566,110 @@ public class VuzeBuddyImpl
 		return( result );
 	}
 	
+	public boolean
+	isSubscribedToCategory(
+		String		category )
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
+
+		while (it.hasNext()){
+
+			BuddyPluginBuddy pluginBuddy = it.next();
+
+			if ( pluginBuddy.isRemoteRSSCategoryAuthorised( category )){
+				
+				Subscription	subs = lookupSubscription( pluginBuddy, category );
+				
+				if ( subs == null ){
+					
+					return( false );
+				}
+			}
+		}
+		
+		return( true );
+	}
+	
+	public void
+	setSubscribedToCategory(
+		String		category,
+		boolean		subscribed )
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
+
+		while (it.hasNext()){
+
+			BuddyPluginBuddy pluginBuddy = it.next();
+
+			Subscription	subs = lookupSubscription( pluginBuddy, category );
+
+			if ( !subscribed ){
+				
+				if ( subs != null ){
+				
+					subs.remove();
+				}
+			}else{
+				
+				if ( subs == null ){
+		
+					if ( pluginBuddy.isRemoteRSSCategoryAuthorised( category )){
+				
+						try{
+							pluginBuddy.subscribeToCategory( category );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	protected Subscription
+	lookupSubscription(
+		BuddyPluginBuddy		buddy,
+		String					cat )
+	{
+		String	url = buddy.getSubscriptionURL( cat ).toExternalForm();
+		
+		Subscription[] subs = SubscriptionManagerFactory.getSingleton().getSubscriptions();
+		
+		for ( Subscription s: subs ){
+			
+			try{
+				Engine engine = s.getEngine();
+				
+				if ( engine.getType() == Engine.ENGINE_TYPE_RSS ){
+					
+					RSSEngine rss_engine = (RSSEngine)engine;
+					
+					if ( url.equals( rss_engine.getSearchUrl())){
+						
+						return( s );
+					}
+				}
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		return( null );
+	}
+	
 	public Set<String>
 	getPublishedCategories()
-		{
-		Iterator it = pluginBuddies.iterator();
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
 
 		Set<String> result = new HashSet<String>();
 
-		while (it.hasNext()) {
+		while (it.hasNext()){
 
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+			BuddyPluginBuddy pluginBuddy = it.next();
 
 			Set<String> x = pluginBuddy.getLocalAuthorisedRSSCategories();
 			
@@ -582,5 +680,46 @@ public class VuzeBuddyImpl
 		}
 		
 		return( result );
+	}
+	
+	public boolean
+	isPublishedCategory(
+		String		category )
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
+
+		while (it.hasNext()){
+
+			BuddyPluginBuddy pluginBuddy = it.next();
+
+			if ( !pluginBuddy.isLocalRSSCategoryAuthorised(category)){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+	
+	public void
+	setPublishedCategory(
+		String		category,
+		boolean		published )
+	{
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
+
+		while (it.hasNext()){
+
+			BuddyPluginBuddy pluginBuddy = it.next();
+
+			if ( published ){
+			
+				pluginBuddy.addLocalAuthorisedRSSCategory( category );
+				
+			}else{
+				
+				pluginBuddy.removeLocalAuthorisedRSSCategory( category );				
+			}
+		}
 	}
 }

@@ -997,6 +997,8 @@ public class AvatarWidget
 							}
 						});
 					
+					final VuzeBuddy vb = aw.getVuzeBuddy();
+
 					for ( Category c: cats ){
 						
 						int type = c.getType();
@@ -1021,7 +1023,9 @@ public class AvatarWidget
 						
 						item.setText( cname);
 						
-						//item.setSelection( asdasd );
+						boolean is_selected = vb.isPublishedCategory( cname ); 
+						
+						item.setSelection( is_selected );
 						
 						item.addListener(
 							SWT.Selection, 
@@ -1031,13 +1035,11 @@ public class AvatarWidget
 								handleEvent(
 									Event event) 
 								{
-									
+									vb.setPublishedCategory( cname, item.getSelection());
 								}
 							});
 					}
-					
-					VuzeBuddy vb = aw.getVuzeBuddy();
-					
+										
 					String[] subscribable = vb.getSubscribableCategories().toArray( new String[0]);
 					
 					Arrays.sort(
@@ -1053,12 +1055,16 @@ public class AvatarWidget
 							}
 						});
 					
-					for ( String cat: subscribable ){
+					for ( final String cat: subscribable ){
 						
 						final MenuItem item = new MenuItem(subs_in_menu, SWT.CHECK );
 						
-						item.setText( cat);
-												
+						item.setText( cat );
+							
+						boolean is_selected = vb.isSubscribedToCategory( cat ); 
+						
+						item.setSelection( is_selected );
+
 						item.addListener(
 							SWT.Selection, 
 							new Listener() 
@@ -1067,7 +1073,7 @@ public class AvatarWidget
 								handleEvent(
 									Event event) 
 								{
-									
+									vb.setSubscribedToCategory( cat, item.getSelection());
 								}
 							});
 					}
