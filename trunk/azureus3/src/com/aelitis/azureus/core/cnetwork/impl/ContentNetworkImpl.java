@@ -361,7 +361,8 @@ ContentNetworkImpl
 			
 			if ( 	name == PP_AUTH_PAGE_SHOWN ||
 					name == PP_IS_CUSTOMIZATION ||
-					name == PP_ACTIVE ){
+					name == PP_ACTIVE ||
+					name == PP_SHOW_IN_MENU ){
 				
 				if ( obj == null && pprop_defaults != null ){
 					
