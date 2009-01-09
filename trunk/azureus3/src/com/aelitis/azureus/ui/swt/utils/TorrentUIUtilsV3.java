@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -66,6 +67,11 @@ import com.aelitis.azureus.util.*;
  */
 public class TorrentUIUtilsV3
 {
+	private final static String MSG_ALREADY_EXISTS = "OpenTorrentWindow.mb.alreadyExists";
+
+	private final static String MSG_ALREADY_EXISTS_NAME = MSG_ALREADY_EXISTS
+			+ ".default.name";
+
 	//catches http://www.vuze.com/download/CHJW43PLS277RC7U3S5XRS2PZ4UUG7RS.torrent
 	private static final Pattern hashPattern = Pattern.compile("download/([A-Z0-9]{32})\\.torrent");
 
@@ -81,14 +87,14 @@ public class TorrentUIUtilsV3
 
 		String url = dlInfo.getDownloadURL();
 		try {
-			if (playNow || playPrepare) {
-				Matcher m = hashPattern.matcher(url);
-				if (m.find()) {
-					String hash = m.group(1);
-					GlobalManager gm = core.getGlobalManager();
-					final DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-							Base32.decode(hash)));
-					if (dm != null) {
+			Matcher m = hashPattern.matcher(url);
+			if (m.find()) {
+				String hash = m.group(1);
+				GlobalManager gm = core.getGlobalManager();
+				final DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+						Base32.decode(hash)));
+				if (dm != null) {
+					if (playNow || playPrepare) {
 						new AEThread2("playExisting", true) {
 
 							public void run() {
@@ -106,16 +112,28 @@ public class TorrentUIUtilsV3
 							}
 
 						}.start();
-						return;
+					} else {
+						Utils.openMessageBox(Utils.findAnyShell(), SWT.OK,
+								MSG_ALREADY_EXISTS, new String[] {
+									" ",
+									dm.getDisplayName(),
+									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+								});
 					}
+					return;
 				}
 			}
 
 			// If it's going to our URLs, add some extra authenication
 			if (UrlFilter.getInstance().urlCanRPC(url)) {
-				// 4010 TODO: should kinda be the right network..
-				url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false,
-						true);
+				ContentNetwork cn = null;
+				if (dlInfo instanceof DownloadUrlInfoContentNetwork) {
+					cn = ((DownloadUrlInfoContentNetwork) dlInfo).getContentNetwork();
+				}
+				if (cn == null) {
+					cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+				}
+				url = cn.appendURLSuffix(url, false, true);
 			}
 
 			UIFunctionsSWT uiFunctions = (UIFunctionsSWT) UIFunctionsManager.getUIFunctions();
@@ -326,7 +344,6 @@ public class TorrentUIUtilsV3
 			l.contentImageLoaded(imageLoader.getImage(thumbnailUrl), true);
 			return null;
 		}
-
 
 		String hash = null;
 		try {
