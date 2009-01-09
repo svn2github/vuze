@@ -49,7 +49,8 @@ AZ3Functions
 			String		name,
 			URL 		url,
 			int			interval,
-			boolean		is_public )
+			boolean		is_public,
+			String		creator_ref )
 		
 			throws Exception;
 	}

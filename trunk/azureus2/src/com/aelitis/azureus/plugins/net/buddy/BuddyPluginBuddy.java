@@ -441,12 +441,26 @@ BuddyPluginBuddy
 				getName() + ": " + cat, 
 				getSubscriptionURL(cat),
 				15,
-				false );
+				false,
+				getPublicKey() + ":" + cat );
 				
 		}catch( Throwable e ){
 				
 			throw( new BuddyPluginException( "Failed to add subscription", e ));
 		}
+	}
+	
+	public boolean
+	isSubscribedToCategory(
+		String	cat,
+		String	creator_ref )
+	{
+		if ( creator_ref == null ){
+			
+			return( false );
+		}
+		
+		return( creator_ref.equals( getPublicKey() + ":" + cat ));
 	}
 	
 	protected void
