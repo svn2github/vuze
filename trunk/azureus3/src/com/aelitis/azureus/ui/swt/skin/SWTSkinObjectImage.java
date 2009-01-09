@@ -457,11 +457,15 @@ public class SWTSkinObjectImage
 		customImage = false;
 		customImageID = url;
 
-		final ImageLoader imageLoader = skin.getImageLoader(properties);
-		imageLoader.getUrlImage(url, new ImageDownloaderListener() {
-			public void imageDownloaded(Image image, boolean returnedImmediately) {
-				setLabelImage(url, null);
-				imageLoader.releaseImage(url);
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				final ImageLoader imageLoader = skin.getImageLoader(properties);
+				imageLoader.getUrlImage(url, new ImageDownloaderListener() {
+					public void imageDownloaded(Image image, boolean returnedImmediately) {
+						setLabelImage(url, null);
+						imageLoader.releaseImage(url);
+					}
+				});
 			}
 		});
 	}
