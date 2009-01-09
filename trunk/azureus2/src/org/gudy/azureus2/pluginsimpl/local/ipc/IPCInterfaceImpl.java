@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ipc;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -127,7 +128,17 @@ public class IPCInterfaceImpl implements IPCInterface {
 			}
 			
 			return mtd.invoke(target, params);
-		} catch (Exception e) {
+			
+		} catch (Throwable e) {
+			
+			if ( e instanceof InvocationTargetException ){
+				
+				if ( e.getCause() != null ){
+					
+					e = e.getCause();
+				}
+			}
+			
 			throw new IPCException(e);
 		}
 	}
