@@ -20,6 +20,8 @@ package com.aelitis.azureus.ui.selectedcontent;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.LightHashMap;
+
 /**
  * @author TuxPaper
  * @created Sep 12, 2008
@@ -33,7 +35,7 @@ public class DownloadUrlInfo
 
 	private Map requestProperties;
 
-	private Map additionalProperties;
+	private Map additionalProperties = null;
 
 	/**
 	 * @param url
@@ -83,9 +85,20 @@ public class DownloadUrlInfo
 	/**
 	 * @param additionalProperties the additionalProperties to set
 	 */
-	public void setAdditionalProperties(Map additionalProperties) {
-		this.additionalProperties = additionalProperties;
+	public void setAdditionalProperty(String key, Object value) {
+		if (additionalProperties == null) {
+			additionalProperties = new LightHashMap(1);
+		}
+		additionalProperties.put(key, value);
 	}
+
+	public void setAdditionalProperties(Map mapToCopy) {
+		if (additionalProperties == null) {
+			additionalProperties = new LightHashMap(1);
+		}
+		additionalProperties.putAll(mapToCopy);
+	}
+
 
 	/**
 	 * @return the additionalProperties
