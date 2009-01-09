@@ -21,6 +21,8 @@ package com.aelitis.azureus.ui.swt.utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
@@ -71,6 +73,7 @@ public class ContentNetworkUIManagerWindow
 		if (soListArea != null) {
 			Composite parent = (Composite) soListArea.getControl();
 			ContentNetwork[] networks = ContentNetworkManagerFactory.getSingleton().getContentNetworks();
+			Button lastButton = null; 
 			for (int i = 0; i < networks.length; i++) {
 				final ContentNetwork cn = networks[i];
 				Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
@@ -85,6 +88,14 @@ public class ContentNetworkUIManagerWindow
 							? ((Boolean) prop).booleanValue() : true;
 
 					button.setSelection(show);
+					
+					FormData fd = new FormData();
+					if (lastButton != null) {
+						fd.top = new FormAttachment(lastButton, 2);
+					}
+					button.setLayoutData(fd);
+					
+					lastButton = button;
 
 					button.addSelectionListener(new SelectionListener() {
 						public void widgetSelected(SelectionEvent e) {
