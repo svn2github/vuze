@@ -39,7 +39,6 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.util.*;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 import org.gudy.azureus2.plugins.Plugin;
@@ -73,7 +72,9 @@ public class VuzeBuddyManager
 
 	public static final String VMT_BUDDY_MESSAGE = "BuddyMessage";
 
-	public static final String VMT_BUDDYSYNC = "BuddySync"; 
+	public static final String VMT_BUDDYSYNC = "BuddySync";
+
+	private static final String UNKNOWN_MSG_TYPE = "Unknown Message Type"; 
 
 	private static BuddyPlugin buddyPlugin = null;
 
@@ -128,6 +129,17 @@ public class VuzeBuddyManager
 					+ JSONUtils.encodeToJSON(reply));
 				
 				String response = MapUtils.getMapString(reply, "response", "");
+				
+				if (response.equals(UNKNOWN_MSG_TYPE)) {
+					try {
+						Map map = message.getRequest();
+						VuzeBuddyManager.log("  " + response + "; "
+								+ MapUtils.getMapString(map, "VuzeMessageType", "null"));
+					} catch (Throwable t) {
+					}
+					// fake that we handled it..
+					return true;
+				}
 				
 				if ( !response.toLowerCase().equals("ok")){
 					
@@ -816,7 +828,7 @@ public class VuzeBuddyManager
 		}
 
 		log("processPayLoadMap from " + pkSender + ": Unknown Message Type " + mt);
-		return "Unknown Message Type";
+		return UNKNOWN_MSG_TYPE;
 	}
 
 	/**
