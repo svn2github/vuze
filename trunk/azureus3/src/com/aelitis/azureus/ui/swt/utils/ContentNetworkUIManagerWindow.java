@@ -91,8 +91,11 @@ public class ContentNetworkUIManagerWindow
 					
 					FormData fd = new FormData();
 					if (lastButton != null) {
-						fd.top = new FormAttachment(lastButton, 2);
+						fd.top = new FormAttachment(lastButton, 5);
+					} else {
+						fd.top = new FormAttachment(0, 5);
 					}
+					fd.left = new FormAttachment(0, 5);
 					button.setLayoutData(fd);
 					
 					lastButton = button;
