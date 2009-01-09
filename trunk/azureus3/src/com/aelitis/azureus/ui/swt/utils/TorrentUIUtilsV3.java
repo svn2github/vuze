@@ -297,7 +297,7 @@ public class TorrentUIUtilsV3
 	 *
 	 * @since 4.0.0.5
 	 */
-	public static Image getContentImage(Object datasource,
+	public static Image getContentImage(Object datasource, boolean big,
 			final ContentImageLoadedListener l) {
 		if (l == null) {
 			return null;
@@ -377,7 +377,7 @@ public class TorrentUIUtilsV3
 			}
 			if (path != null) {
 				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-				Image icon = ImageRepository.getPathIcon(path, true, torrent != null
+				Image icon = ImageRepository.getPathIcon(path, big, torrent != null
 						&& !torrent.isSimpleTorrent());
 				if (icon != null) {
 					image = new Image(Display.getDefault(), icon, SWT.IMAGE_COPY);

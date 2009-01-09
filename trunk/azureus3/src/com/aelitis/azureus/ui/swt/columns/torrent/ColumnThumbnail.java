@@ -125,7 +125,10 @@ public class ColumnThumbnail
 	public void cellPaint(GC gc, final TableCellSWT cell) {
 		Object ds = cell.getDataSource();
 
+		Rectangle cellBounds = cell.getBounds();
+
 		Image imgThumbnail = TorrentUIUtilsV3.getContentImage(ds,
+				cellBounds.width < 17 || cellBounds.height < 17,
 				new ContentImageLoadedListener() {
 					public void contentImageLoaded(Image image, boolean wasReturned) {
 						if (!wasReturned) {
@@ -140,8 +143,6 @@ public class ColumnThumbnail
 			// don't need to release a null image
 			return;
 		}
-
-		Rectangle cellBounds = cell.getBounds();
 
 		if (cellBounds.height > 30) {
 			cellBounds.y += 2;
@@ -182,8 +183,8 @@ public class ColumnThumbnail
 			gc.setInterpolation(SWT.HIGH);
 		} catch (Exception e) {
 		}
-		int x = cellBounds.x + ((cellBounds.width - dstWidth) / 2);
-		int y = cellBounds.y + ((cellBounds.height - dstHeight) / 2);
+		int x = cellBounds.x + ((cellBounds.width - dstWidth + 1) / 2);
+		int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
 		if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
 			Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 			Rectangle lastClipping = gc.getClipping();

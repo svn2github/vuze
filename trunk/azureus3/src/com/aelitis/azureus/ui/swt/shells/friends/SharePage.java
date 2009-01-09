@@ -445,7 +445,8 @@ public class SharePage
 		}
 
 
-		TorrentUIUtilsV3.getContentImage(shareItem, new ContentImageLoadedListener() {
+		TorrentUIUtilsV3.getContentImage(shareItem, true,
+				new ContentImageLoadedListener() {
 			public void contentImageLoaded(Image image, boolean wasReturned) {
 				contentThumbnail.setImage(image);
 			}
