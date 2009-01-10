@@ -28,13 +28,13 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
-CopyOnWriteList 
+CopyOnWriteList<T> 
 {
 	private static final boolean LOG_STATS = false;
 	
 	//private int mutation_count = 0;
 	
-	private List	list = Collections.EMPTY_LIST;
+	private List<T>	list = Collections.emptyList();
 	
 	private boolean	visible = false;
 	
@@ -95,13 +95,13 @@ CopyOnWriteList
 
 	public void
 	add(
-		Object	obj )
+		T	obj )
 	{
 		synchronized( this ){
 			
 			if ( visible ){
 				
-				List	new_list = new ArrayList( list );
+				List<T>	new_list = new ArrayList<T>( list );
 				
 				//mutated();
 				
@@ -112,8 +112,8 @@ CopyOnWriteList
 				visible = false;
 				
 			}else{
-				if (list == Collections.EMPTY_LIST) {
-					list = new ArrayList(initialCapacity);
+				if (list == Collections.emptyList()) {
+					list = new ArrayList<T>(initialCapacity);
 				}
 				
 				list.add( obj );
@@ -123,13 +123,13 @@ CopyOnWriteList
 	
 	public boolean
 	remove(
-		Object	obj )
+		T	obj )
 	{
 		synchronized( this ){
 			
 			if ( visible ){
 
-				List	new_list = new ArrayList( list );
+				List<T>	new_list = new ArrayList<T>( list );
 				
 				//mutated();
 				
@@ -153,7 +153,7 @@ CopyOnWriteList
 	{
 		synchronized( this ){
 								
-			list	= Collections.EMPTY_LIST;
+			list	= Collections.emptyList();
 			
 			visible = false;
 		}
@@ -161,7 +161,7 @@ CopyOnWriteList
 	
 	public boolean
 	contains(
-		Object	obj )
+		T	obj )
 	{
 		synchronized( this ){
 
@@ -169,7 +169,7 @@ CopyOnWriteList
 		}
 	}
 	
-	public Iterator
+	public Iterator<T>
 	iterator()
 	{
 		synchronized( this ){
@@ -180,7 +180,7 @@ CopyOnWriteList
 		}
 	}
 	
-	public List
+	public List<T>
 	getList()
 	{
 			// TODO: we need to either make this a read-only-list or obey the copy-on-write semantics correctly...
@@ -220,9 +220,9 @@ CopyOnWriteList
 		}
 	}
 	
-	public Object[]
+	public T[]
   	toArray(
-  		Object[]	 x )
+  		T[]	 x )
   	{
 		synchronized( this ){
 
@@ -245,14 +245,14 @@ CopyOnWriteList
 	
 	private class
 	CopyOnWriteListIterator
-		implements Iterator
+		implements Iterator<T>
 	{
-		private Iterator	it;
-		private Object		last;
+		private Iterator<T>	it;
+		private T			last;
 		
 		protected
 		CopyOnWriteListIterator(
-			Iterator		_it )
+			Iterator<T>		_it )
 		{
 			it		= _it;
 		}
@@ -263,7 +263,7 @@ CopyOnWriteList
 			return( it.hasNext());
 		}
 		
-		public Object
+		public T
 		next()
 		{
 			last	= it.next();
