@@ -842,22 +842,22 @@ BuddyPluginBuddyMessageHandler
 		return( message );
 	}
 	
-	public List
+	public List<BuddyPluginBuddyMessage>
 	retrieveExplicitMessages(
 		int		type )
 	{
-		List	result = new ArrayList();
+		List<BuddyPluginBuddyMessage>	result = new ArrayList<BuddyPluginBuddyMessage>();
 		
 		synchronized( this ){
 
-			List	messages = (List)config_map.get( "explicit" );
+			List<Map<String,Object>>	messages = (List<Map<String,Object>>)config_map.get( "explicit" );
 			
 			if ( messages != null ){
 				
 				for (int i=0;i<messages.size();i++){
 					
 					try{
-						BuddyPluginBuddyMessage msg = restoreMessage((Map)messages.get(i));
+						BuddyPluginBuddyMessage msg = restoreMessage(messages.get(i));
 						
 						if ( msg.getSubsystem() == BuddyPlugin.SUBSYSTEM_MSG_TYPE_BASE + type ){
 							

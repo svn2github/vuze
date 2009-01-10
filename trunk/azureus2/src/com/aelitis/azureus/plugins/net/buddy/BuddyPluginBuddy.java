@@ -797,7 +797,7 @@ BuddyPluginBuddy
 		return( persistent_msg_handler.storeExplicitMessage( type, msg ));
 	}
 	
-	public List
+	public List<BuddyPluginBuddyMessage>
 	retrieveMessages(
 		int		type )
 	{
