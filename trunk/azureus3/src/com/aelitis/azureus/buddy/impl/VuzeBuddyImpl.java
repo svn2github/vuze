@@ -21,7 +21,6 @@ package com.aelitis.azureus.buddy.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -31,8 +30,6 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntryContentShare;
 import com.aelitis.azureus.buddy.VuzeBuddy;
 import com.aelitis.azureus.buddy.VuzeBuddyListener;
 import com.aelitis.azureus.buddy.chat.ChatMessage;
-import com.aelitis.azureus.core.metasearch.Engine;
-import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -66,11 +63,11 @@ public class VuzeBuddyImpl
 
 	private String avatarURL;
 
-	private CopyOnWriteList pluginBuddies = new CopyOnWriteList();
+	private CopyOnWriteList<BuddyPluginBuddy> pluginBuddies = new CopyOnWriteList<BuddyPluginBuddy>();
 
 	private AEMonitor mon_pluginBuddies = new AEMonitor("pluginBuddies");
 
-	private ArrayList listeners = new ArrayList(0);
+	private ArrayList<VuzeBuddyListener> listeners = new ArrayList<VuzeBuddyListener>(0);
 
 	protected VuzeBuddyImpl(String publicKey) {
 		addPublicKey(publicKey);
@@ -227,8 +224,8 @@ public class VuzeBuddyImpl
 	}
 
 	public boolean isOnline(boolean is_connected) {
-		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+		for (Iterator<BuddyPluginBuddy> iter = pluginBuddies.iterator(); iter.hasNext();) {
+			BuddyPluginBuddy pluginBuddy = iter.next();
 			if (pluginBuddy.isOnline(is_connected)) {
 
 				if (pluginBuddy.getOnlineStatus() != BuddyPlugin.STATUS_APPEAR_OFFLINE) {
@@ -244,8 +241,8 @@ public class VuzeBuddyImpl
 	public int getVersion() {
 		int version = VERSION_INITIAL;
 
-		for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+		for (Iterator<BuddyPluginBuddy> iter = pluginBuddies.iterator(); iter.hasNext();) {
+			BuddyPluginBuddy pluginBuddy = iter.next();
 
 			version = Math.max(pluginBuddy.getVersion(), version);
 		}
@@ -262,7 +259,19 @@ public class VuzeBuddyImpl
 		mon_pluginBuddies.enter();
 		try {
 
-			if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)) {
+			if (pluginBuddy != null && !pluginBuddies.contains(pluginBuddy)){
+				
+					// check consistency of new buddy
+				
+				if ( pluginBuddies.size() > 0 ){
+					
+					BuddyPluginBuddy template_buddy = pluginBuddies.getList().get(0);
+					
+					Set<String> template_loc_cat = template_buddy.getLocalAuthorisedRSSCategories();
+					
+					pluginBuddy.setLocalAuthorisedRSSCategories( template_loc_cat );
+				}
+				
 				pluginBuddies.add(pluginBuddy);
 			}
 
@@ -279,8 +288,8 @@ public class VuzeBuddyImpl
 		// it in our list and remove it
 		mon_pluginBuddies.enter();
 		try {
-			for (Iterator iter = pluginBuddies.iterator(); iter.hasNext();) {
-				BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) iter.next();
+			for (Iterator<BuddyPluginBuddy> iter = pluginBuddies.iterator(); iter.hasNext();) {
+				BuddyPluginBuddy pluginBuddy = iter.next();
 				if (pluginBuddy.getPublicKey().equals(pk)) {
 					iter.remove();
 					if (pluginBuddy.getSubsystem() == BuddyPlugin.SUBSYSTEM_AZ3) {
@@ -454,15 +463,15 @@ public class VuzeBuddyImpl
 	public int
 	getStoredChatMessageCount()
 	{
-		Iterator it = pluginBuddies.iterator();
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
 
 		int	res = 0;
 
 		while (it.hasNext()) {
 
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+			BuddyPluginBuddy pluginBuddy = it.next();
 
-			List msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
+			List<BuddyPluginBuddyMessage> msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
 
 			res += msgs.size();
 		}
@@ -470,18 +479,18 @@ public class VuzeBuddyImpl
 		return( res );
 	}
 	
-	public List
+	public List<ChatMessage>
 	getStoredChatMessages()
 	{
-		Iterator it = pluginBuddies.iterator();
+		Iterator<BuddyPluginBuddy> it = pluginBuddies.iterator();
 
-		List result = new ArrayList();
+		List<ChatMessage> result = new ArrayList<ChatMessage>();
 
 		while (it.hasNext()) {
 
-			BuddyPluginBuddy pluginBuddy = (BuddyPluginBuddy) it.next();
+			BuddyPluginBuddy pluginBuddy = it.next();
 
-			List msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
+			List<BuddyPluginBuddyMessage> msgs = pluginBuddy.retrieveMessages(BuddyPlugin.MT_V3_CHAT);
 
 			for (int i = 0; i < msgs.size(); i++) {
 
