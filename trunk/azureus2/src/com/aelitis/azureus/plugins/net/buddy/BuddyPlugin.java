@@ -913,6 +913,61 @@ BuddyPlugin
 		return( enable_chat_notifications );
 	}
 	
+	protected String
+	normaliseCat(
+		String		str )
+	{
+		if ( str == null ){
+			
+			return( null );
+			
+		}else if ( str.toLowerCase().equals( "all" )){
+			
+			return( "All" );
+			
+		}else{
+			
+			return( str );
+		}
+	}
+	
+	protected void
+	normaliseCats(
+		Set<String>	cats )
+	{
+		if ( cats != null ){
+			
+			boolean	all_found = false;
+			
+			Iterator<String> it = cats.iterator();
+			
+			while( it.hasNext()){
+				
+				if ( it.next().toLowerCase().equals( "all" )){
+					
+					it.remove();
+					
+					all_found = true;
+				}
+			}
+			
+			if ( all_found ){
+				
+				cats.add( "All" );
+			}
+		}
+	}
+	
+	public boolean
+	isPublicCategory(
+		String	cat )
+	{
+		cat = normaliseCat( cat );
+		
+		return( !public_categories.contains( cat ));
+	}
+	
+	
 	protected void
 	setPublicCats(
 		String	str )
@@ -927,7 +982,7 @@ BuddyPlugin
 			
 			if ( bits.length > 0 ){
 				
-				new_pub_cats.add( s );
+				new_pub_cats.add( normaliseCat( s ));
 			}
 		}
 		

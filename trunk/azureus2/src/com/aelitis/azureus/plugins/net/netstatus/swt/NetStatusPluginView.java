@@ -430,7 +430,7 @@ NetStatusPluginView
 	{
 		plugin.log( str );
 		
-		if ( !log.isDisposed()){
+		if ( !( log.isDisposed() || log.getDisplay().isDisposed())){
 			
 			final int f_log_type = log_type;
 			
@@ -490,11 +490,11 @@ NetStatusPluginView
 	protected void
 	cancelTestSupport()
 	{
-		println( "Cancelling test..." );
-		
 		synchronized( this ){
 			
 			if ( current_test != null ){
+				
+				println( "Cancelling test..." );
 				
 				current_test.cancel();
 			}

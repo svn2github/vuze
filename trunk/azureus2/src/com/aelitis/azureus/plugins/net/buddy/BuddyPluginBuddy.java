@@ -289,7 +289,7 @@ BuddyPluginBuddy
 	addLocalAuthorisedRSSCategory(
 		String	category )
 	{
-		category = normaliseCat( category );
+		category = plugin.normaliseCat( category );
 		
 		if ( rss_local_cats == null ){
 			
@@ -317,7 +317,7 @@ BuddyPluginBuddy
 	removeLocalAuthorisedRSSCategory(
 		String	str )
 	{
-		str = normaliseCat( str );
+		str = plugin.normaliseCat( str );
 		
 		if ( rss_local_cats == null ){
 			
@@ -352,7 +352,7 @@ BuddyPluginBuddy
 	setLocalAuthorisedRSSCategories(
 		Set<String>		new_cats )
 	{	
-		normaliseCats( new_cats );
+		plugin.normaliseCats( new_cats );
 		
 		if ( !catsIdentical( new_cats, rss_local_cats) ){
 			
@@ -387,7 +387,7 @@ BuddyPluginBuddy
 	setRemoteAuthorisedRSSCategories(
 		Set<String>		new_cats )
 	{
-		normaliseCats( new_cats );
+		plugin.normaliseCats( new_cats );
 		
 		if ( !catsIdentical( new_cats, rss_remote_cats) ){
 			
@@ -405,7 +405,7 @@ BuddyPluginBuddy
 	{
 		if ( rss_local_cats != null ){
 		
-			return( rss_local_cats.contains( normaliseCat( category )));
+			return( rss_local_cats.contains( plugin.normaliseCat( category )));
 		}
 		
 		return( false );
@@ -482,51 +482,6 @@ BuddyPluginBuddy
 		}
 		
 		return( creator_ref.equals( getPublicKey() + ":" + cat ));
-	}
-	
-	protected void
-	normaliseCats(
-		Set<String>	cats )
-	{
-		if ( cats != null ){
-			
-			boolean	all_found = false;
-			
-			Iterator<String> it = cats.iterator();
-			
-			while( it.hasNext()){
-				
-				if ( it.next().toLowerCase().equals( "all" )){
-					
-					it.remove();
-					
-					all_found = true;
-				}
-			}
-			
-			if ( all_found ){
-				
-				cats.add( "All" );
-			}
-		}
-	}
-	
-	protected String
-	normaliseCat(
-		String		str )
-	{
-		if ( str == null ){
-			
-			return( null );
-			
-		}else if ( str.toLowerCase().equals( "all" )){
-			
-			return( "All" );
-			
-		}else{
-			
-			return( str );
-		}
 	}
 	
 	protected String
