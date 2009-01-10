@@ -300,6 +300,8 @@ BuddyPlugin
 	
 	private TorrentAttribute	ta_category;
 
+	private Set<String>	public_categories = new HashSet<String>();
+	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -413,6 +415,25 @@ BuddyPlugin
 			// chat notifications
 		
 		enable_chat_notifications = config.addBooleanParameter2( "azbuddy.enable_chat_notif", "azbuddy.enable_chat_notif", true );
+		
+			// default published cats
+		
+		final StringParameter cat_pub = config.addStringParameter2( "azbuddy.enable_cat_pub", "azbuddy.enable_cat_pub", "" );
+		
+		cat_pub.setGenerateIntermediateEvents( false );
+		
+		setPublicCats( cat_pub.getValue());
+		
+		cat_pub.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	param ) 
+				{
+					setPublicCats( cat_pub.getValue());
+				}
+			});
 		
 			// config end
 		
@@ -890,6 +911,61 @@ BuddyPlugin
 	getEnableChatNotificationsParameter()
 	{
 		return( enable_chat_notifications );
+	}
+	
+	protected void
+	setPublicCats(
+		String	str )
+	{
+		Set<String>	new_pub_cats = new HashSet<String>();
+		
+		String[]	bits = str.split(",");
+		
+		for (String s: bits ){
+			
+			s = s.trim();
+			
+			if ( bits.length > 0 ){
+				
+				new_pub_cats.add( s );
+			}
+		}
+		
+		if ( !public_categories.equals( new_pub_cats )){
+			
+			Set<String> removed = new HashSet<String>( public_categories );
+			
+			removed.removeAll( new_pub_cats );
+			
+			public_categories = new_pub_cats;
+			
+			List<BuddyPluginBuddy> buds = getBuddies();
+			
+			for ( BuddyPluginBuddy b: buds ){
+				
+				Set<String> local = b.getLocalAuthorisedRSSCategories();
+				
+				if ( local != null || new_pub_cats.size() > 0 ){
+					
+					if ( local == null ){
+						
+						local = new HashSet<String>();
+						
+					}else{
+						
+							// gotta clone else we're messing with stuff that ain't ours
+						
+						local = new HashSet<String>( local );
+					}
+					
+					local.addAll( new_pub_cats );
+				
+					local.removeAll( removed );
+				
+					b.setLocalAuthorisedRSSCategories( local );
+				}
+			}
+		}
 	}
 	
 	protected void
@@ -3041,6 +3117,8 @@ BuddyPlugin
    	{
 		if ( buddy.isAuthorised()){
 
+			buddy.setLocalAuthorisedRSSCategories( public_categories );
+			
 	   		List	 listeners_ref = listeners.getList();
 	   		
 	   		for (int i=0;i<listeners_ref.size();i++){

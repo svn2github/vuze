@@ -22,8 +22,6 @@
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
 import java.net.InetAddress;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
