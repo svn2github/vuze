@@ -303,6 +303,13 @@ BuddyPluginBuddy
 			plugin.setConfigDirty();
 			
 			plugin.fireDetailsChanged( this );
+			
+				// tell buddy of change
+			
+			if ( isConnected()){
+				
+				sendKeepAlive();
+			}
 		}
 	}
 	
@@ -323,6 +330,13 @@ BuddyPluginBuddy
 				plugin.setConfigDirty();
 			
 				plugin.fireDetailsChanged( this );
+				
+					// tell buddy of change
+				
+				if ( isConnected()){
+					
+					sendKeepAlive();
+				}
 			}
 		}
 	}
@@ -347,6 +361,13 @@ BuddyPluginBuddy
 			plugin.setConfigDirty();
 			
 			plugin.fireDetailsChanged( this );
+			
+				// tell buddy of change
+			
+			if ( isConnected()){
+				
+				sendKeepAlive();
+			}
 		}	
 	}
 	
