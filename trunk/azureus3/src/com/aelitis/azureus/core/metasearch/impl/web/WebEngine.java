@@ -436,7 +436,7 @@ WebEngine
 	protected pageDetails 
 	getWebPageContent(
 		SearchParameter[] 	searchParameters,
-		Map					searchContext,
+		Map<String,String>	searchContext,
 		String				headers,
 		boolean				only_if_modified )
 	
@@ -465,15 +465,14 @@ WebEngine
 			
 			searchURL = GeneralUtils.replaceAll( searchURL, from_strs, to_strs );
 				
-			Iterator	it = searchContext.entrySet().iterator();
+			Iterator<Map.Entry<String, String>>	it = searchContext.entrySet().iterator();
 			
 			while( it.hasNext()){
 				
-				Map.Entry	entry = (Map.Entry)it.next();
+				Map.Entry<String, String>	entry = it.next();
 				
-				String	key 	= (String)entry.getKey();
-				String	value 	= (String)entry.getValue();
-				
+				String	key 	= entry.getKey();
+					
 				if ( supportsContext( key )){
 					
 					if ( searchURL.indexOf('?') == -1 ){
@@ -485,6 +484,8 @@ WebEngine
 						searchURL += "&";
 					}
 					
+					String	value 	= entry.getValue();
+
 					searchURL += key + "=" + URLEncoder.encode( value, "UTF-8" );
 				}
 			}

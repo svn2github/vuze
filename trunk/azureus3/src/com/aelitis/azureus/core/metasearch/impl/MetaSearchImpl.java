@@ -66,12 +66,12 @@ MetaSearchImpl
 		
 	private MetaSearchManagerImpl	manager;
 	
-	private CopyOnWriteList 	engines 	= new CopyOnWriteList();
-	private Map					plugin_map	= new HashMap();
+	private CopyOnWriteList<EngineImpl> engines 	= new CopyOnWriteList<EngineImpl>();
+	private Map<String,Long>			plugin_map	= new HashMap<String,Long>();
 	
 	private boolean config_dirty;
 	
-	private CopyOnWriteList 	listeners 	= new CopyOnWriteList();
+	private CopyOnWriteList<MetaSearchListener> 	listeners 	= new CopyOnWriteList<MetaSearchListener>();
 	
 	private TimerEventPeriodic	update_check_timer;
 	
@@ -96,7 +96,7 @@ MetaSearchImpl
 	
 	public Engine
 	importFromBEncodedMap(
-		Map		map )
+		Map<String,Object>		map )
 	
 		throws IOException
 	{
@@ -125,7 +125,7 @@ MetaSearchImpl
 	{
 		synchronized( this ){
 
-			Long	l_id = (Long)plugin_map.get( pid );
+			Long	l_id = plugin_map.get( pid );
 			
 			long	id;
 			
@@ -230,7 +230,7 @@ MetaSearchImpl
 	protected void
 	checkUpdates()
 	{
-		Iterator it = engines.iterator();
+		Iterator<EngineImpl> it = engines.iterator();
 		
 		while( it.hasNext()){
 				
@@ -336,14 +336,14 @@ MetaSearchImpl
 			InputStream is = rd.download();
 			
 			try{
-				Map map = BDecoder.decode( new BufferedInputStream( is ));
+				Map<String,Object> map = BDecoder.decode( new BufferedInputStream( is ));
 				
 				log( "    update check reply: " + map );
 				
 					// reply is either "response" meaning "no update" and giving possibly changed update secs
 					// or Vuze file with updated template
 				
-				Map response = (Map)map.get( "response" );
+				Map<String,Object> response = (Map<String,Object>)map.get( "response" );
 				
 				if ( response != null ){
 					
@@ -491,11 +491,11 @@ MetaSearchImpl
 		
 		synchronized( this ){
 			
-			Iterator	it = engines.iterator();
+			Iterator<EngineImpl>	it = engines.iterator();
 			
 			while( it.hasNext()){
 				
-				Engine existing_engine = (Engine)it.next();
+				Engine existing_engine = it.next();
 				
 				if ( existing_engine.getId() == new_engine.getId()){
 					
@@ -540,11 +540,11 @@ MetaSearchImpl
 			
 			saveConfig();
 		
-			Iterator it = listeners.iterator();
+			Iterator<MetaSearchListener> it = listeners.iterator();
 			
 			while( it.hasNext()){
 				
-				MetaSearchListener listener = (MetaSearchListener)it.next();
+				MetaSearchListener listener = it.next();
 				
 				try{
 					if ( add_op ){
@@ -567,19 +567,19 @@ MetaSearchImpl
 	removeEngine(
 		Engine 	engine )
 	{
-		if ( engines.remove( engine )){
+		if ( engines.remove((EngineImpl)engine )){
 		
 			log( "Engine '" + engine.getName() + "' removed" );
 			
 			saveConfig();
 			
-			Iterator it = listeners.iterator();
+			Iterator<MetaSearchListener> it = listeners.iterator();
 			
 			while( it.hasNext()){
 				
 				try{
 	
-					((MetaSearchListener)it.next()).engineRemoved( engine );
+					it.next().engineRemoved( engine );
 	
 				}catch( Throwable e ){
 					
@@ -599,17 +599,17 @@ MetaSearchImpl
 			manager.ensureEnginesUpToDate();
 		}
 		
-		List l = engines.getList();
+		List<EngineImpl> l = engines.getList();
 				
-		List result;
+		List<EngineImpl> result;
 		
 		if ( active_only ){
 			
-			result = new ArrayList();
+			result = new ArrayList<EngineImpl>();
 			
 			for (int i=0;i<l.size();i++){
 				
-				Engine	e = (Engine)l.get(i);
+				EngineImpl	e = l.get(i);
 				
 				if ( e.isActive()){
 					
@@ -628,11 +628,11 @@ MetaSearchImpl
 	getEngine(
 		long		id )
 	{
-		List l = engines.getList();
+		List<EngineImpl> l = engines.getList();
 		
 		for( int i=0;i<l.size();i++){
 			
-			Engine e = (Engine)l.get(i);
+			Engine e = l.get(i);
 			
 			if ( e.getId() == id ){
 				
@@ -647,11 +647,11 @@ MetaSearchImpl
 	getEngineByUID(
 		String	uid )
 	{
-		List l = engines.getList();
+		List<EngineImpl> l = engines.getList();
 		
 		for( int i=0;i<l.size();i++){
 			
-			Engine e = (Engine)l.get(i);
+			Engine e = l.get(i);
 			
 			if ( e.getUID().equals( uid )){
 				
@@ -675,7 +675,7 @@ MetaSearchImpl
 		String					headers,
 		int						max_results_per_engine )
 	{
-		return( search( original_listener, searchParameters, headers, new HashMap(), max_results_per_engine ));
+		return( search( original_listener, searchParameters, headers, new HashMap<String,String>(), max_results_per_engine ));
 	}
 	
 	public Engine[] 
@@ -683,7 +683,7 @@ MetaSearchImpl
   		final ResultListener 	original_listener,
   		SearchParameter[] 		searchParameters,
   		String					headers,
-  		Map						context,
+  		Map<String,String>		context,
   		int						max_results_per_engine )
   	{
   		return( search( null, original_listener, searchParameters, headers, context, max_results_per_engine ));
@@ -697,7 +697,7 @@ MetaSearchImpl
 		String					headers,
 		final int				max_results_per_engine )
 	{
-		return( search( engines, listener, search_parameters, headers, new HashMap(), max_results_per_engine ));
+		return( search( engines, listener, search_parameters, headers, new HashMap<String,String>(), max_results_per_engine ));
 	}
 	
 	public Engine[] 
@@ -706,7 +706,7 @@ MetaSearchImpl
   		final ResultListener 	original_listener,
   		SearchParameter[] 		searchParameters,
   		String					headers,
-  		Map						context,
+  		Map<String,String>		context,
   		final int				max_results_per_engine )
 	{
 		String	param_str = "";
@@ -859,18 +859,15 @@ MetaSearchImpl
 			
 			Arrays.sort(
 				results,
-				new Comparator()
+				new Comparator<Result>()
 				{
-					Map	ranks = new HashMap();
+					Map<Result,Float>	ranks = new HashMap<Result, Float>();
 					
 					public int 
 					compare(
-						Object o1, 
-						Object o2) 
-					{
-						Result	r1 = (Result)o1;
-						Result	r2 = (Result)o2;
-						
+						Result r1, 
+						Result r2) 
+					{						
 						Float	rank1 = (Float)ranks.get(r1);
 						
 						if ( rank1 == null ){	
@@ -922,15 +919,15 @@ MetaSearchImpl
 		
 		synchronized( this ){
 			
-			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
+			Map<String,Object> map = FileUtil.readResilientConfigFile( CONFIG_FILE );
 			
-			List	l_engines = (List)map.get( "engines" );
+			List<Map<String,Object>>	l_engines = (List<Map<String,Object>>)map.get( "engines" );
 			
 			if( l_engines != null ){
 				
 				for (int i=0;i<l_engines.size();i++){
 					
-					Map	m = (Map)l_engines.get(i);
+					Map<String,Object>	m = (Map<String,Object>)l_engines.get(i);
 					
 					try{
 						Engine e = importFromBEncodedMap( m );
@@ -946,7 +943,7 @@ MetaSearchImpl
 				}
 			}
 			
-			Map	p_map = (Map)map.get( "plugin_map" );
+			Map<String,Long>	p_map = (Map<String,Long>)map.get( "plugin_map" );
 			
 			if ( p_map != null ){
 				
@@ -1010,17 +1007,17 @@ MetaSearchImpl
 			
 			config_dirty = false;
 			
-			Map map = new HashMap();
+			Map<String,Object> map = new HashMap<String, Object>();
 			
-			List	l_engines = new ArrayList();
+			List<Map<String,Object>>	l_engines = new ArrayList<Map<String,Object>>();
 			
 			map.put( "engines", l_engines );
 			
-			Iterator	it = engines.iterator();
+			Iterator<EngineImpl>	it = engines.iterator();
 			
 			while( it.hasNext()){
 				
-				Engine e = (Engine)it.next();
+				Engine e = it.next();
 			
 				try{
 					
@@ -1060,11 +1057,11 @@ MetaSearchImpl
 	generate(
 		IndentWriter		writer )
 	{
-		Iterator it = engines.iterator();
+		Iterator<EngineImpl> it = engines.iterator();
 		
 		while( it.hasNext()){
 				
-			EngineImpl	e = (EngineImpl)it.next();
+			EngineImpl	e = it.next();
 			
 			writer.println( e.getString( true ));
 		}	

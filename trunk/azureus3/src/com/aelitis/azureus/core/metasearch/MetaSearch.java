@@ -29,7 +29,7 @@ MetaSearch
 {	
 	public Engine
 	importFromBEncodedMap(
-		Map		map )
+		Map<String,Object>		map )
 	
 		throws IOException;
 	
@@ -45,7 +45,7 @@ MetaSearch
   		ResultListener 		listener,
   		SearchParameter[] 	searchParameters,
   		String				headers,
-  		Map					context,
+  		Map<String,String>	context,
   		int					max_per_engine );
 	
 	public Engine[] 
@@ -62,7 +62,7 @@ MetaSearch
   		ResultListener 		listener,
   		SearchParameter[] 	searchParameters,
   		String				headers,
-  		Map					context,
+  		Map<String,String>	context,
   		int					max_per_engine );
 	
 	public Engine[] 

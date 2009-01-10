@@ -167,7 +167,9 @@ RSSEngine
 	{
 		debugStart();
 		
-		pageDetails page_details = super.getWebPageContent( searchParameters, searchContext, headers, true );
+		boolean	only_if_mod = !searchContext.containsKey( Engine.SC_FORCE_FULL );
+		
+		pageDetails page_details = super.getWebPageContent( searchParameters, searchContext, headers, only_if_mod );
 		
 		String	page = page_details.getContent();
 		

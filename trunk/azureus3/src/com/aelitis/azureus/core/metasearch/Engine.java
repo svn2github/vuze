@@ -94,8 +94,9 @@ Engine
 	public static final String[] SEL_STATE_STRINGS	= { "no", "auto", "manual" };
 	public static final String[] ENGINE_TYPE_STRS 	= { "unknown","regexp","json", "plugin" };
 	
-	public static final String	SC_SOURCE	= "azsrc";
-	public static final String	SC_AZID		= "azid";
+	public static final String	SC_SOURCE			= "azsrc";
+	public static final String	SC_AZID				= "azid";
+	public static final String	SC_FORCE_FULL		= "force_full";	// ignore if-modified stuff and force a full search
 	
 	public static final String	CT_VIDEO	= "video";
 	public static final String	CT_AUDIO	= "audio";
@@ -192,7 +193,7 @@ Engine
 	public int
 	getAZVersion();
 	
-	public Map 
+	public Map<String,Object> 
 	exportToBencodedMap() 
 	
 		throws IOException;

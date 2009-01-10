@@ -1912,13 +1912,17 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 		
 		MetaSearchManager metaSearchManager = MetaSearchManagerFactory.getSingleton();
 
+		Map<String,String>	context = new HashMap<String, String>();
+		
+		context.put( Engine.SC_FORCE_FULL, "true" );
+		
 		if ( target == null ){
 		
-			metaSearchManager.getMetaSearch().search( listener, parameters, headers, max_per_engine );
+			metaSearchManager.getMetaSearch().search( listener, parameters, headers, context, max_per_engine );
 			
 		}else{
 			
-			metaSearchManager.getMetaSearch().search( new Engine[]{ target }, listener, parameters, headers, max_per_engine );
+			metaSearchManager.getMetaSearch().search( new Engine[]{ target }, listener, parameters, headers, context, max_per_engine );
 
 		}
 	}
