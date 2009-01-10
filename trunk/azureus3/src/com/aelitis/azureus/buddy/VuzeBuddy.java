@@ -109,6 +109,10 @@ public interface VuzeBuddy
 	isPublishedCategory(
 		String		category );
 	
+	public boolean
+	canSetPublishedCategory(
+		String		category );
+	
 	public void
 	setPublishedCategory(
 		String		category,

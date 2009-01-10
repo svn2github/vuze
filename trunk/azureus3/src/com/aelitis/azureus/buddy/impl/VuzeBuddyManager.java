@@ -862,7 +862,19 @@ public class VuzeBuddyManager
 	public static BuddyPlugin getBuddyPlugin() {
 		return buddyPlugin;
 	}
-
+	
+	public static boolean
+	canSetPublishedCategory(
+		String		category )
+	{
+		if ( buddyPlugin == null ){
+			
+			return( false );
+		}
+		
+		return( buddyPlugin.isPublicCategory( category ));
+	}
+	
 	/**
 	 * Retrieve a list of all buddies
 	 * 

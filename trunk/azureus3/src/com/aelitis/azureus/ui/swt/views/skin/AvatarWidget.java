@@ -1027,17 +1027,23 @@ public class AvatarWidget
 						
 						item.setSelection( is_selected );
 						
-						item.addListener(
-							SWT.Selection, 
-							new Listener() 
-							{
-								public void 
-								handleEvent(
-									Event event) 
+						if ( vb.canSetPublishedCategory( cname )){
+							
+							item.addListener(
+								SWT.Selection, 
+								new Listener() 
 								{
-									vb.setPublishedCategory( cname, item.getSelection());
-								}
-							});
+									public void 
+									handleEvent(
+										Event event) 
+									{
+										vb.setPublishedCategory( cname, item.getSelection());
+									}
+								});
+						}else{
+							
+							item.setEnabled( false );
+						}
 					}
 										
 					String[] subscribable = vb.getSubscribableCategories().toArray( new String[0]);

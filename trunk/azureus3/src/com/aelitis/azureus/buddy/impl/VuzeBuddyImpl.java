@@ -717,4 +717,11 @@ public class VuzeBuddyImpl
 			}
 		}
 	}
+	
+	public boolean
+	canSetPublishedCategory(
+		String		category )
+	{
+		return( VuzeBuddyManager.canSetPublishedCategory( category ));
+	}
 }
