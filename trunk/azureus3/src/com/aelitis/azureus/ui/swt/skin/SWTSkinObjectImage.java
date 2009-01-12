@@ -381,30 +381,38 @@ public class SWTSkinObjectImage
 		if (suffix == null) {
 			return null;
 		}
+		
+		final String fSuffix = suffix;
 
-		String sImageID = (customImageID == null ? (sConfigID + ".image")
-				: customImageID)
-				+ suffix;
+		Utils.execSWTThread(new AERunnable() {
 
-		ImageLoader imageLoader = skin.getImageLoader(properties);
-		boolean imageExists = imageLoader.imageExists(sImageID);
-		if (!imageExists) {
-			for (int i = suffixes.length - 1; i >= 0; i--) {
-				String suffixToRemove = suffixes[i];
-				if (suffixToRemove != null) {
-					sImageID = sImageID.substring(0, sImageID.length()
-							- suffixToRemove.length());
-					if (imageLoader.imageExists(sImageID)) {
-						imageExists = true;
-						break;
+			public void runSupport() {
+				String sImageID = (customImageID == null ? (sConfigID + ".image")
+						: customImageID)
+						+ fSuffix;
+
+				ImageLoader imageLoader = skin.getImageLoader(properties);
+				boolean imageExists = imageLoader.imageExists(sImageID);
+				if (!imageExists) {
+					for (int i = suffixes.length - 1; i >= 0; i--) {
+						String suffixToRemove = suffixes[i];
+						if (suffixToRemove != null) {
+							sImageID = sImageID.substring(0, sImageID.length()
+									- suffixToRemove.length());
+							if (imageLoader.imageExists(sImageID)) {
+								imageExists = true;
+								break;
+							}
+						}
 					}
 				}
-			}
-		}
 
-		if (imageExists) {
-			setLabelImage(sImageID, null);
-		}
+				if (imageExists) {
+					setLabelImage(sImageID, null);
+				}
+			}
+		});
+
 		return suffix;
 	}
 
