@@ -812,6 +812,7 @@ public class VuzeBuddyManager
 					log(e);
 				}
 			}
+			return "Ok";
 		} else if (mt.equals(VMT_BUDDY_MESSAGE)) {
 			VuzeBuddy buddyByPK = getBuddyByPK(pkSender);
 			String namespace = MapUtils.getMapString(mapPayload, "namespace", null);
