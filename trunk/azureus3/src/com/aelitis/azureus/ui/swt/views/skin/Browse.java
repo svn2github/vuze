@@ -26,6 +26,7 @@ import org.eclipse.swt.browser.ProgressEvent;
 import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -222,7 +223,7 @@ public class Browse
 		boolean wasActive = false;
 		Object prop = contentNetwork.getPersistentProperty(ContentNetwork.PP_ACTIVE);
 		if (prop instanceof Boolean) {
-			prop = ((Boolean) prop).booleanValue();
+			wasActive = ((Boolean) prop).booleanValue();
 		}
 		
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
@@ -276,6 +277,11 @@ public class Browse
 		if (decision != 1) {
 			final SkinnedDialog closeDialog = new SkinnedDialog(
 					"skin3_close_notification", "close-notification.body");
+			
+			closeDialog.setTitle(MessageText.getString("v3.dialog.cnclose.title",
+					new String[] {
+						contentNetwork.getName()
+					}));
 			SWTSkin skin = closeDialog.getSkin();
 			SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
 
