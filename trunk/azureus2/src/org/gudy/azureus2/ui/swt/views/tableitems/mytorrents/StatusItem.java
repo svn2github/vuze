@@ -49,7 +49,8 @@ public class StatusItem
 	
 	private boolean changeRowFG;
 	private boolean changeCellFG = true;
-
+	private boolean	showTrackerErrors;
+	
 	public StatusItem(String sTableID, boolean changeRowFG) {
 		super(COLUMN_ID, POSITION_LAST, 80, sTableID);
 		this.changeRowFG = changeRowFG;
@@ -60,18 +61,33 @@ public class StatusItem
 		this(sTableID, true);
 	}
 	
-	public void refresh(TableCell cell) {
+	public void 
+	refresh(
+		TableCell cell ) 
+	{
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 
-		if (cell.setText(dm == null ? ""
-				: DisplayFormatters.formatDownloadStatus(dm))
-				|| !cell.isValid()) {
+		int state = dm.getState();
+		
+		String	text;
+		
+		if ( dm != null && dm.isUnauthorisedOnTracker() && state != DownloadManager.STATE_ERROR ){
+			
+			text = dm.getTrackerStatus();
+			
+		}else{
+			
+			text = dm == null ? "": DisplayFormatters.formatDownloadStatus(dm);
+		}
+		
+		if ( cell.setText( text ) || !cell.isValid()) {
+			
 			if (!changeCellFG && !changeRowFG) {
 				return;
 			}
 			TableRow row = cell.getTableRow();
 			if (row != null && dm != null) {
-				int state = dm.getState();
+				
 				Color color = null;
 				if (state == DownloadManager.STATE_SEEDING) {
 					color = Colors.blues[Colors.BLUES_MIDDARK];
@@ -106,4 +122,10 @@ public class StatusItem
 		this.changeCellFG = changeCellFG;
 	}
 
+	public void
+	setShowTrackerErrors(
+		boolean	s )
+	{
+		showTrackerErrors = s;
+	}
 }
