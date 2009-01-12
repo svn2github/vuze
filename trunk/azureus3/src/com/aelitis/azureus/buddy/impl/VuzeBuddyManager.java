@@ -146,6 +146,8 @@ public class VuzeBuddyManager
 					sendViaRelayServer( message );
 					
 						// false here will re-attempt this call later (and keep message around)
+					// when the sendViaRelayServer succeeds, the message will be removed.
+					// If it fails, the message will be retried later
 					
 					return( false );
 				}
