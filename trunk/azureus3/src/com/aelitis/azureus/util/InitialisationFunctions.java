@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
@@ -95,6 +96,14 @@ public class InitialisationFunctions
 						
 						subs.setCreatorRef( creator_ref );
 					}
+				}
+				
+				public void 
+				showCDP(
+					org.gudy.azureus2.core3.download.DownloadManager	dm,
+					String 												ref )
+				{
+					TorrentListViewsUtils.viewDetails( dm, ref );
 				}
 			});
 	}
