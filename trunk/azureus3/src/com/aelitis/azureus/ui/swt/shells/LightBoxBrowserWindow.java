@@ -1,13 +1,7 @@
 package com.aelitis.azureus.ui.swt.shells;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.CloseWindowListener;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.browser.TitleEvent;
-import org.eclipse.swt.browser.TitleListener;
-import org.eclipse.swt.browser.WindowEvent;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -17,9 +11,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -121,6 +114,30 @@ public class LightBoxBrowserWindow
 
 		styledShell.setBackground(borderColor);
 
+		styledShell.addListener(SWT.Traverse, new Listener() {
+			public void handleEvent(Event e) {
+				if (e.detail == SWT.TRAVERSE_ESCAPE) {
+					e.doit = false;
+					close();
+				}
+			}
+		});
+		
+		final Listener escListener = new Listener() {
+			public void handleEvent(Event event) {
+				if (event.keyCode == 27) {
+					close();
+				}
+			}
+		};
+		styledShell.getShell().getDisplay().addFilter(SWT.KeyDown, escListener);
+		styledShell.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				event.display.removeFilter(SWT.KeyDown, escListener);
+			}
+		});
+		
+		
 		/*
 		 * Use a StackLayout with an error panel in the background so we can switch it to the front
 		 * when an error has occurred
@@ -211,15 +228,7 @@ public class LightBoxBrowserWindow
 
 		if (browserWidth > 0 && browserHeight > 0) {
 			styledShell.setSize(browserWidth, browserHeight,
-					StyledShell.HINT_ALIGN_CENTER | StyledShell.HINT_ALIGN_FIT_IN_MONITOR);
-		}
-
-		if (null != browser) {
-			hookListeners();
-			setUrl(url);
-			stack.topControl = browser;
-		} else {
-			stack.topControl = errorPanel;
+					StyledShell.HINT_ALIGN_CENTER | StyledShell.HINT_ALIGN_CENTER);
 		}
 
 		contentPanel.layout();
@@ -236,6 +245,14 @@ public class LightBoxBrowserWindow
 		 */
 		styledShell.hideShell(true);
 		lightBoxShell.open(styledShell);
+
+		if (null != browser) {
+			hookListeners();
+			setUrl(url);
+			stack.topControl = browser;
+		} else {
+			stack.topControl = errorPanel;
+		}
 	}
 
 	private void hookListeners() {
@@ -247,6 +264,18 @@ public class LightBoxBrowserWindow
 		browser.addCloseWindowListener(new CloseWindowListener() {
 			public void close(WindowEvent event) {
 				LightBoxBrowserWindow.this.close();
+			}
+		});
+		
+		browser.addLocationListener(new LocationListener() {
+		
+			public void changing(LocationEvent event) {
+				lightBoxShell.showBusy(true, 500);
+			}
+		
+			public void changed(LocationEvent event) {
+				// TODO Auto-generated method stub
+		
 			}
 		});
 
