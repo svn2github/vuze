@@ -113,4 +113,15 @@ public class SkinnedDialog
 	{
 		public void skinDialogClosed(SkinnedDialog dialog);
 	}
+
+	/**
+	 * @param string
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void setTitle(String string) {
+		if (shell != null && !shell.isDisposed()) {
+			shell.setText(string);
+		}
+	}
 }
