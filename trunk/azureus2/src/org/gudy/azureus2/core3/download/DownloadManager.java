@@ -525,7 +525,13 @@ DownloadManager
     public void
     setScrapeResult(
         DownloadScrapeResult    result );
+    
+    public boolean
+    isUnauthorisedOnTracker();
 
+    public boolean
+    isTrackerError();
+    
   /**
    * Is extended messaging enabled for this download (meaning AzMP and LTEP support).
    * @return true if enabled, false if disabled

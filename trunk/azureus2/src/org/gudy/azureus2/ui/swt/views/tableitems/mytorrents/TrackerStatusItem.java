@@ -69,62 +69,33 @@ public class TrackerStatusItem extends CoreTableColumn implements
 			return;
 		}
 		
+		DownloadManager dm = (DownloadManager)ds;
+
 		AZ3Functions.provider az3 = AZ3Functions.getProvider();
 		
-		if ( az3 == null ){
+		if ( az3 == null || !az3.canShowCDP( dm )){
 			
 			return;
 		}
 		
+		if ( !(event.cell instanceof TableCellSWT )){
+			
+			return;
+		}
+		
+		TableCellSWT cell = (TableCellSWT)event.cell;
+		
 		boolean invalidateAndRefresh = false;
 		
-		DownloadManager dm = (DownloadManager)ds;
+		int newCursor = dm.isUnauthorisedOnTracker()?SWT.CURSOR_HAND:SWT.CURSOR_ARROW;
 		
-		TRTrackerAnnouncer announcer = dm.getTrackerClient();
-
-		String	status_str = null;
+		int oldCursor = cell.getCursorID();
 		
-		if ( announcer != null ){
+		if ( oldCursor != newCursor ){
 			
-			TRTrackerAnnouncerResponse resp = announcer.getLastResponse();
-			
-			if ( resp != null ){
-				
-				if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
-					
-					status_str = resp.getStatusString();
-				}
-			}
-		}else{
-			
-			TRTrackerScraperResponse resp = dm.getTrackerScrapeResponse();
-			
-			if ( resp != null ){
-				
-				if ( resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
-					
-					status_str = resp.getStatusString();
-				}
-			}
-		}
-		
-		int newCursor = SWT.CURSOR_ARROW;
-		
-		if ( status_str != null ){
-			
-			status_str = status_str.toLowerCase();
-			
-			if ( 	status_str.contains( "not authorised" ) ||
-					status_str.contains( "not authorized" )){
-				
-				newCursor = SWT.CURSOR_HAND;
-			}
-		}
-
-		int oldCursor = ((TableCellSWT) event.cell).getCursorID();
-		if (oldCursor != newCursor) {
 			invalidateAndRefresh = true;
-			((TableCellSWT) event.cell).setCursorID(newCursor);
+			
+			cell.setCursorID(newCursor);
 		}
 		
 		if ( event.eventType == TableCellMouseEvent.EVENT_MOUSEUP ){
@@ -135,11 +106,14 @@ public class TrackerStatusItem extends CoreTableColumn implements
 			}
 		}
 		
-		if (invalidateAndRefresh) {
-			event.cell.invalidate();
-			((TableCellSWT)event.cell).redraw();
+		if ( invalidateAndRefresh ){
+			
+			cell.invalidate();
+			
+			cell.redraw();
 		}
 	}
+	
 	private class Cell extends AbstractTrackerCell {
 		public Cell(TableCell cell) {
 			super(cell);
@@ -158,7 +132,7 @@ public class TrackerStatusItem extends CoreTableColumn implements
 				status = status.substring(0, nl_pos);
 
 	    if (cell.setText(status) || !cell.isValid()) {
-	    	TrackerCellUtils.updateColor(cell, dm);
+	    	TrackerCellUtils.updateColor(cell, dm, true);
 	    }
 		}
 
@@ -173,7 +147,7 @@ public class TrackerStatusItem extends CoreTableColumn implements
 
 	public void cellHover(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		cell.setToolTip(TrackerCellUtils.getTooltipText(cell, dm));
+		cell.setToolTip(TrackerCellUtils.getTooltipText(cell, dm, true));
 	}
 
 	public void cellHoverComplete(TableCell cell) {

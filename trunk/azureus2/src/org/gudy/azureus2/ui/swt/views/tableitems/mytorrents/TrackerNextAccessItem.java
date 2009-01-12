@@ -73,13 +73,13 @@ public class TrackerNextAccessItem
     if (value > 60)
     	sText = "< " + sText;
     
-  	TrackerCellUtils.updateColor(cell, dm);
+  	TrackerCellUtils.updateColor(cell, dm, false);
     cell.setText(sText);
   }
 
 	public void cellHover(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		cell.setToolTip(TrackerCellUtils.getTooltipText(cell, dm));
+		cell.setToolTip(TrackerCellUtils.getTooltipText(cell, dm, false));
 	}
 
 	public void cellHoverComplete(TableCell cell) {

@@ -41,22 +41,35 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
  */
 public class TrackerCellUtils
 {
-	public static void updateColor(TableCell cell, DownloadManager dm) {
+	public static void updateColor(TableCell cell, DownloadManager dm, boolean show_errors ) {
 		if (dm == null || cell == null)
 			return;
 
+		if ( show_errors ){
+			if ( dm.isTrackerError()){
+				cell.setForegroundToErrorColor();
+				return;
+			}
+		}
 		TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
 		if (response instanceof TRTrackerBTScraperResponseImpl) {
 			boolean bMultiHashScrapes = ((TRTrackerBTScraperResponseImpl) response).getTrackerStatus().getSupportsMultipeHashScrapes();
 			Color color = (bMultiHashScrapes) ? null : Colors.grey;
 			cell.setForeground(Utils.colorToIntArray(color));
+		}else{
+			cell.setForeground(Utils.colorToIntArray(null));
 		}
 	}
 
-	public static String getTooltipText(TableCell cell, DownloadManager dm) {
+	public static String getTooltipText(TableCell cell, DownloadManager dm, boolean show_errors ) {
 		if (dm == null || cell == null)
 			return null;
 
+		if ( show_errors ){
+			if ( dm.isTrackerError()){
+				return( null );
+			}
+		}
 		String sToolTip = null;
 		TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
 		if (response instanceof TRTrackerBTScraperResponseImpl) {

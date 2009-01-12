@@ -56,6 +56,10 @@ AZ3Functions
 		
 			throws Exception;
 		
+		public boolean
+		canShowCDP(
+			DownloadManager		dm );
+		
 		public void
 		showCDP(
 			DownloadManager		dm,

@@ -3400,6 +3400,83 @@ DownloadManagerImpl
 	  controller.removeRateLimiter( group, upload );  
   }
 	
+  public boolean
+  isTrackerError()
+  {
+		TRTrackerAnnouncer announcer = getTrackerClient();
+		
+		if ( announcer != null ){
+			
+			TRTrackerAnnouncerResponse resp = announcer.getLastResponse();
+			
+			if ( resp != null ){
+				
+				if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
+					
+					return( true );
+				}
+			}
+		}else{
+			
+			TRTrackerScraperResponse resp = getTrackerScrapeResponse();
+			
+			if ( resp != null ){
+				
+				if ( resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+					
+					return( true );
+				}
+			}
+		}  
+		
+		return( false );
+  }
+  
+  public boolean
+  isUnauthorisedOnTracker()
+  {
+		TRTrackerAnnouncer announcer = getTrackerClient();
+
+		String	status_str = null;
+		
+		if ( announcer != null ){
+			
+			TRTrackerAnnouncerResponse resp = announcer.getLastResponse();
+			
+			if ( resp != null ){
+				
+				if ( resp.getStatus() == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ){
+					
+					status_str = resp.getStatusString();
+				}
+			}
+		}else{
+			
+			TRTrackerScraperResponse resp = getTrackerScrapeResponse();
+			
+			if ( resp != null ){
+				
+				if ( resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+					
+					status_str = resp.getStatusString();
+				}
+			}
+		}
+		
+		if ( status_str != null ){
+			
+			status_str = status_str.toLowerCase();
+			
+			if ( 	status_str.contains( "not authorised" ) ||
+					status_str.contains( "not authorized" )){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+  }
+  
   private byte[]
   getIdentity()
   {

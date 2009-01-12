@@ -68,6 +68,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 
+import com.aelitis.azureus.core.util.AZ3Functions;
+
 /**
  * View of General information on the torrent
  * 
@@ -553,19 +555,19 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     trackerUrlValue.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.size"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.size");
     pieceSize = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     pieceSize.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.creationdate"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.creationdate");
     creation_date = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     creation_date.setLayoutData(gridData);
     
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.private"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.private");
     privateStatus = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     privateStatus.setLayoutData(gridData);    
@@ -579,13 +581,29 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     
     
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.tracker"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.tracker");
     tracker_status = new BufferedTruncatedLabel(gInfo, SWT.LEFT,150);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     tracker_status.setLayoutData(gridData);
     
+    tracker_status.addMouseListener(new MouseAdapter() {
+		public void mouseDown(MouseEvent event) {
+			if ( event.button == 1 ){
+				if ( manager.isUnauthorisedOnTracker()){
+					
+					AZ3Functions.provider az3 = AZ3Functions.getProvider();
+					
+					if ( az3 != null && az3.canShowCDP( manager )){
+						
+						az3.showCDP( manager, "tracker.unauth" );
+					}
+				}
+			}
+		}
+	});
+    
     updateButton = new Button(gInfo, SWT.PUSH);
-    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    Messages.setLanguageText(updateButton, "GeneralView.label.trackerurlupdate");
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_BEGINNING);
     gridData.verticalSpan = 2;
     gridData.horizontalSpan = 2;
@@ -598,7 +616,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     });
         
     label = new Label(gInfo, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.updatein"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.updatein");
     trackerUpdateIn = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     trackerUpdateIn.setLayoutData(gridData);
@@ -617,7 +635,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label = new Label(gInfo, SWT.LEFT);
     label.setCursor(Cursors.handCursor);
     label.setForeground(Colors.blue);
-    Messages.setLanguageText(label, "GeneralView.label.user_comment"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.user_comment");
 
     try {
     	user_comment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
@@ -646,7 +664,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     label = new Label(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "GeneralView.label.comment"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.comment");
     
     try {
     	lblComment = new Link(gInfo, SWT.LEFT | SWT.WRAP);
@@ -819,7 +837,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
       	distributedCopies
     );
       
-    setTracker(manager);
+    setTracker();
     
     TOTorrent	torrent = manager.getTorrent();
     
@@ -1197,17 +1215,34 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	shareRatio.setText( share_ratio);     
   }
 
-  private void setTracker( DownloadManager	_manager ){
+  private void setTracker(){
     if (display == null || display.isDisposed())
       return;
     
-    String	status 	= _manager.getTrackerStatus();
-    int		time	= _manager.getTrackerTime();
+    String	status 	= manager.getTrackerStatus();
+    int		time	= manager.getTrackerTime();
      
-    TRTrackerAnnouncer	trackerClient = _manager.getTrackerClient();
+    TRTrackerAnnouncer	trackerClient = manager.getTrackerClient();
 	
 	tracker_status.setText( status );
 		
+	boolean show_cdp_link = false;
+	
+	if ( manager.isUnauthorisedOnTracker()){
+		
+		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+		
+		show_cdp_link = az3 != null && az3.canShowCDP( manager );	
+	}
+	
+	if ( show_cdp_link ){
+		tracker_status.setForeground(Colors.blue);
+		tracker_status.setCursor(Cursors.handCursor);
+	}else{
+		tracker_status.setForeground(null);
+		tracker_status.setCursor(null);
+	}
+	
 	if ( time < 0 ){
 		
 		trackerUpdateIn.setText( MessageText.getString("GeneralView.label.updatein.querying"));
@@ -1233,7 +1268,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     
     if ( trackerURL == null ){
     	
-       	TOTorrent	torrent = _manager.getTorrent();
+       	TOTorrent	torrent = manager.getTorrent();
        	
        	if( torrent != null ){
        		
