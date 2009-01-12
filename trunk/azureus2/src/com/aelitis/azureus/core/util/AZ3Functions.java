@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.util;
 
 import java.net.URL;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+
 public class 
 AZ3Functions 
 {
@@ -53,5 +55,10 @@ AZ3Functions
 			String		creator_ref )
 		
 			throws Exception;
+		
+		public void
+		showCDP(
+			DownloadManager		dm,
+			String				ref );
 	}
 }
