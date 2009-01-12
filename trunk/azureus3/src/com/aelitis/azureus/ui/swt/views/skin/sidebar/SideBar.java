@@ -2225,7 +2225,7 @@ public class SideBar
 			parent.layout(true, true);
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			Debug.out("Error creating sidebar content area for " + id, e);
 			if (view != null) {
 				view.delete();
 			}
