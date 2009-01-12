@@ -226,20 +226,25 @@ public class ColumnProgressETA
 			}
 
 			if (sETALine == null) {
-				//if (isStopped(cell)) {
-				//sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
-				//} else
-				if (dm.isDownloadComplete(true)) {
-					sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
-				} else if (eta > 0) {
-					String sETA = TimeFormatter.format(eta);
-					sETALine = MessageText.getString(
-							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
-								sETA
-							});
-				} else {
-					sETALine = DisplayFormatters.formatDownloadStatus(dm);
-					//sETALine = "";
+				if ( dm.isUnauthorisedOnTracker()){
+					sETALine = dm.getTrackerStatus();
+					fgFirst = Colors.colorError;
+				}else{
+					//if (isStopped(cell)) {
+					//sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());
+					//} else
+					if (dm.isDownloadComplete(true)) {
+						sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
+					} else if (eta > 0) {
+						String sETA = TimeFormatter.format(eta);
+						sETALine = MessageText.getString(
+								"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
+									sETA
+								});
+					} else {
+						sETALine = DisplayFormatters.formatDownloadStatus(dm);
+						//sETALine = "";
+					}
 				}
 			}
 
