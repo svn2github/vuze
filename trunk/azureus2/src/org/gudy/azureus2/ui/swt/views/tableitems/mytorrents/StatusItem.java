@@ -71,7 +71,7 @@ public class StatusItem
 		
 		String	text;
 		
-		if ( dm != null && dm.isUnauthorisedOnTracker() && state != DownloadManager.STATE_ERROR ){
+		if ( dm != null && showTrackerErrors && dm.isUnauthorisedOnTracker() && state != DownloadManager.STATE_ERROR ){
 			
 			text = dm.getTrackerStatus();
 			
