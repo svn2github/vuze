@@ -1236,7 +1236,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 	}
 	
 	if ( show_cdp_link ){
-		tracker_status.setForeground(Colors.blue);
+		tracker_status.setForeground(Colors.colorError);
 		tracker_status.setCursor(Cursors.handCursor);
 	}else{
 		tracker_status.setForeground(null);
