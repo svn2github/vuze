@@ -124,11 +124,12 @@ public class LightBoxShell
 		/*
 		* Trap and prevent the ESC key from closing the shell
 		*/
-		if (false == closeOnESC) {
+		if (true == closeOnESC) {
 			lbShell.addListener(SWT.Traverse, new Listener() {
 				public void handleEvent(Event e) {
 					if (e.detail == SWT.TRAVERSE_ESCAPE) {
 						e.doit = false;
+						close();
 					}
 				}
 			});
@@ -162,6 +163,7 @@ public class LightBoxShell
 
 		lbShell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
+				close();
 				/*
 				 * Disposing all the spinner images
 				 */
@@ -309,7 +311,7 @@ public class LightBoxShell
 		StyledShell newShell = new StyledShell(lbShell, borderWidth, useCustomTrim);
 
 		if (true == closeLightboxOnExit) {
-			newShell.addListener(SWT.Close, new Listener() {
+			newShell.addListener(SWT.Dispose, new Listener() {
 				public void handleEvent(Event event) {
 					close();
 				}
