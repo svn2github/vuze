@@ -98,6 +98,13 @@ public class InitialisationFunctions
 					}
 				}
 				
+				public boolean 
+				canShowCDP(
+					org.gudy.azureus2.core3.download.DownloadManager dm ) 
+				{
+					return( TorrentListViewsUtils.canViewDetails( dm ));
+				}
+				
 				public void 
 				showCDP(
 					org.gudy.azureus2.core3.download.DownloadManager	dm,

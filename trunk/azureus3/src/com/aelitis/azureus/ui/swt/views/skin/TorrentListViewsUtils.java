@@ -105,6 +105,24 @@ public class TorrentListViewsUtils
 				DataSourceUtils.getHash(ds), ref);
 	}
 
+	public static boolean canViewDetails(DownloadManager dm) {
+		if (dm == null) {
+			return( false );
+		}
+		if (!PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+			return( false );
+		}
+
+		try{
+			return(	canViewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
+						dm.getTorrent().getHashWrapper().toBase32String()));
+		} catch (TOTorrentException e) {
+			Debug.out(e);
+			
+			return( false );
+		}
+	}
+	
 	public static void viewDetails(DownloadManager dm, String ref) {
 		if (dm == null) {
 			return;
@@ -135,6 +153,17 @@ public class TorrentListViewsUtils
 		}
 	}
 
+	public static boolean canViewDetails(ContentNetwork cn, String hash) {
+		if (hash == null || cn == null ) {
+			return( false );
+		}
+
+		String url = cn.getContentDetailsService( hash, "" );
+
+		UIFunctions functions = UIFunctionsManager.getUIFunctions();
+		
+		return( functions != null && url != null );
+	}
 
 	/**
 	 * @param ds
