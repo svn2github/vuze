@@ -2467,7 +2467,9 @@ public class SideBar
 			Object o = mapAutoOpen.get(id);
 
 			if (o instanceof Map) {
-				processAutoOpenMap(id, (Map) o, null);
+				if (!processAutoOpenMap(id, (Map) o, null)) {
+					iter.remove();
+				}
 			}
 		}
 	}
@@ -2478,12 +2480,12 @@ public class SideBar
 	 *
 	 * @since 3.1.1.1
 	 */
-	private void processAutoOpenMap(String id, Map autoOpenInfo,
+	private boolean processAutoOpenMap(String id, Map autoOpenInfo,
 			IViewInfo viewInfo) {
 		try {
 			SideBarEntrySWT entry = getEntry(id);
 			if (entry.treeItem != null) {
-				return;
+				return true;
 			}
 
 			if (id.equals(SIDEBAR_SECTION_WELCOME)) {
@@ -2516,7 +2518,7 @@ public class SideBar
 					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					ds = gm.getDownloadManager(hw);
 					// XXX Skip auto open DM for now
-					return;
+					return false;
 				}
 				createTreeItemFromIViewClass(parentID, id, title, cla, null, null, ds,
 						null, true);
@@ -2530,6 +2532,7 @@ public class SideBar
 		} catch (Throwable e) {
 			Debug.out(e);
 		}
+		return true;
 	}
 
 	public boolean showEntryByID(String id) {
