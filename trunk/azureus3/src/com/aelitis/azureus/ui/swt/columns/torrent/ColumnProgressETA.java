@@ -228,7 +228,7 @@ public class ColumnProgressETA
 			if (sETALine == null) {
 				if ( dm.isUnauthorisedOnTracker()){
 					sETALine = dm.getTrackerStatus();
-					fgFirst = Colors.colorError;
+					// fgFirst = Colors.colorError;	pftt, no colours allowed apparently
 				}else{
 					//if (isStopped(cell)) {
 					//sETALine = DisplayFormatters.formatDownloadStatus((DownloadManager) cell.getDataSource());

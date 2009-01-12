@@ -79,6 +79,7 @@ public class TableColumnCreatorV3
 			tcStatusItem.setChangeRowFG(false);
 			if (big) {
 				tcStatusItem.setChangeCellFG(false);
+				tcStatusItem.setShowTrackerErrors( true );
 			}
 		}
 		NameItem tcNameItem = (NameItem) mapTCs.get(NameItem.COLUMN_ID);
