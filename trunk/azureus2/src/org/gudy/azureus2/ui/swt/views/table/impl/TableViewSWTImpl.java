@@ -939,11 +939,15 @@ public class TableViewSWTImpl
 						TableCellMouseEvent event = createMouseEvent(cell, e,
 								TableCellMouseEvent.EVENT_MOUSEMOVE);
 						if (event != null) {
-  						TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
-  						if (tc.hasCellMouseMoveListener()) {
-  							((TableColumnCore) cell.getTableColumn()).invokeCellMouseListeners(event);
-  						}
-  						cell.invokeMouseListeners(event);
+							TableColumnCore tc = ((TableColumnCore) cell.getTableColumn());
+							if (tc.hasCellMouseMoveListener()) {
+								((TableColumnCore) cell.getTableColumn()).invokeCellMouseListeners(event);
+							}
+							cell.invokeMouseListeners(event);
+							
+								// listener might have changed it
+							
+							lastCursorID = cell.getCursorID();
 						}
 					}
 				} catch (Exception ex) {
