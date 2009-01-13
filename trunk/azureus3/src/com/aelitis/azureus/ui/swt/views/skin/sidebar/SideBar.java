@@ -2689,6 +2689,7 @@ public class SideBar
 					}
 				});
 		cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
+		cn.setPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU, Boolean.TRUE);
 	}
 
 	/**
