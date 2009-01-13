@@ -27,9 +27,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -1710,6 +1708,18 @@ SubscriptionManagerUI
 				url = "about:blank";
 				detailsBrowser.setUrl(url);
 				detailsBrowser.setData("StartURL", url);
+				detailsBrowser.addLocationListener(new LocationListener() {
+					public void changing(LocationEvent event) {
+					}
+				
+					public void changed(LocationEvent event) {
+						if (event.location.startsWith("http")) {
+							// keep StartURL up to date, since a reset-url really means
+							// refresh the page when it comes to subscriptions
+							detailsBrowser.setData("StartURL", event.location);
+						}
+					}
+				});
 				
 				final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 					public void cookiesFound(String cookies) {
