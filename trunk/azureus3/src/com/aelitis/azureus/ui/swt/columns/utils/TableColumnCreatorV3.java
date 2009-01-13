@@ -43,6 +43,7 @@ public class TableColumnCreatorV3
 			boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
+			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
@@ -99,6 +100,7 @@ public class TableColumnCreatorV3
 
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
+			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
@@ -176,6 +178,7 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createCompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
+			ColumnAzProduct.COLUMN_ID,
 			ColumnThumbnail.COLUMN_ID,
 			NameItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
