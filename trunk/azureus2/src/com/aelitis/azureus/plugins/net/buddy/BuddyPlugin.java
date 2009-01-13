@@ -3453,6 +3453,8 @@ BuddyPlugin
 			throw( new BuddyPluginException( "Unauthorised category '" + category + "'" ));
 		}
 		
+		buddy.localRSSCategoryRead( category );
+		
 		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
 		
 		List<Download>	selected_dls = new ArrayList<Download>();

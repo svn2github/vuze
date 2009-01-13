@@ -125,8 +125,11 @@ BuddyPluginBuddy
 	
 	private long last_auto_reconnect	= -1;
 	
+	private Object				rss_lock = new Object();
+	
 	private Set<String>			rss_local_cats;
 	private Set<String>			rss_remote_cats;
+	private Set<String>			rss_cats_read;
 	
 	private volatile boolean	closing;
 	private volatile boolean	destroyed;
@@ -276,13 +279,19 @@ BuddyPluginBuddy
 	public String
 	getLocalAuthorisedRSSCategoriesAsString()
 	{
-		return( catsToString( rss_local_cats ));
+		synchronized( rss_lock ){
+		
+			return( catsToString( rss_local_cats ));
+		}
 	}
 	
 	public Set<String>
   	getLocalAuthorisedRSSCategories()
   	{
-  		return( rss_local_cats );
+		synchronized( rss_lock ){
+  		
+			return( rss_local_cats );
+		}
   	}
 	
 	public void
@@ -290,15 +299,23 @@ BuddyPluginBuddy
 		String	category )
 	{
 		category = plugin.normaliseCat( category );
+	
+		boolean dirty;
 		
-		if ( rss_local_cats == null ){
+		synchronized( rss_lock ){
 			
-			rss_local_cats = new HashSet<String>();
+			if ( rss_local_cats == null ){
+				
+				rss_local_cats = new HashSet<String>();
+			}
+			
+			if ( dirty = !rss_local_cats.contains( category )){
+							
+				rss_local_cats.add( category );
+			}
 		}
 		
-		if ( !rss_local_cats.contains( category )){
-			
-			rss_local_cats.add( category );
+		if ( dirty ){
 			
 			plugin.setConfigDirty();
 			
@@ -315,28 +332,35 @@ BuddyPluginBuddy
 	
 	public void
 	removeLocalAuthorisedRSSCategory(
-		String	str )
+		String	category )
 	{
-		str = plugin.normaliseCat( str );
+		category = plugin.normaliseCat( category );
 		
-		if ( rss_local_cats == null ){
-			
-			return;
-			
-		}else{
+		boolean	dirty;
 		
-			if ( rss_local_cats.remove( str )){
-						
-				plugin.setConfigDirty();
+		synchronized( rss_lock ){
 			
-				plugin.fireDetailsChanged( this );
+			if ( rss_local_cats == null ){
+			
+				return;
+			
+			}else{
+		
+				dirty = rss_local_cats.remove( category );
+			}
+		}
+		
+		if ( dirty ){
+			
+			plugin.setConfigDirty();
+		
+			plugin.fireDetailsChanged( this );
+			
+				// tell buddy of change
+			
+			if ( isConnected()){
 				
-					// tell buddy of change
-				
-				if ( isConnected()){
-					
-					sendKeepAlive();
-				}
+				sendKeepAlive();
 			}
 		}
 	}
@@ -354,9 +378,17 @@ BuddyPluginBuddy
 	{	
 		plugin.normaliseCats( new_cats );
 		
-		if ( !catsIdentical( new_cats, rss_local_cats) ){
+		boolean dirty;
+		
+		synchronized( rss_lock ){
 			
-			rss_local_cats = new_cats;
+			if ( dirty = !catsIdentical( new_cats, rss_local_cats) ){
+			
+				rss_local_cats = new_cats;
+			}
+		}
+		
+		if ( dirty ){
 			
 			plugin.setConfigDirty();
 			
@@ -389,12 +421,20 @@ BuddyPluginBuddy
 	{
 		plugin.normaliseCats( new_cats );
 		
-		if ( !catsIdentical( new_cats, rss_remote_cats) ){
+		boolean	dirty;
+		
+		synchronized( rss_lock ){
 			
-			rss_remote_cats = new_cats;
+			if ( dirty = !catsIdentical( new_cats, rss_remote_cats) ){
+			
+				rss_remote_cats = new_cats;
+			}
+		}
+		
+		if ( dirty ){
 			
 			plugin.setConfigDirty();
-			
+			 
 			plugin.fireDetailsChanged( this );
 		}
 	}
@@ -403,24 +443,67 @@ BuddyPluginBuddy
 	isLocalRSSCategoryAuthorised(
 		String	category )
 	{
-		if ( rss_local_cats != null ){
+		category = plugin.normaliseCat( category );
+	
+		synchronized( rss_lock ){
+			
+			if ( rss_local_cats != null ){
+			
+				return( rss_local_cats.contains( category ));
+			}
 		
-			return( rss_local_cats.contains( plugin.normaliseCat( category )));
+			return( false );
 		}
-		
-		return( false );
 	}
 	
 	public boolean
 	isRemoteRSSCategoryAuthorised(
 		String	category )
 	{
-		if ( rss_remote_cats != null ){
+		category = plugin.normaliseCat( category );
 		
-			return( rss_remote_cats.contains( category ));
+		synchronized( rss_lock ){
+			
+			if ( rss_remote_cats != null ){
+			
+				return( rss_remote_cats.contains( category ));
+			}
+			
+			return( false );
+		}
+	}
+	
+	protected void
+	localRSSCategoryRead(
+		String		str )
+	{
+		boolean dirty;
+		
+		synchronized( rss_lock ){
+			
+			if ( rss_cats_read == null ){
+				
+				rss_cats_read = new HashSet<String>();
+			}
+			
+			dirty = rss_cats_read.add( str );
 		}
 		
-		return( false );
+		if ( dirty ){
+			
+			// not persisted currently - plugin.setConfigDirty();
+			 
+			plugin.fireDetailsChanged( this );
+		}
+	}
+	
+	public String
+	getLocalReadCategoriesAsString()
+	{
+		synchronized( rss_lock ){
+
+			return( catsToString( rss_cats_read ));
+		}
 	}
 	
 	public URL

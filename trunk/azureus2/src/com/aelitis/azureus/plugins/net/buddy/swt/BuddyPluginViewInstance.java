@@ -432,6 +432,7 @@ BuddyPluginViewInstance
 				"azbuddy.ui.table.last_msg",
 				"azbuddy.ui.table.loc_cat",
 				"azbuddy.ui.table.rem_cat",
+				"azbuddy.ui.table.read_cat",
 				"azbuddy.ui.table.con",
 				"azbuddy.ui.table.msg_in",
 				"azbuddy.ui.table.msg_out",
@@ -440,9 +441,9 @@ BuddyPluginViewInstance
 				"MyTrackerView.bytesout",
 				"azbuddy.ui.table.ss" };
 
-		int[] sizes = { 250, 100, 100, 100, 200, 100, 100, 75, 75, 75, 75, 75, 75, 40 };
+		int[] sizes = { 250, 100, 100, 100, 200, 100, 100, 100, 75, 75, 75, 75, 75, 75, 40 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -463,13 +464,14 @@ BuddyPluginViewInstance
 	    columns[4].setData(new Integer(FilterComparator.FIELD_LAST_MSG));
 	    columns[5].setData(new Integer(FilterComparator.FIELD_LOC_CAT));
 	    columns[6].setData(new Integer(FilterComparator.FIELD_REM_CAT));
-	    columns[7].setData(new Integer(FilterComparator.FIELD_CON));
-	    columns[8].setData(new Integer(FilterComparator.FIELD_MSG_IN));
-	    columns[9].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
-	    columns[10].setData(new Integer(FilterComparator.FIELD_QUEUED));
-	    columns[11].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
-	    columns[12].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
-	    columns[13].setData(new Integer(FilterComparator.FIELD_SS));
+	    columns[7].setData(new Integer(FilterComparator.FIELD_READ_CAT));
+	    columns[8].setData(new Integer(FilterComparator.FIELD_CON));
+	    columns[9].setData(new Integer(FilterComparator.FIELD_MSG_IN));
+	    columns[10].setData(new Integer(FilterComparator.FIELD_MSG_OUT));
+	    columns[11].setData(new Integer(FilterComparator.FIELD_QUEUED));
+	    columns[12].setData(new Integer(FilterComparator.FIELD_BYTES_IN));
+	    columns[13].setData(new Integer(FilterComparator.FIELD_BYTES_OUT));
+	    columns[14].setData(new Integer(FilterComparator.FIELD_SS));
 	    
 	    
 	    final FilterComparator comparator = new FilterComparator();
@@ -568,17 +570,23 @@ BuddyPluginViewInstance
 					}
 					item.setText(6, "" + rem_cat);
 
-					item.setText(7, "" + buddy.getConnectionsString());
+					String read_cat = buddy.getLocalReadCategoriesAsString();
+					if ( read_cat == null ){
+						read_cat = "";
+					}
+					item.setText(7, "" + read_cat);
+
+					item.setText(8, "" + buddy.getConnectionsString());
 					
 					String in_frag = buddy.getMessageInFragmentDetails();
 					
-					item.setText(8, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
-					item.setText(9, "" + buddy.getMessageOutCount());
-					item.setText(10, "" + buddy.getMessageHandler().getMessageCount());
-					item.setText(11, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
-					item.setText(12, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
+					item.setText(9, "" + buddy.getMessageInCount() + (in_frag.length()==0?"":("+" + in_frag )));
+					item.setText(10, "" + buddy.getMessageOutCount());
+					item.setText(11, "" + buddy.getMessageHandler().getMessageCount());
+					item.setText(12, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesInCount()));
+					item.setText(13, "" + DisplayFormatters.formatByteCountToKiBEtc(buddy.getBytesOutCount()));
 
-					item.setText(13, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
+					item.setText(14, "" + buddy.getSubsystem() + " v" + buddy.getVersion());
 					
 					item.setData( buddy );
 				}
@@ -1757,13 +1765,14 @@ BuddyPluginViewInstance
 		static final int FIELD_LAST_MSG 	= 4;
 		static final int FIELD_LOC_CAT	 	= 5;
 		static final int FIELD_REM_CAT 		= 6;
-		static final int FIELD_CON		 	= 7;
-		static final int FIELD_MSG_IN	 	= 8;
-		static final int FIELD_MSG_OUT	 	= 9;
-		static final int FIELD_QUEUED	 	= 10;
-		static final int FIELD_BYTES_IN 	= 11;
-		static final int FIELD_BYTES_OUT 	= 12;
-		static final int FIELD_SS		 	= 13;
+		static final int FIELD_READ_CAT 	= 7;
+		static final int FIELD_CON		 	= 8;
+		static final int FIELD_MSG_IN	 	= 9;
+		static final int FIELD_MSG_OUT	 	= 10;
+		static final int FIELD_QUEUED	 	= 11;
+		static final int FIELD_BYTES_IN 	= 12;
+		static final int FIELD_BYTES_OUT 	= 13;
+		static final int FIELD_SS		 	= 14;
 
 		int field = FIELD_NAME;
 
@@ -1791,6 +1800,8 @@ BuddyPluginViewInstance
 				res = compareStrings( b1.getLocalAuthorisedRSSCategoriesAsString(), b2.getLocalAuthorisedRSSCategoriesAsString());
 			}else if(field == FIELD_REM_CAT){
 				res = compareStrings( b1.getRemoteAuthorisedRSSCategoriesAsString(), b2.getRemoteAuthorisedRSSCategoriesAsString());
+			}else if(field == FIELD_READ_CAT){
+				res = compareStrings( b1.getLocalReadCategoriesAsString(), b2.getLocalReadCategoriesAsString());
 			}else if(field == FIELD_CON){
 				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
 			}else if(field == FIELD_MSG_IN){
