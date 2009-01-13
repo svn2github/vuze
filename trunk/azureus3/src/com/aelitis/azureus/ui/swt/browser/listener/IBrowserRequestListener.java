@@ -22,6 +22,8 @@ public interface IBrowserRequestListener
 
 	public static final String OP_OPEN_URL_PARAM_URL = "url";
 
+	public static final String OP_OPEN_URL_PARAM_CALLBACK = "callback";
+
 	public static final String OP_OPEN_URL_PARAM_WIDTH = "width";
 
 	public static final String OP_OPEN_URL_PARAM_HEIGHT = "height";
@@ -39,6 +41,8 @@ public interface IBrowserRequestListener
 	public static final String OP_RESIZE_PARAM_WIDTH = "width";
 
 	public static final String OP_RESIZE_PARAM_HEIGHT = "height";
+
+	public static final String OP_INVOKE_CALLBACK = "invoke-callback";
 
 	public void handleOpenURL();
 

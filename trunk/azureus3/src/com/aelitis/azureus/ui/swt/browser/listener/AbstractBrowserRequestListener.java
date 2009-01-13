@@ -69,7 +69,11 @@ public abstract class AbstractBrowserRequestListener
 
 		return height;
 	}
-
+	
+	public String getCallback() {
+		return MapUtils.getMapString(decodedMap, OP_OPEN_URL_PARAM_CALLBACK, null);
+	}
+	
 	public String getPrefixVerifier() {
 		if (true == decodedMap.containsKey(OP_OPEN_URL_PARAM_TITLE_PREFIX_VERIFIER)) {
 			prefixVerifier = MapUtils.getMapString(decodedMap,

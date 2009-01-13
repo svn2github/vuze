@@ -22,6 +22,7 @@ import org.gudy.azureus2.ui.swt.components.widgets.BubbleButton;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -70,6 +71,10 @@ public class LightBoxBrowserWindow
 	private UIFunctionsSWT uiFunctions;
 
 	private closeListener closeListener;
+
+	private String callback;
+
+	private ClientMessageContext callBackContext;
 
 	public LightBoxBrowserWindow(String url, String prefixVerifier, int width,
 			int height) {
@@ -366,7 +371,16 @@ public class LightBoxBrowserWindow
 		/*
 		 * This listener will respond to actions that effects this window such as 'close', 'resize', etc...
 		 */
-		context.addMessageListener(new LightBoxBrowserListener(this));
+		context.addMessageListener(new LightBoxBrowserListener(this) {
+			public void handleMessage(BrowserMessage message) {
+				super.handleMessage(message);
+				String opID = message.getOperationId();
+				decodedMap = message.getDecodedMap();
+				if (true == OP_INVOKE_CALLBACK.equals(opID) && callBackContext != null && callback != null) { 
+					callBackContext.executeInBrowser(callback);
+				}
+			}
+		});
 
 		/*
 		 * This listener handles a number of tasks involving opening external browser,
@@ -453,5 +467,16 @@ public class LightBoxBrowserWindow
 	public interface closeListener
 	{
 		public void close();
+	}
+
+	/**
+	 * @param callback
+	 * @param clientMessageContext 
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void setCallback(String callback, ClientMessageContext clientMessageContext) {
+		this.callback = callback;
+		this.callBackContext = clientMessageContext;
 	}
 }

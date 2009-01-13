@@ -26,6 +26,8 @@ public class LightBoxBrowserRequestListener
 		if (null != getRedirectURL()) {
 			lbWindow.setRedirectURL(getRedirectURL());
 		}
+		
+		lbWindow.setCallback(getCallback(), getContext());
 	}
 
 }
