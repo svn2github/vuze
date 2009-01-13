@@ -80,6 +80,10 @@ public class ColumnAzProduct
 				}
 			});
 		}
+		
+		if (img == null) {
+			return;
+		}
 
 		Rectangle imgBounds = img.getBounds();
 		Rectangle cellBounds = cell.getBounds();
