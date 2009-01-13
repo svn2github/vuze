@@ -25,9 +25,8 @@ import java.util.Map;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
@@ -52,18 +51,18 @@ public class ContentNetworkUI
 	 *
 	 * @since 4.0.0.5
 	 */
-	public static void loadImage(final long contentNetworkID,
+	public static Image loadImage(final long contentNetworkID,
 			final ContentNetworkImageLoadedListener cnImageLoadedListener) {
 		Image image = mapImages.get(new Long(contentNetworkID));
 		if (image != null && cnImageLoadedListener != null) {
-			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
-			return;
+			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image, true);
+			return image;
 		}
 
 		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 				contentNetworkID);
 		if (cn == null) {
-			return;
+			return image;
 		}
 		String imgURL = ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_GET_ICON);
 		if (imgURL != null) {
@@ -85,7 +84,7 @@ public class ContentNetworkUI
 						mapImages.put(new Long(contentNetworkID), image);
 						if (cnImageLoadedListener != null) {
 							cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID,
-									image);
+									image, true);
 						}
 					} finally {
 						fis.close();
@@ -99,19 +98,24 @@ public class ContentNetworkUI
 			if (loadImage) {
 				ImageBytesDownloader.loadImage(imgURL,
 						new ImageBytesDownloader.ImageDownloaderListener() {
-							public void imageDownloaded(byte[] imageBytes) {
-								FileUtil.writeBytesAsFile(cache.getAbsolutePath(), imageBytes);
-								InputStream is = new ByteArrayInputStream(imageBytes);
-								Image image = new Image(Display.getCurrent(), is);
-								try {
-									is.close();
-								} catch (IOException e) {
-								}
-								mapImages.put(new Long(contentNetworkID), image);
-								if (cnImageLoadedListener != null) {
-									cnImageLoadedListener.contentNetworkImageLoaded(
-											contentNetworkID, image);
-								}
+							public void imageDownloaded(final byte[] imageBytes) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										FileUtil.writeBytesAsFile(cache.getAbsolutePath(),
+												imageBytes);
+										InputStream is = new ByteArrayInputStream(imageBytes);
+										Image image = new Image(Display.getCurrent(), is);
+										try {
+											is.close();
+										} catch (IOException e) {
+										}
+										mapImages.put(new Long(contentNetworkID), image);
+										if (cnImageLoadedListener != null) {
+											cnImageLoadedListener.contentNetworkImageLoaded(
+													contentNetworkID, image, false);
+										}
+									}
+								});
 							}
 						});
 			}
@@ -119,15 +123,16 @@ public class ContentNetworkUI
 				&& cnImageLoadedListener != null) {
 			image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
 			mapImages.put(new Long(contentNetworkID), image);
-			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image);
+			cnImageLoadedListener.contentNetworkImageLoaded(contentNetworkID, image, true);
 		}
+		return image;
 	}
 	
 	
 
 	public static interface ContentNetworkImageLoadedListener
 	{
-		public void contentNetworkImageLoaded(Long contentNetworkID, Image image);
+		public void contentNetworkImageLoaded(Long contentNetworkID, Image image, boolean wasReturned);
 	}
 
 }

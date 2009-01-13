@@ -2683,8 +2683,8 @@ public class SideBar
 
 		ContentNetworkUI.loadImage(cn.getID(),
 				new ContentNetworkImageLoadedListener() {
-					public void contentNetworkImageLoaded(Long contentNetworkID,
-							Image image) {
+    			public void contentNetworkImageLoaded(Long contentNetworkID,
+    					Image image, boolean wasReturned) {
 						entry.setImageLeft(image);
 					}
 				});

@@ -106,7 +106,7 @@ public class ContentNetworkUIManagerWindow
 					ContentNetworkUI.loadImage(cn.getID(),
 							new ContentNetworkImageLoadedListener() {
 								public void contentNetworkImageLoaded(Long contentNetworkID,
-										Image image) {
+										Image image, boolean wasReturned) {
 									if (image != null && image.getBounds().height < 50) {
 										button.setImage(image);
 									}
