@@ -103,7 +103,7 @@ public class ColumnAzProduct
 					dstBounds.height);
 		} else {
 			gc.drawImage(img, imgBounds.x, imgBounds.y, imgBounds.width,
-					imgBounds.height, 1, cellBounds.y
+					imgBounds.height, cellBounds.x + 1, cellBounds.y
 							+ ((cellBounds.height - dstBounds.height) / 2), dstBounds.width,
 					dstBounds.height);
 			cellBounds.x += imgBounds.width + 4;
