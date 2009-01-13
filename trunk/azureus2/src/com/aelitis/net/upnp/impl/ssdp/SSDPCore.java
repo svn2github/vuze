@@ -104,6 +104,7 @@ SSDPCore
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
 
+	private Set<String>		ignore_mx	= new HashSet();
 	
 	public
 	SSDPCore(
@@ -321,6 +322,7 @@ SSDPCore
 		String	st			= null;
 		String	al			= null;
 		String	mx			= null;
+		String	server		= null;
 		
 		for (int i=1;i<lines.size();i++){
 			
@@ -367,9 +369,42 @@ SSDPCore
 			}else if ( key.equals( "MX" )){
 				
 				mx	= val;
+				
+			}else if ( key.equals( "SERVER" )){
+
+				server = val;
 			}
 		}
 			
+		if ( server != null ){
+		
+				// xbox doesn't play well with us doing MX properly, seems like the delay causes
+				// it not to pick up the response, grrrrr!
+			
+			if ( server.toLowerCase().startsWith( "xbox" )){
+				
+				String host = originator.getAddress().getHostAddress();
+					
+				synchronized( ignore_mx ){
+						
+					ignore_mx.add( host );
+				}
+			}
+		}
+		
+		if ( mx != null ){
+			
+			String host = originator.getAddress().getHostAddress();
+
+			synchronized( ignore_mx ){
+
+				if ( ignore_mx.contains( host )){
+										
+					mx	= null;
+				}
+			}
+		}
+		
 		if ( header.startsWith("M-SEARCH")){
 
 			if ( st != null ){
