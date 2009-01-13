@@ -534,7 +534,8 @@ public class PlatformMessenger
 				continue;
 			}
 
-			debug("Got a reply for " + message.toShortString() + "\n\t\t"
+			debug("Got a " + reply.length() + " byte reply for "
+					+ message.toShortString() + "\n\t\t"
 					+ reply.substring(0, Math.min(8192, reply.length())));
 
 			final PlatformMessage fMessage = message;
