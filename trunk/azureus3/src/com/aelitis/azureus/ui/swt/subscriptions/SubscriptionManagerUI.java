@@ -1706,6 +1706,7 @@ SubscriptionManagerUI
 				detailsContext.addMessageListener(new VuzeListener());
 				detailsContext.addMessageListener(new DisplayListener(detailsBrowser));
 				detailsContext.addMessageListener(new ConfigListener(detailsBrowser));
+				detailsContext.addMessageListener(new LightBoxBrowserRequestListener());
 				url = "about:blank";
 				detailsBrowser.setUrl(url);
 				detailsBrowser.setData("StartURL", url);
