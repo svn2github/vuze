@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
@@ -269,7 +270,9 @@ SSDPCore
 			USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
 			*/
 			
-		// System.out.println( str );
+		//if ( originator.getAddress().getHostAddress().equals( "192.168.0.247" )){
+		//	System.out.println( originator + ":" + str );
+		//}
 		
 		List	lines = new ArrayList();
 		
@@ -393,14 +396,17 @@ SSDPCore
 						url = url.substring(1);
 					}
 					
+						// Server MUST be in this alpha-case for Xbox to work (SERVER doesn't)...
+					
 					String	data = 
 						"HTTP/1.1 200 OK" + NL +
-						"LOCATION: http://" + local_address.getHostAddress() + ":" + mc_group.getControlPort() + "/" + url + NL +
-						"EXT:" + NL + 
 						"USN: " + UUID + "::" + st + NL + 
-						"SERVER: Azureus (UPnP/1.0)" + NL +
-						"CACHE-CONTROL: max-age=3600" + NL +
 						"ST: " + st + NL + 
+						"EXT:" + NL + 
+						"Location: http://" + local_address.getHostAddress() + ":" + mc_group.getControlPort() + "/" + url + NL +
+						"Server: Azureus/" + Constants.AZUREUS_VERSION + " UPnP/1.0 Azureus/" + Constants.AZUREUS_VERSION + NL +
+						"Cache-Control: max-age=3600" + NL +
+						"Date: " + TimeFormatter.getHTTPDate( SystemTime.getCurrentTime()) + NL + 
 						"Content-Length: 0" + NL + NL;
 										
 					final byte[]	data_bytes = data.getBytes();
