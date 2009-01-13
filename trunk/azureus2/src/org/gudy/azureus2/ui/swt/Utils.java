@@ -1796,28 +1796,17 @@ public class Utils
 			dstBounds.x = dstPos.x;
 			dstBounds.y = dstPos.y;
 		}
-		//srcArea.intersect(dstBounds);
-
-		// draw the image with no mask! :(
-		GC gc = new GC(dstImage);
-		try {
-			gc.drawImage(srcImage, srcArea.x, srcArea.y, srcArea.width,
-					srcArea.height, dstPos.x, dstPos.y, srcArea.width, srcArea.height);
-
-		} finally {
-			gc.dispose();
-		}
 
 		ImageData dstImageData = dstImage.getImageData();
 		ImageData srcImageData = srcImage.getImageData();
 		int yPos = dstPos.y;
+		int[] pixels = new int[srcArea.width];
+		byte[] alphas = new byte[srcArea.width];
 		for (int y = 0; y < srcArea.height; y++) {
-			int xPos = dstPos.x;
-			for (int x = 0; x < srcArea.width; x++) {
-				dstImageData.setAlpha(xPos, yPos, srcImageData.getAlpha(x + srcArea.x,
-						y + srcArea.y));
-				xPos++;
-			}
+			srcImageData.getPixels(srcArea.x, y + srcArea.y, srcArea.width, pixels, 0);
+			dstImageData.setPixels(dstPos.x, yPos, srcArea.width, pixels, 0);
+			srcImageData.getAlphas(srcArea.x, y + srcArea.y, srcArea.width, alphas, 0);
+			dstImageData.setAlphas(dstPos.x, yPos, srcArea.width, alphas, 0);
 			yPos++;
 		}
 
