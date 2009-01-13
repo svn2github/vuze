@@ -420,6 +420,7 @@ public class UIFunctionsImpl
 				} finally {
 					pluginViews_mon.exit();
 				}
+				PluginsMenuHelper.getInstance().removePluginViews(viewID);
 				return;
 			}
 
@@ -442,6 +443,7 @@ public class UIFunctionsImpl
 				} finally {
 					pluginViews_mon.exit();
 				}
+				PluginsMenuHelper.getInstance().removePluginView(view, view.getPluginViewName());
 				return;
 			}
 
