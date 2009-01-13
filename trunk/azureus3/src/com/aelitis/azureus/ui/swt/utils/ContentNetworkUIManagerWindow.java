@@ -94,11 +94,12 @@ public class ContentNetworkUIManagerWindow
 					
 					FormData fd = new FormData();
 					if (lastButton != null) {
-						fd.top = new FormAttachment(lastButton, 5);
+						fd.top = new FormAttachment(lastButton, 3);
 					} else {
 						fd.top = new FormAttachment(0, 5);
 					}
 					fd.left = new FormAttachment(0, 5);
+					fd.right = new FormAttachment(100, -5);
 					button.setLayoutData(fd);
 					
 
@@ -106,7 +107,9 @@ public class ContentNetworkUIManagerWindow
 							new ContentNetworkImageLoadedListener() {
 								public void contentNetworkImageLoaded(Long contentNetworkID,
 										Image image) {
-									button.setImage(image);
+									if (image != null && image.getBounds().height < 50) {
+										button.setImage(image);
+									}
 								}
 							});
 
