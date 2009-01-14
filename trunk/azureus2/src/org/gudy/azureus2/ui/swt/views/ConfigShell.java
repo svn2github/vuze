@@ -1,6 +1,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Point;
@@ -106,14 +108,27 @@ public class ConfigShell
 				}
 			});
 
+			shell.addDisposeListener(
+				new DisposeListener()
+				{
+					public void 
+					widgetDisposed(
+						DisposeEvent arg0 ) 
+					{
+						close();
+					}
+				});
+			
 			shell.open();
 		}
 	}
 
-	public void close() {
-		if (null != shell && false == shell.isDisposed()) {
-			shell.close();
-		}
+	private void 
+	close() 
+	{
+		// if (null != shell && false == shell.isDisposed()) {
+		//	shell.close();
+		// }
 			// clear these down as view now dead
 		
 		shell		= null;
