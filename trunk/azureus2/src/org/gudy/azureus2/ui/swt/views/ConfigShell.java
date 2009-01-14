@@ -114,6 +114,10 @@ public class ConfigShell
 		if (null != shell && false == shell.isDisposed()) {
 			shell.close();
 		}
+			// clear these down as view now dead
+		
+		shell		= null;
+		configView	= null;
 	}
 
 	private Shell getMainShell() {
