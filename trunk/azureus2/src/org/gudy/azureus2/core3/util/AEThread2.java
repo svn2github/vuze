@@ -229,8 +229,7 @@ AEThread2
 		{
 			while( true ){
 				
-				synchronized (currentLock)
-				{
+				synchronized( currentLock ){
 					try{
 						if ( TRACE_TIMES ){
 
@@ -255,13 +254,17 @@ AEThread2
 
 							target.run();
 						}
-						
+												
 					}catch( Throwable e ){
 						
 						DebugLight.printStackTrace(e);
-					} finally
-					{
+						
+					}finally{
+						
+						target = null;
+
 						currentLock.released = true;
+						
 						currentLock.notifyAll();						
 					}
 				}
@@ -346,29 +349,30 @@ AEThread2
 		
 		protected void
 		retire()
-		{
-			target	= null;
-			
+		{			
 			sem.release();
 		}
-		
-		
 	}
 	
-	public void join()
+	public void 
+	join()
 	{
 		JoinLock currentLock = lock;
+
+			// sync lock will be blocked by the thread
 		
-		// sync lock will be blocked by the thread
-		synchronized (currentLock)
-		{
-			// wait in case the thread is not running yet
-			while(!currentLock.released)
-				try
-				{
-					currentLock.wait();
-				} catch (InterruptedException e) {}
+		synchronized( currentLock ){
 			
+				// wait in case the thread is not running yet
+			
+			while (!currentLock.released ){
+				
+				try{
+					currentLock.wait();
+					
+				}catch( InterruptedException e ){ 
+				}
+			}
 		}
 	}
 }
