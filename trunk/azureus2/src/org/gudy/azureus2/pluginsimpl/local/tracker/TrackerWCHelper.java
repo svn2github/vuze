@@ -72,50 +72,60 @@ TrackerWCHelper
 
 	public boolean
 	handleExternalRequest(
-		InetSocketAddress	_client_address,
-		String				_user,
-		String				_url,
-		URL					_absolute_url,
-		String				_header,
-		InputStream			_is,
-		OutputStream		_os,
-		AsyncController		_async )
+		final InetSocketAddress	_client_address,
+		final String				_user,
+		final String				_url,
+		final URL					_absolute_url,
+		final String				_header,
+		final InputStream			_is,
+		final OutputStream			_os,
+		final AsyncController		_async )
 
 		throws IOException
 	{
-		UtilitiesImpl.setPluginThreadContext( plugin_interface );
+		return(UtilitiesImpl.callWithPluginThreadContext(
+			plugin_interface,
+			new UtilitiesImpl.runnableWithReturnAndException<Boolean,IOException>()
+			{
+				public Boolean
+				run()
+				
+					throws IOException
+				{
+					TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, TrackerWCHelper.this, _client_address, _user, _url, _absolute_url, _header, _is );
+					TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os , request, _async );
+			
+					for (int i=0;i<generators.size();i++){
+			
+						TrackerWebPageGenerator	generator;
+			
+						try{
+							this_mon.enter();
+			
+							if ( i >= generators.size()){
+			
+								break;
+							}
+			
+							generator = (TrackerWebPageGenerator)generators.get(i);
+			
+						}finally{
+			
+							this_mon.exit();
+						}
+			
+						if ( generator.generate( request, reply )){
+			
+							reply.complete();
+			
+							return( true );
+						}
+					}
+					
 
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, this, _client_address, _user, _url, _absolute_url, _header, _is );
-		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os , request, _async );
-
-		for (int i=0;i<generators.size();i++){
-
-			TrackerWebPageGenerator	generator;
-
-			try{
-				this_mon.enter();
-
-				if ( i >= generators.size()){
-
-					break;
+					return( false );
 				}
-
-				generator = (TrackerWebPageGenerator)generators.get(i);
-
-			}finally{
-
-				this_mon.exit();
-			}
-
-			if ( generator.generate( request, reply )){
-
-				reply.complete();
-
-				return( true );
-			}
-		}
-
-		return( false );
+			}));
 	}
 
 

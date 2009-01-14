@@ -99,9 +99,16 @@ UTTimerImpl
 				perform(
 					TimerEvent		ev )
 				{
-					UtilitiesImpl.setPluginThreadContext( plugin_interface );
-					
-					res.perform( ext_performer );
+					UtilitiesImpl.callWithPluginThreadContext(
+							plugin_interface,
+							new Runnable()
+							{
+								public void 
+								run() 
+								{					
+									res.perform( ext_performer );
+								}
+							});
 				}
 			};
 			
@@ -137,22 +144,26 @@ UTTimerImpl
 				perform(
 					TimerEvent		ev )
 				{
-					try{
-							// may not be here in some cut down distributions
-						
-						UtilitiesImpl.setPluginThreadContext( plugin_interface );
-						
-					}catch( Throwable e ){
-					}
-					
-					try {
-						res.perform( ext_performer );
-					} catch (Throwable e) {
-						Debug.out("Plugin '" + plugin_interface.getPluginName() + " ("
-							+ plugin_interface.getPluginID() + " "
-							+ plugin_interface.getPluginVersion()
-							+ ") caused an error while processing a timer event", e);
-					}
+					UtilitiesImpl.callWithPluginThreadContext(
+							plugin_interface,
+							new Runnable()
+							{
+								public void 
+								run() 
+								{					
+									try{
+										
+										res.perform( ext_performer );
+										
+									}catch( Throwable e ){
+										
+										Debug.out("Plugin '" + plugin_interface.getPluginName() + " ("
+											+ plugin_interface.getPluginID() + " "
+											+ plugin_interface.getPluginVersion()
+											+ ") caused an error while processing a timer event", e);
+									}
+								}
+							});
 				}
 			};
 			

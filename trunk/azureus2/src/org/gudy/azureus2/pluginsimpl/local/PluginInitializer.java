@@ -46,6 +46,7 @@ import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.*;
 
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 import org.gudy.azureus2.update.UpdaterUtils;
@@ -1415,36 +1416,48 @@ PluginInitializer
   		
   		for (int i=0;i<l.size();i++){
   	
-  			PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
+  			final PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
   			
   			if (plugin_interface.getPluginState().isDisabled()) {
   				
   				synchronized( s_plugin_interfaces ){
+  					
   					s_plugin_interfaces.add( plugin_interface );
   				}
   				
   				continue;
   			}
-  	
-  			Plugin	plugin = plugin_interface.getPlugin();
-  			
-  			if (plugin_interface.getPluginState().isOperational())
+  	  			
+  			if ( plugin_interface.getPluginState().isOperational()){
+  				
   				continue;
+  			}
   			
   			Throwable	load_failure = null;
-  			
+  	
+ 			final Plugin	plugin = plugin_interface.getPlugin();
+
   			try{
       	
-				UtilitiesImpl.setPluginThreadContext( plugin_interface );
+  				UtilitiesImpl.callWithPluginThreadContext(
+  					plugin_interface,
+  					new runnableWithException<PluginException>()
+  					{
+  						public void 
+  						run() 
+  							throws PluginException 
+  						{
+  							fireCreated( plugin_interface );
 				
-				fireCreated( plugin_interface );
-				
-  				plugin.initialize(plugin_interface);
+  							plugin.initialize(plugin_interface);
       	  				
-  				if (!(plugin instanceof FailedPlugin)){
+  							if (!(plugin instanceof FailedPlugin)){
   					
-  					plugin_interface.getPluginStateImpl().setOperational( true );
-  				}
+  								plugin_interface.getPluginStateImpl().setOperational( true );
+  							}
+  						}
+  					});
+  				
   			}catch( Throwable e ){
       	
   				load_failure	= e;
@@ -1479,12 +1492,12 @@ PluginInitializer
   
   protected void 
   initializePluginFromClass(
-  	Class 	plugin_class,
-	String	plugin_id,
-	String	plugin_config_key,
-	boolean force_enabled,
-	boolean loading_for_startup,
-	boolean initialise)
+  	final Class 	plugin_class,
+	final String	plugin_id,
+	String			plugin_config_key,
+	boolean 		force_enabled,
+	boolean 		loading_for_startup,
+	boolean 		initialise)
   
   	throws PluginException
   {
@@ -1501,7 +1514,7 @@ PluginInitializer
   	    
   	try{
   	
-  		Plugin plugin = (Plugin) plugin_class.newInstance();
+  		final Plugin plugin = (Plugin) plugin_class.newInstance();
   		
   		String	plugin_name;
 
@@ -1527,7 +1540,7 @@ PluginInitializer
   		
   		properties.put( "plugin.name", plugin_name );
   		
-  		PluginInterfaceImpl plugin_interface = 
+  		final PluginInterfaceImpl plugin_interface = 
   			new PluginInterfaceImpl(
   						plugin, 
 						this,
@@ -1554,40 +1567,50 @@ PluginInitializer
 	      
 	      plugin_interface.getPluginState().setDisabled(!bEnabled);
   		
-		UtilitiesImpl.setPluginThreadContext( plugin_interface );
+	      final boolean f_enabled = bEnabled;
+	      
+	      UtilitiesImpl.callWithPluginThreadContext(
+	    		 plugin_interface,
+	    		 new runnableWithException<PluginException>()
+	    		 {
+	    			 public void
+	    			 run() 
+	    			 	throws PluginException 
+	    			 {
+	    				 try{
 
-		try{
-			
-			Method	load_method = plugin_class.getMethod( "load", new Class[]{ PluginInterface.class });
-		      	
-		   	load_method.invoke( plugin, new Object[]{ plugin_interface });
-		      	
-		 }catch( NoSuchMethodException e ){
-		      	
-		 }catch( Throwable e ){
-		      	
-			Debug.printStackTrace( e );
-			
-			Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-						"Load of built in plugin '" + plugin_id + "' fails", e));
-		}
-		 
-		 if (bEnabled) {
-			 
-			 if ( core_operation != null ){
-				 
-				 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
-			 }
-	
-			 fireCreated( plugin_interface );
-			 
-	  		plugin.initialize(plugin_interface);
-	  		
-	  		if (!(plugin instanceof FailedPlugin)){
-	  			
-	  			plugin_interface.getPluginStateImpl().setOperational( true );
-	  		}
-		 }
+	    					 Method	load_method = plugin_class.getMethod( "load", new Class[]{ PluginInterface.class });
+
+	    					 load_method.invoke( plugin, new Object[]{ plugin_interface });
+
+	    				 }catch( NoSuchMethodException e ){
+
+	    				 }catch( Throwable e ){
+
+	    					 Debug.printStackTrace( e );
+
+	    					 Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+	    							 "Load of built in plugin '" + plugin_id + "' fails", e));
+	    				 }
+
+	    				 if (f_enabled) {
+
+	    					 if ( core_operation != null ){
+
+	    						 core_operation.reportCurrentTask(MessageText.getString("splash.plugin.init") + " " + plugin_interface.getPluginName());
+	    					 }
+
+	    					 fireCreated( plugin_interface );
+
+	    					 plugin.initialize(plugin_interface);
+
+	    					 if (!(plugin instanceof FailedPlugin)){
+
+	    						 plugin_interface.getPluginStateImpl().setOperational( true );
+	    					 }
+	    				 }
+	    			 }
+	    		 });
   		
 		 synchronized( s_plugin_interfaces ){
    		
@@ -1611,14 +1634,14 @@ PluginInitializer
   
   protected void
   initializePluginFromInstance(
-  	Plugin		plugin,
-	String		plugin_id,
-	String		plugin_config_key )
+  	final Plugin		plugin,
+	String				plugin_id,
+	String				plugin_config_key )
   
   	throws PluginException
   {
   	try{  		
-  		PluginInterfaceImpl plugin_interface = 
+  		final PluginInterfaceImpl plugin_interface = 
   			new PluginInterfaceImpl(
   						plugin, 
 						this,
@@ -1630,17 +1653,26 @@ PluginInitializer
 						plugin_id,
 						null );
   		
-		UtilitiesImpl.setPluginThreadContext( plugin_interface );
-
-		fireCreated( plugin_interface );
-		
-  		plugin.initialize(plugin_interface);
-  		
-  		if (!(plugin instanceof FailedPlugin)){
-  			
-  			plugin_interface.getPluginStateImpl().setOperational( true );
-  		}
-  		
+		UtilitiesImpl.callWithPluginThreadContext(
+			plugin_interface,
+			new UtilitiesImpl.runnableWithException<PluginException>()
+			{
+				public void
+				run()
+				
+					throws PluginException
+				{
+					fireCreated( plugin_interface );
+					
+			  		plugin.initialize(plugin_interface);
+			  		
+			  		if (!(plugin instanceof FailedPlugin)){
+			  			
+			  			plugin_interface.getPluginStateImpl().setOperational( true );
+			  		}
+				}
+			});
+			  		
   		synchronized( s_plugin_interfaces ){
    		
   			s_plugins.add( plugin );

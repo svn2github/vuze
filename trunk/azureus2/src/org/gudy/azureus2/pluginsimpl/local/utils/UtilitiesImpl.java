@@ -93,10 +93,10 @@ UtilitiesImpl
 	private AzureusCore				core;
 	private PluginInterface			pi;
 	
-	private static ThreadLocal		tls	= 
-		new ThreadLocal()
+	private static ThreadLocal<PluginInterface>		tls	= 
+		new ThreadLocal<PluginInterface>()
 		{
-			public Object
+			public PluginInterface
 			initialValue()
 			{
 				return( null );
@@ -286,9 +286,7 @@ UtilitiesImpl
 				public void
 				run()
 				{
-					setPluginThreadContext( pi );
-					
-					target.run();
+					callWithPluginThreadContext( pi, target );
 				}
 			};
 			
@@ -787,10 +785,79 @@ UtilitiesImpl
 	}
 	
 	public static final void
-	setPluginThreadContext(
-		PluginInterface		pi )
+	callWithPluginThreadContext(
+		PluginInterface				pi,
+		Runnable					target )
 	{
-		tls.set( pi );
+		PluginInterface existing = tls.get();
+		
+		try{
+			tls.set( pi );
+			
+			target.run();
+			
+		}finally{
+			
+			tls.set( existing );
+		}
+	}
+	
+	public static final <T extends Exception> void
+	callWithPluginThreadContext(
+		PluginInterface					pi,
+		runnableWithException<T>		target )
+	
+		throws T
+	{
+		PluginInterface existing = tls.get();
+		
+		try{
+			tls.set( pi );
+			
+			target.run();
+			
+		}finally{
+			
+			tls.set( existing );
+		}
+	}
+	
+	public static final <T> T
+	callWithPluginThreadContext(
+		PluginInterface				pi,
+		runnableWithReturn<T>			target )
+	{
+		PluginInterface existing = tls.get();
+		
+		try{
+			tls.set( pi );
+			
+			return( target.run());
+			
+		}finally{
+			
+			tls.set( existing );
+		}
+	}
+	
+	public static final <T,S extends Exception> T
+	callWithPluginThreadContext(
+		PluginInterface							pi,
+		runnableWithReturnAndException<T,S>		target )
+	
+		throws S
+	{
+		PluginInterface existing = tls.get();
+		
+		try{
+			tls.set( pi );
+			
+			return( target.run());
+			
+		}finally{
+			
+			tls.set( existing );
+		}
 	}
 	
 	public static PluginInterface
@@ -951,6 +1018,31 @@ UtilitiesImpl
 		addProvider( 
 			PluginInterface		pi,
 			SearchProvider		provider );
+	}
+	
+	public interface
+	runnableWithReturn<T>
+	{
+		public T
+		run();
+	}
+	
+	public interface
+	runnableWithException<T extends Exception>
+	{
+		public void
+		run()
+		
+			throws T;
+	}
+	
+	public interface
+	runnableWithReturnAndException<T,S extends Exception>
+	{
+		public T
+		run()
+		
+			throws S;
 	}
 	
 	static class
