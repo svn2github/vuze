@@ -163,7 +163,6 @@ public class LightBoxShell
 
 		lbShell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
-				close();
 				/*
 				 * Disposing all the spinner images
 				 */
