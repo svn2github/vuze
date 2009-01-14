@@ -381,6 +381,19 @@ PlatformManagerImpl
 		}		
 	}
 	
+	public String 
+	getComputerName() 
+	{
+		String	host = System.getenv( "COMPUTERNAME" );
+		
+		if ( host != null && host.length() > 0 ){
+			
+			return( host );
+		}
+		
+		return( null );
+	}
+	
 	public File
 	getLocation(
 		long	location_id )

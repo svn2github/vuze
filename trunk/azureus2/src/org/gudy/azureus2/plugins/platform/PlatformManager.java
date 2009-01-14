@@ -105,4 +105,13 @@ PlatformManager
 		long	location_id )
 	
 		throws PlatformManagerException;
+	
+	
+		/**
+		 * 
+		 * @return	null if can't be found
+		 */
+	
+	public String
+	getComputerName();
 }

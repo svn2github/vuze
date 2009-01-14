@@ -87,6 +87,12 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
+	public String 
+	getComputerName() 
+	{
+		return null;
+	}
+	
 	public File
 	getLocation(
 		long	location_id )

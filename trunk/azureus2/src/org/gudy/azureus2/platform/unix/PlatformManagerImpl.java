@@ -145,6 +145,19 @@ public class PlatformManagerImpl implements PlatformManager
 		return temp_user_path;
 	}
 
+	public String 
+	getComputerName() 
+	{
+		String	host = System.getenv( "HOST" );
+		
+		if ( host != null && host.length() > 0 ){
+			
+			return( host );
+		}
+		
+		return( null );
+	}
+	
 	// @see org.gudy.azureus2.platform.PlatformManager#getVersion()
 	public String getVersion() throws PlatformManagerException {
 		throw new PlatformManagerException(ERR_UNSUPPORTED);
