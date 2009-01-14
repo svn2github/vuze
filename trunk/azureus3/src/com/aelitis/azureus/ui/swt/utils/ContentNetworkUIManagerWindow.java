@@ -133,11 +133,12 @@ public class ContentNetworkUIManagerWindow
 									entry.getSidebar().closeEntry(entry.getId());
 								}
 							} else {
-								String target = ContentNetworkUtils.getTarget(cn);
-								SideBarEntrySWT entry = SideBar.getEntry(target);
-								if (!entry.isInTree()) {
-									entry.getSidebar().showEntryByTabID(target);
-								}
+								// Uncomment to bring up sidebar entry on checking option
+								//String target = ContentNetworkUtils.getTarget(cn);
+								//SideBarEntrySWT entry = SideBar.getEntry(target);
+								//if (!entry.isInTree()) {
+								//	entry.getSidebar().showEntryByTabID(target);
+								//}
 							}
 						}
 
