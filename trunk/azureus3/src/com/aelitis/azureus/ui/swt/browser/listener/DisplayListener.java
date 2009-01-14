@@ -347,29 +347,29 @@ public class DisplayListener
 		}
 	}
 
-	private static void refreshBrowser(String browserID) {
-		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+	private static void refreshBrowser(final String browserID) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 
-		SideBarEntrySWT entry = SideBar.getEntry(browserID);
-		SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+				SideBarEntrySWT entry = SideBar.getEntry(browserID);
+				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
 
-		if (soBrowser != null) {
-			soBrowser.refresh();
-			return;
-		}
+				if (soBrowser != null) {
+					soBrowser.refresh();
+					return;
+				}
 
-		SWTSkin skin = SWTSkinFactory.getInstance();
-		SWTSkinObject skinObject = skin.getSkinObject(browserID);
-		if (skinObject instanceof SWTSkinObjectBrowser) {
-			final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
-			if (null != browser && false == browser.isDisposed()) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
+				SWTSkin skin = SWTSkinFactory.getInstance();
+				SWTSkinObject skinObject = skin.getSkinObject(browserID);
+				if (skinObject instanceof SWTSkinObjectBrowser) {
+					final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+					if (null != browser && false == browser.isDisposed()) {
 						browser.refresh();
 					}
-				});
+				}
 			}
-		}
+		});
 	}
 
 	private void launchUrl(final String url) {
