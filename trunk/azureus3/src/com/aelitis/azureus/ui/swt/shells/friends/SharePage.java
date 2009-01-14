@@ -242,6 +242,7 @@ public class SharePage
 				new SelectionListener() {
 
 					public void widgetSelected(SelectionEvent e) {
+						((Button)e.widget).setEnabled(false);
 						getMessageContext().executeInBrowser(
 								"sendSharingBuddies('" + getCommitJSONMessage() + "')");
 
