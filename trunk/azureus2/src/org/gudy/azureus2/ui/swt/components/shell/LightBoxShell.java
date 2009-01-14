@@ -252,7 +252,7 @@ public class LightBoxShell
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (null != lbShell && false == lbShell.isDisposed()) {
-					lbShell.close();
+					lbShell.dispose();
 				}
 			}
 		});
