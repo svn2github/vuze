@@ -136,26 +136,6 @@ public class VuzeActivitiesManager
 			}
 		}
 		
-		{	
-			//TODO TUX : could we remove the dl-related entries from the "removed/deleted" list too ?
-			//Remove obsolete dl-related entries
-			List obsoleteEntries = new ArrayList();
-			VuzeActivitiesEntry[] entries = getAllEntries();
-			for(int i = 0 ; i < entries.length ; i++) {
-				VuzeActivitiesEntry entry = entries[i];
-				if( 	entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_ADDED) || 
-						entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_REMOVE) ||
-						entry.getTypeID().equals(VuzeActivitiesConstants.TYPEID_DL_COMPLETE) ) {
-					
-					obsoleteEntries.add(entry);
-					
-				}
-			}
-			if(obsoleteEntries.size() > 0) {
-				removeEntries((VuzeActivitiesEntry[]) obsoleteEntries.toArray(new VuzeActivitiesEntry[obsoleteEntries.size()]),true);
-			}
-		}
-
 		replyListener = new PlatformVuzeActivitiesMessenger.GetEntriesReplyListener() {
 			public void gotVuzeNewsEntries(VuzeActivitiesEntry[] entries,
 					long refreshInMS) {

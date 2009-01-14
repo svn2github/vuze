@@ -30,12 +30,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
  */
 public class VuzeActivitiesConstants
 {
-	public static final String TYPEID_DL_COMPLETE = "DL-Complete";
-
-	public static final String TYPEID_DL_ADDED = "DL-Added";
-
-	public static final String TYPEID_DL_REMOVE = "DL-Remove";
-
 	public static final String TYPEID_RATING_REMINDER = "Rating-Reminder";
 
 	public static final String TYPEID_HEADER = "Header";
