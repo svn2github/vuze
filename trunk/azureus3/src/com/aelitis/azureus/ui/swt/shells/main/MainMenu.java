@@ -177,6 +177,16 @@ public class MainMenu
 		}
 		
 		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
+
+		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
+				+ ".manage", new Listener() {
+			public void handleEvent(Event event) {
+				new ContentNetworkUIManagerWindow();
+			}			
+		});
+
+		MenuFactory.addSeparatorMenuItem(contentNetworkMenu);
+
 		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
 				+ ".about", new Listener() {
 			public void handleEvent(Event event) {
@@ -185,15 +195,9 @@ public class MainMenu
 						0, true, false);
 			}			
 		});
-
-		MenuFactory.addMenuItem(contentNetworkMenu, MENU_ID_CONTENT_NETWORKS
-				+ ".manage", new Listener() {
-			public void handleEvent(Event event) {
-				new ContentNetworkUIManagerWindow();
-			}			
-		});
 	}
 
+	
 	/**
 	 * @param contentNetworkMenu
 	 * @param cn
