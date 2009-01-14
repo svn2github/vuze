@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
  *
  */
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,16 +65,18 @@ public class
 BasicPluginConfigImpl
 	implements UISWTConfigSection
 {
-	protected BasicPluginConfigModel	model;
+	protected WeakReference<BasicPluginConfigModel>		model_ref;
 	
 	protected String					parent_section;
 	protected String					section;
 		
 	public
 	BasicPluginConfigImpl(
-		BasicPluginConfigModel	_model )
+		WeakReference<BasicPluginConfigModel>	_model_ref )
 	{
-		model			= _model;
+		model_ref			= _model_ref;
+		
+		BasicPluginConfigModel	model = model_ref.get();
 		
 		parent_section	= model.getParentSection();
 		section			= model.getSection();
@@ -113,6 +116,8 @@ BasicPluginConfigImpl
 	public int 
 	maxUserMode() 
 	{
+		BasicPluginConfigModel	model = model_ref.get();
+		
 		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
 		
 		int	max_mode = 0;
@@ -159,6 +164,8 @@ BasicPluginConfigImpl
 		
 		Composite current_composite	= main_tab;
 		
+		BasicPluginConfigModel	model = model_ref.get();
+
 		org.gudy.azureus2.plugins.ui.config.Parameter[] parameters = model.getParameters();
 		
 		for (int i=0;i<parameters.length;i++){

@@ -89,12 +89,12 @@ UISWTInstanceImpl
 {
 	private AzureusCore		core;
 	
-	private Map awt_view_map 	= new WeakHashMap();
-	private Map config_view_map = new WeakHashMap();
+	private Map<UISWTAWTPluginView,UISWTPluginView> 			awt_view_map 	= new WeakHashMap<UISWTAWTPluginView,UISWTPluginView>();
+	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
-	private Map views = new HashMap();
+	private Map<String,Map<String,UISWTViewEventListener>> views = new HashMap<String,Map<String,UISWTViewEventListener>>();
 	
-	private Map	plugin_map	= new WeakHashMap();
+	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
 	
 	private boolean bUIAttaching;
 
@@ -331,7 +331,7 @@ UISWTInstanceImpl
 					
 					BasicPluginConfigModel	model = (BasicPluginConfigModel)data;
 					
-					BasicPluginConfigImpl view = new BasicPluginConfigImpl(model);
+					BasicPluginConfigImpl view = new BasicPluginConfigImpl( new WeakReference<BasicPluginConfigModel>( model ));
 					   
 					config_view_map.put( model, view );
 					
@@ -568,9 +568,11 @@ UISWTInstanceImpl
 	/** @deprecated */
 	public void
 	addView(
-		final UISWTAWTPluginView	view,
+		UISWTAWTPluginView			view,
 		boolean						auto_open )
 	{
+		final WeakReference<UISWTAWTPluginView> view_ref = new WeakReference<UISWTAWTPluginView>( view );
+		
 		UISWTPluginView	v = 
 			new UISWTPluginView()
 			{
@@ -582,13 +584,13 @@ UISWTInstanceImpl
 				public String
 				getPluginViewName()
 				{
-					return( view.getPluginViewName());
+					return( view_ref.get().getPluginViewName());
 				}
 				
 				public String 
 				getFullTitle() 
 				{
-					return( view.getPluginViewName());
+					return( view_ref.get().getPluginViewName());
 				}
 				 
 				public void 
@@ -621,7 +623,7 @@ UISWTInstanceImpl
 										
 										first_paint	= false;
 											
-										view.open( component );
+										view_ref.get().open( component );
 									}
 								}
 							}
@@ -631,7 +633,7 @@ UISWTInstanceImpl
 	
 					f.add( pan );
 							
-					component	= view.create();
+					component	= view_ref.get().create();
 					
 					pan.add( component, BorderLayout.CENTER );
 				}
@@ -647,7 +649,7 @@ UISWTInstanceImpl
 				{
 					super.delete();
 					
-					view.delete( component );
+					view_ref.get().delete( component );
 				}
 			};
 			
@@ -679,9 +681,9 @@ UISWTInstanceImpl
 
 	public void addView(String sParentID, final String sViewID,
 			final UISWTViewEventListener l) {
-		Map subViews = (Map) views.get(sParentID);
+		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
 		if (subViews == null) {
-			subViews = new HashMap();
+			subViews = new HashMap<String,UISWTViewEventListener>();
 			views.put(sParentID, subViews);
 		}
 
@@ -702,7 +704,7 @@ UISWTInstanceImpl
 	
 	// TODO: Remove views from PeersView, etc
 	public void removeViews(String sParentID, final String sViewID) {
-		Map subViews = (Map) views.get(sParentID);
+		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
 		if (subViews == null)
 			return;
 
@@ -729,12 +731,12 @@ UISWTInstanceImpl
 	
 	public boolean openView(final String sParentID, final String sViewID,
 			final Object dataSource, final boolean setfocus) {
-		Map subViews = (Map) views.get(sParentID);
+		Map<String,UISWTViewEventListener> subViews = views.get(sParentID);
 		if (subViews == null) {
 			return false;
 		}
 
-		final UISWTViewEventListener l = (UISWTViewEventListener) subViews.get(sViewID);
+		final UISWTViewEventListener l = subViews.get(sViewID);
 		if (l == null) {
 			return false;
 		}
@@ -820,8 +822,8 @@ UISWTInstanceImpl
 	// Core Functions
 	// ==============
 	
-	public Map getViewListeners(String sParentID) {
-		return (Map)views.get(sParentID);
+	public Map<String,UISWTViewEventListener> getViewListeners(String sParentID) {
+		return views.get(sParentID);
 	}
 	
 	/**
@@ -829,7 +831,7 @@ UISWTInstanceImpl
 	 *
 	 * @since 3.1.1.1
 	 */
-	public Map getAllViews() {
+	public Map<String,Map<String,UISWTViewEventListener>> getAllViews() {
 		return views;
 	}
 	
