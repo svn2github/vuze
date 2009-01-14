@@ -162,7 +162,13 @@ public class ColumnThumbnail
 			if (cellBounds.height < 30) {
 				cellBounds.y += 1;
 				cellBounds.height -= 1;
+				
+				if (dstWidth > cellBounds.height * 5) {
+					dstHeight = cellBounds.height;
+					dstWidth = imgBounds.width * dstHeight / imgBounds.height;
+				}
 			}
+			
 			/*
 			int trim = (int) (imgBounds.width * 0.2);
 			if (imgBounds.width - cellBounds.width > trim) {
