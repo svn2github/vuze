@@ -119,7 +119,13 @@ public class VuzeShareUtils
 			return false;
 		}
 		
-		return true;
+		long id = PlatformTorrentUtils.getContentNetworkID(torrent);
+		if (id == ContentNetwork.CONTENT_NETWORK_UNKNOWN) {
+			return true;
+		}
+		boolean cnExists = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+				id) != null;
+		return cnExists;
 	}
 
 }
