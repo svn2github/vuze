@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.util.*;
@@ -37,6 +38,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -112,6 +115,8 @@ import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
+import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
@@ -3288,9 +3293,10 @@ BuddyPlugin
 		}
 	}
 	
+
 	public InputStream
 	handleURLProtocol(
-		final AZPluginConnection	connection,
+		 AZPluginConnection			connection,
 		String						arg_str )
 	
 		throws IPCException
@@ -3334,6 +3340,24 @@ BuddyPlugin
 			throw( new IPCException( "Buddy with public key '" + pk + "' not found" ));
 		}
 		
+		if ( hash == null ){
+			
+			return( handleUPRSS( connection, buddy, category ));
+			
+		}else{
+			
+			return( handleUPTorrent( connection, buddy, category, hash ));
+		}
+	}
+	
+	public InputStream
+	handleUPRSS(
+		final AZPluginConnection	connection,
+		BuddyPluginBuddy			buddy,
+		String						category )
+	
+		throws IPCException
+	{
 		if ( !buddy.isOnline( true )){
 			
 			throw( new IPCException( "Buddy isn't online" ));
@@ -3345,12 +3369,7 @@ BuddyPlugin
 
 		try{
 			msg.put( "cat", category.getBytes( "UTF-8" ));
-			
-			if ( hash != null ){
-				
-				msg.put( "hash", hash );
-			}
-						
+									
 			if ( if_mod != null ){
 				
 				msg.put( "if_mod", if_mod );
@@ -3365,10 +3384,8 @@ BuddyPlugin
 		
 		final Object[] 		result 		= { null };
 		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:rss" );
-		
-		final boolean is_torrent_get = hash != null;
-		
-		final String	etag = pk + "-" + category;
+				
+		final String	etag = buddy.getPublicKey() + "-" + category;
 		
 		az2_handler.sendAZ2RSSMessage( 
 			buddy,
@@ -3381,7 +3398,7 @@ BuddyPlugin
 					Map					message )
 				{
 					try{						
-						byte[] bytes = (byte[])message.get( is_torrent_get?"torrent":"rss" );
+						byte[] bytes = (byte[])message.get( "rss" );
 					
 						ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 						
@@ -3424,7 +3441,7 @@ BuddyPlugin
 				}
 			});
 		
-		result_sem.reserve( 30*1000 );
+		result_sem.reserve( 60*1000 );
 		
 		if ( result[0] == null ){
 			
@@ -3438,6 +3455,280 @@ BuddyPlugin
 			
 			throw((IPCException)result[0]);
 		}
+	}
+
+	public InputStream
+	handleUPTorrent(
+		final AZPluginConnection	connection,
+		final BuddyPluginBuddy		buddy,
+		String						category,
+		final byte[]				hash )
+	
+		throws IPCException
+	{
+		final long timeout = 120*1000;
+
+		final Object[] 		result 		= { null };
+		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:upt" );
+			
+		log( "Attempting to download torrent for " + Base32.encode( hash ));
+		
+			// first try and get torrent direct from the buddy
+		
+		if ( buddy.isOnline( true )){
+
+			try{
+				
+				Map<String,Object>	msg = new HashMap<String, Object>();
+			
+				try{
+					msg.put( "cat", category.getBytes( "UTF-8" ));
+									
+					msg.put( "hash", hash );
+							
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+							
+				az2_handler.sendAZ2RSSMessage( 
+					buddy,
+					msg,
+					new BuddyPluginAZ2TrackerListener()
+					{
+						private boolean	result_set;
+					
+						public Map
+						messageReceived(
+							BuddyPluginBuddy	buddy,
+							Map					message )
+						{
+							try{						
+								byte[] bytes = (byte[])message.get( "torrent" );
+									
+								log( "    torrent downloaded from buddy" );
+								
+								setResult( bytes );
+																
+							}catch( Throwable e ){
+							
+								messageFailed( buddy, e );
+							}
+							
+							return( null );
+						}
+						
+						public void
+						messageFailed(
+							BuddyPluginBuddy	buddy,
+							Throwable			cause )
+						{					
+							setResult( new IPCException( "Read failed", cause ));
+						}
+						
+						protected void
+						setResult(
+							Object		obj )
+						{
+							synchronized( result ){
+								
+								if ( result_set ){
+									
+									return;
+								}
+								
+								result_set = true;
+								
+								if ( !( result[0] instanceof byte[] )){
+								
+									result[0] = obj;
+								}
+								
+								result_sem.release();
+							}
+						}
+					});
+			}catch( Throwable e ){
+				
+				result[0] = new IPCException( "Buddy torrent get failed", e );
+				
+				result_sem.release();
+			}
+		}else{
+			
+			result[0] = new IPCException( "Buddy is offline" );
+
+			result_sem.release();
+		}
+		
+			// second try and get via magnet
+		
+		final MagnetPlugin	magnet_plugin = getMagnetPlugin();
+		
+		if ( magnet_plugin == null ){
+		
+			synchronized( result ){
+				
+				if ( result[0] == null ){
+					
+					result[0] = new IPCException( "Magnet plugin unavailable" );
+				}
+			}
+				
+			result_sem.release();
+			
+		}else{
+
+			new AEThread2( "BuddyPlugin:mag", true )
+			{
+				private boolean result_set;
+				
+				public void
+				run()
+				{
+					try{
+						
+						if ( buddy.isOnline( true )){
+							
+							Thread.sleep(10*1000);
+						}
+						
+						synchronized( result ){
+
+							if ( result[0] instanceof byte[] ){
+								
+								setResult( null );
+								
+								return;
+							}
+						}
+						
+						byte[] torrent_data = magnet_plugin.download(
+							new MagnetPluginProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									if ( 	str.indexOf( " found " ) == -1 &&
+											str.indexOf( " is dead " ) == -1 ){
+						
+										log( "    MagnetDownload: " + str );
+									}
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+								}
+								
+								public void
+								reportContributor(
+									InetSocketAddress	address )
+								{
+								}
+							},
+							hash,
+							new InetSocketAddress[0],
+							timeout );
+						
+						if ( torrent_data == null ){
+							
+							setResult( new IPCException( "Magnet timeout" ));
+													
+						}else{					
+							
+							log( "    torrent downloaded from magnet" );
+
+							setResult( torrent_data );
+						}
+					}catch( Throwable e ){
+						
+						setResult( new IPCException( "Magnet get failed", e ));
+					}
+				}
+				
+				protected void
+				setResult(
+					Object		obj )
+				{
+					synchronized( result ){
+						
+						if ( result_set ){
+							
+							return;
+						}
+						
+						result_set = true;
+						
+						if ( obj != null ){
+							
+							if ( 	result[0] == null ||
+									( obj instanceof byte[] && !( result[0] instanceof byte[] ))){
+								
+								result[0] = obj;
+							}
+						}
+							
+						result_sem.release();
+					}
+				}
+			}.start();
+		}
+		
+		long	start = SystemTime.getMonotonousTime();
+				
+		if ( result_sem.reserve(timeout )){
+			
+			if ( !( result[0] instanceof byte[] )){
+		
+				long	rem = timeout - ( SystemTime.getMonotonousTime() - start );
+				
+				if ( rem > 0 ){
+				
+					result_sem.reserve(rem );
+				}
+			}
+		}
+		
+		if ( result[0] == null ){
+			
+			log( "    torrent download timeout" );
+
+			throw( new IPCException( "Timeout" ));
+			
+		}else if ( result[0] instanceof byte[] ){
+						
+			return( new ByteArrayInputStream((byte[])result[0]));
+			
+		}else{
+			
+			IPCException error = (IPCException)result[0];
+			
+			log( "    torrent downloaded failed: " + Debug.getNestedExceptionMessage( error ));
+
+			throw( error );
+		}
+	}
+
+	protected MagnetPlugin
+	getMagnetPlugin()
+	{
+		PluginInterface  pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( MagnetPlugin.class );
+	
+		if ( pi == null ){
+			
+			return( null );
+		}
+		
+		return((MagnetPlugin)pi.getPlugin());
 	}
 	
 	public feedDetails
