@@ -43,4 +43,11 @@ public interface PlatformAuthorizedSender
 			boolean loginAndRetry);
 
 	String getResults();
+
+	/**
+	 * 
+	 *
+	 * @since 4.0.0.5
+	 */
+	void clearResults();
 }

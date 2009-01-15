@@ -204,4 +204,8 @@ public class PlatformAuthorizedSenderImpl
 	public String getResults() {
 		return s;
 	}
+	
+	public void clearResults() {
+		s = null;
+	}
 }

@@ -463,6 +463,7 @@ public class PlatformMessenger
 			authorizedSender.startDownload(url, sData, sem_waitDL, loginAndRetry);
 			sem_waitDL.reserve();
 			s = authorizedSender.getResults();
+			authorizedSender.clearResults();
 		} else {
 			if (requiresAuthorization) {
 				debug("No Authorized Sender.. using non-auth request");
