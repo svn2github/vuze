@@ -88,7 +88,7 @@ public class VuzeActivitiesEntry
 	
 	private long readOn;
 
-	private GlobalManagerAdapter globalManagerAdapter;
+	private GlobalManager gm = null;
 	
 	private long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
@@ -121,7 +121,8 @@ public class VuzeActivitiesEntry
 	public void loadFromExternalMap(Map platformEntry) {
 		timestamp = SystemTime.getCurrentTime()
 				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
-		setIconID(MapUtils.getMapString(platformEntry, "icon-id", null));
+		setIconID(MapUtils.getMapString(platformEntry, "icon-url",
+				MapUtils.getMapString(platformEntry, "icon-id", null)));
 		setTypeID(MapUtils.getMapString(platformEntry, "type-id", null), true);
 		setAssetHash(MapUtils.getMapString(platformEntry, "related-asset-hash",
 				null));
@@ -370,7 +371,6 @@ public class VuzeActivitiesEntry
 	public void setAssetHash(String assetHash) {
 		this.assetHash = assetHash;
 		if (assetHash != null) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 			setDownloadManager(gm.getDownloadManager(new HashWrapper(
 					Base32.decode(assetHash))));
 		} else {
@@ -392,21 +392,9 @@ public class VuzeActivitiesEntry
 		if (this.dm == dm) {
 			return;
 		}
-		if (dm == null && globalManagerAdapter != null) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			gm.removeListener(globalManagerAdapter);
-			globalManagerAdapter = null;
+		if (gm == null) {
+			gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		}
-		if (dm != null && globalManagerAdapter == null) {
-			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-			globalManagerAdapter = new GlobalManagerAdapter() {
-				public void downloadManagerRemoved(DownloadManager dm) {
-					setDownloadManager(null);
-				}
-			};
-			gm.addListener(globalManagerAdapter, false);
-		}
-		
 		
 		this.dm = dm;
 		if (dm != null) {
@@ -418,6 +406,10 @@ public class VuzeActivitiesEntry
 	 * @return the dm
 	 */
 	public DownloadManager getDownloadManger() {
+		if (gm != null && !gm.contains(dm)) {
+			setDownloadManager(null);
+			return null;
+		}
 		return dm;
 	}
 
