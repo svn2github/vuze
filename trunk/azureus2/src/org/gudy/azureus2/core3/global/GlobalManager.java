@@ -406,4 +406,12 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @since 3.0.4.3
 	 */
 	MainlineDHTProvider getMainlineDHTProvider();
+
+	/**
+	 * @param manager
+	 * @return
+	 *
+	 * @since 4.0.0.5
+	 */
+	boolean contains(DownloadManager manager);
 }

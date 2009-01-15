@@ -2013,8 +2013,15 @@ public class GlobalManagerImpl
 	{
 		return( stats );
 	}
-	
-  public int getIndexOf(DownloadManager manager) {
+
+	public boolean contains(DownloadManager manager) {
+    if (managers_cow != null && manager != null) {
+      return managers_cow.contains(manager);
+    }
+    return false;
+  }
+
+	public int getIndexOf(DownloadManager manager) {
     if (managers_cow != null && manager != null)
       return managers_cow.indexOf(manager);
     return -1;
