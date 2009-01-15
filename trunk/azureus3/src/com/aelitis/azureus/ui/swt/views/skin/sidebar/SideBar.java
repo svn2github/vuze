@@ -1286,8 +1286,11 @@ public class SideBar
 		if (cnm != null) {
 			ContentNetwork[] contentNetworks = cnm.getContentNetworks();
 			for (ContentNetwork cn : contentNetworks) {
-				if (cn == null
-						|| cn.getID() == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+				if (cn == null) {
+					continue;
+				}
+				if (cn.getID() == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+					cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 					continue;
 				}
 
