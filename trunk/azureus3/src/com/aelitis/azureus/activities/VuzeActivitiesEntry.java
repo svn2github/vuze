@@ -371,6 +371,9 @@ public class VuzeActivitiesEntry
 	public void setAssetHash(String assetHash) {
 		this.assetHash = assetHash;
 		if (assetHash != null) {
+			if (gm == null) {
+				gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			}
 			setDownloadManager(gm.getDownloadManager(new HashWrapper(
 					Base32.decode(assetHash))));
 		} else {
