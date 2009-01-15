@@ -251,12 +251,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private static final String	PEER_NAT_TRAVERSE_DONE_KEY	= PEPeerControlImpl.class.getName() + "::nat_trav_done";
 	
-	private Map	pending_nat_traversals = 
-		new LinkedHashMap(PENDING_NAT_TRAVERSAL_MAX,0.75f,true)
+	private Map<String,PEPeerTransport>	pending_nat_traversals = 
+		new LinkedHashMap<String,PEPeerTransport>(PENDING_NAT_TRAVERSAL_MAX,0.75f,true)
 	{
 		protected boolean 
 		removeEldestEntry(
-			Map.Entry eldest) 
+			Map.Entry<String,PEPeerTransport> eldest) 
 		{
 			return size() > PENDING_NAT_TRAVERSAL_MAX;
 		}
@@ -266,12 +266,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private static final int UDP_RECONNECT_MAX			= 16;
 	
-	private Map	udp_reconnects = 
-		new LinkedHashMap(UDP_RECONNECT_MAX,0.75f,true)
+	private Map<String,PEPeerTransport>	udp_reconnects = 
+		new LinkedHashMap<String,PEPeerTransport>(UDP_RECONNECT_MAX,0.75f,true)
 	{
 		protected boolean 
 		removeEldestEntry(
-			Map.Entry eldest) 
+			Map.Entry<String,PEPeerTransport> eldest) 
 		{
 			return size() > UDP_RECONNECT_MAX;
 		}
@@ -449,6 +449,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
 			((PEPeerManagerListener)peer_manager_listeners.get(i)).destroyed();
 		}
+		
+		sweepList = Collections.EMPTY_LIST;
+		
+		pending_nat_traversals.clear();
+		
+		udp_reconnects.clear();
 		
 		is_destroyed = true;
 	}
@@ -1920,6 +1926,17 @@ DiskManagerCheckRequestListener, IPFilterListener
 		// and reset the piece
 	}
 
+	public void
+	writeBlock(
+		DiskManagerFileInfo		file_info,
+		long					file_offset,
+		DirectByteBuffer		data )
+	{
+		int	firt_piece = file_info.getFirstPieceNumber();
+		
+	}
+	
+		
 	/** This method will queue up a dism manager write request for the block if the block is not already written.
 	 * It will send out cancels for the block to all peer either if in end-game mode, or per cancel param 
 	 * @param pieceNumber to potentialy write to
