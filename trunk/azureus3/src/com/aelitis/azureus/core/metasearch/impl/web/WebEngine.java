@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 public abstract class 
 WebEngine 
@@ -401,6 +402,11 @@ WebEngine
 			String	host = url.getHost();
 			
 			if ( org.gudy.azureus2.core3.util.Constants.isAzureusDomain( host )){
+				
+				return( true );
+			}
+			
+			if ( UrlFilter.getInstance().isWhitelisted( searchURLFormat )){
 				
 				return( true );
 			}
