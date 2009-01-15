@@ -41,6 +41,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.StringCompareUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -172,8 +173,10 @@ public class ColumnActivityText
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 						if (uif != null) {
-							String target = hitUrl.target == null
-									? SkinConstants.VIEWID_BROWSER_BROWSE : hitUrl.target;
+							String target = hitUrl.target;
+							if (target == null) {
+								target = ContentNetworkUtils.getTarget(entry.getContentNetwork());
+							}
 							uif.viewURL(hitUrl.url, target, 0, 0, false, false);
 							return;
 						}
