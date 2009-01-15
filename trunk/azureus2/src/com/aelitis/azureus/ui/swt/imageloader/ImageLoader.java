@@ -85,8 +85,6 @@ public class ImageLoader
 
 	private int disabledOpacity;
 
-	org.eclipse.swt.graphics.ImageLoader swtImageLoader = new org.eclipse.swt.graphics.ImageLoader();
-
 	public static ImageLoader getInstance() {
 		if (ImageLoader.instance == null) {
 			ImageLoader.instance = new ImageLoader(Display.getDefault(), null);
@@ -438,6 +436,7 @@ public class ImageLoader
 							byte[] imageBytes = FileUtil.readInputStreamAsByteArray(fis);
 							InputStream is = new ByteArrayInputStream(imageBytes);
 
+							org.eclipse.swt.graphics.ImageLoader swtImageLoader = new org.eclipse.swt.graphics.ImageLoader();
 							ImageData[] imageDatas = swtImageLoader.load(is);
 							images = new Image[imageDatas.length];
 							for (int i = 0; i < imageDatas.length; i++) {
