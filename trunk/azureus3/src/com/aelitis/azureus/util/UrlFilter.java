@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.cnetwork.*;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author TuxPaper
@@ -43,14 +44,11 @@ public class UrlFilter
 	private String DEFAULT_RPC_WHITELIST = "https?://"
 			+ default_site_host.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
 
-	private List listUrlBlacklist = Collections.EMPTY_LIST;
+	private CopyOnWriteList<String>  	listUrlBlacklist = new CopyOnWriteList<String>();
 
-	private List<String> listUrlWhitelist = new ArrayList<String>();
+	private CopyOnWriteList<String> 	listUrlWhitelist = new CopyOnWriteList<String>();
 
 	private AEMonitor mon = new AEMonitor("UrlFilter");
-
-	static {
-	}
 
 	public static UrlFilter getInstance() {
 		synchronized (UrlFilter.class) {
@@ -138,9 +136,24 @@ public class UrlFilter
 	}
 
 	public String[] getUrlWhitelist() {
+		
 		return listUrlWhitelist.toArray(new String[0]);
 	}
 
+	public boolean
+	isWhitelisted(
+		String		url )
+	{
+		Iterator<String> it = listUrlWhitelist.iterator();
+		
+		while( it.hasNext()){
+			if (url.matches(it.next())) {
+				return true;
+			}
+		}
+		return( false );
+	}
+	
 	public boolean urlCanRPC(String url) {
 		return urlCanRPC(url, false);
 	}
@@ -155,15 +168,14 @@ public class UrlFilter
 			return true;
 		}
 
-		String[] whitelist = getUrlWhitelist();
-		for (int i = 0; i < whitelist.length; i++) {
-			if (url.matches(whitelist[i])) {
-				return true;
-			}
+		if ( isWhitelisted( url )){
+			
+			return( true );
 		}
+		
 		if(showDebug) {
 			Debug.out("urlCanRPC: URL '" + url + "' " + " does not match one of the "
-					+ whitelist.length + " whitelist entries");
+					+ listUrlWhitelist.size() + " whitelist entries");
 		}
 		return false;
 	}
@@ -174,8 +186,8 @@ public class UrlFilter
 			return true;
 		}
 
-		for (Iterator iter = listUrlBlacklist.iterator(); iter.hasNext();) {
-			String blackListed = (String) iter.next();
+		for (Iterator<String> iter = listUrlBlacklist.iterator(); iter.hasNext();) {
+			String blackListed = iter.next();
 			if (url.matches(blackListed)) {
 				Debug.out("URL '" + url + "' " + " is blocked by " + blackListed);
 				return true;
