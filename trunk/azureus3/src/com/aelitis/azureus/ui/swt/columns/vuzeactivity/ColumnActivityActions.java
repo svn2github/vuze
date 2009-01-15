@@ -325,8 +325,10 @@ public class ColumnActivityActions
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 						if (uif != null) {
-							String target = hitUrl.target == null
-									? SkinConstants.VIEWID_BROWSER_BROWSE : hitUrl.target;
+							String target = hitUrl.target;
+							if (target == null) {
+								target = ContentNetworkUtils.getTarget(entry.getContentNetwork());
+							}
 							uif.viewURL(hitUrl.url, target, 0, 0, false, false);
 							return;
 						}
