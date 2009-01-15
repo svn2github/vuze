@@ -34,6 +34,15 @@ ContentNetworkManager
 	public ContentNetwork
 	getStartupContentNetwork();
 
+		/**
+		 * Checks networks for those that have this URL as their site
+		 * @return matching network, null if none
+		 */
+	
+	public ContentNetwork
+	getContentNetworkForURL(
+		String		url );
+	
 	public ContentNetwork
 	addContentNetwork(
 		long			id )

@@ -53,8 +53,12 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
+import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.UrlFilter;
 
 public class 
 SubscriptionSchedulerImpl 
@@ -237,16 +241,29 @@ SubscriptionSchedulerImpl
 		final Subscription			subs,
 		final SubscriptionResult	result )
 	{
-		final String dl = result.getDownloadLink();
+		String download_link = result.getDownloadLink();
 		
-		if ( dl == null ){
+		if ( download_link == null ){
 			
 			log( subs.getName() + ": can't download " + result.getID() + " as no direct download link available" );
 			
 			return;
 		}
 
+		if ( UrlFilter.getInstance().isWhitelisted( download_link )){
+			
+			ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL( download_link );
+			
+			if ( cn == null ){
+				
+				cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+			}
+			
+			download_link = cn.appendURLSuffix( download_link, false, true );
+		}
+		
 		final String	key = subs.getID() + ":" + result.getID();
+		final String	dl	= download_link;
 		
 		synchronized( active_result_downloaders ){
 

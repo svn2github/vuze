@@ -314,6 +314,30 @@ ContentNetworkManagerImpl
 	}
 	
 	public ContentNetwork
+	getContentNetworkForURL(
+		String		url )
+	{
+		try{
+			String	host = new URL( url ).getHost();
+			
+			for ( ContentNetwork cn: getContentNetworks()){
+				
+				String	site = (String)cn.getProperty( ContentNetwork.PROPERTY_SITE_HOST );
+				
+				if ( site != null && site.endsWith( host )){
+					
+					return( cn );
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( null );
+	}
+	
+	public ContentNetwork
 	getStartupContentNetwork()
 	{
 		ContentNetwork[] networks = getContentNetworks();

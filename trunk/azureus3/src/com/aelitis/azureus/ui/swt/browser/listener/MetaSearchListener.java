@@ -42,6 +42,8 @@ import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -62,7 +64,9 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.JSONUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
@@ -1058,8 +1062,20 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			Map decodedMap = message.isParamObject() ? message.getDecodedMap()
 					: new HashMap();			
 			
-			final String torrentUrl		= (String) decodedMap.get( "torrent_url" );
-			final String referer_str	= (String) decodedMap.get( "referer_url" );
+			String torrentUrl		= (String) decodedMap.get( "torrent_url" );
+			String referer_str	= (String) decodedMap.get( "referer_url" );
+			
+			if ( UrlFilter.getInstance().isWhitelisted( torrentUrl )){
+				
+				ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL( torrentUrl );
+				
+				if ( cn == null ){
+					
+					cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+				}
+				
+				torrentUrl = cn.appendURLSuffix( torrentUrl, false, true );
+			}
 			
 			try {
 			
