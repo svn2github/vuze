@@ -2579,8 +2579,8 @@ public class SideBar
 		}
 
 		String id;
-		IView viewFromID = getIViewFromID(tabID);
-		if (viewFromID != null) {
+		SideBarEntrySWT entry = getEntry(tabID);
+		if (entry.isInTree()) {
 			id = tabID;
 		} else if (tabID.equals("library") || tabID.equals("minilibrary")) {
 			id = SIDEBAR_SECTION_LIBRARY;
@@ -2597,8 +2597,8 @@ public class SideBar
 
 		final String itemID = id;
 
-		SideBarEntrySWT entry = getEntry(itemID);
-		if (entry.treeItem != null) {
+		entry = getEntry(itemID);
+		if (entry.isInTree()) {
 			itemSelected(entry.treeItem);
 			return id;
 		}
