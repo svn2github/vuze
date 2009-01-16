@@ -139,7 +139,6 @@ public class SWTLoginUtils
 		public String getOptionalMessage() {
 			if (null == message) {
 				message = MessageText.getString("login.optional.message");
-				message = message.replaceAll(" ", "+");
 			}
 			return message;
 		}
