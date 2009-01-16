@@ -1114,10 +1114,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 */
 	public class ProcessVars
 	{
+		/** Running count of torrents waiting or seeding, not including stalled */
 		int numWaitingOrSeeding; // Running Count
 
 		int numWaitingOrDLing; // Running Count
-		
+
 		long accumulatedDownloadSpeed;
 		
 		long accumulatedUploadSpeed;
@@ -1137,6 +1138,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		int posComplete;
 
 		boolean bStopAndQueued;
+		
+		int stalledSeeders; // Running Count
 	}
 
 	private long processCount = 0;
@@ -1230,6 +1233,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			vars.higherCDtoStart = false;
 			vars.higherDLtoStart = false;
 			vars.posComplete = 0;
+			vars.stalledSeeders = 0; // Running Count;
 
 			// Loop 2 of 2:
 			// - Start/Stop torrents based on criteria
@@ -1688,8 +1692,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			globalDownLimitReached = false;
 			fakedActively = false;
 		}
+		
+  		if (state == Download.ST_SEEDING && !bActivelySeeding) {
+  			vars.stalledSeeders++;
+  		}
 				
-			
 			// Is it OK to set this download to a queued state?
 			// It is if:
 			//   1) It is either READY or SEEDING; and
@@ -1744,9 +1751,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			// XXX Change to waiting if queued and we have an open slot
 			if (!okToQueue
 					&& (state == Download.ST_QUEUED)
-					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders)
+					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders) 
 					//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
 					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN)
+					&& (vars.stalledSeeders + vars.numWaitingOrSeeding < totals.maxSeeders * 2)
 					&& !vars.higherCDtoStart) {
 				try {
 					if (bDebugLog)
@@ -1774,10 +1782,26 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					if (okToQueue)
 						sDebugLine += " no starting of okToQueue'd;";
 
-					if (vars.numWaitingOrSeeding >= totals.maxSeeders)
+					if (vars.numWaitingOrSeeding >= totals.maxSeeders) {
 						sDebugLine += " at limit, numWaitingOrSeeding("
 								+ vars.numWaitingOrSeeding + ") >= maxSeeders("
 								+ totals.maxSeeders + ")";
+					} else if (vars.stalledSeeders + vars.numWaitingOrSeeding >= totals.maxSeeders * 2) {
+						sDebugLine += " at limit, stalledSeeders(" + vars.stalledSeeders
+								+ ") + active(" + vars.numWaitingOrSeeding + ") >= maxSeeders("
+								+ totals.maxSeeders + ") * 2";
+					} else {
+						sDebugLine += "huh? qd="
+								+ (state == Download.ST_QUEUED)
+								+ "; "
+								+ totals.maxActive
+								+ ";"
+								+ (vars.numWaitingOrSeeding < totals.maxSeeders)
+								+ ";"
+								+ (vars.stalledSeeders + vars.numWaitingOrSeeding <= totals.maxSeeders * 2)
+								+ ";ignore?"
+								+ (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN);
+					}
 				}
 			}
 
@@ -1818,6 +1842,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				if (!okToStop) {
 					// break up the logic into variables to make more readable
 					boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
+				      || (!bActivelySeeding && vars.stalledSeeders + vars.numWaitingOrSeeding > totals.maxSeeders * 2)
 							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherCDtoStart);
 					boolean bSeeding = state == Download.ST_SEEDING;
 
@@ -1831,10 +1856,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						if (okToStop) {
 							sDebugLine += "\n  stopAndQueue: ";
 							if (bOverLimit) {
-								if (vars.higherCDtoStart)
+								if (vars.higherCDtoStart) {
 									sDebugLine += "higherQueued (it should be seeding instead of this one)";
-								else
+								} else if (!bActivelySeeding && vars.stalledSeeders + vars.numWaitingOrSeeding > totals.maxSeeders * 2) {
+									sDebugLine += "over stale seeds limit";
+								} else {
 									sDebugLine += "over limit";
+								}
 							} else if (rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
 								sDebugLine += "ignoreRule met";
 

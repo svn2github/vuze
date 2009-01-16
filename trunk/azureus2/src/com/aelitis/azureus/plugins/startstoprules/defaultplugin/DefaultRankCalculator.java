@@ -102,6 +102,8 @@ public class DefaultRankCalculator implements Comparable {
 	/** Seeding Rank value when download is marked as Share Ratio Met */
 	public static final int SR_SHARERATIOMET = -8;
 
+	private static final long STALE_REFRESH_INTERVAL = 1000 * 60;
+
 	//
 	// Static config values
 
@@ -166,6 +168,12 @@ public class DefaultRankCalculator implements Comparable {
 	private boolean bActivelySeeding;
 
 	private long lCDActivelyChangedOn;
+
+	private long staleCDSince;
+	
+	private long staleCDOffset;
+
+	private long lastStaleCDRefresh;
 
 	private boolean bIsFirstPriority;
 
@@ -407,15 +415,17 @@ public class DefaultRankCalculator implements Comparable {
 			// Not active if we aren't seeding
 			// Not active if we are AutoStarting 0 Peers, and peer count == 0
 			bIsActive = false;
+			staleCDSince = -1;
 		} else if (SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
 			bIsActive = true;
+			staleCDSince = -1;
 		} else {
 			bIsActive = (stats.getUploadAverage() >= minSpeedForActiveSeeding);
 
 			if (bActivelySeeding != bIsActive) {
 				long now = SystemTime.getCurrentTime();
 				// Change
-				if (lCDActivelyChangedOn == -1) {
+				if (lCDActivelyChangedOn < 0) {
 					// Start Timer
 					lCDActivelyChangedOn = now;
 					bIsActive = !bIsActive;
@@ -423,6 +433,16 @@ public class DefaultRankCalculator implements Comparable {
 					// Continue as old state until timer finishes
 					bIsActive = !bIsActive;
 				}
+				
+				if (bActivelySeeding != bIsActive) {
+  				if (bIsActive) {
+  					staleCDSince = -1;
+  					staleCDOffset = 0;
+  				} else {
+  					staleCDSince = System.currentTimeMillis();
+  				}
+				}
+
 			} else {
 				// no change, reset timer
 				lCDActivelyChangedOn = -1;
@@ -431,6 +451,7 @@ public class DefaultRankCalculator implements Comparable {
 
 		if (bActivelySeeding != bIsActive) {
 			bActivelySeeding = bIsActive;
+
 			if (rules != null) {
 				rules.requestProcessCycle(null);
 				if (rules.bDebugLog)
@@ -664,6 +685,16 @@ public class DefaultRankCalculator implements Comparable {
 				if (rules.bDebugLog)
 					sExplainSR += "  Can't calculate SR, no scrape results\n";
 			}
+			
+			if (staleCDOffset > 0) {
+				// every 10 minutes of not being active, subtract one SR
+				if (newSR > staleCDOffset) {
+					newSR -= staleCDOffset;
+					sExplainSR += "  subtracted " + staleCDOffset + " due to non-activeness\n";
+				} else {
+					staleCDOffset = 0; 
+				}
+			}
 
 			if (newSR < 0)
 				newSR = 1;
@@ -892,6 +923,15 @@ public class DefaultRankCalculator implements Comparable {
 				rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
 						"somethingChanged: Download is ready");
 			return true;
+		}
+		
+		if (staleCDSince > 0) {
+			long now = SystemTime.getCurrentTime(); 
+			if (now - lastStaleCDRefresh > STALE_REFRESH_INTERVAL) {
+				staleCDOffset += (now - lastStaleCDRefresh) / STALE_REFRESH_INTERVAL;
+				lastStaleCDRefresh = now;
+				return true;
+			}
 		}
 
 		return false;
