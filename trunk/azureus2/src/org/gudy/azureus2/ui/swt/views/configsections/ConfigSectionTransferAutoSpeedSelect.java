@@ -147,7 +147,6 @@ public class ConfigSectionTransferAutoSpeedSelect
         Label label = new Label(modeGroup, SWT.NULL);
         Messages.setLanguageText(label,"ConfigTransferAutoSpeed.algorithm");
         gridData = new GridData();
-        gridData.widthHint = 50;
         label.setLayoutData(gridData);
 
         String AutoSpeedClassic = MessageText.getString("ConfigTransferAutoSpeed.auto.speed.classic");
