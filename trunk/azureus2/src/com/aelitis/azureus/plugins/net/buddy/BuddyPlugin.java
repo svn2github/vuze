@@ -839,6 +839,20 @@ BuddyPlugin
 			
 			fireInitialised( true );
 			
+				// try to re-establish connection to previously connectd buddies
+			
+			List<BuddyPluginBuddy> buddies = getBuddies();
+			
+			for ( BuddyPluginBuddy buddy: buddies ){
+				
+				if ( buddy.getIP() != null && !buddy.isConnected()){
+				
+					log( "Attempting reconnect to " + buddy.getString());
+					
+					buddy.sendKeepAlive();
+				}
+			}
+			
 		}catch( Throwable e ){
 		
 			log( "Initialisation failed", e );
