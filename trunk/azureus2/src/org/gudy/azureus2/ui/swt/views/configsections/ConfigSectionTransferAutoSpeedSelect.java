@@ -319,7 +319,6 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    	
 		final Label upload_bits = new Label(networkGroup, SWT.NULL);
 	    gridData = new GridData();
-	    gridData.widthHint = 80;
 	    upload_bits.setLayoutData(gridData);
 	    upload_bits.setText(getMBitLimit(limit_to_text,(up_lim.getBytesPerSec()/1024)*1024));
 		
@@ -396,7 +395,6 @@ public class ConfigSectionTransferAutoSpeedSelect
 	    
 		final Label download_bits = new Label(networkGroup, SWT.NULL);
 	    gridData = new GridData();
-	    gridData.widthHint = 80;
 	    download_bits.setLayoutData(gridData);
 	    download_bits.setText(getMBitLimit(limit_to_text,(down_lim.getBytesPerSec()/1024)*1024));
 	    
@@ -557,11 +555,11 @@ public class ConfigSectionTransferAutoSpeedSelect
         /////////////////////////////////////////
         Group azWiki = new Group(cSection, SWT.WRAP);
         gridData = new GridData();
-        gridData.widthHint = 350;
         azWiki.setLayoutData(gridData);
         GridLayout layout = new GridLayout();
         layout.numColumns = 1;
         layout.marginHeight = 1;
+        layout.marginWidth = 20;
         azWiki.setLayout(layout);
 
         azWiki.setText(MessageText.getString("Utils.link.visit"));
@@ -572,7 +570,6 @@ public class ConfigSectionTransferAutoSpeedSelect
         linkLabel.setCursor(Cursors.handCursor);
         linkLabel.setForeground(Colors.blue);
         gridData = new GridData();
-        gridData.horizontalIndent = 10;
         linkLabel.setLayoutData( gridData );
 	    linkLabel.addMouseListener(new MouseAdapter() {
 	      public void mouseDoubleClick(MouseEvent arg0) {
