@@ -156,7 +156,7 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         //Text-Box
         final Text commentBox = new Text(commentGroup, SWT.BORDER);
-        gridData = new GridData(GridData.BEGINNING);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalSpan=1;
         commentBox.setText("");
         commentBox.setLayoutData(gridData);
