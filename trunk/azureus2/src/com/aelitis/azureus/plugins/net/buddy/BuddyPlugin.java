@@ -38,8 +38,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -104,8 +102,6 @@ import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
-import sun.awt.image.ByteArrayImageSource;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.CryptoHandler;
@@ -233,10 +229,12 @@ BuddyPlugin
 
 	private List<BuddyPluginBuddy>	buddies 	= new ArrayList<BuddyPluginBuddy>();
 	
+	private List<BuddyPluginBuddy>	connected_at_close;
+	
 	private Map<String,BuddyPluginBuddy>		buddies_map	= new HashMap<String,BuddyPluginBuddy>();
 	
-	private CopyOnWriteList		listeners 			= new CopyOnWriteList();
-	private CopyOnWriteList		request_listeners	= new CopyOnWriteList(); 
+	private CopyOnWriteList<BuddyPluginListener>				listeners 			= new CopyOnWriteList<BuddyPluginListener>();
+	private CopyOnWriteList<BuddyPluginBuddyRequestListener>	request_listeners	= new CopyOnWriteList<BuddyPluginBuddyRequestListener>(); 
 		
 	private SESecurityManager	sec_man;
 
@@ -283,7 +281,7 @@ BuddyPlugin
 	
 	private BuddyPluginAZ2		az2_handler;
 	
-	private List	publish_write_contacts = new ArrayList();
+	private List<DistributedDatabaseContact>	publish_write_contacts = new ArrayList<DistributedDatabaseContact>();
 	
 	private int		status_seq;
 	
@@ -294,10 +292,11 @@ BuddyPlugin
 		}
 	}
 		
-	private Set			pd_preinit		= new HashSet();
-	private List		pd_queue 		= new ArrayList();
-	private AESemaphore	pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
-	private AEThread2	pd_thread;
+	private Set<BuddyPluginBuddy>			pd_preinit		= new HashSet<BuddyPluginBuddy>();
+	
+	private List<BuddyPluginBuddy>			pd_queue 		= new ArrayList<BuddyPluginBuddy>();
+	private AESemaphore						pd_queue_sem	= new AESemaphore( "BuddyPlugin:persistDispatch");
+	private AEThread2						pd_thread;
 	
 	private boolean		bogus_ygm_written;
 	
@@ -518,7 +517,7 @@ BuddyPlugin
 
 					if ( enabled ){
 					
-						List buddies = getBuddies();
+						List<BuddyPluginBuddy> buddies = getBuddies();
 						
 						boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
 						
@@ -1738,7 +1737,7 @@ BuddyPlugin
 				ddb.write(
 					new DistributedDatabaseListener()
 					{
-						private List	write_contacts = new ArrayList();
+						private List<DistributedDatabaseContact>	write_contacts = new ArrayList<DistributedDatabaseContact>();
 						
 						public void
 						event(
@@ -1834,11 +1833,24 @@ BuddyPlugin
 	{
 		logMessage( "Closing down" );
 
+		List<BuddyPluginBuddy>	buddies = getAllBuddies();
+		
+		synchronized( this ){
+			
+			connected_at_close = new ArrayList<BuddyPluginBuddy>();
+			
+			for ( BuddyPluginBuddy buddy: buddies ){
+				
+				if ( buddy.isConnected()){
+					
+					connected_at_close.add( buddy );
+				}
+			}
+		}
+		
 		if ( ddb != null ){
 			
 			boolean	restarting = AzureusCoreFactory.getSingleton().isRestarting();
-		
-			List	buddies = getAllBuddies();
 			
 			logMessage( "   closing buddy connections" );
 			
@@ -1999,6 +2011,22 @@ BuddyPlugin
 						
 						BuddyPluginBuddy buddy = new BuddyPluginBuddy( this, subsystem, true, key, nick, ver, loc_cat, rem_cat, last_seq, last_time_online, recent_ygm );
 						
+						byte[]	ip_bytes = (byte[])details.get( "ip" );
+						
+						if ( ip_bytes != null ){
+							
+							try{
+								InetAddress ip = InetAddress.getByAddress( ip_bytes );
+								
+								int	tcp_port = ((Long)details.get( "tcp" )).intValue();
+								int	udp_port = ((Long)details.get( "udp" )).intValue();
+								
+								buddy.setCachedStatus( ip, tcp_port, udp_port );
+								
+							}catch( Throwable e ){
+							}
+						}
+						
 						logMessage( "Loaded buddy " + buddy.getString());
 						
 						buddies.add( buddy );
@@ -2087,6 +2115,24 @@ BuddyPlugin
 						map.put( "rc", buddy.getRemoteAuthorisedRSSCategoriesAsString());
 					}
 
+					boolean connected = 
+						buddy.isConnected() ||
+						( connected_at_close != null && connected_at_close.contains( buddy ));
+					
+					if ( connected ){
+						
+						InetAddress	ip 			= buddy.getIP();
+						int			tcp_port	= buddy.getTCPPort();
+						int			udp_port	= buddy.getUDPPort();
+						
+						if ( ip != null ){
+							
+							map.put( "ip", ip.getAddress());
+							map.put( "tcp", new Long( tcp_port ));
+							map.put( "udp", new Long( udp_port ));
+						}
+					}
+					
 					buddies_config.add( map );
 				}
 				
@@ -3040,12 +3086,12 @@ BuddyPlugin
 		}
 	}
 	
-	protected List
+	protected List<BuddyPluginBuddy>
 	getAllBuddies()
 	{
 		synchronized( this ){
 			
-			return( new ArrayList( buddies ));
+			return( new ArrayList<BuddyPluginBuddy>( buddies ));
 		}
 	}
 	

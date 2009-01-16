@@ -43,7 +43,7 @@ import java.util.*;
  * @author Aaron Grunthal
  * @create 28.11.2007
  */
-public class LightHashMap extends AbstractMap implements Cloneable {
+public class LightHashMap<S,T> extends AbstractMap<S,T> implements Cloneable {
 	private static final Object	THOMBSTONE			= new Object();
 	private static final Object NULLKEY				= new Object();
 	private static final float	DEFAULT_LOAD_FACTOR	= 0.75f;
@@ -244,11 +244,11 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		//compactify(0.f);
 	}
 
-	public Set keySet() {
+	public Set<S> keySet() {
 		return new KeySet();
 	}
 
-	public Collection values() {
+	public Collection<T> values() {
 		return new Values();
 	}
 	
@@ -257,10 +257,10 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		return data.length>>1;
 	}
 
-	public Object get(Object key) {
+	public T get(Object key) {
 		if(key == null)
 			key = NULLKEY; 
-		return data[nonModifyingFindIndex(key)+1];
+		return (T)data[nonModifyingFindIndex(key)+1];
 	}
 	
 	private Object add(Object key, final Object value, final boolean bulkAdd) {
@@ -277,14 +277,14 @@ public class LightHashMap extends AbstractMap implements Cloneable {
 		return oldValue;
 	}
 
-	public Object remove(Object key) {
+	public T remove(Object key) {
 		if(size == 0)
 			return null;
 		if(key == null)
 			key = NULLKEY;
 		final int idx = findIndex(key);
 		if (keysEqual(data[idx], key))
-			return removeForIndex(idx);
+			return(T)removeForIndex(idx);
 		return null;
 	}
 	

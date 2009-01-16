@@ -73,7 +73,7 @@ BuddyPluginBuddy
 	private boolean			authorised;
 	private String			public_key;
 	private String			nick_name;
-	private List			recent_ygm;
+	private List<Long>		recent_ygm;
 	
 	private int				last_status_seq;
 	
@@ -93,8 +93,8 @@ BuddyPluginBuddy
 	
 	private boolean			check_active;
 		
-	private List						connections	= new ArrayList();
-	private List						messages	= new ArrayList();
+	private List<buddyConnection>		connections	= new ArrayList<buddyConnection>();
+	private List<buddyMessage>			messages	= new ArrayList<buddyMessage>();
 	private buddyMessage				current_message;
 	
 	private int	next_connection_id;
@@ -106,7 +106,7 @@ BuddyPluginBuddy
 	private long 	latest_ygm_time;
 	private String	last_message_received;
 	
-	private Set		offline_seq_set;
+	private Set<Long>		offline_seq_set;
 	
 	private int		message_out_count;
 	private int		message_in_count;
@@ -117,7 +117,7 @@ BuddyPluginBuddy
 	
 	private BuddyPluginBuddyMessageHandler		persistent_msg_handler;
 
-	private Map			user_data = new LightHashMap();
+	private Map<Object,Object>		user_data = new LightHashMap<Object,Object>();
 	
 	private boolean	keep_alive_outstanding;
 	private volatile long	last_connect_attempt	= SystemTime.getCurrentTime();
@@ -146,7 +146,7 @@ BuddyPluginBuddy
 		String		_rss_remote_cats,
 		int			_last_status_seq,
 		long		_last_time_online,
-		List		_recent_ygm )
+		List<Long>	_recent_ygm )
 	{
 		plugin				= _plugin;
 		subsystem			= _subsystem;
@@ -907,7 +907,7 @@ BuddyPluginBuddy
 		
 			if ( recent_ygm == null ){
 				
-				recent_ygm = new ArrayList();
+				recent_ygm = new ArrayList<Long>();
 			}
 			
 			if ( recent_ygm.contains( l )){
@@ -1179,7 +1179,7 @@ BuddyPluginBuddy
 	receivedCloseRequest(
 		Map		request )
 	{
-		List	closing = new ArrayList();
+		List<buddyConnection>	closing = new ArrayList<buddyConnection>();
 		
 		synchronized( this ){
 			
@@ -1208,7 +1208,7 @@ BuddyPluginBuddy
 					
 					if ( offline_seq_set == null ){
 						
-						offline_seq_set = new HashSet();
+						offline_seq_set = new HashSet<Long>();
 					}
 					
 					offline_seq_set.add( new Long( last_status_seq ));
@@ -1455,6 +1455,8 @@ BuddyPluginBuddy
 		buddyMessage 	allocated_message 	= null;
 		Throwable		failed_msg_error 	= null;
 		
+		boolean	inform_dirty	= false;
+		
 		synchronized( this ){
 	
 			if ( current_message != null || messages.size() == 0 || closing ){
@@ -1491,6 +1493,8 @@ BuddyPluginBuddy
 					
 					bc = new buddyConnection( generic_connection , true );
 					
+					inform_dirty = connections.size() == 0;
+					
 					connections.add( bc );
 					
 					// logMessage( "Con " + bc.getString() + " added: num=" + connections.size() );
@@ -1520,6 +1524,11 @@ BuddyPluginBuddy
 			
 			allocated_message.reportFailed( e );
 		}
+		
+		if ( inform_dirty ){
+			
+			plugin.setConfigDirty();
+		}
 	}
 	
 	protected void
@@ -1533,6 +1542,11 @@ BuddyPluginBuddy
 			connections.remove( bc );
 			
 			size = connections.size();
+		}
+		
+		if ( size == 0 ){
+							
+			plugin.setConfigDirty();
 		}
 		
 		if ( size == 0 && bc.isConnected() && !bc.isClosing() && !bc.isRemoteClosing()){
@@ -1669,6 +1683,23 @@ BuddyPluginBuddy
 		if ( details_change ){
 			
 			plugin.fireDetailsChanged( this );
+		}
+	}
+	
+	protected void
+	setCachedStatus(
+		InetAddress		_ip,
+		int				_tcp_port,
+		int				_udp_port )
+	{
+		synchronized( this ){
+
+			if ( ip == null ){
+			
+				ip			= _ip;
+				tcp_port	= _tcp_port;
+				udp_port	= _udp_port;
+			}
 		}
 	}
 	
@@ -2033,7 +2064,7 @@ BuddyPluginBuddy
 	protected void
 	destroy()
 	{
-		List	to_close = new ArrayList();
+		List<buddyConnection>	to_close = new ArrayList<buddyConnection>();
 		
 		synchronized( this ){
 			
@@ -2200,6 +2231,8 @@ BuddyPluginBuddy
 		
 		buddyConnection bc = new buddyConnection( _connection, false );
 		
+		boolean inform_dirty = false;
+		
 		synchronized( this ){
 			
 			if ( destroyed ){
@@ -2207,12 +2240,19 @@ BuddyPluginBuddy
 				throw( new BuddyPluginException( "Friend has been destroyed" ));
 			}
 			
+			inform_dirty = connections.size() == 0;
+			
 			connections.add( bc );
 			
 			//size = connections.size();
 		}
 		
 		// logMessage( "Con " + bc.getString() + " added: num=" + size );
+		
+		if ( inform_dirty ){
+			
+			plugin.setConfigDirty();
+		}
 	}
 	
 	public void
