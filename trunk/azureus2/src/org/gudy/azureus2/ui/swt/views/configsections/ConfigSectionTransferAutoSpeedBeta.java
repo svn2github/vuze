@@ -151,14 +151,12 @@ public class ConfigSectionTransferAutoSpeedBeta
         Label commentLabel = new Label(commentGroup,SWT.NULL);
         Messages.setLanguageText(commentLabel,"ConfigTransferAutoSpeed.add.comment.to.log");
         gridData = new GridData();
-        gridData.widthHint = 70;
         gridData.horizontalSpan=1;
         commentLabel.setLayoutData(gridData);
 
         //Text-Box
         final Text commentBox = new Text(commentGroup, SWT.BORDER);
         gridData = new GridData(GridData.BEGINNING);
-        gridData.widthHint = 200;
         gridData.horizontalSpan=1;
         commentBox.setText("");
         commentBox.setLayoutData(gridData);
@@ -168,7 +166,6 @@ public class ConfigSectionTransferAutoSpeedBeta
         Button commentButton = new Button( commentGroup, SWT.PUSH);
         //Messages.
         gridData = new GridData();
-        gridData.widthHint = 70;
         gridData.horizontalSpan=1;
         commentButton.setLayoutData(gridData);
         Messages.setLanguageText(commentButton,"ConfigTransferAutoSpeed.log.button");
@@ -211,20 +208,17 @@ public class ConfigSectionTransferAutoSpeedBeta
         //Label column
         Label upCapModeLbl = new Label(uploadCapGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.widthHint = 80;
         upCapModeLbl.setLayoutData(gridData);
         Messages.setLanguageText(upCapModeLbl,"ConfigTransferAutoSpeed.mode");
 
 
         Label ucSetLbl = new Label(uploadCapGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.widthHint = 80;
         gridData.horizontalSpan = 2;
         Messages.setLanguageText(ucSetLbl,"ConfigTransferAutoSpeed.capacity.used");
 
         Label dlModeLbl = new Label(uploadCapGroup, SWT.NULL);
         gridData = new GridData();
-        gridData.widthHint = 80;
         Messages.setLanguageText(dlModeLbl,"ConfigTransferAutoSpeed.while.downloading");
 
         //add a drop down.
@@ -268,7 +262,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 //        //label column for Vivaldi limits
 //        Label dhtSetting = new Label(dhtGroup, SWT.NULL);
 //        gridData = new GridData();
-//        gridData.widthHint=80;
 //        //dhtSetting.setText("DHT Ping Settings: ");
 //        Messages.setLanguageText(dhtSetting,"ConfigTransferAutoSpeed.set.dht.ping");
 //
@@ -293,12 +286,10 @@ public class ConfigSectionTransferAutoSpeedBeta
 //
 //
 //        gridData = new GridData();
-//        gridData.widthHint = 50;
 //        dGood = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_SET_POINT);
 //        dGood.setLayoutData( gridData );
 //
 //        gridData = new GridData();
-//        gridData.widthHint = 50;
 //        dGoodTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_GOOD_TOLERANCE);
 //        dGoodTol.setLayoutData( gridData );
 //
@@ -311,13 +302,11 @@ public class ConfigSectionTransferAutoSpeedBeta
 //
 //
 //        gridData = new GridData();
-//        gridData.widthHint = 50;
 //        dBad = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_SET_POINT);
 //        dBad.setLayoutData( gridData );
 //
 //
 //        gridData = new GridData();
-//        gridData.widthHint = 50;
 //        dBadTol = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_DHT_BAD_TOLERANCE);
 //        dBadTol.setLayoutData( gridData );
 //
@@ -338,7 +327,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         adjustmentInterval = new IntParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST);
         gridData = new GridData();
-        gridData.widthHint = 50;
         adjustmentInterval.setLayoutData(gridData);
 
         //spacer
@@ -358,7 +346,6 @@ public class ConfigSectionTransferAutoSpeedBeta
 
         skipAfterAdjustment = new BooleanParameter(dhtGroup, SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST);
         gridData = new GridData();
-        gridData.widthHint = 50;
         skipAfterAdjustment.setLayoutData(gridData);
 
         //spacer
