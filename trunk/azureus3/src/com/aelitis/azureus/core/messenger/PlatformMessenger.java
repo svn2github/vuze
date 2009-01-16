@@ -111,6 +111,10 @@ public class PlatformMessenger
 		PlatformMessenger.authorizedSender = authorizedSender;
 	}
 
+	public static PlatformAuthorizedSender getAuthorizedTransferListener() {
+		return PlatformMessenger.authorizedSender;
+	}
+
 	public static ClientMessageContext getClientMessageContext() {
 		if (!initialized) {
 			init();
