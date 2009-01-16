@@ -68,6 +68,7 @@ public class PlatformKeyExchangeMessenger
 					String replyType,
 					Map reply) {
 				if (!replyType.equals(PlatformMessenger.REPLY_RESULT)) {
+					l.passwordRetrievalFailed();
 					return;
 				}
 
@@ -79,8 +80,9 @@ public class PlatformKeyExchangeMessenger
 					if (l != null) {
 						l.passwordRetrieved();
 					}
+					return;
 				}
-
+				l.passwordRetrievalFailed();
 			}
 
 			public void messageSent(
@@ -131,5 +133,6 @@ public class PlatformKeyExchangeMessenger
 	public static interface platformPasswordListener
 	{
 		public void passwordRetrieved();
+		public void passwordRetrievalFailed();
 	}
 }

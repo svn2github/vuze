@@ -19,6 +19,8 @@
 package com.aelitis.azureus.buddy.impl;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -28,9 +30,11 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.buddy.*;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.crypto.VuzeCryptoException;
 import com.aelitis.azureus.core.crypto.VuzeCryptoListener;
 import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
+import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.login.NotLoggedInException;
@@ -710,6 +714,27 @@ public class VuzeBuddyManager
   							buddyPlugin.setNickname(info.userName + " ("
   									+ myPK.substring(0, 3) + ")");
   						}
+						}
+					}
+					
+					// @see com.aelitis.azureus.core.messenger.config.PlatformKeyExchangeMessenger.platformPasswordListener#passwordRetrievalFailed()
+					public void passwordRetrievalFailed() {
+						try {
+							final String url = ContentNetworkUtils.getUrl(
+									ConstantsV3.DEFAULT_CONTENT_NETWORK,
+									ContentNetwork.SERVICE_LOGOUT);
+							// Authorized Sender has the session cookies the webapp needs
+							// in order to logout.  Use that and ignore the results
+							// We can't just load the logout page into the sidebar's browser,
+							// because that will activate it and confuse the user
+							PlatformAuthorizedSender sender = PlatformMessenger.getAuthorizedTransferListener();
+							AESemaphore sem = new AESemaphore("logoutWait");
+							sender.startDownload(new URL(url), null, sem, false);
+							sem.reserve();
+							// since Authorized Sender doesn't have a BrowserContext,
+							// tell the UI directly that there's no login
+							LoginInfoManager.getInstance().logout();
+						} catch (MalformedURLException e) {
 						}
 					}
 				});
