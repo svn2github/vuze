@@ -183,4 +183,20 @@ public class LoginInfoManager
 		}
 	}
 
+	/**
+	 * @param b
+	 *
+	 * @since 4.0.0.5
+	 */
+	public void logout() {
+		this.userName = null;
+		this.displayName = null;
+		this.avatarURL = null;
+		this.pk = null;
+		notifyListeners(false);
+		for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
+			((ILoginInfoListener) iterator.next()).avatarURLUpdated(avatarURL);
+		}
+	}
+
 }
