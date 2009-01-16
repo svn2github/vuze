@@ -404,8 +404,7 @@ public class StyledShell
 		/*
 		 * If the shell is opened already then, by default, resizing should not try to center the shell
 		 */
-		setSize(width, height, HINT_ALIGN_FIT_IN_MONITOR
-				| (false == isAlreadyOpened ? HINT_ALIGN_CENTER : 0));
+		setSize(width, height, (false == isAlreadyOpened ? HINT_ALIGN_CENTER : 0));
 	}
 
 	public void setSize(int width, int height, int hint) {
