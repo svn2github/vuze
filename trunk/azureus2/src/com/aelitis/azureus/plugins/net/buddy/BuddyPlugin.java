@@ -130,6 +130,7 @@ BuddyPlugin
 	
 	public static final int MT_V3_CHAT		= 1;
 	
+	private static final int FEED_UPDATE_MIN_MILLIS	= 6*60*60*1000;
 	
 	public static final int MAX_MESSAGE_SIZE	= 4*1024*1024;
 	
@@ -3850,11 +3851,26 @@ BuddyPlugin
 		long	existing_fingerprint 	= pc.getPluginLongParameter( feed_finger_key, 0 );
 		long	feed_date 				= pc.getPluginLongParameter( feed_date_key, 0 );
 
-		if ( existing_fingerprint != fingerprint ){
+		long	now = SystemTime.getCurrentTime();
+
+		if ( existing_fingerprint == fingerprint ){
+			
+				// update every now and then to pick up new peer/seed values
+			
+			if ( selected_dls.size() > 0 ){
+
+				if ( 	now < feed_date ||
+						now - feed_date > FEED_UPDATE_MIN_MILLIS ){
+					
+					feed_date = now;
+				
+					pc.setPluginParameter( feed_date_key, feed_date );
+				}
+			}
+		}else{
 			
 			pc.setPluginParameter( feed_finger_key, fingerprint );
 			
-			long	now = SystemTime.getCurrentTime();
 			
 				// ensure feed date goes up
 			
