@@ -108,6 +108,7 @@ import com.aelitis.azureus.core.security.CryptoHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -3878,6 +3879,8 @@ BuddyPlugin
 				
 		ByteArrayOutputStream	os = new ByteArrayOutputStream();
 			
+		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+		
 		try{
 			PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
 			
@@ -3916,16 +3919,30 @@ BuddyPlugin
 				
 				Torrent torrent = download.getTorrent();
 				
+				String	hash_str = Base32.encode( torrent.getHash());
+				
 				pw.println( "<item>" );
 				
 				pw.println( "<title>" + escape( download.getName()) + "</title>" );
+				
+				pw.println( "<guid>" + hash_str + "</guid>" );
+				
+				if ( az3 != null ){
+					
+					String cdp = az3.getCDPURL( core_download );
+					
+					if ( cdp != null ){
+						
+						pw.println( "<link>" + escape(cdp) + "</link>" );
+					}
+				}
 				
 				long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
 				
 				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
 				
 				pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
-				pw.println(	"<vuze:assethash>" + Base32.encode( torrent.getHash())+ "</vuze:assethash>" );
+				pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
 				
 				String url = "azplug:?id=azbuddy&name=Friends&arg=";
 				

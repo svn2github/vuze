@@ -64,5 +64,9 @@ AZ3Functions
 		showCDP(
 			DownloadManager		dm,
 			String				ref );
+		
+		public String
+		getCDPURL(
+			DownloadManager		dm );
 	}
 }
