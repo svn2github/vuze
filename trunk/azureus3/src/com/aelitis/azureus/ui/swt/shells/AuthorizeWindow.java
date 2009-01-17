@@ -36,7 +36,7 @@ public class AuthorizeWindow
 	public static boolean openAuthorizeWindow(final ContentNetwork cn) {
 		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
 				ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_AUTHORIZE), 560,
-				300, false, true);
+				390, false, true);
 	
 		final Boolean[] b = new Boolean[1];
 		b[0] = Boolean.FALSE;
