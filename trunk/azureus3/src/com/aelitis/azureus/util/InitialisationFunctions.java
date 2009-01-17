@@ -112,6 +112,13 @@ public class InitialisationFunctions
 				{
 					TorrentListViewsUtils.viewDetails( dm, ref );
 				}
+				
+				public String 
+				getCDPURL(
+					org.gudy.azureus2.core3.download.DownloadManager 	dm ) 
+				{
+					return( TorrentListViewsUtils.getDetailsURL( dm ));
+				}
 			});
 	}
 

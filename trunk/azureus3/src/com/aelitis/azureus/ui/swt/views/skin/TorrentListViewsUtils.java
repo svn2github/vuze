@@ -116,7 +116,7 @@ public class TorrentListViewsUtils
 		try{
 			return(	canViewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
 						dm.getTorrent().getHashWrapper().toBase32String()));
-		} catch (TOTorrentException e) {
+		} catch (Throwable e) {
 			Debug.out(e);
 			
 			return( false );
@@ -134,7 +134,7 @@ public class TorrentListViewsUtils
 		try {
 			viewDetails(DataSourceUtils.getContentNetwork(dm.getTorrent()),
 					dm.getTorrent().getHashWrapper().toBase32String(), ref);
-		} catch (TOTorrentException e) {
+		} catch (Throwable e) {
 			Debug.out(e);
 		}
 	}
@@ -163,6 +163,39 @@ public class TorrentListViewsUtils
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		
 		return( functions != null && url != null );
+	}
+	
+	public static String
+	getDetailsURL(
+		DownloadManager		dm )
+	{
+		try {
+			ContentNetwork cn = DataSourceUtils.getContentNetwork(dm.getTorrent());
+			
+			if ( cn == null ){
+				
+				return( null );
+			}
+			
+			TOTorrent torrent = dm.getTorrent();
+			
+			if ( torrent == null ){
+				
+				return( null );
+			}
+
+			String hash = torrent.getHashWrapper().toBase32String();
+			
+			String url = cn.getContentDetailsService( hash, "" );
+
+			return( url );
+			
+		}catch(Throwable  e ){
+			
+			Debug.out(e);
+			
+			return( null );
+		}
 	}
 
 	/**
