@@ -114,7 +114,7 @@ public interface TableView
 	TableCellCore[] getColumnCells(String columnName);
 
 	/**
-	 * @return
+	 * @return not sorted
 	 */
 	Object[] getDataSources();
 
