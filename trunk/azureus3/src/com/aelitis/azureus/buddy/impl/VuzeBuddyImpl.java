@@ -85,6 +85,7 @@ public class VuzeBuddyImpl
 		setLoginID(MapUtils.getMapString(mapNewBuddy, "login-id", ""
 				+ mapNewBuddy.hashCode()));
 
+		List<String> pksAdded = new ArrayList();
 		List pkList = MapUtils.getMapList(mapNewBuddy, "pks",
 				Collections.EMPTY_LIST);
 		for (Iterator iter = pkList.iterator(); iter.hasNext();) {
@@ -100,9 +101,19 @@ public class VuzeBuddyImpl
 			}
 			if (pk != null) {
 				addPublicKey(pk);
+				pksAdded.add(pk);
 			}
 		}
 
+		// Remove plugin buddies that have not been (re-)addded to the list
+		for (BuddyPluginBuddy pluginBuddy : pluginBuddies.getList()) {
+			String pk = pluginBuddy.getPublicKey();
+			if (pk != null && !pksAdded.contains(pk)) {
+				removePublicKey(pk);
+			}
+		}
+
+		
 		// first try to get the avatar via raw bytes
 		byte[] newAvatar = MapUtils.getMapByteArray(mapNewBuddy, "avatar", null);
 		if (newAvatar != null) {
