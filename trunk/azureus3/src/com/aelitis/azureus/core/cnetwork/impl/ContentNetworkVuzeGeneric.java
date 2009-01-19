@@ -195,7 +195,7 @@ ContentNetworkVuzeGeneric
 		addService( SERVICE_BIG_BROWSE, 		URL_PREFIX + "browse.start?" );
 		addService( SERVICE_PUBLISH, 			URL_PREFIX + "publish.start?" );
 		addService( SERVICE_WELCOME, 			URL_PREFIX + "welcome.start?" );
-		addService( SERVICE_ABOUT, 			URL_PREFIX + "about.start" );
+		addService( SERVICE_ABOUT, 			URL_PREFIX + "about.start?" );
 		addService( SERVICE_PUBLISH_NEW, 		URL_PREFIX + "publishnew.start?" );
 		addService( SERVICE_PUBLISH_ABOUT, 		URL_PREFIX + "publishinfo.start" );
 		addService( SERVICE_CONTENT_DETAILS, 	URL_PREFIX + "details/" );
@@ -481,6 +481,11 @@ ContentNetworkVuzeGeneric
 			case SERVICE_AUTHORIZE:{
 				
 				 return( base + URL_SUFFIX );
+			}
+			case SERVICE_ABOUT: {
+				// no azid needed (+ makes URL ugly)
+				return base + "azv=" + Constants.AZUREUS_VERSION + "&locale="
+						+ Locale.getDefault().toString();  
 			}
 			default:{
 				
