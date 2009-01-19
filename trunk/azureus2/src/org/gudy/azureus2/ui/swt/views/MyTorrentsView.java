@@ -1080,6 +1080,10 @@ public class MyTorrentsView
   		defaultSelectedListener.defaultSelected(rows, keyMask);
   		return;
   	}
+  	showSelectedDetails();
+	}
+  
+  private void showSelectedDetails() {
 		Object[] dm_sources = tv.getSelectedDataSources();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		for (int i = 0; i < dm_sources.length; i++) {
@@ -1090,8 +1094,8 @@ public class MyTorrentsView
 				uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS,
 						(DownloadManager) dm_sources[i]);
 			}
-		}
-	}
+		}  	
+  }
   
   public void overrideDefaultSelected(TableSelectionListener defaultSelectedListener) {
 		this.defaultSelectedListener = defaultSelectedListener;
@@ -1356,6 +1360,10 @@ public class MyTorrentsView
 					break;
 				case 'f': // CTRL+F Find/Filter
 					openFilterDialog();
+					e.doit = false;
+					break;
+				case 'i': // CTRL+I Info/Details
+					showSelectedDetails();
 					e.doit = false;
 					break;
 			}
