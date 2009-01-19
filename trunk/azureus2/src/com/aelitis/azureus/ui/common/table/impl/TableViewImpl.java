@@ -3,12 +3,11 @@
  */
 package com.aelitis.azureus.ui.common.table.impl;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -19,15 +18,15 @@ public abstract class TableViewImpl
 	implements TableView
 {
 	// List of DataSourceChangedListener
-	private List listenersDataSourceChanged = new ArrayList(1);
+	private CopyOnWriteList<TableDataSourceChangedListener> listenersDataSourceChanged = new CopyOnWriteList<TableDataSourceChangedListener>();
 
-	private List listenersSelection = new ArrayList();
+	private CopyOnWriteList<TableSelectionListener> listenersSelection = new CopyOnWriteList<TableSelectionListener>();
 
-	private List listenersLifeCycle = new ArrayList();
+	private CopyOnWriteList<TableLifeCycleListener> listenersLifeCycle = new CopyOnWriteList<TableLifeCycleListener>();
 
-	private List listenersRefresh = new ArrayList();
+	private CopyOnWriteList<TableRefreshListener> listenersRefresh = new CopyOnWriteList<TableRefreshListener>();
 
-	private List listenersCountChange = new ArrayList(1);
+	private CopyOnWriteList<TableCountChangeListener> listenersCountChange = new CopyOnWriteList<TableCountChangeListener>(1);
 
 	private Object parentDataSource;
 
@@ -177,6 +176,10 @@ public abstract class TableViewImpl
 	// @see com.aelitis.azureus.ui.common.table.TableView#addCountChangeListener(com.aelitis.azureus.ui.common.table.TableCountChangeListener)
 	public void addCountChangeListener(TableCountChangeListener listener) {
 		listenersCountChange.add(listener);
+	}
+
+	public void removeCountChangeListener(TableCountChangeListener listener) {
+		listenersCountChange.remove(listener);
 	}
 
 	protected void triggerListenerRowAdded(TableRowCore row) {
