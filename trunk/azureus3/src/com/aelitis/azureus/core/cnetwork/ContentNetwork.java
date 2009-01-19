@@ -79,6 +79,7 @@ ContentNetwork
 	public static final int		SERVICE_PREPLAYBACK  		= 32;
 	public static final int		SERVICE_POSTPLAYBACK  		= 33;
 	public static final int		SERVICE_SIDEBAR_CLOSE  		= 34;
+	public static final int		SERVICE_ABOUT				= 35;
 	
 		// content network properties
 	
