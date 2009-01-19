@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Debug;
+
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
@@ -132,6 +134,7 @@ public class PeersView
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
+		tv.setDataSourceType(Peer.class);
 	}
   
 	public void tableDataSourceChanged(Object newDataSource) {
