@@ -334,12 +334,16 @@ public class PlatformTorrentUtils
 		setContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, cla);
 	}
 
-	public static long getContentNetworkID(TOTorrent torrent) {
+	public static long getContentNetworkID(TOTorrent torrent){
+		return( getContentNetworkID( torrent, ContentNetwork.CONTENT_NETWORK_UNKNOWN ));
+	}
+	
+	public static long getContentNetworkID(TOTorrent torrent, long def) {
 		long id = getContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK,
 				ContentNetwork.CONTENT_NETWORK_UNKNOWN);
 		if (id == ContentNetwork.CONTENT_NETWORK_UNKNOWN) {
 			return isContent(torrent, false) ? ContentNetwork.CONTENT_NETWORK_VUZE
-					: ContentNetwork.CONTENT_NETWORK_UNKNOWN;
+					: def;
 		}
 		return id;
 	}
