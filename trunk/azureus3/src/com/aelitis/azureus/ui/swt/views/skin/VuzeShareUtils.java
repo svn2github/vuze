@@ -1,10 +1,11 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.GregorianCalendar;
+
 import org.eclipse.swt.SWT;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
@@ -19,11 +20,11 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.friends.ShareWizard;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 
 public class VuzeShareUtils
 {
+	private long DATE_CANSHARENONVUZECN = new GregorianCalendar(2009, 2, 01).getTimeInMillis();
 
 	private static VuzeShareUtils instance;
 
@@ -125,7 +126,8 @@ public class VuzeShareUtils
 		}
 		boolean cnExists = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 				id) != null;
-		return cnExists;
+		return cnExists && (SystemTime.getCurrentTime() >= DATE_CANSHARENONVUZECN
+					|| Constants.isCVSVersion());
 	}
 
 }
