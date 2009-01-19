@@ -1710,18 +1710,6 @@ SubscriptionManagerUI
 				url = "about:blank";
 				detailsBrowser.setUrl(url);
 				detailsBrowser.setData("StartURL", url);
-				detailsBrowser.addLocationListener(new LocationListener() {
-					public void changing(LocationEvent event) {
-					}
-				
-					public void changed(LocationEvent event) {
-						if (event.location.startsWith("http")) {
-							// keep StartURL up to date, since a reset-url really means
-							// refresh the page when it comes to subscriptions
-							detailsBrowser.setData("StartURL", event.location);
-						}
-					}
-				});
 				
 				final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 					public void cookiesFound(String cookies) {
@@ -1834,6 +1822,7 @@ SubscriptionManagerUI
 					detailsBrowser.setData("subscription_result_id", MapUtils.getMapString(params, "subs_rid", null));
 								
 					detailsBrowser.setUrl(url);
+					detailsBrowser.setData("StartURL", url);
 					detailsBrowser.setVisible(true);
 		
 					FormData data = (FormData) mainBrowser.getLayoutData();
