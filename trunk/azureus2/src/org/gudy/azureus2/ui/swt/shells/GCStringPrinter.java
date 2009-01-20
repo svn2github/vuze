@@ -20,7 +20,8 @@
  */
 package org.gudy.azureus2.ui.swt.shells;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +34,6 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -499,7 +498,8 @@ public class GCStringPrinter
 		}
 		
 
-		return !cutoff && size.y <= printArea.height;
+		cutoff |= size.y > printArea.height;
+		return !cutoff;
 	}
 
 	/**
