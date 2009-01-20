@@ -48,5 +48,7 @@ PEPeerManagerListener
   
   public void peerDiscovered( PEPeerManager manager, PeerItem peer, PEPeer finder );
   
+  public void peerSentBadData( PEPeerManager manager, PEPeer peer, int piece_number );
+  
   public void destroyed();
 }

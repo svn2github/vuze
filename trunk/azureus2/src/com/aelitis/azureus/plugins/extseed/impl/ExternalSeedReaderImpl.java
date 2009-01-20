@@ -33,6 +33,8 @@ import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
+import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.peers.Piece;
@@ -41,6 +43,8 @@ import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.Semaphore;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPeer;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
@@ -50,7 +54,7 @@ import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloaderListen
 
 public abstract class 
 ExternalSeedReaderImpl 
-	implements ExternalSeedReader
+	implements ExternalSeedReader, PeerManagerListener2
 {
 	public static final int	RECONNECT_DEFAULT 			= 30*1000;
 	public static final int INITIAL_DELAY				= 30*1000;
@@ -99,6 +103,8 @@ ExternalSeedReaderImpl
 	private int					rate_bytes_read;
 	private int					rate_bytes_permitted;
 
+	private volatile CopyOnWriteSet<MutableInteger>		bad_pieces = new CopyOnWriteSet<MutableInteger>();
+	
 	protected
 	ExternalSeedReaderImpl(
 		ExternalSeedPlugin 		_plugin,
@@ -207,6 +213,24 @@ ExternalSeedReaderImpl
 		if ( reset_failures ){
 			
 			consec_failures = 0;
+		}
+	}
+	
+	public void
+	eventOccurred(
+		PeerManagerEvent	event )
+	{
+		if ( event.getType() == PeerManagerEvent.ET_PEER_SENT_BAD_DATA ){
+			
+			if ( event.getPeer().getIp().equals( getIP())){
+									
+				if ( bad_pieces.size() > 128 ){
+						
+					return;
+				}
+						
+				bad_pieces.add(new MutableInteger((Integer)event.getData()));
+			}
 		}
 	}
 	
@@ -477,7 +501,17 @@ ExternalSeedReaderImpl
 			
 			peer_manager_change_time	= now;
 			
+			if ( current_manager != null ){
+				
+				current_manager.removeListener( this );
+			}
+			
 			current_manager	= peer_manager;
+			
+			if ( current_manager != null ){
+
+				current_manager.addListener( this );
+			}
 			
 			setActive( false );
 		}
@@ -758,7 +792,16 @@ ExternalSeedReaderImpl
 			int	max_free_reqs		= 0;
 			int max_free_reqs_piece	= -1;
 			
+			MutableInteger	mi = new MutableInteger(0);
+			
 			for (int i=0;i<pieces.length;i++){
+				
+				mi.setValue( i );
+				
+				if ( bad_pieces.contains(mi)){
+					
+					continue;
+				}
 				
 				Piece	piece = pieces[i];
 				
@@ -1275,5 +1318,47 @@ ExternalSeedReaderImpl
 		boolean		def )
 	{
 		return( getIntParam( map, name, def?1:0) != 0 );
+	}
+	
+	protected static class
+	MutableInteger
+	{
+		private int	value;
+		
+		protected
+		MutableInteger(
+			int		v )
+		{
+			value = v;
+		}
+
+		protected void
+		setValue(
+			int	v )
+		{
+			value = v;
+		}
+		
+		protected int
+		getValue()
+		{
+			return( value );
+		}
+		
+		public int 
+		hashCode() 
+		{
+			return value;
+		}
+
+		public boolean 
+		equals(
+			Object obj )
+		{
+			if (obj instanceof MutableInteger) {
+				return value == ((MutableInteger)obj).value;
+			}
+			return false;
+		}
 	}
 }

@@ -26,17 +26,17 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class 
-CopyOnWriteSet 
+CopyOnWriteSet<T> 
 {
-	private volatile Set	set = new HashSet();
+	private volatile Set<T>	set = new HashSet<T>();
 	
 	public void
 	add(
-		Object		o )
+		T		o )
 	{
 		synchronized( set ){
 			
-			Set new_set = new HashSet( set );
+			Set<T> new_set = new HashSet<T>( set );
 			new_set.add( o );
 			set = new_set;
 		}
@@ -44,11 +44,11 @@ CopyOnWriteSet
 	
 	public boolean
 	remove(
-		Object		o )
+		T		o )
 	{
 		synchronized( set ){
 			
-			Set new_set = new HashSet( set );
+			Set<T> new_set = new HashSet<T>( set );
 			boolean res = new_set.remove( o );
 			set = new_set;
 			
@@ -58,7 +58,7 @@ CopyOnWriteSet
 	
 	public boolean
 	contains(
-		Object	o )
+		T	o )
 	{
 		return( set.contains( o ));
 	}
@@ -69,7 +69,7 @@ CopyOnWriteSet
 		return( set.size());
 	}
 	
-	public Iterator
+	public Iterator<T>
 	iterator()
 	{
 		return( new CopyOnWriteSetIterator( set.iterator()));
@@ -77,14 +77,14 @@ CopyOnWriteSet
 	
 	private class
 	CopyOnWriteSetIterator
-		implements Iterator
+		implements Iterator<T>
 	{
-		private Iterator	it;
-		private Object		last;
+		private Iterator<T>	it;
+		private T			last;
 		
 		protected
 		CopyOnWriteSetIterator(
-			Iterator		_it )
+			Iterator<T>		_it )
 		{
 			it		= _it;
 		}
@@ -95,7 +95,7 @@ CopyOnWriteSet
 			return( it.hasNext());
 		}
 		
-		public Object
+		public T
 		next()
 		{
 			last	= it.next();

@@ -132,6 +132,13 @@ PeerManagerImpl
 					PEPeer finder) 
 				 {
 				 }
+				 
+				 public void 
+				 peerSentBadData(
+					PEPeerManager manager, PEPeer peer,	int pieceNumber) 
+				 {
+				 }
+				 
 				 public void
 				 destroyed()
 				 {	
@@ -564,6 +571,11 @@ PeerManagerImpl
 				{
 				}
 				
+				public void 
+				peerSentBadData(PEPeerManager manager, PEPeer peer,	int pieceNumber) 
+				{
+				}
+				
 				public void
 				destroyed()
 				{
@@ -620,6 +632,7 @@ PeerManagerImpl
 						fireEvent(
 							PeerManagerEvent.ET_PEER_ADDED,
 							pi,
+							null,
 							null );
 				}
 
@@ -637,6 +650,7 @@ PeerManagerImpl
 						fireEvent(
 							PeerManagerEvent.ET_PEER_REMOVED,
 							pi,
+							null,
 							null );
 					}
 				}
@@ -663,14 +677,33 @@ PeerManagerImpl
 					fireEvent(
 						PeerManagerEvent.ET_PEER_DISCOVERED,
 						pi,
-						peer_item );
+						peer_item,
+						null );
 				}
 				
+				public void 
+				peerSentBadData(
+					PEPeerManager 	manager,
+					PEPeer 			peer, 
+					int 			pieceNumber) 
+				{
+					PeerImpl pi = getPeerForPEPeer( peer );
+					
+					peer_map.put( peer, pi );
+					
+					fireEvent(
+						PeerManagerEvent.ET_PEER_SENT_BAD_DATA,
+						pi,
+						null,
+						new Integer( pieceNumber ));
+					
+				}
 				protected void
 				fireEvent(
 					final int			type,
 					final Peer			peer,
-					final PeerItem		peer_item )
+					final PeerItem		peer_item,
+					final Object		data )
 				{
 					l.eventOccurred(
 						new PeerManagerEvent()
@@ -697,6 +730,12 @@ PeerManagerImpl
 							getPeerDescriptor()
 							{
 								return( peer_item );
+							}
+							
+							public Object 
+							getData() 
+							{
+								return( data );
 							}
 						});
 				}

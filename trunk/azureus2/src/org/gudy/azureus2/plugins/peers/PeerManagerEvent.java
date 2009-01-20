@@ -27,6 +27,8 @@ PeerManagerEvent
 	public static final int ET_PEER_ADDED			= 1;		// getPeer
 	public static final int ET_PEER_REMOVED			= 2;		// getPeer
 	public static final int ET_PEER_DISCOVERED		= 3;		// getPeerDescriptor; opt getPeer if discovered from a Peer
+	public static final int ET_PEER_SENT_BAD_DATA	= 4;		// getPeer; getData -> Integer piece number
+
 	
 	public PeerManager
 	getPeerManager();
@@ -39,4 +41,7 @@ PeerManagerEvent
 	
 	public PeerDescriptor
 	getPeerDescriptor();
+	
+	public Object
+	getData();
 }

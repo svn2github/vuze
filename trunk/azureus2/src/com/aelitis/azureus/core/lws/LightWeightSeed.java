@@ -413,6 +413,13 @@ LightWeightSeed
 						{
 						}
 						 
+						public void 
+						peerSentBadData(
+							PEPeerManager 	manager,
+							PEPeer 			peer, 
+							int 			pieceNumber) 
+						{							
+						}
 						public void
 						destroyed()
 						{

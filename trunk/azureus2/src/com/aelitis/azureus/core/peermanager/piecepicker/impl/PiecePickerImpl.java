@@ -2532,6 +2532,14 @@ implements PiecePicker
 		public void peerDiscovered(PEPeerManager manager, PeerItem peer, PEPeer finder) {
 		}
 		
+		public void 
+		peerSentBadData(
+			PEPeerManager 	manager,
+			PEPeer 			peer, 
+			int 			pieceNumber) 
+		{							
+		}
+		
 		public void
 		destroyed()
 		{		

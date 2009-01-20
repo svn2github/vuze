@@ -67,6 +67,7 @@ import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
  *			2006/Jan/02: refactoring piece picking related code
  */
 
+@SuppressWarnings("serial")
 public class 
 PEPeerControlImpl
 extends LogRelation
@@ -189,11 +190,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private static final int MAINLOOP_TEN_MINUTE_INTERVAL = MAINLOOP_SIXTY_SECOND_INTERVAL * 10;
 
 
-	private volatile ArrayList peer_manager_listeners_cow = new ArrayList();  //copy on write
+	private volatile ArrayList<PEPeerManagerListener> peer_manager_listeners_cow = new ArrayList<PEPeerManagerListener>();  //copy on write
 
 
-	private final List		piece_check_result_list     = new ArrayList();
-	private final AEMonitor	piece_check_result_list_mon  = new AEMonitor( "PEPeerControl:PCRL");
+	private final List<Object[]>	piece_check_result_list     	= new ArrayList<Object[]>();
+	private final AEMonitor	piece_check_result_list_mon  	= new AEMonitor( "PEPeerControl:PCRL");
 
 	private boolean 			superSeedMode;
 	private int 				superSeedModeCurrentPiece;
@@ -206,14 +207,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private long		ip_filter_last_update_time;
 
-	private Map			user_data;
+	private Map<Object,Object>			user_data;
 
 	private Unchoker		unchoker;
 
-	private List	external_rate_limiters_cow;
+	private List<Object[]>	external_rate_limiters_cow;
 	
 	
-	private List sweepList = Collections.EMPTY_LIST;
+	private List<PEPeer> sweepList = Collections.emptyList();
 	private int nextPEXSweepIndex = 0;
 
 
@@ -222,9 +223,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return UploadHelper.PRIORITY_NORMAL;  //TODO also must call UploadSlotManager.getSingleton().updateHelper( upload_helper ); on priority change
 		}
 
-		public ArrayList getAllPeers() {
-			ArrayList peer_transports = peer_transports_cow;
-			return peer_transports;
+		public ArrayList<PEPeer> getAllPeers() {
+			return( peer_transports_cow );
 		}		
 
 		public boolean isSeeding() {
@@ -444,13 +444,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		piecePicker.destroy();
 		
-		final ArrayList peer_manager_listeners = peer_manager_listeners_cow;
+		final ArrayList<PEPeerManagerListener> peer_manager_listeners = peer_manager_listeners_cow;
 
 		for( int i=0; i < peer_manager_listeners.size(); i++ ) {
+			
 			((PEPeerManagerListener)peer_manager_listeners.get(i)).destroyed();
 		}
 		
-		sweepList = Collections.EMPTY_LIST;
+		sweepList = Collections.emptyList();
 		
 		pending_nat_traversals.clear();
 		
@@ -1066,7 +1067,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 						// but, banning is no good for peer types that get pieces reserved
 						// to them for other reasons, such as special seed peers
 						if (needsMD5CheckOnCompletion(i))
-							badPeerDetected(reservingPeer, true);
+							badPeerDetected(reservingPeer, i);
 						else if (pt != null)
 							closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds", true);
 
@@ -1850,7 +1851,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					if ( 	non_discarded == 0 || 
 							((float)discarded) / non_discarded >= ban_peer_discard_ratio ){
 												
-						badPeerDetected( peer.getIp(), false );
+						badPeerDetected( peer.getIp(), -1 );
 					}
 				}
 			}
@@ -1926,14 +1927,86 @@ DiskManagerCheckRequestListener, IPFilterListener
 		// and reset the piece
 	}
 
-	public void
-	writeBlock(
-		DiskManagerFileInfo		file_info,
-		long					file_offset,
-		DirectByteBuffer		data )
+	
+		/**
+		 * 
+		 * @param data_offset	MUST be block aligned within the TORRENT
+		 * @param data
+		 * @return		buffers not yet written
+		 * @throws Exception
+		 */
+	
+	public DirectByteBuffer[]
+	write(
+		long					data_offset,
+		DirectByteBuffer[]		data )
+	
+		throws Exception
 	{
-		int	firt_piece = file_info.getFirstPieceNumber();
+		if ( data_offset % DiskManager.BLOCK_SIZE != 0 ){
+			
+			throw( new Exception( "data must start at a block offset" ));
+		}
 		
+		int	piece_length = disk_mgr.getPieceLength();
+		
+		int	data_length = 0;
+		
+		for( DirectByteBuffer buffer: data ){
+			
+			data_length += buffer.remaining( DirectByteBuffer.SS_DW );
+		}
+		
+		long	written = 0;
+		
+		int		buffer_number = 0;
+		
+		for ( int i=0;i<data_length;i+=DiskManager.BLOCK_SIZE ){
+			
+			int	rem = data_length - i;
+			
+			if ( rem > DiskManager.BLOCK_SIZE ){
+				
+				rem = DiskManager.BLOCK_SIZE;
+			}
+			
+			int	piece_number = (int)( data_offset / piece_length );
+			
+			DiskManagerPiece dm_piece = dm_pieces[piece_number];
+
+			int	block_number = (int)(data_offset - ( piece_number * piece_length )) / DiskManager.BLOCK_SIZE;
+			
+			int block_size = dm_piece.getBlockSize( block_number );
+			
+			if ( rem < block_size ){
+				
+				break;
+			}
+			
+			DirectByteBuffer chunk = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_BT_PIECE, block_size );
+			
+			
+			writeBlock( piece_number, block_number*DiskManager.BLOCK_SIZE, chunk, null, true );
+			
+			written 		+= rem;
+			data_offset		+= rem;
+		}
+		
+		List<DirectByteBuffer>	unwritten = new ArrayList<DirectByteBuffer>();
+		
+		for (int i=buffer_number;i<data.length;i++){
+			
+			if (data[i].hasRemaining( DirectByteBuffer.SS_DW )){
+				
+				unwritten.add( data[i] );
+				
+			}else{
+				
+				data[i].returnToPool();
+			}
+		}
+		
+		return( unwritten.toArray( new DirectByteBuffer[ unwritten.size()] ));
 	}
 	
 		
@@ -2218,7 +2291,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private void
 	addToPeerTransports(
-			PEPeerTransport		peer )
+		PEPeerTransport		peer )
 	{
 		boolean added = false;
 
@@ -2288,15 +2361,15 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public void
 	addRateLimiter(
-			LimitedRateGroup	group,
-			boolean				upload )
+		LimitedRateGroup	group,
+		boolean				upload )
 	{
-		List	transports;
+		List<PEPeer>	transports;
 
 		try{
 			peer_transports_mon.enter();
 
-			ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
+			ArrayList<Object[]>	new_limiters = new ArrayList<Object[]>( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
 
 			if ( external_rate_limiters_cow != null ){
 
@@ -2316,14 +2389,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		for (int i=0;i<transports.size();i++){
 
-			((PEPeerTransport)transports.get(i)).addRateLimiter( group, upload );
+			transports.get(i).addRateLimiter( group, upload );
 		}
 	}
 
 	public void
 	removeRateLimiter(
-			LimitedRateGroup	group,
-			boolean				upload )
+		LimitedRateGroup	group,
+		boolean				upload )
 	{
 		List	transports;
 
@@ -2781,46 +2854,46 @@ DiskManagerCheckRequestListener, IPFilterListener
 						MD5CheckPiece(pePiece, true);
 						}
 
-					final List list =pePiece.getPieceWrites();
+						final List list =pePiece.getPieceWrites();
 						
 						if (list.size() >0 ){
 						
-						//For each Block
+							//For each Block
 							for (int i =0; i <pePiece.getNbBlocks(); i++ ){
-							
-							//System.out.println("Processing block " + i);
-							//Find out the correct hash
-							final List listPerBlock =pePiece.getPieceWrites(i);
-							byte[] correctHash = null;
-							//PEPeer correctSender = null;
-							Iterator iterPerBlock = listPerBlock.iterator();
-							while (iterPerBlock.hasNext())
-							{
-								final PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
-								if (write.isCorrect())
-								{
-									correctHash = write.getHash();
-									//correctSender = write.getSender();
-								}
-							}
-							//System.out.println("Correct Hash " + correctHash);
-							//If it's found                       
-							if (correctHash !=null)
-							{
-								iterPerBlock = listPerBlock.iterator();
+
+								//System.out.println("Processing block " + i);
+								//Find out the correct hash
+								final List listPerBlock =pePiece.getPieceWrites(i);
+								byte[] correctHash = null;
+								//PEPeer correctSender = null;
+								Iterator iterPerBlock = listPerBlock.iterator();
 								while (iterPerBlock.hasNext())
 								{
 									final PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
-									if (!Arrays.equals(write.getHash(), correctHash))
+									if (write.isCorrect())
 									{
-										//Bad peer found here
-											badPeerDetected(write.getSender(),true);
+										correctHash = write.getHash();
+										//correctSender = write.getSender();
 									}
 								}
-							}              
-						}            
+								//System.out.println("Correct Hash " + correctHash);
+								//If it's found                       
+								if (correctHash !=null)
+								{
+									iterPerBlock = listPerBlock.iterator();
+									while (iterPerBlock.hasNext())
+									{
+										final PEPieceWriteImpl write =(PEPieceWriteImpl) iterPerBlock.next();
+										if (!Arrays.equals(write.getHash(), correctHash))
+										{
+											//Bad peer found here
+											badPeerDetected(write.getSender(),pieceNumber);
+										}
+									}
+								}              
+							}            
+						}
 					}
-				}
 				}finally{
 						// regardless of any possible failure above, tidy up correctly
 					
@@ -2870,7 +2943,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 								bad_peer.sendBadPiece( pieceNumber );
 							}
 							
-							badPeerDetected( bad_ip, true);
+							badPeerDetected( bad_ip, pieceNumber);
 
 						//and let's reset the whole piece
 						pePiece.reset();
@@ -2971,12 +3044,29 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 	
-	private void badPeerDetected(String ip,  boolean hash_fail)
+	private void badPeerDetected(String ip,  int piece_number )
 	{
+		boolean hash_fail = piece_number >= 0;
+		
 			// note that peer can be NULL but things still work in the main
 		
-		PEPeerTransport peer =getTransportFromAddress(ip);
+		PEPeerTransport peer = getTransportFromAddress(ip);
 		
+		if ( hash_fail && peer != null ){
+			
+			Iterator<PEPeerManagerListener> it = peer_manager_listeners_cow.iterator();
+
+			while( it.hasNext()){
+				
+				try{
+					it.next().peerSentBadData( this, peer, piece_number );
+							
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
 		// Debug.out("Bad Peer Detected: " + peerIP + " [" + peer.getClient() + "]");
 
 		IpFilterManager filter_manager =IpFilterManagerFactory.getSingleton();

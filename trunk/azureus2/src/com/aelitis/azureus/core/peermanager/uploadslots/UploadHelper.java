@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.peermanager.uploadslots;
 
 import java.util.ArrayList;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
+
 /**
  * 
  */
@@ -47,7 +49,7 @@ public interface UploadHelper {
 	 * Get all (PEPeerTransport) peers for this download. 
 	 * @return non-mutable list of peers 
 	 */
-	public ArrayList getAllPeers();
+	public ArrayList<PEPeer> getAllPeers();
 	
 	
 	/**
