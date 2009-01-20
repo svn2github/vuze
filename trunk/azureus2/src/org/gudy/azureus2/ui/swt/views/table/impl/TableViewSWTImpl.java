@@ -282,6 +282,9 @@ public class TableViewSWTImpl
 	
 	private boolean menuEnabled = true;
 
+	private boolean headerVisible = true;
+
+
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
 		{
@@ -1103,7 +1106,7 @@ public class TableViewSWTImpl
 			});
 		}
 
-		table.setHeaderVisible(true);
+		table.setHeaderVisible(getHeaderVisible());
 		
 		clientArea = table.getClientArea();
 		//firstClientArea = table.getClientArea();
@@ -1116,6 +1119,17 @@ public class TableViewSWTImpl
 		initializeTableColumns(table);
 	}
 	
+	public boolean getHeaderVisible() {
+		return headerVisible;
+	}
+	
+	public void setHeaderVisible(boolean visible) {
+		headerVisible = visible;
+		if (table != null && !table.isDisposed()) {
+			table.setHeaderVisible(visible);
+		}
+	}
+
 	protected void calculateClientArea() {
 		Rectangle oldClientArea = clientArea;
 		clientArea = table.getClientArea();
