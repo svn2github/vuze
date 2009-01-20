@@ -19,6 +19,7 @@
 package org.gudy.azureus2.ui.swt.views.columnsetup;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -59,7 +60,8 @@ public class ColumnTC_ChosenColumn
 			s = (((TableCellCore) cell).getTableRowCore().getIndex() + 1) + ". ";
 		} catch (Throwable e) {
 		}
-		cell.setText(column.getPosition() + "] " + s
-				+ MessageText.getString(key, column.getName()));
+		s += MessageText.getString(key, column.getName());
+		//s = column.getPosition() + "] " + s;
+		cell.setText(s);
 	}
 }
