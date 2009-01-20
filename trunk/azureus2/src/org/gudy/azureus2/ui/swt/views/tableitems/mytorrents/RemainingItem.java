@@ -24,10 +24,14 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 
 /**
@@ -39,14 +43,23 @@ public class RemainingItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+
   public static final String COLUMN_ID = "remaining";
 
 	/** Default Constructor */
   public RemainingItem(String sTableID) {
-    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+			CAT_PROGRESS
+		});
+	}
 
     private boolean bLastValueEstimate = false;
   

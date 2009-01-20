@@ -29,9 +29,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  *
@@ -45,6 +43,12 @@ public class SnubbedItem
 	public SnubbedItem(String table_id) {
 		super("S", ALIGN_CENTER, POSITION_INVISIBLE, 20, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROTOCOL,
+		});
 	}
 
 	public void refresh(TableCell cell) {

@@ -24,10 +24,14 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /** Avg Avail/"Seeing Copies/peer" Column
  *
@@ -39,6 +43,8 @@ public class AvgAvailItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   // If you want more decimals, just add a zero
   private static final String zeros = "0000";
   // # decimal places == numZeros - 1
@@ -49,7 +55,7 @@ public class AvgAvailItem
   
   /** Default Constructor */
   public AvgAvailItem(String sTableID) {
-    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 50, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 50, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 
@@ -57,6 +63,12 @@ public class AvgAvailItem
     for (int i = 1; i < numZeros; i++)
       iTimesBy *= 10;
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SWARM
+		});
+	}
 
   public void refresh(TableCell cell) {
     String sText = "";

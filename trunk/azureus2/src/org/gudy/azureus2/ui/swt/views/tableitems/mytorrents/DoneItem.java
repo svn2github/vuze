@@ -24,10 +24,12 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 
 /** % Done column in My Torrents
@@ -39,11 +41,13 @@ public class DoneItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "done";
 
 	/** Default Constructor */
   public DoneItem(String sTableID) {
-    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 55, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 55, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_INCOMPLETE))
       setPosition(POSITION_LAST);
@@ -51,6 +55,10 @@ public class DoneItem
       setPosition(POSITION_INVISIBLE);
     setMinWidthAuto(true);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_PROGRESS });
+	}
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();

@@ -25,8 +25,12 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /** Display Category torrent belongs to.
  *
@@ -36,13 +40,22 @@ public class PeerSourcesItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "peersources";
 
 	/** Default Constructor */
   public PeerSourcesItem(String sTableID) {
-    super(COLUMN_ID, 70, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SWARM,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
+	}
 
   public void refresh(TableCell cell) {
     String ps = "";

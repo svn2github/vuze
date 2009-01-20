@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -39,6 +40,12 @@ public class SizeItem
     super("size", ALIGN_TRAIL, POSITION_LAST, 70, TableManager.TABLE_TORRENT_FILES);
     setMinWidthAuto(true);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_BYTES,
+		});
+	}
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();

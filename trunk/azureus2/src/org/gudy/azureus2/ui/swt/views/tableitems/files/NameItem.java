@@ -90,6 +90,12 @@ public class NameItem extends CoreTableColumn implements
 			}
 		});
 	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
+	}
 	
 	public void postConfigLoad() {
 		setInplaceEdit(getUserData("noInplaceEdit") == null);

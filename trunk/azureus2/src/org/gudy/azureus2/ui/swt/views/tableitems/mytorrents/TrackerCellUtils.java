@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTScraperResponse
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 
 /**
@@ -41,6 +42,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
  */
 public class TrackerCellUtils
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static void updateColor(TableCell cell, DownloadManager dm, boolean show_errors ) {
 		if (dm == null || cell == null)
 			return;

@@ -100,7 +100,11 @@ public interface TableManager
    * @param forDataSourceType Class of datasource you want to add a column to,
    *                          such as {@link Download}, {@link DownloadTypeComplete},
    *                          {@link DownloadTypeIncomplete}
+   *
    * @param cellID The logical name of the column.
+   * 
+   * @param listener
+   *                 
    * @return an interface object allowing modification of the table column.
    *
    * @since 3.1.1.1

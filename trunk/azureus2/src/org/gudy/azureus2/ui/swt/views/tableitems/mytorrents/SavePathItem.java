@@ -26,23 +26,36 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 
 public class SavePathItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, ObfusticateCellText
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "savepath";
 
 	/** Default Constructor */
   public SavePathItem(String sTableID) {
-    super(COLUMN_ID, 150, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 150, sTableID);
     setObfustication(true);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
+	}
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();

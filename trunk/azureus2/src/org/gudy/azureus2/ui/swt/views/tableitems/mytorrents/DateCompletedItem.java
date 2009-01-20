@@ -30,19 +30,30 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 public class DateCompletedItem
 	extends ColumnDateSizer
 {
+	public static final Class DATASOURCE_TYPE = DownloadTypeComplete.class;
 
 	public static final String COLUMN_ID = "DateCompleted";
+
 	private static final long SHOW_ETA_AFTER_MS = 30000;
 
 	public DateCompletedItem(String sTableID) {
-		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
 
 		setMultiline(false);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TIME,
+			CAT_CONTENT,
+		});
 	}
 
 	/**

@@ -31,19 +31,26 @@ import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 public class DateAddedItem
 	extends ColumnDateSizer
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "date_added";
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_TIME, CAT_CONTENT });
+	}
+
 	public DateAddedItem(String sTableID) {
-		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
 		
 		setMultiline(false);
 		

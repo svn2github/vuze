@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -44,6 +45,12 @@ public class TimeToSendPieceItem
     super("timetosend", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TIME,
+		});
+	}
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();

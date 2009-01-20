@@ -42,6 +42,10 @@ public interface TableColumn {
   public static final int ALIGN_TRAIL = 2;
   /** center alignment */
   public static final int ALIGN_CENTER = 3;
+  /** top align */
+  public static final int ALIGN_TOP = 4;
+  /** bottom align */
+  public static final int ALIGN_BOTTOM = 8;
 
   /** For {@link #setPosition(int)}. Make column invisible initially. */
   public static final int POSITION_INVISIBLE = -1;
@@ -55,6 +59,19 @@ public interface TableColumn {
   /** Trigger refresh only when the cell/row becomes invalid */
   public static final int INTERVAL_INVALID_ONLY = -3;
   
+  public static final String CAT_ESSENTIAL = "essential";
+  public static final String CAT_SHARING = "sharing";
+  public static final String CAT_TRACKER = "tracker";
+  public static final String CAT_TIME = "time";
+  public static final String CAT_SWARM = "swarm";
+  public static final String CAT_CONTENT = "content";
+  public static final String CAT_PEER_IDENTIFICATION = "identification";
+  public static final String CAT_PROTOCOL = "protocol";
+  public static final String CAT_BYTES = "bytes";
+  public static final String CAT_SETTINGS = "settings";
+  public static final String CAT_CONNECTION = "connection";
+  public static final String CAT_PROGRESS = "progress";
+
   /** Initialize a group of variables all at once.  Saves on individual setXxx.
    *
    * @param iAlignment See {@link #setAlignment(int)}
@@ -522,5 +539,28 @@ public interface TableColumn {
 	
 	public void
 	remove();
-	
+
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.0.0.5
+	 */
+	void addColumnExtraInfoListener(TableColumnExtraInfoListener listener);
+
+
+	/**
+	 * @param listener
+	 *
+	 * @since 4.0.0.5
+	 */
+	void removeColumnExtraInfoListener(TableColumnExtraInfoListener listener);
+
+
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.5
+	 */
+	Class getForDataSourceType();
 }

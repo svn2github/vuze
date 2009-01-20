@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
@@ -47,14 +48,20 @@ public class ShareRatioItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, ParameterListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   private final static String CONFIG_ID = "StartStopManager_iFirstPriority_ShareRatio";
 	public static final String COLUMN_ID = "shareRatio";
   private int iMinShareRatio;
   private boolean changeFG = true;
 
+  public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_SHARING, CAT_SWARM });
+	}
+
 	/** Default Constructor */
   public ShareRatioItem(String sTableID) {
-    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);

@@ -27,7 +27,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -92,6 +91,8 @@ public class TableColumnImpl
 	private ArrayList cellMouseMoveListeners;
 
 	private ArrayList cellVisibilityListeners;
+	
+	private ArrayList<TableColumnExtraInfoListener> columnExtraInfoListeners;
 
 	private Map mapOtherCellListeners;
 	
@@ -137,14 +138,24 @@ public class TableColumnImpl
 
 	private boolean removed;
 	
-	// private Class forDataSourceType;
+	private Class forDataSourceType;
+
+	/**
+	 * @deprecated
+	 */
+	public TableColumnImpl(String tableID,
+			String columnID) {
+		this(null, tableID, columnID);
+	}
 
 	/** Create a column object for the specified table.
 	 *
 	 * @param tableID table in which the column belongs to
 	 * @param columnID name/id of the column
 	 */
-	public TableColumnImpl(String tableID, String columnID) {
+	public TableColumnImpl(Class forDataSourceType, String tableID,
+			String columnID) {
+		this.forDataSourceType = forDataSourceType;
 		sTableID = tableID;
 		sName = columnID;
 		iType = TYPE_TEXT_ONLY;
@@ -161,19 +172,6 @@ public class TableColumnImpl
 		int iSortDirection = COConfigurationManager.getIntParameter(CFG_SORTDIRECTION);
 		bSortAscending = iSortDirection == 1 ? false : true;
 	}
-	
-	/*
-	public TableColumnImpl(Class forDataSourceType, String columnID) {
-		this((String) null, columnID);
-		this.forDataSourceType = forDataSourceType;
-		sTableID = forDataSourceType.getName();
-		int i = sTableID.lastIndexOf('.');
-		if (i > 0) {
-			sTableID = sTableID.substring(i + 1);
-		}
-		sTableID = "datasource." + sTableID;
-	}
-	*/
 	
 	public void initialize(int iAlignment, int iPosition, int iWidth,
 			int iInterval) {
@@ -591,6 +589,52 @@ public class TableColumnImpl
 		}
 	}
 
+	public List<TableColumnExtraInfoListener> getColumnExtraInfoListeners() {
+		try {
+			this_mon.enter();
+
+			if (columnExtraInfoListeners == null) {
+				return (new ArrayList<TableColumnExtraInfoListener>(0));
+			}
+
+			return (new ArrayList<TableColumnExtraInfoListener>(columnExtraInfoListeners));
+
+		} finally {
+
+			this_mon.exit();
+		}
+	}
+
+	public void addColumnExtraInfoListener(TableColumnExtraInfoListener listener) {
+		try {
+			this_mon.enter();
+
+			if (columnExtraInfoListeners == null) {
+				columnExtraInfoListeners = new ArrayList(1);
+			}
+
+			columnExtraInfoListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeColumnExtraInfoListener(TableColumnExtraInfoListener listener) {
+		try {
+			this_mon.enter();
+
+			if (columnExtraInfoListeners == null) {
+				return;
+			}
+
+			columnExtraInfoListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
 	public void invalidateCells() {
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
 		tsed.columnInvalidate(this);
@@ -628,6 +672,9 @@ public class TableColumnImpl
 
 		if (listenerObject instanceof TableCellVisibilityListener) {
 			addCellVisibilityListener((TableCellVisibilityListener) listenerObject);
+		}
+		if (listenerObject instanceof TableColumnExtraInfoListener) {
+			addColumnExtraInfoListener((TableColumnExtraInfoListener) listenerObject);
 		}
 	}
 
@@ -1325,6 +1372,14 @@ public class TableColumnImpl
 	
 	public boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit) {
 		return false;
+	}
+
+	public Class getForDataSourceType() {
+		return forDataSourceType;
+	}
+
+	public void setForDataSourceType(Class forDataSourceType) {
+		this.forDataSourceType = forDataSourceType;
 	}
 
 }

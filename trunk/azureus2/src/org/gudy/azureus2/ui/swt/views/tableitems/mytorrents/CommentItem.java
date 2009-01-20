@@ -24,11 +24,13 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * User-editable comment for a download.
@@ -39,11 +41,17 @@ public class CommentItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellMouseListener, ObfusticateCellText
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "comment";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	/** Default Constructor */
   public CommentItem(String sTableID) {
-    super(COLUMN_ID, POSITION_INVISIBLE, 300, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 300, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
     setType(TableColumn.TYPE_TEXT);
     setObfustication(true);

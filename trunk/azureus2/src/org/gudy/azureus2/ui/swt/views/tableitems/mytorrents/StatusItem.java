@@ -32,9 +32,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  *
@@ -45,14 +44,17 @@ public class StatusItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "status";
 	
 	private boolean changeRowFG;
 	private boolean changeCellFG = true;
+
 	private boolean	showTrackerErrors;
 	
 	public StatusItem(String sTableID, boolean changeRowFG) {
-		super(COLUMN_ID, POSITION_LAST, 80, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 80, sTableID);
 		this.changeRowFG = changeRowFG;
 		setRefreshInterval(INTERVAL_LIVE);
 	}
@@ -60,7 +62,13 @@ public class StatusItem
 	public StatusItem(String sTableID) {
 		this(sTableID, true);
 	}
-	
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+		});
+	}
+
 	public void 
 	refresh(
 		TableCell cell ) 

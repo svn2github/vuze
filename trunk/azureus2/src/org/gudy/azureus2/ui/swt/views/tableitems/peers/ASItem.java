@@ -24,18 +24,16 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-
-
 import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASNListener;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+import com.aelitis.azureus.core.networkmanager.admin.*;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  *
@@ -44,10 +42,18 @@ public class ASItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {  
+  public static final String COLUMN_ID = "as";
+
   public ASItem(String table_id) {
-    super("as", ALIGN_LEAD, POSITION_INVISIBLE, 100, table_id);
+    super(COLUMN_ID, ALIGN_LEAD, POSITION_INVISIBLE, 100, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PEER_IDENTIFICATION,
+		});
+	}
 
   public void refresh(TableCell cell) {
     final PEPeer peer = (PEPeer)cell.getDataSource();

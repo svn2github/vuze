@@ -21,6 +21,8 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -34,6 +36,12 @@ public class PeerByteIDItem extends CoreTableColumn implements
 		// Uses same values for subclass constructor as ClientItem does.
 		super("peer_byte_id", POSITION_INVISIBLE, 100, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
+	}
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PEER_IDENTIFICATION,
+		});
 	}
 
 	public void refresh(TableCell cell) {

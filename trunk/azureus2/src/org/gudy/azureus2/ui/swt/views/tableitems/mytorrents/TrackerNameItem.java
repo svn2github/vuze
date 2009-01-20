@@ -26,8 +26,10 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.StringInterner;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author Olivier
@@ -37,12 +39,21 @@ public class TrackerNameItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellToolTipListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "trackername";
 
 	public TrackerNameItem(String sTableID) {
-    super(COLUMN_ID, POSITION_INVISIBLE, 120, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 120, sTableID);
     setRefreshInterval(5);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TRACKER,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
+	}
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();

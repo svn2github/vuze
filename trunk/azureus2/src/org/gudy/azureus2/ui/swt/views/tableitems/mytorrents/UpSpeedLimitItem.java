@@ -26,9 +26,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author Olivier Chalouhi
@@ -38,14 +41,24 @@ public class UpSpeedLimitItem
   extends CoreTableColumn 
   implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   
 	public static final String COLUMN_ID = "maxupspeed";
 
 	/** Default Constructor */
 	public UpSpeedLimitItem(String sTableID) {
-	  super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 35, sTableID);
+	  super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 35, sTableID);
 	  setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
+	}
+
+  public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SHARING,
+			CAT_SETTINGS
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
 	}
 
 	public void refresh(TableCell cell) {

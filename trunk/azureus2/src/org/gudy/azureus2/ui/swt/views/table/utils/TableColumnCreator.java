@@ -21,11 +21,14 @@
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.ui.swt.views.columnsetup.*;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
@@ -35,6 +38,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author TuxPaper
@@ -156,58 +160,60 @@ public class TableColumnCreator
 	 */
 	public static void initCoreColumns() {
 		// short variable names to reduce wrapping
-		final Map c = new LightHashMap(50);
-		final Class all = Download.class;
-		final Class dl = DownloadTypeIncomplete.class;
-		final Class cd = DownloadTypeComplete.class;
+		final Map<String, cInfo> c = new LightHashMap(50);
+		final Class tc = TableColumn.class;
 
-		c.put(RankItem.COLUMN_ID, new cInfo(RankItem.class, all));
-		c.put(NameItem.COLUMN_ID, new cInfo(NameItem.class, all));
-		c.put(SizeItem.COLUMN_ID, new cInfo(SizeItem.class, all));
-		c.put(DoneItem.COLUMN_ID, new cInfo(DoneItem.class, all));
-		c.put(StatusItem.COLUMN_ID, new cInfo(StatusItem.class, all));
-		c.put(ETAItem.COLUMN_ID, new cInfo(ETAItem.class, dl));
-		c.put(HealthItem.COLUMN_ID, new cInfo(HealthItem.class, all));
-		c.put(CommentIconItem.COLUMN_ID, new cInfo(CommentIconItem.class, all));
-		c.put(DownItem.COLUMN_ID, new cInfo(DownItem.class, dl));
-		c.put(SeedsItem.COLUMN_ID, new cInfo(SeedsItem.class, all));
-		c.put(PeersItem.COLUMN_ID, new cInfo(PeersItem.class, all));
-		c.put(DownSpeedItem.COLUMN_ID, new cInfo(DownSpeedItem.class, dl));
-		c.put(UpSpeedItem.COLUMN_ID, new cInfo(UpSpeedItem.class, all));
-		c.put(UpSpeedLimitItem.COLUMN_ID, new cInfo(UpSpeedLimitItem.class, all));
-		c.put(TrackerStatusItem.COLUMN_ID, new cInfo(TrackerStatusItem.class, all));
-		c.put(CompletedItem.COLUMN_ID, new cInfo(CompletedItem.class, all));
-		c.put(ShareRatioItem.COLUMN_ID, new cInfo(ShareRatioItem.class, all));
-		c.put(UpItem.COLUMN_ID, new cInfo(UpItem.class, all));
-		c.put(RemainingItem.COLUMN_ID, new cInfo(RemainingItem.class, dl));
-		c.put(PiecesItem.COLUMN_ID, new cInfo(PiecesItem.class, dl));
-		c.put(CompletionItem.COLUMN_ID, new cInfo(CompletionItem.class, dl));
-		c.put(CommentItem.COLUMN_ID, new cInfo(CommentItem.class, all));
-		c.put(MaxUploadsItem.COLUMN_ID, new cInfo(MaxUploadsItem.class, all));
-		c.put(TotalSpeedItem.COLUMN_ID, new cInfo(TotalSpeedItem.class, all));
-		c.put(FilesDoneItem.COLUMN_ID, new cInfo(FilesDoneItem.class, all));
-		c.put(SavePathItem.COLUMN_ID, new cInfo(SavePathItem.class, all));
-		c.put(TorrentPathItem.COLUMN_ID, new cInfo(TorrentPathItem.class, all));
-		c.put(CategoryItem.COLUMN_ID, new cInfo(CategoryItem.class, all));
-		c.put(NetworksItem.COLUMN_ID, new cInfo(NetworksItem.class, all));
-		c.put(PeerSourcesItem.COLUMN_ID, new cInfo(PeerSourcesItem.class, all));
-		c.put(AvailabilityItem.COLUMN_ID, new cInfo(AvailabilityItem.class, all));
-		c.put(AvgAvailItem.COLUMN_ID, new cInfo(AvgAvailItem.class, all));
-		c.put(SecondsSeedingItem.COLUMN_ID, new cInfo(SecondsSeedingItem.class, all));
-		c.put(SecondsDownloadingItem.COLUMN_ID, new cInfo(SecondsDownloadingItem.class, all));
-		c.put(TimeSinceDownloadItem.COLUMN_ID, new cInfo(TimeSinceDownloadItem.class, dl));
-		c.put(TimeSinceUploadItem.COLUMN_ID, new cInfo(TimeSinceUploadItem.class, all));
-		c.put(OnlyCDing4Item.COLUMN_ID, new cInfo(OnlyCDing4Item.class, all));
-		c.put(TrackerNextAccessItem.COLUMN_ID, new cInfo(TrackerNextAccessItem.class, all));
-		c.put(TrackerNameItem.COLUMN_ID, new cInfo(TrackerNameItem.class, all));
-		c.put(SeedToPeerRatioItem.COLUMN_ID, new cInfo(SeedToPeerRatioItem.class, all));
-		c.put(DownSpeedLimitItem.COLUMN_ID, new cInfo(DownSpeedLimitItem.class, dl));
-		c.put(SwarmAverageSpeed.COLUMN_ID, new cInfo(SwarmAverageSpeed.class, all));
-		c.put(SwarmAverageCompletion.COLUMN_ID, new cInfo(SwarmAverageCompletion.class, all));
-		c.put(BadAvailTimeItem.COLUMN_ID, new cInfo(BadAvailTimeItem.class, all));
+		c.put(RankItem.COLUMN_ID, new cInfo(RankItem.class, RankItem.DATASOURCE_TYPE));
+		c.put(NameItem.COLUMN_ID, new cInfo(NameItem.class, NameItem.DATASOURCE_TYPE));
+		c.put(SizeItem.COLUMN_ID, new cInfo(SizeItem.class, SizeItem.DATASOURCE_TYPE));
+		c.put(DoneItem.COLUMN_ID, new cInfo(DoneItem.class, DoneItem.DATASOURCE_TYPE));
+		c.put(StatusItem.COLUMN_ID, new cInfo(StatusItem.class, StatusItem.DATASOURCE_TYPE));
+		c.put(ETAItem.COLUMN_ID, new cInfo(ETAItem.class, ETAItem.DATASOURCE_TYPE));
+		c.put(HealthItem.COLUMN_ID, new cInfo(HealthItem.class, HealthItem.DATASOURCE_TYPE));
+		c.put(CommentIconItem.COLUMN_ID, new cInfo(CommentIconItem.class, CommentIconItem.DATASOURCE_TYPE));
+		c.put(DownItem.COLUMN_ID, new cInfo(DownItem.class, DownItem.DATASOURCE_TYPE));
+		c.put(SeedsItem.COLUMN_ID, new cInfo(SeedsItem.class, SeedsItem.DATASOURCE_TYPE));
+		c.put(PeersItem.COLUMN_ID, new cInfo(PeersItem.class, PeersItem.DATASOURCE_TYPE));
+		c.put(DownSpeedItem.COLUMN_ID, new cInfo(DownSpeedItem.class, DownSpeedItem.DATASOURCE_TYPE));
+		c.put(UpSpeedItem.COLUMN_ID, new cInfo(UpSpeedItem.class, UpSpeedItem.DATASOURCE_TYPE));
+		c.put(UpSpeedLimitItem.COLUMN_ID, new cInfo(UpSpeedLimitItem.class, UpSpeedLimitItem.DATASOURCE_TYPE));
+		c.put(TrackerStatusItem.COLUMN_ID, new cInfo(TrackerStatusItem.class, TrackerStatusItem.DATASOURCE_TYPE));
+		c.put(CompletedItem.COLUMN_ID, new cInfo(CompletedItem.class, CompletedItem.DATASOURCE_TYPE));
+		c.put(ShareRatioItem.COLUMN_ID, new cInfo(ShareRatioItem.class, ShareRatioItem.DATASOURCE_TYPE));
+		c.put(UpItem.COLUMN_ID, new cInfo(UpItem.class, UpItem.DATASOURCE_TYPE));
+		c.put(RemainingItem.COLUMN_ID, new cInfo(RemainingItem.class, RemainingItem.DATASOURCE_TYPE));
+		c.put(PiecesItem.COLUMN_ID, new cInfo(PiecesItem.class, PiecesItem.DATASOURCE_TYPE));
+		c.put(CompletionItem.COLUMN_ID, new cInfo(CompletionItem.class, CompletionItem.DATASOURCE_TYPE));
+		c.put(CommentItem.COLUMN_ID, new cInfo(CommentItem.class, CommentItem.DATASOURCE_TYPE));
+		c.put(MaxUploadsItem.COLUMN_ID, new cInfo(MaxUploadsItem.class, MaxUploadsItem.DATASOURCE_TYPE));
+		c.put(TotalSpeedItem.COLUMN_ID, new cInfo(TotalSpeedItem.class, TotalSpeedItem.DATASOURCE_TYPE));
+		c.put(FilesDoneItem.COLUMN_ID, new cInfo(FilesDoneItem.class, FilesDoneItem.DATASOURCE_TYPE));
+		c.put(SavePathItem.COLUMN_ID, new cInfo(SavePathItem.class, SavePathItem.DATASOURCE_TYPE));
+		c.put(TorrentPathItem.COLUMN_ID, new cInfo(TorrentPathItem.class, TorrentPathItem.DATASOURCE_TYPE));
+		c.put(CategoryItem.COLUMN_ID, new cInfo(CategoryItem.class, CategoryItem.DATASOURCE_TYPE));
+		c.put(NetworksItem.COLUMN_ID, new cInfo(NetworksItem.class, NetworksItem.DATASOURCE_TYPE));
+		c.put(PeerSourcesItem.COLUMN_ID, new cInfo(PeerSourcesItem.class, PeerSourcesItem.DATASOURCE_TYPE));
+		c.put(AvailabilityItem.COLUMN_ID, new cInfo(AvailabilityItem.class, AvailabilityItem.DATASOURCE_TYPE));
+		c.put(AvgAvailItem.COLUMN_ID, new cInfo(AvgAvailItem.class, AvgAvailItem.DATASOURCE_TYPE));
+		c.put(SecondsSeedingItem.COLUMN_ID, new cInfo(SecondsSeedingItem.class, SecondsSeedingItem.DATASOURCE_TYPE));
+		c.put(SecondsDownloadingItem.COLUMN_ID, new cInfo(SecondsDownloadingItem.class, SecondsDownloadingItem.DATASOURCE_TYPE));
+		c.put(TimeSinceDownloadItem.COLUMN_ID, new cInfo(TimeSinceDownloadItem.class, TimeSinceDownloadItem.DATASOURCE_TYPE));
+		c.put(TimeSinceUploadItem.COLUMN_ID, new cInfo(TimeSinceUploadItem.class, TimeSinceUploadItem.DATASOURCE_TYPE));
+		c.put(OnlyCDing4Item.COLUMN_ID, new cInfo(OnlyCDing4Item.class, OnlyCDing4Item.DATASOURCE_TYPE));
+		c.put(TrackerNextAccessItem.COLUMN_ID, new cInfo(TrackerNextAccessItem.class, TrackerNextAccessItem.DATASOURCE_TYPE));
+		c.put(TrackerNameItem.COLUMN_ID, new cInfo(TrackerNameItem.class, TrackerNameItem.DATASOURCE_TYPE));
+		c.put(SeedToPeerRatioItem.COLUMN_ID, new cInfo(SeedToPeerRatioItem.class, SeedToPeerRatioItem.DATASOURCE_TYPE));
+		c.put(DownSpeedLimitItem.COLUMN_ID, new cInfo(DownSpeedLimitItem.class, DownSpeedLimitItem.DATASOURCE_TYPE));
+		c.put(SwarmAverageSpeed.COLUMN_ID, new cInfo(SwarmAverageSpeed.class, SwarmAverageSpeed.DATASOURCE_TYPE));
+		c.put(SwarmAverageCompletion.COLUMN_ID, new cInfo(SwarmAverageCompletion.class, SwarmAverageCompletion.DATASOURCE_TYPE));
+		c.put(BadAvailTimeItem.COLUMN_ID, new cInfo(BadAvailTimeItem.class, BadAvailTimeItem.DATASOURCE_TYPE));
 
-		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, cd));
-		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, all));
+		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
+		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
+		
+		c.put(ColumnTC_NameInfo.COLUMN_ID, new cInfo(ColumnTC_NameInfo.class, tc));
+		c.put(ColumnTC_Sample.COLUMN_ID, new cInfo(ColumnTC_Sample.class, tc));
+		c.put(ColumnTC_ChosenColumn.COLUMN_ID, new cInfo(ColumnTC_ChosenColumn.class, tc));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
@@ -216,15 +222,18 @@ public class TableColumnCreator
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 
 		TableColumnCoreCreationListener tcCreator = new TableColumnCoreCreationListener() {
-			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore()
-			public TableColumnCore createTableColumnCore(String tableID,
-					String columnID)
-			{
+			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore(java.lang.Class, java.lang.String, java.lang.String)
+			public TableColumnCore createTableColumnCore(Class forDataSourceType,
+					String tableID, String columnID) {
 				cInfo info = (cInfo) c.get(columnID);
 
 				try {
-					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] { String.class });
-					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] { tableID });
+					Constructor constructor = info.cla.getDeclaredConstructor(new Class[] {
+						String.class
+					});
+					TableColumnCore column = (TableColumnCore) constructor.newInstance(new Object[] {
+						tableID
+					});
 					return column;
 				} catch (Exception e) {
 					Debug.out(e);

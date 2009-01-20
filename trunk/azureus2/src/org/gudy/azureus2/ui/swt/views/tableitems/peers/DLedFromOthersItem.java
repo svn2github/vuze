@@ -20,11 +20,13 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /** Downloaded from others WHILE connected to you
  *
@@ -35,10 +37,17 @@ public class DLedFromOthersItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 { 
-  
+	public static final String COLUMN_ID = "DLedFromOthers";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_BYTES,
+		});
+	}
+
   /** Default Constructor */
   public DLedFromOthersItem(String table_id) {
-    super("DLedFromOthers", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

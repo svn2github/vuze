@@ -24,10 +24,14 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /** Size of Torrent cell
  *
@@ -38,15 +42,25 @@ public class SizeItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "size";
 
 	private static boolean DO_MULTILINE = true;
 
 	/** Default Constructor */
 	public SizeItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
 		setRefreshInterval(INTERVAL_GRAPHIC);
 		setMinWidthAuto(true);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+			CAT_CONTENT,
+			CAT_BYTES
+		});
 	}
 
 	public void refresh(TableCell cell) {

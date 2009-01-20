@@ -75,6 +75,12 @@ public class BlocksItem
 		initializeAsGraphic(POSITION_LAST, 200);
 	}
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROGRESS,
+		});
+	}
+
 	public void cellAdded(TableCell cell) {
 		if (cacheStats == null) {
 			try {

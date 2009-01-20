@@ -32,14 +32,24 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class TableColumnSWTUtils
 {
 	public static int convertColumnAlignmentToSWT(int align) {
-		if (align == TableColumn.ALIGN_CENTER) {
-			return SWT.CENTER;
-		} else if (align == TableColumn.ALIGN_LEAD) {
-			return SWT.LEAD;
-		} else if (align == TableColumn.ALIGN_TRAIL) {
-			return SWT.TRAIL;
+		int swt = 0;
+		int hAlign = align & 3;
+		if (hAlign == TableColumn.ALIGN_CENTER) {
+			swt = SWT.CENTER;
+		} else if (hAlign == TableColumn.ALIGN_LEAD) {
+			swt = SWT.LEAD;
+		} else if (hAlign == TableColumn.ALIGN_TRAIL) {
+			swt = SWT.TRAIL;
+		} else {
+			swt = SWT.LEAD;
 		}
-		return SWT.LEAD;
+		int vAlign = align & ~3;
+		if (vAlign == TableColumn.ALIGN_TOP) {
+			swt |= SWT.TOP;
+		} else if (vAlign == TableColumn.ALIGN_BOTTOM) {
+			swt |= SWT.BOTTOM;
+		}
+		return swt;
 	}
 	
     private static int convertSWTAlignmentToColumn(int align) {

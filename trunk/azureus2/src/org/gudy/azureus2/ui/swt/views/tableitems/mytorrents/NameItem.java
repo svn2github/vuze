@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent name cell for My Torrents.
@@ -45,16 +46,22 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class NameItem extends CoreTableColumn implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "name";
 	
 	private boolean showIcon;
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_ESSENTIAL, CAT_CONTENT });
+	}
 
 	/**
 	 * 
 	 * @param sTableID
 	 */
 	public NameItem(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 250, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 250, sTableID);
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		setType(TableColumn.TYPE_TEXT);

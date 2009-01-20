@@ -22,21 +22,26 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author Allan Crooks
  *
  */
 public class DownloadNameItem extends CoreTableColumn implements TableCellRefreshListener /*, ObfusticateCellText */ {
+	public static final String COLUMN_ID = "name";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
+	}
 	
 	/** Default Constructor */
 	public DownloadNameItem(String table_id) {
-		super("name", 250, table_id);
+		super(COLUMN_ID, 250, table_id);
 		this.setPosition(0);
 		//setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);

@@ -56,6 +56,12 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 		setMinWidth(100);
 	}
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROGRESS,
+		});
+	}
+
 	public void cellAdded(TableCell cell) {
 		new Cell(cell);
 	}

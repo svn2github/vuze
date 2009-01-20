@@ -31,12 +31,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableStructureModificationListener;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
@@ -70,8 +69,8 @@ public class TableColumnEditorWindow {
    * @param _listener Callback listener to trigger when columns changed
    */
   public TableColumnEditorWindow(Shell parent, String sTableID,
-			TableColumnCore[] _tableColumns, final Object sampleDS,
-			Class dataSourceType,
+			TableColumnCore[] _tableColumns, final TableRowCore sampleRow,
+			final Class dataSourceType,
 			TableStructureModificationListener _listener) {    
     tableID = sTableID;
 		this.dataSourceType = dataSourceType;
@@ -125,6 +124,7 @@ public class TableColumnEditorWindow {
     
     cSample = new Composite(shell, SWT.BORDER); 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.heightHint = 30;
     cSample.setLayoutData(gridData);
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
@@ -137,7 +137,26 @@ public class TableColumnEditorWindow {
  		rLayout.marginBottom = 0;
  		rLayout.spacing = 5;
  		cButtonArea.setLayout (rLayout);
-    
+ 		
+    Button bBeta = new Button(cButtonArea,SWT.PUSH);
+    bBeta.setText("beta..");
+    rd = new RowData();
+    rd.width = 70;
+    bBeta.setLayoutData(rd);
+    bBeta.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+        close();
+    		new TableColumnSetupWindow(dataSourceType, tableID, sampleRow,
+    				TableStructureEventDispatcher.getInstance(tableID)).open();
+      }
+    });
+
+ 		Label lblGap = new Label(cButtonArea, SWT.None);
+    rd = new RowData();
+    rd.width = 230;
+    lblGap.setLayoutData(rd);
+
+
     Button bOk = new Button(cButtonArea,SWT.PUSH);
     bOk.setText(MessageText.getString("Button.ok"));
     rd = new RowData();
@@ -188,16 +207,16 @@ public class TableColumnEditorWindow {
 				int index = item.getParent().indexOf(item);
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
 
-				if (sampleDS != null) {
+				if (sampleRow != null) {
   				if (fakeTableCell != null && !fakeTableCell.isDisposed()) {
   					fakeTableCell.setControl(null);
   				}
   		    fakeTableCell = new FakeTableCell(tableColumn);
   		    fakeTableCell.setControl(cSample);
-  		    if (sampleDS instanceof TableRowCore) {
-  		    	fakeTableCell.setDataSource(((TableRowCore)sampleDS).getDataSource(tableColumn.getUseCoreDataSource()));
+  		    if (sampleRow instanceof TableRowCore) {
+  		    	fakeTableCell.setDataSource(((TableRowCore)sampleRow).getDataSource(tableColumn.getUseCoreDataSource()));
   		    } else {
-  		    	fakeTableCell.setDataSource(sampleDS);
+  		    	fakeTableCell.setDataSource(sampleRow);
   		    }
   		    if (tableColumn instanceof TableColumnCore) {
   		    	((TableColumnCore)tableColumn).invokeCellAddedListeners(fakeTableCell);

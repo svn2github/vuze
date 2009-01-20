@@ -27,9 +27,12 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /** # of Peers
  * 
@@ -49,11 +52,17 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 public class PeersItem extends CoreTableColumn implements
 		TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "peers";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_SWARM });
+	}
 
 	/** Default Constructor */
 	public PeersItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
 	}

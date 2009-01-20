@@ -29,8 +29,12 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  *
@@ -42,11 +46,17 @@ public class SeedsItem
 	extends CoreTableColumn
 	implements TableCellAddedListener, ParameterListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	private static final String CFG_FC_SEEDSTART = "StartStopManager_iFakeFullCopySeedStart";
 
 	private static final String CFG_FC_NUMPEERS = "StartStopManager_iNumPeersAsFullCopy";
 
 	public static final String COLUMN_ID = "seeds";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_SWARM });
+	}
 
 	// don't count x peers as a full copy if seeds below
 	private int iFC_MinSeeds;
@@ -56,7 +66,7 @@ public class SeedsItem
 
 	/** Default Constructor */
 	public SeedsItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 		setMinWidthAuto(true);
 

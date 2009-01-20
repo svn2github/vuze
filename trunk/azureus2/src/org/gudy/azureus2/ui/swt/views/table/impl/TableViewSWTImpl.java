@@ -29,6 +29,7 @@ import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.internal.ole.win32.COM;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -57,11 +58,9 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.*;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -279,7 +278,9 @@ public class TableViewSWTImpl
 
 	private Rectangle clientArea;
 
-	private boolean isVisible;		
+	private boolean isVisible;
+	
+	private boolean menuEnabled = true;
 
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
@@ -661,7 +662,7 @@ public class TableViewSWTImpl
 		if (mainPanelCreator != null) {
 			return mainPanelCreator.createTableViewPanel(composite);
 		}
-		Composite panel = new Composite(composite, SWT.NULL);
+		Composite panel = new Composite(composite, SWT.NO_FOCUS);
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
@@ -1014,6 +1015,7 @@ public class TableViewSWTImpl
 					KeyListener l = (KeyListener) listeners[i];
 					l.keyPressed(event);
 					if (!event.doit) {
+						lCancelSelectionTriggeredOn = SystemTime.getCurrentTime();
 						return;
 					}
 				}
@@ -1405,7 +1407,8 @@ public class TableViewSWTImpl
 			}
 
 			if (iColumnNo >= columnsOrdered.length) {
-				System.out.println(iColumnNo + " >= " + columnsOrdered.length);
+				System.out.println("Col #" + iColumnNo + " >= " + columnsOrdered.length
+						+ " count");
 				return;
 			}
 
@@ -1506,7 +1509,7 @@ public class TableViewSWTImpl
 					cellBounds.width -= ofs;
 				}
   			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
-				int style = CoreTableColumn.getSWTAlign(columnsOrdered[iColumnNo].getAlignment());
+				int style = TableColumnSWTUtils.convertColumnAlignmentToSWT(columnsOrdered[iColumnNo].getAlignment());
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
 				}
@@ -1707,7 +1710,7 @@ public class TableViewSWTImpl
 			} catch (NoSuchMethodError e) {
 				// Ignore < SWT 3.1
 			}
-			column.setAlignment(CoreTableColumn.getSWTAlign(tableColumns[i].getAlignment()));
+			column.setAlignment(TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumns[i].getAlignment()));
 			Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
 			column.setWidth(tableColumns[i].getWidth());
 			if (tableColumns[i].getMinWidth() == tableColumns[i].getMaxWidth()
@@ -1790,6 +1793,9 @@ public class TableViewSWTImpl
 	 * @return a new Menu object
 	 */
 	public Menu createMenu() {
+		if (!isMenuEnabled()) {
+			return null;
+		}
 		final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
 		MenuBuildUtils.addMaintenanceListenerForMenu(menu,
 				new MenuBuildUtils.MenuBuilder() {
@@ -1881,9 +1887,15 @@ public class TableViewSWTImpl
 	}
 	
 	void showColumnEditor() {
+		TableRowCore focusedRow = getFocusedRow();
+		if (focusedRow == null) {
+			focusedRow = getRow(0);
+		}
 		new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
-				getFocusedRow(), dataSourceType,
+				focusedRow, dataSourceType,
 				TableStructureEventDispatcher.getInstance(sTableID));		
+		//new TableColumnSetupWindow(dataSourceType, sTableID, focusedRow,
+		//		TableStructureEventDispatcher.getInstance(sTableID)).open();
 	}
 
 	/**
@@ -1916,8 +1928,10 @@ public class TableViewSWTImpl
 		item.setText("'" + tcColumn.getText() + "' "
 				+ MessageText.getString("GenericText.column"));
 
-		menu.setData("ColumnNo", new Long(iColumn));
-		menu.setData("column", tcColumn);
+		if (menu != null) {
+			menu.setData("ColumnNo", new Long(iColumn));
+			menu.setData("column", tcColumn);
+		}
 		
 		String sColumnName = (String) tcColumn.getData("Name");
 		if (sColumnName != null) {
@@ -2545,6 +2559,9 @@ public class TableViewSWTImpl
 						sortedRows.add(row);
 					}
 
+					// NOTE: if the listener tries to do something like setSelected,
+					// it will fail because we aren't done adding.
+					// we should trigger after fillRowGaps()
 					triggerListenerRowAdded(row);
 
 					if (!bReplacedVisible && index >= iTopIndex && index <= iBottomIndex) {
@@ -3066,7 +3083,7 @@ public class TableViewSWTImpl
 		return null;
 	}
 
-	// see common.TableView
+	// @see com.aelitis.azureus.ui.common.table.TableView#getRows()
 	public TableRowCore[] getRows() {
 		try {
 			sortedRows_mon.enter();
@@ -3155,6 +3172,7 @@ public class TableViewSWTImpl
 		return mapDataSourceToRow.size();
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
 	public Object[] getDataSources() {
 		return mapDataSourceToRow.keySet().toArray();
 	}
@@ -3592,6 +3610,9 @@ public class TableViewSWTImpl
 			return null;
 
 		TableItem item = table.getItem(new Point(2, y));
+		if (item == null) {
+			return null;
+		}
 		return (TableRowCore) getRow(item);
 	}
 
@@ -4420,4 +4441,19 @@ public class TableViewSWTImpl
   	}
   	return isVisible;
   }
+  
+  public void showRow(TableRowCore row) {
+  	int index = row.getIndex();
+  	if (index >= 0 && index < table.getItemCount()) {
+  		table.showItem(table.getItem(index));
+  	}
+  }
+
+	public boolean isMenuEnabled() {
+		return menuEnabled;
+	}
+
+	public void setMenuEnabled(boolean menuEnabled) {
+		this.menuEnabled = menuEnabled;
+	}
 }

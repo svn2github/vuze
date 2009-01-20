@@ -26,8 +26,11 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  *
@@ -38,9 +41,17 @@ public class IncomingRequestCountItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+	public static final String COLUMN_ID = "incomingreqcount";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROTOCOL,
+		});
+	}
+
+	/** Default Constructor */
   public IncomingRequestCountItem(String table_id) {
-    super("incomingreqcount", ALIGN_TRAIL, POSITION_INVISIBLE, 60, table_id);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 60, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

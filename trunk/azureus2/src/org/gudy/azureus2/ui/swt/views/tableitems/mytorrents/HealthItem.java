@@ -39,9 +39,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  *
@@ -52,15 +51,21 @@ public class HealthItem
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellRefreshListener, TableCellSWTPaintListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	static final int COLUMN_WIDTH = 16;
 
 	public static final String COLUMN_ID = "health";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_ESSENTIAL });
+	}
 
 	static TRHost tracker_host = AzureusCoreFactory.getSingleton().getTrackerHost();
 
 	/** Default Constructor */
 	public HealthItem(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, COLUMN_WIDTH, sTableID);
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setMinWidth(COLUMN_WIDTH);
 	}

@@ -74,6 +74,12 @@ public class PiecesItem
     initializeAsGraphic(POSITION_LAST, 200);
   }
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
+	}
+
   public void cellAdded(TableCell cell) {
     cell.setFillCell(true);
     Object ds = cell.getDataSource();

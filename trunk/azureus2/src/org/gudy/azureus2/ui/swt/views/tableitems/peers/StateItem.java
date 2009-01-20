@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
@@ -39,6 +40,13 @@ public class StateItem
     super("state", POSITION_LAST, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROTOCOL,
+			CAT_CONNECTION,
+		});
+	}
 
   public void refresh(TableCell cell) {
     PEPeerTransport peer = (PEPeerTransport)cell.getDataSource();  //TODO fix this "naughty" cast

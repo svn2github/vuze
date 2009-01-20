@@ -26,10 +26,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** 
  * Core Table Column functions are those available to plugins plus
@@ -340,4 +337,11 @@ public interface TableColumnCore
 	 */
 	public boolean
 	isRemoved();
+
+	/**
+	 * @return
+	 *
+	 * @since 4.0.0.5
+	 */
+	List<TableColumnExtraInfoListener> getColumnExtraInfoListeners();
 }

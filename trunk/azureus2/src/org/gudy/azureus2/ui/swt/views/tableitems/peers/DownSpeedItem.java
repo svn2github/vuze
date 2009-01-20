@@ -24,10 +24,13 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  *
@@ -38,9 +41,17 @@ public class DownSpeedItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final String COLUMN_ID = "downloadspeed";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_BYTES,
+		});
+	}
+
   /** Default Constructor */
   public DownSpeedItem(String table_id) {
-    super("downloadspeed", ALIGN_TRAIL, POSITION_LAST, 65, table_id);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

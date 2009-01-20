@@ -27,21 +27,35 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.StringInterner;
-import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 
 public class FilesDoneItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
   public static final String COLUMN_ID = "filesdone";
 
 	public FilesDoneItem(String sTableID) {
-	  super(COLUMN_ID, ALIGN_CENTER, POSITION_INVISIBLE, 50, sTableID);
+	  super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 50, sTableID);
 	  setRefreshInterval(5);
     setMinWidthAuto(true);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+			CAT_PROGRESS
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
+	}
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();

@@ -36,6 +36,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalcu
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 
@@ -48,16 +49,25 @@ public class DownSpeedItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
-  public static final String COLUMN_ID = "downspeed";
+	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+
+	public static final String COLUMN_ID = "downspeed";
 
 	/** Default Constructor */
   public DownSpeedItem(String sTableID) {
-    super(COLUMN_ID, ALIGN_TRAIL, POSITION_LAST, 60, sTableID);
+    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);
     setMinWidthAuto(true);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_ESSENTIAL,
+			CAT_BYTES,
+		});
+	}
 
   public void cellAdded(TableCell cell) {
     cell.addRefreshListener(new RefreshListener());

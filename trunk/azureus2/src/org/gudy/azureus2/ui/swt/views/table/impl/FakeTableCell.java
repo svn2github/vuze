@@ -49,6 +49,8 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -120,6 +122,8 @@ public class FakeTableCell
 	private ArrayList cellSWTPaintListeners;
 	
 	private boolean valid;
+
+	private TableRow fakeRow = null;
 
 	/**
 	 * @param columnRateUpDown
@@ -602,8 +606,45 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableRow()
 	public TableRow getTableRow() {
-		// TODO Auto-generated method stub
-		return null;
+		if (fakeRow != null) {
+			fakeRow = new TableRow() {
+				public void setForegroundToErrorColor() {
+				}
+
+				public void setForeground(int[] rgb) {
+				}
+
+				public void setForeground(int red, int green, int blue) {
+				}
+
+				public void removeMouseListener(TableRowMouseListener listener) {
+				}
+
+				public boolean isValid() {
+					return FakeTableCell.this.isValid();
+				}
+
+				public boolean isSelected() {
+					return false;
+				}
+
+				public String getTableID() {
+					return FakeTableCell.this.getTableID();
+				}
+
+				public TableCell getTableCell(String columnName) {
+					return null;
+				}
+
+				public Object getDataSource() {
+					return FakeTableCell.this.getDataSource();
+				}
+
+				public void addMouseListener(TableRowMouseListener listener) {
+				}
+			};
+		}
+		return fakeRow;
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getText()
@@ -794,7 +835,7 @@ public class FakeTableCell
 			return;
 		}
 		// TODO: Cleanup and stop calling me so often!
-
+		
 		//gc.setBackground(getBackground());
 		//if (DEBUG_COLORCELL) {
 		//	gc.setBackground(Display.getDefault().getSystemColor(
@@ -833,7 +874,8 @@ public class FakeTableCell
 		}
 
 		if (text != null && text.length() > 0) {
-			GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, false, orientation);
+			GCStringPrinter sp = new GCStringPrinter(gc, text, bounds, true, false,
+					orientation | SWT.WRAP);
 			sp.printString();
 			hadMore = sp.isCutoff();
 		}
@@ -1025,13 +1067,7 @@ public class FakeTableCell
 	}
 
 	private void setOrientationViaColumn() {
-		int align = tableColumn.getAlignment();
-		if (align == TableColumn.ALIGN_CENTER)
-			orientation = SWT.CENTER;
-		else if (align == TableColumn.ALIGN_LEAD)
-			orientation = SWT.LEFT;
-		else if (align == TableColumn.ALIGN_TRAIL)
-			orientation = SWT.RIGHT;
+		orientation = TableColumnSWTUtils.convertColumnAlignmentToSWT(tableColumn.getAlignment());
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#dispose()
@@ -1204,6 +1240,7 @@ public class FakeTableCell
 	}
 
 	public void setCellArea(Rectangle cellArea) {
+		//System.out.println("SCA " + cellArea + ";" + Debug.getCompressedStackTrace());
 		this.cellArea = cellArea;
 	}
 
@@ -1267,12 +1304,13 @@ public class FakeTableCell
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBackgroundSWT()
 	public Color getBackgroundSWT() {
 		// TODO Auto-generated method stub
-		return null;
+		return composite.getBackground();
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBounds()
 	public Rectangle getBounds() {
-		return cellArea == null ? composite.getClientArea() : cellArea;
+		return cellArea == null ? composite.getClientArea() : new Rectangle(
+				cellArea.x, cellArea.y, cellArea.width, cellArea.height);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getBufferedTableItem()
@@ -1283,8 +1321,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getForegroundSWT()
 	public Color getForegroundSWT() {
-		// TODO Auto-generated method stub
-		return null;
+		return composite.getForeground();
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#getGraphicSWT()

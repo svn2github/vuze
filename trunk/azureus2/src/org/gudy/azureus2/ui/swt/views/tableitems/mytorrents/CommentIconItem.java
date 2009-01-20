@@ -32,6 +32,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -42,11 +43,17 @@ public class CommentIconItem
        extends CoreTableColumn 
        implements TableCellRefreshListener, TableCellMouseListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	static final UISWTGraphic graphicComment;
 
 	static final UISWTGraphic noGraphicComment;
 	
 	public static final String COLUMN_ID = "commenticon";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	static {
 		graphicComment = new UISWTGraphicImpl(
@@ -57,7 +64,7 @@ public class CommentIconItem
 
   /** Default Constructor */
   public CommentIconItem(String sTableID) {
-		super(COLUMN_ID, CommentIconItem.POSITION_LAST, 20, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, CommentIconItem.POSITION_LAST, 20, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 		initializeAsGraphic(POSITION_LAST, 20);
 		setMinWidth(20);

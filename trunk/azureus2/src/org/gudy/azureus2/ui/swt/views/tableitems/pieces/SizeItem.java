@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /** Piece Size
@@ -38,6 +39,12 @@ public class SizeItem
   public SizeItem() {
     super("size", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_TORRENT_PIECES);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_BYTES,
+		});
+	}
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();

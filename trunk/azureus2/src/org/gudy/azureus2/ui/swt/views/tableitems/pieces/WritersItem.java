@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -41,6 +42,12 @@ public class WritersItem
     setObfustication(true);
     setRefreshInterval(4);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SWARM,
+		});
+	}
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();

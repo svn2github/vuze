@@ -20,20 +20,30 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.util.TimeFormatter;
-
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 
 public class ConnectedTimeItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-  /** Default Constructor */
+	public static final String COLUMN_ID = "connected_time";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TIME,
+		});
+	}
+
+	/** Default Constructor */
   public ConnectedTimeItem(String table_id) {
-    super( "connected_time", ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
+    super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 70, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

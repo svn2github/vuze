@@ -21,9 +21,11 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author Allan Crooks
@@ -31,8 +33,16 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class ClientIdentificationItem extends CoreTableColumn implements TableCellRefreshListener {
 	
+	public static final String COLUMN_ID = "client_identification";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PEER_IDENTIFICATION,
+		});
+	}
+
 	public ClientIdentificationItem(String table_id) {
-		super("client_identification", POSITION_INVISIBLE, 200, table_id);
+		super(COLUMN_ID, POSITION_INVISIBLE, 200, table_id);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 	

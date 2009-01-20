@@ -25,19 +25,17 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseMoveListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-
 import com.aelitis.azureus.core.util.AZ3Functions;
+
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author Olivier
@@ -46,11 +44,20 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 public class TrackerStatusItem extends CoreTableColumn implements
 		TableCellAddedListener, TableCellToolTipListener, TableCellMouseMoveListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "tracker";
 
 	public TrackerStatusItem(String sTableID) {
-		super(COLUMN_ID, POSITION_LAST, 90, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 90, sTableID);
 		setRefreshInterval(15); // Slow update while no responses from tracker
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TRACKER,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
 	}
 
 	public void cellAdded(TableCell cell) {

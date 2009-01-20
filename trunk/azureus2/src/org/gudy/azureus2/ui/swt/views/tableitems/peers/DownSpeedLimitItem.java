@@ -26,9 +26,11 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author parg
@@ -39,10 +41,18 @@ public class DownSpeedLimitItem
 extends CoreTableColumn 
 implements TableCellRefreshListener
 {
+	public static final String COLUMN_ID = "maxdownspeed";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_BYTES,
+			CAT_SETTINGS,
+		});
+	}
 
 	/** Default Constructor */
 	public DownSpeedLimitItem(String table_id) {
-	  super("maxdownspeed", ALIGN_TRAIL, POSITION_INVISIBLE, 35, table_id);
+	  super(COLUMN_ID, ALIGN_TRAIL, POSITION_INVISIBLE, 35, table_id);
 	  setRefreshInterval(INTERVAL_LIVE);
 	}
 

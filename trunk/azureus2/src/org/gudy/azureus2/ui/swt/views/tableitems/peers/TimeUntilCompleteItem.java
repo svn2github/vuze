@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -44,6 +45,13 @@ public class TimeUntilCompleteItem
     super("timetocomplete", ALIGN_TRAIL, POSITION_INVISIBLE, 65, table_id);
     setRefreshInterval(INTERVAL_LIVE);
   }
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_TIME,
+			CAT_CONTENT,
+		});
+	}
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();

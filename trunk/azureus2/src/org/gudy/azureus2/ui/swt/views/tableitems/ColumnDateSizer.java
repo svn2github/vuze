@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
  * @created Oct 5, 2008
  *
  */
-public class ColumnDateSizer
+public abstract class ColumnDateSizer
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
@@ -61,9 +61,8 @@ public class ColumnDateSizer
 	 * @param name
 	 * @param tableID
 	 */
-	public ColumnDateSizer(String columnID, int width, String tableID) {
-		super(columnID, width, tableID);
-		setAlignment(ALIGN_TRAIL);
+	public ColumnDateSizer(Class forDataSrouceType, String columnID, int width, String tableID) {
+		super(forDataSrouceType, columnID, ALIGN_TRAIL, width, tableID);
 
 		TableContextMenuItem menuShowTime = addContextMenuItem("TableColumn.menu.date_added.time");
 		menuShowTime.addListener(new MenuItemListener() {

@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -38,6 +39,12 @@ implements TableCellRefreshListener
 	public PriorityItem() {
 		super("priority", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
 		setRefreshInterval(INTERVAL_LIVE);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SETTINGS,
+		});
 	}
 	
 	public void refresh(TableCell cell)

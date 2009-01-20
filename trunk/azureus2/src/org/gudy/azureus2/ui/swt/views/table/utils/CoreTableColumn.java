@@ -22,21 +22,20 @@
  
 package org.gudy.azureus2.ui.swt.views.table.utils;
 
-import org.eclipse.swt.SWT;
-
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
-import org.gudy.azureus2.plugins.ui.tables.*;
-
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
+
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** This class  provides constructors for setting most of
  * the common column attributes and sets the column as a 'core' column.<p>
  *
  * @author TuxPaper
  */
-public class CoreTableColumn 
-       extends TableColumnImpl 
+public abstract class CoreTableColumn
+	extends TableColumnImpl
+	implements TableColumnExtraInfoListener
 {
   /** Construct a new CoreTableColumn
    * Type will be TYPE_TEXT, Update Interval will be INTERVAL_INVALID_ONLY
@@ -58,6 +57,14 @@ public class CoreTableColumn
     setUseCoreDataSource(true);
     addListeners(this);
   }
+
+  public CoreTableColumn(Class forDataSourceType, String sName, int iAlignment,
+			int iWidth, String sTableID) {
+		super(forDataSourceType, sTableID, sName);
+		super.initialize(iAlignment, POSITION_INVISIBLE, iWidth);
+		setUseCoreDataSource(true);
+		addListeners(this);
+	}
 
   /** Construct a new CoreTableColumn.<p>
    * Alignment will be ALIGN_LEAD, Type will be TYPE_TEXT, 
@@ -140,14 +147,7 @@ public class CoreTableColumn
   	super.addListeners(listenerObject);
   }
   
-  /** 
-   * Convert the getAlignment() constant to a SWT constant
-	 *
-	 * @return SWT alignment constant
-	 */
-	public static int getSWTAlign(int alignment) {
-    return alignment == ALIGN_LEAD ? SWT.LEAD
-                                   : (alignment == ALIGN_CENTER) ? SWT.CENTER
-                                                                 : SWT.TRAIL;
+  // @see org.gudy.azureus2.plugins.ui.tables.TableColumnExtraInfoListener#fillTableColumnInfo(org.gudy.azureus2.plugins.ui.tables.TableColumnInfo)
+  public void fillTableColumnInfo(TableColumnInfo info) {
   }
 }

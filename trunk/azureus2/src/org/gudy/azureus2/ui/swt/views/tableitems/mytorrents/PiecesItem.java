@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -52,6 +53,8 @@ public class PiecesItem
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener
 {
+	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+
 	private final static int INDEX_COLOR_NONEAVAIL = Colors.BLUES_DARKEST + 1;
 
 	// only supports 0 or 1 border size
@@ -73,13 +76,21 @@ public class PiecesItem
 		this(sTableID,-1);
 	}
 	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+			CAT_PROGRESS
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
+	}
+
 	/**
 	 * 
 	 * @param sTableID
 	 * @param marginHeight -- Margin height above and below the pieces graphic; used in cases where the row is very tall
 	 */
 	public PiecesItem(String sTableID, int marginHeight) {
-		super(COLUMN_ID, 100, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 100, sTableID);
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 100);
 		setMinWidth(100);

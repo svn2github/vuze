@@ -31,15 +31,20 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 public class BadAvailTimeItem
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "bad_avail_time";
 	private static String	now_string;
-	
+
 	static{
 		
 		MessageText.addAndFireListener(
@@ -56,8 +61,16 @@ public class BadAvailTimeItem
 	}
 	
 	public BadAvailTimeItem(String sTableID) {
-		super(COLUMN_ID, ALIGN_CENTER, POSITION_INVISIBLE, 120, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 120, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
+	}
+	
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_SWARM,
+			CAT_TIME,
+		});
+		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
 	}
 
 	public void refresh(TableCell cell) {

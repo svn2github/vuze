@@ -32,22 +32,18 @@ import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.tables.*;
-
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
  *
@@ -59,6 +55,8 @@ public class CompletionItem
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener, TableCellSWTPaintListener
 {
+	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+
 	private static final int borderWidth = 1;
 
 	public static final String COLUMN_ID = "completion";
@@ -77,13 +75,19 @@ public class CompletionItem
 		this(sTableID, -1);
 	}
 
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_PROGRESS,
+		});
+	}
+
 	/**
 	 * 
 	 * @param sTableID
 	 * @param marginHeight -- Margin height above and below the progress bar; used in cases where the row is very tall 
 	 */
 	public CompletionItem(String sTableID, int marginHeight) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 150, sTableID);
 		this.marginHeight = marginHeight;
 		initializeAsGraphic(POSITION_INVISIBLE, 150);
 		setMinWidth(100);
