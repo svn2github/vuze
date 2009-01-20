@@ -18,6 +18,7 @@
 package com.aelitis.azureus.ui.swt.columns.subscriptions;
 
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
@@ -39,7 +40,8 @@ ColumnSubscriptionLastChecked
 	ColumnSubscriptionLastChecked(
 		String sTableID ) 
 	{
-		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID );
+		super(Subscription.class, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH,
+				sTableID);
 		
 		setMinWidth(100);
 		
