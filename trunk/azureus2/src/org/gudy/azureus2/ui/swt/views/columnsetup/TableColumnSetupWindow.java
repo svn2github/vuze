@@ -36,12 +36,15 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.aelitis.azureus.util.Constants;
 
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
@@ -58,6 +61,8 @@ public class TableColumnSetupWindow
 	private static final String TABLEID_AVAIL = "ColumnSetupAvail";
 
 	private static final String TABLEID_CHOSEN = "ColumnSetupChosen";
+
+	private static final boolean CAT_BUTTONS = true;
 
 	private Shell shell;
 
@@ -92,6 +97,12 @@ public class TableColumnSetupWindow
 	private Map<TableColumnCore, Boolean> mapNewVisibility = new HashMap();
 
 	private ArrayList<TableColumnCore> listColumnsNoCat;
+
+	private ArrayList<String> listCats;
+
+	private Combo comboFilter;
+
+	private Group cPickArea;
 
 	public TableColumnSetupWindow(final Class forDataSourceType, String _tableID,
 			TableRow sampleRow, TableStructureModificationListener _listener) {
@@ -157,12 +168,14 @@ public class TableColumnSetupWindow
 			public void dragFinished(DragSourceEvent event) {
 			}
 		};
+		
+		String tableName = MessageText.getString(_tableID + "View.header");
 
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 		Utils.setShellIcon(shell);
 		FormLayout formLayout = new FormLayout();
     shell.setText(MessageText.getString("ColumnSetup.title", new String[] {
-			MessageText.getString(_tableID + "View.header")
+			tableName
 		}));
 		shell.setLayout(formLayout);
 		shell.setSize(780, 550);
@@ -174,12 +187,13 @@ public class TableColumnSetupWindow
 		});
 
 		Label topInfo = new Label(shell, SWT.WRAP);
-		topInfo.setText("Welcome to the new Column Setup Window for "
-				+ _tableID
-				+ ". This is still beta.  Drag and drop to add and move, or use the add button");
+		topInfo.setText("Explore the available columns on the left, and add them to the list of visible columns on the right.  "
+				+ "Expand or narrow down the list of available columns by using the Filter section on the bottom left.  "
+				+ "Drag and Drop and keyboard shortcuts are also supported.");
 
 		fd = Utils.getFilledFormData();
-		fd.left.offset = 2;
+		fd.left.offset = 5;
+		fd.top.offset = 5;
 		fd.bottom = null;
 		topInfo.setLayoutData(fd);
 
@@ -192,15 +206,21 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		Group cPickArea = new Group(shell, SWT.NONE);
+		cPickArea = new Group(shell, SWT.NONE);
+		cPickArea.setText("Columns");
 		cPickArea.setLayout(new FormLayout());
 
-		cCategories = new Composite(cPickArea, SWT.NONE);
-		cCategories.setLayout(new RowLayout());
+
+		final ExpandBar expandFilters = new ExpandBar(cPickArea, SWT.NONE);
+		expandFilters.setSpacing(1);
+		
+		final Composite cFilterArea = new Composite(expandFilters, SWT.NONE);
+		cFilterArea.setLayout(new FormLayout());
 
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 
 		Group cResultArea = new Group(shell, SWT.NONE);
+		cResultArea.setText("Chosen Columns");
 		cResultArea.setLayout(new FormLayout());
 		fd = new FormData();
 		fd.top = new FormAttachment(topInfo, 5);
@@ -223,7 +243,7 @@ public class TableColumnSetupWindow
 
 		listColumnsNoCat = new ArrayList<TableColumnCore>(
 				Arrays.asList(datasources));
-		List<String> listCats = new ArrayList<String>();
+		listCats = new ArrayList<String>();
 		for (int i = 0; i < datasources.length; i++) {
 			TableColumnCore column = datasources[i];
 			TableColumnInfo info = tcm.getColumnInfo(forDataSourceType, forTableID,
@@ -248,7 +268,9 @@ public class TableColumnSetupWindow
 			}
 		};
 
-		Composite cProficiency = new Composite(cPickArea, SWT.NONE);
+
+		Composite cProficiency = new Composite(cFilterArea, SWT.NONE);
+		cProficiency.setBackgroundMode(SWT.INHERIT_FORCE);
 		cProficiency.setLayout(new FormLayout());
 
 		Label lblProficiency = new Label(cProficiency, SWT.NONE);
@@ -299,28 +321,73 @@ public class TableColumnSetupWindow
 				fillAvail();
 			}
 		};
+		
+		Label lblCat = new Label(cFilterArea, SWT.NONE);
+		lblCat.setText("Categories:");
+		
+		if (CAT_BUTTONS) {
+			cCategories = new Composite(cFilterArea, SWT.NONE);
+			cCategories.setLayout(new RowLayout());
 
-		Label lblFilter = new Label(cPickArea, SWT.NONE);
-		lblFilter.setText("Filter:");
+  		Button button = new Button(cCategories, SWT.TOGGLE);
+  		Messages.setLanguageText(button, "Categories.all");
+  		button.addListener(SWT.Selection, buttonListener);
+  		button.setSelection(true);
+  
+  		for (String cat : listCats) {
+  			button = new Button(cCategories, SWT.TOGGLE);
+  			button.setData("cat", cat);
+  			button.setText(cat);
+  			button.addListener(SWT.Selection, buttonListener);
+  		}
+  
+  		if (listColumnsNoCat.size() > 0) {
+  			button = new Button(cCategories, SWT.TOGGLE);
+  			button.setText("?");
+  			button.setData("cat", "uncat");
+  			button.addListener(SWT.Selection, buttonListener);
+  		}
+		} else {
+			comboFilter = new Combo(cFilterArea, SWT.DROP_DOWN | SWT.READ_ONLY);
+			comboFilter.addListener(SWT.Selection, radListener);
 
-		Button button = new Button(cCategories, SWT.TOGGLE);
-		Messages.setLanguageText(button, "Categories.all");
-		button.addListener(SWT.Selection, buttonListener);
-		button.setSelection(true);
-
-		for (String cat : listCats) {
-			button = new Button(cCategories, SWT.TOGGLE);
-			button.setData("cat", cat);
-			button.setText(cat);
-			button.addListener(SWT.Selection, buttonListener);
+			listCats.add(0, "all");
+			for (String cat : listCats) {
+				comboFilter.add(cat);
+			}
+			comboFilter.select(0);
 		}
+		
+		final ExpandItem expandItemFilters = new ExpandItem(expandFilters, SWT.NONE);
+		expandItemFilters.setText("Filters");
+		//expandItemFilters.setHeight(cFilterArea.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+		expandItemFilters.setControl(cFilterArea);
+		expandFilters.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				expandItemFilters.setHeight(cFilterArea.computeSize(
+						expandFilters.getSize().x, SWT.DEFAULT).y);
+			}
+		});
 
-		if (listColumnsNoCat.size() > 0) {
-			button = new Button(cCategories, SWT.TOGGLE);
-			button.setText("?");
-			button.setData("cat", "uncat");
-			button.addListener(SWT.Selection, buttonListener);
-		}
+		expandFilters.addListener(SWT.Expand, new Listener() {
+			public void handleEvent(Event event) {
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						shell.layout(true, true);
+					}
+				});
+			}
+		});
+		expandFilters.addListener(SWT.Collapse, new Listener() {
+			public void handleEvent(Event event) {
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						shell.layout(true, true);
+					}
+				});
+			}
+		});
+		
 
 		// <<<<<<< Buttons
 		
@@ -328,11 +395,10 @@ public class TableColumnSetupWindow
 
 		// >>>>>>> Chosen
 
-		Label lblChosenHeader = new Label(cResultArea, SWT.CENTER);
-		lblChosenHeader.setText("Selected Columns");
+		ImageLoader imageLoader = ImageLoader.getInstance();
 
 		Button btnUp = new Button(cResultArea, SWT.PUSH);
-		btnUp.setText("^");
+		imageLoader.setButtonImage(btnUp, "up");
 		btnUp.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenUp();
@@ -343,7 +409,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDown = new Button(cResultArea, SWT.PUSH);
-		btnDown.setText("v");
+		imageLoader.setButtonImage(btnDown, "down");
 		btnDown.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenDown();
@@ -354,7 +420,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDel = new Button(cResultArea, SWT.PUSH);
-		btnDel.setText("-");
+		imageLoader.setButtonImage(btnDel, "delete");
 		btnDel.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				removeSelectedChosen();
@@ -409,28 +475,32 @@ public class TableColumnSetupWindow
 		fd = new FormData();
 		fd.left = new FormAttachment(0, 5);
 		fd.right = new FormAttachment(100, -5);
-		lblChosenHeader.setLayoutData(fd);
+		//fd.bottom = new FormAttachment(100, -5);
+		//lblChosenHeader.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.left = new FormAttachment(0, 5);
-		fd.top = new FormAttachment(lblChosenHeader, 5);
+		fd.right = new FormAttachment(btnDown, -5);
+		fd.bottom = new FormAttachment(100, -3);
 		btnUp.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.left = new FormAttachment(btnUp, 5);
-		fd.top = new FormAttachment(lblChosenHeader, 5);
+		fd.right = new FormAttachment(btnDel, -5);
+		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnUp, 0, SWT.BOTTOM);
 		btnDown.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.left = new FormAttachment(btnDown, 5);
-		fd.top = new FormAttachment(lblChosenHeader, 5);
+		fd.right = new FormAttachment(100, -5);
+		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnUp, 0, SWT.BOTTOM);
 		btnDel.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(btnUp, 3);
+		fd.top = new FormAttachment(0, 3);
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);
-		fd.bottom = new FormAttachment(100, 0);
+		//fd.bottom = new FormAttachment(100, 0);
+		fd.bottom = new FormAttachment(btnUp, -3);
 		cTableChosen.setLayoutData(fd);
 
 		fd = new FormData();
@@ -461,29 +531,47 @@ public class TableColumnSetupWindow
 		cPickArea.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(cProficiency, 2);
-		fd.left = new FormAttachment(lblFilter, 0);
+		fd.bottom = new FormAttachment(100, 0);
+		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);
-		cCategories.setLayoutData(fd);
+		expandFilters.setLayoutData(fd);
+
+
+		if (CAT_BUTTONS) {
+			fd = new FormData();
+			fd.top = new FormAttachment(cCategories, 0, SWT.CENTER);
+			fd.left = new FormAttachment(0, 5);
+			lblCat.setLayoutData(fd);
+
+  		fd = new FormData();
+  		fd.top = new FormAttachment(cProficiency, 0);
+  		fd.left = new FormAttachment(lblCat, 5);
+  		fd.right = new FormAttachment(100, 0);
+  		cCategories.setLayoutData(fd);
+		} else {
+			fd = new FormData();
+			fd.top = new FormAttachment(comboFilter, -5);
+			fd.right = new FormAttachment(comboFilter, 0, SWT.CENTER);
+			lblCat.setLayoutData(fd);
+
+  		fd = new FormData();
+  		fd.top = new FormAttachment(cProficiency, 0, SWT.CENTER);
+  		fd.right = new FormAttachment(100, 0);
+  		comboFilter.setLayoutData(fd);
+		}
 
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 0);
+		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 2);
-		fd.right = new FormAttachment(100, 0);
 		cProficiency.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(cProficiency, 9);
-		fd.left = new FormAttachment(0, 2);
-		fd.bottom = new FormAttachment(cTableAvail, 0);
-		lblFilter.setLayoutData(fd);
-
-		fd = new FormData();
-		fd.top = new FormAttachment(cCategories, 3);
+		fd.top = new FormAttachment(0, 3);
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);
-		fd.bottom = new FormAttachment(100, 0);
+		fd.bottom = new FormAttachment(expandFilters, -3);
 		cTableAvail.setLayoutData(fd);
+
 
 		//cTableAvail.setFocus();
 		//tvAvail.getTableComposite().setFocus();
@@ -510,16 +598,24 @@ public class TableColumnSetupWindow
 	 */
 	protected void fillAvail() {
 		String selectedCat = null;
-		Control[] children = cCategories.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			Control child = children[i];
-			if (child instanceof Button) {
-				Button btn = (Button) child;
-				if (btn.getSelection()) {
-					selectedCat = (String) btn.getData("cat");
-					break;
-				}
-			}
+		if (CAT_BUTTONS) {
+  		Control[] children = cCategories.getChildren();
+  		for (int i = 0; i < children.length; i++) {
+  			Control child = children[i];
+  			if (child instanceof Button) {
+  				Button btn = (Button) child;
+  				if (btn.getSelection()) {
+  					selectedCat = (String) btn.getData("cat");
+  					break;
+  				}
+  			}
+  		}
+		} else {
+			selectedCat = comboFilter.getItem(comboFilter.getSelectionIndex());
+		}
+		
+		if (selectedCat != null && selectedCat.equals("all")) {
+			selectedCat = null;
 		}
 		
 		
@@ -531,6 +627,12 @@ public class TableColumnSetupWindow
 				break;
 			}
 		}
+
+		String s = "Available " + radProficiency[selectedProf].getText() + " Columns";
+		if (selectedCat != null) {
+			s += " filtered by " + selectedCat;
+		}
+		cPickArea.setText(s);
 
 		tvAvail.removeAllTableRows();
 
@@ -573,6 +675,13 @@ public class TableColumnSetupWindow
 			mapNewVisibility.put(column, Boolean.FALSE);
 		}
 		tvChosen.removeDataSources(datasources);
+		tvChosen.processDataSourceQueue();
+		for (int i = 0; i < datasources.length; i++) {
+			TableRowSWT row = (TableRowSWT) tvAvail.getRow(datasources[i]);
+			if (row != null) {
+				row.redraw();
+			}
+		}
 	}
 
 	/**
@@ -664,11 +773,13 @@ public class TableColumnSetupWindow
 				TABLEID_CHOSEN, columnTVChosen, ColumnTC_ChosenColumn.COLUMN_ID, true);
 		tvChosen.setMenuEnabled(false);
 		tvChosen.setSampleRow(sampleRow);
+		tvChosen.setHeaderVisible(false);
 		//tvChosen.setRowDefaultHeight(16);
 		tvChosen.setDataSourceType(TableColumn.class);
 
 		tvChosen.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
+			private DropTarget dropTarget;
 
 			public void tableViewInitialized() {
 				dragSource = tvChosen.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
@@ -678,7 +789,7 @@ public class TableColumnSetupWindow
 				});
 				dragSource.addDragListener(dragSourceListener);
 
-				DropTarget dropTarget = tvChosen.createDropTarget(DND.DROP_DEFAULT
+				dropTarget = tvChosen.createDropTarget(DND.DROP_DEFAULT
 						| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
 						| DND.DROP_TARGET_MOVE);
 				dropTarget.setTransfer(new Transfer[] {
@@ -733,8 +844,12 @@ public class TableColumnSetupWindow
 			}
 
 			public void tableViewDestroyed() {
-				// TODO Auto-generated method stub
-
+				if (dragSource != null && !dragSource.isDisposed()) {
+					dragSource.dispose();
+				}
+				if (dropTarget != null && !dropTarget.isDisposed()) {
+					dropTarget.dispose();
+				}
 			}
 		});
 
@@ -792,6 +907,7 @@ public class TableColumnSetupWindow
 
 		tvAvail.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
+			private DropTarget dropTarget;
 
 			public void tableViewInitialized() {
 				dragSource = tvAvail.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
@@ -800,14 +916,38 @@ public class TableColumnSetupWindow
 					TextTransfer.getInstance()
 				});
 				dragSource.addDragListener(dragSourceListener);
+
+			
+				dropTarget = tvAvail.createDropTarget(DND.DROP_DEFAULT
+						| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
+						| DND.DROP_TARGET_MOVE);
+				dropTarget.setTransfer(new Transfer[] {
+					TextTransfer.getInstance()
+				});
+				dropTarget.addDropListener(new DropTargetAdapter() {
+					public void drop(DropTargetEvent event) {
+						String id = (String) event.data;
+						
+						if (!id.equals("c")) {
+							return;
+						}
+
+						removeSelectedChosen();
+					}
+				});
+				
 			}
 
 			public void tableViewDestroyed() {
 				if (dragSource != null && !dragSource.isDisposed()) {
 					dragSource.dispose();
 				}
+				if (dropTarget != null && !dropTarget.isDisposed()) {
+					dropTarget.dispose();
+				}
 			}
 		});
+
 		tvAvail.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				for (int i = 0; i < rows.length; i++) {
