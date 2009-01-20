@@ -272,7 +272,7 @@ public class TableColumnSetupWindow
 		cProficiency.setLayout(new FormLayout());
 
 		Label lblProficiency = new Label(cProficiency, SWT.NONE);
-		lblProficiency.setText("Your Proficiency:");
+		lblProficiency.setText("Proficiency:");
 
 		radProficiency[0] = new Button(cProficiency, SWT.RADIO);
 		Messages.setLanguageText(radProficiency[0], "ConfigView.section.mode.beginner");
@@ -358,12 +358,11 @@ public class TableColumnSetupWindow
 		
 		final ExpandItem expandItemFilters = new ExpandItem(expandFilters, SWT.NONE);
 		expandItemFilters.setText("Filters");
-		//expandItemFilters.setHeight(cFilterArea.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
 		expandItemFilters.setControl(cFilterArea);
 		expandFilters.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				expandItemFilters.setHeight(cFilterArea.computeSize(
-						expandFilters.getSize().x, SWT.DEFAULT).y);
+						expandFilters.getSize().x, SWT.DEFAULT).y + 3);
 			}
 		});
 
@@ -537,12 +536,18 @@ public class TableColumnSetupWindow
 
 		if (CAT_BUTTONS) {
 			fd = new FormData();
-			fd.top = new FormAttachment(cCategories, 0, SWT.CENTER);
+			fd.bottom = new FormAttachment(cCategories, 0, SWT.CENTER);
 			fd.left = new FormAttachment(0, 5);
 			lblCat.setLayoutData(fd);
+			
+			fd = new FormData();
+			//fd.top = new FormAttachment(0, 0);
+			fd.bottom = new FormAttachment(radProficiency[0], 0, SWT.CENTER);
+			fd.left = new FormAttachment(0, 0);
+			lblProficiency.setLayoutData(fd);
 
   		fd = new FormData();
-  		fd.top = new FormAttachment(cProficiency, 0);
+  		fd.top = new FormAttachment(cProficiency, 5);
   		fd.left = new FormAttachment(lblCat, 5);
   		fd.right = new FormAttachment(100, 0);
   		cCategories.setLayoutData(fd);
@@ -560,7 +565,7 @@ public class TableColumnSetupWindow
 
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(0, 2);
+		fd.left = new FormAttachment(0, 5);
 		cProficiency.setLayoutData(fd);
 
 		fd = new FormData();
