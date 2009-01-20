@@ -364,6 +364,16 @@ BasicPluginConfigImpl
 				
 				swt_param.setLayoutData( gridData );
 				
+			}else if ( param instanceof InfoParameterImpl ){
+				
+				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+				
+				gridData.widthHint = 150;
+				
+				swt_param = new InfoParameter(current_composite, key, "" );
+				
+				swt_param.setLayoutData( gridData );
+				
 			}else if ( param instanceof StringListParameterImpl ){
 				
 				StringListParameterImpl	sl_param = (StringListParameterImpl)param;

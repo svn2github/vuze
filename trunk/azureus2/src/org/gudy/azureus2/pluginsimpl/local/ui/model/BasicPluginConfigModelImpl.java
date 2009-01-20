@@ -32,6 +32,7 @@ import java.util.*;
 
 
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.InfoParameter;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
@@ -256,6 +257,18 @@ BasicPluginConfigModelImpl
 		String		resource_name )
 	{
 		LabelParameterImpl res = new LabelParameterImpl(configobj, key_prefix, resource_name );
+		
+		parameters.add( res );
+		
+		return( res );		
+	}
+	
+	public InfoParameter
+	addInfoParameter2(
+		String		resource_name,
+		String		value )
+	{
+		InfoParameterImpl res = new InfoParameterImpl(configobj, key_prefix, resource_name, value );
 		
 		parameters.add( res );
 		

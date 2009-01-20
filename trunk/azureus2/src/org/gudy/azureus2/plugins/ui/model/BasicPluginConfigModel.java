@@ -198,6 +198,18 @@ BasicPluginConfigModel
 		String 		resource_name );
 	
 	/**
+	 * @since 4005
+	 * @param resource_name
+	 * @param value
+	 * @return
+	 */
+	
+	public InfoParameter
+	addInfoParameter2(
+		String 		resource_name,
+		String		value );
+
+	/**
 	 * @since 2.5.0.2
 	 */
 	public HyperlinkParameter addHyperlinkParameter2(String resource_name, String url_location);

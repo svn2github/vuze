@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.swt.components;
 
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Color;
@@ -83,6 +84,19 @@ BufferedLabel
 		FormData	gd )
 	{
 		label.setLayoutData( gd );
+	}
+	
+	public void
+	setLayoutData(
+		Object	ld )
+	{
+		label.setLayoutData( ld );
+	}
+	
+	public Control
+	getControl()
+	{
+		return( label );
 	}
 	
 	public void
