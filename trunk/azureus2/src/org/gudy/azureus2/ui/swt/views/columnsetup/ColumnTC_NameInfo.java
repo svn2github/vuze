@@ -80,7 +80,7 @@ public class ColumnTC_NameInfo
 		if (bounds == null || bounds.isEmpty()) {
 			return;
 		}
-
+		
 		Font fontDefault = gc.getFont();
 		if (fontHeader == null) {
 			FontData[] fontData = gc.getFont().getFontData();
@@ -94,7 +94,7 @@ public class ColumnTC_NameInfo
 		bounds.x += 7;
 		bounds.width -= 14;
 		String name = MessageText.getString(key, column.getName());
-		GCStringPrinter sp = new GCStringPrinter(gc, name, bounds, 0, SWT.TOP);
+		GCStringPrinter sp = new GCStringPrinter(gc, name, bounds, GCStringPrinter.FLAG_SKIPCLIP, SWT.TOP);
 		sp.printString();
 
 		Point titleSize = sp.getCalculatedSize();
@@ -105,7 +105,7 @@ public class ColumnTC_NameInfo
 						+ column.getName() + ".info");
 		Rectangle infoBounds = new Rectangle(bounds.x + 10, bounds.y + titleSize.y
 				+ 5, bounds.width - 15, bounds.height - 20);
-		GCStringPrinter.printString(gc, info, infoBounds);
+		GCStringPrinter.printString(gc, info, infoBounds, true, false);
 
 		TableColumnInfo columnInfo = (TableColumnInfo) cell.getTableRowCore().getData(
 				"columninfo");
@@ -122,7 +122,7 @@ public class ColumnTC_NameInfo
 			gc.setForeground(Colors.grey);
 			GCStringPrinter.printString(gc,
 					MessageText.getString("ConfigView.section.mode."
-							+ profText[proficiency]), profBounds, false,
+							+ profText[proficiency]), profBounds, true,
 					false, SWT.RIGHT | SWT.TOP);
 			gc.setForeground(oldColor);
 		}
@@ -145,7 +145,7 @@ public class ColumnTC_NameInfo
 			gc.fillRoundRectangle(x, y, w, h, 8, h);
 			gc.setForeground(ColorCache.getColor(gc.getDevice(), 255, 255, 255));
 			hitArea = new Rectangle(x, y, w, h);
-			GCStringPrinter.printString(gc, "Add", hitArea, false, false, SWT.CENTER);
+			GCStringPrinter.printString(gc, "Add", hitArea, true, false, SWT.CENTER);
 			bounds = cell.getBounds();
 			hitArea.x -= bounds.x;
 			hitArea.y -= bounds.y;

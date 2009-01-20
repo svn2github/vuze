@@ -332,7 +332,7 @@ public class TableColumnSetupWindow
 		lblChosenHeader.setText("Selected Columns");
 
 		Button btnUp = new Button(cResultArea, SWT.PUSH);
-		btnUp.setText("Up");
+		btnUp.setText("^");
 		btnUp.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenUp();
@@ -343,7 +343,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDown = new Button(cResultArea, SWT.PUSH);
-		btnDown.setText("Down");
+		btnDown.setText("v");
 		btnDown.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenDown();
@@ -354,7 +354,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDel = new Button(cResultArea, SWT.PUSH);
-		btnDel.setText("Remove");
+		btnDel.setText("-");
 		btnDel.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				removeSelectedChosen();
@@ -558,6 +558,7 @@ public class TableColumnSetupWindow
 				}
 			}
 		}
+		tvAvail.processDataSourceQueue();
 	}
 
 	/**
