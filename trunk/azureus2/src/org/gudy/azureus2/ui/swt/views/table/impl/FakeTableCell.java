@@ -609,7 +609,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableRow()
 	public TableRow getTableRow() {
-		if (fakeRow != null) {
+		if (fakeRow == null) {
 			fakeRow = new TableRow() {
 				public void setForegroundToErrorColor() {
 				}
