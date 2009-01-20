@@ -34,7 +34,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -80,7 +79,8 @@ import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.utils.*;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.util.*;
@@ -95,6 +95,8 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -2233,6 +2235,7 @@ public class SideBar
 				view.delete();
 			}
 			view = null;
+			item.dispose();
 		}
 		return view;
 	}
@@ -2527,7 +2530,10 @@ public class SideBar
 						null, true);
 
 				if (entry.iview == null) {
-					createSideBarContentArea(id, entry);
+					IView view = createSideBarContentArea(id, entry);
+					if (view == null) {
+						return false;
+					}
 				}
 			}
 		} catch (ClassNotFoundException ce) {
