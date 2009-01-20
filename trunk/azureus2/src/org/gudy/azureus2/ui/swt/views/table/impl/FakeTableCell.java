@@ -329,6 +329,9 @@ public class FakeTableCell
 	}
 
 	public void invokeSWTPaintListeners(GC gc) {
+		if (getBounds().isEmpty()) {
+			return;
+		}
   	if (tableColumn != null) {
 			Object[] swtPaintListeners = tableColumn.getCellOtherListeners("SWTPaint");
 			if (swtPaintListeners != null) { 
