@@ -224,7 +224,7 @@ public class TableColumnSetupWindow
 		cResultArea.setLayout(new FormLayout());
 		fd = new FormData();
 		fd.top = new FormAttachment(topInfo, 5);
-		fd.right = new FormAttachment(100, 0);
+		fd.right = new FormAttachment(100, -3);
 		fd.bottom = new FormAttachment(btnOk, -5);
 		fd.width = 200;
 		cResultArea.setLayoutData(fd);
@@ -525,7 +525,7 @@ public class TableColumnSetupWindow
 
 		fd = new FormData();
 		fd.top = new FormAttachment(topInfo, 5);
-		fd.left = new FormAttachment(0, 0);
+		fd.left = new FormAttachment(0, 3);
 		fd.right = new FormAttachment(cResultArea, -3);
 		fd.bottom = new FormAttachment(100, -3);
 		cPickArea.setLayoutData(fd);
@@ -766,7 +766,12 @@ public class TableColumnSetupWindow
 				TableColumn.class, TABLEID_CHOSEN);
 		for (int i = 0; i < columnTVChosen.length; i++) {
 			TableColumnCore column = columnTVChosen[i];
-			column.setVisible(column.getName().equals(ColumnTC_ChosenColumn.COLUMN_ID));
+			if (column.getName().equals(ColumnTC_ChosenColumn.COLUMN_ID)) {
+				column.setVisible(true);
+				column.setWidth(175);
+			} else {
+				column.setVisible(false);
+			}
 		}
 
 		final TableViewColumnSetup tvChosen = new TableViewColumnSetup(this,
@@ -890,11 +895,13 @@ public class TableColumnSetupWindow
 			(TableColumnCore) mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
 			(TableColumnCore) mapColumns.get(ColumnTC_Sample.COLUMN_ID),
 		};
+		int[] widths = { 405, 120 };
 		for (int i = 0; i < columns.length; i++) {
 			TableColumnCore column = columns[i];
 			if (column != null) {
 				column.setVisible(true);
 				column.setPositionNoShift(i);
+				column.setWidth(widths[i]);
 			}
 		}
 
