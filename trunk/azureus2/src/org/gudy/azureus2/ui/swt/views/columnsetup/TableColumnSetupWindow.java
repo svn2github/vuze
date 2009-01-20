@@ -645,17 +645,20 @@ public class TableColumnSetupWindow
 			TableColumnCore column = datasources[i];
 			TableColumnInfo info = tcm.getColumnInfo(forDataSourceType,
 					forTableID, column.getName());
-			if (info == null || info.getCategories() == null) {
-				continue;
-			}
-			String[] cats = info.getCategories();
-			for (int j = 0; j < cats.length; j++) {
-				String cat = cats[j];
-				if ((selectedCat == null || selectedCat.equalsIgnoreCase(cat))
-						&& info.getProficiency() <= selectedProf) {
+			String[] cats = info == null ? null : info.getCategories();
+			if (cats == null) {
+				if (selectedCat == null || selectedCat.equals("uncat")) {
 					tvAvail.addDataSource(column);
-					break;
 				}
+			} else {
+  			for (int j = 0; j < cats.length; j++) {
+  				String cat = cats[j];
+  				if ((selectedCat == null || selectedCat.equalsIgnoreCase(cat))
+  						&& info.getProficiency() <= selectedProf) {
+  					tvAvail.addDataSource(column);
+  					break;
+  				}
+  			}
 			}
 		}
 		tvAvail.processDataSourceQueue();
@@ -767,6 +770,7 @@ public class TableColumnSetupWindow
 			if (column.getName().equals(ColumnTC_ChosenColumn.COLUMN_ID)) {
 				column.setVisible(true);
 				column.setWidth(175);
+				column.setSortAscending(true);
 			} else {
 				column.setVisible(false);
 			}
