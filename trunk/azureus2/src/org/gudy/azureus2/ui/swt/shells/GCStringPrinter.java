@@ -47,13 +47,13 @@ public class GCStringPrinter
 
 	private static final String GOOD_STRING = "(/|,jI~`gy";
 
-	private static final int FLAG_SKIPCLIP = 1;
+	public static final int FLAG_SKIPCLIP = 1;
 
-	private static final int FLAG_FULLLINESONLY = 2;
+	public static final int FLAG_FULLLINESONLY = 2;
 
-	private static final int FLAG_NODRAW = 4;
+	public static final int FLAG_NODRAW = 4;
 
-	private static final int FLAG_KEEP_URL_INFO = 8;
+	public static final int FLAG_KEEP_URL_INFO = 8;
 
 	private static final Pattern patHREF = Pattern.compile(
 			"<\\s*?a\\s.*?href\\s*?=\\s*?\"(.+?)\".*?>(.*?)<\\s*?/a\\s*?>",
