@@ -36,6 +36,7 @@ import com.aelitis.azureus.ui.swt.views.RateItListView;
 import com.aelitis.azureus.ui.swt.views.list.ListCell;
 import com.aelitis.azureus.ui.swt.views.list.ListView;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -48,6 +49,8 @@ public class ColumnRateDropDown
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static String COLUMN_ID = "RateDD";
 
 	private final static int DROP_DOWN_ARROW_WIDTH = 20;
@@ -70,13 +73,12 @@ public class ColumnRateDropDown
 	 * 
 	 */
 	public ColumnRateDropDown(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 10, sTableID);
 		if (imgDD == null) {
 			imgDD = ImageLoader.getInstance().getImage("image.rateitdd");
 			imgDDbounds = imgDD.getBounds();
 		}
 		initializeAsGraphic(imgDDbounds.width);
-		setAlignment(ALIGN_CENTER);
 	}
 
 	public void cellAdded(TableCell cell) {

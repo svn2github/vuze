@@ -6,7 +6,6 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -17,9 +16,8 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.util.DataSourceUtils;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -31,19 +29,24 @@ public class ColumnQuality
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellSWTPaintListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "Quality";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	public Font font;
 
-	private final int COLUMN_WIDTH = 50;
+	private final static int COLUMN_WIDTH = 50;
 
 	/**
 	 * 
 	 */
 	public ColumnQuality(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, COLUMN_WIDTH, sTableID);
 		initializeAsGraphic(COLUMN_WIDTH);
-		setAlignment(ALIGN_CENTER);
 	}
 
 	public void cellAdded(TableCell cell) {

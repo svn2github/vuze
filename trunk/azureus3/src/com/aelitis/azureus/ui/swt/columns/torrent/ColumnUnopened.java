@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -40,7 +41,13 @@ public class ColumnUnopened
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "unopened";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT, CAT_ESSENTIAL });
+	}
 
 	private static UISWTGraphicImpl graphicCheck;
 	private static UISWTGraphicImpl graphicUnCheck;

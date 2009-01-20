@@ -43,9 +43,7 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * A non-interactive (no click no hover) thumbnail column
@@ -58,6 +56,10 @@ public class ColumnThumbnail
 	implements TableCellRefreshListener, TableCellSWTPaintListener
 {
 	public static final String COLUMN_ID = "Thumbnail";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	private static final int WIDTH_SMALL = 35;
 
@@ -72,13 +74,12 @@ public class ColumnThumbnail
 
 	/** Default Constructor */
 	public ColumnThumbnail(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(COLUMN_ID, ALIGN_CENTER, 0, sTableID);
 		if (TableManager.TABLE_ACTIVITY_BIG.equals(sTableID)) {
 			initializeAsGraphic(WIDTH_ACTIVITY);
 		} else {
 			initializeAsGraphic(sTableID.endsWith(".big") ? WIDTH_BIG : WIDTH_SMALL);
 		}
-		setAlignment(ALIGN_CENTER);
 	}
 
 	public void dispose(TableCell cell) {

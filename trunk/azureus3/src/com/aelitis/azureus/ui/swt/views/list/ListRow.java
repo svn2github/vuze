@@ -31,6 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -120,7 +121,7 @@ public class ListRow
 
 			ListCell listCell;
 			int iColumnPos = column.getPosition();
-			int iSWTAlign = CoreTableColumn.getSWTAlign(column.getAlignment());
+			int iSWTAlign = TableColumnSWTUtils.convertColumnAlignmentToSWT(column.getAlignment());
 			if (column.getType() == TableColumn.TYPE_GRAPHIC) {
 				listCell = new ListCellGraphic(this, iSWTAlign, bounds);
 			} else {

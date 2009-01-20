@@ -18,8 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
-import java.text.SimpleDateFormat;
-
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -27,8 +25,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 /**
  * @author TuxPaper
@@ -39,7 +39,13 @@ public class ColumnVideoLength
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "videoLength";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	private static final int WIDTH = 100;
 

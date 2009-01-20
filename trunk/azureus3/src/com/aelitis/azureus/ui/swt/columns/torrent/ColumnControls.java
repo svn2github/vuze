@@ -27,7 +27,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
@@ -39,6 +38,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.columns.utils.ColumnImageClickArea;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -51,6 +51,8 @@ public class ColumnControls
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static String COLUMN_ID = "Controls";
 
 	private static final int COLUMN_WIDTH = 32;
@@ -64,9 +66,8 @@ public class ColumnControls
 	List listClickAreas = new ArrayList();
 
 	public ColumnControls(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, COLUMN_WIDTH, sTableID);
 		initializeAsGraphic(COLUMN_WIDTH);
-		setAlignment(ALIGN_LEAD);
 		setMinWidth(COLUMN_WIDTH);
 		setMaxWidth(COLUMN_WIDTH);
 

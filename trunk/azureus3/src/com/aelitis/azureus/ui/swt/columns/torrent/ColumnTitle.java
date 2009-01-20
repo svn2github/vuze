@@ -28,9 +28,7 @@ import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
@@ -40,7 +38,6 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.skin.SkinConstants;
@@ -49,10 +46,10 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -66,7 +63,13 @@ public class ColumnTitle
 	implements TableCellRefreshListener, ObfusticateCellText,
 	TableCellMouseMoveListener, TableCellDisposeListener, TableCellVisibilityListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static String COLUMN_ID = "name";
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT, CAT_ESSENTIAL });
+	}
 
 	public static boolean SHOW_EXT_INFO = false;
 	

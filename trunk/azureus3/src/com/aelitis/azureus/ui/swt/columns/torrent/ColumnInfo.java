@@ -35,6 +35,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.DataSourceUtils;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -48,6 +49,8 @@ public class ColumnInfo
 	implements TableCellAddedListener,
 	TableCellMouseListener, TableCellSWTPaintListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "Info";
 
 	private static Rectangle imgBounds;
@@ -68,9 +71,14 @@ public class ColumnInfo
 	 * 
 	 */
 	public ColumnInfo(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
 		initializeAsGraphic(width);
-		setAlignment(ALIGN_CENTER);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
 	}
 
 	public void cellAdded(TableCell cell) {

@@ -27,6 +27,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -40,6 +41,8 @@ public class ColumnIsSeeding
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static String COLUMN_ID = "IsSeeding";
 
 	private static UISWTGraphicImpl graphicCheck;
@@ -53,9 +56,8 @@ public class ColumnIsSeeding
 	}
 
 	public ColumnIsSeeding(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
 		initializeAsGraphic(width);
-		setAlignment(ALIGN_CENTER);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

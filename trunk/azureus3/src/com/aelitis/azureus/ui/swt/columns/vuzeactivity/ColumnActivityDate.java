@@ -36,7 +36,6 @@ public class ColumnActivityDate
 	extends ColumnDateSizer
 	implements TableCellAddedListener
 {
-
 	public static final String COLUMN_ID = "activityDate";
 
 	/**
@@ -44,7 +43,7 @@ public class ColumnActivityDate
 	 * @param tableID
 	 */
 	public ColumnActivityDate(String tableID) {
-		super(COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, tableID);
+		super(null, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, tableID);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

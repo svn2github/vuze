@@ -1,7 +1,8 @@
 package com.aelitis.azureus.ui.swt.columns.utils;
 
 import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -11,17 +12,13 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionName;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbNewResults;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNbResults;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionNew;
-import com.aelitis.azureus.ui.swt.columns.subscriptions.ColumnSubscriptionLastChecked;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.*;
 
-import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
@@ -379,21 +376,17 @@ public class TableColumnCreatorV3
 
 		// short variable names to reduce wrapping
 		final Map c = new LightHashMap(7);
-		final Class all = Download.class;
-		final Class dl = DownloadTypeIncomplete.class;
-		//final Class cd = DownloadTypeComplete.class;
 
-		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, all));
-		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, all));
-		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, all));
-		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, all));
-		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, all));
-		c.put(ColumnRatingGlobal.COLUMN_ID,
-				new cInfo(ColumnRatingGlobal.class, all));
-		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, all));
-		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, all));
-		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, all));
-		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, dl));
+		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
+		//c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class, ColumnThumbnail.DATASOURCE_TYPE));
+		c.put(ColumnQuality.COLUMN_ID, new cInfo(ColumnQuality.class, ColumnQuality.DATASOURCE_TYPE));
+		c.put(ColumnInfo.COLUMN_ID, new cInfo(ColumnInfo.class, ColumnInfo.DATASOURCE_TYPE));
+		c.put(ColumnRateUpDown.COLUMN_ID, new cInfo(ColumnRateUpDown.class, ColumnRateUpDown.DATASOURCE_TYPE));
+		c.put(ColumnRatingGlobal.COLUMN_ID, new cInfo(ColumnRatingGlobal.class, ColumnRatingGlobal.DATASOURCE_TYPE));
+		c.put(ColumnVideoLength.COLUMN_ID, new cInfo(ColumnVideoLength.class, ColumnVideoLength.DATASOURCE_TYPE));
+		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
+		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
+		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, ColumnProgressETA.DATASOURCE_TYPE));
 
 		/////////
 
@@ -411,12 +404,12 @@ public class TableColumnCreatorV3
 		c.put(ColumnThumbnail.COLUMN_ID, new cInfo(ColumnThumbnail.class,
 				new Class[] {
 					ac,
-					all
+					Download.class
 				}));
 		c.put(ColumnAzProduct.COLUMN_ID, new cInfo(ColumnAzProduct.class,
 				new Class[] {
 					ac,
-					all
+					Download.class
 				}));
 
 		// Core columns are implementors of TableColumn to save one class creation
@@ -426,9 +419,9 @@ public class TableColumnCreatorV3
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 
 		TableColumnCoreCreationListener tcCreator = new TableColumnCoreCreationListener() {
-			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore()
-			public TableColumnCore createTableColumnCore(String tableID,
-					String columnID) {
+			// @see org.gudy.azureus2.ui.swt.views.table.TableColumnCoreCreationListener#createTableColumnCore(java.lang.Class, java.lang.String, java.lang.String)
+			public TableColumnCore createTableColumnCore(Class forDataSourceType,
+					String tableID, String columnID) {
 				cInfo info = (cInfo) c.get(columnID);
 
 				try {
@@ -468,7 +461,7 @@ public class TableColumnCreatorV3
 		public Class cla;
 
 		public Class[] forDataSourceTypes;
-
+		
 		public cInfo(Class cla, Class forDataSourceType) {
 			this.cla = cla;
 			this.forDataSourceTypes = new Class[] {

@@ -26,9 +26,7 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -39,6 +37,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformRatingMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -53,6 +52,8 @@ public class ColumnRateUpDown
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "RateIt";
 	
 	private static UISWTGraphicImpl graphicRate;
@@ -99,10 +100,15 @@ public class ColumnRateUpDown
 	 * 
 	 */
 	public ColumnRateUpDown(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
 		initializeAsGraphic(width);
-		setAlignment(ALIGN_CENTER);
 		setWidthLimits(width, width);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
 	}
 
 	public void cellAdded(TableCell cell) {

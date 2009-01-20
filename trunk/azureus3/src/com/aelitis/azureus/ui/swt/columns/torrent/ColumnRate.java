@@ -50,6 +50,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -61,6 +62,8 @@ public class ColumnRate
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "Rating";
 
 	public static final int COLUMN_WIDTH = 58;
@@ -141,11 +144,17 @@ public class ColumnRate
 	 * 
 	 */
 	public ColumnRate(String sTableID, boolean allowRate) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, COLUMN_WIDTH, sTableID);
 		this.allowRate = allowRate;
 		initializeAsGraphic(COLUMN_WIDTH);
 		setAlignment(ALIGN_TRAIL);
 		setWidthLimits(COLUMN_WIDTH, COLUMN_WIDTH);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT
+		});
 	}
 
 	public void cellAdded(TableCell cell) {

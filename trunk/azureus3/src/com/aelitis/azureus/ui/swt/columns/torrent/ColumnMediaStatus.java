@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
@@ -35,6 +36,8 @@ public class ColumnMediaStatus
 	extends CoreTableColumn
 	implements TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 
 	public static String COLUMN_ID = "MediaStatus";
 
@@ -42,8 +45,7 @@ public class ColumnMediaStatus
 	 * 
 	 */
 	public ColumnMediaStatus(String sTableID) {
-		super(COLUMN_ID, sTableID);
-		setWidth(120);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 120, sTableID);
 	}
 
 	public void refresh(TableCell cell) {

@@ -51,10 +51,14 @@ public class ColumnAzProduct
 	 * 
 	 */
 	public ColumnAzProduct(String sTableID) {
-		super(COLUMN_ID, sTableID);
-		initializeAsGraphic(150);
-		setMinWidth(30);
-		setAlignment(ALIGN_CENTER);
+		super(COLUMN_ID, ALIGN_CENTER, 40, sTableID);
+		initializeAsGraphic(40);
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+		});
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)

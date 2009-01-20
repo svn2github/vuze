@@ -46,9 +46,9 @@ import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableTooltips;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnEditorWindow;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.*;
@@ -1261,7 +1261,7 @@ public class ListView
 					int width = columns[i].getWidth();
 					String key = columns[i].getTitleLanguageKey();
 					String text = MessageText.getString(key, "");
-					int align = CoreTableColumn.getSWTAlign(columns[i].getAlignment());
+					int align = TableColumnSWTUtils.convertColumnAlignmentToSWT(columns[i].getAlignment());
 
 					int drawWidth = width;
 

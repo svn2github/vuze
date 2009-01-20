@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.torrent.RatingInfoList;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -53,9 +54,15 @@ public class ColumnRatingGlobal
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static final String COLUMN_ID = "Rating_global";
 
 	public static final int COLUMN_WIDTH = 60;
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] { CAT_CONTENT });
+	}
 
 	private static Font font = null;
 
@@ -65,7 +72,7 @@ public class ColumnRatingGlobal
 	 * 
 	 */
 	public ColumnRatingGlobal(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, COLUMN_WIDTH, sTableID);
 		initialize(ALIGN_LEAD, POSITION_INVISIBLE, COLUMN_WIDTH);
 	}
 

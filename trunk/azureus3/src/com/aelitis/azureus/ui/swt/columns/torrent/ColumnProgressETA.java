@@ -27,9 +27,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -40,6 +39,8 @@ public class ColumnProgressETA
 	extends CoreTableColumn
 	implements TableCellAddedListener
 {
+	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+
 	public static final String COLUMN_ID = "ProgressETA";
 
 	private static final int borderWidth = 1;
@@ -66,7 +67,7 @@ public class ColumnProgressETA
 	 * 
 	 */
 	public ColumnProgressETA(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, COLUMN_WIDTH, sTableID);
 		initializeAsGraphic(COLUMN_WIDTH);
 		setAlignment(ALIGN_LEAD);
 		setMinWidth(COLUMN_WIDTH);
@@ -90,6 +91,14 @@ public class ColumnProgressETA
 		if (cText == null) {
 			cText = Colors.black;
 		}
+	}
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
+		info.addCategories(new String[] {
+			CAT_CONTENT,
+			CAT_ESSENTIAL,
+			CAT_TIME,
+		});
 	}
 
 	public void cellAdded(TableCell cell) {

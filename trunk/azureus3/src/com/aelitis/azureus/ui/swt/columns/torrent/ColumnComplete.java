@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -41,6 +42,8 @@ public class ColumnComplete
 	extends CoreTableColumn
 	implements TableCellAddedListener, TableCellRefreshListener
 {
+	public static final Class DATASOURCE_TYPE = Download.class;
+
 	public static String COLUMN_ID = "CompleteIcon";
 
 	private static UISWTGraphicImpl graphicWait;
@@ -57,9 +60,8 @@ public class ColumnComplete
 	 * 
 	 */
 	public ColumnComplete(String sTableID) {
-		super(COLUMN_ID, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, width, sTableID);
 		initializeAsGraphic(width);
-		setAlignment(ALIGN_CENTER);
 		setWidthLimits(width, width);
 	}
 
