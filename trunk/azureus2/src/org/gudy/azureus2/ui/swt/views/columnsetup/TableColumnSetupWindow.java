@@ -417,12 +417,12 @@ public class TableColumnSetupWindow
 		btnUp.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.left = new FormAttachment(btnUp, 10);
+		fd.left = new FormAttachment(btnUp, 5);
 		fd.top = new FormAttachment(lblChosenHeader, 5);
 		btnDown.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.left = new FormAttachment(btnDown, 10);
+		fd.left = new FormAttachment(btnDown, 5);
 		fd.top = new FormAttachment(lblChosenHeader, 5);
 		btnDel.setLayoutData(fd);
 
@@ -434,21 +434,21 @@ public class TableColumnSetupWindow
 		cTableChosen.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -5);
-		fd.width = 60;
+		fd.right = new FormAttachment(100, -8);
+		fd.bottom = new FormAttachment(100, -3);
+		fd.width = 64;
 		btnApply.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.right = new FormAttachment(btnApply, -5);
+		fd.right = new FormAttachment(btnApply, -3);
 		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
-		fd.width = 60;
+		fd.width = 65;
 		btnCancel.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.right = new FormAttachment(btnCancel, -5);
+		fd.right = new FormAttachment(btnCancel, -3);
 		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
-		fd.width = 60;
+		fd.width = 64;
 		btnOk.setLayoutData(fd);
 
 		// <<<<<<<<< Chosen
@@ -701,6 +701,10 @@ public class TableColumnSetupWindow
 							TableColumnCore column = (TableColumnCore) dataSources[i];
 							if (column != null) {
 								chooseColumn(column, destRow, true);
+								TableRowCore row = tvAvail.getRow(column);
+								if (row != null) {
+									row.redraw();
+								}
 							}
 						}
 					}
@@ -933,7 +937,7 @@ public class TableColumnSetupWindow
 
 			int oldPosition = column.getPosition();
 			final boolean shiftDir = oldPosition > newPosition
-					&& mapNewVisibility.get(column).booleanValue();
+					||  !mapNewVisibility.get(column).booleanValue();
 			column.setPositionNoShift(newPosition);
 			mapNewVisibility.put(column, Boolean.TRUE);
 
@@ -960,24 +964,7 @@ public class TableColumnSetupWindow
 					return 0;
 				}
 			});
-			/*			
-						for (int i = 0; i < columnsChosen.length; i++) {
-							TableColumnCore tableColumn = (TableColumnCore) columnsChosen[i];
-							int pos = tableColumn.getPosition();
-							if (tableColumn == column) {
-								pos = newPosition;
-							} else if (pos == newPosition) {
-								pos++;
-							} else if (pos < 0) {
-								// nothing
-							} else if (pos < newPosition && pos >= oldPosition) {
-								pos--;
-							} else if (pos >= newPosition && pos <= oldPosition) {
-								pos++;
-							}
-							tableColumn.setPositionNoShift(pos);
-						}
-			*/
+
 			int pos = 0;
 			for (int i = 0; i < columnsChosen.length; i++) {
 				if (mapNewVisibility.get(columnsChosen[i]).booleanValue()) {
