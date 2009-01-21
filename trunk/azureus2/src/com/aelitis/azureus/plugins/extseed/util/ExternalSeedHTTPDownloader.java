@@ -283,7 +283,7 @@ ExternalSeedHTTPDownloader
                 	
                     outcome += ", Retry-After: " + last_response_retry_after_secs + " seconds";
                 }
-				
+				                
 				ExternalSeedException excep = new ExternalSeedException( outcome, e );
 				
 				if ( e instanceof FileNotFoundException ){
@@ -501,15 +501,10 @@ ExternalSeedHTTPDownloader
 							
 						}else{
 							
-							log_str =  new String( buffer, 0, length );
-							
-							if ( log_str.length() > 64 ){
-								
-								log_str = log_str.substring( 0, 64 );
-							}
+							log_str =  new String( buffer, 0, buffer_pos>64?64:buffer_pos );
 						}
 						
-						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + log_str + "]" ));
+						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [last=" + log_str + "]" ));
 					}
 					
 					// System.out.println( "download length: " + pos );
@@ -575,7 +570,7 @@ ExternalSeedHTTPDownloader
 				throw( new ExternalSeedException( outcome, e ));
 			}
 		}catch( Throwable e ){
-			
+						
 			if ( e instanceof ExternalSeedException ){
 				
 				throw((ExternalSeedException)e);
