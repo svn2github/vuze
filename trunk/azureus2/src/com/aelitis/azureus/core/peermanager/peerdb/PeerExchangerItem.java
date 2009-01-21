@@ -39,9 +39,9 @@ public class PeerExchangerItem {
   
   private final PeerDatabase parent_db;
   private final PeerItem base_peer;
-  private final LinkedList connections_added = new LinkedList();
-  private final LinkedList connections_dropped = new LinkedList();
-  private final Map connected_peers = new LightHashMap();
+  private final LinkedList<PeerItem> connections_added 		= new LinkedList<PeerItem>();
+  private final LinkedList<PeerItem> connections_dropped 	= new LinkedList<PeerItem>();
+  private final Map<PeerItem,Object> connected_peers = new LightHashMap<PeerItem,Object>();
   private final AEMonitor peers_mon = new AEMonitor( "PeerConnectionItem" );
   private boolean maintain_peers_state = true;  //assume we do until explicitly disabled
   private final Helper helper;
