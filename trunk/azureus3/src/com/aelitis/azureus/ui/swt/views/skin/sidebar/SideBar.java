@@ -2268,6 +2268,7 @@ public class SideBar
 
 							skinObject = skin.createSkinObject(id, configID, soParent, params);
 							skinObject.getControl().setLayoutData(Utils.getFilledFormData());
+							skinObject.getControl().getParent().layout(true);
 						} finally {
 							shell.setCursor(cursor);
 						}
