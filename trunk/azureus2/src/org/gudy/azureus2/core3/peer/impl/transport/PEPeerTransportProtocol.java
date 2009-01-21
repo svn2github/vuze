@@ -3344,8 +3344,9 @@ implements PEPeerTransport
 		//peer exchange registration
 		if( manager.isPeerExchangeEnabled()) {
 			//try and register all connections for their peer exchange info
-			if(peer_exchange_item == null)
+			if(peer_exchange_item == null && canBePeerExchanged()){
 				peer_exchange_item = manager.createPeerExchangeConnection( this );
+			}
 			
 			if( peer_exchange_item != null ) {
 				//check for peer exchange support
@@ -3362,7 +3363,26 @@ implements PEPeerTransport
 		bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
 	}
 
+	private boolean
+	canBePeerExchanged()
+	{
+		if ( client_peer_id != null ){
 
+				// disable the exchange of location targetted peers
+			
+			boolean ok = !client_peer_id.startsWith( PeerClassifier.CACHE_LOGIC );
+			
+			// System.out.println( "canPEX: " + client_peer_id + " -> " + ok );
+			
+			return( ok );
+			
+		}else{
+			
+			Debug.out( "No client peer id!" );
+			
+			return( false );
+		}
+	}
 
 	private boolean peerSupportsMessageType( String message_id ) {
 		if( supported_messages != null ) {
