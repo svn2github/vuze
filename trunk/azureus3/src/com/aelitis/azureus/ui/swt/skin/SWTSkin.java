@@ -19,12 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.swt.SWT;
@@ -32,26 +28,18 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Sash;
-import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core3.util.*;
+import org.eclipse.swt.widgets.*;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.skin.SkinProperties;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -75,31 +63,33 @@ public class SWTSkin
 
 	private Listener handCursorListener;
 
-	private Listener ontopPaintListener;
+	//private Listener ontopPaintListener;
 
 	// Key = Skin Object ID; Value = Array of SWTSkinObject
-	private HashMap mapIDsToControls = new HashMap();
+	private HashMap<String, SWTSkinObject[]> mapIDsToSOs = new HashMap<String, SWTSkinObject[]>();
+	
+	private AEMonitor mon_MapIDsToSOs = new AEMonitor("mapIDsToControls");
 
 	// Key = TabSet ID; Value = SWTSkinTabSet
-	private HashMap mapTabSetToControls = new HashMap();
+	private HashMap<String, SWTSkinTabSet> mapTabSetToControls = new HashMap<String, SWTSkinTabSet>();
 
 	// Key = Widget ID; Value = Array of SWTSkinObject
-	private HashMap mapPublicViewIDsToControls = new HashMap();
+	private HashMap<String, SWTSkinObject[]> mapPublicViewIDsToSOs = new HashMap<String, SWTSkinObject[]>();
 
-	private HashMap mapPublicViewIDsToListeners = new HashMap();
+	private AEMonitor mon_mapPublicViewIDsToSOs = new AEMonitor("mapPVIDsToSOs");
+
+	private HashMap<String, ArrayList<SWTSkinObjectListener>> mapPublicViewIDsToListeners = new HashMap<String, ArrayList<SWTSkinObjectListener>>();
 
 	private AEMonitor mapPublicViewIDsToListeners_mon = new AEMonitor(
-			"SWTSkin::mapPublicViewIDsToListeners");
+			"mapPVIDsToListeners");
 
-	private ArrayList ontopImages = new ArrayList();
+	private ArrayList<SWTSkinObjectBasic> ontopImages = new ArrayList<SWTSkinObjectBasic>();
 
 	private Shell shell;
 
 	private boolean bLayoutComplete = false;
 
-	private List listenersLayoutComplete = new ArrayList();
-
-	private final ClassLoader classLoader;
+	private CopyOnWriteList<SWTSkinLayoutCompleteListener> listenersLayoutComplete = new CopyOnWriteList<SWTSkinLayoutCompleteListener>();
 
 	private boolean ourSkinProperties = false;
 
@@ -111,13 +101,11 @@ public class SWTSkin
 	 * 
 	 */
 	public SWTSkin() {
-		this.classLoader = SWTSkin.class.getClassLoader();
 		ourSkinProperties = true;
 		init(new SWTSkinPropertiesImpl());
 	}
 
 	public SWTSkin(ClassLoader classLoader, String skinPath, String mainSkinFile) {
-		this.classLoader = classLoader;
 		ourSkinProperties = true;
 		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile));
 	}
@@ -137,6 +125,7 @@ public class SWTSkin
 			mapImageLoaders.put(skinProperties, imageLoader);
 		}
 
+		/*
 		ontopPaintListener = new Listener() {
 			public void handleEvent(Event event) {
 				for (Iterator iter = ontopImages.iterator(); iter.hasNext();) {
@@ -170,13 +159,14 @@ public class SWTSkin
 				}
 			}
 		};
+		*/
 	}
 
 	public ImageLoader getImageLoader(SkinProperties properties) {
 		if (properties == this.skinProperties) {
 			return imageLoader;
 		}
-		ImageLoader loader = (ImageLoader) mapImageLoaders.get(properties);
+		ImageLoader loader = mapImageLoaders.get(properties);
 
 		if (loader != null) {
 			return loader;
@@ -193,7 +183,7 @@ public class SWTSkin
 		if (DEBUGLAYOUT) {
 			System.out.println("addToControlMap: " + sID + " : " + skinObject);
 		}
-		addToArrayMap(mapIDsToControls, sID, skinObject);
+		addToSOArrayMap(mapIDsToSOs, mon_MapIDsToSOs, sID, skinObject);
 
 		// For SWT layout -- add a reverse lookup
 		Control control = skinObject.getControl();
@@ -203,46 +193,57 @@ public class SWTSkin
 		}
 	}
 
-	private void addToArrayMap(Map arrayMap, Object key, SWTSkinObject object) {
-		Object existing = arrayMap.get(key);
-		if (existing instanceof SWTSkinObject[]) {
-			SWTSkinObject[] existingObjects = (SWTSkinObject[]) existing;
-
-			boolean bAlreadyPresent = false;
-			for (int i = 0; i < existingObjects.length; i++) {
-				//System.out.println(".." + existingObjects[i]);
-				if (existingObjects[i] != null && existingObjects[i].equals(object)) {
-					bAlreadyPresent = true;
-					System.err.println("already present: " + key + "; " + object
-							+ "; existing: " + existingObjects[i] + " via "
-							+ Debug.getCompressedStackTrace());
-					break;
-				}
+	private void addToSOArrayMap(Map<String, SWTSkinObject[]> arrayMap,
+			AEMonitor mon, String key, SWTSkinObject object) {
+		if (mon != null) {
+			mon.enter();
+		}
+		try {
+  		Object existing = arrayMap.get(key);
+  		if (existing instanceof SWTSkinObject[]) {
+  			SWTSkinObject[] existingObjects = (SWTSkinObject[]) existing;
+  
+  			boolean bAlreadyPresent = false;
+  			for (int i = 0; i < existingObjects.length; i++) {
+  				//System.out.println(".." + existingObjects[i]);
+  				if (existingObjects[i] != null && existingObjects[i].equals(object)) {
+  					bAlreadyPresent = true;
+  					System.err.println("already present: " + key + "; " + object
+  							+ "; existing: " + existingObjects[i] + " via "
+  							+ Debug.getCompressedStackTrace());
+  					break;
+  				}
+  			}
+  
+  			if (!bAlreadyPresent) {
+  				int length = existingObjects.length;
+  				SWTSkinObject[] newObjects = new SWTSkinObject[length + 1];
+  				System.arraycopy(existingObjects, 0, newObjects, 0, length);
+  				newObjects[length] = object;
+  
+  				arrayMap.put(key, newObjects);
+  				//				System.out.println("addToArrayMap: " + key + " : " + object + " #"
+  				//						+ (length + 1));
+  			}
+  		} else {
+  			arrayMap.put(key, new SWTSkinObject[] {
+  				object
+  			});
+  		}
+		} finally {
+			if (mon != null) {
+				mon.exit();
 			}
-
-			if (!bAlreadyPresent) {
-				int length = existingObjects.length;
-				SWTSkinObject[] newObjects = new SWTSkinObject[length + 1];
-				System.arraycopy(existingObjects, 0, newObjects, 0, length);
-				newObjects[length] = object;
-
-				arrayMap.put(key, newObjects);
-				//				System.out.println("addToArrayMap: " + key + " : " + object + " #"
-				//						+ (length + 1));
-			}
-		} else {
-			arrayMap.put(key, new SWTSkinObject[] {
-				object
-			});
 		}
 	}
 
-	private Object getFromArrayMap(Map arrayMap, Object key, SWTSkinObject parent) {
+	private Object getFromSOArrayMap(Map<String, SWTSkinObject[]> arrayMap,
+			Object key, SWTSkinObject parent) {
 		if (parent == null) {
 			return null;
 		}
 
-		SWTSkinObject[] objects = (SWTSkinObject[]) arrayMap.get(key);
+		SWTSkinObject[] objects = arrayMap.get(key);
 		if (objects == null) {
 			return null;
 		}
@@ -262,9 +263,11 @@ public class SWTSkin
 	}
 
 	private void setSkinObjectViewID(SWTSkinObject skinObject, String sViewID) {
-		addToArrayMap(mapPublicViewIDsToControls, sViewID, skinObject);
+		addToSOArrayMap(mapPublicViewIDsToSOs, mon_mapPublicViewIDsToSOs, sViewID,
+				skinObject);
 	}
 
+	/*
 	public void dumpObjects() {
 		System.out.println("=====");
 		FormData formdata;
@@ -292,29 +295,10 @@ public class SWTSkin
 			}
 		}
 	}
-
-	/**
-	 * Get all the SWTSkinObject of a specific type
-	 * 
-	 * @param sTypeRegEx Type of skin objects to find (container, image, etc)
-	 * @return
-	 *
-	 * @since 3.0.1.3
-	 */
-	public SWTSkinObject[] getSkinObjectsByType(String sTypeRegEx) {
-		List list = new ArrayList();
-		for (Iterator iter = mapIDsToControls.keySet().iterator(); iter.hasNext();) {
-			String sID = (String) iter.next();
-			SWTSkinObject so = getSkinObjectByID(sID);
-			if (so != null && so.getType().matches(sTypeRegEx)) {
-				list.add(so);
-			}
-		}
-		return (SWTSkinObject[]) list.toArray(new SWTSkinObject[0]);
-	}
+	*/
 
 	public SWTSkinObject getSkinObjectByID(String sID) {
-		SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(sID);
+		SWTSkinObject[] objects = mapIDsToSOs.get(sID);
 		if (objects == null) {
 			return null;
 		}
@@ -328,11 +312,11 @@ public class SWTSkin
 			return getSkinObjectByID(sID);
 		}
 
-		return (SWTSkinObject) getFromArrayMap(mapIDsToControls, sID, parent);
+		return (SWTSkinObject) getFromSOArrayMap(mapIDsToSOs, sID, parent);
 	}
 
 	public SWTSkinObject getSkinObject(String sViewID) {
-		SWTSkinObject[] objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(sViewID);
+		SWTSkinObject[] objects = mapPublicViewIDsToSOs.get(sViewID);
 		if (objects == null || objects.length == 0) {
 			if (!Utils.isThisThreadSWT()) {
 				Debug.out("View "
@@ -393,8 +377,8 @@ public class SWTSkin
 			return parent;
 		}
 
-		SWTSkinObject so = (SWTSkinObject) getFromArrayMap(
-				mapPublicViewIDsToControls, sViewID, parent);
+		SWTSkinObject so = (SWTSkinObject) getFromSOArrayMap(
+				mapPublicViewIDsToSOs, sViewID, parent);
 		if (so == null) {
 			so = createUnattachedView(sViewID, parent);
 		}
@@ -403,7 +387,7 @@ public class SWTSkin
 	}
 
 	public SWTSkinTabSet getTabSet(String sID) {
-		return (SWTSkinTabSet) mapTabSetToControls.get(sID);
+		return mapTabSetToControls.get(sID);
 	}
 
 	public SWTSkinObjectTab activateTab(SWTSkinObject skinObjectInTab) {
@@ -417,8 +401,8 @@ public class SWTSkin
 			return tab;
 		}
 
-		for (Iterator iter = mapTabSetToControls.values().iterator(); iter.hasNext();) {
-			SWTSkinTabSet tabset = (SWTSkinTabSet) iter.next();
+		for (Iterator<SWTSkinTabSet> iter = mapTabSetToControls.values().iterator(); iter.hasNext();) {
+			SWTSkinTabSet tabset = iter.next();
 
 			SWTSkinObjectTab[] tabs = tabset.getTabs();
 			boolean bHasSkinObject = false;
@@ -625,8 +609,8 @@ public class SWTSkin
 	 */
 	private void disposeSkin() {
 		numSkins--;
-		for (Iterator iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
-			ImageLoader loader = (ImageLoader) iter.next();
+		for (Iterator<ImageLoader> iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
+			ImageLoader loader = iter.next();
 			loader.unLoadImages();
 		}
 		if (ourSkinProperties) {
@@ -636,7 +620,7 @@ public class SWTSkin
 
 	/**
 	 * 
-	 */
+	 *
 	private void addPaintListenerToAll(Control control) {
 		// XXX: Bug: When paint listener is set to shell, browser widget will flicker on OSX when resizing
 		if (!(control instanceof Shell)) {
@@ -652,22 +636,24 @@ public class SWTSkin
 			}
 		}
 	}
+	*/
 
 	public void layout() {
 		if (DEBUGLAYOUT) {
 			System.out.println("==== Start Apply Layout");
 		}
 		// Apply layout data from skin
-		for (Iterator iter = mapIDsToControls.keySet().iterator(); iter.hasNext();) {
-			String sID = (String) iter.next();
-			SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(sID);
-
-			if (DEBUGLAYOUT) {
-				System.out.println("Apply Layout for " + objects.length + " " + sID);
-			}
-
-			for (int i = 0; i < objects.length; i++) {
-				attachControl(objects[i]);
+		Object[] values = mapIDsToSOs.values().toArray();
+		for (int i = 0; i < values.length; i++) {
+			SWTSkinObject[] skinObjects = (SWTSkinObject[]) values[i];
+			if (skinObjects != null) {
+				for (int j = 0; j < skinObjects.length; j++) {
+					SWTSkinObject skinObject = skinObjects[j];
+					if (DEBUGLAYOUT) {
+						System.out.println("Apply Layout for " + skinObject);
+					}
+					attachControl(skinObject);
+				}
 			}
 		}
 
@@ -676,9 +662,7 @@ public class SWTSkin
 
 		bLayoutComplete = true;
 
-		Object[] listeners = listenersLayoutComplete.toArray();
-		for (int i = 0; i < listeners.length; i++) {
-			SWTSkinLayoutCompleteListener l = (SWTSkinLayoutCompleteListener) listeners[i];
+		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
 			l.skinLayoutCompleted();
 		}
 		listenersLayoutComplete.clear();
@@ -1140,7 +1124,7 @@ public class SWTSkin
 
 		String sTabSet = properties.getStringValue(sConfigID + ".tabset", "default");
 
-		SWTSkinTabSet tabset = (SWTSkinTabSet) mapTabSetToControls.get(sTabSet);
+		SWTSkinTabSet tabset = mapTabSetToControls.get(sTabSet);
 		if (tabset == null) {
 			tabset = new SWTSkinTabSet(this, sTabSet);
 			mapTabSetToControls.put(sTabSet, tabset);
@@ -1206,6 +1190,7 @@ public class SWTSkin
 	//		return;
 	//	}
 
+	/* Used for dumpObjectsOnly
 	private String getAttachLine(FormAttachment attach) {
 		String s = "";
 		if (attach.control != null) {
@@ -1232,6 +1217,7 @@ public class SWTSkin
 		}
 		return s;
 	}
+	*/
 
 	protected Listener getHandCursorListener(Display display) {
 		if (handCursorListener == null) {
@@ -1313,32 +1299,42 @@ public class SWTSkin
 		skinObject.triggerListeners(SWTSkinObjectListener.EVENT_DESTROY);
 
 		String id = skinObject.getSkinObjectID();
-		SWTSkinObject[] objects = (SWTSkinObject[]) mapIDsToControls.get(id);
-		if (objects != null) {
-			int x = 0;
-			for (int i = 0; i < objects.length; i++) {
-				if (objects[i] != skinObject) {
-					objects[x++] = objects[i];
-				}
-			}
-
-			SWTSkinObject[] newObjects = new SWTSkinObject[x];
-			System.arraycopy(objects, 0, newObjects, 0, x);
-			mapIDsToControls.put(id, newObjects);
+		mon_MapIDsToSOs.enter();
+		try {
+  		SWTSkinObject[] objects = mapIDsToSOs.get(id);
+  		if (objects != null) {
+  			int x = 0;
+  			for (int i = 0; i < objects.length; i++) {
+  				if (objects[i] != skinObject) {
+  					objects[x++] = objects[i];
+  				}
+  			}
+  
+  			SWTSkinObject[] newObjects = new SWTSkinObject[x];
+  			System.arraycopy(objects, 0, newObjects, 0, x);
+  			mapIDsToSOs.put(id, newObjects);
+  		}
+		} finally {
+			mon_MapIDsToSOs.exit();
 		}
 
-		id = skinObject.getViewID();
-		objects = (SWTSkinObject[]) mapPublicViewIDsToControls.get(id);
-		if (objects != null) {
-			int x = 0;
-			for (int i = 0; i < objects.length; i++) {
-				if (objects[i] != skinObject) {
-					objects[x++] = objects[i];
-				}
-			}
-			SWTSkinObject[] newObjects = new SWTSkinObject[x];
-			System.arraycopy(objects, 0, newObjects, 0, x);
-			mapPublicViewIDsToControls.put(id, newObjects);
+		mon_mapPublicViewIDsToSOs.enter();
+		try {
+  		id = skinObject.getViewID();
+  		SWTSkinObject[] objects = mapPublicViewIDsToSOs.get(id);
+  		if (objects != null) {
+  			int x = 0;
+  			for (int i = 0; i < objects.length; i++) {
+  				if (objects[i] != skinObject) {
+  					objects[x++] = objects[i];
+  				}
+  			}
+  			SWTSkinObject[] newObjects = new SWTSkinObject[x];
+  			System.arraycopy(objects, 0, newObjects, 0, x);
+  			mapPublicViewIDsToSOs.put(id, newObjects);
+  		}
+		} finally {
+			mon_mapPublicViewIDsToSOs.exit();
 		}
 
 		skinObject.dispose();
@@ -1714,10 +1710,10 @@ public class SWTSkin
 			Object existing = mapPublicViewIDsToListeners.get(viewID);
 
 			if (existing instanceof List) {
-				List list = (List) existing;
+				List<SWTSkinObjectListener> list = (List<SWTSkinObjectListener>) existing;
 				list.add(listener);
 			} else {
-				ArrayList list = new ArrayList();
+				ArrayList<SWTSkinObjectListener> list = new ArrayList<SWTSkinObjectListener>();
 				list.add(listener);
 				mapPublicViewIDsToListeners.put(viewID, list);
 			}
@@ -1733,14 +1729,12 @@ public class SWTSkin
 
 		mapPublicViewIDsToListeners_mon.enter();
 		try {
-			Object existing = mapPublicViewIDsToListeners.get(viewID);
+			ArrayList<SWTSkinObjectListener> existing = mapPublicViewIDsToListeners.get(viewID);
 
-			if (existing instanceof List) {
-				List list = (List) existing;
-				return (SWTSkinObjectListener[]) list.toArray(NOLISTENERS);
-			} else {
-				return NOLISTENERS;
+			if (existing != null) {
+				return existing.toArray(NOLISTENERS);
 			}
+			return NOLISTENERS;
 		} finally {
 			mapPublicViewIDsToListeners_mon.exit();
 		}
@@ -1780,11 +1774,10 @@ public class SWTSkin
 	 * @since 3.1.1.1
 	 */
 	public void triggerLanguageChange() {
-		Object[] values = mapIDsToControls.values().toArray();
+		Object[] values = mapIDsToSOs.values().toArray();
 		for (int i = 0; i < values.length; i++) {
-			Object value = values[i];
-			if (value instanceof SWTSkinObject[]) {
-				SWTSkinObject[] skinObjects = (SWTSkinObject[]) value;
+			SWTSkinObject[] skinObjects = (SWTSkinObject[]) values[i];
+			if (skinObjects != null) {
 				for (int j = 0; j < skinObjects.length; j++) {
 					SWTSkinObject so = skinObjects[j];
 					so.triggerListeners(SWTSkinObjectListener.EVENT_LANGUAGE_CHANGE);
