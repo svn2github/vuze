@@ -228,9 +228,9 @@ public class LightHashMap<S,T> extends AbstractMap<S,T> implements Cloneable {
 		}
 	}
 
-	public Object put(final Object key, final Object value) {
+	public T put(final Object key, final Object value) {
 		checkCapacity(1);
-		return add(key, value, false);
+		return (T)add(key, value, false);
 	}
 
 	public void putAll(final Map m) {
