@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.ipfilter.IPFilterListener;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -41,7 +41,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
-import com.aelitis.azureus.core.peer.cache.cachelogic.CLCacheDiscovery;
+// import com.aelitis.azureus.core.peer.cache.cachelogic.CLCacheDiscovery;
 
 public class 
 CacheDiscovery 
@@ -50,10 +50,10 @@ CacheDiscovery
 
 	private static final CacheDiscoverer[] discoverers = {
 		
-		new CLCacheDiscovery(),
+		// No longer supported: new CLCacheDiscovery(),
 	};
 	
-	private static Set	cache_ips = Collections.synchronizedSet(new HashSet());
+	private static Set<String>	cache_ips = Collections.synchronizedSet(new HashSet<String>());
 	
 	public static void
 	initialise(
@@ -103,10 +103,10 @@ CacheDiscovery
 				}
 			});
 		
-		new AEThread( "CacheDiscovery:ban checker", true )
+		new AEThread2( "CacheDiscovery:ban checker", true )
 			{
 				public void
-				runSupport()
+				run()
 				{
 					BannedIp[] bans = ip_filter.getBannedIps();
 				
@@ -178,13 +178,17 @@ CacheDiscovery
 	{
 		CachePeer[]	res;
 		
-		if ( discoverers.length == 1 ){
+		if ( discoverers.length == 0 ){
+			
+			res = new CachePeer[0];
+			
+		}else if ( discoverers.length == 1 ){
 			
 			res = discoverers[0].lookup( torrent );
 			
 		}else{
 		
-			List	result = new ArrayList();
+			List<CachePeer>	result = new ArrayList<CachePeer>();
 			
 			for (int i=0;i<discoverers.length;i++){
 				
@@ -196,7 +200,7 @@ CacheDiscovery
 				}
 			}
 			
-			res = (CachePeer[])result.toArray( new CachePeer[result.size()]);
+			res = result.toArray( new CachePeer[result.size()]);
 		}
 		
 		for (int i=0;i<res.length;i++){
