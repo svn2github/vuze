@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 CopyOnWriteList<T> 
+implements Iterable<T>
 {
 	private static final boolean LOG_STATS = false;
 	
