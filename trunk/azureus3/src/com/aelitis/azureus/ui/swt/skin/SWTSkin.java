@@ -1318,9 +1318,7 @@ public class SWTSkin
 			int x = 0;
 			for (int i = 0; i < objects.length; i++) {
 				if (objects[i] != skinObject) {
-					if (x++ != i) {
-						objects[x] = objects[i];
-					}
+					objects[x++] = objects[i];
 				}
 			}
 
@@ -1335,9 +1333,7 @@ public class SWTSkin
 			int x = 0;
 			for (int i = 0; i < objects.length; i++) {
 				if (objects[i] != skinObject) {
-					if (x++ != i) {
-						objects[x] = objects[i];
-					}
+					objects[x++] = objects[i];
 				}
 			}
 			SWTSkinObject[] newObjects = new SWTSkinObject[x];
