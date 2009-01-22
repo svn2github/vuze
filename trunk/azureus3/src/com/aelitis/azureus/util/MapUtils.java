@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.util.Base32;
 public class MapUtils
 {
 	public static int getMapInt(Map map, String key, int def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			return ((Number) map.get(key)).intValue();
 		} catch (Exception e) {
@@ -41,6 +44,9 @@ public class MapUtils
 	}
 
 	public static long getMapLong(Map map, String key, long def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			return ((Number) map.get(key)).longValue();
 		} catch (Exception e) {
@@ -49,6 +55,9 @@ public class MapUtils
 	}
 
 	public static String getMapString(Map map, String key, String def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			Object o = map.get(key);
 			if (o == null && !map.containsKey(key)) {
@@ -67,6 +76,9 @@ public class MapUtils
 	}
 
 	public static byte[] getMapByteArray(Map map, String key, byte[] def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			Object o = map.get(key);
 			if (o instanceof byte[]) {
@@ -96,6 +108,9 @@ public class MapUtils
 	}
 
 	public static Object getMapObject(Map map, String key, Object def, Class cla) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			Object o = map.get(key);
 			if (cla.isInstance(o)) {
@@ -109,6 +124,9 @@ public class MapUtils
 	}
 
 	public static boolean getMapBoolean(Map map, String key, boolean def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			Object o = map.get(key);
 			if (o instanceof Boolean) {
@@ -126,6 +144,9 @@ public class MapUtils
 	}
 
 	public static List getMapList(Map map, String key, List def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			List list = (List) map.get(key);
 			if (list == null && !map.containsKey(key)) {
@@ -138,6 +159,9 @@ public class MapUtils
 	}
 
 	public static Map getMapMap(Map map, String key, Map def) {
+		if (map == null) {
+			return def;
+		}
 		try {
 			Map valMap = (Map) map.get(key);
 			if (valMap == null && !map.containsKey(key)) {
