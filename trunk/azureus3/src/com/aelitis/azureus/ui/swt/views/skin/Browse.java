@@ -161,15 +161,19 @@ public class Browse
 
 			String menuID = "sidebar."
 					+ ContentNetworkUtils.getTarget(contentNetwork);
-
-			MenuItem menuItem = menuManager.addMenuItem(menuID, "Button.reset");
+			
+			MenuItem parent = menuManager.addMenuItem(menuID, "CVS Only");
+			parent.setStyle(MenuItem.STYLE_MENU);
+			
+			
+			MenuItem menuItem = menuManager.addMenuItem(parent, "Button.reset");
 			menuItem.addListener(new MenuItemListener() {
 				public void selected(MenuItem menu, Object target) {
 					browserSkinObject.restart();
 				}
 			});
 
-			menuItem = menuManager.addMenuItem(menuID, "Tux RPC Test");
+			menuItem = menuManager.addMenuItem(parent, "Tux RPC Test");
 			menuItem.addListener(new MenuItemListener() {
 				public void selected(MenuItem menu, Object target) {
 					browserSkinObject.setURL("c:\\test\\BrowserMessaging.html");
@@ -177,7 +181,7 @@ public class Browse
 			});
 
 			if (contentNetwork != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
-				menuItem = menuManager.addMenuItem(menuID, "Remove HD Network");
+				menuItem = menuManager.addMenuItem(parent, "Remove HD Network");
 				menuItem.addListener(new MenuItemListener() {
 					public void selected(MenuItem menu, Object target) {
 						if (sidebar != null) {
@@ -191,7 +195,7 @@ public class Browse
 					}
 				});
 
-				menuItem = menuManager.addMenuItem(menuID, "Reset IP Flag && Close");
+				menuItem = menuManager.addMenuItem(parent, "Reset IP Flag && Close");
 				menuItem.addListener(new MenuItemListener() {
 					public void selected(MenuItem menu, Object target) {
 						contentNetwork.setPersistentProperty(
@@ -206,7 +210,7 @@ public class Browse
 					}
 				});
 			}
-			menuItem = menuManager.addMenuItem(menuID, "Source Ref: "
+			menuItem = menuManager.addMenuItem(parent, "Source Ref: "
 					+ contentNetwork.getPersistentProperty(ContentNetwork.PP_SOURCE_REF));
 			menuItem.setEnabled(false);
 		}
