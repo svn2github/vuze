@@ -98,19 +98,13 @@ public interface UIFunctions
 	 */
 	boolean dispose(boolean for_restart, boolean close_already_in_progress);
 
-	/**
-	 * @param url
-	 * @param target TODO
-	 * @param w
-	 * @param h
-	 * @param allowResize 
-	 * @return success level
-	 */
 	boolean viewURL(String url, String target, int w, int h, boolean allowResize,
 			boolean isModal);
 
 	boolean viewURL(String url, String target, double wPct, double hPct,
 			boolean allowResize, boolean isModal);
+
+	void viewURL(String url, String target, String sourceRef);
 
 
 	public UIFunctionsUserPrompter getUserPrompter(String title, String text,

@@ -365,6 +365,11 @@ public class UIFunctionsImpl
 	public UISWTInstance getUISWTInstance() {
 		return mainwindow.getUISWTInstanceImpl();
 	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, java.lang.String)
+	public void viewURL(String url, String target, String sourceRef) {
+		viewURL(url, target, 0.9, 0.9, true, false);
+	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, int, int, boolean, boolean)
 	public boolean viewURL(final String url, final String target, final int w,
