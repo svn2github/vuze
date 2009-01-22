@@ -922,11 +922,19 @@ public class TableColumnSetupWindow
 	private TableViewColumnSetup createTVAvail() {
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 		Map mapColumns = tcm.getTableColumnsAsMap(TableColumn.class, TABLEID_AVAIL);
-		TableColumnCore[] columns = {
-			(TableColumnCore) mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
-			(TableColumnCore) mapColumns.get(ColumnTC_Sample.COLUMN_ID),
-		};
+		TableColumnCore[] columns;
 		int[] widths = { 405, 120 };
+		if (sampleRow == null) {
+			columns = new TableColumnCore[] {
+				(TableColumnCore) mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
+			};
+			widths = new int[] { 525 };
+		} else {
+			columns = new TableColumnCore[] {
+				(TableColumnCore) mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
+				(TableColumnCore) mapColumns.get(ColumnTC_Sample.COLUMN_ID),
+			};
+		}
 		for (int i = 0; i < columns.length; i++) {
 			TableColumnCore column = columns[i];
 			if (column != null) {
