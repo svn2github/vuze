@@ -20,6 +20,9 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -77,6 +80,9 @@ public class Browse
 	private SideBarVitalityImage vitalityImage;
 
 	private ContentNetwork contentNetwork;
+	
+	// Only accessed in SWT thread
+	private List<Long> listAlreadyCalledLoginRPC = new ArrayList<Long>();
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
@@ -104,11 +110,15 @@ public class Browse
 		} else {
 			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
 		}
-
+		
 		// Vuze network login happens in Initializer.  The rest can be initialized
 		// when browser area is created (here)
-		if (contentNetwork.getID() != ContentNetwork.CONTENT_NETWORK_VUZE) {
-			PlatformConfigMessenger.login(contentNetwork.getID(), 0);
+		long cnID = contentNetwork.getID();
+		if (cnID != ContentNetwork.CONTENT_NETWORK_VUZE) {
+			if (!listAlreadyCalledLoginRPC.contains(new Long(cnID))) { 
+				PlatformConfigMessenger.login(contentNetwork.getID(), 0);
+				listAlreadyCalledLoginRPC.add(new Long(cnID));
+			}
 		}
 
 		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
