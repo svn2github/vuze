@@ -167,7 +167,16 @@ public class TableColumnSetupWindow
 			}
 		};
 		
-		String tableName = MessageText.getString(_tableID + "View.header");
+		String tableName = MessageText.getString(_tableID + "View.header",
+				(String) null);
+		if (tableName == null) {
+			tableName = MessageText.getString(_tableID + "View.title.full",
+					(String) null);
+			if (tableName == null) {
+				tableName = _tableID;
+			}
+		}
+		
 
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 		Utils.setShellIcon(shell);
@@ -185,9 +194,7 @@ public class TableColumnSetupWindow
 		});
 
 		Label topInfo = new Label(shell, SWT.WRAP);
-		topInfo.setText("Explore the available columns on the left, and add them to the list of visible columns on the right.  "
-				+ "Expand or narrow down the list of available columns by using the Filter section on the bottom left.  "
-				+ "Drag and Drop and keyboard shortcuts are also supported.");
+		Messages.setLanguageText(topInfo, "ColumnSetup.explain");
 
 		fd = Utils.getFilledFormData();
 		fd.left.offset = 5;
@@ -205,7 +212,6 @@ public class TableColumnSetupWindow
 		});
 
 		cPickArea = new Group(shell, SWT.NONE);
-		cPickArea.setText("Columns");
 		cPickArea.setLayout(new FormLayout());
 
 
@@ -218,7 +224,7 @@ public class TableColumnSetupWindow
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 
 		Group cResultArea = new Group(shell, SWT.NONE);
-		cResultArea.setText("Chosen Columns");
+		Messages.setLanguageText(cResultArea, "ColumnSetup.chosencolumns");
 		cResultArea.setLayout(new FormLayout());
 		fd = new FormData();
 		fd.top = new FormAttachment(topInfo, 5);
@@ -272,7 +278,7 @@ public class TableColumnSetupWindow
 		cProficiency.setLayout(new FormLayout());
 
 		Label lblProficiency = new Label(cProficiency, SWT.NONE);
-		lblProficiency.setText("Proficiency:");
+		Messages.setLanguageText(lblProficiency, "ColumnSetup.proficiency");
 
 		radProficiency[0] = new Button(cProficiency, SWT.RADIO);
 		Messages.setLanguageText(radProficiency[0], "ConfigView.section.mode.beginner");
@@ -321,7 +327,7 @@ public class TableColumnSetupWindow
 		};
 		
 		Label lblCat = new Label(cFilterArea, SWT.NONE);
-		lblCat.setText("Categories:");
+		Messages.setLanguageText(lblCat, "ColumnSetup.categories");
 		
 		if (CAT_BUTTONS) {
 			cCategories = new Composite(cFilterArea, SWT.NONE);
@@ -335,12 +341,21 @@ public class TableColumnSetupWindow
   		for (String cat : listCats) {
   			button = new Button(cCategories, SWT.TOGGLE);
   			button.setData("cat", cat);
-  			button.setText(cat);
+  			if (MessageText.keyExists("ColumnCategory." + cat)) {
+    			button.setText(MessageText.getString("ColumnCategory." + cat));
+  			} else {
+    			button.setText(cat);
+  			}
   			button.addListener(SWT.Selection, buttonListener);
   		}
   
   		if (listColumnsNoCat.size() > 0) {
   			button = new Button(cCategories, SWT.TOGGLE);
+  			if (MessageText.keyExists("ColumnCategory.uncat")) {
+    			button.setText(MessageText.getString("ColumnCategory.uncat"));
+  			} else {
+    			button.setText("?");
+  			}
   			button.setText("?");
   			button.setData("cat", "uncat");
   			button.addListener(SWT.Selection, buttonListener);
@@ -357,7 +372,7 @@ public class TableColumnSetupWindow
 		}
 		
 		final ExpandItem expandItemFilters = new ExpandItem(expandFilters, SWT.NONE);
-		expandItemFilters.setText("Filters");
+		expandItemFilters.setText(MessageText.getString("ColumnSetup.filters"));
 		expandItemFilters.setControl(cFilterArea);
 		expandFilters.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
@@ -388,8 +403,6 @@ public class TableColumnSetupWindow
 
 		// <<<<<<< Buttons
 		
-		fillAvail();
-
 		// >>>>>>> Chosen
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
@@ -452,6 +465,7 @@ public class TableColumnSetupWindow
 				tvChosen.addDataSource(columnsChosen[i]);
 			}
 		}
+		tvChosen.processDataSourceQueue();
 
 		Button btnCancel = new Button(shell, SWT.PUSH);
 		Messages.setLanguageText(btnCancel, "Button.cancel");
@@ -591,6 +605,8 @@ public class TableColumnSetupWindow
 			cTableAvail
 		});
 
+		fillAvail();
+		
 		UIUpdaterSWT.getInstance().addUpdater(this);
 	}
 
@@ -631,9 +647,17 @@ public class TableColumnSetupWindow
 			}
 		}
 
-		String s = "Available " + radProficiency[selectedProf].getText() + " Columns";
+		String s;
+		//= "Available " + radProficiency[selectedProf].getText() + " Columns";
 		if (selectedCat != null) {
-			s += " filtered by " + selectedCat;
+			s = MessageText.getString("ColumnSetup.availcolumns.filteredby", new String[] {
+				radProficiency[selectedProf].getText(),
+				selectedCat
+			});
+		} else {
+			s = MessageText.getString("ColumnSetup.availcolumns", new String[] {
+				radProficiency[selectedProf].getText(),
+			});
 		}
 		cPickArea.setText(s);
 
@@ -916,7 +940,7 @@ public class TableColumnSetupWindow
 				TABLEID_AVAIL, columns, ColumnTC_ChosenColumn.COLUMN_ID, false);
 		tvAvail.setMenuEnabled(false);
 		tvAvail.setSampleRow(sampleRow);
-		tvAvail.setRowDefaultHeight(55);
+		tvAvail.setRowDefaultHeight(60);
 		tvAvail.setDataSourceType(TableColumn.class);
 
 		tvAvail.addLifeCycleListener(new TableLifeCycleListener() {
