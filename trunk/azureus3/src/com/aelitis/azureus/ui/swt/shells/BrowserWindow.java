@@ -26,8 +26,7 @@ import org.eclipse.swt.events.TraverseEvent;
 import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -102,6 +101,21 @@ public class BrowserWindow
     		}
 			}
 		});
+		
+		final Listener escListener = new Listener() {
+			public void handleEvent(Event event) {
+				if (event.keyCode == 27) {
+					shell.dispose();
+				}
+			}
+		};
+		shell.getDisplay().addFilter(SWT.KeyDown, escListener);
+		shell.addListener(SWT.Dispose, new Listener() {
+			public void handleEvent(Event event) {
+				event.display.removeFilter(SWT.KeyDown, escListener);
+			}
+		});
+
 
 		browser = null;
 		
