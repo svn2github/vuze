@@ -82,7 +82,7 @@ public class Browse
 	private ContentNetwork contentNetwork;
 	
 	// Only accessed in SWT thread
-	private List<Long> listAlreadyCalledLoginRPC = new ArrayList<Long>();
+	private static List<Long> listAlreadyCalledLoginRPC = new ArrayList<Long>();
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
