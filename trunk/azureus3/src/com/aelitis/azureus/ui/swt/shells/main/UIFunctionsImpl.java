@@ -576,6 +576,12 @@ public class UIFunctionsImpl
 	public UISWTInstance getUISWTInstance() {
 		return mainWindow.getUISWTInstanceImpl();
 	}
+	
+	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, java.lang.String)
+	public void viewURL(String url, String target, String sourceRef) {
+		ContentNetworkUtils.setSourceRef(target, sourceRef, false);
+		viewURL(url, target, 0, 0, true, false);
+	}
 
 	public boolean viewURL(final String url, final String target, final int w,
 			final int h, final boolean allowResize, final boolean isModal) {
