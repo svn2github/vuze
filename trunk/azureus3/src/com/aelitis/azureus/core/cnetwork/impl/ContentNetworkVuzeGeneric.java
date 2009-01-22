@@ -473,12 +473,22 @@ ContentNetworkVuzeGeneric
 
 				return( base );
 			}
+			case SERVICE_AUTHORIZE:{
+
+				String sourceRef = params.length > 0 ? (String) params[0] : null;
+
+				if (sourceRef != null) {
+
+					base += "sourceref=" + UrlUtils.encode(sourceRef) + "&" + URL_SUFFIX;
+				}
+
+				return( base );
+			}
 			case SERVICE_BIG_BROWSE:
 			case SERVICE_PUBLISH:
 			case SERVICE_WELCOME:
 			case SERVICE_LOGOUT:
-			case SERVICE_REGISTER:
-			case SERVICE_AUTHORIZE:{
+			case SERVICE_REGISTER:{
 				
 				 return( base + URL_SUFFIX );
 			}
