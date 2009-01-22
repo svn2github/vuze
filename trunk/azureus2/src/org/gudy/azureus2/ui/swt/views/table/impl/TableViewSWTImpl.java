@@ -1905,11 +1905,8 @@ public class TableViewSWTImpl
 		if (focusedRow == null) {
 			focusedRow = getRow(0);
 		}
-		new TableColumnEditorWindow(table.getShell(), sTableID, tableColumns,
-				focusedRow, dataSourceType,
-				TableStructureEventDispatcher.getInstance(sTableID));		
-		//new TableColumnSetupWindow(dataSourceType, sTableID, focusedRow,
-		//		TableStructureEventDispatcher.getInstance(sTableID)).open();
+		new TableColumnSetupWindow(dataSourceType, sTableID, focusedRow,
+				TableStructureEventDispatcher.getInstance(sTableID)).open();
 	}
 
 	/**
