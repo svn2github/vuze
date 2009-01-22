@@ -113,8 +113,8 @@ public class UserAreaUtils
 						 */
 						if (null != uiFunctions) {
 							String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_MY_PROFILE );
-							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
-									0, true, true);
+							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
+									"curuser-name");
 						}
 
 					} else {
@@ -281,8 +281,8 @@ public class UserAreaUtils
 						if (url == null) {
 							return;
 						}
-						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0, 0,
-								true, true);
+						uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
+								"curuser-account-menu");
 					}
 
 				}
@@ -309,8 +309,8 @@ public class UserAreaUtils
 							String url = ContentNetworkUtils.getUrl(
 									ConstantsV3.DEFAULT_CONTENT_NETWORK,
 									ContentNetwork.SERVICE_MY_PROFILE);
-							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
-									0, true, true);
+							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
+									"curuser-profile-menu");
 						}
 
 					} else {

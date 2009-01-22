@@ -2652,15 +2652,9 @@ public class SideBar
 				doneAuth = ((Boolean) oDoneAuth).booleanValue();
 			}
 
-			if (!doneAuth) {
-				String authURL = ContentNetworkUtils.getUrl(cn,
-						ContentNetwork.SERVICE_AUTHORIZE);
-				if (authURL != null) {
-					// ensure we can RPC
-					UrlFilter.getInstance().addUrlWhitelist(authURL);
-					if (!AuthorizeWindow.openAuthorizeWindow(cn)) {
-						return;
-					}
+			if (!doneAuth && cn.isServiceSupported(ContentNetwork.SERVICE_AUTHORIZE)) {
+				if (!AuthorizeWindow.openAuthorizeWindow(cn)) {
+					return;
 				}
 			}
 

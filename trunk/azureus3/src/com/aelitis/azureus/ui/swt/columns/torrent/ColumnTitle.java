@@ -252,8 +252,8 @@ public class ColumnTitle
 						} else {
 							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
 							if (uif != null) {
-								uif.viewURL(hitUrl.url, SkinConstants.VIEWID_BROWSER_BROWSE, 0,
-										0, false, false);
+								uif.viewURL(hitUrl.url, SkinConstants.VIEWID_BROWSER_BROWSE,
+										"column.title");
 								return;
 							}
 						}

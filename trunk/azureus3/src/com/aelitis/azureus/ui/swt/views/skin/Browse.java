@@ -206,7 +206,9 @@ public class Browse
 					}
 				});
 			}
-
+			menuItem = menuManager.addMenuItem(menuID, "Source Ref: "
+					+ contentNetwork.getPersistentProperty(ContentNetwork.PP_SOURCE_REF));
+			menuItem.setEnabled(false);
 		}
 
 		return null;

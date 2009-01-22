@@ -264,10 +264,12 @@ public class BrowserContext
 					}
 					public void changing(LocationEvent event) {
 						event.doit = false;
-						System.out.println("SubBrowser URL : " + event.location);
 						if (!UrlFilter.getInstance().urlIsBlocked(event.location)
 								&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
+							debug("open sub browser: " + event.location);
 							Program.launch(event.location);
+						} else {
+							debug("blocked open sub browser: " + event.location);
 						}
 						Utils.execSWTThreadLater(0, new AERunnable() {
 							public void runSupport() {

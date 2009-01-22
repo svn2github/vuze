@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
@@ -66,6 +68,12 @@ public class PlatformConfigMessenger
 			azComputerID = pm.getAzComputerID();
 		} catch (PlatformManagerException e) {
 		}
+		
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
+		String sourceRef = (String) cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF);
+		if (sourceRef == null) {
+			sourceRef = "unknown";
+		}
 
 		Object[] params = new Object[] {
 			"version",
@@ -76,6 +84,8 @@ public class PlatformConfigMessenger
 			azComputerID,
 			"vid",
 			COConfigurationManager.getStringParameter("ID"),
+			"source-ref",
+			sourceRef
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
+
 package com.aelitis.azureus.ui.swt.shells;
 
 import org.gudy.azureus2.ui.swt.Utils;
@@ -34,19 +34,22 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 public class AuthorizeWindow
 {
 	public static boolean openAuthorizeWindow(final ContentNetwork cn) {
+		String authURL = ContentNetworkUtils.getUrl(cn,
+				ContentNetwork.SERVICE_AUTHORIZE, new Object[] {
+					cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF)
+				});
 		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
-				ContentNetworkUtils.getUrl(cn, ContentNetwork.SERVICE_AUTHORIZE), 560,
-				390, false, true);
-	
+				authURL, 560, 390, false, true);
+
 		final Boolean[] b = new Boolean[1];
 		b[0] = Boolean.FALSE;
-		
+
 		ClientMessageContext context = browserWindow.getContext();
 		context.addMessageListener(new AbstractBrowserMessageListener(
 				"contentnetwork") {
 			public void handleMessage(BrowserMessage message) {
 				String opid = message.getOperationId();
-				
+
 				if ("authorize".equals(opid)) {
 					cn.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
 							Boolean.TRUE);
@@ -54,9 +57,9 @@ public class AuthorizeWindow
 				}
 			}
 		});
-		
+
 		browserWindow.waitUntilClosed();
-		
+
 		return b[0].booleanValue();
 	}
 }

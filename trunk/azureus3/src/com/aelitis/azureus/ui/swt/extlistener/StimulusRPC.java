@@ -209,7 +209,8 @@ public class StimulusRPC
 						} else if (DisplayListener.OP_SWITCH_TO_TAB.equals(opId)) {
 							Map decodedMap = browserMsg.getDecodedMap();
 							DisplayListener.switchToTab(MapUtils.getMapString(decodedMap,
-									"target", ""));
+									"target", ""), MapUtils.getMapString(decodedMap,
+									"source-ref", null));
 						}
 
 					}

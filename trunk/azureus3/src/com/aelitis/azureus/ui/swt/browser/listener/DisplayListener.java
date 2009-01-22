@@ -27,6 +27,7 @@ import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -95,7 +96,8 @@ public class DisplayListener
 				showBrowser(MapUtils.getMapString(decodedMap, "url", null), target,
 						MapUtils.getMapInt(decodedMap, "width", 0), MapUtils.getMapInt(
 								decodedMap, "height", 0), MapUtils.getMapBoolean(decodedMap,
-								"resizable", false), message);
+								"resizable", false), message, MapUtils.getMapString(decodedMap,
+								"source-ref", message.getReferer()));
 			}
 		} else if (OP_RESET_URL.equals(opid)) {
 			resetURL();
@@ -148,7 +150,8 @@ public class DisplayListener
 			}
 			*/
 
-			switchToTab(MapUtils.getMapString(decodedMap, "target", ""));
+			switchToTab(MapUtils.getMapString(decodedMap, "target", ""),
+					MapUtils.getMapString(decodedMap, "source-ref", message.getReferer()));
 		} else if (OP_REFRESH_TAB.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
 			refreshTab(MapUtils.getMapString(decodedMap, "browser-id", ""));
@@ -266,10 +269,13 @@ public class DisplayListener
 	 *
 	 * @since 3.0.0.7
 	 */
-	public static void switchToTab(String tabID) {
+	public static void switchToTab(String tabID, String sourceRef) {
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sideBar == null) {
 			return;
+		}
+		if (sourceRef != null) {
+			ContentNetworkUtils.setSourceRef(tabID, sourceRef, false);
 		}
 		sideBar.showEntryByTabID(tabID);
 	}
@@ -454,11 +460,12 @@ public class DisplayListener
 	}
 
 	private void showBrowser(final String url, final String target, final int w,
-			final int h, final boolean allowResize, final BrowserMessage message) {
+			final int h, final boolean allowResize, final BrowserMessage message,
+			final String sourceRef) {
 		final UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions == null) {
-			AEThread thread = new AEThread("show browser " + url) {
-				public void runSupport() {
+			AEThread2 thread = new AEThread2("show browser " + url, true) {
+				public void run() {
 					final Display display = Display.getDefault();
 					display.asyncExec(new AERunnable() {
 						public void runSupport() {
@@ -470,16 +477,20 @@ public class DisplayListener
 					});
 				}
 			};
-			thread.run();
+			thread.start();
 			return;
 		}
 
-		AEThread thread = new AEThread("show browser " + url) {
-			public void runSupport() {
-				functions.viewURL(url, target, w, h, allowResize, false);
+		AEThread2 thread = new AEThread2("show browser " + url, true) {
+			public void run() {
+				if (w == 0 && target != null) {
+					functions.viewURL(url, target, sourceRef);
+				} else {
+					functions.viewURL(url, target, w, h, allowResize, false);
+				}
 				message.complete(false, true, null);
 			}
 		};
-		thread.run();
+		thread.start();
 	}
 }

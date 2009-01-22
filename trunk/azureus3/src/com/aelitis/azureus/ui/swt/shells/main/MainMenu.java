@@ -242,6 +242,7 @@ public class MainMenu
 						}
 						String sidebarID = ContentNetworkUtils.getTarget(contentNetwork);
 
+						ContentNetworkUtils.setSourceRef(contentNetwork, "menu", false);
 						sideBar.showEntryByTabID(sidebarID);
 					}
 				});

@@ -127,13 +127,6 @@ public class SBC_ActivityTableView
 						System.out.println("pull latest vuze news entries");
 						VuzeActivitiesManager.pullActivitiesNow(0);
 					}
-				} else if (e.keyCode == SWT.F2) {
-					InputShell is = new InputShell("Moo", "url:");
-					String txt = is.open();
-					if (txt != null) {
-						UIFunctionsManagerSWT.getUIFunctionsSWT().viewURL(txt,
-								"minibrowse", 0, 0, false, false);
-					}
 				}
 			}
 		});

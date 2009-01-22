@@ -330,7 +330,7 @@ public class ColumnActivityActions
 							if (target == null) {
 								target = ContentNetworkUtils.getTarget(entry.getContentNetwork());
 							}
-							uif.viewURL(hitUrl.url, target, 0, 0, false, false);
+							uif.viewURL(hitUrl.url, target, "column.activity.action");
 							return;
 						}
 					}

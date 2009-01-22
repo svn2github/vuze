@@ -821,6 +821,7 @@ public class MainWindow
 								if (sideBar == null) {
 									return;
 								}
+								ContentNetworkUtils.setSourceRef(args[0], "menu", false);
 								sideBar.showEntryByTabID(args[0]);
 
 								if (uif != null) {
@@ -892,6 +893,7 @@ public class MainWindow
   					startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
   				} else {
   					startTab = "ContentNetwork." + startupCN.getID();
+						ContentNetworkUtils.setSourceRef(startTab, "startup", false);
   				}
 				}
 				sidebar.showEntryByTabID(startTab);
@@ -1361,6 +1363,8 @@ public class MainWindow
 						try {
 							SkinView skinView = (SkinView) cla.newInstance();
 							skinView.setMainSkinObject(skinObject);
+							SkinViewManager.add(skinView);
+							
 							skinObject.addListener(skinView);
 							skinView.eventOccured(skinObject, eventType, params);
 
@@ -1373,7 +1377,8 @@ public class MainWindow
 									Debug.out(e);
 								}
 							}
-							SkinViewManager.add(skinView);
+							
+							SkinViewManager.triggerViewAddedListeners(skinView);
 						} catch (InstantiationException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -2079,6 +2084,10 @@ public class MainWindow
 		}
 
 		SideBar sideBar = (SideBar) SkinViewManager.getByClass(SideBar.class);
+		
+		// Note; We don't setSourceRef on ContentNetwork here like we do
+		// everywhere else because the source ref should already be set
+		// by the caller
 		String id = sideBar.showEntryByTabID(target);
 		if (id == null) {
 			Utils.launch(url);

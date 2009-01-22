@@ -148,8 +148,7 @@ public class TorrentListViewsUtils
 
 		UIFunctions functions = UIFunctionsManager.getUIFunctions();
 		if (functions != null) {
-			functions.viewURL(url, ContentNetworkUtils.getTarget(cn), 0, 0, false,
-					false);
+			functions.viewURL(url, ContentNetworkUtils.getTarget(cn), ref);
 		}
 	}
 
