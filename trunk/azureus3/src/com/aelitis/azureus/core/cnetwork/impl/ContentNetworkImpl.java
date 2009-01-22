@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.azureus.util.MapUtils;
 
 public abstract class 
 ContentNetworkImpl
@@ -357,6 +358,12 @@ ContentNetworkImpl
 			
 			Map props = COConfigurationManager.getMapParameter( key , new HashMap());
 	
+			if ( name == PP_SOURCE_REF ) {
+
+				return MapUtils.getMapString(props, name, MapUtils.getMapString(
+						pprop_defaults, name, null));
+			}
+
 			Object obj = props.get( name );
 			
 			if ( 	name == PP_AUTH_PAGE_SHOWN ||

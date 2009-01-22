@@ -93,6 +93,7 @@ ContentNetwork
 	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
 	public static final String	PP_ACTIVE			        = "active";		// Boolean
 	public static final String	PP_SHOW_IN_MENU       = "in_menu";		// Boolean
+	public static final String	PP_SOURCE_REF					= "source_ref"; // String
 
 	
 		/**
