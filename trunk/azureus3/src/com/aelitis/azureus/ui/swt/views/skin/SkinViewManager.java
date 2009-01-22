@@ -60,8 +60,6 @@ public class SkinViewManager
 		if (skinView.getMainSkinObject() != null) {
 			skinIDs.put(skinView.getMainSkinObject().getSkinObjectID(), skinView);
 		}
-		
-		triggerListeners(skinView);
 	}
 
 	/**
@@ -134,7 +132,7 @@ public class SkinViewManager
 		}
 	}
 	
-	private static void triggerListeners(SkinView skinView) {
+	public static void triggerViewAddedListeners(SkinView skinView) {
 		Object[] array = listeners.toArray();
 		for (int i = 0; i < array.length; i++) {
 			SkinViewManagerListener l = (SkinViewManagerListener) array[i];
