@@ -54,6 +54,7 @@ public class FakeTableCell implements TableCell
 
 	public void refresh() {
 		cell.refresh();
+		cell.redraw();
 	}
 
 	public void addDisposeListener(TableCellDisposeListener listener) {
