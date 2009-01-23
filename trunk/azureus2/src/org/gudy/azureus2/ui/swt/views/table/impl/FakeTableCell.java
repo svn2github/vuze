@@ -890,6 +890,7 @@ public class FakeTableCell
 		//System.out.println("refresh");
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				boolean wasValid = valid;
 				try {
 					tableColumn.invokeCellRefreshListeners(FakeTableCell.this, false);
 				} catch (Throwable e) {
@@ -899,7 +900,9 @@ public class FakeTableCell
 						((TableCellRefreshListener) (refreshListeners.get(i))).refresh(FakeTableCell.this);
 					}
 				}
-				valid = true;
+				if (!wasValid) {
+					valid = true;
+				}
 			}
 		});
 		return true;
