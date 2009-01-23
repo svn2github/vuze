@@ -24,7 +24,7 @@ import com.aelitis.azureus.util.DataSourceUtils;
 
 public class VuzeShareUtils
 {
-	private long DATE_CANSHARENONVUZECN = new GregorianCalendar(2009, 2, 01).getTimeInMillis();
+	private long DATE_CANSHARENONVUZECN = new GregorianCalendar(2009, 2, 14).getTimeInMillis();
 
 	private static VuzeShareUtils instance;
 
