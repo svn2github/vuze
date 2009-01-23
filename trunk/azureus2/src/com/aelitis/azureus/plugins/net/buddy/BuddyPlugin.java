@@ -460,6 +460,8 @@ BuddyPlugin
 					MenuItem	menu,
 					Object		_target )
 				{
+					menu.removeAllChildItems();
+
 					if ( !( isEnabled() && isAvailable())){
 						
 						menu.setEnabled( false );
@@ -467,33 +469,77 @@ BuddyPlugin
 						return;
 					}
 					
-					Object	obj = null;
-					
+					final List<Torrent>	torrents = new ArrayList<Torrent>();
+								
 					if ( _target instanceof TableRow ){
 						
-						obj = ((TableRow)_target).getDataSource();
+						addDownload( torrents, (TableRow)_target );
 	
 					}else{
 						
 						TableRow[] rows = (TableRow[])_target;
 					     
-						if ( rows.length > 0 ){
-						
-							obj = rows[0].getDataSource();
+						for ( TableRow row: rows ){
+							
+							addDownload( torrents, row );
 						}
 					}
 					
-					if ( obj == null ){
+					if ( torrents.size() == 0 ){
 						
 						menu.setEnabled( false );
 
-						return;
-					}
+					}else{
 					
-					Download				download;
+						List<BuddyPluginBuddy> buddies = getBuddies();
+						
+						boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
+						
+						TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
+												
+						for (int i=0;i<buddies.size();i++){
+							
+							final BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
+							
+							if ( buddy.isOnline( true )){
+								
+								TableContextMenuItem item =
+									plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+										parent,
+										"!" + buddy.getName() + "!");
+								
+								item.addMultiListener(
+									new MenuItemListener()
+									{
+										public void 
+										selected(
+											MenuItem 	menu,
+											Object 		target ) 
+										{
+											for ( Torrent torrent: torrents ){
+											
+												az2_handler.sendAZ2Torrent( torrent, buddy );
+											}
+										}
+									});
+							}
+						}
+					
+						menu.setEnabled( true );
+					}
+				}
+				
+				protected void
+				addDownload(
+					List<Torrent>		torrents,
+					TableRow			row )
+				{
+					Object obj = row.getDataSource();
+					
+					Download	download;
 					
 					if ( obj instanceof Download ){
-					
+						
 						download = (Download)obj;
 						
 					}else{
@@ -513,47 +559,10 @@ BuddyPlugin
 					
 					Torrent torrent = download.getTorrent();
 					
-					boolean enabled = torrent != null && !torrent.isPrivate();
-					
-					menu.removeAllChildItems();
-
-					if ( enabled ){
-					
-						List<BuddyPluginBuddy> buddies = getBuddies();
+					if ( torrent != null && !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
 						
-						boolean	incomplete = ((TableContextMenuItem)menu).getTableID() == TableManager.TABLE_MYTORRENTS_INCOMPLETE;
-						
-						TableContextMenuItem parent = incomplete?menu_item_itorrents:menu_item_ctorrents;
-						
-						final Download f_download = download;
-						
-						for (int i=0;i<buddies.size();i++){
-							
-							final BuddyPluginBuddy	buddy = (BuddyPluginBuddy)buddies.get(i);
-							
-							if ( buddy.isOnline( true )){
-								
-								TableContextMenuItem item =
-									plugin_interface.getUIManager().getTableManager().addContextMenuItem(
-										parent,
-										"!" + buddy.getName() + "!");
-								
-								item.addListener(
-									new MenuItemListener()
-									{
-										public void 
-										selected(
-											MenuItem 	menu,
-											Object 		target ) 
-										{
-											az2_handler.sendAZ2Torrent( f_download.getTorrent(), buddy );
-										}
-									});
-							}
-						}
+						torrents.add( torrent );
 					}
-					
-					menu.setEnabled( enabled );
 				}
 			};
 			
