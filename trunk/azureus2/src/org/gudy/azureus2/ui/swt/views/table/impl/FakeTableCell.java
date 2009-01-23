@@ -1120,6 +1120,7 @@ public class FakeTableCell
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#invalidate(boolean)
 	public void invalidate(boolean mustRefresh) {
+		valid = false;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#invokeToolTipListeners(int)
