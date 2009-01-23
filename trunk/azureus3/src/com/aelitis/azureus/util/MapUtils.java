@@ -63,6 +63,10 @@ public class MapUtils
 			if (o == null && !map.containsKey(key)) {
 				return def;
 			}
+			// NOTE: The above returns def when map doesn't contain the key,
+			//       which suggests below we would return the null when o is null.  
+			//       But we don't! And now, some callers rely on this :(
+			
 			if (o instanceof String) {
 				return (String) o;
 			}
