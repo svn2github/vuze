@@ -146,6 +146,7 @@ public class ContentNetworkUIManagerWindow
 							if (entry.isInTree()) {
 								entry.getSidebar().closeEntry(entry.getId());
 							}
+							cn.setStartupNetwork(false);
 						} else {
 							// Uncomment to bring up sidebar entry on checking option
 							//String target = ContentNetworkUtils.getTarget(cn);
