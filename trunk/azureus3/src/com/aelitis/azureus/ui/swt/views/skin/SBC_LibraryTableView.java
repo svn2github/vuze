@@ -149,8 +149,7 @@ public class SBC_LibraryTableView
 										return;
 									}
 									Object ds = rows[0].getDataSource(true);
-									DownloadManager dm = DataSourceUtils.getDM(ds);
-									if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+									if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
   									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
   											ConstantsV3.DL_REFERAL_DBLCLICK);
 									}
@@ -164,7 +163,7 @@ public class SBC_LibraryTableView
 											return;
 										}
 										Object ds = rows[0].getDataSource(true);
-										if (PlayUtils.canPlayDS(ds)) {
+										if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
 											TorrentListViewsUtils.playOrStreamDataSource(ds, null,
 													ConstantsV3.DL_REFERAL_DBLCLICK);
 										}
@@ -183,8 +182,7 @@ public class SBC_LibraryTableView
 							return;
 						}
 						Object ds = rows[0].getDataSource(true);
-						DownloadManager dm = DataSourceUtils.getDM(ds);
-						if (dm.getAssumedComplete() || (stateMask & SWT.CONTROL) > 0) {
+						if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
   						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
   								ConstantsV3.DL_REFERAL_DBLCLICK);
 						}
