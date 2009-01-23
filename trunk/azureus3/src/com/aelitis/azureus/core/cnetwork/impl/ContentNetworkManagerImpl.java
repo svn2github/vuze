@@ -344,7 +344,7 @@ ContentNetworkManagerImpl
 		
 		for ( ContentNetwork network: networks ){
 			
-			if ((Boolean)network.getPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION )){
+			if ( network.isStartupNetwork()){
 				
 				return( network );
 			}
