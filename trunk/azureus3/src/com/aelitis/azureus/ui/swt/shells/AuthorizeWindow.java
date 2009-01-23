@@ -33,33 +33,43 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
  */
 public class AuthorizeWindow
 {
+	public static boolean open = false;
+
 	public static boolean openAuthorizeWindow(final ContentNetwork cn) {
-		String authURL = ContentNetworkUtils.getUrl(cn,
-				ContentNetwork.SERVICE_AUTHORIZE, new Object[] {
-					cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF)
-				});
-		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
-				authURL, 560, 390, false, true);
-
-		final Boolean[] b = new Boolean[1];
-		b[0] = Boolean.FALSE;
-
-		ClientMessageContext context = browserWindow.getContext();
-		context.addMessageListener(new AbstractBrowserMessageListener(
-				"contentnetwork") {
-			public void handleMessage(BrowserMessage message) {
-				String opid = message.getOperationId();
-
-				if ("authorize".equals(opid)) {
-					cn.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
-							Boolean.TRUE);
-					b[0] = Boolean.TRUE;
-				}
-			}
-		});
-
-		browserWindow.waitUntilClosed();
-
-		return b[0].booleanValue();
+		if (open) {
+			return false;
+		}
+		open = true;
+		try {
+  		String authURL = ContentNetworkUtils.getUrl(cn,
+  				ContentNetwork.SERVICE_AUTHORIZE, new Object[] {
+  					cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF)
+  				});
+  		BrowserWindow browserWindow = new BrowserWindow(Utils.findAnyShell(),
+  				authURL, 560, 390, false, true);
+  
+  		final Boolean[] b = new Boolean[1];
+  		b[0] = Boolean.FALSE;
+  
+  		ClientMessageContext context = browserWindow.getContext();
+  		context.addMessageListener(new AbstractBrowserMessageListener(
+  				"contentnetwork") {
+  			public void handleMessage(BrowserMessage message) {
+  				String opid = message.getOperationId();
+  
+  				if ("authorize".equals(opid)) {
+  					cn.setPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN,
+  							Boolean.TRUE);
+  					b[0] = Boolean.TRUE;
+  				}
+  			}
+  		});
+  
+  		browserWindow.waitUntilClosed();
+  
+  		return b[0].booleanValue();
+		} finally {
+			open = false;
+		}
 	}
 }
