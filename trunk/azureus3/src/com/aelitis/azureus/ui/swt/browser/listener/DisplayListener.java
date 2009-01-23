@@ -14,6 +14,8 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.subs.Subscription;
@@ -92,12 +94,20 @@ public class DisplayListener
 			if (target == null && !decodedMap.containsKey("width")) {
 				launchUrl(MapUtils.getMapString(decodedMap, "url", null));
 			} else {
+				String ref = message.getReferer();
+				if (target.equals("browse") && ref != null) {
+					ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(
+							ref);
+					if (cn != null) {
+						target = ContentNetworkUtils.getTarget(cn);
+					}
+				}
 				message.setCompleteDelayed(true);
 				showBrowser(MapUtils.getMapString(decodedMap, "url", null), target,
 						MapUtils.getMapInt(decodedMap, "width", 0), MapUtils.getMapInt(
 								decodedMap, "height", 0), MapUtils.getMapBoolean(decodedMap,
 								"resizable", false), message, MapUtils.getMapString(decodedMap,
-								"source-ref", message.getReferer()));
+								"source-ref", ref));
 			}
 		} else if (OP_RESET_URL.equals(opid)) {
 			resetURL();
