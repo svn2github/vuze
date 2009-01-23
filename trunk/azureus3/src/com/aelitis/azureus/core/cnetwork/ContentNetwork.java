@@ -89,11 +89,11 @@ ContentNetwork
 
 		// persistent (and local) properties
 	
-	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";	// Boolean, default false
-	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";	// Boolean, default false
-	public static final String	PP_ACTIVE			        = "active";		// Boolean
-	public static final String	PP_SHOW_IN_MENU       = "in_menu";		// Boolean
-	public static final String	PP_SOURCE_REF					= "source_ref"; // String
+	public static final String	PP_AUTH_PAGE_SHOWN			= "auth_shown";			// Boolean, default false
+	public static final String	PP_IS_CUSTOMIZATION			= "is_cust";			// Boolean, default false
+	public static final String	PP_ACTIVE			        = "active";				// Boolean
+	public static final String	PP_SHOW_IN_MENU       		= "in_menu";			// Boolean
+	public static final String	PP_SOURCE_REF				= "source_ref"; 		// String
 
 	
 		/**
@@ -110,6 +110,13 @@ ContentNetwork
 	public Object
 	getProperty(
 		int			property );
+	
+	public boolean
+	isStartupNetwork();
+	
+	public void
+	setStartupNetwork(
+		boolean		is_startup );
 	
 		/**
 		 * Test if the network supports a particular service

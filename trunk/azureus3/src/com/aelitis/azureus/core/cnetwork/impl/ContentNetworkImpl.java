@@ -42,6 +42,8 @@ ContentNetworkImpl
 {
 	protected static final long	TYPE_VUZE_GENERIC		= 1;
 	
+	private static final String	PP_STARTUP_NETWORK		= "startup_network"; 	// Boolean
+
 	protected static ContentNetworkImpl
 	importFromBencodedMapStatic(
 		ContentNetworkManagerImpl	manager,
@@ -284,6 +286,24 @@ ContentNetworkImpl
 		return( vf );
 	}
 	
+	public boolean
+	isStartupNetwork()
+	{
+		if ( hasPersistentProperty( PP_STARTUP_NETWORK )){
+			
+			return((Boolean)getPersistentProperty( PP_STARTUP_NETWORK ));
+		}
+		
+		return((Boolean)getPersistentProperty( ContentNetwork.PP_IS_CUSTOMIZATION ));
+	}
+	
+	public void
+	setStartupNetwork(
+		boolean		b )
+	{
+		setPersistentProperty( PP_STARTUP_NETWORK, new Boolean(b));
+	}
+	
 	public void
 	setTransientProperty(
 		Object		key,
@@ -366,10 +386,11 @@ ContentNetworkImpl
 
 			Object obj = props.get( name );
 			
-			if ( 	name == PP_AUTH_PAGE_SHOWN ||
+			if ( 	name == PP_AUTH_PAGE_SHOWN 	||
 					name == PP_IS_CUSTOMIZATION ||
-					name == PP_ACTIVE ||
-					name == PP_SHOW_IN_MENU ){
+					name == PP_ACTIVE			||
+					name == PP_SHOW_IN_MENU		||
+					name == PP_STARTUP_NETWORK ){
 				
 				if ( obj == null && pprop_defaults != null ){
 					
@@ -387,6 +408,20 @@ ContentNetworkImpl
 			}
 			
 			return( obj );
+		}
+	}
+	
+	protected boolean
+	hasPersistentProperty(
+		String		name )
+	{
+		synchronized( this ){
+			
+			String	key = getPropertiesKey();
+			
+			Map props = COConfigurationManager.getMapParameter( key , new HashMap());
+	
+			return( props.containsKey( name ));
 		}
 	}
 	
