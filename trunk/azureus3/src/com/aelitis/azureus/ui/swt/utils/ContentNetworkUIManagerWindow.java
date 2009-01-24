@@ -28,9 +28,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -121,9 +119,14 @@ public class ContentNetworkUIManagerWindow
 				ContentNetworkUI.loadImage(cn.getID(),
 						new ContentNetworkImageLoadedListener() {
 							public void contentNetworkImageLoaded(Long contentNetworkID,
-									Image image, boolean wasReturned) {
+									final Image image, final boolean wasReturned) {
 								if (image != null && image.getBounds().height < 50) {
 									button.setImage(image);
+									if (!wasReturned) {
+										button.getShell().layout(new Control[] {
+											button
+										});
+									}
 								}
 							}
 						});
