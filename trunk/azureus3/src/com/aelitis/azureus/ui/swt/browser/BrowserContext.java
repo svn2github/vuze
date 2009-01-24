@@ -256,7 +256,8 @@ public class BrowserContext
 			public void open(WindowEvent event) {
 				event.required = true;
 
-				final Browser subBrowser = new Browser(browser,SWT.NONE);
+				final Browser subBrowser = new Browser(browser,
+						Utils.getInitialBrowserStyle(SWT.NONE));
 				subBrowser.addLocationListener(new LocationListener() {
 					public void changed(LocationEvent arg0) {
 						// TODO Auto-generated method stub

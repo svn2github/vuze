@@ -81,7 +81,8 @@ public class PlatformAuthorizedSenderImpl
 							ourShell= true;
 						}
 					}
-					final Browser browser = new Browser(shell, SWT.NONE);
+					final Browser browser = new Browser(shell,
+							Utils.getInitialBrowserStyle(SWT.NONE));
 					browser.setVisible(false);
 					if (ourShell) {
 						final Shell shellFinal = shell; 

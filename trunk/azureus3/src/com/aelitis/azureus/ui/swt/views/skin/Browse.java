@@ -264,7 +264,8 @@ public class Browse
 				if (shell == null) {
 					return;
 				}
-				final Browser browser = new Browser(shell, SWT.NONE);
+				final Browser browser = new Browser(shell,
+						Utils.getInitialBrowserStyle(SWT.NONE));
 				browser.setVisible(false);
 
 				browser.addProgressListener(new ProgressListener() {
