@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2009.xx.xx | Vuze 4.0.0.5
+2009.01.26 | Vuze 4.1.0.0
 
 FEATURE: Core | New FP Ignore rule: Ignore 1st Priority after X hours of idle upload speed (default 24h) [TuxPaper] 
 FEATURE: Core | Support for loading torrents when the HTTP response is an error (like 404, 500) but the data is still a torrent [TuxPaper] 
@@ -35,6 +35,8 @@ BUGFIX: UI    | Prevent constuction of mytorrents context menu from flipping dow
 BUGFIX: UI    | Fix cursor transition in table cell [Parg]
 BUGFIX: UI    | Fix incorrect handling of weak references for UI views that resulted in them never being released [Parg]
 BUGFIX: Plug  | Various fixes to correctly release unloaded plugin resources [Parg]
+
+
 
 2008.11.20 | Vuze 4.0.0.4
 
