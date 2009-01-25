@@ -4,7 +4,7 @@ VUZE CHANGELOG
 2009.xx.xx | Vuze 4.0.0.5
 
 FEATURE: Core | New FP Ignore rule: Ignore 1st Priority after X hours of idle upload speed (default 24h) [TuxPaper] 
-FEATURE: Core  | Support for loading torrents when the HTTP response is an error (like 404, 500) but the data is still a torrent [TuxPaper] 
+FEATURE: Core | Support for loading torrents when the HTTP response is an error (like 404, 500) but the data is still a torrent [TuxPaper] 
 FEATURE: UIvz | Support multiple Content Networks [parg,tuxpaper]
 FEATURE: UI   | Experimental neuronal speed algorithm [Gudy]
 FEATURE: UI   | Added AS/ASN peer column [Parg]
