@@ -2545,6 +2545,12 @@ public class SideBar
 		return true;
 	}
 
+	/**
+	 * 
+	 * TODO {@link #showEntryByID(String)} and {@link #showEntryByID(String)}
+	 *      absolutely need to be combined since they do the same thing
+	 *      but have different logic..
+	 */
 	public boolean showEntryByID(String id) {
 		SideBarEntrySWT entry = getEntry(id);
 		if (entry.treeItem != null) {
@@ -2579,6 +2585,10 @@ public class SideBar
 	 * @param tabID
 	 *
 	 * @since 3.1.0.1
+	 * 
+	 * TODO {@link #showEntryByID(String)} and {@link #showEntryByID(String)}
+	 *      absolutely need to be combined since they do the same thing
+	 *      but have different logic..
 	 */
 	public String showEntryByTabID(String tabID) {
 		if (tabID == null) {
@@ -2596,6 +2606,8 @@ public class SideBar
 		} else if (tabID.equals("activities")) {
 			id = SIDEBAR_SECTION_ACTIVITIES;
 		} else if (tabID.startsWith("ContentNetwork.")) {
+			id = tabID;
+		} else if (tabID.equals(SIDEBAR_SECTION_WELCOME)) {
 			id = tabID;
 		} else {
 			// everything else can go to browse..
