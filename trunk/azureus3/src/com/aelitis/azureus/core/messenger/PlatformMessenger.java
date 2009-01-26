@@ -27,6 +27,7 @@ import java.net.URLEncoder;
 import java.text.NumberFormat;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.json.simple.JSONArray;
@@ -129,6 +130,12 @@ public class PlatformMessenger
 
 	public static void queueMessage(PlatformMessage message,
 			PlatformMessengerListener listener, boolean addToBottom) {
+		
+		if ( COConfigurationManager.getStringParameter( "ui", "az3" ).equals( "az2" )){
+			
+			Debug.out( "**** PlatformMessenger shouldn't be used with az2 UI ****" );
+		}
+		
 		if (!initialized) {
 			init();
 		}
