@@ -281,7 +281,7 @@ ContentNetworkManagerImpl
 	
 		throws IOException
 	{
-		ContentNetworkImpl network = ContentNetworkImpl.importFromBencodedMapStatic( this, content );
+		ContentNetworkImpl network = ContentNetworkImpl.importFromBEncodedMapStatic( this, content );
 		
 		return( addNetwork( network ));
 	}
@@ -571,7 +571,7 @@ ContentNetworkManagerImpl
 					
 					try{
 						
-						ContentNetworkImpl cn = ContentNetworkImpl.importFromBencodedMapStatic( this, cnet_map );
+						ContentNetworkImpl cn = ContentNetworkImpl.importFromBEncodedMapStatic( this, cnet_map );
 						
 						if ( cn.getID() != ContentNetwork.CONTENT_NETWORK_VUZE ){
 							
@@ -609,7 +609,7 @@ ContentNetworkManagerImpl
 			Map	cnet_map = new HashMap();
 			
 			try{
-				network.exportToBencodedMap( cnet_map );
+				network.exportToBEncodedMap( cnet_map );
 			
 				list.add( cnet_map );
 				

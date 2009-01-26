@@ -45,7 +45,7 @@ ContentNetworkImpl
 	private static final String	PP_STARTUP_NETWORK		= "startup_network"; 	// Boolean
 
 	protected static ContentNetworkImpl
-	importFromBencodedMapStatic(
+	importFromBEncodedMapStatic(
 		ContentNetworkManagerImpl	manager,
 		Map							map )
 	
@@ -101,7 +101,7 @@ ContentNetworkImpl
 	}
 	
 	protected void
-	importFromBencodedMap(
+	importFromBEncodedMap(
 		Map<String,Object>		map )
 	
 		throws IOException
@@ -115,7 +115,7 @@ ContentNetworkImpl
 	}
 	
 	protected void
-	exportToBencodedMap(
+	exportToBEncodedMap(
 		Map<String,Object>			map )
 	
 		throws IOException
@@ -139,9 +139,9 @@ ContentNetworkImpl
 	{
 		Map<String,Object>	map = new HashMap<String,Object>();
 		
-		other.exportToBencodedMap(map);
+		other.exportToBEncodedMap(map);
 		
-		importFromBencodedMap( map );
+		importFromBEncodedMap( map );
 	}
 	
 	public long 
@@ -170,9 +170,9 @@ ContentNetworkImpl
 			Map<String,Object>	map1 = new HashMap<String,Object>();
 			Map<String,Object>  map2 = new HashMap<String,Object>();
 			
-			exportToBencodedMap( map1 );
+			exportToBEncodedMap( map1 );
 			
-			other.exportToBencodedMap( map2 );
+			other.exportToBEncodedMap( map2 );
 			
 			return( BEncoder.mapsAreIdentical( map1, map2 ));
 			
@@ -274,7 +274,7 @@ ContentNetworkImpl
 		Map	map = new HashMap();
 		
 		try{
-			exportToBencodedMap( map );
+			exportToBEncodedMap( map );
 		
 			vf.addComponent( VuzeFileComponent.COMP_TYPE_CONTENT_NETWORK, map );
 			

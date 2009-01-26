@@ -126,7 +126,7 @@ ContentNetworkVuzeGeneric
 	
 		throws IOException
 	{		
-		super.importFromBencodedMap( map );
+		super.importFromBEncodedMap( map );
 		
 		SITE_HOST				= ImportExportUtils.importString(map, "vg_site" );
 		URL_PREFIX 				= ImportExportUtils.importString(map, "vg_prefix" );
@@ -154,12 +154,12 @@ ContentNetworkVuzeGeneric
 	}
 	
 	protected void
-	exportToBencodedMap(
+	exportToBEncodedMap(
 		Map			map )
 	
 		throws IOException
 	{
-		super.exportToBencodedMap( map );
+		super.exportToBEncodedMap( map );
 		
 		ImportExportUtils.exportString(map, "vg_site", 		SITE_HOST );
 		ImportExportUtils.exportString(map, "vg_prefix", 	URL_PREFIX );
