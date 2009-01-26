@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2009.xx.xx | Vuze 4.1.0.1
+
+
 2009.01.26 | Vuze 4.1.0.0
 
 FEATURE: Core | New FP Ignore rule: Ignore 1st Priority after X hours of idle upload speed (default 24h) [TuxPaper] 
