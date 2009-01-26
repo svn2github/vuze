@@ -172,7 +172,7 @@ public class AboutWindow {
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
 				+ System.getProperty("os.arch") + "\n"
-				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + " " + VersionCheckClient.azconst_avail + " " + COConfigurationManager.getStringParameter("ui"));
+				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + " " + COConfigurationManager.getStringParameter("ui"));
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
