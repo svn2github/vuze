@@ -650,15 +650,15 @@ public class AvatarWidget
 						int startPixel = 0;
 						if (nbMessages >= 10) {
 							Image img = imageLoader.getImage("large_red_bubble");
-							int x = bounds.width - img.getBounds().width;
-							e.gc.drawImage(img, x, -1);
-							startPixel = x + 14;
+							chatAreaBounds.x = bounds.width - img.getBounds().width;
+							e.gc.drawImage(img, chatAreaBounds.x, -1);
+							startPixel = chatAreaBounds.x + 14;
 							imageLoader.releaseImage("large_red_bubble");
 						} else {
 							Image img = imageLoader.getImage("red_bubble");
-							int x = bounds.width - img.getBounds().width;
-							e.gc.drawImage(img, x, 0);
-							startPixel = x + 13;
+							chatAreaBounds.x = bounds.width - img.getBounds().width;
+							e.gc.drawImage(img, chatAreaBounds.x, 0);
+							startPixel = chatAreaBounds.x + 13;
 							imageLoader.releaseImage("red_bubble");
 						}
 
@@ -668,7 +668,9 @@ public class AvatarWidget
 						e.gc.drawText("" + nbMessages, startPixel - textSize.x / 2, 3, true);
 
 					} else {
-						e.gc.drawImage(imageLoader.getImage("grey_bubble"), 40, 0);
+						Image img = imageLoader.getImage("grey_bubble");
+						chatAreaBounds.x = bounds.width - img.getBounds().width;
+						e.gc.drawImage(img, chatAreaBounds.x, 0);
 						imageLoader.releaseImage("grey_bubble");
 					}
 				} else {
