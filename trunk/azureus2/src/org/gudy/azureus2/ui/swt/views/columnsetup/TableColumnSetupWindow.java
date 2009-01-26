@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -136,24 +137,31 @@ public class TableColumnSetupWindow
 
 				tableColumn = (TableColumnCore) row.getDataSource();
 
-				if (event.image != null) {
-					GC gc = new GC(event.image);
-					Rectangle bounds = event.image.getBounds();
-					gc.fillRectangle(bounds);
-					String title = MessageText.getString(
-							tableColumn.getTitleLanguageKey(), tableColumn.getName());
-					String s = title
-							+ " Column will be placed at the location you drop it, shifting other columns down";
-					GCStringPrinter sp = new GCStringPrinter(gc, s, bounds, false, false,
-							SWT.CENTER | SWT.WRAP);
-					sp.calculateMetrics();
-					if (sp.isCutoff()) {
-						GCStringPrinter.printString(gc, title, bounds, false, false,
-								SWT.CENTER | SWT.WRAP);
-					} else {
-						sp.printString();
+				if (event.image != null && !Constants.isLinux) {
+					try {
+  					GC gc = new GC(event.image);
+  					try {
+    					Rectangle bounds = event.image.getBounds();
+    					gc.fillRectangle(bounds);
+    					String title = MessageText.getString(
+    							tableColumn.getTitleLanguageKey(), tableColumn.getName());
+    					String s = title
+    							+ " Column will be placed at the location you drop it, shifting other columns down";
+    					GCStringPrinter sp = new GCStringPrinter(gc, s, bounds, false, false,
+    							SWT.CENTER | SWT.WRAP);
+    					sp.calculateMetrics();
+    					if (sp.isCutoff()) {
+    						GCStringPrinter.printString(gc, title, bounds, false, false,
+    								SWT.CENTER | SWT.WRAP);
+    					} else {
+    						sp.printString();
+    					}
+  					} finally {
+  						gc.dispose();
+  					}
+					} catch (Throwable t) {
+						//ignore
 					}
-					gc.dispose();
 				}
 			}
 
@@ -383,7 +391,7 @@ public class TableColumnSetupWindow
 
 		expandFilters.addListener(SWT.Expand, new Listener() {
 			public void handleEvent(Event event) {
-				Utils.execSWTThreadLater(0, new AERunnable() {
+				Utils.execSWTThreadLater(Constants.isLinux ? 250 : 0, new AERunnable() {
 					public void runSupport() {
 						shell.layout(true, true);
 					}
@@ -392,7 +400,7 @@ public class TableColumnSetupWindow
 		});
 		expandFilters.addListener(SWT.Collapse, new Listener() {
 			public void handleEvent(Event event) {
-				Utils.execSWTThreadLater(0, new AERunnable() {
+				Utils.execSWTThreadLater(Constants.isLinux ? 250 : 0, new AERunnable() {
 					public void runSupport() {
 						shell.layout(true, true);
 					}
@@ -517,19 +525,19 @@ public class TableColumnSetupWindow
 		fd = new FormData();
 		fd.right = new FormAttachment(100, -8);
 		fd.bottom = new FormAttachment(100, -3);
-		fd.width = 64;
+		//fd.width = 64;
 		btnApply.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(btnApply, -3);
 		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
-		fd.width = 65;
+		//fd.width = 65;
 		btnCancel.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(btnCancel, -3);
 		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
-		fd.width = 64;
+		//fd.width = 64;
 		btnOk.setLayoutData(fd);
 
 		// <<<<<<<<< Chosen
@@ -948,7 +956,7 @@ public class TableColumnSetupWindow
 				TABLEID_AVAIL, columns, ColumnTC_ChosenColumn.COLUMN_ID, false);
 		tvAvail.setMenuEnabled(false);
 		tvAvail.setSampleRow(sampleRow);
-		tvAvail.setRowDefaultHeight(60);
+		tvAvail.setRowDefaultHeight(65);
 		tvAvail.setDataSourceType(TableColumn.class);
 
 		tvAvail.addLifeCycleListener(new TableLifeCycleListener() {
