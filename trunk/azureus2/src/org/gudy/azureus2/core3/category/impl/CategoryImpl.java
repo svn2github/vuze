@@ -146,6 +146,11 @@ public class CategoryImpl implements Category, Comparable {
     
     DownloadManager	manager = manager_state.getDownloadManager();
     
+    	// can be null if called during downloadmanagerstate construction
+    if ( manager == null ){
+    	return;
+    }
+    
     if (!managers.contains(manager)) {
       managers.add(manager);
       
@@ -164,6 +169,11 @@ public class CategoryImpl implements Category, Comparable {
     }
     DownloadManager	manager = manager_state.getDownloadManager();
 
+   	// can be null if called during downloadmanagerstate construction
+    if ( manager == null ){
+    	return;
+    }
+    
     if (managers.contains(manager) || type != Category.TYPE_USER) {
       managers.remove(manager);
       
