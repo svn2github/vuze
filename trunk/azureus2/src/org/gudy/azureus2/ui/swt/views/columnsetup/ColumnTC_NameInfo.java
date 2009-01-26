@@ -133,9 +133,14 @@ public class ColumnTC_NameInfo
 		} else {
 			int x = bounds.x + titleSize.x + 15;
 			int y = bounds.y - 1;
-			int w = 34;
 			int h = 15;
 
+			String textAdd = MessageText.getString("Button.add");
+			GCStringPrinter sp2 = new GCStringPrinter(gc, textAdd,
+					new Rectangle(x, y, 500, h), true, false, SWT.CENTER);
+			sp2.calculateMetrics();
+			int w = sp2.getCalculatedSize().x + 12;
+			
 			gc.setAdvanced(true);
 			gc.setAntialias(SWT.ON);
 			gc.setBackground(ColorCache.getColor(gc.getDevice(), 255, 255, 255));
@@ -147,8 +152,7 @@ public class ColumnTC_NameInfo
 
 			gc.setForeground(ColorCache.getColor(gc.getDevice(), 50, 50, 50));
 			hitArea = new Rectangle(x, y, w + 2, h);
-			GCStringPrinter.printString(gc, MessageText.getString("Button.add"),
-					hitArea, true, false, SWT.CENTER);
+			sp2.printString(gc, hitArea, SWT.CENTER);
 			bounds = cell.getBounds();
 			hitArea.x -= bounds.x;
 			hitArea.y -= bounds.y;
