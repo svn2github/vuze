@@ -78,6 +78,12 @@ PluginCoreUtils
 		return(((DiskManagerImpl)dm).getDiskmanager());
 	}
 	
+	/**
+	 * May return NULL if download not found (e.g. has been removed)
+	 * @param dm
+	 * @return may be null
+	 */
+	
 	public static Download
 	wrap(
 		org.gudy.azureus2.core3.download.DownloadManager	dm )
@@ -87,7 +93,7 @@ PluginCoreUtils
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+			// Debug.printStackTrace( e );
 			
 			return( null );
 		}
