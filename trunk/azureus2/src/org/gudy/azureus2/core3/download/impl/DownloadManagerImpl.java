@@ -1777,7 +1777,8 @@ DownloadManagerImpl
 		
 		if ( cl == null ){
 			
-			Debug.out( "setAnnounceResult called when download not running" );
+			// this can happen due to timing issues - not work debug spew for
+			// Debug.out( "setAnnounceResult called when download not running" );
 			
 			return;
 		}
