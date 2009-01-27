@@ -2177,9 +2177,9 @@ SubscriptionManagerImpl
 			true,
 			new DHTPluginOperationListener()
 			{
-				private Map			hits 					= new HashMap();
-				private AESemaphore	hits_sem				= new AESemaphore( "Subs:lookup" );
-				private List		found_subscriptions 	= new ArrayList();
+				private Map<HashWrapper,Integer>	hits 					= new HashMap<HashWrapper, Integer>();
+				private AESemaphore					hits_sem				= new AESemaphore( "Subs:lookup" );
+				private List<Subscription>			found_subscriptions 	= new ArrayList<Subscription>();
 				
 				private boolean	complete;
 				
@@ -2213,9 +2213,7 @@ SubscriptionManagerImpl
 						byte[]	sid = new byte[ val.length - 4 ];
 						
 						System.arraycopy( val, 4, sid, 0, sid.length );
-						
-						log( "    Found subscription " + ByteFormatter.encodeString( sid ) + " version " + ver );
-						
+												
 						HashWrapper hw = new HashWrapper( sid );
 						
 						boolean	new_sid = false;
@@ -2238,13 +2236,15 @@ SubscriptionManagerImpl
 							}else{
 								
 								new_sid = true;
-								
+																
 								hits.put( hw, new Integer( ver ));
 							}
 						}
 						
 						if ( new_sid ){
 							
+							log( "    Found subscription " + ByteFormatter.encodeString( sid ) + " version " + ver );
+
 								// check if already subscribed
 							
 							SubscriptionImpl subs = getSubscriptionFromSID( sid );
@@ -2260,7 +2260,7 @@ SubscriptionManagerImpl
 									
 									Debug.printStackTrace(e);
 								}
-								
+																
 								hits_sem.release();
 								
 							}else{
@@ -2327,7 +2327,7 @@ SubscriptionManagerImpl
 													Debug.printStackTrace(e);
 												}
 											}
-											
+																						
 											hits_sem.release();
 										}
 										
@@ -2359,6 +2359,8 @@ SubscriptionManagerImpl
 						public void
 						run()
 						{
+							int	num_hits;
+							
 							synchronized( this ){
 								
 								if ( complete ){
@@ -2367,10 +2369,12 @@ SubscriptionManagerImpl
 								}
 								
 								complete = true;
+								
+								num_hits = hits.size();
 							}
 							
 							
-							for (int i=0;i<hits.size();i++){
+							for (int i=0;i<num_hits;i++){
 								
 								if ( isCancelled2()){
 									
@@ -2746,9 +2750,7 @@ SubscriptionManagerImpl
 							final Map	details = decodeSubscriptionDetails( data );
 							
 							if ( SubscriptionImpl.getPublicationVersion( details ) == version ){
-								
-								log( "    found " + sid_str + ", verification ok" );
-								
+																
 								Map	singleton_details = (Map)details.get( "x" );
 								
 								if ( singleton_details == null ){
@@ -2763,6 +2765,8 @@ SubscriptionManagerImpl
 										listener_handled = true;
 									}
 									
+									log( "    found " + sid_str + ", non-singleton" );
+
 									new AEThread2( "Subs:lookup download", true )
 									{
 										public void
@@ -2790,6 +2794,8 @@ SubscriptionManagerImpl
 										listener_handled = true;
 									}
 									
+									log( "    found " + sid_str + ", singleton" );
+
 									try{
 										SubscriptionImpl subs = createSingletonSubscription( singleton_details, SubscriptionImpl.ADD_TYPE_LOOKUP, false );
 																			
@@ -4098,8 +4104,9 @@ SubscriptionManagerImpl
 					reportActivity(
 						String	str )
 					{
-						if ( 	str.indexOf( " found " ) == -1 &&
-								str.indexOf( " is dead " ) == -1 ){
+						if ( 	str.indexOf( "found " ) == -1 &&
+								str.indexOf( " is dead" ) == -1 &&
+								str.indexOf( " is alive" ) == -1){
 			
 							log( "    MagnetDownload: " + str );
 						}
@@ -4255,31 +4262,83 @@ SubscriptionManagerImpl
 						10*1000,
 						new TimerEventPerformer()
 						{
+							private long	start_time = SystemTime.getMonotonousTime();
+							
 							public void 
 							perform(
 								TimerEvent ev ) 
 							{
 								boolean	kill = false;
 								
-								try{						
-									if ( 	listener.isCancelled() ||
-											dm.getDownload( torrent.getHash()) == null ){
+								try{	
+									Download download = dm.getDownload( torrent.getHash());
+									
+									if ( listener.isCancelled() || download == null ){
 										
 										kill = true;
+										
+									}else{
+										
+										int	state = download.getState();
+										
+										if ( state == Download.ST_ERROR ){
+											
+											log( "Download entered error state, removing" );
+											
+											kill = true;
+											
+										}else{
+											
+											long	now = SystemTime.getMonotonousTime();
+											
+											long	running_for = now - start_time;
+											
+											if ( running_for > 2*60*1000 ){
+												
+												DownloadScrapeResult scrape = download.getLastScrapeResult();
+												
+												if ( scrape == null || scrape.getSeedCount() <= 0 ){
+													
+													log( "Download has no seeds, removing" );
+													
+													kill = true;
+												}
+											}else if ( running_for > 4*60*1000 ){
+												
+												if ( download.getStats().getDownloaded() == 0 ){
+													
+													log( "Download has zero downloaded, removing" );
+													
+													kill = true;
+												}
+											}else if ( running_for > 10*60*1000 ){
+												
+												log( "Download hasn't completed in permitted time, removing" );
+												
+												kill = true;
+											}
+										}
 									}
 								}catch( Throwable e ){
 									
+									log( "Download failed", e );
+
 									kill = true;
 								}
 								
 								if ( kill && event[0] != null ){
 									
-									event[0].cancel();
-									
-									if ( listener.isCancelled()){
+									try{
+										event[0].cancel();
+										
+										if ( !listener.isCancelled()){
+																					
+											listener.failed( new SubscriptionException( "Download abandoned" ));
+										}
+									}finally{
 										
 										removeDownload( f_download, true );
-										
+									
 										torrent_file.delete();
 									}
 								}
