@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -106,18 +106,15 @@ public class TCPConnectionManager {
   
   private long connection_request_id_next;
   
-  private final Set new_requests = 
-	  new TreeSet(
-			new Comparator()
+  private final Set<ConnectionRequest> new_requests = 
+	  new TreeSet<ConnectionRequest>(
+			new Comparator<ConnectionRequest>()
 			{
 				public int 
 				compare(
-					Object o1, 
-					Object o2 )
+					ConnectionRequest r1, 
+					ConnectionRequest r2 )
 				{
-					ConnectionRequest	r1 = (ConnectionRequest)o1;
-					ConnectionRequest	r2 = (ConnectionRequest)o2;
-					
 					int	res = r1.getPriority() - r2.getPriority();
 					
 					if ( res == 0 ){
@@ -147,25 +144,25 @@ public class TCPConnectionManager {
 				}
 			});
   
-  private final ArrayList canceled_requests = new ArrayList();
-  private final AEMonitor	new_canceled_mon= new AEMonitor( "ConnectDisconnectManager:NCM");
+  private final List<ConnectListener> 	canceled_requests 	= new ArrayList<ConnectListener>();
   
-  private final HashMap pending_attempts = new HashMap();
+  private final AEMonitor	new_canceled_mon	= new AEMonitor( "ConnectDisconnectManager:NCM");
   
-  private final LinkedList 	pending_closes 	= new LinkedList();
-  private final Map			delayed_closes	= new HashMap();
+  private final Map<ConnectionRequest,Object> pending_attempts = new HashMap<ConnectionRequest, Object>();
+  
+  private final LinkedList<SocketChannel> 	pending_closes 	= new LinkedList<SocketChannel>();
+  
+  private final Map<SocketChannel,Long>		delayed_closes	= new HashMap<SocketChannel, Long>();
   
   private final AEMonitor	pending_closes_mon = new AEMonitor( "ConnectDisconnectManager:PC");
-     
-  private final Random random = new Random();
-  
+       
   private boolean max_conn_exceeded_logged;
   
   
   public 
   TCPConnectionManager() 
   {
-	  Set	types = new HashSet();
+	  Set<String>	types = new HashSet<String>();
 	  
 	  types.add( AzureusCoreStats.ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH );
 	  types.add( AzureusCoreStats.ST_NET_TCP_OUT_CANCEL_QUEUE_LENGTH );
@@ -178,8 +175,8 @@ public class TCPConnectionManager {
 			  {
 					public void
 					updateStats(
-						Set		types,
-						Map		values )
+						Set<String>				types,
+						Map<String,Object>		values )
 					{
 						if ( types.contains( AzureusCoreStats.ST_NET_TCP_OUT_CONNECT_QUEUE_LENGTH )){
 							
@@ -204,255 +201,327 @@ public class TCPConnectionManager {
 					}
 			  });
 	  
-    AEThread loop = new AEThread( "ConnectDisconnectManager" ) {
-      public void runSupport() {
-        mainLoop();
-      }
-    };
-    loop.setDaemon( true );
-    loop.start();    
+	  new AEThread2( "ConnectDisconnectManager", true ) 
+	  {
+		  public void 
+		  run() 
+		  {
+			  while( true ){
+				  
+				  addNewOutboundRequests();
+				  
+				  runSelect();
+				  
+				  doClosings();
+			  }
+		  }
+	  }.start();
   }
   
-
-  private void mainLoop() {      
-    while( true ) {
-      addNewOutboundRequests();
-      runSelect();
-      doClosings();
-    }
+  public int
+  getMaxOutboundPermitted()
+  {
+	  return( Math.max( max_outbound_connections - new_requests.size(), 0 ));
   }
   
-	public int
-	getMaxOutboundPermitted()
-	{
-		return( Math.max( max_outbound_connections - new_requests.size(), 0 ));
-	}
-  
-  private void addNewOutboundRequests() {    
-    while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-      ConnectionRequest cr = null;
-      
-      try{
-        new_canceled_mon.enter();
-      
-        if( new_requests.isEmpty() )  break;
-        
-        Iterator it = new_requests.iterator();
-        cr = (ConnectionRequest)it.next();
-        it.remove();
-      }
-      finally{
-        new_canceled_mon.exit();
-      }
-      
-      if( cr != null ) {
-        addNewRequest( cr ); 
-      }
-    }
-  }
-  
-  
+  private void 
+  addNewOutboundRequests() 
+  {    
+	  while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ){
 
-  private void addNewRequest( final ConnectionRequest request ) {
-    request.listener.connectAttemptStarted();
-    
-    
-	boolean ipv6problem = false;
-    
-    try {
-    	
-    	
-    	request.channel = SocketChannel.open();
-      
-      try {  //advanced socket options
-        int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
-        if( rcv_size > 0 ) {
-          if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "Setting socket receive buffer size"
-								+ " for outgoing connection [" + request.address + "] to: "
-								+ rcv_size));
-          request.channel.socket().setReceiveBufferSize( rcv_size );
-        }
-      
-        int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-        if( snd_size > 0 ) {
-        	if (Logger.isEnabled())
-        		Logger.log(new LogEvent(LOGID, "Setting socket send buffer size "
-        				+ "for outgoing connection [" + request.address + "] to: "
-        				+ snd_size));
-          request.channel.socket().setSendBufferSize( snd_size );
-        }
+		  ConnectionRequest cr = null;
 
-        String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
-        if( ip_tos.length() > 0 ) {
-        	if (Logger.isEnabled())
-        		Logger.log(new LogEvent(LOGID, "Setting socket TOS field "
-        				+ "for outgoing connection [" + request.address + "] to: "
-        				+ ip_tos));
-          request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
-        }
+		  try{
+			  new_canceled_mon.enter();
 
-      
-        int local_bind_port = COConfigurationManager.getIntParameter( "network.bind.local.port" );
-        
-        if( local_bind_port > 0 ) {
-        	request.channel.socket().setReuseAddress( true );
-        }
-        
-        try {
-            InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
-            if ( bindIP != null ) {
-            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
-              request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
-            }
-            else if( local_bind_port > 0 ) {       
-            	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
-            	request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
-            }
-        } catch(SocketException e) {
-        	if(e.getMessage().equals("Address family not supported by protocol family: bind") && !NetworkAdmin.getSingleton().hasIPV6Potential(true));
-        		ipv6problem = true;
-        	throw e;
-        }
+			  if( new_requests.isEmpty() )  break;
 
-      }
-      catch( Throwable t ) {
-    	  if(!ipv6problem)
-    	  {
-  	        //dont pass the exception outwards, so we will continue processing connection without advanced options set
-    		  String msg = "Error while processing advanced socket options.";
-    	        Debug.out( msg, t );
-    	        Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
-    	  } else
-    	  {
-    		  // can't support NIO + ipv6 on this system, pass on and don't raise an alert
-    		  throw t;
-    	  }
-      }
-      
-      request.channel.configureBlocking( false );
-      request.connect_start_time = SystemTime.getCurrentTime();
-      
-      if( request.channel.connect( request.address ) ) {  //already connected
-        finishConnect( request );
-      }
-      else {  //not yet connected, so register for connect selection
-        pending_attempts.put( request, null );
-        
-        connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
-          public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {         
-            pending_attempts.remove( request );
-            finishConnect( request );
-            return true;
-          }
-          
-          public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-            pending_attempts.remove( request );
-            
-            closeConnection( request.channel );
-           
-            request.listener.connectFailure( msg );
-          }
-        }, null );
-      }
-    }
-    catch( Throwable t ) {
-      
-      String full = request.address.toString();
-      String hostname = request.address.getHostName();
-      int port = request.address.getPort();
-      boolean unresolved = request.address.isUnresolved();
-      InetAddress	inet_address = request.address.getAddress();
-      String full_sub = inet_address==null?request.address.toString():inet_address.toString();
-      String host_address = inet_address==null?request.address.toString():inet_address.getHostAddress();
-      
-      String msg = "ConnectDisconnectManager::address exception: full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
-      if( request.channel != null ) {
-        String channel = request.channel.toString();
-        String socket = request.channel.socket().toString();
-        String local_address = request.channel.socket().getLocalAddress().toString();
-        int local_port = request.channel.socket().getLocalPort();
-           SocketAddress ra = request.channel.socket().getRemoteSocketAddress();
-        String remote_address;
-           if( ra != null )  remote_address = ra.toString();
-           else remote_address = "<null>";
-        int remote_port = request.channel.socket().getPort();
+			  Iterator<ConnectionRequest> it = new_requests.iterator();
 
-        msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
-      }
-      else {
-        msg += "\n channel=<null>";
-      }
-      
-      if (ipv6problem || t instanceof UnresolvedAddressException || t instanceof NoRouteToHostException )
-    	  Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING,msg));
-      else
-    	  Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,msg,t));
-      
-      if( request.channel != null ) {
-    	  closeConnection( request.channel );
-      }
-      request.listener.connectFailure( t );
-    }
+			  cr = it.next();
+
+			  it.remove();
+
+		  }finally{
+
+			  new_canceled_mon.exit();
+		  }
+
+		  if( cr != null ){
+
+			  addNewRequest( cr ); 
+		  }
+	  }
   }
   
   
+
+  private void 
+  addNewRequest( 
+	final ConnectionRequest request ) 
+  {
+	  request.listener.connectAttemptStarted();
+
+
+	  boolean ipv6problem = false;
+
+	  try {
+
+
+		  request.channel = SocketChannel.open();
+
+		  try {  //advanced socket options
+			  int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
+			  if( rcv_size > 0 ) {
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(LOGID, "Setting socket receive buffer size"
+							  + " for outgoing connection [" + request.address + "] to: "
+							  + rcv_size));
+				  request.channel.socket().setReceiveBufferSize( rcv_size );
+			  }
+
+			  int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+			  if( snd_size > 0 ) {
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(LOGID, "Setting socket send buffer size "
+							  + "for outgoing connection [" + request.address + "] to: "
+							  + snd_size));
+				  request.channel.socket().setSendBufferSize( snd_size );
+			  }
+
+			  String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
+			  if( ip_tos.length() > 0 ) {
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(LOGID, "Setting socket TOS field "
+							  + "for outgoing connection [" + request.address + "] to: "
+							  + ip_tos));
+				  request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+			  }
+
+
+			  int local_bind_port = COConfigurationManager.getIntParameter( "network.bind.local.port" );
+
+			  if( local_bind_port > 0 ) {
+				  request.channel.socket().setReuseAddress( true );
+			  }
+
+			  try {
+				  InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
+				  if ( bindIP != null ) {
+					  if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
+					  request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
+				  }
+				  else if( local_bind_port > 0 ) {       
+					  if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
+					  request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
+				  }
+			  } catch(SocketException e) {
+				  if(e.getMessage().equals("Address family not supported by protocol family: bind") && !NetworkAdmin.getSingleton().hasIPV6Potential(true));
+				  ipv6problem = true;
+				  throw e;
+			  }
+
+		  }
+		  catch( Throwable t ) {
+			  if(!ipv6problem)
+			  {
+				  //dont pass the exception outwards, so we will continue processing connection without advanced options set
+				  String msg = "Error while processing advanced socket options.";
+				  Debug.out( msg, t );
+				  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
+			  } else
+			  {
+				  // can't support NIO + ipv6 on this system, pass on and don't raise an alert
+				  throw t;
+			  }
+		  }
+
+		  request.channel.configureBlocking( false );
+		  request.connect_start_time = SystemTime.getCurrentTime();
+
+		  if ( request.channel.connect( request.address ) ) {  //already connected
+
+			  finishConnect( request );
+
+		  }else{
+
+			  //not yet connected, so register for connect selection
+
+			  try{
+				  new_canceled_mon.enter();
+
+				  pending_attempts.put( request, null );
+
+			  }finally{
+
+				  new_canceled_mon.exit();
+			  }
+
+			  connect_selector.register( 
+					  request.channel, 
+					  new VirtualChannelSelector.VirtualSelectorListener() 
+					  {
+						  public boolean 
+						  selectSuccess( 
+								  VirtualChannelSelector 	selector, 
+								  SocketChannel 			sc, 
+								  Object 					attachment ) 
+						  {       
+							  try{
+								  new_canceled_mon.enter();
+
+								  pending_attempts.remove( request );
+
+							  }finally{
+
+								  new_canceled_mon.exit();
+							  }
+
+							  finishConnect( request );
+
+							  return true;
+						  }
+
+						  public void 
+						  selectFailure( 
+								  VirtualChannelSelector 	selector, 
+								  SocketChannel 			sc,
+								  Object 					attachment, 
+								  Throwable 				msg ) 
+						  {
+							  try{
+								  new_canceled_mon.enter();
+
+								  pending_attempts.remove( request );
+
+							  }finally{
+
+								  new_canceled_mon.exit();
+							  }
+
+							  closeConnection( request.channel );
+
+							  request.listener.connectFailure( msg );
+						  }
+					  }, null );
+		  }
+	  }catch( Throwable t ){
+
+		  String full = request.address.toString();
+		  String hostname = request.address.getHostName();
+		  int port = request.address.getPort();
+		  boolean unresolved = request.address.isUnresolved();
+		  InetAddress	inet_address = request.address.getAddress();
+		  String full_sub = inet_address==null?request.address.toString():inet_address.toString();
+		  String host_address = inet_address==null?request.address.toString():inet_address.getHostAddress();
+
+		  String msg = "ConnectDisconnectManager::address exception: full="+full+ ", hostname="+hostname+ ", port="+port+ ", unresolved="+unresolved+ ", full_sub="+full_sub+ ", host_address="+host_address;
+		  
+		  if( request.channel != null ) {
+			  String channel = request.channel.toString();
+			  String socket = request.channel.socket().toString();
+			  String local_address = request.channel.socket().getLocalAddress().toString();
+			  int local_port = request.channel.socket().getLocalPort();
+			  SocketAddress ra = request.channel.socket().getRemoteSocketAddress();
+			  String remote_address;
+			  if( ra != null )  remote_address = ra.toString();
+			  else remote_address = "<null>";
+			  int remote_port = request.channel.socket().getPort();
+
+			  msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
+		  }
+		  else {
+			  msg += "\n channel=<null>";
+		  }
+
+		  if (ipv6problem || t instanceof UnresolvedAddressException || t instanceof NoRouteToHostException ){
+			  
+			  Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING,msg));
+			  
+		  }else{
+			  
+			  Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,msg,t));
+		  }
+		  
+		  if( request.channel != null ){
+			  
+			  closeConnection( request.channel );
+		  }
+		  
+		  request.listener.connectFailure( t );
+	  }
+  }
   
   
-  private void finishConnect( ConnectionRequest request ) {
-    try {
-      if( request.channel.finishConnect() ) {
-            
-        if( SHOW_CONNECT_STATS ) {
-          long queue_wait_time = request.connect_start_time - request.request_start_time;
-          long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-          int num_queued = new_requests.size();
-          int num_connecting = pending_attempts.size();
-          System.out.println("S: queue_wait_time="+queue_wait_time+
-                              ", connect_time="+connect_time+
-                              ", num_queued="+num_queued+
-                              ", num_connecting="+num_connecting);
-        }
-        
-        //ensure the request hasn't been canceled during the select op
-        boolean canceled = false;
-        try{  new_canceled_mon.enter();
-          canceled = canceled_requests.contains( request.listener );
-        }
-        finally{ new_canceled_mon.exit(); }
-        
-        if( canceled ) {
-        	closeConnection( request.channel );
-        }
-        else {
-        	connect_selector.cancel( request.channel );
-          request.listener.connectSuccess( request.channel );
-        }
-      }
-      else { //should never happen
-        Debug.out( "finishConnect() failed" );
-        request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
-        
-        closeConnection( request.channel );
-      }
-    }
-    catch( Throwable t ) {
-          
-      if( SHOW_CONNECT_STATS ) {
-        long queue_wait_time = request.connect_start_time - request.request_start_time;
-        long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-        int num_queued = new_requests.size();
-        int num_connecting = pending_attempts.size();
-        System.out.println("F: queue_wait_time="+queue_wait_time+
-                            ", connect_time="+connect_time+
-                            ", num_queued="+num_queued+
-                            ", num_connecting="+num_connecting);
-      }
-          
-      request.listener.connectFailure( t );
-      
-      closeConnection( request.channel );
-    }
+  
+  
+  private void 
+  finishConnect( 
+	ConnectionRequest request ) 
+  {
+	  try {
+		  if( request.channel.finishConnect() ) {
+
+			  if( SHOW_CONNECT_STATS ) {
+				  long queue_wait_time = request.connect_start_time - request.request_start_time;
+				  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+				  int num_queued = new_requests.size();
+				  int num_connecting = pending_attempts.size();
+				  System.out.println("S: queue_wait_time="+queue_wait_time+
+						  ", connect_time="+connect_time+
+						  ", num_queued="+num_queued+
+						  ", num_connecting="+num_connecting);
+			  }
+
+			  //ensure the request hasn't been canceled during the select op
+			  boolean canceled = false;
+			  
+			  try{  new_canceled_mon.enter();
+			  
+			  	canceled = canceled_requests.contains( request.listener );
+			  	
+			  }finally{
+				  
+				  new_canceled_mon.exit(); 
+			  }
+
+			  if( canceled ){
+				  
+				  closeConnection( request.channel );
+				  
+			  }else{
+				  
+				  connect_selector.cancel( request.channel );
+				  
+				  request.listener.connectSuccess( request.channel );
+			  }
+		  }else{ 
+			  
+			  		//should never happen
+			  
+			  Debug.out( "finishConnect() failed" );
+			  
+			  request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
+
+			  closeConnection( request.channel );
+		  }
+	  }catch( Throwable t ) {
+
+		  if( SHOW_CONNECT_STATS ) {
+			  long queue_wait_time = request.connect_start_time - request.request_start_time;
+			  long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+			  int num_queued = new_requests.size();
+			  int num_connecting = pending_attempts.size();
+			  System.out.println("F: queue_wait_time="+queue_wait_time+
+					  ", connect_time="+connect_time+
+					  ", num_queued="+num_queued+
+					  ", num_connecting="+num_connecting);
+		  }
+
+		  request.listener.connectFailure( t );
+
+		  closeConnection( request.channel );
+	  }
   }
   
 
@@ -462,32 +531,31 @@ public class TCPConnectionManager {
     try{
       new_canceled_mon.enter();
 
-      for (Iterator can_it =canceled_requests.iterator(); can_it.hasNext();) {
-        ConnectListener key =(ConnectListener) can_it.next();
+      for (Iterator<ConnectListener> can_it = canceled_requests.iterator(); can_it.hasNext();){
+    	  
+        ConnectListener key =can_it.next();
 
-        ConnectionRequest to_remove =null;
-
-        for (Iterator pen_it =pending_attempts.keySet().iterator(); pen_it.hasNext();) {
-          ConnectionRequest request =(ConnectionRequest) pen_it.next();
-          if (request.listener ==key) {
+        for (Iterator<ConnectionRequest> pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext();) {
+        	
+          ConnectionRequest request =pen_it.next();
+          
+          if ( request.listener == key ){
          	  
             connect_selector.cancel(request.channel);
 
             closeConnection(request.channel);
 
-            to_remove =request;
+            pen_it.remove();
+            
             break;
           }
-        }
-
-        if( to_remove != null ) {
-          pending_attempts.remove( to_remove );
         }
       }
 
       canceled_requests.clear();
-    }
-    finally{
+      
+    }finally{
+    	
       new_canceled_mon.exit();
     }
 
@@ -501,64 +569,96 @@ public class TCPConnectionManager {
 
     //do connect attempt timeout checks
     int num_stalled_requests =0;
+    
     final long now =SystemTime.getCurrentTime();
-    for (Iterator i =pending_attempts.keySet().iterator(); i.hasNext();) {
-      final ConnectionRequest request =(ConnectionRequest) i.next();
-      final long waiting_time =now -request.connect_start_time;
-      if( waiting_time > request.connect_timeout ) {
-        i.remove();
-
-        SocketChannel channel = request.channel;
-        
-        connect_selector.cancel( channel );
-
-        closeConnection( channel );
-              
-        InetSocketAddress	sock_address = request.address;
-        
-       	InetAddress a = sock_address.getAddress();
-        	
-       	String	target;
-       	
-       	if ( a != null ){
-        		
-        	target = a.getHostAddress() + ":" + sock_address.getPort();
-        		
-        }else{
-        		
-        	target = sock_address.toString();
-        }
-               
-        request.listener.connectFailure( new SocketTimeoutException( "Connection attempt to " + target + " aborted: timed out after " + request.connect_timeout/1000+ "sec" ) );
-      }
-      else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
-        num_stalled_requests++;
-      }
-      else if( waiting_time < 0 ) {  //time went backwards
-        request.connect_start_time =now;
-      }
-    }
-
-    //check if our connect queue is stalled, and expand if so
-    if (num_stalled_requests ==pending_attempts.size() &&pending_attempts.size() <MAX_SIMULTANIOUS_CONNECT_ATTEMPTS) {
-      ConnectionRequest cr =null;
-
-      try{
+    
+    List<ConnectionRequest> timeouts = null;
+    try{
         new_canceled_mon.enter();
 
-        if( !new_requests.isEmpty() ) {
-            Iterator it = new_requests.iterator();
-            cr = (ConnectionRequest)it.next();
-            it.remove();
-        }
-      }
-      finally{
-        new_canceled_mon.exit();
-      }
+	    for (Iterator<ConnectionRequest> i =pending_attempts.keySet().iterator(); i.hasNext();) {
+	    	
+	      final ConnectionRequest request =i.next();
+	      
+	      final long waiting_time =now -request.connect_start_time;
+	      
+	      if( waiting_time > request.connect_timeout ) {
+	    	  
+	        i.remove();
+	
+	        SocketChannel channel = request.channel;
+	        
+	        connect_selector.cancel( channel );
+	
+	        closeConnection( channel );
 
-      if( cr != null ) {
-        addNewRequest( cr );
-      }
+	        if ( timeouts == null ){
+	        	
+	        	timeouts = new ArrayList<ConnectionRequest>();
+	        }
+	        
+	        timeouts.add( request );
+	              
+	      }else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
+	    	  
+	        num_stalled_requests++;
+	        
+	      }else if( waiting_time < 0 ) {  //time went backwards
+	    	  
+	        request.connect_start_time =now;
+	      }
+	    }
+    }finally{
+    	
+        new_canceled_mon.exit();
+    }
+    
+    if ( timeouts != null ){
+    	
+    	for ( ConnectionRequest request: timeouts ){
+    		
+    		InetSocketAddress	sock_address = request.address;
+	        
+	       	InetAddress a = sock_address.getAddress();
+	        	
+	       	String	target;
+	       	
+	       	if ( a != null ){
+	        		
+	        	target = a.getHostAddress() + ":" + sock_address.getPort();
+	        		
+	        }else{
+	        		
+	        	target = sock_address.toString();
+	        }
+	               
+	        request.listener.connectFailure( new SocketTimeoutException( "Connection attempt to " + target + " aborted: timed out after " + request.connect_timeout/1000+ "sec" ) );
+    	}
+    }
+    
+    //check if our connect queue is stalled, and expand if so
+    if ( num_stalled_requests == pending_attempts.size() && pending_attempts.size() <MAX_SIMULTANIOUS_CONNECT_ATTEMPTS) {
+
+    	ConnectionRequest cr =null;
+
+    	try{
+    		new_canceled_mon.enter();
+
+    		if( !new_requests.isEmpty()){
+
+    			Iterator<ConnectionRequest> it = new_requests.iterator();
+
+    			cr = it.next();
+
+    			it.remove();
+    		}
+    	}finally{
+    		new_canceled_mon.exit();
+    	}
+
+    	if( cr != null ) {
+    		addNewRequest( cr );
+    	}
     }
   }
   
@@ -571,11 +671,11 @@ public class TCPConnectionManager {
     	
     	if ( delayed_closes.size() > 0 ){
     		   		
-    		Iterator	it = delayed_closes.entrySet().iterator();
+    		Iterator<Map.Entry<SocketChannel,Long>>	it = delayed_closes.entrySet().iterator();
     		
     		while( it.hasNext()){
     			
-    			Map.Entry	entry = (Map.Entry)it.next();
+    			Map.Entry<SocketChannel,Long>	entry = (Map.Entry<SocketChannel,Long>)it.next();
     			
     			long	wait = ((Long)entry.getValue()).longValue() - now;
     			
@@ -590,15 +690,17 @@ public class TCPConnectionManager {
     	
     	while( !pending_closes.isEmpty() ) {
     		
-    		SocketChannel channel = (SocketChannel)pending_closes.removeFirst();
+    		SocketChannel channel = pending_closes.removeFirst();
+    		
     		if( channel != null ) {
         	
     			connect_selector.cancel( channel );
         	
     			try{ 
     				channel.close();
-    			}
-    			catch( Throwable t ) {
+    				
+    			}catch( Throwable t ){
+    				
     				/*Debug.printStackTrace(t);*/
     			}
     		}
@@ -626,7 +728,7 @@ public class TCPConnectionManager {
 	  long					connect_timeout, 
 	  int 					priority )
   {    
-	  List	kicked = null;
+	  List<ConnectionRequest>	kicked = null;
 	  
 	  try{
 		  new_canceled_mon.enter();
@@ -651,7 +753,7 @@ public class TCPConnectionManager {
 
 		  if ( priority == ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST ){
 
-			  for (Iterator pen_it =pending_attempts.keySet().iterator(); pen_it.hasNext();){
+			  for (Iterator<ConnectionRequest> pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext();){
 
 				  ConnectionRequest request =(ConnectionRequest) pen_it.next();
 
@@ -663,7 +765,7 @@ public class TCPConnectionManager {
 					  
 						  if ( kicked == null ){
 						  
-							  kicked = new ArrayList();
+							  kicked = new ArrayList<ConnectionRequest>();
 						  }
 					  
 						  kicked.add( request );
@@ -703,27 +805,31 @@ public class TCPConnectionManager {
 	  closeConnection( channel, 0 );
   }
 
-  public void closeConnection( SocketChannel channel, int delay ) {
-    try{
-    	pending_closes_mon.enter();
-    
-    	if ( delay == 0 ){
-    		
-    		if ( !delayed_closes.containsKey( channel )){
-    		
-	    		if ( !pending_closes.contains( channel )){
-	    			
-	    			pending_closes.addLast( channel );
-	    		}
-    		}
-    	}else{
-    		
-    		delayed_closes.put( channel, new Long( SystemTime.getCurrentTime() + delay ));
-    	}
-    }finally{
-    	
-    	pending_closes_mon.exit();
-    }
+  public void 
+  closeConnection( 
+		SocketChannel channel, 
+		int delay ) 
+  {
+	  try{
+		  pending_closes_mon.enter();
+
+		  if ( delay == 0 ){
+
+			  if ( !delayed_closes.containsKey( channel )){
+
+				  if ( !pending_closes.contains( channel )){
+
+					  pending_closes.addLast( channel );
+				  }
+			  }
+		  }else{
+
+			  delayed_closes.put( channel, new Long( SystemTime.getCurrentTime() + delay ));
+		  }
+	  }finally{
+
+		  pending_closes_mon.exit();
+	  }
   }
   
   
@@ -736,8 +842,8 @@ public class TCPConnectionManager {
       new_canceled_mon.enter();
     
       //check if we can cancel it right away
-      for( Iterator i = new_requests.iterator(); i.hasNext(); ) {
-        ConnectionRequest request = (ConnectionRequest)i.next();
+      for( Iterator<ConnectionRequest> i = new_requests.iterator(); i.hasNext(); ) {
+        ConnectionRequest request = i.next();
         if( request.listener == listener_key ) {
           i.remove();
           return;
