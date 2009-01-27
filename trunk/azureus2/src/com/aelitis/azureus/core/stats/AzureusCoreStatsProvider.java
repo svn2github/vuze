@@ -30,6 +30,6 @@ AzureusCoreStatsProvider
 {
 	public void
 	updateStats(
-		Set		types,
-		Map		values );
+		Set<String>				types,
+		Map<String,Object>		values );
 }
