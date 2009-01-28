@@ -27,6 +27,7 @@ import java.net.URL;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.content.AzureusPlatformContentDirectory;
+import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.metasearch.MetaSearchManagerFactory;
 import com.aelitis.azureus.core.peer.cache.CacheDiscovery;
@@ -67,6 +68,8 @@ public class InitialisationFunctions
 		MetaSearchManagerFactory.preInitialise();
 		
 		SubscriptionManagerFactory.preInitialise();
+		
+		DeviceManagerFactory.preInitialise();
 		
 		NavigationHelper.initialise();
 		

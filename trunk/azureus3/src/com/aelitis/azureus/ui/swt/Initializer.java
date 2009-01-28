@@ -43,6 +43,7 @@ import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -54,6 +55,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.PlatformAuthorizedSenderImpl;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
+import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
@@ -320,7 +322,19 @@ public class Initializer
 			new SubscriptionManagerUI( core );
 			
 		}catch( Throwable e ){
+			
 			Debug.printStackTrace(e);
+		}
+		
+		if ( DeviceManagerFactory.ENABLED ){
+			
+			try{
+				new DeviceManagerUI( core );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		core.start();

@@ -59,6 +59,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -71,6 +72,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.devices.DevicesView;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -128,12 +130,16 @@ public class SideBar
 	public static final String SIDEBAR_SECTION_PUBLISH = "Publish";
 
 	public static final String SIDEBAR_SECTION_SUBSCRIPTIONS = "Subscriptions";
+	
+	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
 
 	public static final String SIDEBAR_SECTION_ADVANCED = "Advanced";
 
 	public static final boolean SHOW_ALL_PLUGINS = false;
 
 	public static final boolean SHOW_TOOLS = false;
+	
+	public static final boolean SHOW_DEVICES = DeviceManagerFactory.ENABLED;
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
@@ -1314,6 +1320,13 @@ public class SideBar
 		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
 				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
 
+		if ( SHOW_DEVICES ){
+			
+			createTreeItemFromIViewClass(null, SIDEBAR_SECTION_DEVICES,
+					"devices", DevicesView.class, null, null, null, null, false);
+
+		}
+		
 		//entry.setImageLeftID("image.sidebar.subscriptions");
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
