@@ -100,4 +100,11 @@ SubscriptionHistory
 	public SubscriptionResult
 	getResult(
 		String		result_id );
+	
+	public boolean
+	getDownloadWithReferer();
+	
+	public void
+	setDownloadWithReferer(
+		boolean		b );
 }

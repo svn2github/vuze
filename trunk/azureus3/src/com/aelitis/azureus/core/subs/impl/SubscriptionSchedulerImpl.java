@@ -26,6 +26,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -281,54 +282,83 @@ SubscriptionSchedulerImpl
 					runSupport() 
 					{
 						try{
-							URL url = new URL(dl);
+							boolean	retry = true;
+						
+							boolean	use_ref			= subs.getHistory().getDownloadWithReferer();
 							
-							ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+							boolean tried_ref_switch = false;
 							
-							ResourceDownloader url_rd = rdf.create( url );
-										
-							UrlUtils.setBrowserHeaders( url_rd, subs.getReferer());
-							
-							Engine engine = subs.getEngine();
-							
-							if ( engine instanceof WebEngine ){
+							while( retry ){
 								
-								WebEngine we = (WebEngine)engine;
-								
-								if ( we.isNeedsAuth()){
+								retry = false;
+							
+								try{
+									URL url = new URL(dl);
 									
-									String cookies = we.getCookies();
+									ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 									
-									if ( cookies != null && cookies.length() > 0 ){
+									ResourceDownloader url_rd = rdf.create( url );
+											
+									String referer = use_ref?subs.getReferer():null;
+									
+									UrlUtils.setBrowserHeaders( url_rd, referer );
+									
+									Engine engine = subs.getEngine();
+									
+									if ( engine instanceof WebEngine ){
 										
-										url_rd.setProperty( "URL_Cookie", cookies );
+										WebEngine we = (WebEngine)engine;
+										
+										if ( we.isNeedsAuth()){
+											
+											String cookies = we.getCookies();
+											
+											if ( cookies != null && cookies.length() > 0 ){
+												
+												url_rd.setProperty( "URL_Cookie", cookies );
+											}
+										}
+									}
+									
+									ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
+		
+									InputStream is = mr_rd.download();
+		
+									Torrent torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
+														
+									// PlatformTorrentUtils.setContentTitle(torrent, torr );
+							
+									Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().addDownload( torrent );
+									
+									if ( subs.isPublic()){
+									
+										subs.addAssociation( torrent.getHash());
+									}
+									
+									result.setRead( true );
+									
+									log( subs.getName() + ": added download " + download.getName());
+									
+									if ( tried_ref_switch ){
+										
+										subs.getHistory().setDownloadWithReferer( use_ref );
+									}
+								}catch( Throwable e ){
+									
+									log( subs.getName() + ": Failed to download result " + dl, e );
+									
+									if ( e instanceof TOTorrentException && !tried_ref_switch ){
+										
+										use_ref 			= !use_ref;
+										
+										tried_ref_switch	= true;
+										
+										retry				= true;
+										
+										log( subs.getName() + ": Retrying " + (use_ref?"with referer":"without referer" ));
 									}
 								}
 							}
-							
-							ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
-
-							InputStream is = mr_rd.download();
-
-							Torrent torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
-												
-							// PlatformTorrentUtils.setContentTitle(torrent, torr );
-					
-							Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().addDownload( torrent );
-							
-							if ( subs.isPublic()){
-							
-								subs.addAssociation( torrent.getHash());
-							}
-							
-							result.setRead( true );
-							
-							log( subs.getName() + ": added download " + download.getName());
-							
-						}catch( Throwable e ){
-							
-							log( subs.getName() + ": Failed to download result " + dl, e );
-							
 						}finally{
 							
 							synchronized( active_result_downloaders ){

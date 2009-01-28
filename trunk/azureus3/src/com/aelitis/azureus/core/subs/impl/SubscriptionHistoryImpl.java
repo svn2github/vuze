@@ -57,6 +57,8 @@ SubscriptionHistoryImpl
 	
 	private boolean			auto_dl_supported;
 	
+	private boolean			dl_with_ref	= true;
+	
 	protected
 	SubscriptionHistoryImpl(
 		SubscriptionManagerImpl		_manager,
@@ -877,6 +879,24 @@ SubscriptionHistoryImpl
 		return( consec_fails );
 	}
 	
+	public boolean
+	getDownloadWithReferer()
+	{
+		return( dl_with_ref );
+	}
+	
+	public void
+	setDownloadWithReferer(
+		boolean		b )
+	{
+		if ( b != dl_with_ref ){
+			
+			dl_with_ref = b;
+			
+			saveConfig();
+		}
+	}
+	
 	protected void
 	loadConfig()
 	{
@@ -906,6 +926,9 @@ SubscriptionHistoryImpl
 		Long	l_auto_dl_s	= (Long)map.get( "auto_dl_supported" );		
 		auto_dl_supported	= l_auto_dl_s==null?(last_scan>0):l_auto_dl_s.longValue()==1;
 
+		Long	l_dl_with_ref	= (Long)map.get( "dl_with_ref" );		
+		dl_with_ref	= l_dl_with_ref==null?true:l_dl_with_ref.longValue()==1;
+
 	}
 	
 	protected void
@@ -920,7 +943,8 @@ SubscriptionHistoryImpl
 		map.put( "last_new", new Long( last_new_result ));
 		map.put( "num_unread", new Long( num_unread ));
 		map.put( "num_read", new Long( num_read ));
-		
+		map.put( "dl_with_ref", new Long( dl_with_ref?1:0 ));
+
 		subs.updateHistoryConfig( map );
 	}
 	
