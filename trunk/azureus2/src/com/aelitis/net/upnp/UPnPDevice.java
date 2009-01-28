@@ -36,6 +36,24 @@ UPnPDevice
 	public String
 	getFriendlyName();
 	
+	public String
+	getManufacturer();
+	
+	public String
+	getManufacturerURL();
+	
+	public String
+	getModelDescription();
+	
+	public String
+	getModelName();
+	
+	public String
+	getModelNumber();
+	
+	public String
+	getModelURL();
+	
 	public UPnPDevice[]
 	getSubDevices();
 	

@@ -45,6 +45,9 @@ UPnPDeviceImpl
 	
 	private String	device_type;
 	private String	friendly_name;
+	private String	manufacturer;
+	private String	manufacturer_url;
+	private String	model_description;
 	private String	model_name;
 	private String	model_number;
 	private String	model_url;
@@ -70,9 +73,12 @@ UPnPDeviceImpl
 		  <modelURL>http://www.3com.com/</modelURL> 
 		  */
 		
-		model_name		= getOptionalField( device_node, "modelName" );
-		model_number	= getOptionalField( device_node, "modelNumber");
-		model_url		= getOptionalField( device_node, "modelURL");
+		manufacturer		= getOptionalField( device_node, "manufacturer" );
+		manufacturer_url	= getOptionalField( device_node, "manufacturerURL" );
+		model_description	= getOptionalField( device_node, "modelDescription" );
+		model_name			= getOptionalField( device_node, "modelName" );
+		model_number		= getOptionalField( device_node, "modelNumber");
+		model_url			= getOptionalField( device_node, "modelURL");
 		
 		boolean	interested = device_type.equalsIgnoreCase( "urn:schemas-upnp-org:device:WANConnectionDevice:1" );
 		
@@ -153,6 +159,24 @@ UPnPDeviceImpl
 	}
 	
 	public String
+	getManufacturer()
+	{
+		return( manufacturer );
+	}
+	
+	public String
+	getManufacturerURL()
+	{
+		return( manufacturer_url );
+	}
+	
+	public String
+	getModelDescription()
+	{
+		return( model_description );
+	}
+	
+	public String
 	getModelName()
 	{
 		return( model_name );
@@ -164,7 +188,7 @@ UPnPDeviceImpl
 	}
 	
 	public String
-	getModeURL()
+	getModelURL()
 	{
 		return( model_url );
 	}

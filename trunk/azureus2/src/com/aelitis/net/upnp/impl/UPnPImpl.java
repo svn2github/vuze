@@ -127,7 +127,6 @@ UPnPImpl
 		final InetAddress			local_address,
 		final String				usn,
 		final URL					location )
-
 	{
 		
 			// we need to take this operation off the main thread as it can take some time. This is a single

@@ -182,7 +182,7 @@ UPnPRootDeviceImpl
 						
 					}else{
 						
-						String	url = root_device.getModeURL();
+						String	url = root_device.getModelURL();
 						
 						upnp.logAlert( 
 								"Device '" + model + "', version '" + version + 

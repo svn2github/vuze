@@ -118,7 +118,7 @@ NatPMPUPnPRootDeviceImpl
 	{
 		return( device );
 	}
-	
+		
 	public boolean
 	isDestroyed()
 	{
@@ -151,6 +151,42 @@ NatPMPUPnPRootDeviceImpl
 		getFriendlyName()
 		{
 			return( "NatPMP" );
+		}
+		
+		public String
+		getManufacturer()
+		{
+			return( "" );
+		}
+		
+		public String
+		getManufacturerURL()
+		{
+			return( "" );
+		}
+		
+		public String
+		getModelDescription()
+		{
+			return( "" );
+		}
+		
+		public String
+		getModelName()
+		{
+			return( "" );
+		}
+		
+		public String
+		getModelNumber()
+		{
+			return( "" );
+		}
+		
+		public String
+		getModelURL()
+		{
+			return( "" );
 		}
 		
 		public UPnPDevice[]
