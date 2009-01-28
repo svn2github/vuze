@@ -5,7 +5,12 @@ VUZE CHANGELOG
 
 BUGFIX: UI    | Column Setup visual fixes for gtk [TuxPaper]
 BUGFIX: UIv3  | Click area for Friend's "chat thought bubble" was wrong, preventing click to chat in some cases [TuxPaper]
+BUGFIX: Core  | Fix null-pointer-exception when initiasing old categorised shares [Parg]
+BUGFIX: Core  | Remove accidental invocation of the get-networks Vuze RPC when running in classic UI [Parg]
+BUGFIX: Core  | Remove null-pointer-exception in TCP connection manager [Parg]
+BUGFIX: Core  | Fix subscription auto-download with sites where supplied referer caused error [Parg]
 
+CHANGE: Core  | Remove various debug-spew [Parg]
 
 
 2009.01.26 | Vuze 4.1.0.0
