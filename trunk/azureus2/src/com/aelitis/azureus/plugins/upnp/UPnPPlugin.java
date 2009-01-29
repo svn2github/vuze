@@ -1434,6 +1434,12 @@ UPnPPlugin
 		return( mapping_manager.getMapping( tcp, port ));
 	}
 	
+	public UPnPMapping[]
+	getMappings()
+	{
+		return( mapping_manager.getMappings());
+	}
+	
 	public boolean
 	isEnabled()
 	{
