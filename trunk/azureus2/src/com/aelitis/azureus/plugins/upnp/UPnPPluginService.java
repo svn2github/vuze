@@ -115,7 +115,7 @@ UPnPPluginService
 		}
 	}
 	
-	protected UPnPWANConnection
+	public UPnPWANConnection
 	getService()
 	{
 		return( connection );

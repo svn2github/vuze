@@ -39,6 +39,13 @@ UPnP
 	reset();
 	
 		/**
+		 * scan for new
+		 */
+	
+	public void
+	search();
+	
+		/**
 		 * Logs a message to all registered log listeners
 		 * @param str
 		 */
