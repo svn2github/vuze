@@ -21,18 +21,41 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
 DeviceMediaRendererImpl
-	extends DeviceImpl
+	extends DeviceUPnPImpl
 	implements DeviceMediaRenderer
 {
 	protected
 	DeviceMediaRendererImpl(
 		UPnPDevice		_device )
 	{
-		super( Device.DT_MEDIA_RENDERER, "mr/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
+		super( _device, Device.DT_MEDIA_RENDERER );
+	}
+	
+	protected boolean
+	updateFrom(
+		DeviceImpl		_other )
+	{
+		if ( !super.updateFrom( _other )){
+			
+			return( false );
+		}
+		
+		if ( !( _other instanceof DeviceMediaRendererImpl )){
+			
+			Debug.out( "Inconsistent" );
+			
+			return( false );
+		}
+		
+		DeviceMediaRendererImpl other = (DeviceMediaRendererImpl)_other;
+		
+		return( true );
 	}
 }

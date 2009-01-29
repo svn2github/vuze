@@ -226,23 +226,22 @@ DeviceManagerUPnPImpl
 		
 		for ( final DeviceImpl new_device: new_devices ){
 			
-			if ( manager.addDevice( new_device )){
+			manager.addDevice( new_device );
 
-				device.getRootDevice().addListener(
-					new UPnPRootDeviceListener()
+			device.getRootDevice().addListener(
+				new UPnPRootDeviceListener()
+				{
+					public void
+					lost(
+						UPnPRootDevice	root,
+						boolean			replaced )
 					{
-						public void
-						lost(
-							UPnPRootDevice	root,
-							boolean			replaced )
-						{
-							if ( !replaced ){
-								
-								new_device.dead();
-							}
+						if ( !replaced ){
+							
+							new_device.dead();
 						}
-					});
-			}
+					}
+				});
 		}
 		
 		for (UPnPDevice d: device.getSubDevices()){

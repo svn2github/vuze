@@ -76,8 +76,8 @@ DeviceManagerImpl
 			
 			if ( existing != null ){
 				
-				existing.alive();
-				
+				existing.updateFrom( device );
+								
 				return( false );
 			}
 			

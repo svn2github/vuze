@@ -21,13 +21,15 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPService;
 
 public class 
 DeviceContentDirectoryImpl
-	extends DeviceImpl
+	extends DeviceUPnPImpl
 	implements DeviceContentDirectory
 {
 	protected
@@ -35,6 +37,27 @@ DeviceContentDirectoryImpl
 		UPnPDevice		_device,
 		UPnPService		_service )
 	{
-		super( Device.DT_CONTENT_DIRECTORY, "cd/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
+		super( _device, Device.DT_CONTENT_DIRECTORY );
+	}
+	
+	protected boolean
+	updateFrom(
+		DeviceImpl		_other )
+	{
+		if ( !super.updateFrom( _other )){
+			
+			return( false );
+		}
+		
+		if ( !( _other instanceof DeviceContentDirectoryImpl )){
+			
+			Debug.out( "Inconsistent" );
+			
+			return( false );
+		}
+		
+		DeviceContentDirectoryImpl other = (DeviceContentDirectoryImpl)_other;
+		
+		return( true );
 	}
 }

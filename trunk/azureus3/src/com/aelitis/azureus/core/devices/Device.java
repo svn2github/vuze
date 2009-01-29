@@ -47,6 +47,14 @@ Device
 	getTransientProperty(
 		Object		key );
 	
+		/**
+		 * Array of resource strings and their associated values
+		 * @return
+		 */
+	
+	public String[][]
+	getDisplayProperties();
+	
 	public String
 	getString();
 }

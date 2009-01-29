@@ -28,21 +28,29 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
+import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.subs.Subscription;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -58,19 +66,26 @@ DeviceManagerUI
 	
 	private DeviceManager		device_manager;
 	
-	private boolean	side_bar_setup;
+	private final PluginInterface	plugin_interface;
+	private final UIManager			ui_manager;
+	
+	private boolean		side_bar_setup;
 	
 	private String		renderers_key;
 	private String		media_servers_key;
 	private String		routers_key;
 	
+	
+	
+	private MenuItemListener properties_listener;
+	
 	public
 	DeviceManagerUI(
 		AzureusCore			core )
 	{
-		final PluginInterface	default_pi = core.getPluginManager().getDefaultPluginInterface();
+		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 		
-		final UIManager	ui_manager = default_pi.getUIManager();
+		ui_manager = plugin_interface.getUIManager();
 		
 		ui_manager.addUIListener(
 				new UIManagerListener()
@@ -132,6 +147,17 @@ DeviceManagerUI
 			
 			side_bar_setup = true;
 		}
+		
+		properties_listener = new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				if (target instanceof SideBarEntry) {
+					SideBarEntry info = (SideBarEntry) target;
+					Device device = (Device)info.getDatasource();
+				
+					showProperties( device );
+				}
+			}
+		};
 		
 		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_DEVICES );
 
@@ -275,6 +301,16 @@ DeviceManagerUI
 								SideBarEntrySWT	entry = SideBar.getEntry( key );
 																
 								new_di.setTreeItem( tree_item, entry );
+								
+								MenuManager menu_manager = ui_manager.getMenuManager();
+
+									// sep
+								
+								menu_manager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
+								
+								MenuItem menu_item = menu_manager.addMenuItem("sidebar." + key,"Subscription.menu.properties");
+								
+								menu_item.addListener( properties_listener );
 							}
 						}
 					});
@@ -292,8 +328,7 @@ DeviceManagerUI
 		
 		categoryView view = new categoryView( category_title );
 		
-		TreeItem  tree_item = 
-			side_bar.createTreeItemFromIView(
+		side_bar.createTreeItemFromIView(
 				SideBar.SIDEBAR_SECTION_DEVICES, 
 				view,
 				key, 
@@ -306,6 +341,15 @@ DeviceManagerUI
 		entry.setImageLeftID( category_image_id );
 		
 		return( key );
+	}
+	
+	protected void
+	showProperties(
+		Device		device )
+	{
+		String[][] props = device.getDisplayProperties();
+		
+		new PropertiesWindow( device.getName(), props[0], props[1] );
 	}
 	
 	protected class

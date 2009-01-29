@@ -23,20 +23,47 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 
 public class 
 DeviceInternetGatewayImpl
-	extends DeviceImpl
+	extends DeviceUPnPImpl
 	implements DeviceInternetGateway
 {
+	private UPnPDevice				device;
+	
 	protected
 	DeviceInternetGatewayImpl(
 		UPnPDevice					_device,
 		List<UPnPWANConnection>		_connections )
 	{
-		super( Device.DT_INTERNET_GATEWAY, "igd/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
+		super( _device, Device.DT_INTERNET_GATEWAY );
+		
+		device	= _device;
+	}
+	
+	protected boolean
+	updateFrom(
+		DeviceImpl		_other )
+	{
+		if ( !super.updateFrom( _other )){
+			
+			return( false );
+		}
+		
+		if ( !( _other instanceof DeviceInternetGatewayImpl )){
+			
+			Debug.out( "Inconsistent" );
+			
+			return( false );
+		}
+		
+		DeviceInternetGatewayImpl other = (DeviceInternetGatewayImpl)_other;
+		
+		return( true );
 	}
 }

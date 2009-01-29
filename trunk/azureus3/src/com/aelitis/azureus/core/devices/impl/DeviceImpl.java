@@ -21,19 +21,28 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.devices.Device;
 
-public class 
+public abstract class 
 DeviceImpl
 	implements Device
 {
 	private int				type;
 	private String			uid;
 	private String 			name;
+	
+	
+	private long			last_seen;
+	private boolean			online;
+	
 	
 	private Map<Object,Object>	transient_properties = new LightHashMap<Object, Object>(1);
 	
@@ -69,13 +78,92 @@ DeviceImpl
 	protected void
 	alive()
 	{
-		// TODO:
+		last_seen	= SystemTime.getCurrentTime();
+		
+		online	= true;
+		
+		setDirty();
 	}
 	
 	protected void
 	dead()
 	{
-		// TODO:
+		online	= false;
+		
+		setDirty();
+	}
+	
+	protected boolean
+	updateFrom(
+		DeviceImpl		other )
+	{
+		if ( type != other.type || !uid.equals( other.uid )){
+			
+			Debug.out( "Inconsistent update operation" );
+			
+			return( false );
+			
+		}else{
+			
+			if ( name.equals( other.name )){
+				
+				name	= other.name;
+				
+				setDirty();
+			}
+			
+			alive();
+			
+			return( true );
+		}
+	}
+	
+	protected void
+	setDirty()
+	{
+		
+	}
+	
+	public String[][] 
+	getDisplayProperties() 
+	{
+		List<String[]> dp = new ArrayList<String[]>();
+		
+	    getDisplayProperties( dp );
+	    	    
+	    String[][] res = new String[2][dp.size()];
+	   
+	    int	pos = 0;
+	    
+	    for ( String[] entry: dp ){
+	    
+	    	res[0][pos] = entry[0];
+	    	res[1][pos] = entry[1];
+	    	
+	    	pos++;
+	    }
+	    
+	    return( res );
+	}
+	
+	protected void
+	getDisplayProperties(
+		List<String[]>	dp )
+	{
+		addDP( dp, "TableColumn.header.name", name );
+		
+		addDP( dp, "azbuddy.ui.table.online", MessageText.getString( online?"GeneralView.yes":"GeneralView.no" ));
+		
+		addDP( dp, "azbuddy.ui.table.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
+	}
+	
+	protected void
+	addDP(
+		List<String[]>	dp,
+		String			name,
+		String			value )
+	{
+		dp.add( new String[]{ name, value });
 	}
 	
 	public void
