@@ -99,11 +99,11 @@ UPnPPlugin
 	private BooleanParameter	ignore_bad_devices;
 	private LabelParameter		ignored_devices_list;
 	
-	private List	mappings	= new ArrayList();
-	private List	services	= new ArrayList();
+	private List<UPnPMapping>		mappings	= new ArrayList<UPnPMapping>();
+	private List<UPnPPluginService>	services	= new ArrayList<UPnPPluginService>();
 	
-	private Map	root_info_map		= new HashMap();
-	private Map log_no_repeat_map	= new HashMap();
+	private Map<URL,String> 	root_info_map		= new HashMap<URL, String>();
+	private Map<String,String> log_no_repeat_map	= new HashMap<String,String>();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
 	   
@@ -845,7 +845,7 @@ UPnPPlugin
 				
 					root_info_map.put( device.getLocation(), device.getInfo());
 				
-					Iterator	it = root_info_map.values().iterator();
+					Iterator<String>	it = root_info_map.values().iterator();
 					
 					String	all_info = "";
 						
@@ -1386,6 +1386,34 @@ UPnPPlugin
 		}
 	}
 	
+	public UPnPPluginService[]
+	getServices(
+		UPnPDevice	device )
+	{
+		String	target_usn = device.getRootDevice().getUSN();
+		
+		List<UPnPPluginService> res = new ArrayList<UPnPPluginService>();
+		
+		try{
+			this_mon.enter();
+						
+			for ( UPnPPluginService service: services ){
+				
+				String	this_usn = service.getService().getGenericService().getDevice().getRootDevice().getUSN();
+				
+				if ( this_usn.equals( target_usn )){
+					
+					res.add( service );
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		return( res.toArray( new UPnPPluginService[res.size()] ));
+	}
+	
 		// for external use, e.g. webui
 	
 	public UPnPMapping
@@ -1404,6 +1432,12 @@ UPnPPlugin
 		int		port )
 	{
 		return( mapping_manager.getMapping( tcp, port ));
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( upnp_enable_param.getValue());
 	}
 	
 	protected void

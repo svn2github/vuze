@@ -46,7 +46,7 @@ UPnPPluginService
 	protected BooleanParameter 		alert_other_port_param;
 	protected BooleanParameter		release_mappings;
 	
-	protected List	service_mappings = new ArrayList();
+	protected List<serviceMapping>	service_mappings = new ArrayList<serviceMapping>();
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPluginService" );
 	   
@@ -406,7 +406,21 @@ UPnPPluginService
 		}
 	}
 	
-	protected class
+	public serviceMapping[]
+	getMappings()
+	{
+		try{
+			this_mon.enter();
+
+			return( service_mappings.toArray( new serviceMapping[service_mappings.size()]));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public class
 	serviceMapping
 	{
 		private List		mappings	= new ArrayList();
@@ -448,7 +462,7 @@ UPnPPluginService
 			internal_host	= connection.getGenericService().getDevice().getRootDevice().getLocalAddress().getHostAddress();
 		}
 		
-		protected boolean
+		public boolean
 		isExternal()
 		{
 			return( external );
@@ -494,19 +508,19 @@ UPnPPluginService
 			}
 		}
 		
-		protected boolean
+		public boolean
 		isTCP()
 		{
 			return( tcp );
 		}
 		
-		protected int
+		public int
 		getPort()
 		{
 			return( port );
 		}
 		
-		protected String
+		public String
 		getInternalHost()
 		{
 			return( internal_host );
