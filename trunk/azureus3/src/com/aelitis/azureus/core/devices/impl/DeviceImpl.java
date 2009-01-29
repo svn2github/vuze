@@ -179,7 +179,7 @@ DeviceImpl
 		
 		online	= true;
 		
-		setDirty();
+		setDirty( false );
 	}
 	
 	protected void
@@ -187,7 +187,7 @@ DeviceImpl
 	{
 		online	= false;
 		
-		setDirty();
+		setDirty( false );
 	}
 	
 	protected boolean
@@ -202,7 +202,7 @@ DeviceImpl
 			
 		}else{
 			
-			if ( name.equals( other.name )){
+			if ( !name.equals( other.name )){
 				
 				name	= other.name;
 				
@@ -218,7 +218,14 @@ DeviceImpl
 	protected void
 	setDirty()
 	{
-		manager.configDirty( this );
+		setDirty( true );
+	}
+	
+	protected void
+	setDirty(
+		boolean		save_changes )
+	{
+		manager.configDirty( this, save_changes );
 	}
 	
 	protected void

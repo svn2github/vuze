@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.IOException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 
@@ -150,7 +151,6 @@ DeviceInternetGatewayImpl
 		addDP(dp, "device.router.is_mapping", mapper_enabled );
 		
 		UPnPPluginService[]	services 			= current_services;
-		UPnPMapping[]		required_mappings 	= current_mappings;
 					
 		String	req_map_str = "";
 				
@@ -176,7 +176,9 @@ DeviceInternetGatewayImpl
 					map_str += (map_str.length()==0?"":",") + ( act_mapping.isTCP()?"TCP":"UDP" ) + " " + act_mapping.getPort();
 				}
 				
-				addDP( dp, service.getService().getGenericService().getServiceType(), map_str );
+				String service_name = MessageText.getString( "22", new String[]{ service.getService().getConnectionType() });
+				
+				addDP( dp, "!    " + service_name + "!", map_str );
 			}
 		}
 	}

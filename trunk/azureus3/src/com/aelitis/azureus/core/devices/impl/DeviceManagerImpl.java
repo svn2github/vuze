@@ -74,6 +74,8 @@ DeviceManagerImpl
 	private CopyOnWriteList<DeviceManagerListener>	listeners	= new CopyOnWriteList<DeviceManagerListener>();
 	
 	private boolean	closing;
+	
+	private boolean	config_unclean;
 	private boolean	config_dirty;
 
 	
@@ -91,7 +93,7 @@ DeviceManagerImpl
 				{					
 					synchronized( DeviceManagerImpl.this ){
 				
-						if ( config_dirty ){
+						if ( config_dirty || config_unclean ){
 							
 							saveConfig();
 						}
@@ -209,9 +211,10 @@ DeviceManagerImpl
 	
 	protected void
 	configDirty(
-		DeviceImpl		device )
+		DeviceImpl		device,
+		boolean			save_changes )
 	{
-		deviceChanged( device );
+		deviceChanged( device, save_changes );
 	}
 	
 	protected void
@@ -261,7 +264,8 @@ DeviceManagerImpl
 				return;
 			}
 			
-			config_dirty = false;
+			config_dirty 	= false;
+			config_unclean	= false;
 			
 			if ( devices.size() == 0 ){
 				
@@ -320,9 +324,17 @@ DeviceManagerImpl
 	
 	protected void
 	deviceChanged(
-		DeviceImpl		device )
+		DeviceImpl		device,
+		boolean			save_changes )
 	{
-		configDirty();
+		if ( save_changes ){
+			
+			configDirty();
+			
+		}else{
+			
+			config_unclean = true;
+		}
 		
 		for ( DeviceManagerListener listener: listeners ){
 			
