@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
 import com.aelitis.net.upnp.UPnPDevice;
@@ -57,6 +58,7 @@ DeviceInternetGatewayImpl
 	private boolean		mapper_enabled;
 	
 	private UPnPPluginService[]	current_services;
+	private UPnPMapping[]		current_mappings;
 	
 	protected
 	DeviceInternetGatewayImpl(
@@ -101,6 +103,8 @@ DeviceInternetGatewayImpl
 		if ( mapper_enabled && device != null ){
 		
 			current_services = upnp_plugin.getServices( device );
+			
+			current_mappings = upnp_plugin.getMappings();
 		}
 	}
 	
@@ -112,24 +116,35 @@ DeviceInternetGatewayImpl
 
 		addDP(dp, "device.router.is_mapping", mapper_enabled );
 		
-		UPnPPluginService[]	services = current_services;
+		UPnPPluginService[]	services 			= current_services;
+		UPnPMapping[]		required_mappings 	= current_mappings;
 		
-		if ( services == null ){
+		if ( services == null || required_mappings == null){
 			
 		}else{
 			
+			String	req_map_str = "";
+				
+			for ( UPnPMapping mapping: required_mappings ){
+				
+				if ( mapping.isEnabled()){
+					
+					req_map_str += (req_map_str.length()==0?"":",") + ( mapping.isTCP()?"TCP":"UDP" ) + " " + mapping.getPort();
+
+				}
+			}
+			
+			addDP( dp, "device.router.req_map", req_map_str );
+			
 			for ( UPnPPluginService service: services ){
 								
-				UPnPPluginService.serviceMapping[] mappings = service.getMappings();
+				UPnPPluginService.serviceMapping[] actual_mappings = service.getMappings();
 				
 				String	map_str = "";
 				
-				for ( UPnPPluginService.serviceMapping mapping: mappings ){
-					
-					if ( !mapping.isExternal()){
-						
-						map_str += (map_str.length()==0?"":",") + ( mapping.isTCP()?"TCP":"UDP" ) + " " + mapping.getPort();
-					}
+				for ( UPnPPluginService.serviceMapping act_mapping: actual_mappings ){
+											
+					map_str += (map_str.length()==0?"":",") + ( act_mapping.isTCP()?"TCP":"UDP" ) + " " + act_mapping.getPort();
 				}
 				
 				addDP( dp, service.getName(), map_str );
