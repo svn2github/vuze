@@ -33,7 +33,7 @@ public abstract class
 DeviceUPnPImpl
 	extends DeviceImpl
 {
-	private UPnPDevice		device;
+	private UPnPDevice		device_may_be_null;
 	
 	protected
 	DeviceUPnPImpl(
@@ -42,7 +42,7 @@ DeviceUPnPImpl
 	{
 		super( _type, _type + "/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
 		
-		device = _device;
+		device_may_be_null = _device;
 	}	
 	
 	protected boolean
@@ -63,9 +63,15 @@ DeviceUPnPImpl
 		
 		DeviceUPnPImpl other = (DeviceUPnPImpl)_other;
 		
-		device	= other.device;
+		device_may_be_null	= other.device_may_be_null;
 		
 		return( true );
+	}
+	
+	protected UPnPDevice
+	getDevice()
+	{
+		return( device_may_be_null );
 	}
 	
 	protected void
@@ -74,29 +80,34 @@ DeviceUPnPImpl
 	{
 		super.getDisplayProperties( dp );
 		
-		UPnPRootDevice root = device.getRootDevice();
+		UPnPDevice device = device_may_be_null;
 		
-		URL location = root.getLocation();
-		
-		addDP( dp, "dht.reseed.ip", location.getHost() + ":" + location.getPort()); 
-
-		String	model_details 	= device.getModelName();
-		String	model_url		= device.getModelURL();
-		
-		if ( model_url != null && model_url.length() > 0 ){
-			model_details += " (" + model_url + ")";
+		if ( device != null ){
+			
+			UPnPRootDevice root = device.getRootDevice();
+			
+			URL location = root.getLocation();
+			
+			addDP( dp, "dht.reseed.ip", location.getHost() + ":" + location.getPort()); 
+	
+			String	model_details 	= device.getModelName();
+			String	model_url		= device.getModelURL();
+			
+			if ( model_url != null && model_url.length() > 0 ){
+				model_details += " (" + model_url + ")";
+			}
+			
+			String	manu_details 	= device.getManufacturer();
+			String	manu_url		= device.getManufacturerURL();
+			
+			if ( manu_url != null && manu_url.length() > 0 ){
+				manu_details += " (" + manu_url + ")";
+			}
+			
+			addDP( dp, "device.model.desc", device.getModelDescription());
+			addDP( dp, "device.model.name", model_details );
+			addDP( dp, "device.model.num", device.getModelNumber());
+			addDP( dp, "device.manu.desc", manu_details );
 		}
-		
-		String	manu_details 	= device.getManufacturer();
-		String	manu_url		= device.getManufacturerURL();
-		
-		if ( manu_url != null && manu_url.length() > 0 ){
-			manu_details += " (" + manu_url + ")";
-		}
-		
-		addDP( dp, "device.model.desc", device.getModelDescription());
-		addDP( dp, "device.model.name", model_details );
-		addDP( dp, "device.model.num", device.getModelNumber());
-		addDP( dp, "device.manu.desc", manu_details );
 	}
 }

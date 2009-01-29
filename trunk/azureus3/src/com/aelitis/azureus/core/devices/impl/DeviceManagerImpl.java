@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.devices.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.util.*;
@@ -64,6 +67,29 @@ DeviceManagerImpl
 	DeviceManagerImpl()
 	{
 		new DeviceManagerUPnPImpl( this );
+		
+		SimpleTimer.addPeriodicEvent(
+				"DeviceManager:update",
+				30*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event ) 
+					{
+						List<DeviceImpl> copy;
+						
+						synchronized( devices ){
+
+							copy = new ArrayList<DeviceImpl>( devices.values() );
+						}
+						
+						for ( DeviceImpl device: copy ){
+							
+							device.updateStatus();
+						}
+					}
+				});
 	}
 	
 	protected boolean

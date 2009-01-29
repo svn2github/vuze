@@ -193,7 +193,7 @@ DeviceManagerUPnPImpl
 	{
 		UPnPService[] 	services = device.getServices();
 		
-		List<DeviceImpl>	new_devices = new ArrayList<DeviceImpl>();
+		List<DeviceUPnPImpl>	new_devices = new ArrayList<DeviceUPnPImpl>();
 		
 		List<UPnPWANConnection>	igd_services = new ArrayList<UPnPWANConnection>();
 		
@@ -224,7 +224,7 @@ DeviceManagerUPnPImpl
 			new_devices.add( new DeviceMediaRendererImpl( device ));
 		}
 		
-		for ( final DeviceImpl new_device: new_devices ){
+		for ( final DeviceUPnPImpl new_device: new_devices ){
 			
 			manager.addDevice( new_device );
 

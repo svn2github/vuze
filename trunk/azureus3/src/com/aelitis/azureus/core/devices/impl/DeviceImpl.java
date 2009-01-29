@@ -124,6 +124,11 @@ DeviceImpl
 		
 	}
 	
+	protected void
+	updateStatus()
+	{	
+	}
+	
 	public String[][] 
 	getDisplayProperties() 
 	{
@@ -152,7 +157,7 @@ DeviceImpl
 	{
 		addDP( dp, "TableColumn.header.name", name );
 		
-		addDP( dp, "azbuddy.ui.table.online", MessageText.getString( online?"GeneralView.yes":"GeneralView.no" ));
+		addDP( dp, "azbuddy.ui.table.online",  online );
 		
 		addDP( dp, "azbuddy.ui.table.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
 	}
@@ -164,6 +169,15 @@ DeviceImpl
 		String			value )
 	{
 		dp.add( new String[]{ name, value });
+	}
+	
+	protected void
+	addDP(
+		List<String[]>	dp,
+		String			name,
+		boolean			value )
+	{
+		dp.add( new String[]{ name, MessageText.getString( value?"GeneralView.yes":"GeneralView.no" ) });
 	}
 	
 	public void

@@ -24,8 +24,12 @@ package com.aelitis.azureus.core.devices.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 
@@ -34,7 +38,25 @@ DeviceInternetGatewayImpl
 	extends DeviceUPnPImpl
 	implements DeviceInternetGateway
 {
-	private UPnPDevice				device;
+	private static UPnPPlugin						upnp_plugin;
+	
+	static{
+		try{
+		    PluginInterface pi_upnp = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
+
+		    if ( pi_upnp != null ){
+
+		    	upnp_plugin = (UPnPPlugin)pi_upnp.getPlugin();
+		    }
+		}catch( Throwable e ){		
+		}
+	}
+	
+	private static List<DeviceInternetGatewayImpl>	igds;
+		
+	private boolean		mapper_enabled;
+	
+	private UPnPPluginService[]	current_services;
 	
 	protected
 	DeviceInternetGatewayImpl(
@@ -43,7 +65,7 @@ DeviceInternetGatewayImpl
 	{
 		super( _device, Device.DT_INTERNET_GATEWAY );
 		
-		device	= _device;
+		updateStatus();
 	}
 	
 	protected boolean
@@ -63,7 +85,55 @@ DeviceInternetGatewayImpl
 		}
 		
 		DeviceInternetGatewayImpl other = (DeviceInternetGatewayImpl)_other;
-		
+				
 		return( true );
+	}
+	
+	protected void
+	updateStatus()
+	{
+		super.updateStatus();
+		
+		mapper_enabled = upnp_plugin != null && upnp_plugin.isEnabled();
+			
+		UPnPDevice	device = getDevice();
+		
+		if ( mapper_enabled && device != null ){
+		
+			current_services = upnp_plugin.getServices( device );
+		}
+	}
+	
+	protected void
+	getDisplayProperties(
+		List<String[]>	dp )
+	{
+		super.getDisplayProperties( dp );
+
+		addDP(dp, "device.router.is_mapping", mapper_enabled );
+		
+		UPnPPluginService[]	services = current_services;
+		
+		if ( services == null ){
+			
+		}else{
+			
+			for ( UPnPPluginService service: services ){
+								
+				UPnPPluginService.serviceMapping[] mappings = service.getMappings();
+				
+				String	map_str = "";
+				
+				for ( UPnPPluginService.serviceMapping mapping: mappings ){
+					
+					if ( !mapping.isExternal()){
+						
+						map_str += (map_str.length()==0?"":",") + ( mapping.isTCP()?"TCP":"UDP" ) + " " + mapping.getPort();
+					}
+				}
+				
+				addDP( dp, service.getName(), map_str );
+			}
+		}
 	}
 }

@@ -57,7 +57,7 @@ DeviceContentDirectoryImpl
 		}
 		
 		DeviceContentDirectoryImpl other = (DeviceContentDirectoryImpl)_other;
-		
+				
 		return( true );
 	}
 }
