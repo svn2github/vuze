@@ -40,4 +40,10 @@ UPnPSSWANIPConnectionImpl
 	{
 		super( _service );
 	}
+	
+	public String
+	getConnectionType()
+	{
+		return( "IP" );
+	}
 }

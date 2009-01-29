@@ -36,6 +36,9 @@ UPnPWANConnection
 	public static final int	CAP_UDP_TCP_SAME_PORT	= 0x0000001;
 	public static final int	CAP_ALL					= 0xffffffff;
 	
+	public String
+	getConnectionType();
+	
 		/**
 		 * adda new port mapping from external port X to port X on local host
 		 * @param tcp

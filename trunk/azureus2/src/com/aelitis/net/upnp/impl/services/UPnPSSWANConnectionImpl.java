@@ -39,7 +39,7 @@ import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
  *
  */
 
-public class 
+public abstract class 
 UPnPSSWANConnectionImpl 
 	implements UPnPWANConnection
 {

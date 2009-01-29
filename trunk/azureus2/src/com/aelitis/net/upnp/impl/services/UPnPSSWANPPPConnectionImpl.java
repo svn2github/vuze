@@ -40,4 +40,10 @@ UPnPSSWANPPPConnectionImpl
 	{
 		super( _service );
 	}
+	
+	public String
+	getConnectionType()
+	{
+		return( "PPP" );
+	}
 }

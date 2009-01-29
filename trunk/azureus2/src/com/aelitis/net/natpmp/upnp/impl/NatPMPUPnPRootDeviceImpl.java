@@ -236,6 +236,12 @@ NatPMPUPnPRootDeviceImpl
 			return( "urn:schemas-upnp-org:service:WANIPConnection:1" );
 		}
 
+		public String 
+		getConnectionType() 
+		{
+			return( "IP" );	// ??
+		}
+		
 		public URL
 		getControlURL()
 		

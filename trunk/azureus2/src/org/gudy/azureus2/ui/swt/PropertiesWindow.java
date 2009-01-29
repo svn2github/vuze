@@ -102,7 +102,15 @@ PropertiesWindow
 	    	}
 	    	
 		    BufferedLabel	msg_label = new BufferedLabel(main, SWT.NULL);
-		    msg_label.setText( MessageText.getString( keys[i] ) + ":" );
+		    String msg;
+		    String key = keys[i];
+		    if ( key.startsWith( "!") && key.endsWith( "!" )){
+		    	msg = key.substring(1, key.length()-2 );
+		    }else{
+		    	msg = MessageText.getString( key );
+		    }
+		    
+		    msg_label.setText( msg + ":" );
 		    gridData = new GridData();
 		    gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
 		    msg_label.setLayoutData(gridData);
