@@ -11,6 +11,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.cnetwork.impl.ContentNetworkVuze;
 import com.aelitis.azureus.core.messenger.config.PlatformBuddyMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -124,10 +125,12 @@ public class VuzeShareUtils
 		if (id == ContentNetwork.CONTENT_NETWORK_UNKNOWN) {
 			return true;
 		}
-		boolean cnExists = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-				id) != null;
-		return cnExists && (SystemTime.getCurrentTime() >= DATE_CANSHARENONVUZECN
-					|| Constants.isCVSVersion());
+		if (SystemTime.getCurrentTime() >= DATE_CANSHARENONVUZECN) {
+			return true;
+		}
+		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+				id);
+		return cn == null || cn.getID() == ContentNetworkVuze.CONTENT_NETWORK_VUZE;
 	}
 
 }
