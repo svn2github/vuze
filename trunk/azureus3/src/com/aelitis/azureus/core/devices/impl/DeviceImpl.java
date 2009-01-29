@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -30,17 +32,53 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
 DeviceImpl
 	implements Device
 {
-	private int				type;
-	private String			uid;
-	private String 			name;
+	private static final String MY_PACKAGE = "com.aelitis.azureus.core.devices.impl";
 	
+	protected static DeviceImpl
+	importFromBEncodedMapStatic(
+		DeviceManagerImpl	manager,
+		Map					map )
 	
+		throws IOException
+	{
+		String	impl = ImportExportUtils.importString( map, "_impl" );
+		
+		if ( impl.startsWith( "." )){
+			
+			impl = MY_PACKAGE + impl;
+		}
+		
+		try{
+			Class<DeviceImpl> cla = (Class<DeviceImpl>) Class.forName( impl );
+			
+			Constructor<DeviceImpl> cons = cla.getDeclaredConstructor( DeviceManagerImpl.class, Map.class );
+			
+			cons.setAccessible( true );
+			
+			return( cons.newInstance( manager, map ));
+			
+		}catch( Throwable e ){
+
+			Debug.out( "Can't construct device for " + impl, e );
+			
+			throw( new IOException( "Construction failed: " + Debug.getNestedExceptionMessage(e)));
+		}
+	}
+	
+	private DeviceManagerImpl	manager;
+	private int					type;
+	private String				uid;
+	private String 				name;
+	
+	private boolean			hidden;
 	private long			last_seen;
+	
 	private boolean			online;
 	
 	
@@ -48,13 +86,54 @@ DeviceImpl
 	
 	protected
 	DeviceImpl(
-		int			_type,
-		String		_uid,
-		String		_name )
+		DeviceManagerImpl	_manager,
+		int					_type,
+		String				_uid,
+		String				_name )
 	{
+		manager		= _manager;
 		type		= _type;
 		uid			= _uid;
 		name		= _name;
+	}
+	
+	protected
+	DeviceImpl(
+		DeviceManagerImpl	_manager,
+		Map					map )
+	
+		throws IOException
+	{
+		manager	= _manager;
+		
+		type	= (int)ImportExportUtils.importLong( map, "_type" );
+		uid		= ImportExportUtils.importString( map, "_uid" );
+		name	= ImportExportUtils.importString( map, "_name" );
+		
+		last_seen	= ImportExportUtils.importLong( map, "_ls" );
+		hidden		= ImportExportUtils.importBoolean( map, "_hide" );
+	}
+	
+	protected void
+	exportToBEncodedMap(
+		Map					map )
+	
+		throws IOException
+	{
+		String	cla = this.getClass().getName();
+		
+		if ( cla.startsWith( MY_PACKAGE )){
+			
+			cla = cla.substring( MY_PACKAGE.length());
+		}
+		
+		ImportExportUtils.exportString( map, "_impl", cla );
+		ImportExportUtils.exportLong( map, "_type", new Long( type ));
+		ImportExportUtils.exportString( map, "_uid", uid );
+		ImportExportUtils.exportString( map, "_name", name );
+		
+		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
+		ImportExportUtils.exportBoolean( map, "_hide", hidden );
 	}
 	
 	public int
@@ -73,6 +152,24 @@ DeviceImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public boolean
+	isHidden()
+	{
+		return( hidden );
+	}
+	
+	public void
+	setHidden(
+		boolean		h )
+	{
+		if ( h != hidden ){
+			
+			hidden	= h;
+			
+			setDirty();
+		}
 	}
 	
 	protected void
@@ -121,7 +218,7 @@ DeviceImpl
 	protected void
 	setDirty()
 	{
-		
+		manager.configDirty( this );
 	}
 	
 	protected void

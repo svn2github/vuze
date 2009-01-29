@@ -21,8 +21,10 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -37,13 +39,24 @@ DeviceUPnPImpl
 	
 	protected
 	DeviceUPnPImpl(
+		DeviceManagerImpl			_manager,
 		UPnPDevice					_device,
 		int							_type )
 	{
-		super( _type, _type + "/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
+		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
 		
 		device_may_be_null = _device;
 	}	
+	
+	protected
+	DeviceUPnPImpl(
+		DeviceManagerImpl	_manager,
+		Map					_map )
+	
+		throws IOException
+	{
+		super(_manager, _map );
+	}
 	
 	protected boolean
 	updateFrom(

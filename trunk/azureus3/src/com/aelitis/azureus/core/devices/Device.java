@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.devices;
 public interface 
 Device 
 {
+	public static final int DT_UNKNOWN				= 0;
 	public static final int DT_INTERNET_GATEWAY		= 1;
 	public static final int DT_CONTENT_DIRECTORY	= 2;
 	public static final int DT_MEDIA_RENDERER		= 3;
@@ -37,6 +38,13 @@ Device
 	
 	public String
 	getName();
+	
+	public void
+	setHidden(
+		boolean		is_hidden );
+	
+	public boolean
+	isHidden();
 	
 	public void
 	setTransientProperty(

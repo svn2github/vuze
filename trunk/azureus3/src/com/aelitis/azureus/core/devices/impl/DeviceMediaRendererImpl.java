@@ -21,6 +21,9 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.*;
@@ -33,9 +36,20 @@ DeviceMediaRendererImpl
 {
 	protected
 	DeviceMediaRendererImpl(
-		UPnPDevice		_device )
+		DeviceManagerImpl	_manager,
+		UPnPDevice			_device )
 	{
-		super( _device, Device.DT_MEDIA_RENDERER );
+		super( _manager, _device, Device.DT_MEDIA_RENDERER );
+	}
+	
+	protected
+	DeviceMediaRendererImpl(
+		DeviceManagerImpl	_manager,
+		Map					_map )
+	
+		throws IOException
+	{
+		super(_manager, _map );
 	}
 	
 	protected boolean

@@ -28,6 +28,9 @@ DeviceManager
 	getDevices();
 	
 	public void
+	search();
+	
+	public void
 	addListener(
 		DeviceManagerListener		listener );
 	

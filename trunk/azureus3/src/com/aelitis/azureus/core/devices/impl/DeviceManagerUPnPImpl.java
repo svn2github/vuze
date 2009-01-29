@@ -37,7 +37,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
 import com.aelitis.net.upnp.UPnPDevice;
-import com.aelitis.net.upnp.UPnPException;
 import com.aelitis.net.upnp.UPnPFactory;
 import com.aelitis.net.upnp.UPnPListener;
 import com.aelitis.net.upnp.UPnPRootDevice;
@@ -50,6 +49,7 @@ DeviceManagerUPnPImpl
 {
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
+	private UPnP 					upnp;
 	
 	protected
 	DeviceManagerUPnPImpl(
@@ -153,7 +153,8 @@ DeviceManagerUPnPImpl
 			};
 		
 		try{
-			UPnP upnp = UPnPFactory.getSingleton( adapter, null );
+			upnp = UPnPFactory.getSingleton( adapter, null );
+			
 			
 			upnp.addRootDeviceListener(
 				new UPnPListener()
@@ -177,6 +178,15 @@ DeviceManagerUPnPImpl
 		}catch( Throwable e ){
 			
 			manager.log( "UPnP device manager failed", e );
+		}
+	}
+	
+	public void
+	search()
+	{
+		if ( upnp != null ){
+			
+			upnp.search();
 		}
 	}
 	
@@ -210,18 +220,18 @@ DeviceManagerUPnPImpl
 
 			}else if ( service_type.equals( "urn:schemas-upnp-org:service:ContentDirectory:1" )){
 				
-				new_devices.add( new DeviceContentDirectoryImpl( device, service ));
+				new_devices.add( new DeviceContentDirectoryImpl( manager, device, service ));
 			}
 		}
 		
 		if ( igd_services.size() > 0 ){
 			
-			new_devices.add( new DeviceInternetGatewayImpl( device, igd_services ));
+			new_devices.add( new DeviceInternetGatewayImpl( manager, device, igd_services ));
 		}
 		
 		if ( device.getDeviceType().equals( "urn:schemas-upnp-org:device:MediaRenderer:1" )){
 				
-			new_devices.add( new DeviceMediaRendererImpl( device ));
+			new_devices.add( new DeviceMediaRendererImpl( manager, device ));
 		}
 		
 		for ( final DeviceUPnPImpl new_device: new_devices ){

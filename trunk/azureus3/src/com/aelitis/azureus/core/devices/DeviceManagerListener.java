@@ -27,4 +27,12 @@ DeviceManagerListener
 	public void
 	deviceAdded(
 		Device		device );
+	
+	public void
+	deviceChanged(
+		Device		device );
+	
+	public void
+	deviceRemoved(
+		Device		device );
 }

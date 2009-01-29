@@ -21,6 +21,9 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
+import java.util.Map;
+
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.*;
@@ -34,10 +37,21 @@ DeviceContentDirectoryImpl
 {
 	protected
 	DeviceContentDirectoryImpl(
-		UPnPDevice		_device,
-		UPnPService		_service )
+		DeviceManagerImpl	_manager,
+		UPnPDevice			_device,
+		UPnPService			_service )
 	{
-		super( _device, Device.DT_CONTENT_DIRECTORY );
+		super( _manager, _device, Device.DT_CONTENT_DIRECTORY );
+	}
+	
+	protected
+	DeviceContentDirectoryImpl(
+		DeviceManagerImpl	_manager,
+		Map					_map )
+	
+		throws IOException
+	{
+		super(_manager, _map );
 	}
 	
 	protected boolean
