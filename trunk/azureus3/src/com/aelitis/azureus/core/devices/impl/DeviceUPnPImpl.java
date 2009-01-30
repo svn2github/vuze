@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -52,9 +53,21 @@ DeviceUPnPImpl
 	getDisplayName(
 		UPnPDevice		device )
 	{
-		String fn = device.getFriendlyName();
+		UPnPDevice	root = device.getRootDevice().getDevice();
 		
-		String	dn = device.getModelName();
+		String fn = root.getFriendlyName();
+		
+		if ( fn == null || fn.length() == 0 ){
+			
+			fn = device.getFriendlyName();
+		}
+		
+		String	dn = root.getModelName();
+		
+		if ( dn == null || dn.length() == 0 ){
+		
+			dn = device.getModelName();
+		}
 		
 		if ( dn != null && dn.length() > 0 ){
 			
@@ -104,6 +117,21 @@ DeviceUPnPImpl
 	getDevice()
 	{
 		return( device_may_be_null );
+	}
+	
+	public browseLocation[]
+	getBrowseLocations()
+	{
+		List<browseLocation>	locs = new ArrayList<browseLocation>();
+	
+		UPnPDevice device = device_may_be_null;
+		
+		if ( device != null ){
+			
+			locs.add( new browseLocationImpl( "device.upnp.desc_url", device.getRootDevice().getLocation()));
+		}
+		
+		return( locs.toArray( new browseLocation[ locs.size() ]));
 	}
 	
 	protected void

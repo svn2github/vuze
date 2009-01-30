@@ -54,6 +54,8 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -81,6 +83,8 @@ DeviceManagerUI
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
 	private MenuItemListener remove_listener;
+	
+	private MenuItemFillListener will_browse_listener;
 	
 	public
 	DeviceManagerUI(
@@ -206,7 +210,63 @@ DeviceManagerUI
 				}
 			};
 			
-		
+		will_browse_listener = 
+				new MenuItemFillListener() 
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		targets) 
+					{
+						menu.removeAllChildItems();
+				
+						boolean	enabled = false;
+						
+						Object[]	rows;
+						
+						if ( targets instanceof Object[] ){
+							
+							rows = (Object[])targets;
+							
+						}else{
+							
+							rows = new Object[]{ targets };
+						}
+						
+						if ( rows.length > 0 && rows[0] instanceof SideBarEntry ){
+													
+							SideBarEntry info = (SideBarEntry)rows[0];
+						
+							Device device = (Device)info.getDatasource();
+					
+							Device.browseLocation[] locs = device.getBrowseLocations();
+							
+							enabled = locs.length > 0;
+							
+							MenuManager menuManager = ui_manager.getMenuManager();
+
+							for ( final Device.browseLocation loc: locs ){
+							
+								MenuItem loc_menu = menuManager.addMenuItem( menu, loc.getName());
+								
+								loc_menu.addListener(
+									new MenuItemListener()
+									{
+										public void 
+										selected(
+											MenuItem 	menu,
+											Object 		target ) 
+										{
+											Utils.launch( loc.getURL().toExternalForm());
+										}
+									});
+							}
+						}
+						
+						menu.setEnabled( enabled );
+					}
+				};
+			
 		MenuItemListener show_listener = 
 			new MenuItemListener() 
 			{
@@ -601,6 +661,16 @@ DeviceManagerUI
 									
 									MenuManager menu_manager = ui_manager.getMenuManager();
 	
+										// null -> no browse available
+									
+									if ( device.getBrowseLocations() != null ){
+									
+										MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
+										
+										browse_menu_item.setStyle( MenuItem.STYLE_MENU );
+										
+										browse_menu_item.addFillListener( will_browse_listener );
+									}
 									
 									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
 									

@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -315,5 +316,34 @@ DeviceImpl
 	getString()
 	{
 		return( "type=" + type + ",uid=" + uid + ",name=" + name );
+	}
+	
+	protected class
+	browseLocationImpl
+		implements browseLocation
+	{
+		private String		name;
+		private URL			url;
+		
+		protected
+		browseLocationImpl(
+			String		_name,
+			URL			_url )
+		{
+			name		= _name;
+			url			= _url;
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public URL
+		getURL()
+		{
+			return( url );
+		}
 	}
 }

@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.net.URL;
+
 public interface 
 Device 
 {
@@ -46,6 +48,9 @@ Device
 	public boolean
 	isHidden();
 	
+	public browseLocation[]
+	getBrowseLocations();
+	
 	public void
 	setTransientProperty(
 		Object		key,
@@ -68,4 +73,14 @@ Device
 	
 	public String
 	getString();
+	
+	interface
+	browseLocation
+	{
+		public String
+		getName();
+		
+		public URL
+		getURL();
+	}
 }
