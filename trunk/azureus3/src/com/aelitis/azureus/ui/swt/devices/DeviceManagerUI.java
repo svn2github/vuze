@@ -48,10 +48,13 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import com.aelitis.azureus.core.AzureusCore;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.subs.Subscription;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -495,6 +498,8 @@ DeviceManagerUI
 																	
 									new_di.setTreeItem( tree_item, entry );
 									
+									setStatus( device, new_di );
+									
 									MenuManager menu_manager = ui_manager.getMenuManager();
 	
 									
@@ -515,8 +520,29 @@ DeviceManagerUI
 							}
 						});
 				}
+			}else{
+				
+				Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								ViewTitleInfoManager.refreshTitleInfo( existing_di.getView());
+								
+								setStatus( device, existing_di );
+							}
+						});
 			}
 		}
+	}
+	
+	protected void
+	setStatus(
+		Device			device,
+		deviceItem		sbi )
+	{
+		sbi.setWarning( device );
 	}
 	
 	protected void

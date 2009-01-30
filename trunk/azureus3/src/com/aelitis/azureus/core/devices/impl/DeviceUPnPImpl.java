@@ -43,10 +43,29 @@ DeviceUPnPImpl
 		UPnPDevice					_device,
 		int							_type )
 	{
-		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), _device.getFriendlyName());
+		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ));
 		
 		device_may_be_null = _device;
 	}	
+	
+	protected static String
+	getDisplayName(
+		UPnPDevice		device )
+	{
+		String fn = device.getFriendlyName();
+		
+		String	dn = device.getModelName();
+		
+		if ( dn != null && dn.length() > 0 ){
+			
+			if ( !fn.contains( dn ) && ( !dn.contains( "Azureus" ) || dn.contains( "Vuze" ))){
+			
+				fn += " (" + dn + ")";
+			}
+		}
+		
+		return( fn );
+	}
 	
 	protected
 	DeviceUPnPImpl(
