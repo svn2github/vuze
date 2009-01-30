@@ -128,6 +128,19 @@ DeviceUPnPImpl
 		
 		if ( device != null ){
 			
+			String	presentation = device.getRootDevice().getDevice().getPresentation();
+			
+			if ( presentation != null ){
+				
+				try{
+					URL url = new URL( presentation );
+					
+					locs.add( new browseLocationImpl( "device.upnp.present_url", url ));
+
+				}catch( Throwable e ){
+					
+				}
+			}
 			locs.add( new browseLocationImpl( "device.upnp.desc_url", device.getRootDevice().getLocation()));
 		}
 		
