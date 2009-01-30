@@ -176,7 +176,7 @@ DeviceInternetGatewayImpl
 					map_str += (map_str.length()==0?"":",") + ( act_mapping.isTCP()?"TCP":"UDP" ) + " " + act_mapping.getPort();
 				}
 				
-				String service_name = MessageText.getString( "22", new String[]{ service.getService().getConnectionType() });
+				String service_name = MessageText.getString( "device.router.con_type", new String[]{ service.getService().getConnectionType() });
 				
 				addDP( dp, "!    " + service_name + "!", map_str );
 			}
