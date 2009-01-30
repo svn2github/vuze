@@ -189,6 +189,12 @@ NatPMPUPnPRootDeviceImpl
 			return( "" );
 		}
 		
+		public String 
+		getPresentation() 
+		{
+			return( "" );
+		}
+		
 		public UPnPDevice[]
 		getSubDevices()
 		{

@@ -54,6 +54,9 @@ UPnPDevice
 	public String
 	getModelURL();
 	
+	public String
+	getPresentation();
+	
 	public UPnPDevice[]
 	getSubDevices();
 	

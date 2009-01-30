@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentN
  */
 
 import java.net.InetAddress;
+import java.net.URL;
 import java.util.*;
 
 
@@ -51,6 +52,7 @@ UPnPDeviceImpl
 	private String	model_name;
 	private String	model_number;
 	private String	model_url;
+	private String	presentation_url;
 	
 	
 	private List		devices		= new ArrayList();
@@ -79,6 +81,7 @@ UPnPDeviceImpl
 		model_name			= getOptionalField( device_node, "modelName" );
 		model_number		= getOptionalField( device_node, "modelNumber");
 		model_url			= getOptionalField( device_node, "modelURL");
+		presentation_url	= getOptionalField( device_node, "presentationURL");
 		
 		boolean	interested = device_type.equalsIgnoreCase( "urn:schemas-upnp-org:device:WANConnectionDevice:1" );
 		
@@ -191,6 +194,12 @@ UPnPDeviceImpl
 	getModelURL()
 	{
 		return( model_url );
+	}
+	
+	public String
+	getPresentation()
+	{
+		return( presentation_url==null?null:getAbsoluteURL( presentation_url ));
 	}
 	
 	public UPnPDevice[]
