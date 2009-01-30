@@ -285,6 +285,12 @@ DeviceImpl
 	}
 	
 	public void
+	remove()
+	{
+		manager.removeDevice( this );
+	}
+	
+	public void
 	setTransientProperty(
 		Object		key,
 		Object		value )

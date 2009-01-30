@@ -41,7 +41,6 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -50,13 +49,11 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import com.aelitis.azureus.core.AzureusCore;
 
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.core.subs.Subscription;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI.sideBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -189,7 +186,27 @@ DeviceManagerUI
 					}
 				}
 			};
-				
+			
+		remove_listener = 
+			new MenuItemListener() 
+			{
+				public void 
+				selected(
+					MenuItem menu, 
+					Object target) 
+				{
+					if (target instanceof SideBarEntry){
+						
+						SideBarEntry info = (SideBarEntry) target;
+						
+						Device device = (Device)info.getDatasource();
+					
+						device.remove();
+					}
+				}
+			};
+			
+		
 		MenuItemListener show_listener = 
 			new MenuItemListener() 
 			{
@@ -589,9 +606,13 @@ DeviceManagerUI
 									
 									hide_menu_item.addListener( hide_listener );
 	
+									MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
+									
+									remove_menu_item.addListener( remove_listener );
+
 										// sep
 									
-									menu_manager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
+									menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
 									
 										// props
 									

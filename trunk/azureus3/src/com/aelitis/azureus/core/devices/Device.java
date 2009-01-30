@@ -63,6 +63,9 @@ Device
 	public String[][]
 	getDisplayProperties();
 	
+	public void
+	remove();
+	
 	public String
 	getString();
 }

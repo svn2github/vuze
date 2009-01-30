@@ -135,6 +135,16 @@ DeviceManagerImpl
 		upnp_manager.search();
 	}
 	
+	protected DeviceImpl
+	getDevice(
+		String		id )
+	{
+		synchronized( this ){
+
+			return( devices.get( id ));
+		}
+	}
+	
 	protected boolean
 	addDevice(
 		DeviceImpl		device )
@@ -164,6 +174,25 @@ DeviceManagerImpl
 		return( true );
 	}
 	
+	protected void
+	removeDevice(
+		DeviceImpl		device )
+	{
+		synchronized( this ){
+			
+			DeviceImpl existing = devices.remove( device.getID());
+			
+			if ( existing == null ){
+				
+				return;
+			}
+		}
+		
+		deviceRemoved( device );
+		
+		configDirty();
+	}
+
 	public Device[]
   	getDevices()
 	{

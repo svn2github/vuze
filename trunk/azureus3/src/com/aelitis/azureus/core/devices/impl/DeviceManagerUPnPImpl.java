@@ -171,7 +171,7 @@ DeviceManagerUPnPImpl
 					rootDeviceFound(
 						UPnPRootDevice		device )
 					{
-						handleDevice( device );
+						handleDevice( device, true );
 					}
 				});
 		
@@ -183,8 +183,17 @@ DeviceManagerUPnPImpl
 	
 	public void
 	search()
-	{
+	{	
 		if ( upnp != null ){
+	
+			// if the user has removed items we need to re-inject them
+
+			UPnPRootDevice[] devices = upnp.getRootDevices();
+			
+			for ( UPnPRootDevice device: devices ){
+				
+				handleDevice( device, false );
+			}
 			
 			upnp.search();
 		}
@@ -192,14 +201,16 @@ DeviceManagerUPnPImpl
 	
 	protected void
 	handleDevice(
-		UPnPRootDevice		root_device )
+		UPnPRootDevice		root_device,
+		boolean				update_if_found )
 	{
-		handleDevice( root_device.getDevice());
+		handleDevice( root_device.getDevice(), update_if_found );
 	}
 	
 	protected void
 	handleDevice(
-		UPnPDevice	device )
+		UPnPDevice	device,
+		boolean		update_if_found )
 	{
 		UPnPService[] 	services = device.getServices();
 		
@@ -236,6 +247,11 @@ DeviceManagerUPnPImpl
 		
 		for ( final DeviceUPnPImpl new_device: new_devices ){
 			
+			if ( !update_if_found &&  manager.getDevice( new_device.getID()) != null ){
+					
+				continue;
+			}
+			
 			manager.addDevice( new_device );
 
 			device.getRootDevice().addListener(
@@ -256,7 +272,7 @@ DeviceManagerUPnPImpl
 		
 		for (UPnPDevice d: device.getSubDevices()){
 			
-			handleDevice( d );
+			handleDevice( d, update_if_found );
 		}
 	}
 }
