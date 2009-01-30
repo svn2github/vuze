@@ -86,7 +86,7 @@ UPnPImpl
 	private UPnPAdapter				adapter;
 	private SSDPIGD					ssdp;
 	
-	private Map			root_locations	= new HashMap();
+	private Map<String,UPnPRootDeviceImpl>			root_locations	= new HashMap<String, UPnPRootDeviceImpl>();
 	
 	private List		log_listeners		= new ArrayList();
 	private List		log_history			= new ArrayList();
@@ -888,6 +888,20 @@ UPnPImpl
 		UPnPLogListener	l )
 	{
 		log_listeners.remove( l );
+	}
+	
+	public UPnPRootDevice[]
+	getRootDevices()
+	{
+		try{
+			this_mon.enter();
+
+			return( root_locations.values().toArray( new UPnPRootDevice[ root_locations.size()] ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public void

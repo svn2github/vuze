@@ -30,6 +30,9 @@ package com.aelitis.net.upnp;
 public interface 
 UPnP 
 {
+	public UPnPRootDevice[]
+	getRootDevices();
+	
 		/**
 		 * resets by removing all root devices and then rediscovering them
 		 *
