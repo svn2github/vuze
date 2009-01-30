@@ -48,6 +48,9 @@ Device
 	public boolean
 	isHidden();
 	
+	public boolean
+	isBrowsable();
+	
 	public browseLocation[]
 	getBrowseLocations();
 	

@@ -660,10 +660,8 @@ DeviceManagerUI
 									setStatus( device, new_di );
 									
 									MenuManager menu_manager = ui_manager.getMenuManager();
-	
-										// null -> no browse available
-									
-									if ( device.getBrowseLocations() != null ){
+										
+									if ( device.isBrowsable()){
 									
 										MenuItem browse_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.browse");
 										

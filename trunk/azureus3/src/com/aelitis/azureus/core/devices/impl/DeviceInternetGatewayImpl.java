@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -119,6 +120,32 @@ DeviceInternetGatewayImpl
 			
 			current_mappings = upnp_plugin.getMappings();
 		}
+	}
+	
+	protected URL
+	getPresentationURL(
+		UPnPDevice		device )
+	{
+		URL	url = super.getPresentationURL( device );
+		
+		if ( url == null ){
+			
+			try{
+					// no explicit one, try hitting location 
+				
+				URL loc = device.getRootDevice().getLocation();
+			
+				URL	test_loc = new URL( loc.getProtocol() +  "://" + loc.getHost() + "/" );
+				
+				test_loc.openConnection().connect();
+				
+				return( test_loc );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		return( url );
 	}
 	
 	protected Set<mapping>

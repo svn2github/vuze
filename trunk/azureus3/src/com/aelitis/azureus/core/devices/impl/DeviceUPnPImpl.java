@@ -36,7 +36,7 @@ public abstract class
 DeviceUPnPImpl
 	extends DeviceImpl
 {
-	private UPnPDevice		device_may_be_null;
+	private volatile UPnPDevice		device_may_be_null;
 	
 	protected
 	DeviceUPnPImpl(
@@ -119,6 +119,12 @@ DeviceUPnPImpl
 		return( device_may_be_null );
 	}
 	
+	public boolean
+	isBrowsable()
+	{
+		return( true );
+	}
+	
 	public browseLocation[]
 	getBrowseLocations()
 	{
@@ -128,23 +134,37 @@ DeviceUPnPImpl
 		
 		if ( device != null ){
 			
-			String	presentation = device.getRootDevice().getDevice().getPresentation();
-			
-			if ( presentation != null ){
-				
-				try{
-					URL url = new URL( presentation );
-					
-					locs.add( new browseLocationImpl( "device.upnp.present_url", url ));
+			URL		presentation = getPresentationURL( device );
 
-				}catch( Throwable e ){
+			if ( presentation != null ){
 					
-				}
+				locs.add( new browseLocationImpl( "device.upnp.present_url", presentation ));
 			}
+			
 			locs.add( new browseLocationImpl( "device.upnp.desc_url", device.getRootDevice().getLocation()));
 		}
 		
 		return( locs.toArray( new browseLocation[ locs.size() ]));
+	}
+	
+	protected URL
+	getPresentationURL(
+		UPnPDevice		device )
+	{
+		String	presentation = device.getRootDevice().getDevice().getPresentation();
+		
+		if ( presentation != null ){
+			
+			try{
+				URL url = new URL( presentation );
+				
+				return( url );
+
+			}catch( Throwable e ){				
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected void
