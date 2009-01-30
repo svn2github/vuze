@@ -142,6 +142,24 @@ DeviceInternetGatewayImpl
 		return( res );
 	}
 	
+	protected Set<mapping>
+	getActualMappings(
+		UPnPPluginService	service )
+	{
+		UPnPPluginService.serviceMapping[] actual_mappings = service.getMappings();
+		
+		Set<mapping> actual = new TreeSet<mapping>();
+		
+		for ( UPnPPluginService.serviceMapping act_mapping: actual_mappings ){
+		
+			mapping m = new mapping( act_mapping );
+			
+			actual.add( m );
+		}
+		
+		return( actual );
+	}
+	
 	protected void
 	getDisplayProperties(
 		List<String[]>	dp )
@@ -150,7 +168,7 @@ DeviceInternetGatewayImpl
 
 		addDP(dp, "device.router.is_mapping", mapper_enabled );
 		
-		UPnPPluginService[]	services 			= current_services;
+		UPnPPluginService[]	services = current_services;
 					
 		String	req_map_str = "";
 				
@@ -167,18 +185,21 @@ DeviceInternetGatewayImpl
 			
 			for ( UPnPPluginService service: services ){
 								
-				UPnPPluginService.serviceMapping[] actual_mappings = service.getMappings();
+				Set<mapping> actual = getActualMappings( service );
 				
-				String	map_str = "";
+				String	act_map_str = "";
 				
-				for ( UPnPPluginService.serviceMapping act_mapping: actual_mappings ){
-											
-					map_str += (map_str.length()==0?"":",") + ( act_mapping.isTCP()?"TCP":"UDP" ) + " " + act_mapping.getPort();
+				for ( mapping m: actual ){
+					
+					if ( required.contains(m)){
+					
+						act_map_str += (act_map_str.length()==0?"":",") + m.getString();
+					}
 				}
 				
 				String service_name = MessageText.getString( "device.router.con_type", new String[]{ service.getService().getConnectionType() });
 				
-				addDP( dp, "!    " + service_name + "!", map_str );
+				addDP( dp, "!    " + service_name + "!", act_map_str );
 			}
 		}
 	}
@@ -193,6 +214,14 @@ DeviceInternetGatewayImpl
 		protected
 		mapping(
 			UPnPMapping m )
+		{
+			is_tcp		= m.isTCP();
+			port		= m.getPort();
+		}
+		
+		protected
+		mapping(
+			UPnPPluginService.serviceMapping		m )
 		{
 			is_tcp		= m.isTCP();
 			port		= m.getPort();

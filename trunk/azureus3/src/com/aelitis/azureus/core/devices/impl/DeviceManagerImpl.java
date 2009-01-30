@@ -152,7 +152,9 @@ DeviceManagerImpl
 			
 			devices.put( device.getID(), device );
 		}
-				
+			
+		device.updateStatus();
+		
 		device.alive();
 		
 		deviceAdded( device );
@@ -198,6 +200,8 @@ DeviceManagerImpl
 						
 						devices.put( device.getID(), device );
 						
+						device.updateStatus();
+					
 						log( "    loaded " + device.getString());
 						
 					}catch( Throwable e ){
