@@ -466,11 +466,9 @@ PlatformManagerImpl
 		
 		try{
 				// always trigger magnet reg here if not owned so old users get it...
+					
+			registerMagnet( false );
 			
-			if ( getAdditionalFileTypeRegistrationDetails( "Magnet", ".magnet" ) == RT_NONE ){
-		
-				registerMagnet();
-			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -675,7 +673,7 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
-		registerMagnet();
+		registerMagnet( true );
 		
 		registerDHT();
 		
@@ -685,19 +683,81 @@ PlatformManagerImpl
 	}
 	
 	protected void
-	registerMagnet()
+	registerMagnet(
+		boolean		force )
+	{
+
+		try{
+				// see http://forum.vuze.com/thread.jspa?threadID=79692&tstart=0
+			
+			String	az_exe_string	= getApplicationEXELocation().toString();
+			
+			boolean	magnet_exe_managing = false;
+			
+			try{
+				String existing = access.readStringValue( AEWin32Access.HKEY_CLASSES_ROOT, "magnet\\shell\\open\\command", "" );
+
+				magnet_exe_managing = existing.toLowerCase().indexOf( "\\magnet.exe" ) != -1;
+				
+			}catch( Throwable e ){
+			}
+			
+			if ( !magnet_exe_managing ){
+				
+				if ( force || getAdditionalFileTypeRegistrationDetails( "Magnet", ".magnet" ) == RT_NONE ){
+
+					try{
+						registerAdditionalFileType( 
+							"Magnet", 
+							"Magnet URI", 
+							".magnet", 
+							"application/x-magnet",
+							true );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+			
+				// we always write this hierarchy in case magnet.exe installed in the future
+			
+			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet" );
+			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers" );
+			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus" );
+	
+			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "DefaultIcon", "\"" + az_exe_string + "," + getIconIndex() + "\"" );
+			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "Description", "Download with Vuze (formerly Azureus)" );
+			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "ShellExecute", "\"" + az_exe_string + "\" %URL" );
+			
+			access.writeWordValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus\\Type", "urn:btih", 0 );
+
+		}catch( Throwable e ){		
+		}
+	}
+	
+	protected boolean
+	createKey(
+		int		type,
+		String	key )
 	{
 		try{
-			registerAdditionalFileType( 
-				"Magnet", 
-				"Magnet URI", 
-				".magnet", 
-				"application/x-magnet",
-				true );
+			access.readStringValue( type, key, "");
+		
+			return( true );
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
+			try{
+				access.writeStringValue( type, key, "", "" );
+				
+				return( true );
+				
+			}catch( Throwable f ){
+				
+				return( false );
+			}
 		}
 	}
 	
