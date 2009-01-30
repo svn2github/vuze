@@ -104,8 +104,8 @@ PropertiesWindow
 		    BufferedLabel	msg_label = new BufferedLabel(main, SWT.NULL);
 		    String msg;
 		    String key = keys[i];
-		    if ( key.startsWith( "!") && key.endsWith( "!" )){
-		    	msg = key.substring(1, key.length()-2 );
+		    if ( key.startsWith( "!" ) && key.endsWith( "!" )){
+		    	msg = key.substring(1, key.length()-1 );
 		    }else{
 		    	msg = MessageText.getString( key );
 		    }
