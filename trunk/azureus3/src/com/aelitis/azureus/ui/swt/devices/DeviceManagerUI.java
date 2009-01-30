@@ -34,12 +34,14 @@ import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -81,7 +83,7 @@ DeviceManagerUI
 	
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
-	private MenuItemListener show_listener;
+	private MenuItemListener remove_listener;
 	
 	public
 	DeviceManagerUI(
@@ -188,7 +190,7 @@ DeviceManagerUI
 				}
 			};
 				
-		show_listener = 
+		MenuItemListener show_listener = 
 			new MenuItemListener() 
 			{
 				public void 
@@ -249,7 +251,85 @@ DeviceManagerUI
 					}
 				}
 			};
-				
+		
+		MenuItemFillListener show_fill_listener = 
+				new MenuItemFillListener() 
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		targets) 
+					{
+						boolean	enabled = false;
+						
+						Object[]	rows;
+						
+						if ( targets instanceof Object[] ){
+							
+							rows = (Object[])targets;
+							
+						}else{
+							
+							rows = new Object[]{ targets };
+						}
+						
+						for ( Object row: rows ){
+							
+							if ( row instanceof SideBarEntry ){
+								
+								SideBarEntry info = (SideBarEntry)row;
+														
+								Object ds = info.getDatasource();
+								
+								if ( ds instanceof Device ){
+																	
+								}else{
+									
+									String id = info.getId();
+	
+									int	target_type = Device.DT_UNKNOWN;
+									
+									if ( id.equals( renderers_key )){
+										
+										target_type = Device.DT_MEDIA_RENDERER;
+										
+									}else if ( id.equals( media_servers_key )){
+										
+										target_type = Device.DT_CONTENT_DIRECTORY;
+										
+									}else if ( id.equals( routers_key )){
+										
+										target_type = Device.DT_INTERNET_GATEWAY;
+										
+									}else if ( id.equals( "Devices" )){
+										
+									}else{
+										
+										Debug.out( "Unrecognised key '" + id + "'" );
+									}
+									
+									Device[] devices = device_manager.getDevices();
+									
+									for ( Device device: devices ){
+										
+										if ( 	target_type == Device.DT_UNKNOWN ||
+												device.getType() == target_type && device.isHidden()){
+											
+											if ( device.isHidden()){
+												
+												enabled = true;
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						menu.setEnabled( enabled );
+					}
+				};
+			
+			
 		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_DEVICES );
 
 		if ( mainSBEntry != null ){
@@ -310,7 +390,7 @@ DeviceManagerUI
 			de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.show" );
 
 			de_menu_item.addListener( show_listener );
-
+			de_menu_item.addFillListener( show_fill_listener );
 			
 				// renderers
 			
@@ -319,7 +399,7 @@ DeviceManagerUI
 			MenuItem re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_key, "device.show" );
 
 			re_menu_item.addListener( show_listener );
-
+			re_menu_item.addFillListener( show_fill_listener );
 			
 				// media servers
 			
@@ -328,7 +408,8 @@ DeviceManagerUI
 			MenuItem ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_key, "device.show" );
 
 			ms_menu_item.addListener( show_listener );
-
+			ms_menu_item.addFillListener( show_fill_listener );
+			
 			ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_key, "device.mediaserver.configure");
 			
 			ms_menu_item.addListener( 
@@ -354,6 +435,7 @@ DeviceManagerUI
 			MenuItem rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_key, "device.show" );
 
 			rt_menu_item.addListener( show_listener );
+			rt_menu_item.addFillListener( show_fill_listener );
 			
 			rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_key, "device.router.configure" );
 			
