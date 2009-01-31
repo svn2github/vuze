@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -104,7 +105,11 @@ public class SubscriptionWizard {
 			}
 		}
 		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);*/
-		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		if ( AzureusCoreFactory.isCoreAvailable()){
+			availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
+		}else{
+			availableSubscriptions = new SubscriptionDownloadDetails[0];
+		}
 		Arrays.sort(availableSubscriptions,new Comparator() {
 			public int compare(Object o1, Object o2) {
 				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;

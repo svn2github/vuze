@@ -22,7 +22,11 @@
 package com.aelitis.azureus.ui.swt.devices;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -422,7 +426,7 @@ DeviceManagerUI
 					sbVitalityImage_clicked(
 						int x, int y) 
 					{
-
+						new DevicesWizard();
 					}
 				});
 
@@ -471,7 +475,7 @@ DeviceManagerUI
 			
 				// renderers
 			
-			renderers_key 		= addDeviceCategory( side_bar, "device.renderer.view.title", "image.sidebar.device.renderer" );
+			renderers_key 		= addDeviceCategory( Device.DT_MEDIA_RENDERER, side_bar, "device.renderer.view.title", "image.sidebar.device.renderer" );
 			
 			MenuItem re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_key, "device.show" );
 
@@ -480,7 +484,7 @@ DeviceManagerUI
 			
 				// media servers
 			
-			media_servers_key	= addDeviceCategory( side_bar, "device.mediaserver.view.title", "image.sidebar.device.mediaserver" );
+			media_servers_key	= addDeviceCategory( Device.DT_CONTENT_DIRECTORY, side_bar, "device.mediaserver.view.title", "image.sidebar.device.mediaserver" );
 				
 			MenuItem ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_key, "device.show" );
 
@@ -507,7 +511,7 @@ DeviceManagerUI
 
 				// routers
 			
-			routers_key			= addDeviceCategory( side_bar, "device.router.view.title", 			"image.sidebar.device.router" );
+			routers_key			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, side_bar, "device.router.view.title", 			"image.sidebar.device.router" );
 			
 			MenuItem rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_key, "device.show" );
 
@@ -636,7 +640,7 @@ DeviceManagerUI
 										return;
 									}
 									
-									deviceView view = new deviceView( device.getName());
+									deviceView view = new deviceView( device );
 									
 									new_di.setView( view );
 										
@@ -753,13 +757,14 @@ DeviceManagerUI
 	
 	protected String
 	addDeviceCategory(
+		int			device_type,
 		SideBar		side_bar,
 		String		category_title,
 		String		category_image_id )
 	{
 		String key = "Device_" + category_title;
 		
-		categoryView view = new categoryView( category_title );
+		categoryView view = new categoryView( device_type, category_title );
 		
 		side_bar.createTreeItemFromIView(
 				SideBar.SIDEBAR_SECTION_DEVICES, 
@@ -791,6 +796,7 @@ DeviceManagerUI
 		extends 	AbstractIView
 		implements 	ViewTitleInfo
 	{
+		private int				device_type;
 		private String			title;
 		
 		private Composite		parent_composite;
@@ -798,9 +804,11 @@ DeviceManagerUI
 		
 		protected
 		categoryView(
+			int			_device_type,
 			String		_title )
 		{
-			title	= _title;
+			device_type		= _device_type;
+			title			= _title;
 		}
 		
 		public void 
@@ -810,6 +818,21 @@ DeviceManagerUI
 			parent_composite	= _parent_composite;
 
 			composite = new Composite( parent_composite, SWT.NULL );
+			
+			composite.setLayout(new FormLayout());
+
+			FormData data = new FormData();
+			data.left = new FormAttachment(0,0);
+			data.right = new FormAttachment(100,0);
+			data.top = new FormAttachment(composite,0);
+			data.bottom = new FormAttachment(100,0);
+
+
+			Label label = new Label( composite, SWT.NULL );
+			
+			label.setText( "Nothing to show for " + MessageText.getString( title ));
+			
+			label.setLayoutData( data );
 		}
 		
 		public Composite 
@@ -836,16 +859,16 @@ DeviceManagerUI
 		extends 	AbstractIView
 		implements 	ViewTitleInfo
 	{
-		private String			title;
+		private Device			device;
 		
 		private Composite		parent_composite;
 		private Composite		composite;
 		
 		protected
 		deviceView(
-			String		_title )
+			Device		_device )
 		{
-			title	= _title;
+			device		= _device;
 		}
 		
 		public void 
@@ -855,6 +878,21 @@ DeviceManagerUI
 			parent_composite	= _parent_composite;
 
 			composite = new Composite( parent_composite, SWT.NULL );
+			
+			composite.setLayout(new FormLayout());
+
+			FormData data = new FormData();
+			data.left = new FormAttachment(0,0);
+			data.right = new FormAttachment(100,0);
+			data.top = new FormAttachment(composite,0);
+			data.bottom = new FormAttachment(100,0);
+
+
+			Label label = new Label( composite, SWT.NULL );
+			
+			label.setText( "Nothing to show for " + device.getName());
+			
+			label.setLayoutData( data );
 		}
 		
 		public Composite 
@@ -869,7 +907,7 @@ DeviceManagerUI
 		{
 			if ( propertyID == TITLE_TEXT ){
 				
-				return( title );
+				return( device.getName());
 			}
 			
 			return null;
