@@ -410,7 +410,7 @@ DeviceManagerUI
 		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_DEVICES );
 
 		if ( mainSBEntry != null ){
-			
+						
 			SideBarVitalityImage addDevice = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
 			
 			addDevice.setToolTip("Add Device");
@@ -641,9 +641,7 @@ DeviceManagerUI
 									new_di.setView( view );
 										
 									String key = parent + "/" + device.getID();
-	
-									boolean	show = false;
-									
+										
 									TreeItem  tree_item = 
 										side_bar.createTreeItemFromIView(
 											parent, 
@@ -651,7 +649,8 @@ DeviceManagerUI
 											key, 
 											device, 
 											false, 
-											show );
+											false,
+											false );
 									
 									SideBarEntrySWT	entry = SideBar.getEntry( key );
 																	
@@ -768,12 +767,13 @@ DeviceManagerUI
 				key, 
 				null, 
 				false, 
-				true );
+				false,
+				false );
 
 		SideBarEntrySWT	entry = SideBar.getEntry( key );
 
 		entry.setImageLeftID( category_image_id );
-		
+				
 		return( key );
 	}
 	

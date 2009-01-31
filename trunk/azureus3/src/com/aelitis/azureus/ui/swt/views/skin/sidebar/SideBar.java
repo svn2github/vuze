@@ -1459,6 +1459,12 @@ public class SideBar
 
 	public TreeItem createTreeItemFromIView(String parentID, IView iview,
 			String id, Object datasource, boolean closeable, boolean show) {
+
+		return( createTreeItemFromIView(parentID, iview, id, datasource, closeable, show, true ));
+	}
+	
+	public TreeItem createTreeItemFromIView(String parentID, IView iview,
+			String id, Object datasource, boolean closeable, boolean show, boolean expand ) {
 		if (id == null) {
 			id = iview.getClass().getName();
 			int i = id.lastIndexOf('.');
@@ -1479,11 +1485,11 @@ public class SideBar
 					iview.getFullTitle(), closeable, -1);
 
 			setupTreeItem(null, treeItem, id, null, iview.getFullTitle(), null,
-					datasource, closeable);
+					datasource, closeable, expand );
 
 			entry.parentID = parentID;
 
-			createSideBarContentArea(id, iview, treeItem, datasource, closeable);
+			createSideBarContentArea(id, iview, treeItem, datasource, closeable, expand);
 
 			iview.dataSourceChanged(datasource);
 		}
@@ -1540,7 +1546,7 @@ public class SideBar
 		entry.closeable = closeable;
 		entry.parentID = parent;
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
-				closeable);
+				closeable, true );
 
 		return treeItem;
 	}
@@ -1573,12 +1579,15 @@ public class SideBar
 
 	private void setupTreeItem(final IView iview, TreeItem treeItem, String id,
 			ViewTitleInfo titleInfo, String title, Composite initializeView,
-			Object datasource, boolean closeable) {
+			Object datasource, boolean closeable, boolean expand ) {
 		final SideBarEntrySWT entry = getEntry(id);
 
 		boolean pull = true;
-		if (treeItem.getParentItem() != null) {
+		if (treeItem.getParentItem() != null && expand ) {
 			treeItem.getParentItem().setExpanded(true);
+		}
+		if ( !expand ){
+			treeItem.setExpanded(false);
 		}
 		treeItem.removeDisposeListener(disposeTreeItemListener);
 		treeItem.addDisposeListener(disposeTreeItemListener);
@@ -1787,7 +1796,7 @@ public class SideBar
 
 				setupTreeItem(newIView, treeItem,
 						(String) treeItem.getData("Plugin.viewID"), null,
-						newIView.getFullTitle(), null, null, newEntry.closeable);
+						newIView.getFullTitle(), null, null, newEntry.closeable, true);
 			}
 		}
 
@@ -2094,7 +2103,7 @@ public class SideBar
 			entry.parentID = parentID;
 
 			setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
-					viewComposite, datasource, closeable);
+					viewComposite, datasource, closeable, true );
 
 			if (parent.isVisible()) {
 				parent.layout(true, true);
@@ -2148,7 +2157,7 @@ public class SideBar
 				entry.eventListener = l;
 
 				setupTreeItem(iview, treeItem, id, null, iview.getFullTitle(),
-						viewComposite, datasource, closeable);
+						viewComposite, datasource, closeable,true);
 
 				parent.layout(true, true);
 			} catch (Exception e1) {
@@ -2186,7 +2195,7 @@ public class SideBar
 			}
 
 			createSideBarContentArea(id, iview, sideBarInfo.treeItem,
-					sideBarInfo.datasource, sideBarInfo.closeable);
+					sideBarInfo.datasource, sideBarInfo.closeable,true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			if (iview != null) {
@@ -2210,7 +2219,7 @@ public class SideBar
 	 * @since 3.1.1.1
 	 */
 	private IView createSideBarContentArea(String id, IView view, TreeItem item,
-			Object datasource, boolean closeable) {
+			Object datasource, boolean closeable, boolean expand ) {
 		try {
 			Composite parent = (Composite) soSideBarContents.getControl();
 
@@ -2232,7 +2241,7 @@ public class SideBar
 			entry.skinObject = soContents;
 
 			setupTreeItem(view, item, id, null, null, viewComposite, datasource,
-					closeable);
+					closeable, expand);
 
 			Composite iviewComposite = view.getComposite();
 			Object existingLayout = iviewComposite.getLayoutData();
@@ -2312,7 +2321,7 @@ public class SideBar
 				index);
 
 		setupTreeItem(null, treeItem, id, titleInfo, title, null, datasource,
-				closeable);
+				closeable,true);
 
 		return entry;
 	}
