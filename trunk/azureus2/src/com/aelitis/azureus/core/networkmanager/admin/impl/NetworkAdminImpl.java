@@ -369,9 +369,29 @@ NetworkAdminImpl
 	}
 	
 	public InetAddress[]
-	getAllBindAddresses()
+	getAllBindAddresses(
+		boolean	include_wildcard )
 	{
-		return( currentBindIPs );
+		if ( include_wildcard ){
+			
+			return( currentBindIPs );
+			
+		}else{
+			
+			List<InetAddress> res = new ArrayList<InetAddress>();
+			
+			InetAddress[] bind_ips = currentBindIPs;
+			
+			for ( InetAddress ip: bind_ips ){
+			
+				if( !ip.isAnyLocalAddress()){
+					
+					res.add( ip );
+				}
+			}
+			
+			return( res.toArray( new InetAddress[ res.size()]));
+		}
 	}
 	
 	private InetAddress[] calcBindAddresses(final String addressString, boolean enforceBind)
@@ -979,7 +999,7 @@ NetworkAdminImpl
 	public NetworkAdminNATDevice[]
 	getNATDevices()
 	{
-		List	devices = new ArrayList();
+		List<NetworkAdminNATDeviceImpl>	devices = new ArrayList<NetworkAdminNATDeviceImpl>();
 		
 		try{
 	
@@ -991,9 +1011,26 @@ NetworkAdminImpl
 		    	
 		    	UPnPPluginService[]	services = upnp.getServices();
 		    	
-		    	for (int i=0;i<services.length;i++){
+		    	for ( UPnPPluginService service: services ){
 		    		
-		    		devices.add( new NetworkAdminNATDeviceImpl( services[i] ));
+		    		NetworkAdminNATDeviceImpl dev = new NetworkAdminNATDeviceImpl( service );
+		    		
+		    		boolean same = false;
+		    		
+		    		for ( NetworkAdminNATDeviceImpl d: devices ){
+		    			
+		    			if ( d.sameAs( dev )){
+		    				
+		    				same = true;
+		    				
+		    				break;
+		    			}
+		    		}
+		    		
+		    		if ( !same ){
+		    		
+		    			devices.add( dev );
+		    		}
 		    	}
 		    }
 		}catch( Throwable e ){

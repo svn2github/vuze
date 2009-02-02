@@ -24,6 +24,8 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
 
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 
@@ -61,11 +63,29 @@ NetworkAdminHTTPTester
 		}
 		
 		try{
+				// 	try to use our service first 
+			
 			return( VersionCheckClient.getSingleton().getExternalIpAddressHTTP(false));
 			
 		}catch( Throwable e ){
 			
-			throw( new NetworkAdminException( "Outbound test failed", e ));
+				// fallback to something else
+			
+			try{
+				URL	url = new URL( "http://www.google.com/" );
+				
+				URLConnection connection = url.openConnection();
+				
+				connection.setConnectTimeout( 10000 );
+				
+				connection.connect();
+				
+				return( null );
+				
+			}catch( Throwable f ){
+			
+				throw( new NetworkAdminException( "Outbound test failed", e ));
+			}
 		}
 	}
 	

@@ -98,6 +98,31 @@ NetworkAdminNATDeviceImpl
 		return( external_address );
 	}
 	
+	protected boolean
+	sameAs(
+		NetworkAdminNATDeviceImpl	other )
+	{
+		if ( 	!getAddress().equals( other.getAddress()) ||
+				getPort() != other.getPort()){
+			
+			return( false );
+		}
+		
+		InetAddress e1 = getExternalAddress();
+		InetAddress e2 = other.getExternalAddress();
+		
+		if ( e1 == null && e2 == null ){
+			
+			return( true );
+		}
+		if ( e1 == null || e2 == null ){
+			
+			return( false );
+		}
+				
+		return( e1.equals( e2 ));
+	}
+	
 	public String
 	getString()
 	{

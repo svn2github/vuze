@@ -24,6 +24,8 @@
 package com.aelitis.azureus.core.networkmanager.admin.impl;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 
@@ -56,11 +58,38 @@ NetworkAdminTCPTester
 		throws NetworkAdminException
 	{
 		try{
-			return( VersionCheckClient.getSingleton().getExternalIpAddressTCP(bind_ip, bind_port,false));
+				// try to use our service first 
+			
+			return( VersionCheckClient.getSingleton().getExternalIpAddressTCP( bind_ip, bind_port, false ));
 			
 		}catch( Throwable e ){
 			
-			throw( new NetworkAdminException( "Outbound test failed", e ));
+				// fallback to something else
+			
+			try{
+				  Socket socket = new Socket();
+					 
+				  if ( bind_ip != null ){
+					  
+					  socket.bind( new InetSocketAddress( bind_ip, bind_port ));
+					  
+				  }else if ( bind_port != 0 ){
+					  
+					  socket.bind( new InetSocketAddress( bind_port ));
+				  }
+				  
+				  socket.setSoTimeout( 10000 );
+				
+				  socket.connect( new InetSocketAddress( "www.google.com", 80 ), 10000 );
+				  
+				  socket.close();
+				  
+				  return( null );
+				  
+			}catch( Throwable f ){
+
+				throw( new NetworkAdminException( "Outbound test failed", e ));
+			}
 		}
 	}
 	

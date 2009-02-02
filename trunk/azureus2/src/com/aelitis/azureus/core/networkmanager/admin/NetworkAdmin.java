@@ -78,7 +78,8 @@ NetworkAdmin
 	getNetworkInterfacesAsString();
 	
 	public abstract InetAddress[]
-	getAllBindAddresses();
+	getAllBindAddresses(
+		boolean	include_wildcard );
 
 	public abstract InetAddress
 	guessRoutableBindAddress();

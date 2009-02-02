@@ -72,7 +72,7 @@ NetStatusPluginTester
 	{
 		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		
-		Set	public_addresses = new HashSet();
+		Set<InetAddress>	public_addresses = new HashSet<InetAddress>();
 		
 		boolean	checked_public	= false;
 		
@@ -382,10 +382,7 @@ NetStatusPluginTester
 				
 				InetAddress ext_address = device.getExternalAddress();
 				
-				if ( ext_address != null ){
-					
-					public_addresses.add( ext_address );
-				}
+				addPublicAddress( public_addresses, ext_address );
 				
 				log( "    " + device.getString());
 			}
@@ -415,7 +412,7 @@ NetStatusPluginTester
 			}
 		}
 		
-		InetAddress[] bind_addresses = admin.getAllBindAddresses();
+		InetAddress[] bind_addresses = admin.getAllBindAddresses( false );
 		
 		int	num_binds = 0;
 		
@@ -483,10 +480,8 @@ NetStatusPluginTester
 						
 						logSuccess( "    Test successful" );
 						
-						if ( public_address != null ){
-							
-							public_addresses.add( public_address );
-						}
+						addPublicAddress( public_addresses, public_address );
+						
 					}catch( Throwable e ){
 						
 						logError( "    Test failed", e );
@@ -534,10 +529,8 @@ NetStatusPluginTester
 						
 						logSuccess( "    Test successful" );
 	
-						if ( public_address != null ){
-							
-							public_addresses.add( public_address );
-						}
+						addPublicAddress( public_addresses, public_address );
+						
 					}catch( Throwable e ){
 						
 						logError( "    Test failed", e );
@@ -713,6 +706,27 @@ NetStatusPluginTester
 				log( "    Status: " + bt_test.getStatus());
 			}
 		}
+	}
+	
+	protected void
+	addPublicAddress(
+		Set<InetAddress>	addresses,
+		InetAddress			address )
+	{
+		if ( address == null ){
+			
+			return;
+		}
+			
+		if ( 	address.isAnyLocalAddress() ||
+				address.isLoopbackAddress() ||
+				address.isLinkLocalAddress()||
+				address.isSiteLocalAddress()){
+			
+				return;
+		}
+		
+		addresses.add( address );
 	}
 	
 	protected void
