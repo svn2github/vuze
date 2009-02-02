@@ -49,7 +49,7 @@ NetStatusPluginTester
 	
 	private volatile boolean	test_cancelled;
 	
-	protected
+	public
 	NetStatusPluginTester(
 		NetStatusPlugin		_plugin,
 		int					_test_types,
@@ -67,7 +67,7 @@ NetStatusPluginTester
 		return((test_types & type ) != 0 );
 	}
 	
-	protected void
+	public void
 	run()
 	{
 		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
@@ -729,13 +729,13 @@ NetStatusPluginTester
 		addresses.add( address );
 	}
 	
-	protected void
+	public void
 	cancel()
 	{
 		test_cancelled	= true;
 	}
 	
-	protected boolean
+	public boolean
 	isCancelled()
 	{
 		return( test_cancelled );
@@ -778,7 +778,7 @@ NetStatusPluginTester
 		logger.logFailure( str + ": " + e.getLocalizedMessage());
 	}
 	
-	protected interface
+	public interface
 	loggerProvider
 	{
 		public void
