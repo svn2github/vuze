@@ -151,6 +151,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 	private int minSpeedForActiveSeeding;
 
+	/** Maximimum # of stalled torrents that are in seeding mode */
+	private int maxStalledSeeding;
+
 	// count x peers as a full copy, but..
 	private int numPeersAsFullCopy;
 
@@ -341,7 +344,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"ConfigView.label.minSpeedForActiveDL", 512);
 		configModel.addIntParameter2("StartStopManager_iMinSpeedForActiveSeeding",
 				"ConfigView.label.minSpeedForActiveSeeding", 512);
+		configModel.addIntParameter2("StartStopManager_iMaxStalledSeeding",
+				"ConfigView.label.maxStalledSeeding", 5);
 
+		
 		configModel.addBooleanParameter2("StartStopManager_bDebugLog",
 				"ConfigView.label.queue.debuglog", false);
 		configModel.addBooleanParameter2("StartStopManager_bNewSeedsMoveTop",
@@ -713,6 +719,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			int iNewRankType = plugin_config.getIntParameter("StartStopManager_iRankType");
 			minSpeedForActiveSeeding = plugin_config.getIntParameter("StartStopManager_iMinSpeedForActiveSeeding");
+			maxStalledSeeding = plugin_config.getIntParameter("StartStopManager_iMaxStalledSeeding");
+			if (maxStalledSeeding <= 0) {
+				// insanity :)
+				maxStalledSeeding = 999;
+			}
 			_maxActive = plugin_config.getIntParameter("max active torrents");
 			_maxActiveWhenSeedingEnabled = plugin_config.getBooleanParameter("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled");
 			_maxActiveWhenSeeding = plugin_config.getIntParameter("StartStopManager_iMaxActiveTorrentsWhenSeeding");
@@ -1754,7 +1765,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders) 
 					//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
 					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN)
-					&& (vars.stalledSeeders + vars.numWaitingOrSeeding < totals.maxSeeders * 2)
+					&& (vars.stalledSeeders < maxStalledSeeding)
 					&& !vars.higherCDtoStart) {
 				try {
 					if (bDebugLog)
@@ -1786,10 +1797,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						sDebugLine += " at limit, numWaitingOrSeeding("
 								+ vars.numWaitingOrSeeding + ") >= maxSeeders("
 								+ totals.maxSeeders + ")";
-					} else if (vars.stalledSeeders + vars.numWaitingOrSeeding >= totals.maxSeeders * 2) {
+					} else if (vars.stalledSeeders >= maxStalledSeeding) {
 						sDebugLine += " at limit, stalledSeeders(" + vars.stalledSeeders
-								+ ") + active(" + vars.numWaitingOrSeeding + ") >= maxSeeders("
-								+ totals.maxSeeders + ") * 2";
+								+ ") >= maxStalledSeeding("
+								+ maxStalledSeeding + ") ";
 					} else {
 						sDebugLine += "huh? qd="
 								+ (state == Download.ST_QUEUED)
@@ -1798,7 +1809,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 								+ ";"
 								+ (vars.numWaitingOrSeeding < totals.maxSeeders)
 								+ ";"
-								+ (vars.stalledSeeders + vars.numWaitingOrSeeding <= totals.maxSeeders * 2)
+								+ (vars.stalledSeeders <= maxStalledSeeding)
 								+ ";ignore?"
 								+ (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN);
 					}
@@ -1842,7 +1853,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				if (!okToStop) {
 					// break up the logic into variables to make more readable
 					boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
-				      || (!bActivelySeeding && vars.stalledSeeders + vars.numWaitingOrSeeding > totals.maxSeeders * 2)
+				      || (!bActivelySeeding && vars.stalledSeeders > maxStalledSeeding)
 							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherCDtoStart);
 					boolean bSeeding = state == Download.ST_SEEDING;
 
@@ -1858,7 +1869,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 							if (bOverLimit) {
 								if (vars.higherCDtoStart) {
 									sDebugLine += "higherQueued (it should be seeding instead of this one)";
-								} else if (!bActivelySeeding && vars.stalledSeeders + vars.numWaitingOrSeeding > totals.maxSeeders * 2) {
+								} else if (!bActivelySeeding && vars.stalledSeeders > totals.maxSeeders) {
 									sDebugLine += "over stale seeds limit";
 								} else {
 									sDebugLine += "over limit";

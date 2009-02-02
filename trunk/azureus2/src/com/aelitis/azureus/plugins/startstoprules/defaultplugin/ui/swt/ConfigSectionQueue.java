@@ -23,7 +23,6 @@ package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -208,6 +207,34 @@ public class ConfigSectionQueue implements UISWTConfigSection
 				"StartStopManager_iMinSpeedForActiveSeeding", activeSeedingLabels,
 				activeSeedingValues);
 
+		// subrow
+
+		final Composite cMinSpeedActiveCDing = new Composite(cSection, SWT.NULL);
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		cMinSpeedActiveCDing.setLayout(layout);
+		gridData = new GridData();
+		gridData.horizontalIndent = 15;
+		gridData.horizontalSpan = 2;
+		cMinSpeedActiveCDing.setLayoutData(gridData);
+
+		label = new Label(cMinSpeedActiveCDing, SWT.NULL);
+		imageLoader.setLabelImage(label, "subitem");
+		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+		label.setLayoutData(gridData);
+
+		label = new Label(cMinSpeedActiveCDing, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.label.maxStalledSeeding");
+
+		gridData = new GridData();
+		final IntParameter maxStalledSeeding = new IntParameter(
+				cMinSpeedActiveCDing, "StartStopManager_iMaxStalledSeeding");
+		maxStalledSeeding.setMinimumValue(0);
+		maxStalledSeeding.setLayoutData(gridData);
+
+		
 		// row
 
 		gridData = new GridData();
