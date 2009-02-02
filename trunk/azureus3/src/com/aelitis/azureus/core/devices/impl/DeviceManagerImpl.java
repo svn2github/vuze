@@ -23,7 +23,11 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -41,8 +45,9 @@ public class
 DeviceManagerImpl 
 	implements DeviceManager
 {
-	private static final String	CONFIG_FILE = "devices.config";
-
+	private static final String	CONFIG_FILE 			= "devices.config";
+	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
+	
 	
 	private static DeviceManagerImpl		singleton;
 	
@@ -73,16 +78,31 @@ DeviceManagerImpl
 	
 	private CopyOnWriteList<DeviceManagerListener>	listeners	= new CopyOnWriteList<DeviceManagerListener>();
 	
+	private boolean	auto_search;
 	private boolean	closing;
 	
 	private boolean	config_unclean;
 	private boolean	config_dirty;
-
+	
+	private int		explicit_search;
+	
 	
 	protected
 	DeviceManagerImpl()
 	{
 		loadConfig();
+		
+		COConfigurationManager.addAndFireParameterListener(
+			AUTO_SEARCH_CONFIG_KEY,
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					auto_search = COConfigurationManager.getBooleanParameter( name, true );
+				}
+			});
 		
 		AzureusCoreFactory.getSingleton().addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
@@ -130,9 +150,65 @@ DeviceManagerImpl
 	}
 	
 	public void
-	search()
+	search(
+		final int					millis,
+		final DeviceSearchListener	listener )
 	{
-		upnp_manager.search();
+		new AEThread2( "DM:search", true )
+		{
+			public void
+			run()
+			{
+				synchronized( DeviceManagerImpl.this ){
+				
+					explicit_search++;
+				}
+				
+				AESemaphore	sem = new AESemaphore( "DM:search" );
+				
+				DeviceManagerListener	dm_listener =
+					new DeviceManagerListener()
+					{
+						public void
+						deviceAdded(
+							Device		device )
+						{
+							listener.deviceFound( device );
+						}
+						
+						public void
+						deviceChanged(
+							Device		device )
+						{
+						}
+						
+						public void
+						deviceRemoved(
+							Device		device )
+						{
+						}
+					};
+					
+				try{
+					addListener( dm_listener );
+				
+					upnp_manager.search();
+					
+					sem.reserve( millis );
+					
+				}finally{
+					
+					synchronized( DeviceManagerImpl.this ){
+						
+						explicit_search--;
+					}
+					
+					removeListener( dm_listener );
+					
+					listener.complete();
+				}
+			}
+		}.start();
 	}
 	
 	protected DeviceImpl
@@ -202,6 +278,28 @@ DeviceManagerImpl
 		}
 	}
   		
+	public boolean
+	getAutoSearch()
+	{
+		return( auto_search );
+	}
+	
+	public void
+	setAutoSearch(
+		boolean	auto )
+	{
+		COConfigurationManager.setParameter( AUTO_SEARCH_CONFIG_KEY, auto );
+	}
+	
+	protected boolean
+	isExplicitSearch()
+	{
+		synchronized( this ){
+			
+			return( explicit_search > 0 );
+		}
+	}
+	
 	protected void
 	loadConfig()
 	{

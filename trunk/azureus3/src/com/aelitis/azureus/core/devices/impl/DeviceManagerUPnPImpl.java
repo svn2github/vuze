@@ -204,6 +204,14 @@ DeviceManagerUPnPImpl
 		UPnPRootDevice		root_device,
 		boolean				update_if_found )
 	{
+		if ( !manager.getAutoSearch()){
+			
+			if ( !manager.isExplicitSearch()){
+				
+				return;
+			}
+		}
+		
 		handleDevice( root_device.getDevice(), update_if_found );
 	}
 	

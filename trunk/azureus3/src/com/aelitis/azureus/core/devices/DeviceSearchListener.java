@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Feb 2, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -22,28 +22,12 @@
 package com.aelitis.azureus.core.devices;
 
 public interface 
-DeviceManager 
+DeviceSearchListener 
 {
-	public Device[]
-	getDevices();
+	public void
+	deviceFound(
+		Device 	device );
 	
 	public void
-	search(
-		int						max_millis,
-		DeviceSearchListener	listener );
-	
-	public boolean
-	getAutoSearch();
-	
-	public void
-	setAutoSearch(
-		boolean	auto );
-	
-	public void
-	addListener(
-		DeviceManagerListener		listener );
-	
-	public void
-	removeListener(
-			DeviceManagerListener		listener );
+	complete();
 }

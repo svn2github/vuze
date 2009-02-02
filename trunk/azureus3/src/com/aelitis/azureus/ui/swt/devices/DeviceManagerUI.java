@@ -35,7 +35,10 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -107,10 +110,6 @@ DeviceManagerUI
 						if ( instance instanceof UISWTInstance ){
 							
 							final UISWTInstance	swt = (UISWTInstance)instance;						
-
-							BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-									ConfigSection.SECTION_ROOT, "Devices");
-
 							
 							SkinViewManager.addListener(
 								new SkinViewManagerListener() 
@@ -469,7 +468,7 @@ DeviceManagerUI
 						selected(
 							MenuItem menu, Object target ) 
 						{
-					      	device_manager.search();
+							search();
 						}
 					});
 			
@@ -572,6 +571,30 @@ DeviceManagerUI
 					}
 				});
 			
+			BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
+					ConfigSection.SECTION_ROOT, "Devices");
+
+			final BooleanParameter as = 
+				configModel.addBooleanParameter2( 
+					"device.search.auto", "device.search.auto",
+					device_manager.getAutoSearch());
+			
+			as.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						device_manager.setAutoSearch( as.getValue());
+						
+						if ( device_manager.getAutoSearch()){
+							
+							search();
+						}
+					}
+				});
+
 			Utils.execSWTThread(
 					new Runnable()
 					{
@@ -587,6 +610,26 @@ DeviceManagerUI
 						}
 					});
 		}
+	}
+	
+	protected void
+	search()
+	{
+      	device_manager.search(
+      			10*1000,
+      			new DeviceSearchListener()
+      			{
+      				public void 
+      				deviceFound(
+      					Device device ) 
+      				{
+      				}
+      				
+      				public void 
+      				complete() 
+      				{
+      				}
+      			});
 	}
 	
 	protected void
