@@ -30,6 +30,7 @@ Device
 	public static final int DT_INTERNET_GATEWAY		= 1;
 	public static final int DT_CONTENT_DIRECTORY	= 2;
 	public static final int DT_MEDIA_RENDERER		= 3;
+	public static final int DT_INTERNET				= 4;
 	
 	
 	public int

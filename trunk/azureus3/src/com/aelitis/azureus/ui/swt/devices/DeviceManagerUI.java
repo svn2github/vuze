@@ -58,8 +58,6 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -81,6 +79,7 @@ DeviceManagerUI
 	private String		renderers_key;
 	private String		media_servers_key;
 	private String		routers_key;
+	private String		internet_key;
 	
 	
 	
@@ -142,6 +141,12 @@ DeviceManagerUI
 					{
 					}
 				});
+	}
+	
+	protected PluginInterface
+	getPluginInterface()
+	{
+		return( plugin_interface );
 	}
 	
 	protected void
@@ -536,6 +541,10 @@ DeviceManagerUI
 						}
 					});
 			
+				// internet
+			
+			internet_key	= addDeviceCategory( Device.DT_INTERNET, side_bar, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
+			
 			device_manager = DeviceManagerFactory.getSingleton();
 			
 			device_manager.addListener(
@@ -764,7 +773,16 @@ DeviceManagerUI
 	{
 		String key = "Device_" + category_title;
 		
-		categoryView view = new categoryView( device_type, category_title );
+		categoryView view;
+		
+		if ( device_type == Device.DT_INTERNET ){
+			
+			view = new DeviceInternetView( this, category_title );
+			
+		}else{
+			
+			view = new categoryViewGeneric( device_type, category_title );
+		}
 		
 		side_bar.createTreeItemFromIView(
 				SideBar.SIDEBAR_SECTION_DEVICES, 
@@ -791,17 +809,14 @@ DeviceManagerUI
 		new PropertiesWindow( device.getName(), props[0], props[1] );
 	}
 	
-	protected class
+	protected abstract static class
 	categoryView
 		extends 	AbstractIView
 		implements 	ViewTitleInfo
 	{
 		private int				device_type;
 		private String			title;
-		
-		private Composite		parent_composite;
-		private Composite		composite;
-		
+				
 		protected
 		categoryView(
 			int			_device_type,
@@ -811,12 +826,43 @@ DeviceManagerUI
 			title			= _title;
 		}
 		
+		public String
+		getTitle()
+		{
+			return( MessageText.getString( title ));
+		}
+		
+		public Object 
+		getTitleInfoProperty(
+			int propertyID ) 
+		{
+			if ( propertyID == TITLE_TEXT ){
+				
+				return( getTitle());
+			}
+			
+			return null;
+		}
+	}
+	
+	protected static class
+	categoryViewGeneric
+		extends 	categoryView
+	{
+		private Composite		composite;
+		
+		protected
+		categoryViewGeneric(
+			int			_device_type,
+			String		_title )
+		{
+			super( _device_type, _title );
+		}
+		
 		public void 
 		initialize(
-			Composite _parent_composite )
+			Composite parent_composite )
 		{  
-			parent_composite	= _parent_composite;
-
 			composite = new Composite( parent_composite, SWT.NULL );
 			
 			composite.setLayout(new FormLayout());
@@ -830,7 +876,7 @@ DeviceManagerUI
 
 			Label label = new Label( composite, SWT.NULL );
 			
-			label.setText( "Nothing to show for " + MessageText.getString( title ));
+			label.setText( "Nothing to show for " + getTitle());
 			
 			label.setLayoutData( data );
 		}
@@ -839,18 +885,6 @@ DeviceManagerUI
 		getComposite()
 		{
 			return( composite );
-		}
-		
-		public Object 
-		getTitleInfoProperty(
-			int propertyID ) 
-		{
-			if ( propertyID == TITLE_TEXT ){
-				
-				return MessageText.getString( title );
-			}
-			
-			return null;
 		}
 	}
 	
