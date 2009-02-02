@@ -648,7 +648,7 @@ public class SideBar
 							return;
 						}
 						int indent = Constants.isUnix ? tree.getClientArea().width - 1
-								: event.getBounds().x;
+								: 0;
 						treeItem = tree.getItem(new Point(indent, event.y));
 						if (treeItem == null) {
 							return;
