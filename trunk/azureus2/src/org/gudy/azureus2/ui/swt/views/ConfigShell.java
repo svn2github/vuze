@@ -131,6 +131,8 @@ public class ConfigShell
 		// }
 			// clear these down as view now dead
 		
+		configView.delete();
+		
 		shell		= null;
 		configView	= null;
 	}
