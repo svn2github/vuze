@@ -63,7 +63,9 @@ public class ConfigView extends AbstractIView {
   AzureusCore		azureus_core;
   
   
-  Map sections = new HashMap();
+  Map<TreeItem, ConfigSection> sections = new HashMap<TreeItem, ConfigSection>();
+  // Only access on SWT Thread
+  java.util.List<ConfigSection> sectionsCreated = new ArrayList<ConfigSection>(1);
   Composite cConfig;
   Composite cConfigSection;
   StackLayout layoutConfigSection;
@@ -423,6 +425,7 @@ public class ConfigView extends AbstractIView {
    
             	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
             }
+            sectionsCreated.add(section);
             sc.setContent(c);
           }
           
@@ -593,18 +596,19 @@ public class ConfigView extends AbstractIView {
     }
   }
 	
-	private void ensureSectionBuilt(TreeItem section) {
-    ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
+	private void ensureSectionBuilt(TreeItem treeSection) {
+    ScrolledComposite item = (ScrolledComposite)treeSection.getData("Panel");
 
     if (item != null) {
     	
-      ConfigSection configSection = (ConfigSection)section.getData("ConfigSectionSWT");
+      ConfigSection configSection = (ConfigSection)treeSection.getData("ConfigSectionSWT");
       
       if (configSection != null) {
     	  
         Control previous = item.getContent();
         if (previous instanceof Composite) {
         	configSection.configSectionDelete();
+          sectionsCreated.remove(configSection);    	
           Utils.disposeComposite((Composite)previous,true);
         }
         
@@ -618,6 +622,7 @@ public class ConfigView extends AbstractIView {
 
           c = ((UISWTConfigSection)configSection).configSectionCreate(item);
         }
+        sectionsCreated.add(configSection);
         
         item.setContent(c);
       }
@@ -632,7 +637,7 @@ public class ConfigView extends AbstractIView {
 		int maxUsermode = 0;
 		try
 		{
-			ConfigSection sect = (ConfigSection) sections.get(section);
+			ConfigSection sect = sections.get(section);
 			if (sect instanceof UISWTConfigSection)
 			{
 				maxUsermode = ((UISWTConfigSection) sect).maxUserMode();
@@ -850,13 +855,14 @@ public class ConfigView extends AbstractIView {
   }
 
   public void delete() {
-    for (int i = 0; i < pluginSections.size(); i++) {
+  	for (ConfigSection section : sectionsCreated) {
     	try {
-    		((ConfigSection)pluginSections.get(i)).configSectionDelete();
+    		section.configSectionDelete();
     	} catch (Exception e) {
     		Debug.out("Error while deleting config section", e);
     	}
     }
+  	sectionsCreated.clear();
     pluginSections.clear();
     if(! tree.isDisposed()) {
 	    TreeItem[] items = tree.getItems();
