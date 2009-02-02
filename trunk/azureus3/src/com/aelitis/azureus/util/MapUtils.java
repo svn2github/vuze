@@ -24,6 +24,7 @@ import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author TuxPaper
@@ -37,8 +38,16 @@ public class MapUtils
 			return def;
 		}
 		try {
-			return ((Number) map.get(key)).intValue();
-		} catch (Exception e) {
+			Number n = (Number) map.get(key);
+			
+			if ( n == null ){
+				
+				return( def );
+			}
+
+			return n.intValue();
+		} catch (Throwable e) {
+			Debug.out(e);
 			return def;
 		}
 	}
@@ -48,8 +57,16 @@ public class MapUtils
 			return def;
 		}
 		try {
-			return ((Number) map.get(key)).longValue();
-		} catch (Exception e) {
+			Number n = (Number) map.get(key);
+			
+			if ( n == null ){
+				
+				return( def );
+			}
+
+			return n.longValue();
+		} catch (Throwable e) {
+			Debug.out(e);
 			return def;
 		}
 	}
@@ -74,7 +91,8 @@ public class MapUtils
 				return new String((byte[]) o, "utf-8");
 			}
 			return def;
-		} catch (Exception t) {
+		} catch (Throwable t) {
+			Debug.out(t);
 			return def;
 		}
 	}
@@ -106,7 +124,8 @@ public class MapUtils
 			}
 
 			return def;
-		} catch (Exception t) {
+		} catch (Throwable t) {
+			Debug.out(t);
 			return def;
 		}
 	}
@@ -122,7 +141,8 @@ public class MapUtils
 			} else {
 				return def;
 			}
-		} catch (Exception t) {
+		} catch (Throwable t) {
+			Debug.out(t);
 			return def;
 		}
 	}
@@ -142,7 +162,8 @@ public class MapUtils
 			}
 			
 			return def;
-		} catch (Exception e) {
+		} catch (Throwable e) {
+			Debug.out(e);
 			return def;
 		}
 	}
@@ -157,7 +178,8 @@ public class MapUtils
 				return def;
 			}
 			return list;
-		} catch (Exception t) {
+		} catch (Throwable t) {
+			Debug.out(t);
 			return def;
 		}
 	}
@@ -172,7 +194,8 @@ public class MapUtils
 				return def;
 			}
 			return valMap;
-		} catch (Exception t) {
+		} catch (Throwable t) {
+			Debug.out(t);
 			return def;
 		}
 	}
