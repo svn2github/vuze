@@ -173,6 +173,9 @@ NetworkAdmin
 	
 		throws NetworkAdminException;
 	
+	public abstract InetAddress
+	getDefaultPublicAddress();
+	
 	public abstract void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener );

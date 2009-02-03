@@ -43,6 +43,9 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.utils.Utilities;
+import org.gudy.azureus2.pluginsimpl.PluginUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -812,6 +815,21 @@ NetworkAdminImpl
 		}
 		
 		return( null );
+	}
+	
+	public InetAddress
+	getDefaultPublicAddress()
+	{
+		Utilities utils = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities();
+		
+		InetAddress address = utils.getPublicAddress();
+		
+		if ( address != null ){
+			
+			return( address );
+		}
+		
+		return( utils.getPublicAddress( true ));
 	}
 	
 	protected void

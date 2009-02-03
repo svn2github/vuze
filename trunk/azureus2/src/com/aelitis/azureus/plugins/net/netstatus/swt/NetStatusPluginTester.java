@@ -72,9 +72,20 @@ NetStatusPluginTester
 	{
 		final NetworkAdmin	admin = NetworkAdmin.getSingleton();
 		
+		boolean	checked_public	= false;
+
 		Set<InetAddress>	public_addresses = new HashSet<InetAddress>();
 		
-		boolean	checked_public	= false;
+		InetAddress def_pa = admin.getDefaultPublicAddress();
+		
+		if ( def_pa != null ){
+			
+			log( "Default public address is " + def_pa.getHostAddress());
+			
+			addPublicAddress( public_addresses, def_pa );
+			
+			checked_public = true;
+		}
 		
 		if ( doTest( TEST_PING_ROUTE )){
 			
