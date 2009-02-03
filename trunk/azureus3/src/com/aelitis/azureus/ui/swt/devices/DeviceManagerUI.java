@@ -142,6 +142,12 @@ DeviceManagerUI
 				});
 	}
 	
+	protected DeviceManager
+	getDeviceManager()
+	{
+		return( device_manager );
+	}
+	
 	protected PluginInterface
 	getPluginInterface()
 	{
@@ -430,7 +436,7 @@ DeviceManagerUI
 					sbVitalityImage_clicked(
 						int x, int y) 
 					{
-						new DevicesWizard();
+						new DevicesWizard( DeviceManagerUI.this );
 					}
 				});
 
@@ -476,6 +482,25 @@ DeviceManagerUI
 
 			de_menu_item.addListener( show_listener );
 			de_menu_item.addFillListener( show_fill_listener );
+			
+			de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
+			
+			de_menu_item.addListener( 
+					new MenuItemListener() 
+					{
+						public void 
+						selected(
+							MenuItem menu, Object target ) 
+						{
+					      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					      	 
+					      	 if ( uif != null ){
+					      		 
+					      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
+					      	 }
+						}
+					});
+			
 			
 				// renderers
 			
@@ -561,6 +586,13 @@ DeviceManagerUI
 						Device		device )
 					{
 						addOrChangeDevice( side_bar, device );
+					}
+					
+					public void
+					deviceAttentionRequest(
+						Device		device )
+					{
+						showDevice( device );
 					}
 					
 					public void
@@ -757,6 +789,46 @@ DeviceManagerUI
 								ViewTitleInfoManager.refreshTitleInfo( existing_di.getView());
 								
 								setStatus( device, existing_di );
+							}
+						});
+			}
+		}
+	}
+	
+	protected void
+	showDevice(
+		Device		device )
+	{
+		synchronized( this ){
+			
+			final deviceItem existing_di = (deviceItem)device.getTransientProperty( DEVICE_IVIEW_KEY );
+
+			if ( existing_di != null ){
+				
+				Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								synchronized( DeviceManagerUI.this ){
+
+									TreeItem ti = existing_di.getTreeItem();
+									
+									if ( ti != null ){
+										
+										TreeItem x = ti;
+										
+										while( x != null ){
+											
+											x.setExpanded( true );
+											
+											x = x.getParentItem();
+										}
+																				
+										ti.getParent().setSelection( ti );
+									}
+								}
 							}
 						});
 			}
@@ -1033,6 +1105,12 @@ DeviceManagerUI
 		getTreeItem()
 		{
 			return( tree_item );
+		}
+		
+		protected SideBarEntrySWT
+		getSideBarEntry()
+		{
+			return( sb_entry );
 		}
 		
 		protected void

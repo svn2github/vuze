@@ -27,6 +27,13 @@ DeviceManager
 	public Device[]
 	getDevices();
 	
+	public Device
+	createDevice(
+		int						device_type,
+		String					name ) 
+	
+		throws DeviceManagerException;
+	
 	public void
 	search(
 		int						max_millis,

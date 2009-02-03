@@ -149,6 +149,27 @@ DeviceManagerImpl
 				});
 	}
 	
+	public Device
+	createDevice(
+		int						device_type,
+		String					name )
+	
+		throws DeviceManagerException
+	{
+		if ( device_type == Device.DT_MEDIA_RENDERER ){
+			
+			DeviceImpl res = new DeviceMediaRendererImpl( this, name );
+			
+			addDevice( res );
+			
+			return( res );
+			
+		}else{
+			
+			throw( new DeviceManagerException( "Can't manually create this device type" ));
+		}
+	}
+	
 	public void
 	search(
 		final int					millis,
@@ -180,6 +201,12 @@ DeviceManagerImpl
 						deviceChanged(
 							Device		device )
 						{
+						}
+						
+						public void
+						deviceAttentionRequest(
+							Device		device )
+						{	
 						}
 						
 						public void
@@ -489,6 +516,22 @@ DeviceManagerImpl
 			
 			try{
 				listener.deviceRemoved( device );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	protected void
+	requestAttention(
+		DeviceImpl		device )
+	{
+		for ( DeviceManagerListener listener: listeners ){
+			
+			try{
+				listener.deviceAttentionRequest( device );
 				
 			}catch( Throwable e ){
 				

@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Feb 2, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,22 +21,24 @@
 
 package com.aelitis.azureus.core.devices;
 
-public interface 
-DeviceManagerListener 
+@SuppressWarnings("serial")
+
+public class 
+DeviceManagerException
+	extends Exception
 {
-	public void
-	deviceAdded(
-		Device		device );
+	public 
+	DeviceManagerException(
+		String		str )
+	{
+		super( str );
+	}
 	
-	public void
-	deviceChanged(
-		Device		device );
-	
-	public void
-	deviceAttentionRequest(
-		Device		device );
-	
-	public void
-	deviceRemoved(
-		Device		device );
+	public 
+	DeviceManagerException(
+		String		str,
+		Throwable 	e )
+	{
+		super( str, e );
+	}
 }

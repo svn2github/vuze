@@ -8,38 +8,47 @@ import org.eclipse.swt.widgets.*;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DebugLight;
 import org.gudy.azureus2.ui.swt.Utils;
 
 
+import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-public class DevicesWizard {
+public class 
+DevicesWizard 
+{
+	private DeviceManagerUI		device_manager_ui;
+	
+	private Display display;
+	
+	private Shell shell;
 	
 	
-	Display display;
-	Shell shell;
+	private Label title;
 	
 	
-	Label title;
+	private Font boldFont;
+	private Font titleFont;
+	private Font subTitleFont;
+	private Font textInputFont;
 	
 	
-	Font boldFont;
-	Font titleFont;
-	Font subTitleFont;
-	Font textInputFont;
-	
-	
-	Composite main;
+	private Composite main;
 	
 	
 	private ImageLoader imageLoader;
 	
 	
 	public 
-	DevicesWizard() 
+	DevicesWizard(
+		DeviceManagerUI		dm_ui )
 	{
+		device_manager_ui	= dm_ui;
+		
 		imageLoader = ImageLoader.getInstance();
 				
 		UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -251,6 +260,16 @@ public class DevicesWizard {
 		
 		createButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
+				
+				try{
+					Device device = device_manager_ui.getDeviceManager().createDevice( Device.DT_MEDIA_RENDERER, "test" );
+					
+					device.requestAttention();
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		});
 				
@@ -267,7 +286,7 @@ public class DevicesWizard {
 	main(
 		String args[]) 
 	{
-		final DevicesWizard sw = new DevicesWizard();
+		final DevicesWizard sw = new DevicesWizard( null );
 				
 		while( ! sw.shell.isDisposed()) {
 			if(! sw.display.readAndDispatch()) {

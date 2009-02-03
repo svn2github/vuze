@@ -73,6 +73,9 @@ Device
 	getDisplayProperties();
 	
 	public void
+	requestAttention();
+	
+	public void
 	remove();
 	
 	public String

@@ -76,6 +76,7 @@ DeviceImpl
 	private int					type;
 	private String				uid;
 	private String 				name;
+	private boolean				manual;
 	
 	private boolean			hidden;
 	private long			last_seen;
@@ -90,12 +91,14 @@ DeviceImpl
 		DeviceManagerImpl	_manager,
 		int					_type,
 		String				_uid,
-		String				_name )
+		String				_name,
+		boolean				_manual )
 	{
 		manager		= _manager;
 		type		= _type;
 		uid			= _uid;
 		name		= _name;
+		manual		= _manual;
 	}
 	
 	protected
@@ -112,7 +115,9 @@ DeviceImpl
 		name	= ImportExportUtils.importString( map, "_name" );
 		
 		last_seen	= ImportExportUtils.importLong( map, "_ls" );
-		hidden		= ImportExportUtils.importBoolean( map, "_hide" );
+		hidden		= ImportExportUtils.importBoolean( map, "_hide" );	
+		manual		= ImportExportUtils.importBoolean( map, "_man" );
+
 	}
 	
 	protected void
@@ -135,6 +140,7 @@ DeviceImpl
 		
 		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
 		ImportExportUtils.exportBoolean( map, "_hide", hidden );
+		ImportExportUtils.exportBoolean( map, "_man", manual );
 	}
 	
 	public int
@@ -153,6 +159,12 @@ DeviceImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public boolean
+	isManual()
+	{
+		return( manual );
 	}
 	
 	public boolean
@@ -176,19 +188,25 @@ DeviceImpl
 	protected void
 	alive()
 	{
-		last_seen	= SystemTime.getCurrentTime();
-		
-		online	= true;
-		
-		setDirty( false );
+		if ( !manual ){
+			
+			last_seen	= SystemTime.getCurrentTime();
+			
+			online	= true;
+			
+			setDirty( false );
+		}
 	}
 	
 	protected void
 	dead()
 	{
-		online	= false;
-		
-		setDirty( false );
+		if ( !manual ){
+			
+			online	= false;
+			
+			setDirty( false );
+		}
 	}
 	
 	protected boolean
@@ -234,6 +252,12 @@ DeviceImpl
 	{	
 	}
 	
+	public void 
+	requestAttention() 
+	{
+		manager.requestAttention( this );
+	}
+	
 	public String[][] 
 	getDisplayProperties() 
 	{
@@ -262,9 +286,12 @@ DeviceImpl
 	{
 		addDP( dp, "TableColumn.header.name", name );
 		
-		addDP( dp, "azbuddy.ui.table.online",  online );
+		if ( !manual ){
 		
-		addDP( dp, "azbuddy.ui.table.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
+			addDP( dp, "azbuddy.ui.table.online",  online );
+		
+			addDP( dp, "azbuddy.ui.table.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
+		}
 	}
 	
 	protected void

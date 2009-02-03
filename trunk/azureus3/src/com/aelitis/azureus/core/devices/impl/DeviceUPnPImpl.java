@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPRootDevice;
 
@@ -44,7 +45,7 @@ DeviceUPnPImpl
 		UPnPDevice					_device,
 		int							_type )
 	{
-		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ));
+		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ), false );
 		
 		device_may_be_null = _device;
 	}	
@@ -78,6 +79,16 @@ DeviceUPnPImpl
 		}
 		
 		return( fn );
+	}
+	
+	protected
+	DeviceUPnPImpl(
+		DeviceManagerImpl	_manager,
+		int					_type,
+		String				_name )
+
+	{
+		super( _manager, _type, UUIDGenerator.generateUUIDString(), _name, true );
 	}
 	
 	protected
