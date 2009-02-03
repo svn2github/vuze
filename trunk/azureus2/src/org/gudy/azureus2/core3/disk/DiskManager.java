@@ -278,6 +278,9 @@ DiskManager
 	removeListener(
 		DiskManagerListener	l );
   
+	public boolean
+	hasListener(
+	    DiskManagerListener	l );
   
   /**
    * Save the individual file priorities map to

@@ -2120,6 +2120,13 @@ DiskManagerImpl
     {
         listeners.removeListener(l);
     }
+    
+    public boolean
+    hasListener(
+    	DiskManagerListener	l )
+    {
+    	return( listeners.hasListener( l ));
+    }
 
           /** Deletes all data files associated with torrent.
            * Currently, deletes all files, then tries to delete the path recursively

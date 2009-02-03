@@ -165,6 +165,16 @@ ListenerManager
 		}
 	}
 	
+	public boolean
+	hasListener(
+		Object		listener )
+	{
+		synchronized( this ){
+
+			return( listeners.contains( listener ));
+		}
+	}
+	
 	public void
 	clear()
 	{

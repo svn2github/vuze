@@ -555,6 +555,13 @@ LWSDiskManager
 		DiskManagerListener	l )
 	{	
 	}
+	
+	public boolean
+	hasListener(
+		DiskManagerListener	l )
+	{
+		return( false );
+	}
   
 	public void 
 	saveState()

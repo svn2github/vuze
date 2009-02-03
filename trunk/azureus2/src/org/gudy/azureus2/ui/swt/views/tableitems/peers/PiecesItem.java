@@ -24,8 +24,6 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -34,7 +32,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -64,10 +61,8 @@ public class PiecesItem
   private final static int borderSplit = 1;
   private final static int completionHeight = 2;
   
-  // DiskManagers we have listeners on
-  private List listDMs = new ArrayList(1);
-  private AEMonitor listDM_mon = new AEMonitor("piecesitem");
-
+  private int row_count;
+  
   /** Default Constructor */
   public PiecesItem(String table_id) {
     super("pieces", table_id);
@@ -81,27 +76,27 @@ public class PiecesItem
 	}
 
   public void cellAdded(TableCell cell) {
+	synchronized( this ){
+		row_count++;
+	}
     cell.setFillCell(true);
     Object ds = cell.getDataSource();
     if (ds instanceof PEPeer) {
 			PEPeer peer = (PEPeer) ds;
 			DiskManager diskmanager = peer.getManager().getDiskManager();
-			if (diskmanager != null) {
-				try {
-					listDM_mon.enter();
-
-			    if (!listDMs.contains(diskmanager)) {
-			    	diskmanager.addListener(this);
-			    	listDMs.add(diskmanager);
-			    }
-				} finally {
-					listDM_mon.exit();
+			
+			if ( diskmanager.getRemaining() > 0 ){
+				if ( !diskmanager.hasListener( this )){
+					diskmanager.addListener( this );
 				}
 			}
 		}
   }
 
   public void dispose(TableCell cell) {
+	synchronized( this ){
+	  row_count--;
+	}
     // Named infoObj so code can be copied easily to the other PiecesItem
     PEPeer infoObj = (PEPeer)cell.getDataSource();
     if (infoObj == null)
@@ -332,18 +327,21 @@ public class PiecesItem
 
 	// @see org.gudy.azureus2.core3.disk.DiskManagerListener#pieceDoneChanged(org.gudy.azureus2.core3.disk.DiskManagerPiece)
 	public void pieceDoneChanged(DiskManagerPiece piece) {
-		invalidateCells();
-
 		DiskManager diskmanager = piece.getManager();
-		if (diskmanager.getRemaining() == 0) {
-			diskmanager.removeListener(this);
 
-			try {
-				listDM_mon.enter();
-
-				listDMs.remove(diskmanager);
-			} finally {
-				listDM_mon.exit();
+		boolean	remove_listener;
+		synchronized( this ){
+			remove_listener = row_count==0;
+		}
+		
+		if ( remove_listener ){
+			diskmanager.removeListener( this );
+		}else{
+			invalidateCells();
+	
+			if ( diskmanager.getRemaining() == 0 ){
+				
+				diskmanager.removeListener(this);
 			}
 		}
 	}
