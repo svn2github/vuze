@@ -90,8 +90,10 @@ DeviceInternetView
 		main = new Composite( parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
+		layout.marginTop = 4;
+		layout.marginBottom = 4;
+		layout.marginHeight = 4;
+		layout.marginWidth = 4;
 		main.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
