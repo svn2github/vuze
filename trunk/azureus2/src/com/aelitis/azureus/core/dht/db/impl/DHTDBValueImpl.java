@@ -38,6 +38,8 @@ public class
 DHTDBValueImpl
 	implements DHTDBValue
 {
+	private static final byte[] ZERO_LENGTH_BYTE_ARRAY = {};
+	
 	private long				creation_time;
 	private byte[]				value;
 	private DHTTransportContact	originator;
@@ -75,6 +77,13 @@ DHTDBValueImpl
 		sender			= _sender;
 		local			= _local;
 		flags			= _flags;
+		
+			// we get quite a few zero length values - optimise mem usage
+		
+		if ( value != null && value.length == 0 ){
+			
+			value = ZERO_LENGTH_BYTE_ARRAY;
+		}
 		
 		reset();
 	}
@@ -203,7 +212,7 @@ DHTDBValueImpl
 	{
 		DHTDBValueImpl	res = new DHTDBValueImpl( originator, this, local );
 		
-		res.value = new byte[0];	// delete -> 0 length value
+		res.value = ZERO_LENGTH_BYTE_ARRAY;	// delete -> 0 length value
 		
 		res.setCreationTime();
 		
