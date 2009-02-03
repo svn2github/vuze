@@ -117,7 +117,11 @@ ExternalSeedPeer
 
 			manager	= _manager;
 			
-			if ( manager != null ){
+			if ( manager == null ){
+				
+				stats = null;
+				
+			}else{
 				
 				stats = manager.createPeerStats( this );
 			}
