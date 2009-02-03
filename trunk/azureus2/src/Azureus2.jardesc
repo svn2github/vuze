@@ -218,6 +218,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.extseed.util"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.browser.msg"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.protocol"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.devices.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.net.upnp.impl.ssdp"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.impl.tests"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.utils.security"/>
@@ -234,6 +235,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.platform"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.digests"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.subscriptions"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.devices"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.tracker"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.peers"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.disk.impl.piecemapper"/>
@@ -370,6 +372,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.remote.rpexceptions"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.plugins.net.buddy"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.devices"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.sharing"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.disk"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.views.skin.widgets"/>

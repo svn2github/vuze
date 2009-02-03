@@ -733,50 +733,87 @@ public class VersionCheckClient {
 		  os.flush();
 		  
 		  InputStream	is = socket.getInputStream();
-		  
-		  ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-		  		
-		  byte[]	buffer = new byte[1024];
+		  		  		
+		  byte[]	buffer = new byte[1];
 
-		  int	total_len = 0;
+		  String	header = "";
+		  
+		  int content_length = -1;
 		  
 		  while( true ){
 			  
 			  int	len = is.read( buffer );
-			  
+			  			  
 			  if ( len <= 0 ){
 				  
 				  break;
 			  }
 			  
-			  total_len += len;
-			  
-			  if ( total_len > 16000 ){
+			  header += (char)buffer[0];
+			  			  
+			  if ( header.endsWith( "\r\n\r\n" )){
 				  
-				  throw( new IOException( "reply too large" ));
+				  header = header.toLowerCase();
+				  
+				  int	pos = header.indexOf( "content-length:" );
+				  
+				  if ( pos == -1 ){
+					  
+					  throw( new IOException( "content length missing" ));
+				  }
+				  
+				  header = header.substring( pos+15 );
+				  
+				  pos = header.indexOf( '\r' );
+				  
+				  header = header.substring(0,pos).trim();
+				  
+				  content_length = Integer.parseInt( header );
+				  
+				  if ( content_length > 10000 ){
+					  
+					  throw( new IOException( "content length too large" ));
+				  }
+				  
+				  break;
 			  }
 			  
+			  if ( header.length() > 2048 ){
+				  
+				  throw( new IOException( "header too large" ));
+			  }
+		  }
+		  
+		  ByteArrayOutputStream	baos = new ByteArrayOutputStream( content_length );
+
+		  buffer = new byte[content_length];
+		  
+		  while( content_length > 0 ){
+			  
+			  int	len = is.read( buffer );
+  			  
+			  if ( len <= 0 ){
+				  
+				  break;
+			  }
+
 			  baos.write( buffer, 0, len );
+			  
+			  content_length -= len;
+		  }
+		  
+		  if ( content_length != 0 ){
+			  
+			  throw( new IOException( "error reading reply" ));
 		  }
 		  
 		  byte[]	reply_bytes = baos.toByteArray();
+		    		  
+		  Map reply = BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply_bytes )));
 		  
-		  for (int i=3;i<reply_bytes.length;i++){
-			  
-			  if ( 		reply_bytes[i-3]== (byte)'\015' &&
-					  	reply_bytes[i-2]== (byte)'\012' &&
-					  	reply_bytes[i-1]== (byte)'\015' &&
-					  	reply_bytes[i-0]== (byte)'\012' ){
-			  		  
-				  Map reply = BDecoder.decode( new BufferedInputStream( new ByteArrayInputStream( reply_bytes, i+1, reply_bytes.length - (i+1 ))));
-				  
-				  preProcessReply( reply, v6 );
+		  preProcessReply( reply, v6 );
 
-				  return( reply );
-			  }
-		  }
-		  
-		  throw( new Exception( "Invalid reply: " + new String( reply_bytes )));
+		  return( reply );
 		  
 	  }finally{
 		  
@@ -1229,10 +1266,10 @@ public class VersionCheckClient {
 		  boolean v6= false;
 		  
 		  // Test connectivity.
-		  if (false) {
-			  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
+		  if (true) {
+			//  System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
 			  System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
-			  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+			//  System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
 		  }
 		  
 		  Map data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);
