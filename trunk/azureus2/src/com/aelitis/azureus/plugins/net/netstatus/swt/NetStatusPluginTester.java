@@ -400,7 +400,18 @@ NetStatusPluginTester
 			
 			NetworkAdminSocksProxy[] socks_proxies = admin.getSocksProxies();
 			
-			log( socks_proxies.length + " SOCKS proxy" + (socks_proxies.length==1?"":"s") + " found" );
+			if ( socks_proxies.length == 0 ){
+				
+				log( "No SOCKS proxy found" );
+
+			}else if (  socks_proxies.length == 1 ){
+				
+				log( "One SOCKS proxy found" );
+				
+			}else{
+				
+				log( socks_proxies.length + " SOCKS proxies found" );
+			}
 			
 			for (int i=0;i<socks_proxies.length;i++){
 				
@@ -437,7 +448,7 @@ NetStatusPluginTester
 		
 		if ( num_binds == 0 ){
 			
-			log( "No explicit bind addresses" );
+			log( "No explicit bind address set" );
 			
 		}else{
 		
@@ -545,6 +556,7 @@ NetStatusPluginTester
 					}catch( Throwable e ){
 						
 						logError( "    Test failed", e );
+						logInfo(  "    Check your port forwarding for " + protocol.getTypeString() + " " + protocol.getPort());
 					}
 				}
 			}
@@ -558,13 +570,13 @@ NetStatusPluginTester
 				
 			}else{
 				
-				Iterator	it = public_addresses.iterator();
+				Iterator<InetAddress>	it = public_addresses.iterator();
 				
 				log( public_addresses.size() + " public/external addresses found" );
 				
 				while( it.hasNext()){
 					
-					InetAddress	pub_address = (InetAddress)it.next();
+					InetAddress	pub_address = it.next();
 					
 					log( "    " + pub_address.getHostAddress());
 					
@@ -767,6 +779,13 @@ NetStatusPluginTester
 	}
 	
 	protected void
+	logInfo(
+		String	str )
+	{
+		logger.logInfo( str );
+	}
+	
+	protected void
 	log(
 		String		str,
 		Throwable	e )
@@ -798,6 +817,10 @@ NetStatusPluginTester
 		
 		public void
 		logSuccess(
+			String	str );
+		
+		public void
+		logInfo(
 			String	str );
 		
 		public void

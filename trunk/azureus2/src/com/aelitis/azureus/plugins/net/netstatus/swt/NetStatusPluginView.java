@@ -61,6 +61,7 @@ NetStatusPluginView
 	private static final int LOG_NORMAL 	= 1;
 	private static final int LOG_SUCCESS 	= 2;
 	private static final int LOG_ERROR 		= 3;
+	private static final int LOG_INFO 		= 4;
 	
 	private int	log_type	= LOG_NORMAL;
 	
@@ -343,6 +344,21 @@ NetStatusPluginView
 							}
 							
 							public void 
+							logInfo(
+								String str) 
+							{
+								try{
+									log_type = LOG_INFO;
+									
+									println( str );
+									
+								}finally{
+									
+									log_type = LOG_NORMAL;
+								}
+							}
+							
+							public void 
 							logFailure(
 								String str) 
 							{
@@ -469,6 +485,10 @@ NetStatusPluginView
 							}else if ( f_log_type == LOG_SUCCESS ){
 								
 								color = Colors.green;
+								
+							}else if ( f_log_type == LOG_INFO ){
+								
+								color = Colors.blue;
 								
 							}else{
 								
