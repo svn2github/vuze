@@ -1035,12 +1035,20 @@ DeviceManagerUI
 
 			composite = new Composite( parent_composite, SWT.NULL );
 			
-			composite.setLayout(new FormLayout());
-
+			FormLayout layout = new FormLayout();
+			
+			layout.marginTop	= 4;
+			layout.marginLeft	= 4;
+			layout.marginRight	= 4;
+			layout.marginBottom	= 4;
+			
+			composite.setLayout( layout );
+			
 			FormData data = new FormData();
-			data.left = new FormAttachment(0,0);
-			data.right = new FormAttachment(100,0);
-			data.top = new FormAttachment(composite,0);
+			
+			data.left 	= new FormAttachment(0,0);
+			data.right 	= new FormAttachment(100,0);
+			data.top 	= new FormAttachment(composite,0);
 			data.bottom = new FormAttachment(100,0);
 
 

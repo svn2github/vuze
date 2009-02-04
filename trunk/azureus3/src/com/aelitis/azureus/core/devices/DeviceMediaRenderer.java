@@ -21,8 +21,31 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
+
 public interface 
 DeviceMediaRenderer
 	extends Device
 {
+	public File
+	getWorkingDirectory();
+	
+	public void
+	setWorkingDirectory(
+		File		directory );
+	
+	public String[]
+	getTranscodeProfiles();
+	
+	public void
+	setTranscodeProfiles(
+		String[]	profiles );
+	
+	public String
+	getDefaultTranscodeProfile();
+	
+	public void
+	setDefaultTranscodeProfile(
+		String		profile );
+	
 }

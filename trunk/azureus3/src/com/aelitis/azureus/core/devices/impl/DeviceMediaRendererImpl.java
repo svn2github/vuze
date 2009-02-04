@@ -21,7 +21,9 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -34,6 +36,10 @@ DeviceMediaRendererImpl
 	extends DeviceUPnPImpl
 	implements DeviceMediaRenderer
 {
+	private static final String PP_REND_WORK_DIR		= "rend_work_dir";
+	private static final String PP_REND_TRANS_PROF		= "rend_trans_prof";
+	private static final String PP_REND_DEF_TRANS_PROF	= "rend_def_trans_prof";
+	
 	protected
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
@@ -80,4 +86,55 @@ DeviceMediaRendererImpl
 		
 		return( true );
 	}
+	
+	public File
+	getWorkingDirectory()
+	{
+		return( new File( getPersistentStringProperty( PP_REND_WORK_DIR )));
+	}
+	
+	public void
+	setWorkingDirectory(
+		File		directory )
+	{
+		setPersistentStringProperty( PP_REND_WORK_DIR, directory.getAbsolutePath());
+	}
+	
+	public String[]
+	getTranscodeProfiles()
+	{
+		return( getPersistentStringListProperty( PP_REND_TRANS_PROF ));
+
+	}
+	
+	public void
+	setTranscodeProfiles(
+		String[]	profiles )
+	{
+		setPersistentStringListProperty( PP_REND_TRANS_PROF, profiles );
+	}
+	
+	public String
+	getDefaultTranscodeProfile()
+	{
+		return( getPersistentStringProperty( PP_REND_DEF_TRANS_PROF ));
+	}
+	
+	public void
+	setDefaultTranscodeProfile(
+		String		profile )
+	{
+		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile );
+	}
+	
+	protected void
+	getDisplayProperties(
+		List<String[]>	dp )
+	{
+		super.getDisplayProperties( dp );
+
+		addDP( dp, "working_dir", getWorkingDirectory().getAbsolutePath());
+		addDP( dp, "trans_prof_def", getDefaultTranscodeProfile());
+		addDP( dp, "trans_prof", getTranscodeProfiles() );
+	}		
 }

@@ -83,7 +83,8 @@ DeviceImpl
 	
 	private boolean			online;
 	
-	
+	private Map<String,Object>	persistent_properties = new LightHashMap<String, Object>(1);
+
 	private Map<Object,Object>	transient_properties = new LightHashMap<Object, Object>(1);
 	
 	protected
@@ -118,6 +119,10 @@ DeviceImpl
 		hidden		= ImportExportUtils.importBoolean( map, "_hide" );	
 		manual		= ImportExportUtils.importBoolean( map, "_man" );
 
+		if ( map.containsKey( "_pprops" )){
+			
+			persistent_properties = (Map<String,Object>)map.get( "_pprops" );
+		}
 	}
 	
 	protected void
@@ -141,6 +146,8 @@ DeviceImpl
 		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
 		ImportExportUtils.exportBoolean( map, "_hide", hidden );
 		ImportExportUtils.exportBoolean( map, "_man", manual );
+		
+		map.put( "_pprops", persistent_properties );
 	}
 	
 	public int
@@ -307,6 +314,22 @@ DeviceImpl
 	addDP(
 		List<String[]>	dp,
 		String			name,
+		String[]		values )
+	{
+		String value = "";
+		
+		for ( String v: values ){
+			
+			value += (value.length()==0?"":",") + v;
+		}
+		
+		dp.add( new String[]{ name, value });
+	}
+	
+	protected void
+	addDP(
+		List<String[]>	dp,
+		String			name,
 		boolean			value )
 	{
 		dp.add( new String[]{ name, MessageText.getString( value?"GeneralView.yes":"GeneralView.no" ) });
@@ -316,6 +339,98 @@ DeviceImpl
 	remove()
 	{
 		manager.removeDevice( this );
+	}
+	
+	public String
+	getPersistentStringProperty(
+		String		prop )
+	{
+		try{
+			byte[]	value = (byte[])persistent_properties.get( prop );
+	
+			if ( value == null ){
+				
+				return( "");
+			}
+			
+			return( new String( value, "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( "" );
+		}
+	}
+	
+	public void
+	setPersistentStringProperty(
+		String		prop,
+		String		value )
+	{
+		try{
+			persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+			
+			setDirty();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public String[]
+	getPersistentStringListProperty(
+		String		prop )
+	{
+		try{
+			List<byte[]>	values = (List<byte[]>)persistent_properties.get( prop );
+	
+			if ( values == null ){
+				
+				return( new String[0] );
+			}
+			
+			String[]	res = new String[values.size()];
+			
+			int	pos = 0;
+			
+			for (byte[] value: values ){
+			
+				res[pos++] = new String( value, "UTF-8" );
+			}
+			
+			return( res );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( new String[0] );
+		}
+	}
+	
+	public void
+	setPersistentStringListProperty(
+		String			prop,
+		String[]		values )
+	{
+		try{
+			List<byte[]> values_list = new ArrayList<byte[]>();
+			
+			for (String value: values ){
+				
+				values_list.add( value.getBytes( "UTF-8" ));
+			}
+			
+			persistent_properties.put( prop, values_list );
+			
+			setDirty();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	public void
