@@ -121,7 +121,7 @@ NetworkAdminProtocolImpl
 	}
 	
 	public String
-	getName()
+	getTypeString()
 	{
 		String	res;
 		
@@ -137,6 +137,14 @@ NetworkAdminProtocolImpl
 			
 			res = "UDP";
 		}
+		
+		return( res );
+	}
+	
+	public String
+	getName()
+	{
+		String	res = getTypeString();
 		
 		if ( port == -1 ){
 			

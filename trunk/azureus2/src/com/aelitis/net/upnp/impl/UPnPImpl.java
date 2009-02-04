@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.util.Java15Utils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
@@ -636,25 +637,25 @@ UPnPImpl
 		
 		adapter.trace( "UPnP:Request: -> " + control + "," + request );
 
-		if (use_http_connection) {
+		if ( use_http_connection ){
 			
 			try{
 				TorrentUtils.setTLSDescription( "UPnP Device: " + service.getDevice().getFriendlyName());
 			
-				HttpURLConnection	con = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
+				HttpURLConnection	con1 = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
 					
-				con.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
+				con1.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 					
-				con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+				con1.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
 					
-				con.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
+				con1.setRequestProperty( "User-Agent", "Azureus (UPnP/1.0)" );
 					
-				con.setRequestMethod( "POST" );
+				con1.setRequestMethod( "POST" );
 					
-				con.setDoInput( true );
-				con.setDoOutput( true );
+				con1.setDoInput( true );
+				con1.setDoOutput( true );
 					
-				OutputStream	os = con.getOutputStream();
+				OutputStream	os = con1.getOutputStream();
 					
 				PrintWriter	pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
 								
@@ -662,40 +663,64 @@ UPnPImpl
 					
 				pw.flush();
 			
-				con.connect();
+				con1.connect();
 					
-				if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
+				if ( con1.getResponseCode() == 405 || con1.getResponseCode() == 500 ){
 						
-					// gotta retry with M-POST method
+						// gotta retry with M-POST method
+						
+					try{
+						HttpURLConnection con2 = (HttpURLConnection)control.openConnection();
+							
+						con2.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+							
+						con2.setRequestMethod( "M-POST" );
+							
+						con2.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
+				
+						con2.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
+							
+						con2.setDoInput( true );
+						con2.setDoOutput( true );
+							
+						os = con2.getOutputStream();
+							
+						pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
 										
-					con = (HttpURLConnection)control.openConnection();
+						pw.println( request );
+							
+						pw.flush();
+				
+						con2.connect();
 						
-					con.setRequestProperty( "Content-Type", "text/xml; charset=\"utf-8\"" );
+						return( parseXML(con2.getInputStream()));	
 						
-					con.setRequestMethod( "M-POST" );
+					}catch( Throwable e ){
 						
-					con.setRequestProperty( "MAN", "\"http://schemas.xmlsoap.org/soap/envelope/\"; ns=01" );
-			
-					con.setRequestProperty( "01-SOAPACTION", "\""+ soap_action + "\"");
-						
-					con.setDoInput( true );
-					con.setDoOutput( true );
-						
-					os = con.getOutputStream();
-						
-					pw = new PrintWriter( new OutputStreamWriter(os, "UTF-8" ));
-									
-					pw.println( request );
-						
-					pw.flush();
-			
-					con.connect();
+					}
 					
-					return( parseXML(con.getInputStream()));	
+					InputStream es = con1.getErrorStream();
+					
+					String	info = null;
+					
+					try{
+						info = FileUtil.readInputStreamAsString( es, 512 );
 						
+					}catch( Throwable e ){
+					}
+					
+					String error = "SOAP RPC failed: " + con1.getResponseCode() + " " + con1.getResponseMessage();
+					
+					if ( info != null ){
+						
+						error += " - " + info;
+					}
+
+					throw( new IOException ( error ));
+					
 				}else{
 						
-					return( parseXML(con.getInputStream()));
+					return( parseXML(con1.getInputStream()));
 				}
 			}finally{
 				
@@ -739,10 +764,10 @@ UPnPImpl
 				}catch( Throwable e ){
 					
 					Debug.printStackTrace(e);
-				} // end catch
-			} // end finally
-		} // end else
-	} // end method
+				}
+			}
+		} 
+	}
 	
 	protected File
 	getTraceFile()

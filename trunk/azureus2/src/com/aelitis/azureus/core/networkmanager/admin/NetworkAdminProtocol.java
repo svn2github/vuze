@@ -38,6 +38,9 @@ NetworkAdminProtocol
 	public int 
 	getPort();
 	
+	public String
+	getTypeString();
+	
 	public InetAddress
 	test(
 		NetworkAdminNetworkInterfaceAddress	address )

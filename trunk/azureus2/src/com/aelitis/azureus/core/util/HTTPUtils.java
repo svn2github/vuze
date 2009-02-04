@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.util.FileUtil;
+
 public class HTTPUtils {
 	public static final String	NL				= "\r\n";
 
@@ -160,9 +162,12 @@ public class HTTPUtils {
 		return compression.contains(file_type);
 	}
 
-	public static InputStream decodeChunkedEncoding(InputStream is)
+	public static InputStream 
+	decodeChunkedEncoding(
+		InputStream is )
 
-	throws IOException {
+		throws IOException 
+	{
 		String reply_header = "";
 
 		while (true) {
@@ -186,9 +191,24 @@ public class HTTPUtils {
 
 		String first_line = reply_header.substring(0, p1).trim();
 
-		if (first_line.indexOf("200") == -1) {
+		if ( first_line.indexOf( "200" ) == -1 ){
 
-			throw (new IOException("HTTP request failed:" + first_line));
+			String	info = null;
+			
+			try{
+				info = FileUtil.readInputStreamAsString( is, 256 );
+				
+			}catch( Throwable e ){
+			}
+			
+			String error = "HTTP request failed: " + first_line;
+			
+			if ( info != null ){
+				
+				error += " - " + info;
+			}
+			
+			throw ( new IOException( error ));
 		}
 
 		String lc_reply_header = reply_header.toLowerCase();
