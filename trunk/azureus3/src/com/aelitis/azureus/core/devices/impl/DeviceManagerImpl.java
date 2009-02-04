@@ -86,11 +86,14 @@ DeviceManagerImpl
 	
 	private int		explicit_search;
 	
+	private TranscodeManagerImpl	transcode_manager;
 	
 	protected
 	DeviceManagerImpl()
 	{
 		loadConfig();
+		
+		transcode_manager = new TranscodeManagerImpl();
 		
 		COConfigurationManager.addAndFireParameterListener(
 			AUTO_SEARCH_CONFIG_KEY,
@@ -538,6 +541,12 @@ DeviceManagerImpl
 				Debug.out( e );
 			}
 		}
+	}
+	
+	public TranscodeManagerImpl
+	getTranscodeManager()
+	{
+		return( transcode_manager );
 	}
 	
   	public void

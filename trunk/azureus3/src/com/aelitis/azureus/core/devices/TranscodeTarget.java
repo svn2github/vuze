@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Feb 4, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,10 +21,30 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.File;
 
 public interface 
-DeviceMediaRenderer
-	extends Device, TranscodeTarget
+TranscodeTarget 
 {
-
+	public File
+	getWorkingDirectory();
+	
+	public void
+	setWorkingDirectory(
+		File		directory );
+	
+	public TranscodeProfile[]
+	getTranscodeProfiles();
+	
+	public void
+	setTranscodeProfiles(
+		TranscodeProfile[]	profiles );
+	
+	public TranscodeProfile
+	getDefaultTranscodeProfile();
+	
+	public void
+	setDefaultTranscodeProfile(
+		TranscodeProfile		profile );
+	
 }

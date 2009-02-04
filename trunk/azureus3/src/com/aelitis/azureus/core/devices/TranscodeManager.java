@@ -1,5 +1,5 @@
 /*
- * Created on Jan 27, 2009
+ * Created on Feb 4, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,10 +21,9 @@
 
 package com.aelitis.azureus.core.devices;
 
-
 public interface 
-DeviceMediaRenderer
-	extends Device, TranscodeTarget
+TranscodeManager 
 {
-
+	public TranscodeProvider[]
+	getProviders();
 }

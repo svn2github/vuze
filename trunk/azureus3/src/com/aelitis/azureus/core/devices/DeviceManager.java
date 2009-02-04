@@ -46,6 +46,9 @@ DeviceManager
 	setAutoSearch(
 		boolean	auto );
 	
+	public TranscodeManager
+	getTranscodeManager();
+	
 	public void
 	addListener(
 		DeviceManagerListener		listener );

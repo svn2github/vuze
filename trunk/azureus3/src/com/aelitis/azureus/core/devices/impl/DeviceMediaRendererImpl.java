@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -100,31 +101,61 @@ DeviceMediaRendererImpl
 		setPersistentStringProperty( PP_REND_WORK_DIR, directory.getAbsolutePath());
 	}
 	
-	public String[]
+	public TranscodeProfile[]
 	getTranscodeProfiles()
 	{
-		return( getPersistentStringListProperty( PP_REND_TRANS_PROF ));
-
+		String[] uids = getPersistentStringListProperty( PP_REND_TRANS_PROF );
+		
+		List<TranscodeProfile>	profiles = new ArrayList<TranscodeProfile>();
+		
+		DeviceManagerImpl dm = getManager();
+		
+		TranscodeManagerImpl tm = dm.getTranscodeManager();
+		
+		for ( String uid: uids ){
+			
+			TranscodeProfile profile = tm.getProfileFromUID( uid );
+			
+			if ( profile != null ){
+				
+				profiles.add( profile );
+			}
+		}
+		
+		return( profiles.toArray( new TranscodeProfile[profiles.size()] ));
 	}
 	
 	public void
 	setTranscodeProfiles(
-		String[]	profiles )
+		TranscodeProfile[]	profiles )
 	{
-		setPersistentStringListProperty( PP_REND_TRANS_PROF, profiles );
+		String[]	uids = new String[profiles.length];
+		
+		for (int i=0;i<profiles.length;i++){
+			
+			uids[i] = profiles[i].getUID();
+		}
+		
+		setPersistentStringListProperty( PP_REND_TRANS_PROF, uids );
 	}
 	
-	public String
+	public TranscodeProfile
 	getDefaultTranscodeProfile()
 	{
-		return( getPersistentStringProperty( PP_REND_DEF_TRANS_PROF ));
+		String uid = getPersistentStringProperty( PP_REND_DEF_TRANS_PROF );
+		
+		DeviceManagerImpl dm = getManager();
+		
+		TranscodeManagerImpl tm = dm.getTranscodeManager();
+
+		return( tm.getProfileFromUID( uid ));
 	}
 	
 	public void
 	setDefaultTranscodeProfile(
-		String		profile )
+		TranscodeProfile		profile )
 	{
-		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile );
+		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
 	}
 	
 	protected void
@@ -136,5 +167,30 @@ DeviceMediaRendererImpl
 		addDP( dp, "working_dir", getWorkingDirectory().getAbsolutePath());
 		addDP( dp, "trans_prof_def", getDefaultTranscodeProfile());
 		addDP( dp, "trans_prof", getTranscodeProfiles() );
-	}		
+	}	
+	
+	protected void
+	addDP(
+		List<String[]>		dp,
+		String				name,
+		TranscodeProfile	value )
+	{
+		addDP( dp, name, value==null?"":value.getName());
+	}
+	
+	protected void
+	addDP(
+		List<String[]>		dp,
+		String				name,
+		TranscodeProfile[]	values )
+	{
+		String[]	names = new String[values.length];
+		
+		for (int i=0;i<values.length;i++){
+			
+			names[i] = values[i].getName();
+		}
+		
+		addDP( dp, name, names);
+	}
 }

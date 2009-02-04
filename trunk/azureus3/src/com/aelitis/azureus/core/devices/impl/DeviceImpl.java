@@ -454,6 +454,12 @@ DeviceImpl
 		}
 	}
 	
+	protected DeviceManagerImpl
+	getManager()
+	{
+		return( manager );
+	}
+	
 	public String
 	getString()
 	{

@@ -21,6 +21,11 @@
 
 package com.aelitis.azureus.ui.swt.devices;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -32,6 +37,11 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
@@ -48,6 +58,9 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -641,6 +654,140 @@ DeviceManagerUI
 							}
 						}
 					});
+		}
+		
+		setupMenus();
+	}
+	
+	
+	private void 
+	setupMenus()
+	{					
+			// top level menus
+				
+		final String[] tables = {
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE,
+				TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,
+				TableManager.TABLE_MYTORRENTS_COMPLETE,
+				TableManager.TABLE_MYTORRENTS_COMPLETE_BIG,
+				TableManager.TABLE_TORRENT_FILES,
+				TableManager.TABLE_MYTORRENTS_UNOPENED,
+				TableManager.TABLE_MYTORRENTS_UNOPENED_BIG,
+				TableManager.TABLE_MYTORRENTS_ALL_BIG,
+			};
+		
+		TableManager table_manager = plugin_interface.getUIManager().getTableManager();
+		
+		MenuItemFillListener	menu_fill_listener = 
+			new MenuItemFillListener()
+			{
+				public void
+				menuWillBeShown(
+					MenuItem	menu,
+					Object		_target )
+				{
+					final TableRow[]	target;
+					
+					if ( _target instanceof TableRow ){
+						
+						target = new TableRow[]{ (TableRow)_target };
+						
+					}else{
+						
+						target = (TableRow[])_target;
+					}
+					
+					boolean	enabled = target.length > 0;
+					
+					for ( TableRow row: target ){
+						
+						Object obj = row.getDataSource();
+					
+						if ( obj instanceof Download ){
+						
+							Download download = (Download)obj;
+
+							if ( download.getState() == Download.ST_ERROR ){
+								
+								enabled = false;
+							}
+						}else{
+							
+							DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
+							
+							try{
+								if ( file.getDownload().getState() == Download.ST_ERROR ){
+								
+									enabled = false;
+								}
+							}catch( Throwable e ){
+								
+								enabled = false;
+							}
+						}
+					}
+					
+					menu.setEnabled( enabled );
+					
+					menu.removeAllChildItems();
+					
+					if ( enabled ){
+						
+						Device[] devices = device_manager.getDevices();
+						
+						for ( Device device: devices ){
+							
+							if ( device instanceof TranscodeTarget ){
+								
+								TranscodeTarget renderer = (TranscodeTarget)device;
+								
+								TranscodeProfile[] profiles = renderer.getTranscodeProfiles();
+								
+
+								TableContextMenuItem device_item =
+									plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+										(TableContextMenuItem)menu,
+										"!" + device.getName() + (profiles.length==0?" (No Profiles)":"") + "!");
+								
+								if ( profiles.length == 0 ){
+									
+									device_item.setEnabled( false );
+									
+								}else{
+									
+									for ( TranscodeProfile profile: profiles ){
+										
+										TableContextMenuItem profile_item =
+											plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+												device_item,
+												"!" + profile.getName() + "!");
+
+										profile_item.addMultiListener(
+											new MenuItemListener()
+											{
+												public void 
+												selected(
+													MenuItem 	menu,
+													Object 		target ) 
+												{
+	
+												}
+											});
+									}
+								}
+							}
+						}
+					}
+				}
+			};
+		
+		for( String table: tables ){
+				
+			TableContextMenuItem menu = table_manager.addContextMenuItem(table, "devices.contextmenu.xcode" );
+			
+			menu.setStyle(TableContextMenuItem.STYLE_MENU);
+		
+			menu.addFillListener( menu_fill_listener );				
 		}
 	}
 	
