@@ -203,7 +203,7 @@ public class HTTPUtils {
 				
 				int timeout = socket.getSoTimeout();
 				
-				socket.setSoTimeout( 100 );
+				socket.setSoTimeout( 500 );
 				
 				info = FileUtil.readInputStreamAsStringWithTruncation( is, 512 );
 				
