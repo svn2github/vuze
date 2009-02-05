@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginState;
 import org.gudy.azureus2.plugins.UnloadablePlugin;
 import org.gudy.azureus2.pluginsimpl.local.installer.PluginInstallerImpl;
+import org.gudy.azureus2.update.UpdaterUtils;
 
 public class PluginStateImpl implements PluginState {
 
@@ -74,16 +75,30 @@ public class PluginStateImpl implements PluginState {
 		if (dir == null) {
 			return PluginInitializer.isLoadingBuiltin();
 		}
-		return dir.length() == 0 || pi.getPluginID().equals("azupdater");
+		return(
+			dir.length() == 0 || 
+			pi.getPluginID().equals( UpdaterUtils.AZUPDATER_PLUGIN_ID ) ||
+			pi.getPluginID().equals( UpdaterUtils.AZUPDATERPATCHER_PLUGIN_ID ));
 	}
 	
 	public boolean isMandatory() {
+		if ( 	pi.getPluginID().equals( UpdaterUtils.AZUPDATER_PLUGIN_ID ) ||
+				pi.getPluginID().equals( UpdaterUtils.AZUPDATERPATCHER_PLUGIN_ID )){
+			
+			return( true );
+		}
+		
 		String mand = pi.getPluginProperties().getProperty("plugin.mandatory");
 		return (mand != null && mand.trim().toLowerCase().equals("true"));
 	}
 	
-  	void setOperational(boolean b) {
+  	void setOperational(boolean b, boolean reloading ) {
   		operational	= b;
+  		
+  		if ( !reloading ){
+  			
+  			initialiser.fireOperational( pi, operational );
+  		}
   	}
   	
     public boolean isOperational() {
@@ -99,7 +114,7 @@ public class PluginStateImpl implements PluginState {
 	public void reload() throws PluginException {
 		// we use the "reload" method to load disabled plugins regardless of whether they are
 		// unloadable. If currently disabled then no unloading to do anyway  
-		if (isUnloadable() || isOperational()) {unload();}
+		if (isUnloadable() || isOperational()) {unload( true );}
 	  	initialiser.reloadPlugin(this.pi);
 	}
 	  
@@ -108,6 +123,10 @@ public class PluginStateImpl implements PluginState {
 	}
 
 	public void unload() throws PluginException {
+		unload( false );
+	}
+	
+	protected void unload( boolean for_reload ) throws PluginException {
 		if (!isUnloadable()) {
 			throw new PluginException("Plugin isn't unloadable");
 		}
@@ -135,10 +154,10 @@ public class PluginStateImpl implements PluginState {
 		}
 		  	
 		for (int i=0;i<pi.children.size();i++){
-			((PluginInterface)pi.children.get(i)).getPluginState().unload();
+			((PluginStateImpl)((PluginInterface)pi.children.get(i)).getPluginState()).unload( for_reload );
 		}
 		  	
-		setOperational(false);
+		setOperational(false, for_reload );
 		pi.class_loader = null;
 	}
 		

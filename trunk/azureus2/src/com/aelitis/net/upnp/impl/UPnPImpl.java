@@ -752,7 +752,7 @@ UPnPImpl
 				
 				pw.flush();
 				
-				InputStream	is = HTTPUtils.decodeChunkedEncoding( socket.getInputStream());
+				InputStream	is = HTTPUtils.decodeChunkedEncoding( socket );
 				
 				return( parseXML( is ));
 				

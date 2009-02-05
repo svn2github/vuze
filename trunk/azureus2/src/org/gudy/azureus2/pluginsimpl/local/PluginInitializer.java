@@ -32,7 +32,6 @@ import java.util.*;
 
 import com.aelitis.azureus.core.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -433,6 +432,14 @@ PluginInitializer
 	PluginInterfaceImpl pi )
   {
 	  azureus_core.triggerLifeCycleComponentCreated( pi );
+  }
+  
+  protected void
+  fireOperational(
+	PluginInterfaceImpl	pi,
+	boolean				op )
+  {
+	  fireEventSupport( op?PluginEvent.PEV_PLUGIN_OPERATIONAL:PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL, pi );
   }
   
   public static void
@@ -1453,7 +1460,7 @@ PluginInitializer
       	  				
   							if (!(plugin instanceof FailedPlugin)){
   					
-  								plugin_interface.getPluginStateImpl().setOperational( true );
+  								plugin_interface.getPluginStateImpl().setOperational( true, false );
   							}
   						}
   					});
@@ -1606,7 +1613,7 @@ PluginInitializer
 
 	    					 if (!(plugin instanceof FailedPlugin)){
 
-	    						 plugin_interface.getPluginStateImpl().setOperational( true );
+	    						 plugin_interface.getPluginStateImpl().setOperational( true, false );
 	    					 }
 	    				 }
 	    			 }
@@ -1668,7 +1675,7 @@ PluginInitializer
 			  		
 			  		if (!(plugin instanceof FailedPlugin)){
 			  			
-			  			plugin_interface.getPluginStateImpl().setOperational( true );
+			  			plugin_interface.getPluginStateImpl().setOperational( true, false );
 			  		}
 				}
 			});

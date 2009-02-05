@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -164,10 +165,12 @@ public class HTTPUtils {
 
 	public static InputStream 
 	decodeChunkedEncoding(
-		InputStream is )
+		Socket		socket )
 
 		throws IOException 
 	{
+		InputStream	is = socket.getInputStream();
+		
 		String reply_header = "";
 
 		while (true) {
@@ -196,7 +199,15 @@ public class HTTPUtils {
 			String	info = null;
 			
 			try{
-				info = FileUtil.readInputStreamAsString( is, 256 );
+					// limit time spent trying to read debug
+				
+				int timeout = socket.getSoTimeout();
+				
+				socket.setSoTimeout( 100 );
+				
+				info = FileUtil.readInputStreamAsStringWithTruncation( is, 512 );
+				
+				socket.setSoTimeout( timeout );
 				
 			}catch( Throwable e ){
 			}

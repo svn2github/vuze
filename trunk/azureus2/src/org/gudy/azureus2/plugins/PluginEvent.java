@@ -57,6 +57,14 @@ PluginEvent
 	public static final int	PEV_ALL_PLUGINS_INITIALISED			= 7;
 
 		/**
+		 * Data is the PluginInterface of installed plugin
+		 * @since 4.1.0.1
+		 */
+	public static final int	PEV_PLUGIN_OPERATIONAL				= 8;
+
+	public static final int	PEV_PLUGIN_NOT_OPERATIONAL			= 9;
+
+		/**
 		 * Plugin specific events can be raised by a plugin to communicate with
 		 * other components. The event type must start from the number below
 		 */

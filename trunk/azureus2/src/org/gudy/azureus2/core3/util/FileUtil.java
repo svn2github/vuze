@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
@@ -1667,6 +1668,42 @@ public class FileUtil {
 		return (result.toString());
 	}
 
+	public static String
+	readInputStreamAsStringWithTruncation(
+		InputStream 	is,
+		int				size_limit )
+	
+		throws IOException
+	{
+		StringBuffer result = new StringBuffer(1024);
+
+		byte[] buffer = new byte[1024];
+
+		try{
+			while (true) {
+	
+				int len = is.read(buffer);
+	
+				if (len <= 0) {
+	
+					break;
+				}
+	
+				result.append(new String(buffer, 0, len, "ISO-8859-1"));
+	
+				if (size_limit >= 0 && result.length() > size_limit) {
+	
+					result.setLength(size_limit);
+	
+					break;
+				}
+			}
+		}catch( SocketTimeoutException e ){
+		}
+
+		return (result.toString());
+	}
+	
 	public static String
 	readFileEndAsString(
 		File	file,

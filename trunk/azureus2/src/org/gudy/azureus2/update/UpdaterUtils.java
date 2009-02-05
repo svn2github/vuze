@@ -39,8 +39,10 @@ import org.gudy.azureus2.plugins.PluginInterface;
  */
 public class UpdaterUtils
 {
-	protected static String AZUPDATER_PLUGIN_ID = "azupdater";
-	protected static String AZUPNPAV_PLUGIN_ID 	= "azupnpav";
+	public static String AZUPDATER_PLUGIN_ID 			= "azupdater";
+	public static String AZUPDATERPATCHER_PLUGIN_ID 	= "azupdaterpatcher";
+	
+	protected static String AZUPNPAV_PLUGIN_ID 			= "azupnpav";
 
 	public static boolean 
 	disableNativeCode(
