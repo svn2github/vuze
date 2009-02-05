@@ -21,10 +21,9 @@
 
 package com.aelitis.azureus.ui.swt.devices;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
+
+
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
@@ -39,9 +38,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.ipc.IPCException;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
@@ -85,23 +81,27 @@ DeviceManagerUI
 {
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
-	private DeviceManager		device_manager;
+	private DeviceManager			device_manager;
+	private DeviceManagerListener	device_manager_listener;
 	
 	private final PluginInterface	plugin_interface;
 	private final UIManager			ui_manager;
 	
-	private boolean		side_bar_setup;
+	private boolean		ui_setup;
 	
-	private String		renderers_key;
-	private String		media_servers_key;
-	private String		routers_key;
-	private String		internet_key;
-	
+	private SideBar		side_bar;
+	private int			next_sidebar_id;
+		
+	private List<categoryView>	categories = new ArrayList<categoryView>();
 	
 	
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
 	private MenuItemListener remove_listener;
+	
+	private MenuItemFillListener	show_fill_listener;
+	private MenuItemListener 		show_listener;
+
 	
 	private MenuItemFillListener will_browse_listener;
 	
@@ -121,9 +121,7 @@ DeviceManagerUI
 						UIInstance		instance )
 					{
 						if ( instance instanceof UISWTInstance ){
-							
-							final UISWTInstance	swt = (UISWTInstance)instance;						
-							
+														
 							SkinViewManager.addListener(
 								new SkinViewManagerListener() 
 								{
@@ -133,7 +131,7 @@ DeviceManagerUI
 									{
 										if ( skinview instanceof SideBar ){
 											
-											setupSideBar((SideBar) skinview, swt);
+											setupUI((SideBar)skinview);
 										}
 									}
 								});
@@ -142,7 +140,7 @@ DeviceManagerUI
 							
 							if ( sideBar != null ){
 								
-								setupSideBar( sideBar, swt );
+								setupUI( sideBar );
 							}
 						}
 					}
@@ -168,20 +166,91 @@ DeviceManagerUI
 	}
 	
 	protected void
-	setupSideBar(
-		final SideBar			side_bar,
-		final UISWTInstance		swt_ui )		
+	setupUI(
+		SideBar			_side_bar )	
 	{
 		synchronized( this ){
 			
-			if ( side_bar_setup ){
+			if ( ui_setup ){
 				
 				return;
 			}
 			
-			side_bar_setup = true;
+			ui_setup = true;
 		}
 		
+		device_manager 	= DeviceManagerFactory.getSingleton();
+
+		device_manager_listener = 
+			new DeviceManagerListener()
+			{
+				public void 
+				deviceAdded(
+					Device device ) 
+				{
+					addOrChangeDevice( device );
+				}
+				
+				public void
+				deviceChanged(
+					Device		device )
+				{
+					addOrChangeDevice( device );
+				}
+				
+				public void
+				deviceAttentionRequest(
+					Device		device )
+				{
+					showDevice( device );
+				}
+				
+				public void
+				deviceRemoved(
+					Device		device )
+				{
+					removeDevice( device );
+				}
+			};
+			
+		side_bar		= _side_bar;
+		
+		setupListeners();
+		
+		buildSideBar( false );
+		
+		BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
+				ConfigSection.SECTION_ROOT, "Devices");
+
+		final BooleanParameter as = 
+			configModel.addBooleanParameter2( 
+				"device.search.auto", "device.search.auto",
+				device_manager.getAutoSearch());
+		
+		as.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.setAutoSearch( as.getValue());
+					
+					if ( device_manager.getAutoSearch()){
+						
+						search();
+					}
+				}
+			});
+
+		addAllDevices();
+	
+		setupMenus();
+	}
+	
+	protected void
+	setupListeners()
+	{
 		properties_listener = 
 			new MenuItemListener() 
 			{
@@ -294,7 +363,7 @@ DeviceManagerUI
 					}
 				};
 			
-		MenuItemListener show_listener = 
+		show_listener = 
 			new MenuItemListener() 
 			{
 				public void 
@@ -304,7 +373,7 @@ DeviceManagerUI
 				{
 					if ( target instanceof SideBarEntry ){
 						
-						SideBarEntry info = (SideBarEntry) target;
+						SideBarEntry info = (SideBarEntry)target;
 												
 						Object ds = info.getDatasource();
 						
@@ -318,35 +387,14 @@ DeviceManagerUI
 							
 						}else{
 							
-							String id = info.getId();
-
-							int	target_type = Device.DT_UNKNOWN;
-							
-							if ( id.equals( renderers_key )){
-								
-								target_type = Device.DT_MEDIA_RENDERER;
-								
-							}else if ( id.equals( media_servers_key )){
-								
-								target_type = Device.DT_CONTENT_DIRECTORY;
-								
-							}else if ( id.equals( routers_key )){
-								
-								target_type = Device.DT_INTERNET_GATEWAY;
-								
-							}else if ( id.equals( "Devices" )){
-								
-							}else{
-								
-								Debug.out( "Unrecognised key '" + id + "'" );
-							}
+							int	category_type = ds==null?Device.DT_UNKNOWN:(Integer)ds;
 							
 							Device[] devices = device_manager.getDevices();
 							
 							for ( Device device: devices ){
 								
-								if ( 	target_type == Device.DT_UNKNOWN ||
-										device.getType() == target_type && device.isHidden()){
+								if ( 	category_type == Device.DT_UNKNOWN ||
+										device.getType() == category_type && device.isHidden()){
 									
 									device.setHidden( false );
 								}
@@ -355,8 +403,8 @@ DeviceManagerUI
 					}
 				}
 			};
-		
-		MenuItemFillListener show_fill_listener = 
+			
+		show_fill_listener = 
 				new MenuItemFillListener() 
 				{
 					public void 
@@ -389,35 +437,14 @@ DeviceManagerUI
 																	
 								}else{
 									
-									String id = info.getId();
-	
-									int	target_type = Device.DT_UNKNOWN;
-									
-									if ( id.equals( renderers_key )){
+									int	category_type = ds==null?Device.DT_UNKNOWN:(Integer)ds;
 										
-										target_type = Device.DT_MEDIA_RENDERER;
-										
-									}else if ( id.equals( media_servers_key )){
-										
-										target_type = Device.DT_CONTENT_DIRECTORY;
-										
-									}else if ( id.equals( routers_key )){
-										
-										target_type = Device.DT_INTERNET_GATEWAY;
-										
-									}else if ( id.equals( "Devices" )){
-										
-									}else{
-										
-										Debug.out( "Unrecognised key '" + id + "'" );
-									}
-									
 									Device[] devices = device_manager.getDevices();
 									
 									for ( Device device: devices ){
 										
-										if ( 	target_type == Device.DT_UNKNOWN ||
-												device.getType() == target_type && device.isHidden()){
+										if ( 	category_type == Device.DT_UNKNOWN ||
+												device.getType() == category_type && device.isHidden()){
 											
 											if ( device.isHidden()){
 												
@@ -432,108 +459,143 @@ DeviceManagerUI
 						menu.setEnabled( enabled );
 					}
 				};
-			
-			
+	}
+	
+	protected void
+	buildSideBar(
+		boolean			rebuild )	
+	{		
 		SideBarEntrySWT mainSBEntry = SideBar.getEntry(SideBar.SIDEBAR_SECTION_DEVICES );
 
 		if ( mainSBEntry != null ){
-						
-			SideBarVitalityImage addDevice = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
-			
-			addDevice.setToolTip("Add Device");
-			
-			addDevice.addListener(
-				new SideBarVitalityImageListener() 
-				{
-					public void 
-					sbVitalityImage_clicked(
-						int x, int y) 
-					{
-						new DevicesWizard( DeviceManagerUI.this );
-					}
-				});
-
-			mainSBEntry.setImageLeftID( "image.sidebar.devices" );
-
-			mainSBEntry.setTitleInfo(
-				new ViewTitleInfo() 
-				{
-					public Object 
-					getTitleInfoProperty(
-						int propertyID ) 
-					{
-						if ( propertyID == TITLE_TEXT ){
-							
-							return MessageText.getString( "devices.view.title" );
-						}
-						
-						return null;
-					}
-				});
-			
+				
 			MenuManager menu_manager = ui_manager.getMenuManager();
 
-			
-			
-				// devices
-			
-			
-			MenuItem de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.search" );
-			
-			de_menu_item.addListener( 
-					new MenuItemListener() 
+			if ( !rebuild ){
+				
+				SideBarVitalityImage addDevice = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+				
+				addDevice.setToolTip("Add Device");
+				
+				addDevice.addListener(
+					new SideBarVitalityImageListener() 
 					{
 						public void 
-						selected(
-							MenuItem menu, Object target ) 
+						sbVitalityImage_clicked(
+							int x, int y) 
 						{
-							search();
+							new DevicesWizard( DeviceManagerUI.this );
 						}
 					});
+	
+				mainSBEntry.setImageLeftID( "image.sidebar.devices" );
+	
+				mainSBEntry.setTitleInfo(
+					new ViewTitleInfo() 
+					{
+						public Object 
+						getTitleInfoProperty(
+							int propertyID ) 
+						{
+							if ( propertyID == TITLE_TEXT ){
+								
+								return MessageText.getString( "devices.view.title" );
+							}
+							
+							return null;
+						}
+					});
+				
+					// devices
+							
+				MenuItem de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.search" );
 			
-			de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.show" );
+				de_menu_item.addListener( 
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+								search();
+							}
+						});
+				
+				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.show" );
 
-			de_menu_item.addListener( show_listener );
-			de_menu_item.addFillListener( show_fill_listener );
-			
-			de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
-			
-			de_menu_item.addListener( 
-					new MenuItemListener() 
-					{
-						public void 
-						selected(
-							MenuItem menu, Object target ) 
+				de_menu_item.addListener( show_listener );
+				de_menu_item.addFillListener( show_fill_listener );
+				
+				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
+				
+				de_menu_item.addListener( 
+						new MenuItemListener() 
 						{
-					      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-					      	 
-					      	 if ( uif != null ){
-					      		 
-					      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
-					      	 }
-						}
-					});
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+						      	 
+						      	 if ( uif != null ){
+						      		 
+						      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
+						      	 }
+							}
+						});
+				
+				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "devices.rebuild" );
+				
+				de_menu_item.addListener( 
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+								removeAllDevices();
+								
+								buildSideBar( true );
+								
+								addAllDevices();
+							}
+						});
+				
+			}
 			
+			if ( rebuild ){
+				
+				for ( categoryView category: categories ){
+					
+					category.destroy();
+				}
+			}
+			
+			categories.clear();
 			
 				// renderers
 			
-			renderers_key 		= addDeviceCategory( Device.DT_MEDIA_RENDERER, side_bar, "device.renderer.view.title", "image.sidebar.device.renderer" );
+			categoryView renderers_category 		= addDeviceCategory( Device.DT_MEDIA_RENDERER, "device.renderer.view.title", "image.sidebar.device.renderer" );
 			
-			MenuItem re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_key, "device.show" );
+			categories.add( renderers_category );
+			
+			MenuItem re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_category.getKey(), "device.show" );
 
 			re_menu_item.addListener( show_listener );
 			re_menu_item.addFillListener( show_fill_listener );
 			
 				// media servers
 			
-			media_servers_key	= addDeviceCategory( Device.DT_CONTENT_DIRECTORY, side_bar, "device.mediaserver.view.title", "image.sidebar.device.mediaserver" );
+			categoryView media_servers_category	= addDeviceCategory( Device.DT_CONTENT_DIRECTORY, "device.mediaserver.view.title", "image.sidebar.device.mediaserver" );
 				
-			MenuItem ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_key, "device.show" );
+			categories.add( media_servers_category );
+			
+			MenuItem ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_category.getKey(), "device.show" );
 
 			ms_menu_item.addListener( show_listener );
 			ms_menu_item.addFillListener( show_fill_listener );
 			
-			ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_key, "device.mediaserver.configure");
+			ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_category.getKey(), "device.mediaserver.configure");
 			
 			ms_menu_item.addListener( 
 					new MenuItemListener() 
@@ -553,14 +615,16 @@ DeviceManagerUI
 
 				// routers
 			
-			routers_key			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, side_bar, "device.router.view.title", 			"image.sidebar.device.router" );
+			categoryView routers_category			= addDeviceCategory( Device.DT_INTERNET_GATEWAY, "device.router.view.title", 			"image.sidebar.device.router" );
 			
-			MenuItem rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_key, "device.show" );
+			categories.add( routers_category );
+			
+			MenuItem rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_category.getKey(), "device.show" );
 
 			rt_menu_item.addListener( show_listener );
 			rt_menu_item.addFillListener( show_fill_listener );
 			
-			rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_key, "device.router.configure" );
+			rt_menu_item = menu_manager.addMenuItem( "sidebar." + routers_category.getKey(), "device.router.configure" );
 			
 			rt_menu_item.addListener( 
 					new MenuItemListener() 
@@ -580,83 +644,10 @@ DeviceManagerUI
 			
 				// internet
 			
-			internet_key	= addDeviceCategory( Device.DT_INTERNET, side_bar, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
+			categoryView internet_category	= addDeviceCategory( Device.DT_INTERNET, "MainWindow.about.section.internet", "image.sidebar.device.internet" );
 			
-			device_manager = DeviceManagerFactory.getSingleton();
-			
-			device_manager.addListener(
-				new DeviceManagerListener()
-				{
-					public void 
-					deviceAdded(
-						Device device ) 
-					{
-						addOrChangeDevice( side_bar, device );
-					}
-					
-					public void
-					deviceChanged(
-						Device		device )
-					{
-						addOrChangeDevice( side_bar, device );
-					}
-					
-					public void
-					deviceAttentionRequest(
-						Device		device )
-					{
-						showDevice( device );
-					}
-					
-					public void
-					deviceRemoved(
-						Device		device )
-					{
-						removeDevice( side_bar, device );
-					}
-				});
-			
-			BasicPluginConfigModel configModel = ui_manager.createBasicPluginConfigModel(
-					ConfigSection.SECTION_ROOT, "Devices");
-
-			final BooleanParameter as = 
-				configModel.addBooleanParameter2( 
-					"device.search.auto", "device.search.auto",
-					device_manager.getAutoSearch());
-			
-			as.addListener(
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						Parameter param) 
-					{
-						device_manager.setAutoSearch( as.getValue());
-						
-						if ( device_manager.getAutoSearch()){
-							
-							search();
-						}
-					}
-				});
-
-			Utils.execSWTThread(
-					new Runnable()
-					{
-						public void
-						run()
-						{
-							Device[] devices = device_manager.getDevices();
-							
-							for ( Device device: devices ){
-								
-								addOrChangeDevice( side_bar, device );
-							}
-						}
-					});
+			categories.add( internet_category );
 		}
-		
-		setupMenus();
 	}
 	
 	
@@ -739,7 +730,7 @@ DeviceManagerUI
 							
 							if ( device instanceof TranscodeTarget ){
 								
-								TranscodeTarget renderer = (TranscodeTarget)device;
+								final TranscodeTarget renderer = (TranscodeTarget)device;
 								
 								TranscodeProfile[] profiles = renderer.getTranscodeProfiles();
 								
@@ -755,7 +746,7 @@ DeviceManagerUI
 									
 								}else{
 									
-									for ( TranscodeProfile profile: profiles ){
+									for ( final TranscodeProfile profile: profiles ){
 										
 										TableContextMenuItem profile_item =
 											plugin_interface.getUIManager().getTableManager().addContextMenuItem(
@@ -768,9 +759,27 @@ DeviceManagerUI
 												public void 
 												selected(
 													MenuItem 	menu,
-													Object 		target ) 
+													Object 		x ) 
 												{
+													TranscodeManager tm = device_manager.getTranscodeManager();
+													
+													for ( TableRow row: target ){
+														
+														Object obj = row.getDataSource();
+													
+														if ( obj instanceof Download ){
+														
+															Download download = (Download)obj;
+
+															tm.queue( renderer, profile, download.getDiskManagerFileInfo()[0] );
 	
+														}else{
+															
+															DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
+															
+															tm.queue( renderer, profile, file );
+														}
+													}
 												}
 											});
 									}
@@ -813,26 +822,23 @@ DeviceManagerUI
 	
 	protected void
 	addOrChangeDevice(
-		final SideBar		side_bar,
 		final Device		device )
 	{
 		int	type = device.getType();
 		
-		final String parent;
+		String parent_key = null;
 		
-		if ( type == Device.DT_CONTENT_DIRECTORY ){
+		for ( categoryView view: categories ){
 			
-			parent = media_servers_key;
-			
-		}else if ( type == Device.DT_INTERNET_GATEWAY ){
-			
-			parent = routers_key;
-			
-		}else if ( type == Device.DT_MEDIA_RENDERER ){
-			
-			parent = renderers_key;
-			
-		}else{
+			if ( view.getDeviceType() == type ){
+				
+				parent_key = view.getKey();
+				
+				break;
+			}
+		}
+		
+		if ( parent_key == null ){
 			
 			Debug.out( "Unknown device type: " + device.getString());
 			
@@ -841,10 +847,12 @@ DeviceManagerUI
 			
 		if ( device.isHidden()){
 			
-			removeDevice( side_bar, device );
+			removeDevice( device );
 			
 			return;
 		}
+		
+		final String parent = parent_key;
 		
 		synchronized( this ){
 			
@@ -875,7 +883,7 @@ DeviceManagerUI
 									
 									new_di.setView( view );
 										
-									String key = parent + "/" + device.getID();
+									String key = parent + "/" + device.getID() + ":" + nextSidebarID();
 										
 									TreeItem  tree_item = 
 										side_bar.createTreeItemFromIView(
@@ -991,8 +999,49 @@ DeviceManagerUI
 	}
 	
 	protected void
+	addAllDevices()
+	{
+		device_manager.addListener( device_manager_listener );
+			
+		Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						Device[] devices = device_manager.getDevices();
+						
+						for ( Device device: devices ){
+							
+							addOrChangeDevice( device );
+						}
+					}
+				});
+	}
+	
+	protected void
+	removeAllDevices()
+	{
+		device_manager.removeListener( device_manager_listener );
+
+		Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						Device[] devices = device_manager.getDevices();
+						
+						for ( Device device: devices ){
+							
+							removeDevice( device );
+						}
+					}
+				});
+	}
+	
+	protected void
 	removeDevice(
-		SideBar				side_bar,
 		final Device		device )
 	{
 		synchronized( this ){
@@ -1004,36 +1053,17 @@ DeviceManagerUI
 				device.setTransientProperty( DEVICE_IVIEW_KEY, null );
 				
 				existing_di.destroy();
-				
-				Utils.execSWTThread(
-						new Runnable()
-						{
-							public void
-							run()
-							{
-								synchronized( DeviceManagerUI.this ){
-
-									TreeItem ti = existing_di.getTreeItem();
-									
-									if ( ti != null ){
-										
-										ti.dispose();
-									}
-								}
-							}
-						});
 			}
 		}
 	}
 	
-	protected String
+	protected categoryView
 	addDeviceCategory(
 		int			device_type,
-		SideBar		side_bar,
 		String		category_title,
 		String		category_image_id )
 	{
-		String key = "Device_" + category_title;
+		String key = "Device_" + category_title + ":" + nextSidebarID();
 		
 		categoryView view;
 		
@@ -1046,11 +1076,12 @@ DeviceManagerUI
 			view = new categoryViewGeneric( device_type, category_title );
 		}
 		
-		side_bar.createTreeItemFromIView(
+		TreeItem item = 
+			side_bar.createTreeItemFromIView(
 				SideBar.SIDEBAR_SECTION_DEVICES, 
 				view,
 				key, 
-				null, 
+				new Integer( device_type ), 
 				false, 
 				false,
 				false );
@@ -1059,7 +1090,9 @@ DeviceManagerUI
 
 		entry.setImageLeftID( category_image_id );
 				
-		return( key );
+		view.setDetails( item, key );
+		
+		return( view );
 	}
 	
 	protected void
@@ -1071,6 +1104,15 @@ DeviceManagerUI
 		new PropertiesWindow( device.getName(), props[0], props[1] );
 	}
 	
+	protected int
+	nextSidebarID()
+	{
+		synchronized( this ){
+			
+			return( next_sidebar_id++ );
+		}
+	}
+	
 	protected abstract static class
 	categoryView
 		extends 	AbstractIView
@@ -1078,7 +1120,10 @@ DeviceManagerUI
 	{
 		private int				device_type;
 		private String			title;
-				
+			
+		private TreeItem		tree_item;
+		private String			key;
+		
 		protected
 		categoryView(
 			int			_device_type,
@@ -1088,7 +1133,28 @@ DeviceManagerUI
 			title			= _title;
 		}
 		
-		public String
+		protected void
+		setDetails(
+			TreeItem		_ti,
+			String			_key )
+		{
+			tree_item 	= _ti;
+			key			= _key;
+		}
+		
+		protected int
+		getDeviceType()
+		{
+			return( device_type );
+		}
+		
+		protected String
+		getKey()
+		{
+			return( key );
+		}
+		
+		protected String
 		getTitle()
 		{
 			return( MessageText.getString( title ));
@@ -1104,6 +1170,31 @@ DeviceManagerUI
 			}
 			
 			return null;
+		}
+		
+		protected void
+		destroy()
+		{
+			if ( Utils.isThisThreadSWT()){
+				
+				tree_item.dispose();
+				
+				delete();
+				
+			}else{
+				
+				Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								tree_item.dispose();
+								
+								delete();
+							}
+						});
+			}
 		}
 	}
 	
@@ -1154,6 +1245,12 @@ DeviceManagerUI
 		getComposite()
 		{
 			return( composite );
+		}
+		
+		public void
+		delete()
+		{
+			super.delete();
 		}
 	}
 	
@@ -1222,6 +1319,12 @@ DeviceManagerUI
 			}
 			
 			return null;
+		}
+		
+		public void
+		delete()
+		{
+			super.delete();
 		}
 	}
 	
@@ -1321,6 +1424,24 @@ DeviceManagerUI
 		destroy()
 		{
 			destroyed = true;
+			
+			Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							synchronized( DeviceManagerUI.this ){
+								
+								if ( tree_item != null && !tree_item.isDisposed()){
+									
+									tree_item.dispose();
+								}
+							}
+							
+							view.delete();
+						}
+					});
 		}
 		
 		public void 

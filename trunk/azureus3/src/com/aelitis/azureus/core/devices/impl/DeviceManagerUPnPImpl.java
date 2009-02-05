@@ -195,7 +195,12 @@ DeviceManagerUPnPImpl
 				handleDevice( device, false );
 			}
 			
-			upnp.search();
+			String[] STs = {
+				"upnp:rootdevice",
+				"urn:schemas-upnp-org:device:MediaRenderer:1"
+			};
+			
+			upnp.search( STs );
 		}
 	}
 	

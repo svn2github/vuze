@@ -23,16 +23,15 @@ package com.aelitis.azureus.core.devices;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
-
 public interface 
-TranscodeManager 
+TranscodeJob 
 {
-	public TranscodeProvider[]
-	getProviders();
+	public TranscodeTarget
+	getTarget();
 	
-	public TranscodeJob
-	queue(
-		TranscodeTarget			target,
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file );
+	public TranscodeProfile
+	getProfile();
+	
+	public DiskManagerFileInfo
+	getFile();
 }

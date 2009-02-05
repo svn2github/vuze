@@ -93,7 +93,7 @@ DeviceManagerImpl
 	{
 		loadConfig();
 		
-		transcode_manager = new TranscodeManagerImpl();
+		transcode_manager = new TranscodeManagerImpl( this );
 		
 		COConfigurationManager.addAndFireParameterListener(
 			AUTO_SEARCH_CONFIG_KEY,

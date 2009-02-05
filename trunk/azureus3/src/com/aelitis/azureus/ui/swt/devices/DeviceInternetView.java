@@ -417,4 +417,10 @@ DeviceInternetView
 	{
 		return( main );
 	}
+	
+	public void
+	delete()
+	{
+		super.delete();
+	}
 }
