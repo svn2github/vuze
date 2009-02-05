@@ -37,6 +37,8 @@ public abstract class
 DeviceUPnPImpl
 	extends DeviceImpl
 {
+	protected static final Object	TP_IP_ADDRESS = new Object();
+	
 	private volatile UPnPDevice		device_may_be_null;
 	
 	protected
@@ -89,6 +91,17 @@ DeviceUPnPImpl
 
 	{
 		super( _manager, _type, UUIDGenerator.generateUUIDString(), _name, true );
+	}
+	
+	protected
+	DeviceUPnPImpl(
+		DeviceManagerImpl	_manager,
+		int					_type,
+		String				_uuid,
+		String				_name )
+
+	{
+		super( _manager, _type, _uuid, _name, true );
 	}
 	
 	protected
@@ -212,6 +225,14 @@ DeviceUPnPImpl
 			addDP( dp, "device.model.name", model_details );
 			addDP( dp, "device.model.num", device.getModelNumber());
 			addDP( dp, "device.manu.desc", manu_details );
+		}else{
+			
+			String ip = (String)getTransientProperty( TP_IP_ADDRESS );
+			
+			if ( ip != null ){
+				
+				addDP( dp, "dht.reseed.ip", ip ); 
+			}
 		}
 	}
 }

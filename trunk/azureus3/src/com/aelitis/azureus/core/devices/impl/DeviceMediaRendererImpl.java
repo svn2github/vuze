@@ -60,6 +60,15 @@ DeviceMediaRendererImpl
 	protected
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
+		String				_uuid,
+		String				_name )
+	{
+		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _name );
+	}
+	
+	protected
+	DeviceMediaRendererImpl(
+		DeviceManagerImpl	_manager,
 		Map					_map )
 	
 		throws IOException

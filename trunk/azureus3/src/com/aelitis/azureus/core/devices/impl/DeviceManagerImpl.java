@@ -251,7 +251,7 @@ DeviceManagerImpl
 		}
 	}
 	
-	protected boolean
+	protected DeviceImpl
 	addDevice(
 		DeviceImpl		device )
 	{
@@ -263,7 +263,7 @@ DeviceManagerImpl
 				
 				existing.updateFrom( device );
 								
-				return( false );
+				return( existing );
 			}
 			
 			devices.put( device.getID(), device );
@@ -277,7 +277,7 @@ DeviceManagerImpl
 		
 		configDirty();
 		
-		return( true );
+		return( device );
 	}
 	
 	protected void

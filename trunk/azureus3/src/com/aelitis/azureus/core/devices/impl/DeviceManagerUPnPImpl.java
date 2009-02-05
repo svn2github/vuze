@@ -21,16 +21,20 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -179,6 +183,67 @@ DeviceManagerUPnPImpl
 			
 			manager.log( "UPnP device manager failed", e );
 		}
+		
+		try{
+			PluginInterface pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+			
+			if ( pi == null ){
+				
+				manager.log( "No UPnPAV plugin found" );
+				
+			}else{
+				
+				IPCInterface upnpav_ipc = pi.getIPC();
+				
+				IPCInterface my_ipc = 
+					new IPCInterfaceImpl(
+						new Object()
+						{
+							public void
+							browseReceived(
+								TrackerWebPageRequest		request )
+							{
+								Map headers = request.getHeaders();
+								
+								String user_agent 	= (String)headers.get( "user-agent" );
+								String client_info 	= (String)headers.get( "x-av-client-info" );
+								
+								if ( user_agent != null ){
+									
+									if ( user_agent.equalsIgnoreCase( "PLAYSTATION 3" )){
+										
+										handlePS3( request.getClientAddress2());
+									}
+								}
+								
+								if ( client_info != null ){
+								
+									if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
+										
+										handlePS3( request.getClientAddress2());
+									}
+								}
+								
+								System.out.println( 
+									"Received browse: " + request.getClientAddress() +
+									", agent=" + user_agent +
+									", info=" + client_info );
+							}
+						});
+				
+				if ( upnpav_ipc.canInvoke( "addBrowseListener", new Object[]{ my_ipc })){
+					
+					upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
+					
+				}else{
+					
+					manager.log( "UPnPAV plugin needs upgrading" );
+				}
+			}
+		}catch( Throwable e ){
+			
+			manager.log( "Failed to hook into UPnPAV", e );
+		}
 	}
 	
 	public void
@@ -204,6 +269,19 @@ DeviceManagerUPnPImpl
 		}
 	}
 	
+	protected void
+	handlePS3(
+		InetSocketAddress	address )
+	{
+		String psp_uid = "";
+		
+		DeviceImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3" );
+	
+		device = manager.addDevice( device );
+		
+		device.setTransientProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address.getAddress().getHostAddress() + ":" + address.getPort());
+	}
+
 	protected void
 	handleDevice(
 		UPnPRootDevice		root_device,
