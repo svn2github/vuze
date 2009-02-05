@@ -40,10 +40,17 @@ public class
 IPCInterfaceImpl 
 	implements IPCInterface 
 {
-	private Plugin 				target_use_accessor;
+	private Object 				target_use_accessor;
 	private String				plugin_class;
 	private PluginInitializer	plugin_initializer;
 
+		/**
+		 * Constructor for real plugin based providers. Supports plugin unloading
+		 * 
+		 * @param _plugin_initializer
+		 * @param _target	
+		 */
+	
 	public 
 	IPCInterfaceImpl( 
 		PluginInitializer 	_plugin_initializer, 
@@ -55,16 +62,32 @@ IPCInterfaceImpl
 		
 		plugin_class		= _target.getClass().getName();
 	}
-
+	
+		/**
+		 * Constructor for non-plugin providers
+		 * @param _target
+		 */
+	
+	public 
+	IPCInterfaceImpl( 
+		Object 				_target ) 
+	{
+		target_use_accessor = _target;
+		
+		plugin_class		= _target.getClass().getName();
+	}
+	
 	public boolean 
 	canInvoke(
 		String 		methodName, 
 		Object[] 	params )
 	{
 		try{
-			Plugin	target = getTarget();
+			Object	target = getTarget();
 			
 			Method mtd = getMethod( target, methodName, params );
+			
+			mtd.setAccessible( true );
 			
 			if ( mtd != null ){
 				
@@ -83,10 +106,12 @@ IPCInterfaceImpl
 	
 		throws IPCException 
 	{
-		Plugin	target = getTarget();
+		Object	target = getTarget();
 		
 		try{
 			Method mtd = getMethod( target, methodName, params );
+			
+			mtd.setAccessible( true );
 			
 			return mtd.invoke(target, params);
 			
@@ -106,7 +131,7 @@ IPCInterfaceImpl
 	
 	protected Method
 	getMethod(
-		Plugin		target,
+		Object		target,
 		String 		methodName, 
 		Object[] 	params )
 	
@@ -190,7 +215,7 @@ IPCInterfaceImpl
 		return( mtd );
 	}
 	
-	protected Plugin
+	protected Object
 	getTarget()
 	
 		throws IPCException
