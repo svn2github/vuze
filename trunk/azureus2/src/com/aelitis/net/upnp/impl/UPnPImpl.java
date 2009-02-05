@@ -343,6 +343,13 @@ UPnPImpl
 	}
 	
 	public void
+	search(
+		String[]	STs )
+	{
+		ssdp.searchNow( STs );
+	}
+	
+	public void
 	reset()
 	{
 		log( "UPnP: reset" );

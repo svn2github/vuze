@@ -112,6 +112,13 @@ SSDPIGDImpl
 		search();
 	}
 	
+	public void
+	searchNow(
+		String[]	STs )
+	{
+		ssdp_core.search( STs );
+	}
+	
 	protected void
 	queryLoop()
 	{
@@ -133,7 +140,7 @@ SSDPIGDImpl
 	protected void
 	search()
 	{
-		ssdp_core.search( "upnp:rootdevice" );
+		ssdp_core.search( new String[]{ "upnp:rootdevice" });
 	}
 	
 	

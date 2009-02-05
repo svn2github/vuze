@@ -48,6 +48,10 @@ UPnP
 	public void
 	search();
 	
+	public void
+	search(
+		String[]		STs );
+	
 		/**
 		 * Logs a message to all registered log listeners
 		 * @param str

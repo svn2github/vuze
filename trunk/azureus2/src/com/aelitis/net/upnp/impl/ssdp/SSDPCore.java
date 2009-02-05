@@ -200,16 +200,19 @@ SSDPCore
 	
 	public void
 	search(
-		String	ST )
+		String[]	STs )
 	{
-		String	str =
-			"M-SEARCH * HTTP/" + HTTP_VERSION + NL +  
-			"ST: " + ST + NL +
-			"MX: 3" + NL +
-			"MAN: \"ssdp:discover\"" + NL + 
-			"HOST: " + group_address_str + ":" + group_port + NL + NL;
-		
-		sendMC( str );
+		for ( String ST: STs ){
+			
+			String	str =
+				"M-SEARCH * HTTP/" + HTTP_VERSION + NL +  
+				"ST: " + ST + NL +
+				"MX: 3" + NL +
+				"MAN: \"ssdp:discover\"" + NL + 
+				"HOST: " + group_address_str + ":" + group_port + NL + NL;
+			
+			sendMC( str );
+		}
 	}
 	
 	protected void
@@ -271,11 +274,11 @@ SSDPCore
 			USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
 			*/
 			
-		//if ( originator.getAddress().getHostAddress().equals( "192.168.0.247" )){
+		//if ( originator.getAddress().getHostAddress().equals( "192.168.0.135" )){
 		//	System.out.println( originator + ":" + str );
 		//}
-		
-		List	lines = new ArrayList();
+				
+		List<String>	lines = new ArrayList<String>();
 		
 		int	pos = 0;
 		
@@ -340,10 +343,14 @@ SSDPCore
 			if ( key.equals("LOCATION" )){
 				
 				try{
-					location	= new URL( val );
+						// xbox throws us a '*' on bootup
 					
+					if ( !val.equals( "*" )){
+						
+						location	= new URL( val );
+					}
 				}catch( MalformedURLException e ){
-					
+										
 					adapter.log( e );
 				}			
 			}else if ( key.equals( "NT" )){
@@ -376,6 +383,11 @@ SSDPCore
 			}
 		}
 			
+		//if ( location != null && location.getHost().equals( "192.168.0.135")){
+			
+		//	System.out.println( str );
+		//}
+		
 		if ( server != null ){
 		
 				// xbox doesn't play well with us doing MX properly, seems like the delay causes

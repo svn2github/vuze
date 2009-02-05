@@ -41,6 +41,10 @@ SSDPIGD
 	searchNow();
 	
 	public void
+	searchNow(
+		String[]	STs );
+	
+	public void
 	addListener(
 		SSDPIGDListener	l );
 	

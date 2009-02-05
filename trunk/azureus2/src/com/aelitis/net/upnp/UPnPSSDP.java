@@ -34,7 +34,7 @@ UPnPSSDP
 	
 	public void
 	search(
-		String		ST );
+		String[]		STs );
 	
 	public void
 	notify(
