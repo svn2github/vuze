@@ -25,6 +25,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
 import com.aelitis.net.upnp.UPnPDevice;
@@ -224,10 +226,12 @@ DeviceManagerUPnPImpl
 									}
 								}
 								
+								/*
 								System.out.println( 
 									"Received browse: " + request.getClientAddress() +
 									", agent=" + user_agent +
 									", info=" + client_info );
+								*/
 							}
 						});
 				
@@ -273,7 +277,19 @@ DeviceManagerUPnPImpl
 	handlePS3(
 		InetSocketAddress	address )
 	{
-		String psp_uid = "";
+		String psp_uid;
+		
+		synchronized( this ){
+			
+			psp_uid = COConfigurationManager.getStringParameter( "devices.upnp.uid.ps3", "" );
+			
+			if ( psp_uid.length() == 0 ){
+				
+				psp_uid = UUIDGenerator.generateUUIDString();
+				
+				COConfigurationManager.setParameter( "devices.upnp.uid.ps3", psp_uid );
+			}
+		}
 		
 		DeviceImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3" );
 	
