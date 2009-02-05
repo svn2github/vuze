@@ -1,15 +1,24 @@
 VUZE CHANGELOG
 -----------------
 
-2009.xx.xx | Vuze 4.1.0.1
+2009.xx.xx | Vuze 4.1.0.3
 
-BUGFIX: UI    | Column Setup visual fixes for gtk [TuxPaper]
-BUGFIX: UIv3  | Click area for Friend's "chat thought bubble" was wrong, preventing click to chat in some cases [TuxPaper]
+
+
+2009.02.05 | Vuze 4.1.0.2
+
+FEATURE: UI   | Config option for max stalled seeding torrents (was hardcoded in 4100) [TuxPaper]
+
 BUGFIX: Core  | Fix null-pointer-exception when initiasing old categorised shares [Parg]
 BUGFIX: Core  | Remove accidental invocation of the get-networks Vuze RPC when running in classic UI [Parg]
 BUGFIX: Core  | Remove null-pointer-exception in TCP connection manager [Parg]
 BUGFIX: Core  | Fix subscription auto-download with sites where supplied referer caused error [Parg]
+BUGFIX: UIvz  | Click area for Friend's "chat thought bubble" was wrong, preventing click to chat in some cases [TuxPaper]
+BUGFIX: UIvz  | Fix share of vuze content (users could only share non-vuze content) [TuxPaper]
+BUGFIX: UI    | Column Setup visual fixes for gtk [TuxPaper]
+BUGFIX: UI    | Revert category buttons to working state [TuxPaper]
 BUGFIX: UI    | Fixed memory leak in All-Peers view [Parg]
+BUGFIX: UI    | Fixed resource disposal in config view causing some status bar icons to not draw [TuxPaper]
 
 CHANGE: Core  | Remove various debug-spew [Parg]
 
