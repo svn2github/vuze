@@ -1,6 +1,7 @@
 package com.aelitis.azureus.ui.swt.devices;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -8,10 +9,14 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.devices.TranscodeManagerListener;
@@ -57,7 +62,6 @@ public class DevicesView
 	build()
 	{
 		FormData data = new FormData();
-		
 		data.left 	= new FormAttachment(0,0);
 		data.right	= new FormAttachment(100,0);
 		data.top	= new FormAttachment(composite,0);
@@ -68,9 +72,53 @@ public class DevicesView
 		
 		label.setLayoutData( data );
 		
+		Button button = new Button( composite, SWT.NULL );
+		
+		button.setText( "Install Vuze Transcoder" );
+		
+		PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+			
+		StandardPlugin vuze_plugin = null;
+		
+		try{
+			vuze_plugin = installer.getStandardPlugin( "vuzexcode" );
+
+		}catch( Throwable e ){	
+		}
+		
+		if ( vuze_plugin == null || vuze_plugin.isAlreadyInstalled()){
+			
+			button.setEnabled( false );
+		}
+		
+		final StandardPlugin	f_vuze_plugin = vuze_plugin;
+		
+		button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event arg0 ) 
+				{
+					try{
+						f_vuze_plugin.install( true );
+
+					}catch( Throwable e ){
+						
+					}
+				}
+			});
+		
+		data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(label,0);
+
+		button.setLayoutData( data );
+		
 		TranscodeProvider[] providers = device_manager.getTranscodeManager().getProviders();
 		
-		Control top = label;
+		Control top = button;
 		
 		for ( TranscodeProvider provider: providers ){
 			

@@ -53,7 +53,7 @@ TranscodeProviderVuze
 	public String
 	getName()
 	{
-		return( "Vuze transcoder plugin: version=" + plugin_interface.getPluginVersion());
+		return( plugin_interface.getPluginName() + ": version=" + plugin_interface.getPluginVersion());
 	}
 	
 	public TranscodeProfile[]
