@@ -291,11 +291,13 @@ DeviceManagerUPnPImpl
 			}
 		}
 		
-		DeviceImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3" );
+		DeviceImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3", false );
 	
 		device = manager.addDevice( device );
 		
 		device.setTransientProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address.getAddress().getHostAddress() + ":" + address.getPort());
+		
+		device.alive();
 	}
 
 	protected void

@@ -61,9 +61,10 @@ DeviceMediaRendererImpl
 	DeviceMediaRendererImpl(
 		DeviceManagerImpl	_manager,
 		String				_uuid,
-		String				_name )
+		String				_name,
+		boolean				_manual )
 	{
-		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _name );
+		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _name, _manual );
 	}
 	
 	protected

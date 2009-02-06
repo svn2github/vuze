@@ -82,6 +82,8 @@ DeviceManagerUI
 {
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
+	private static final String CONFIG_VIEW_TYPE	= "device.sidebar.ui.viewtype";
+	
 	private DeviceManager			device_manager;
 	private DeviceManagerListener	device_manager_listener;
 	
@@ -95,7 +97,7 @@ DeviceManagerUI
 	private static final int SBV_SIMPLE		= 0;
 	private static final int SBV_FULL		= 0x7FFFFFFF;
 	
-	private int			side_bar_view_type		= SBV_SIMPLE;
+	private int			side_bar_view_type		= COConfigurationManager.getIntParameter( CONFIG_VIEW_TYPE, SBV_SIMPLE );
 	
 	private int			next_sidebar_id;
 		
@@ -555,7 +557,7 @@ DeviceManagerUI
 				
 				de_menu_item.setStyle( MenuItem.STYLE_CHECK );
 				
-				de_menu_item.setData( COConfigurationManager.getIntParameter( "device.sidebar.ui.viewtype", SBV_SIMPLE ) == SBV_SIMPLE );
+				de_menu_item.setData( COConfigurationManager.getIntParameter( CONFIG_VIEW_TYPE, SBV_SIMPLE ) == SBV_SIMPLE );
 				
 				de_menu_item.addListener( 
 						new MenuItemListener() 
@@ -575,7 +577,7 @@ DeviceManagerUI
 									side_bar_view_type = SBV_SIMPLE;
 								}
 								
-								COConfigurationManager.setParameter( "device.sidebar.ui.viewtype", side_bar_view_type );
+								COConfigurationManager.setParameter( CONFIG_VIEW_TYPE, side_bar_view_type );
 								
 								buildSideBar( true );
 								

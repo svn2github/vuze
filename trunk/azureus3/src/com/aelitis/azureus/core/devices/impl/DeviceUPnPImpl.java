@@ -98,10 +98,11 @@ DeviceUPnPImpl
 		DeviceManagerImpl	_manager,
 		int					_type,
 		String				_uuid,
-		String				_name )
+		String				_name,
+		boolean				_manual )
 
 	{
-		super( _manager, _type, _uuid, _name, true );
+		super( _manager, _type, _uuid, _name, _manual );
 	}
 	
 	protected
