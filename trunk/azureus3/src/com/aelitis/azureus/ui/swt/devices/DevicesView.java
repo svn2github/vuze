@@ -8,20 +8,31 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 
+import com.aelitis.azureus.core.devices.DeviceManager;
+import com.aelitis.azureus.core.devices.DeviceManagerFactory;
+import com.aelitis.azureus.core.devices.TranscodeManagerListener;
+import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 
 public class DevicesView
-	implements UIUpdatable, IView, ToolBarEnabler
+	implements UIUpdatable, IView, ToolBarEnabler, TranscodeManagerListener
 {	
+	private DeviceManager		device_manager;
+	
 	private Composite composite;
 	
 	public 
-	DevicesView() 
+	DevicesView()
 	{
+		device_manager = DeviceManagerFactory.getSingleton();
+		
+		device_manager.getTranscodeManager().addListener( this );
 	}
 	
 	public void 
@@ -39,18 +50,103 @@ public class DevicesView
 		
 		composite.setLayout( layout );
 		
+		build();
+	}
+	
+	protected void
+	build()
+	{
 		FormData data = new FormData();
 		
 		data.left 	= new FormAttachment(0,0);
 		data.right	= new FormAttachment(100,0);
 		data.top	= new FormAttachment(composite,0);
-		data.bottom = new FormAttachment(100,0);
 
 		Label label = new Label( composite, SWT.NULL );
 		
-		label.setText( "Nothing to show here" );
+		label.setText( "Transcode Providers" );
 		
 		label.setLayoutData( data );
+		
+		TranscodeProvider[] providers = device_manager.getTranscodeManager().getProviders();
+		
+		Control top = label;
+		
+		for ( TranscodeProvider provider: providers ){
+			
+			data = new FormData();
+			data.left 	= new FormAttachment(0,50);
+			data.right	= new FormAttachment(100,0);
+			data.top	= new FormAttachment(top,0);
+
+			Label prov_lab = new Label( composite, SWT.NULL );
+			
+			prov_lab.setText( provider.getName());
+			
+			prov_lab.setLayoutData( data );
+			
+			top = prov_lab;
+			
+			TranscodeProfile[] profiles = provider.getProfiles();
+			
+			for ( TranscodeProfile profile: profiles ){
+				
+				data = new FormData();
+				data.left 	= new FormAttachment(0,100);
+				data.right	= new FormAttachment(100,0);
+				data.top	= new FormAttachment(top,0);
+
+				Label prof_lab = new Label( composite, SWT.NULL );
+				
+				prof_lab.setText( profile.getName());
+				
+				prof_lab.setLayoutData( data );
+				
+				top = prof_lab;
+			}
+		}
+	}
+	
+	protected void
+	rebuild()
+	{
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					for ( Control control: composite.getChildren()){
+						
+						control.dispose();
+					}
+					
+					build();
+					
+					composite.layout();
+				}
+			});
+	}
+	
+	public void
+	providerAdded(
+		TranscodeProvider	provider )
+	{
+		rebuild();
+	}
+	
+	public void
+	providerUpdated(
+		TranscodeProvider	provider )
+	{
+		rebuild();
+	}
+	
+	public void
+	providerRemoved(
+		TranscodeProvider	provider )
+	{
+		rebuild();
 	}
 	
 	public void 

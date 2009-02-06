@@ -174,9 +174,9 @@ DeviceMediaRendererImpl
 	{
 		super.getDisplayProperties( dp );
 
-		addDP( dp, "working_dir", getWorkingDirectory().getAbsolutePath());
-		addDP( dp, "trans_prof_def", getDefaultTranscodeProfile());
-		addDP( dp, "trans_prof", getTranscodeProfiles() );
+		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
+		addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
+		addDP( dp, "devices.xcode.profs", getTranscodeProfiles() );
 	}	
 	
 	protected void

@@ -297,7 +297,7 @@ DeviceImpl
 		
 			addDP( dp, "azbuddy.ui.table.online",  online );
 		
-			addDP( dp, "azbuddy.ui.table.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
+			addDP( dp, "device.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
 		}
 	}
 	

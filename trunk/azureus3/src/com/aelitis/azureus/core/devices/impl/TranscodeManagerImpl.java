@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -30,12 +31,18 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
 TranscodeManagerImpl
 	implements TranscodeManager
 {
 	private DeviceManagerImpl		device_manager;
+	
+	private TranscodeProviderVuze	vuzexcode_provider;
+	
+	private CopyOnWriteList<TranscodeManagerListener>	listeners = new CopyOnWriteList<TranscodeManagerListener>();
+	
 	
 	protected
 	TranscodeManagerImpl(
@@ -105,26 +112,126 @@ TranscodeManagerImpl
 			return;
 		}
 		
-		System.out.println( "plugin added: " + pi.getPlugin());
+		String plugin_id = pi.getPluginID();
+		
+		if ( plugin_id.equals( "vuzexcode" )){
+			
+			boolean		added		= false;
+			boolean		updated		= false;
+			
+			TranscodeProviderVuze provider	= null;
+			
+			synchronized( this ){
+				
+				if ( vuzexcode_provider == null ){
+					
+					provider = vuzexcode_provider = new TranscodeProviderVuze( pi );
+			
+					added = true;
+					
+				}else if ( pi != vuzexcode_provider ){
+					
+					provider = vuzexcode_provider;
+					
+					vuzexcode_provider.update( pi );
+					
+					updated = true;
+				}
+			}
+			
+			if ( added ){
+				
+				for ( TranscodeManagerListener listener: listeners ){
+					
+					try{
+						listener.providerAdded( provider );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}else if ( updated ){
+				
+				for ( TranscodeManagerListener listener: listeners ){
+					
+					try{
+						listener.providerUpdated( provider );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
 	}
 	
 	protected void
 	pluginRemoved(
 		PluginInterface		pi )
 	{
-		System.out.println( "plugin removed: " + pi.getPlugin());
+		String plugin_id = pi.getPluginID();
+		
+		if ( plugin_id.equals( "vuzexcode" )){
+			
+			TranscodeProviderVuze provider	= null;
+
+			synchronized( this ){
+				
+				if ( vuzexcode_provider != null ){
+
+					provider = vuzexcode_provider;
+					
+					vuzexcode_provider.destroy();
+					
+					vuzexcode_provider = null;
+				}
+			}
+			
+			if ( provider != null ){
+				
+				for ( TranscodeManagerListener listener: listeners ){
+					
+					try{
+						listener.providerRemoved( provider );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
 	}
 	
 	public TranscodeProvider[]
 	getProviders()
 	{
-		return( new TranscodeProvider[0] );
+		TranscodeProviderVuze	vp = vuzexcode_provider;
+
+		if ( vp == null ){
+		
+			return( new TranscodeProvider[0] );
+		}
+		
+		return( new TranscodeProvider[]{ vp });
 	}
 	
 	protected TranscodeProfile
 	getProfileFromUID(
 		String		uid )
 	{
+		for ( TranscodeProvider provider: getProviders()){
+			
+			TranscodeProfile profile = provider.getProfile( uid );
+			
+			if ( profile != null ){
+				
+				return( profile );
+			}
+		}
+		
 		return( null );
 	}
 	
@@ -135,5 +242,19 @@ TranscodeManagerImpl
 		DiskManagerFileInfo		file )
 	{
 		return( null );
+	}
+	
+	public void
+	addListener(
+		TranscodeManagerListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		TranscodeManagerListener		listener )
+	{
+		listeners.remove( listener );
 	}
 }

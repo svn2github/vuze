@@ -24,6 +24,13 @@ package com.aelitis.azureus.core.devices;
 public interface 
 TranscodeProvider 
 {
+	public String
+	getName();
+	
 	public TranscodeProfile[]
 	getProfiles();
+	
+	public TranscodeProfile
+	getProfile(
+		String		UID );
 }

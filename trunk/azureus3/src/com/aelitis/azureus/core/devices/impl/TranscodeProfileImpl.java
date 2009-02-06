@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 5, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -19,28 +19,40 @@
  */
 
 
-package com.aelitis.azureus.core.devices;
+package com.aelitis.azureus.core.devices.impl;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import java.util.*;
 
+import com.aelitis.azureus.core.devices.TranscodeProfile;
 
-public interface 
-TranscodeManager 
+public class 
+TranscodeProfileImpl 
+	implements TranscodeProfile
 {
-	public TranscodeProvider[]
-	getProviders();
+	private String					uid;
+	private String 					name;
+	private Map<String,String>		properties;
 	
-	public TranscodeJob
-	queue(
-		TranscodeTarget			target,
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file );
+	protected 
+	TranscodeProfileImpl(
+		String					_uid,
+		String					_name,
+		Map<String,String>		_properties )
+	{
+		uid			= _uid;
+		name		= _name;
+		properties	= _properties;
+	}
 	
-	public void
-	addListener(
-		TranscodeManagerListener		listener );
+	public String
+	getUID()
+	{
+		return( uid );
+	}
 	
-	public void
-	removeListener(
-		TranscodeManagerListener		listener );
+	public String
+	getName()
+	{
+		return( name );
+	}
 }
