@@ -226,7 +226,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	 */
 	static {
 		// We define ourselves first... :)
-		addAzStyle("AZ", "Azureus", VER_AZ_FOUR_DIGITS);
+		addAzStyle("AZ", "Vuze", VER_AZ_FOUR_DIGITS);
 		
 		// ... and then do everything else alphabetically.
 		addAzStyle("A~", "Ares", VER_AZ_THREE_DIGITS);
