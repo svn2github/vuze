@@ -336,6 +336,76 @@ PluginInstallerImpl
 		}
 	}
 	
+	public StandardPlugin
+  	getStandardPlugin(
+  		String		id )
+  	
+  		throws PluginException
+  	{
+  		try{
+  			SFPluginDetailsLoader	loader = SFPluginDetailsLoaderFactory.getSingleton();
+  		
+  			SFPluginDetails[]	details = loader.getPluginDetails();
+
+				
+  			for (int i=0;i<details.length;i++){
+  				
+  				SFPluginDetails	detail = details[i];
+  				
+  				String	name 	= detail.getId();
+  				
+  				System.out.println( name );
+  				
+  				if ( name.equals( id )){
+  					
+	  				String	version = "";
+	  				
+	  				if ( Constants.isCVSVersion()){
+	  					
+	  					version = detail.getCVSVersion();
+	  				}
+	  				
+	  				if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
+	  					
+	  					version = detail.getVersion();
+	  					
+	  				}else{
+	  					
+	  						// if cvs version and non-cvs version are the same then show the
+	  						// non-cvs version
+	  					
+	  					String	non_cvs_version = detail.getVersion();
+	  					
+	  					if ( version.equals( non_cvs_version + "_CVS" )){
+	  						
+	  						version = non_cvs_version;
+	  					}
+	  				}
+	  				
+	  				if ( name.startsWith( "azplatform" ) || name.equals( "azupdater" )){
+	  					
+	  						// skip built in ones we don't want to let user install directly
+	  						// not the cleanest of fixes, but it'll do for the moment
+	  					
+	  				}else if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
+	  					
+	  						// dodgy version
+  					
+	  				}else{
+  					
+	  					return( new StandardPluginImpl( this, details[i], version ));
+	  				}
+  				}
+  			}	
+  			
+  			return( null );
+  			
+  		}catch( SFPluginDetailsException e ){
+  			
+  			throw( new PluginException("Failed to load standard plugin details", e ));
+  		}
+  	}
+	
 	public FilePluginInstaller
 	installFromFile(
 		File				file )

@@ -45,6 +45,12 @@ PluginInstaller
 	
 		throws PluginException;	
 	
+	public StandardPlugin
+  	getStandardPlugin(
+  		String		id )
+  	
+  		throws PluginException;
+	
 		/**
 		 * Requests any registered listeners to initiate a plugin install process
 		 * @param plugin
