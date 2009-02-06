@@ -353,9 +353,7 @@ PluginInstallerImpl
   				SFPluginDetails	detail = details[i];
   				
   				String	name 	= detail.getId();
-  				
-  				System.out.println( name );
-  				
+  				  				
   				if ( name.equals( id )){
   					
 	  				String	version = "";
