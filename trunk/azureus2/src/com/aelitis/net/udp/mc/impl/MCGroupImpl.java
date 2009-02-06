@@ -25,6 +25,7 @@ package com.aelitis.net.udp.mc.impl;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.utils.UTTimer;
@@ -73,7 +74,38 @@ MCGroupImpl
 			
 			if ( singleton == null ){
 				
+				if ( control_port == 0 ){
+					
+					int	last_allocated = COConfigurationManager.getIntParameter( "mcgroup.ports." + key, 0 );
+					
+					if ( last_allocated != 0 ){
+												
+						try{
+							DatagramSocket test_socket = new DatagramSocket( null );
+							
+							test_socket.setReuseAddress( false );
+								
+							test_socket.bind( new InetSocketAddress( last_allocated ));
+							
+							test_socket.close();
+
+							control_port = last_allocated;
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+				}
+				
 				singleton = new MCGroupImpl( adapter, group_address, group_port, control_port, interfaces );
+				
+				if ( control_port == 0 ){
+					
+					control_port = singleton.getControlPort();
+					
+					COConfigurationManager.setParameter( "mcgroup.ports." + key, control_port );
+				}
 				
 				singletons.put( key, singleton );
 			}
