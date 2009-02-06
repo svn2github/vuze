@@ -9,7 +9,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -72,9 +71,9 @@ public class DevicesView
 		
 		label.setLayoutData( data );
 		
-		Button button = new Button( composite, SWT.NULL );
+		Button vuze_button = new Button( composite, SWT.NULL );
 		
-		button.setText( "Install Vuze Transcoder" );
+		vuze_button.setText( "Install Vuze Transcoder" );
 		
 		PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
 			
@@ -88,12 +87,12 @@ public class DevicesView
 		
 		if ( vuze_plugin == null || vuze_plugin.isAlreadyInstalled()){
 			
-			button.setEnabled( false );
+			vuze_button.setEnabled( false );
 		}
 		
 		final StandardPlugin	f_vuze_plugin = vuze_plugin;
 		
-		button.addListener(
+		vuze_button.addListener(
 			SWT.Selection, 
 			new Listener() 
 			{
@@ -114,11 +113,11 @@ public class DevicesView
 		data.left 	= new FormAttachment(0,0);
 		data.top	= new FormAttachment(label,0);
 
-		button.setLayoutData( data );
+		vuze_button.setLayoutData( data );
 		
 		TranscodeProvider[] providers = device_manager.getTranscodeManager().getProviders();
 		
-		Control top = button;
+		Control top = vuze_button;
 		
 		for ( TranscodeProvider provider: providers ){
 			
@@ -153,6 +152,49 @@ public class DevicesView
 				top = prof_lab;
 			}
 		}
+		
+		Button itunes_button = new Button( composite, SWT.NULL );
+		
+		itunes_button.setText( "Install iTunes Integration" );
+		
+
+		StandardPlugin itunes_plugin = null;
+		
+		try{
+			itunes_plugin = installer.getStandardPlugin( "azitunes" );
+
+		}catch( Throwable e ){	
+		}
+		
+		if ( itunes_plugin == null || itunes_plugin.isAlreadyInstalled()){
+			
+			itunes_button.setEnabled( false );
+		}
+		
+		final StandardPlugin	f_itunes_plugin = itunes_plugin;
+		
+		itunes_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event arg0 ) 
+				{
+					try{
+						f_itunes_plugin.install( true );
+
+					}catch( Throwable e ){
+						
+					}
+				}
+			});
+		
+		data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(top,0);
+
+		itunes_button.setLayoutData( data );
 	}
 	
 	protected void
