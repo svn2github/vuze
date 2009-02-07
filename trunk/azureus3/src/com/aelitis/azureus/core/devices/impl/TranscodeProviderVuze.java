@@ -21,9 +21,16 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
@@ -105,8 +112,38 @@ TranscodeProviderVuze
 		return( null );
 	}
 	
+	public void
+	transcode( 
+		DiskManagerFileInfo		input,
+		TranscodeProfile		profile,
+		URL						output )
+	{
+		URL source_url = null;
+				
+		try{
+			File file = new File( output.toURI());
+				
+			IPCInterface	ipc = plugin_interface.getIPC();
+				
+			Object context = 
+				ipc.invoke(
+					"transcodeToFile",
+					new Object[]{ 
+						source_url,
+						profile.getName(),
+						file });
+
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			// TODO
+		}
+	}
+	
 	protected void
 	destroy()
 	{
+		// TODO
 	}
 }

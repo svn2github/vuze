@@ -44,6 +44,26 @@ TranscodeQueueImpl
 		loadConfig();
 	}
 	
+	protected void
+	process(
+		TranscodeJobImpl		job )
+	{		
+		TranscodeProvider provider = job.getProfile().getProvider();
+		
+		try{
+			provider.transcode(
+				job.getFile(),
+				job.getProfile(),
+				job.getTarget().getWorkingDirectory().toURL());
+			
+		}catch( Throwable e ){
+			
+				// TODO:
+			
+			e.printStackTrace();
+		}
+	}
+	
 	public TranscodeJob
 	add(
 		TranscodeTarget			target,

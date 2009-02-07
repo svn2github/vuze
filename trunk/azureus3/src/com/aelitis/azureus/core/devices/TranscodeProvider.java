@@ -21,6 +21,10 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.net.URL;
+
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+
 public interface 
 TranscodeProvider 
 {
@@ -33,4 +37,10 @@ TranscodeProvider
 	public TranscodeProfile
 	getProfile(
 		String		UID );
+	
+	public void
+	transcode( 
+		DiskManagerFileInfo		input,
+		TranscodeProfile		profile,
+		URL						output );
 }
