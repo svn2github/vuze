@@ -211,7 +211,7 @@ public class TorrentUtil {
 				 *       amounts of files across multiple torrents before we generate a menu.
 				 */
 				if (bChangeDir && dms.length == 1) {
-					bChangeDir = dm.isDataAlreadyAllocated() && dm.filesExist( true );
+					bChangeDir = dm.isDataAlreadyAllocated() && !dm.filesExist( true );
 				}
 
 				boolean scan = dm.getDownloadState().getFlag(DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES);
