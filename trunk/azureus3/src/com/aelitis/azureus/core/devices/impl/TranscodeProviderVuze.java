@@ -73,7 +73,7 @@ TranscodeProviderVuze
 			
 			for ( Map.Entry<String, Map<String,String>> entry : profiles_map.entrySet()){
 				
-				res[ index++] = new TranscodeProfileImpl( "vuzexcode:" + entry.getKey(), entry.getKey(), entry.getValue());
+				res[ index++] = new TranscodeProfileImpl( this, "vuzexcode:" + entry.getKey(), entry.getKey(), entry.getValue());
 			}
 			
 			profiles	= res;

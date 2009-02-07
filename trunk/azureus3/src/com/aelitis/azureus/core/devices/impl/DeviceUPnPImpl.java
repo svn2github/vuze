@@ -139,7 +139,7 @@ DeviceUPnPImpl
 	}
 	
 	protected UPnPDevice
-	getDevice()
+	getUPnPDevice()
 	{
 		return( device_may_be_null );
 	}

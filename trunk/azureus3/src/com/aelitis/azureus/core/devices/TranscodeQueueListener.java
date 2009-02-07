@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 6, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,21 +21,18 @@
 
 package com.aelitis.azureus.core.devices;
 
-
 public interface 
-TranscodeManager 
+TranscodeQueueListener 
 {
-	public TranscodeProvider[]
-	getProviders();
-	
-	public TranscodeQueue
-	getQueue();
+	public void
+	jobAdded(
+		TranscodeJob		job );
 	
 	public void
-	addListener(
-		TranscodeManagerListener		listener );
+	jobChanged(
+		TranscodeJob		job );
 	
 	public void
-	removeListener(
-		TranscodeManagerListener		listener );
+	jobRemoved(
+		TranscodeJob		job );
 }

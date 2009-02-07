@@ -767,6 +767,8 @@ DeviceManagerUI
 										(TableContextMenuItem)menu,
 										"!" + device.getName() + (profiles.length==0?" (No Profiles)":"") + "!");
 								
+								device_item.setStyle( MenuItem.STYLE_MENU );
+								
 								if ( profiles.length == 0 ){
 									
 									device_item.setEnabled( false );
@@ -798,13 +800,13 @@ DeviceManagerUI
 														
 															Download download = (Download)obj;
 
-															tm.queue( renderer, profile, download.getDiskManagerFileInfo()[0] );
+															tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0] );
 	
 														}else{
 															
 															DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
 															
-															tm.queue( renderer, profile, file );
+															tm.getQueue().add( renderer, profile, file );
 														}
 													}
 												}

@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 6, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,21 +21,25 @@
 
 package com.aelitis.azureus.core.devices;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 public interface 
-TranscodeManager 
+TranscodeQueue 
 {
-	public TranscodeProvider[]
-	getProviders();
+	public TranscodeJob
+	add(
+		TranscodeTarget			target,
+		TranscodeProfile		profile,
+		DiskManagerFileInfo		file );
 	
-	public TranscodeQueue
-	getQueue();
+	public TranscodeJob[]
+	getJobs();
 	
 	public void
 	addListener(
-		TranscodeManagerListener		listener );
+		TranscodeQueueListener		listener );
 	
 	public void
 	removeListener(
-		TranscodeManagerListener		listener );
+		TranscodeQueueListener		listener );
 }

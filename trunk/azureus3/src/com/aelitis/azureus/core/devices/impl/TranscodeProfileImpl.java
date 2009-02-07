@@ -24,21 +24,25 @@ package com.aelitis.azureus.core.devices.impl;
 import java.util.*;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.TranscodeProvider;
 
 public class 
 TranscodeProfileImpl 
 	implements TranscodeProfile
 {
+	private TranscodeProvider		provider;
 	private String					uid;
 	private String 					name;
 	private Map<String,String>		properties;
 	
 	protected 
 	TranscodeProfileImpl(
+		TranscodeProvider		_provider,			
 		String					_uid,
 		String					_name,
 		Map<String,String>		_properties )
 	{
+		provider	= _provider;
 		uid			= _uid;
 		name		= _name;
 		properties	= _properties;
@@ -54,5 +58,11 @@ TranscodeProfileImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public TranscodeProvider
+	getProvider()
+	{
+		return( provider );
 	}
 }

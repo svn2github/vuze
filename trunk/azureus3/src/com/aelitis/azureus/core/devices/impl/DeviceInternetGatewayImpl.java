@@ -112,7 +112,7 @@ DeviceInternetGatewayImpl
 		
 		mapper_enabled = upnp_plugin != null && upnp_plugin.isEnabled();
 			
-		UPnPDevice	device = getDevice();
+		UPnPDevice	device = getUPnPDevice();
 		
 		if ( mapper_enabled && device != null ){
 		

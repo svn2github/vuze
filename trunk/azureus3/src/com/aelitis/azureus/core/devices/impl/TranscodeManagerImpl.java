@@ -43,6 +43,7 @@ TranscodeManagerImpl
 	
 	private CopyOnWriteList<TranscodeManagerListener>	listeners = new CopyOnWriteList<TranscodeManagerListener>();
 	
+	private TranscodeQueueImpl		queue = new TranscodeQueueImpl();
 	
 	protected
 	TranscodeManagerImpl(
@@ -235,13 +236,10 @@ TranscodeManagerImpl
 		return( null );
 	}
 	
-	public TranscodeJob
-	queue(
-		TranscodeTarget			target,
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
+	public TranscodeQueue 
+	getQueue() 
 	{
-		return( null );
+		return( queue );
 	}
 	
 	public void

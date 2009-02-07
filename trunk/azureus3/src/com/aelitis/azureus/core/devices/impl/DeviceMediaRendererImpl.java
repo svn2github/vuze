@@ -98,6 +98,12 @@ DeviceMediaRendererImpl
 		return( true );
 	}
 	
+	public Device
+	getDevice()
+	{
+		return( this );
+	}
+	
 	public File
 	getWorkingDirectory()
 	{
@@ -121,6 +127,15 @@ DeviceMediaRendererImpl
 		DeviceManagerImpl dm = getManager();
 		
 		TranscodeManagerImpl tm = dm.getTranscodeManager();
+		
+			// hack for the moment!!!!
+		
+		TranscodeProvider[] providers = tm.getProviders();
+		
+		if ( providers.length > 0 ){
+			
+			return( providers[0].getProfiles());
+		}
 		
 		for ( String uid: uids ){
 			

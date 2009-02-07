@@ -26,6 +26,9 @@ import java.io.File;
 public interface 
 TranscodeTarget 
 {
+	public Device
+	getDevice();
+	
 	public File
 	getWorkingDirectory();
 	

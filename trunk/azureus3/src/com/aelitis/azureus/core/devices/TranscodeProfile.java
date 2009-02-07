@@ -29,4 +29,7 @@ TranscodeProfile
 	
 	public String
 	getName();
+	
+	public TranscodeProvider
+	getProvider();
 }

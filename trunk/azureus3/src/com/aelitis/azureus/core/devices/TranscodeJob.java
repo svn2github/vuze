@@ -26,6 +26,15 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 public interface 
 TranscodeJob 
 {
+	public static final int	ST_QUEUED		= 0;
+	public static final int	ST_RUNNING		= 1;
+	public static final int	ST_PAUSED		= 2;
+	public static final int	ST_COMPLETE		= 3;
+	public static final int	ST_CANCELLED	= 4;
+	
+	public String
+	getName();
+	
 	public TranscodeTarget
 	getTarget();
 	
@@ -34,4 +43,19 @@ TranscodeJob
 	
 	public DiskManagerFileInfo
 	getFile();
+	
+	public int
+	getState();
+	
+	public int
+	getPercentComplete();
+	
+	public void
+	pause();
+	
+	public void
+	resume();
+	
+	public void
+	remove();
 }
