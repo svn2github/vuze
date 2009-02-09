@@ -172,21 +172,25 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 					+ "osx_small_fonts");
 		}
 
-		new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
-				+ "alternateTablePainting");
+		if (userMode > 1) {
+  		new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
+  				+ "alternateTablePainting");
+		}
 
-		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX
-				+ "useSIUnits");
-		new BooleanParameter(cLook, "config.style.useUnitsRateBits",
-				MSG_PREFIX + "useUnitsRateBits");
-		new BooleanParameter(cLook, "config.style.doNotUseGB", MSG_PREFIX
-				+ "doNotUseGB");
-
-		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX
-				+ "dataStatsOnly");
-
-		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX
-				+ "separateProtDataStats");
+		if (userMode > 0) {
+  		new BooleanParameter(cLook, "config.style.useSIUnits", MSG_PREFIX
+  				+ "useSIUnits");
+  		new BooleanParameter(cLook, "config.style.useUnitsRateBits",
+  				MSG_PREFIX + "useUnitsRateBits");
+  		new BooleanParameter(cLook, "config.style.doNotUseGB", MSG_PREFIX
+  				+ "doNotUseGB");
+  
+  		new BooleanParameter(cLook, "config.style.dataStatsOnly", MSG_PREFIX
+  				+ "dataStatsOnly");
+  
+  		new BooleanParameter(cLook, "config.style.separateProtDataStats", MSG_PREFIX
+  				+ "separateProtDataStats");
+		}
 		
 		
     if( userMode > 1 ) {
