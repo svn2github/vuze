@@ -65,6 +65,7 @@ RSSUtils
 			{	"EEE MMM dd hh:mm:ss z yyyy",			// Fri Sep 26 00:00:00 EDT 2008
 				"EEE MMM dd hh:mm z yyyy",				// Fri Sep 26 00:00 EDT 2008	
 				"EEE MMM dd hh z yyyy",					// Fri Sep 26 00 EDT 2008	
+				"yyyy-MM-dd hh:mm:ss",					// 2009-02-08 22:56:45	
 			};
 			
 			for (int i=0;i<fallbacks.length;i++){
