@@ -31,6 +31,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -63,12 +64,14 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 	}
 	
 	public int maxUserMode() {
-		return 0;
+		return 2;
 	}
 
 
 	public Composite configSectionCreate(final Composite parent) {
-		// "Display" Sub-Section:
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+
+    // "Display" Sub-Section:
 		// ----------------------
 		// Any Look & Feel settings that don't really change the way the user 
 		// normally interacts
@@ -186,13 +189,15 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				+ "separateProtDataStats");
 		
 		
-		final BooleanParameter fMoz = new BooleanParameter(cLook, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
-		Composite pArea = new Composite(cLook,SWT.NULL);
-		pArea.setLayout(new GridLayout(3,false));
-		pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
-		final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
-		fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
+    if( userMode > 1 ) {
+  		final BooleanParameter fMoz = new BooleanParameter(cLook, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
+  		Composite pArea = new Composite(cLook,SWT.NULL);
+  		pArea.setLayout(new GridLayout(3,false));
+  		pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+  		Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
+  		final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
+  		fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
+    }
 		
 		Composite cArea = new Composite(cLook, SWT.NULL);
 		layout = new GridLayout();
