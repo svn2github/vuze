@@ -22,15 +22,14 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -139,100 +138,115 @@ TranscodeProviderVuze
 			
 			URL source_url = new URL( url_str );
 			
+			final TranscodePipe pipe = new TranscodePipe( source_url.getPort());
 			
-			
-			
-			
-			
-			
-			File file = new File( output.toURI());
+			try{	
+				source_url = UrlUtils.setPort( source_url, pipe.getPort());
 				
-			final IPCInterface	ipc = plugin_interface.getIPC();
-				
-			final Object context = 
-				ipc.invoke(
-					"transcodeToFile",
-					new Object[]{ 
-						source_url,
-						profile.getName(),
-						file });
-
-			new AEThread2( "xcodeStatus", true )
-				{
-					public void 
-					run() 
+				File file = new File( output.toURI());
+					
+				final IPCInterface	ipc = plugin_interface.getIPC();
+					
+				final Object context = 
+					ipc.invoke(
+						"transcodeToFile",
+						new Object[]{ 
+							source_url,
+							profile.getName(),
+							file });
+	
+				new AEThread2( "xcodeStatus", true )
 					{
-						boolean	in_progress = true;
-						
-						while( in_progress ){
-							
-							in_progress = false;
-							
+						public void 
+						run() 
+						{
 							try{
-								Map status = (Map)ipc.invoke( "getTranscodeStatus", new Object[]{ context });
+								boolean	in_progress = true;
 								
-								long	state = (Long)status.get( "state" );
-								
-								if ( state == 0 ){
+								while( in_progress ){
 									
-									int	percent = (Integer)status.get( "percent" );
+									in_progress = false;
 									
-									adapter.updatePercentDone( percent );
-									
-									if ( percent == 100 ){
+									try{
+										Map status = (Map)ipc.invoke( "getTranscodeStatus", new Object[]{ context });
 										
-										adapter.complete();
-
-									}else{
+										long	state = (Long)status.get( "state" );
 										
-										in_progress = true;
-									
-										Thread.sleep(1000);
+										if ( state == 0 ){
+											
+											int	percent = (Integer)status.get( "percent" );
+											
+											adapter.updatePercentDone( percent );
+											
+											if ( percent == 100 ){
+												
+												adapter.complete();
+		
+											}else{
+												
+												in_progress = true;
+											
+												Thread.sleep(1000);
+											}
+										}else if ( state == 1 ){
+											
+											adapter.failed( new TranscodeProviderException( "Transcode cancelled" ));
+											
+										}else{
+											
+											adapter.failed( new TranscodeProviderException( "Transcode failed", (Throwable)status.get( "error" )));
+										}
+									}catch( Throwable e ){
+										
+										adapter.failed( new TranscodeProviderException( "Failed to get status", e ));
 									}
-								}else if ( state == 1 ){
-									
-									adapter.failed( new TranscodeProviderException( "Transcode cancelled" ));
-									
-								}else{
-									
-									adapter.failed( new TranscodeProviderException( "Transcode failed", (Throwable)status.get( "error" )));
 								}
-							}catch( Throwable e ){
+							}finally{
 								
-								adapter.failed( new TranscodeProviderException( "Failed to get status", e ));
+								pipe.destroy();
 							}
 						}
-					}
-				}.start();
-				
-			return( 
-				new TranscodeProviderJob()
-				{
-					public void
-					pause()
-					{
-						
-					}
+					}.start();
 					
-					public void
-					resume()
+			
+				return( 
+					new TranscodeProviderJob()
 					{
-						
-					}
-
-					public void 
-					cancel() 
-					{
-						try{
-							ipc.invoke( "cancelTranscode", new Object[]{ context });
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace( e );
+						public void
+						pause()
+						{
+							pipe.pause();
 						}
-					}
-				});
-					
+						
+						public void
+						resume()
+						{
+							pipe.resume();
+						}
+	
+						public void 
+						cancel() 
+						{
+							try{
+								ipc.invoke( "cancelTranscode", new Object[]{ context });
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace( e );
+							}
+						}
+					});
+						
+			}catch( Throwable e ){
+				
+				pipe.destroy();
+				
+				throw( e );
+			}
+		}catch( TranscodeProviderException e ){
+			
+			throw( e );
+				
 		}catch( Throwable e ){
 			
 			throw( new TranscodeProviderException( "transcode failed", e ));

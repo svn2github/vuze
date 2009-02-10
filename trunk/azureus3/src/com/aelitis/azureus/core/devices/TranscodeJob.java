@@ -46,6 +46,9 @@ TranscodeJob
 	getFile();
 	
 	public int
+	getIndex();
+	
+	public int
 	getState();
 	
 	public int

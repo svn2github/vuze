@@ -141,6 +141,12 @@ TranscodeJobImpl
 	}
 	
 	public int
+	getIndex()
+	{
+		return( queue.getIndex( this ));
+	}
+	
+	public int
 	getState()
 	{
 		return( state );

@@ -337,6 +337,13 @@ TranscodeQueueImpl
 		}
 	}
 	
+	protected int
+	getIndex(
+		TranscodeJobImpl		job )
+	{
+		return( queue.indexOf(job)+1);
+	}
+	
 	public TranscodeJob[]
 	getJobs()
 	{

@@ -290,6 +290,7 @@ public class DevicesView
 		job_table = new Table(table_composite, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
 
 		final String[] headers = { 
+				"MyTorrentsView.#",
 				"azbuddy.ui.table.name", 
 				"devices.device",  
 				"devices.profile",
@@ -297,9 +298,9 @@ public class DevicesView
 				"General.percent",
 		};
 
-		int[] sizes = { 300, 100, 150, 200, 100 };
+		int[] sizes = { 30, 300, 100, 150, 200, 100 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
+		int[] aligns = {  SWT.LEFT, SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -314,11 +315,12 @@ public class DevicesView
 
 	    TableColumn[] columns = job_table.getColumns();
 	    
-	    columns[0].setData(new Integer(FilterComparator.FIELD_NAME));
-	    columns[1].setData(new Integer(FilterComparator.FIELD_DEVICE));
-	    columns[1].setData(new Integer(FilterComparator.FIELD_PROFILE));
-	    columns[1].setData(new Integer(FilterComparator.FIELD_STATE));
-	    columns[1].setData(new Integer(FilterComparator.FIELD_PERCENT));
+	    columns[0].setData(new Integer(FilterComparator.FIELD_INDEX));
+	    columns[1].setData(new Integer(FilterComparator.FIELD_NAME));
+	    columns[2].setData(new Integer(FilterComparator.FIELD_DEVICE));
+	    columns[3].setData(new Integer(FilterComparator.FIELD_PROFILE));
+	    columns[4].setData(new Integer(FilterComparator.FIELD_STATE));
+	    columns[5].setData(new Integer(FilterComparator.FIELD_PERCENT));
 	    
 	    
 	    final FilterComparator comparator = new FilterComparator();
@@ -371,11 +373,12 @@ public class DevicesView
 					
 					TranscodeJob job = transcode_jobs.get( index );
 										
-					item.setText(0, job.getName());
-					item.setText(1, job.getTarget().getDevice().getName());
-					item.setText(2, job.getProfile().getName());
-					item.setText(3, getJobStatus( job ));
-					item.setText(4, String.valueOf( job.getPercentComplete()));
+					item.setText(0, String.valueOf(job.getIndex()));
+					item.setText(1, job.getName());
+					item.setText(2, job.getTarget().getDevice().getName());
+					item.setText(3, job.getProfile().getName());
+					item.setText(4, getJobStatus( job ));
+					item.setText(5, String.valueOf( job.getPercentComplete()));
 					
 
 					
@@ -625,8 +628,29 @@ public class DevicesView
 					boolean has_selection = selection.length > 0;
 					
 					remove_item.setEnabled( has_selection );
-					pause_item.setEnabled( has_selection );
-					resume_item.setEnabled( has_selection );
+					
+					boolean	can_pause 	= has_selection;
+					boolean	can_resume 	= has_selection;
+					
+					for (int i=0;i<selection.length;i++){
+						
+						TranscodeJob job = (TranscodeJob)selection[i].getData();
+						
+						int	state = job.getState();
+						
+						if ( state != TranscodeJob.ST_RUNNING ){
+							
+							can_pause = false;
+						}
+						
+						if ( state != TranscodeJob.ST_PAUSED ){
+							
+							can_resume = false;
+						}
+					}
+					
+					pause_item.setEnabled( can_pause );
+					resume_item.setEnabled( can_resume );
 				}
 				
 				public void 
@@ -957,16 +981,17 @@ public class DevicesView
 	FilterComparator 
 		implements Comparator<TranscodeJob>
 	{
-		boolean ascending = false;
+		boolean ascending = true;
 
-		static final int FIELD_NAME			= 0;
-		static final int FIELD_DEVICE 		= 1;
-		static final int FIELD_PROFILE 		= 2;
-		static final int FIELD_STATE 		= 3;
-		static final int FIELD_PERCENT 		= 4;
+		static final int FIELD_INDEX		= 0;
+		static final int FIELD_NAME			= 1;
+		static final int FIELD_DEVICE 		= 2;
+		static final int FIELD_PROFILE 		= 3;
+		static final int FIELD_STATE 		= 4;
+		static final int FIELD_PERCENT 		= 5;
 
 
-		int field = FIELD_NAME;
+		int field = FIELD_INDEX;
 
 		public int 
 		compare(
@@ -976,7 +1001,9 @@ public class DevicesView
 			
 			int	res = 0;
 			
-			if(field == FIELD_NAME){				
+			if (field == FIELD_INDEX ){				
+				 res = j1.getIndex()-j2.getIndex();
+			}else if (field == FIELD_NAME ){				
 				 res = j1.getName().compareTo( j2.getName());
 			}else if(field == FIELD_DEVICE){
 				res = j1.getTarget().getDevice().getName().compareTo( j2.getTarget().getDevice().getName());

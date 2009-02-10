@@ -39,6 +39,7 @@ TranscodePipe
 	private int				source_port;
 	private ServerSocket	server_socket;
 
+	private volatile boolean	paused;
 	private volatile boolean	destroyed;
 	
 	private List<Socket>		sockets = new ArrayList<Socket>();
@@ -166,8 +167,19 @@ TranscodePipe
 
 				while( !destroyed ){
 					
-					try{						
-						int	len =  is.read( buffer );
+					try{	
+						int	len;
+						
+						if ( paused ){
+							
+							Thread.sleep(250);
+							
+							len =  is.read( buffer, 0, 1 );
+							
+						}else{
+							
+							len =  is.read( buffer );
+						}
 							
 						if ( len <= 0 ){
 								
@@ -193,8 +205,26 @@ TranscodePipe
 					
 				}catch( Throwable e ){
 				}
+				
+				try{
+					os.close();
+					
+				}catch( Throwable e ){
+				}
 			}
 		}.start();
+	}
+	
+	protected void
+	pause()
+	{
+		paused = true;
+	}
+
+	protected void
+	resume()
+	{
+		paused = false;
 	}
 	
 	protected int
