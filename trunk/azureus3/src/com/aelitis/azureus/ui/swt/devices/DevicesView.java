@@ -63,6 +63,18 @@ public class DevicesView
 	
 	private FilterComparator comparator = new FilterComparator();
 
+	private static final String[] js_resource_keys = {
+		"ManagerItem.queued",
+		"DHTView.activity.status.false",
+		"ManagerItem.paused",
+		"sidebar.LibraryCD",
+		"Progress.reporting.status.canceled",
+		"ManagerItem.error",
+		"ManagerItem.stopped",
+	};
+		
+	private static String[] js_resources;
+	
 	public 
 	DevicesView()
 	{
@@ -81,6 +93,8 @@ public class DevicesView
 	initialize(
 		Composite parent ) 
 	{
+		readResources();
+		
 		composite = new Composite(parent,SWT.NONE);
 		
 		FormLayout layout = new FormLayout();
@@ -1087,6 +1101,18 @@ public class DevicesView
 	public void 
 	updateLanguage() 
 	{
+		readResources();
+	}
+	
+	protected void
+	readResources()
+	{
+		js_resources = new String[ js_resource_keys.length ];
+		
+		for (int i=0;i<js_resources.length;i++){
+			js_resources[i] = MessageText.getString(js_resource_keys[i]);
+		}
+		
 	}
 	
 	protected String
@@ -1095,7 +1121,7 @@ public class DevicesView
 	{
 		int	state = job.getState();
 		
-		String res = String.valueOf( state );
+		String res = js_resources[state];
 		
 		if ( state == TranscodeJob.ST_FAILED ){
 			

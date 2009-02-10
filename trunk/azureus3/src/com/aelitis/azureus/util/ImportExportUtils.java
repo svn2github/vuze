@@ -130,6 +130,36 @@ public final class ImportExportUtils {
 	}
 	
 	public final static void
+	exportInt(
+		Map		map,
+		String	key,
+		int		value )
+	{
+		map.put( key, new Long( value ));
+	}
+	
+	public final static int
+	importInt(
+		Map		map,
+		String	key )
+	
+		throws IOException
+	{
+		return((int)importLong( map, key, 0 ));
+	}
+	
+	public final static int
+	importInt(
+		Map		map,
+		String	key,
+		int		def )
+	
+		throws IOException
+	{
+		return((int)importLong( map, key, def ));
+	}
+	
+	public final static void
 	exportBoolean(
 		Map		map,
 		String	key,

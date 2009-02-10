@@ -21,17 +21,26 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
+import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.TranscodeProviderException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
+import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
 TranscodeJobImpl 
-	implements TranscodeJob
+	implements TranscodeJob, DownloadWillBeRemovedListener
 {
 	private TranscodeQueueImpl		queue;
 	private TranscodeTarget			target;
@@ -53,6 +62,90 @@ TranscodeJobImpl
 		target		= _target;
 		profile		= _profile;
 		file		= _file;
+		
+		init();
+	}
+	
+	protected
+	TranscodeJobImpl(
+		TranscodeQueueImpl		_queue,
+		Map<String,Object>		map )
+	
+		throws IOException, TranscodeProviderException
+	{
+		queue	= _queue;
+		
+		state = ImportExportUtils.importInt( map, "state" );
+		error = ImportExportUtils.importString( map, "error", null );
+		
+		String	target_id = ImportExportUtils.importString( map, "target" );
+		
+		target = queue.lookupTarget( target_id );
+		
+		String	profile_id = ImportExportUtils.importString( map, "profile" );
+		
+		profile = queue.lookupProfile( profile_id );
+		
+		byte[] dl_hash = ByteFormatter.decodeString( ImportExportUtils.importString( map, "dl_hash" ));
+		
+		int file_index = ImportExportUtils.importInt( map, "file_index" );
+		
+		file = queue.lookupFile( dl_hash, file_index );
+		
+		init();
+	}
+
+	protected Map<String,Object>
+	toMap()
+	
+		throws IOException
+	{
+		try{
+			Map<String,Object> map = new HashMap<String, Object>();
+			
+			ImportExportUtils.exportInt( map, "state", state );
+			ImportExportUtils.exportString( map, "error", error );
+			
+			ImportExportUtils.exportString( map, "target", target.getID());
+			
+			ImportExportUtils.exportString( map, "profile", profile.getUID());
+			
+			ImportExportUtils.exportString( map, "dl_hash", ByteFormatter.encodeString( file.getDownload().getTorrent().getHash()));
+			
+			ImportExportUtils.exportInt( map, "file_index", file.getIndex());
+		
+			return( map );
+			
+		}catch( Throwable e ){
+			
+			throw( new IOException( "Export failed: " + Debug.getNestedExceptionMessage(e)));
+		}
+	}
+	
+	protected void
+	init()
+	{
+		try{
+			file.getDownload().addDownloadWillBeRemovedListener( this );
+			
+		}catch( Throwable e ){
+		}
+	}
+	
+	public void 
+	downloadWillBeRemoved(
+		Download 	download )
+
+		throws DownloadRemovalVetoException
+	{
+		if ( queue.getIndex( this ) == 0 || state == ST_COMPLETE ){
+			
+			download.removeDownloadWillBeRemovedListener( this );
+			
+		}else{
+			
+			throw( new DownloadRemovalVetoException( "Transcode in progress, removal refused" ));
+		}
 	}
 	
 	public String
@@ -79,24 +172,30 @@ TranscodeJobImpl
 	{
 		synchronized( this ){
 		
-			state = ST_RUNNING;
+			if ( state != ST_PAUSED ){
+			
+				state = ST_RUNNING;
+			}
 		}
 		
-		queue.jobChanged( this, false );
+		queue.jobChanged( this, false, true );
 	}
 	
 	protected void
 	failed(
 		Throwable	e )
 	{
-		error = Debug.getNestedExceptionMessage( e );
-		
 		synchronized( this ){
 			
-			state = ST_FAILED;
+			if ( state != ST_STOPPED ){
+			
+				state = ST_FAILED;
+			
+				error = Debug.getNestedExceptionMessage( e );
+			}
 		}
 		
-		queue.jobChanged( this, false );
+		queue.jobChanged( this, false, true );
 	}
 	
 	protected void
@@ -107,7 +206,7 @@ TranscodeJobImpl
 			state = ST_COMPLETE;
 		}
 		
-		queue.jobChanged( this, false );
+		queue.jobChanged( this, false, false );
 	}
 	
 	protected void
@@ -118,7 +217,7 @@ TranscodeJobImpl
 		
 			percent_complete	= _done;
 		
-			queue.jobChanged( this, false );
+			queue.jobChanged( this, false, false );
 		}
 	}
 	
@@ -179,7 +278,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this, false );
+		queue.jobChanged( this, false, true );
 	}
 	
 	public void
@@ -197,7 +296,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this, false );
+		queue.jobChanged( this, false, true );
 	}
 	
 	public void
@@ -238,7 +337,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this, true );
+		queue.jobChanged( this, true, true);
 	}
 	
 	public void
@@ -256,7 +355,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this, true );
+		queue.jobChanged( this, true, true );
 	}
 	
 	public void

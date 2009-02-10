@@ -122,6 +122,8 @@ DeviceManagerImpl
 						}
 						
 						closing	= true;
+						
+						transcode_manager.close();
 					}
 				}
 			});
@@ -397,7 +399,7 @@ DeviceManagerImpl
 					public void 
 					runSupport() 
 					{
-						synchronized( this ){
+						synchronized( DeviceManagerImpl.this ){
 							
 							if ( !config_dirty ){
 

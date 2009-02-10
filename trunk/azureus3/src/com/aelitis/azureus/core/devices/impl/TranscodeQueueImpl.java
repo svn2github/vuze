@@ -26,9 +26,12 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.*;
@@ -38,6 +41,10 @@ public class
 TranscodeQueueImpl 	
 	implements TranscodeQueue
 {
+	private static final String	CONFIG_FILE 			= "xcodejobs.config";
+
+	private TranscodeManagerImpl		manager;
+	
 	private List<TranscodeJobImpl>		queue		= new ArrayList<TranscodeJobImpl>();
 	private AESemaphore 				queue_sem 	= new AESemaphore( "XcodeQ" );
 	private AEThread2					queue_thread;
@@ -47,9 +54,18 @@ TranscodeQueueImpl
 	private volatile boolean 	paused;
 	private volatile int		max_bytes_per_sec;
 	
+	private volatile boolean	config_dirty;
+	
 	protected
-	TranscodeQueueImpl()
+	TranscodeQueueImpl(
+		TranscodeManagerImpl	_manager )
 	{
+		manager = _manager;
+	}
+	
+	protected void
+	initialise()
+	{	
 		loadConfig();
 		
 		COConfigurationManager.addAndFireParameterListeners(
@@ -100,17 +116,19 @@ TranscodeQueueImpl
 							return;
 						}
 						
-						if ( job.getState() == TranscodeJob.ST_CANCELLED ){
+						int	job_state = job.getState();
+						
+						if ( job_state == TranscodeJob.ST_CANCELLED ){
 															
 							prov_job.cancel();
 							
-						}else if ( paused ){
+						}else if ( paused || job_state == TranscodeJob.ST_PAUSED ){
 								
 							prov_job.pause();
 							
 						}else{
 							
-							if ( job.getState() == TranscodeJob.ST_RUNNING ){
+							if ( job_state == TranscodeJob.ST_RUNNING ){
 								
 								prov_job.resume();
 							}
@@ -276,11 +294,20 @@ TranscodeQueueImpl
 									
 									for ( TranscodeJobImpl j: queue ){
 										
-										if ( j.getState() == TranscodeJob.ST_QUEUED ){
-											
+										int state = j.getState();
+										
+											// pick up any existing paused ones
+										
+										if ( state == TranscodeJob.ST_PAUSED ){
+
 											job = j;
 											
-											break;
+										}else if ( state == TranscodeJob.ST_QUEUED ){
+											
+											if ( job == null ){
+											
+												job = j;
+											}
 										}
 									}
 								}
@@ -365,7 +392,8 @@ TranscodeQueueImpl
 	protected void
 	jobChanged(
 		TranscodeJob			job,
-		boolean					schedule )
+		boolean					schedule,
+		boolean					persistable )
 	{
 
 		for ( TranscodeQueueListener listener: listeners ){
@@ -377,6 +405,11 @@ TranscodeQueueImpl
 				
 				Debug.printStackTrace( e );
 			}
+		}
+		
+		if ( persistable ){
+		
+			configDirty();
 		}
 		
 		if ( schedule ){
@@ -427,7 +460,7 @@ TranscodeQueueImpl
 		
 		for ( TranscodeJob j: updated ){
 			
-			jobChanged( j, false );
+			jobChanged( j, false, true );
 		}
 	}
 	
@@ -455,7 +488,7 @@ TranscodeQueueImpl
 		
 		for ( TranscodeJob j: updated ){
 			
-			jobChanged( j, false );
+			jobChanged( j, false, true );
 		}
 	}
 	
@@ -499,16 +532,150 @@ TranscodeQueueImpl
 		COConfigurationManager.setParameter( "xcode.queue.maxbps", max );
 	}
 	
+	protected TranscodeTarget
+	lookupTarget(
+		String		target_id )
+	
+		throws TranscodeProviderException
+	{
+		return( manager.lookupTarget( target_id ));
+	}
+	
+	protected TranscodeProfile
+	lookupProfile(
+		String		profile_id )
+	
+		throws TranscodeProviderException
+	{
+		TranscodeProfile profile = manager.getProfileFromUID( profile_id );
+		
+		if ( profile == null ){
+			
+			throw( new TranscodeProviderException( "Transcode profile with id '" + profile_id + "' not found" ));
+		}
+		
+		return( profile );
+	}
+	
+	protected DiskManagerFileInfo
+	lookupFile(
+		byte[]		hash,
+		int			index )
+	
+		throws TranscodeProviderException
+	{
+		return( manager.lookupFile( hash, index ));
+	}
+	
+	protected void
+	configDirty()
+	{
+		synchronized( this ){
+			
+			if ( config_dirty ){
+				
+				return;
+			}
+			
+			config_dirty = true;
+		
+			new DelayedEvent( 
+				"TranscodeQueue:save", 5000,
+				new AERunnable()
+				{
+					public void 
+					runSupport() 
+					{
+						synchronized( TranscodeQueueImpl.this ){
+							
+							if ( !config_dirty ){
+
+								return;
+							}
+							
+							saveConfig();
+						}	
+					}
+				});
+		}
+	}
+	
 	protected void
 	loadConfig()
 	{
+		if ( !FileUtil.resilientConfigFileExists( CONFIG_FILE )){
+			
+			return;
+		}
 		
+		log( "Loading configuration" );
+				
+		synchronized( this ){
+			
+			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
+			
+			List<Map>	l_jobs = (List<Map>)map.get( "jobs" );
+			
+			for ( Map m: l_jobs ){
+				
+				try{
+					TranscodeJobImpl job = new TranscodeJobImpl( this, m );
+				
+					queue.add(job );
+					
+					queue_sem.release();
+					
+				}catch( Throwable e ){
+					
+					log( "Failed to restore job: " + m, e );
+				}
+			}
+		}
 	}
 	
 	protected void
 	saveConfig()
 	{
+		synchronized( this ){
+
+			config_dirty = false;
+			
+			if ( queue.size() == 0 ){
+
+				FileUtil.deleteResilientConfigFile( CONFIG_FILE );
+
+			}else{
+				
+				Map	map = new HashMap();
+				
+				List	l_jobs = new ArrayList();
+				
+				map.put( "jobs", l_jobs );
+				
+				for ( TranscodeJobImpl job: queue ){
+				
+					try{
+					
+						l_jobs.add( job.toMap());
+						
+					}catch( Throwable e ){
+						
+						log( "Failed to save job", e );
+					}
+				}
+				
+				FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
+			}
+		}
+	}
+	
+	protected void
+	close()
+	{
+		if ( config_dirty ){
 		
+			saveConfig();
+		}
 	}
 	
 	public void
@@ -523,5 +690,20 @@ TranscodeQueueImpl
 		TranscodeQueueListener		listener )
 	{
 		listeners.remove( listener );	
+	}
+	
+	protected void
+	log( 
+		String	str )
+	{
+		manager.log( "Queue: " + str );
+	}
+	
+	protected void
+	log( 
+		String		str,
+		Throwable	e )
+	{
+		manager.log( "Queue: " + str, e );
 	}
 }

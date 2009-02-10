@@ -26,6 +26,9 @@ import java.io.File;
 public interface 
 TranscodeTarget 
 {
+	public String
+	getID();
+	
 	public Device
 	getDevice();
 	

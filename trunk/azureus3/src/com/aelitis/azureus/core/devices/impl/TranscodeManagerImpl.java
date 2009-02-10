@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -28,7 +30,9 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -38,12 +42,15 @@ TranscodeManagerImpl
 	implements TranscodeManager
 {
 	private DeviceManagerImpl		device_manager;
+	private AzureusCore				azureus_core;
 	
 	private TranscodeProviderVuze	vuzexcode_provider;
 	
 	private CopyOnWriteList<TranscodeManagerListener>	listeners = new CopyOnWriteList<TranscodeManagerListener>();
 	
-	private TranscodeQueueImpl		queue = new TranscodeQueueImpl();
+	private TranscodeQueueImpl		queue = new TranscodeQueueImpl( this );
+	
+	private AESemaphore	init_sem = new AESemaphore( "TM:init" );
 	
 	protected
 	TranscodeManagerImpl(
@@ -51,7 +58,9 @@ TranscodeManagerImpl
 	{
 		device_manager	= _dm;
 		
-		final PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		azureus_core = AzureusCoreFactory.getSingleton();
+		
+		final PluginManager pm = azureus_core.getPluginManager();
 		
 		final PluginInterface default_pi = pm.getDefaultPluginInterface();
 		
@@ -90,6 +99,10 @@ TranscodeManagerImpl
 							pluginAdded( pi );
 						}
 					}
+					
+					queue.initialise();
+					
+					init_sem.releaseForever();
 				}
 				
 				public void
@@ -239,7 +252,58 @@ TranscodeManagerImpl
 	public TranscodeQueue 
 	getQueue() 
 	{
+		if ( !init_sem.reserve(10000)){
+			
+			Debug.out( "Timeout waiting for init" );
+		}
+		
 		return( queue );
+	}
+	
+	protected TranscodeTarget
+	lookupTarget(
+		String		target_id )
+	
+		throws TranscodeProviderException
+	{
+		Device device = device_manager.getDevice( target_id );
+		
+		if ( device instanceof TranscodeTarget ){
+			
+			return((TranscodeTarget)device);
+		}
+		
+		throw( new TranscodeProviderException( "Transcode target with id " + target_id + " not found" ));
+	}
+	
+	protected DiskManagerFileInfo
+	lookupFile(
+		byte[]		hash,
+		int			index )
+	
+		throws TranscodeProviderException
+	{
+		try{
+			Download download = azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( hash );
+			
+			if ( download == null ){
+				
+				throw( new TranscodeProviderException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found" ));
+			}
+		
+			return( download.getDiskManagerFileInfo()[index]);
+			
+		}catch( Throwable e ){
+			
+			throw( new TranscodeProviderException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found", e ));
+
+		}
+	}
+	
+	protected void
+	close()
+	{
+		queue.close();
 	}
 	
 	public void
@@ -254,5 +318,20 @@ TranscodeManagerImpl
 		TranscodeManagerListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		device_manager.log( "Trans: " + str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		device_manager.log( "Trans: " + str, e );
 	}
 }
