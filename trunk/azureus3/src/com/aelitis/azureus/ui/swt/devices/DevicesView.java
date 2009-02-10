@@ -58,9 +58,11 @@ public class DevicesView
 	
 	private Composite 				composite;
 	private Table					job_table;
-	private List<TranscodeJob>		transcode_jobs;
+	private List<TranscodeJob>		transcode_jobs		= new ArrayList<TranscodeJob>();
 	private List<TranscodeJob>		selected_jobs		= new ArrayList<TranscodeJob>();
 	
+	private FilterComparator comparator = new FilterComparator();
+
 	public 
 	DevicesView()
 	{
@@ -71,9 +73,7 @@ public class DevicesView
 		transcode_manager.addListener( this );
 		
 		transcode_queue = transcode_manager.getQueue();
-		
-		transcode_jobs	= new ArrayList<TranscodeJob>( Arrays.asList( transcode_queue.getJobs()));
-		
+				
 		transcode_queue.addListener( this );
 	}
 	
@@ -322,9 +322,7 @@ public class DevicesView
 	    columns[4].setData(new Integer(FilterComparator.FIELD_STATE));
 	    columns[5].setData(new Integer(FilterComparator.FIELD_PERCENT));
 	    
-	    
-	    final FilterComparator comparator = new FilterComparator();
-	    
+	    	    
 	    Listener sort_listener = 
 	    	new Listener() 
 	    	{
@@ -338,8 +336,8 @@ public class DevicesView
 	
 		    		comparator.setField( field );
 	
-		    		Collections.sort( transcode_jobs,comparator);
-	
+		    		sortTable();
+		    		
 		    		updateTable();
 		    	}
 	    	};
@@ -661,10 +659,43 @@ public class DevicesView
 			});
 		
 		job_table.setMenu( menu );
-				
-		Collections.sort( transcode_jobs, comparator );
+			
+		transcode_jobs	= new ArrayList<TranscodeJob>( Arrays.asList( transcode_queue.getJobs()));
+
+		sortTable();
 
 		updateTable();
+	}
+	
+	protected void
+	sortTable()
+	{
+		TableItem[] selection = job_table.getSelection();
+
+		List<TranscodeJob>	jobs = new ArrayList<TranscodeJob>();
+		
+		for ( TableItem item: selection ){
+						
+			TranscodeJob job = (TranscodeJob)item.getData();
+			
+			jobs.add( job );
+		}
+		
+		Collections.sort( transcode_jobs, comparator );
+		
+		if ( jobs.size() > 0 ){
+		
+			int[] indexes = new int[ jobs.size() ];
+			
+			int	pos = 0;
+			
+			for ( TranscodeJob job: jobs ){
+			
+				indexes[pos++] = transcode_jobs.indexOf( job );
+			}
+			
+			job_table.setSelection( indexes );
+		}
 	}
 	
 	protected void
@@ -685,54 +716,47 @@ public class DevicesView
 	protected void
 	setJobSelection()
 	{
-		TableItem[] selection = job_table.getSelection();
-		
-		if ( selection.length == 0 ){
+		job_table.getDisplay().asyncExec(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					TableItem[] selection = job_table.getSelection();
+					
+					if ( selection.length == 0 ){
+						
+						selected_jobs.clear();
+						
+						SelectedContentManager.clearCurrentlySelectedContent();
+						
+					}else{
+						
+						List<TranscodeJob>	jobs = new ArrayList<TranscodeJob>();
+						
+						for ( TableItem row: selection ){
+							
+							TranscodeJob job = (TranscodeJob)row.getData();
+							
+							jobs.add( job );
+						}
+												
+						selected_jobs = jobs;
+						
+						ISelectedContent[] sels = new ISelectedContent[1];
 			
-			selected_jobs.clear();
+						sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler)DevicesView.this);
 			
-			SelectedContentManager.clearCurrentlySelectedContent();
-			
-		}else{
-			
-			List<TranscodeJob>	jobs = new ArrayList<TranscodeJob>();
-			
-			for ( TableItem row: selection ){
-				
-				TranscodeJob job = (TranscodeJob)row.getData();
-				
-				jobs.add( job );
-			}
-			
-			if ( jobs.equals( selected_jobs )){
-				
-				return;
-			}
-			
-			selected_jobs = jobs;
-			
-			ISelectedContent[] sels = new ISelectedContent[1];
-
-			sels[0] = new ToolBarEnablerSelectedContent((ToolBarEnabler)DevicesView.this);
-
-			SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", sels );
-		}
+						SelectedContentManager.changeCurrentlySelectedContent( "IconBarEnabler", sels );
+					}
+				}
+			});
 	}
 	
 	public void
 	jobAdded(
-		TranscodeJob		job )
+		final TranscodeJob		job )
 	{
-		synchronized( transcode_jobs ){
-			
-			if ( transcode_jobs.contains( job )){
-				
-				return;
-			}
-			
-			transcode_jobs.add( job );
-		}
-		
 		if ( job_table != null && !job_table.isDisposed()){
 			
 			job_table.getDisplay().asyncExec(
@@ -742,8 +766,13 @@ public class DevicesView
 						run()
 						{
 							if ( !job_table.isDisposed()){
-																	
-								updateTable();
+										
+								if ( !transcode_jobs.contains( job )){
+								
+									transcode_jobs.add( job );
+									
+									updateTable();
+								}
 							}
 						}
 					});
@@ -767,10 +796,22 @@ public class DevicesView
 								int	index = transcode_jobs.indexOf( job );
 								
 								if ( index >= 0 ){
-								
-									job_table.clear( index );
-								
-									job_table.redraw();
+															
+									if ( 	comparator.getField() == FilterComparator.FIELD_INDEX &&
+											job.getIndex() != index-1 ){
+										
+										sortTable();
+										
+										updateTable();
+										
+									}else{
+
+										job_table.clear( index );
+									
+										job_table.redraw();
+										
+										setJobSelection();
+									}
 								}
 							}
 						}
@@ -780,16 +821,8 @@ public class DevicesView
 	
 	public void
 	jobRemoved(
-		TranscodeJob		job )
+		final TranscodeJob		job )
 	{
-		synchronized( transcode_jobs ){
-			
-			if ( !transcode_jobs.remove( job )){
-				
-				return;
-			}
-		}
-		
 		if ( job_table != null && !job_table.isDisposed()){
 			
 			job_table.getDisplay().asyncExec(
@@ -799,8 +832,11 @@ public class DevicesView
 						run()
 						{
 							if ( !job_table.isDisposed()){
-																	
-								updateTable();
+						
+								if ( transcode_jobs.remove( job )){
+								
+									updateTable();
+								}
 							}
 						}
 					});
@@ -874,7 +910,113 @@ public class DevicesView
 			return( true );
 		}
 		
+		boolean can_stop 		= true;
+		boolean can_queue		= true;
+		boolean can_move_up		= true;
+		boolean can_move_down	= true;
+
+		List<TranscodeJob> jobs = new ArrayList<TranscodeJob>( selected_jobs );
+
+		for ( TranscodeJob job: jobs ){
+
+			int	index = job.getIndex();
+			
+			if ( index == 1 ){
+				
+				can_move_up 	= false;
+				
+			}
+			
+			if ( index == transcode_jobs.size()){
+			
+				can_move_down	= false;
+			}
+			
+			int	state = job.getState();
+			
+			if ( 	state != TranscodeJob.ST_PAUSED &&
+					state != TranscodeJob.ST_RUNNING &&
+					state != TranscodeJob.ST_FAILED ){
+				
+				can_stop = false;
+			}
+			
+			if ( 	state != TranscodeJob.ST_PAUSED &&
+					state != TranscodeJob.ST_FAILED ){
+				
+				can_queue = false;
+			}
+		}
+			
+		if ( item_key.equals( "stop" )){
+
+			return( can_stop );
+		}
+		
+		if ( item_key.equals( "start" )){
+
+			return( can_queue );
+		}
+
+		if ( item_key.equals( "up" )){
+
+			return( can_move_up );
+		}
+
+		if ( item_key.equals( "down" )){
+
+			return( can_move_down );
+		}
+
 		return( false );
+	}
+	
+	public void 
+	itemActivated(
+		final String item_key )
+	{		
+		List<TranscodeJob> jobs = new ArrayList<TranscodeJob>( selected_jobs );
+			
+		if ( item_key.equals( "up" ) || item_key.equals( "down" )){
+		
+			Collections.sort(
+				jobs,
+				new Comparator<TranscodeJob>()
+				{
+					public int 
+					compare(
+						TranscodeJob j1, 
+						TranscodeJob j2) 
+					{
+						
+						return( (item_key.equals( "up" )?1:-1)*( j1.getIndex() - j2.getIndex()));
+					}
+				});
+		}
+		
+		for ( TranscodeJob job: jobs ){
+	
+			if ( item_key.equals( "remove" )){
+
+				job.remove();
+				
+			}else if ( item_key.equals( "stop" )){
+
+				job.stop();
+				
+			}else if ( item_key.equals( "start" )){
+
+				job.queue();
+				
+			}else if ( item_key.equals( "up" )){
+
+				job.moveUp();
+				
+			}else if ( item_key.equals( "down" )){
+
+				job.moveDown();
+			}
+		}
 	}
 	
 	public String 
@@ -891,21 +1033,7 @@ public class DevicesView
 		return( false );
 	}
 	
-	public void 
-	itemActivated(
-		String item_key )
-	{
-		if ( item_key.equals( "remove" )){
-			
-			List<TranscodeJob> jobs = new ArrayList<TranscodeJob>( selected_jobs );
-			
-			for ( TranscodeJob job: jobs ){
-				
-				job.remove();
-			}
-		}
-	}
-	
+
 	public void 
 	updateUI() 
 	{
@@ -1027,6 +1155,12 @@ public class DevicesView
 			if(field == newField) ascending = ! ascending;
 			
 			field = newField;
+		}
+		
+		public int
+		getField()
+		{
+			return( field );
 		}
 	}
 }

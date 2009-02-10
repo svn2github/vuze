@@ -576,10 +576,18 @@ public class ToolBarView
 				String[] TBKEYS = new String[] {"download","play","share","run","up","down","start","stop","remove"};
 				//String[] OLD_TBKEYS = new String[] {"run","up","down","start","stop","delete"};
 				
-				for(int i = 0 ; i < TBKEYS.length  ;i++) {
-					item = getToolBarItem(TBKEYS[i]);
+				for (String item_key: TBKEYS ){
+					item = getToolBarItem(item_key);
 					if (item != null) {
-						item.setEnabled(enabler.isEnabled(TBKEYS[i]));
+						boolean enabled = enabler.isEnabled(item_key);
+						item.setEnabled(enabled);
+						if ( enabled ){
+							if ( item_key.equals( "start" )){
+								canStart = true;
+							}else if ( item_key.equals( "stop" )){
+								canStop = true;
+							}
+						}
 					}
 				}
 			}

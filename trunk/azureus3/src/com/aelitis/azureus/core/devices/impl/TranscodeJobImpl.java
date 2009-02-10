@@ -82,7 +82,7 @@ TranscodeJobImpl
 			state = ST_RUNNING;
 		}
 		
-		queue.jobChanged( this );
+		queue.jobChanged( this, false );
 	}
 	
 	protected void
@@ -96,7 +96,7 @@ TranscodeJobImpl
 			state = ST_FAILED;
 		}
 		
-		queue.jobChanged( this );
+		queue.jobChanged( this, false );
 	}
 	
 	protected void
@@ -107,7 +107,7 @@ TranscodeJobImpl
 			state = ST_COMPLETE;
 		}
 		
-		queue.jobChanged( this );
+		queue.jobChanged( this, false );
 	}
 	
 	protected void
@@ -118,7 +118,7 @@ TranscodeJobImpl
 		
 			percent_complete	= _done;
 		
-			queue.jobChanged( this );
+			queue.jobChanged( this, false );
 		}
 	}
 	
@@ -179,7 +179,7 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this );
+		queue.jobChanged( this, false );
 	}
 	
 	public void
@@ -197,12 +197,83 @@ TranscodeJobImpl
 			}
 		}
 		
-		queue.jobChanged( this );
+		queue.jobChanged( this, false );
+	}
+	
+	public void
+	queue()
+	{
+		boolean	do_resume;
+	
+		synchronized( this ){
+
+			do_resume = state == ST_PAUSED;
+		}
+		
+		if ( do_resume ){
+			
+			resume();
+			
+			return;
+		}
+
+		synchronized( this ){
+			
+			if ( state != ST_QUEUED ){
+		
+				if ( 	state == ST_RUNNING ||
+						state == ST_PAUSED ){
+					
+					stop();
+				}
+				
+				state = ST_QUEUED;
+				
+				error 				= null;
+				percent_complete	= 0;
+				
+			}else{
+				
+				return;
+			}
+		}
+		
+		queue.jobChanged( this, true );
+	}
+	
+	public void
+	stop()
+	{
+		synchronized( this ){
+			
+			if ( state != ST_STOPPED ){
+		
+				state = ST_STOPPED;
+				
+			}else{
+				
+				return;
+			}
+		}
+		
+		queue.jobChanged( this, true );
 	}
 	
 	public void
 	remove()
 	{
 		queue.remove( this );
+	}
+	
+	public void 
+	moveUp() 
+	{
+		queue.moveUp( this );
+	}
+	
+	public void 
+	moveDown() 
+	{
+		queue.moveDown( this );
 	}
 }

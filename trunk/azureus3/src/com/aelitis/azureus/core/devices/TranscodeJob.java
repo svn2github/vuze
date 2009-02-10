@@ -32,6 +32,7 @@ TranscodeJob
 	public static final int	ST_COMPLETE		= 3;
 	public static final int	ST_CANCELLED	= 4;
 	public static final int	ST_FAILED		= 5;
+	public static final int	ST_STOPPED		= 6;
 	
 	public String
 	getName();
@@ -64,5 +65,17 @@ TranscodeJob
 	resume();
 	
 	public void
+	queue();
+	
+	public void
+	stop();
+	
+	public void
 	remove();
+	
+	public void
+	moveUp();
+	
+	public void
+	moveDown();
 }

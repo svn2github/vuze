@@ -157,6 +157,11 @@ TranscodeQueueImpl
 							}else if ( state == TranscodeJob.ST_RUNNING ){
 									
 								provider_job[0].resume();
+								
+							}else if ( 	state == TranscodeJob.ST_CANCELLED ||
+										state == TranscodeJob.ST_STOPPED ){
+							
+								provider_job[0].cancel();
 							}
 						}
 					}
@@ -322,7 +327,8 @@ TranscodeQueueImpl
 	
 	protected void
 	jobChanged(
-		TranscodeJobImpl		job )
+		TranscodeJob			job,
+		boolean					schedule )
 	{
 
 		for ( TranscodeQueueListener listener: listeners ){
@@ -334,6 +340,13 @@ TranscodeQueueImpl
 				
 				Debug.printStackTrace( e );
 			}
+		}
+		
+		if ( schedule ){
+			
+			queue_sem.release();
+			
+			schedule();
 		}
 	}
 	
@@ -350,6 +363,62 @@ TranscodeQueueImpl
 		synchronized( queue ){
 
 			return( queue.toArray( new TranscodeJob[queue.size()]));
+		}
+	}
+	
+	public void 
+	moveUp(
+		TranscodeJobImpl	job )
+	{
+		TranscodeJob[] updated;
+			
+		synchronized( queue ){
+		
+			int index = queue.indexOf( job );
+			
+			if ( index <= 0 || queue.size() == 1 ){
+				
+				return;
+			}
+			
+			queue.remove( job );
+			
+			queue.add( index-1, job );
+			
+			updated = getJobs();
+		}
+		
+		for ( TranscodeJob j: updated ){
+			
+			jobChanged( j, false );
+		}
+	}
+	
+	public void 
+	moveDown(
+		TranscodeJobImpl	job )
+	{
+		TranscodeJob[] updated;
+
+		synchronized( queue ){
+		
+		int index = queue.indexOf( job );
+			
+			if ( index < 0 || index == queue.size() - 1 ){
+				
+				return;
+			}
+			
+			queue.remove( job );
+			
+			queue.add( index+1, job );
+			
+			updated = getJobs();
+		}
+		
+		for ( TranscodeJob j: updated ){
+			
+			jobChanged( j, false );
 		}
 	}
 	
