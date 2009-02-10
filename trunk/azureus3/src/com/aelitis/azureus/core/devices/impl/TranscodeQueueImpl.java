@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
@@ -42,11 +44,28 @@ TranscodeQueueImpl
 	
 	private CopyOnWriteList<TranscodeQueueListener>	listeners = new CopyOnWriteList<TranscodeQueueListener>();
 	
+	private volatile boolean 	paused;
+	private volatile int		max_bytes_per_sec;
 	
 	protected
 	TranscodeQueueImpl()
 	{
 		loadConfig();
+		
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"xcode.queue.paused",
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String		name )
+				{
+					paused				= COConfigurationManager.getBooleanParameter( "xcode.queue.paused", false );
+					max_bytes_per_sec	= COConfigurationManager.getIntParameter( "xcode.queue.maxbps", 0 );
+				}
+			});
 		
 		schedule();
 	}
@@ -74,15 +93,31 @@ TranscodeQueueImpl
 					updatePercentDone(
 						int								percent )
 					{
-						if ( job.getState() == TranscodeJob.ST_CANCELLED ){
+						TranscodeProviderJob	prov_job = provider_job[0];
+						
+						if ( prov_job == null ){
 							
-							if ( provider_job[0] != null ){
+							return;
+						}
+						
+						if ( job.getState() == TranscodeJob.ST_CANCELLED ){
+															
+							prov_job.cancel();
+							
+						}else if ( paused ){
 								
-								provider_job[0].cancel();
-							}
+							prov_job.pause();
+							
 						}else{
 							
+							if ( job.getState() == TranscodeJob.ST_RUNNING ){
+								
+								prov_job.resume();
+							}
+							
 							job.setPercentDone( percent );
+							
+							prov_job.setMaxBytesPerSecond( max_bytes_per_sec );
 						}
 					}
 					
@@ -132,6 +167,8 @@ TranscodeQueueImpl
 					job.getFile(),
 					profile,
 					output_file.toURI().toURL());
+			
+			provider_job[0].setMaxBytesPerSecond( max_bytes_per_sec );
 			
 			TranscodeQueueListener listener = 
 				new TranscodeQueueListener()
@@ -420,6 +457,46 @@ TranscodeQueueImpl
 			
 			jobChanged( j, false );
 		}
+	}
+	
+	public void
+	pause()
+	{
+		if ( !paused ){
+			
+			if ( paused ){
+				
+				COConfigurationManager.setParameter( "xcode.queue.paused", true );
+			}
+		}
+	}
+	
+	public boolean
+	isPaused()
+	{
+		return( paused );
+	}
+	
+	public void
+	resume()
+	{
+		if ( paused ){
+			
+			COConfigurationManager.setParameter( "xcode.queue.paused", false );
+		}
+	}
+	
+	public long
+	getMaxBytesPerSecond()
+	{
+		return( max_bytes_per_sec );
+	}
+	
+	public void
+	setMaxBytesPerSecond(
+		long		max )
+	{
+		COConfigurationManager.setParameter( "xcode.queue.maxbps", max );
 	}
 	
 	protected void

@@ -235,6 +235,13 @@ TranscodeProviderVuze
 								Debug.printStackTrace( e );
 							}
 						}
+						
+						public void 
+						setMaxBytesPerSecond(
+							int		 max ) 
+						{
+							pipe.setMaxBytesPerSecond( max );
+						}
 					});
 						
 			}catch( Throwable e ){

@@ -36,6 +36,22 @@ TranscodeQueue
 	getJobs();
 	
 	public void
+	pause();
+	
+	public boolean
+	isPaused();
+	
+	public void
+	resume();
+	
+	public long
+	getMaxBytesPerSecond();
+	
+	public void
+	setMaxBytesPerSecond(
+		long		max );
+	
+	public void
 	addListener(
 		TranscodeQueueListener		listener );
 	

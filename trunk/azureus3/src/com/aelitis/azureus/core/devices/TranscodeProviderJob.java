@@ -32,4 +32,8 @@ TranscodeProviderJob
 	
 	public void
 	cancel();
+	
+	public void
+	setMaxBytesPerSecond(
+		int		max );
 }
