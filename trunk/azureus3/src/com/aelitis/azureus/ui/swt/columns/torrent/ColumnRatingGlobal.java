@@ -77,6 +77,7 @@ public class ColumnRatingGlobal
 	}
 
 	public void cellAdded(TableCell cell) {
+		PlatformRatingMessenger.setGlobalRatingUpdateDelayed(false);
 		new Cell(cell);
 	}
 

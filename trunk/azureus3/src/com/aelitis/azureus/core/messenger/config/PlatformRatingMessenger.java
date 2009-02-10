@@ -58,6 +58,12 @@ public class PlatformRatingMessenger
 
 	public static final ArrayList listeners = new ArrayList();
 
+	private static boolean delayGlobalRatingUpdate = true;
+
+	private static List<TOTorrent> delayedGlobalRatingTorrents;
+	
+	private static AEMonitor mon_DelayedGlobalRatingTorrents = new AEMonitor("delayedGlobalRatingTorrents");
+
 	public static void getUserRating(long contentNetworkID, String[] rateTypes,
 			final String[] torrentHashes, long maxDelayMS) {
 
@@ -257,7 +263,39 @@ public class PlatformRatingMessenger
 		}
 	}
 
-	public static void updateGlobalRating(final TOTorrent[] torrents, long maxDelayMS) {
+	public static void updateGlobalRating(TOTorrent[] _torrents, long maxDelayMS) {
+		if (_torrents == null) {
+			return;
+		}
+
+		mon_DelayedGlobalRatingTorrents.enter();
+		try {
+  		if (delayGlobalRatingUpdate) {
+  			if (delayedGlobalRatingTorrents == null) {
+  				delayedGlobalRatingTorrents = new ArrayList<TOTorrent>();
+  			}
+  			for (int i = 0; i < _torrents.length; i++) {
+  				if (!delayedGlobalRatingTorrents.contains(_torrents[i])) {
+  					delayedGlobalRatingTorrents.add(_torrents[i]);
+  				}
+  			}
+  			return;
+
+  		} else if (delayedGlobalRatingTorrents != null) {
+  			for (int i = 0; i < _torrents.length; i++) {
+  				if (!delayedGlobalRatingTorrents.contains(_torrents[i])) {
+  					delayedGlobalRatingTorrents.add(_torrents[i]);
+  				}
+  			}
+  			_torrents = delayedGlobalRatingTorrents.toArray(new TOTorrent[0]);
+  			delayedGlobalRatingTorrents.clear();
+  		}
+		} finally {
+			mon_DelayedGlobalRatingTorrents.exit();
+		}
+		
+		final TOTorrent[] torrents = _torrents;
+		
 		ArrayList hashes = new ArrayList(torrents.length);
 		for (TOTorrent torrent : torrents) {
 			if (torrent != null) {
@@ -360,5 +398,19 @@ public class PlatformRatingMessenger
 		public abstract String getRatingColor(String hash, String type);
 
 		public abstract long getRatingExpireyMins(String hash, String type);
+	}
+
+	public static boolean isGlobalRatingUpdateDelayed() {
+		return delayGlobalRatingUpdate;
+	}
+
+	public static void setGlobalRatingUpdateDelayed(boolean delayGlobalRatingUpdate) {
+		if (PlatformRatingMessenger.delayGlobalRatingUpdate == delayGlobalRatingUpdate) {
+			return;
+		}
+		PlatformRatingMessenger.delayGlobalRatingUpdate = delayGlobalRatingUpdate;
+		if (!delayGlobalRatingUpdate) {
+			updateGlobalRating(new TOTorrent[0], 1000);
+		}
 	}
 }
