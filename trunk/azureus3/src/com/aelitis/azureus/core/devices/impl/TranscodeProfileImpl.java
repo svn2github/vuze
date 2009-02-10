@@ -65,4 +65,10 @@ TranscodeProfileImpl
 	{
 		return( provider );
 	}
+	
+	public String 
+	getFileExtension() 
+	{
+		return((String)properties.get( "file-ext" ));
+	}
 }

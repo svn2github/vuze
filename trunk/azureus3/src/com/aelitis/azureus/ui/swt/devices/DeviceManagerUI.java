@@ -530,28 +530,15 @@ DeviceManagerUI
 							}
 						});
 				
+					// show hidden
+				
 				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.show" );
 
 				de_menu_item.addListener( show_listener );
 				de_menu_item.addFillListener( show_fill_listener );
 				
-				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
-				
-				de_menu_item.addListener( 
-						new MenuItemListener() 
-						{
-							public void 
-							selected(
-								MenuItem menu, Object target ) 
-							{
-						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
-						      	 
-						      	 if ( uif != null ){
-						      		 
-						      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
-						      	 }
-							}
-						});
+
+					// simple
 				
 				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "devices.sidebar.simple" );
 				
@@ -585,6 +572,30 @@ DeviceManagerUI
 							}
 						});
 				
+				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "sep" );
+
+				de_menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+				
+					// options 
+				
+				de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "ConfigView.title.short" );
+				
+				de_menu_item.addListener( 
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, Object target ) 
+							{
+						      	 UIFunctions uif = UIFunctionsManager.getUIFunctions();
+						      	 
+						      	 if ( uif != null ){
+						      		 
+						      		 uif.openView( UIFunctions.VIEW_CONFIG, "Devices" );
+						      	 }
+							}
+						});
+
 			}
 			
 			if ( rebuild ){
@@ -753,9 +764,13 @@ DeviceManagerUI
 						
 						Device[] devices = device_manager.getDevices();
 						
+						int	devices_added = 0;
+						
 						for ( Device device: devices ){
 							
 							if ( device instanceof TranscodeTarget ){
+								
+								devices_added++;
 								
 								final TranscodeTarget renderer = (TranscodeTarget)device;
 								
@@ -814,6 +829,17 @@ DeviceManagerUI
 									}
 								}
 							}
+						}
+						
+						if ( devices_added == 0 ){
+						
+							TableContextMenuItem device_item =
+								plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+									(TableContextMenuItem)menu,
+									"!(No Devices)!");
+							
+							device_item.setEnabled( false );
+
 						}
 					}
 				}

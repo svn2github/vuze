@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 
@@ -39,6 +40,7 @@ TranscodeJobImpl
 	
 	private int						state 				= ST_QUEUED;
 	private int						percent_complete	= 0;
+	private String					error;
 	
 	protected
 	TranscodeJobImpl(
@@ -71,6 +73,55 @@ TranscodeJobImpl
 			return( file.getFile().getName());
 		}
 	}
+	
+	protected void
+	starts()
+	{
+		synchronized( this ){
+		
+			state = ST_RUNNING;
+		}
+		
+		queue.jobChanged( this );
+	}
+	
+	protected void
+	failed(
+		Throwable	e )
+	{
+		error = Debug.getNestedExceptionMessage( e );
+		
+		synchronized( this ){
+			
+			state = ST_FAILED;
+		}
+		
+		queue.jobChanged( this );
+	}
+	
+	protected void
+	complete()
+	{
+		synchronized( this ){
+		
+			state = ST_COMPLETE;
+		}
+		
+		queue.jobChanged( this );
+	}
+	
+	protected void
+	setPercentDone(
+		int		_done )
+	{
+		if ( percent_complete != _done ){
+		
+			percent_complete	= _done;
+		
+			queue.jobChanged( this );
+		}
+	}
+	
 	public TranscodeTarget
 	getTarget()
 	{
@@ -101,16 +152,46 @@ TranscodeJobImpl
 		return( percent_complete );
 	}
 	
+	public String
+	getError()
+	{
+		return( error );
+	}
+	
 	public void
 	pause()
 	{
+		synchronized( this ){
+			
+			if ( state == ST_RUNNING ){
 		
+				state = ST_PAUSED;
+				
+			}else{
+				
+				return;
+			}
+		}
+		
+		queue.jobChanged( this );
 	}
 	
 	public void
 	resume()
 	{
+		synchronized( this ){
+
+			if ( state == ST_PAUSED ){
+				
+				state = ST_RUNNING;
+				
+			}else{
+				
+				return;
+			}
+		}
 		
+		queue.jobChanged( this );
 	}
 	
 	public void

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -34,6 +35,9 @@ import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
+import com.aelitis.azureus.core.devices.TranscodeProviderAdapter;
+import com.aelitis.azureus.core.devices.TranscodeProviderException;
+import com.aelitis.azureus.core.devices.TranscodeProviderJob;
 
 public class 
 TranscodeProviderVuze 
@@ -112,20 +116,40 @@ TranscodeProviderVuze
 		return( null );
 	}
 	
-	public void
+	public TranscodeProviderJob
 	transcode( 
-		DiskManagerFileInfo		input,
-		TranscodeProfile		profile,
-		URL						output )
+		final TranscodeProviderAdapter	adapter,
+		DiskManagerFileInfo				input,
+		TranscodeProfile				profile,
+		URL								output )
+	
+		throws TranscodeProviderException
 	{
-		URL source_url = null;
-				
 		try{
+			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+			
+			if ( av_pi == null ){
+			
+				throw( new TranscodeProviderException( "Media Server plugin not found" ));
+			}
+			
+			IPCInterface av_ipc = av_pi.getIPC();
+			
+			String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+			
+			URL source_url = new URL( url_str );
+			
+			
+			
+			
+			
+			
+			
 			File file = new File( output.toURI());
 				
-			IPCInterface	ipc = plugin_interface.getIPC();
+			final IPCInterface	ipc = plugin_interface.getIPC();
 				
-			Object context = 
+			final Object context = 
 				ipc.invoke(
 					"transcodeToFile",
 					new Object[]{ 
@@ -133,11 +157,85 @@ TranscodeProviderVuze
 						profile.getName(),
 						file });
 
+			new AEThread2( "xcodeStatus", true )
+				{
+					public void 
+					run() 
+					{
+						boolean	in_progress = true;
+						
+						while( in_progress ){
+							
+							in_progress = false;
+							
+							try{
+								Map status = (Map)ipc.invoke( "getTranscodeStatus", new Object[]{ context });
+								
+								long	state = (Long)status.get( "state" );
+								
+								if ( state == 0 ){
+									
+									int	percent = (Integer)status.get( "percent" );
+									
+									adapter.updatePercentDone( percent );
+									
+									if ( percent == 100 ){
+										
+										adapter.complete();
+
+									}else{
+										
+										in_progress = true;
+									
+										Thread.sleep(1000);
+									}
+								}else if ( state == 1 ){
+									
+									adapter.failed( new TranscodeProviderException( "Transcode cancelled" ));
+									
+								}else{
+									
+									adapter.failed( new TranscodeProviderException( "Transcode failed", (Throwable)status.get( "error" )));
+								}
+							}catch( Throwable e ){
+								
+								adapter.failed( new TranscodeProviderException( "Failed to get status", e ));
+							}
+						}
+					}
+				}.start();
+				
+			return( 
+				new TranscodeProviderJob()
+				{
+					public void
+					pause()
+					{
+						
+					}
+					
+					public void
+					resume()
+					{
+						
+					}
+
+					public void 
+					cancel() 
+					{
+						try{
+							ipc.invoke( "cancelTranscode", new Object[]{ context });
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace( e );
+						}
+					}
+				});
+					
 		}catch( Throwable e ){
 			
-			e.printStackTrace();
-			
-			// TODO
+			throw( new TranscodeProviderException( "transcode failed", e ));
 		}
 	}
 	

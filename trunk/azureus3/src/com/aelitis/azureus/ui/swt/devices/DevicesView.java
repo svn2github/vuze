@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -291,11 +293,13 @@ public class DevicesView
 				"azbuddy.ui.table.name", 
 				"devices.device",  
 				"devices.profile",
+				"PeersView.state",
+				"General.percent",
 		};
 
-		int[] sizes = { 300, 100, 150 };
+		int[] sizes = { 300, 100, 150, 200, 100 };
 
-		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
+		int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER, SWT.CENTER, SWT.CENTER };
 
 		for (int i = 0; i < headers.length; i++){
 
@@ -313,6 +317,8 @@ public class DevicesView
 	    columns[0].setData(new Integer(FilterComparator.FIELD_NAME));
 	    columns[1].setData(new Integer(FilterComparator.FIELD_DEVICE));
 	    columns[1].setData(new Integer(FilterComparator.FIELD_PROFILE));
+	    columns[1].setData(new Integer(FilterComparator.FIELD_STATE));
+	    columns[1].setData(new Integer(FilterComparator.FIELD_PERCENT));
 	    
 	    
 	    final FilterComparator comparator = new FilterComparator();
@@ -368,6 +374,8 @@ public class DevicesView
 					item.setText(0, job.getName());
 					item.setText(1, job.getTarget().getDevice().getName());
 					item.setText(2, job.getProfile().getName());
+					item.setText(3, getJobStatus( job ));
+					item.setText(4, String.valueOf( job.getPercentComplete()));
 					
 
 					
@@ -527,6 +535,60 @@ public class DevicesView
 			});
 
 		final Menu menu = new Menu(job_table);
+				
+			// pause
+		
+		final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
+		
+		pause_item.setText( MessageText.getString( "v3.MainWindow.button.pause" ));
+
+		pause_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					TableItem[] selection = job_table.getSelection();
+					
+					for (int i=0;i<selection.length;i++){
+						
+						TranscodeJob job = (TranscodeJob)selection[i].getData();
+						
+						job.pause();
+					}
+				};
+			});
+		
+			// resume
+		
+		final MenuItem resume_item = new MenuItem(menu, SWT.PUSH);
+		
+		resume_item.setText( MessageText.getString( "v3.MainWindow.button.resume" ));
+
+		resume_item.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					TableItem[] selection = job_table.getSelection();
+					
+					for (int i=0;i<selection.length;i++){
+						
+						TranscodeJob job = (TranscodeJob)selection[i].getData();
+						
+						job.resume();
+					}
+				};
+			});
+		
+			// separator
+		
+		new MenuItem(menu, SWT.SEPARATOR );
+
+			// remove
 		
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 		
@@ -549,7 +611,30 @@ public class DevicesView
 					}
 				};
 			});
+
 		
+		menu.addMenuListener(
+			new MenuListener()
+			{
+				public void 
+				menuShown(
+					MenuEvent arg0 ) 
+				{
+					TableItem[] selection = job_table.getSelection();
+
+					boolean has_selection = selection.length > 0;
+					
+					remove_item.setEnabled( has_selection );
+					pause_item.setEnabled( has_selection );
+					resume_item.setEnabled( has_selection );
+				}
+				
+				public void 
+				menuHidden(
+					MenuEvent arg0) 
+				{
+				}
+			});
 		
 		job_table.setMenu( menu );
 				
@@ -643,9 +728,30 @@ public class DevicesView
 	
 	public void
 	jobChanged(
-		TranscodeJob		job )
+		final TranscodeJob		job )
 	{
-		
+		if ( job_table != null && !job_table.isDisposed()){
+			
+			job_table.getDisplay().asyncExec(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							if ( !job_table.isDisposed()){
+								
+								int	index = transcode_jobs.indexOf( job );
+								
+								if ( index >= 0 ){
+								
+									job_table.clear( index );
+								
+									job_table.redraw();
+								}
+							}
+						}
+					});
+		}
 	}
 	
 	public void
@@ -831,6 +937,22 @@ public class DevicesView
 	{
 	}
 	
+	protected String
+	getJobStatus(
+		TranscodeJob		job )
+	{
+		int	state = job.getState();
+		
+		String res = String.valueOf( state );
+		
+		if ( state == TranscodeJob.ST_FAILED ){
+			
+			res += ": " + job.getError();
+		}
+		
+		return( res );
+	}
+	
 	protected class 
 	FilterComparator 
 		implements Comparator<TranscodeJob>
@@ -840,6 +962,8 @@ public class DevicesView
 		static final int FIELD_NAME			= 0;
 		static final int FIELD_DEVICE 		= 1;
 		static final int FIELD_PROFILE 		= 2;
+		static final int FIELD_STATE 		= 3;
+		static final int FIELD_PERCENT 		= 4;
 
 
 		int field = FIELD_NAME;
@@ -858,11 +982,17 @@ public class DevicesView
 				res = j1.getTarget().getDevice().getName().compareTo( j2.getTarget().getDevice().getName());
 			}else if(field == FIELD_PROFILE){
 				res = j1.getProfile().getName().compareTo( j2.getProfile().getName());
+			}else if(field == FIELD_STATE){
+				String	state1 = getJobStatus( j1 );
+				String	state2 = getJobStatus( j2 );
+				return( state1.compareTo(state2));
+			}else if(field == FIELD_PERCENT){
+				res = j1.getPercentComplete()-j2.getPercentComplete();
 			}
 			
 			return(( ascending ? 1 : -1) * res );
 		}
-	
+		
 		public void 
 		setField(
 			int newField ) 

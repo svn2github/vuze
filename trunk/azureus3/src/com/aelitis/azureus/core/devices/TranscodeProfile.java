@@ -30,6 +30,9 @@ TranscodeProfile
 	public String
 	getName();
 	
+	public String
+	getFileExtension();
+	
 	public TranscodeProvider
 	getProvider();
 }

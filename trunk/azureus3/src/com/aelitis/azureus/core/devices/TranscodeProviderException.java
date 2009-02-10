@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 2, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,45 +21,24 @@
 
 package com.aelitis.azureus.core.devices;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+@SuppressWarnings("serial")
 
-public interface 
-TranscodeJob 
+public class 
+TranscodeProviderException
+	extends Exception
 {
-	public static final int	ST_QUEUED		= 0;
-	public static final int	ST_RUNNING		= 1;
-	public static final int	ST_PAUSED		= 2;
-	public static final int	ST_COMPLETE		= 3;
-	public static final int	ST_CANCELLED	= 4;
-	public static final int	ST_FAILED		= 5;
+	public 
+	TranscodeProviderException(
+		String		str )
+	{
+		super( str );
+	}
 	
-	public String
-	getName();
-	
-	public TranscodeTarget
-	getTarget();
-	
-	public TranscodeProfile
-	getProfile();
-	
-	public DiskManagerFileInfo
-	getFile();
-	
-	public int
-	getState();
-	
-	public int
-	getPercentComplete();
-	
-	public String
-	getError();
-	
-	public void
-	pause();
-	
-	public void
-	resume();
-	
-	public void
-	remove();
+	public 
+	TranscodeProviderException(
+		String		str,
+		Throwable 	e )
+	{
+		super( str, e );
+	}
 }
