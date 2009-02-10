@@ -2890,7 +2890,10 @@ DHTControlImpl
 		
 		Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 
-		for (int i=0;i<l.size();i++){
+		// profilers says l.size() is taking CPU (!) so put it into a variable
+		// this is safe since the list returned is created for us only
+		long size = l.size();
+		for (int i=0;i<size;i++){
 			
 			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getTransportContact());
 		}
