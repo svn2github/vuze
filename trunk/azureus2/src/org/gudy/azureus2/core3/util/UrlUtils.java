@@ -644,4 +644,41 @@ public class UrlUtils
 		
 		return( url_str.matches(".*[0-9a-z]{20,40}.*"));
 	}
+	
+	public static URL
+	setPort(
+		URL		u,
+		int		port )
+	{
+		StringBuffer result = new StringBuffer();
+		result.append(u.getProtocol());
+		result.append(":");
+		String authority=u.getAuthority();
+		if (authority != null && authority.length() > 0) {
+			result.append("//");
+			int pos = authority.lastIndexOf(':');
+			if ( pos == -1 ){
+				result.append(authority + ":" + port );
+			}else{
+				result.append(authority.substring(0,pos+1) + port );				
+			}
+		}
+		if (u.getPath() != null) {
+			result.append(u.getPath());
+		}
+		if (u.getQuery() != null) {
+			result.append('?');
+			result.append(u.getQuery());
+		}
+		if (u.getRef() != null) {
+			result.append("#");
+			result.append(u.getRef());
+		}
+		try{
+			return( new URL( result.toString()));
+		}catch( Throwable e ){
+			Debug.out(e);
+			return(u);
+		}
+	}
 }
