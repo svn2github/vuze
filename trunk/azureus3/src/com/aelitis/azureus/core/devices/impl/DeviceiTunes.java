@@ -101,18 +101,25 @@ DeviceiTunes
 	{
 		super.getDisplayProperties( dp );
 		
-		IPCInterface	ipc = itunes.getIPC();
-		
-		try{
-			Map<String,Object> properties = (Map<String,Object>)ipc.invoke( "getProperties", new Object[]{} );
+		if ( itunes == null ){
+			
+			addDP( dp, "devices.comp.missing", "<null>" );
 
-			addDP( dp, "devices.installed", String.valueOf( properties.get( "installed" )));
+		}else{
 			
-			addDP( dp, "MyTrackerView.status.started", String.valueOf( properties.get( "running" )));
+			IPCInterface	ipc = itunes.getIPC();
 			
-		}catch( Throwable e ){
-			
-			log( "iTunes IPC failed", e );
+			try{
+				Map<String,Object> properties = (Map<String,Object>)ipc.invoke( "getProperties", new Object[]{} );
+	
+				addDP( dp, "devices.installed", String.valueOf( properties.get( "installed" )));
+				
+				addDP( dp, "MyTrackerView.status.started", String.valueOf( properties.get( "running" )));
+				
+			}catch( Throwable e ){
+				
+				log( "iTunes IPC failed", e );
+			}
 		}
 	}
 }
