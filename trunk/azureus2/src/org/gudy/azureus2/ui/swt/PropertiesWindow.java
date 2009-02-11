@@ -110,13 +110,26 @@ PropertiesWindow
 		    	msg = MessageText.getString( key );
 		    }
 		    
-		    msg_label.setText( msg + ":" );
+		    String value = values[i];
+		    
+		    	// hack to allow key values on their own
+		    
+		    if ( value.equals( "<null>" )){
+		    	
+		    	msg_label.setText( msg );
+		    	
+		    	value = "";
+		    }else{
+		    	
+		    	msg_label.setText( msg + ":" );
+		    }
+		    
 		    gridData = new GridData();
 		    gridData.verticalAlignment = GridData.VERTICAL_ALIGN_FILL;
 		    msg_label.setLayoutData(gridData);
 	
 		    BufferedLabel	val_label = new BufferedLabel(main,SWT.WRAP);
-		    val_label.setText( values[i] );
+		    val_label.setText( value );
 		    gridData = new GridData(GridData.FILL_HORIZONTAL);
 		    gridData.horizontalIndent = 6;
 		    val_label.setLayoutData(gridData);
