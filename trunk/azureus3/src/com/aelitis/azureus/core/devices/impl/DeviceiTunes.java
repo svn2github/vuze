@@ -1,5 +1,5 @@
 /*
- * Created on Jan 28, 2009
+ * Created on Feb 10, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,56 +21,43 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
-DeviceMediaRendererImpl
-	extends DeviceUPnPImpl
+DeviceiTunes
+	extends DeviceImpl
 	implements DeviceMediaRenderer
 {
-	protected
-	DeviceMediaRendererImpl(
-		DeviceManagerImpl	_manager,
-		UPnPDevice			_device )
-	{
-		super( _manager, _device, Device.DT_MEDIA_RENDERER );
-	}
+	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
+	
+	private PluginInterface		itunes;
 	
 	protected
-	DeviceMediaRendererImpl(
+	DeviceiTunes(
 		DeviceManagerImpl	_manager,
-		String				_name )
+		PluginInterface		_itunes )
 	{
-		super( _manager, Device.DT_MEDIA_RENDERER, _name );
+		super( _manager, DT_MEDIA_RENDERER, UID, "iTunes", true );
+		
+		itunes	= _itunes;
 	}
-	
+
 	protected
-	DeviceMediaRendererImpl(
-		DeviceManagerImpl	_manager,
-		String				_uuid,
-		String				_name,
-		boolean				_manual )
-	{
-		super( _manager, Device.DT_MEDIA_RENDERER, _uuid, _name, _manual );
-	}
-	
-	protected
-	DeviceMediaRendererImpl(
+	DeviceiTunes(
 		DeviceManagerImpl	_manager,
 		Map					_map )
 	
 		throws IOException
 	{
-		super(_manager, _map );
+		super( _manager, _map );
 	}
 	
 	protected boolean
@@ -82,16 +69,30 @@ DeviceMediaRendererImpl
 			return( false );
 		}
 		
-		if ( !( _other instanceof DeviceMediaRendererImpl )){
+		if ( !( _other instanceof DeviceiTunes )){
 			
 			Debug.out( "Inconsistent" );
 			
 			return( false );
 		}
 		
-		DeviceMediaRendererImpl other = (DeviceMediaRendererImpl)_other;
+		DeviceiTunes other = (DeviceiTunes)_other;
+		
+		itunes = other.itunes;
 		
 		return( true );
+	}
+	
+	public boolean 
+	isBrowsable()
+	{
+		return( false );
+	}
+	
+	public browseLocation[] 
+	getBrowseLocations() 
+	{
+		return null;
 	}
 	
 	protected void
@@ -99,9 +100,19 @@ DeviceMediaRendererImpl
 		List<String[]>	dp )
 	{
 		super.getDisplayProperties( dp );
+		
+		IPCInterface	ipc = itunes.getIPC();
+		
+		try{
+			Map<String,Object> properties = (Map<String,Object>)ipc.invoke( "getProperties", new Object[]{} );
 
-		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
-		addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
-		addDP( dp, "devices.xcode.profs", getTranscodeProfiles() );
-	}	
+			addDP( dp, "devices.installed", String.valueOf( properties.get( "installed" )));
+			
+			addDP( dp, "MyTrackerView.status.started", String.valueOf( properties.get( "running" )));
+			
+		}catch( Throwable e ){
+			
+			log( "iTunes IPC failed", e );
+		}
+	}
 }

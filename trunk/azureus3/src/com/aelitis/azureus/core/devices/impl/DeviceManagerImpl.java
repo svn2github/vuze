@@ -93,6 +93,8 @@ DeviceManagerImpl
 	{
 		loadConfig();
 		
+		new DeviceiTunesManager( this );
+		
 		transcode_manager = new TranscodeManagerImpl( this );
 		
 		COConfigurationManager.addAndFireParameterListener(

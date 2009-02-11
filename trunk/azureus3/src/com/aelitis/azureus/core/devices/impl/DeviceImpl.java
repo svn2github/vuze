@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
@@ -33,6 +34,8 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
@@ -71,6 +74,11 @@ DeviceImpl
 			throw( new IOException( "Construction failed: " + Debug.getNestedExceptionMessage(e)));
 		}
 	}
+	
+	private static final String PP_REND_WORK_DIR		= "tt_work_dir";
+	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
+	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
+
 	
 	private DeviceManagerImpl	manager;
 	private int					type;
@@ -162,6 +170,12 @@ DeviceImpl
 		return( uid );
 	}
 	
+	public Device
+	getDevice()
+	{
+		return( this );
+	}
+
 	public String
 	getName()
 	{
@@ -265,6 +279,85 @@ DeviceImpl
 		manager.requestAttention( this );
 	}
 	
+	public File
+	getWorkingDirectory()
+	{
+		return( new File( getPersistentStringProperty( PP_REND_WORK_DIR )));
+	}
+	
+	public void
+	setWorkingDirectory(
+		File		directory )
+	{
+		setPersistentStringProperty( PP_REND_WORK_DIR, directory.getAbsolutePath());
+	}
+
+	public TranscodeProfile[]
+	getTranscodeProfiles()
+	{
+		String[] uids = getPersistentStringListProperty( PP_REND_TRANS_PROF );
+		
+		List<TranscodeProfile>	profiles = new ArrayList<TranscodeProfile>();
+		
+		DeviceManagerImpl dm = getManager();
+		
+		TranscodeManagerImpl tm = dm.getTranscodeManager();
+		
+			// hack for the moment!!!!
+		
+		TranscodeProvider[] providers = tm.getProviders();
+		
+		if ( providers.length > 0 ){
+			
+			return( providers[0].getProfiles());
+		}
+		
+		for ( String uid: uids ){
+			
+			TranscodeProfile profile = tm.getProfileFromUID( uid );
+			
+			if ( profile != null ){
+				
+				profiles.add( profile );
+			}
+		}
+		
+		return( profiles.toArray( new TranscodeProfile[profiles.size()] ));
+	}
+	
+	public void
+	setTranscodeProfiles(
+		TranscodeProfile[]	profiles )
+	{
+		String[]	uids = new String[profiles.length];
+		
+		for (int i=0;i<profiles.length;i++){
+			
+			uids[i] = profiles[i].getUID();
+		}
+		
+		setPersistentStringListProperty( PP_REND_TRANS_PROF, uids );
+	}
+	
+	public TranscodeProfile
+	getDefaultTranscodeProfile()
+	{
+		String uid = getPersistentStringProperty( PP_REND_DEF_TRANS_PROF );
+		
+		DeviceManagerImpl dm = getManager();
+		
+		TranscodeManagerImpl tm = dm.getTranscodeManager();
+
+		return( tm.getProfileFromUID( uid ));
+	}
+	
+	public void
+	setDefaultTranscodeProfile(
+		TranscodeProfile		profile )
+	{
+		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
+	}
+	
 	public String[][] 
 	getDisplayProperties() 
 	{
@@ -333,6 +426,32 @@ DeviceImpl
 		boolean			value )
 	{
 		dp.add( new String[]{ name, MessageText.getString( value?"GeneralView.yes":"GeneralView.no" ) });
+	}
+	
+	
+	protected void
+	addDP(
+		List<String[]>		dp,
+		String				name,
+		TranscodeProfile	value )
+	{
+		addDP( dp, name, value==null?"":value.getName());
+	}
+	
+	protected void
+	addDP(
+		List<String[]>		dp,
+		String				name,
+		TranscodeProfile[]	values )
+	{
+		String[]	names = new String[values.length];
+		
+		for (int i=0;i<values.length;i++){
+			
+			names[i] = values[i].getName();
+		}
+		
+		addDP( dp, name, names);
 	}
 	
 	public void
@@ -458,6 +577,21 @@ DeviceImpl
 	getManager()
 	{
 		return( manager );
+	}
+
+	protected void
+	log(
+		String		str )
+	{
+		manager.log( str );
+	}
+	
+	protected void
+	log(
+		String		str,
+		Throwable	e )
+	{
+		manager.log( str, e );
 	}
 	
 	public String

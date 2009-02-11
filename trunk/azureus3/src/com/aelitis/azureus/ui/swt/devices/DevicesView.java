@@ -956,6 +956,7 @@ public class DevicesView
 			}
 			
 			if ( 	state != TranscodeJob.ST_PAUSED &&
+					state != TranscodeJob.ST_STOPPED &&
 					state != TranscodeJob.ST_FAILED ){
 				
 				can_queue = false;
