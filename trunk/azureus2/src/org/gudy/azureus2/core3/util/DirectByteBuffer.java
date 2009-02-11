@@ -435,6 +435,21 @@ DirectByteBuffer
   
 	public void
 	put(
+		byte		subsystem,
+		byte[]		data,
+		int			offset,
+		int			length )
+	{
+		if ( TRACE ){
+			
+			traceUsage( subsystem, OP_PUT_BYTEARRAY );
+		}
+		
+		buffer.put( data, offset, length );
+	}
+	
+	public void
+	put(
 		byte				subsystem,
 		DirectByteBuffer	data )
 	{

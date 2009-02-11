@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -112,6 +113,16 @@ public class DiskManagerFileInfoImpl
 	  return core.getFirstPieceNumber();
 	}
 	
+	public long getPieceSize(){
+		try{
+			return getDownload().getTorrent().getPieceSize();
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return(0);
+		}
+	}
 	public int getNumPieces() {
 	  return core.getNbPieces();
 	}

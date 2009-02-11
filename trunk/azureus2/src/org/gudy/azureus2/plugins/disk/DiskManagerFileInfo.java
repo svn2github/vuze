@@ -89,6 +89,9 @@ DiskManagerFileInfo
 	public int 
 	getFirstPieceNumber();
 	
+	public long
+	getPieceSize();
+	
 	public int 
 	getNumPieces();
 		

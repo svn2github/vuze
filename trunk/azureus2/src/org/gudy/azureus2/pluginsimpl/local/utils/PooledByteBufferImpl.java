@@ -62,6 +62,19 @@ PooledByteBufferImpl
 		buffer.position( DirectByteBuffer.AL_EXTERNAL, 0 );
 	}
 	
+	public
+	PooledByteBufferImpl(
+		byte[]		data,
+		int			offset,
+		int			length )
+	{
+		buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, length );
+		
+		buffer.put( DirectByteBuffer.AL_EXTERNAL, data, offset, length );
+		
+		buffer.position( DirectByteBuffer.AL_EXTERNAL, 0 );
+	}
+	
 	public byte[]
 	toByteArray()
 	{

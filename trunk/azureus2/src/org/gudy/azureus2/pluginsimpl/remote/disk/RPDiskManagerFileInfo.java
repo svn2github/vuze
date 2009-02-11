@@ -156,6 +156,13 @@ RPDiskManagerFileInfo
 		return( first_piece_number );
 	}
 	
+	public long getPieceSize()
+	{
+		notSupported();
+		
+		return(-1);
+	}
+	
 	public int getNumPieces()
 	{
 		return( num_pieces );
