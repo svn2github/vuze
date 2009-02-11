@@ -72,7 +72,16 @@ InstallablePluginImpl
 			return( false );
 		}
 		
-		return( Constants.compareVersions( pi.getPluginVersion(), version ) >= 0);
+		String existing_version = pi.getPluginVersion();
+		
+			// this is the case when running with plugin in eclipse
+		
+		if ( existing_version == null ){
+			
+			return( true );
+		}
+		
+		return( Constants.compareVersions( existing_version, version ) >= 0);
 	}
 	
 	public PluginInterface
