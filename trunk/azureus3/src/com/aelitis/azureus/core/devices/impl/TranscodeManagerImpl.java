@@ -21,9 +21,12 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -31,10 +34,13 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -70,6 +76,8 @@ TranscodeManagerImpl
 				public void
 				initializationComplete()
 				{
+					test(default_pi);
+					
 					default_pi.addEventListener(
 						new PluginEventListener()
 						{
@@ -115,6 +123,46 @@ TranscodeManagerImpl
 				{
 				}
 			});
+	}
+	
+	protected void
+	test(
+		PluginInterface plugin_interface )
+	{
+		try{
+			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+			
+			if ( av_pi == null ){
+			
+				throw( new TranscodeProviderException( "Media Server plugin not found" ));
+			}
+			
+			IPCInterface av_ipc = av_pi.getIPC();
+			
+			final DiskManagerFileInfoFile file = new DiskManagerFileInfoFile( new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4" ));
+			
+			AzureusContentFile	content = 
+				new AzureusContentFile()
+				{
+					public byte[]
+				   	getHash()
+					{
+						return( new SHA1Simple().calculateHash( file.getFile().getAbsolutePath().getBytes()));
+					}
+				        	
+				   	public DiskManagerFileInfo
+				   	getFile()
+				   	{
+				   		return( file );
+				   	}
+				};
+				
+			av_ipc.invoke( "addContent", new Object[]{ content });
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 	
 	protected void

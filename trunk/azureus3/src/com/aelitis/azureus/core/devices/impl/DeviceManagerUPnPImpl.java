@@ -53,6 +53,8 @@ import com.aelitis.net.upnp.services.UPnPWANConnection;
 public class 
 DeviceManagerUPnPImpl 
 {
+	private final static Object KEY_LISTENER_ADDED = new Object();
+	
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
 	private UPnP 					upnp;
@@ -361,22 +363,30 @@ DeviceManagerUPnPImpl
 				continue;
 			}
 			
-			manager.addDevice( new_device );
+				// grab the actual device as the 'addDevice' call will update an existing one
+				// with same id
+			
+			final DeviceImpl actual_device = manager.addDevice( new_device );
 
-			device.getRootDevice().addListener(
-				new UPnPRootDeviceListener()
-				{
-					public void
-					lost(
-						UPnPRootDevice	root,
-						boolean			replaced )
+			if ( actual_device.getTransientProperty( KEY_LISTENER_ADDED ) == null ){
+				
+				actual_device.setTransientProperty( KEY_LISTENER_ADDED, "" );
+				
+				device.getRootDevice().addListener(
+					new UPnPRootDeviceListener()
 					{
-						if ( !replaced ){
-							
-							new_device.dead();
+						public void
+						lost(
+							UPnPRootDevice	root,
+							boolean			replaced )
+						{
+							if ( !replaced ){
+								
+								actual_device.dead();
+							}
 						}
-					}
-				});
+					});
+			}
 		}
 		
 		for (UPnPDevice d: device.getSubDevices()){
