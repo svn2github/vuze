@@ -89,8 +89,11 @@ PluginInterfaceImpl
   private PluginInitializer		initialiser;
   private Object				initialiser_key;
   protected ClassLoader			class_loader;
-  private CopyOnWriteList		listeners 		= new CopyOnWriteList();
-  private CopyOnWriteList		event_listeners	= new CopyOnWriteList();
+  
+  private CopyOnWriteList<PluginListener>		listeners 				= new CopyOnWriteList<PluginListener>();
+  private Set<PluginListener>					init_complete_fired_set	= new HashSet<PluginListener>();
+  
+  private CopyOnWriteList<PluginEventListener>		event_listeners	= new CopyOnWriteList<PluginEventListener>();
   private String				key;
   private String 				pluginConfigKey;
   private Properties 			props;
@@ -100,7 +103,7 @@ PluginInterfaceImpl
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
   protected List				children		= new ArrayList();
-  private List configSections = new ArrayList();
+  private List 					configSections 	= new ArrayList();
   private PluginStateImpl       state;
   
   /**
@@ -495,13 +498,13 @@ PluginInterfaceImpl
   protected void
   initialisationComplete()
   {
-	  Iterator it = listeners.iterator();
+	  Iterator<PluginListener> it = listeners.iterator();
 	  
 	  while( it.hasNext()){
 
 		  try{
-			  ((PluginListener)it.next()).initializationComplete();
-
+			  fireInitComplete( it.next());
+			  
 		  }catch( Throwable e ){
 
 			  Debug.printStackTrace( e );
@@ -512,6 +515,23 @@ PluginInterfaceImpl
 
 		  ((PluginInterfaceImpl)children.get(i)).initialisationComplete();
 	  }
+  }
+  
+  protected void
+  fireInitComplete(
+	PluginListener		listener )
+  {
+	  synchronized( init_complete_fired_set ){
+		  
+		  if ( init_complete_fired_set.contains( listener )){
+			  
+			  return;
+		  }
+		  
+		  init_complete_fired_set.add( listener );
+	  }
+	  
+	  listener.initializationComplete();
   }
   
   protected void
@@ -660,15 +680,32 @@ PluginInterfaceImpl
   	
   	if ( initialiser.isInitialisationComplete()){
   		
-  		l.initializationComplete();
+  		fireInitComplete( l );
   	}
   }
   
   public void
   removeListener(
-  	PluginListener	l )
+  	final PluginListener	l )
   {
   	listeners.remove(l);
+  	
+  		// we want to remove this ref, but there is a *small* chance that there's a parallel thread firing the complete so
+  		// decrease chance of hanging onto unwanted ref 
+  	
+  	new DelayedEvent( 
+  		"PIL:clear", 10000,
+  		new AERunnable()
+  		{
+  			public void 
+  			runSupport() 
+  			{
+  				synchronized( init_complete_fired_set ){
+  		
+  					init_complete_fired_set.remove(l);
+  				}
+  			}
+  		});
   }
   
   public void
