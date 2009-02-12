@@ -22,6 +22,9 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -41,6 +44,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -138,8 +142,67 @@ TranscodeManagerImpl
 			}
 			
 			IPCInterface av_ipc = av_pi.getIPC();
+
+			final File source_file = new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4" );
 			
-			final DiskManagerFileInfoFile file = new DiskManagerFileInfoFile( new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4" ));
+			if ( !source_file.exists()){
+				
+				return;
+			}
+			
+			final DiskManagerFileInfo source = new DiskManagerFileInfoFile( source_file );
+			
+			final DiskManagerFileInfo stream_file = 
+				new DiskManagerFileInfoStream( 
+					new DiskManagerFileInfoStream.streamFactory()
+					{
+						public InputStream 
+						getStream() 
+						
+							throws IOException 
+						{
+							TranscodeTarget target = null;
+							
+							for ( Device device: device_manager.getDevices()){
+								
+								if ( device instanceof TranscodeTarget ){
+									
+									target = (TranscodeTarget)device;
+								}
+							}
+							
+							if ( target == null ){
+								
+								throw( new IOException( "No transcode target found!!!!" ));
+							}
+							
+							TranscodeProfile profile = null;
+							
+							for (TranscodeProvider provider: getProviders()){
+				
+								TranscodeProfile[] profiles = provider.getProfiles();
+								
+								if ( profiles.length > 0 ){
+									
+									profile = profiles[0];
+								}
+							}
+							
+							if ( profile == null ){
+								
+								throw( new IOException( "No transcode profiles found!!!!" ));
+							}
+							
+							TranscodeJobImpl job = queue.add(
+								target,
+								profile, 
+								source, 
+								true );
+							
+							return( job.getStream());
+						}
+					},
+					new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4.sav" ));
 			
 			AzureusContentFile	content = 
 				new AzureusContentFile()
@@ -147,13 +210,21 @@ TranscodeManagerImpl
 					public byte[]
 				   	getHash()
 					{
-						return( new SHA1Simple().calculateHash( file.getFile().getAbsolutePath().getBytes()));
+						try{
+							return( stream_file.getDownloadHash());
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+							
+							return( null );
+						}
 					}
 				        	
 				   	public DiskManagerFileInfo
 				   	getFile()
 				   	{
-				   		return( file );
+				   		return( stream_file );
 				   	}
 				};
 				

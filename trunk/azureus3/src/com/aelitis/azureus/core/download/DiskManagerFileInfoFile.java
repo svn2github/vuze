@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -41,6 +42,7 @@ public class
 DiskManagerFileInfoFile
 	implements DiskManagerFileInfo
 {
+	private byte[]		hash;
 	private File		file;
 	
 	public
@@ -48,6 +50,14 @@ DiskManagerFileInfoFile
 		File		_file )
 	{
 		file		= _file;
+		
+		try{
+			hash		= new SHA1Simple().calculateHash( file.getAbsolutePath().getBytes( "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out(e);
+		}
 	}
 	
 	public void 
@@ -150,10 +160,16 @@ DiskManagerFileInfoFile
 		return( false );
 	}
 	
+	public byte[] 
+	getDownloadHash()
+    {
+		return( hash );
+    }
+	
 	public Download 
 	getDownload()
 	
-         throws DownloadException
+      throws DownloadException
     {
 		throw( new DownloadException( "Not supported" ));
     }
@@ -224,6 +240,11 @@ DiskManagerFileInfoFile
 			setLength(
 				long		_length )
 			{
+				if ( _length < 0 ){
+					
+					throw( new RuntimeException( "Illegal argument" ));
+				}
+				
 				length		= _length;
 			}
 						

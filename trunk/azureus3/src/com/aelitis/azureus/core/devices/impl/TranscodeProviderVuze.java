@@ -136,13 +136,37 @@ TranscodeProviderVuze
 			
 			String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
 			
-			URL source_url = new URL( url_str );
+			URL 				source_url;
+			TranscodePipe		pipe;
 			
-			final TranscodePipe pipe = new TranscodePipe( source_url.getPort());
+			if ( url_str == null || url_str.length() == 0 ){
+				
+					// see if we can use the file directly
+				
+				File source_file = input.getFile();
+				
+				if ( source_file.exists()){
+					
+					pipe = new TranscodePipeFileSource( source_file );
+					
+					source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
+					
+				}else{
+					
+					throw( new TranscodeProviderException( "No UPnPAV URL and file doesn't exist" ));
+				}
+			}else{
+				source_url = new URL( url_str );
+			
+				pipe = new TranscodePipeStreamSource( source_url.getPort());
+				
+				source_url = UrlUtils.setPort( source_url, pipe.getPort());
+			}
+			
+			final TranscodePipe f_pipe = pipe;
 			
 			try{	
-				source_url = UrlUtils.setPort( source_url, pipe.getPort());
-				
+
 				File file = new File( output.toURI());
 					
 				final IPCInterface	ipc = plugin_interface.getIPC();
@@ -203,7 +227,7 @@ TranscodeProviderVuze
 								}
 							}finally{
 								
-								pipe.destroy();
+								f_pipe.destroy();
 							}
 						}
 					}.start();
@@ -215,13 +239,13 @@ TranscodeProviderVuze
 						public void
 						pause()
 						{
-							pipe.pause();
+							f_pipe.pause();
 						}
 						
 						public void
 						resume()
 						{
-							pipe.resume();
+							f_pipe.resume();
 						}
 	
 						public void 
@@ -240,7 +264,7 @@ TranscodeProviderVuze
 						setMaxBytesPerSecond(
 							int		 max ) 
 						{
-							pipe.setMaxBytesPerSecond( max );
+							f_pipe.setMaxBytesPerSecond( max );
 						}
 					});
 						

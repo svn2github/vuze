@@ -30,7 +30,8 @@ TranscodeQueue
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
-		DiskManagerFileInfo		file );
+		DiskManagerFileInfo		file,
+		boolean					stream );
 	
 	public TranscodeJob[]
 	getJobs();

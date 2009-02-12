@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2009
+ * Created on Feb 12, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -24,39 +24,37 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
-public class 
+public abstract class 
 TranscodePipe 
 {
-	private int				source_port;
-	private ServerSocket	server_socket;
+	protected volatile boolean	paused;
+	protected volatile boolean	destroyed;
 
-	private volatile boolean	paused;
-	private volatile boolean	destroyed;
-	
-	private volatile int		bytes_available;
-	private volatile int		max_bytes_per_sec;
+	protected volatile int		bytes_available;
+	protected volatile int		max_bytes_per_sec;
+
+	protected List<Socket>		sockets 		= new ArrayList<Socket>();
+
+	private ServerSocket		server_socket;
 	private AEThread2			refiller;
-	
-	private List<Socket>		sockets = new ArrayList<Socket>();
-	
+
 	protected
-	TranscodePipe(
-		int		_source_port )
+	TranscodePipe()
 	
 		throws IOException
 	{
-		source_port	= _source_port;
-		
 		server_socket = new ServerSocket( 0, 50, InetAddress.getByName( "127.0.0.1" ));
-	
+		
 		new AEThread2( "TranscodePipe", true )
 		{
 			public void
@@ -72,7 +70,7 @@ TranscodePipe
 							public void
 							run()
 							{
-								handleStream( socket );
+								handleSocket( socket );
 							}
 						}.start();
 						
@@ -89,72 +87,10 @@ TranscodePipe
 			}
 		}.start();
 	}
-	
-	protected void
-	handleStream(
-		Socket		socket1 )
-	{
-		synchronized( this ){
-			
-			if ( destroyed ){
-				
-				try{
-					socket1.close();
-					
-				}catch( Throwable e ){				
-				}
-				
-				return;
-			}
-			
-			sockets.add( socket1 );
-		}
 
-		try{
-			Socket socket2 = new Socket( "127.0.0.1", source_port );
-	
-			synchronized( this ){
-
-				if ( destroyed ){
-					
-					try{
-						socket1.close();
-						
-					}catch( Throwable e ){				
-					}
-					
-					try{
-						socket2.close();
-						
-					}catch( Throwable e ){				
-					}
-					
-					sockets.remove( socket1 );
-					
-					return;
-				}
-				
-				sockets.add( socket2 );
-			}
-			
-			handlePipe( socket1.getInputStream(), socket2.getOutputStream());
-			
-			handlePipe( socket2.getInputStream(), socket1.getOutputStream());
-			
-		}catch( Throwable e ){
-			
-			try{
-				socket1.close();
-				
-			}catch( Throwable f ){
-			}
-			
-			synchronized( this ){
-
-				sockets.remove( socket1 );
-			}
-		}
-	}
+	protected abstract void
+	handleSocket(
+		Socket		socket );
 	
 	protected void
 	handlePipe(
@@ -216,7 +152,7 @@ TranscodePipe
 							bytes_available -= len;
 						}
 						
-						os.write( buffer, 0, len );
+						os.write( buffer, 0, len );						
 						
 					}catch( Throwable e ){
 						
@@ -232,6 +168,102 @@ TranscodePipe
 				
 				try{
 					is.close();
+					
+				}catch( Throwable e ){
+				}
+				
+				try{
+					os.close();
+					
+				}catch( Throwable e ){
+				}
+			}
+		}.start();
+	}
+	
+	protected void
+	handleRAF(
+		final RandomAccessFile	raf,
+		final OutputStream		os,
+		final long				length )
+	{
+		new AEThread2( "TranscodePipe:c", true )
+		{
+			public void
+			run()
+			{
+				final int BUFFER_SIZE = 128*1024;
+				
+				byte[]	buffer = new byte[ BUFFER_SIZE ];
+
+				long	rem = length;
+				
+				while( !destroyed && rem > 0){
+					
+					try{	
+						int	len;
+						
+						if ( paused ){
+							
+							Thread.sleep(250);
+							
+							len =  raf.read( buffer, 0, 1 );
+							
+						}else{
+							
+							int	limit;
+							
+							if ( max_bytes_per_sec > 0 ){
+								
+								limit = bytes_available;
+								
+								if ( limit <= 0 ){
+									
+									Thread.sleep(100);
+									
+									continue;
+								}
+								
+								limit = Math.min( BUFFER_SIZE, limit );
+								
+							}else{
+								
+								limit = BUFFER_SIZE;
+							}
+							
+							limit = (int)Math.min( rem, limit );
+							
+							len =  raf.read( buffer, 0, limit );
+						}
+							
+						if ( len <= 0 ){
+								
+							break;
+						}
+							
+						rem -= len;
+						
+						if ( max_bytes_per_sec > 0 ){
+						
+							bytes_available -= len;
+						}
+						
+						os.write( buffer, 0, len );						
+						
+					}catch( Throwable e ){
+						
+						break;
+					}
+				}
+				
+				try{
+					os.flush();
+					
+				}catch( Throwable e ){
+				}
+				
+				try{
+					raf.close();
 					
 				}catch( Throwable e ){
 				}
@@ -328,14 +360,14 @@ TranscodePipe
 		return( server_socket.getLocalPort());
 	}
 	
-	protected void
+	protected boolean
 	destroy()
 	{
 		synchronized( this ){
 			
 			if ( destroyed ){
 				
-				return;
+				return( false );
 			}
 			
 			destroyed	= true;
@@ -343,13 +375,14 @@ TranscodePipe
 
 		for (Socket s: sockets ){
 			
-			try{
-				
+			try{			
 				s.close();
 				
 			}catch( Throwable e ){	
 			}
 		}
+		
+		sockets.clear();
 		
 		try{
 			server_socket.close();
@@ -358,5 +391,7 @@ TranscodePipe
 		
 			Debug.printStackTrace(e);
 		}
+		
+		return( true );
 	}
 }

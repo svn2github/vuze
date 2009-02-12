@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,6 +47,7 @@ TranscodeJobImpl
 	private TranscodeTarget			target;
 	private TranscodeProfile		profile;
 	private DiskManagerFileInfo		file;
+	private boolean					stream;
 	
 	private int						state 				= ST_QUEUED;
 	private int						percent_complete	= 0;
@@ -56,12 +58,14 @@ TranscodeJobImpl
 		TranscodeQueueImpl		_queue,
 		TranscodeTarget			_target,
 		TranscodeProfile		_profile,
-		DiskManagerFileInfo		_file )
+		DiskManagerFileInfo		_file,
+		boolean					_stream )
 	{
 		queue		= _queue;
 		target		= _target;
 		profile		= _profile;
 		file		= _file;
+		stream		= _stream;
 		
 		init();
 	}
@@ -130,6 +134,20 @@ TranscodeJobImpl
 			
 		}catch( Throwable e ){
 		}
+	}
+	
+	protected boolean
+	isStream()
+	{
+		return( stream );
+	}
+	
+	protected InputStream
+	getStream()
+	
+		throws IOException
+	{
+		throw( new IOException( "bork bork" ));
 	}
 	
 	public void 

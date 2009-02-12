@@ -328,13 +328,14 @@ TranscodeQueueImpl
 		}
 	}
 	
-	public TranscodeJob
+	public TranscodeJobImpl
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
+		DiskManagerFileInfo		file,
+		boolean					stream )
 	{
-		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file );
+		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );
 		
 		synchronized( this ){
 			
@@ -654,6 +655,11 @@ TranscodeQueueImpl
 				
 				for ( TranscodeJobImpl job: queue ){
 				
+					if ( job.isStream()){
+						
+						continue;
+					}
+					
 					try{
 					
 						l_jobs.add( job.toMap());

@@ -384,17 +384,15 @@ public class DevicesView
 					}
 					
 					TranscodeJob job = transcode_jobs.get( index );
-										
+						
+					item.setData( job );
+
 					item.setText(0, String.valueOf(job.getIndex()));
 					item.setText(1, job.getName());
 					item.setText(2, job.getTarget().getDevice().getName());
 					item.setText(3, job.getProfile().getName());
 					item.setText(4, getJobStatus( job ));
-					item.setText(5, String.valueOf( job.getPercentComplete()));
-					
-
-					
-					item.setData( job );
+					item.setText(5, String.valueOf( job.getPercentComplete()));					
 				}
 			});
 		

@@ -815,13 +815,13 @@ DeviceManagerUI
 														
 															Download download = (Download)obj;
 
-															tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0] );
+															tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0], false );
 	
 														}else{
 															
 															DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
 															
-															tm.getQueue().add( renderer, profile, file );
+															tm.getQueue().add( renderer, profile, file, false );
 														}
 													}
 												}
