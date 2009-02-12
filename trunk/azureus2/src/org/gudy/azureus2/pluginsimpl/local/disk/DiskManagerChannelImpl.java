@@ -559,6 +559,11 @@ DiskManagerChannelImpl
 		setLength(
 			long		_length )
 		{
+			if ( _length < 0 ){
+				
+				throw( new RuntimeException( "Illegal argument" ));
+			}
+			
 			request_length	= _length;
 		}
 		

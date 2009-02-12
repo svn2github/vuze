@@ -141,6 +141,12 @@ public class DiskManagerFileInfoImpl
 		return( core.getIndex());
 	}
 	
+	public byte[] getDownloadHash() 
+		throws DownloadException 
+	{
+		return( getDownload().getTorrent().getHash());
+	}
+	
 	public Download getDownload()
          throws DownloadException
     {

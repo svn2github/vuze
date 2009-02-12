@@ -104,6 +104,11 @@ DiskManagerFileInfo
 	public boolean
 	isDeleted();
 	
+	public byte[] 
+	getDownloadHash()
+	
+         throws DownloadException;
+	
 	public Download 
 	getDownload()
 	

@@ -201,6 +201,14 @@ RPDiskManagerFileInfo
 		return( null );
 	}
 	
+	public byte[] 
+	getDownloadHash()
+    {
+		notSupported();
+		
+		return( null );
+    }
+	
 	public Download 
 	getDownload()
          throws DownloadException
