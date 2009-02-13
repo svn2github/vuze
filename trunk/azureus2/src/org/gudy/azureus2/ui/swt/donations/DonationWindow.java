@@ -55,8 +55,11 @@ public class DonationWindow
 		//Check if user has already donated first
 		boolean alreadyDonated = COConfigurationManager.getBooleanParameter(
 				"donations.donated", false);
-		if (alreadyDonated)
+		if (alreadyDonated) {
+			Utils.openMessageBox(null, SWT.OK, "Donations Test",
+					"Already Donated! I like you.");
 			return;
+		}
 
 		long upTime = StatsFactory.getStats().getTotalUpTime();
 		int hours = (int) (upTime / (60 * 60)); //secs * mins
