@@ -27,7 +27,12 @@ ContentNetworkListener
 	public void
 	networkAdded(
 		ContentNetwork	network );
-	
+
+	public void
+	networkAddFailed(
+		long network_id,
+		Throwable error );
+
 	public void
 	networkChanged(
 		ContentNetwork	network );

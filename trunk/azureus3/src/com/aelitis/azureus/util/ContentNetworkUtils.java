@@ -71,14 +71,14 @@ public class ContentNetworkUtils
 		}
 
 		if (cn == null) {
-			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+			cn = ConstantsVuze.getDefaultContentNetwork();
 		}
 		return cn;
 	}
 
 	public static String getTarget(ContentNetwork cn) {
 		return "ContentNetwork."
-				+ (cn == null ? ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()
+				+ (cn == null ? ConstantsVuze.getDefaultContentNetwork().getID()
 						: cn.getID());
 	}
 
@@ -89,7 +89,7 @@ public class ContentNetworkUtils
 
 	public static void setSourceRef(ContentNetwork cn, String sourceRef,
 			boolean override) {
-		if (cn == ConstantsV3.DEFAULT_CONTENT_NETWORK) {
+		if (cn == ConstantsVuze.getDefaultContentNetwork()) {
 			return;
 		}
 		// always override old source ref if the content network requires

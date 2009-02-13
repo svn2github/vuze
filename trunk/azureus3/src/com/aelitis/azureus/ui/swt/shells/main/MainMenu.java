@@ -29,7 +29,6 @@ import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUIManagerWindow;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -37,7 +36,7 @@ import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar.UISWTViewEventListenerSkinObject;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
 public class MainMenu
@@ -331,7 +330,7 @@ public class MainMenu
 		/*
 		 * No need for restart and exit on OS X since it's already handled on the application menu
 		 */
-		if (false == ConstantsV3.isOSX) {
+		if (false == Constants.isOSX) {
 			MenuFactory.addSeparatorMenuItem(fileMenu);
 			MenuFactory.addRestartMenuItem(fileMenu);
 			MenuFactory.addExitMenuItem(fileMenu);
@@ -636,7 +635,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event event) {
 						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_PUBLISH_NEW);
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
@@ -663,7 +662,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event event) {
 						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_PUBLISH);
 
 						SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
@@ -692,7 +691,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event event) {
 						String sURL = ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_PUBLISH_ABOUT);
 						Utils.launch(sURL);
 					}
@@ -719,7 +718,7 @@ public class MainMenu
 		MenuFactory.addSeparatorMenuItem(toolsMenu);
 		MenuFactory.createPluginsMenuItem(toolsMenu, true);
 
-		if (false == ConstantsV3.isOSX) {
+		if (false == Constants.isOSX) {
 			/*
 			 * Options is on the application menu on OSX
 			 */
@@ -735,7 +734,7 @@ public class MainMenu
 		MenuItem helpItem = MenuFactory.createHelpMenuItem(menuBar);
 		Menu helpMenu = helpItem.getMenu();
 
-		if (false == ConstantsV3.isOSX) {
+		if (false == Constants.isOSX) {
 			/*
 			 * The 'About' menu is on the application menu on OSX
 			 */
@@ -754,7 +753,7 @@ public class MainMenu
 		MenuFactory.addHelpSupportMenuItem(
 				helpMenu,
 				ContentNetworkUtils.getUrl(
-				ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_SUPPORT));
+				ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_SUPPORT));
 
 		MenuFactory.addReleaseNotesMenuItem(helpMenu);
 
@@ -813,7 +812,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event e) {
 						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_FORUMS));
 					}
 				});
@@ -822,7 +821,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event e) {
 						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_WIKI));
 					}
 				});
@@ -831,7 +830,7 @@ public class MainMenu
 				new Listener() {
 					public void handleEvent(Event e) {
 						Utils.launch(ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_BLOG));
 					}
 				});
@@ -839,7 +838,7 @@ public class MainMenu
 		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ, new Listener() {
 			public void handleEvent(Event e) {
 				Utils.launch(ContentNetworkUtils.getUrl(
-						ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_FAQ));
+						ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_FAQ));
 			}
 		});
 

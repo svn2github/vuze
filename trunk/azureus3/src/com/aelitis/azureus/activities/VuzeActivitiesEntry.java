@@ -602,7 +602,7 @@ public class VuzeActivitiesEntry
 	public ContentNetwork getContentNetwork() {
 		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
 		if (cn == null) {
-			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+			cn = ConstantsVuze.getDefaultContentNetwork();
 		}
 		return cn;
 	}

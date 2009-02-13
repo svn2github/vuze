@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.login.NotLoggedInException;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -107,7 +107,7 @@ public class PlatformKeyExchangeMessenger
 		PlatformMessage message = new PlatformMessage(PREFIX, LISTENER_ID,
 				OP_SETPUBLICKEY, new Object[] {
 					"azid",
-					ConstantsV3.AZID,
+					ConstantsVuze.AZID,
 					"publicKey",
 					myPK
 				}, 1000);

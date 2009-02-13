@@ -45,7 +45,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.*;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -108,7 +108,7 @@ public class Browse
 		if (creationParams instanceof ContentNetwork) {
 			contentNetwork = (ContentNetwork) creationParams;
 		} else {
-			contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+			contentNetwork = ConstantsVuze.getDefaultContentNetwork();
 		}
 		
 		// Vuze network login happens in Initializer.  The rest can be initialized
@@ -159,7 +159,7 @@ public class Browse
 			}
 		});
 
-		browserSkinObject.getContext().setContentNetwork(contentNetwork);
+		browserSkinObject.getContext().setContentNetworkID(contentNetwork.getID());
 
 		createBrowseArea(browserSkinObject);
 
@@ -179,7 +179,8 @@ public class Browse
 			MenuItem menuItem = menuManager.addMenuItem(parent, "Button.reset");
 			menuItem.addListener(new MenuItemListener() {
 				public void selected(MenuItem menu, Object target) {
-					browserSkinObject.restart();
+					browserSkinObject.getContext().executeInBrowser("sendMessage('display','reset-url', {});");
+					//browserSkinObject.restart();
 				}
 			});
 
@@ -190,7 +191,7 @@ public class Browse
 				}
 			});
 
-			if (contentNetwork != ConstantsV3.DEFAULT_CONTENT_NETWORK) {
+			if (contentNetwork != ConstantsVuze.getDefaultContentNetwork()) {
 				menuItem = menuManager.addMenuItem(parent, "Remove HD Network");
 				menuItem.addListener(new MenuItemListener() {
 					public void selected(MenuItem menu, Object target) {

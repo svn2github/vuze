@@ -26,23 +26,16 @@ import java.net.URL;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.ProgressEvent;
-import org.eclipse.swt.browser.ProgressListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
@@ -50,7 +43,6 @@ import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.LocalHoster;
 import com.aelitis.azureus.ui.swt.browser.listener.publish.PublishListener;
 import com.aelitis.azureus.ui.swt.utils.PublishUtils;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.LocalResourceHTTPServer;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -136,7 +128,7 @@ public class SWTSkinObjectBrowser
 		}
 
 		//TODO [SWT] : Remove this stupid code as soon as we update SWT
-		if(ConstantsV3.isOSX && ! doneTheUglySWTFocusHack) {
+		if(Constants.isOSX && ! doneTheUglySWTFocusHack) {
 			doneTheUglySWTFocusHack = true;
 			Shell shell = new Shell(browser.getDisplay(),SWT.NONE);
 			shell.setSize(1,1);
@@ -213,8 +205,12 @@ public class SWTSkinObjectBrowser
 				} else {
 					String urlToUse = url;
 					if (UrlFilter.getInstance().urlCanRPC(url)){
-						urlToUse = context.getContentNetwork().appendURLSuffix(urlToUse,
-								false, true);
+						ContentNetwork contentNetwork = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+								context.getContentNetworkID());
+						if (contentNetwork != null) {
+							urlToUse = contentNetwork.appendURLSuffix(urlToUse,
+									false, true);
+						}
 					}
 					if (browser != null) {
 						browser.setUrl(urlToUse);

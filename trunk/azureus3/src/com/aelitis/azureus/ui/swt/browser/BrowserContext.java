@@ -44,9 +44,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListen
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.UrlFilter;
+import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -92,7 +90,7 @@ public class BrowserContext
 
 	private long pageLoadTime;
 	
-	private ContentNetwork contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+	private long contentNetworkID = ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID;
 	
 	/**
 	 * Creates a context and registers the given browser.
@@ -222,7 +220,7 @@ public class BrowserContext
 				}
 
 				browser.execute("try { if (azureusClientWelcome) { azureusClientWelcome('"
-						+ ConstantsV3.AZID
+						+ ConstantsVuze.AZID
 						+ "',"
 						+ "{ 'azv':'"
 						+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
@@ -743,11 +741,11 @@ public class BrowserContext
 		public void browserLoadingChanged(boolean loading, String url);
 	}
 
-	public ContentNetwork getContentNetwork() {
-		return contentNetwork;
+	public long getContentNetworkID() {
+		return contentNetworkID;
 	}
 
-	public void setContentNetwork(ContentNetwork contentNetwork) {
-		this.contentNetwork = contentNetwork;
+	public void setContentNetworkID(long contentNetworkID) {
+		this.contentNetworkID = contentNetworkID;
 	}
 }

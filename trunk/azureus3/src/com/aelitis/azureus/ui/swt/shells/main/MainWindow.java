@@ -65,7 +65,6 @@ import com.aelitis.azureus.buddy.impl.VuzeBuddyManager;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
@@ -200,7 +199,7 @@ public class MainWindow
 
 		// Hack for 3014 -> 3016 upgrades on Vista who become an Administrator
 		// user after restart.
-		if (ConstantsV3.isWindows
+		if (Constants.isWindows
 				&& System.getProperty("os.name").indexOf("Vista") > 0
 				&& !COConfigurationManager.getBooleanParameter("vista.adminquit")) {
 			File fileFromInstall = FileUtil.getApplicationFile("license.txt");
@@ -648,7 +647,7 @@ public class MainWindow
 				}
 
 				public void shellDeiconified(ShellEvent e) {
-					if (ConstantsV3.isOSX
+					if (Constants.isOSX
 							&& COConfigurationManager.getBooleanParameter("Password enabled")) {
 						shell.setVisible(false);
 						if (PasswordWindow.showPasswordWindow(display)) {
@@ -1669,14 +1668,6 @@ public class MainWindow
 		 * Init the user area for login/logout info
 		 */
 		new UserAreaUtils(skin, uiFunctions);
-
-		/*
-		 * Hides the buddy bar unless a command line parameter is specified
-		 * WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
-		 */
-		if (ConstantsV3.DISABLE_BUDDIES_BAR) {
-			COConfigurationManager.setParameter("Footer.visible", false);
-		}
 	}
 
 	private void addMenuAndNonTextChildren(Composite parent, Menu menu) {
@@ -2113,7 +2104,7 @@ public class MainWindow
 						if (UrlFilter.getInstance().urlCanRPC(url)) {
 							// 4010 Tux: This shouldn't be.. either determine ContentNetwork from
 							//           url or target, or do something..
-							fullURL = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+							fullURL = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
 						}
 
 						soBrowser.setURL(fullURL);

@@ -37,7 +37,7 @@ import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.shells.friends.SharePage;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.FAQTopics;
 
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -844,7 +844,7 @@ public class BuddiesViewer
 			SWTSkinButtonUtility FAQButton = new SWTSkinButtonUtility(FAQObject);
 			FAQButton.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility, SWTSkinObject skinObject, int stateMask) {
-					String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getFAQTopicService( FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS );
+					String url = ConstantsVuze.getDefaultContentNetwork().getFAQTopicService( FAQTopics.FAQ_TOPIC_WHAT_ARE_FRIENDS );
 					Utils.launch(url);
 				}
 			});

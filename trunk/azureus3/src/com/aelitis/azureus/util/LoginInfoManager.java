@@ -153,7 +153,7 @@ public class LoginInfoManager
 		public String getProfileAHREF(String referer) {
 			StringBuffer buf = new StringBuffer();
 			buf.append("<A HREF=\"");
-			buf.append( ConstantsV3.DEFAULT_CONTENT_NETWORK.getProfileService(userName, referer ));
+			buf.append( ConstantsVuze.getDefaultContentNetwork().getProfileService(userName, referer ));
 			buf.append("\" TITLE=\"");
 			buf.append(displayName);
 			if (!displayName.equals(userName)) {

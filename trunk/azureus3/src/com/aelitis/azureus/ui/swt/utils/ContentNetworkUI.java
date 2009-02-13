@@ -43,7 +43,7 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 public class ContentNetworkUI
 {
 	// If we ever clear mapImages, don't forget to ImageLoderFactory.releaseImage if needed
-	public static Map<Long, Image> mapImages = new HashMap();
+	public static Map<Long, Image> mapImages = new HashMap<Long, Image>();
 
 	/**
 	 * @param cn

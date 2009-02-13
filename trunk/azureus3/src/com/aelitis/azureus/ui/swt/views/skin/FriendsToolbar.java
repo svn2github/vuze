@@ -12,18 +12,13 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.shells.DockPosition;
-import org.gudy.azureus2.ui.swt.shells.InputShell;
-import org.gudy.azureus2.ui.swt.shells.MultipageWizard;
-import org.gudy.azureus2.ui.swt.shells.Offset;
-import org.gudy.azureus2.ui.swt.shells.ShellDocker;
+import org.gudy.azureus2.ui.swt.shells.*;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.buddy.VuzeBuddy;
@@ -40,7 +35,6 @@ import com.aelitis.azureus.ui.swt.shells.friends.AddFriendsPage;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectSash;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.ConstantsV3;
 import com.aelitis.azureus.util.ILoginInfoListener;
 import com.aelitis.azureus.util.LoginInfoManager;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
@@ -148,7 +142,7 @@ public class FriendsToolbar
 		
 		for(int i = 0 ; i < datas.length ; i++) {
 			datas[i].setStyle(SWT.BOLD);
-			if(ConstantsV3.isOSX) {
+			if(Constants.isOSX) {
 				datas[i].setHeight(11);
 			} else {
 				datas[i].setHeight(8);
@@ -158,7 +152,7 @@ public class FriendsToolbar
 		boldFont = new Font(content.getDisplay(),datas);
 		
 		for(int i = 0 ; i < datas.length ; i++) {
-			if(ConstantsV3.isOSX) {
+			if(Constants.isOSX) {
 				datas[i].setHeight(13);
 			} else {
 				datas[i].setHeight(10);

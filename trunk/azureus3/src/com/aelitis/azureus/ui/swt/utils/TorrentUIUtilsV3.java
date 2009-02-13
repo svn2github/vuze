@@ -131,7 +131,7 @@ public class TorrentUIUtilsV3
 					cn = ((DownloadUrlInfoContentNetwork) dlInfo).getContentNetwork();
 				}
 				if (cn == null) {
-					cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+					cn = ConstantsVuze.getDefaultContentNetwork();
 				}
 				url = cn.appendURLSuffix(url, false, true);
 			}
@@ -168,7 +168,7 @@ public class TorrentUIUtilsV3
 													cn = ((DownloadUrlInfoContentNetwork) dlInfo).getContentNetwork();
 												}
 												if (cn == null) {
-													cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+													cn = ConstantsVuze.getDefaultContentNetwork();
 												}
 												TorrentListViewsUtils.viewDetails(cn, hash,
 														"loadtorrent");

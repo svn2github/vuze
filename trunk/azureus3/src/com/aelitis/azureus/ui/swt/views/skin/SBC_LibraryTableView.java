@@ -55,7 +55,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
@@ -151,7 +151,7 @@ public class SBC_LibraryTableView
 									Object ds = rows[0].getDataSource(true);
 									if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
   									TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  											ConstantsV3.DL_REFERAL_DBLCLICK);
+  											DLReferals.DL_REFERAL_DBLCLICK);
 									}
 								}
 							});
@@ -165,7 +165,7 @@ public class SBC_LibraryTableView
 										Object ds = rows[0].getDataSource(true);
 										if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
 											TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-													ConstantsV3.DL_REFERAL_DBLCLICK);
+													DLReferals.DL_REFERAL_DBLCLICK);
 										}
 									}
 								});
@@ -184,7 +184,7 @@ public class SBC_LibraryTableView
 						Object ds = rows[0].getDataSource(true);
 						if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
   						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  								ConstantsV3.DL_REFERAL_DBLCLICK);
+  								DLReferals.DL_REFERAL_DBLCLICK);
 						}
 					}
 				});

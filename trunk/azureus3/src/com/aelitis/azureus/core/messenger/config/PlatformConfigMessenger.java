@@ -69,8 +69,11 @@ public class PlatformConfigMessenger
 		} catch (PlatformManagerException e) {
 		}
 		
-		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
-		String sourceRef = (String) cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF);
+		String sourceRef = null;
+		if (contentNetworkID != ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID) {
+  		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
+  		sourceRef = (String) cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF);
+		}
 		if (sourceRef == null) {
 			sourceRef = "unknown";
 		}
@@ -141,7 +144,7 @@ public class PlatformConfigMessenger
 					Debug.out(e);
 				}
 				
-				if (message.getContentNetworkID() != ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+				if (message.getContentNetworkID() != ConstantsVuze.getDefaultContentNetwork().getID()) {
 					return;
 				}
 				

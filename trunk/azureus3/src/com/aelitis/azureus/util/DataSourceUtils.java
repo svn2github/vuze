@@ -161,7 +161,7 @@ public class DataSourceUtils
 				return getContentNetwork(((ISelectedContent)ds).getDM());
 			} else if ((ds instanceof String) && ((String)ds).length() == 32) {
 				// assume 32 byte string is a hash and that it belongs to the def. network
-				id = ConstantsV3.DEFAULT_CONTENT_NETWORK.getID();
+				id = ConstantsVuze.getDefaultContentNetwork().getID();
 			} else {
 				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
 			}

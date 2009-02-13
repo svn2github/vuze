@@ -293,7 +293,7 @@ public class ColumnActivityActions
 								return;
 							}
 
-							referal = ConstantsV3.DL_REFERAL_DASHACTIVITY + "-"
+							referal = DLReferals.DL_REFERAL_DASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
 						TorrentListViewsUtils.downloadDataSource(ds, false, referal);
@@ -310,7 +310,7 @@ public class ColumnActivityActions
 								}
 								return;
 							}
-							referal = ConstantsV3.DL_REFERAL_PLAYDASHACTIVITY + "-"
+							referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY + "-"
 									+ ((VuzeActivitiesEntry) ds).getTypeID();
 						}
 						TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal);
@@ -319,7 +319,7 @@ public class ColumnActivityActions
 						// run via play or stream so we get the security warning
 						Object ds = event.cell.getDataSource();
 						TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-								ConstantsV3.DL_REFERAL_LAUNCH);
+								DLReferals.DL_REFERAL_LAUNCH);
 						
 					} else if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
 						Utils.launch(hitUrl.url);

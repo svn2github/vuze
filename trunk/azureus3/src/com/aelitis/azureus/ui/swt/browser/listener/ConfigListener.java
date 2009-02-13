@@ -35,7 +35,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -122,7 +122,7 @@ public class ConfigListener
 				
 				AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger(loggerName);
 				diag_logger.log(text);
-				if (ConstantsV3.DIAG_TO_STDOUT) {
+				if (ConstantsVuze.DIAG_TO_STDOUT) {
 					System.out.println(Thread.currentThread().getName() + "|"
 							+ System.currentTimeMillis() + "] " + text);
 				}

@@ -54,7 +54,7 @@ import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ImportExportUtils;
 import com.aelitis.azureus.util.JSONUtils;
 
@@ -713,7 +713,7 @@ EngineImpl
 	{
 			// default values
 		
-		context.put( Engine.SC_AZID, 	ConstantsV3.AZID );
+		context.put( Engine.SC_AZID, 	ConstantsVuze.AZID );
 
 		if ( context.get( Engine.SC_SOURCE ) == null ){
 			
@@ -955,7 +955,7 @@ EngineImpl
 				
 				log( "Marking template id " + getId() + " as selected=" + selected );
 				
-				PlatformMetaSearchMessenger.setTemplatetSelected( getId(), ConstantsV3.AZID, selected);
+				PlatformMetaSearchMessenger.setTemplatetSelected( getId(), ConstantsVuze.AZID, selected);
 				
 				selection_state_recorded = true;
 				

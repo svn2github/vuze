@@ -41,7 +41,7 @@ import com.aelitis.azureus.ui.swt.shells.StyledMessageWindow;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
 import com.aelitis.azureus.ui.swt.views.skin.FriendsToolbar;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 public class AddFriendsPage
 	extends AbstractWizardPage
@@ -105,7 +105,7 @@ public class AddFriendsPage
 		
 		browser = new Browser(content, Utils.getInitialBrowserStyle(SWT.NONE));
 		
-		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getAddFriendURL( ByteFormatter.nicePrint(color));		
+		String url = ConstantsVuze.getDefaultContentNetwork().getAddFriendURL( ByteFormatter.nicePrint(color));		
 
 		browser.setUrl(url);
 

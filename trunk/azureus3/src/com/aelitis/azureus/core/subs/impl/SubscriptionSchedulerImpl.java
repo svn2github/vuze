@@ -58,7 +58,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.UrlFilter;
 
 public class 
@@ -257,7 +257,7 @@ SubscriptionSchedulerImpl
 			
 			if ( cn == null ){
 				
-				cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+				cn = ConstantsVuze.getDefaultContentNetwork();
 			}
 			
 			download_link = cn.appendURLSuffix( download_link, false, true );

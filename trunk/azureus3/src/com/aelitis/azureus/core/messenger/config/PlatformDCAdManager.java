@@ -498,7 +498,7 @@ public class PlatformDCAdManager
                 diag_logger.log(e);
                 Debug.out(string, e);
             }
-            if (ConstantsV3.DIAG_TO_STDOUT || DEBUG_ADS) {
+            if (ConstantsVuze.DIAG_TO_STDOUT || DEBUG_ADS) {
                 System.out.println(Thread.currentThread().getName() + "|ADS|"
                         + System.currentTimeMillis() + "] " + string);
                 if (e != null) {

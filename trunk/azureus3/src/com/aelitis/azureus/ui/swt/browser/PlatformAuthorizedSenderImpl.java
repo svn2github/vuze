@@ -28,9 +28,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Shell;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.messenger.PlatformAuthorizedSender;
@@ -38,7 +36,6 @@ import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.utils.SWTLoginUtils;
-import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -101,7 +98,7 @@ public class PlatformAuthorizedSenderImpl
 
 					// Safari doesn't return getText() when results aren't text/html
 					// IE removes /n when in text/html mode
-					String responseType = ConstantsV3.isOSX ? "text/html" : "text/plain";
+					String responseType = Constants.isOSX ? "text/html" : "text/plain";
 					
 					final String fullUrl = url + "?" + data
 							+ "&responseType=" + responseType;
@@ -183,7 +180,7 @@ public class PlatformAuthorizedSenderImpl
 				}
 				// On PPC, we get a JVM crash on disposal, so maybe this delay will
 				// fix it.
-				if (ConstantsV3.isOSX) {
+				if (Constants.isOSX) {
 					Utils.execSWTThreadLater(0, new AERunnable() {
 						public void runSupport() {
 							browser.dispose();

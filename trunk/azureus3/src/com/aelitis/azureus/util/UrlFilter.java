@@ -39,7 +39,7 @@ public class UrlFilter
 
 	//private String RPC_WHITELIST = "AZMSG%3B[0-9]+%3B.*";
 
-	private String default_site_host = (String) ConstantsV3.DEFAULT_CONTENT_NETWORK.getProperty(ContentNetwork.PROPERTY_SITE_HOST);
+	private String default_site_host = (String) ConstantsVuze.getDefaultContentNetwork().getProperty(ContentNetwork.PROPERTY_SITE_HOST);
 
 	private String DEFAULT_RPC_WHITELIST = "https?://"
 			+ default_site_host.replaceAll("\\.", "\\\\.") + ":?[0-9]*/" + ".*";
@@ -73,6 +73,9 @@ public class UrlFilter
 		
 			public void networkAdded(ContentNetwork network) {
 				addNetworkFilters(network);
+			}
+
+			public void networkAddFailed(long network_id, Throwable error) {
 			}
 		});
 		

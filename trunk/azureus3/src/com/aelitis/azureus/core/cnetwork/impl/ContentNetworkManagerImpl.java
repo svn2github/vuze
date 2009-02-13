@@ -47,8 +47,10 @@ import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 
+import com.aelitis.azureus.core.messenger.PlatformMessengerException;
 import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger.contentNetworkDetails;
+import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger.listNetworksListener;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -116,7 +118,7 @@ ContentNetworkManagerImpl
 	
 	private List<ContentNetworkImpl>	networks = new ArrayList<ContentNetworkImpl>();
 	
-	private CopyOnWriteList			listeners = new CopyOnWriteList();
+	private CopyOnWriteList<ContentNetworkListener>	listeners = new CopyOnWriteList<ContentNetworkListener>();
 	
 	protected
 	ContentNetworkManagerImpl()
@@ -239,40 +241,43 @@ ContentNetworkManagerImpl
 			}
 		}
 		
-		try{
-			List<contentNetworkDetails> cnets = PlatformContentNetworkMessenger.listNetworks();
-				
-			String	str = "";
-			
-			for ( contentNetworkDetails details: cnets ){
-			
-				str += (str.length()==0?"":", ") + details.getString();
-				
-				ContentNetwork existing = getContentNetwork( details.getID());
-				
-				if ( existing != null ){
+		PlatformContentNetworkMessenger.listNetworksAync(new listNetworksListener() {
+			public void networkListReturned(List<contentNetworkDetails> cnets) {
+
+				try{
+					String	str = "";
 					
-					ContentNetworkImpl new_net = createNetwork( details );
+					for ( contentNetworkDetails details: cnets ){
 					
-					addNetwork( new_net );
-					
-				}else{
-					
-					if ( LOAD_ALL_NETWORKS ){
+						str += (str.length()==0?"":", ") + details.getString();
 						
-						ContentNetworkImpl new_net = createNetwork( details );
+						ContentNetwork existing = getContentNetwork( details.getID());
 						
-						addNetwork( new_net );
+						if ( existing != null ){
+							
+							ContentNetworkImpl new_net = createNetwork( details );
+							
+							addNetwork( new_net );
+							
+						}else{
+							
+							if ( LOAD_ALL_NETWORKS ){
+								
+								ContentNetworkImpl new_net = createNetwork( details );
+								
+								addNetwork( new_net );
+							}
+						}
 					}
+					
+					log( "Latest networks: " + str );
+					
+				}catch( Throwable e ){
+
+					log( "Failed to load network list", e );
 				}
 			}
-			
-			log( "Latest networks: " + str );
-			
-		}catch( Throwable e ){
-
-			log( "Failed to load network list", e );
-		}
+		}, 11110);
 	}
 	
 	protected ContentNetworkImpl
@@ -286,30 +291,73 @@ ContentNetworkManagerImpl
 		return( addNetwork( network ));
 	}
 	
-	public ContentNetwork 
+	// @see com.aelitis.azureus.core.cnetwork.ContentNetworkManager#addContentNetwork(long)
+	public void 
 	addContentNetwork(
-		long 	id ) 
+		final long 	id ) 
 	
 		throws ContentNetworkException
 	{
 		try{
-			List<contentNetworkDetails> cnets = PlatformContentNetworkMessenger.listNetworks();
-										
-			for ( contentNetworkDetails details: cnets ){
-				
-				if ( details.getID() == id ){
+			PlatformContentNetworkMessenger.listNetworksAync(new listNetworksListener() {
+				public void networkListReturned(List<contentNetworkDetails> cnets) {
+					if (cnets == null) {
+
+						Exception e = new PlatformMessengerException( "No networks returned" );
+
+						for ( ContentNetworkListener l : listeners ) {
+
+							l.networkAddFailed(id, e);
+						}
+
+						return;
+					}
 					
-					ContentNetworkImpl new_net = createNetwork( details );
+					for ( contentNetworkDetails details: cnets ){
+						
+						if ( details.getID() == id ){
+							
+							ContentNetworkImpl new_net;
+							try {
+
+								new_net = createNetwork( details );
+
+								addNetwork( new_net );
+							} catch (ContentNetworkException e) {
+
+								for ( ContentNetworkListener l : listeners ) {
+
+									l.networkAddFailed(id, e);
+								}
+
+							}
+
+							return;
+						}
+					}
+
+					Exception e = new ContentNetworkException(
+									"Content Network with id " + id + " not found");
+
+					for ( ContentNetworkListener l : listeners ) {
+
+						l.networkAddFailed(id, e);
+					}
 					
-					return( addNetwork( new_net ));
 				}
-			}
-			
-			throw( new ContentNetworkException( "Content Network with id " + id + " not found" ));
+			}, 500);
+										
 
 		}catch( Throwable e ){
 			
-			throw( new ContentNetworkException( "Failed to list permitted networks", e ));
+			ContentNetworkException e2 = new ContentNetworkException( "Failed to list permitted networks", e );
+
+			for ( ContentNetworkListener l : listeners ) {
+
+				l.networkAddFailed(id, e2);
+			}
+			
+			throw e2;
 		}
 	}
 	

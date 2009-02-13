@@ -28,7 +28,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransaction;
 import com.aelitis.azureus.core.messenger.browser.BrowserTransactionManager;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * @author TuxPaper
@@ -66,7 +66,7 @@ public abstract class ClientMessageContextImpl
 	public void debug(String message) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
 		diag_logger.log("[" + id + "] " + message);
-		if (ConstantsV3.DIAG_TO_STDOUT) {
+		if (ConstantsVuze.DIAG_TO_STDOUT) {
 			System.out.println("[" + id + "] " + message);
 		}
 	}
@@ -75,7 +75,7 @@ public abstract class ClientMessageContextImpl
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.CMsgr");
 		diag_logger.log("[" + id + "] " + message);
 		diag_logger.log(t);
-		if (ConstantsV3.DIAG_TO_STDOUT) {
+		if (ConstantsVuze.DIAG_TO_STDOUT) {
 			System.err.println("[" + id + "] " + message);
 			t.printStackTrace();
 		}

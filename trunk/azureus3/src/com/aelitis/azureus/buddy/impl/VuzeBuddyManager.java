@@ -721,7 +721,7 @@ public class VuzeBuddyManager
 					public void passwordRetrievalFailed() {
 						try {
 							final String url = ContentNetworkUtils.getUrl(
-									ConstantsV3.DEFAULT_CONTENT_NETWORK,
+									ConstantsVuze.getDefaultContentNetwork(),
 									ContentNetwork.SERVICE_LOGOUT);
 							// Authorized Sender has the session cookies the webapp needs
 							// in order to logout.  Use that and ignore the results
@@ -975,7 +975,7 @@ public class VuzeBuddyManager
 	public static void log(String s) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(s);
-		if (ConstantsV3.DIAG_TO_STDOUT) {
+		if (ConstantsVuze.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + s);
 		}
@@ -990,7 +990,7 @@ public class VuzeBuddyManager
 	public static void log(Exception e) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.Friends");
 		diag_logger.log(e);
-		if (ConstantsV3.DIAG_TO_STDOUT) {
+		if (ConstantsVuze.DIAG_TO_STDOUT) {
 			System.err.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] ");
 			e.printStackTrace();
@@ -1783,7 +1783,7 @@ public class VuzeBuddyManager
 		StringBuffer buf = new StringBuffer();
 
 		buf.append("<A HREF=\"");
-		buf.append(ConstantsV3.DEFAULT_CONTENT_NETWORK.getProfileService(loginID,referer));
+		buf.append(ConstantsVuze.getDefaultContentNetwork().getProfileService(loginID,referer));
 		buf.append("\" TITLE=\"");
 		buf.append(displayName);
 		if (!loginID.equals(displayName)) {

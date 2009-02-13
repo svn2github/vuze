@@ -57,7 +57,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -432,7 +432,7 @@ public class SearchResultsTabArea
 				String url = MapUtils.getMapString(params, "url",
 						"http://google.com/search?q=" + Math.random());
 				if (UrlFilter.getInstance().urlCanRPC(url)) {
-					url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+					url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
 				}
 
 				//Gudy, Not Tux, Listener Added
@@ -536,11 +536,11 @@ public class SearchResultsTabArea
 	public void anotherSearch(String searchText,boolean toSubscribe) {
 		this.searchText = searchText;
 		String url = 
-			ConstantsV3.DEFAULT_CONTENT_NETWORK.getSearchService( searchText );
+			ConstantsVuze.getDefaultContentNetwork().getSearchService( searchText );
 
 		if (System.getProperty("metasearch", "1").equals("1")) {
 			
-			url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getXSearchService( searchText, toSubscribe );
+			url = ConstantsVuze.getDefaultContentNetwork().getXSearchService( searchText, toSubscribe );
 		}
 
 		closeSearchResults(null);

@@ -416,7 +416,7 @@ public class VuzeBuddyImpl
 	}
 
 	public String getProfileUrl(String referer) {
-		return( ConstantsV3.DEFAULT_CONTENT_NETWORK.getProfileService(getLoginID(), referer));
+		return( ConstantsVuze.getDefaultContentNetwork().getProfileService(getLoginID(), referer));
 	}
 
 	// @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)

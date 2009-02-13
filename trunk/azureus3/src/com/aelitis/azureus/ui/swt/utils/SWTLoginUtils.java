@@ -23,9 +23,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.shells.LightBoxBrowserWindow;
-import com.aelitis.azureus.util.ConstantsV3;
-import com.aelitis.azureus.util.ILoginInfoListener;
-import com.aelitis.azureus.util.LoginInfoManager;
+import com.aelitis.azureus.util.*;
 import com.aelitis.azureus.util.LoginInfoManager.LoginInfo;
 
 /**
@@ -105,9 +103,9 @@ public class SWTLoginUtils
 	 * @since 3.0.5.3
 	 */
 	public static LightBoxBrowserWindow openLoginWindow(String optionalMessage) {
-		String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getLoginService( optionalMessage );
+		String url = ConstantsVuze.getDefaultContentNetwork().getLoginService( optionalMessage );
 
-		return new LightBoxBrowserWindow(url, ConstantsV3.URL_PAGE_VERIFIER_VALUE,
+		return new LightBoxBrowserWindow(url, ConstantsVuze.URL_PAGE_VERIFIER_VALUE,
 				380, 280);
 	}
 

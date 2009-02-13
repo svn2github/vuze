@@ -112,7 +112,7 @@ public class UserAreaUtils
 						 * If the user is logged in then go to profile page
 						 */
 						if (null != uiFunctions) {
-							String url = ConstantsV3.DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_MY_PROFILE );
+							String url = ConstantsVuze.getDefaultContentNetwork().getServiceURL( ContentNetwork.SERVICE_MY_PROFILE );
 							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
 									"curuser-name");
 						}
@@ -276,7 +276,7 @@ public class UserAreaUtils
 				public void widgetSelected(SelectionEvent e) {
 					if (null != uiFunctions) {
 						String url = ContentNetworkUtils.getUrl(
-								ConstantsV3.DEFAULT_CONTENT_NETWORK,
+								ConstantsVuze.getDefaultContentNetwork(),
 								ContentNetwork.SERVICE_MY_ACCOUNT);
 						if (url == null) {
 							return;
@@ -307,7 +307,7 @@ public class UserAreaUtils
 						 */
 						if (null != uiFunctions) {
 							String url = ContentNetworkUtils.getUrl(
-									ConstantsV3.DEFAULT_CONTENT_NETWORK,
+									ConstantsVuze.getDefaultContentNetwork(),
 									ContentNetwork.SERVICE_MY_PROFILE);
 							uiFunctions.viewURL(url, SkinConstants.VIEWID_BROWSER_BROWSE,
 									"curuser-profile-menu");
@@ -350,7 +350,7 @@ public class UserAreaUtils
 					 * ILoginInfoListener will respond to and update the UI accordingly
 					 */
 					final String url = ContentNetworkUtils.getUrl(
-							ConstantsV3.DEFAULT_CONTENT_NETWORK,
+							ConstantsVuze.getDefaultContentNetwork(),
 							ContentNetwork.SERVICE_LOGOUT);
 
 					/*
@@ -368,7 +368,7 @@ public class UserAreaUtils
 								String existingURL = browser.getUrl();
 								if (null == existingURL || existingURL.length() < 1) {
 									soBrowser.setStartURL(ContentNetworkUtils.getUrl(
-											ConstantsV3.DEFAULT_CONTENT_NETWORK,
+											ConstantsVuze.getDefaultContentNetwork(),
 											ContentNetwork.SERVICE_BIG_BROWSE));
 								}
 							}
@@ -412,12 +412,12 @@ public class UserAreaUtils
 					public void widgetSelected(SelectionEvent e) {
 						if (null != uiFunctions) {
 							String url = ContentNetworkUtils.getUrl(
-									ConstantsV3.DEFAULT_CONTENT_NETWORK,
+									ConstantsVuze.getDefaultContentNetwork(),
 									ContentNetwork.SERVICE_REGISTER);
 							if (url == null) {
 								return;
 							}
-							new LightBoxBrowserWindow(url, ConstantsV3.URL_PAGE_VERIFIER_VALUE,
+							new LightBoxBrowserWindow(url, ConstantsVuze.URL_PAGE_VERIFIER_VALUE,
 									460, 577);
 						}
 

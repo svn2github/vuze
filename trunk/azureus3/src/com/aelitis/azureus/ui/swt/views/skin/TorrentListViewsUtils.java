@@ -23,8 +23,6 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.eclipse.swt.program.Program;
 
@@ -36,7 +34,6 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -59,7 +56,6 @@ import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
-import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
@@ -213,13 +209,13 @@ public class TorrentListViewsUtils
 
 
 	public static void playOrStreamDataSource(Object ds, SWTSkinButtonUtility btn) {
-		String referal = ConstantsV3.DL_REFERAL_UNKNOWN;
+		String referal = DLReferals.DL_REFERAL_UNKNOWN;
 		if (ds instanceof VuzeActivitiesEntry) {
-			referal = ConstantsV3.DL_REFERAL_PLAYDASHACTIVITY;
+			referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY;
 		} else if (ds instanceof DownloadManager) {
-			referal = ConstantsV3.DL_REFERAL_PLAYDM;
+			referal = DLReferals.DL_REFERAL_PLAYDM;
 		} else if (ds instanceof ISelectedContent) {
-			referal = ConstantsV3.DL_REFERAL_SELCONTENT;
+			referal = DLReferals.DL_REFERAL_SELCONTENT;
 		}
 		playOrStreamDataSource(ds, btn, referal);
 	}
@@ -615,7 +611,7 @@ public class TorrentListViewsUtils
 
 		debugDCAD("enter - runInMediaPlayer");
 
-		if (ConstantsV3.isWindows) {
+		if (Constants.isWindows) {
 			String wmpEXE = Win32Utils.getWMP();
 			if (new File(wmpEXE).exists()) {
 				try {

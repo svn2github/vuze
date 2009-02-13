@@ -64,7 +64,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -1071,7 +1071,7 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				
 				if ( cn == null ){
 					
-					cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+					cn = ConstantsVuze.getDefaultContentNetwork();
 				}
 				
 				torrentUrl = cn.appendURLSuffix( torrentUrl, false, true );

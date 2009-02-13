@@ -13,6 +13,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.ClientMessageContext.torrentURLHandler;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -91,7 +92,8 @@ public class TorrentListener
 					}
 				}
 				DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,
-						context.getContentNetwork());
+						ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+								context.getContentNetworkID()));
 				dlInfo.setReferer(message.getReferer());
 				
 				TorrentUIUtilsV3.loadTorrent(core, dlInfo, playNow, playPrepare,

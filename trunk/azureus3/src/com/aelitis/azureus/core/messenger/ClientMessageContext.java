@@ -124,12 +124,12 @@ public interface ClientMessageContext
 	 *
 	 * @since 4.0.0.5
 	 */
-	void setContentNetwork(ContentNetwork contentNetwork);
+	void setContentNetworkID(long id);
 
 	/**
 	 * @return
 	 *
 	 * @since 4.0.0.5
 	 */
-	ContentNetwork getContentNetwork();
+	long getContentNetworkID();
 }

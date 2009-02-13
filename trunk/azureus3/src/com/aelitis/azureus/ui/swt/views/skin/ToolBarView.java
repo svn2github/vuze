@@ -53,7 +53,7 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
 
 import org.gudy.azureus2.plugins.ui.UIPluginView;
@@ -123,7 +123,7 @@ public class ToolBarView
 				if (sc != null && sc.length == 1
 						&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
 					TorrentListViewsUtils.downloadDataSource(sc[0], false,
-							ConstantsV3.DL_REFERAL_TOOLBAR);
+							DLReferals.DL_REFERAL_TOOLBAR);
 				}
 			}
 		};
@@ -140,7 +140,7 @@ public class ToolBarView
 				ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
 				if (sc != null) {
 					TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-							this.getSkinButton(), ConstantsV3.DL_REFERAL_TOOLBAR);
+							this.getSkinButton(), DLReferals.DL_REFERAL_TOOLBAR);
 				}
 			}
 		};

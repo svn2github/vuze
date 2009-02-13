@@ -36,7 +36,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 public class 
 AzureusPlatformContentDirectory
@@ -66,7 +66,7 @@ AzureusPlatformContentDirectory
 			return( null );
 		}
 		
-		String	url_str = ConstantsV3.DEFAULT_CONTENT_NETWORK.getTorrentDownloadService( Base32.encode( hash ), null );
+		String	url_str = ConstantsVuze.getDefaultContentNetwork().getTorrentDownloadService( Base32.encode( hash ), null );
 		
 		ResourceDownloaderFactory rdf = ResourceDownloaderFactoryImpl.getSingleton();
 		

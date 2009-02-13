@@ -21,111 +21,22 @@
  */
 package com.aelitis.azureus.util;
 
-import java.net.URL;
-import java.util.Locale;
-
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.util.Base32;
-
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.crypto.VuzeCryptoManager;
 
 /**
- * 
+ * @deprecated Only for EMP
  */
 public class ConstantsV3
 {
-	// isOS* constants copied from AZ2 for ease of use/access
+	/** @deprecated Used by UMP only.. */
 	public static boolean isOSX = org.gudy.azureus2.core3.util.Constants.isOSX;
 
+	/** @deprecated Used by UMP only.. */
 	public static boolean isWindows = org.gudy.azureus2.core3.util.Constants.isWindows;
 
-	public static boolean isUnix = org.gudy.azureus2.core3.util.Constants.isUnix;
+	/** @deprecated Use {@link ConstantsVuze#DEFAULT_CONTENT_NETWORK_ID} **/
+	public static final ContentNetwork DEFAULT_CONTENT_NETWORK = ConstantsVuze.getDefaultContentNetwork();
 
-	public static final String AZID = Base32.encode(VuzeCryptoManager.getSingleton().getPlatformAZID());
-
-	public static final ContentNetwork	DEFAULT_CONTENT_NETWORK = ContentNetworkManagerFactory.getSingleton().getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE );
-	
-		// **** EMP dependencies start
-	
-		/**
-		 * DON'T USE THIS CONSTANT
-		 * @deprecated
-		 */
-	
-	public static final String URL_PREFIX = DEFAULT_CONTENT_NETWORK.getServiceURL( ContentNetwork.SERVICE_SITE );
-	
-		/**
-		 * DON'T USE THIS CONSTANT
-		 * @deprecated
-		 */	
-	
-	public static final String URL_COMMENTS = "comment/";
-
-		/**
-		 * DON'T USE THIS CONSTANT
-		 * @deprecated
-		 */	
-	public static String URL_SUFFIX;
-
-		/**
-		 * @deprecated
-		 */
-	
-	public static void initialize( AzureusCore core ){}
-	
-	static{
-
-			// this is purely here to support azemp's direct use of URL_SUFFIX until we fix
-		
-		COConfigurationManager.addAndFireParameterListener("locale",
-				new ParameterListener() 
-				{
-					public void 
-					parameterChanged(String parameterName) 
-					{
-						// Don't change the order of the params
-						URL_SUFFIX = "azid=" + AZID + "&azv="
-								+ org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION
-								+ "&locale=" + Locale.getDefault().toString();
-						
-						Constants.update();
-					}
-				});
-	}
-			
-		// EMP dependencies end
-			
-	// WARNING: TODO -- This is temporary and must be removed once the buddies features are complete
-	
-	public static final boolean DISABLE_BUDDIES_BAR = System.getProperty(
-			"debug.buddies.bar", "1").equals("0");
-
-	/**
-	 * This verifier value is only used to validate that the page we're loading is
-	 * in-fact a page from Vuze; mainly required by the LightBoxBrowserWindow
-	 */
-	public static final String URL_PAGE_VERIFIER_VALUE = "vuzePage";
-
-	public static final boolean DIAG_TO_STDOUT = System.getProperty(
-			"DIAG_TO_STDOUT", "0").equals("1");
-
-	public static final String DL_REFERAL_PLAYDASHACTIVITY = "playdashboardactivity";
-	
-	public static final String DL_REFERAL_UNKNOWN = "unknown";
-
-	public static final String DL_REFERAL_LAUNCH = "launch";
-
-	public static final String DL_REFERAL_PLAYDM = "playdownloadmanager";
-
-	public static final String DL_REFERAL_SELCONTENT = "selectedcontent";
-
-	public static final String DL_REFERAL_DBLCLICK = "dblclick";
-
-	public static final String DL_REFERAL_TOOLBAR = "toolbar";
-
-	public static final String DL_REFERAL_DASHACTIVITY = "dashboardactivity";
+	/** @deprecated Used by UMP only.. */
+	public static final String URL_PREFIX = DEFAULT_CONTENT_NETWORK.getServiceURL(ContentNetwork.SERVICE_SITE);
 }

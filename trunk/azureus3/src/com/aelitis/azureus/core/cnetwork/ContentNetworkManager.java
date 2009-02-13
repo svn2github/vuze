@@ -42,8 +42,12 @@ ContentNetworkManager
 	public ContentNetwork
 	getContentNetworkForURL(
 		String		url );
-	
-	public ContentNetwork
+
+	/**
+	 * {@link ContentNetworkListener#networkAdded(ContentNetwork)} will be called
+	 * once the network is added
+	 */
+	public void
 	addContentNetwork(
 		long			id )
 	

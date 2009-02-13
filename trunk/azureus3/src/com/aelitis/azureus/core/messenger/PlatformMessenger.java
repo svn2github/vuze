@@ -81,12 +81,18 @@ public class PlatformMessenger
 
 	private static final String QUEUE_NORMAL = "msg.";
 
+	private static final String QUEUE_RELAY = "relay.";
+
 	static private AEMonitor queue_mon = new AEMonitor(
 			"v3.PlatformMessenger.queue");
 
 	static private Timer timerProcess = new Timer("v3.PlatformMessenger.queue");
 
-	static private TimerEvent timerEvent = null;
+	//static private TimerEvent timerEvent = null;
+
+	static private Map<String, TimerEvent> mapTimerEvents = new HashMap<String, TimerEvent>();
+	
+	static private AEMonitor mon_mapTimerEvents = new AEMonitor("mapTimerEvents");
 
 	private static boolean initialized;
 
@@ -95,7 +101,7 @@ public class PlatformMessenger
 	private static PlatformAuthorizedSender authorizedSender;
 
 	private static boolean authorizedDelayed;
-
+	
 	public static synchronized void init() {
 		if (initialized) {
 			return;
@@ -140,36 +146,33 @@ public class PlatformMessenger
 			init();
 		}
 
-		if (message != null) {
-			debug("q cn" + message.getContentNetworkID() + " "
-					+ message.toShortString() + ": " + message + " @ "
-					+ new Date(message.getFireBefore()) + "; in "
-					+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
-			if (message.requiresAuthorization() && authorizedDelayed) {
-				debug("   authorized msg is delayed");
-			}
-		} else {
+		if (message == null) {
 			debug("fire timerevent");
 		}
 		queue_mon.enter();
 		try {
 			long fireBefore;
+			String queueID = null;
 			if (message != null) {
 				long networkID = message.getContentNetworkID();
 				if (networkID <= 0) {
 					debug("Content Network invalid for " + message);
 					return;
 				}
-				String queueID;
 				if (message.requiresAuthorization()) {
 					queueID = QUEUE_AUTH;
 				} else if (!message.sendAZID()) {
 					queueID = QUEUE_NOAZID;
 				} else {
-					queueID = QUEUE_NORMAL;
+					boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
+					if (isRelayServer) {
+						queueID = QUEUE_RELAY;
+					} else {
+						queueID = QUEUE_NORMAL;
+					}
 				}
 				queueID += networkID;
-
+				
 				Map<PlatformMessage, PlatformMessengerListener> mapQueue = (Map) mapQueues.get(queueID);
 				if (mapQueue == null) {
 					mapQueue = new LinkedHashMap<PlatformMessage, PlatformMessengerListener>();
@@ -177,33 +180,65 @@ public class PlatformMessenger
 				}
 				mapQueue.put(message, listener);
 
+				debug("q " + queueID + "(" + mapQueue.size() + ") "
+						+ message.toShortString() + ": " + message + " @ "
+						+ new Date(message.getFireBefore()) + "; in "
+						+ (message.getFireBefore() - SystemTime.getCurrentTime()) + "ms");
+				if (message.requiresAuthorization() && authorizedDelayed) {
+					debug("   authorized msg is delayed");
+				}
+
 				fireBefore = message.getFireBefore();
 			} else {
 				fireBefore = SystemTime.getCurrentTime();
 			}
 
-			if (timerEvent == null || timerEvent.hasRun()) {
-				timerEvent = timerProcess.addEvent(fireBefore,
-						new TimerEventPerformer() {
-							public void perform(TimerEvent event) {
-								timerEvent = null;
-								Object[] keys = mapQueues.keySet().toArray();
-								for (int i = 0; i < keys.length; i++) {
-									Map mapQueue = mapQueues.get(keys[i]);
-									while (mapQueue != null && mapQueue.size() > 0) {
-										processQueue(mapQueue);
-									}
-								}
-							}
-						});
-			} else {
-				// Move the time up if we have to
+			if (queueID != null) {
 				try {
-					if (fireBefore < timerEvent.getWhen()) {
-						timerProcess.adjustAllBy(fireBefore - timerEvent.getWhen());
-					}
-				} catch (Exception e) {
+					mon_mapTimerEvents.enter();
 
+  				TimerEvent timerEvent = mapTimerEvents.get(queueID);
+  				
+    			if (timerEvent == null || timerEvent.hasRun() || fireBefore < timerEvent.getWhen()) {
+    				if (timerEvent != null) {
+  						mapTimerEvents.remove(timerEvent);
+    					timerEvent.cancel();
+    				}
+    				
+    				final String fQueueID = queueID;
+    				timerEvent = timerProcess.addEvent(fireBefore,
+    						new TimerEventPerformer() {
+    							public void perform(TimerEvent event) {
+    								try {
+    									mon_mapTimerEvents.enter();
+    									
+    									mapTimerEvents.remove(event);
+    								} finally {
+  										mon_mapTimerEvents.exit();
+    								}
+
+  									Map mapQueue = mapQueues.get(fQueueID);
+  									while (mapQueue != null && mapQueue.size() > 0) {
+  										processQueue(fQueueID, mapQueue);
+  									}
+    								/*
+    								Object[] keys = mapQueues.keySet().toArray();
+    								for (int i = 0; i < keys.length; i++) {
+    									Map mapQueue = mapQueues.get(keys[i]);
+    									while (mapQueue != null && mapQueue.size() > 0) {
+    										processQueue(mapQueue);
+    									}
+    								}
+    								*/
+    							}
+    						});
+    				mapTimerEvents.put(queueID, timerEvent);
+    			}
+  				if (timerEvent != null) {
+    				debug(" next q process for  " + queueID + " in " + (timerEvent.getWhen() - SystemTime.getCurrentTime()));
+  				}
+				} finally {
+					mon_mapTimerEvents.exit();					
 				}
 			}
 		} finally {
@@ -217,7 +252,7 @@ public class PlatformMessenger
 	public static void debug(String string) {
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("v3.PMsgr");
 		diag_logger.log(string);
-		if (ConstantsV3.DIAG_TO_STDOUT) {
+		if (ConstantsVuze.DIAG_TO_STDOUT) {
 			System.out.println(Thread.currentThread().getName() + "|"
 					+ System.currentTimeMillis() + "] " + string);
 		}
@@ -241,18 +276,19 @@ public class PlatformMessenger
 
 		Map map = new HashMap(1);
 		map.put(message, listener);
-		processQueue(map);
+		processQueue(null, map);
 	}
 
 	/**
 	 * @param requiresAuthorization 
 	 * 
 	 */
-	protected static void processQueue(Map mapQueue) {
+	protected static void processQueue(String queueID, Map mapQueue) {
 		if (!initialized) {
 			init();
 		}
 
+		//debug("pq " + queueID + " via " + Debug.getCompressedStackTrace());
 		final Map mapProcessing = new HashMap();
 
 		boolean loginAndRetry = false;
@@ -270,20 +306,15 @@ public class PlatformMessenger
 		try {
 			// add one at a time, ensure relay server messages are seperate
 			boolean first = true;
-			boolean isRelayServerBatch = false;
 			for (Iterator iter = mapQueue.keySet().iterator(); iter.hasNext();) {
 				PlatformMessage message = (PlatformMessage) iter.next();
 				Object value = mapQueue.get(message);
 
-				boolean isRelayServer = PlatformRelayMessenger.LISTENER_ID.equals(message.getListenerID());
 				if (first) {
 					requiresAuthorization = message.requiresAuthorization();
 					sendAZID = message.sendAZID();
-					isRelayServerBatch = isRelayServer;
 					contentNetworkID = message.getContentNetworkID();
 					first = false;
-				} else if (isRelayServerBatch != isRelayServer) {
-					break;
 				}
 
 				// build urlStem
@@ -368,7 +399,7 @@ public class PlatformMessenger
 		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
 				contentNetworkID);
 		if (cn == null) {
-			cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+			cn = ConstantsVuze.getDefaultContentNetwork();
 		}
 
 		String sURL_RPC;
@@ -704,7 +735,7 @@ public class PlatformMessenger
 	private static class fakeContext
 		extends ClientMessageContextImpl
 	{
-		private ContentNetwork contentNetwork = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+		private long contentNetworkID = ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID;
 
 		private void log(String str) {
 			if (System.getProperty("browser.route.all.external.stimuli.for.testing",
@@ -760,14 +791,12 @@ public class PlatformMessenger
 			log("setTorrentURLHandler - " + handler);
 		}
 
-		// @see com.aelitis.azureus.core.messenger.ClientMessageContext#getContentNetwork()
-		public ContentNetwork getContentNetwork() {
-			return contentNetwork ;
+		public long getContentNetworkID() {
+			return contentNetworkID;
 		}
 
-		// @see com.aelitis.azureus.core.messenger.ClientMessageContext#setContentNetwork(com.aelitis.azureus.core.cnetwork.ContentNetwork)
-		public void setContentNetwork(ContentNetwork contentNetwork) {
-			this.contentNetwork = contentNetwork;
+		public void setContentNetworkID(long contentNetwork) {
+			this.contentNetworkID = contentNetwork;
 		}
 	}
 

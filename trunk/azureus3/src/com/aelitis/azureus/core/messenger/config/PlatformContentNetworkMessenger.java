@@ -26,15 +26,17 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.json.simple.JSONObject;
 
-import com.aelitis.azureus.core.messenger.PlatformMessengerException;
+import com.aelitis.azureus.core.messenger.*;
 
 
 
 public class 
 PlatformContentNetworkMessenger 
 {
+	private static final String LISTENER_ID = "cnetworks";
+
 	private static final PlatformMessengerConfig	dispatcher = 
-			new PlatformMessengerConfig( "cnetworks", true );
+			new PlatformMessengerConfig( LISTENER_ID, true );
 
 	private static final String OP_LIST_CNETORKS	= "list-networks";
 
@@ -66,6 +68,49 @@ PlatformContentNetworkMessenger
 		}
 		
 		return( result );
+	}                       	
+	
+	public static void 
+	listNetworksAync(final listNetworksListener l, int maxDelayMS)
+	{
+		JSONObject parameters = new JSONObject();
+
+		parameters.put("azver", Constants.AZUREUS_VERSION);
+
+		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
+				OP_LIST_CNETORKS, parameters, maxDelayMS);
+
+		PlatformMessengerListener listener = new PlatformMessengerListener() {
+			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#replyReceived(com.aelitis.azureus.core.messenger.PlatformMessage, java.lang.String, java.util.Map)
+			public void replyReceived(PlatformMessage message, String replyType,
+					Map reply) {
+				List<Map> networks = (List<Map>) reply.get("networks");
+
+				List<contentNetworkDetails> result;
+
+				if (networks == null) {
+					result = null;
+				} else {
+  
+  				result = new ArrayList<contentNetworkDetails>();
+  
+  				for (Map map : networks) {
+  
+  					result.add(new contentNetworkDetails(map));
+  				}
+				}
+
+				if (l != null) {
+					l.networkListReturned(result);
+				}
+			}
+
+			// @see com.aelitis.azureus.core.messenger.PlatformMessengerListener#messageSent(com.aelitis.azureus.core.messenger.PlatformMessage)
+			public void messageSent(PlatformMessage message) {
+			}
+		};
+
+		PlatformMessenger.queueMessage(message, listener);
 	}                       	
 	
 	public static class
@@ -115,5 +160,11 @@ PlatformContentNetworkMessenger
 		{
 			return( "id=" + getID() + ";version=" + getVersion() + ";name=" + getName());
 		}
+	}
+	
+	public static interface
+	listNetworksListener
+	{
+		public void networkListReturned(List<contentNetworkDetails> list);		
 	}
 }

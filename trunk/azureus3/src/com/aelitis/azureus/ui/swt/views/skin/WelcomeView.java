@@ -31,7 +31,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarCloseListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 
 /**
@@ -65,7 +65,7 @@ public class WelcomeView
 			browserSkinObject.setURL((String) o);
 		} else {
 			String sURL = ContentNetworkUtils.getUrl(
-					ConstantsV3.DEFAULT_CONTENT_NETWORK, ContentNetwork.SERVICE_WELCOME);
+					ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_WELCOME);
 			browserSkinObject.setURL(sURL);
 		}
 

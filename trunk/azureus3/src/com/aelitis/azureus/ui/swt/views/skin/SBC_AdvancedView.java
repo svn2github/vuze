@@ -26,9 +26,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AERunnableObject;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
@@ -43,7 +41,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.util.ConstantsV3;
 
 /**
  * @author TuxPaper
@@ -103,7 +100,7 @@ public class SBC_AdvancedView
 						lblWait.update();
 
 						Color c = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-						if (ConstantsV3.isUnix) {
+						if (Constants.isUnix) {
 							// Hack: For some reason, if we set the color of a Composite
 							// to the widget background color, it will use the color
 							// of the parent composite, even when backgroundmode is

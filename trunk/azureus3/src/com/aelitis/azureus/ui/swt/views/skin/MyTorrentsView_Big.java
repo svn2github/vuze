@@ -12,7 +12,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
@@ -92,7 +92,7 @@ public class MyTorrentsView_Big
 		Object ds = rows[0].getDataSource(true);
 		if (PlayUtils.canPlayDS(ds) || (stateMask & SWT.CONTROL) > 0) {
   		TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-  				ConstantsV3.DL_REFERAL_DBLCLICK);
+  				DLReferals.DL_REFERAL_DBLCLICK);
 		}
 	}
 

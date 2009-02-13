@@ -51,7 +51,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeShareUtils;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
 import com.aelitis.azureus.util.PlayUtils;
 
@@ -531,7 +531,7 @@ public class ColumnMediaThumb
 						}
 						return;
 					}
-					referal = ConstantsV3.DL_REFERAL_PLAYDASHACTIVITY + "-"
+					referal = DLReferals.DL_REFERAL_PLAYDASHACTIVITY + "-"
 							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
 				TorrentListViewsUtils.playOrStreamDataSource(ds, null, referal);
@@ -546,7 +546,7 @@ public class ColumnMediaThumb
 						return;
 					}
 
-					referal = ConstantsV3.DL_REFERAL_DASHACTIVITY + "-"
+					referal = DLReferals.DL_REFERAL_DASHACTIVITY + "-"
 							+ ((VuzeActivitiesEntry) ds).getTypeID();
 				}
 				TorrentListViewsUtils.downloadDataSource(ds, false, referal);
@@ -559,7 +559,7 @@ public class ColumnMediaThumb
 				// run via play or stream so we get the security warning
 				Object ds = event.cell.getDataSource();
 				TorrentListViewsUtils.playOrStreamDataSource(ds, null,
-						ConstantsV3.DL_REFERAL_UNKNOWN);
+						DLReferals.DL_REFERAL_UNKNOWN);
 			} else if (id.equals(BTN_SHARE)) {
 				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 				if (contents.length > 0) {

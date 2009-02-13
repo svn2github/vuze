@@ -143,10 +143,10 @@ public class StimulusRPC
 							// Content Network of context is invalid because it's the
 							// internal one used for anythin. Get network id from params instead
 							long contentNetworkID = MapUtils.getMapLong(decodedMap,
-									"content-network", ConstantsV3.DEFAULT_CONTENT_NETWORK.getID());
+									"content-network", ConstantsVuze.getDefaultContentNetwork().getID());
 							ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
 							if (cn == null) {
-								cn = ConstantsV3.DEFAULT_CONTENT_NETWORK;
+								cn = ConstantsVuze.getDefaultContentNetwork();
 							}
 
 							DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(url,

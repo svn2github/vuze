@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -210,7 +209,7 @@ public class SideBar
 	public static SideBar instance = null;
 
 	static {
-		SIDEBAR_SECTION_BROWSE = ContentNetworkUtils.getTarget(ConstantsV3.DEFAULT_CONTENT_NETWORK);
+		SIDEBAR_SECTION_BROWSE = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 
 		disposeTreeItemListener = new DisposeListener() {
 			public void widgetDisposed(final DisposeEvent e) {
@@ -938,14 +937,14 @@ public class SideBar
 	 */
 	protected void paintSideBar(Event event, SideBarEntrySWT sideBarEntry) {
 		TreeItem treeItem = (TreeItem) event.item;
+		Rectangle itemBounds = treeItem.getBounds();
+
 		String text = (String) treeItem.getData("text");
 		if (text == null)
 			text = "";
 
 		//Point size = event.gc.textExtent(text);
 		//Rectangle treeBounds = tree.getBounds();
-		Rectangle itemBounds = treeItem.getBounds();
-
 		GC gc = event.gc;
 
 		gc.setAntialias(SWT.ON);
@@ -1297,7 +1296,7 @@ public class SideBar
 				if (cn == null) {
 					continue;
 				}
-				if (cn.getID() == ConstantsV3.DEFAULT_CONTENT_NETWORK.getID()) {
+				if (cn.getID() == ConstantsVuze.getDefaultContentNetwork().getID()) {
 					cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 					continue;
 				}

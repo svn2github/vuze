@@ -48,6 +48,8 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -65,7 +67,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerList
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -1626,8 +1628,12 @@ SubscriptionManagerUI
 				context.addMessageListener(
 						new MetaSearchListener( this ));
 				
-				String url = context.getContentNetwork().getSubscriptionURL(
-						subs.getID());
+				ContentNetwork contentNetwork = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+						context.getContentNetworkID());
+				// contentNetwork won't be null because a new browser context
+				// has the default content network
+				
+				String url = contentNetwork.getSubscriptionURL(subs.getID());
 					
 				Boolean	edit_mode = (Boolean)subs.getUserData( SUB_EDIT_MODE_KEY );
 				
@@ -1785,7 +1791,7 @@ SubscriptionManagerUI
 					String url = MapUtils.getMapString(params, "url",
 							"http://google.com/search?q=" + Math.random());
 					if (UrlFilter.getInstance().urlCanRPC(url)) {
-						url = ConstantsV3.DEFAULT_CONTENT_NETWORK.appendURLSuffix(url, false, true);
+						url = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(url, false, true);
 					}
 					
 					//Gudy, Not Tux, Listener Added

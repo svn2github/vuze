@@ -29,7 +29,7 @@ import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.LightBoxBrowserListener;
-import com.aelitis.azureus.util.ConstantsV3;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * A window with the lightbox effect hosting a browser widget in a stylized shell
@@ -42,7 +42,7 @@ public class LightBoxBrowserWindow
 
 	private String url = null;
 
-	private String pageVerifierValue = ConstantsV3.URL_PAGE_VERIFIER_VALUE;
+	private String pageVerifierValue = ConstantsVuze.URL_PAGE_VERIFIER_VALUE;
 
 	private StackLayout stack = new StackLayout();
 

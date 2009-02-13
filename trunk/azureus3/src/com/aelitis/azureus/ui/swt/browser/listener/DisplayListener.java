@@ -100,6 +100,7 @@ public class DisplayListener
 							ref);
 					if (cn != null) {
 						target = ContentNetworkUtils.getTarget(cn);
+						System.err.println("TARGET REWRITTEN TO " + target);
 					}
 				}
 				message.setCompleteDelayed(true);
@@ -237,7 +238,8 @@ public class DisplayListener
 					null));
 
 			DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(dlURL,
-					context.getContentNetwork());
+					ContentNetworkManagerFactory.getSingleton().getContentNetwork(
+							context.getContentNetworkID()));
 			dlInfo.setReferer(dlReferer);
 			if (dlCookies != null) {
 				if (dlHeader == null) {
