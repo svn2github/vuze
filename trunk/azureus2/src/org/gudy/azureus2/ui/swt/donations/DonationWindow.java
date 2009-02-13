@@ -119,7 +119,7 @@ public class DonationWindow
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
 					resetAskTime();
-				} else if (text.contains("neverAskAgain")) {
+				} else if (text.contains("never-ask-again")) {
 					neverAskAgain();
 				} else if (text.contains("close")) {
 					shell.dispose();
