@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -47,7 +48,10 @@ TranscodeJobImpl
 	private TranscodeTarget			target;
 	private TranscodeProfile		profile;
 	private DiskManagerFileInfo		file;
-	private boolean					stream;
+	
+	private boolean					is_stream;
+	private volatile InputStream	stream;
+	private AESemaphore				stream_sem = new AESemaphore( "TJ:s" );
 	
 	private int						state 				= ST_QUEUED;
 	private int						percent_complete	= 0;
@@ -59,13 +63,13 @@ TranscodeJobImpl
 		TranscodeTarget			_target,
 		TranscodeProfile		_profile,
 		DiskManagerFileInfo		_file,
-		boolean					_stream )
+		boolean					_is_stream )
 	{
 		queue		= _queue;
 		target		= _target;
 		profile		= _profile;
 		file		= _file;
-		stream		= _stream;
+		is_stream	= _is_stream;
 		
 		init();
 	}
@@ -139,15 +143,27 @@ TranscodeJobImpl
 	protected boolean
 	isStream()
 	{
-		return( stream );
+		return( is_stream );
+	}
+	
+	protected void
+	setStream(
+		InputStream		_stream )
+	{
+		stream		= _stream;
+		
+		stream_sem.releaseForever();
 	}
 	
 	protected InputStream
-	getStream()
+	getStream(
+		int		wait_for_millis )
 	
 		throws IOException
 	{
-		throw( new IOException( "bork bork" ));
+		stream_sem.reserve( wait_for_millis );
+		
+		return( stream );
 	}
 	
 	public void 

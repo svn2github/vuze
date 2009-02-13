@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -156,8 +158,11 @@ TranscodeManagerImpl
 				new DiskManagerFileInfoStream( 
 					new DiskManagerFileInfoStream.streamFactory()
 					{
+						private List<Object>	current_requests = new ArrayList<Object>();
+						
 						public InputStream 
-						getStream() 
+						getStream(
+							Object		request )
 						
 							throws IOException 
 						{
@@ -185,6 +190,14 @@ TranscodeManagerImpl
 								if ( profiles.length > 0 ){
 									
 									profile = profiles[0];
+									
+									for ( TranscodeProfile p: profiles ){
+										
+										if ( p.getName().toLowerCase().contains( "iphone normal" )){
+											
+											profile = p;
+										}
+									}
 								}
 							}
 							
@@ -199,7 +212,71 @@ TranscodeManagerImpl
 								source, 
 								true );
 							
-							return( job.getStream());
+							try{
+								synchronized( this ){
+								
+									current_requests.add( request );
+								}
+								
+								while( true ){
+									
+									InputStream is = job.getStream( 1000 );
+									
+									if ( is != null ){
+										
+										return( is );
+									}
+									
+									int	state = job.getState();
+									
+									if ( state == TranscodeJobImpl.ST_FAILED ){
+										
+										throw( new IOException( "Transcode failed: " + job.getError()));
+										
+									}else if ( state == TranscodeJobImpl.ST_CANCELLED ){
+										
+										throw( new IOException( "Transcode failed: job cancelled" ));
+
+									}else if ( state == TranscodeJobImpl.ST_COMPLETE ){
+										
+										throw( new IOException( "Job complete but no stream!" ));
+									}
+									
+									synchronized( this ){
+										
+										if ( !current_requests.contains( request )){
+											
+											break;
+										}
+									}
+									
+									System.out.println( "waiting for stream" );
+									
+								}
+								
+								IOException error = new IOException( "Stream request cancelled" );
+								
+								job.failed( error );
+								
+								throw( error );
+								
+							}finally{
+								
+								synchronized( this ){
+								
+									current_requests.remove( request );
+								}
+							}
+						}
+						
+						public void 
+						destroyed(
+							Object request ) 
+						{
+							synchronized( this ){
+								
+								current_requests.remove( request );
+							}
 						}
 					},
 					new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4.sav" ));

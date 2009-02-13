@@ -237,6 +237,8 @@ DiskManagerFileInfoStream
 				current_context = null;
 			}
 		}
+		
+		stream_factory.destroyed( c );
 	}
 	
 	protected class
@@ -271,7 +273,7 @@ DiskManagerFileInfoStream
 					
 					raf = new RandomAccessFile( temp_file, "rw" );
 
-					stream = stream_factory.getStream();
+					stream = stream_factory.getStream( this );
 										
 					new AEThread2( "DMS:reader", true )
 					{
@@ -740,8 +742,13 @@ DiskManagerFileInfoStream
 	streamFactory
 	{
 		public InputStream
-		getStream()
+		getStream(
+			Object		requester )
 		
 			throws IOException;
+		
+		public void
+		destroyed(
+			Object		requester );
 	}
 }
