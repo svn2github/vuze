@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 
 import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
@@ -166,82 +167,22 @@ public class DebugMenuHelper
 		 */
 
 		item = new MenuItem(menuDebug, SWT.CASCADE);
-		item.setText("BrowserTB");
+		item.setText("DW");
 		Menu menuBrowserTB = new Menu(menuDebug.getParent(), SWT.DROP_DOWN);
 		item.setMenu(menuBrowserTB);
 
 		item = new MenuItem(menuBrowserTB, SWT.NONE);
-		item.setText("browser TB control ext");
+		item.setText("popup check");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
-				Map map = new HashMap();
-				map.put("download-url",
-						"http://beta.legaltorrents.com/get/98-story-of-stuff");
-				map.put("display-name", "control ext");
-				map.put("referer", "cvs");
-				map.put("is-vuze-content", new Boolean(false));
-				BrowserMessage message = new BrowserMessage(
-						"AZMSG;0;display;set-selected-content;"
-								+ JSONUtils.encodeToJSON(map));
-				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
-				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
-						message);
+				DonationWindow.checkForDonationPopup();
 			}
 		});
 		item = new MenuItem(menuBrowserTB, SWT.NONE);
-		item.setText("browser TB control int");
+		item.setText("show");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
-				Map map = new HashMap();
-				map.put("torrent-hash", "6EF6QUWI6IGNLX4MV37JGXQH7HOONEJL");
-				map.put("display-name", "control int");
-				map.put("referer", "cvs");
-				BrowserMessage message = new BrowserMessage(
-						"AZMSG;0;display;set-selected-content;"
-								+ JSONUtils.encodeToJSON(map));
-				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
-				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
-						message);
-			}
-		});
-		item = new MenuItem(menuBrowserTB, SWT.NONE);
-		item.setText("browser TB control int canplay");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
-				Map map = new HashMap();
-				map.put("torrent-hash", "6EF6QUWI6IGNLX4MV37JGXQH7HOONEJL");
-				map.put("display-name", "control int play");
-				map.put("referer", "cvs");
-				map.put("can-play", new Boolean(true));
-				BrowserMessage message = new BrowserMessage(
-						"AZMSG;0;display;set-selected-content;"
-								+ JSONUtils.encodeToJSON(map));
-				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
-				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
-						message);
-			}
-		});
-		
-		item = new MenuItem(menuBrowserTB, SWT.NONE);
-		item.setText("browser TB control int canplay callback");
-		item.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				Browse browse = (Browse) SkinViewManager.getByClass(Browse.class);
-				Map map = new HashMap();
-				map.put("torrent-hash", "JLUSORTLTNF3ZG5FVYMZBOQXMOELDPCI");
-				map.put("display-name", "control int play callbac");
-				map.put("referer", "cvs");
-				map.put("can-play", new Boolean(true));
-				map.put("callback", "alert");
-				BrowserMessage message = new BrowserMessage(
-						"AZMSG;0;display;set-selected-content;"
-								+ JSONUtils.encodeToJSON(map));
-				browse.getBrowserSkinObject().getContext().getDispatcher().resetSequence();
-				browse.getBrowserSkinObject().getContext().getDispatcher().dispatch(
-						message);
+				new DonationWindow().show();
 			}
 		});
 
