@@ -30,7 +30,7 @@ TranscodeProviderAdapter
 	
 	public void
 	failed(
-		TranscodeProviderException		error );
+		TranscodeException		error );
 	
 	public void
 	complete();

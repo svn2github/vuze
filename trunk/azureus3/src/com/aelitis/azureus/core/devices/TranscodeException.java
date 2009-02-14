@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 2, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,29 +21,24 @@
 
 package com.aelitis.azureus.core.devices;
 
-import java.net.URL;
+@SuppressWarnings("serial")
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-
-public interface 
-TranscodeProvider 
+public class 
+TranscodeException
+	extends Exception
 {
-	public String
-	getName();
+	public 
+	TranscodeException(
+		String		str )
+	{
+		super( str );
+	}
 	
-	public TranscodeProfile[]
-	getProfiles();
-	
-	public TranscodeProfile
-	getProfile(
-		String		UID );
-	
-	public TranscodeProviderJob
-	transcode( 
-		TranscodeProviderAdapter	adapter,
-		DiskManagerFileInfo			input,
-		TranscodeProfile			profile,
-		URL							output )
-	
-		throws TranscodeException;
+	public 
+	TranscodeException(
+		String		str,
+		Throwable 	e )
+	{
+		super( str, e );
+	}
 }

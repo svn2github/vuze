@@ -1,5 +1,5 @@
 /*
- * Created on Feb 2, 2009
+ * Created on Feb 13, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,24 +21,11 @@
 
 package com.aelitis.azureus.core.devices;
 
-@SuppressWarnings("serial")
+import java.io.File;
 
-public class 
-TranscodeProviderException
-	extends Exception
+public interface 
+TranscodeFile 
 {
-	public 
-	TranscodeProviderException(
-		String		str )
-	{
-		super( str );
-	}
-	
-	public 
-	TranscodeProviderException(
-		String		str,
-		Throwable 	e )
-	{
-		super( str, e );
-	}
+	public File
+	getFile();
 }

@@ -28,14 +28,26 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DelayedEvent;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceManagerException;
+import com.aelitis.azureus.core.devices.TranscodeException;
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
+import com.aelitis.azureus.core.devices.TranscodeTargetListener;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
@@ -94,6 +106,11 @@ DeviceImpl
 	private Map<String,Object>	persistent_properties = new LightHashMap<String, Object>(1);
 
 	private Map<Object,Object>	transient_properties = new LightHashMap<Object, Object>(1);
+	
+	private long						last_load;
+	private Map<String,Map<String,?>>	device_files;
+	
+	private CopyOnWriteList<TranscodeTargetListener>	listeners = new CopyOnWriteList<TranscodeTargetListener>();
 	
 	protected
 	DeviceImpl(
@@ -279,10 +296,177 @@ DeviceImpl
 		manager.requestAttention( this );
 	}
 	
+	public TranscodeFile[]
+	getFiles()
+	{
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+				}
+				
+				List<TranscodeFile> result = new ArrayList<TranscodeFile>();
+								
+				for (Map.Entry<String,Map<String,?>> entry: device_files.entrySet()){
+					
+					transcodeFile tf = new transcodeFile( entry.getKey(), entry.getValue());
+					
+					if ( tf.getFile().exists()){
+					
+						result.add( tf );
+					}
+				}
+				
+				return( result.toArray( new TranscodeFile[ result.size() ]));
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( new TranscodeFile[0] );
+		}
+	}
+	
+	public TranscodeFile
+	allocateFile(
+		TranscodeProfile		profile,
+		DiskManagerFileInfo		file )
+	
+		throws TranscodeException
+	{
+		transcodeFile	result;
+		
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+				}
+	
+				String	key = ByteFormatter.encodeString( file.getDownloadHash() ) + ":" + file.getIndex();
+				
+				Map<String,?> existing = device_files.get( key );
+				
+				if ( existing != null ){
+				
+					result = new transcodeFile( key, existing );
+					
+				}else{
+							
+					String ext = profile.getFileExtension();
+					
+					String	target_file = file.getFile().getName();
+					
+					if ( ext != null ){
+						
+						int	pos = target_file.lastIndexOf( '.' );
+						
+						if ( pos != -1 ){
+							
+							target_file = target_file.substring( 0, pos ); 
+						}
+						
+						target_file += ext;
+					}
+						
+					Set<String> name_set = new HashSet<String>();
+					
+					for (Map<String,?> entry: device_files.values()){
+						
+						try{
+							name_set.add( new File( ImportExportUtils.importString( entry, "file" )).getName());
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+		
+					for (int i=0;i<1024;i++){
+						
+						String	test_name = i==0?target_file:( i + "_" + target_file);
+						
+						if ( !name_set.contains( test_name )){
+						
+							target_file = test_name;
+						}				
+					}
+					
+					File output_file = getWorkingDirectory();
+	
+					output_file = new File( output_file.getAbsoluteFile(), target_file );
+	
+					result = new transcodeFile( key, output_file );
+					
+					device_files.put( key, result.toMap());
+					
+					saveDeviceFile();
+				}
+			}
+		}catch( Throwable e ){
+			
+			throw( new TranscodeException( "File allocation failed", e ));
+		}
+		
+		for ( TranscodeTargetListener l: listeners ){
+			
+			try{
+				l.fileAdded( result );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( result );
+	}
+	
 	public File
 	getWorkingDirectory()
-	{
-		return( new File( getPersistentStringProperty( PP_REND_WORK_DIR )));
+	{				
+		String result = getPersistentStringProperty( PP_REND_WORK_DIR );
+		
+		if ( result.length() == 0 ){
+			
+			String	def_dir = COConfigurationManager.getStringParameter( "Default save path" );
+
+			File f = new File( def_dir, "transcodes" );
+			
+			f.mkdirs();
+			
+			String	name = FileUtil.convertOSSpecificChars( getName(), true );
+			
+			for (int i=0;i<1024;i++){
+				
+				String test_name = name + (i==0?"":("_"+i));
+				
+				File test_file = new File( f, test_name );
+				
+				if ( !test_file.exists()){
+			
+					f = test_file;
+					
+					break;
+				}
+			}
+			
+			result = f.getAbsolutePath();
+			
+			setPersistentStringProperty( PP_REND_WORK_DIR, result );
+		}
+		
+		File f_result = new File( result );
+		
+		if ( !f_result.exists()){
+			
+			f_result.mkdirs();
+		}
+		
+		return( f_result );
 	}
 	
 	public void
@@ -341,6 +525,8 @@ DeviceImpl
 	
 	public TranscodeProfile
 	getDefaultTranscodeProfile()
+	
+		throws TranscodeException
 	{
 		String uid = getPersistentStringProperty( PP_REND_DEF_TRANS_PROF );
 		
@@ -348,7 +534,23 @@ DeviceImpl
 		
 		TranscodeManagerImpl tm = dm.getTranscodeManager();
 
-		return( tm.getProfileFromUID( uid ));
+		TranscodeProfile profile = tm.getProfileFromUID( uid );
+		
+		if ( profile != null ){
+			
+			return( profile );
+		}
+		
+		log( "Default transcode profile for " + getName() + " not found, picking first" );
+			
+		TranscodeProfile[] profiles = getTranscodeProfiles();
+			
+		if ( profiles.length == 0 ){
+			
+			throw( new TranscodeException( "No profiles available" ));			
+		}
+		
+		return( profiles[0] );
 	}
 	
 	public void
@@ -469,7 +671,7 @@ DeviceImpl
 	
 			if ( value == null ){
 				
-				return( "");
+				return( "" );
 			}
 			
 			return( new String( value, "UTF-8" ));
@@ -573,12 +775,117 @@ DeviceImpl
 		}
 	}
 	
+	protected void
+	loadDeviceFile()
+	
+		throws IOException
+	{
+		last_load = SystemTime.getMonotonousTime();
+		
+		Map	map = FileUtil.readResilientFile( getDeviceFile());
+
+		device_files = (Map<String,Map<String,?>>)map.get( "files" );
+		
+		if ( device_files == null ){
+			
+			device_files = new HashMap<String, Map<String,?>>();
+		}
+		
+		System.out.println( "Loaded device file for " + getName() + ": files=" + device_files.size());
+		
+		final int GC_TIME = 15000;
+		
+		new DelayedEvent( 
+			"Device:gc", 
+			GC_TIME,
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					synchronized( DeviceImpl.this ){
+						
+						if ( SystemTime.getMonotonousTime() - last_load >= GC_TIME ){
+														
+							device_files = null;
+							
+						}else{
+							
+							new DelayedEvent( "Device:gc2", GC_TIME, this );
+						}
+					}
+				}
+			});
+	}
+	
+	protected void
+	saveDeviceFile()
+	
+		throws IOException
+	{
+		if ( device_files == null || device_files.size()==0 ){
+			
+			FileUtil.deleteResilientFile( getDeviceFile());
+			
+		}else{
+			Map map = new HashMap();
+			
+			map.put( "files", device_files );
+			
+			FileUtil.writeResilientFile( getDeviceFile(), map );
+		}
+	}
+	
+	protected File
+	getDeviceFile()
+	
+		throws IOException
+	{
+ 		File dir = getDevicesDir();
+ 		
+ 		return( new File( dir, FileUtil.convertOSSpecificChars(getID(),false) + ".dat" ));
+	}
+	
+	protected File
+	getDevicesDir()
+	
+		throws IOException
+	{
+		File dir = new File(SystemProperties.getUserPath());
+
+		dir = new File( dir, "devices" );
+ 		
+ 		if ( !dir.exists()){
+ 			
+ 			if ( !dir.mkdirs()){
+ 				
+ 				throw( new IOException( "Failed to create '" + dir + "'" ));
+ 			}
+ 		}	
+ 		
+ 		return( dir );
+	}
+	
 	protected DeviceManagerImpl
 	getManager()
 	{
 		return( manager );
 	}
 
+	public void
+	addListener(
+		TranscodeTargetListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		TranscodeTargetListener		listener )
+	{
+		listeners.remove( listener );
+	}
+	
 	protected void
 	log(
 		String		str )
@@ -626,6 +933,75 @@ DeviceImpl
 		getURL()
 		{
 			return( url );
+		}
+	}
+	
+	protected class
+	transcodeFile
+		implements TranscodeFile
+	{
+		private String				key;
+		private Map<String,?>		map;
+		
+		protected 
+		transcodeFile(
+			String		_key,
+			File		file )
+		{
+			key	= _key;
+			map	= new HashMap<String, Object>();
+			
+			setString( "file", file.getAbsolutePath());
+		}
+		
+		protected
+		transcodeFile(
+			String			_key,
+			Map<String,?>	_map )
+		{
+			key		= _key;
+			map		= _map;
+		}
+		
+		protected Map<String,?>
+		toMap()
+		{
+			return( map );
+		}
+		
+		public File 
+		getFile() 
+		{
+			return(new File(getString("file")));
+		}
+		
+		protected String
+		getString(
+			String		key )
+		{
+			try{
+				return(ImportExportUtils.importString( map, key ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( "" );
+			}
+		}
+		
+		protected void
+		setString(
+			String		key,
+			String		value )
+		{
+			try{
+				ImportExportUtils.exportString(map, "file", value);
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 }

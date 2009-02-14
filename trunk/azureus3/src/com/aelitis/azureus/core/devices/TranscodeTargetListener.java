@@ -1,5 +1,5 @@
 /*
- * Created on Feb 4, 2009
+ * Created on Feb 13, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -21,57 +21,14 @@
 
 package com.aelitis.azureus.core.devices;
 
-import java.io.File;
-
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-
 public interface 
-TranscodeTarget 
+TranscodeTargetListener 
 {
-	public String
-	getID();
-	
-	public Device
-	getDevice();
-	
-	public TranscodeFile
-	allocateFile(
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
-	
-		throws TranscodeException;
-	
-	public TranscodeFile[]
-	getFiles();
-	
-	public File
-	getWorkingDirectory();
+	public void
+	fileAdded(
+		TranscodeFile		file );
 	
 	public void
-	setWorkingDirectory(
-		File		directory );
-	
-	public TranscodeProfile[]
-	getTranscodeProfiles();
-	
-	public void
-	setTranscodeProfiles(
-		TranscodeProfile[]	profiles );
-	
-	public TranscodeProfile
-	getDefaultTranscodeProfile()
-	
-		throws TranscodeException;
-	
-	public void
-	setDefaultTranscodeProfile(
-		TranscodeProfile		profile );
-	
-	public void
-	addListener(
-		TranscodeTargetListener		listener );
-	
-	public void
-	removeListener(
-		TranscodeTargetListener		listener );
+	fileRemoved(
+		TranscodeFile		file );
 }

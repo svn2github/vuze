@@ -308,7 +308,7 @@ public class DevicesView
 				"azbuddy.ui.table.name", 
 				"devices.device",  
 				"devices.profile",
-				"PeersView.state",
+				"devices.state",
 				"General.percent",
 		};
 
@@ -389,8 +389,8 @@ public class DevicesView
 
 					item.setText(0, String.valueOf(job.getIndex()));
 					item.setText(1, job.getName());
-					item.setText(2, job.getTarget().getDevice().getName());
-					item.setText(3, job.getProfile().getName());
+					item.setText(2, job.getTarget()==null?"<null>":job.getTarget().getDevice().getName());
+					item.setText(3, job.getProfile()==null?"<null>":job.getProfile().getName());
 					item.setText(4, getJobStatus( job ));
 					item.setText(5, String.valueOf( job.getPercentComplete()));					
 				}

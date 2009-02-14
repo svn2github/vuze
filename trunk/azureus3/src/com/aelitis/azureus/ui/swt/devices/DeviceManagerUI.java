@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.devices;
 
 
 
+import java.io.File;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -52,6 +53,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
@@ -66,7 +68,9 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import com.aelitis.azureus.core.AzureusCore;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 
+import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester.loggerProvider;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -188,6 +192,8 @@ DeviceManagerUI
 			ui_setup = true;
 		}
 		
+		side_bar		= _side_bar;
+
 		device_manager 	= DeviceManagerFactory.getSingleton();
 
 		device_manager_listener = 
@@ -221,9 +227,7 @@ DeviceManagerUI
 					removeDevice( device );
 				}
 			};
-			
-		side_bar		= _side_bar;
-		
+					
 		setupListeners();
 		
 		buildSideBar( false );
@@ -945,7 +949,16 @@ DeviceManagerUI
 										return;
 									}
 									
-									deviceView view = new deviceView( device );
+									deviceView view;
+									
+									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+										
+										view = new DeviceRendererView((DeviceMediaRenderer)device );
+										
+									}else{
+										
+										view = new deviceView( device );
+									}
 									
 									new_di.setView( view );
 										
@@ -976,6 +989,21 @@ DeviceManagerUI
 										browse_menu_item.setStyle( MenuItem.STYLE_MENU );
 										
 										browse_menu_item.addFillListener( will_browse_listener );
+									}
+									
+									if ( device instanceof TranscodeTarget ){
+										
+										entry.addListener(
+											new SideBarDropListener()
+											{
+												public void 
+												sideBarEntryDrop(
+													SideBarEntry 		entry, 
+													Object 				payload  )
+												{
+													handleDrop((TranscodeTarget)device, payload );
+												}
+											});
 									}
 									
 									MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
@@ -1052,6 +1080,40 @@ DeviceManagerUI
 								}
 							}
 						});
+			}
+		}
+	}
+	
+	protected void
+	handleDrop(
+		TranscodeTarget	target,
+		Object			payload )
+	{
+		if ( payload instanceof String[]){
+			
+			String[]	files = (String[])payload;
+			
+			for ( String file: files ){
+			
+				File f = new File( file );
+				
+				if ( f.exists()){
+
+					try{
+						device_manager.getTranscodeManager().getQueue().add(
+							target,
+							target.getDefaultTranscodeProfile(),
+							new DiskManagerFileInfoFile( f ),
+							false );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}else{
+					
+					Debug.out( "Drop to " + target.getDevice().getName() + " for " + file + " failed, file doesn't exist" );
+				}
 			}
 		}
 	}
@@ -1136,7 +1198,7 @@ DeviceManagerUI
 		if ( device_type == Device.DT_INTERNET ){
 			
 			view = new DeviceInternetView( this, category_title );
-			
+					
 		}else{
 			
 			view = new categoryViewGeneric( device_type, category_title );
@@ -1381,10 +1443,16 @@ DeviceManagerUI
 		{
 			if ( propertyID == TITLE_TEXT ){
 				
-				return( device.getName());
+				return( getTitle());
 			}
 			
 			return null;
+		}
+		
+		public String
+		getTitle()
+		{
+			return( device.getName());
 		}
 		
 		public void

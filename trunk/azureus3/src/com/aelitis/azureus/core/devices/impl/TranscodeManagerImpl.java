@@ -140,12 +140,12 @@ TranscodeManagerImpl
 			
 			if ( av_pi == null ){
 			
-				throw( new TranscodeProviderException( "Media Server plugin not found" ));
+				throw( new TranscodeException( "Media Server plugin not found" ));
 			}
 			
 			IPCInterface av_ipc = av_pi.getIPC();
 
-			final File source_file = new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4" );
+			final File source_file = new File( "c:\\test\\custom1\\Fast_and_Furious_4__Vin_Diesel[TVG00016080].mkv" );
 			
 			if ( !source_file.exists()){
 				
@@ -193,7 +193,7 @@ TranscodeManagerImpl
 									
 									for ( TranscodeProfile p: profiles ){
 										
-										if ( p.getName().toLowerCase().contains( "iphone normal" )){
+										if ( p.getName().toLowerCase().contains( "wii" )){
 											
 											profile = p;
 										}
@@ -279,7 +279,7 @@ TranscodeManagerImpl
 							}
 						}
 					},
-					new File( "c:\\test\\custom1\\harry_potter_phoenix-tlr1_h1080p.mp4.sav" ));
+					new File( "c:\\test\\custom1\\Fast_and_Furious_4__Vin_Diesel[TVG00016080].mkv.flv" ));
 			
 			AzureusContentFile	content = 
 				new AzureusContentFile()
@@ -460,7 +460,7 @@ TranscodeManagerImpl
 	lookupTarget(
 		String		target_id )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		Device device = device_manager.getDevice( target_id );
 		
@@ -469,7 +469,7 @@ TranscodeManagerImpl
 			return((TranscodeTarget)device);
 		}
 		
-		throw( new TranscodeProviderException( "Transcode target with id " + target_id + " not found" ));
+		throw( new TranscodeException( "Transcode target with id " + target_id + " not found" ));
 	}
 	
 	protected DiskManagerFileInfo
@@ -477,21 +477,21 @@ TranscodeManagerImpl
 		byte[]		hash,
 		int			index )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		try{
 			Download download = azureus_core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getDownload( hash );
 			
 			if ( download == null ){
 				
-				throw( new TranscodeProviderException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found" ));
+				throw( new TranscodeException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found" ));
 			}
 		
 			return( download.getDiskManagerFileInfo()[index]);
 			
 		}catch( Throwable e ){
 			
-			throw( new TranscodeProviderException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found", e ));
+			throw( new TranscodeException( "Download with hash " + ByteFormatter.encodeString( hash ) + " not found", e ));
 
 		}
 	}

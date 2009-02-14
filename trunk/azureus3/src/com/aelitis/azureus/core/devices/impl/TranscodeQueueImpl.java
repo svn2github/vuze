@@ -22,6 +22,8 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -89,12 +91,14 @@ TranscodeQueueImpl
 	protected boolean
 	process(
 		final TranscodeJobImpl		job )
-	{		
-		TranscodeProvider provider = job.getProfile().getProvider();
+	{				
+		TranscodePipe pipe = null;
 		
 		try{
 			job.starts();
 			
+			TranscodeProvider provider = job.getProfile().getProvider();
+
 			final AESemaphore sem = new AESemaphore( "Xcode:proc" );
 			
 			final TranscodeProviderJob[] provider_job = { null }; 
@@ -141,7 +145,7 @@ TranscodeQueueImpl
 					
 					public void
 					failed(
-						TranscodeProviderException		e )
+						TranscodeException		e )
 					{
 						error[0] = e;
 						
@@ -157,34 +161,47 @@ TranscodeQueueImpl
 				
 			TranscodeProfile profile = job.getProfile();
 				
-			String ext = profile.getFileExtension();
+			if ( job.isStream()){
+				
+				/*
+				provider_job[0] = 
+					provider.transcode(
+						adapter,
+						job.getFile(),
+						profile,
+						new File( "C:\\temp\\arse").toURI().toURL());
+				*/
+				
+				pipe = new TranscodePipeStreamSource2(
+							new TranscodePipeStreamSource2.streamListener()
+							{
+								public void 
+								gotStream(
+									InputStream is ) 
+								{
+									job.setStream( is );
+								}
+							});
+				
+				provider_job[0] = 
+					provider.transcode(
+						adapter,
+						job.getFile(),
+						profile,
+						new URL( "tcp://127.0.0.1:" + pipe.getPort()));
 
-			DiskManagerFileInfo	file = job.getFile();
-			
-			String	target_file = file.getFile().getName();
-			
-			if ( ext != null ){
+			}else{
 				
-				int	pos = target_file.lastIndexOf( '.' );
-				
-				if ( pos != -1 ){
 					
-					target_file = target_file.substring( 0, pos ); 
-				}
+				File output_file = job.getTarget().allocateFile( profile, job.getFile()).getFile();
 				
-				target_file += ext;
+				provider_job[0] = 
+					provider.transcode(
+						adapter,
+						job.getFile(),
+						profile,
+						output_file.toURI().toURL());
 			}
-			
-			File output_file = job.getTarget().getWorkingDirectory();
-			
-			output_file = new File( output_file.getAbsoluteFile(), target_file );
-					
-			provider_job[0] = 
-				provider.transcode(
-					adapter,
-					job.getFile(),
-					profile,
-					output_file.toURI().toURL());
 			
 			provider_job[0].setMaxBytesPerSecond( max_bytes_per_sec );
 			
@@ -256,6 +273,13 @@ TranscodeQueueImpl
 			job.failed( e );
 			
 			return( false );
+			
+		}finally{
+			
+			if ( pipe != null ){
+				
+				pipe.destroy();
+			}
 		}
 	}
 	
@@ -337,27 +361,30 @@ TranscodeQueueImpl
 	{
 		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );
 		
-		synchronized( this ){
-			
-			queue.add( job );
-			
-			queue_sem.release();
-			
-			saveConfig();
-		}
-		
-		for ( TranscodeQueueListener listener: listeners ){
-			
-			try{
-				listener.jobAdded( job );
+		try{
+			synchronized( this ){
 				
-			}catch( Throwable e ){
+				queue.add( job );
 				
-				Debug.printStackTrace( e );
+				queue_sem.release();
+				
+				saveConfig();
 			}
-		}
+			
+			for ( TranscodeQueueListener listener: listeners ){
+				
+				try{
+					listener.jobAdded( job );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+		}finally{
 		
-		schedule();
+			schedule();
+		}
 		
 		return( job );
 	}
@@ -537,7 +564,7 @@ TranscodeQueueImpl
 	lookupTarget(
 		String		target_id )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		return( manager.lookupTarget( target_id ));
 	}
@@ -546,13 +573,13 @@ TranscodeQueueImpl
 	lookupProfile(
 		String		profile_id )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		TranscodeProfile profile = manager.getProfileFromUID( profile_id );
 		
 		if ( profile == null ){
 			
-			throw( new TranscodeProviderException( "Transcode profile with id '" + profile_id + "' not found" ));
+			throw( new TranscodeException( "Transcode profile with id '" + profile_id + "' not found" ));
 		}
 		
 		return( profile );
@@ -563,7 +590,7 @@ TranscodeQueueImpl
 		byte[]		hash,
 		int			index )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		return( manager.lookupFile( hash, index ));
 	}

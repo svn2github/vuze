@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -31,13 +32,15 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
-import com.aelitis.azureus.core.devices.TranscodeProviderException;
+import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public class 
@@ -79,7 +82,7 @@ TranscodeJobImpl
 		TranscodeQueueImpl		_queue,
 		Map<String,Object>		map )
 	
-		throws IOException, TranscodeProviderException
+		throws IOException, TranscodeException
 	{
 		queue	= _queue;
 		
@@ -94,11 +97,19 @@ TranscodeJobImpl
 		
 		profile = queue.lookupProfile( profile_id );
 		
-		byte[] dl_hash = ByteFormatter.decodeString( ImportExportUtils.importString( map, "dl_hash" ));
+		String file_str = ImportExportUtils.importString( map, "file" );
 		
-		int file_index = ImportExportUtils.importInt( map, "file_index" );
+		if ( file_str == null ){
+			
+			byte[] dl_hash = ByteFormatter.decodeString( ImportExportUtils.importString( map, "dl_hash" ));
+			
+			int file_index = ImportExportUtils.importInt( map, "file_index" );
+			
+			file = queue.lookupFile( dl_hash, file_index );
+		}else{
 		
-		file = queue.lookupFile( dl_hash, file_index );
+			file = new DiskManagerFileInfoFile( new File( file_str ));
+		}
 		
 		init();
 	}
@@ -118,9 +129,19 @@ TranscodeJobImpl
 			
 			ImportExportUtils.exportString( map, "profile", profile.getUID());
 			
-			ImportExportUtils.exportString( map, "dl_hash", ByteFormatter.encodeString( file.getDownload().getTorrent().getHash()));
-			
-			ImportExportUtils.exportInt( map, "file_index", file.getIndex());
+			try{
+				Download download = file.getDownload();
+				
+				ImportExportUtils.exportString( map, "dl_hash", ByteFormatter.encodeString( download.getTorrent().getHash()));
+
+				ImportExportUtils.exportInt( map, "file_index", file.getIndex());
+
+			}catch( DownloadException e ){
+				
+					// external file
+				
+				ImportExportUtils.exportString( map, "file", file.getFile().getAbsolutePath());
+			}
 		
 			return( map );
 			

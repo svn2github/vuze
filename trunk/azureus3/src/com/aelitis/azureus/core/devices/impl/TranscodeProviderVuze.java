@@ -35,7 +35,7 @@ import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.core.devices.TranscodeProviderAdapter;
-import com.aelitis.azureus.core.devices.TranscodeProviderException;
+import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeProviderJob;
 
 public class 
@@ -117,19 +117,19 @@ TranscodeProviderVuze
 	
 	public TranscodeProviderJob
 	transcode( 
-		final TranscodeProviderAdapter	adapter,
+		final TranscodeProviderAdapter	_adapter,
 		DiskManagerFileInfo				input,
 		TranscodeProfile				profile,
 		URL								output )
 	
-		throws TranscodeProviderException
+		throws TranscodeException
 	{
 		try{
 			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
 			
 			if ( av_pi == null ){
 			
-				throw( new TranscodeProviderException( "Media Server plugin not found" ));
+				throw( new TranscodeException( "Media Server plugin not found" ));
 			}
 			
 			IPCInterface av_ipc = av_pi.getIPC();
@@ -153,7 +153,7 @@ TranscodeProviderVuze
 					
 				}else{
 					
-					throw( new TranscodeProviderException( "No UPnPAV URL and file doesn't exist" ));
+					throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
 				}
 			}else{
 				source_url = new URL( url_str );
@@ -166,18 +166,65 @@ TranscodeProviderVuze
 			final TranscodePipe f_pipe = pipe;
 			
 			try{	
-
-				File file = new File( output.toURI());
-					
 				final IPCInterface	ipc = plugin_interface.getIPC();
+
+				final Object context;
+				
+				final TranscodeProviderAdapter	adapter;
+				
+				if ( output.getProtocol().equals( "tcp" )){
 					
-				final Object context = 
-					ipc.invoke(
-						"transcodeToFile",
-						new Object[]{ 
-							source_url,
-							profile.getName(),
-							file });
+					adapter = _adapter;
+					
+					context = 
+						ipc.invoke(
+							"transcodeToTCP",
+							new Object[]{ 
+								source_url,
+								profile.getName(),
+								output.getPort() });
+				}else{
+					
+					final File file = new File( output.toURI());
+						
+					adapter = 
+						new TranscodeProviderAdapter()
+						{
+							public void
+							updatePercentDone(
+								int								percent )
+							{
+								_adapter.updatePercentDone( percent );
+							}
+							
+							public void
+							failed(
+								TranscodeException		error )
+							{
+								try{
+									file.delete();
+									
+								}finally{
+									
+									_adapter.failed( error );
+								}
+							}
+							
+							public void
+							complete()
+							{
+								_adapter.complete();
+							}
+						};
+						
+					context = 
+						ipc.invoke(
+							"transcodeToFile",
+							new Object[]{ 
+								source_url,
+								profile.getName(),
+								file });
+				}
 	
 				new AEThread2( "xcodeStatus", true )
 					{
@@ -214,15 +261,15 @@ TranscodeProviderVuze
 											}
 										}else if ( state == 1 ){
 											
-											adapter.failed( new TranscodeProviderException( "Transcode cancelled" ));
+											adapter.failed( new TranscodeException( "Transcode cancelled" ));
 											
 										}else{
 											
-											adapter.failed( new TranscodeProviderException( "Transcode failed", (Throwable)status.get( "error" )));
+											adapter.failed( new TranscodeException( "Transcode failed", (Throwable)status.get( "error" )));
 										}
 									}catch( Throwable e ){
 										
-										adapter.failed( new TranscodeProviderException( "Failed to get status", e ));
+										adapter.failed( new TranscodeException( "Failed to get status", e ));
 									}
 								}
 							}finally{
@@ -274,13 +321,13 @@ TranscodeProviderVuze
 				
 				throw( e );
 			}
-		}catch( TranscodeProviderException e ){
+		}catch( TranscodeException e ){
 			
 			throw( e );
 				
 		}catch( Throwable e ){
 			
-			throw( new TranscodeProviderException( "transcode failed", e ));
+			throw( new TranscodeException( "transcode failed", e ));
 		}
 	}
 	

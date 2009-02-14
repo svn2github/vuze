@@ -452,12 +452,12 @@ DiskManagerFileInfoStream
 				
 				if ( channels != null ){
 					
-					for ( channel c: channels ){
+					List<channel> channels_copy = new ArrayList<channel>( channels );
+					
+					for ( channel c: channels_copy ){
 						
 						c.destroy();
 					}
-					
-					channels = null;
 				}
 				
 				if ( raf != null ){
