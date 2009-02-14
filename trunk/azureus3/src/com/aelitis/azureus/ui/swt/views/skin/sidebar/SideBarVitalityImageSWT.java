@@ -32,9 +32,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
+import org.gudy.azureus2.plugins.ui.sidebar.*;
 
 /**
  * @author TuxPaper
@@ -134,7 +132,7 @@ public class SideBarVitalityImageSWT
 		
 		entry.addListener(new SideBarCloseListener() {
 		
-			public void sidebarClosed(SideBarEntrySWT entry) {
+			public void sidebarClosed(SideBarEntry entry) {
 				ImageLoader imageLoader = ImageLoader.getInstance();
 				if (fullImageID != null) {
 					imageLoader.releaseImage(fullImageID);

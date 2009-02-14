@@ -18,16 +18,12 @@
  
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
@@ -42,8 +38,7 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.ui.sidebar.*;
 
 /**
  * @author TuxPaper
@@ -89,6 +84,8 @@ public class SideBarEntrySWT implements SideBarEntry
 	private List listLogIDListeners = Collections.EMPTY_LIST;
 
 	private List listOpenListeners = Collections.EMPTY_LIST;
+
+	private List listDropListeners = Collections.EMPTY_LIST;
 
 	private final SideBar sidebar;
 	
@@ -320,6 +317,11 @@ public class SideBarEntrySWT implements SideBarEntry
 		}
 	}
 	
+	/**
+	 * @param l
+	 *
+	 * @since 4.0.0.5
+	 */
 	public void addListener(SideBarCloseListener l) {
 		if (listCloseListeners == Collections.EMPTY_LIST) {
 			listCloseListeners = new ArrayList(1);
@@ -377,10 +379,33 @@ public class SideBarEntrySWT implements SideBarEntry
 	}
 
 	protected void triggerOpenListeners() {
-		Object[] list = listLogIDListeners.toArray();
+		Object[] list = listOpenListeners.toArray();
 		for (int i = 0; i < list.length; i++) {
 			SideBarOpenListener l = (SideBarOpenListener) list[i];
 			l.sideBarEntryOpen(this);
+		}
+	}
+
+	public void addListener(SideBarDropListener l) {
+		if (listDropListeners == Collections.EMPTY_LIST) {
+			listDropListeners = new ArrayList(1);
+		}
+		listDropListeners.add(l);
+	}
+	
+	public void removeListener(SideBarDropListener l) {
+		listDropListeners.remove(l);
+	}
+	
+	protected boolean hasDropListeners() {
+		return listDropListeners != null && listDropListeners.size() > 0;
+	}
+
+	protected void triggerDropListeners(Object o) {
+		Object[] list = listDropListeners.toArray();
+		for (int i = 0; i < list.length; i++) {
+			SideBarDropListener l = (SideBarDropListener) list[i];
+			l.sideBarEntryDrop(this, o);
 		}
 	}
 

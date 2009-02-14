@@ -100,6 +100,8 @@ import com.aelitis.azureus.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarOpenListener;
 
 /**
  * @author TuxPaper
@@ -2088,12 +2090,17 @@ public class MainWindow
 		SideBarEntrySWT entry = SideBar.getEntry(id);
 		entry.addListener(new SideBarOpenListener() {
 		
-			public void sideBarEntryOpen(SideBarEntrySWT entry) {
+			public void sideBarEntryOpen(SideBarEntry entry) {
 				entry.removeListener(this);
 
 				setVisible(true);
+				
+				if (!(entry instanceof SideBarEntrySWT)) {
+					return;
+				}
+				SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
 
-				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entrySWT.getSkinObject());
 				
 				if (soBrowser != null) {
 					//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);

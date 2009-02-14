@@ -54,6 +54,8 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarCloseListener;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
 /**
@@ -236,7 +238,7 @@ public class Browse
 				ContentNetwork.SERVICE_BIG_BROWSE));
 	}
 
-	public void sidebarClosed(SideBarEntrySWT entry) {
+	public void sidebarClosed(SideBarEntry entry) {
 		boolean wasActive = false;
 		Object prop = contentNetwork.getPersistentProperty(ContentNetwork.PP_ACTIVE);
 		if (prop instanceof Boolean) {

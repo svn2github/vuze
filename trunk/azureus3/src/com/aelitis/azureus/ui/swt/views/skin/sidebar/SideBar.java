@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
@@ -62,6 +64,8 @@ import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -94,6 +98,7 @@ import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
 
@@ -205,6 +210,8 @@ public class SideBar
 	//private Image imgTwist;
 
 	private Shell shellFade;
+
+	private DropTarget dropTarget;
 
 	public static SideBar instance = null;
 
@@ -682,6 +689,9 @@ public class SideBar
 
 					case SWT.Dispose: {
 						fontHeader.dispose();
+						if (dropTarget != null && !dropTarget.isDisposed()) {
+							dropTarget.dispose();
+						}
 						saveCloseables();
 
 						break;
@@ -721,6 +731,58 @@ public class SideBar
 
 		// to disable collapsing
 		tree.addListener(SWT.Collapse, treeListener);
+		
+		dropTarget = new DropTarget(tree, DND.DROP_DEFAULT
+				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
+				| DND.DROP_TARGET_MOVE);
+		dropTarget.setTransfer(new Transfer[] {
+			URLTransfer.getInstance(),
+			FileTransfer.getInstance(),
+			TextTransfer.getInstance(),
+		});
+
+		dropTarget.addDropListener(new DropTargetAdapter() {
+			public void dropAccept(DropTargetEvent event) {
+				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+						event.currentDataType);
+			}
+			
+			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragOver(org.eclipse.swt.dnd.DropTargetEvent)
+			public void dragOver(DropTargetEvent event) {
+				if (!(event.item instanceof TreeItem)) {
+					event.detail = DND.DROP_NONE;
+					return;
+				}
+				TreeItem treeItem = (TreeItem) event.item;
+
+				String id = (String) treeItem.getData("Plugin.viewID");
+				SideBarEntrySWT entry = getEntry(id);
+				
+				if (entry.hasDropListeners()) { 
+					if ((event.operations & DND.DROP_LINK) > 0)
+						event.detail = DND.DROP_LINK;
+					else if ((event.operations & DND.DROP_DEFAULT) > 0)
+						event.detail = DND.DROP_DEFAULT;
+					else if ((event.operations & DND.DROP_COPY) > 0)
+						event.detail = DND.DROP_COPY;
+				} else {
+					event.detail = DND.DROP_NONE;
+				}
+			}
+			
+			public void drop(DropTargetEvent event) {
+				if (!(event.item instanceof TreeItem)) {
+					return;
+				}
+				TreeItem treeItem = (TreeItem) event.item;
+
+				String id = (String) treeItem.getData("Plugin.viewID");
+				SideBarEntrySWT entry = getEntry(id);
+				
+				entry.triggerDropListeners(event.data);
+			}
+		});
+
 
 		final Menu menuTree = new Menu(tree);
 		tree.setMenu(menuTree);
@@ -1275,6 +1337,8 @@ public class SideBar
 		entry.setImageLeftID("image.sidebar.library");
 		entry.disableCollapse = true;
 
+		addDropTest(entry);
+
 		createEntryFromSkinRef(SIDEBAR_SECTION_LIBRARY, SIDEBAR_SECTION_LIBRARY_DL,
 				"library", MessageText.getString("sidebar.LibraryDL"), null, null,
 				false, -1);
@@ -1439,6 +1503,37 @@ public class SideBar
 			parent.layout(true, true);
 		}
 	}
+/**
+	 * @param entry
+	 *
+	 * @since 4.1.0.3
+	 */
+	private void addDropTest(SideBarEntrySWT entry) {
+		if (!Constants.isCVSVersion()) {
+			return;
+		}
+		entry.addListener(new SideBarDropListener() {
+			public void sideBarEntryDrop(SideBarEntry entry, Object droppedObject) {
+				String s = "You just dropped " + droppedObject.getClass() + "\n" + droppedObject + "\n\n";
+				if (droppedObject.getClass().isArray()) {
+					Object[] o = (Object[]) droppedObject;
+					for (int i = 0; i < o.length; i++) {
+						s += "" + i + ":  ";
+						Object object = o[i];
+						if (object == null) {
+							s += "null";
+						} else {
+							s += object.getClass() + ";" + object;
+						}
+						s += "\n";
+					}
+				}
+				Utils.openMessageBox(null, SWT.OK, "test", s);
+			}
+		});
+
+	}
+
 
 	/**
 	 * 
