@@ -392,6 +392,8 @@ DeviceImpl
 						if ( !name_set.contains( test_name )){
 						
 							target_file = test_name;
+							
+							break;
 						}				
 					}
 					
