@@ -46,6 +46,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -1178,7 +1180,7 @@ public class MyTorrentsView
 				dropTarget.dispose();
 			}
 
-			dragSource = tv.createDragSource(DND.DROP_MOVE);
+			dragSource = tv.createDragSource(DND.DROP_MOVE | DND.DROP_COPY);
 			if (dragSource != null) {
 				dragSource.setTransfer(types);
 				dragSource.addDragListener(new DragSourceAdapter() {
@@ -1198,7 +1200,18 @@ public class MyTorrentsView
 
 					public void dragSetData(DragSourceEvent event) {
 						// System.out.println("DragSetData");
-						event.data = "moveRow";
+						DownloadManager[] selectedDownloads = getSelectedDownloads();
+						String s = "DownloadManager\n";
+						for (int i = 0; i < selectedDownloads.length; i++) {
+							DownloadManager dm = selectedDownloads[i];
+							
+							TOTorrent torrent = dm.getTorrent();
+							try {
+								s += torrent.getHashWrapper().toBase32String() + "\n";
+							} catch (Exception e) {
+							}
+						}
+						event.data = s;
 					}
 				});
 			}
@@ -1247,7 +1260,7 @@ public class MyTorrentsView
 
 					public void drop(DropTargetEvent event) {
 						if (!(event.data instanceof String)
-								|| !((String) event.data).equals("moveRow")) {
+								|| !((String) event.data).startsWith("DownloadManager\n")) {
 							TorrentOpener.openDroppedTorrents(azureus_core, event, true);
 							return;
 						}
