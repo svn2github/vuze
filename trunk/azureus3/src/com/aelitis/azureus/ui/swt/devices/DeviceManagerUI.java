@@ -35,6 +35,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -60,6 +62,7 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -69,6 +72,8 @@ import com.aelitis.azureus.core.AzureusCore;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
+import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 
 import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester.loggerProvider;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1113,6 +1118,40 @@ DeviceManagerUI
 				}else{
 					
 					Debug.out( "Drop to " + target.getDevice().getName() + " for " + file + " failed, file doesn't exist" );
+				}
+			}
+		}else if ( payload instanceof String ){
+			
+			String stuff = (String)payload;
+			
+			if ( stuff.startsWith( "DownloadManager\n" )){
+				
+				String[]	bits = stuff.split( "\n" );
+				
+				for (int i=1;i<bits.length;i++){
+					
+					byte[]	 hash = Base32.decode( bits[i] );
+			
+					try{
+						int index = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(hash).getPrimaryFile().getIndex();
+						
+						DiskManagerFileInfo f = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo()[index];
+						
+						try{
+							device_manager.getTranscodeManager().getQueue().add(
+								target,
+								target.getDefaultTranscodeProfile(),
+								f,
+								false );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( "Failed to get download for hash " + bits[1] );
+					}
 				}
 			}
 		}
