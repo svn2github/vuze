@@ -130,7 +130,7 @@ DeviceRendererView
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.numColumns = 2;
+		layout.numColumns = 1;
 		files_area.setLayout(layout);
 		
 		files_scroll.setContent(files_area);
@@ -170,6 +170,8 @@ DeviceRendererView
 			grid_data.horizontalIndent = 16;
 			file_lab.setLayoutData(grid_data);
 		}
+		
+		files_area.layout();
 	}
 	
 	public void 

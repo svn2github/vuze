@@ -312,11 +312,8 @@ DeviceImpl
 				for (Map.Entry<String,Map<String,?>> entry: device_files.entrySet()){
 					
 					transcodeFile tf = new transcodeFile( entry.getKey(), entry.getValue());
-					
-					if ( tf.getFile().exists()){
-					
-						result.add( tf );
-					}
+										
+					result.add( tf );
 				}
 				
 				return( result.toArray( new TranscodeFile[ result.size() ]));
