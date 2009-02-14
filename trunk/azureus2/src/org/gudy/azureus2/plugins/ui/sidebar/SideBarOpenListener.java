@@ -1,5 +1,5 @@
 /**
- * Created on Aug 13, 2008
+ * Created on Dec 3, 2008
  *
  * Copyright 2008 Vuze, Inc.  All rights reserved.
  * This program is free software; you can redistribute it and/or modify
@@ -20,53 +20,10 @@ package org.gudy.azureus2.plugins.ui.sidebar;
 
 /**
  * @author TuxPaper
- * @created Aug 13, 2008
+ * @created Dec 3, 2008
  *
  */
-public interface SideBarEntry
+public interface SideBarOpenListener
 {
-
-	public String getParentID();
-
-	public Object getDatasource();
-
-	public boolean isCloseable();
-
-	public Class getIViewClass();
-
-	public Class[] getIViewClassArgs();
-
-	public Object[] getIViewClassVals();
-
-	public String getId();
-
-	public SideBarVitalityImage addVitalityImage(String imageID);
-
-	/**
-	 * @param l
-	 *
-	 * @since 4.1.0.3
-	 */
-	void addListener(SideBarCloseListener l);
-
-	/**
-	 * @param l
-	 *
-	 * @since 4.1.0.3
-	 */
-	void removeListener(SideBarCloseListener l);
-
-	/**
-	 * @param l
-	 *
-	 * @since 4.1.0.3
-	 */
-	void addListener(SideBarOpenListener l);
-
-	/**
-	 * @param l
-	 *
-	 * @since 4.1.0.3
-	 */
-	void removeListener(SideBarOpenListener l);
+	public void sideBarEntryOpen(SideBarEntry entry);
 }
