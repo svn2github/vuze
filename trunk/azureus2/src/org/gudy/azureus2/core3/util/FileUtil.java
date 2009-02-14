@@ -826,6 +826,14 @@ public class FileUtil {
 	}
   
 	public static void
+	deleteResilientFile(
+		File		file )
+	{
+		file.delete();
+		new File( file.getParentFile(), file.getName() + ".bak" ).delete();
+	}
+	
+	public static void
 	deleteResilientConfigFile(
 		String		name )
 	{
