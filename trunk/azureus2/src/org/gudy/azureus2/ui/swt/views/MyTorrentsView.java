@@ -1184,6 +1184,8 @@ public class MyTorrentsView
 			if (dragSource != null) {
 				dragSource.setTransfer(types);
 				dragSource.addDragListener(new DragSourceAdapter() {
+					private String eventData;
+
 					public void dragStart(DragSourceEvent event) {
 						TableRowCore[] rows = tv.getSelectedRows();
 						if (rows.length != 0) {
@@ -1196,22 +1198,25 @@ public class MyTorrentsView
 							drag_drop_line_start = -1;
 							drag_drop_rows = null;
 						}
-					}
 
-					public void dragSetData(DragSourceEvent event) {
-						// System.out.println("DragSetData");
+						// Build eventData here because on OSX, selection gets cleared
+						// by the time dragSetData occurs
 						DownloadManager[] selectedDownloads = getSelectedDownloads();
-						String s = "DownloadManager\n";
+						eventData = "DownloadManager\n";
 						for (int i = 0; i < selectedDownloads.length; i++) {
 							DownloadManager dm = selectedDownloads[i];
 							
 							TOTorrent torrent = dm.getTorrent();
 							try {
-								s += torrent.getHashWrapper().toBase32String() + "\n";
+								eventData += torrent.getHashWrapper().toBase32String() + "\n";
 							} catch (Exception e) {
 							}
 						}
-						event.data = s;
+					}
+
+					public void dragSetData(DragSourceEvent event) {
+						// System.out.println("DragSetData");
+						event.data = eventData;
 					}
 				});
 			}
