@@ -62,7 +62,6 @@ import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -73,9 +72,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
-import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 
-import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginTester.loggerProvider;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -487,6 +484,8 @@ DeviceManagerUI
 
 		if ( mainSBEntry != null ){
 				
+			addDefaultDropListener( mainSBEntry );
+			
 			MenuManager menu_manager = ui_manager.getMenuManager();
 
 			if ( !rebuild ){
@@ -1255,11 +1254,30 @@ DeviceManagerUI
 
 		SideBarEntrySWT	entry = SideBar.getEntry( key );
 
+		addDefaultDropListener( entry );
+		
 		entry.setImageLeftID( category_image_id );
 				
 		view.setDetails( item, key );
 		
 		return( view );
+	}
+	
+	protected void
+	addDefaultDropListener(
+		SideBarEntrySWT		entry )
+	{
+		entry.addListener(
+				new SideBarDropListener()
+				{
+					public void 
+					sideBarEntryDrop(
+						SideBarEntry 		entry, 
+						Object 				payload  )
+					{
+						//
+					}
+				});
 	}
 	
 	protected void
