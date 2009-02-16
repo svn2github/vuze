@@ -166,6 +166,8 @@ TRTrackerBTAnnouncerImpl
 	
 	
 	private int announceCount;
+	private int announceFailCount;
+	
 	private byte autoUDPprobeEvery = 1;
 	
   
@@ -992,12 +994,16 @@ TRTrackerBTAnnouncerImpl
 			 	}
 			 				
 			 }else{
-			  			  	
+			  		
+				 announceFailCount++;
+				 
 				 last_failure_resp = resp;
 			 }
 			 
 		  }catch( MalformedURLException e ){
 		  	
+			announceFailCount++;
+			
 		  	Debug.printStackTrace( e );
 		  	
 		  	last_failure_resp = 
@@ -1008,8 +1014,10 @@ TRTrackerBTAnnouncerImpl
 						getErrorRetryInterval(), 
 						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
 		  	
-		  }catch( Exception e ){
-		  			  	
+		  }catch( Throwable e ){
+		  		
+			announceFailCount++;
+
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl(
 		  				original_url,
@@ -1091,64 +1099,89 @@ TRTrackerBTAnnouncerImpl
 			  		
 			  		boolean	udp_probe = false;
 			  		
-			  		if (protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled)
-					{
+			  			// if we have multiple tracker URLs then do something sensible about
+			  		
+			  		if ( protocol.equalsIgnoreCase("udp") && udpAnnounceEnabled ){
+			  			
 						udpAnnounceURL = reqUrl;
-					} else if (protocol.equalsIgnoreCase("http") && !az_tracker
-						&& announceCount % autoUDPprobeEvery == 0 && udpAnnounceEnabled)
-					{
-						// if we don't know this tracker supports UDP then don't probe on
-						// first announce as we don't want a large delay on torrent startup
-						// also if we are stopping we don't want to initiate a probe as
-						// we want the stop instruction to get to tracker if possible
-						if ((stopped || announceCount == 0) && !TRTrackerUtils.isUDPProbeOK(reqUrl))
-						{
+						
+					}else if (	protocol.equalsIgnoreCase("http") && 
+								!az_tracker	&& 
+								announceCount % autoUDPprobeEvery == 0 && 
+								udpAnnounceEnabled ){
+						
+							// if we don't know this tracker supports UDP then don't probe on
+							// first announce as we don't want a large delay on torrent startup
+							// also if we are stopping we don't want to initiate a probe as
+							// we want the stop instruction to get to tracker if possible
+						
+						if (	( 	stopped || 
+									announceCount == 0 ||
+									( announceCount < trackerUrlLists.size() && announceFailCount == announceCount )) && 
+								!TRTrackerUtils.isUDPProbeOK(reqUrl)){
+							
 							// skip probe
-						} else
-						{
+							
+						}else{
 							udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+							
 							udp_probe = true;
 						}
 					}
 			  				
-			  		if (udpAnnounceURL != null)
-					{
-						failure_reason = announceUDP(reqUrl, message, !udp_probe);
-						if ((failure_reason != null || message.size() == 0) && udp_probe)
-						{
-							// automatic UDP probe failed, use HTTP again
-							udpAnnounceURL = null;
-							if (autoUDPprobeEvery < 16)
-								autoUDPprobeEvery <<= 1;
-							else // unregister in case the tracker somehow changed its capabilities
-								TRTrackerUtils.setUDPProbeResult(reqUrl, false);
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp failed, will retry in " + autoUDPprobeEvery + " announces"));
+			  		if ( udpAnnounceURL != null ){
+			  			
+						failure_reason = announceUDP( reqUrl, message, udp_probe );
+						
+						if ((failure_reason != null || message.size() == 0) && udp_probe){
 							
-						} else if (failure_reason == null && udp_probe)
-						{
+								// automatic UDP probe failed, use HTTP again
+							
+							udpAnnounceURL = null;
+							
+							if ( autoUDPprobeEvery < 16 ){
+						
+								autoUDPprobeEvery <<= 1;
+							}else{
+								
+									// unregister in case the tracker somehow changed its capabilities
+						
+								TRTrackerUtils.setUDPProbeResult(reqUrl, false);
+							}
+							
+							if (Logger.isEnabled()){
+								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp failed, will retry in " + autoUDPprobeEvery + " announces"));
+							}	
+						}else if (failure_reason == null && udp_probe){
+							
 							TRTrackerUtils.setUDPProbeResult(reqUrl, true);
-							if (Logger.isEnabled())
+							
+							if (Logger.isEnabled()){
 								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_INFORMATION, "redirection of http announce [" + tracker_url[0] + "] to udp successful"));
+							}
+							
 							autoUDPprobeEvery = 1;
 						}
 					}
 			  		
 			  		announceCount++;
 			  		
-			  		if ( udpAnnounceURL == null)
+			  		if ( udpAnnounceURL == null){
+			  			
 			  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
+			  		}
 	
-			  		// if we've got some kind of response then return it
-					if ( message.size() > 0 )
+			  			// if we've got some kind of response then return it
+			  		
+					if ( message.size() > 0 ){
+						
 						return( message.toByteArray());
-	
+					}
 						
 					if ( failure_reason == null ){
+						
 						failure_reason = "No data received from tracker";
 					}
-					
-		
 				}catch( SSLException e ){
 					
 					// e.printStackTrace();
@@ -1419,10 +1452,12 @@ TRTrackerBTAnnouncerImpl
  	announceUDP(
  		URL						reqUrl,
 		ByteArrayOutputStream	message,
-		boolean                 do_auth_test)
+		boolean                 is_probe )
  	
  		throws IOException
  	{
+ 		long timeout = is_probe?10000:PRUDPPacket.DEFAULT_UDP_TIMEOUT;
+ 		
  		reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
  		String	failure_reason = null;
@@ -1430,7 +1465,7 @@ TRTrackerBTAnnouncerImpl
  		PasswordAuthentication	auth = null;	
  		
  		try{
- 			if (do_auth_test && UrlUtils.queryHasParameter(reqUrl.getQuery(), "auth", false)) {
+ 			if ( (!is_probe) && UrlUtils.queryHasParameter(reqUrl.getQuery(), "auth", false)) {
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
@@ -1444,7 +1479,7 @@ TRTrackerBTAnnouncerImpl
  			
 		 			PRUDPPacket connect_request = new PRUDPPacketRequestConnect();
 		 			
-		 			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination );
+		 			PRUDPPacket reply = handler.sendAndReceive( auth, connect_request, destination, timeout );
 		 			
 		 			if ( reply.getAction() == PRUDPPacketTracker.ACT_REPLY_CONNECT ){
 		 			
