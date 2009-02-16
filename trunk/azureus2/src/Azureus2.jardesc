@@ -233,6 +233,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.torrent.test"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.views.skin"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.platform"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.donations"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.digests"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.subscriptions"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.devices"/>
@@ -337,6 +338,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.crypto.params"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.model"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.views"/>
+        <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol.tcp"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.util.protocol"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.browser"/>
