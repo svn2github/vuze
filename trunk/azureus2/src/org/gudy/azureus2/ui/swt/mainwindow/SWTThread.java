@@ -150,7 +150,7 @@ public class SWTThread {
 			}
 		});
     
-    if ( Constants.isOSX ){
+    if ( Constants.isOSX && SWT.getPlatform().equals("carbon") ){
     	
     		// use reflection here so we decouple generic SWT from OSX specific stuff to an extent
     	
