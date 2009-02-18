@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -758,7 +759,7 @@ public class SideBar
 				String id = (String) treeItem.getData("Plugin.viewID");
 				SideBarEntrySWT entry = getEntry(id);
 				
-				if (entry.hasDropListeners()) { 
+				if (entry.hasDropListeners()) {
 					if ((event.operations & DND.DROP_LINK) > 0)
 						event.detail = DND.DROP_LINK;
 					else if ((event.operations & DND.DROP_DEFAULT) > 0)
