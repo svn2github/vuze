@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -279,7 +280,7 @@ BuddyPlugin
 			
 	private boolean		config_dirty;
 	
-	private Random	random = new SecureRandom();
+	private Random	random = RandomUtils.SECURE_RANDOM;
 	
 	private BuddyPluginAZ2		az2_handler;
 	

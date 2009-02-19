@@ -31,9 +31,12 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
  *		2006/Jan/02:	added various methods, including some java.util.Random method aliases 
  */
 
-public class RandomUtils {
+public class 
+RandomUtils 
+{
 	public static final Random RANDOM = new Random( System.currentTimeMillis() );
-	public static final Random SECURE_RANDOM = new SecureRandom();
+	
+	public static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	/**
 	 * Generate a random array of bytes.
@@ -126,6 +129,14 @@ public class RandomUtils {
     	SECURE_RANDOM.nextBytes( bytes );
     }
     
+    public static byte[] nextSecureHash()
+    {
+    	byte[] hash = new byte[20];
+    	
+    	SECURE_RANDOM.nextBytes( hash );
+    	
+    	return( hash );
+    }
     public static int nextInt(int n)
 	{
     	return RANDOM.nextInt(n);

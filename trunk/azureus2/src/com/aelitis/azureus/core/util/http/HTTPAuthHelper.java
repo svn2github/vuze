@@ -464,7 +464,7 @@ HTTPAuthHelper
 				
 					SSLContext sc = SSLContext.getInstance("SSL");
 				
-					sc.init(null, trustAllCerts, new java.security.SecureRandom());
+					sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM );
 				
 					SSLSocketFactory factory = sc.getSocketFactory();
 

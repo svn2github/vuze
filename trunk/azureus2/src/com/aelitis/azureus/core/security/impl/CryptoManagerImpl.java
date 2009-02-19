@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -151,7 +152,7 @@ CryptoManagerImpl
 			
 			secure_id = new byte[20];
 		
-			new SecureRandom().nextBytes( secure_id );
+			RandomUtils.SECURE_RANDOM.nextBytes( secure_id );
 			
 			COConfigurationManager.setParameter( key, secure_id );
 			
@@ -177,7 +178,7 @@ CryptoManagerImpl
 		try{
 			byte[]	salt = new byte[8];
 			
-			new SecureRandom().nextBytes( salt );
+			RandomUtils.SECURE_RANDOM.nextBytes( salt );
 			
 			PBEKeySpec keySpec = new PBEKeySpec(password);
 		

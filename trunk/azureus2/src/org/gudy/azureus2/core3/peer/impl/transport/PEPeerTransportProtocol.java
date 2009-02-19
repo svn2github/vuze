@@ -289,7 +289,8 @@ implements PEPeerTransport
 	
 	private static boolean 	fast_unchoke_new_peers;
 	
-	private static final Random rnd = new SecureRandom();
+	private static final Random rnd = RandomUtils.SECURE_RANDOM;
+	
 	private static final byte[] sessionSecret;
 	
 	static {

@@ -23,7 +23,6 @@ package com.aelitis.azureus.plugins.net.netstatus;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -33,6 +32,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
@@ -58,7 +58,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class 
 NetStatusProtocolTesterBT 
 {
-	private static Random	random = new SecureRandom();
+	private static Random	random = RandomUtils.SECURE_RANDOM;
 	
 	private NetStatusProtocolTester			tester;
 	private boolean							test_initiator;

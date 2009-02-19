@@ -38,6 +38,7 @@ import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.jce.provider.RSAUtil;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageService;
@@ -99,7 +100,7 @@ SecureMessageServiceClientHelper
 				
 	            CipherParameters param = RSAUtil.generatePublicKeyParameter(public_key);
 	            
-	            param = new ParametersWithRandom(param, new SecureRandom());
+	            param = new ParametersWithRandom(param, RandomUtils.SECURE_RANDOM);
 	            
 	            padded_eng.init( true, param );
 				

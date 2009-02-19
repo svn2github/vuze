@@ -26,12 +26,11 @@ import java.security.SecureRandom;
 import java.util.Random;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 public class 
 UUIDGenerator 
-{
-	private static Random	random = new SecureRandom();
-	
+{	
 		/**
 		 * 128 bit UUID using random method
 		 * @return
@@ -42,7 +41,7 @@ UUIDGenerator
 	{
 		byte[]	bytes = new byte[16];
 		
-		random.nextBytes( bytes );
+		RandomUtils.SECURE_RANDOM.nextBytes( bytes );
 		
 		return( bytes );
 	}

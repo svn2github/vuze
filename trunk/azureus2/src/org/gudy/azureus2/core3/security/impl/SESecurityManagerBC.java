@@ -38,6 +38,7 @@ import java.util.Calendar;
 
 import org.bouncycastle.jce.*;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
@@ -60,7 +61,7 @@ SESecurityManagerBC
 	{
 		KeyPairGenerator	kg = KeyPairGenerator.getInstance( "RSA" );
 		
-		kg.initialize(strength, new SecureRandom());
+		kg.initialize(strength, RandomUtils.SECURE_RANDOM );
 
 		KeyPair pair = kg.generateKeyPair();
 					

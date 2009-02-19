@@ -89,7 +89,7 @@ DownloadManagerStateImpl
 		}
 	}
 	
-	private static Random	random = new SecureRandom();
+	private static Random	random = RandomUtils.SECURE_RANDOM;
 	
 	private static final Map	default_parameters;
 	private static final Map	default_attributes;

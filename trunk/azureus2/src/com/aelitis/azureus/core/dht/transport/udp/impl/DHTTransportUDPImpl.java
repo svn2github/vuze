@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -250,7 +251,7 @@ DHTTransportUDPImpl
 		store_timeout			= request_timeout * 2;
 		
 		try{
-			random = new SecureRandom();
+			random = RandomUtils.SECURE_RANDOM;
 			
 		}catch( Throwable e ){
 			

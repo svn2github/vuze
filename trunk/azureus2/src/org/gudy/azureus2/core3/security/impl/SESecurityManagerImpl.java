@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -642,7 +643,7 @@ SESecurityManagerImpl
 		context.init(  	
 				keyManagerFactory.getKeyManagers(), 
 				null,
-				new java.security.SecureRandom());
+				RandomUtils.SECURE_RANDOM);
 		
 		SSLServerSocketFactory factory = context.getServerSocketFactory();
 		
@@ -775,7 +776,7 @@ SESecurityManagerImpl
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
-				sc.init(null, trustAllCerts, new java.security.SecureRandom());
+				sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
 				
 				SSLSocketFactory factory = sc.getSocketFactory();
 						
@@ -928,7 +929,7 @@ SESecurityManagerImpl
 				
 				SSLContext sc = SSLContext.getInstance("SSL");
 				
-				sc.init(null, trustAllCerts, new java.security.SecureRandom());
+				sc.init(null, trustAllCerts, RandomUtils.SECURE_RANDOM);
 				
 				SSLSocketFactory factory = sc.getSocketFactory();
 						

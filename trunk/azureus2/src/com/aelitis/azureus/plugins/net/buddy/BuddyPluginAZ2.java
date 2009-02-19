@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
@@ -288,7 +289,7 @@ BuddyPluginAZ2
 	{
 		byte[]	id_bytes = new byte[20];
 		
-		new SecureRandom().nextBytes( id_bytes );
+		RandomUtils.SECURE_RANDOM.nextBytes( id_bytes );
 		
 		String	id = Base32.encode( id_bytes );
 		

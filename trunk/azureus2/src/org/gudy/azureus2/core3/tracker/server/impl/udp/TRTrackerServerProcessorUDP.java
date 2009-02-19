@@ -56,7 +56,7 @@ TRTrackerServerProcessorUDP
 	private DatagramPacket			request_dg;
 	
 	private static Map				connection_id_map 	= new LinkedHashMap();
-	private static SecureRandom		random				= new SecureRandom();
+	private static SecureRandom		random				= RandomUtils.SECURE_RANDOM;
 	private static AEMonitor		random_mon 			= new AEMonitor( "TRTrackerServerUDP:rand" );
 
 	static{
