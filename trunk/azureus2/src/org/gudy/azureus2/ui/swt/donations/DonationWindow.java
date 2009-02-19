@@ -179,7 +179,8 @@ public class DonationWindow
 		String url = "http://"
 				+ System.getProperty("platform_address", "www.vuze.com") + ":"
 				+ System.getProperty( "platform_port", "80" ) + "/"
-				+ "donate.start?locale=" + Locale.getDefault().toString();
+				+ "donate.start?locale=" + Locale.getDefault().toString()
+				+ "&azv=" + Constants.AZUREUS_VERSION;
 		browser.setUrl(url);
 	}
 
