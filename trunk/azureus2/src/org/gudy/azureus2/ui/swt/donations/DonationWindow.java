@@ -97,7 +97,7 @@ public class DonationWindow
 	public void show() {
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.BORDER
 				| SWT.APPLICATION_MODAL | SWT.TITLE);
-		shell.setLayoutData(new FillLayout());
+		shell.setLayout(new FillLayout());
 
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
@@ -119,7 +119,6 @@ public class DonationWindow
 				System.out.println(text);
 				if (text.contains("page-loaded")) {
 					pageLoadedOk = true;
-					shell.layout(true);
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
 					resetAskTime();
