@@ -126,6 +126,13 @@ DeviceManagerImpl
 						closing	= true;
 						
 						transcode_manager.close();
+						
+						DeviceImpl[] devices = getDevices();
+						
+						for ( DeviceImpl device: devices ){
+							
+							device.close();
+						}
 					}
 				}
 			});
@@ -303,12 +310,12 @@ DeviceManagerImpl
 		configDirty();
 	}
 
-	public Device[]
+	public DeviceImpl[]
   	getDevices()
 	{
 		synchronized( this ){
 			
-			return( devices.values().toArray( new Device[ devices.size()] ));
+			return( devices.values().toArray( new DeviceImpl[ devices.size()] ));
 		}
 	}
   		

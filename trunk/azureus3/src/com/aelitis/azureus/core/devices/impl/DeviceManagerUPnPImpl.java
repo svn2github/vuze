@@ -27,6 +27,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -188,63 +190,96 @@ DeviceManagerUPnPImpl
 			manager.log( "UPnP device manager failed", e );
 		}
 		
-		try{
-			PluginInterface pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+		try{			
+			plugin_interface.addEventListener(
+					new PluginEventListener()
+					{
+						public void 
+						handleEvent(
+							PluginEvent ev )
+						{
+							int	type = ev.getType();
+							
+							if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+								
+								PluginInterface pi = (PluginInterface)ev.getValue();
 			
+								if ( pi.getPluginID().equals( "azupnpav" )){
+				
+									addListener( pi );
+								}
+							}
+						}
+					});
+			
+			PluginInterface pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+
 			if ( pi == null ){
 				
 				manager.log( "No UPnPAV plugin found" );
 				
 			}else{
 				
-				IPCInterface upnpav_ipc = pi.getIPC();
-				
-				IPCInterface my_ipc = 
-					new IPCInterfaceImpl(
-						new Object()
+				addListener( pi );
+			}			
+		}catch( Throwable e ){
+			
+			manager.log( "Failed to hook into UPnPAV", e );
+		}
+	}
+	
+	protected void
+	addListener(
+		PluginInterface	pi )
+	{
+		try{
+			IPCInterface upnpav_ipc = pi.getIPC();
+			
+			IPCInterface my_ipc = 
+				new IPCInterfaceImpl(
+					new Object()
+					{
+						public void
+						browseReceived(
+							TrackerWebPageRequest		request )
 						{
-							public void
-							browseReceived(
-								TrackerWebPageRequest		request )
-							{
-								Map headers = request.getHeaders();
+							Map headers = request.getHeaders();
+							
+							String user_agent 	= (String)headers.get( "user-agent" );
+							String client_info 	= (String)headers.get( "x-av-client-info" );
+							
+							if ( user_agent != null ){
 								
-								String user_agent 	= (String)headers.get( "user-agent" );
-								String client_info 	= (String)headers.get( "x-av-client-info" );
-								
-								if ( user_agent != null ){
+								if ( user_agent.equalsIgnoreCase( "PLAYSTATION 3" )){
 									
-									if ( user_agent.equalsIgnoreCase( "PLAYSTATION 3" )){
-										
-										handlePS3( request.getClientAddress2());
-									}
+									handlePS3( request.getClientAddress2());
 								}
-								
-								if ( client_info != null ){
-								
-									if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
-										
-										handlePS3( request.getClientAddress2());
-									}
-								}
-								
-								/*
-								System.out.println( 
-									"Received browse: " + request.getClientAddress() +
-									", agent=" + user_agent +
-									", info=" + client_info );
-								*/
 							}
-						});
+							
+							if ( client_info != null ){
+							
+								if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
+									
+									handlePS3( request.getClientAddress2());
+								}
+							}
+							
+							/*
+							System.out.println( 
+								"Received browse: " + request.getClientAddress() +
+								", agent=" + user_agent +
+								", info=" + client_info );
+							*/
+						}
+					});
+			
+			if ( upnpav_ipc.canInvoke( "addBrowseListener", new Object[]{ my_ipc })){
 				
-				if ( upnpav_ipc.canInvoke( "addBrowseListener", new Object[]{ my_ipc })){
-					
-					upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
-					
-				}else{
-					
-					manager.log( "UPnPAV plugin needs upgrading" );
-				}
+				upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
+				
+			}else{
+				
+				manager.log( "UPnPAV plugin needs upgrading" );
 			}
 		}catch( Throwable e ){
 			

@@ -161,6 +161,8 @@ TranscodeQueueImpl
 				
 			TranscodeProfile profile = job.getProfile();
 				
+			TranscodeFileImpl		transcode_file = null;
+			
 			if ( job.isStream()){
 				
 				/*
@@ -193,7 +195,9 @@ TranscodeQueueImpl
 			}else{
 				
 					
-				File output_file = job.getTarget().allocateFile( profile, job.getFile()).getFile();
+				transcode_file = (TranscodeFileImpl)job.getTarget().allocateFile( profile, job.getFile());
+				
+				File output_file = transcode_file.getFile();
 				
 				provider_job[0] = 
 					provider.transcode(
@@ -265,6 +269,15 @@ TranscodeQueueImpl
 			}
 
 			job.complete();
+			
+			if ( transcode_file == null ){
+				
+				Debug.out( "Need to fix this for steams!" );
+				
+			}else{
+				
+				transcode_file.setComplete( true );
+			}
 			
 			return( true );
 			

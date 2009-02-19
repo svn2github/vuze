@@ -314,10 +314,16 @@ DownloadManagerEnhancer
 							getEnhancedDownload(
 									PluginCoreUtils.unwrap(channel.getFile().getDownload()));
 
-						if (edm == null) {
+						if ( edm == null ){
+							
 							return;
 						}
 
+						if ( edm.getDownloadManager().isDownloadComplete( true )){
+						
+							return;
+						}
+						
 						if ( !edm.getProgressiveMode()){
 							
 							if ( edm.supportsProgressiveMode()){

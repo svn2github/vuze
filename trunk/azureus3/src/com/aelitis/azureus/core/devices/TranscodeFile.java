@@ -28,4 +28,13 @@ TranscodeFile
 {
 	public File
 	getFile();
+	
+	public boolean
+	isComplete();
+	
+	public void
+	delete(
+		boolean	delete_contents )
+	
+		throws TranscodeException;
 }

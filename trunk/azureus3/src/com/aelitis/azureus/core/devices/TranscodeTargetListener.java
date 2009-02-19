@@ -29,6 +29,10 @@ TranscodeTargetListener
 		TranscodeFile		file );
 	
 	public void
+	fileChanged(
+		TranscodeFile		file );
+	
+	public void
 	fileRemoved(
 		TranscodeFile		file );
 }

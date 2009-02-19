@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -41,7 +42,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.DeviceManagerException;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -107,8 +107,11 @@ DeviceImpl
 
 	private Map<Object,Object>	transient_properties = new LightHashMap<Object, Object>(1);
 	
-	private long						last_load;
+	private long						device_files_last_mod;
+	private boolean						device_files_dirty;
 	private Map<String,Map<String,?>>	device_files;
+	
+	private WeakReference<Map<String,Map<String,?>>> device_files_ref;
 	
 	private CopyOnWriteList<TranscodeTargetListener>	listeners = new CopyOnWriteList<TranscodeTargetListener>();
 	
@@ -311,7 +314,7 @@ DeviceImpl
 								
 				for (Map.Entry<String,Map<String,?>> entry: device_files.entrySet()){
 					
-					transcodeFile tf = new transcodeFile( entry.getKey(), entry.getValue());
+					TranscodeFileImpl tf = new TranscodeFileImpl( this, entry.getKey(), device_files );
 										
 					result.add( tf );
 				}
@@ -333,7 +336,7 @@ DeviceImpl
 	
 		throws TranscodeException
 	{
-		transcodeFile	result;
+		TranscodeFileImpl	result;
 		
 		try{
 			synchronized( this ){
@@ -344,12 +347,10 @@ DeviceImpl
 				}
 	
 				String	key = ByteFormatter.encodeString( file.getDownloadHash() ) + ":" + file.getIndex();
+								
+				if ( device_files.containsKey( key )){
 				
-				Map<String,?> existing = device_files.get( key );
-				
-				if ( existing != null ){
-				
-					result = new transcodeFile( key, existing );
+					result = new TranscodeFileImpl( this, key, device_files );
 					
 				}else{
 							
@@ -398,10 +399,8 @@ DeviceImpl
 	
 					output_file = new File( output_file.getAbsoluteFile(), target_file );
 	
-					result = new transcodeFile( key, output_file );
-					
-					device_files.put( key, result.toMap());
-					
+					result = new TranscodeFileImpl( this, key, device_files, output_file );
+										
 					saveDeviceFile();
 				}
 			}
@@ -775,22 +774,44 @@ DeviceImpl
 	}
 	
 	protected void
+	close()
+	{
+		synchronized( this ){
+
+			if ( device_files_dirty ){
+				
+				saveDeviceFile();
+			}
+		}
+	}
+	
+	protected void
 	loadDeviceFile()
 	
 		throws IOException
 	{
-		last_load = SystemTime.getMonotonousTime();
+		device_files_last_mod = SystemTime.getMonotonousTime();
 		
-		Map	map = FileUtil.readResilientFile( getDeviceFile());
-
-		device_files = (Map<String,Map<String,?>>)map.get( "files" );
+		if ( device_files_ref != null ){
+		
+			device_files = device_files_ref.get();
+		}
 		
 		if ( device_files == null ){
 			
-			device_files = new HashMap<String, Map<String,?>>();
-		}
+			Map	map = FileUtil.readResilientFile( getDeviceFile());
+	
+			device_files = (Map<String,Map<String,?>>)map.get( "files" );
+			
+			if ( device_files == null ){
+				
+				device_files = new HashMap<String, Map<String,?>>();
+			}
 		
-		System.out.println( "Loaded device file for " + getName() + ": files=" + device_files.size());
+			device_files_ref = new WeakReference<Map<String,Map<String,?>>>( device_files );
+			
+			System.out.println( "Loaded device file for " + getName() + ": files=" + device_files.size());
+		}
 		
 		final int GC_TIME = 15000;
 		
@@ -804,8 +825,13 @@ DeviceImpl
 				{
 					synchronized( DeviceImpl.this ){
 						
-						if ( SystemTime.getMonotonousTime() - last_load >= GC_TIME ){
-														
+						if ( SystemTime.getMonotonousTime() - device_files_last_mod >= GC_TIME ){
+								
+							if ( device_files_dirty ){
+								
+								saveDeviceFile();
+							}
+							
 							device_files = null;
 							
 						}else{
@@ -818,20 +844,113 @@ DeviceImpl
 	}
 	
 	protected void
-	saveDeviceFile()
+	deleteFile(
+		TranscodeFileImpl	file,
+		boolean				delete_contents )
 	
-		throws IOException
+		throws TranscodeException 
+	{	
+		if ( delete_contents ){
+			
+			File f = file.getFile();
+			
+			if ( f.exists() && !f.delete()){
+				
+				throw( new TranscodeException( "Failed to remove file '" + f.getAbsolutePath() + "'" ));
+			}
+		}
+		
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+					
+				}else{
+					
+					device_files_last_mod = SystemTime.getMonotonousTime();
+				}
+				
+				device_files.remove( file.getKey());
+				
+				device_files_dirty	= true;
+			}
+			
+			for ( TranscodeTargetListener l: listeners ){
+				
+				try{
+					l.fileRemoved( file );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}catch( Throwable e ){
+			
+			throw( new TranscodeException( "Delete failed", e ));
+		}
+	}
+	
+	protected void
+	fileDirty(
+		TranscodeFileImpl	file )
 	{
-		if ( device_files == null || device_files.size()==0 ){
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+					
+				}else{
+					
+					device_files_last_mod = SystemTime.getMonotonousTime();
+				}
+			}
 			
-			FileUtil.deleteResilientFile( getDeviceFile());
+			device_files_dirty	= true;
 			
-		}else{
-			Map map = new HashMap();
+		}catch( Throwable e ){
 			
-			map.put( "files", device_files );
+			Debug.out( "Failed to load device file", e );
+		}
+		
+		for ( TranscodeTargetListener l: listeners ){
 			
-			FileUtil.writeResilientFile( getDeviceFile(), map );
+			try{
+				l.fileChanged( file );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	protected void
+	saveDeviceFile()
+	{
+		device_files_dirty = false;
+		
+		try{
+			loadDeviceFile();
+			
+			if ( device_files == null || device_files.size()==0 ){
+				
+				FileUtil.deleteResilientFile( getDeviceFile());
+				
+			}else{
+				Map map = new HashMap();
+				
+				map.put( "files", device_files );
+				
+				FileUtil.writeResilientFile( getDeviceFile(), map );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to save device file", e );
 		}
 	}
 	
@@ -932,75 +1051,6 @@ DeviceImpl
 		getURL()
 		{
 			return( url );
-		}
-	}
-	
-	protected class
-	transcodeFile
-		implements TranscodeFile
-	{
-		private String				key;
-		private Map<String,?>		map;
-		
-		protected 
-		transcodeFile(
-			String		_key,
-			File		file )
-		{
-			key	= _key;
-			map	= new HashMap<String, Object>();
-			
-			setString( "file", file.getAbsolutePath());
-		}
-		
-		protected
-		transcodeFile(
-			String			_key,
-			Map<String,?>	_map )
-		{
-			key		= _key;
-			map		= _map;
-		}
-		
-		protected Map<String,?>
-		toMap()
-		{
-			return( map );
-		}
-		
-		public File 
-		getFile() 
-		{
-			return(new File(getString("file")));
-		}
-		
-		protected String
-		getString(
-			String		key )
-		{
-			try{
-				return(ImportExportUtils.importString( map, key ));
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-				
-				return( "" );
-			}
-		}
-		
-		protected void
-		setString(
-			String		key,
-			String		value )
-		{
-			try{
-				ImportExportUtils.exportString(map, "file", value);
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
-			}
 		}
 	}
 }

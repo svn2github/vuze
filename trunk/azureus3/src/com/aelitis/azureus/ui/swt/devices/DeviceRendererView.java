@@ -164,7 +164,7 @@ DeviceRendererView
 			
 			Label file_lab = new Label( files_area, SWT.NONE );
 			
-			file_lab.setText( file.getFile().getName());
+			file_lab.setText( file.getFile().getName() + ", comp=" + file.isComplete());
 			
 			GridData grid_data = new GridData(GridData.FILL_HORIZONTAL);
 			grid_data.horizontalIndent = 16;
@@ -176,6 +176,21 @@ DeviceRendererView
 	
 	public void 
 	fileAdded(
+		TranscodeFile file ) 
+	{
+		Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						buildFiles();
+					}
+				});
+	}
+	
+	public void 
+	fileChanged(
 		TranscodeFile file ) 
 	{
 		Utils.execSWTThread(
