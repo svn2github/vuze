@@ -119,6 +119,7 @@ public class DonationWindow
 				System.out.println(text);
 				if (text.contains("page-loaded")) {
 					pageLoadedOk = true;
+					shell.layout(true);
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
 					resetAskTime();
