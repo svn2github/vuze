@@ -43,7 +43,9 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  */
 public class DonationWindow
 {
-	private static final int DONATIONS_ASK_EVERY = 168;
+	private static boolean DEBUG = true;
+
+	private static int askEveryHours = 168;
 
 	private boolean pageLoadedOk = false;
 
@@ -56,8 +58,10 @@ public class DonationWindow
 		boolean alreadyDonated = COConfigurationManager.getBooleanParameter(
 				"donations.donated", false);
 		if (alreadyDonated) {
-			Utils.openMessageBox(null, SWT.OK, "Donations Test",
-					"Already Donated! I like you.");
+			if (DEBUG) {
+  			Utils.openMessageBox(null, SWT.OK, "Donations Test",
+  					"Already Donated! I like you.");
+			}
 			return;
 		}
 
@@ -70,21 +74,36 @@ public class DonationWindow
 
 		if (nextAsk == 0) {
 			COConfigurationManager.setParameter("donations.nextAskHours", hours
-					+ DONATIONS_ASK_EVERY);
+					+ askEveryHours);
 			COConfigurationManager.save();
-			Utils.openMessageBox(null, SWT.OK, "Donations Test",
-					"Newbie. You're active for " + hours + ".");
+			if (DEBUG) {
+				Utils.openMessageBox(null, SWT.OK, "Donations Test",
+						"Newbie. You're active for " + hours + ".");
+			}
 			return;
 		}
 
 		if (hours < nextAsk) {
-			Utils.openMessageBox(null, SWT.OK, "Donations Test",
-					"Wait " + (nextAsk - hours) + ".");
+			if (DEBUG) {
+			Utils.openMessageBox(null, SWT.OK, "Donations Test", "Wait "
+					+ (nextAsk - hours) + ".");
+			}
+			return;
+		}
+
+		long minDate = COConfigurationManager.getLongParameter("donations.minDate",
+				0);
+		if (minDate > 0 && minDate > SystemTime.getCurrentTime()) {
+			if (DEBUG) {
+			Utils.openMessageBox(null, SWT.OK, "Donation Test", "Wait "
+					+ ((SystemTime.getCurrentTime() - minDate) / 1000 / 3600 / 24)
+					+ " days");
+			}
 			return;
 		}
 
 		COConfigurationManager.setParameter("donations.nextAskHours", hours
-				+ DONATIONS_ASK_EVERY);
+				+ askEveryHours);
 		COConfigurationManager.save();
 
 		Utils.execSWTThread(new AERunnable() {
@@ -108,15 +127,18 @@ public class DonationWindow
 
 		browser.addTitleListener(new TitleListener() {
 			public void changed(TitleEvent event) {
-				System.out.println("AHAHA" + event.title);
 				shell.setText(event.title);
 			}
 		});
 
 		browser.addStatusTextListener(new StatusTextListener() {
+			String last = null;
 			public void changed(StatusTextEvent event) {
 				String text = event.text.toLowerCase();
-				System.out.println(text);
+				if (last != null && last.equals(text)) {
+					return;
+				}
+				last = text;
 				if (text.contains("page-loaded")) {
 					pageLoadedOk = true;
 					shell.open();
@@ -153,22 +175,29 @@ public class DonationWindow
 			}
 		});
 
+		final String url = "http://"
+			+ System.getProperty("platform_address", "www.vuze.com") + ":"
+			+ System.getProperty("platform_port", "80") + "/"
+			+ "donate.start?locale=" + Locale.getDefault().toString() + "&azv="
+			+ Constants.AZUREUS_VERSION;
+
 		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(10000),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
 						if (!pageLoadedOk) {
 							Utils.execSWTThread(new AERunnable() {
 								public void runSupport() {
-									System.out.println("Page Didn't Load");
-									MessageBoxShell.open(shell, "Beta Beta Beta",
-											"Page Didn't Load Properly.  Donate?",
-											new String[] {
-												"$1 Million",
-												"$1 Billion",
-												"Beer",
-												"Porn",
-												"You Sellouts"
-											}, 0);
+									Debug.out("Page Didn't Load:" + url);
+									if (DEBUG) {
+  									MessageBoxShell.open(shell, "Beta Beta Beta",
+  											"Page Didn't Load Properly.  Donate?", new String[] {
+  												"$1 Million",
+  												"$1 Billion",
+  												"Beer",
+  												"Porn",
+  												"You Sellouts"
+  											}, 0);
+									}
 									shell.dispose();
 								}
 							});
@@ -176,11 +205,6 @@ public class DonationWindow
 					}
 				});
 
-		String url = "http://"
-				+ System.getProperty("platform_address", "www.vuze.com") + ":"
-				+ System.getProperty( "platform_port", "80" ) + "/"
-				+ "donate.start?locale=" + Locale.getDefault().toString()
-				+ "&azv=" + Constants.AZUREUS_VERSION;
 		browser.setUrl(url);
 	}
 
@@ -202,12 +226,33 @@ public class DonationWindow
 	public static void resetAskTime() {
 		long upTime = StatsFactory.getStats().getTotalUpTime();
 		int hours = (int) (upTime / (60 * 60)); //secs * mins
-		int nextAsk = hours + DONATIONS_ASK_EVERY;
+		int nextAsk = hours + askEveryHours;
 		COConfigurationManager.setParameter("donations.nextAskHours", nextAsk);
 		COConfigurationManager.setParameter("donations.lastVersion",
 				Constants.AZUREUS_VERSION);
 		COConfigurationManager.save();
 	}
+
+	public static void updateMinDate() {
+		COConfigurationManager.setParameter("donations.minDate",
+				SystemTime.getOffsetTime(1000l * 3600 * 24 * 30));
+		COConfigurationManager.save();
+	}
+
+	public static void setMinDate(long timestamp) {
+		COConfigurationManager.setParameter("donations.minDate",
+				timestamp);
+		COConfigurationManager.save();
+	}
+
+	public static int getAskEveryHours() {
+		return askEveryHours;
+	}
+
+	public static void setAskEveryHours(int askEveryHours) {
+		DonationWindow.askEveryHours = askEveryHours;
+	}
+
 
 	public static void main(String[] args) {
 		try {
