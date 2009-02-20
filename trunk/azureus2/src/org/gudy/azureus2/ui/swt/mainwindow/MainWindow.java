@@ -1638,9 +1638,15 @@ public class MainWindow
 		boolean isMaximized = COConfigurationManager.getBooleanParameter(
 				"window.maximized", false);
 		if (isMaximized) {
-			Display current = Display.getCurrent();
-			if (current != null) {
-				Rectangle clientArea = current.getClientArea();
+			Monitor monitor = SWTThread.getInstance().getPrimaryMonitor();
+			if (Utils.isThisThreadSWT()) {
+				if (window != null && window.getShell() != null
+						&& !window.getShell().isDisposed()) {
+					monitor = window.getShell().getMonitor();
+				}
+			}
+			if (monitor != null) {
+				Rectangle clientArea = monitor.getClientArea();
 				size = new Point(clientArea.width, clientArea.height);
 				return size;
 			}
@@ -1663,7 +1669,6 @@ public class MainWindow
 
 	public static void addToVersionCheckMessage(final Map map) {
 		try {
-			if (window == null || window.shell == null || window.shell.isDisposed()) {
 				Point size = getStoredWindowSize();
 				if (size == null) {
 					return;
@@ -1671,31 +1676,6 @@ public class MainWindow
 
 				map.put("mainwindow.w", new Long(size.x));
 				map.put("mainwindow.h", new Long(size.y));
-				return;
-			}
-
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					Point size = null;
-
-					if (window != null) {
-						final Shell shell = window.getShell();
-						if (shell != null && !shell.isDisposed() && !shell.getMinimized()) {
-							size = shell.getSize();
-						}
-					}
-
-					if (size == null) {
-						size = getStoredWindowSize();
-						if (size == null) {
-							return;
-						}
-					}
-					map.put("mainwindow.w", new Long(size.x));
-					map.put("mainwindow.h", new Long(size.y));
-				}
-
-			}, false);
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
