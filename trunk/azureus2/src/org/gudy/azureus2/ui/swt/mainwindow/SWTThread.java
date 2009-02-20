@@ -27,6 +27,7 @@ import java.lang.reflect.Constructor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -77,6 +78,8 @@ public class SWTThread {
   private final IUIIntializer initializer;
   
   private Map	freq_map = new HashMap();
+
+	private Monitor primaryMonitor;
   
   private 
   SWTThread(
@@ -127,6 +130,8 @@ public class SWTThread {
 		}
     
     Display.setAppName(Constants.APP_NAME);
+    
+    primaryMonitor = display.getPrimaryMonitor();
     
     AEDiagnostics.addEvidenceGenerator(new AEDiagnosticsEvidenceGenerator() {
 			public void generate(IndentWriter writer) {
@@ -330,5 +335,9 @@ public class SWTThread {
 		{
 			freq_map.remove(owner);
 		}		
+	}
+
+	public Monitor getPrimaryMonitor() {
+		return primaryMonitor;
 	}
 }
