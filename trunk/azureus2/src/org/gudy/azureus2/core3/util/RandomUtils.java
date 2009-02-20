@@ -137,6 +137,16 @@ RandomUtils
     	
     	return( hash );
     }
+    
+    public static byte[] nextHash()
+    {
+    	byte[] hash = new byte[20];
+    	
+    	RANDOM.nextBytes( hash );
+    	
+    	return( hash );
+    }
+    
     public static int nextInt(int n)
 	{
     	return RANDOM.nextInt(n);

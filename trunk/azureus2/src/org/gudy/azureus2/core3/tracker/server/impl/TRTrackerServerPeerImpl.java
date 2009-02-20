@@ -31,7 +31,7 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 
 public class 
 TRTrackerServerPeerImpl
-	implements TRTrackerServerPeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
+	implements TRTrackerServerPeer, TRTrackerServerSimplePeer, HostNameToIPResolverListener, TRTrackerServerNatCheckerListener
 {	
 	private HashWrapper	peer_id;
 	private int			key_hash_code;
@@ -299,7 +299,7 @@ TRTrackerServerPeerImpl
 		biased	= _biased;
 	}
 	
-	protected HashWrapper
+	public HashWrapper
 	getPeerId()
 	{
 		return( peer_id );
@@ -317,7 +317,7 @@ TRTrackerServerPeerImpl
 		return( key_hash_code );
 	}
 	
-	protected byte[]
+	public byte[]
 	getIPAsRead()
 	{
 		return( ip );
@@ -351,7 +351,7 @@ TRTrackerServerPeerImpl
 		 * @return
 		 */
 	
-	protected byte[]
+	public byte[]
 	getIPAddressBytes()
 	{
 		return( ip_bytes );
@@ -363,37 +363,37 @@ TRTrackerServerPeerImpl
 		return( tcp_port&0xffff );
 	}
 	
-	protected int
+	public int
 	getUDPPort()
 	{
 		return( udp_port&0xffff );
 	}
 	
-	protected int
+	public int
 	getHTTPPort()
 	{
 		return( http_port&0xffff );
 	}
 	
-	protected byte
+	public byte
 	getCryptoLevel()
 	{
 		return( crypto_level );
 	}
 	
-	protected byte
+	public byte
 	getAZVer()
 	{
 		return( az_ver );
 	}
 	
-	protected int
+	public int
 	getUpSpeed()
 	{
 		return( up_speed&0xffff );
 	}
 	
-	protected DHTNetworkPosition
+	public DHTNetworkPosition
 	getNetworkPosition()
 	{
 		return( network_position );
@@ -450,7 +450,7 @@ TRTrackerServerPeerImpl
 		return( amount_left );
 	}
 	
-	protected boolean
+	public boolean
 	isSeed()
 	{
 		return( amount_left == 0 );

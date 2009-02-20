@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 
@@ -68,10 +70,12 @@ TRTrackerServerTorrentImpl
 	private TRTrackerServerImpl	server;
 	private HashWrapper			hash;
 
-	private Map				peer_map 		= new HashMap();
-	private Map				peer_reuse_map	= new HashMap();
+	private Map<HashWrapper,TRTrackerServerPeerImpl>		peer_map 		= new HashMap<HashWrapper,TRTrackerServerPeerImpl>();
 	
-	private List			peer_list		= new ArrayList();
+	private Map<String,TRTrackerServerPeerImpl>				peer_reuse_map	= new HashMap<String,TRTrackerServerPeerImpl>();
+	
+	private List<TRTrackerServerPeerImpl>					peer_list		= new ArrayList<TRTrackerServerPeerImpl>();
+	
 	private int				peer_list_hole_count;
 	private boolean			peer_list_compaction_suspended;
 	
@@ -1126,8 +1130,9 @@ TRTrackerServerTorrentImpl
 				// if set this list contains the only peers that are to be returned. It allows a manual
 				// external peer selection algorithm
 			
-			List	explicit_limited_peers 	= null;
-			List	explicit_biased_peers 	= null;
+			List<TRTrackerServerSimplePeer> 	explicit_limited_peers 	= null;
+			List<TRTrackerServerSimplePeer>		explicit_biased_peers	= null;
+			
 			Set		remove_ips				= null;
 			
 			if ( requesting_peer != null ){
@@ -1147,7 +1152,7 @@ TRTrackerServerTorrentImpl
 									
 									if ( explicit_limited_peers == null ){
 										
-										explicit_limited_peers = new ArrayList();
+										explicit_limited_peers = new ArrayList<TRTrackerServerSimplePeer>();
 									}
 									
 									for (int j=0;j<limited_peers.size();j++){
@@ -1174,7 +1179,7 @@ TRTrackerServerTorrentImpl
 									
 									if ( explicit_biased_peers == null ){
 										
-										explicit_biased_peers = new ArrayList();
+										explicit_biased_peers = new ArrayList<TRTrackerServerSimplePeer>();
 									}
 									
 									for (int j=0;j<biased_peers.size();j++){
@@ -1186,9 +1191,14 @@ TRTrackerServerTorrentImpl
 										
 										String	reuse_key = ip + ":" + port;
 
-										TRTrackerServerPeerImpl peer	= (TRTrackerServerPeerImpl)peer_reuse_map.get( reuse_key );
+										TRTrackerServerSimplePeer peer	= peer_reuse_map.get( reuse_key );
 
-										if ( peer != null && !explicit_biased_peers.contains( peer )){
+										if ( peer == null ){
+											
+											peer = new temporaryBiasedSeed( ip, port );
+										}
+										
+										if ( !explicit_biased_peers.contains( peer )){
 											
 											explicit_biased_peers.add( peer );
 										}
@@ -1322,9 +1332,10 @@ TRTrackerServerTorrentImpl
 							
 							// don't return "crypto required" peers to those that can't correctly connect to them
 							
+							/* change this to make the explicit ones additional, not replacing
 						}else if ( 	explicit_biased_peers != null &&
 									peer.isBiased()){
-							
+							*/
 								// if we have an explicit biased peer list and this peer is biased 
 								// skip here as we add them later
 							
@@ -1468,7 +1479,7 @@ TRTrackerServerTorrentImpl
 							
 							int	biased_peers_count = 0;
 							
-							if ( biased_peers != null && explicit_biased_peers == null ){
+							if ( biased_peers != null ){ // explicit are additional && explicit_biased_peers == null ){
 								
 								if ( biased_peers.size() > 1 ){
 													
@@ -1818,7 +1829,7 @@ TRTrackerServerTorrentImpl
 					
 					num_want--;
 					
-					TRTrackerServerPeerImpl peer = (TRTrackerServerPeerImpl)explicit_limited_peers.get(i);
+					TRTrackerServerSimplePeer  peer = explicit_limited_peers.get(i);
 					
 					exportPeer(rep_peers, peer, send_peer_ids, compact_mode, crypto_level, network_position);
 				}
@@ -1830,7 +1841,7 @@ TRTrackerServerTorrentImpl
 					
 					num_want--;
 					
-					TRTrackerServerPeerImpl peer = (TRTrackerServerPeerImpl)explicit_biased_peers.get(i);
+					TRTrackerServerSimplePeer peer = explicit_biased_peers.get(i);
 					
 					exportPeer(rep_peers, peer, send_peer_ids, compact_mode, crypto_level, network_position);
 				}
@@ -2235,12 +2246,12 @@ TRTrackerServerTorrentImpl
 	
 	private void
 	exportPeer(
-		LinkedList				rep_peers,
-		TRTrackerServerPeerImpl	peer,
-		boolean					send_peer_ids,
-		byte					compact_mode,
-		byte					crypto_level,
-		DHTNetworkPosition		network_position )
+		LinkedList					rep_peers,
+		TRTrackerServerSimplePeer	peer,
+		boolean						send_peer_ids,
+		byte						compact_mode,
+		byte						crypto_level,
+		DHTNetworkPosition			network_position )
 	{
 		Map rep_peer = new HashMap(3);
 		
@@ -3152,6 +3163,111 @@ TRTrackerServerTorrentImpl
 		{
 			return( new String(ip) + ":" + getTCPPort() + "/" + getUDPPort() + "/" + getCryptoLevel());
 		}
+	}
+	
+	protected class
+	temporaryBiasedSeed
+		implements TRTrackerServerSimplePeer
+	{
+		private String			ip;
+		private int				tcp_port;
+		private HashWrapper		peer_id;
+		
+		protected
+		temporaryBiasedSeed(
+			String			_ip,
+			int				_tcp_port )
+		{
+			ip			= _ip;
+			tcp_port	= _tcp_port;
+			
+			peer_id = new HashWrapper( RandomUtils.nextHash());
+		}
+		
+		public byte[]
+    	getIPAsRead()
+		{
+			try{
+			
+				return( ip.getBytes( Constants.BYTE_ENCODING ));
+				
+			}catch( Throwable e ){
+    			
+    			return( ip.getBytes());
+    		}
+		}
+    	
+    	public byte[]
+    	getIPAddressBytes()
+    	{
+    		try{
+    			return( InetAddress.getByName( ip ).getAddress());
+    			
+    		}catch( Throwable e ){
+    			
+    			return( null );
+    		}
+    	}
+
+    	public HashWrapper
+       	getPeerId()
+    	{
+    		return( peer_id );
+    	}
+
+    	public int
+    	getTCPPort()
+    	{
+    		return( tcp_port );
+    	}
+    	
+    	public int
+    	getUDPPort()
+    	{
+    		return( 0 );
+    	}
+    	
+    	public int
+    	getHTTPPort()
+    	{
+    		return( 0 );
+    	}
+    	
+    	public boolean
+    	isSeed()
+    	{
+    		return( true );
+    	}
+    	
+    	public boolean
+    	isBiased()
+    	{
+    		return( true );
+    	}
+    	
+    	public byte
+    	getCryptoLevel()
+    	{
+    		return( TRTrackerServerPeer.CRYPTO_NONE );
+    	}
+    	
+    	public byte
+    	getAZVer()
+    	{
+    		return( 0 );
+    	}
+    	
+    	public int
+    	getUpSpeed()
+    	{
+    		return( 0 );
+    	}
+    	
+    	public DHTNetworkPosition
+    	getNetworkPosition()
+    	{
+    		return( null );
+    	}
 	}
 	
 	public String
