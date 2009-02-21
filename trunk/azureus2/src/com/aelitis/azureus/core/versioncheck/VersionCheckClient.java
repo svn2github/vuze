@@ -342,7 +342,7 @@ public class VersionCheckClient {
 	  }
   }
   
-  protected Map
+  public Map
   getMostRecentVersionCheckData()
   {
 	  	// currently we maintain v4 much more accurately than v6
