@@ -33,8 +33,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -45,6 +48,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -74,7 +78,9 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.config.*;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger.PlatformLoginCompleteListener;
 import com.aelitis.azureus.core.torrent.GlobalRatingUtils;
+import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.Launcher;
 import com.aelitis.azureus.login.NotLoggedInException;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
@@ -393,6 +399,27 @@ public class MainWindow
 			if (dm == null) {
 				continue;
 			}
+			
+			dm.addListener(new DownloadManagerAdapter() {
+				public void downloadComplete(DownloadManager manager) {
+					if (!PlatformTorrentUtils.isContent(manager.getTorrent(), true)) {
+						return;
+					}
+					Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
+					long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
+					if (donationMode == 0) {
+						DonationWindow.resetAskTime();
+					} else if (donationMode == 1) {
+						long donationDays = MapUtils.getMapLong(map, "donations.mindays", 0);
+						if (donationDays == 0) {
+							DonationWindow.updateMinDate();
+						} else {
+							DonationWindow.setMinDate(SystemTime.getOffsetTime(donationDays * 24 * 1000 * 3600l));
+							DonationWindow.checkForDonationPopup();
+						}
+					}
+				}
+			});
 
 			final TOTorrent torrent = dm.getTorrent();
 			if (torrent == null) {
@@ -1211,6 +1238,34 @@ public class MainWindow
 		}
 
 		AssociationChecker.checkAssociations();
+		
+		// Donation stuff
+		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
+		long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
+		DonationWindow.setAskEveryHours(MapUtils.getMapInt(map,
+				"donations.askeveryhrs", DonationWindow.getAskEveryHours()));
+
+		//DonationWindow.checkForDonationPopup();
+		if (donationMode == 2) {
+			PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
+				public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
+					if (!opened || !PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
+						return;
+					}
+					Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
+					long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
+					if (donationMode == 2) {
+  					long donationDays = MapUtils.getMapLong(map, "donations.mindays", 0);
+  					if (donationDays == 0) {
+  						DonationWindow.updateMinDate();
+  					} else {
+  						DonationWindow.setMinDate(SystemTime.getOffsetTime(donationDays * 24 * 1000 * 3600l));
+  						DonationWindow.checkForDonationPopup();
+  					}
+					}
+				}
+			});
+		}		
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
 
