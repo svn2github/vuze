@@ -484,11 +484,11 @@ TorrentUtils
 		return( errorDetail );
 	}
 	
-	public static List
+	public static List<List<String>>
 	announceGroupsToList(
 		TOTorrent	torrent )
 	{
-		List	groups = new ArrayList();
+		List<List<String>>	groups = new ArrayList<List<String>>();
 		
 		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
 		
@@ -496,7 +496,7 @@ TorrentUtils
 		
 		if ( sets.length == 0 ){
 		
-			List	s = new ArrayList();
+			List<String>	s = new ArrayList<String>();
 			
 			s.add( torrent.getAnnounceURL().toString());
 			
@@ -505,7 +505,7 @@ TorrentUtils
 			
 			for (int i=0;i<sets.length;i++){
 			
-				List	s = new ArrayList();
+				List<String>	s = new ArrayList<String>();
 								
 				TOTorrentAnnounceURLSet	set = sets[i];
 				
@@ -528,8 +528,8 @@ TorrentUtils
 	
 	public static void
 	listToAnnounceGroups(
-		List		groups,
-		TOTorrent	torrent )
+		List<List<String>>		groups,
+		TOTorrent				torrent )
 	{
 		try{
 			TOTorrentAnnounceURLGroup tg = torrent.getAnnounceURLGroup();

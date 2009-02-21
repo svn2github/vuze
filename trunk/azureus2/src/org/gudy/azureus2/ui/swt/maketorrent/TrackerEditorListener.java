@@ -28,5 +28,5 @@ import java.util.List;
  */
 public interface TrackerEditorListener {
   
-  public void trackersChanged(String oldName,String newName,List trackers);
+  public void trackersChanged(String oldName,String newName,List<List<String>> trackers);
 }

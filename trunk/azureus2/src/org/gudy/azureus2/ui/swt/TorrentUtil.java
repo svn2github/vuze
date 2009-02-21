@@ -25,6 +25,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -395,29 +399,87 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker");
 		Utils.setMenuItemImage(itemEditTracker, "edit_trackers");
 		itemEditTracker.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(final DownloadManager dm) {
-				if (dm.getTorrent() != null) {
-					final TOTorrent torrent = dm.getTorrent();
-
-					java.util.List group = TorrentUtils.announceGroupsToList(torrent);
-
-					new MultiTrackerEditor(null, group, new TrackerEditorListener() {
-						public void trackersChanged(String str, String str2, java.util.List group) {
-							TorrentUtils.listToAnnounceGroups(group, torrent);
-
-							try {
-								TorrentUtils.writeToFile(torrent);
-							}
-							catch (Throwable e) {
-								Debug.printStackTrace(e);
-							}
-
-							if (dm.getTrackerClient() != null) dm.getTrackerClient().resetTrackerUrl(true);
+			public void 
+			run(
+				final DownloadManager[] dms ) 
+			{
+				Map<String,List<DownloadManager>>	same_map = new HashMap<String, List<DownloadManager>>();
+				
+				for ( DownloadManager dm: dms ){
+					
+					TOTorrent torrent = dm.getTorrent();
+					
+					if ( torrent == null ){
+						
+						continue;
+					}
+					
+					List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+					
+					String str = "";
+					
+					for ( List<String> l: group ){
+						str += "[[";
+						
+						for ( String s:l ){
+							str += s + ", ";
 						}
-					}, true);
+					}
+					
+					List<DownloadManager> dl = same_map.get( str );
+					
+					if ( dl == null ){
+						
+						dl = new ArrayList<DownloadManager>();
+						
+						same_map.put( str, dl );
+					}
+					
+					dl.add(dm );
 				}
-			} // run
+				
+				for ( final List<DownloadManager> set: same_map.values()){
+										
+					TOTorrent torrent = set.get(0).getTorrent();
+
+					List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+
+					new MultiTrackerEditor(
+						null, 
+						group, 
+						new TrackerEditorListener() 
+						{
+							public void 
+							trackersChanged(
+								String 				str, 
+								String 				str2, 
+								List<List<String>> 	group ) 
+							{
+								for ( DownloadManager dm: set ){
+									
+									TOTorrent torrent = dm.getTorrent();
+									
+									TorrentUtils.listToAnnounceGroups(group, torrent);
+		
+									try{
+										TorrentUtils.writeToFile(torrent);
+										
+									}catch (Throwable e){
+										
+										Debug.printStackTrace(e);
+									}
+		
+									if ( dm.getTrackerClient() != null){
+										
+										dm.getTrackerClient().resetTrackerUrl(true);
+									}
+								}
+							}
+						}, true);
+				}
+			} 
 		});
+		
 		itemEditTracker.setEnabled(hasSelection);
 
 		final MenuItem itemManualUpdate = new MenuItem(menuTracker, SWT.PUSH);
