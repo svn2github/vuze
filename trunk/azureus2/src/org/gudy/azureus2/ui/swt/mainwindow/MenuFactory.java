@@ -5,6 +5,7 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -28,6 +29,7 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
@@ -957,6 +959,14 @@ public class MenuFactory
 		});
 	}
 	
+	public static MenuItem addDonationMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_DONATE, new Listener() {
+      public void handleEvent(Event e) {
+        new DonationWindow().show(true);
+      }
+    });
+	}
+
 	
 	public static MenuItem addGetPluginsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_PLUGINS_HELP, new Listener() {

@@ -53,6 +53,7 @@ import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
+import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
@@ -73,10 +74,12 @@ import org.gudy.azureus2.ui.systray.SystemTraySWT;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIStatusTextClickListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.sharing.ShareException;
@@ -726,6 +729,13 @@ public class MainWindow
 			// check file associations  
 	
 		AssociationChecker.checkAssociations();
+
+		// Donation stuff
+		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
+		DonationWindow.setAskEveryHours(MapUtils.getMapInt(map,
+				"donations.askeveryhrs", DonationWindow.getAskEveryHours()));
+
+		DonationWindow.checkForDonationPopup();
 
 		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
 	}

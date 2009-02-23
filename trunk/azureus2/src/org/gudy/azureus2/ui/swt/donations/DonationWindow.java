@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,7 +44,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  */
 public class DonationWindow
 {
-	private static boolean DEBUG = true;
+	public static boolean DEBUG = System.getProperty("donations.debug", "0").equals(
+			"1");
 
 	private static int askEveryHours = 168;
 
@@ -108,12 +110,12 @@ public class DonationWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				new DonationWindow().show();
+				new DonationWindow().show(false);
 			}
 		});
 	}
 
-	public void show() {
+	public void show(final boolean showNoLoad) {
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.BORDER
 				| SWT.APPLICATION_MODAL | SWT.TITLE);
 		shell.setLayout(new FillLayout());
@@ -192,17 +194,12 @@ public class DonationWindow
 							Utils.execSWTThread(new AERunnable() {
 								public void runSupport() {
 									Debug.out("Page Didn't Load:" + url);
-									if (DEBUG) {
-										MessageBoxShell.open(shell, "Beta Beta Beta",
-												"Page Didn't Load Properly.  Donate?", new String[] {
-													"$1 Million",
-													"$1 Billion",
-													"Beer",
-													"Porn",
-													"You Sellouts"
-												}, 0);
-									}
 									shell.dispose();
+									if (showNoLoad) {
+  									Utils.openMessageBox(shell, SWT.OK,
+  											MessageText.getString("DonationWindow.noload.title"),
+  											MessageText.getString("DonationWindow.noload.text"));
+									}
 								}
 							});
 						}
@@ -260,7 +257,7 @@ public class DonationWindow
 		try {
 			AzureusCoreFactory.create().start();
 			//checkForDonationPopup();
-			new DonationWindow().show();
+			new DonationWindow().show(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
