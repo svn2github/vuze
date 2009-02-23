@@ -732,10 +732,8 @@ public class MainWindow
 
 		// Donation stuff
 		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
-		DonationWindow.setAskEveryHours(MapUtils.getMapInt(map,
-				"donations.askeveryhrs", DonationWindow.getAskEveryHours()));
-
-		DonationWindow.checkForDonationPopup();
+		DonationWindow.setInitialAskHours(MapUtils.getMapInt(map,
+				"donations.askhrs", DonationWindow.getInitialAskHours()));
 
 		azureus_core.triggerLifeCycleComponentCreated(uiFunctions);
 	}
@@ -868,6 +866,7 @@ public class MainWindow
 	}
 
 	private void downloadManagerAdded(DownloadManager created) {
+		DonationWindow.checkForDonationPopup();
 	}
 
 	protected void openManagerView(DownloadManager downloadManager) {

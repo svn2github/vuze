@@ -47,7 +47,9 @@ public class DonationWindow
 	public static boolean DEBUG = System.getProperty("donations.debug", "0").equals(
 			"1");
 
-	private static int askEveryHours = 168;
+	private static int reAskEveryHours = 96;
+
+	private static int initialAskHours = 48;
 
 	private boolean pageLoadedOk = false;
 
@@ -75,8 +77,9 @@ public class DonationWindow
 				"donations.nextAskHours", 0);
 
 		if (nextAsk == 0) {
+			// First Time
 			COConfigurationManager.setParameter("donations.nextAskHours", hours
-					+ askEveryHours);
+					+ initialAskHours);
 			COConfigurationManager.save();
 			if (DEBUG) {
 				Utils.openMessageBox(null, SWT.OK, "Donations Test",
@@ -105,7 +108,7 @@ public class DonationWindow
 		}
 
 		COConfigurationManager.setParameter("donations.nextAskHours", hours
-				+ askEveryHours);
+				+ reAskEveryHours);
 		COConfigurationManager.save();
 
 		Utils.execSWTThread(new AERunnable() {
@@ -149,7 +152,15 @@ public class DonationWindow
 					Utils.centreWindow(shell);
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
-					resetAskTime();
+					int time = reAskEveryHours;
+					String[] strings = text.split(" ");
+					if (strings.length > 1) {
+						try {
+							time = Integer.parseInt(strings[1]);
+						} catch (Throwable t) {
+						}
+					}
+					resetAskTime(time);
 				} else if (text.contains("never-ask-again")) {
 					neverAskAgain();
 				} else if (text.contains("close")) {
@@ -181,12 +192,15 @@ public class DonationWindow
 			}
 		});
 
+		long upTime = StatsFactory.getStats().getTotalUpTime();
+		int upHours = (int) (upTime / (60 * 60)); //secs * mins
 		final String url = "http://"
 				+ System.getProperty("platform_address", "www.vuze.com") + ":"
 				+ System.getProperty("platform_port", "80") + "/"
 				+ "donate.start?locale=" + Locale.getDefault().toString() + "&azv="
 				+ Constants.AZUREUS_VERSION + "&count="
-				+ COConfigurationManager.getLongParameter("donations.count", 1);
+				+ COConfigurationManager.getLongParameter("donations.count", 1)
+				+ "&uphours=" + upHours;
 
 		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(10000),
 				new TimerEventPerformer() {
@@ -226,6 +240,10 @@ public class DonationWindow
 	 * @since 4.0.0.5
 	 */
 	public static void resetAskTime() {
+		resetAskTime(reAskEveryHours);
+	}
+
+	public static void resetAskTime(int askEveryHours) {
 		long upTime = StatsFactory.getStats().getTotalUpTime();
 		int hours = (int) (upTime / (60 * 60)); //secs * mins
 		int nextAsk = hours + askEveryHours;
@@ -246,12 +264,12 @@ public class DonationWindow
 		COConfigurationManager.save();
 	}
 
-	public static int getAskEveryHours() {
-		return askEveryHours;
+	public static int getInitialAskHours() {
+		return initialAskHours;
 	}
 
-	public static void setAskEveryHours(int askEveryHours) {
-		DonationWindow.askEveryHours = askEveryHours;
+	public static void setInitialAskHours(int i) {
+		initialAskHours = i;
 	}
 
 	public static void main(String[] args) {
