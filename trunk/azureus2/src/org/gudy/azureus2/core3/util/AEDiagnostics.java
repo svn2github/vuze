@@ -92,7 +92,7 @@ AEDiagnostics
 			if (logSize != null) {
 				if (logSize.toLowerCase().endsWith("m")) {
 					maxFileSize = Integer.parseInt(logSize.substring(0,
-							logSize.length() - 1)) * 1024;
+							logSize.length() - 1)) * 1024 * 1024;
 				} else {
 					maxFileSize = Integer.parseInt(logSize);
 				}
