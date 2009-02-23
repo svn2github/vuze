@@ -1,29 +1,16 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 
 import com.aelitis.azureus.core.drm.msdrm.LicenseAquirer;
-import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
-import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.views.skin.Browse;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * A convenience class for creating the Debug menu
@@ -175,14 +162,20 @@ public class DebugMenuHelper
 		item.setText("popup check");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				boolean oldDebug = DonationWindow.DEBUG; 
+				DonationWindow.DEBUG = true;
 				DonationWindow.checkForDonationPopup();
+				DonationWindow.DEBUG = oldDebug;
 			}
 		});
 		item = new MenuItem(menuBrowserTB, SWT.NONE);
 		item.setText("show");
 		item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				new DonationWindow().show();
+				boolean oldDebug = DonationWindow.DEBUG; 
+				DonationWindow.DEBUG = true;
+				new DonationWindow().show(true);
+				DonationWindow.DEBUG = oldDebug;
 			}
 		});
 

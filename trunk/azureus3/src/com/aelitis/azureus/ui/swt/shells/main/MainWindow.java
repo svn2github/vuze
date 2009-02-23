@@ -402,6 +402,7 @@ public class MainWindow
 			
 			dm.addListener(new DownloadManagerAdapter() {
 				public void downloadComplete(DownloadManager manager) {
+					manager.removeListener(this);
 					if (!PlatformTorrentUtils.isContent(manager.getTorrent(), true)) {
 						return;
 					}
@@ -1245,7 +1246,7 @@ public class MainWindow
 		DonationWindow.setAskEveryHours(MapUtils.getMapInt(map,
 				"donations.askeveryhrs", DonationWindow.getAskEveryHours()));
 
-		//DonationWindow.checkForDonationPopup();
+		DonationWindow.checkForDonationPopup();
 		if (donationMode == 2) {
 			PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
 				public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
@@ -1260,7 +1261,6 @@ public class MainWindow
   						DonationWindow.updateMinDate();
   					} else {
   						DonationWindow.setMinDate(SystemTime.getOffsetTime(donationDays * 24 * 1000 * 3600l));
-  						DonationWindow.checkForDonationPopup();
   					}
 					}
 				}

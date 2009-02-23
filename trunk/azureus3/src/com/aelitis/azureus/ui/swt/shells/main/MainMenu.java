@@ -761,6 +761,8 @@ public class MainMenu
 			MenuFactory.addSeparatorMenuItem(helpMenu);
 			MenuFactory.addCheckUpdateMenuItem(helpMenu);
 		}
+		
+		MenuFactory.addDonationMenuItem(helpMenu);
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);
 		MenuFactory.addConfigWizardMenuItem(helpMenu);
