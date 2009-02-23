@@ -85,9 +85,24 @@ AEDiagnostics
 		if ( TRACE_TCP_TRANSPORT_STATS ){
 		  System.out.println( "**** TCP_TRANSPORT_STATS tracing on ****" );
 		}
+		
+		int maxFileSize = 256 * 1024;
+		try {
+			String logSize = System.getProperty("diag.logsize", null);
+			if (logSize != null) {
+				if (logSize.toLowerCase().endsWith("m")) {
+					maxFileSize = Integer.parseInt(logSize.substring(0,
+							logSize.length() - 1)) * 1024;
+				} else {
+					maxFileSize = Integer.parseInt(logSize);
+				}
+			}
+		} catch (Throwable t) {
+		}
+		MAX_FILE_SIZE = maxFileSize;
 	}
 	
-	private static final int	MAX_FILE_SIZE	= 256*1024;	// get two of these per logger type
+	private static final int	MAX_FILE_SIZE;	// get two of these per logger type
 	
 	private static final String	CONFIG_KEY	= "diagnostics.tidy_close";
 	
