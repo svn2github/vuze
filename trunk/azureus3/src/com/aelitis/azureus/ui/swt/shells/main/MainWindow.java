@@ -395,33 +395,12 @@ public class MainWindow
 	
 	private void downloadAdded(final DownloadManager[] dms) {
 		ArrayList<TOTorrent> toUpdateGlobalRating = new ArrayList();
+		boolean oneIsNotPlatform = false;
 		for (final DownloadManager dm : dms) {
 			if (dm == null) {
 				continue;
 			}
 			
-			dm.addListener(new DownloadManagerAdapter() {
-				public void downloadComplete(DownloadManager manager) {
-					manager.removeListener(this);
-					if (!PlatformTorrentUtils.isContent(manager.getTorrent(), true)) {
-						return;
-					}
-					Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
-					long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
-					if (donationMode == 0) {
-						DonationWindow.resetAskTime();
-					} else if (donationMode == 1) {
-						long donationDays = MapUtils.getMapLong(map, "donations.mindays", 0);
-						if (donationDays == 0) {
-							DonationWindow.updateMinDate();
-						} else {
-							DonationWindow.setMinDate(SystemTime.getOffsetTime(donationDays * 24 * 1000 * 3600l));
-							DonationWindow.checkForDonationPopup();
-						}
-					}
-				}
-			});
-
 			final TOTorrent torrent = dm.getTorrent();
 			if (torrent == null) {
 				continue;
@@ -453,6 +432,10 @@ public class MainWindow
 			}
 
 			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
+			
+			if (!oneIsNotPlatform && !isContent) {
+				oneIsNotPlatform = true;
+			}
 
 			final String fHash = hash;
 
@@ -514,6 +497,10 @@ public class MainWindow
 			} // isContent
 		}
 		
+		if (oneIsNotPlatform) {
+			DonationWindow.checkForDonationPopup();
+		}
+
 		if (toUpdateGlobalRating.size() > 0) {
 			TOTorrent[] torrents = toUpdateGlobalRating.toArray(new TOTorrent[0]);
 			PlatformRatingMessenger.updateGlobalRating(torrents, 5000);
@@ -1242,30 +1229,9 @@ public class MainWindow
 		
 		// Donation stuff
 		Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
-		long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
-		DonationWindow.setAskEveryHours(MapUtils.getMapInt(map,
-				"donations.askeveryhrs", DonationWindow.getAskEveryHours()));
+		DonationWindow.setInitialAskHours(MapUtils.getMapInt(map,
+				"donations.askhrs", DonationWindow.getInitialAskHours()));
 
-		DonationWindow.checkForDonationPopup();
-		if (donationMode == 2) {
-			PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
-				public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
-					if (!opened || !PlatformTorrentUtils.isContent(dm.getTorrent(), true)) {
-						return;
-					}
-					Map map = VersionCheckClient.getSingleton().getMostRecentVersionCheckData();
-					long donationMode = MapUtils.getMapLong(map, "donations.mode", 0);
-					if (donationMode == 2) {
-  					long donationDays = MapUtils.getMapLong(map, "donations.mindays", 0);
-  					if (donationDays == 0) {
-  						DonationWindow.updateMinDate();
-  					} else {
-  						DonationWindow.setMinDate(SystemTime.getOffsetTime(donationDays * 24 * 1000 * 3600l));
-  					}
-					}
-				}
-			});
-		}		
 
 		core.triggerLifeCycleComponentCreated(uiFunctions);
 
