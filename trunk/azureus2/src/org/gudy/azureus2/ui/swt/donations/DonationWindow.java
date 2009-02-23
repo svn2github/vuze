@@ -146,6 +146,7 @@ public class DonationWindow
 					pageLoadedOk = true;
 					COConfigurationManager.setParameter("donations.count",
 							COConfigurationManager.getLongParameter("donations.count", 1) + 1);
+					Utils.centreWindow(shell);
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
 					resetAskTime();
