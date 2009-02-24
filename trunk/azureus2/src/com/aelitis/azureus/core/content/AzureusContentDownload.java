@@ -1,5 +1,5 @@
 /*
- * Created on Feb 11, 2009
+ * Created on Feb 23, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -23,17 +23,13 @@ package com.aelitis.azureus.core.content;
 
 import java.util.Map;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 
 public interface 
-AzureusContentFile 
+AzureusContentDownload 
 {
-	public static final String	PT_TITLE		= "title";			// String
-	public static final String	PT_CREATOR		= "creator";		// String
-	public static final String	PT_DURATION		= "duration";		// Long, millis
-	
-	public DiskManagerFileInfo
-	getFile();
+	public Download
+	getDownload();
 	
 	public Map<String,Object>
 	getProperties();
