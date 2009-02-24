@@ -497,7 +497,7 @@ public class MainWindow
 			} // isContent
 		}
 		
-		if (oneIsNotPlatform) {
+		if (oneIsNotPlatform && dms_Startup == null) {
 			DonationWindow.checkForDonationPopup();
 		}
 
