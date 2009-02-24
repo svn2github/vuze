@@ -83,6 +83,24 @@ DeviceiTunes
 		return( true );
 	}
 	
+	public boolean
+	canFilterFilesView()
+	{
+		return( false );
+	}
+	
+	public void
+	setFilterFilesView(
+		boolean	filter )
+	{
+	}
+	
+	public boolean
+	getFilterFilesView()
+	{
+		return( false );
+	}
+	
 	public boolean 
 	isBrowsable()
 	{

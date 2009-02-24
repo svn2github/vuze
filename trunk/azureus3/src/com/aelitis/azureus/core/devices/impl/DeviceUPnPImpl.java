@@ -46,8 +46,6 @@ DeviceUPnPImpl
 	extends DeviceImpl
 	implements TranscodeTargetListener
 {
-	private static final String	TP_IP_ADDRESS = "DeviceUPnPImpl:ip";
-	
 	private static final Object UPNPAV_FILE_KEY = new Object();
 	
 	protected static String
@@ -236,7 +234,7 @@ DeviceUPnPImpl
 					return( address );
 				}
 				
-				String last = getPersistentStringProperty( TP_IP_ADDRESS );
+				String last = getPersistentStringProperty( PP_IP_ADDRESS );
 				
 				if ( last != null && last.length() > 0 ){
 					
@@ -256,9 +254,9 @@ DeviceUPnPImpl
 	setAddress(
 		InetAddress	address )
 	{
-		setTransientProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address );
+		setTransientProperty( TP_IP_ADDRESS, address );
 		
-		setPersistentStringProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address.getHostAddress());
+		setPersistentStringProperty( PP_IP_ADDRESS, address.getHostAddress());
 	}
 	
 	protected void
@@ -412,6 +410,11 @@ DeviceUPnPImpl
 	{		
 		synchronized( this ){
 			
+			if ( !upnpav_integrated ){
+				
+				return;
+			}
+			
 			upnpav_integrated = false;
 			
 			removeListener( this );
@@ -481,11 +484,11 @@ DeviceUPnPImpl
 			addDP( dp, "device.manu.desc", manu_details );
 		}else{
 			
-			String ip = (String)getTransientProperty( TP_IP_ADDRESS );
+			InetAddress ia = getAddress();
 			
-			if ( ip != null ){
+			if ( ia != null ){
 				
-				addDP( dp, "dht.reseed.ip", ip ); 
+				addDP( dp, "dht.reseed.ip", ia.getHostAddress()); 
 			}
 		}
 	}

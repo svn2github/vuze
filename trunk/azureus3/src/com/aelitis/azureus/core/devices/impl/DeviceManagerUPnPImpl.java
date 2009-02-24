@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
@@ -268,7 +269,8 @@ DeviceManagerUPnPImpl
 					{
 						public Map<String,Object>
 						browseReceived(
-							TrackerWebPageRequest		request )
+							TrackerWebPageRequest		request,
+							Map<String,Object>			browser_args )
 						{
 							Map headers = request.getHeaders();
 							
@@ -277,11 +279,15 @@ DeviceManagerUPnPImpl
 							
 							InetSocketAddress client_address = request.getClientAddress2();
 							
+							boolean	handled = false;
+							
 							if ( user_agent != null ){
 								
-								if ( user_agent.equalsIgnoreCase( "PLAYSTATION 3" )){
+								if ( user_agent.toUpperCase().contains( "PLAYSTATION 3")){
 									
 									handlePS3( client_address );
+									
+									handled = true;
 								}
 							}
 							
@@ -290,6 +296,20 @@ DeviceManagerUPnPImpl
 								if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
 									
 									handlePS3( client_address );
+									
+									handled = true;
+								}
+							}
+							
+							if ( !handled ){
+								
+								String	 source = (String)browser_args.get( "source" );
+								
+								if ( source != null && source.equalsIgnoreCase( "http" )){
+									
+									handleBrowser( client_address );
+									
+									handled = true;
 								}
 							}
 							
@@ -302,15 +322,15 @@ DeviceManagerUPnPImpl
 							
 							DeviceImpl[] devices = manager.getDevices();
 							
-							final List<DeviceUPnPImpl>	browse_devices = new ArrayList<DeviceUPnPImpl>();
+							final List<DeviceMediaRendererImpl>	browse_devices = new ArrayList<DeviceMediaRendererImpl>();
 							
 							for ( DeviceImpl device: devices ){
 							
-								if ( device instanceof DeviceUPnPImpl ){
+								if ( device instanceof DeviceMediaRendererImpl ){
 								
-									DeviceUPnPImpl u_d = (DeviceUPnPImpl)device;
+									DeviceMediaRendererImpl renderer = (DeviceMediaRendererImpl)device;
 									
-									InetAddress device_address = u_d.getAddress();
+									InetAddress device_address = renderer.getAddress();
 									
 									try{
 										if ( device_address != null ){
@@ -319,9 +339,12 @@ DeviceManagerUPnPImpl
 											
 											if ( device_address.equals( client_address.getAddress())){
 					
-												browse_devices.add( u_d );
+												if ( renderer.getFilterFilesView()){
 												
-												u_d.browseReceived();
+													browse_devices.add( renderer );
+												
+													renderer.browseReceived();
+												}
 											}
 										}
 									}catch( Throwable e ){
@@ -333,37 +356,40 @@ DeviceManagerUPnPImpl
 							
 							Map<String,Object> result = new HashMap<String, Object>();
 							
-							result.put(
-								"filter",
-								new AzureusContentFilter()
-								{
-									public boolean
-									isVisible(
-										AzureusContentDownload	download,
-										Map<String,Object>		browse_args )
+							if ( browse_devices.size() > 0 ){
+								
+								result.put(
+									"filter",
+									new AzureusContentFilter()
 									{
-										return( false );
-									}
-									
-									public boolean
-									isVisible(
-										AzureusContentFile		file,
-										Map<String,Object>		browse_args )
-									{
-										boolean	visible = false;
-										
-										for ( DeviceUPnPImpl device: browse_devices ){
-											
-											if ( device.isVisible( file )){
-												
-												visible	= true;
-											}
+										public boolean
+										isVisible(
+											AzureusContentDownload	download,
+											Map<String,Object>		browse_args )
+										{
+											return( false );
 										}
 										
-										return( visible );
-									}
-								});
-							
+										public boolean
+										isVisible(
+											AzureusContentFile		file,
+											Map<String,Object>		browse_args )
+										{
+											boolean	visible = false;
+											
+											for ( DeviceUPnPImpl device: browse_devices ){
+												
+												if ( device.isVisible( file )){
+													
+													visible	= true;
+												}
+											}
+											
+											return( visible );
+										}
+									});
+							}
+								
 							return( result );
 						}
 					});
@@ -426,21 +452,37 @@ DeviceManagerUPnPImpl
 	handlePS3(
 		InetSocketAddress	address )
 	{
-		String psp_uid;
+		handleGeneric( address, "ps3", "PS3" );
+	}
+
+	protected void
+	handleBrowser(
+		InetSocketAddress	address )
+	{
+		handleGeneric( address, "browser", "Browser" );
+	}
+	
+	protected void
+	handleGeneric(
+		InetSocketAddress	address,
+		String				unique_name,
+		String				display_name )
+	{
+		String uid;
 		
 		synchronized( this ){
 			
-			psp_uid = COConfigurationManager.getStringParameter( "devices.upnp.uid.ps3", "" );
+			uid = COConfigurationManager.getStringParameter( "devices.upnp.uid." + unique_name, "" );
 			
-			if ( psp_uid.length() == 0 ){
+			if ( uid.length() == 0 ){
 				
-				psp_uid = UUIDGenerator.generateUUIDString();
+				uid = UUIDGenerator.generateUUIDString();
 				
-				COConfigurationManager.setParameter( "devices.upnp.uid.ps3", psp_uid );
+				COConfigurationManager.setParameter( "devices.upnp.uid." + unique_name, uid );
 			}
 		}
 		
-		DeviceMediaRendererImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3", false );
+		DeviceMediaRendererImpl device = new DeviceMediaRendererImpl( manager, uid, display_name, false );
 	
 		device = (DeviceMediaRendererImpl)manager.addDevice( device );
 		
@@ -448,7 +490,7 @@ DeviceManagerUPnPImpl
 		
 		device.alive();
 	}
-
+	
 	protected void
 	handleDevice(
 		UPnPRootDevice		root_device,

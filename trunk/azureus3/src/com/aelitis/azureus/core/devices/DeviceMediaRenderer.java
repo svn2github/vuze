@@ -26,5 +26,13 @@ public interface
 DeviceMediaRenderer
 	extends Device, TranscodeTarget
 {
-
+	public boolean
+	canFilterFilesView();
+	
+	public void
+	setFilterFilesView(
+		boolean	filter );
+	
+	public boolean
+	getFilterFilesView();
 }

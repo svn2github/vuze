@@ -93,6 +93,8 @@ DeviceRendererView
 		layout.marginLeft = 0;
 		control.setLayout(layout);
 
+			// browse to local dir
+		
 		grid_data = new GridData(GridData.FILL_HORIZONTAL);
 		grid_data.horizontalSpan = 1;
 		control.setLayoutData(grid_data);
@@ -116,6 +118,30 @@ DeviceRendererView
 		 				ManagerUtils.open( device.getWorkingDirectory());
 		 			}
 		 		});
+		 	
+		 	new Label( control, SWT.NONE );
+		 	
+		 	if ( device.canFilterFilesView()){
+		 		
+				final Button show_xcode_button = new Button( control, SWT.CHECK );
+				
+			 	Messages.setLanguageText( show_xcode_button, "devices.xcode.only.show");
+			 	
+			 	show_xcode_button.setSelection( device.getFilterFilesView());
+			 	
+			 	show_xcode_button.addSelectionListener(
+			 		new SelectionAdapter()
+			 		{
+			 			public void
+			 			widgetSelected(
+			 				SelectionEvent e )
+			 			{		 				
+			 				device.setFilterFilesView( show_xcode_button.getSelection());
+			 			}
+			 		});
+		 	}
+		 	
+		 	// files
 		
 		Label files_lab = new Label( main, SWT.NONE );
 			

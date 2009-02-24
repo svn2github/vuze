@@ -90,6 +90,11 @@ DeviceImpl
 	private static final String PP_REND_WORK_DIR		= "tt_work_dir";
 	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
+	
+	protected static final String	PP_IP_ADDRESS 	= "rend_ip";	
+	protected static final String	TP_IP_ADDRESS 	= "DeviceUPnPImpl:ip";	// transient
+	protected static final String	PP_FILTER_FILES = "rend_filter";
+	
 
 	
 	private DeviceManagerImpl	manager;
@@ -664,6 +669,14 @@ DeviceImpl
 	getPersistentStringProperty(
 		String		prop )
 	{
+		return( getPersistentStringProperty( prop, "" ));
+	}
+	
+	public String
+	getPersistentStringProperty(
+		String		prop,
+		String		def )
+	{
 		synchronized( persistent_properties ){
 			
 			try{
@@ -671,7 +684,7 @@ DeviceImpl
 		
 				if ( value == null ){
 					
-					return( "" );
+					return( def );
 				}
 				
 				return( new String( value, "UTF-8" ));
@@ -680,7 +693,7 @@ DeviceImpl
 				
 				Debug.printStackTrace(e);
 				
-				return( "" );
+				return( def );
 			}
 		}
 	}
@@ -714,6 +727,22 @@ DeviceImpl
 			
 			setDirty();
 		}
+	}
+	
+	public boolean
+	getPersistentBooleanProperty(
+		String		prop,
+		boolean		def )
+	{
+		return( getPersistentStringProperty( prop, def?"true":"false" ).equals( "true" ));
+	}
+	
+	public void
+	setPersistentBooleanProperty(
+		String		prop,
+		boolean		value )
+	{
+		setPersistentStringProperty(prop, value?"true":"false" );
 	}
 	
 	public String[]
