@@ -46,6 +46,9 @@ TranscodeJob
 	public DiskManagerFileInfo
 	getFile();
 	
+	public TranscodeFile
+	getTranscodeFile();
+	
 	public int
 	getIndex();
 	

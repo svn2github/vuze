@@ -31,7 +31,9 @@ TranscodeQueue
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
-		boolean					stream );
+		boolean					stream )
+	
+		throws TranscodeException;
 	
 	public TranscodeJob[]
 	getJobs();

@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
@@ -51,6 +52,7 @@ TranscodeJobImpl
 	private TranscodeTarget			target;
 	private TranscodeProfile		profile;
 	private DiskManagerFileInfo		file;
+	private TranscodeFileImpl		transcode_file;
 	
 	private boolean					is_stream;
 	private volatile InputStream	stream;
@@ -67,6 +69,8 @@ TranscodeJobImpl
 		TranscodeProfile		_profile,
 		DiskManagerFileInfo		_file,
 		boolean					_is_stream )
+	
+		throws TranscodeException
 	{
 		queue		= _queue;
 		target		= _target;
@@ -153,7 +157,11 @@ TranscodeJobImpl
 	
 	protected void
 	init()
+	
+		throws TranscodeException
 	{
+		transcode_file = (TranscodeFileImpl)target.allocateFile( profile, file );
+		
 		try{
 			file.getDownload().addDownloadWillBeRemovedListener( this );
 			
@@ -261,6 +269,8 @@ TranscodeJobImpl
 			state = ST_COMPLETE;
 		}
 		
+		transcode_file.setComplete( true );
+		
 		queue.jobChanged( this, false, false );
 	}
 	
@@ -292,6 +302,12 @@ TranscodeJobImpl
 	getFile()
 	{
 		return( file );
+	}
+	
+	public TranscodeFileImpl 
+	getTranscodeFile() 
+	{
+		return( transcode_file );
 	}
 	
 	public int
@@ -417,6 +433,28 @@ TranscodeJobImpl
 	remove()
 	{
 		queue.remove( this );
+	}
+	
+	protected void
+	destroy()
+	{
+		boolean	delete_file;
+		
+		synchronized( this ){
+			
+			delete_file = state != ST_COMPLETE;
+		}
+		
+		if ( delete_file ){
+			
+			try{
+				transcode_file.delete( true );
+				
+			}catch( Throwable e ){
+				
+				queue.log( "Faile to destroy job", e );
+			}
+		}
 	}
 	
 	public void 

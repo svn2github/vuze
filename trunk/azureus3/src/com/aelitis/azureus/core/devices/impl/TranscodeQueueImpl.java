@@ -195,7 +195,7 @@ TranscodeQueueImpl
 			}else{
 				
 					
-				transcode_file = (TranscodeFileImpl)job.getTarget().allocateFile( profile, job.getFile());
+				transcode_file = job.getTranscodeFile();
 				
 				File output_file = transcode_file.getFile();
 				
@@ -269,15 +269,6 @@ TranscodeQueueImpl
 			}
 
 			job.complete();
-			
-			if ( transcode_file == null ){
-				
-				Debug.out( "Need to fix this for steams!" );
-				
-			}else{
-				
-				transcode_file.setComplete( true );
-			}
 			
 			return( true );
 			
@@ -371,6 +362,8 @@ TranscodeQueueImpl
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
 		boolean					stream )
+	
+		throws TranscodeException
 	{
 		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );
 		
@@ -416,6 +409,8 @@ TranscodeQueueImpl
 			saveConfig();
 		}
 
+		job.destroy();
+		
 		for ( TranscodeQueueListener listener: listeners ){
 			
 			try{

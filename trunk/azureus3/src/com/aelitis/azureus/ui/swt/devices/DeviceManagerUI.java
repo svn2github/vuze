@@ -819,17 +819,22 @@ DeviceManagerUI
 														
 														Object obj = row.getDataSource();
 													
-														if ( obj instanceof Download ){
-														
-															Download download = (Download)obj;
-
-															tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0], false );
+														try{
+															if ( obj instanceof Download ){
+															
+																Download download = (Download)obj;
 	
-														}else{
+																tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0], false );
+		
+															}else{
+																
+																DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
+																
+																tm.getQueue().add( renderer, profile, file, false );
+															}
+														}catch( Throwable e ){
 															
-															DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
-															
-															tm.getQueue().add( renderer, profile, file, false );
+															Debug.out( e );
 														}
 													}
 												}

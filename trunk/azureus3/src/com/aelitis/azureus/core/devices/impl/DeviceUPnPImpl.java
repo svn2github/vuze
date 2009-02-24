@@ -22,13 +22,21 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
+import com.aelitis.azureus.core.content.AzureusContentFile;
+import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeTargetListener;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPRootDevice;
@@ -36,21 +44,11 @@ import com.aelitis.net.upnp.UPnPRootDevice;
 public abstract class 
 DeviceUPnPImpl
 	extends DeviceImpl
+	implements TranscodeTargetListener
 {
-	protected static final Object	TP_IP_ADDRESS = new Object();
+	private static final String	TP_IP_ADDRESS = "DeviceUPnPImpl:ip";
 	
-	private volatile UPnPDevice		device_may_be_null;
-	
-	protected
-	DeviceUPnPImpl(
-		DeviceManagerImpl			_manager,
-		UPnPDevice					_device,
-		int							_type )
-	{
-		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ), false );
-		
-		device_may_be_null = _device;
-	}	
+	private static final Object UPNPAV_FILE_KEY = new Object();
 	
 	protected static String
 	getDisplayName(
@@ -83,6 +81,27 @@ DeviceUPnPImpl
 		return( fn );
 	}
 	
+	
+	
+	private final DeviceManagerUPnPImpl	upnp_manager;
+	private volatile UPnPDevice		device_may_be_null;
+	
+	private boolean	upnpav_integrated;
+	
+	protected
+	DeviceUPnPImpl(
+		DeviceManagerImpl		_manager,
+		UPnPDevice				_device,
+		int						_type )
+	{
+		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ), false );
+		
+		upnp_manager		= _manager.getUPnPManager();
+		device_may_be_null 	= _device;
+	}	
+	
+
+	
 	protected
 	DeviceUPnPImpl(
 		DeviceManagerImpl	_manager,
@@ -91,6 +110,8 @@ DeviceUPnPImpl
 
 	{
 		super( _manager, _type, UUIDGenerator.generateUUIDString(), _name, true );
+		
+		upnp_manager		= _manager.getUPnPManager();
 	}
 	
 	protected
@@ -103,6 +124,8 @@ DeviceUPnPImpl
 
 	{
 		super( _manager, _type, _uuid, _name, _manual );
+		
+		upnp_manager		= _manager.getUPnPManager();
 	}
 	
 	protected
@@ -113,6 +136,8 @@ DeviceUPnPImpl
 		throws IOException
 	{
 		super(_manager, _map );
+		
+		upnp_manager		= _manager.getUPnPManager();
 	}
 	
 	protected boolean
@@ -170,6 +195,234 @@ DeviceUPnPImpl
 		}
 		
 		return( locs.toArray( new browseLocation[ locs.size() ]));
+	}
+	
+	protected URL
+	getLocation()
+	{
+		UPnPDevice device = device_may_be_null;
+		
+		if ( device != null ){
+			
+			UPnPRootDevice root = device.getRootDevice();
+			
+			return( root.getLocation());
+		}
+		
+		return( null );
+	}
+	
+	protected InetAddress
+	getAddress()
+	{
+		try{
+
+			UPnPDevice device = device_may_be_null;
+	
+			if ( device != null ){
+				
+				UPnPRootDevice root = device.getRootDevice();
+				
+				URL location = root.getLocation();
+				
+				return( InetAddress.getByName( location.getHost() ));
+				
+			}else{
+				
+				InetAddress address = (InetAddress)getTransientProperty( TP_IP_ADDRESS );
+				
+				if ( address != null ){
+					
+					return( address );
+				}
+				
+				String last = getPersistentStringProperty( TP_IP_ADDRESS );
+				
+				if ( last != null && last.length() > 0 ){
+					
+					return( InetAddress.getByName( last ));
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		
+		}
+		
+		return( null );
+	}
+	
+	protected void
+	setAddress(
+		InetAddress	address )
+	{
+		setTransientProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address );
+		
+		setPersistentStringProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address.getHostAddress());
+	}
+	
+	protected void
+	browseReceived()
+	{
+		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		
+		if ( ipc == null ){
+			
+			return;
+		}
+		
+		synchronized( this ){
+			
+			if ( upnpav_integrated ){
+				
+				return;
+			}
+			
+			upnpav_integrated = true;
+			
+			addListener( this );
+		}
+		
+		TranscodeFile[]	transcode_files = getFiles();
+		
+		for ( TranscodeFile file: transcode_files ){
+			
+			fileAdded( file );
+		}
+	}
+	
+	protected boolean
+	isVisible(
+		AzureusContentFile		file )
+	{
+		return( file.getProperties().get( "DeviceUPnPImpl:device" ) == this );
+	}
+	
+	public void
+	fileAdded(
+		final TranscodeFile		file )
+	{
+		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		
+		if ( ipc == null ){
+			
+			return;
+		}
+
+		synchronized( this ){
+			
+			if ( !upnpav_integrated ){
+
+				return;
+			}
+			
+			if ( !file.isComplete()){
+				
+				return;
+			}
+			
+			AzureusContentFile acf = (AzureusContentFile)file.getTransientProperty( UPNPAV_FILE_KEY );
+			
+			if ( acf != null ){
+				
+				return;
+			}
+			
+			final Map<String,Object> properties =  new HashMap<String, Object>();
+			
+				// TODO: duration etc
+
+			properties.put( "DeviceUPnPImpl:device", this );
+			
+			acf = 
+				new AzureusContentFile()
+				{
+					private DiskManagerFileInfo f = new DiskManagerFileInfoFile( file.getFile());
+				        	
+					public DiskManagerFileInfo
+				    getFile()
+					{
+						return( f );
+					}
+					
+					public Map<String,Object>
+					getProperties()
+					{						
+						return( properties );
+					}
+				};
+				
+			try{
+				ipc.invoke( "addContent", new Object[]{ acf });
+			
+				file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	fileChanged(
+		TranscodeFile		file )
+	{
+		if ( file.isComplete()){
+			
+			fileAdded( file );
+		}
+	}
+	
+	public void
+	fileRemoved(
+		TranscodeFile		file )
+	{
+		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		
+		if ( ipc == null ){
+			
+			return;
+		}
+
+		synchronized( this ){
+
+			AzureusContentFile acf = (AzureusContentFile)file.getTransientProperty( UPNPAV_FILE_KEY );
+
+			if ( acf == null ){
+		
+				return;
+			}
+			
+			file.setTransientProperty( UPNPAV_FILE_KEY, null );
+
+			try{
+				ipc.invoke( "removeContent", new Object[]{ acf });
+			
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	protected void
+	resetUPNPAV()
+	{		
+		synchronized( this ){
+			
+			upnpav_integrated = false;
+			
+			removeListener( this );
+			
+			TranscodeFile[]	transcode_files = getFiles();
+			
+			for ( TranscodeFile file: transcode_files ){
+
+				file.setTransientProperty( UPNPAV_FILE_KEY, null );
+			}
+		}
 	}
 	
 	protected URL

@@ -91,6 +91,8 @@ DeviceManagerImpl
 	protected
 	DeviceManagerImpl()
 	{
+		upnp_manager = new DeviceManagerUPnPImpl( this );
+
 		loadConfig();
 		
 		new DeviceiTunesManager( this );
@@ -137,7 +139,7 @@ DeviceManagerImpl
 				}
 			});
 		
-		upnp_manager = new DeviceManagerUPnPImpl( this );
+		upnp_manager.initialise();
 		
 		SimpleTimer.addPeriodicEvent(
 				"DeviceManager:update",
@@ -161,6 +163,12 @@ DeviceManagerImpl
 						}
 					}
 				});
+	}
+	
+	protected DeviceManagerUPnPImpl 
+	getUPnPManager()
+	{
+		return( upnp_manager );
 	}
 	
 	public Device

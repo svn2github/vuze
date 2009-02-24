@@ -198,4 +198,19 @@ TranscodeFileImpl
 			}
 		}
 	}
+	
+	public void
+	setTransientProperty(
+		Object		key2,
+		Object		value )
+	{
+		device.setTransientProperty( key, key2, value );
+	}
+			
+	public Object
+	getTransientProperty(
+		Object		key2 )
+	{
+		return( device.getTransientProperty( key, key2 ));
+	}
 }

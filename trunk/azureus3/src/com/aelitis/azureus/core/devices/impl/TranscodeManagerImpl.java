@@ -26,7 +26,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -206,13 +208,13 @@ TranscodeManagerImpl
 								throw( new IOException( "No transcode profiles found!!!!" ));
 							}
 							
-							TranscodeJobImpl job = queue.add(
-								target,
-								profile, 
-								source, 
-								true );
-							
 							try{
+								TranscodeJobImpl job = queue.add(
+										target,
+										profile, 
+										source, 
+										true );
+									
 								synchronized( this ){
 								
 									current_requests.add( request );
@@ -260,6 +262,14 @@ TranscodeManagerImpl
 								
 								throw( error );
 								
+							}catch( IOException e ){
+								
+								throw( e );
+								
+							}catch( Throwable e ){
+								
+								throw( new IOException( "Failed to add transcode job: " + Debug.getNestedExceptionMessage(e)));
+								
 							}finally{
 								
 								synchronized( this ){
@@ -283,26 +293,18 @@ TranscodeManagerImpl
 			
 			AzureusContentFile	content = 
 				new AzureusContentFile()
-				{
-					public byte[]
-				   	getHash()
-					{
-						try{
-							return( stream_file.getDownloadHash());
-							
-						}catch( Throwable e ){
-							
-							e.printStackTrace();
-							
-							return( null );
-						}
-					}
-				        	
+				{	
 				   	public DiskManagerFileInfo
 				   	getFile()
 				   	{
 				   		return( stream_file );
 				   	}
+				   	
+					public Map<String,Object>
+					getProperties()
+					{
+						return( new HashMap<String, Object>());
+					}
 				};
 				
 			av_ipc.invoke( "addContent", new Object[]{ content });

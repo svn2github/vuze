@@ -37,4 +37,13 @@ TranscodeFile
 		boolean	delete_contents )
 	
 		throws TranscodeException;
+	
+	public void
+	setTransientProperty(
+		Object		key,
+		Object		value );
+			
+	public Object
+	getTransientProperty(
+		Object		key );
 }

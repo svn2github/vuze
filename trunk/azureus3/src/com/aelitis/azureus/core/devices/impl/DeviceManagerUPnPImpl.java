@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
@@ -41,6 +42,9 @@ import org.gudy.azureus2.pluginsimpl.local.ipc.IPCInterfaceImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.content.AzureusContentDownload;
+import com.aelitis.azureus.core.content.AzureusContentFile;
+import com.aelitis.azureus.core.content.AzureusContentFilter;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
@@ -61,12 +65,19 @@ DeviceManagerUPnPImpl
 	private PluginInterface			plugin_interface;
 	private UPnP 					upnp;
 	
+	private volatile IPCInterface			upnpav_ipc;
+	
 	protected
 	DeviceManagerUPnPImpl(
 		DeviceManagerImpl		_manager )
 	{
 		manager	= _manager;
 		
+	}
+	
+	protected void
+	initialise()
+	{
 		AzureusCore core = AzureusCoreFactory.getSingleton();
 		
 		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
@@ -90,6 +101,12 @@ DeviceManagerUPnPImpl
 					{
 					}
 				});
+	}
+	
+	protected DeviceManagerImpl
+	getManager()
+	{
+		return( manager );
 	}
 	
 	protected void
@@ -200,13 +217,23 @@ DeviceManagerUPnPImpl
 						{
 							int	type = ev.getType();
 							
-							if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+							if ( 	type == PluginEvent.PEV_PLUGIN_OPERATIONAL ||
+									type == PluginEvent.PEV_PLUGIN_NOT_OPERATIONAL ){
 								
 								PluginInterface pi = (PluginInterface)ev.getValue();
 			
 								if ( pi.getPluginID().equals( "azupnpav" )){
 				
-									addListener( pi );
+									if ( type == PluginEvent.PEV_PLUGIN_OPERATIONAL ){
+									
+										upnpav_ipc = pi.getIPC();
+
+										addListener( pi );
+										
+									}else{
+										
+										upnpav_ipc = null;
+									}
 								}
 							}
 						}
@@ -220,6 +247,8 @@ DeviceManagerUPnPImpl
 				
 			}else{
 				
+				upnpav_ipc = pi.getIPC();
+				
 				addListener( pi );
 			}			
 		}catch( Throwable e ){
@@ -232,14 +261,12 @@ DeviceManagerUPnPImpl
 	addListener(
 		PluginInterface	pi )
 	{
-		try{
-			IPCInterface upnpav_ipc = pi.getIPC();
-			
+		try{			
 			IPCInterface my_ipc = 
 				new IPCInterfaceImpl(
 					new Object()
 					{
-						public void
+						public Map<String,Object>
 						browseReceived(
 							TrackerWebPageRequest		request )
 						{
@@ -248,11 +275,13 @@ DeviceManagerUPnPImpl
 							String user_agent 	= (String)headers.get( "user-agent" );
 							String client_info 	= (String)headers.get( "x-av-client-info" );
 							
+							InetSocketAddress client_address = request.getClientAddress2();
+							
 							if ( user_agent != null ){
 								
 								if ( user_agent.equalsIgnoreCase( "PLAYSTATION 3" )){
 									
-									handlePS3( request.getClientAddress2());
+									handlePS3( client_address );
 								}
 							}
 							
@@ -260,7 +289,7 @@ DeviceManagerUPnPImpl
 							
 								if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
 									
-									handlePS3( request.getClientAddress2());
+									handlePS3( client_address );
 								}
 							}
 							
@@ -270,6 +299,72 @@ DeviceManagerUPnPImpl
 								", agent=" + user_agent +
 								", info=" + client_info );
 							*/
+							
+							DeviceImpl[] devices = manager.getDevices();
+							
+							final List<DeviceUPnPImpl>	browse_devices = new ArrayList<DeviceUPnPImpl>();
+							
+							for ( DeviceImpl device: devices ){
+							
+								if ( device instanceof DeviceUPnPImpl ){
+								
+									DeviceUPnPImpl u_d = (DeviceUPnPImpl)device;
+									
+									InetAddress device_address = u_d.getAddress();
+									
+									try{
+										if ( device_address != null ){
+														
+												// just test on IP, should be OK
+											
+											if ( device_address.equals( client_address.getAddress())){
+					
+												browse_devices.add( u_d );
+												
+												u_d.browseReceived();
+											}
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+							
+							Map<String,Object> result = new HashMap<String, Object>();
+							
+							result.put(
+								"filter",
+								new AzureusContentFilter()
+								{
+									public boolean
+									isVisible(
+										AzureusContentDownload	download,
+										Map<String,Object>		browse_args )
+									{
+										return( false );
+									}
+									
+									public boolean
+									isVisible(
+										AzureusContentFile		file,
+										Map<String,Object>		browse_args )
+									{
+										boolean	visible = false;
+										
+										for ( DeviceUPnPImpl device: browse_devices ){
+											
+											if ( device.isVisible( file )){
+												
+												visible	= true;
+											}
+										}
+										
+										return( visible );
+									}
+								});
+							
+							return( result );
 						}
 					});
 			
@@ -277,6 +372,17 @@ DeviceManagerUPnPImpl
 				
 				upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
 				
+				DeviceImpl[] devices = manager.getDevices();
+				
+				for ( DeviceImpl device: devices ){
+				
+					if ( device instanceof DeviceUPnPImpl ){
+					
+						DeviceUPnPImpl u_d = (DeviceUPnPImpl)device;
+
+						u_d.resetUPNPAV();
+					}
+				}
 			}else{
 				
 				manager.log( "UPnPAV plugin needs upgrading" );
@@ -285,6 +391,12 @@ DeviceManagerUPnPImpl
 			
 			manager.log( "Failed to hook into UPnPAV", e );
 		}
+	}
+	
+	protected IPCInterface
+	getUPnPAVIPC()
+	{
+		return( upnpav_ipc );
 	}
 	
 	public void
@@ -328,11 +440,11 @@ DeviceManagerUPnPImpl
 			}
 		}
 		
-		DeviceImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3", false );
+		DeviceMediaRendererImpl device = new DeviceMediaRendererImpl( manager, psp_uid, "PS3", false );
 	
-		device = manager.addDevice( device );
+		device = (DeviceMediaRendererImpl)manager.addDevice( device );
 		
-		device.setTransientProperty( DeviceUPnPImpl.TP_IP_ADDRESS, address.getAddress().getHostAddress() + ":" + address.getPort());
+		device.setAddress( address.getAddress());
 		
 		device.alive();
 	}

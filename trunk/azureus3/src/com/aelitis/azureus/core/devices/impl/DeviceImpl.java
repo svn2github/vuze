@@ -103,9 +103,9 @@ DeviceImpl
 	
 	private boolean			online;
 	
-	private Map<String,Object>	persistent_properties = new LightHashMap<String, Object>(1);
+	private Map<String,Object>	persistent_properties 	= new LightHashMap<String, Object>(1);
 
-	private Map<Object,Object>	transient_properties = new LightHashMap<Object, Object>(1);
+	private Map<Object,Object>	transient_properties 	= new LightHashMap<Object, Object>(1);
 	
 	private long						device_files_last_mod;
 	private boolean						device_files_dirty;
@@ -664,21 +664,24 @@ DeviceImpl
 	getPersistentStringProperty(
 		String		prop )
 	{
-		try{
-			byte[]	value = (byte[])persistent_properties.get( prop );
-	
-			if ( value == null ){
+		synchronized( persistent_properties ){
+			
+			try{
+				byte[]	value = (byte[])persistent_properties.get( prop );
+		
+				if ( value == null ){
+					
+					return( "" );
+				}
+				
+				return( new String( value, "UTF-8" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 				
 				return( "" );
 			}
-			
-			return( new String( value, "UTF-8" ));
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( "" );
 		}
 	}
 	
@@ -687,14 +690,29 @@ DeviceImpl
 		String		prop,
 		String		value )
 	{
-		try{
-			persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+		boolean	dirty = false;
+		
+		synchronized( persistent_properties ){
+			
+			String existing = getPersistentStringProperty( prop );
+			
+			if ( !existing.equals( value )){
+				
+				try{
+					persistent_properties.put( prop, value.getBytes( "UTF-8" ));
+					
+					dirty = true;
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+		
+		if ( dirty ){
 			
 			setDirty();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
 		}
 	}
 	
@@ -702,30 +720,33 @@ DeviceImpl
 	getPersistentStringListProperty(
 		String		prop )
 	{
-		try{
-			List<byte[]>	values = (List<byte[]>)persistent_properties.get( prop );
-	
-			if ( values == null ){
+		synchronized( persistent_properties ){
+			
+			try{
+				List<byte[]>	values = (List<byte[]>)persistent_properties.get( prop );
+		
+				if ( values == null ){
+					
+					return( new String[0] );
+				}
+				
+				String[]	res = new String[values.size()];
+				
+				int	pos = 0;
+				
+				for (byte[] value: values ){
+				
+					res[pos++] = new String( value, "UTF-8" );
+				}
+				
+				return( res );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 				
 				return( new String[0] );
 			}
-			
-			String[]	res = new String[values.size()];
-			
-			int	pos = 0;
-			
-			for (byte[] value: values ){
-			
-				res[pos++] = new String( value, "UTF-8" );
-			}
-			
-			return( res );
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( new String[0] );
 		}
 	}
 	
@@ -734,21 +755,31 @@ DeviceImpl
 		String			prop,
 		String[]		values )
 	{
-		try{
-			List<byte[]> values_list = new ArrayList<byte[]>();
+		boolean dirty = false;
+
+		synchronized( persistent_properties ){
 			
-			for (String value: values ){
+			try{
+				List<byte[]> values_list = new ArrayList<byte[]>();
 				
-				values_list.add( value.getBytes( "UTF-8" ));
+				for (String value: values ){
+					
+					values_list.add( value.getBytes( "UTF-8" ));
+				}
+				
+				persistent_properties.put( prop, values_list );
+				
+				dirty = true;
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
 			}
-			
-			persistent_properties.put( prop, values_list );
+		}
+		
+		if ( dirty ){
 			
 			setDirty();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
 		}
 	}
 	
@@ -759,7 +790,14 @@ DeviceImpl
 	{
 		synchronized( transient_properties ){
 			
-			transient_properties.put( key, value );
+			if ( value == null ){
+				
+				transient_properties.remove( key );
+				
+			}else{
+			
+				transient_properties.put( key, value );
+			}
 		}
 	}
 	
@@ -770,6 +808,61 @@ DeviceImpl
 		synchronized( transient_properties ){
 			
 			return( transient_properties.get( key ));
+		}
+	}
+	
+	public void
+	setTransientProperty(
+		Object		key1,
+		Object		key2,
+		Object		value )
+	{
+		synchronized( transient_properties ){
+			
+			Map<Object,Object> l1 = (Map<Object,Object>)transient_properties.get( key1 );
+			
+			if ( l1 == null ){
+				
+				if ( value == null ){
+					
+					return;
+				}
+				
+				l1 = new HashMap<Object, Object>();
+				
+				transient_properties.put( key1, l1 );
+			}
+			
+			if ( value == null ){
+				
+				l1.remove( key2 );
+				
+				if ( l1.size() == 0 ){
+					
+					transient_properties.remove( key1 );	
+				}
+			}else{
+				
+				l1.put( key2, value );
+			}
+		}
+	}
+	
+	public Object
+	getTransientProperty(
+		Object		key1,
+		Object		key2 )
+	{
+		synchronized( transient_properties ){
+			
+			Map<Object,Object> l1 = (Map<Object,Object>)transient_properties.get( key1 );
+			
+			if ( l1 == null ){
+				
+				return( null );
+			}
+
+			return( l1.get( key2 ));
 		}
 	}
 	
