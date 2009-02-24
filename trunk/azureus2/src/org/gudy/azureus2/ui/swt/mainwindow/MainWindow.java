@@ -866,7 +866,12 @@ public class MainWindow
 	}
 
 	private void downloadManagerAdded(DownloadManager created) {
-		DonationWindow.checkForDonationPopup();
+		// only do donation check if swt instance is initialized, which means
+		// initial download managers are loaded and this main window is really
+		// the main window
+		if (uiSWTInstanceImpl != null) {
+			DonationWindow.checkForDonationPopup();
+		}
 	}
 
 	protected void openManagerView(DownloadManager downloadManager) {
