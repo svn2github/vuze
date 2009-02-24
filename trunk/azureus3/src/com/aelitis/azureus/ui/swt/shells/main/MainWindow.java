@@ -378,6 +378,7 @@ public class MainWindow
 			public void run() {
 				long startTime = SystemTime.getCurrentTime();
 				if (dms_Startup == null || dms_Startup.length == 0) {
+					dms_Startup = null;
 					return;
 				}
 
