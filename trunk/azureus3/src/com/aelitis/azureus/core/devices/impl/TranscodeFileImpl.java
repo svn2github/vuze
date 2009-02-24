@@ -25,6 +25,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,8 @@ TranscodeFileImpl
 		key			= _key;
 		files_map	= _files_map;
 
+		getMap( true );
+		
 		setString( "file", _file.getAbsolutePath());
 	}
 	
@@ -64,10 +67,19 @@ TranscodeFileImpl
 		DeviceImpl					_device,
 		String						_key,
 		Map<String,Map<String,?>>	_map )
+	
+		throws IOException
 	{
 		device			= _device;
 		key				= _key;
 		files_map		= _map;
+		
+		Map<String,?> map = getMap();
+		
+		if ( map == null || !map.containsKey( "file" )){
+			
+			throw( new IOException( "File has been deleted" ));
+		}
 	}
 	
 	
@@ -105,14 +117,27 @@ TranscodeFileImpl
 		device.deleteFile( this, delete_contents );
 	}
 	
+	public boolean
+	isDeleted()
+	{
+		return( getMap() == null );
+	}
+	
 	private Map<String,?>
 	getMap()
+	{
+		return( getMap( false ));
+	}
+	
+	private Map<String,?>
+	getMap(
+		boolean	create )
 	{		
 		synchronized( files_map ){
 	
 			Map<String,?> map = files_map.get( key );
 			
-			if ( map == null ){
+			if ( map == null && create ){
 				
 				map = new HashMap<String, Object>();
 				
@@ -212,5 +237,23 @@ TranscodeFileImpl
 		Object		key2 )
 	{
 		return( device.getTransientProperty( key, key2 ));
+	}
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+		if ( other instanceof TranscodeFileImpl ){
+			
+			return( key.equals(((TranscodeFileImpl)other).key));
+		}
+		
+		return( false );
+	}
+	
+	public int
+	hashCode()
+	{
+		return( key.hashCode());
 	}
 }

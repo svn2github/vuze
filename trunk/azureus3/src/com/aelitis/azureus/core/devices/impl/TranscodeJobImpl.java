@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 
-import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeException;
@@ -248,6 +247,8 @@ TranscodeJobImpl
 	failed(
 		Throwable	e )
 	{
+		queue.log( "Transcode failed", e );
+		
 		synchronized( this ){
 			
 			if ( state != ST_STOPPED ){
@@ -443,6 +444,8 @@ TranscodeJobImpl
 		synchronized( this ){
 			
 			delete_file = state != ST_COMPLETE;
+			
+			state = ST_REMOVED;
 		}
 		
 		if ( delete_file ){

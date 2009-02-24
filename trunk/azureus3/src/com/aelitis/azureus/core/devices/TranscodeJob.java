@@ -33,7 +33,8 @@ TranscodeJob
 	public static final int	ST_CANCELLED	= 4;
 	public static final int	ST_FAILED		= 5;
 	public static final int	ST_STOPPED		= 6;
-	
+	public static final int	ST_REMOVED		= 7;
+
 	public String
 	getName();
 	

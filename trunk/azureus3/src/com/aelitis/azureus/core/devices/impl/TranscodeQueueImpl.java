@@ -122,7 +122,8 @@ TranscodeQueueImpl
 						
 						int	job_state = job.getState();
 						
-						if ( job_state == TranscodeJob.ST_CANCELLED ){
+						if ( 	job_state == TranscodeJob.ST_CANCELLED || 
+								job_state == TranscodeJob.ST_REMOVED ){
 															
 							prov_job.cancel();
 							
@@ -365,6 +366,28 @@ TranscodeQueueImpl
 	
 		throws TranscodeException
 	{
+		TranscodeFile new_tf = target.allocateFile( profile, file );
+		
+		List<TranscodeJobImpl>	to_remove = new ArrayList<TranscodeJobImpl>();
+		
+		synchronized( this ){
+
+			for ( TranscodeJobImpl job: queue ){
+				
+				if ( job.getTarget() == target && job.getTranscodeFile().equals( new_tf )){
+					
+					to_remove.add( job );
+				}
+			}
+		}
+		
+		for ( TranscodeJobImpl job: to_remove ){
+
+			job.remove();
+		}
+			
+		new_tf.delete( true );
+		
 		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );
 		
 		try{

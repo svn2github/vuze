@@ -317,11 +317,23 @@ DeviceImpl
 				
 				List<TranscodeFile> result = new ArrayList<TranscodeFile>();
 								
-				for (Map.Entry<String,Map<String,?>> entry: device_files.entrySet()){
+				Iterator<Map.Entry<String,Map<String,?>>> it = device_files.entrySet().iterator();
 					
-					TranscodeFileImpl tf = new TranscodeFileImpl( this, entry.getKey(), device_files );
-										
-					result.add( tf );
+				while( it.hasNext()){
+					
+					Map.Entry<String,Map<String,?>> entry = it.next();
+					
+					try{
+						TranscodeFileImpl tf = new TranscodeFileImpl( this, entry.getKey(), device_files );
+						
+						result.add( tf );
+						
+					}catch( Throwable e ){
+						
+						it.remove();
+						
+						log( "Failed to deserialise transcode file", e );
+					}
 				}
 				
 				return( result.toArray( new TranscodeFile[ result.size() ]));
@@ -341,7 +353,7 @@ DeviceImpl
 	
 		throws TranscodeException
 	{
-		TranscodeFileImpl	result;
+		TranscodeFileImpl	result = null;
 		
 		try{
 			synchronized( this ){
@@ -355,9 +367,18 @@ DeviceImpl
 								
 				if ( device_files.containsKey( key )){
 				
-					result = new TranscodeFileImpl( this, key, device_files );
-					
-				}else{
+					try{					
+						result = new TranscodeFileImpl( this, key, device_files );
+						
+					}catch( Throwable e ){
+						
+						device_files.remove( key );
+						
+						log( "Failed to deserialise transcode file", e );
+					}
+				}
+				
+				if ( result == null ){
 							
 					String ext = profile.getFileExtension();
 					
@@ -972,13 +993,36 @@ DeviceImpl
 	
 		throws TranscodeException 
 	{	
+		if ( file.isDeleted()){
+			
+			return;
+		}
+		
 		if ( delete_contents ){
 			
 			File f = file.getFile();
-			
-			if ( f.exists() && !f.delete()){
 				
-				throw( new TranscodeException( "Failed to remove file '" + f.getAbsolutePath() + "'" ));
+			int	 time = 0;
+			
+			while( f.exists() && !f.delete()){
+						
+				if ( time > 3000 ){
+				
+					log( "Failed to remove file '" + f.getAbsolutePath() + "'" );
+					
+					break;
+					
+				}else{
+					
+					try{
+						Thread.sleep(500);
+						
+					}catch( Throwable e ){
+						
+					}
+					
+					time += 500;
+				}
 			}
 		}
 		
