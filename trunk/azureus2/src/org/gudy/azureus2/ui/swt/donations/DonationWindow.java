@@ -22,6 +22,13 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.*;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
+import org.eclipse.swt.events.ShellListener;
+import org.eclipse.swt.events.TraverseEvent;
+import org.eclipse.swt.events.TraverseListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
@@ -119,9 +126,35 @@ public class DonationWindow
 	}
 
 	public void show(final boolean showNoLoad) {
-		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.BORDER
+		final Shell parentShell = Utils.findAnyShell();
+		shell = ShellFactory.createShell(parentShell, SWT.BORDER
 				| SWT.APPLICATION_MODAL | SWT.TITLE);
 		shell.setLayout(new FillLayout());
+		if (parentShell != null) {
+			parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+		}
+
+		shell.addTraverseListener(new TraverseListener() {
+			public void keyTraversed(TraverseEvent e) {
+				if (e.detail == SWT.TRAVERSE_ESCAPE) {
+					e.doit = false;
+				}
+			}
+		});
+		
+		shell.addShellListener(new ShellAdapter() {
+			public void shellClosed(ShellEvent e) {
+				e.doit = false;
+			}
+		});
+		
+		shell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				if (parentShell != null) {
+					parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
+				}
+			}
+		});
 
 		try {
 			browser = new Browser(shell, Utils.getInitialBrowserStyle(SWT.NONE));
@@ -150,6 +183,9 @@ public class DonationWindow
 					COConfigurationManager.setParameter("donations.count",
 							COConfigurationManager.getLongParameter("donations.count", 1) + 1);
 					Utils.centreWindow(shell);
+					if (parentShell != null) {
+						parentShell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_ARROW));
+					}
 					shell.open();
 				} else if (text.contains("reset-ask-time")) {
 					int time = reAskEveryHours;
@@ -202,7 +238,7 @@ public class DonationWindow
 				+ COConfigurationManager.getLongParameter("donations.count", 1)
 				+ "&uphours=" + upHours;
 
-		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(10000),
+		SimpleTimer.addEvent("donation.pageload", SystemTime.getOffsetTime(5000),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
 						if (!pageLoadedOk) {
@@ -213,7 +249,10 @@ public class DonationWindow
 									if (showNoLoad) {
   									Utils.openMessageBox(shell, SWT.OK,
   											MessageText.getString("DonationWindow.noload.title"),
-  											MessageText.getString("DonationWindow.noload.text"));
+  											MessageText.getString("DonationWindow.noload.text",
+														new String[] {
+															url
+														}));
 									}
 								}
 							});
