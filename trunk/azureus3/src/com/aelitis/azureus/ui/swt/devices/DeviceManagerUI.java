@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -1128,29 +1127,80 @@ DeviceManagerUI
 			
 			String stuff = (String)payload;
 			
-			if ( stuff.startsWith( "DownloadManager\n" )){
+			if ( stuff.startsWith( "DownloadManager\n" ) ||stuff.startsWith( "DiskManagerFileInfo\n" )){
 				
 				String[]	bits = stuff.split( "\n" );
 				
 				for (int i=1;i<bits.length;i++){
 					
-					byte[]	 hash = Base32.decode( bits[i] );
-			
+					String	hash_str = bits[i];
+					
+					int	pos = hash_str.indexOf(';');
+					
 					try{
-						int index = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(hash).getPrimaryFile().getIndex();
-						
-						DiskManagerFileInfo f = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo()[index];
-						
-						try{
-							device_manager.getTranscodeManager().getQueue().add(
-								target,
-								target.getDefaultTranscodeProfile(),
-								f,
-								false );
+
+						if ( pos == -1 ){
 							
-						}catch( Throwable e ){
+							byte[]	 hash = Base32.decode( bits[i] );
+			
+								// we could use the primary file
+								// int index = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(hash).getPrimaryFile().getIndex();
+								// DiskManagerFileInfo dm_file = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo()[index];
+
+								// but lets just grab all files
 							
-							Debug.out( e );
+							DiskManagerFileInfo[] dm_files = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo();
+							
+							for ( DiskManagerFileInfo dm_file: dm_files ){
+								
+									// limit number of files we can add to avoid crazyness
+								
+								if ( dm_file.getIndex() > 64 ){
+									
+									break;
+								}
+								
+									// could be smarter here and check extension or whatever
+								
+								if ( dm_files.length == 1 || dm_file.getLength() > 128*1024 ){
+									
+									try{
+										device_manager.getTranscodeManager().getQueue().add(
+											target,
+											target.getDefaultTranscodeProfile(),
+											dm_file,
+											false );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}
+						}else{
+							
+							String[] files = hash_str.split(";");
+							
+							byte[]	 hash = Base32.decode( files[0].trim());
+							
+							DiskManagerFileInfo[] dm_files = plugin_interface.getShortCuts().getDownload(hash).getDiskManagerFileInfo();
+							
+							for (int j=1;j<files.length;j++){
+								
+								DiskManagerFileInfo dm_file = dm_files[Integer.parseInt(files[j].trim())];
+								
+								try{
+									device_manager.getTranscodeManager().getQueue().add(
+										target,
+										target.getDefaultTranscodeProfile(),
+										dm_file,
+										false );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
 						}
 					}catch( Throwable e ){
 						
