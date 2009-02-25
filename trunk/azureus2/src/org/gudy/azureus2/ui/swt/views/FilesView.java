@@ -27,8 +27,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -36,12 +38,14 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.MessageBoxWindow;
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -53,6 +57,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.ui.common.table.*;
+
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * @author Olivier
@@ -66,6 +72,7 @@ public class FilesView
 	TableLifeCycleListener
 {
 	boolean refreshing = false;
+  private DragSource dragSource = null;
 
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -117,6 +124,7 @@ public class FilesView
 		tv.setEnableTabViews(true);
 		tv.setCoreTabViews(new IView[] { new FileInfoView()
 		});
+		tv.setDataSourceType(DiskManagerFileInfo.class);
 
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addRefreshListener(this, true);
@@ -728,9 +736,25 @@ public class FilesView
 	  this.force_refresh = true;
   }
   
-  public void tableViewInitialized() {}
+  public void tableViewInitialized() {
+    createDragDrop();
+  }
+  
   public void tableViewDestroyed() {
-	  if (manager != null) {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					Utils.disposeSWTObjects(new Object[] {
+						dragSource,
+					});
+					dragSource = null;
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		});
+
+  	if (manager != null) {
 		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 	  }
   }
@@ -742,5 +766,57 @@ public class FilesView
 
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#mouseExit(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public void mouseExit(TableRowCore row) {
+	}
+
+	private void createDragDrop() {
+		try {
+
+			Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+
+			if (dragSource != null && !dragSource.isDisposed()) {
+				dragSource.dispose();
+			}
+
+			dragSource = tv.createDragSource(DND.DROP_MOVE | DND.DROP_COPY);
+			if (dragSource != null) {
+				dragSource.setTransfer(types);
+				dragSource.addDragListener(new DragSourceAdapter() {
+					private String eventData;
+
+					public void dragStart(DragSourceEvent event) {
+						TableRowCore[] rows = tv.getSelectedRows();
+						if (rows.length != 0 && manager != null
+								&& manager.getTorrent() != null) {
+							event.doit = true;
+						} else {
+							event.doit = false;
+							return;
+						}
+
+						// Build eventData here because on OSX, selection gets cleared
+						// by the time dragSetData occurs
+						Object[] selectedDownloads = tv.getSelectedDataSources();
+						eventData = "DiskManagerFileInfo\n";
+						TOTorrent torrent = manager.getTorrent();
+						for (int i = 0; i < selectedDownloads.length; i++) {
+							DiskManagerFileInfo fi = (DiskManagerFileInfo) selectedDownloads[i];
+							
+							try {
+								eventData += torrent.getHashWrapper().toBase32String() + ";"
+										+ fi.getIndex() + "\n";
+							} catch (Exception e) {
+							}
+						}
+					}
+
+					public void dragSetData(DragSourceEvent event) {
+						// System.out.println("DragSetData");
+						event.data = eventData;
+					}
+				});
+			}
+		} catch (Throwable t) {
+			Logger.log(new LogEvent(LogIDs.GUI, "failed to init drag-n-drop", t));
+		}
 	}
 }
