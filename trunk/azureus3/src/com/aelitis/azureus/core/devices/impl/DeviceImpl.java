@@ -346,7 +346,7 @@ DeviceImpl
 		}
 	}
 	
-	public TranscodeFile
+	public TranscodeFileImpl
 	allocateFile(
 		TranscodeProfile		profile,
 		DiskManagerFileInfo		file )
@@ -363,7 +363,7 @@ DeviceImpl
 					loadDeviceFile();
 				}
 	
-				String	key = ByteFormatter.encodeString( file.getDownloadHash() ) + ":" + file.getIndex();
+				String	key = ByteFormatter.encodeString( file.getDownloadHash() ) + ":" + file.getIndex() + ":" + profile.getUID();
 								
 				if ( device_files.containsKey( key )){
 				

@@ -92,25 +92,6 @@ DeviceMediaRendererImpl
 		return( true );
 	}
 	
-	public boolean
-	canFilterFilesView()
-	{
-		return( true );
-	}
-	
-	public void
-	setFilterFilesView(
-		boolean	filter )
-	{
-		setPersistentBooleanProperty( PP_FILTER_FILES, filter );
-	}
-	
-	public boolean
-	getFilterFilesView()
-	{
-		return( getPersistentBooleanProperty( PP_FILTER_FILES, true ));
-	}
-	
 	protected void
 	getDisplayProperties(
 		List<String[]>	dp )

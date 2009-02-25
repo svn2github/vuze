@@ -34,10 +34,12 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
+import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
@@ -53,7 +55,7 @@ import com.aelitis.net.upnp.UPnPRootDevice;
 public abstract class 
 DeviceUPnPImpl
 	extends DeviceImpl
-	implements TranscodeTargetListener
+	implements TranscodeTargetListener, DownloadManagerListener
 {
 	private static final Object UPNPAV_FILE_KEY = new Object();
 	
@@ -95,7 +97,10 @@ DeviceUPnPImpl
 	private final DeviceManagerUPnPImpl	upnp_manager;
 	private volatile UPnPDevice		device_may_be_null;
 	
-	private boolean	upnpav_integrated;
+	private IPCInterface		upnpav_ipc;
+	private TranscodeProfile	dynamic_transcode_profile;
+	private Map<String,AzureusContentFile>	dynamic_xcode_map;
+	
 	
 	protected
 	DeviceUPnPImpl(
@@ -206,6 +211,25 @@ DeviceUPnPImpl
 		return( locs.toArray( new browseLocation[ locs.size() ]));
 	}
 	
+	public boolean
+	canFilterFilesView()
+	{
+		return( true );
+	}
+	
+	public void
+	setFilterFilesView(
+		boolean	filter )
+	{
+		setPersistentBooleanProperty( PP_FILTER_FILES, filter );
+	}
+	
+	public boolean
+	getFilterFilesView()
+	{
+		return( getPersistentBooleanProperty( PP_FILTER_FILES, true ));
+	}
+	
 	protected URL
 	getLocation()
 	{
@@ -272,7 +296,7 @@ DeviceUPnPImpl
 	
 	protected void
 	browseReceived(
-		TranscodeProfile	dynamic_transcode_profile )
+		TranscodeProfile	_dynamic_transcode_profile )
 	{
 		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
 		
@@ -283,56 +307,109 @@ DeviceUPnPImpl
 		
 		synchronized( this ){
 			
-			if ( upnpav_integrated ){
+			if ( upnpav_ipc != null ){
 				
 				return;
 			}
 			
-			upnpav_integrated = true;
+			upnpav_ipc = ipc;
 			
-			addListener( this );
+			dynamic_transcode_profile	= _dynamic_transcode_profile;
 		}
 		
+		if ( dynamic_transcode_profile != null && this instanceof TranscodeTarget ){
+			
+			DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
+			
+			dm.addListener( this, true );
+		}
+				
+		addListener( this );
+
 		TranscodeFile[]	transcode_files = getFiles();
 		
 		for ( TranscodeFile file: transcode_files ){
 			
 			fileAdded( file );
 		}
-		
-		if ( dynamic_transcode_profile != null && this instanceof TranscodeTarget ){
-			
-			setupDynamicXCode( ipc, dynamic_transcode_profile );
-		}
 	}
 	
 	protected void
-	setupDynamicXCode(
-		IPCInterface					ipc,
-		final TranscodeProfile			profile )
-	{
-		DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
-		
-		Download[] downloads = dm.getDownloads();
-		
-		for ( Download download: downloads ){
+	resetUPNPAV()
+	{		
+		synchronized( this ){
 			
-			Torrent torrent = download.getTorrent();
+			if ( upnpav_ipc == null ){
+				
+				return;
+			}
 			
-			if ( torrent != null && PlatformTorrentUtils.isContent(torrent, false )){
-									
-				setupDynamicXCode( ipc, profile, download.getDiskManagerFileInfo()[0]);
+			upnpav_ipc = null;
+			
+			dynamic_transcode_profile = null;
+			
+			DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
+
+			dm.removeListener( this );
+			
+			removeListener( this );
+			
+			TranscodeFile[]	transcode_files = getFiles();
+			
+			for ( TranscodeFile file: transcode_files ){
+
+				file.setTransientProperty( UPNPAV_FILE_KEY, null );
 			}
 		}
 	}
 	
+	public void
+	downloadAdded(
+		Download	download )
+	{
+		Torrent torrent = download.getTorrent();
+		
+		if ( torrent != null && PlatformTorrentUtils.isContent( torrent, false )){
+								
+			addDynamicXCode( download.getDiskManagerFileInfo()[0]);
+		}
+	}
+	
+	public void
+	downloadRemoved(
+		Download	download )
+	{
+		Torrent torrent = download.getTorrent();
+		
+		if ( torrent != null && PlatformTorrentUtils.isContent( torrent, false )){
+								
+			removeDynamicXCode( download.getDiskManagerFileInfo()[0]);
+		}
+	}
+		
 	protected void
-	setupDynamicXCode(
-		IPCInterface					ipc,
-		final TranscodeProfile			profile,
+	addDynamicXCode(
 		final DiskManagerFileInfo		source )
 	{
+		final TranscodeProfile profile = dynamic_transcode_profile;
+		
+		IPCInterface			ipc	= upnpav_ipc;
+		
+		if ( profile == null || ipc == null ){
+			
+			return;
+		}
+		
 		try{
+			TranscodeFileImpl transcode_file = allocateFile( profile, source );
+			
+			AzureusContentFile acf = (AzureusContentFile)transcode_file.getTransientProperty( UPNPAV_FILE_KEY );
+
+			if ( acf != null ){
+				
+				return;
+			}
+			
 			final DiskManagerFileInfo stream_file = 
 				new DiskManagerFileInfoStream( 
 					new DiskManagerFileInfoStream.streamFactory()
@@ -426,7 +503,7 @@ DeviceUPnPImpl
 							}
 						}
 					},
-					allocateFile(profile, source ).getFile());
+					transcode_file.getFile());
 			
 			final Map<String,Object> properties =  new HashMap<String, Object>();
 			
@@ -434,24 +511,73 @@ DeviceUPnPImpl
 
 			properties.put( MY_ACF_KEY, this );
 		
-			AzureusContentFile	acf = 
-				new AzureusContentFile()
-				{	
-				   	public DiskManagerFileInfo
-				   	getFile()
-				   	{
-				   		return( stream_file );
-				   	}
-				   	
-					public Map<String,Object>
-					getProperties()
-					{
-						return( properties );
-					}
-				};
+			acf =	new AzureusContentFile()
+					{	
+					   	public DiskManagerFileInfo
+					   	getFile()
+					   	{
+					   		return( stream_file );
+					   	}
+					   	
+						public Map<String,Object>
+						getProperties()
+						{
+							return( properties );
+						}
+					};
+			
+			synchronized( this ){
 				
+				if ( dynamic_xcode_map == null ){
+					
+					dynamic_xcode_map = new HashMap<String,AzureusContentFile>();
+				}
+				
+				dynamic_xcode_map.put( transcode_file.getKey(), acf );
+			}
+			
 			ipc.invoke( "addContent", new Object[]{ acf });
 			
+			transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	protected void
+	removeDynamicXCode(
+		final DiskManagerFileInfo		source )
+	{
+		final TranscodeProfile profile = dynamic_transcode_profile;
+		
+		IPCInterface			ipc	= upnpav_ipc;
+		
+		if ( profile == null || ipc == null ){
+			
+			return;
+		}
+		
+		try{
+			TranscodeFileImpl transcode_file = allocateFile( profile, source );
+
+			if ( !transcode_file.isComplete()){
+				
+				AzureusContentFile acf;
+				
+				synchronized( this ){
+	
+					acf = dynamic_xcode_map.get( transcode_file.getKey());
+				}
+				
+				transcode_file.delete( true );
+				
+				if ( acf != null ){
+				
+					ipc.invoke( "removeContent", new Object[]{ acf });
+				}
+			}
 		}catch( Throwable e ){
 			
 			Debug.out( e );
@@ -460,35 +586,42 @@ DeviceUPnPImpl
 	
 	protected boolean
 	isVisible(
-		AzureusContentFile		file )
+		AzureusContentDownload		file )
 	{
-		return( file.getProperties().get( MY_ACF_KEY ) == this );
+		return( !getFilterFilesView());
+	}
+	
+	protected boolean
+	isVisible(
+		AzureusContentFile		file )
+	{	
+		if ( getFilterFilesView()){
+		
+			return( file.getProperties().get( MY_ACF_KEY ) == this );
+		}
+		
+		return( true );
 	}
 	
 	public void
 	fileAdded(
-		final TranscodeFile		file )
+		final TranscodeFile		transcode_file )
 	{
-		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
+		IPCInterface ipc = upnpav_ipc;
 		
-		if ( ipc == null ){
-			
-			return;
-		}
-
 		synchronized( this ){
 			
-			if ( !upnpav_integrated ){
+			if ( ipc == null ){
 
 				return;
 			}
 			
-			if ( !file.isComplete()){
+			if ( !transcode_file.isComplete()){
 				
 				return;
 			}
 			
-			AzureusContentFile acf = (AzureusContentFile)file.getTransientProperty( UPNPAV_FILE_KEY );
+			AzureusContentFile acf = (AzureusContentFile)transcode_file.getTransientProperty( UPNPAV_FILE_KEY );
 			
 			if ( acf != null ){
 				
@@ -504,7 +637,7 @@ DeviceUPnPImpl
 			acf = 
 				new AzureusContentFile()
 				{
-					private DiskManagerFileInfo f = new DiskManagerFileInfoFile( file.getFile());
+					private DiskManagerFileInfo f = new DiskManagerFileInfoFile( transcode_file.getFile());
 				        	
 					public DiskManagerFileInfo
 				    getFile()
@@ -522,7 +655,7 @@ DeviceUPnPImpl
 			try{
 				ipc.invoke( "addContent", new Object[]{ acf });
 			
-				file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+				transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
 				
 			}catch( Throwable e ){
 				
@@ -570,29 +703,6 @@ DeviceUPnPImpl
 			}catch( Throwable e ){
 				
 				Debug.out( e );
-			}
-		}
-	}
-	
-	protected void
-	resetUPNPAV()
-	{		
-		synchronized( this ){
-			
-			if ( !upnpav_integrated ){
-				
-				return;
-			}
-			
-			upnpav_integrated = false;
-			
-			removeListener( this );
-			
-			TranscodeFile[]	transcode_files = getFiles();
-			
-			for ( TranscodeFile file: transcode_files ){
-
-				file.setTransientProperty( UPNPAV_FILE_KEY, null );
 			}
 		}
 	}

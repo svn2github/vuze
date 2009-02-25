@@ -448,7 +448,7 @@ TranscodeJobImpl
 			state = ST_REMOVED;
 		}
 		
-		if ( delete_file ){
+		if ( delete_file && !isStream()){
 			
 			try{
 				transcode_file.delete( true );

@@ -344,7 +344,7 @@ DeviceManagerUPnPImpl
 											
 											if ( device_address.equals( client_address.getAddress())){
 					
-												if ( renderer.getFilterFilesView()){
+												if ( renderer.canFilterFilesView()){
 												
 													browse_devices.add( renderer );
 												
@@ -387,7 +387,17 @@ DeviceManagerUPnPImpl
 											AzureusContentDownload	download,
 											Map<String,Object>		browse_args )
 										{
-											return( false );
+											boolean	visible = false;
+											
+											for ( DeviceUPnPImpl device: browse_devices ){
+												
+												if ( device.isVisible( download )){
+													
+													visible	= true;
+												}
+											}
+											
+											return( visible );
 										}
 										
 										public boolean
