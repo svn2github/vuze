@@ -348,6 +348,8 @@ DeviceUPnPImpl
 			
 			dynamic_transcode_profile = null;
 			
+			dynamic_xcode_map = null;
+		 
 			DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
 
 			dm.removeListener( this );
@@ -564,11 +566,14 @@ DeviceUPnPImpl
 
 			if ( !transcode_file.isComplete()){
 				
-				AzureusContentFile acf;
+				AzureusContentFile acf = null;
 				
 				synchronized( this ){
 	
-					acf = dynamic_xcode_map.get( transcode_file.getKey());
+					if ( dynamic_xcode_map != null ){
+					
+						acf = dynamic_xcode_map.get( transcode_file.getKey());
+					}
 				}
 				
 				transcode_file.delete( true );
