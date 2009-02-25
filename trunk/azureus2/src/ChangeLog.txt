@@ -1,8 +1,14 @@
 VUZE CHANGELOG
 -----------------
 
-2009.xx.xx | Vuze 4.1.0.3
+2009.xx.xx | Vuze 4.1.0.5
 
+
+
+2009.02.25 | Vuze 4.1.0.4
+   
+FEATURE: UI   | Donation Window [TuxPaper]
+   
 
 
 2009.02.05 | Vuze 4.1.0.2
