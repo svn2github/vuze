@@ -21,19 +21,9 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -41,14 +31,10 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.devices.*;
-import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
-import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -84,8 +70,6 @@ TranscodeManagerImpl
 				public void
 				initializationComplete()
 				{
-					test(default_pi);
-					
 					default_pi.addEventListener(
 						new PluginEventListener()
 						{
@@ -131,188 +115,6 @@ TranscodeManagerImpl
 				{
 				}
 			});
-	}
-	
-	protected void
-	test(
-		PluginInterface plugin_interface )
-	{
-		try{
-			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
-			
-			if ( av_pi == null ){
-			
-				throw( new TranscodeException( "Media Server plugin not found" ));
-			}
-			
-			IPCInterface av_ipc = av_pi.getIPC();
-
-			final File source_file = new File( "c:\\test\\custom1\\Fast_and_Furious_4__Vin_Diesel[TVG00016080].mkv" );
-			
-			if ( !source_file.exists()){
-				
-				return;
-			}
-			
-			final DiskManagerFileInfo source = new DiskManagerFileInfoFile( source_file );
-			
-			final DiskManagerFileInfo stream_file = 
-				new DiskManagerFileInfoStream( 
-					new DiskManagerFileInfoStream.streamFactory()
-					{
-						private List<Object>	current_requests = new ArrayList<Object>();
-						
-						public InputStream 
-						getStream(
-							Object		request )
-						
-							throws IOException 
-						{
-							TranscodeTarget target = null;
-							
-							for ( Device device: device_manager.getDevices()){
-								
-								if ( device instanceof TranscodeTarget ){
-									
-									target = (TranscodeTarget)device;
-								}
-							}
-							
-							if ( target == null ){
-								
-								throw( new IOException( "No transcode target found!!!!" ));
-							}
-							
-							TranscodeProfile profile = null;
-							
-							for (TranscodeProvider provider: getProviders()){
-				
-								TranscodeProfile[] profiles = provider.getProfiles();
-								
-								if ( profiles.length > 0 ){
-									
-									profile = profiles[0];
-									
-									for ( TranscodeProfile p: profiles ){
-										
-										if ( p.getName().toLowerCase().contains( "wii" )){
-											
-											profile = p;
-										}
-									}
-								}
-							}
-							
-							if ( profile == null ){
-								
-								throw( new IOException( "No transcode profiles found!!!!" ));
-							}
-							
-							try{
-								TranscodeJobImpl job = queue.add(
-										target,
-										profile, 
-										source, 
-										true );
-									
-								synchronized( this ){
-								
-									current_requests.add( request );
-								}
-								
-								while( true ){
-									
-									InputStream is = job.getStream( 1000 );
-									
-									if ( is != null ){
-										
-										return( is );
-									}
-									
-									int	state = job.getState();
-									
-									if ( state == TranscodeJobImpl.ST_FAILED ){
-										
-										throw( new IOException( "Transcode failed: " + job.getError()));
-										
-									}else if ( state == TranscodeJobImpl.ST_CANCELLED ){
-										
-										throw( new IOException( "Transcode failed: job cancelled" ));
-
-									}else if ( state == TranscodeJobImpl.ST_COMPLETE ){
-										
-										throw( new IOException( "Job complete but no stream!" ));
-									}
-									
-									synchronized( this ){
-										
-										if ( !current_requests.contains( request )){
-											
-											break;
-										}
-									}
-									
-									System.out.println( "waiting for stream" );
-									
-								}
-								
-								IOException error = new IOException( "Stream request cancelled" );
-								
-								job.failed( error );
-								
-								throw( error );
-								
-							}catch( IOException e ){
-								
-								throw( e );
-								
-							}catch( Throwable e ){
-								
-								throw( new IOException( "Failed to add transcode job: " + Debug.getNestedExceptionMessage(e)));
-								
-							}finally{
-								
-								synchronized( this ){
-								
-									current_requests.remove( request );
-								}
-							}
-						}
-						
-						public void 
-						destroyed(
-							Object request ) 
-						{
-							synchronized( this ){
-								
-								current_requests.remove( request );
-							}
-						}
-					},
-					new File( "c:\\test\\custom1\\Fast_and_Furious_4__Vin_Diesel[TVG00016080].mkv.flv" ));
-			
-			AzureusContentFile	content = 
-				new AzureusContentFile()
-				{	
-				   	public DiskManagerFileInfo
-				   	getFile()
-				   	{
-				   		return( stream_file );
-				   	}
-				   	
-					public Map<String,Object>
-					getProperties()
-					{
-						return( new HashMap<String, Object>());
-					}
-				};
-				
-			av_ipc.invoke( "addContent", new Object[]{ content });
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 	
 	protected void
@@ -447,7 +249,7 @@ TranscodeManagerImpl
 		return( null );
 	}
 	
-	public TranscodeQueue 
+	public TranscodeQueueImpl
 	getQueue() 
 	{
 		if ( !init_sem.reserve(10000)){

@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
+import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
 import com.aelitis.net.upnp.UPnPAdapter;
@@ -281,6 +282,8 @@ DeviceManagerUPnPImpl
 							
 							boolean	handled = false;
 							
+							boolean can_stream = false;
+							
 							if ( user_agent != null ){
 								
 								if ( user_agent.toUpperCase().contains( "PLAYSTATION 3")){
@@ -308,6 +311,8 @@ DeviceManagerUPnPImpl
 								if ( source != null && source.equalsIgnoreCase( "http" )){
 									
 									handleBrowser( client_address );
+									
+									can_stream = true;
 									
 									handled = true;
 								}
@@ -343,7 +348,22 @@ DeviceManagerUPnPImpl
 												
 													browse_devices.add( renderer );
 												
-													renderer.browseReceived();
+													TranscodeProfile dynamic_profile = null;
+													
+													if ( can_stream ){
+														
+														TranscodeProfile[] profs = renderer.getTranscodeProfiles();
+														
+														for ( TranscodeProfile prof: profs ){
+															
+															if ( prof.getName().equalsIgnoreCase( "wii" )){
+																
+																dynamic_profile = prof;
+															}
+														}
+													}
+													
+													renderer.browseReceived( dynamic_profile );
 												}
 											}
 										}

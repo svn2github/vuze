@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,12 +32,20 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeProfile;
+import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPRootDevice;
@@ -47,6 +56,8 @@ DeviceUPnPImpl
 	implements TranscodeTargetListener
 {
 	private static final Object UPNPAV_FILE_KEY = new Object();
+	
+	private static final String MY_ACF_KEY = "DeviceUPnPImpl:device";
 	
 	protected static String
 	getDisplayName(
@@ -260,7 +271,8 @@ DeviceUPnPImpl
 	}
 	
 	protected void
-	browseReceived()
+	browseReceived(
+		TranscodeProfile	dynamic_transcode_profile )
 	{
 		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
 		
@@ -287,13 +299,170 @@ DeviceUPnPImpl
 			
 			fileAdded( file );
 		}
+		
+		if ( dynamic_transcode_profile != null && this instanceof TranscodeTarget ){
+			
+			setupDynamicXCode( ipc, dynamic_transcode_profile );
+		}
+	}
+	
+	protected void
+	setupDynamicXCode(
+		IPCInterface					ipc,
+		final TranscodeProfile			profile )
+	{
+		DownloadManager dm = StaticUtilities.getDefaultPluginInterface().getDownloadManager();
+		
+		Download[] downloads = dm.getDownloads();
+		
+		for ( Download download: downloads ){
+			
+			Torrent torrent = download.getTorrent();
+			
+			if ( torrent != null && PlatformTorrentUtils.isContent(torrent, false )){
+									
+				setupDynamicXCode( ipc, profile, download.getDiskManagerFileInfo()[0]);
+			}
+		}
+	}
+	
+	protected void
+	setupDynamicXCode(
+		IPCInterface					ipc,
+		final TranscodeProfile			profile,
+		final DiskManagerFileInfo		source )
+	{
+		try{
+			final DiskManagerFileInfo stream_file = 
+				new DiskManagerFileInfoStream( 
+					new DiskManagerFileInfoStream.streamFactory()
+					{
+						private List<Object>	current_requests = new ArrayList<Object>();
+						
+						public InputStream 
+						getStream(
+							Object		request )
+						
+							throws IOException 
+						{						
+							try{
+								TranscodeJobImpl job = getManager().getTranscodeManager().getQueue().add(
+										(TranscodeTarget)DeviceUPnPImpl.this,
+										profile, 
+										source, 
+										true );
+									
+								synchronized( this ){
+								
+									current_requests.add( request );
+								}
+								
+								while( true ){
+									
+									InputStream is = job.getStream( 1000 );
+									
+									if ( is != null ){
+										
+										return( is );
+									}
+									
+									int	state = job.getState();
+									
+									if ( state == TranscodeJobImpl.ST_FAILED ){
+										
+										throw( new IOException( "Transcode failed: " + job.getError()));
+										
+									}else if ( state == TranscodeJobImpl.ST_CANCELLED ){
+										
+										throw( new IOException( "Transcode failed: job cancelled" ));
+	
+									}else if ( state == TranscodeJobImpl.ST_COMPLETE ){
+										
+										throw( new IOException( "Job complete but no stream!" ));
+									}
+									
+									synchronized( this ){
+										
+										if ( !current_requests.contains( request )){
+											
+											break;
+										}
+									}
+									
+									System.out.println( "waiting for stream" );
+									
+								}
+								
+								IOException error = new IOException( "Stream request cancelled" );
+								
+								job.failed( error );
+								
+								throw( error );
+								
+							}catch( IOException e ){
+								
+								throw( e );
+								
+							}catch( Throwable e ){
+								
+								throw( new IOException( "Failed to add transcode job: " + Debug.getNestedExceptionMessage(e)));
+								
+							}finally{
+								
+								synchronized( this ){
+								
+									current_requests.remove( request );
+								}
+							}
+						}
+						
+						public void 
+						destroyed(
+							Object request ) 
+						{
+							synchronized( this ){
+								
+								current_requests.remove( request );
+							}
+						}
+					},
+					allocateFile(profile, source ).getFile());
+			
+			final Map<String,Object> properties =  new HashMap<String, Object>();
+			
+				// TODO: duration etc
+
+			properties.put( MY_ACF_KEY, this );
+		
+			AzureusContentFile	acf = 
+				new AzureusContentFile()
+				{	
+				   	public DiskManagerFileInfo
+				   	getFile()
+				   	{
+				   		return( stream_file );
+				   	}
+				   	
+					public Map<String,Object>
+					getProperties()
+					{
+						return( properties );
+					}
+				};
+				
+			ipc.invoke( "addContent", new Object[]{ acf });
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	protected boolean
 	isVisible(
 		AzureusContentFile		file )
 	{
-		return( file.getProperties().get( "DeviceUPnPImpl:device" ) == this );
+		return( file.getProperties().get( MY_ACF_KEY ) == this );
 	}
 	
 	public void
@@ -330,7 +499,7 @@ DeviceUPnPImpl
 			
 				// TODO: duration etc
 
-			properties.put( "DeviceUPnPImpl:device", this );
+			properties.put( MY_ACF_KEY, this );
 			
 			acf = 
 				new AzureusContentFile()

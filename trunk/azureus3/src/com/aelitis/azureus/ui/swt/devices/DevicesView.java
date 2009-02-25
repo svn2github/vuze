@@ -71,6 +71,7 @@ public class DevicesView
 		"Progress.reporting.status.canceled",
 		"ManagerItem.error",
 		"ManagerItem.stopped",
+		"ManagerItem.deleted",
 	};
 		
 	private static String[] js_resources;
