@@ -28,9 +28,18 @@ import java.util.Map;
 public interface 
 AzureusContentDirectory 
 {
-	public static final String	AT_BTIH	= "btih";
+	public static final String	AT_BTIH			= "btih";			// byte[]
+	public static final String	AT_FILE_INDEX	= "file_index";		// Integer
 	
 	public AzureusContent
 	lookupContent(
+		Map		attributes );
+	
+	public AzureusContentFile
+	lookupContentFile(
+		Map		attributes );
+	
+	public AzureusContentDownload
+	lookupContentDownload(
 		Map		attributes );
 }

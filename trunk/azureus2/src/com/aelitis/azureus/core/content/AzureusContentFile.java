@@ -21,8 +21,6 @@
 
 package com.aelitis.azureus.core.content;
 
-import java.util.Map;
-
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 public interface 
@@ -35,6 +33,7 @@ AzureusContentFile
 	public DiskManagerFileInfo
 	getFile();
 	
-	public Map<String,Object>
-	getProperties();
+	public Object
+	getProperty(
+		String		name );
 }

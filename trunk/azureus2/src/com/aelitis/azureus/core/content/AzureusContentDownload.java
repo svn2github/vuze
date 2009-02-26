@@ -21,7 +21,6 @@
 
 package com.aelitis.azureus.core.content;
 
-import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.Download;
 
@@ -31,6 +30,7 @@ AzureusContentDownload
 	public Download
 	getDownload();
 	
-	public Map<String,Object>
-	getProperties();
+	public Object
+	getProperty(
+		String		name );
 }
