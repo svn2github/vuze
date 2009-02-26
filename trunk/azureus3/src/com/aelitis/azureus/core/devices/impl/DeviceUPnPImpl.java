@@ -508,11 +508,7 @@ DeviceUPnPImpl
 					transcode_file.getFile());
 			
 			final Map<String,Object> properties =  new HashMap<String, Object>();
-			
-				// TODO: duration etc
-
-			properties.put( MY_ACF_KEY, this );
-		
+				
 			acf =	new AzureusContentFile()
 					{	
 					   	public DiskManagerFileInfo
@@ -521,10 +517,18 @@ DeviceUPnPImpl
 					   		return( stream_file );
 					   	}
 					   	
-						public Map<String,Object>
-						getProperties()
+						public Object
+						getProperty(
+							String		name )
 						{
-							return( properties );
+								// TODO: duration etc
+
+							if ( name.equals( MY_ACF_KEY )){
+								
+								return( DeviceUPnPImpl.this );
+							}
+							
+							return( null );
 						}
 					};
 			
@@ -602,7 +606,7 @@ DeviceUPnPImpl
 	{	
 		if ( getFilterFilesView()){
 		
-			return( file.getProperties().get( MY_ACF_KEY ) == this );
+			return( file.getProperty( MY_ACF_KEY ) == this );
 		}
 		
 		return( true );
@@ -650,10 +654,11 @@ DeviceUPnPImpl
 						return( f );
 					}
 					
-					public Map<String,Object>
-					getProperties()
+					public Object
+					getProperty(
+						String		name )
 					{						
-						return( properties );
+						return( properties.get( name ));
 					}
 				};
 				

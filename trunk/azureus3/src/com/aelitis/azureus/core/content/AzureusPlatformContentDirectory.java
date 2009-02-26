@@ -30,12 +30,17 @@ import java.util.Map;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 public class 
@@ -88,6 +93,110 @@ AzureusPlatformContentDirectory
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
+			
+			return( null );
+		}
+	}
+	
+	public AzureusContentDownload 
+	lookupContentDownload(
+		Map 		attributes ) 
+	{
+		byte[]	hash = (byte[])attributes.get( AT_BTIH );
+				
+		try{
+			final Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload(hash);
+		
+			if ( download == null ){
+				
+				return( null );
+			}
+			
+			return( 
+				new AzureusContentDownload()
+				{
+					public Download
+					getDownload()
+					{
+						return( download );
+					}
+					
+					public Object
+					getProperty(
+						String		name )
+					{
+						return( null );
+					}
+				});
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
+	}
+	
+	public AzureusContentFile 
+	lookupContentFile(
+		Map 		attributes) 
+	{
+		byte[]	hash 	= (byte[])attributes.get( AT_BTIH );
+		int		index	= ((Integer)attributes.get( AT_FILE_INDEX )).intValue();
+		
+		try{
+
+			Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload(hash);
+		
+			if ( download == null ){
+				
+				return( null );
+			}
+			
+			Torrent	t_torrent = download.getTorrent();
+			
+			if ( t_torrent == null ){
+				
+				return( null );
+			}
+			
+			final TOTorrent torrent = ((TorrentImpl)t_torrent).getTorrent();
+			
+			if ( !PlatformTorrentUtils.isContent( torrent, false )){
+				
+				return( null );
+			}
+			
+			final DiskManagerFileInfo	file = download.getDiskManagerFileInfo()[index];
+			
+			return(
+				new AzureusContentFile()
+				{
+					public DiskManagerFileInfo
+					getFile()
+					{
+						return( file );
+					}
+					
+					public Object
+					getProperty(
+						String		name )
+					{
+						if ( name.equals( PT_DURATION )){
+							
+							long duration = PlatformTorrentUtils.getContentVideoRunningTime( torrent );
+							
+							if ( duration > 0 ){
+								
+									// secs -> millis
+								
+								return( new Long( duration*1000 ));
+							}
+						}
+						
+						return( null );
+					}
+				});
+			
+		}catch( Throwable e ){
 			
 			return( null );
 		}
