@@ -38,7 +38,19 @@ DeviceiTunes
 {
 	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
 	
+	private static final int INSTALL_CHECK_PERIOD	= 60*1000;
+	private static final int RUNNING_CHECK_PERIOD	= 10*1000;
+	private static final int DEVICE_CHECK_PERIOD	= 5*1000;
+	
+	private static final int INSTALL_CHECK_TICKS	= INSTALL_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+	private static final int RUNNING_CHECK_TICKS	= RUNNING_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+	private static final int DEVICE_CHECK_TICKS		= DEVICE_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+	
+
 	private PluginInterface		itunes;
+	
+	private boolean				is_installed;
+	private boolean				is_running;
 	
 	protected
 	DeviceiTunes(
@@ -83,6 +95,72 @@ DeviceiTunes
 		return( true );
 	}
 	
+	@Override
+	protected void
+	updateStatus(
+		int		tick_count )
+	{
+		super.updateStatus( tick_count );
+		
+		if ( itunes == null ){
+			
+			return;
+		}
+		
+		if ( !is_installed ){
+			
+			if ( tick_count % INSTALL_CHECK_TICKS == 0 ){
+				
+				updateiTunesStatus();
+				
+				return;
+			}
+		}
+		
+		if ( !is_running ){
+			
+			if ( tick_count % RUNNING_CHECK_TICKS == 0 ){
+				
+				updateiTunesStatus();
+				
+				return;
+			}
+		}
+		
+		if ( tick_count % DEVICE_CHECK_TICKS == 0 ){
+
+			updateiTunesStatus();
+		}
+	}
+	
+	protected void
+	updateiTunesStatus()
+	{
+		
+		IPCInterface	ipc = itunes.getIPC();
+		
+		try{
+			Map<String,Object> properties = (Map<String,Object>)ipc.invoke( "getProperties", new Object[]{} );
+
+			is_installed = (Boolean)properties.get( "installed" );
+			
+			is_running	 = (Boolean)properties.get( "running" );
+			
+			Throwable error = (Throwable)properties.get( "error" );
+			
+			if ( error != null ){
+				
+				throw( error );
+			}
+			
+			List<Map<String,Object>> sources = (List<Map<String,Object>>)properties.get( properties );
+			
+		}catch( Throwable e ){
+			
+			log( "iTunes IPC failed", e );
+		}
+	}
+	
 	public boolean
 	canFilterFilesView()
 	{
@@ -125,19 +203,11 @@ DeviceiTunes
 
 		}else{
 			
-			IPCInterface	ipc = itunes.getIPC();
+			updateiTunesStatus();
 			
-			try{
-				Map<String,Object> properties = (Map<String,Object>)ipc.invoke( "getProperties", new Object[]{} );
-	
-				addDP( dp, "devices.installed", String.valueOf( properties.get( "installed" )));
+			addDP( dp, "devices.installed", is_installed );
 				
-				addDP( dp, "MyTrackerView.status.started", String.valueOf( properties.get( "running" )));
-				
-			}catch( Throwable e ){
-				
-				log( "iTunes IPC failed", e );
-			}
+			addDP( dp, "MyTrackerView.status.started", is_running );
 		}
 	}
 }

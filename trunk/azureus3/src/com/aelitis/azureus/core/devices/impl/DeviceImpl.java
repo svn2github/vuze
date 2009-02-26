@@ -294,7 +294,8 @@ DeviceImpl
 	}
 	
 	protected void
-	updateStatus()
+	updateStatus(
+		int		tick_count )
 	{	
 	}
 	

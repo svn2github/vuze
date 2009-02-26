@@ -48,6 +48,7 @@ DeviceManagerImpl
 	private static final String	CONFIG_FILE 			= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
 	
+	protected static final int	DEVICE_UPDATE_PERIOD	= 5*1000;
 	
 	private static DeviceManagerImpl		singleton;
 	
@@ -143,23 +144,32 @@ DeviceManagerImpl
 		
 		SimpleTimer.addPeriodicEvent(
 				"DeviceManager:update",
-				30*1000,
+				DEVICE_UPDATE_PERIOD,
 				new TimerEventPerformer()
 				{
+					private int tick_count = 0;
+					
 					public void 
 					perform(
 						TimerEvent event ) 
 					{
 						List<DeviceImpl> copy;
 						
+						tick_count++;
+						
 						synchronized( DeviceManagerImpl.this ){
 
+							if( devices.size() == 0 ){
+								
+								return;
+							}
+							
 							copy = new ArrayList<DeviceImpl>( devices.values() );
 						}
 						
 						for ( DeviceImpl device: copy ){
 							
-							device.updateStatus();
+							device.updateStatus( tick_count );
 						}
 					}
 				});
@@ -288,7 +298,7 @@ DeviceManagerImpl
 			devices.put( device.getID(), device );
 		}
 			
-		device.updateStatus();
+		device.updateStatus( 0 );
 		
 		device.alive();
 		
@@ -376,7 +386,7 @@ DeviceManagerImpl
 						
 						devices.put( device.getID(), device );
 						
-						device.updateStatus();
+						device.updateStatus( 0 );
 					
 						log( "    loaded " + device.getString());
 						

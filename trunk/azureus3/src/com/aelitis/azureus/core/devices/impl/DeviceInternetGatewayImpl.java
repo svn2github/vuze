@@ -42,6 +42,10 @@ DeviceInternetGatewayImpl
 	extends DeviceUPnPImpl
 	implements DeviceInternetGateway
 {
+	private static final int CHECK_MAPPINGS_PERIOD 		= 30*1000;
+	private static final int CHECK_MAPPINGS_TICK_COUNT 	= CHECK_MAPPINGS_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
+	
+		
 	private static UPnPPlugin						upnp_plugin;
 	
 	static{
@@ -71,7 +75,7 @@ DeviceInternetGatewayImpl
 	{
 		super( _manager, _device, Device.DT_INTERNET_GATEWAY );
 		
-		updateStatus();
+		updateStatus( 0 );
 	}
 	
 	protected
@@ -105,10 +109,17 @@ DeviceInternetGatewayImpl
 		return( true );
 	}
 	
+	@Override
 	protected void
-	updateStatus()
+	updateStatus(
+		int		tick_count )
 	{
-		super.updateStatus();
+		super.updateStatus( tick_count );
+		
+		if ( tick_count % CHECK_MAPPINGS_TICK_COUNT != 0 ){
+			
+			return;
+		}
 		
 		mapper_enabled = upnp_plugin != null && upnp_plugin.isEnabled();
 			
