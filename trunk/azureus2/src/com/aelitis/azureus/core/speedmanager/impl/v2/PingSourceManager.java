@@ -222,6 +222,10 @@ public class PingSourceManager
         int len = sources.length;
         for(int i=0; i<len; i++){
             PingSourceStats pss = (PingSourceStats) pingAverages.get(sources[i]);
+            
+            if ( pss == null ){
+            	continue;
+            }
             Average a = pss.getLongTermAve();
             double avePingTime = a.getAverage();
 
