@@ -52,6 +52,8 @@ DeviceiTunes
 	private boolean				is_installed;
 	private boolean				is_running;
 	
+	private boolean				copy_outstanding;
+	
 	protected
 	DeviceiTunes(
 		DeviceManagerImpl	_manager,
@@ -70,6 +72,47 @@ DeviceiTunes
 		throws IOException
 	{
 		super( _manager, _map );
+	}
+	
+	protected void
+	initialise()
+	{
+		super.initialise();
+		
+		setCopyOutstanding( getPersistentBooleanProperty( PP_COPY_OUTSTANDING, false ));
+		
+		addListener( 
+			new TranscodeTargetListener()
+			{
+				public void
+				fileAdded(
+					TranscodeFile		file )
+				{
+					fileChanged( file );
+				}
+				
+				public void
+				fileChanged(
+					TranscodeFile		file )
+				{
+					if ( file.isComplete() && !file.isCopiedToDevice()){
+						
+						setCopyOutstanding( true );
+					}
+				}
+				
+				public void
+				fileRemoved(
+					TranscodeFile		file )
+				{
+				}
+			});
+	}
+	
+	protected void
+	destroy()
+	{
+		super.destroy();
 	}
 	
 	protected boolean
@@ -175,6 +218,21 @@ DeviceiTunes
 	}
 	
 	public boolean
+	isCopyToDevicePending()
+	{
+		return( copy_outstanding );
+	}
+	
+	protected void
+	setCopyOutstanding(
+		boolean		outstanding )
+	{
+		copy_outstanding	= outstanding;
+		
+		setPersistentBooleanProperty( PP_COPY_OUTSTANDING, outstanding );
+	}
+	
+	public boolean
 	canFilterFilesView()
 	{
 		return( false );
@@ -221,6 +279,8 @@ DeviceiTunes
 			addDP( dp, "devices.installed", is_installed );
 				
 			addDP( dp, "MyTrackerView.status.started", is_running );
+			
+			addDP( dp, "copy_to_device_pending", copy_outstanding );
 		}
 	}
 }

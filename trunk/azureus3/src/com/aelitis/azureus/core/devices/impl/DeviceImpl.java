@@ -91,10 +91,11 @@ DeviceImpl
 	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
 	
-	protected static final String	PP_IP_ADDRESS 	= "rend_ip";	
-	protected static final String	TP_IP_ADDRESS 	= "DeviceUPnPImpl:ip";	// transient
-	protected static final String	PP_FILTER_FILES = "rend_filter";
+	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
+	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
+	protected static final String	PP_FILTER_FILES 	= "rend_filter";
 	
+	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
 
 	
 	private DeviceManagerImpl	manager;
@@ -181,6 +182,17 @@ DeviceImpl
 		ImportExportUtils.exportBoolean( map, "_man", manual );
 		
 		map.put( "_pprops", persistent_properties );
+	}
+	
+	protected void
+	initialise()
+	{
+		updateStatus( 0 );
+	}
+	
+	protected void
+	destroy()
+	{	
 	}
 	
 	public int

@@ -298,7 +298,7 @@ DeviceManagerImpl
 			devices.put( device.getID(), device );
 		}
 			
-		device.updateStatus( 0 );
+		device.initialise();
 		
 		device.alive();
 		
@@ -322,6 +322,8 @@ DeviceManagerImpl
 				return;
 			}
 		}
+		
+		device.destroy();
 		
 		deviceRemoved( device );
 		
@@ -386,7 +388,7 @@ DeviceManagerImpl
 						
 						devices.put( device.getID(), device );
 						
-						device.updateStatus( 0 );
+						device.initialise();
 					
 						log( "    loaded " + device.getString());
 						

@@ -70,7 +70,6 @@ import com.aelitis.azureus.core.AzureusCore;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
-import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;

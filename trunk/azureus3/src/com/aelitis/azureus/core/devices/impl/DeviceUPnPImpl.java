@@ -114,8 +114,6 @@ DeviceUPnPImpl
 		device_may_be_null 	= _device;
 	}	
 	
-
-	
 	protected
 	DeviceUPnPImpl(
 		DeviceManagerImpl	_manager,
@@ -154,6 +152,18 @@ DeviceUPnPImpl
 		upnp_manager		= _manager.getUPnPManager();
 	}
 	
+	protected void
+	initialise()
+	{
+		super.initialise();
+	}
+	
+	protected void
+	destroy()
+	{
+		super.destroy();
+	}
+	
 	protected boolean
 	updateFrom(
 		DeviceImpl		_other )
@@ -181,12 +191,6 @@ DeviceUPnPImpl
 	getUPnPDevice()
 	{
 		return( device_may_be_null );
-	}
-	
-	public boolean
-	canCopyToDevice()
-	{
-		return( false );
 	}
 	
 	public boolean

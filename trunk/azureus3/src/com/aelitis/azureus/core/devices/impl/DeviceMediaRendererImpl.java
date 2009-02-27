@@ -71,6 +71,18 @@ DeviceMediaRendererImpl
 		super(_manager, _map );
 	}
 	
+	protected void
+	initialise()
+	{
+		super.initialise();
+	}
+	
+	protected void
+	destroy()
+	{
+		super.destroy();
+	}
+	
 	protected boolean
 	updateFrom(
 		DeviceImpl		_other )
@@ -90,6 +102,18 @@ DeviceMediaRendererImpl
 		DeviceMediaRendererImpl other = (DeviceMediaRendererImpl)_other;
 		
 		return( true );
+	}
+	
+	public boolean
+	canCopyToDevice()
+	{
+		return( false );
+	}
+	
+	public boolean
+	isCopyToDevicePending()
+	{
+		return( false );
 	}
 	
 	protected void
