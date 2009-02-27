@@ -88,6 +88,8 @@ DeviceManagerUI
 	
 	private static final String CONFIG_VIEW_TYPE	= "device.sidebar.ui.viewtype";
 	
+	private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
+	
 	private DeviceManager			device_manager;
 	private DeviceManagerListener	device_manager_listener;
 	
@@ -478,7 +480,7 @@ DeviceManagerUI
 	buildSideBar(
 		boolean			rebuild )	
 	{		
-		SideBarEntrySWT mainSBEntry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		final SideBarEntrySWT mainSBEntry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 
 		if ( mainSBEntry != null ){
 				
@@ -508,6 +510,8 @@ DeviceManagerUI
 				mainSBEntry.setTitleInfo(
 					new ViewTitleInfo() 
 					{
+						private int last_indicator = 0;
+						
 						public Object 
 						getTitleInfoProperty(
 							int propertyID ) 
@@ -515,8 +519,40 @@ DeviceManagerUI
 							if ( propertyID == TITLE_TEXT ){
 								
 								return MessageText.getString( "devices.view.title" );
+								
+							}else if ( propertyID == TITLE_INDICATOR_TEXT ){
+								
+								if ( !mainSBEntry.getTreeItem().getExpanded()){
+								
+									System.out.println( "parp" );
+									
+									Device[] devices = device_manager.getDevices();
+									
+									last_indicator = 0;
+									
+									for ( Device device: devices ){
+										
+										if ( device instanceof DeviceMediaRenderer ){
+									
+											DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+											
+											last_indicator += renderer.getCopyToDevicePending();
+										}
+									}
+									
+									if ( last_indicator > 0 ){
+											
+										return( String.valueOf( last_indicator ));
+									}
+								}
+							}else if ( propertyID == TITLE_INDICATOR_COLOR ){
+									
+								if ( last_indicator > 0 ){
+									
+									return( to_copy_indicator_colors );
+								}
 							}
-							
+
 							return null;
 						}
 					});
@@ -1293,7 +1329,7 @@ DeviceManagerUI
 					
 		}else{
 			
-			view = new categoryViewGeneric( device_type, category_title );
+			view = new categoryViewGeneric( this, device_type, category_title );
 		}
 		
 		TreeItem item = 
@@ -1357,17 +1393,22 @@ DeviceManagerUI
 		extends 	AbstractIView
 		implements 	ViewTitleInfo
 	{
+		private DeviceManagerUI	ui;
 		private int				device_type;
 		private String			title;
 			
 		private TreeItem		tree_item;
 		private String			key;
 		
+		private int				last_indicator;
+		
 		protected
 		categoryView(
-			int			_device_type,
-			String		_title )
+			DeviceManagerUI		_ui,
+			int					_device_type,
+			String				_title )
 		{
+			ui				= _ui;
 			device_type		= _device_type;
 			title			= _title;
 		}
@@ -1406,6 +1447,36 @@ DeviceManagerUI
 			if ( propertyID == TITLE_TEXT ){
 				
 				return( getTitle());
+				
+			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
+				
+				if ( device_type == Device.DT_MEDIA_RENDERER && !tree_item.getExpanded()){
+									
+					Device[] devices = ui.getDeviceManager().getDevices();
+					
+					last_indicator = 0;
+					
+					for ( Device device: devices ){
+						
+						if ( device instanceof DeviceMediaRenderer ){
+					
+							DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+							
+							last_indicator += renderer.getCopyToDevicePending();
+						}
+					}
+					
+					if ( last_indicator > 0 ){
+							
+						return( String.valueOf( last_indicator ));
+					}
+				}
+			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
+					
+				if ( last_indicator > 0 ){
+					
+					return( to_copy_indicator_colors );
+				}
 			}
 			
 			return null;
@@ -1445,10 +1516,11 @@ DeviceManagerUI
 		
 		protected
 		categoryViewGeneric(
-			int			_device_type,
-			String		_title )
+			DeviceManagerUI		_ui,
+			int					_device_type,
+			String				_title )
 		{
-			super( _device_type, _title );
+			super( _ui, _device_type, _title );
 		}
 		
 		public void 
@@ -1503,6 +1575,8 @@ DeviceManagerUI
 		private Composite		parent_composite;
 		private Composite		composite;
 		
+		private int last_indicator;
+
 		protected
 		deviceView(
 			Device		_device )
@@ -1551,10 +1625,30 @@ DeviceManagerUI
 		public Object 
 		getTitleInfoProperty(
 			int propertyID ) 
-		{
+		{		
 			if ( propertyID == TITLE_TEXT ){
 				
 				return( getTitle());
+				
+			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
+				
+				if ( device instanceof DeviceMediaRenderer ){
+					
+					DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+					
+					last_indicator = renderer.getCopyToDevicePending();
+					
+					if ( last_indicator > 0 ){
+						
+						return( String.valueOf( last_indicator ));
+					}
+				}
+			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
+					
+				if ( last_indicator > 0 ){
+						
+					return( to_copy_indicator_colors );	
+				}
 			}
 			
 			return null;

@@ -75,7 +75,7 @@ DeviceInternetView
 		DeviceManagerUI	dm_ui,
 		String			title )
 	{
-		super( Device.DT_INTERNET, title );
+		super( dm_ui, Device.DT_INTERNET, title );
 		
 		device_manager_ui	= dm_ui;
 	}

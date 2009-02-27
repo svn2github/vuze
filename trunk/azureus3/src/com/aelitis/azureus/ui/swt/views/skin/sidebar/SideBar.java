@@ -154,6 +154,8 @@ public class SideBar
 
 	private static final boolean ALWAYS_IMAGE_GAP = false;
 
+	private static final String[] default_indicator_colors = { "#000000", "#000000", "#166688", "#1c2056" };
+	
 	private SWTSkin skin;
 
 	private SWTSkinObject soSideBarContents;
@@ -1087,14 +1089,21 @@ public class SideBar
 				Pattern pattern;
 				Color color1;
 				Color color2;
+				
+				String[] colors = (String[])sideBarEntry.titleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
+				
+				if ( colors == null || colors.length != 4 ){
+					colors = default_indicator_colors;
+				}
+				
 				if (selected) {
-					color1 = ColorCache.getColor(gc.getDevice(), "#000000");
-					color2 = ColorCache.getColor(gc.getDevice(), "#000000");
+					color1 = ColorCache.getColor(gc.getDevice(), colors[0]);
+					color2 = ColorCache.getColor(gc.getDevice(), colors[1]);
 					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY + height,
 							color1, 127, color2, 4);
 				} else {
-					color1 = ColorCache.getColor(gc.getDevice(), "#166688");
-					color2 = ColorCache.getColor(gc.getDevice(), "#1c2056");
+					color1 = ColorCache.getColor(gc.getDevice(), colors[2]);
+					color2 = ColorCache.getColor(gc.getDevice(), colors[3]);
 					pattern = new Pattern(gc.getDevice(), 0, startY, 0, startY + height,
 							color1, color2);
 				}
