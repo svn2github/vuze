@@ -110,10 +110,10 @@ DeviceMediaRendererImpl
 		return( false );
 	}
 	
-	public boolean
-	isCopyToDevicePending()
+	public int
+	getCopyToDevicePending()
 	{
-		return( false );
+		return( 0 );
 	}
 	
 	protected void

@@ -25,6 +25,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -49,10 +53,14 @@ DeviceiTunes
 
 	private PluginInterface		itunes;
 	
-	private boolean				is_installed;
-	private boolean				is_running;
+	private volatile boolean				is_installed;
+	private volatile boolean				is_running;
 	
 	private boolean				copy_outstanding;
+	private boolean				copy_outstanding_set;
+	private AEThread2			copy_thread;
+	private AESemaphore			copy_sem = new AESemaphore( "Device:copy" );
+	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher( 5000 );
 	
 	protected
 	DeviceiTunes(
@@ -79,7 +87,10 @@ DeviceiTunes
 	{
 		super.initialise();
 		
-		setCopyOutstanding( getPersistentBooleanProperty( PP_COPY_OUTSTANDING, false ));
+		if ( getPersistentBooleanProperty( PP_COPY_OUTSTANDING, false )){
+		
+			setCopyOutstanding();
+		}
 		
 		addListener( 
 			new TranscodeTargetListener()
@@ -97,7 +108,7 @@ DeviceiTunes
 				{
 					if ( file.isComplete() && !file.isCopiedToDevice()){
 						
-						setCopyOutstanding( true );
+						setCopyOutstanding();
 					}
 				}
 				
@@ -187,7 +198,14 @@ DeviceiTunes
 
 			is_installed = (Boolean)properties.get( "installed" );
 			
+			boolean	was_running = is_running;
+			
 			is_running	 = (Boolean)properties.get( "running" );
+			
+			if ( is_running && !was_running ){
+				
+				copy_sem.release();
+			}
 			
 			Throwable error = (Throwable)properties.get( "error" );
 			
@@ -217,19 +235,164 @@ DeviceiTunes
 		return( true );
 	}
 	
-	public boolean
-	isCopyToDevicePending()
+	public int
+	getCopyToDevicePending()
 	{
-		return( copy_outstanding );
+		synchronized( this ){
+		
+			if ( !copy_outstanding ){
+				
+				return( 0 );
+			}
+		}
+
+		TranscodeFileImpl[] files = getFiles();
+		
+		int result = 0;
+			
+		for ( TranscodeFileImpl file: files ){
+
+			if ( !file.isCopiedToDevice()){
+				
+				result++;
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected void
-	setCopyOutstanding(
-		boolean		outstanding )
+	setCopyOutstanding()
 	{
-		copy_outstanding	= outstanding;
+		synchronized( this ){
+			
+			copy_outstanding_set = true;
+			
+			if ( copy_thread == null ){
+				
+				copy_thread = 
+					new AEThread2( "Device:copier", true )
+					{
+						public void
+						run()
+						{
+							performCopy();
+						}
+					};
+									
+				copy_thread.start();
+			}
+			
+			copy_sem.release();
+		}
+	}
+	
+	protected void
+	performCopy()
+	{
+		synchronized( this ){
+
+			copy_outstanding = true;
 		
-		setPersistentBooleanProperty( PP_COPY_OUTSTANDING, outstanding );
+			async_dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						setPersistentBooleanProperty( PP_COPY_OUTSTANDING, true );
+					}
+				});
+		}
+		
+		while( true ){
+			
+			copy_sem.reserve( 60*1000 );
+							
+			synchronized( this ){
+
+				if ( itunes == null || !is_running ){
+					
+					if ( !( copy_outstanding || copy_outstanding_set )){
+						
+						copy_thread = null;
+						
+						break;
+					}
+					
+					continue;
+				}
+
+				copy_outstanding_set = false;
+			}
+			
+			TranscodeFileImpl[] files = getFiles();
+				
+			TranscodeFileImpl	to_copy = null;
+				
+			for ( TranscodeFileImpl file: files ){
+					
+				if ( !file.isCopiedToDevice()){
+					
+					if ( to_copy == null ){
+					
+						to_copy = file;
+						
+					}else{
+						
+							// prepare for more
+						
+						copy_sem.release();
+						
+						break;
+					}
+				}
+			}
+				
+			synchronized( this ){
+
+				if ( to_copy == null && !copy_outstanding_set){
+						
+					copy_outstanding = false;
+					
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
+							}
+						});
+					
+					copy_thread = null;
+					
+					break;
+				}
+			}
+			
+			try{
+			
+				IPCInterface	ipc = itunes.getIPC();
+				
+				Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ to_copy.getFile()} );
+
+				Throwable error = (Throwable)result.get( "error" );
+				
+				if ( error != null ){
+					
+					throw( error );
+				}
+				
+				log( "Added file '" + to_copy.getFile() + ": " + result );
+				
+				to_copy.setCopiedToDevice( true );
+				
+			}catch( Throwable e ){
+				
+				log( "Failed to copy file " + to_copy.getFile(), e );
+			}
+		}
 	}
 	
 	public boolean

@@ -47,6 +47,9 @@ TranscodeQueue
 	public void
 	resume();
 	
+	public int
+	getJobCount();
+	
 	public long
 	getMaxBytesPerSecond();
 	

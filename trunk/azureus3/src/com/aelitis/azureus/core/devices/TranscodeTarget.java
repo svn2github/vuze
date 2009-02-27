@@ -67,6 +67,9 @@ TranscodeTarget
 	setDefaultTranscodeProfile(
 		TranscodeProfile		profile );
 	
+	public boolean
+	isTranscoding();
+	
 	public void
 	addListener(
 		TranscodeTargetListener		listener );

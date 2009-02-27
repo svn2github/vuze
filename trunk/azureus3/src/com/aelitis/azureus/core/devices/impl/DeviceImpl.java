@@ -109,6 +109,8 @@ DeviceImpl
 	
 	private boolean			online;
 	
+	private boolean			transcoding;
+	
 	private Map<String,Object>	persistent_properties 	= new LightHashMap<String, Object>(1);
 
 	private Map<Object,Object>	transient_properties 	= new LightHashMap<Object, Object>(1);
@@ -317,7 +319,7 @@ DeviceImpl
 		manager.requestAttention( this );
 	}
 	
-	public TranscodeFile[]
+	public TranscodeFileImpl[]
 	getFiles()
 	{
 		try{
@@ -349,13 +351,13 @@ DeviceImpl
 					}
 				}
 				
-				return( result.toArray( new TranscodeFile[ result.size() ]));
+				return( result.toArray( new TranscodeFileImpl[ result.size() ]));
 			}
 		}catch( Throwable e ){
 			
 			Debug.out( e );
 			
-			return( new TranscodeFile[0] );
+			return( new TranscodeFileImpl[0] );
 		}
 	}
 	
@@ -595,6 +597,21 @@ DeviceImpl
 		TranscodeProfile		profile )
 	{
 		setPersistentStringProperty( PP_REND_DEF_TRANS_PROF, profile.getUID());
+	}
+	
+	protected void
+	setTranscoding(
+		boolean		_transcoding )
+	{
+		transcoding = _transcoding;
+		
+		manager.deviceChanged( this, false );
+	}
+	
+	public boolean
+	isTranscoding()
+	{
+		return( transcoding );
 	}
 	
 	public String[][] 

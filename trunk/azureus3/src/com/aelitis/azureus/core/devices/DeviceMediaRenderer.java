@@ -39,6 +39,6 @@ DeviceMediaRenderer
 	public boolean
 	canCopyToDevice();
 	
-	public boolean
-	isCopyToDevicePending();
+	public int
+	getCopyToDevicePending();
 }

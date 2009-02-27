@@ -293,6 +293,12 @@ TranscodeJobImpl
 		return( target );
 	}
 	
+	protected DeviceImpl
+	getDevice()
+	{
+		return((DeviceImpl)target );
+	}
+	
 	public TranscodeProfile
 	getProfile()
 	{

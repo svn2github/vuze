@@ -94,6 +94,8 @@ TranscodeQueueImpl
 	{				
 		TranscodePipe pipe = null;
 		
+		job.getDevice().setTranscoding( true );
+		
 		try{
 			job.starts();
 			
@@ -285,6 +287,9 @@ TranscodeQueueImpl
 				
 				pipe.destroy();
 			}
+			
+			job.getDevice().setTranscoding( false );
+
 		}
 	}
 	
@@ -496,6 +501,15 @@ TranscodeQueueImpl
 
 			return( queue.toArray( new TranscodeJob[queue.size()]));
 		}
+	}
+	
+	public int
+	getJobCount()
+	{
+		synchronized( queue ){
+
+			return( queue.size());
+		}	
 	}
 	
 	public void 
