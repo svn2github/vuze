@@ -108,6 +108,20 @@ TranscodeFileImpl
 		return( getLong( "comp" ) == 1 );
 	}
 	
+	protected void
+	setCopiedToDevice(
+		boolean b )
+	{
+		setLong( "copied", b?1:0 );
+	}
+	
+	public boolean
+	isCopiedToDevice()
+	{
+		return( getLong( "copied" ) == 1 );
+	}
+	
+	
 	public void
 	delete(
 		boolean	delete_contents )

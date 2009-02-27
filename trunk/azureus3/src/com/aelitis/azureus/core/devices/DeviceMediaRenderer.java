@@ -35,4 +35,7 @@ DeviceMediaRenderer
 	
 	public boolean
 	getFilterFilesView();
+	
+	public boolean
+	canCopyToDevice();
 }

@@ -184,6 +184,12 @@ DeviceUPnPImpl
 	}
 	
 	public boolean
+	canCopyToDevice()
+	{
+		return( false );
+	}
+	
+	public boolean
 	isBrowsable()
 	{
 		return( true );

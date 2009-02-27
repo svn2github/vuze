@@ -39,8 +39,8 @@ DeviceiTunes
 	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
 	
 	private static final int INSTALL_CHECK_PERIOD	= 60*1000;
-	private static final int RUNNING_CHECK_PERIOD	= 10*1000;
-	private static final int DEVICE_CHECK_PERIOD	= 5*1000;
+	private static final int RUNNING_CHECK_PERIOD	= 30*1000;
+	private static final int DEVICE_CHECK_PERIOD	= 10*1000;
 	
 	private static final int INSTALL_CHECK_TICKS	= INSTALL_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
 	private static final int RUNNING_CHECK_TICKS	= RUNNING_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
@@ -153,12 +153,25 @@ DeviceiTunes
 				throw( error );
 			}
 			
-			List<Map<String,Object>> sources = (List<Map<String,Object>>)properties.get( properties );
+			List<Map<String,Object>> sources = (List<Map<String,Object>>)properties.get( "sources" );
 			
+			if ( sources != null ){
+				
+				for ( Map<String,Object> source: sources ){
+					
+					System.out.println( source );
+				}
+			}
 		}catch( Throwable e ){
 			
 			log( "iTunes IPC failed", e );
 		}
+	}
+	
+	public boolean
+	canCopyToDevice()
+	{
+		return( true );
 	}
 	
 	public boolean

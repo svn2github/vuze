@@ -32,6 +32,9 @@ TranscodeFile
 	public boolean
 	isComplete();
 	
+	public boolean
+	isCopiedToDevice();
+	
 	public void
 	delete(
 		boolean	delete_contents )
