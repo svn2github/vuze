@@ -1457,6 +1457,8 @@ DeviceManagerUI
 		
 		SideBarVitalityImage spinner = entry.addVitalityImage("image.sidebar.vitality.dots");
 
+		spinner.setVisible( false );
+		
 		view.setSpinner( spinner );
 		
 		return( view );
@@ -1562,7 +1564,7 @@ DeviceManagerUI
 		getTitleInfoProperty(
 			int propertyID ) 
 		{
-			boolean expanded = device_type == Device.DT_MEDIA_RENDERER && !tree_item.getExpanded();
+			boolean expanded = tree_item != null && tree_item.getExpanded();
 			
 			if ( propertyID == TITLE_TEXT ){
 				
@@ -1570,27 +1572,30 @@ DeviceManagerUI
 				
 			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 			
-				spinner.setVisible( !expanded && ui.getDeviceManager().getTranscodeManager().getQueue().getJobCount() > 0 );
-
-				if ( expanded ){
-									
-					Device[] devices = ui.getDeviceManager().getDevices();
-					
-					last_indicator = 0;
-					
-					for ( Device device: devices ){
+				if ( device_type == Device.DT_MEDIA_RENDERER ){ 
+				
+					spinner.setVisible( !expanded && ui.getDeviceManager().getTranscodeManager().getQueue().getJobCount() > 0 );
+				
+					if ( !expanded ){
+										
+						Device[] devices = ui.getDeviceManager().getDevices();
 						
-						if ( device instanceof DeviceMediaRenderer ){
-					
-							DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+						last_indicator = 0;
+						
+						for ( Device device: devices ){
 							
-							last_indicator += renderer.getCopyToDevicePending();
+							if ( device instanceof DeviceMediaRenderer ){
+						
+								DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+								
+								last_indicator += renderer.getCopyToDevicePending();
+							}
 						}
-					}
-					
-					if ( last_indicator > 0 ){
-							
-						return( String.valueOf( last_indicator ));
+						
+						if ( last_indicator > 0 ){
+								
+							return( String.valueOf( last_indicator ));
+						}
 					}
 				}
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
