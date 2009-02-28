@@ -57,9 +57,10 @@ DeviceRendererView
 	
 	protected
 	DeviceRendererView(
+		String					_parent_key,
 		DeviceMediaRenderer		_device )
 	{
-		super( _device );
+		super( _parent_key, _device );
 		
 		device = _device;
 		

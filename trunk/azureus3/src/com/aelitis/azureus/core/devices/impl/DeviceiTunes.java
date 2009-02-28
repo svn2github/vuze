@@ -99,12 +99,17 @@ DeviceiTunes
 				fileAdded(
 					TranscodeFile		file )
 				{
-					fileChanged( file );
+					if ( file.isComplete() && !file.isCopiedToDevice()){
+						
+						setCopyOutstanding();
+					}
 				}
 				
 				public void
 				fileChanged(
-					TranscodeFile		file )
+					TranscodeFile		file,
+					int					type,
+					Object				data )
 				{
 					if ( file.isComplete() && !file.isCopiedToDevice()){
 						
@@ -116,6 +121,7 @@ DeviceiTunes
 				fileRemoved(
 					TranscodeFile		file )
 				{
+					copy_sem.release();
 				}
 			});
 	}
@@ -252,7 +258,7 @@ DeviceiTunes
 			
 		for ( TranscodeFileImpl file: files ){
 
-			if ( !file.isCopiedToDevice()){
+			if ( file.isComplete() && !file.isCopiedToDevice()){
 				
 				result++;
 			}
@@ -332,7 +338,7 @@ DeviceiTunes
 				
 			for ( TranscodeFileImpl file: files ){
 					
-				if ( !file.isCopiedToDevice()){
+				if ( file.isComplete() && !file.isCopiedToDevice()){
 					
 					if ( to_copy == null ){
 					

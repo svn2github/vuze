@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 class
@@ -99,26 +100,26 @@ TranscodeFileImpl
 	setComplete(
 		boolean b )
 	{
-		setLong( "comp", b?1:0 );
+		setLong( PT_COMPLETE, b?1:0 );
 	}
 	
 	public boolean
 	isComplete()
 	{
-		return( getLong( "comp" ) == 1 );
+		return( getLong( PT_COMPLETE ) == 1 );
 	}
 	
 	protected void
 	setCopiedToDevice(
 		boolean b )
 	{
-		setLong( "copied", b?1:0 );
+		setLong( PT_COPIED, b?1:0 );
 	}
 	
 	public boolean
 	isCopiedToDevice()
 	{
-		return( getLong( "copied" ) == 1 );
+		return( getLong( PT_COPIED ) == 1 );
 	}
 	
 	
@@ -191,7 +192,7 @@ TranscodeFileImpl
 
 				ImportExportUtils.exportLong( map, key, value);
 				
-				device.fileDirty( this );
+				device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
 				
 			}catch( Throwable e ){
 				
@@ -229,7 +230,7 @@ TranscodeFileImpl
 			try{
 				ImportExportUtils.exportString( map, key, value );
 				
-				device.fileDirty( this );
+				device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
 				
 			}catch( Throwable e ){
 				

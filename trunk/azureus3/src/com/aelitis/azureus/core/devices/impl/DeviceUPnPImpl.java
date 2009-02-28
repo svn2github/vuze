@@ -686,7 +686,9 @@ DeviceUPnPImpl
 	
 	public void
 	fileChanged(
-		TranscodeFile		file )
+		TranscodeFile		file,
+		int					type,
+		Object				data )
 	{
 		if ( file.isComplete()){
 			

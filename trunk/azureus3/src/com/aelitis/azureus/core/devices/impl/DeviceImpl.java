@@ -1091,7 +1091,9 @@ DeviceImpl
 	
 	protected void
 	fileDirty(
-		TranscodeFileImpl	file )
+		TranscodeFileImpl	file,
+		int					type,
+		Object				data )
 	{
 		try{
 			synchronized( this ){
@@ -1116,7 +1118,7 @@ DeviceImpl
 		for ( TranscodeTargetListener l: listeners ){
 			
 			try{
-				l.fileChanged( file );
+				l.fileChanged( file, type, data );
 				
 			}catch( Throwable e ){
 				

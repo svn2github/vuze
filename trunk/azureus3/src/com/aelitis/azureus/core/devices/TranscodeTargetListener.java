@@ -24,13 +24,17 @@ package com.aelitis.azureus.core.devices;
 public interface 
 TranscodeTargetListener 
 {
+	public static final int	CT_PROPERTY		= 1;		// data = String property
+	
 	public void
 	fileAdded(
 		TranscodeFile		file );
 	
 	public void
 	fileChanged(
-		TranscodeFile		file );
+		TranscodeFile		file,
+		int					type,
+		Object				data );
 	
 	public void
 	fileRemoved(

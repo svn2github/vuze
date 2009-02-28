@@ -26,6 +26,12 @@ import java.io.File;
 public interface 
 TranscodeFile 
 {
+		// don't change these, they are serialised
+	
+	public static final String PT_COMPLETE		= "comp";
+	public static final String PT_COPIED		= "copied";
+	
+	
 	public File
 	getFile();
 	

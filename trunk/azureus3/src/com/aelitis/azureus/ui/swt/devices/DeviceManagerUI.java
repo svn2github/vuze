@@ -996,11 +996,11 @@ DeviceManagerUI
 									
 									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
 										
-										view = new DeviceRendererView((DeviceMediaRenderer)device );
+										view = new DeviceRendererView( parent, (DeviceMediaRenderer)device );
 										
 									}else{
 										
-										view = new deviceView( device );
+										view = new deviceView( parent, device );
 									}
 									
 									new_di.setView( view );
@@ -1018,7 +1018,7 @@ DeviceManagerUI
 											false );
 									
 									SideBarEntrySWT	entry = SideBar.getEntry( key );
-																	
+																				
 									new_di.setTreeItem( tree_item, entry );
 									
 									setStatus( device, new_di );
@@ -1568,8 +1568,9 @@ DeviceManagerUI
 	protected static class
 	deviceView
 		extends 	AbstractIView
-		implements 	ViewTitleInfo
+		implements 	ViewTitleInfo, TranscodeTargetListener
 	{
+		private String			parent_key;
 		private Device			device;
 		
 		private Composite		parent_composite;
@@ -1579,11 +1580,20 @@ DeviceManagerUI
 
 		protected
 		deviceView(
-			Device		_device )
+			String			_parent_key,
+			Device			_device )
 		{
+			parent_key	= _parent_key;
 			device		= _device;
+			
+			if ( device instanceof DeviceMediaRenderer ){
+				
+				DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+
+				renderer.addListener( this );
+			}
 		}
-		
+				
 		public void 
 		initialize(
 			Composite _parent_composite )
@@ -1661,9 +1671,57 @@ DeviceManagerUI
 		}
 		
 		public void
+		fileAdded(
+			TranscodeFile		file )
+		{
+			
+		}
+		
+		public void
+		fileChanged(
+			TranscodeFile		file,
+			int					type,
+			Object				data )
+		{
+			if ( 	type == TranscodeTargetListener.CT_PROPERTY &&
+					data == TranscodeFile.PT_COMPLETE ){
+				
+				ViewTitleInfoManager.refreshTitleInfo( this );
+			}
+			
+			String	key = parent_key;
+			
+			while( key != null ){
+			
+				SideBarEntrySWT parent = SideBar.getEntry( key );
+			
+				if ( parent != null ){
+				
+					ViewTitleInfoManager.refreshTitleInfo(parent.getTitleInfo());
+					
+					key = parent.getParentID();
+				}
+			}
+		}
+		
+		public void
+		fileRemoved(
+			TranscodeFile		file )
+		{
+			
+		}
+		
+		public void
 		delete()
 		{
 			super.delete();
+			
+			if ( device instanceof DeviceMediaRenderer ){
+				
+				DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
+
+				renderer.removeListener( this );
+			}
 		}
 	}
 	
