@@ -31,13 +31,12 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
@@ -48,6 +47,15 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 public class UIExitUtilsSWT
 {
 	private static boolean skipCloseCheck = false;
+	
+	private static CopyOnWriteList<canCloseListener>	listeners	= new CopyOnWriteList<canCloseListener>();
+	
+	public static void
+	addListener(
+		canCloseListener	l )
+	{
+		listeners.add( l );
+	}
 	
 	public static void setSkipCloseCheck(boolean b) {
 		skipCloseCheck = b;
@@ -79,6 +87,14 @@ public class UIExitUtilsSWT
 			}
 		}
 
+		for ( canCloseListener listener: listeners ){
+			
+			if ( !listener.canClose()){
+				
+				return( false );
+			}
+		}
+		
 		if (globalManager != null) {
 			ArrayList listUnfinished = new ArrayList();
 			Object[] dms = globalManager.getDownloadManagers().toArray();
@@ -206,5 +222,12 @@ public class UIExitUtilsSWT
 
 			close.start();
 		}
+	}
+	
+	public interface
+	canCloseListener
+	{
+		public boolean
+		canClose();
 	}
 }
