@@ -66,6 +66,7 @@ DownloadRemoveRulesPlugin
 
 	protected BooleanParameter 	remove_unauthorised; 
 	protected BooleanParameter 	remove_unauthorised_seeding_only; 
+	protected BooleanParameter 	remove_unauthorised_data; 
 	
 	protected BooleanParameter 	remove_update_torrents; 
 
@@ -97,8 +98,12 @@ DownloadRemoveRulesPlugin
 		remove_unauthorised_seeding_only = 
 			config.addBooleanParameter2( "download.removerules.unauthorised.seedingonly", "download.removerules.unauthorised.seedingonly", true );
 		
-		remove_unauthorised.addEnabledOnSelection( remove_unauthorised_seeding_only );
+		remove_unauthorised_data = 
+			config.addBooleanParameter2( "download.removerules.unauthorised.data", "download.removerules.unauthorised.data", false );
 
+		remove_unauthorised.addEnabledOnSelection( remove_unauthorised_seeding_only );
+		remove_unauthorised.addEnabledOnSelection( remove_unauthorised_data );
+		
 		remove_update_torrents = 
 			config.addBooleanParameter2( "download.removerules.updatetorrents", "download.removerules.updatetorrents", true );
 
@@ -233,7 +238,7 @@ DownloadRemoveRulesPlugin
 				log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, "Download '"
 						+ download.getName() + "' is unauthorised and removal triggered");
 			
-				removeDownload( download );
+				removeDownload( download, remove_unauthorised_data.getValue() );
 				
 				return;
 			}
@@ -257,7 +262,7 @@ DownloadRemoveRulesPlugin
 							"Download '" + download.getName()
 									+ "' being removed on instruction from the tracker");
 
-					removeDownloadDelayed( download );
+					removeDownloadDelayed( download, false );
 					
 				}else if ( download_completed && remove_update_torrents.getValue()){
 					
@@ -273,7 +278,7 @@ DownloadRemoveRulesPlugin
 								"Download '" + download.getName()
 										+ "' being removed to reduce swarm size");
 						
-						removeDownloadDelayed( download );		
+						removeDownloadDelayed( download, false );		
 
 					}else{
 					
@@ -294,7 +299,7 @@ DownloadRemoveRulesPlugin
 	
 								log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
 						
-								removeDownloadDelayed( download );		
+								removeDownloadDelayed( download, false );		
 							}
 						}
 					}
@@ -305,7 +310,8 @@ DownloadRemoveRulesPlugin
 	
 	protected void
 	removeDownloadDelayed(
-		final Download		download )
+		final Download		download,
+		final boolean		remove_data )
 	{
 		monitored_downloads.remove( download );
 		
@@ -320,9 +326,9 @@ DownloadRemoveRulesPlugin
 				runSupport()
 				{
 					try{
-						Thread.sleep(DELAYED_REMOVAL_PERIOD);
+						Thread.sleep( DELAYED_REMOVAL_PERIOD );
 						
-						removeDownload( download );
+						removeDownload( download, remove_data );
 						
 					}catch( Throwable e ){
 						
@@ -334,14 +340,15 @@ DownloadRemoveRulesPlugin
 	
 	protected void
 	removeDownload(
-		final Download		download )
+		final Download		download,
+		final boolean		remove_data )				
 	{
 		monitored_downloads.remove( download );
 		
 		if ( download.getState() == Download.ST_STOPPED ){
 			
 			try{
-				download.remove();
+				download.remove( false, remove_data );
 				
 			}catch( Throwable e ){
 				
@@ -364,7 +371,7 @@ DownloadRemoveRulesPlugin
 						if ( new_state == Download.ST_STOPPED ){
 							
 							try{
-								download.remove();
+								download.remove( false, remove_data );
 								
 								String msg = plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
 										"download.removerules.removed.ok", new String[] {
