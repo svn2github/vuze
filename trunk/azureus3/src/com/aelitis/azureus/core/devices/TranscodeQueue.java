@@ -50,6 +50,9 @@ TranscodeQueue
 	public int
 	getJobCount();
 	
+	public TranscodeJob
+	getCurrentJob();
+	
 	public long
 	getMaxBytesPerSecond();
 	

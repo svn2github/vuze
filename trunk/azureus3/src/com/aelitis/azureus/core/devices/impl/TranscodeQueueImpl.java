@@ -51,6 +51,8 @@ TranscodeQueueImpl
 	private AESemaphore 				queue_sem 	= new AESemaphore( "XcodeQ" );
 	private AEThread2					queue_thread;
 	
+	private volatile TranscodeJobImpl	current_job;
+	
 	private CopyOnWriteList<TranscodeQueueListener>	listeners = new CopyOnWriteList<TranscodeQueueListener>();
 	
 	private volatile boolean 	paused;
@@ -93,6 +95,8 @@ TranscodeQueueImpl
 		final TranscodeJobImpl		job )
 	{				
 		TranscodePipe pipe = null;
+		
+		current_job = job;
 		
 		job.getDevice().setTranscoding( true );
 		
@@ -290,6 +294,7 @@ TranscodeQueueImpl
 			
 			job.getDevice().setTranscoding( false );
 
+			current_job = null;
 		}
 	}
 	
@@ -510,6 +515,12 @@ TranscodeQueueImpl
 
 			return( queue.size());
 		}	
+	}
+	
+	public TranscodeJob
+	getCurrentJob()
+	{
+		return( current_job );
 	}
 	
 	public void 

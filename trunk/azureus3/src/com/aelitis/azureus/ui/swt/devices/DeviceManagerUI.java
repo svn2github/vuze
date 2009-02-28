@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnableBoolean;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -62,8 +63,10 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
+import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -157,6 +160,50 @@ DeviceManagerUI
 								
 								setupUI( sideBar );
 							}
+							
+							UIExitUtilsSWT.addListener(
+								new UIExitUtilsSWT.canCloseListener()
+								{
+									public boolean 
+									canClose() 
+									{
+										final TranscodeJob job = device_manager.getTranscodeManager().getQueue().getCurrentJob();
+										
+										if ( job == null || job.getState() != TranscodeJob.ST_RUNNING ){
+											
+											return( true );
+										}
+										
+										boolean allowQuit =
+											Utils.execSWTThreadWithBool(
+												"quitTranscoding",
+												new AERunnableBoolean() {
+													public boolean runSupport() {
+														String title = MessageText.getString("device.quit.transcoding.title");
+														String text = MessageText.getString(
+																"device.quit.transcoding.text",
+																new String[] {
+																	job.getName(),
+																	job.getTarget().getDevice().getName(),
+																	String.valueOf( job.getPercentComplete())
+																});
+
+														MessageBoxShell mb = new MessageBoxShell(
+																Utils.findAnyShell(),
+																title,
+																text,
+																new String[] {
+																	MessageText.getString("UpdateWindow.quit"),
+																	MessageText.getString("Content.alert.notuploaded.button.abort")
+																}, 1, null, null, false, 0);
+
+														return mb.open() == 0;
+													}
+												}, 0);
+										
+										return( allowQuit );
+									}
+								});
 						}
 					}
 					

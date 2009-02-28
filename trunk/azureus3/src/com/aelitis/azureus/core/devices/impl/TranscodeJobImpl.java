@@ -90,6 +90,12 @@ TranscodeJobImpl
 		queue	= _queue;
 		
 		state = ImportExportUtils.importInt( map, "state" );
+		
+		if ( state == ST_RUNNING ){
+			
+			state = ST_QUEUED;
+		}
+		
 		error = ImportExportUtils.importString( map, "error", null );
 		
 		String	target_id = ImportExportUtils.importString( map, "target" );
