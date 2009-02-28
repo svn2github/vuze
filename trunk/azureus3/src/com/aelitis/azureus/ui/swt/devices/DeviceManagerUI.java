@@ -570,9 +570,7 @@ DeviceManagerUI
 							}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 								
 								if ( !mainSBEntry.getTreeItem().getExpanded()){
-								
-									System.out.println( "parp" );
-									
+																	
 									Device[] devices = device_manager.getDevices();
 									
 									last_indicator = 0;
@@ -1298,7 +1296,7 @@ DeviceManagerUI
 		Device			device,
 		deviceItem		sbi )
 	{
-		sbi.setWarning( device );
+		sbi.setStatus( device );
 	}
 	
 	protected void
@@ -1623,6 +1621,8 @@ DeviceManagerUI
 		private Composite		parent_composite;
 		private Composite		composite;
 		
+		private SideBarVitalityImage	spinner;
+		
 		private int last_indicator;
 
 		protected
@@ -1640,7 +1640,14 @@ DeviceManagerUI
 				renderer.addListener( this );
 			}
 		}
-				
+			
+		protected void
+		setSpinner(
+			SideBarVitalityImage		_spinner )
+		{
+			spinner	= _spinner;
+		}
+		
 		public void 
 		initialize(
 			Composite _parent_composite )
@@ -1783,6 +1790,7 @@ DeviceManagerUI
 		private boolean				destroyed;
 		
 		private SideBarVitalityImage	warning;
+		private SideBarVitalityImage	spinner;
 		
 		protected
 		deviceItem()
@@ -1801,6 +1809,11 @@ DeviceManagerUI
 			
 			warning.setVisible( false );
 			warning.setToolTip( "" );
+			
+			spinner = sb_entry.addVitalityImage("image.sidebar.vitality.dots");
+			
+			spinner.setVisible(false);
+
 		}
 		
 		protected TreeItem
@@ -1820,6 +1833,8 @@ DeviceManagerUI
 			deviceView		_view )
 		{
 			view	= _view;
+			
+			view.setSpinner( spinner );
 		}
 		
 		protected deviceView
@@ -1829,8 +1844,8 @@ DeviceManagerUI
 		}
 		
 		protected void
-		setWarning(
-			Device	subs )
+		setStatus(
+			Device	device )
 		{
 				// possible during initialisation, status will be shown again on complete
 			
@@ -1855,6 +1870,16 @@ DeviceManagerUI
 				warning.setVisible( false );
 				
 				warning.setToolTip( "" );
+			}
+			
+			if ( spinner == null ){
+				
+				return;
+			}
+			
+			if ( device instanceof DeviceMediaRenderer ){
+			
+				spinner.setVisible(((DeviceMediaRenderer)device).isTranscoding());
 			}
 		}
 		
