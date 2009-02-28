@@ -58,7 +58,6 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImageListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -276,7 +275,55 @@ DeviceManagerUI
 					removeDevice( device );
 				}
 			};
+			
+		device_manager.getTranscodeManager().getQueue().addListener(
+			new TranscodeQueueListener()
+			{
+				int	last_job_count = 0;
+				
+				public void
+				jobAdded(
+					TranscodeJob		job )
+				{
+					check();
+				}
+				
+				public void
+				jobChanged(
+					TranscodeJob		job )
+				{
+					check();
+				}
+				
+				public void
+				jobRemoved(
+					TranscodeJob		job )
+				{
+					check();
+				}
+				
+				protected void
+				check()
+				{
+					int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
 					
+					if ( job_count != last_job_count ){
+						
+						if ( job_count == 0 || last_job_count == 0 ){
+													
+							SideBarEntrySWT main_sb_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+	
+							if ( main_sb_entry != null ){
+						
+								ViewTitleInfoManager.refreshTitleInfo( main_sb_entry.getTitleInfo());
+							}
+						}
+						
+						last_job_count = job_count;
+					}
+				}
+			});
+		
 		setupListeners();
 		
 		buildSideBar( false );
@@ -527,17 +574,18 @@ DeviceManagerUI
 	buildSideBar(
 		boolean			rebuild )	
 	{		
-		final SideBarEntrySWT mainSBEntry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+		final SideBarEntrySWT main_sb_entry = SideBar.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
 
-		if ( mainSBEntry != null ){
+		if ( main_sb_entry != null ){
 				
-			addDefaultDropListener( mainSBEntry );
+			addDefaultDropListener( main_sb_entry );
 			
 			MenuManager menu_manager = ui_manager.getMenuManager();
 
 			if ( !rebuild ){
 				
-				SideBarVitalityImage addDevice = mainSBEntry.addVitalityImage("image.sidebar.subs.add");
+				/* disabled for phase1
+				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");
 				
 				addDevice.setToolTip("Add Device");
 				
@@ -551,25 +599,37 @@ DeviceManagerUI
 							new DevicesWizard( DeviceManagerUI.this );
 						}
 					});
-	
-				mainSBEntry.setImageLeftID( "image.sidebar.devices" );
-	
-				mainSBEntry.setTitleInfo(
+	  			*/
+				
+				main_sb_entry.setImageLeftID( "image.sidebar.devices" );
+					
+				
+				main_sb_entry.setTitleInfo(
 					new ViewTitleInfo() 
 					{
 						private int last_indicator = 0;
+						
+						SideBarVitalityImage spinner = main_sb_entry.addVitalityImage( "image.sidebar.vitality.dots" );
+
+						{
+							spinner.setVisible( false );
+						}
 						
 						public Object 
 						getTitleInfoProperty(
 							int propertyID ) 
 						{
+							boolean expanded = main_sb_entry.getTreeItem().getExpanded();
+														
 							if ( propertyID == TITLE_TEXT ){
 								
 								return MessageText.getString( "devices.view.title" );
 								
 							}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 								
-								if ( !mainSBEntry.getTreeItem().getExpanded()){
+								spinner.setVisible( !expanded && device_manager.getTranscodeManager().getQueue().getJobCount() > 0 );
+								
+								if ( !expanded ){
 																	
 									Device[] devices = device_manager.getDevices();
 									
@@ -1395,6 +1455,10 @@ DeviceManagerUI
 				
 		view.setDetails( item, key );
 		
+		SideBarVitalityImage spinner = entry.addVitalityImage("image.sidebar.vitality.dots");
+
+		view.setSpinner( spinner );
+		
 		return( view );
 	}
 	
@@ -1445,6 +1509,8 @@ DeviceManagerUI
 		private TreeItem		tree_item;
 		private String			key;
 		
+		private SideBarVitalityImage	spinner;
+		
 		private int				last_indicator;
 		
 		protected
@@ -1465,6 +1531,13 @@ DeviceManagerUI
 		{
 			tree_item 	= _ti;
 			key			= _key;
+		}
+		
+		protected void
+		setSpinner(
+			SideBarVitalityImage		_spinner )
+		{
+			spinner	= _spinner;
 		}
 		
 		protected int
@@ -1489,13 +1562,17 @@ DeviceManagerUI
 		getTitleInfoProperty(
 			int propertyID ) 
 		{
+			boolean expanded = device_type == Device.DT_MEDIA_RENDERER && !tree_item.getExpanded();
+			
 			if ( propertyID == TITLE_TEXT ){
 				
 				return( getTitle());
 				
 			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
-				
-				if ( device_type == Device.DT_MEDIA_RENDERER && !tree_item.getExpanded()){
+			
+				spinner.setVisible( !expanded && ui.getDeviceManager().getTranscodeManager().getQueue().getJobCount() > 0 );
+
+				if ( expanded ){
 									
 					Device[] devices = ui.getDeviceManager().getDevices();
 					
