@@ -1362,11 +1362,6 @@ public class MainWindow
 
 		views.put("browse-area", Browse.class);
 
-		views.put("manage-dl-list", ManageDlList.class);
-		views.put("manage-cd-list", ManageCdList.class);
-
-		views.put(SkinConstants.VIEWID_LIBRARY, MediaList.class);
-
 		views.put("publish", Publish.class);
 		views.put("welcome", WelcomeView.class);
 
