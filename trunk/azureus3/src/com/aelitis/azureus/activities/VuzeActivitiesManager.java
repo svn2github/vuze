@@ -390,7 +390,7 @@ public class VuzeActivitiesManager
 			boolean isActive = (oIsActive instanceof Boolean)
 					? ((Boolean) oIsActive).booleanValue() : false;
 			if (!isActive) {
-				return;
+				continue;
 			}
 			
 			String id = "" + cn.getID();
