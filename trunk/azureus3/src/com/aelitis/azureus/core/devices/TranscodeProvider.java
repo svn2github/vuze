@@ -38,6 +38,14 @@ TranscodeProvider
 	getProfile(
 		String		UID );
 	
+	public TranscodeProviderAnalysis
+	analyse( 
+		TranscodeProviderAdapter	adapter,
+		DiskManagerFileInfo			input,
+		TranscodeProfile			profile )	
+	
+		throws TranscodeException;
+	
 	public TranscodeProviderJob
 	transcode( 
 		TranscodeProviderAdapter	adapter,

@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -36,6 +37,7 @@ import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.core.devices.TranscodeProviderAdapter;
 import com.aelitis.azureus.core.devices.TranscodeException;
+import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeProviderJob;
 
 public class 
@@ -113,6 +115,221 @@ TranscodeProviderVuze
 		}
 		
 		return( null );
+	}
+	
+	public TranscodeProviderAnalysis
+	analyse( 
+		final TranscodeProviderAdapter	_adapter,
+		DiskManagerFileInfo				input,
+		TranscodeProfile				profile )	
+	
+		throws TranscodeException
+	{
+		try{
+			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+			
+			if ( av_pi == null ){
+			
+				throw( new TranscodeException( "Media Server plugin not found" ));
+			}
+			
+			IPCInterface av_ipc = av_pi.getIPC();
+			
+			String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+			
+			URL 				source_url;
+			TranscodePipe		pipe;
+			
+			if ( url_str == null || url_str.length() == 0 ){
+				
+					// see if we can use the file directly
+				
+				File source_file = input.getFile();
+				
+				if ( source_file.exists()){
+					
+					pipe = new TranscodePipeFileSource( source_file );
+					
+					source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" + URLEncoder.encode( source_file.getName(), "UTF-8" ));
+					
+				}else{
+					
+					throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+				}
+			}else{
+				source_url = new URL( url_str );
+			
+				pipe = new TranscodePipeStreamSource( source_url.getPort());
+				
+				source_url = UrlUtils.setPort( source_url, pipe.getPort());
+			}
+			
+			final TranscodePipe f_pipe = pipe;
+			
+			try{	
+				final IPCInterface	ipc = plugin_interface.getIPC();
+
+				final Object analysis_context =
+					ipc.invoke(
+						"analyseContent",
+						new Object[]{ 
+							source_url,
+							profile.getName() });
+				
+				final Map<String,Object>	result = new HashMap<String, Object>();
+				
+				final TranscodeProviderAnalysis analysis = 
+					new TranscodeProviderAnalysis()
+					{
+						public void 
+						cancel() 
+						{
+							try{
+								ipc.invoke( "cancelAnalysis", new Object[]{ analysis_context });
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace( e );
+							}
+						}
+						
+						public boolean
+						getBooleanProperty(
+							int		property )
+						{
+							if ( property == PT_TRANSCODE_REQUIRED ){
+								
+								return( getBooleanProperty( "xcode_required", true ));
+								
+							}else{
+								
+								Debug.out( "Unknown property: " + property );
+								
+								return( false );
+							}
+						}
+						
+						public long
+						getLongProperty(
+							int		property )
+						{
+							if ( property == PT_DURATION_MILLIS ){
+								
+								return( getLongProperty( "duration_millis", 0 ));
+							
+							}else if ( property == PT_VIDEO_WIDTH ){
+								
+								return( getLongProperty( "video_width", 0 ));
+	
+							}else if ( property == PT_VIDEO_HEIGHT ){
+								
+								return( getLongProperty( "video_height", 0 ));
+	
+							}else{
+								
+								Debug.out( "Unknown property: " + property );
+								
+								return( 0 );
+							}
+						}
+						
+						protected boolean
+						getBooleanProperty(
+							String		name,
+							boolean		def )
+						{
+							Boolean b = (Boolean)result.get( name );
+							
+							if ( b != null ){
+								
+								return( b );
+							}
+							
+							return( def );
+						}
+						
+						protected long
+						getLongProperty(
+							String		name,
+							long		def )
+						{
+							Long l = (Long)result.get( name );
+							
+							if ( l != null ){
+								
+								return( l );
+							}
+							
+							return( def );
+						}
+					};
+					
+				new AEThread2( "analysisStatus", true )
+				{
+					public void 
+					run() 
+					{
+						try{
+							while( true ){
+																
+								try{
+									Map status = (Map)ipc.invoke( "getAnalysisStatus", new Object[]{ analysis_context });
+									
+									long	state = (Long)status.get( "state" );
+									
+									if ( state == 0 ){
+	
+										// running
+																				
+									}else if ( state == 1 ){
+										
+										_adapter.failed( new TranscodeException( "Analysis cancelled" ));
+										
+										return;
+										
+									}else if ( state == 2 ){
+										
+										_adapter.failed( new TranscodeException( "Analysis failed", (Throwable)status.get( "error" )));
+										
+										return;
+										
+									}else{
+										
+										result.putAll((Map<String,Object>)status.get( "result" ));
+										
+										_adapter.complete();
+										
+										return;
+									}
+								}catch( Throwable e ){
+									
+									_adapter.failed( new TranscodeException( "Failed to get status", e ));
+								}
+							}
+						}finally{
+															
+							f_pipe.destroy();
+						}
+					}
+				}.start();
+				
+				return( analysis );
+
+						
+			}catch( Throwable e ){
+				
+				pipe.destroy();
+				
+				throw( e );
+			}
+		}catch( TranscodeException e ){
+			
+			throw( e );
+				
+		}catch( Throwable e ){
+			
+			throw( new TranscodeException( "analysis failed", e ));
+		}
 	}
 	
 	public TranscodeProviderJob

@@ -106,14 +106,113 @@ TranscodeQueueImpl
 			
 			TranscodeProvider provider = job.getProfile().getProvider();
 
-			final AESemaphore sem = new AESemaphore( "Xcode:proc" );
-			
-			final TranscodeProviderJob[] provider_job = { null }; 
 			
 			final Throwable[] error = { null };
 
+				
+			TranscodeProfile profile = job.getProfile();
+				
+			final AESemaphore analysis_sem = new AESemaphore( "analysis:proc" );
 			
-			TranscodeProviderAdapter adapter = 
+
+			TranscodeProviderAdapter analysis_adapter = 
+				new TranscodeProviderAdapter()
+				{
+					public void
+					updatePercentDone(
+						int								percent )
+					{
+					}
+					
+					public void
+					failed(
+						TranscodeException		e )
+					{
+						error[0] = e;
+						
+						analysis_sem.release();
+					}
+					
+					public void 
+					complete() 
+					{
+						analysis_sem.release();
+					}
+				};
+				
+			final TranscodeProviderAnalysis provider_analysis =	provider.analyse( analysis_adapter, job.getFile(), profile );
+			
+			TranscodeQueueListener analysis_q_listener = 
+				new TranscodeQueueListener()
+				{
+					public void
+					jobAdded(
+						TranscodeJob		job )
+					{					
+					}
+					
+					public void
+					jobChanged(
+						TranscodeJob		changed_job )
+					{
+						if ( changed_job == job ){
+							
+							int	state = job.getState();
+							
+							if ( 	state == TranscodeJob.ST_CANCELLED ||
+									state == TranscodeJob.ST_STOPPED ){
+							
+								provider_analysis.cancel();
+							}
+						}
+					}
+					
+					public void
+					jobRemoved(
+						TranscodeJob		removed_job )
+					{	
+						if ( removed_job == job ){
+							
+							provider_analysis.cancel();
+						}
+					}
+				};
+				
+			try{
+				addListener( analysis_q_listener );
+			
+				analysis_sem.reserve();
+				
+			}finally{
+				
+				removeListener( analysis_q_listener );
+			}
+			
+			if ( error[0] != null ){
+				
+				throw( error[0] );
+			}
+			
+			boolean xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
+			
+			job.getTranscodeFile().update( provider_analysis );
+			
+			int	tt_req = job.getDevice().getTranscodeRequirement();
+			
+			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
+				
+				xcode_required = false;
+				
+			}else if ( tt_req == TranscodeTarget.TRANSCODE_ALWAYS ){
+				
+				xcode_required = true;
+			}
+			
+			final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
+			
+			final TranscodeProviderJob[] provider_job = { null }; 
+
+			TranscodeProviderAdapter xcode_adapter = 
 				new TranscodeProviderAdapter()
 				{
 					public void
@@ -157,19 +256,15 @@ TranscodeQueueImpl
 					{
 						error[0] = e;
 						
-						sem.release();
+						xcode_sem.release();
 					}
 					
 					public void 
 					complete() 
 					{
-						sem.release();
+						xcode_sem.release();
 					}
 				};
-				
-			TranscodeProfile profile = job.getProfile();
-				
-			TranscodeFileImpl		transcode_file = null;
 			
 			if ( job.isStream()){
 				
@@ -195,21 +290,22 @@ TranscodeQueueImpl
 				
 				provider_job[0] = 
 					provider.transcode(
-						adapter,
+						xcode_adapter,
 						job.getFile(),
 						profile,
 						new URL( "tcp://127.0.0.1:" + pipe.getPort()));
 
 			}else{
 				
-					
+				TranscodeFileImpl		transcode_file = null;
+
 				transcode_file = job.getTranscodeFile();
 				
 				File output_file = transcode_file.getFile();
 				
 				provider_job[0] = 
 					provider.transcode(
-						adapter,
+						xcode_adapter,
 						job.getFile(),
 						profile,
 						output_file.toURI().toURL());
@@ -264,7 +360,7 @@ TranscodeQueueImpl
 			try{
 				addListener( listener );
 			
-				sem.reserve();
+				xcode_sem.reserve();
 				
 			}finally{
 				

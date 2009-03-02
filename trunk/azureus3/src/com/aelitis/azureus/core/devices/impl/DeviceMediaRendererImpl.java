@@ -122,13 +122,6 @@ DeviceMediaRendererImpl
 	{
 		super.getDisplayProperties( dp );
 
-		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
-		try{
-			addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
-		}catch( TranscodeException e ){
-			addDP( dp, "devices.xcode.prof_def", "None" );
-		}
-		
-		addDP( dp, "devices.xcode.profs", getTranscodeProfiles() );
+		super.getTTDisplayProperties( dp );
 	}	
 }

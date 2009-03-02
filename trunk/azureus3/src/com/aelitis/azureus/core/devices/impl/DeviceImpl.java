@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
+import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ImportExportUtils;
@@ -90,6 +91,7 @@ DeviceImpl
 	private static final String PP_REND_WORK_DIR		= "tt_work_dir";
 	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
+	private static final String PP_REND_TRANS_REQ		= "tt_req";
 	
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
@@ -219,6 +221,27 @@ DeviceImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	protected String
+	getDeviceClassification()
+	{
+		if ( name.equalsIgnoreCase( "PS3" )){
+			
+			return( "sony.PS3" );
+			
+		}else if ( name.equalsIgnoreCase( "XBox 360" )){
+			
+			return( "microsoft.XBox" );
+		
+		}else if ( name.equalsIgnoreCase( "Browser" )){
+
+			return( "nintendo.Wii" );
+			
+		}else{
+			
+			return( "generic" );
+		}
 	}
 	
 	public boolean
@@ -517,51 +540,35 @@ DeviceImpl
 
 	public TranscodeProfile[]
 	getTranscodeProfiles()
-	{
-		String[] uids = getPersistentStringListProperty( PP_REND_TRANS_PROF );
-		
+	{		
 		List<TranscodeProfile>	profiles = new ArrayList<TranscodeProfile>();
 		
 		DeviceManagerImpl dm = getManager();
 		
 		TranscodeManagerImpl tm = dm.getTranscodeManager();
-		
-			// hack for the moment!!!!
-		
-		TranscodeProvider[] providers = tm.getProviders();
-		
-		if ( providers.length > 0 ){
-			
-			return( providers[0].getProfiles());
-		}
-		
-		for ( String uid: uids ){
-			
-			TranscodeProfile profile = tm.getProfileFromUID( uid );
-			
-			if ( profile != null ){
 				
-				profiles.add( profile );
+		TranscodeProvider[] providers = tm.getProviders();
+				
+		String classification = getDeviceClassification();
+		
+		for ( TranscodeProvider provider: providers ){
+			
+			TranscodeProfile[] ps = provider.getProfiles();
+			
+			for ( TranscodeProfile p : ps ){
+				
+				String c = p.getDeviceClassification();
+				
+				if ( c.toLowerCase().startsWith( classification.toLowerCase())){
+					
+					profiles.add( p );
+				}
 			}
 		}
 		
 		return( profiles.toArray( new TranscodeProfile[profiles.size()] ));
 	}
-	
-	public void
-	setTranscodeProfiles(
-		TranscodeProfile[]	profiles )
-	{
-		String[]	uids = new String[profiles.length];
 		
-		for (int i=0;i<profiles.length;i++){
-			
-			uids[i] = profiles[i].getUID();
-		}
-		
-		setPersistentStringListProperty( PP_REND_TRANS_PROF, uids );
-	}
-	
 	public TranscodeProfile
 	getDefaultTranscodeProfile()
 	
@@ -614,6 +621,19 @@ DeviceImpl
 		return( transcoding );
 	}
 	
+	public int
+	getTranscodeRequirement()
+	{
+		return( getPersistentIntProperty( PP_REND_TRANS_REQ, TranscodeTarget.TRANSCODE_WHEN_REQUIRED ));
+	}
+	
+	public void
+	setTranscodeRequirement(
+		int		req )
+	{
+		setPersistentIntProperty( PP_REND_TRANS_REQ, req );
+	}
+	
 	public String[][] 
 	getDisplayProperties() 
 	{
@@ -648,6 +668,38 @@ DeviceImpl
 		
 			addDP( dp, "device.lastseen", last_seen==0?"":new SimpleDateFormat().format(new Date( last_seen )));
 		}
+	}
+	
+	protected void
+	getTTDisplayProperties(
+		List<String[]>	dp )
+	{
+		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
+		try{
+			addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
+		}catch( TranscodeException e ){
+			addDP( dp, "devices.xcode.prof_def", "None" );
+		}
+		
+		addDP( dp, "devices.xcode.profs", getTranscodeProfiles() );
+		
+		int	tran_req = getTranscodeRequirement();
+		
+		String	tran_req_str;
+		
+		if ( tran_req == TranscodeTarget.TRANSCODE_ALWAYS ){
+			
+			 tran_req_str = "device.xcode.always";
+			 
+		}else if ( tran_req == TranscodeTarget.TRANSCODE_NEVER ){
+			
+			 tran_req_str = "device.xcode.never";
+		}else{
+			
+			 tran_req_str = "device.xcode.whenreq";
+		}
+		
+		addDP( dp, "device.xcode", MessageText.getString( tran_req_str ));
 	}
 	
 	protected void
@@ -794,6 +846,22 @@ DeviceImpl
 		boolean		value )
 	{
 		setPersistentStringProperty(prop, value?"true":"false" );
+	}
+	
+	public int
+	getPersistentIntProperty(
+		String		prop,
+		int			def )
+	{
+		return( Integer.parseInt( getPersistentStringProperty( prop, String.valueOf(def) )));
+	}
+	
+	public void
+	setPersistentIntProperty(
+		String		prop,
+		int			value )
+	{
+		setPersistentStringProperty(prop, String.valueOf( value ));
 	}
 	
 	public String[]

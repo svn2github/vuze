@@ -71,4 +71,11 @@ TranscodeProfileImpl
 	{
 		return((String)properties.get( "file-ext" ));
 	}
+	
+	public String
+	getDeviceClassification()
+	{
+		return((String)properties.get( "device" ));
+
+	}
 }

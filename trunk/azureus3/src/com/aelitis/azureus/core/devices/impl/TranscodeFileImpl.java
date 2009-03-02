@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -122,6 +123,15 @@ TranscodeFileImpl
 		return( getLong( PT_COPIED ) == 1 );
 	}
 	
+	protected void
+	update(
+		TranscodeProviderAnalysis		analysis )
+	{
+		long	duration		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_DURATION_MILLIS );
+		long	video_width		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
+		long	video_height	= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
+
+	}
 	
 	public void
 	delete(

@@ -28,6 +28,10 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 public interface 
 TranscodeTarget 
 {
+	public static final int TRANSCODE_NEVER				= 1;
+	public static final int TRANSCODE_WHEN_REQUIRED		= 2;
+	public static final int TRANSCODE_ALWAYS			= 3;
+	
 	public String
 	getID();
 	
@@ -53,11 +57,7 @@ TranscodeTarget
 	
 	public TranscodeProfile[]
 	getTranscodeProfiles();
-	
-	public void
-	setTranscodeProfiles(
-		TranscodeProfile[]	profiles );
-	
+		
 	public TranscodeProfile
 	getDefaultTranscodeProfile()
 	
@@ -66,6 +66,13 @@ TranscodeTarget
 	public void
 	setDefaultTranscodeProfile(
 		TranscodeProfile		profile );
+	
+	public int
+	getTranscodeRequirement();
+	
+	public void
+	setTranscodeRequirement(
+		int		req );
 	
 	public boolean
 	isTranscoding();

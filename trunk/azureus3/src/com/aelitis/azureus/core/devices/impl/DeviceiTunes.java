@@ -126,6 +126,12 @@ DeviceiTunes
 			});
 	}
 	
+	protected String
+	getDeviceClassification()
+	{
+		return( "apple." );
+	}
+	
 	protected void
 	destroy()
 	{
@@ -449,7 +455,9 @@ DeviceiTunes
 				
 			addDP( dp, "MyTrackerView.status.started", is_running );
 			
-			addDP( dp, "copy_to_device_pending", copy_outstanding );
+			addDP( dp, "devices.copy.pending", copy_outstanding );
 		}
+		
+		super.getTTDisplayProperties( dp );
 	}
 }

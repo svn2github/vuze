@@ -1,5 +1,5 @@
 /*
- * Created on Feb 9, 2009
+ * Created on Mar 2, 2009
  * Created by Paul Gardner
  * 
  * Copyright 2009 Vuze, Inc.  All rights reserved.
@@ -22,16 +22,21 @@
 package com.aelitis.azureus.core.devices;
 
 public interface 
-TranscodeProviderAdapter 
+TranscodeProviderAnalysis 
 {
-	public void
-	updatePercentDone(
-		int						percent );
+	public static final int PT_TRANSCODE_REQUIRED	= 1;	// Boolean
+	public static final int PT_DURATION_MILLIS		= 2;	// Long
+	public static final int PT_VIDEO_WIDTH			= 3;	// Long
+	public static final int PT_VIDEO_HEIGHT			= 4;	// Long
 	
 	public void
-	failed(
-		TranscodeException		error );
+	cancel();
 	
-	public void
-	complete();
+	public boolean
+	getBooleanProperty(
+		int		property );
+	
+	public long
+	getLongProperty(
+		int		property );
 }

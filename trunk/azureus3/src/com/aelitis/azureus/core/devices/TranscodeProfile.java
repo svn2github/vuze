@@ -33,6 +33,9 @@ TranscodeProfile
 	public String
 	getFileExtension();
 	
+	public String
+	getDeviceClassification();
+	
 	public TranscodeProvider
 	getProvider();
 }
