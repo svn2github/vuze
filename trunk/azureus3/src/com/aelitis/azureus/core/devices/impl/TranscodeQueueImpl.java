@@ -75,6 +75,7 @@ TranscodeQueueImpl
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 				"xcode.queue.paused",
+				"xcode.queue.maxbps",
 			},
 			new ParameterListener()
 			{

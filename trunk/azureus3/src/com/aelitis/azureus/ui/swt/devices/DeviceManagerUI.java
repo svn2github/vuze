@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 
@@ -349,6 +350,23 @@ DeviceManagerUI
 						
 						search();
 					}
+				}
+			});
+
+		final IntParameter max_xcode = 
+			configModel.addIntParameter2( 
+				"device.config.xcode.maxbps", "device.config.xcode.maxbps",
+				(int)(device_manager.getTranscodeManager().getQueue().getMaxBytesPerSecond()/1024), 
+				0, Integer.MAX_VALUE );
+		
+		max_xcode.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.getTranscodeManager().getQueue().setMaxBytesPerSecond( max_xcode.getValue()*1024 );
 				}
 			});
 
