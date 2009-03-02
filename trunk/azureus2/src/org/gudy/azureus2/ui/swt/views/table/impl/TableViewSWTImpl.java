@@ -367,11 +367,11 @@ public class TableViewSWTImpl
 			basicItems = null;
 		}
 
-		// fixup order
-		tcManager.ensureIntegrety(sTableID);
-
 		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
 				sTableID);
+
+		// fixup order
+		tcManager.ensureIntegrety(sTableID);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String)
@@ -386,11 +386,11 @@ public class TableViewSWTImpl
 			tcManager.addColumns(basicItems);
 		}
 
-		// fixup order
-		tcManager.ensureIntegrety(sTableID);
-
 		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
 				sTableID);
+
+		// fixup order
+		tcManager.ensureIntegrety(sTableID);
 	}
 
 	// AbstractIView::initialize
@@ -981,6 +981,7 @@ public class TableViewSWTImpl
 				
 				wasSelected = nowSelected;
 				
+				//System.out.println(table.getSelection().length);
 				triggerSelectionListeners(new TableRowCore[] {
 					getRow((TableItem) event.item)
 				});
@@ -1752,7 +1753,7 @@ public class TableViewSWTImpl
 		}
 
 		TableColumnCore tc = tcManager.getTableColumnCore(sTableID, sSortColumn);
-		if (tc == null) {
+		if (tc == null && tableColumns.length > 0) {
 			tc = tableColumns[0];
 		}
 		sortColumn = tc;
@@ -1783,7 +1784,7 @@ public class TableViewSWTImpl
 	
 	public void fixAlignment(TableColumnCore tc, boolean sorted) {
 		if (Constants.isOSX) {
-			if (table.isDisposed()) {
+			if (table.isDisposed() || tc == null) {
 				return;
 			}
 			int[] columnOrder = table.getColumnOrder();
@@ -2132,7 +2133,7 @@ public class TableViewSWTImpl
 			//System.out.println("Refresh.. WillSort? " + bWillSort);
 
 			if (bWillSort) {
-				if (bForceSort) {
+				if (bForceSort && sortColumn != null) {
 					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
 				sortColumn(true);
@@ -2545,7 +2546,7 @@ public class TableViewSWTImpl
 						// instead of relying on binarySearch, which may return an item
 						// in the middle that also is equal.
 						TableRowSWT lastRow = (TableRowSWT) sortedRows.get(sortedRows.size() - 1);
-						if (sortColumn.compare(row, lastRow) >= 0) {
+						if (sortColumn == null || sortColumn.compare(row, lastRow) >= 0) {
 							index = sortedRows.size();
 							sortedRows.add(row);
 							if (DEBUGADDREMOVE)
@@ -3214,6 +3215,7 @@ public class TableViewSWTImpl
 				if (table.isDisposed()) {
 					return;
 				}
+
 				TableItem[] tis = table.getSelection();
 				for (int i = 0; i < tis.length; i++) {
 					TableRowSWT row = (TableRowSWT) getRow(tis[i]);
@@ -3934,6 +3936,9 @@ public class TableViewSWTImpl
 	}
 
 	public void sortColumnReverse(TableColumnCore sorter) {
+		if (sortColumn == null) {
+			return;
+		}
 		boolean bSameColumn = sortColumn.equals(sorter);
 		if (!bSameColumn) {
 			fixAlignment(sortColumn, false);
@@ -3968,7 +3973,8 @@ public class TableViewSWTImpl
 			TableColumn[] tcs = table.getColumns();
 			for (int i = 0; i < tcs.length; i++) {
 				String sName = (String) tcs[i].getData("Name");
-				if (sName != null && sName.equals(sortColumn.getName())) {
+				if (sName != null && sortColumn != null
+						&& sName.equals(sortColumn.getName())) {
 					table.setSortDirection(sortColumn.isSortAscending() ? SWT.UP
 							: SWT.DOWN);
 					table.setSortColumn(tcs[i]);
