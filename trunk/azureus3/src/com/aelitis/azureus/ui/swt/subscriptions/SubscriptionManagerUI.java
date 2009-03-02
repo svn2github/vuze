@@ -744,6 +744,11 @@ SubscriptionManagerUI
 					return null;
 				}
 			});
+
+			side_bar.createTreeItemFromIViewClass(null,
+					SideBar.SIDEBAR_SECTION_SUBSCRIPTIONS,
+					MessageText.getString("subscriptions.view.title"),
+					SubscriptionsView.class, null, null, null, null, false);
 		}
 		
 		markAllResultsListener = new MenuItemListener() {
@@ -1135,7 +1140,8 @@ SubscriptionManagerUI
 										key, 
 										subs, 
 										false, 
-										show );
+										show,
+										true );
 								
 								SideBarEntrySWT	entry = SideBar.getEntry( key );
 																

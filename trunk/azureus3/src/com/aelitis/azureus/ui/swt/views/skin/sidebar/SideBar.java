@@ -34,7 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -65,8 +65,6 @@ import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -76,12 +74,10 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.devices.DevicesView;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionsView;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarEnablerSelectedContent;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
@@ -89,7 +85,9 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.ContentNetworkUtils;
+import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -102,8 +100,6 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
 import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
-
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -584,9 +580,9 @@ public class SideBar
 					case SWT.Paint: {
 						//System.out.println("Paint: " + event.getBounds());
 						Rectangle bounds = event.getBounds();
-						if (tree.getItemCount() == 0) {
-							return;
-						}
+//						if (tree.getItemCount() == 0) {
+//							return;
+//						}
 						int indent = Constants.isUnix ? tree.getClientArea().width - 1 : 0;
 						int y = event.y + 1;
 						treeItem = tree.getItem(new Point(indent, y));
@@ -1389,17 +1385,8 @@ public class SideBar
 				MessageText.getString("sidebar." + SIDEBAR_SECTION_ACTIVITIES),
 				titleInfoActivityView, null, false, -1);
 		addMenuNotifications();
-
-		createTreeItemFromIViewClass(null, SIDEBAR_SECTION_SUBSCRIPTIONS,
-				"subscriptions", SubscriptionsView.class, null, null, null, null, false);
-
-		if ( SHOW_DEVICES ){
-			
-			createTreeItemFromIViewClass(null, SIDEBAR_SECTION_DEVICES,
-					"devices", DevicesView.class, null, null, null, null, false);
-
-		}
 		
+
 		//entry.setImageLeftID("image.sidebar.subscriptions");
 
 		//new TreeItem(tree, SWT.NONE).setText("Search");
@@ -1408,18 +1395,21 @@ public class SideBar
 			createEntryFromSkinRef(null, SIDEBAR_SECTION_TOOLS, "main.area.hood",
 					"Under The Hood", null, null, false, -1);
 
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "All Peers",
-					PeerSuperView.class);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "Stats",
-					StatsView.class);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "My Tracker",
-					MyTrackerView.class);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "My Classic-Shares",
-					MySharesView.class);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "Logger",
-					LoggerView.class);
-			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS, "Config",
-					ConfigView.class);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					PeerSuperView.class.getSimpleName(), "All Peers",
+					PeerSuperView.class, true);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					StatsView.class.getSimpleName(), "Stats", StatsView.class, true);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					MyTrackerView.class.getSimpleName(), "My Tracker",
+					MyTrackerView.class, true);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					MySharesView.class.getSimpleName(), "My Classic-Shares",
+					MySharesView.class, true);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					LoggerView.class.getSimpleName(), "Logger", LoggerView.class, true);
+			createTreeItemFromIViewClass(SIDEBAR_SECTION_TOOLS,
+					ConfigView.class.getSimpleName(), "Config", ConfigView.class, true);
 		}
 
 		if (SHOW_ALL_PLUGINS) {
@@ -1612,16 +1602,11 @@ public class SideBar
 		}
 	}
 
-	public TreeItem createTreeItemFromIViewClass(String parent, String title,
-			Class iviewClass) {
-		String id = iviewClass.getName();
-		int i = id.lastIndexOf('.');
-		if (i > 0) {
-			id = id.substring(i + 1);
-		}
+	public TreeItem createTreeItemFromIViewClass(String parent, String id,
+			String title, Class iviewClass, boolean closeable) {
 
 		return createTreeItemFromIViewClass(parent, id, title, iviewClass, null,
-				null, null, null, true);
+				null, null, null, closeable);
 	}
 
 	public TreeItem createTreeItemFromIViewClass(String parent, String id,
@@ -1975,6 +1960,7 @@ public class SideBar
 
 		container = (SWTSkinObjectContainer) newSideBarInfo.skinObject;
 		if (container != null) {
+			//container.setVisible(true);
 			Composite composite = container.getComposite();
 			if (composite != null && !composite.isDisposed()) {
 				composite.setVisible(true);
@@ -2197,8 +2183,10 @@ public class SideBar
 				viewComposite.setLayout(gridLayout);
 			}
 
+			viewComposite.setVisible(false);
+
 			SWTSkinObjectContainer soContents = new SWTSkinObjectContainer(skin,
-					skin.getSkinProperties(), viewComposite, "Contents"
+					skin.getSkinProperties(), viewComposite, "Contents." + id + "." 
 							+ (mapIdToEntries.size() + 1), "", "container", soSideBarContents);
 
 			entry.skinObject = soContents;
