@@ -101,7 +101,6 @@ public class TableCellImpl
 	private ArrayList cellMouseMoveListeners;
 	private ArrayList cellVisibilityListeners;
 	private ArrayList cellSWTPaintListeners;
-	private boolean hasColumnSWTPaintListeners;
   private TableColumnCore tableColumn;
   private byte refreshErrLoopCount;
   private byte tooltipErrLoopCount;
@@ -149,7 +148,6 @@ public class TableCellImpl
     refreshErrLoopCount = 0;
     tooltipErrLoopCount = 0;
     loopFactor = 0;
-    hasColumnSWTPaintListeners = (_tableColumn instanceof TableCellSWTPaintListener);
 
     if (item != null) {
     	bufferedTableItem = item;
@@ -480,7 +478,8 @@ public class TableCellImpl
   	tableColumn.setLastSortValueChange(SystemTime.getCurrentTime());
     sortValue = valueToSort;
     
-  	if (cellSWTPaintListeners != null || hasColumnSWTPaintListeners) {
+  	if (cellSWTPaintListeners != null
+				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
   		redraw();
   	}
 
@@ -1240,7 +1239,7 @@ public class TableCellImpl
   }
 
   public boolean needsPainting() {
-  	if (cellSWTPaintListeners != null || hasColumnSWTPaintListeners) {
+  	if (cellSWTPaintListeners != null || tableColumn.hasCellOtherListeners("SWTPaint")) {
   		return true;
   	}
   	if (bufferedTableItem == null) {
