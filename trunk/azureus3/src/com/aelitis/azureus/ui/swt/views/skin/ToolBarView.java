@@ -68,7 +68,7 @@ public class ToolBarView
 {
 	private static toolbarButtonListener buttonListener;
 
-	private Map items = new LinkedHashMap();
+	private Map<String, ToolBarItem> items = new LinkedHashMap<String, ToolBarItem>();
 
 	private GlobalManager gm;
 
@@ -225,14 +225,13 @@ public class ToolBarView
 				} else {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
-						Arrays.sort(dms, new Comparator() {
-							public int compare(Object a, Object b) {
-								return ((DownloadManager) a).getPosition()
-										- ((DownloadManager) b).getPosition();
+						Arrays.sort(dms, new Comparator<DownloadManager>() {
+							public int compare(DownloadManager a, DownloadManager b) {
+								return a.getPosition() - b.getPosition();
 							}
 						});
 						for (int i = 0; i < dms.length; i++) {
-							DownloadManager dm = (DownloadManager) dms[i];
+							DownloadManager dm = dms[i];
 							if (gm.isMoveableUp(dm)) {
 								gm.moveUp(dm);
 							}
@@ -271,14 +270,13 @@ public class ToolBarView
 				} else {
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
-						Arrays.sort(dms, new Comparator() {
-							public int compare(Object a, Object b) {
-								return ((DownloadManager) b).getPosition()
-										- ((DownloadManager) a).getPosition();
+						Arrays.sort(dms, new Comparator<DownloadManager>() {
+							public int compare(DownloadManager a, DownloadManager b) {
+								return b.getPosition() - a.getPosition();
 							}
 						});
 						for (int i = 0; i < dms.length; i++) {
-							DownloadManager dm = (DownloadManager) dms[i];
+							DownloadManager dm = dms[i];
 							if (gm.isMoveableDown(dm)) {
 								gm.moveDown(dm);
 							}
@@ -717,9 +715,8 @@ public class ToolBarView
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
 			SideBarEntrySWT entry = sidebar.getCurrentEntry();
-			if (entry.iview instanceof IconBarEnabler) {
-				IconBarEnabler enabler = (IconBarEnabler) entry.iview;
-				enabler.itemActivated(toolBarItem.getId());
+			if (entry.iview != null) {
+				entry.iview.itemActivated(toolBarItem.getId());
 			}
 		}
 	}
@@ -731,11 +728,11 @@ public class ToolBarView
 	 * @since 3.1.1.1
 	 */
 	public ToolBarItem getToolBarItem(String itemID) {
-		return (ToolBarItem) items.get(itemID);
+		return items.get(itemID);
 	}
 
 	public ToolBarItem[] getAllToolBarItems() {
-		return (ToolBarItem[]) items.values().toArray(new ToolBarItem[0]);
+		return items.values().toArray(new ToolBarItem[0]);
 	}
 
 	public void refreshCoreToolBarItems() {
@@ -747,14 +744,15 @@ public class ToolBarView
 			SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 			if (sidebar != null) {
 				SideBarEntrySWT entry = sidebar.getCurrentEntry();
-				if (entry.iview instanceof IconBarEnabler) {
-					IconBarEnabler enabler = (IconBarEnabler) entry.iview;
+				IconBarEnabler enabler = entry.getIconBarEnabler();
+				if (enabler == null && entry.iview != null) {
+					enabler = entry.iview;
+				}
 					
-					ToolBarItem[] allToolBarItems = getAllToolBarItems();
-					for (int i = 0; i < allToolBarItems.length; i++) {
-						ToolBarItem toolBarItem = allToolBarItems[i];
-						toolBarItem.setEnabled(enabler.isEnabled(toolBarItem.getId()));
-					}
+				ToolBarItem[] allToolBarItems = getAllToolBarItems();
+				for (int i = 0; i < allToolBarItems.length; i++) {
+					ToolBarItem toolBarItem = allToolBarItems[i];
+					toolBarItem.setEnabled(enabler.isEnabled(toolBarItem.getId()));
 				}
 			}
 		}
@@ -764,11 +762,12 @@ public class ToolBarView
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
 			SideBarEntrySWT entry = sidebar.getCurrentEntry();
-			if (entry.iview instanceof IconBarEnabler) {
-				IconBarEnabler enabler = (IconBarEnabler) entry.iview;
-				enabler.itemActivated(id);
-				return true;
+			IconBarEnabler enabler = entry.getIconBarEnabler();
+			if (enabler == null && entry.iview != null) {
+				enabler = entry.iview;
 			}
+			enabler.itemActivated(id);
+			return true;
 		}
 		return false;
 	}

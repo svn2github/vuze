@@ -30,7 +30,9 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.IconBar.IconBarListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.IView;
 
@@ -86,6 +88,8 @@ public class SideBarEntrySWT implements SideBarEntry
 	private List listOpenListeners = Collections.EMPTY_LIST;
 
 	private List listDropListeners = Collections.EMPTY_LIST;
+
+	private IconBarEnabler iconBarEnabler;
 
 	private final SideBar sidebar;
 	
@@ -431,5 +435,13 @@ public class SideBarEntrySWT implements SideBarEntry
 	 */
 	public boolean isInTree() {
 		return treeItem != null && !treeItem.isDisposed();
+	}
+
+	public IconBarEnabler getIconBarEnabler() {
+		return iconBarEnabler;
+	}
+
+	public void setIconBarEnabler(IconBarEnabler iconBarEnabler) {
+		this.iconBarEnabler = iconBarEnabler;
 	}
 }
