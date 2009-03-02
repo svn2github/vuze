@@ -602,6 +602,17 @@ DeviceManagerUI
 
 			if ( !rebuild ){
 				
+				side_bar.createEntryFromSkinRef(null,
+						SideBar.SIDEBAR_SECTION_DEVICES, "devicesview",
+						MessageText.getString("devices.view.title"),
+						null, null, false, -1);
+
+
+				side_bar.createTreeItemFromIViewClass(null,
+						SideBar.SIDEBAR_SECTION_DEVICES + ".old",
+						MessageText.getString("devices.view.title") + "(old)", DevicesView.class,
+						false);
+
 				/* disabled for phase1
 				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");
 				
@@ -679,7 +690,7 @@ DeviceManagerUI
 							return null;
 						}
 					});
-				
+
 					// devices
 							
 				MenuItem de_menu_item = menu_manager.addMenuItem( "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES, "device.search" );
@@ -1015,6 +1026,8 @@ DeviceManagerUI
 				}
 			};
 		
+		// TUX TODO: make a table_manager.addContentMenuItem(Class forDataSourceType, String resourceKey)
+		//           instead of forcing a loop like this
 		for( String table: tables ){
 				
 			TableContextMenuItem menu = table_manager.addContextMenuItem(table, "devices.contextmenu.xcode" );
@@ -1253,6 +1266,25 @@ DeviceManagerUI
 	protected void
 	handleDrop(
 		TranscodeTarget	target,
+		final Object			payload )
+	{
+		TranscodeChooser deviceChooser = new TranscodeChooser(target) {
+			
+			public void 
+			closed() 
+			{
+				if (selectedDevice != null && selectedProfile != null) {
+					handleDrop(selectedDevice, selectedProfile, payload);
+				}
+			}
+		};
+		deviceChooser.show();
+	}
+
+	protected void
+	handleDrop(
+		TranscodeTarget	target,
+		TranscodeProfile profile,
 		Object			payload )
 	{
 		if ( payload instanceof String[]){
@@ -1268,7 +1300,7 @@ DeviceManagerUI
 					try{
 						device_manager.getTranscodeManager().getQueue().add(
 							target,
-							target.getDefaultTranscodeProfile(),
+							profile,
 							new DiskManagerFileInfoFile( f ),
 							false );
 						
@@ -1325,7 +1357,7 @@ DeviceManagerUI
 									try{
 										device_manager.getTranscodeManager().getQueue().add(
 											target,
-											target.getDefaultTranscodeProfile(),
+											profile,
 											dm_file,
 											false );
 										
@@ -1350,7 +1382,7 @@ DeviceManagerUI
 								try{
 									device_manager.getTranscodeManager().getQueue().add(
 										target,
-										target.getDefaultTranscodeProfile(),
+										profile,
 										dm_file,
 										false );
 									
@@ -1494,7 +1526,7 @@ DeviceManagerUI
 						SideBarEntry 		entry, 
 						Object 				payload  )
 					{
-						//
+						handleDrop(null, payload);
 					}
 				});
 	}

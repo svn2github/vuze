@@ -1,0 +1,174 @@
+/**
+ * Created on Feb 26, 2009
+ *
+ * Copyright 2008 Vuze, Inc.  All rights reserved.
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; version 2 of the License only.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
+ */
+ 
+package com.aelitis.azureus.ui.swt.devices.columns;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.*;
+
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+
+import com.aelitis.azureus.core.devices.TranscodeJob;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
+
+import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.*;
+
+/**
+ * @author TuxPaper
+ * @created Feb 26, 2009
+ *
+ */
+public class ColumnTJ_Completion
+implements TableCellAddedListener, TableCellRefreshListener,
+TableCellDisposeListener, TableCellSWTPaintListener
+{
+	private static final int borderWidth = 1;
+
+	public static final String COLUMN_ID = "completion";
+
+	private static Font fontText;
+
+	private Map mapCellLastPercentDone = new HashMap();
+
+	private int marginHeight = -1;
+
+	Color textColor;
+	
+
+	public ColumnTJ_Completion(TableColumn column) {
+		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 150);
+		column.addListeners(this);
+		// cheat.  TODO: Either auto-add (in above method), or provide
+		// access via TableColumn instead of type casting
+		((TableColumnImpl)column).addCellOtherListener("SWTPaint", this);
+		column.setType(TableColumn.TYPE_GRAPHIC);
+		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
+		column.setMinWidth(100);
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void cellAdded(TableCell cell) {
+		if (marginHeight != -1) {
+			cell.setMarginHeight(marginHeight);
+		} else {
+			cell.setMarginHeight(2);
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void dispose(TableCell cell) {
+		mapCellLastPercentDone.remove(cell);
+		Graphic graphic = cell.getGraphic();
+		if (graphic instanceof UISWTGraphic) {
+			Image img = ((UISWTGraphic) graphic).getImage();
+			if (img != null && !img.isDisposed()) {
+				img.dispose();
+			}
+		}
+	}
+
+	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
+	public void refresh(TableCell cell) {
+		int percentDone = getPercentDone(cell);
+
+		Integer intObj = (Integer) mapCellLastPercentDone.get(cell);
+		int lastPercentDone = intObj == null ? 0 : intObj.intValue();
+
+		if (!cell.setSortValue(percentDone) && cell.isValid()
+				&& lastPercentDone == percentDone) {
+			return;
+		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
+	public void cellPaint(GC gcImage, TableCellSWT cell) {
+		int percentDone = getPercentDone(cell) * 10;
+
+		Rectangle bounds = cell.getBounds();
+
+		int yOfs = (bounds.height - 13) / 2 ;
+		int x1 = bounds.width - borderWidth - 2;
+		int y1 = bounds.height - 3 - yOfs;
+
+		if (x1 < 10 || y1 < 3) {
+			return;
+		}
+		int textYofs = 0;
+
+		mapCellLastPercentDone.put(cell, new Integer(percentDone));
+		
+    ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgEnd = imageLoader.getImage("dl_bar_end");
+		Image img0 = imageLoader.getImage("dl_bar_0");
+		Image img1 = imageLoader.getImage("dl_bar_1");
+
+		//draw begining and end
+		if (!imgEnd.isDisposed()) {
+			gcImage.drawImage(imgEnd, bounds.x , bounds.y + yOfs);
+			gcImage.drawImage(imgEnd, bounds.x + x1 + 1, bounds.y + yOfs);
+		}
+		
+		
+		
+		int limit = (x1 * percentDone) / 1000;
+		
+		if (!img1.isDisposed() && limit > 0) {
+			Rectangle imgBounds = img1.getBounds();
+			gcImage.drawImage(img1, 0, 0, imgBounds.width, imgBounds.height,
+					bounds.x + 1, bounds.y + yOfs, limit, imgBounds.height);
+		}
+		if (percentDone < 1000 && !img0.isDisposed()) {
+			Rectangle imgBounds = img0.getBounds();
+			gcImage.drawImage(img0, 0, 0, imgBounds.width, imgBounds.height, bounds.x
+					+ limit + 1, bounds.y + yOfs, x1 - limit, imgBounds.height);
+		}
+
+		imageLoader.releaseImage("dl_bar_end");
+		imageLoader.releaseImage("dl_bar_0");
+		imageLoader.releaseImage("dl_bar_1");
+		
+		if(textColor == null) {
+			textColor = ColorCache.getColor(gcImage.getDevice(), "#005ACF" );
+		}
+
+		gcImage.setForeground(textColor);
+			
+		String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
+		GCStringPrinter.printString(gcImage, sPercent, new Rectangle(bounds.x + 4,
+				bounds.y + yOfs, bounds.width - 4,13), true,
+				false, SWT.CENTER);
+	}
+
+	private int getPercentDone(TableCell cell) {
+		TranscodeJob tj =  (TranscodeJob) cell.getDataSource();
+		if (tj == null) {
+			return 0;
+		}
+		return tj.getPercentComplete();
+	}
+}

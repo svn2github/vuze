@@ -20,6 +20,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
 import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
@@ -53,6 +54,16 @@ public class ColumnAzProduct
 	public ColumnAzProduct(String sTableID) {
 		super(COLUMN_ID, ALIGN_CENTER, 40, sTableID);
 		initializeAsGraphic(40);
+	}
+	
+	public ColumnAzProduct(TableColumn column) {
+		super(null, null);
+		column.initialize(ALIGN_CENTER, 0, 40, INTERVAL_GRAPHIC);
+		column.setType(TYPE_GRAPHIC);
+		column.addListeners(this);
+		// cheat.  TODO: Either auto-add (in above method), or provide
+		// access via TableColumn instead of type casting
+		((TableColumnImpl)column).addCellOtherListener("SWTPaint", this);
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {

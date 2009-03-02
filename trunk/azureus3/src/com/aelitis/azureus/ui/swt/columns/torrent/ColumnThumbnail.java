@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListener;
 import com.aelitis.azureus.util.DataSourceUtils;
@@ -80,6 +81,19 @@ public class ColumnThumbnail
 		} else {
 			initializeAsGraphic(sTableID.endsWith(".big") ? WIDTH_BIG : WIDTH_SMALL);
 		}
+	}
+
+	/**
+	 * @param column
+	 */
+	public ColumnThumbnail(TableColumn column) {
+		super(null, null);
+
+		column.initialize(ALIGN_CENTER, 0, WIDTH_BIG);
+		column.addListeners(this);
+		// cheat.  TODO: Either auto-add (in above method), or provide
+		// access via TableColumn instead of type casting
+		((TableColumnImpl)column).addCellOtherListener("SWTPaint", this);
 	}
 
 	public void dispose(TableCell cell) {
