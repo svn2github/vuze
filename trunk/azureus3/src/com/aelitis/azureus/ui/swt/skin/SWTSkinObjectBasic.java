@@ -17,8 +17,12 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
@@ -96,6 +100,8 @@ public class SWTSkinObjectBasic
 	protected boolean customTooltipID = false;
 
 	private Listener resizeBGListener;
+
+	private SkinView skinView;
 	
 	/**
 	 * @param properties TODO
@@ -252,9 +258,10 @@ public class SWTSkinObjectBasic
 	 *
 	 * @since 3.0.4.3
 	 */
-	protected void setIsVisible(boolean visible, boolean walkup) {
+	protected boolean setIsVisible(boolean visible, boolean walkup) {
+		//System.out.println(this + " SET IS VISIBLE " + visible + " via " + Debug.getCompressedStackTrace());
 		if (visible == isVisible) {
-			return;
+			return false;
 		}
 		isVisible = visible;
 		switchSuffix(null, 0, false);
@@ -262,10 +269,14 @@ public class SWTSkinObjectBasic
 				: SWTSkinObjectListener.EVENT_HIDE);
 		
 		if (walkup) {
-  		if (parent instanceof SWTSkinObjectBasic) {
-  			((SWTSkinObjectBasic) parent).setIsVisible(visible, walkup);
+			SWTSkinObject p = parent;
+			
+  		while (p instanceof SWTSkinObjectBasic) {
+  			((SWTSkinObjectBasic) p).setIsVisible(visible, false);
+  			p = ((SWTSkinObjectBasic) p).getParent();
   		}
 		}
+		return true;
 	}
 
 	public Control getControl() {
@@ -699,6 +710,7 @@ public class SWTSkinObjectBasic
 		if (eventType == SWTSkinObjectListener.EVENT_SHOW
 				|| eventType == SWTSkinObjectListener.EVENT_HIDE) {
 			if (!initialized) {
+				//System.out.println("NOT INITIALIZED! " + SWTSkinObjectBasic.this + ";;;" + Debug.getCompressedStackTrace());
 				return;
 			}
 
@@ -708,25 +720,22 @@ public class SWTSkinObjectBasic
 				return;
 			}
 		} else if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
+			//System.out.println("INITIALIZED! " + SWTSkinObjectBasic.this + ";;;" + Debug.getCompressedStackTrace());
 			initialized = true;
 		}
-
+		
 		// process listeners added locally
-		if (listeners.size() > 0) {
-  		listeners_mon.enter();
-  		try {
-  			for (Iterator iterator = listeners.iterator(); iterator.hasNext();) {
-  				try {
-  					SWTSkinObjectListener l = (SWTSkinObjectListener) iterator.next();
-  					l.eventOccured(this, eventType, params);
-  				} catch (Exception e) {
-  					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
-  							+ " caused an error for listener added locally", e);
-  				}
-  			}
-  		} finally {
-  			listeners_mon.exit();
-  		}
+		SWTSkinObjectListener[] listenersArray = getListeners();
+		if (listenersArray.length > 0) {
+			// don't use iterator as triggering code may try to remove itself
+			for (SWTSkinObjectListener l : listenersArray) {
+				try {
+					l.eventOccured(this, eventType, params);
+				} catch (Exception e) {
+					Debug.out("Skin Event " + SWTSkinObjectListener.NAMES[eventType]
+							+ " caused an error for listener added locally", e);
+				}
+			}
 		}
 
 		// process listeners added to skin
@@ -746,6 +755,36 @@ public class SWTSkinObjectBasic
 		if (eventType == SWTSkinObjectListener.EVENT_CREATED) {
 			triggerListeners(isVisible ? SWTSkinObjectListener.EVENT_SHOW
 					: SWTSkinObjectListener.EVENT_HIDE);
+		}
+
+		if (eventType == SWTSkinObjectListener.EVENT_SHOW && skinView == null) {
+			String initClass = properties.getStringValue(sConfigID + ".onshow.skinviewclass");
+			if (initClass != null) {
+				try {
+					Class<SkinView> cla = (Class<SkinView>) Class.forName(initClass);
+
+					skinView = cla.newInstance();
+					skinView.setMainSkinObject(this);
+					SkinViewManager.add(skinView);
+					
+					// this will fire created and show for us
+					addListener(skinView);
+
+					if (skinView instanceof UIUpdatable) {
+						UIUpdatable updateable = (UIUpdatable) skinView;
+						try {
+							UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
+									updateable);
+						} catch (Exception e) {
+							Debug.out(e);
+						}
+					}
+					
+					SkinViewManager.triggerViewAddedListeners(skinView);
+				} catch (Throwable e) {
+					Debug.out(e);
+				}
+			}
 		}
 	}
 

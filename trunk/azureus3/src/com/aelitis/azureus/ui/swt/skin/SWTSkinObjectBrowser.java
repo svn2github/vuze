@@ -104,6 +104,7 @@ public class SWTSkinObjectBrowser
 				public Object eventOccured(SWTSkinObject skinObject, int eventType,
 						Object params) {
 					if (eventType == SWTSkinObjectListener.EVENT_SHOW) {
+						removeListener(this);
 						init();
 					}
 					return null;
@@ -122,6 +123,7 @@ public class SWTSkinObjectBrowser
 			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
 
 			browser.setLayoutData(Utils.getFilledFormData());
+			browser.getParent().layout(true);
 		} catch (SWTError e) {
 			System.err.println("Browser: " + e.toString());
 			return;
@@ -291,6 +293,9 @@ public class SWTSkinObjectBrowser
 	public void setStartURL(String url) {
 		sStartURL = url;
 		if (null != browser) {
+			if (urlToUse == null) {
+				browser.setUrl(url);
+			}
 			browser.setData("StartURL", url);
 		}
 	}
@@ -300,17 +305,20 @@ public class SWTSkinObjectBrowser
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setVisible(boolean)
-	public void setIsVisible(final boolean visible, boolean walkup) {
-		super.setIsVisible(visible, walkup);
+	public boolean setIsVisible(final boolean visible, boolean walkup) {
+		boolean changed = super.setIsVisible(visible, walkup);
 
-		// notify browser after we've fully processed visibility 
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				if (!isDisposed() && context != null) {
-					context.sendBrowserMessage("browser", visible ? "shown" : "hidden");
-				}
-			}
-		});
+		if (changed) {
+  		// notify browser after we've fully processed visibility 
+  		Utils.execSWTThreadLater(0, new AERunnable() {
+  			public void runSupport() {
+  				if (!isDisposed() && context != null) {
+  					context.sendBrowserMessage("browser", visible ? "shown" : "hidden");
+  				}
+  			}
+  		});
+		}
+		return changed;
 	}
 
 	public void addListener(loadingListener l) {

@@ -59,6 +59,8 @@ public class SWTSkinObjectContainer
 			SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, type, parent);
 
+		triggerListeners(SWTSkinObjectListener.EVENT_CREATED);
+
 		if (control != null) {
 			setControl(control);
 		}
@@ -248,18 +250,24 @@ public class SWTSkinObjectContainer
 	}
 	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setIsVisible(boolean)
-	protected void setIsVisible(boolean visible, boolean walkup) {
-		super.setIsVisible(visible, walkup);
+	protected boolean setIsVisible(boolean visible, boolean walkup) {
+		boolean changed = super.setIsVisible(visible, walkup);
 		
-		SWTSkinObject[] children = getChildren();
-		for (int i = 0; i < children.length; i++) {
-			if (children[i] instanceof SWTSkinObjectBasic) {
-				SWTSkinObjectBasic child = ((SWTSkinObjectBasic)children[i]);
-				Control childControl = child.getControl();
-				if (childControl != null && !childControl.isDisposed()) {
-					child.setIsVisible(childControl.isVisible(), false);
-				}
-			}
+		// Currently we ignore "changed" and set visibility on children to ensure
+		// things display
+		if (!changed || true) {
+  		SWTSkinObject[] children = getChildren();
+  		for (int i = 0; i < children.length; i++) {
+  			if (children[i] instanceof SWTSkinObjectBasic) {
+  				SWTSkinObjectBasic child = ((SWTSkinObjectBasic)children[i]);
+  				Control childControl = child.getControl();
+  				if (childControl != null && !childControl.isDisposed()) {
+  					//child.setIsVisible(visible, false);
+  					child.setIsVisible(childControl.isVisible(), false);
+  				}
+  			}
+  		}
 		}
+		return changed;
 	}
 }

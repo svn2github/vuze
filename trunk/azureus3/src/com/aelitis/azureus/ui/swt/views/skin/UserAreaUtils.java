@@ -360,19 +360,6 @@ public class UserAreaUtils
 					if (entry != null && entry.isInTree()) {
 						SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
 						if (soBrowser != null) {
-							/*
-							 * KN: Temporary fix for sign-in lead to sign-out when 'browse' tab have not been initialized problem
-							 */
-							Browser browser = soBrowser.getBrowser();
-							if (null != browser) {
-								String existingURL = browser.getUrl();
-								if (null == existingURL || existingURL.length() < 1) {
-									soBrowser.setStartURL(ContentNetworkUtils.getUrl(
-											ConstantsVuze.getDefaultContentNetwork(),
-											ContentNetwork.SERVICE_BIG_BROWSE));
-								}
-							}
-
 							soBrowser.setURL(url);
 						}
 					}

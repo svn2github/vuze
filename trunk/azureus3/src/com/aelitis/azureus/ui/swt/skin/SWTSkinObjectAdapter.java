@@ -51,7 +51,11 @@ public class SWTSkinObjectAdapter
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
-	
+
+	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
+		return null;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener#eventOccured(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int, java.lang.Object)
 	 */
@@ -73,6 +77,9 @@ public class SWTSkinObjectAdapter
 
 				case EVENT_CREATED:
 					return skinObjectCreated(skinObject, params);
+					
+				case EVENT_LANGUAGE_CHANGE:
+					return updateLanguage(skinObject, params);
 
 				default:
 					return null;
@@ -83,4 +90,5 @@ public class SWTSkinObjectAdapter
 		}
 		return null;
 	}
+
 }
