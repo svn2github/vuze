@@ -596,4 +596,22 @@ public class TableRowImpl
 	public int getFontStyle() {
 		return fontStyle;
 	}
+	
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isVisible()
+	public boolean isVisible() {
+		return Utils.execSWTThreadWithBool("isVisible", new AERunnableBoolean() {
+			public boolean runSupport() {
+				return TableRowImpl.super.isVisible();
+			}
+		}, 1000);
+	}
+
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isSelected()
+	public boolean isSelected() {
+		return Utils.execSWTThreadWithBool("isSelected", new AERunnableBoolean() {
+			public boolean runSupport() {
+				return TableRowImpl.super.isSelected();
+			}
+		}, 1000);
+	}
 }
