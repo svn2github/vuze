@@ -20,7 +20,6 @@ package com.aelitis.azureus.util;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
@@ -30,9 +29,17 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
@@ -63,7 +70,20 @@ public class DataSourceUtils
 				return gm.getDownloadManager((TOTorrent) ds);
 			} else if (ds instanceof ISelectedContent) {
 				return getDM(((ISelectedContent)ds).getDM()); 
+			} else 	if (ds instanceof TranscodeJob) {
+				TranscodeJob tj = (TranscodeJob) ds;
+				try {
+					DiskManagerFileInfo file = tj.getFile();
+					if (file != null) {
+						Download download = tj.getFile().getDownload();
+						if (download != null) {
+							return PluginCoreUtils.unwrap(download);
+						}
+					}
+				} catch (DownloadException e) {
+				}
 			}
+
 		} catch (Exception e) {
 			Debug.printStackTrace(e);
 		}
@@ -91,6 +111,24 @@ public class DataSourceUtils
 				}
 			}
 			return torrent;
+		}
+		
+		if (ds instanceof TranscodeJob) {
+			TranscodeJob tj = (TranscodeJob) ds;
+			try {
+				DiskManagerFileInfo file = tj.getFile();
+				if (file != null) {
+					Download download = tj.getFile().getDownload();
+					
+					if (download != null) {
+						Torrent torrent = download.getTorrent();
+						if (torrent != null) {
+							return PluginCoreUtils.unwrap(torrent);
+						}
+					}
+				}
+			} catch (DownloadException e) {
+			}
 		}
 
 		if (ds instanceof ISelectedContent) {
@@ -162,6 +200,19 @@ public class DataSourceUtils
 			} else if ((ds instanceof String) && ((String)ds).length() == 32) {
 				// assume 32 byte string is a hash and that it belongs to the def. network
 				id = ConstantsVuze.getDefaultContentNetwork().getID();
+			} else 	if (ds instanceof TranscodeJob) {
+				TranscodeJob tj = (TranscodeJob) ds;
+				try {
+					DiskManagerFileInfo file = tj.getFile();
+					if (file != null) {
+						Download download = tj.getFile().getDownload();
+						if (download != null) {
+							DownloadManager dm = PluginCoreUtils.unwrap(download);
+							return getContentNetwork(dm);
+						}
+					}
+				} catch (DownloadException e) {
+				}
 			} else {
 				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
 			}
