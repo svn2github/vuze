@@ -133,6 +133,12 @@ public abstract class TranscodeChooser
 				createProfileList(soList);
 			}
 		}
+		
+		// we may have disposed of shell during device/profile list building
+		// (ex. no devices avail)
+		if (shell.isDisposed()) {
+			return;
+		}
 
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
