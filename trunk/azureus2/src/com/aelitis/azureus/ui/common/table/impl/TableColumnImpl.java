@@ -403,6 +403,12 @@ public class TableColumnImpl
 		}
 		return list.toArray();
 	}
+	
+	// @see com.aelitis.azureus.ui.common.table.TableColumnCore#hasCellOtherListeners(java.lang.String)
+	public boolean hasCellOtherListeners(String listenerID) {
+		return mapOtherCellListeners != null
+				&& mapOtherCellListeners.get(listenerID) != null;
+	}
 
 	public List getCellAddedListeners() {
 		try {

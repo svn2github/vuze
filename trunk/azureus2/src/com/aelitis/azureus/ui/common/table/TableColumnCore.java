@@ -332,6 +332,14 @@ public interface TableColumnCore
 	Object[] getCellOtherListeners(String listenerID);
 	
 	/**
+	 * @param listenerID
+	 * @return
+	 *
+	 * @since 4.1.0.5
+	 */
+	boolean hasCellOtherListeners(String listenerID);
+
+	/**
 	 * @since 4005
 	 * @return
 	 */
