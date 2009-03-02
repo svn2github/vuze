@@ -1542,6 +1542,11 @@ public class Utils
 	}
 
 	public static Font getFontWithHeight(Font baseFont, GC gc, int heightInPixels) {
+		return getFontWithHeight(baseFont, gc, heightInPixels, SWT.DEFAULT);
+	}
+
+	public static Font getFontWithHeight(Font baseFont, GC gc,
+			int heightInPixels, int style) {
 		Font font = null;
 		Device device = baseFont.getDevice();
 
@@ -1567,6 +1572,9 @@ public class Utils
 					font.dispose();
 				}
 				fontData[0].setHeight(size);
+				if (style != SWT.DEFAULT) {
+					fontData[0].setStyle(style);
+				}
 
 				font = new Font(device, fontData);
 
