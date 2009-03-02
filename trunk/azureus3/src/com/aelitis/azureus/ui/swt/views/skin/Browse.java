@@ -153,17 +153,30 @@ public class Browse
 			}
 		}
 
-		browserSkinObject.addListener(new BrowserContext.loadingListener() {
-			public void browserLoadingChanged(boolean loading, String url) {
-				if (vitalityImage != null) {
-					vitalityImage.setVisible(loading);
+		browserSkinObject.addListener(new SWTSkinObjectListener() {
+		
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == EVENT_SHOW) {
+					browserSkinObject.removeListener(this);
+
+					browserSkinObject.addListener(new BrowserContext.loadingListener() {
+						public void browserLoadingChanged(boolean loading, String url) {
+							if (vitalityImage != null) {
+								vitalityImage.setVisible(loading);
+							}
+						}
+					});
+
+					browserSkinObject.getContext().setContentNetworkID(contentNetwork.getID());
+
+					
+					browserSkinObject.setStartURL(ContentNetworkUtils.getUrl(contentNetwork,
+							ContentNetwork.SERVICE_BIG_BROWSE));
 				}
+				return null;
 			}
 		});
-
-		browserSkinObject.getContext().setContentNetworkID(contentNetwork.getID());
-
-		createBrowseArea(browserSkinObject);
 
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
 			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
@@ -229,13 +242,6 @@ public class Browse
 		}
 
 		return null;
-	}
-
-	private void createBrowseArea(SWTSkinObjectBrowser browserSkinObject) {
-		this.browserSkinObject = browserSkinObject;
-
-		browserSkinObject.setURL(ContentNetworkUtils.getUrl(contentNetwork,
-				ContentNetwork.SERVICE_BIG_BROWSE));
 	}
 
 	public void sidebarClosed(SideBarEntry entry) {
