@@ -299,35 +299,11 @@ public class SBC_LibraryView
 		}
 
 		if (torrentFilterMode == TORRENTS_ALL) {
-			final SWTSkinObject soTop = skin.getSkinObject("library-list-info",
-					skinObject);
-			if (soTop != null) {
-				boolean showTop = COConfigurationManager.getBooleanParameter(
-						CFG_INFOBAR, true);
-				if (showTop) {
-					if (viewMode == MODE_BIGTABLE) {
-						skin.createSkinObject("toptip", "library.top.info", soTop);
-						SWTSkinObject soClose = skin.getSkinObject("close", soTop);
-						if (soClose != null) {
-							SWTSkinButtonUtility btnClose = new SWTSkinButtonUtility(soClose);
-							btnClose.addSelectionListener(new ButtonListenerAdapter() {
-								// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
-								public void pressed(SWTSkinButtonUtility buttonUtility,
-										SWTSkinObject skinObject, int stateMask) {
-									soTop.setVisible(false);
-									COConfigurationManager.setParameter(CFG_INFOBAR, false);
-								}
-							});
-						}
-						soTop.setVisible(true);
-					} else {
-						COConfigurationManager.setParameter(CFG_INFOBAR, false);
-						soTop.setVisible(false);
-					}
-				} else {
-					soTop.setVisible(false);
+			new InfoBarUtil(skinObject, true, CFG_INFOBAR, "v3.library.infobar") {
+				public boolean allowShow() {
+					return true;
 				}
-			}
+			};
 		}
 		
 		String entryID = null;
