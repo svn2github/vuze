@@ -35,9 +35,10 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
+import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
@@ -47,6 +48,17 @@ class
 TranscodeFileImpl
 	implements TranscodeFile
 {	
+	protected static final String		KEY_FILE			= "file";
+	
+	private static final String			KEY_PROFILE_NAME		= "pn";
+	private static final String			KEY_SOURCE_FILE_HASH	= "sf_hash";
+	private static final String			KEY_SOURCE_FILE_INDEX	= "sf_index";
+	private static final String			KEY_SOURCE_FILE_LINK	= "sf_link";
+	
+	private static final String			KEY_DURATION			= "at_dur";
+	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
+	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
+
 	private DeviceImpl					device;
 	private String						key;
 	private Map<String,Map<String,?>>	files_map;
@@ -58,6 +70,7 @@ TranscodeFileImpl
 	TranscodeFileImpl(
 		DeviceImpl					_device,
 		String						_key,
+		String						_profile_name,
 		Map<String,Map<String,?>>	_files_map,
 		File						_file )
 	{
@@ -67,7 +80,9 @@ TranscodeFileImpl
 
 		getMap( true );
 		
-		setString( "file", _file.getAbsolutePath());
+		setString( KEY_FILE, _file.getAbsolutePath());
+		
+		setString( KEY_PROFILE_NAME, _profile_name );
 	}
 	
 	protected
@@ -84,7 +99,7 @@ TranscodeFileImpl
 		
 		Map<String,?> map = getMap();
 		
-		if ( map == null || !map.containsKey( "file" )){
+		if ( map == null || !map.containsKey( KEY_FILE )){
 			
 			throw( new IOException( "File has been deleted" ));
 		}
@@ -97,10 +112,27 @@ TranscodeFileImpl
 		return( key );
 	}
 	
+	public Device
+	getDevice()
+	{
+		return( device );
+	}
+	
+	public TranscodeJob
+	getJob()
+	{
+		if ( isComplete()){
+			
+			return( null );
+		}
+		
+		return( device.getManager().getTranscodeManager().getQueue().getJob( this ));
+	}
+	
 	public File 
 	getCacheFile() 
 	{
-		return(new File(getString("file")));
+		return(new File(getString( KEY_FILE )));
 	}
 		
 	public DiskManagerFileInfo 
@@ -108,7 +140,7 @@ TranscodeFileImpl
 	{
 		// options are 1) cached file 2) link to other file 3) download-file 
 		
-		String	hash = getString( "sf_hash" );
+		String	hash = getString( KEY_SOURCE_FILE_HASH );
 		
 		if ( hash != null ){
 			
@@ -117,7 +149,7 @@ TranscodeFileImpl
 				
 				if ( download != null ){
 					
-					int index = (int)getLong( "sf_index" );
+					int index = (int)getLong( KEY_SOURCE_FILE_INDEX );
 					
 					return( download.getDiskManagerFileInfo()[index] );
 				}
@@ -131,7 +163,7 @@ TranscodeFileImpl
 		
 		if ( !file.exists() || file.length() == 0 ){
 			
-			String	link = getString( "sf_link" );
+			String	link = getString( KEY_SOURCE_FILE_LINK );
 			
 			if ( link != null ){
 				
@@ -156,14 +188,14 @@ TranscodeFileImpl
 			
 			if ( download != null && download.getTorrent() != null ){
 				
-				setString( "sf_hash", Base32.encode( download.getTorrent().getHash() ));
-				setLong( "sf_index", file.getIndex());
+				setString( KEY_SOURCE_FILE_HASH, Base32.encode( download.getTorrent().getHash() ));
+				
+				setLong( KEY_SOURCE_FILE_INDEX, file.getIndex());
 			}
 		}catch( Throwable e ){
-			
 		}
 		
-		setString( "sf_link", file.getFile().getAbsolutePath());
+		setString( KEY_SOURCE_FILE_LINK, file.getFile().getAbsolutePath());
 	}
 	
 	protected void
@@ -193,6 +225,26 @@ TranscodeFileImpl
 	}
 	
 	protected void
+	setProfileName(
+		String s )
+	{
+		setString( KEY_PROFILE_NAME, s );
+	}
+	
+	public String
+	getProfileName()
+	{
+		String s = getString( KEY_PROFILE_NAME );
+		
+		if ( s == null ){
+			
+			s = "Unknown";
+		}
+		
+		return( s );
+	}
+	
+	protected void
 	update(
 		TranscodeProviderAnalysis		analysis )
 	{
@@ -200,6 +252,35 @@ TranscodeFileImpl
 		long	video_width		= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_WIDTH );
 		long	video_height	= analysis.getLongProperty( TranscodeProviderAnalysis.PT_VIDEO_HEIGHT );
 
+		if ( duration > 0 ){
+			
+			setLong( KEY_DURATION, duration );
+		}
+		
+		if ( video_width > 0 && video_height > 0 ){
+			
+			setLong( KEY_VIDEO_WIDTH, video_width );
+			
+			setLong( KEY_VIDEO_HEIGHT, video_height );
+		}
+	}
+	
+	public long
+	getDurationMillis()
+	{
+		return( getLong( KEY_DURATION ));
+	}
+	
+	public long
+	getVideoWidth()
+	{
+		return( getLong( KEY_VIDEO_WIDTH ));
+	}
+	
+	public long
+	getVideoHeight()
+	{
+		return( getLong( KEY_VIDEO_HEIGHT ));
 	}
 	
 	public void
@@ -264,6 +345,11 @@ TranscodeFileImpl
 		String		key,
 		long		value )
 	{	
+		if ( getLong( key ) == value ){
+			
+			return;
+		}
+		
 		synchronized( files_map ){
 
 			try{
@@ -302,6 +388,19 @@ TranscodeFileImpl
 		String		key,
 		String		value )
 	{
+		String existing = getString( key );
+		
+		if ( existing == null && value == null ){
+			
+			return;
+			
+		}else if ( existing == null || value == null ){
+			
+		}else if ( existing.equals( value )){
+			
+			return;
+		}
+		
 		synchronized( files_map ){
 			
 			Map<String,?>	map = getMap();

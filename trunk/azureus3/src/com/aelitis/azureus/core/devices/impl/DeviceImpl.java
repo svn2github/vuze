@@ -448,7 +448,7 @@ DeviceImpl
 					for (Map<String,?> entry: device_files.values()){
 						
 						try{
-							name_set.add( new File( ImportExportUtils.importString( entry, "file" )).getName());
+							name_set.add( new File( ImportExportUtils.importString( entry, TranscodeFileImpl.KEY_FILE )).getName());
 							
 						}catch( Throwable e ){
 							
@@ -472,9 +472,17 @@ DeviceImpl
 	
 					output_file = new File( output_file.getAbsoluteFile(), target_file );
 	
-					result = new TranscodeFileImpl( this, key, device_files, output_file );
-										
+					result = new TranscodeFileImpl( this, key, profile.getName(), device_files, output_file );
+							
+					result.setSourceFile( file );
+					
 					saveDeviceFile();
+					
+				}else{
+					
+					result.setSourceFile( file );
+					
+					result.setProfileName( profile.getName());
 				}
 			}
 		}catch( Throwable e ){
@@ -494,6 +502,29 @@ DeviceImpl
 		}
 		
 		return( result );
+	}
+	
+	protected TranscodeFileImpl
+	getTranscodeFile(
+		String		key )
+	{
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+				}
+									
+				if ( device_files.containsKey( key )){
+				
+					return( new TranscodeFileImpl( this, key, device_files ));
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( null );
 	}
 	
 	public File

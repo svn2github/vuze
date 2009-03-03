@@ -39,11 +39,25 @@ TranscodeFile
 	public DiskManagerFileInfo
 	getSourceFile();
 	
+	public String
+	getProfileName();
+	
 	public boolean
 	isComplete();
 	
 	public boolean
 	isCopiedToDevice();
+	
+	public Device
+	getDevice();
+	
+		/**
+		 * Will return null unless there is a job in existance for this file
+		 * @return
+		 */
+	
+	public TranscodeJob
+	getJob();
 	
 	public void
 	delete(

@@ -624,8 +624,10 @@ DeviceUPnPImpl
 	
 	public void
 	fileAdded(
-		final TranscodeFile		transcode_file )
+		TranscodeFile		_transcode_file )
 	{
+		TranscodeFileImpl	transcode_file = (TranscodeFileImpl)_transcode_file;
+		
 		IPCInterface ipc = upnpav_ipc;
 		
 		synchronized( this ){
@@ -646,18 +648,13 @@ DeviceUPnPImpl
 				
 				return;
 			}
-			
-			final Map<String,Object> properties =  new HashMap<String, Object>();
-			
-				// TODO: duration etc
 
-			properties.put( MY_ACF_KEY, this );
-			
+			final DiskManagerFileInfo 	f 		= transcode_file.getSourceFile();
+			final String				tf_key	= transcode_file.getKey();
+						
 			acf = 
 				new AzureusContentFile()
 				{
-					private DiskManagerFileInfo f = transcode_file.getSourceFile();
-				        	
 					public DiskManagerFileInfo
 				    getFile()
 					{
@@ -668,7 +665,39 @@ DeviceUPnPImpl
 					getProperty(
 						String		name )
 					{						
-						return( properties.get( name ));
+						if(  name.equals( MY_ACF_KEY )){
+							
+							return( DeviceUPnPImpl.this );
+							
+						}else{
+							
+							TranscodeFileImpl	tf = getTranscodeFile( tf_key );
+							
+							if ( tf != null ){
+								
+								long	res = 0;
+								
+								if ( name.equals( PT_DURATION )){
+									
+									res = tf.getDurationMillis();
+									
+								}else if ( name.equals( PT_VIDEO_WIDTH )){
+									
+									res = tf.getVideoWidth();
+									
+								}else if ( name.equals( PT_VIDEO_HEIGHT )){
+									
+									res = tf.getVideoHeight();
+								}
+								
+								if ( res > 0 ){
+									
+									return( new Long( res ));
+								}
+							}
+						}
+						
+						return( null );
 					}
 				};
 				

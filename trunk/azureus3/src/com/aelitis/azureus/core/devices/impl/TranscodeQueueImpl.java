@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -827,6 +826,24 @@ TranscodeQueueImpl
 	getCurrentJob()
 	{
 		return( current_job );
+	}
+	
+	protected TranscodeJob
+	getJob(
+		TranscodeFile		for_file )
+	{
+		synchronized( queue ){
+
+			for ( TranscodeJobImpl job: queue ){
+				
+				if ( job.getTranscodeFile().equals( for_file )){
+					
+					return( job );
+				}
+			}
+		}
+		
+		return( null );
 	}
 	
 	public void 

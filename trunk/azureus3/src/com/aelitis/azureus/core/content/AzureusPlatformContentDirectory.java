@@ -190,6 +190,22 @@ AzureusPlatformContentDirectory
 								
 								return( new Long( duration*1000 ));
 							}
+						}else if ( name.equals( PT_VIDEO_WIDTH )){
+
+							int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
+							
+							if ( res != null ){
+								
+								return(new Long( res[0]));
+							}								
+						}else if ( name.equals( PT_VIDEO_HEIGHT )){
+
+							int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
+							
+							if ( res != null ){
+								
+								return(new Long( res[1] ));
+							}
 						}
 						
 						return( null );
