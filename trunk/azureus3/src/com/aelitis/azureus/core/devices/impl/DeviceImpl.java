@@ -100,6 +100,8 @@ DeviceImpl
 	
 	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
 
+	private static final String	GENERIC = "generic";
+	
 	
 	private DeviceManagerImpl	manager;
 	private int					type;
@@ -241,8 +243,14 @@ DeviceImpl
 			
 		}else{
 			
-			return( "generic" );
+			return( GENERIC );
 		}
+	}
+	
+	public boolean
+	isGeneric()
+	{
+		return( getDeviceClassification() == GENERIC );
 	}
 	
 	public boolean

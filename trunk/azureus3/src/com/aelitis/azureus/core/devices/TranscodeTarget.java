@@ -76,6 +76,9 @@ TranscodeTarget
 	public boolean
 	isTranscoding();
 	
+	public boolean
+	isGeneric();
+	
 	public void
 	addListener(
 		TranscodeTargetListener		listener );
