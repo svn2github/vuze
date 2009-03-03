@@ -682,7 +682,7 @@ TranscodeQueueImpl
 	
 		throws TranscodeException
 	{
-		TranscodeFile new_tf = target.allocateFile( profile, file );
+		TranscodeFile new_tf = ((DeviceImpl)target.getDevice()).allocateFile( profile, file );
 		
 		List<TranscodeJobImpl>	to_remove = new ArrayList<TranscodeJobImpl>();
 		

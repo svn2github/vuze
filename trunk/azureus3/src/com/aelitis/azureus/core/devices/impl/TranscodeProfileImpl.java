@@ -76,6 +76,19 @@ TranscodeProfileImpl
 	getDeviceClassification()
 	{
 		return((String)properties.get( "device" ));
-
+	}
+	
+	public String
+	getDescription()
+	{
+		String	res = (String)properties.get( "desc" );
+		
+		return( res == null?"":res );
+	}
+	
+	public String
+	getIconURL()
+	{
+		return((String)properties.get( "icon-url" ));
 	}
 }

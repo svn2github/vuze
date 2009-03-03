@@ -31,6 +31,12 @@ TranscodeProfile
 	getName();
 	
 	public String
+	getDescription();
+	
+	public String
+	getIconURL();
+	
+	public String
 	getFileExtension();
 	
 	public String

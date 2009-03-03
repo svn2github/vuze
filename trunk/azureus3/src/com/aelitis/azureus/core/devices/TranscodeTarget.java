@@ -23,7 +23,6 @@ package com.aelitis.azureus.core.devices;
 
 import java.io.File;
 
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 
 public interface 
 TranscodeTarget 
@@ -37,13 +36,6 @@ TranscodeTarget
 	
 	public Device
 	getDevice();
-	
-	public TranscodeFile
-	allocateFile(
-		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
-	
-		throws TranscodeException;
 	
 	public TranscodeFile[]
 	getFiles();
