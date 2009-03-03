@@ -75,6 +75,13 @@ TranscodeTarget
 		int		req );
 	
 	public boolean
+	getAlwaysCacheFiles();
+	
+	public void
+	setAlwaysCacheFiles(
+		boolean		always_cache );
+
+	public boolean
 	isTranscoding();
 	
 	public void

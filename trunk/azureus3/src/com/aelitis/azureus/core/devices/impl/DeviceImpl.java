@@ -92,6 +92,7 @@ DeviceImpl
 	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
 	private static final String PP_REND_TRANS_REQ		= "tt_req";
+	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
 	
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
@@ -632,6 +633,19 @@ DeviceImpl
 		int		req )
 	{
 		setPersistentIntProperty( PP_REND_TRANS_REQ, req );
+	}
+	
+	public boolean
+	getAlwaysCacheFiles()
+	{
+		return( getPersistentBooleanProperty( PP_REND_TRANS_CACHE, false ));
+	}
+	
+	public void
+	setAlwaysCacheFiles(
+		boolean		always_cache )
+	{
+		setPersistentBooleanProperty( PP_REND_TRANS_CACHE, always_cache );
 	}
 	
 	public String[][] 

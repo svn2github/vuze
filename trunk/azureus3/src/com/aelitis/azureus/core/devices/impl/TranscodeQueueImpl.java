@@ -24,8 +24,11 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -418,6 +421,160 @@ TranscodeQueueImpl
 						URL source_url = new URL( url_str );
 					
 						job.setStream( source_url.openConnection().getInputStream());
+					}
+				}else{
+					
+					if ( job.getDevice().getAlwaysCacheFiles()){
+						
+						PluginInterface av_pi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
+						
+						if ( av_pi == null ){
+						
+							throw( new TranscodeException( "Media Server plugin not found" ));
+						}
+						
+						IPCInterface av_ipc = av_pi.getIPC();
+						
+						String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ source });
+						
+						InputStream	is;
+						
+						long		length;
+						
+						if ( url_str == null || url_str.length() == 0 ){
+							
+								// see if we can use the file directly
+							
+							File source_file = source.getFile();
+							
+							if ( source_file.exists()){
+								
+								is = new BufferedInputStream( new FileInputStream( source_file ));
+								
+								length = source_file.length();
+								
+							}else{
+								
+								throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+							}
+						}else{
+							
+							URL source_url = new URL( url_str );
+						
+							URLConnection connection = source_url.openConnection();
+							
+							is = source_url.openConnection().getInputStream();
+							
+							String s = connection.getHeaderField( "content-length" );
+							
+							if ( s != null ){
+								
+								length = Long.parseLong( s );
+								
+							}else{
+								
+								length = -1;
+							}
+						}
+						
+						OutputStream	os = null;
+						
+						final boolean[]	cancel_copy = { false };
+						
+						TranscodeQueueListener copy_listener = 
+							new TranscodeQueueListener()
+							{
+								public void
+								jobAdded(
+									TranscodeJob		job )
+								{					
+								}
+								
+								public void
+								jobChanged(
+									TranscodeJob		changed_job )
+								{
+									if ( changed_job == job ){
+										
+										int	state = job.getState();
+										
+										if ( state == TranscodeJob.ST_PAUSED ){
+																						
+										}else if ( state == TranscodeJob.ST_RUNNING ){
+																							
+										}else if ( 	state == TranscodeJob.ST_CANCELLED ||
+													state == TranscodeJob.ST_STOPPED ){
+										
+											cancel_copy[0] = true;
+										}
+									}
+								}
+								
+								public void
+								jobRemoved(
+									TranscodeJob		removed_job )
+								{	
+									if ( removed_job == job ){
+										
+										cancel_copy[0] = true;
+									}
+								}
+							};
+							
+						try{
+							addListener( copy_listener );
+
+							os = new FileOutputStream( transcode_file.getCacheFile());
+							
+							long	total_copied = 0;
+							
+							byte[] buffer = new byte[128*1024];
+							
+							while( true ){
+								
+								if ( cancel_copy[0] ){
+									
+									throw( new TranscodeException( "Copy cancelled" ));
+								}
+								
+								int	len = is.read( buffer );
+								
+								if ( len <= 0 ){
+									
+									break;
+								}
+								
+								total_copied += len;
+								
+								if ( length > 0 ){
+								
+									job.setPercentDone((int)( total_copied*100/length ));
+								}
+								
+								total_copied += len;
+							}
+						}finally{
+							
+							try{
+								is.close();
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+							
+							try{
+								if ( os != null ){
+								
+									os.close();
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+							
+							removeListener( copy_listener );
+						}
 					}
 				}
 			}
