@@ -26,9 +26,11 @@ import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 public interface 
 AzureusContentFile 
 {
-	public static final String	PT_TITLE		= "title";			// String
-	public static final String	PT_CREATOR		= "creator";		// String
-	public static final String	PT_DURATION		= "duration";		// Long, millis
+	public static final String	PT_TITLE			= "title";			// String
+	public static final String	PT_CREATOR			= "creator";		// String
+	public static final String	PT_DURATION			= "duration";		// Long, millis
+	public static final String	PT_VIDEO_WIDTH		= "video_width";	// Long
+	public static final String	PT_VIDEO_HEIGHT		= "video_height";	// Long
 	
 	public DiskManagerFileInfo
 	getFile();
