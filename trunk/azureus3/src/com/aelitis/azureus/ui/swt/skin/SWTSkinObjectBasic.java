@@ -933,4 +933,13 @@ public class SWTSkinObjectBasic
 	public boolean isDebug() {
 		return debug;
 	}
+	
+	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObject#relayout()
+	public void relayout() {
+		if (!disposed) {
+			control.getShell().layout(new Control[] {
+				control
+			});
+		}
+	}
 }

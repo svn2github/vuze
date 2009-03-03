@@ -170,4 +170,6 @@ public interface SWTSkinObject extends ObfusticateShell
 	 * @since 3.1.1.1
 	 */
 	public void setDebug(boolean b);
+	
+	public void relayout();
 }
