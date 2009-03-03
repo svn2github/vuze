@@ -21,7 +21,9 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
@@ -34,7 +36,11 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -195,7 +201,9 @@ TranscodeQueueImpl
 			
 			boolean xcode_required 	= provider_analysis.getBooleanProperty( TranscodeProviderAnalysis.PT_TRANSCODE_REQUIRED );
 			
-			job.getTranscodeFile().update( provider_analysis );
+			TranscodeFileImpl		transcode_file = job.getTranscodeFile();
+
+			transcode_file.update( provider_analysis );
 			
 			int	tt_req = job.getDevice().getTranscodeRequirement();
 			
@@ -208,170 +216,212 @@ TranscodeQueueImpl
 				xcode_required = true;
 			}
 			
-			final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
-			
-			final TranscodeProviderJob[] provider_job = { null }; 
-
-			TranscodeProviderAdapter xcode_adapter = 
-				new TranscodeProviderAdapter()
-				{
-					public void
-					updatePercentDone(
-						int								percent )
+			if ( xcode_required ){
+				
+				final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
+				
+				final TranscodeProviderJob[] provider_job = { null }; 
+	
+				TranscodeProviderAdapter xcode_adapter = 
+					new TranscodeProviderAdapter()
 					{
-						TranscodeProviderJob	prov_job = provider_job[0];
-						
-						if ( prov_job == null ){
+						public void
+						updatePercentDone(
+							int								percent )
+						{
+							TranscodeProviderJob	prov_job = provider_job[0];
 							
-							return;
-						}
-						
-						int	job_state = job.getState();
-						
-						if ( 	job_state == TranscodeJob.ST_CANCELLED || 
-								job_state == TranscodeJob.ST_REMOVED ){
-															
-							prov_job.cancel();
-							
-						}else if ( paused || job_state == TranscodeJob.ST_PAUSED ){
+							if ( prov_job == null ){
 								
-							prov_job.pause();
-							
-						}else{
-							
-							if ( job_state == TranscodeJob.ST_RUNNING ){
-								
-								prov_job.resume();
+								return;
 							}
 							
-							job.setPercentDone( percent );
+							int	job_state = job.getState();
 							
-							prov_job.setMaxBytesPerSecond( max_bytes_per_sec );
-						}
-					}
-					
-					public void
-					failed(
-						TranscodeException		e )
-					{
-						error[0] = e;
-						
-						xcode_sem.release();
-					}
-					
-					public void 
-					complete() 
-					{
-						xcode_sem.release();
-					}
-				};
-			
-			if ( job.isStream()){
-				
-				/*
-				provider_job[0] = 
-					provider.transcode(
-						adapter,
-						job.getFile(),
-						profile,
-						new File( "C:\\temp\\arse").toURI().toURL());
-				*/
-				
-				pipe = new TranscodePipeStreamSource2(
-							new TranscodePipeStreamSource2.streamListener()
-							{
-								public void 
-								gotStream(
-									InputStream is ) 
-								{
-									job.setStream( is );
-								}
-							});
-				
-				provider_job[0] = 
-					provider.transcode(
-						xcode_adapter,
-						job.getFile(),
-						profile,
-						new URL( "tcp://127.0.0.1:" + pipe.getPort()));
-
-			}else{
-				
-				TranscodeFileImpl		transcode_file = null;
-
-				transcode_file = job.getTranscodeFile();
-				
-				File output_file = transcode_file.getFile();
-				
-				provider_job[0] = 
-					provider.transcode(
-						xcode_adapter,
-						job.getFile(),
-						profile,
-						output_file.toURI().toURL());
-			}
-			
-			provider_job[0].setMaxBytesPerSecond( max_bytes_per_sec );
-			
-			TranscodeQueueListener listener = 
-				new TranscodeQueueListener()
-				{
-					public void
-					jobAdded(
-						TranscodeJob		job )
-					{					
-					}
-					
-					public void
-					jobChanged(
-						TranscodeJob		changed_job )
-					{
-						if ( changed_job == job ){
-							
-							int	state = job.getState();
-							
-							if ( state == TranscodeJob.ST_PAUSED ){
+							if ( 	job_state == TranscodeJob.ST_CANCELLED || 
+									job_state == TranscodeJob.ST_REMOVED ){
+																
+								prov_job.cancel();
 								
-								provider_job[0].pause();
-								
-							}else if ( state == TranscodeJob.ST_RUNNING ){
+							}else if ( paused || job_state == TranscodeJob.ST_PAUSED ){
 									
-								provider_job[0].resume();
+								prov_job.pause();
 								
-							}else if ( 	state == TranscodeJob.ST_CANCELLED ||
-										state == TranscodeJob.ST_STOPPED ){
+							}else{
+								
+								if ( job_state == TranscodeJob.ST_RUNNING ){
+									
+									prov_job.resume();
+								}
+								
+								job.setPercentDone( percent );
+								
+								prov_job.setMaxBytesPerSecond( max_bytes_per_sec );
+							}
+						}
+						
+						public void
+						failed(
+							TranscodeException		e )
+						{
+							error[0] = e;
 							
+							xcode_sem.release();
+						}
+						
+						public void 
+						complete() 
+						{
+							xcode_sem.release();
+						}
+					};
+				
+				if ( job.isStream()){
+					
+					/*
+					provider_job[0] = 
+						provider.transcode(
+							adapter,
+							job.getFile(),
+							profile,
+							new File( "C:\\temp\\arse").toURI().toURL());
+					*/
+					
+					pipe = new TranscodePipeStreamSource2(
+								new TranscodePipeStreamSource2.streamListener()
+								{
+									public void 
+									gotStream(
+										InputStream is ) 
+									{
+										job.setStream( is );
+									}
+								});
+					
+					provider_job[0] = 
+						provider.transcode(
+							xcode_adapter,
+							job.getFile(),
+							profile,
+							new URL( "tcp://127.0.0.1:" + pipe.getPort()));
+	
+				}else{
+										
+					File output_file = transcode_file.getCacheFile();
+					
+					provider_job[0] = 
+						provider.transcode(
+							xcode_adapter,
+							job.getFile(),
+							profile,
+							output_file.toURI().toURL());
+				}
+				
+				provider_job[0].setMaxBytesPerSecond( max_bytes_per_sec );
+				
+				TranscodeQueueListener listener = 
+					new TranscodeQueueListener()
+					{
+						public void
+						jobAdded(
+							TranscodeJob		job )
+						{					
+						}
+						
+						public void
+						jobChanged(
+							TranscodeJob		changed_job )
+						{
+							if ( changed_job == job ){
+								
+								int	state = job.getState();
+								
+								if ( state == TranscodeJob.ST_PAUSED ){
+									
+									provider_job[0].pause();
+									
+								}else if ( state == TranscodeJob.ST_RUNNING ){
+										
+									provider_job[0].resume();
+									
+								}else if ( 	state == TranscodeJob.ST_CANCELLED ||
+											state == TranscodeJob.ST_STOPPED ){
+								
+									provider_job[0].cancel();
+								}
+							}
+						}
+						
+						public void
+						jobRemoved(
+							TranscodeJob		removed_job )
+						{	
+							if ( removed_job == job ){
+								
 								provider_job[0].cancel();
 							}
 						}
+					};
+					
+				try{
+					addListener( listener );
+				
+					xcode_sem.reserve();
+					
+				}finally{
+					
+					removeListener( listener );
+				}
+				
+				if ( error[0] != null ){
+					
+					throw( error[0] );
+				}
+			}else{
+				
+					// no transcode required...
+				
+				DiskManagerFileInfo source = job.getFile();
+				
+				transcode_file.setSourceFile( source );
+				
+				if ( job.isStream()){
+					
+					PluginInterface av_pi = StaticUtilities.getDefaultPluginInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
+					
+					if ( av_pi == null ){
+					
+						throw( new TranscodeException( "Media Server plugin not found" ));
 					}
 					
-					public void
-					jobRemoved(
-						TranscodeJob		removed_job )
-					{	
-						if ( removed_job == job ){
+					IPCInterface av_ipc = av_pi.getIPC();
+					
+					String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ source });
+					
+					
+					if ( url_str == null || url_str.length() == 0 ){
+						
+							// see if we can use the file directly
+						
+						File source_file = source.getFile();
+						
+						if ( source_file.exists()){
 							
-							provider_job[0].cancel();
+							job.setStream( new BufferedInputStream( new FileInputStream( source_file )));
+							
+						}else{
+							
+							throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
 						}
+					}else{
+						
+						URL source_url = new URL( url_str );
+					
+						job.setStream( source_url.openConnection().getInputStream());
 					}
-				};
-				
-			try{
-				addListener( listener );
-			
-				xcode_sem.reserve();
-				
-			}finally{
-				
-				removeListener( listener );
+				}
 			}
 			
-			if ( error[0] != null ){
-				
-				throw( error[0] );
-			}
-
 			job.complete();
 			
 			return( true );

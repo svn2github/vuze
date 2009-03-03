@@ -23,6 +23,8 @@ package com.aelitis.azureus.core.devices;
 
 import java.io.File;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+
 public interface 
 TranscodeFile 
 {
@@ -31,9 +33,11 @@ TranscodeFile
 	public static final String PT_COMPLETE		= "comp";
 	public static final String PT_COPIED		= "copied";
 	
-	
 	public File
-	getFile();
+	getCacheFile();
+	
+	public DiskManagerFileInfo
+	getSourceFile();
 	
 	public boolean
 	isComplete();

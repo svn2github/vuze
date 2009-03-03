@@ -1098,7 +1098,7 @@ DeviceImpl
 		
 		if ( delete_contents ){
 			
-			File f = file.getFile();
+			File f = file.getCacheFile();
 				
 			int	 time = 0;
 			

@@ -45,7 +45,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
-import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;

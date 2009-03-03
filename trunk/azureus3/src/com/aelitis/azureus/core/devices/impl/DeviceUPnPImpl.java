@@ -515,7 +515,7 @@ DeviceUPnPImpl
 							}
 						}
 					},
-					transcode_file.getFile());
+					transcode_file.getCacheFile());
 			
 			final Map<String,Object> properties =  new HashMap<String, Object>();
 				
@@ -656,7 +656,7 @@ DeviceUPnPImpl
 			acf = 
 				new AzureusContentFile()
 				{
-					private DiskManagerFileInfo f = new DiskManagerFileInfoFile( transcode_file.getFile());
+					private DiskManagerFileInfo f = transcode_file.getSourceFile();
 				        	
 					public DiskManagerFileInfo
 				    getFile()

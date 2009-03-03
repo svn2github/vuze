@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -383,11 +384,13 @@ DeviceiTunes
 				}
 			}
 			
+			File	file = to_copy.getSourceFile().getFile();
+			
 			try{
 			
 				IPCInterface	ipc = itunes.getIPC();
 				
-				Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ to_copy.getFile()} );
+				Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
 
 				Throwable error = (Throwable)result.get( "error" );
 				
@@ -396,13 +399,13 @@ DeviceiTunes
 					throw( error );
 				}
 				
-				log( "Added file '" + to_copy.getFile() + ": " + result );
+				log( "Added file '" + file + ": " + result );
 				
 				to_copy.setCopiedToDevice( true );
 				
 			}catch( Throwable e ){
 				
-				log( "Failed to copy file " + to_copy.getFile(), e );
+				log( "Failed to copy file " + file, e );
 			}
 		}
 	}

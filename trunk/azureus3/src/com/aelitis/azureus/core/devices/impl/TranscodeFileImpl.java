@@ -29,18 +29,24 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 class
 TranscodeFileImpl
 	implements TranscodeFile
-{
+{	
 	private DeviceImpl					device;
 	private String						key;
 	private Map<String,Map<String,?>>	files_map;
@@ -92,11 +98,74 @@ TranscodeFileImpl
 	}
 	
 	public File 
-	getFile() 
+	getCacheFile() 
 	{
 		return(new File(getString("file")));
 	}
 		
+	public DiskManagerFileInfo 
+	getSourceFile() 
+	{
+		// options are 1) cached file 2) link to other file 3) download-file 
+		
+		String	hash = getString( "sf_hash" );
+		
+		if ( hash != null ){
+			
+			try{
+				Download download = StaticUtilities.getDefaultPluginInterface().getDownloadManager().getDownload( Base32.decode(hash));
+				
+				if ( download != null ){
+					
+					int index = (int)getLong( "sf_index" );
+					
+					return( download.getDiskManagerFileInfo()[index] );
+				}
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		File	file = getCacheFile();
+		
+		if ( !file.exists() || file.length() == 0 ){
+			
+			String	link = getString( "sf_link" );
+			
+			if ( link != null ){
+				
+				File link_file = new File( link );
+				
+				if ( link_file.exists()){
+					
+					file = link_file;
+				}
+			}
+		}
+		
+		return( new DiskManagerFileInfoFile( file ));
+	}
+	
+	protected void
+	setSourceFile(
+		DiskManagerFileInfo		file )
+	{
+		try{
+			Download download = file.getDownload();
+			
+			if ( download != null && download.getTorrent() != null ){
+				
+				setString( "sf_hash", Base32.encode( download.getTorrent().getHash() ));
+				setLong( "sf_index", file.getIndex());
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		setString( "sf_link", file.getFile().getAbsolutePath());
+	}
+	
 	protected void
 	setComplete(
 		boolean b )
