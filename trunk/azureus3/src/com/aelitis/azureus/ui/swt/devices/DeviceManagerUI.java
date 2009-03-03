@@ -1128,34 +1128,39 @@ DeviceManagerUI
 										return;
 									}
 									
-									deviceView view;
-									
-									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
-										
-										view = new DeviceRendererView( parent, (DeviceMediaRenderer)device );
-										
-									}else{
-										
-										view = new deviceView( parent, device );
-									}
+									deviceView view = new deviceView( parent, device );
 									
 									new_di.setView( view );
 										
 									String key = parent + "/" + device.getID() + ":" + nextSidebarID();
-										
-									TreeItem  tree_item = 
-										side_bar.createTreeItemFromIView(
-											parent, 
-											view,
-											key, 
-											device, 
-											false, 
-											false,
-											false );
+
+									SideBarEntrySWT	entry;
 									
-									SideBarEntrySWT	entry = SideBar.getEntry( key );
-																				
-									new_di.setTreeItem( tree_item, entry );
+									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+										
+  									entry = side_bar.createEntryFromSkinRef(parent,
+  											key, "devicerendererview",
+  											device.getName(),
+  											null, null, false, -1);
+  									entry.setDatasource(device);
+
+									} else {
+
+  									TreeItem  tree_item = 
+  										side_bar.createTreeItemFromIView(
+  											parent, 
+  											view,
+  											key, 
+  											device, 
+  											false, 
+  											false,
+  											false );
+
+  									entry = SideBar.getEntry( key );
+										
+									}
+
+									new_di.setTreeItem( entry.getTreeItem(), entry );
 									
 									setStatus( device, new_di );
 									
@@ -1753,8 +1758,6 @@ DeviceManagerUI
 		private Composite		parent_composite;
 		private Composite		composite;
 		
-		private SideBarVitalityImage	spinner;
-		
 		private int last_indicator;
 
 		protected
@@ -1773,13 +1776,6 @@ DeviceManagerUI
 			}
 		}
 			
-		protected void
-		setSpinner(
-			SideBarVitalityImage		_spinner )
-		{
-			spinner	= _spinner;
-		}
-		
 		public void 
 		initialize(
 			Composite _parent_composite )
@@ -1965,8 +1961,6 @@ DeviceManagerUI
 			deviceView		_view )
 		{
 			view	= _view;
-			
-			view.setSpinner( spinner );
 		}
 		
 		protected deviceView

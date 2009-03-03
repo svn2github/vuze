@@ -40,7 +40,10 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnAzProduct;
 import com.aelitis.azureus.ui.swt.columns.torrent.ColumnThumbnail;
 import com.aelitis.azureus.ui.swt.devices.columns.*;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -82,6 +85,8 @@ public class SBC_DevicesView
 
 	private Composite tableJobsParent;
 
+	private Device device;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		super.skinObjectInitialShow(skinObject, params);
@@ -102,6 +107,7 @@ public class SBC_DevicesView
 		if (sidebar != null) {
 			sidebarEntry = sidebar.getCurrentEntry();
 			sidebarEntry.setIconBarEnabler(this);
+			device = (Device) sidebarEntry.getDatasource();
 		}
 
 		new InfoBarUtil(skinObject, true, "DeviceView.infobar",
@@ -110,6 +116,18 @@ public class SBC_DevicesView
 				return true;
 			}
 		};
+
+		SWTSkinObject soAdvInfo = getSkinObject("advinfo");
+		if (soAdvInfo != null) {
+			initAdvInfo(soAdvInfo);
+		}
+
+		if (device != null) {
+			SWTSkinObject soTitle = getSkinObject("title");
+			if (soTitle instanceof SWTSkinObjectText) {
+				((SWTSkinObjectText) soTitle).setText(device.getName());
+			}
+		}
 
 		return null;
 	}
@@ -194,6 +212,30 @@ public class SBC_DevicesView
 		return null;
 	}
 
+	/**
+	 * @param soAdvInfo
+	 *
+	 * @since 4.1.0.5
+	 */
+	private void initAdvInfo(SWTSkinObject soAdvInfo) {
+		SWTSkinButtonUtility btnAdvInfo = new SWTSkinButtonUtility(soAdvInfo);
+		btnAdvInfo.addSelectionListener(new ButtonListenerAdapter() {
+			public void pressed(SWTSkinButtonUtility buttonUtility,
+					SWTSkinObject skinObject, int stateMask) {
+				SWTSkinObject soArea = getSkinObject("advinfo-area");
+				if (soArea != null) {
+					boolean newVisibility = !soArea.isVisible();
+					soArea.setVisible(newVisibility);
+					SWTSkinObject soText = getSkinObject("advinfo-title");
+					if (soText instanceof SWTSkinObjectText) {
+						((SWTSkinObjectText) soText).setText((newVisibility ? "[-]" : "[+]")
+								+ " Additional Info");
+					}
+				}
+			}
+		});
+	}
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		if (tvJobs != null) {
@@ -264,7 +306,16 @@ public class SBC_DevicesView
 
 		tvJobs.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
-				tvJobs.addDataSources(transcode_queue.getJobs());
+				TranscodeJob[] jobs = transcode_queue.getJobs();
+				if (device == null) {
+					tvJobs.addDataSources(transcode_queue.getJobs());
+				} else {
+					for (TranscodeJob job : jobs) {
+						if (isOurJob(job)) {
+							tvJobs.addDataSource(job);
+						}
+					}
+				}
 			}
 
 			public void tableViewDestroyed() {
@@ -283,6 +334,19 @@ public class SBC_DevicesView
 		tvJobs.initialize(tableJobsParent);
 
 		control.layout(true);
+	}
+
+	/**
+	 * @param job
+	 * @return
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected boolean isOurJob(TranscodeJob job) {
+		if (device == null) {
+			return true;
+		}
+		return device.equals(job.getTarget().getDevice());
 	}
 
 	/**
@@ -406,7 +470,9 @@ public class SBC_DevicesView
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobAdded(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobAdded(TranscodeJob job) {
 		if (tvJobs != null) {
-			tvJobs.addDataSource(job);
+			if (isOurJob(job)) {
+				tvJobs.addDataSource(job);
+			}
 		}
 	}
 
