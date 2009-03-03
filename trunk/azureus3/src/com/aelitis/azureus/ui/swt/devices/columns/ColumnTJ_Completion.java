@@ -30,7 +30,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 
-import com.aelitis.azureus.core.devices.TranscodeJob;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -165,10 +165,14 @@ TableCellDisposeListener, TableCellSWTPaintListener
 	}
 
 	private int getPercentDone(TableCell cell) {
-		TranscodeJob tj =  (TranscodeJob) cell.getDataSource();
-		if (tj == null) {
+		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return 0;
 		}
-		return tj.getPercentComplete();
+		TranscodeJob job = tf.getJob();
+		if (job == null) {
+			return 100;
+		}
+		return job.getPercentComplete();
 	}
 }

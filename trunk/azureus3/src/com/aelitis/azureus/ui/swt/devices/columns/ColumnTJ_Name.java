@@ -21,9 +21,13 @@ package com.aelitis.azureus.ui.swt.devices.columns;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.util.DataSourceUtils;
 
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -51,13 +55,39 @@ public class ColumnTJ_Name
 	}
 
 	public void refresh(TableCell cell) {
-		TranscodeJob tj = (TranscodeJob) cell.getDataSource();
-
-		if (tj == null) {
+		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return;
 		}
+		TranscodeJob job = tf.getJob();
 
-		cell.setText(tj.getName());
+		String text;
+		
+		if (job == null) {
+			DiskManagerFileInfo sourceFile = tf.getSourceFile();
+			if (sourceFile == null) {
+				text = tf.getCacheFile().getAbsolutePath();
+			} else {
+				try {
+					Download download = sourceFile.getDownload();
+					if (download == null) {
+						text = sourceFile.getFile().getName();
+					} else {
+						text = download.getName();
+						DiskManagerFileInfo[] fileInfo = download.getDiskManagerFileInfo();
+						if (fileInfo.length > 0) {
+							text += ": " + sourceFile.getFile().getName();
+						}
+					}
+				} catch (DownloadException e) {
+					text = sourceFile.getFile().getName();
+				}
+			}
+		} else {
+			text = job.getName();
+		}
+
+		cell.setText(text);
 	}
 
 	public String getObfusticatedText(TableCell cell) {

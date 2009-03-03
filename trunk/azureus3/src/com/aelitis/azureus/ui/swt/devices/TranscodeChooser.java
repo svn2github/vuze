@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 
@@ -133,7 +134,7 @@ public abstract class TranscodeChooser
 				createProfileList(soList);
 			}
 		}
-		
+
 		// we may have disposed of shell during device/profile list building
 		// (ex. no devices avail)
 		if (shell.isDisposed()) {
@@ -210,8 +211,10 @@ public abstract class TranscodeChooser
 						soInfoTitle.setText(profile.getName());
 					}
 					if (soInfoText != null) {
-						// TODO: profile.getDescription()!
-						soInfoText.setText(profile.getProvider().getName());
+						soInfoText.setText(profile.getDescription() + "\n"
+								+ profile.getFileExtension());
+						Point computeSize = shell.computeSize(shell.getClientArea().width, SWT.DEFAULT, true);
+						shell.setSize(computeSize);
 					}
 				}
 			}
@@ -224,6 +227,8 @@ public abstract class TranscodeChooser
 				}
 				if (soInfoText != null) {
 					soInfoText.setText("Hover over a profile to see additional information here");
+					Point computeSize = shell.computeSize(shell.getClientArea().width, SWT.DEFAULT, true);
+					shell.setSize(computeSize);
 				}
 			}
 		});
@@ -239,21 +244,45 @@ public abstract class TranscodeChooser
 
 			c.addListener(SWT.MouseEnter, listenerMouseInout);
 
-			Label label = new Label(c, SWT.BORDER);
-			label.addListener(SWT.MouseEnter, listenerMouseInout);
-			label.addListener(SWT.MouseUp, clickListener);
-			label.addListener(SWT.MouseDown, clickListener);
+			final Label lblImage = new Label(c, SWT.BORDER);
+			lblImage.addListener(SWT.MouseEnter, listenerMouseInout);
+			lblImage.addListener(SWT.MouseUp, clickListener);
+			lblImage.addListener(SWT.MouseDown, clickListener);
 			gridData = new GridData();
 			gridData.heightHint = 100;
 			gridData.widthHint = 120;
-			label.setLayoutData(gridData);
+			String url = profile.getIconURL();
+			if (url != null) {
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				Image image = imageLoader.getUrlImage(url,
+						new ImageDownloaderListener() {
+							public void imageDownloaded(Image image,
+									boolean returnedImmediately) {
+								if (!returnedImmediately) {
+									lblImage.setImage(image);
+									GridData gridData = (GridData) lblImage.getLayoutData();
+									gridData.heightHint = -1;
+									gridData.widthHint = -1;
+									lblImage.setLayoutData(gridData);
+									lblImage.getShell().layout(new Control[] {
+										lblImage
+									});
+								}
+							}
+						});
+				if (image != null) {
+					lblImage.setImage(image);
+					gridData.heightHint = -1;
+					gridData.widthHint = -1;
+				}
+			}
+			lblImage.setLayoutData(gridData);
 
-			label = new Label(c, SWT.WRAP | SWT.CENTER);
+			Label label = new Label(c, SWT.WRAP | SWT.CENTER);
 			label.addListener(SWT.MouseEnter, listenerMouseInout);
 			label.addListener(SWT.MouseUp, clickListener);
 			label.addListener(SWT.MouseDown, clickListener);
-			gridData = new GridData();
-			gridData.widthHint = 100;
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			label.setLayoutData(gridData);
 			String s = profile.getName();
 			//s += " (via " + profile.getProvider().getName() + ")";

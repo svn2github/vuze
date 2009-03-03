@@ -18,6 +18,7 @@
  
 package com.aelitis.azureus.ui.swt.devices.columns;
 
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -44,13 +45,28 @@ implements TableCellRefreshListener
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		TranscodeJob tj = (TranscodeJob) cell.getDataSource();
-		if (tj == null) {
+		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return;
 		}
-		int value = tj.getIndex();
+		TranscodeJob job = tf.getJob();
+
+		long value;
+		if (job == null) {
+			try {
+				value = Integer.MAX_VALUE + tf.getSourceFile().getFile().lastModified() + 1;
+			} catch (Throwable t) {
+				value = Integer.MAX_VALUE + 1;
+			}
+		} else {
+			value = job.getIndex();
+		}
 		if (cell.setSortValue(value) || !cell.isValid()) {
-			cell.setText("" + value);
+			if (value > Integer.MAX_VALUE) {
+				cell.setText("");
+			} else {
+				cell.setText("" + value);
+			}
 		}
 	}
 

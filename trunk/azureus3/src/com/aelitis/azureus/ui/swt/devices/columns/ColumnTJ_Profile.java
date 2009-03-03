@@ -18,7 +18,9 @@
  
 package com.aelitis.azureus.ui.swt.devices.columns;
 
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
+import com.aelitis.azureus.core.devices.TranscodeProfile;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -42,10 +44,11 @@ public class ColumnTJ_Profile
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		TranscodeJob tj = (TranscodeJob) cell.getDataSource();
-		if (tj == null) {
+		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return;
 		}
-		cell.setText(tj.getProfile().getName());
+
+		cell.setText(tf.getProfileName());
 	}
 }

@@ -18,9 +18,7 @@
  
 package com.aelitis.azureus.ui.swt.devices.columns;
 
-import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.devices.TranscodeJob;
-import com.aelitis.azureus.core.devices.TranscodeTarget;
+import com.aelitis.azureus.core.devices.*;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -44,15 +42,12 @@ public class ColumnTJ_Device
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		TranscodeJob tj = (TranscodeJob) cell.getDataSource();
-		if (tj == null) {
+		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return;
 		}
-		TranscodeTarget target = tj.getTarget();
-		if (target == null) {
-			return;
-		}
-		Device device = target.getDevice();
+		
+		Device device = tf.getDevice();
 		if (device == null) {
 			return;
 		}

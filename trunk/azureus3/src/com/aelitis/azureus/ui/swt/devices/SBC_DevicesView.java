@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -51,6 +52,9 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -63,7 +67,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  */
 public class SBC_DevicesView
 	extends SkinView
-	implements TranscodeQueueListener, IconBarEnabler, UIUpdatable
+	implements TranscodeQueueListener, IconBarEnabler, UIUpdatable,
+	TranscodeTargetListener
 {
 	public static final String TABLE_DEVICES = "Devices";
 
@@ -79,13 +84,15 @@ public class SBC_DevicesView
 
 	private TableViewSWTImpl tvDevices;
 
-	private TableViewSWTImpl tvJobs;
+	private TableViewSWTImpl tvFiles;
 
 	private SideBarEntrySWT sidebarEntry;
 
 	private Composite tableJobsParent;
 
 	private Device device;
+
+	private TranscodeTarget transTarget;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -108,6 +115,12 @@ public class SBC_DevicesView
 			sidebarEntry = sidebar.getCurrentEntry();
 			sidebarEntry.setIconBarEnabler(this);
 			device = (Device) sidebarEntry.getDatasource();
+		}
+
+		if (device instanceof TranscodeTarget) {
+			transTarget = (TranscodeTarget) device;
+
+			transTarget.addListener(this);
 		}
 
 		new InfoBarUtil(skinObject, true, "DeviceView.infobar",
@@ -145,49 +158,49 @@ public class SBC_DevicesView
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
 		UIManager uiManager = pi.getUIManager();
 		TableManager tableManager = uiManager.getTableManager();
-		tableManager.registerColumn(TranscodeJob.class, ColumnAzProduct.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnAzProduct.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnAzProduct(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnTJ_Name.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Name.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Name(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnTJ_Rank.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Rank.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Rank(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnThumbnail.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnThumbnail.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnThumbnail(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnTJ_Device.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Device.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Device(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnTJ_Profile.COLUMN_ID,
-				new TableColumnCreationListener() {
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Profile.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Profile(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class, ColumnTJ_Status.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Status.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Status(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeJob.class,
+		tableManager.registerColumn(TranscodeFile.class,
 				ColumnTJ_Completion.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Completion(column);
@@ -238,9 +251,9 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		if (tvJobs != null) {
-			tvJobs.delete();
-			tvJobs = null;
+		if (tvFiles != null) {
+			tvFiles.delete();
+			tvFiles = null;
 		}
 		if (tableJobsParent != null && !tableJobsParent.isDisposed()) {
 			tableJobsParent.dispose();
@@ -258,12 +271,12 @@ public class SBC_DevicesView
 	 * @since 4.1.0.5
 	 */
 	private void initTranscodeQueueTable(Composite control) {
-		tvJobs = new TableViewSWTImpl(TABLE_TRANSCODE_QUEUE, TABLE_TRANSCODE_QUEUE,
-				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL);
-		tvJobs.setDataSourceType(TranscodeJob.class);
-		tvJobs.setRowDefaultHeight(50);
-		tvJobs.setHeaderVisible(true);
+		tvFiles = new TableViewSWTImpl(TABLE_TRANSCODE_QUEUE,
+				TABLE_TRANSCODE_QUEUE, new TableColumnCore[0], "rank", SWT.MULTI
+						| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		tvFiles.setDataSourceType(TranscodeFile.class);
+		tvFiles.setRowDefaultHeight(50);
+		tvFiles.setHeaderVisible(true);
 
 		tableJobsParent = new Composite(control, SWT.NONE);
 		tableJobsParent.setLayoutData(Utils.getFilledFormData());
@@ -271,7 +284,7 @@ public class SBC_DevicesView
 		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 		tableJobsParent.setLayout(layout);
 
-		tvJobs.addSelectionListener(new TableSelectionListener() {
+		tvFiles.addSelectionListener(new TableSelectionListener() {
 
 			public void selected(TableRowCore[] row) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
@@ -304,17 +317,19 @@ public class SBC_DevicesView
 			}
 		}, false);
 
-		tvJobs.addLifeCycleListener(new TableLifeCycleListener() {
+		tvFiles.addLifeCycleListener(new TableLifeCycleListener() {
 			public void tableViewInitialized() {
-				TranscodeJob[] jobs = transcode_queue.getJobs();
-				if (device == null) {
-					tvJobs.addDataSources(transcode_queue.getJobs());
-				} else {
+				if (transTarget == null) {
+					// just add all jobs' files
+					TranscodeJob[] jobs = transcode_queue.getJobs();
 					for (TranscodeJob job : jobs) {
-						if (isOurJob(job)) {
-							tvJobs.addDataSource(job);
+						TranscodeFile file = job.getTranscodeFile();
+						if (file != null) {
+							tvFiles.addDataSource(file);
 						}
 					}
+				} else {
+					tvFiles.addDataSources(transTarget.getFiles());
 				}
 			}
 
@@ -322,7 +337,7 @@ public class SBC_DevicesView
 			}
 		});
 
-		tvJobs.addMenuFillListener(new TableViewSWTMenuFillListener() {
+		tvFiles.addMenuFillListener(new TableViewSWTMenuFillListener() {
 			public void fillMenu(Menu menu) {
 				SBC_DevicesView.this.fillMenu(menu);
 			}
@@ -331,22 +346,9 @@ public class SBC_DevicesView
 			}
 		});
 
-		tvJobs.initialize(tableJobsParent);
+		tvFiles.initialize(tableJobsParent);
 
 		control.layout(true);
-	}
-
-	/**
-	 * @param job
-	 * @return
-	 *
-	 * @since 4.1.0.5
-	 */
-	protected boolean isOurJob(TranscodeJob job) {
-		if (device == null) {
-			return true;
-		}
-		return device.equals(job.getTarget().getDevice());
 	}
 
 	/**
@@ -361,12 +363,14 @@ public class SBC_DevicesView
 
 		pause_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] jobs = tvJobs.getSelectedDataSources();
+				Object[] files = tvFiles.getSelectedDataSources();
 
-				for (int i = 0; i < jobs.length; i++) {
-					TranscodeJob job = (TranscodeJob) jobs[i];
+				for (int i = 0; i < files.length; i++) {
+					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
 
-					job.pause();
+					if (job != null) {
+						job.pause();
+					}
 				}
 			};
 		});
@@ -379,12 +383,14 @@ public class SBC_DevicesView
 
 		resume_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] jobs = tvJobs.getSelectedDataSources();
+				Object[] files = tvFiles.getSelectedDataSources();
 
-				for (int i = 0; i < jobs.length; i++) {
-					TranscodeJob job = (TranscodeJob) jobs[i];
+				for (int i = 0; i < files.length; i++) {
+					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
 
-					job.resume();
+					if (job != null) {
+						job.resume();
+					}
 				}
 			};
 		});
@@ -401,12 +407,14 @@ public class SBC_DevicesView
 
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] jobs = tvJobs.getSelectedDataSources();
+				Object[] files = tvFiles.getSelectedDataSources();
 
-				for (int i = 0; i < jobs.length; i++) {
-					TranscodeJob job = (TranscodeJob) jobs[i];
+				for (int i = 0; i < files.length; i++) {
+					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
 
-					job.remove();
+					if (job != null) {
+						job.remove();
+					}
 				}
 			};
 		});
@@ -416,17 +424,20 @@ public class SBC_DevicesView
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// Login to disable items 
-		Object[] jobs = tvJobs.getSelectedDataSources();
+		Object[] files = tvFiles.getSelectedDataSources();
 
-		boolean has_selection = jobs.length > 0;
+		boolean has_selection = files.length > 0;
 
 		remove_item.setEnabled(has_selection);
 
 		boolean can_pause = has_selection;
 		boolean can_resume = has_selection;
 
-		for (int i = 0; i < jobs.length; i++) {
-			TranscodeJob job = (TranscodeJob) jobs[i];
+		for (int i = 0; i < files.length; i++) {
+			TranscodeJob job = ((TranscodeFile) files[i]).getJob();
+			if (job == null) {
+				continue;
+			}
 
 			int state = job.getState();
 
@@ -469,17 +480,18 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobAdded(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobAdded(TranscodeJob job) {
-		if (tvJobs != null) {
-			if (isOurJob(job)) {
-				tvJobs.addDataSource(job);
+		if (transTarget == null) {
+			TranscodeFile file = job.getTranscodeFile();
+			if (file != null) {
+				tvFiles.addDataSource(file);
 			}
 		}
 	}
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobChanged(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobChanged(TranscodeJob job) {
-		if (tvJobs != null) {
-			TableRowCore row = tvJobs.getRow(job);
+		if (tvFiles != null) {
+			TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
 			if (row != null) {
 				row.invalidate();
 				if (row.isVisible()) {
@@ -494,18 +506,34 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobRemoved(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobRemoved(TranscodeJob job) {
-		if (tvJobs != null) {
-			tvJobs.removeDataSource(job);
+		if (tvFiles != null) {
+			if (transTarget == null) {
+				TranscodeFile file = job.getTranscodeFile();
+				if (file != null) {
+					tvFiles.removeDataSource(file);
+				}
+			} else {
+				TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
+				if (row != null) {
+					row.invalidate();
+					if (row.isVisible()) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.refreshIconBar();
+						}
+					}
+				}
+			}
 		}
 	}
 
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isEnabled(java.lang.String)
 	public boolean isEnabled(String itemKey) {
-		if (tvJobs == null) {
+		if (tvFiles == null) {
 			return false;
 		}
-		Object[] selectedDS = tvJobs.getSelectedDataSources();
-		int size = tvJobs.size(false);
+		Object[] selectedDS = tvFiles.getSelectedDataSources();
+		int size = tvFiles.size(false);
 		if (selectedDS.length == 0) {
 
 			return (false);
@@ -520,9 +548,16 @@ public class SBC_DevicesView
 		boolean can_queue = true;
 		boolean can_move_up = true;
 		boolean can_move_down = true;
+		boolean hasJob = false;
 
 		for (Object ds : selectedDS) {
-			TranscodeJob job = (TranscodeJob) ds;
+			TranscodeJob job = ((TranscodeFile) ds).getJob();
+
+			if (job == null) {
+				continue;
+			}
+
+			hasJob = true;
 
 			int index = job.getIndex();
 
@@ -552,6 +587,10 @@ public class SBC_DevicesView
 			}
 		}
 
+		if (!hasJob) {
+			can_stop = can_queue = can_move_down = can_move_up = false;
+		}
+
 		if (itemKey.equals("stop")) {
 
 			return (can_stop);
@@ -572,6 +611,11 @@ public class SBC_DevicesView
 			return (can_move_down);
 		}
 
+		if (itemKey.equals("run")) {
+
+			return (true);
+		}
+
 		return (false);
 	}
 
@@ -582,16 +626,53 @@ public class SBC_DevicesView
 
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#itemActivated(java.lang.String)
 	public void itemActivated(final String itemKey) {
-		Object[] selectedDS = tvJobs.getSelectedDataSources();
-		int size = tvJobs.size(false);
+		if (itemKey.equals("run")) {
+			if (device instanceof TranscodeTarget) {
+				TranscodeTarget transTarget = (TranscodeTarget) device;
+
+				TranscodeFile[] files = transTarget.getFiles();
+				for (TranscodeFile transcodeFile : files) {
+					System.out.println(transcodeFile.getSourceFile().getFile());
+
+					TranscodeJob job = transcodeFile.getJob();
+					if (job != null) {
+						System.out.println("  FOUND JOB " + job.getName());
+					}
+				}
+			}
+
+			return;
+		}
+
+		Object[] selectedDS = tvFiles.getSelectedDataSources();
+		int size = tvFiles.size(false);
 		if (selectedDS.length == 0) {
 			return;
 		}
 
-		TranscodeJob[] jobs = new TranscodeJob[selectedDS.length];
-		for (int i = 0; i < jobs.length; i++) {
-			jobs[i] = (TranscodeJob) selectedDS[i];
+		if (itemKey.equals("remove")) {
+			for (Object ds : selectedDS) {
+				try {
+					((TranscodeFile) ds).delete(true);
+				} catch (TranscodeException e) {
+					Debug.out(e);
+				}
+			}
 		}
+
+		TranscodeJob[] jobs = new TranscodeJob[selectedDS.length];
+		int pos = 0;
+		for (int i = 0; i < jobs.length; i++) {
+			TranscodeFile file = (TranscodeFile) selectedDS[i];
+			TranscodeJob job = file.getJob();
+			if (job != null) {
+				jobs[pos++] = job;
+			}
+		}
+		if (pos == 0) {
+			return;
+		}
+		System.arraycopy(jobs, 0, jobs, 0, pos);
 
 		if (itemKey.equals("up") || itemKey.equals("down")) {
 
@@ -635,8 +716,38 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 	public void updateUI() {
-		if (tvJobs != null) {
-			tvJobs.refreshTable(false);
+		if (tvFiles != null) {
+			tvFiles.refreshTable(false);
+		}
+	}
+
+	// @see com.aelitis.azureus.core.devices.TranscodeTargetListener#fileAdded(com.aelitis.azureus.core.devices.TranscodeFile)
+	public void fileAdded(TranscodeFile file) {
+		if (tvFiles != null) {
+			tvFiles.addDataSource(file);
+		}
+	}
+
+	// @see com.aelitis.azureus.core.devices.TranscodeTargetListener#fileChanged(com.aelitis.azureus.core.devices.TranscodeFile, int, java.lang.Object)
+	public void fileChanged(TranscodeFile file, int type, Object data) {
+		if (tvFiles != null) {
+			TableRowCore row = tvFiles.getRow(file);
+			if (row != null) {
+				row.invalidate();
+				if (row.isVisible()) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.refreshIconBar();
+					}
+				}
+			}
+		}
+	}
+
+	// @see com.aelitis.azureus.core.devices.TranscodeTargetListener#fileRemoved(com.aelitis.azureus.core.devices.TranscodeFile)
+	public void fileRemoved(TranscodeFile file) {
+		if (tvFiles != null) {
+			tvFiles.removeDataSource(file);
 		}
 	}
 }

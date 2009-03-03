@@ -23,6 +23,7 @@ import java.util.Locale;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -73,11 +74,16 @@ public class ColumnTJ_Status
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		TranscodeJob tj = (TranscodeJob) cell.getDataSource();
-		if (tj == null) {
+		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
+		if (tf == null) {
 			return;
 		}
-		cell.setText(getJobStatus(tj));
+		TranscodeJob job = tf.getJob();
+		if (job == null) {
+			cell.setText("!Ready!");
+			return;
+		}
+		cell.setText(getJobStatus(job));
 	}
 
 	protected String getJobStatus(TranscodeJob job) {

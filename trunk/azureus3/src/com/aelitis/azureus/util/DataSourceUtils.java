@@ -29,6 +29,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfo;
@@ -82,6 +83,18 @@ public class DataSourceUtils
 					}
 				} catch (DownloadException e) {
 				}
+			} else if (ds instanceof TranscodeFile) {
+				TranscodeFile tf = (TranscodeFile) ds;
+				try {
+					DiskManagerFileInfo file = tf.getSourceFile();
+					if (file != null) {
+						Download download = file.getDownload();
+						if (download != null) {
+							return PluginCoreUtils.unwrap(download);
+						}
+					}
+				} catch (DownloadException e) {
+				}
 			}
 
 		} catch (Exception e) {
@@ -112,7 +125,24 @@ public class DataSourceUtils
 			}
 			return torrent;
 		}
-		
+
+		if (ds instanceof TranscodeFile) {
+			TranscodeFile tf = (TranscodeFile) ds;
+			try {
+				DiskManagerFileInfo file = tf.getSourceFile();
+				if (file != null) {
+					Download download = file.getDownload();
+					if (download != null) {
+						Torrent torrent = download.getTorrent();
+						if (torrent != null) {
+							return PluginCoreUtils.unwrap(torrent);
+						}
+					}
+				}
+			} catch (DownloadException e) {
+			}
+		}
+
 		if (ds instanceof TranscodeJob) {
 			TranscodeJob tj = (TranscodeJob) ds;
 			try {
@@ -130,6 +160,8 @@ public class DataSourceUtils
 			} catch (DownloadException e) {
 			}
 		}
+		
+		
 
 		if (ds instanceof ISelectedContent) {
 			return getTorrent(((ISelectedContent)ds).getDM());
@@ -206,6 +238,19 @@ public class DataSourceUtils
 					DiskManagerFileInfo file = tj.getFile();
 					if (file != null) {
 						Download download = tj.getFile().getDownload();
+						if (download != null) {
+							DownloadManager dm = PluginCoreUtils.unwrap(download);
+							return getContentNetwork(dm);
+						}
+					}
+				} catch (DownloadException e) {
+				}
+			} else if (ds instanceof TranscodeFile) {
+				TranscodeFile tf = (TranscodeFile) ds;
+				try {
+					DiskManagerFileInfo file = tf.getSourceFile();
+					if (file != null) {
+						Download download = file.getDownload();
 						if (download != null) {
 							DownloadManager dm = PluginCoreUtils.unwrap(download);
 							return getContentNetwork(dm);
