@@ -174,7 +174,7 @@ public class DebugMenuHelper
 			public void widgetSelected(SelectionEvent e) {
 				boolean oldDebug = DonationWindow.DEBUG; 
 				DonationWindow.DEBUG = true;
-				new DonationWindow().show(true);
+				DonationWindow.open(true);
 				DonationWindow.DEBUG = oldDebug;
 			}
 		});
