@@ -927,7 +927,7 @@ public class PlatformTorrentUtils
 		if (width <= 0) {
 			return null;
 		}
-		long height = getContentVideoWidth(torrent);
+		long height = getContentVideoHeight(torrent);
 		if (height <= 0) {
 			return null;
 		}
