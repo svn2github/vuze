@@ -384,7 +384,7 @@ DeviceiTunes
 				}
 			}
 			
-			File	file = to_copy.getSourceFile().getFile();
+			File	file = to_copy.getTargetFile().getFile();
 			
 			try{
 			

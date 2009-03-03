@@ -649,7 +649,7 @@ DeviceUPnPImpl
 				return;
 			}
 
-			final DiskManagerFileInfo 	f 		= transcode_file.getSourceFile();
+			final DiskManagerFileInfo 	f 		= transcode_file.getTargetFile();
 			final String				tf_key	= transcode_file.getKey();
 						
 			acf = 

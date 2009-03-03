@@ -54,7 +54,8 @@ TranscodeFileImpl
 	private static final String			KEY_SOURCE_FILE_HASH	= "sf_hash";
 	private static final String			KEY_SOURCE_FILE_INDEX	= "sf_index";
 	private static final String			KEY_SOURCE_FILE_LINK	= "sf_link";
-	
+	private static final String			KEY_NO_XCODE			= "no_xcode";
+
 	private static final String			KEY_DURATION			= "at_dur";
 	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
 	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
@@ -138,7 +139,7 @@ TranscodeFileImpl
 	public DiskManagerFileInfo 
 	getSourceFile() 
 	{
-		// options are 1) cached file 2) link to other file 3) download-file 
+			// options are either a download file or a link to an existing non-torrent based file
 		
 		String	hash = getString( KEY_SOURCE_FILE_HASH );
 		
@@ -159,24 +160,21 @@ TranscodeFileImpl
 			}
 		}
 		
-		File	file = getCacheFile();
+		String	link = getString( KEY_SOURCE_FILE_LINK );
+			
+		if ( link != null ){
+				
+			File link_file = new File( link );
+				
+			if ( link_file.exists()){
 		
-		if ( !file.exists() || file.length() == 0 ){
-			
-			String	link = getString( KEY_SOURCE_FILE_LINK );
-			
-			if ( link != null ){
-				
-				File link_file = new File( link );
-				
-				if ( link_file.exists()){
-					
-					file = link_file;
-				}
+				return( new DiskManagerFileInfoFile( link_file ));
 			}
 		}
 		
-		return( new DiskManagerFileInfoFile( file ));
+		Debug.out( "Source file doesn't exist, returning cache file" );
+		
+		return( new DiskManagerFileInfoFile( getCacheFile()));
 	}
 	
 	protected void
@@ -196,6 +194,36 @@ TranscodeFileImpl
 		}
 		
 		setString( KEY_SOURCE_FILE_LINK, file.getFile().getAbsolutePath());
+	}
+	
+	public DiskManagerFileInfo 
+	getTargetFile() 
+	{
+			// options are either the cached file, if it exists, or failing that the
+			// source file if transcoding not required
+		
+		File	cache_file = getCacheFile();
+		
+		if ( cache_file.exists() && cache_file.length() > 0 ){
+		
+			return( new DiskManagerFileInfoFile( cache_file ));
+		}
+		
+		if ( getLong( KEY_NO_XCODE ) == 1 ){
+			
+			return( getSourceFile());
+		}
+		
+		Debug.out( "Target file doesn't exist, returning cache file" );
+		
+		return( new DiskManagerFileInfoFile( cache_file ));
+	}
+	
+	protected void
+	setTranscodeRequired(
+		boolean	required )
+	{
+		setLong( KEY_NO_XCODE, required?1:0 );
 	}
 	
 	protected void

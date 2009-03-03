@@ -385,7 +385,7 @@ TranscodeQueueImpl
 				
 				DiskManagerFileInfo source = job.getFile();
 				
-				transcode_file.setSourceFile( source );
+				transcode_file.setTranscodeRequired( false );
 				
 				if ( job.isStream()){
 					
