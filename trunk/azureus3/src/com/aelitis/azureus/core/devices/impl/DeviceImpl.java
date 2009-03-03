@@ -560,9 +560,15 @@ DeviceImpl
 				
 				String c = p.getDeviceClassification();
 				
-				if ( c.toLowerCase().startsWith( classification.toLowerCase())){
+				if ( c == null ){
 					
-					profiles.add( p );
+					log( "Device classification missing for " + p.getName());
+					
+				}else{
+					if ( c.toLowerCase().startsWith( classification.toLowerCase())){
+						
+						profiles.add( p );
+					}
 				}
 			}
 		}
