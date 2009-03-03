@@ -218,7 +218,7 @@ TranscodeQueueImpl
 				
 				xcode_required = true;
 			}
-			
+						
 			if ( xcode_required ){
 				
 				final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
@@ -543,6 +543,8 @@ TranscodeQueueImpl
 									
 									break;
 								}
+								
+								os.write( buffer, 0, len );
 								
 								total_copied += len;
 								
