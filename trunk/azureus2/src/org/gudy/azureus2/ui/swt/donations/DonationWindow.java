@@ -58,13 +58,21 @@ public class DonationWindow
 
 	private static int initialAskHours = 48;
 
-	private boolean pageLoadedOk = false;
+	private static boolean pageLoadedOk = false;
 
-	private Shell shell;
+	private static Shell shell = null;
 
-	private Browser browser;
+	private static Browser browser;
 
 	public static void checkForDonationPopup() {
+		if (shell != null) {
+			if (DEBUG) {
+				Utils.openMessageBox(null, SWT.OK, "Donations Test",
+						"Already Open");
+			}
+			return;
+		}
+
 		//Check if user has already donated first
 		boolean alreadyDonated = COConfigurationManager.getBooleanParameter(
 				"donations.donated", false);
@@ -120,12 +128,15 @@ public class DonationWindow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				new DonationWindow().show(false);
+				open(false);
 			}
 		});
 	}
 
-	public void show(final boolean showNoLoad) {
+	public static void open(final boolean showNoLoad) {
+		if (shell != null && !shell.isDisposed()) {
+			return;
+		}
 		final Shell parentShell = Utils.findAnyShell();
 		shell = ShellFactory.createShell(parentShell, SWT.BORDER
 				| SWT.APPLICATION_MODAL | SWT.TITLE);
@@ -153,6 +164,7 @@ public class DonationWindow
 				if (parentShell != null) {
 					parentShell.setCursor(e.display.getSystemCursor(SWT.CURSOR_ARROW));
 				}
+				shell = null;
 			}
 		});
 
@@ -268,7 +280,7 @@ public class DonationWindow
 	 *
 	 * @since 4.0.0.5
 	 */
-	protected void neverAskAgain() {
+	protected static void  neverAskAgain() {
 		COConfigurationManager.setParameter("donations.donated", true);
 		COConfigurationManager.save();
 	}
@@ -315,7 +327,7 @@ public class DonationWindow
 		try {
 			AzureusCoreFactory.create().start();
 			//checkForDonationPopup();
-			new DonationWindow().show(true);
+			open(true);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

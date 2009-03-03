@@ -962,7 +962,7 @@ public class MenuFactory
 	public static MenuItem addDonationMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DONATE, new Listener() {
       public void handleEvent(Event e) {
-        new DonationWindow().show(true);
+        DonationWindow.open(true);
       }
     });
 	}
