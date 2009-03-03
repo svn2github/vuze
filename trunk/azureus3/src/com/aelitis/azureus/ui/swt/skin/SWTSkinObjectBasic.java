@@ -268,7 +268,8 @@ public class SWTSkinObjectBasic
 		triggerListeners(visible ? SWTSkinObjectListener.EVENT_SHOW
 				: SWTSkinObjectListener.EVENT_HIDE);
 		
-		if (walkup) {
+		// only walkup when visible.. yes?
+		if (walkup && visible) {
 			SWTSkinObject p = parent;
 			
   		while (p instanceof SWTSkinObjectBasic) {
