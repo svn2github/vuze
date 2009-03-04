@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -869,7 +870,8 @@ public class MainWindow
 		// only do donation check if swt instance is initialized, which means
 		// initial download managers are loaded and this main window is really
 		// the main window
-		if (uiSWTInstanceImpl != null) {
+		if (uiSWTInstanceImpl != null
+				&& !created.getDownloadState().getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 			DonationWindow.checkForDonationPopup();
 		}
 	}
