@@ -80,7 +80,12 @@ public class ColumnTJ_Status
 		}
 		TranscodeJob job = tf.getJob();
 		if (job == null) {
-			cell.setText("!Ready!");
+			if ( tf.getCopyToDeviceFails() > 0 ){
+					// should be red but whatever
+				cell.setText( "!Failed to copy to device!" );
+			}else{
+				cell.setText("!Ready!");
+			}
 			return;
 		}
 		cell.setText(getJobStatus(job));
@@ -93,6 +98,8 @@ public class ColumnTJ_Status
 
 		if (state == TranscodeJob.ST_FAILED) {
 
+			// should be red but whatever
+			
 			res += ": " + job.getError();
 		}
 
