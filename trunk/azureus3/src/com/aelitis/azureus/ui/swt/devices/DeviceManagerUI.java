@@ -1217,27 +1217,30 @@ DeviceManagerUI
 									SideBarEntrySWT	entry;
 									
 									if ( device.getType() == Device.DT_MEDIA_RENDERER ){
+
+										entry = 
+											side_bar.createEntryFromSkinRef(
+												parent,
+												key, "devicerendererview",
+												device.getName(),
+												null, null, false, -1);
 										
-  									entry = side_bar.createEntryFromSkinRef(parent,
-  											key, "devicerendererview",
-  											device.getName(),
-  											null, null, false, -1);
-  									entry.setDatasource(device);
-
-									} else {
-
-  									TreeItem  tree_item = 
-  										side_bar.createTreeItemFromIView(
-  											parent, 
-  											view,
-  											key, 
-  											device, 
-  											false, 
-  											false,
-  											false );
-
-  									entry = SideBar.getEntry( key );
+										entry.setTitleInfo( view );
 										
+										entry.setDatasource(device);
+
+									}else{
+
+										side_bar.createTreeItemFromIView(
+												parent, 
+												view,
+												key, 
+												device, 
+												false, 
+												false,
+												false );
+
+										entry = SideBar.getEntry( key );
 									}
 
 									new_di.setTreeItem( entry.getTreeItem(), entry );

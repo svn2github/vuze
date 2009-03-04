@@ -146,7 +146,7 @@ TranscodeFileImpl
 	}
 		
 	public DiskManagerFileInfo 
-	getSourceFile() 
+	getSourceFile()  
 	
 		throws TranscodeException
 	{
