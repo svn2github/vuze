@@ -108,11 +108,7 @@ public class SBC_DevicesView
 
 		transcode_manager = device_manager.getTranscodeManager();
 
-		//transcode_manager.addListener( this );
-
 		transcode_queue = transcode_manager.getQueue();
-
-		transcode_queue.addListener(this);
 
 		SideBar sidebar = (SideBar) SkinViewManager.getByClass(SideBar.class);
 		if (sidebar != null) {
@@ -123,8 +119,6 @@ public class SBC_DevicesView
 
 		if (device instanceof TranscodeTarget) {
 			transTarget = (TranscodeTarget) device;
-
-			transTarget.addListener(this);
 		}
 
 		new InfoBarUtil(skinObject, true, "DeviceView.infobar",
@@ -216,6 +210,12 @@ public class SBC_DevicesView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
+		transcode_queue.addListener(this);
+
+		if (transTarget != null) {
+			transTarget.addListener(this);
+		}
+
 		SWTSkinObject soDeviceList = getSkinObject("device-list");
 		if (soDeviceList != null) {
 			initDeviceListTable((Composite) soDeviceList.getControl());
@@ -258,6 +258,12 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		transcode_queue.removeListener(this);
+
+		if (transTarget != null) {
+			transTarget.removeListener(this);
+		}
+
 		if (tvFiles != null) {
 			tvFiles.delete();
 			tvFiles = null;
