@@ -284,6 +284,7 @@ public class TableViewSWTImpl
 
 	private boolean headerVisible = true;
 
+	private int[] selectedRowIndexes;
 
 	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
 		new Utils.addDataSourceCallback()
@@ -964,11 +965,12 @@ public class TableViewSWTImpl
 			int[] wasSelected = new int[0];
 			
 			public void widgetSelected(SelectionEvent event) {
-				int[] nowSelected = table.getSelectionIndices();
-				Arrays.sort(nowSelected);
+				selectedRowIndexes = table.getSelectionIndices();
+
+				Arrays.sort(selectedRowIndexes);
 				int x = 0;
-				for (int i = 0; x < wasSelected.length && i < nowSelected.length; i++) {
-					int index = nowSelected[i];
+				for (int i = 0; x < wasSelected.length && i < selectedRowIndexes.length; i++) {
+					int index = selectedRowIndexes[i];
 					if (wasSelected[x] == index) {
 						x++;
 						continue;
@@ -979,7 +981,7 @@ public class TableViewSWTImpl
 					}
 				}
 				
-				wasSelected = nowSelected;
+				wasSelected = selectedRowIndexes;
 				
 				//System.out.println(table.getSelection().length);
 				triggerSelectionListeners(new TableRowCore[] {
@@ -3212,34 +3214,21 @@ public class TableViewSWTImpl
 	 *                  because of non-created rows when select user selects all
 	 */
 	public List getSelectedDataSourcesList(final boolean bCoreDataSource) {
-		final ArrayList l = new ArrayList();
-		if (table == null || table.isDisposed()) {
-			return l;
+		if (table == null || table.isDisposed() || selectedRowIndexes == null
+				|| selectedRowIndexes.length == 0) {
+			return Collections.EMPTY_LIST;
 		}
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				if (table.isDisposed()) {
-					return;
-				}
-
-				TableItem[] tis = table.getSelection();
-				for (int i = 0; i < tis.length; i++) {
-					TableRowSWT row = (TableRowSWT) getRow(tis[i]);
-					if (row == null) {
-						fillRowGaps(false);
-
-						// Try again
-						row = (TableRowSWT) getRow(tis[i]);
-						if (row == null)
-							System.out.println("XXX Boo, row still null "
-									+ table.indexOf(tis[i]) + ";sd=" + tis[i].getData("SD") + ";"
-									+ Debug.getCompressedStackTrace());
-					}
-					if (row != null && row.getDataSource(true) != null)
-						l.add(row.getDataSource(bCoreDataSource));
+		
+		final ArrayList l = new ArrayList(selectedRowIndexes.length);
+		for (int index : selectedRowIndexes) {
+			TableRowCore row = getRowQuick(index);
+			if (row != null) {
+				Object ds = row.getDataSource(bCoreDataSource);
+				if (ds != null) {
+					l.add(ds);
 				}
 			}
-		}, false);
+		}
 		return l;
 	}
 
