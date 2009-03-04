@@ -480,6 +480,9 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobAdded(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobAdded(TranscodeJob job) {
+		if (tvFiles == null) {
+			return;
+		}
 		if (transTarget == null) {
 			TranscodeFile file = job.getTranscodeFile();
 			if (file != null) {
@@ -490,15 +493,16 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobChanged(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobChanged(TranscodeJob job) {
-		if (tvFiles != null) {
-			TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
-			if (row != null) {
-				row.invalidate();
-				if (row.isVisible()) {
-					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-					if (uiFunctions != null) {
-						uiFunctions.refreshIconBar();
-					}
+		if (tvFiles == null) {
+			return;
+		}
+		TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
+		if (row != null) {
+			row.invalidate();
+			if (row.isVisible()) {
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.refreshIconBar();
 				}
 			}
 		}
@@ -506,21 +510,22 @@ public class SBC_DevicesView
 
 	// @see com.aelitis.azureus.core.devices.TranscodeQueueListener#jobRemoved(com.aelitis.azureus.core.devices.TranscodeJob)
 	public void jobRemoved(TranscodeJob job) {
-		if (tvFiles != null) {
-			if (transTarget == null) {
-				TranscodeFile file = job.getTranscodeFile();
-				if (file != null) {
-					tvFiles.removeDataSource(file);
-				}
-			} else {
-				TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
-				if (row != null) {
-					row.invalidate();
-					if (row.isVisible()) {
-						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-						if (uiFunctions != null) {
-							uiFunctions.refreshIconBar();
-						}
+		if (tvFiles == null) {
+			return;
+		}
+		if (transTarget == null) {
+			TranscodeFile file = job.getTranscodeFile();
+			if (file != null) {
+				tvFiles.removeDataSource(file);
+			}
+		} else {
+			TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
+			if (row != null) {
+				row.invalidate();
+				if (row.isVisible()) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.refreshIconBar();
 					}
 				}
 			}
