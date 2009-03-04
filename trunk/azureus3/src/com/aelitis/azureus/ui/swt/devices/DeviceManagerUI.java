@@ -667,11 +667,11 @@ DeviceManagerUI
 
 		if ( main_sb_entry != null ){
 				
-			addDefaultDropListener( main_sb_entry );
-			
 			MenuManager menu_manager = ui_manager.getMenuManager();
 
 			if ( !rebuild ){
+
+				addDefaultDropListener( main_sb_entry );
 				
 				side_bar.createEntryFromSkinRef(null,
 						SideBar.SIDEBAR_SECTION_DEVICES, "devicesview",
@@ -1223,9 +1223,7 @@ DeviceManagerUI
 												parent,
 												key, "devicerendererview",
 												device.getName(),
-												null, null, false, -1);
-										
-										entry.setTitleInfo( view );
+												view, null, false, -1);
 										
 										entry.setDatasource(device);
 
