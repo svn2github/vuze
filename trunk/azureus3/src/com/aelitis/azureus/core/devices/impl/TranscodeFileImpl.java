@@ -144,12 +144,25 @@ TranscodeFileImpl
 		
 		return(new File( file_str ));
 	}
-		
+	
+	protected void
+	checkDeleted()
+	
+		throws TranscodeException
+	{
+		if ( isDeleted()){
+			
+			throw( new TranscodeException( "File has been deleted" ));
+		}
+	}
+	
 	public DiskManagerFileInfo 
 	getSourceFile()  
 	
 		throws TranscodeException
 	{
+		checkDeleted();
+		
 			// options are either a download file or a link to an existing non-torrent based file
 		
 		String	hash = getString( KEY_SOURCE_FILE_HASH );
@@ -183,7 +196,7 @@ TranscodeFileImpl
 			}
 		}
 		
-		Debug.out( "Source file doesn't exist, returning cache file" );
+		Debug.out( "Source file doesn't exist (hash=" + hash + ",link=" + link +"), returning cache file" );
 		
 		return( new DiskManagerFileInfoFile( getCacheFile()));
 	}
