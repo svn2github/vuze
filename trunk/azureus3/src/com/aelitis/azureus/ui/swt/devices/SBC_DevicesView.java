@@ -697,6 +697,7 @@ public class SBC_DevicesView
 			});
 		}
 
+		boolean forceSort = false;
 		for (TranscodeJob job : jobs) {
 
 			if (itemKey.equals("remove")) {
@@ -715,11 +716,21 @@ public class SBC_DevicesView
 
 				job.moveUp();
 
+				TableColumnCore sortColumn = tvFiles.getSortColumn();
+				forceSort = sortColumn != null
+						&& sortColumn.getName().equals(ColumnTJ_Rank.COLUMN_ID);
+
 			} else if (itemKey.equals("down")) {
 
 				job.moveDown();
+
+				TableColumnCore sortColumn = tvFiles.getSortColumn();
+				forceSort = sortColumn != null
+						&& sortColumn.getName().equals(ColumnTJ_Rank.COLUMN_ID);
 			}
 		}
+		tvFiles.refreshTable(forceSort);
+
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
