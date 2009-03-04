@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
@@ -59,6 +60,7 @@ TranscodeFileImpl
 	private static final String			KEY_DURATION			= "at_dur";
 	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
 	private static final String			KEY_VIDEO_HEIGHT		= "at_vh";
+	private static final String			KEY_DATE				= "at_dt";
 
 	private DeviceImpl					device;
 	private String						key;
@@ -84,6 +86,8 @@ TranscodeFileImpl
 		setString( KEY_FILE, _file.getAbsolutePath());
 		
 		setString( KEY_PROFILE_NAME, _profile_name );
+		
+		setLong( KEY_DATE, SystemTime.getCurrentTime());
 	}
 	
 	protected
@@ -349,6 +353,12 @@ TranscodeFileImpl
 	getVideoHeight()
 	{
 		return( getLong( KEY_VIDEO_HEIGHT ));
+	}
+	
+	public long
+	getCreationDateMillis()
+	{
+		return( getLong( KEY_DATE ));
 	}
 	
 	public void

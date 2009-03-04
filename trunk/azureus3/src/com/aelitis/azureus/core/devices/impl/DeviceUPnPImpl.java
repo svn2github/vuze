@@ -698,6 +698,10 @@ DeviceUPnPImpl
 									}else if ( name.equals( PT_VIDEO_HEIGHT )){
 										
 										res = tf.getVideoHeight();
+										
+									}else if ( name.equals( PT_DATE )){
+
+										res = tf.getCreationDateMillis();
 									}
 									
 									if ( res > 0 ){

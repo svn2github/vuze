@@ -738,7 +738,10 @@ TranscodeQueueImpl
 				job.remove();
 			}
 			
-			existing_tf.delete( !stream );
+			if ( !stream ){
+			
+				existing_tf.delete( true );
+			}
 		}
 		
 		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );

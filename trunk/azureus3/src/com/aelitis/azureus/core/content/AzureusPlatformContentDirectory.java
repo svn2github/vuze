@@ -160,58 +160,86 @@ AzureusPlatformContentDirectory
 			
 			final TOTorrent torrent = ((TorrentImpl)t_torrent).getTorrent();
 			
-			if ( !PlatformTorrentUtils.isContent( torrent, false )){
-				
-				return( null );
-			}
-			
 			final DiskManagerFileInfo	file = download.getDiskManagerFileInfo()[index];
+
+			if ( PlatformTorrentUtils.isContent( torrent, false )){
 			
-			return(
-				new AzureusContentFile()
-				{
-					public DiskManagerFileInfo
-					getFile()
+				return(
+					new AzureusContentFile()
 					{
-						return( file );
-					}
-					
-					public Object
-					getProperty(
-						String		name )
-					{
-						if ( name.equals( PT_DURATION )){
-							
-							long duration = PlatformTorrentUtils.getContentVideoRunningTime( torrent );
-							
-							if ( duration > 0 ){
-								
-									// secs -> millis
-								
-								return( new Long( duration*1000 ));
-							}
-						}else if ( name.equals( PT_VIDEO_WIDTH )){
-
-							int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
-							
-							if ( res != null ){
-								
-								return(new Long( res[0]));
-							}								
-						}else if ( name.equals( PT_VIDEO_HEIGHT )){
-
-							int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
-							
-							if ( res != null ){
-								
-								return(new Long( res[1] ));
-							}
+						public DiskManagerFileInfo
+						getFile()
+						{
+							return( file );
 						}
 						
-						return( null );
-					}
-				});
-			
+						public Object
+						getProperty(
+							String		name )
+						{
+							try{
+								if ( name.equals( PT_DURATION )){
+									
+									long duration = PlatformTorrentUtils.getContentVideoRunningTime( torrent );
+									
+									if ( duration > 0 ){
+										
+											// secs -> millis
+										
+										return( new Long( duration*1000 ));
+									}
+								}else if ( name.equals( PT_VIDEO_WIDTH )){
+		
+									int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
+									
+									if ( res != null ){
+										
+										return(new Long( res[0]));
+									}								
+								}else if ( name.equals( PT_VIDEO_HEIGHT )){
+		
+									int[] res = PlatformTorrentUtils.getContentVideoResolution(torrent);
+									
+									if ( res != null ){
+										
+										return(new Long( res[1] ));
+									}
+								}else if ( name.equals( PT_DATE )){
+		
+									return( new Long( file.getDownload().getCreationTime()));
+								}
+							}catch( Throwable e ){							
+							}
+							
+							return( null );
+						}
+					});
+			}else{
+				return(
+						new AzureusContentFile()
+						{
+							public DiskManagerFileInfo
+							getFile()
+							{
+								return( file );
+							}
+							
+							public Object
+							getProperty(
+								String		name )
+							{
+								try{
+									if ( name.equals( PT_DATE )){
+	
+										return( new Long( file.getDownload().getCreationTime()));
+									}
+								}catch( Throwable e ){							
+								}
+								
+								return( null );
+							}
+						});
+			}
 		}catch( Throwable e ){
 			
 			return( null );
