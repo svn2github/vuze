@@ -32,6 +32,7 @@ TranscodeFile
 	
 	public static final String PT_COMPLETE		= "comp";
 	public static final String PT_COPIED		= "copied";
+	public static final String PT_COPY_FAILED	= "copy_fail";
 	
 	public File
 	getCacheFile();
@@ -48,6 +49,9 @@ TranscodeFile
 	public boolean
 	isCopiedToDevice();
 	
+	public long
+	getCopyToDeviceFails();
+	
 	public Device
 	getDevice();
 	
@@ -61,7 +65,7 @@ TranscodeFile
 	
 	public void
 	delete(
-		boolean	delete_contents )
+		boolean	delete_cache_file )
 	
 		throws TranscodeException;
 	

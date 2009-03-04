@@ -614,12 +614,20 @@ DeviceUPnPImpl
 	isVisible(
 		AzureusContentFile		file )
 	{	
+		boolean	result;
+		
 		if ( getFilterFilesView()){
 		
-			return( file.getProperty( MY_ACF_KEY ) == this );
+			result = file.getProperty( MY_ACF_KEY ) == this;
+			
+		}else{
+			
+			result = true;
 		}
 		
-		return( true );
+		System.out.println( file.getFile().getFile().getName() + " -> " + result );
+		
+		return( result );
 	}
 	
 	public void

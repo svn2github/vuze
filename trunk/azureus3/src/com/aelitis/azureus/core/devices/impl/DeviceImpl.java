@@ -504,6 +504,41 @@ DeviceImpl
 		return( result );
 	}
 	
+	public TranscodeFileImpl
+	lookupFile(
+		TranscodeProfile		profile,
+		DiskManagerFileInfo		file )
+	{
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+				}
+	
+				String	key = ByteFormatter.encodeString( file.getDownloadHash() ) + ":" + file.getIndex() + ":" + profile.getUID();
+								
+				if ( device_files.containsKey( key )){
+				
+					try{					
+						return( new TranscodeFileImpl( this, key, device_files ));
+						
+					}catch( Throwable e ){
+						
+						device_files.remove( key );
+						
+						log( "Failed to deserialise transcode file", e );
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		return( null );
+	}
+	
 	protected TranscodeFileImpl
 	getTranscodeFile(
 		String		key )
@@ -518,7 +553,16 @@ DeviceImpl
 									
 				if ( device_files.containsKey( key )){
 				
-					return( new TranscodeFileImpl( this, key, device_files ));
+					try{					
+
+						return( new TranscodeFileImpl( this, key, device_files ));
+						
+				}	catch( Throwable e ){
+						
+						device_files.remove( key );
+						
+						log( "Failed to deserialise transcode file", e );
+					}
 				}
 			}
 		}catch( Throwable e ){
@@ -1146,7 +1190,8 @@ DeviceImpl
 	protected void
 	deleteFile(
 		TranscodeFileImpl	file,
-		boolean				delete_contents )
+		boolean				delete_contents,
+		boolean				remove )
 	
 		throws TranscodeException 
 	{	
@@ -1183,36 +1228,39 @@ DeviceImpl
 			}
 		}
 		
-		try{
-			synchronized( this ){
-				
-				if ( device_files == null ){
+		if ( remove ){
+			
+			try{
+				synchronized( this ){
 					
-					loadDeviceFile();
+					if ( device_files == null ){
+						
+						loadDeviceFile();
+						
+					}else{
+						
+						device_files_last_mod = SystemTime.getMonotonousTime();
+					}
 					
-				}else{
+					device_files.remove( file.getKey());
 					
-					device_files_last_mod = SystemTime.getMonotonousTime();
+					device_files_dirty	= true;
 				}
 				
-				device_files.remove( file.getKey());
-				
-				device_files_dirty	= true;
-			}
-			
-			for ( TranscodeTargetListener l: listeners ){
-				
-				try{
-					l.fileRemoved( file );
+				for ( TranscodeTargetListener l: listeners ){
 					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
+					try{
+						l.fileRemoved( file );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
 				}
+			}catch( Throwable e ){
+				
+				throw( new TranscodeException( "Delete failed", e ));
 			}
-		}catch( Throwable e ){
-			
-			throw( new TranscodeException( "Delete failed", e ));
 		}
 	}
 	

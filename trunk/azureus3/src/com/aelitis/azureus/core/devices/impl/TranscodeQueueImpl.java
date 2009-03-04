@@ -217,7 +217,7 @@ TranscodeQueueImpl
 				
 				xcode_required = true;
 			}
-						
+							
 			if ( xcode_required ){
 				
 				final AESemaphore xcode_sem = new AESemaphore( "xcode:proc" );
@@ -681,29 +681,29 @@ TranscodeQueueImpl
 	
 		throws TranscodeException
 	{
-		TranscodeFile new_tf = ((DeviceImpl)target.getDevice()).allocateFile( profile, file );
+		TranscodeFileImpl existing_tf = ((DeviceImpl)target.getDevice()).lookupFile( profile, file );
 		
-		List<TranscodeJobImpl>	to_remove = new ArrayList<TranscodeJobImpl>();
-		
-		synchronized( this ){
-
-			for ( TranscodeJobImpl job: queue ){
-				
-				if ( job.getTarget() == target && job.getTranscodeFile().equals( new_tf )){
+		if ( existing_tf != null ){
+			
+			List<TranscodeJobImpl>	to_remove = new ArrayList<TranscodeJobImpl>();
+			
+			synchronized( this ){
+	
+				for ( TranscodeJobImpl job: queue ){
 					
-					to_remove.add( job );
+					if ( job.getTarget() == target && job.getTranscodeFile().equals( existing_tf )){
+						
+						to_remove.add( job );
+					}
 				}
 			}
-		}
-		
-		for ( TranscodeJobImpl job: to_remove ){
-
-			job.remove();
-		}
 			
-		if ( !stream ){
-		
-			new_tf.delete( true );
+			for ( TranscodeJobImpl job: to_remove ){
+	
+				job.remove();
+			}
+			
+			existing_tf.delete( !stream );
 		}
 		
 		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );

@@ -126,55 +126,74 @@ TranscodeProviderVuze
 		throws TranscodeException
 	{
 		try{
-			PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
 			
-			if ( av_pi == null ){
+			URL 				source_url		= null;
+			File				source_file	 	= null;
 			
-				throw( new TranscodeException( "Media Server plugin not found" ));
-			}
+			long	input_length = input.getLength();
 			
-			IPCInterface av_ipc = av_pi.getIPC();
-			
-			String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
-			
-			URL 				source_url;
-			TranscodePipe		pipe;
-			
-			if ( url_str == null || url_str.length() == 0 ){
+			if ( input_length > 0 && input_length == input.getDownloaded()){
 				
-					// see if we can use the file directly
+				File file = input.getFile();
 				
-				File source_file = input.getFile();
-				
-				if ( source_file.exists()){
+				if ( file.exists() && file.length() == input_length ){
 					
-					pipe = new TranscodePipeFileSource( source_file );
-					
-					source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" + URLEncoder.encode( source_file.getName(), "UTF-8" ));
-					
-				}else{
-					
-					throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+					source_file = file;
 				}
-			}else{
-				source_url = new URL( url_str );
-			
-				pipe = new TranscodePipeStreamSource( source_url.getPort());
-				
-				source_url = UrlUtils.setPort( source_url, pipe.getPort());
 			}
 			
+			TranscodePipe		pipe = null;
+
+			if ( source_file == null ){
+							
+				PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+				
+				if ( av_pi == null ){
+				
+					throw( new TranscodeException( "Media Server plugin not found" ));
+				}
+				
+				IPCInterface av_ipc = av_pi.getIPC();
+				
+				String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+		
+				if ( url_str != null && url_str.length() > 0 ){
+				
+					source_url = new URL( url_str );
+			
+					pipe = new TranscodePipeStreamSource( source_url.getPort());
+				
+					source_url = UrlUtils.setPort( source_url, pipe.getPort());
+				}
+			}
+			
+			if ( source_file == null && source_url == null ){
+			
+				throw( new TranscodeException( "No UPnPAV URL and file doesn't exist" ));
+			}
+
 			final TranscodePipe f_pipe = pipe;
 			
 			try{	
 				final IPCInterface	ipc = plugin_interface.getIPC();
 
-				final Object analysis_context =
-					ipc.invoke(
+				final Object analysis_context;
+				
+				if ( source_url != null ){
+					
+					analysis_context = ipc.invoke(
 						"analyseContent",
 						new Object[]{ 
 							source_url,
 							profile.getName() });
+				}else{
+					
+					analysis_context = ipc.invoke(
+						"analyseContent",
+						new Object[]{ 
+							source_file,
+							profile.getName() });
+				}
 				
 				final Map<String,Object>	result = new HashMap<String, Object>();
 				
@@ -307,8 +326,11 @@ TranscodeProviderVuze
 								}
 							}
 						}finally{
-															
-							f_pipe.destroy();
+							
+							if ( f_pipe != null ){
+							
+								f_pipe.destroy();
+							}
 						}
 					}
 				}.start();
@@ -318,7 +340,10 @@ TranscodeProviderVuze
 						
 			}catch( Throwable e ){
 				
-				pipe.destroy();
+				if ( pipe != null ){
+				
+					pipe.destroy();
+				}
 				
 				throw( e );
 			}

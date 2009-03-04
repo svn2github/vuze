@@ -223,7 +223,7 @@ TranscodeFileImpl
 	setTranscodeRequired(
 		boolean	required )
 	{
-		setLong( KEY_NO_XCODE, required?1:0 );
+		setLong( KEY_NO_XCODE, required?0:1 );
 	}
 	
 	protected void
@@ -244,6 +244,20 @@ TranscodeFileImpl
 		boolean b )
 	{
 		setLong( PT_COPIED, b?1:0 );
+		
+		setLong( PT_COPY_FAILED, 0 );
+	}
+	
+	protected void
+	setCopyToDeviceFailed()
+	{
+		setLong( PT_COPY_FAILED, getLong( PT_COPY_FAILED ) + 1 );
+	}
+	
+	public long
+	getCopyToDeviceFails()
+	{
+		return( getLong( PT_COPY_FAILED ));
 	}
 	
 	public boolean
@@ -317,7 +331,15 @@ TranscodeFileImpl
 	
 		throws TranscodeException 
 	{
-		device.deleteFile( this, delete_contents );
+		device.deleteFile( this, delete_contents, true );
+	}
+	
+	protected void
+	deleteCacheFile()
+	
+		throws TranscodeException 
+	{
+		device.deleteFile( this, true, false );
 	}
 	
 	public boolean

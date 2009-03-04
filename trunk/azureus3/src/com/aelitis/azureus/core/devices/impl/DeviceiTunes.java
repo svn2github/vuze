@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -320,7 +321,10 @@ DeviceiTunes
 		
 		while( true ){
 			
-			copy_sem.reserve( 60*1000 );
+			if ( copy_sem.reserve( 60*1000 )){
+				
+				while( copy_sem.reserveIfAvailable());
+			}
 							
 			synchronized( this ){
 
@@ -341,30 +345,28 @@ DeviceiTunes
 			
 			TranscodeFileImpl[] files = getFiles();
 				
-			TranscodeFileImpl	to_copy = null;
+			List<TranscodeFileImpl>	to_copy = new ArrayList<TranscodeFileImpl>();
 				
+			boolean	borked_exist = false;
+			
 			for ( TranscodeFileImpl file: files ){
 					
 				if ( file.isComplete() && !file.isCopiedToDevice()){
 					
-					if ( to_copy == null ){
+					if ( file.getCopyToDeviceFails() < 3 ){
 					
-						to_copy = file;
+						to_copy.add( file );
 						
 					}else{
 						
-							// prepare for more
-						
-						copy_sem.release();
-						
-						break;
+						borked_exist = true;
 					}
 				}
 			}
 				
 			synchronized( this ){
 
-				if ( to_copy == null && !copy_outstanding_set){
+				if ( to_copy.size() == 0 && !copy_outstanding_set && !borked_exist ){
 						
 					copy_outstanding = false;
 					
@@ -384,28 +386,32 @@ DeviceiTunes
 				}
 			}
 			
-			File	file = to_copy.getTargetFile().getFile();
-			
-			try{
-			
-				IPCInterface	ipc = itunes.getIPC();
+			for ( TranscodeFileImpl transcode_file: to_copy ){
 				
-				Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
-
-				Throwable error = (Throwable)result.get( "error" );
+				File	file = transcode_file.getTargetFile().getFile();
 				
-				if ( error != null ){
+				try{
+					IPCInterface	ipc = itunes.getIPC();
 					
-					throw( error );
+					Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
+	
+					Throwable error = (Throwable)result.get( "error" );
+					
+					if ( error != null ){
+						
+						throw( error );
+					}
+					
+					log( "Added file '" + file + ": " + result );
+					
+					transcode_file.setCopiedToDevice( true );
+					
+				}catch( Throwable e ){
+					
+					transcode_file.setCopyToDeviceFailed();
+					
+					log( "Failed to copy file " + file, e );
 				}
-				
-				log( "Added file '" + file + ": " + result );
-				
-				to_copy.setCopiedToDevice( true );
-				
-			}catch( Throwable e ){
-				
-				log( "Failed to copy file " + file, e );
 			}
 		}
 	}
