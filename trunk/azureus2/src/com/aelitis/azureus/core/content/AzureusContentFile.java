@@ -28,6 +28,7 @@ AzureusContentFile
 {
 	public static final String	PT_TITLE			= "title";			// String
 	public static final String	PT_CREATOR			= "creator";		// String
+	public static final String	PT_DATE				= "date";			// Long, millis
 	public static final String	PT_DURATION			= "duration";		// Long, millis
 	public static final String	PT_VIDEO_WIDTH		= "video_width";	// Long
 	public static final String	PT_VIDEO_HEIGHT		= "video_height";	// Long
