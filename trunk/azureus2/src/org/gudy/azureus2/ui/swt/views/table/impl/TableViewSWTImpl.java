@@ -2337,8 +2337,14 @@ public class TableViewSWTImpl
 			int count = 0;
 
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[i] != null
-						&& !dataSourcesToAdd.contains(dataSources[i])) {
+				if (dataSources[0] == null) {
+					continue;
+				}
+				boolean alreadyThere = dataSourcesToAdd.contains(dataSources[i]);
+				if (alreadyThere) {
+					// added twice.. ensure it's not in the remove list
+					dataSourcesToRemove.remove(dataSources[i]);
+				} else {
 					count++;
 					dataSourcesToAdd.add(dataSources[i]);
 				}
