@@ -21,6 +21,8 @@ package com.aelitis.azureus.ui.swt.devices;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -93,6 +95,8 @@ public class SBC_DevicesView
 	private Device device;
 
 	private TranscodeTarget transTarget;
+
+	private DropTarget dropTarget;
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -222,6 +226,9 @@ public class SBC_DevicesView
 			initTranscodeQueueTable((Composite) soTranscodeQueue.getControl());
 		}
 
+		Control control = skinObject.getControl();
+		dropTarget = new DropTarget(control, 0xFF);
+
 		return null;
 	}
 
@@ -255,9 +262,10 @@ public class SBC_DevicesView
 			tvFiles.delete();
 			tvFiles = null;
 		}
-		if (tableJobsParent != null && !tableJobsParent.isDisposed()) {
-			tableJobsParent.dispose();
-		}
+		Utils.disposeSWTObjects(new Object[] {
+			tableJobsParent,
+			dropTarget
+		});
 		if (tvDevices != null) {
 			tvDevices.delete();
 			tvDevices = null;
