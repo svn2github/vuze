@@ -2338,7 +2338,7 @@ public class TableViewSWTImpl
 			int count = 0;
 
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[0] == null) {
+				if (dataSources[i] == null) {
 					continue;
 				}
 				boolean alreadyThere = dataSourcesToAdd.contains(dataSources[i]);
