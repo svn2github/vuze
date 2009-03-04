@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
+import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
@@ -657,66 +658,70 @@ DeviceUPnPImpl
 				return;
 			}
 
-			final DiskManagerFileInfo 	f 		= transcode_file.getTargetFile();
-			final String				tf_key	= transcode_file.getKey();
-						
-			acf = 
-				new AzureusContentFile()
-				{
-					public DiskManagerFileInfo
-				    getFile()
+			try{
+				final DiskManagerFileInfo 	f 		= transcode_file.getTargetFile();
+				final String				tf_key	= transcode_file.getKey();
+							
+				acf = 
+					new AzureusContentFile()
 					{
-						return( f );
-					}
-					
-					public Object
-					getProperty(
-						String		name )
-					{						
-						if(  name.equals( MY_ACF_KEY )){
-							
-							return( DeviceUPnPImpl.this );
-							
-						}else{
-							
-							TranscodeFileImpl	tf = getTranscodeFile( tf_key );
-							
-							if ( tf != null ){
-								
-								long	res = 0;
-								
-								if ( name.equals( PT_DURATION )){
-									
-									res = tf.getDurationMillis();
-									
-								}else if ( name.equals( PT_VIDEO_WIDTH )){
-									
-									res = tf.getVideoWidth();
-									
-								}else if ( name.equals( PT_VIDEO_HEIGHT )){
-									
-									res = tf.getVideoHeight();
-								}
-								
-								if ( res > 0 ){
-									
-									return( new Long( res ));
-								}
-							}
+						public DiskManagerFileInfo
+					    getFile()
+						{
+							return( f );
 						}
 						
-						return( null );
-					}
-				};
+						public Object
+						getProperty(
+							String		name )
+						{						
+							if(  name.equals( MY_ACF_KEY )){
+								
+								return( DeviceUPnPImpl.this );
+								
+							}else{
+								
+								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
+								
+								if ( tf != null ){
+									
+									long	res = 0;
+									
+									if ( name.equals( PT_DURATION )){
+										
+										res = tf.getDurationMillis();
+										
+									}else if ( name.equals( PT_VIDEO_WIDTH )){
+										
+										res = tf.getVideoWidth();
+										
+									}else if ( name.equals( PT_VIDEO_HEIGHT )){
+										
+										res = tf.getVideoHeight();
+									}
+									
+									if ( res > 0 ){
+										
+										return( new Long( res ));
+									}
+								}
+							}
+							
+							return( null );
+						}
+					};
+					
+				try{
+					ipc.invoke( "addContent", new Object[]{ acf });
 				
-			try{
-				ipc.invoke( "addContent", new Object[]{ acf });
-			
-				transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
-				
-			}catch( Throwable e ){
-				
-				Debug.out( e );
+					transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}		
+			}catch( TranscodeException e ){
+				// file deleted
 			}
 		}
 	}

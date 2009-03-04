@@ -388,29 +388,34 @@ DeviceiTunes
 			
 			for ( TranscodeFileImpl transcode_file: to_copy ){
 				
-				File	file = transcode_file.getTargetFile().getFile();
-				
 				try{
-					IPCInterface	ipc = itunes.getIPC();
+					File	file = transcode_file.getTargetFile().getFile();
 					
-					Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
-	
-					Throwable error = (Throwable)result.get( "error" );
-					
-					if ( error != null ){
+					try{
+						IPCInterface	ipc = itunes.getIPC();
 						
-						throw( error );
+						Map<String,Object> result = (Map<String,Object>)ipc.invoke( "addFileToLibrary", new Object[]{ file } );
+		
+						Throwable error = (Throwable)result.get( "error" );
+						
+						if ( error != null ){
+							
+							throw( error );
+						}
+						
+						log( "Added file '" + file + ": " + result );
+						
+						transcode_file.setCopiedToDevice( true );
+						
+					}catch( Throwable e ){
+						
+						transcode_file.setCopyToDeviceFailed();
+						
+						log( "Failed to copy file " + file, e );
 					}
-					
-					log( "Added file '" + file + ": " + result );
-					
-					transcode_file.setCopiedToDevice( true );
-					
-				}catch( Throwable e ){
-					
-					transcode_file.setCopyToDeviceFailed();
-					
-					log( "Failed to copy file " + file, e );
+				}catch( TranscodeException e ){
+
+					// file has been deleted
 				}
 			}
 		}

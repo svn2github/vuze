@@ -35,10 +35,14 @@ TranscodeFile
 	public static final String PT_COPY_FAILED	= "copy_fail";
 	
 	public File
-	getCacheFile();
+	getCacheFile()
+	
+		throws TranscodeException;
 	
 	public DiskManagerFileInfo
-	getSourceFile();
+	getSourceFile()
+	
+		throws TranscodeException;
 	
 	public String
 	getProfileName();

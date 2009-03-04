@@ -666,11 +666,14 @@ public class SBC_DevicesView
 
 				TranscodeFile[] files = transTarget.getFiles();
 				for (TranscodeFile transcodeFile : files) {
-					System.out.println(transcodeFile.getSourceFile().getFile());
-
-					TranscodeJob job = transcodeFile.getJob();
-					if (job != null) {
-						System.out.println("  FOUND JOB " + job.getName());
+					try{
+						System.out.println(transcodeFile.getSourceFile().getFile());
+	
+						TranscodeJob job = transcodeFile.getJob();
+						if (job != null) {
+							System.out.println("  FOUND JOB " + job.getName());
+						}
+					}catch( Throwable e ){
 					}
 				}
 			}

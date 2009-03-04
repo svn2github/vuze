@@ -132,12 +132,23 @@ TranscodeFileImpl
 	
 	public File 
 	getCacheFile() 
+	
+		throws TranscodeException
 	{
-		return(new File(getString( KEY_FILE )));
+		String	file_str = getString( KEY_FILE );
+		
+		if ( file_str == null ){
+			
+			throw( new TranscodeException( "File has been deleted" ));
+		}
+		
+		return(new File( file_str ));
 	}
 		
 	public DiskManagerFileInfo 
 	getSourceFile() 
+	
+		throws TranscodeException
 	{
 			// options are either a download file or a link to an existing non-torrent based file
 		
@@ -198,6 +209,8 @@ TranscodeFileImpl
 	
 	public DiskManagerFileInfo 
 	getTargetFile() 
+	
+		throws TranscodeException
 	{
 			// options are either the cached file, if it exists, or failing that the
 			// source file if transcoding not required

@@ -139,7 +139,7 @@ public class DataSourceUtils
 						}
 					}
 				}
-			} catch (DownloadException e) {
+			} catch (Throwable e) {
 			}
 		}
 
