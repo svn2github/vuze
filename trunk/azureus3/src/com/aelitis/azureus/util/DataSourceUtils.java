@@ -256,7 +256,7 @@ public class DataSourceUtils
 							return getContentNetwork(dm);
 						}
 					}
-				} catch (DownloadException e) {
+				} catch (Throwable e) {
 				}
 			} else {
 				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
