@@ -260,6 +260,12 @@ TranscodeManagerImpl
 		return( queue );
 	}
 	
+	protected DeviceManagerImpl
+	getManager()
+	{
+		return( device_manager );
+	}
+	
 	protected TranscodeTarget
 	lookupTarget(
 		String		target_id )

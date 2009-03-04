@@ -53,6 +53,9 @@ TranscodeQueue
 	public TranscodeJob
 	getCurrentJob();
 	
+	public boolean
+	isTranscoding();
+	
 	public long
 	getMaxBytesPerSecond();
 	

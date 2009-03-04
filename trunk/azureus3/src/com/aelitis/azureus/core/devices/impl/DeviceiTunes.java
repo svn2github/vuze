@@ -52,7 +52,8 @@ DeviceiTunes
 	private static final int RUNNING_CHECK_TICKS	= RUNNING_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
 	private static final int DEVICE_CHECK_TICKS		= DEVICE_CHECK_PERIOD / DeviceManagerImpl.DEVICE_UPDATE_PERIOD;
 	
-
+	private static final Object	COPY_ERROR_KEY = new Object();
+	
 	private PluginInterface		itunes;
 	
 	private volatile boolean				is_installed;
@@ -364,6 +365,11 @@ DeviceiTunes
 				}
 			}
 				
+			if ( borked_exist ){
+				
+				setError( COPY_ERROR_KEY, "Copy to device failed" );
+			}
+			
 			synchronized( this ){
 
 				if ( to_copy.size() == 0 && !copy_outstanding_set && !borked_exist ){
@@ -376,6 +382,8 @@ DeviceiTunes
 							public void
 							runSupport()
 							{
+								setError( COPY_ERROR_KEY, null );
+
 								setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
 							}
 						});

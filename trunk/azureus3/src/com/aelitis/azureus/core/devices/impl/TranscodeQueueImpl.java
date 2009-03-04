@@ -53,6 +53,8 @@ TranscodeQueueImpl
 {
 	private static final String	CONFIG_FILE 			= "xcodejobs.config";
 
+	private static final Object KEY_XCODE_ERROR	= new Object();
+	
 	private TranscodeManagerImpl		manager;
 	
 	private List<TranscodeJobImpl>		queue		= new ArrayList<TranscodeJobImpl>();
@@ -616,59 +618,92 @@ TranscodeQueueImpl
 						public void 
 						run() 
 						{
-							while( true ){
-								
-								boolean got = queue_sem.reserve( 30*1000 );
+							try{
+								while( true ){
 									
-								TranscodeJobImpl	job = null;
-								
-								synchronized( TranscodeQueueImpl.this ){
+									checkJobStatus();
 									
-									if ( !got ){
+									boolean got = queue_sem.reserve( 30*1000 );
 										
-										if ( queue.size() == 0 ){
+									TranscodeJobImpl	job = null;
+									
+									synchronized( TranscodeQueueImpl.this ){
+										
+										if ( !got ){
 											
-											queue_thread = null;
+											if ( queue.size() == 0 ){
+												
+												queue_thread = null;
+												
+												return;
+											}
 											
-											return;
+											continue;
 										}
 										
-										continue;
-									}
-									
-									for ( TranscodeJobImpl j: queue ){
-										
-										int state = j.getState();
-										
-											// pick up any existing paused ones
-										
-										if ( state == TranscodeJob.ST_PAUSED ){
-
-											job = j;
+										for ( TranscodeJobImpl j: queue ){
 											
-										}else if ( state == TranscodeJob.ST_QUEUED ){
+											int state = j.getState();
 											
-											if ( job == null ){
+												// pick up any existing paused ones
 											
+											if ( state == TranscodeJob.ST_PAUSED ){
+	
 												job = j;
+												
+											}else if ( state == TranscodeJob.ST_QUEUED ){
+												
+												if ( job == null ){
+												
+													job = j;
+												}
 											}
 										}
 									}
-								}
-								
-								if ( job != null ){
-								
-									if ( process( job )){
 									
-										remove( job );
+									if ( job != null ){
+									
+										if ( process( job )){
+										
+											remove( job );
+										}																			
 									}
-								}	
+								}
+							}finally{
+								
+								checkJobStatus();
 							}
 						}
 					};
 					
 				queue_thread.start();
 			}
+		}
+	}
+	
+	protected void
+	checkJobStatus()
+	{
+		Set<DeviceImpl> devices = new HashSet<DeviceImpl>( Arrays.asList(manager.getManager().getDevices()));
+		
+		synchronized( this ){
+			
+			for ( TranscodeJobImpl j: queue ){
+
+				if ( j.getState() == TranscodeJob.ST_FAILED ){
+					
+					DeviceImpl	device = j.getDevice();
+					
+					j.getDevice().setError( KEY_XCODE_ERROR, "Transcode failed" );
+					
+					devices.remove( device );
+				}
+			}
+		}
+		
+		for ( DeviceImpl device: devices ){
+			
+			device.setError( KEY_XCODE_ERROR, null );
 		}
 	}
 	
@@ -763,6 +798,8 @@ TranscodeQueueImpl
 			}
 		}
 		
+		checkJobStatus();
+		
 		schedule();
 	}
 	
@@ -826,6 +863,12 @@ TranscodeQueueImpl
 	getCurrentJob()
 	{
 		return( current_job );
+	}
+	
+	public boolean
+	isTranscoding()
+	{
+		return( current_job != null );
 	}
 	
 	protected TranscodeJob
@@ -1024,9 +1067,9 @@ TranscodeQueueImpl
 			
 			Map map = FileUtil.readResilientConfigFile( CONFIG_FILE );
 			
-			List<Map>	l_jobs = (List<Map>)map.get( "jobs" );
+			List<Map<String,Object>>	l_jobs = (List<Map<String,Object>>)map.get( "jobs" );
 			
-			for ( Map m: l_jobs ){
+			for ( Map<String,Object> m: l_jobs ){
 				
 				try{
 					TranscodeJobImpl job = new TranscodeJobImpl( this, m );
@@ -1056,9 +1099,9 @@ TranscodeQueueImpl
 
 			}else{
 				
-				Map	map = new HashMap();
+				Map<String,Object>	map = new HashMap<String,Object>();
 				
-				List	l_jobs = new ArrayList();
+				List<Map<String,Object>>	l_jobs = new ArrayList<Map<String,Object>>();
 				
 				map.put( "jobs", l_jobs );
 				

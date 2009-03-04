@@ -88,8 +88,7 @@ DeviceImpl
 		}
 	}
 	
-	private static final String PP_REND_WORK_DIR		= "tt_work_dir";
-	private static final String PP_REND_TRANS_PROF		= "tt_trans_prof";
+	private static final String PP_REND_WORK_DIR		= "tt_work_dir"; 
 	private static final String PP_REND_DEF_TRANS_PROF	= "tt_def_trans_prof";
 	private static final String PP_REND_TRANS_REQ		= "tt_req";
 	private static final String PP_REND_TRANS_CACHE		= "tt_always_cache";
@@ -127,6 +126,8 @@ DeviceImpl
 	private WeakReference<Map<String,Map<String,?>>> device_files_ref;
 	
 	private CopyOnWriteList<TranscodeTargetListener>	listeners = new CopyOnWriteList<TranscodeTargetListener>();
+	
+	private Map<Object,String>	errors = new HashMap<Object, String>();
 	
 	protected
 	DeviceImpl(
@@ -932,6 +933,58 @@ DeviceImpl
 		if ( dirty ){
 			
 			setDirty();
+		}
+	}
+	
+	public String
+	getError()
+	{
+		synchronized( errors ){
+
+			if ( errors.size() == 0 ){
+				
+				return( null );
+			}
+			
+			String 	res = "";
+			
+			for ( String s: errors.values()){
+				
+				res += (res.length()==0?"":", ") + s;
+			}
+			
+			return( res );
+		}
+	}
+	
+	protected void
+	setError(
+		Object	key,
+		String	error )
+	{
+		boolean	changed = false;
+		
+		if ( error == null || error.length() == 0 ){
+			
+			synchronized( errors ){
+			
+				changed = errors.remove( key ) != null;
+			}
+		}else{
+			
+			String	existing;
+			
+			synchronized( errors ){
+				
+				existing = errors.put( key, error );
+			}
+			
+			changed = existing == null || !existing.equals( error );
+		}
+		
+		if ( changed ){
+			
+			manager.deviceChanged( this, false );
 		}
 	}
 	
