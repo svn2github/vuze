@@ -402,6 +402,8 @@ public class MainWindow
 				continue;
 			}
 			
+			DownloadManagerState dmState = dm.getDownloadState();
+			
 			final TOTorrent torrent = dm.getTorrent();
 			if (torrent == null) {
 				continue;
@@ -416,15 +418,15 @@ public class MainWindow
 
 			String title = PlatformTorrentUtils.getContentTitle(torrent);
 			if (title != null && title.length() > 0
-					&& dm.getDownloadState().getDisplayName() == null) {
-				dm.getDownloadState().setDisplayName(title);
+					&& dmState.getDisplayName() == null) {
+				dmState.setDisplayName(title);
 			}
 
 			if (ConfigurationChecker.isNewVersion() && dm.getAssumedComplete()) {
 				String lastVersion = COConfigurationManager.getStringParameter("Last Version");
 				if (org.gudy.azureus2.core3.util.Constants.compareVersions(lastVersion,
 						"3.1.1.1") <= 0) {
-					long completedTime = dm.getDownloadState().getLongParameter(
+					long completedTime = dmState.getLongParameter(
 							DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 					if (completedTime < SystemTime.getOffsetTime(-(1000 * 60))) {
 						PlatformTorrentUtils.setHasBeenOpened(dm, true);
@@ -434,7 +436,9 @@ public class MainWindow
 
 			boolean isContent = PlatformTorrentUtils.isContent(torrent, true);
 			
-			if (!oneIsNotPlatform && !isContent) {
+			if (!oneIsNotPlatform
+					&& !isContent
+					&& !dmState.getFlag(DownloadManagerState.FLAG_LOW_NOISE)) {
 				oneIsNotPlatform = true;
 			}
 
