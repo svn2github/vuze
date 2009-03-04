@@ -29,7 +29,6 @@ import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.internal.ole.win32.COM;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
