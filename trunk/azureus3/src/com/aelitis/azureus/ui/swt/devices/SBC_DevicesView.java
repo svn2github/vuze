@@ -202,6 +202,13 @@ public class SBC_DevicesView
 						new ColumnTJ_Completion(column);
 					}
 				});
+		
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_CopiedToDevice.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_CopiedToDevice(column);
+					}
+				});
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
