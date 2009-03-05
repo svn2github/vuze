@@ -56,9 +56,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarDropListener;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarEntry;
-import org.gudy.azureus2.plugins.ui.sidebar.SideBarVitalityImage;
+import org.gudy.azureus2.plugins.ui.sidebar.*;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
@@ -681,11 +679,6 @@ DeviceManagerUI
 						MessageText.getString("devices.view.title"),
 						null, null, false, -1);
 
-
-				side_bar.createTreeItemFromIViewClass(null,
-						SideBar.SIDEBAR_SECTION_DEVICES + ".old",
-						MessageText.getString("devices.view.title") + "(old)", DevicesView.class,
-						false);
 
 				/* disabled for phase1
 				SideBarVitalityImage addDevice = main_sb_entry.addVitalityImage("image.sidebar.subs.add");

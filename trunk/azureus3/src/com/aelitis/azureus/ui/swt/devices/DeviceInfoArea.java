@@ -21,22 +21,23 @@ package com.aelitis.azureus.ui.swt.devices;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.layout.*;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 
 /**
  * @author TuxPaper
@@ -69,7 +70,11 @@ public class DeviceInfoArea
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 		
-		initView();
+		if (device == null) {
+			build();
+		} else {
+			initView();
+		}
 		return null;
 	}
 	
@@ -152,5 +157,169 @@ public class DeviceInfoArea
 			 		});
 		 	}
 		 	parent.getParent().layout();
+	}
+
+	protected void
+	build()
+	{
+		main = new Group(parent, SWT.NONE);
+		((Group)main).setText("Beta Debug");
+		main.setLayoutData(Utils.getFilledFormData());
+		main.setLayout(new FormLayout());
+		
+		FormData data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.right	= new FormAttachment(100,0);
+		data.top	= new FormAttachment(main,0);
+
+		Label label = new Label( main, SWT.NULL );
+		
+		label.setText( "Transcode Providers:" );
+		
+		label.setLayoutData( data );
+		
+		Button vuze_button = new Button( main, SWT.NULL );
+		
+		vuze_button.setText( "Install Vuze Transcoder" );
+		
+		PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+			
+		StandardPlugin vuze_plugin = null;
+		
+		try{
+			vuze_plugin = installer.getStandardPlugin( "vuzexcode" );
+
+		}catch( Throwable e ){	
+		}
+		
+		if ( vuze_plugin == null || vuze_plugin.isAlreadyInstalled()){
+			
+			vuze_button.setEnabled( false );
+		}
+		
+		final StandardPlugin	f_vuze_plugin = vuze_plugin;
+		
+		vuze_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event arg0 ) 
+				{
+					try{
+						f_vuze_plugin.install( true );
+
+					}catch( Throwable e ){
+						
+					}
+				}
+			});
+		
+		data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(label,4);
+
+		vuze_button.setLayoutData( data );
+
+		Control top = vuze_button;
+		
+		
+		TranscodeProvider[] providers = DeviceManagerFactory.getSingleton().getTranscodeManager().getProviders();
+		
+		for ( TranscodeProvider provider: providers ){
+			
+			data = new FormData();
+			data.left 	= new FormAttachment(0,10);
+			data.right	= new FormAttachment(100,0);
+			data.top	= new FormAttachment(top,4);
+
+			Label prov_lab = new Label( main, SWT.NULL );
+			
+			prov_lab.setText( provider.getName());
+			
+			prov_lab.setLayoutData( data );
+			
+			top = prov_lab;
+			
+			TranscodeProfile[] profiles = provider.getProfiles();
+			
+			String line = null;
+			for ( TranscodeProfile profile: profiles ){
+				
+				if (line == null) {
+					line = profile.getName();
+				} else {
+					line += ", " + profile.getName();
+				}
+				
+			}
+
+			if (line != null) {
+  			data = new FormData();
+  			data.left 	= new FormAttachment(0,25);
+  			data.right	= new FormAttachment(100,0);
+  			data.top	= new FormAttachment(top,4);
+  
+  			Label prof_lab = new Label( main, SWT.WRAP );
+  			
+  			prof_lab.setText("Profiles: " + line);
+  			
+  			prof_lab.setLayoutData( data );
+  			
+  			top = prof_lab;
+			}
+		}
+		
+		
+		Button itunes_button = new Button( main, SWT.NULL );
+		
+		itunes_button.setText( "Install iTunes Integration" );
+		
+
+		StandardPlugin itunes_plugin = null;
+		
+		try{
+			itunes_plugin = installer.getStandardPlugin( "azitunes" );
+
+		}catch( Throwable e ){	
+		}
+		
+		if ( itunes_plugin == null || itunes_plugin.isAlreadyInstalled()){
+			
+			itunes_button.setEnabled( false );
+		}
+		
+		final StandardPlugin	f_itunes_plugin = itunes_plugin;
+		
+		itunes_button.addListener(
+			SWT.Selection, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event arg0 ) 
+				{
+					try{
+						f_itunes_plugin.install( true );
+
+					}catch( Throwable e ){
+						
+					}
+				}
+			});
+		
+		data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(top,4);
+
+		itunes_button.setLayoutData( data );
+		
+		data = new FormData();
+		data.left 	= new FormAttachment(0,0);
+		data.right	= new FormAttachment(100,0);
+		data.top	= new FormAttachment(itunes_button,4);
+
+		parent.getParent().layout();
 	}
 }
