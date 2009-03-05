@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
@@ -118,9 +119,15 @@ public abstract class TranscodeChooser
 								? ((Label) event.widget).getParent() : event.widget;
 						if (selectedDevice == null) {
 							selectedDevice = (TranscodeTarget) widget.getData("DeviceMediaRenderer");
+							if ( selectedDevice == null ){
+								Debug.out( "device is null!" );
+							}
 							createProfileList(soList);
 						} else {
 							selectedProfile = (TranscodeProfile) widget.getData("TranscodeProfile");
+							if ( selectedProfile == null ){
+								Debug.out( "profile is null!" );
+							}
 							shell.dispose();
 						}
 						down = false;

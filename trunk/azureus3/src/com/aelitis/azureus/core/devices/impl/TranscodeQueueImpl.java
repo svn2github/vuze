@@ -42,7 +42,9 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
+import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -98,7 +100,19 @@ TranscodeQueueImpl
 				}
 			});
 		
-		schedule();
+		DelayedTask delayed_task = 
+			UtilitiesImpl.addDelayedTask(
+				"TranscodeQueue:schedule", 
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						schedule();
+					}
+				});
+		
+		delayed_task.queue();
 	}
 	
 	protected boolean

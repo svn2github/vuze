@@ -1393,6 +1393,8 @@ DeviceManagerUI
 			{
 				if (selectedDevice != null && selectedProfile != null) {
 					handleDrop(selectedDevice, selectedProfile, payload);
+				}else{
+					Debug.out( "no selection" );
 				}
 			}
 		};
