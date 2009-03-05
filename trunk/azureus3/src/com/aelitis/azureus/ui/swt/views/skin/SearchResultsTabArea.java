@@ -52,9 +52,7 @@ import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 import com.aelitis.azureus.ui.swt.browser.listener.MetaSearchListener;
-import com.aelitis.azureus.ui.swt.skin.SWTSkin;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
+import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -103,7 +101,18 @@ public class SearchResultsTabArea
 		browserSkinObject = (SWTSkinObjectBrowser) skin.getSkinObject(
 				SkinConstants.VIEWID_BROWSER_SEARCHRESULTS, skinObject);
 
-		createBrowseArea(browserSkinObject);
+		browserSkinObject.addListener(new SWTSkinObjectListener() {
+			
+			public Object eventOccured(SWTSkinObject skinObject, int eventType,
+					Object params) {
+				if (eventType == EVENT_SHOW) {
+					browserSkinObject.removeListener(this);
+
+					createBrowseArea(browserSkinObject);
+				}
+				return null;
+			}
+		});
 
 		/**
 				final SWTSkinTabSet tabSetMain = skin.getTabSet(SkinConstants.TABSET_MAIN);
