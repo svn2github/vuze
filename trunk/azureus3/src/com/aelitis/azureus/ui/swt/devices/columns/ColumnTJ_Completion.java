@@ -171,7 +171,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		}
 		TranscodeJob job = tf.getJob();
 		if (job == null) {
-			return 100;
+			return tf.isComplete()?100:0;
 		}
 		return job.getPercentComplete();
 	}
