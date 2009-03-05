@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
@@ -56,13 +57,21 @@ public abstract class InfoBarUtil
 		this.skin = forSO.getSkin();
 		this.top = top;
 
+		// Migrate existing state config to remembered decision manager so user
+		// can get them back
+		if (COConfigurationManager.hasParameter(
+							stateConfigID, true)) {
+			RememberedDecisionsManager.setRemembered(stateConfigID,
+					COConfigurationManager.getBooleanParameter(stateConfigID) ? 1 : 0);
+			COConfigurationManager.removeParameter(stateConfigID);
+		}
+		
 		forSO.addListener(new SWTSkinObjectListener() {
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == EVENT_SHOW) {
-					boolean show = COConfigurationManager.getBooleanParameter(
-							stateConfigID, true);
-					if (show && allowShow()) {
+					boolean show = RememberedDecisionsManager.getRememberedDecision(stateConfigID) != 0;
+					if (show && allowShow() && soTop == null) {
 						createInfoBar();
 					}
 				}
@@ -101,6 +110,7 @@ public abstract class InfoBarUtil
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
 					soTop.setVisible(false);
+					RememberedDecisionsManager.setRemembered(stateConfigID, 0);
 				}
 			});
 		}
@@ -109,9 +119,7 @@ public abstract class InfoBarUtil
 			public Object eventOccured(SWTSkinObject skinObject, int eventType,
 					Object params) {
 				if (eventType == EVENT_SHOW) {
-					COConfigurationManager.setParameter(stateConfigID, true);
-				} else if (eventType == EVENT_HIDE) {
-					COConfigurationManager.setParameter(stateConfigID, false);
+					RememberedDecisionsManager.setRemembered(stateConfigID, 1);
 				}
 				return null;
 			}
@@ -139,11 +147,15 @@ public abstract class InfoBarUtil
 
 	public void hide() {
 		soTop.setVisible(false);
+		RememberedDecisionsManager.setRemembered(stateConfigID, 0);
 	}
 
 	public void show() {
+		RememberedDecisionsManager.setRemembered(stateConfigID, 1);
 		if (soTop == null) {
 			createInfoBar();
+		} else {
+			soTop.setVisible(true);
 		}
 	}
 
