@@ -836,6 +836,11 @@ public class TableViewSWTImpl
 			TableRowCore lastClickRow;
 
 			public void mouseDown(MouseEvent e) {
+				// we need to fill the selected row indexes here because the
+				// dragstart event can occur before the SWT.SELECTION event and
+				// our drag code needs to know the selected rows..
+				selectedRowIndexes = table.getSelectionIndices();
+
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
 				
