@@ -84,7 +84,7 @@ public class SBC_DevicesView
 
 	private TableViewSWTImpl tvDevices;
 
-	private TableViewSWTImpl tvFiles;
+	private TableViewSWTImpl<TranscodeFile> tvFiles;
 
 	private SideBarEntrySWT sidebarEntry;
 
@@ -182,6 +182,11 @@ public class SBC_DevicesView
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Device(column);
+						// Device column not needed for Device specific view.  Since
+						// we can't remove it, just hide it
+						if (column.getTableID().length() > TABLE_TRANSCODE_QUEUE.length()) {
+							column.setVisible(false);
+						}
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class,
@@ -310,12 +315,16 @@ public class SBC_DevicesView
 	 * @since 4.1.0.5
 	 */
 	private void initTranscodeQueueTable(Composite control) {
-		tvFiles = new TableViewSWTImpl(TABLE_TRANSCODE_QUEUE,
-				TABLE_TRANSCODE_QUEUE, new TableColumnCore[0], "rank", SWT.MULTI
-						| SWT.FULL_SELECTION | SWT.VIRTUAL);
+		String tableID = (device == null) ? TABLE_TRANSCODE_QUEUE
+				: TABLE_TRANSCODE_QUEUE + ":" + device.getID();
+
+		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
+				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL);
 		tvFiles.setDataSourceType(TranscodeFile.class);
 		tvFiles.setRowDefaultHeight(50);
 		tvFiles.setHeaderVisible(true);
+		tvFiles.setParentDataSource(device);
 
 		tableJobsParent = new Composite(control, SWT.NONE);
 		tableJobsParent.setLayoutData(Utils.getFilledFormData());
@@ -402,10 +411,10 @@ public class SBC_DevicesView
 
 		pause_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] files = tvFiles.getSelectedDataSources();
+				TranscodeFile[] files = tvFiles.getSelectedDataSources();
 
 				for (int i = 0; i < files.length; i++) {
-					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
+					TranscodeJob job = files[i].getJob();
 
 					if (job != null) {
 						job.pause();
@@ -422,10 +431,10 @@ public class SBC_DevicesView
 
 		resume_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] files = tvFiles.getSelectedDataSources();
+				TranscodeFile[] files = tvFiles.getSelectedDataSources();
 
 				for (int i = 0; i < files.length; i++) {
-					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
+					TranscodeJob job = files[i].getJob();
 
 					if (job != null) {
 						job.resume();
@@ -830,4 +839,5 @@ public class SBC_DevicesView
 			}
 		}
 	}
+	
 }
