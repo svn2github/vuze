@@ -46,7 +46,6 @@ import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
-import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
@@ -628,9 +627,7 @@ DeviceUPnPImpl
 			
 			result = true;
 		}
-		
-		System.out.println( file.getFile().getFile().getName() + " -> " + result );
-		
+				
 		return( result );
 	}
 	

@@ -127,7 +127,8 @@ DeviceImpl
 	
 	private CopyOnWriteList<TranscodeTargetListener>	listeners = new CopyOnWriteList<TranscodeTargetListener>();
 	
-	private Map<Object,String>	errors = new HashMap<Object, String>();
+	private Map<Object,String>	errors 	= new HashMap<Object, String>();
+	private Map<Object,String>	infos	= new HashMap<Object, String>();
 	
 	protected
 	DeviceImpl(
@@ -535,7 +536,6 @@ DeviceImpl
 				}
 			}
 		}catch( Throwable e ){
-			
 		}
 		
 		return( null );
@@ -981,6 +981,58 @@ DeviceImpl
 			}
 			
 			changed = existing == null || !existing.equals( error );
+		}
+		
+		if ( changed ){
+			
+			manager.deviceChanged( this, false );
+		}
+	}
+	
+	public String
+	getInfo()
+	{
+		synchronized( infos ){
+
+			if ( infos.size() == 0 ){
+				
+				return( null );
+			}
+			
+			String 	res = "";
+			
+			for ( String s: infos.values()){
+				
+				res += (res.length()==0?"":", ") + s;
+			}
+			
+			return( res );
+		}
+	}
+	
+	protected void
+	setInfo(
+		Object	key,
+		String	info )
+	{
+		boolean	changed = false;
+		
+		if ( info == null || info.length() == 0 ){
+			
+			synchronized( infos ){
+			
+				changed = infos.remove( key ) != null;
+			}
+		}else{
+			
+			String	existing;
+			
+			synchronized( infos ){
+				
+				existing = infos.put( key, info );
+			}
+			
+			changed = existing == null || !existing.equals( info );
 		}
 		
 		if ( changed ){

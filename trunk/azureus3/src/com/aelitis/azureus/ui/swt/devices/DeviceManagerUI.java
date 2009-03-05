@@ -91,6 +91,7 @@ DeviceManagerUI
 	private static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
 	
 	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dots";
+	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
 	private static final String ALERT_IMAGE_ID		= "image.sidebar.vitality.alert";
 
 	private static final String[] to_copy_indicator_colors = { "#000000", "#000000", "#168866", "#1c5620" };
@@ -660,6 +661,23 @@ DeviceManagerUI
 			});
 	}
 	
+	protected static void
+	hideIcon(
+		SideBarVitalityImage	x )
+	{
+		x.setVisible( false );
+		x.setToolTip( "" );
+	}
+	
+	protected static void
+	showIcon(
+		SideBarVitalityImage	x ,
+		String					t )
+	{
+		x.setToolTip( t );
+		x.setVisible( true );
+	}
+	
 	protected void
 	buildSideBar(
 		boolean			rebuild )	
@@ -707,10 +725,12 @@ DeviceManagerUI
 						
 						SideBarVitalityImage spinner = main_sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
 						SideBarVitalityImage warning = main_sb_entry.addVitalityImage( ALERT_IMAGE_ID );
+						SideBarVitalityImage info	 = main_sb_entry.addVitalityImage( INFO_IMAGE_ID );
 
 						{
-							spinner.setVisible( false );
-							warning.setVisible( false );
+							hideIcon( spinner );
+							hideIcon( warning );
+							hideIcon( info );
 						}
 						
 						public Object 
@@ -734,6 +754,7 @@ DeviceManagerUI
 									last_indicator = 0;
 									
 									String all_errors = "";
+									String all_infos = "";
 									
 									for ( Device device: devices ){
 										
@@ -742,6 +763,13 @@ DeviceManagerUI
 										if ( error != null ){
 											
 											all_errors += (all_errors.length()==0?"":"; ") + error;
+										}
+										
+										String info = device.getInfo();
+										
+										if ( info != null ){
+											
+											all_infos += (all_infos.length()==0?"":"; ") + info;
 										}
 										
 										if ( device instanceof DeviceMediaRenderer ){
@@ -754,15 +782,22 @@ DeviceManagerUI
 									
 									if ( all_errors.length() > 0 ){
 										 
-										warning.setToolTip( all_errors );
-									
-										warning.setVisible( true );
+										hideIcon( info );
+										
+										showIcon( warning, all_errors );
 										
 									}else{
 										
-										warning.setVisible( false );
+										hideIcon( warning );
 										
-										warning.setToolTip( "" );
+										if ( all_infos.length() > 0 ){
+										
+											showIcon( info, all_infos );
+																						
+										}else{
+										
+											hideIcon( info );
+										}
 									}
 									
 									if ( last_indicator > 0 ){
@@ -771,9 +806,9 @@ DeviceManagerUI
 									}
 								}else{
 									
-									warning.setVisible( false );
-									
-									warning.setToolTip( "" );
+									hideIcon( warning );
+									hideIcon( info );
+								
 								}
 							}else if ( propertyID == TITLE_INDICATOR_COLOR ){
 									
@@ -1670,6 +1705,7 @@ DeviceManagerUI
 			
 		private SideBarVitalityImage spinner;
 		private SideBarVitalityImage warning;
+		private SideBarVitalityImage info;
 		
 		private int				last_indicator;
 		
@@ -1695,11 +1731,15 @@ DeviceManagerUI
 			
 			spinner = _entry.addVitalityImage( SPINNER_IMAGE_ID );
 
-			spinner.setVisible( false );	
+			hideIcon( spinner );
 			
 			warning = _entry.addVitalityImage( ALERT_IMAGE_ID );
 
-			warning.setVisible( false );	
+			hideIcon( warning );
+			
+			info = _entry.addVitalityImage( INFO_IMAGE_ID );
+
+			hideIcon( info );
 		}
 		
 		
@@ -1746,7 +1786,8 @@ DeviceManagerUI
 						
 						last_indicator = 0;
 						
-						String all_errors = "";
+						String all_errors 	= "";
+						String all_infos	= "";
 						
 						for ( Device device: devices ){
 							
@@ -1755,6 +1796,13 @@ DeviceManagerUI
 							if ( error != null ){
 								
 								all_errors += (all_errors.length()==0?"":"; ") + error;
+							}
+							
+							String info = device.getInfo();
+							
+							if ( info != null ){
+								
+								all_infos += (all_infos.length()==0?"":"; ") + info;
 							}
 							
 							if ( device instanceof DeviceMediaRenderer ){
@@ -1767,15 +1815,20 @@ DeviceManagerUI
 						
 						if ( all_errors.length() > 0 ){
 							 
-							warning.setToolTip( all_errors );
-						
-							warning.setVisible( true );
-							
+							showIcon( warning, all_errors );
+													
 						}else{
 							
-							warning.setVisible( false );
+							hideIcon( warning );
 							
-							warning.setToolTip( "" );
+							if ( all_infos.length() > 0 ){
+							
+								showIcon( info, all_infos );
+																			
+							}else{
+							
+								hideIcon( info );
+							}
 						}
 						
 						if ( last_indicator > 0 ){
@@ -1784,9 +1837,8 @@ DeviceManagerUI
 						}
 					}else{
 						
-						warning.setVisible( false );
-						
-						warning.setToolTip( "" );
+						hideIcon( warning );
+						hideIcon( info );
 					}
 				}
 			}else if ( propertyID == TITLE_INDICATOR_COLOR ){
@@ -2057,6 +2109,7 @@ DeviceManagerUI
 		
 		private SideBarVitalityImage	warning;
 		private SideBarVitalityImage	spinner;
+		private SideBarVitalityImage	info;
 		
 		protected
 		deviceItem()
@@ -2073,13 +2126,15 @@ DeviceManagerUI
 			
 			warning = sb_entry.addVitalityImage( ALERT_IMAGE_ID );
 			
-			warning.setVisible( false );
-			warning.setToolTip( "" );
+			hideIcon( warning );
 			
 			spinner = sb_entry.addVitalityImage( SPINNER_IMAGE_ID );
 			
-			spinner.setVisible(false);
-
+			hideIcon( spinner );
+			
+			info = sb_entry.addVitalityImage( INFO_IMAGE_ID );
+			
+			hideIcon( info );
 		}
 		
 		protected TreeItem
@@ -2127,9 +2182,18 @@ DeviceManagerUI
 					
 				}else{
 					
-					warning.setVisible( false );
+					hideIcon( warning );
 					
-					warning.setToolTip( "" );
+					String info_str = device.getInfo();
+					
+					if ( info_str != null ){
+						
+						showIcon( info, info_str );
+						
+					}else{
+						
+						hideIcon( info );
+					}
 				}
 			}
 			

@@ -79,6 +79,9 @@ Device
 	remove();
 	
 	public String
+	getInfo();
+	
+	public String
 	getError();
 	
 	public String

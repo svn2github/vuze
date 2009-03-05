@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
@@ -43,6 +44,8 @@ DeviceiTunes
 	implements DeviceMediaRenderer
 {
 	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
+	
+	private static final Object	ERRROR_KEY_ITUNES = new Object();
 	
 	private static final int INSTALL_CHECK_PERIOD	= 60*1000;
 	private static final int RUNNING_CHECK_PERIOD	= 30*1000;
@@ -64,6 +67,8 @@ DeviceiTunes
 	private AEThread2			copy_thread;
 	private AESemaphore			copy_sem = new AESemaphore( "Device:copy" );
 	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher( 5000 );
+	
+	private long				last_update_fail;
 	
 	protected
 	DeviceiTunes(
@@ -222,6 +227,23 @@ DeviceiTunes
 				copy_sem.release();
 			}
 			
+			if ( !( is_installed || is_running )){
+				
+				last_update_fail = 0;
+			}
+			
+			if ( getCopyToDevicePending() > 0 ){
+				
+				if ( !is_installed ){
+					
+					setInfo( ERRROR_KEY_ITUNES, "You need to install iTunes" );
+					
+				}else if ( !is_running ){
+					
+					setInfo( ERRROR_KEY_ITUNES, "You need to start iTunes" );
+				}
+			}
+			
 			Throwable error = (Throwable)properties.get( "error" );
 			
 			if ( error != null ){
@@ -229,6 +251,7 @@ DeviceiTunes
 				throw( error );
 			}
 			
+			/*
 			List<Map<String,Object>> sources = (List<Map<String,Object>>)properties.get( "sources" );
 			
 			if ( sources != null ){
@@ -238,7 +261,24 @@ DeviceiTunes
 					System.out.println( source );
 				}
 			}
+			*/
+			
+			last_update_fail = 0;
+			
+			setError( ERRROR_KEY_ITUNES, null );
+			
 		}catch( Throwable e ){
+			
+			long	now = SystemTime.getMonotonousTime();
+			
+			if ( last_update_fail == 0 ){
+				
+				last_update_fail = now;
+				
+			}else if ( now - last_update_fail > 60*1000 ){
+							
+				setError( ERRROR_KEY_ITUNES, "There appears to be a problem with iTunes integration" );
+			}
 			
 			log( "iTunes IPC failed", e );
 		}
