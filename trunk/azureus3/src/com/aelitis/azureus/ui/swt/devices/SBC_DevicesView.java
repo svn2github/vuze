@@ -243,15 +243,33 @@ public class SBC_DevicesView
 				SWTSkinObject soArea = getSkinObject("advinfo-area");
 				if (soArea != null) {
 					boolean newVisibility = !soArea.isVisible();
-					soArea.setVisible(newVisibility);
-					SWTSkinObject soText = getSkinObject("advinfo-title");
-					if (soText instanceof SWTSkinObjectText) {
-						((SWTSkinObjectText) soText).setText((newVisibility ? "[-]" : "[+]")
-								+ " Additional Info");
-					}
+					setAdditionalInfoTitle(newVisibility);
 				}
 			}
 		});
+		setAdditionalInfoTitle(false);
+	}
+
+	/**
+	 * @param newVisibility
+	 *
+	 * @since 4.1.0.5
+	 */
+	protected void setAdditionalInfoTitle(boolean newVisibility) {
+		SWTSkinObject soArea = getSkinObject("advinfo-area");
+		if (soArea != null) {
+			soArea.setVisible(newVisibility);
+		}
+		SWTSkinObject soText = getSkinObject("advinfo-title");
+		if (soText instanceof SWTSkinObjectText) {
+			String s = (newVisibility ? "[-]" : "[+]");
+			if (device != null) {
+				s += "Additional Device Info and Settings";
+			} else {
+				s += "General Options";
+			}
+			((SWTSkinObjectText) soText).setText(s);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)

@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -83,13 +84,6 @@ TableCellDisposeListener, TableCellSWTPaintListener
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void dispose(TableCell cell) {
 		mapCellLastPercentDone.remove(cell);
-		Graphic graphic = cell.getGraphic();
-		if (graphic instanceof UISWTGraphic) {
-			Image img = ((UISWTGraphic) graphic).getImage();
-			if (img != null && !img.isDisposed()) {
-				img.dispose();
-			}
-		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -123,9 +117,9 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 		
     ImageLoader imageLoader = ImageLoader.getInstance();
-		Image imgEnd = imageLoader.getImage("dl_bar_end");
-		Image img0 = imageLoader.getImage("dl_bar_0");
-		Image img1 = imageLoader.getImage("dl_bar_1");
+		Image imgEnd = imageLoader.getImage("tc_bar_end");
+		Image img0 = imageLoader.getImage("tc_bar_0");
+		Image img1 = imageLoader.getImage("tc_bar_1");
 
 		//draw begining and end
 		if (!imgEnd.isDisposed()) {
@@ -148,16 +142,22 @@ TableCellDisposeListener, TableCellSWTPaintListener
 					+ limit + 1, bounds.y + yOfs, x1 - limit, imgBounds.height);
 		}
 
-		imageLoader.releaseImage("dl_bar_end");
-		imageLoader.releaseImage("dl_bar_0");
-		imageLoader.releaseImage("dl_bar_1");
+		imageLoader.releaseImage("tc_bar_end");
+		imageLoader.releaseImage("tc_bar_0");
+		imageLoader.releaseImage("tc_bar_1");
 		
 		if(textColor == null) {
-			textColor = ColorCache.getColor(gcImage.getDevice(), "#005ACF" );
+			textColor = ColorCache.getColor(gcImage.getDevice(), "#006600" );
 		}
 
 		gcImage.setForeground(textColor);
-			
+
+		if (fontText == null) {
+			fontText = Utils.getFontWithHeight(gcImage.getFont(), gcImage, 10);
+		}
+		
+		gcImage.setFont(fontText);
+		
 		String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
 		GCStringPrinter.printString(gcImage, sPercent, new Rectangle(bounds.x + 4,
 				bounds.y + yOfs, bounds.width - 4,13), true,

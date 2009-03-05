@@ -314,6 +314,17 @@ public abstract class TranscodeChooser
 		parent.setLayout(gridLayout);
 
 		DeviceManager device_manager = DeviceManagerFactory.getSingleton();
+		Device[] devices = device_manager.getDevices();
+		
+		if (devices.length == 0) {
+			Utils.openMessageBox(
+					mainShell,
+					SWT.OK,
+					"No Devices Found",
+					"We couldn't find any devices.  Maybe you didn't install the Vuze Transcoder Plugin?");
+			shell.dispose();
+			return;
+		}
 
 		fontDevice = Utils.getFontWithHeight(parent.getFont(), null, 22, SWT.BOLD);
 
@@ -326,7 +337,6 @@ public abstract class TranscodeChooser
 			}
 		};
 
-		Device[] devices = device_manager.getDevices();
 		for (Device device : devices) {
 			if (device.getType() != Device.DT_MEDIA_RENDERER || device.isHidden()) {
 				continue;
