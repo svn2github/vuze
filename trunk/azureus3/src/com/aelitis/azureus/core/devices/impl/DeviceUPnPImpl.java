@@ -414,7 +414,7 @@ DeviceUPnPImpl
 		}
 		
 		try{
-			TranscodeFileImpl transcode_file = allocateFile( profile, source );
+			TranscodeFileImpl transcode_file = allocateFile( profile, source, false );
 			
 			AzureusContentFile acf = (AzureusContentFile)transcode_file.getTransientProperty( UPNPAV_FILE_KEY );
 
@@ -577,8 +577,11 @@ DeviceUPnPImpl
 		}
 		
 		try{
-			TranscodeFileImpl transcode_file = allocateFile( profile, source );
+			TranscodeFileImpl transcode_file = lookupFile( profile, source );
 
+				// if the file completed transcoding then we leave the result around for
+				// the user to re-use
+			
 			if ( !transcode_file.isComplete()){
 				
 				AzureusContentFile acf = null;

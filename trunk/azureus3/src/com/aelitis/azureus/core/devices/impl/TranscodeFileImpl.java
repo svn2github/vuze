@@ -56,6 +56,7 @@ TranscodeFileImpl
 	private static final String			KEY_SOURCE_FILE_INDEX	= "sf_index";
 	private static final String			KEY_SOURCE_FILE_LINK	= "sf_link";
 	private static final String			KEY_NO_XCODE			= "no_xcode";
+	private static final String			KEY_FOR_JOB				= "fj";
 
 	private static final String			KEY_DURATION			= "at_dur";
 	private static final String			KEY_VIDEO_WIDTH			= "at_vw";
@@ -75,7 +76,8 @@ TranscodeFileImpl
 		String						_key,
 		String						_profile_name,
 		Map<String,Map<String,?>>	_files_map,
-		File						_file )
+		File						_file,
+		boolean						_for_job )
 	{
 		device		= _device;
 		key			= _key;
@@ -88,6 +90,8 @@ TranscodeFileImpl
 		setString( KEY_PROFILE_NAME, _profile_name );
 		
 		setLong( KEY_DATE, SystemTime.getCurrentTime());
+		
+		setBoolean( KEY_FOR_JOB, _for_job );
 	}
 	
 	protected
@@ -239,7 +243,7 @@ TranscodeFileImpl
 			return( new DiskManagerFileInfoFile( cache_file ));
 		}
 		
-		if ( getLong( KEY_NO_XCODE ) == 1 ){
+		if ( getBoolean( KEY_NO_XCODE )){
 			
 			return( getSourceFile());
 		}
@@ -253,27 +257,33 @@ TranscodeFileImpl
 	setTranscodeRequired(
 		boolean	required )
 	{
-		setLong( KEY_NO_XCODE, required?0:1 );
+		setBoolean( KEY_NO_XCODE, !required );
 	}
 	
 	protected void
 	setComplete(
 		boolean b )
 	{
-		setLong( PT_COMPLETE, b?1:0 );
+		setBoolean( PT_COMPLETE, b );
 	}
 	
 	public boolean
 	isComplete()
 	{
-		return( getLong( PT_COMPLETE ) == 1 );
+		return( getBoolean( PT_COMPLETE ));
+	}
+	
+	public boolean
+	isTemplate()
+	{
+		return( !getBoolean( KEY_FOR_JOB ));
 	}
 	
 	protected void
 	setCopiedToDevice(
 		boolean b )
 	{
-		setLong( PT_COPIED, b?1:0 );
+		setBoolean( PT_COPIED, b );
 		
 		setLong( PT_COPY_FAILED, 0 );
 	}
@@ -293,7 +303,7 @@ TranscodeFileImpl
 	public boolean
 	isCopiedToDevice()
 	{
-		return( getLong( PT_COPIED ) == 1 );
+		return( getBoolean( PT_COPIED ));
 	}
 	
 	protected void
@@ -407,6 +417,21 @@ TranscodeFileImpl
 			
 			return( map );
 		}
+	}
+	
+	protected boolean
+	getBoolean(
+		String		key )
+	{
+		return( getLong(key)==1);
+	}
+	
+	protected void
+	setBoolean(
+		String		key,
+		boolean		b )
+	{
+		setLong(key,b?1:0);
 	}
 	
 	protected long

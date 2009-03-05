@@ -59,6 +59,9 @@ TranscodeFile
 	public long
 	getCopyToDeviceFails();
 	
+	public boolean
+	isTemplate();
+	
 	public Device
 	getDevice();
 	

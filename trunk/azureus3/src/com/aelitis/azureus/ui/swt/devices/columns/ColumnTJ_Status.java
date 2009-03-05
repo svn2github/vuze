@@ -83,7 +83,11 @@ public class ColumnTJ_Status
 			if ( tf.getCopyToDeviceFails() > 0 ){
 					// should be red but whatever
 				cell.setText( "!Failed to copy to device!" );
+			}else if ( tf.isTemplate() && !tf.isComplete()){
+				
+				cell.setText("!On Demand!");
 			}else{
+				
 				cell.setText("!Ready!");
 			}
 			return;

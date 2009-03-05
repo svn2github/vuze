@@ -397,7 +397,8 @@ DeviceImpl
 	public TranscodeFileImpl
 	allocateFile(
 		TranscodeProfile		profile,
-		DiskManagerFileInfo		file )
+		DiskManagerFileInfo		file,
+		boolean					for_job )
 	
 		throws TranscodeException
 	{
@@ -473,7 +474,7 @@ DeviceImpl
 	
 					output_file = new File( output_file.getAbsoluteFile(), target_file );
 	
-					result = new TranscodeFileImpl( this, key, profile.getName(), device_files, output_file );
+					result = new TranscodeFileImpl( this, key, profile.getName(), device_files, output_file, for_job );
 							
 					result.setSourceFile( file );
 					
