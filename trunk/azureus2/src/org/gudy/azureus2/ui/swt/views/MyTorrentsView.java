@@ -1749,6 +1749,8 @@ public class MyTorrentsView
       return down;
     if(itemKey.equals("share"))
       return remove;
+    if(itemKey.equals("transcode"))
+      return remove;
     return super.isEnabled(itemKey);
   }
 
