@@ -56,7 +56,7 @@ implements TableCellRefreshListener
 			try {
 				value = Integer.MAX_VALUE + tf.getSourceFile().getFile().lastModified() + 1;
 			} catch (Throwable t) {
-				value = Integer.MAX_VALUE + 1;
+				value = Integer.MAX_VALUE + 1L;
 			}
 		} else {
 			value = job.getIndex();
