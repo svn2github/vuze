@@ -904,6 +904,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						if (e.x > cellBounds.x + cellBounds.width
 								|| e.y > cellBounds.y + cellBounds.height) {
 							table.deselectAll();
+							updateSelectedRowIndexes();
 						}
 						/*        // This doesn't work because of OS inconsistencies when table is scrolled
 						 // Re-enable once SWT fixes the problem
@@ -1400,6 +1401,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		editor.setEditor(newInput, item, column);
 		table.deselectAll();
 		table.select(row);
+		updateSelectedRowIndexes();
 
 		l.resizing = false;
 
@@ -4422,6 +4424,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (table != null && !table.isDisposed()) {
 			ensureAllRowsHaveIndex();
 			table.selectAll();
+			updateSelectedRowIndexes();
+
 			triggerSelectionListeners(getSelectedRows());
 			triggerTabViewsDataSourceChanged();
 		}
