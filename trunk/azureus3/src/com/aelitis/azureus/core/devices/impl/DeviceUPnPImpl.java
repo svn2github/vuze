@@ -582,7 +582,7 @@ DeviceUPnPImpl
 				// if the file completed transcoding then we leave the result around for
 				// the user to re-use
 			
-			if ( !transcode_file.isComplete()){
+			if ( transcode_file != null && !transcode_file.isComplete()){
 				
 				AzureusContentFile acf = null;
 				
