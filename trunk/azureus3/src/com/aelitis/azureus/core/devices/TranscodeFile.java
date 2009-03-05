@@ -47,6 +47,9 @@ TranscodeFile
 	public String
 	getProfileName();
 	
+	public long
+	getCreationDateMillis();
+	
 	public boolean
 	isComplete();
 	

@@ -54,7 +54,7 @@ implements TableCellRefreshListener
 		long value;
 		if (job == null) {
 			try {
-				value = Integer.MAX_VALUE + tf.getSourceFile().getFile().lastModified() + 1;
+				value = Integer.MAX_VALUE + tf.getCreationDateMillis() + 1;
 			} catch (Throwable t) {
 				value = Integer.MAX_VALUE + 1L;
 			}
