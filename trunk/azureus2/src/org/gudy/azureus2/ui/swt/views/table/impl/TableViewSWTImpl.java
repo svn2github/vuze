@@ -40,11 +40,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
-
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -59,13 +54,21 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.utils.*;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
@@ -96,11 +99,11 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  *             We should really store the last measured width in TableCell and
  *             use that.
  */
-public class TableViewSWTImpl
-	extends TableViewImpl
-	implements ParameterListener, TableViewSWT,
-	TableStructureModificationListener, ObfusticateImage
-	
+public class TableViewSWTImpl<DATASOURCETYPE>
+	extends TableViewImpl<DATASOURCETYPE>
+	implements ParameterListener, TableViewSWT<DATASOURCETYPE>,
+	TableStructureModificationListener<DATASOURCETYPE>, ObfusticateImage
+
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 
@@ -162,7 +165,7 @@ public class TableViewSWTImpl
 
 	/** Table for SortableTable implementation */
 	private Table table;
-	
+
 	private TableEditor editor;
 
 	/** SWT style options for the creation of the Table */
@@ -181,11 +184,11 @@ public class TableViewSWTImpl
 	 * key = DataSource
 	 * value = TableRowSWT
 	 */
-	private Map mapDataSourceToRow;
+	private Map<DATASOURCETYPE, TableRowCore> mapDataSourceToRow;
 
 	private AEMonitor dataSourceToRow_mon = new AEMonitor("TableView:OTSI");
 
-	private List sortedRows;
+	private List<TableRowSWT> sortedRows;
 
 	private AEMonitor sortedRows_mon = new AEMonitor("TableView:sR");
 
@@ -224,6 +227,7 @@ public class TableViewSWTImpl
 	 * in case the user drags the columns around.
 	 */
 	private TableColumnCore[] columnsOrdered;
+
 	private boolean[] columnsVisible;
 
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
@@ -243,7 +247,7 @@ public class TableViewSWTImpl
 	private CTabFolder tabFolder;
 
 	/** TabViews */
-	private ArrayList tabViews = new ArrayList(1);
+	private ArrayList<IView> tabViews = new ArrayList<IView>(1);
 
 	private int lastTopIndex = 0;
 
@@ -256,57 +260,52 @@ public class TableViewSWTImpl
 	// XXX Remove after column selection is no longered triggered on column resize (OSX)
 	private long lLastColumnResizeOn = -1;
 
-	private List listenersMenuFill = new ArrayList();
+	private List<TableViewSWTMenuFillListener> listenersMenuFill = new ArrayList<TableViewSWTMenuFillListener>(
+			1);
 
 	private TableViewSWTPanelCreator mainPanelCreator;
 
-	private List listenersKey = new ArrayList();
-	
+	private List<KeyListener> listenersKey = new ArrayList<KeyListener>(1);
+
 	private boolean columnPaddingAdjusted = false;
-	
+
 	private boolean columnVisibilitiesChanged = true;
 
 	// What type of data is stored in this table
-	private Class dataSourceType;
+	private Class<DATASOURCETYPE> classDataSourceType;
 
-  private AEMonitor listeners_mon = new AEMonitor("tablelisteners");
+	private AEMonitor listeners_mon = new AEMonitor("tablelisteners");
 
-	private ArrayList refreshListeners;
-	
+	private ArrayList<TableRowRefreshListener> refreshListeners;
+
 	private Font fontBold;
 
 	private Rectangle clientArea;
 
 	private boolean isVisible;
-	
+
 	private boolean menuEnabled = true;
 
 	private boolean headerVisible = true;
 
 	private int[] selectedRowIndexes;
 
-	private Utils.addDataSourceCallback	processDataSourceQueueCallback = 
-		new Utils.addDataSourceCallback()
-		{
-			public void
-			process()
-			{
-				processDataSourceQueue();
-			}
-			
-			public void
-			debug(
-				String		str )
-			{
-				TableViewSWTImpl.this.debug( str );
-			}
-		};
+	private List<DATASOURCETYPE> listSelectedCoreDataSources;
+
+	private Utils.addDataSourceCallback processDataSourceQueueCallback = new Utils.addDataSourceCallback() {
+		public void process() {
+			processDataSourceQueue();
+		}
+
+		public void debug(String str) {
+			TableViewSWTImpl.this.debug(str);
+		}
+	};
 
 	// private Rectangle firstClientArea;
 
 	private int lastHorizontalPos;
 
-	
 	/**
 	 * Main Initializer
 	 * @param _sTableID Which table to handle (see 
@@ -327,12 +326,13 @@ public class TableViewSWTImpl
 		sPropertiesPrefix = _sPropertiesPrefix;
 		sDefaultSortOn = _sDefaultSortOn;
 		iTableStyle = _iTableStyle | SWT.V_SCROLL;
-		if (DISABLEVIRTUAL)
+		if (DISABLEVIRTUAL) {
 			iTableStyle &= ~(SWT.VIRTUAL);
+		}
 		bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
-		mapDataSourceToRow = new LightHashMap();
-		sortedRows = new ArrayList();
+		mapDataSourceToRow = new LightHashMap<DATASOURCETYPE, TableRowCore>();
+		sortedRows = new ArrayList<TableRowSWT>();
 	}
 
 	/**
@@ -359,15 +359,15 @@ public class TableViewSWTImpl
 		// XXX Adding Columns only has to be done once per TableID.  
 		// Doing it more than once won't harm anything, but it's a waste.
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		
-		if ( basicItems != null ){
+
+		if (basicItems != null) {
 			if (tcManager.getTableColumnCount(sTableID) != basicItems.length) {
 				tcManager.addColumns(basicItems);
 			}
 			basicItems = null;
 		}
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(classDataSourceType,
 				sTableID);
 
 		// fixup order
@@ -386,7 +386,7 @@ public class TableViewSWTImpl
 			tcManager.addColumns(basicItems);
 		}
 
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(dataSourceType,
+		tableColumns = tcManager.getAllTableColumnCoreAsArray(classDataSourceType,
 				sTableID);
 
 		// fixup order
@@ -426,14 +426,15 @@ public class TableViewSWTImpl
 		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		Map pluginViews = null;
+		Map<String, UISWTViewEventListener> pluginViews = null;
 		if (uiFunctions != null) {
 			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
 
 			if (pluginUI != null) {
 				pluginViews = pluginUI.getViewListeners(sTableID);
-				if (pluginViews != null)
+				if (pluginViews != null) {
 					iNumViews += pluginViews.size();
+				}
 			}
 		}
 
@@ -488,14 +489,16 @@ public class TableViewSWTImpl
 		int iSplitAt = configMan.getIntParameter(sPropertiesPrefix + ".SplitAt",
 				3000);
 		// Was stored at whole
-		if (iSplitAt < 100)
+		if (iSplitAt < 100) {
 			iSplitAt *= 100;
+		}
 
 		double pct = iSplitAt / 10000.0;
-		if (pct < 0.03)
+		if (pct < 0.03) {
 			pct = 0.03;
-		else if (pct > 0.97)
+		} else if (pct > 0.97) {
 			pct = 0.97;
+		}
 
 		// height will be set on first resize call
 		sash.setData("PCT", new Double(pct));
@@ -523,8 +526,9 @@ public class TableViewSWTImpl
 			public void widgetSelected(SelectionEvent e) {
 				final boolean FASTDRAG = true;
 
-				if (FASTDRAG && e.detail == SWT.DRAG)
+				if (FASTDRAG && e.detail == SWT.DRAG) {
 					return;
+				}
 
 				if (tabFolder.getMinimized()) {
 					tabFolder.setMinimized(false);
@@ -540,9 +544,10 @@ public class TableViewSWTImpl
 				Double l = new Double((double) tabFolder.getBounds().height
 						/ form.getBounds().height);
 				sash.setData("PCT", l);
-				if (e.detail != SWT.DRAG)
+				if (e.detail != SWT.DRAG) {
 					configMan.setParameter(sPropertiesPrefix + ".SplitAt",
 							(int) (l.doubleValue() * 10000));
+				}
 			}
 		});
 
@@ -572,11 +577,10 @@ public class TableViewSWTImpl
 
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
 			}
-			
-			
+
 		};
 		tabFolder.addCTabFolder2Listener(folderListener);
-		
+
 		tabFolder.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				// make sure its above
@@ -586,7 +590,7 @@ public class TableViewSWTImpl
 				} catch (Exception t) {
 				}
 			}
-		
+
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
@@ -609,8 +613,9 @@ public class TableViewSWTImpl
 
 		form.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
-				if (tabFolder.getMinimized())
+				if (tabFolder.getMinimized()) {
 					return;
+				}
 
 				Double l = (Double) sash.getData("PCT");
 				if (l != null) {
@@ -621,15 +626,17 @@ public class TableViewSWTImpl
 			}
 		});
 
-		if (coreTabViews != null)
-			for (int i = 0; i < coreTabViews.length; i++)
+		if (coreTabViews != null) {
+			for (int i = 0; i < coreTabViews.length; i++) {
 				addTabView(coreTabViews[i]);
+			}
+		}
 
 		// Call plugin listeners
 		if (pluginViews != null) {
-			String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
+			String[] sNames = pluginViews.keySet().toArray(new String[0]);
 			for (int i = 0; i < sNames.length; i++) {
-				UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
+				UISWTViewEventListener l = pluginViews.get(sNames[i]);
 				if (l != null) {
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(sTableID, sNames[i], l);
@@ -670,7 +677,7 @@ public class TableViewSWTImpl
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		panel.setLayout(layout);
-		
+
 		panel.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 		return panel;
@@ -722,10 +729,12 @@ public class TableViewSWTImpl
 						table.setRedraw(true);
 						first = false;
 					}
-					if (event.width == 0 || event.height == 0)
+					if (event.width == 0 || event.height == 0) {
 						return;
+					}
 					visibleRowsChanged();
-					doPaint(event.gc, new Rectangle(event.x, event.y, event.width, event.height));
+					doPaint(event.gc, new Rectangle(event.x, event.y, event.width,
+							event.height));
 				}
 			});
 		}
@@ -756,13 +765,13 @@ public class TableViewSWTImpl
 			//	}
 			//});
 		}
-		
+
 		table.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
 				refreshVisibleRows();
 			}
 		});
-		
+
 		ScrollBar horizontalBar = table.getHorizontalBar();
 		if (horizontalBar != null) {
 			horizontalBar.addSelectionListener(new SelectionListener() {
@@ -777,11 +786,11 @@ public class TableViewSWTImpl
 				}
 			});
 		}
-		
+
 		table.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
 				int iColumnNo = event.index;
-				
+
 				if (bSkipFirstColumn) {
 					iColumnNo--;
 				}
@@ -789,7 +798,7 @@ public class TableViewSWTImpl
 				if (iColumnNo >= 0 && iColumnNo < columnsOrdered.length) {
 					TableColumnCore tc = columnsOrdered[iColumnNo];
 					int preferredWidth = tc.getPreferredWidth();
-					event.width = tc.getPreferredWidth();
+					event.width = preferredWidth;
 				}
 
 				int defaultHeight = getRowDefaultHeight();
@@ -832,20 +841,20 @@ public class TableViewSWTImpl
 					}
 				}
 			}
-			
+
 			TableRowCore lastClickRow;
 
 			public void mouseDown(MouseEvent e) {
 				// we need to fill the selected row indexes here because the
 				// dragstart event can occur before the SWT.SELECTION event and
 				// our drag code needs to know the selected rows..
-				selectedRowIndexes = table.getSelectionIndices();
+				updateSelectedRowIndexes();
 
 				TableColumnCore tc = getTableColumnByOffset(e.x);
 				TableCellSWT cell = getTableCell(e.x, e.y);
-				
+
 				editCell(-1, -1); // clear out current cell editor
-				
+
 				if (cell != null && tc != null) {
 					if (e.button == 2 && e.stateMask == SWT.CONTROL) {
 						((TableCellImpl) cell).bDebug = !((TableCellImpl) cell).bDebug;
@@ -861,24 +870,26 @@ public class TableViewSWTImpl
 							lCancelSelectionTriggeredOn = System.currentTimeMillis();
 						}
 					}
-					if(tc.isInplaceEdit() && e.button == 1 && lastClickRow == cell.getTableRowCore())
+					if (tc.isInplaceEdit() && e.button == 1
+							&& lastClickRow == cell.getTableRowCore()) {
 						editCell(getColumnNo(e.x), cell.getTableRowCore().getIndex());
-					if(e.button == 1)
+					}
+					if (e.button == 1) {
 						lastClickRow = cell.getTableRowCore();
+					}
 				}
-				
-				
 
 				iMouseX = e.x;
 				try {
-					if (table.getItemCount() <= 0)
+					if (table.getItemCount() <= 0) {
 						return;
+					}
 
 					// skip if outside client area (ie. scrollbars)
 					//System.out.println("Mouse="+iMouseX+"x"+e.y+";TableArea="+clientArea);
 					Point pMousePosition = new Point(e.x, e.y);
 					if (clientArea.contains(pMousePosition)) {
-						
+
 						int[] columnOrder = table.getColumnOrder();
 						if (columnOrder.length == 0) {
 							return;
@@ -886,8 +897,9 @@ public class TableViewSWTImpl
 						TableItem ti = table.getItem(table.getItemCount() - 1);
 						Rectangle cellBounds = ti.getBounds(columnOrder[columnOrder.length - 1]);
 						// OSX returns 0 size if the cell is not on screen (sometimes? all the time?)
-						if (cellBounds.width <= 0 || cellBounds.height <= 0)
+						if (cellBounds.width <= 0 || cellBounds.height <= 0) {
 							return;
+						}
 						//System.out.println("cellbounds="+cellBounds);
 						if (e.x > cellBounds.x + cellBounds.width
 								|| e.y > cellBounds.y + cellBounds.height) {
@@ -925,11 +937,11 @@ public class TableViewSWTImpl
 						lastCell = null;
 					} else if (cell == lastCell) {
 						iCursorID = lastCursorID;
-					} else{
+					} else {
 						iCursorID = cell.getCursorID();
 						lastCell = cell;
 					}
-					
+
 					if (iCursorID < 0) {
 						iCursorID = 0;
 					}
@@ -953,9 +965,9 @@ public class TableViewSWTImpl
 								((TableColumnCore) cell.getTableColumn()).invokeCellMouseListeners(event);
 							}
 							cell.invokeMouseListeners(event);
-							
-								// listener might have changed it
-							
+
+							// listener might have changed it
+
 							lastCursorID = cell.getCursorID();
 						}
 					}
@@ -967,9 +979,9 @@ public class TableViewSWTImpl
 
 		table.addSelectionListener(new SelectionListener() {
 			int[] wasSelected = new int[0];
-			
+
 			public void widgetSelected(SelectionEvent event) {
-				selectedRowIndexes = table.getSelectionIndices();
+				updateSelectedRowIndexes();
 
 				Arrays.sort(selectedRowIndexes);
 				int x = 0;
@@ -984,9 +996,9 @@ public class TableViewSWTImpl
 						});
 					}
 				}
-				
+
 				wasSelected = selectedRowIndexes;
-				
+
 				//System.out.println(table.getSelection().length);
 				triggerSelectionListeners(new TableRowCore[] {
 					getRow((TableItem) event.item)
@@ -1046,8 +1058,9 @@ public class TableViewSWTImpl
 				}
 
 				int key = event.character;
-				if (key <= 26 && key > 0)
+				if (key <= 26 && key > 0) {
 					key += 'a' - 1;
+				}
 
 				if (event.stateMask == SWT.MOD1) {
 					switch (key) {
@@ -1080,8 +1093,9 @@ public class TableViewSWTImpl
 						}
 					}
 
-					if (!event.doit)
+					if (!event.doit) {
 						return;
+					}
 				}
 			}
 
@@ -1114,7 +1128,7 @@ public class TableViewSWTImpl
 		}
 
 		table.setHeaderVisible(getHeaderVisible());
-		
+
 		clientArea = table.getClientArea();
 		//firstClientArea = table.getClientArea();
 		table.addListener(SWT.Resize, new Listener() {
@@ -1125,11 +1139,11 @@ public class TableViewSWTImpl
 
 		initializeTableColumns(table);
 	}
-	
+
 	public boolean getHeaderVisible() {
 		return headerVisible;
 	}
-	
+
 	public void setHeaderVisible(boolean visible) {
 		headerVisible = visible;
 		if (table != null && !table.isDisposed()) {
@@ -1167,7 +1181,7 @@ public class TableViewSWTImpl
 		//System.out.println("e triggerSelectionLis" + rows[0]);
 		super.triggerSelectionListeners(rows);
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#triggerDeselectionListeners(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	protected void triggerDeselectionListeners(TableRowCore[] rows) {
 		if (TRIGGER_PAINT_ON_SELECTIONS) {
@@ -1179,15 +1193,16 @@ public class TableViewSWTImpl
 		}
 		super.triggerDeselectionListeners(rows);
 	}
-	
+
 	/**
 	 * 
 	 *
 	 * @since 3.1.1.1
 	 */
 	protected void triggerTabViewsDataSourceChanged() {
-		if (tabViews == null || tabViews.size() == 0)
+		if (tabViews == null || tabViews.size() == 0) {
 			return;
+		}
 
 		// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin
 		// Peer object, while Tabs of IView are sent the core PEPeer object.
@@ -1197,11 +1212,12 @@ public class TableViewSWTImpl
 		Object[] dataSourcesPlugin = null;
 
 		for (int i = 0; i < tabViews.size(); i++) {
-			IView view = (IView) tabViews.get(i);
+			IView view = tabViews.get(i);
 			if (view != null) {
 				if (view instanceof UISWTViewImpl) {
-					if (dataSourcesPlugin == null)
+					if (dataSourcesPlugin == null) {
 						dataSourcesPlugin = getSelectedDataSources(false);
+					}
 
 					((UISWTViewImpl) view).dataSourceChanged(dataSourcesPlugin.length == 0
 							? null : dataSourcesPlugin);
@@ -1216,119 +1232,125 @@ public class TableViewSWTImpl
 	private interface SourceReplaceListener
 	{
 		void sourcesChanged();
-		
+
 		void cleanup(Text toClean);
 	}
-	
+
 	private SourceReplaceListener cellEditNotifier;
 
-	private void editCell(final int column, final int row)
-	{
-		Text oldInput = (Text)editor.getEditor();
-		if(column >= table.getColumnCount() || row < 0 || row >= table.getItemCount())
-		{
+	private void editCell(final int column, final int row) {
+		Text oldInput = (Text) editor.getEditor();
+		if (column >= table.getColumnCount() || row < 0
+				|| row >= table.getItemCount()) {
 			cellEditNotifier = null;
-			if(oldInput != null && !oldInput.isDisposed())
+			if (oldInput != null && !oldInput.isDisposed()) {
 				editor.getEditor().dispose();
+			}
 			return;
 		}
-		
+
 		TableColumn tcColumn = table.getColumn(column);
 		final TableItem item = table.getItem(row);
 
 		String cellName = (String) tcColumn.getData("Name");
-		final TableRowSWT rowSWT = (TableRowSWT)getRow(row);
+		final TableRowSWT rowSWT = (TableRowSWT) getRow(row);
 		final TableCellSWT cell = rowSWT.getTableCellSWT(cellName);
-		
+
 		// reuse widget if possible, this way we'll keep the focus all the time on jumping through the rows
-		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(table,Constants.isOSX ? SWT.NONE : SWT.BORDER) : oldInput;
-		final Object datasource = cell.getDataSource();
-		if(cellEditNotifier != null )
+		final Text newInput = oldInput == null || oldInput.isDisposed() ? new Text(
+				table, Constants.isOSX ? SWT.NONE : SWT.BORDER) : oldInput;
+		final DATASOURCETYPE datasource = (DATASOURCETYPE) cell.getDataSource();
+		if (cellEditNotifier != null) {
 			cellEditNotifier.cleanup(newInput);
-		
+		}
+
 		table.showItem(item);
 		table.showColumn(tcColumn);
-		
+
 		newInput.setText(cell.getText());
-		
+
 		newInput.setSelection(0);
 		newInput.selectAll();
 		newInput.setFocus();
 
-		class QuickEditListener implements ModifyListener, SelectionListener, KeyListener, TraverseListener, SourceReplaceListener, ControlListener
+		class QuickEditListener
+			implements ModifyListener, SelectionListener, KeyListener,
+			TraverseListener, SourceReplaceListener, ControlListener
 		{
 			boolean resizing = true;
-			
-			public QuickEditListener(Text toAttach)
-			{
+
+			public QuickEditListener(Text toAttach) {
 				toAttach.addModifyListener(this);
 				toAttach.addSelectionListener(this);
 				toAttach.addKeyListener(this);
 				toAttach.addTraverseListener(this);
 				toAttach.addControlListener(this);
-				
-				cellEditNotifier = this;				
+
+				cellEditNotifier = this;
 			}
-			
+
 			public void modifyText(ModifyEvent e) {
-				if(item.isDisposed())
-				{
+				if (item.isDisposed()) {
 					sourcesChanged();
 					return;
 				}
-				if(((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), false))
+				if (((TableColumnCore) cell.getTableColumn()).inplaceValueSet(cell,
+						newInput.getText(), false)) {
 					newInput.setBackground(null);
-				else
+				} else {
 					newInput.setBackground(Colors.colorErrorBG);
+				}
 			}
-			
+
 			public void widgetDefaultSelected(SelectionEvent e) {
-				if(item.isDisposed())
-				{
+				if (item.isDisposed()) {
 					sourcesChanged();
 					newInput.traverse(SWT.TRAVERSE_RETURN);
 					return;
 				}
-				((TableColumnCore)cell.getTableColumn()).inplaceValueSet(cell, newInput.getText(), true);
+				((TableColumnCore) cell.getTableColumn()).inplaceValueSet(cell,
+						newInput.getText(), true);
 				rowSWT.invalidate();
 				editCell(column, row + 1);
 			}
-			
-			public void widgetSelected(SelectionEvent e) {}
-			
+
+			public void widgetSelected(SelectionEvent e) {
+			}
+
 			public void keyPressed(KeyEvent e) {
-				if(e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP)
-				{
+				if (e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP) {
 					e.doit = false;
 					editCell(column, row + (e.keyCode == SWT.ARROW_DOWN ? 1 : -1));
 				}
 			}
-			
-			public void keyReleased(KeyEvent e) {}
-			
+
+			public void keyReleased(KeyEvent e) {
+			}
+
 			public void keyTraversed(TraverseEvent e) {
-				if(e.detail == SWT.TRAVERSE_ESCAPE)
-				{
+				if (e.detail == SWT.TRAVERSE_ESCAPE) {
 					e.doit = false;
 					editCell(column, -1);
 				}
 			}
-			
+
 			public void sourcesChanged() {
-				if(getRow(datasource) == rowSWT || getRow(datasource) == null || newInput.isDisposed())
+				if (getRow(datasource) == rowSWT || getRow(datasource) == null
+						|| newInput.isDisposed()) {
 					return;
+				}
 				String newVal = newInput.getText();
-				Point  sel = newInput.getSelection();
+				Point sel = newInput.getSelection();
 				editCell(column, getRow(datasource).getIndex());
-				if(newInput.isDisposed())
+				if (newInput.isDisposed()) {
 					return;
+				}
 				newInput.setText(newVal);
 				newInput.setSelection(sel);
 			}
-			
+
 			public void cleanup(Text oldText) {
-				if(!oldText.isDisposed())
-				{
+				if (!oldText.isDisposed()) {
 					oldText.removeModifyListener(this);
 					oldText.removeSelectionListener(this);
 					oldText.removeKeyListener(this);
@@ -1336,47 +1358,51 @@ public class TableViewSWTImpl
 					oldText.removeControlListener(this);
 				}
 			}
-			
+
 			public void controlMoved(ControlEvent e) {
 				table.showItem(item);
-				if(resizing)
+				if (resizing) {
 					return;
+				}
 				resizing = true;
-				
+
 				Point sel = newInput.getSelection();
-				
+
 				editor.setEditor(newInput, item, column);
-				
+
 				editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-				
+
 				Rectangle leftAlignedBounds = item.getBounds(column);
-				leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
-				if(leftAlignedBounds.intersection(clientArea).equals(leftAlignedBounds))
+				leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(
+						SWT.DEFAULT, SWT.DEFAULT).x;
+				if (leftAlignedBounds.intersection(clientArea).equals(leftAlignedBounds)) {
 					editor.horizontalAlignment = SWT.LEFT;
-				else
+				} else {
 					editor.horizontalAlignment = SWT.RIGHT;
-				
+				}
+
 				editor.layout();
-				
-				newInput.setSelection(0);				
+
+				newInput.setSelection(0);
 				newInput.setSelection(sel);
-				
+
 				resizing = false;
 			}
-			
-			public void controlResized(ControlEvent e) {}
+
+			public void controlResized(ControlEvent e) {
+			}
 		}
-		
+
 		QuickEditListener l = new QuickEditListener(newInput);
-		
+
 		l.modifyText(null);
-		
+
 		editor.setEditor(newInput, item, column);
 		table.deselectAll();
 		table.select(row);
-		
+
 		l.resizing = false;
-		
+
 		l.controlMoved(null);
 	}
 
@@ -1392,14 +1418,16 @@ public class TableViewSWTImpl
 		// TODO: Change to not use SWT masks
 		event.keyboardState = e.stateMask;
 		event.skipCoreFunctionality = false;
-		Rectangle r = cell.getBounds();
-		event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
-		if (event.x < 0) {
-			return null;
-		}
-		event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
-		if (event.y < 0) {
-			return null;
+		if (cell != null) {
+			Rectangle r = cell.getBounds();
+			event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+			if (event.x < 0) {
+				return null;
+			}
+			event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
+			if (event.y < 0) {
+				return null;
+			}
 		}
 
 		return event;
@@ -1418,7 +1446,7 @@ public class TableViewSWTImpl
 				return;
 			}
 			int iColumnNo = event.index;
-			
+
 			//System.out.println(SystemTime.getCurrentTime() + "] paintItem " + table.indexOf(item) + ":" + iColumnNo);
 			if (bSkipFirstColumn) {
 				if (iColumnNo == 0) {
@@ -1438,22 +1466,21 @@ public class TableViewSWTImpl
 				return;
 			}
 
-
 			TableRowSWT row = (TableRowSWT) getRow(item);
 			if (row == null) {
 				//System.out.println("no row");
 				return;
 			}
-			
+
 			int rowPos = indexOf(row);
 			if (rowPos < lastTopIndex || rowPos > lastBottomIndex) {
 				// this refreshes whole row (perhaps multiple), saving the many
 				// cell.refresh calls later because !cell.isUpToDate()
 				visibleRowsChanged();
 			}
-			
+
 			int rowAlpha = row.getAlpha();
-			
+
 			int fontStyle = row.getFontStyle();
 			if (fontStyle == SWT.BOLD) {
 				if (fontBold == null) {
@@ -1481,7 +1508,7 @@ public class TableViewSWTImpl
 			}
 
 			TableCellSWT cell = row.getTableCellSWT(columnsOrdered[iColumnNo].getName());
-			
+
 			if (cell == null) {
 				return;
 			}
@@ -1491,29 +1518,29 @@ public class TableViewSWTImpl
 				cell.refresh(true, true);
 				//return;
 			}
-			
+
 			String text = cell.getText();
-			
+
 			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
 					cellBounds.width, cellBounds.height);
 			int headerHeight = table.getHeaderHeight();
-	    int iMinY = headerHeight + clientArea.y;
-	    if (clipping.y < iMinY) {
-	      clipping.height -= iMinY - clipping.y;
-	      clipping.y = iMinY;
-	    }
-	    int iMaxY = clientArea.height + clientArea.y;
-	    if (clipping.y + clipping.height > iMaxY) {
-	      clipping.height = iMaxY - clipping.y + 1;
-	    }
+			int iMinY = headerHeight + clientArea.y;
+			if (clipping.y < iMinY) {
+				clipping.height -= iMinY - clipping.y;
+				clipping.y = iMinY;
+			}
+			int iMaxY = clientArea.height + clientArea.y;
+			if (clipping.y + clipping.height > iMaxY) {
+				clipping.height = iMaxY - clipping.y + 1;
+			}
 
-	    if (clipping.width <= 0 || clipping.height <= 0) {
-	      //System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
-	      return;
-	    }
+			if (clipping.width <= 0 || clipping.height <= 0) {
+				//System.out.println(row.getIndex() + " clipping="+clipping + ";" + iMinY + ";" + iMaxY + ";tca=" + tableBounds);
+				return;
+			}
 
 			event.gc.setClipping(clipping);
-			
+
 			if (rowAlpha < 255) {
 				event.gc.setAlpha(rowAlpha);
 			}
@@ -1529,7 +1556,7 @@ public class TableViewSWTImpl
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
 				}
-  			//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
+				//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
 				int style = TableColumnSWTUtils.convertColumnAlignmentToSWT(columnsOrdered[iColumnNo].getAlignment());
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
@@ -1543,9 +1570,9 @@ public class TableViewSWTImpl
 				cellBounds.x += 3;
 				cellBounds.width -= 6;
 				if (!cellBounds.isEmpty()) {
-					GCStringPrinter sp = new GCStringPrinter(event.gc, text,
-							cellBounds, true, cellBounds.height > 20, style);
-					
+					GCStringPrinter sp = new GCStringPrinter(event.gc, text, cellBounds,
+							true, cellBounds.height > 20, style);
+
 					boolean fit = sp.printString();
 					if (!fit) {
 						// XXX This overrides cell-set tooltip!
@@ -1577,18 +1604,18 @@ public class TableViewSWTImpl
 			triggerDefaultSelectedListeners(selectedRows, stateMask);
 		}
 	}
-	
+
 	private void updateColumnVisibilities() {
 		TableColumn[] columns = table.getColumns();
 		int topIdx = table.getTopIndex();
-		if (topIdx < 0 || table.getItemCount() < 1)
+		if (topIdx < 0 || table.getItemCount() < 1) {
 			return;
+		}
 		columnVisibilitiesChanged = false;
 		TableItem topRow = table.getItem(topIdx);
-		for (int i = 0; i < columns.length; i++)
-		{
+		for (int i = 0; i < columns.length; i++) {
 			final TableColumnCore tc = (TableColumnCore) columns[i].getData("TableColumnCore");
-			if (tc == null){
+			if (tc == null) {
 				continue;
 			}
 
@@ -1615,9 +1642,9 @@ public class TableViewSWTImpl
 			}
 		}
 	}
-	
-	public boolean isColumnVisible(org.gudy.azureus2.plugins.ui.tables.TableColumn column)
-	{
+
+	public boolean isColumnVisible(
+			org.gudy.azureus2.plugins.ui.tables.TableColumn column) {
 		int position = column.getPosition();
 		if (position < 0 || position >= columnsVisible.length) {
 			return false;
@@ -1629,12 +1656,15 @@ public class TableViewSWTImpl
 	protected void initializeTableColumns(final Table table) {
 		TableColumn[] oldColumns = table.getColumns();
 
-		if (SWT.getVersion() >= 3100)
-			for (int i = 0; i < oldColumns.length; i++)
+		if (SWT.getVersion() >= 3100) {
+			for (int i = 0; i < oldColumns.length; i++) {
 				oldColumns[i].removeListener(SWT.Move, columnMoveListener);
+			}
+		}
 
-		for (int i = oldColumns.length - 1; i >= 0; i--)
+		for (int i = oldColumns.length - 1; i >= 0; i--) {
 			oldColumns[i].dispose();
+		}
 
 		columnPaddingAdjusted = false;
 
@@ -1646,12 +1676,13 @@ public class TableViewSWTImpl
 
 			public void controlResized(ControlEvent e) {
 				TableColumn column = (TableColumn) e.widget;
-				if (column == null || column.isDisposed() || bInFunction)
+				if (column == null || column.isDisposed() || bInFunction) {
 					return;
+				}
 
 				try {
 					bInFunction = true;
-					
+
 					TableColumnCore tc = (TableColumnCore) column.getData("TableColumnCore");
 					if (tc != null) {
 						Long lPadding = (Long) column.getData("widthOffset");
@@ -1684,7 +1715,8 @@ public class TableViewSWTImpl
 		TableColumnCore[] tmpColumnsOrdered = new TableColumnCore[tableColumns.length];
 		//Create all columns
 		int columnOrderPos = 0;
-		Arrays.sort(tableColumns, TableColumnManager.getTableColumnOrderComparator());
+		Arrays.sort(tableColumns,
+				TableColumnManager.getTableColumnOrderComparator());
 		for (int i = 0; i < tableColumns.length; i++) {
 			int position = tableColumns[i].getPosition();
 			if (position != -1 && tableColumns[i].isVisible()) {
@@ -1746,13 +1778,13 @@ public class TableViewSWTImpl
 			// At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
 			// selection listener for tables
 			column.addListener(SWT.Selection, columnSelectionListener);
-			
+
 			swtColumnPos++;
 		}
-		
+
 		// Initialize the sorter after the columns have been added
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		
+
 		String sSortColumn = tcManager.getDefaultSortColumnName(sTableID);
 		if (sSortColumn == null) {
 			sSortColumn = sDefaultSortOn;
@@ -1780,14 +1812,15 @@ public class TableViewSWTImpl
 			for (int i = 0; i < columns.length; i++) {
 				TableColumn column = columns[i];
 				column.addListener(SWT.Move, columnMoveListener);
-				if (COLUMN_CLICK_DELAY)
+				if (COLUMN_CLICK_DELAY) {
 					column.addListener(SWT.Resize, columnResizeListener);
+				}
 			}
 		}
-		
+
 		columnVisibilitiesChanged = true;
 	}
-	
+
 	public void fixAlignment(TableColumnCore tc, boolean sorted) {
 		if (Constants.isOSX) {
 			if (table.isDisposed() || tc == null) {
@@ -1862,15 +1895,15 @@ public class TableViewSWTImpl
 
 		TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(
 				sTableID);
-		
+
 		// We'll add download-context specific menu items - if the table is download specific.
 		// We need a better way to determine this...
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items = null;
 		if ("MySeeders".equals(sTableID) || "MyTorrents".equals(sTableID)) {
-			menu_items = MenuItemManager.getInstance().getAllAsArray("download_context");
-		}
-		else {
-			menu_items = MenuItemManager.getInstance().getAllAsArray((String)null);
+			menu_items = MenuItemManager.getInstance().getAllAsArray(
+					"download_context");
+		} else {
+			menu_items = MenuItemManager.getInstance().getAllAsArray((String) null);
 		}
 		if (items.length > 0 || menu_items.length > 0) {
 			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
@@ -1878,41 +1911,41 @@ public class TableViewSWTImpl
 			// Add download context menu items.
 			if (menu_items != null) {
 				// getSelectedDataSources(false) returns us plugin items.
-    			MenuBuildUtils.addPluginMenuItems(getComposite(), menu_items, menu, true, true,
-						new MenuBuildUtils.MenuItemPluginMenuControllerImpl(getSelectedDataSources(false))
-    			);				
+				MenuBuildUtils.addPluginMenuItems(getComposite(), menu_items, menu,
+						true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+								getSelectedDataSources(false)));
 			}
 
 			if (items.length > 0) {
-			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
-					enable_items, new MenuBuildUtils.PluginMenuController() {
-						public Listener makeSelectionListener(
-								final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
-							return new TableSelectedRowsListener(TableViewSWTImpl.this) {
-								public boolean run(TableRowCore[] rows) {
-									if (rows.length != 0) {
-										((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+				MenuBuildUtils.addPluginMenuItems(getComposite(), items, menu, true,
+						enable_items, new MenuBuildUtils.PluginMenuController() {
+							public Listener makeSelectionListener(
+									final org.gudy.azureus2.plugins.ui.menus.MenuItem plugin_menu_item) {
+								return new TableSelectedRowsListener(TableViewSWTImpl.this) {
+									public boolean run(TableRowCore[] rows) {
+										if (rows.length != 0) {
+											((TableContextMenuItemImpl) plugin_menu_item).invokeListenersMulti(rows);
+										}
+										return true;
 									}
-									return true;
-								}
-							};
-						}
+								};
+							}
 
-						public void notifyFillListeners(
-								org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
-							((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
-						}
-					});
+							public void notifyFillListeners(
+									org.gudy.azureus2.plugins.ui.menus.MenuItem menu_item) {
+								((TableContextMenuItemImpl) menu_item).invokeMenuWillBeShownListeners(getSelectedRows());
+							}
+						});
 			}
 		}
 	}
-	
+
 	void showColumnEditor() {
 		TableRowCore focusedRow = getFocusedRow();
 		if (focusedRow == null) {
 			focusedRow = getRow(0);
 		}
-		new TableColumnSetupWindow(dataSourceType, sTableID, focusedRow,
+		new TableColumnSetupWindow(classDataSourceType, sTableID, focusedRow,
 				TableStructureEventDispatcher.getInstance(sTableID)).open();
 	}
 
@@ -1924,8 +1957,9 @@ public class TableViewSWTImpl
 	private void addThisColumnSubMenu(int iColumn) {
 		MenuItem item;
 
-		if (menuThisColumn == null || menuThisColumn.isDisposed())
+		if (menuThisColumn == null || menuThisColumn.isDisposed()) {
 			return;
+		}
 
 		// Dispose of the old items
 		MenuItem[] oldItems = menuThisColumn.getItems();
@@ -1950,7 +1984,7 @@ public class TableViewSWTImpl
 			menu.setData("ColumnNo", new Long(iColumn));
 			menu.setData("column", tcColumn);
 		}
-		
+
 		String sColumnName = (String) tcColumn.getData("Name");
 		if (sColumnName != null) {
 			Object[] listeners = listenersMenuFill.toArray();
@@ -1972,19 +2006,20 @@ public class TableViewSWTImpl
 				table.getColumn(iColumn).notifyListeners(SWT.Selection, new Event());
 			}
 		});
-		
+
 		final MenuItem at_item = new MenuItem(menuThisColumn, SWT.CHECK);
-		Messages.setLanguageText(at_item, "MyTorrentsView.menu.thisColumn.autoTooltip");
+		Messages.setLanguageText(at_item,
+				"MyTorrentsView.menu.thisColumn.autoTooltip");
 		at_item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				TableColumn tc = (TableColumn)menu.getData("column");
-				TableColumnCore tcc = (TableColumnCore)tc.getData("TableColumnCore");
+				TableColumn tc = (TableColumn) menu.getData("column");
+				TableColumnCore tcc = (TableColumnCore) tc.getData("TableColumnCore");
 				tcc.setAutoTooltip(at_item.getSelection());
 				tcc.invalidateCells();
-			}			
+			}
 		});
-		at_item.setSelection(((TableColumnCore)tcColumn.getData("TableColumnCore")).doesAutoTooltip());
-		
+		at_item.setSelection(((TableColumnCore) tcColumn.getData("TableColumnCore")).doesAutoTooltip());
+
 		item = new MenuItem(menuThisColumn, SWT.PUSH);
 		Messages.setLanguageText(item, "MyTorrentsView.menu.thisColumn.remove");
 
@@ -1998,12 +2033,12 @@ public class TableViewSWTImpl
 				if (columnName == null) {
 					return;
 				}
-				for (int i=0;i<tableColumns.length;i++){
-					if ( tableColumns[i].getName().equals(columnName)){
-						tableColumns[i].setVisible( false );
+				for (int i = 0; i < tableColumns.length; i++) {
+					if (tableColumns[i].getName().equals(columnName)) {
+						tableColumns[i].setVisible(false);
 					}
 				}
-				
+
 				tableStructureChanged(false);
 			}
 		});
@@ -2013,7 +2048,7 @@ public class TableViewSWTImpl
 		item.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
 				String sToClipboard = "";
-				int iColumn = ((Long) menu.getData("ColumnNo")).intValue();
+				//int iColumn = ((Long) menu.getData("ColumnNo")).intValue();
 				TableColumn tc = (TableColumn) menu.getData("column");
 				if (tc == null) {
 					return;
@@ -2024,15 +2059,16 @@ public class TableViewSWTImpl
 				}
 				TableItem[] tis = table.getSelection();
 				for (int i = 0; i < tis.length; i++) {
-					if (i != 0)
+					if (i != 0) {
 						sToClipboard += "\n";
+					}
 					TableRowCore row = (TableRowCore) tis[i].getData("TableRow");
 					TableCellCore cell = row.getTableCellCore(columnName);
 					if (cell != null) {
 						sToClipboard += cell.getText();
 					}
 				}
-				if (sToClipboard == null || sToClipboard.length() == 0) {
+				if (sToClipboard.length() == 0) {
 					return;
 				}
 				new Clipboard(mainComposite.getDisplay()).setContents(new Object[] {
@@ -2048,9 +2084,10 @@ public class TableViewSWTImpl
 		TableContextMenuItem[] items = tc.getContextMenuItems();
 		if (items.length > 0) {
 			new MenuItem(menuThisColumn, SWT.SEPARATOR);
-			
-			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menuThisColumn, true, true,
-					new MenuBuildUtils.MenuItemPluginMenuControllerImpl(getSelectedDataSources(true)));
+
+			MenuBuildUtils.addPluginMenuItems(getComposite(), items, menuThisColumn,
+					true, true, new MenuBuildUtils.MenuItemPluginMenuControllerImpl(
+							getSelectedDataSources(true)));
 
 		}
 	}
@@ -2068,8 +2105,9 @@ public class TableViewSWTImpl
 
 	public IView getActiveSubView() {
 		if (!bEnableTabViews || tabFolder == null || tabFolder.isDisposed()
-				|| tabFolder.getMinimized())
+				|| tabFolder.getMinimized()) {
 			return null;
+		}
 
 		CTabItem item = tabFolder.getSelection();
 		if (item != null) {
@@ -2081,8 +2119,9 @@ public class TableViewSWTImpl
 
 	public void refreshSelectedSubView() {
 		IView view = getActiveSubView();
-		if (view != null)
+		if (view != null) {
 			view.refresh();
+		}
 	}
 
 	// see common.TableView
@@ -2092,8 +2131,9 @@ public class TableViewSWTImpl
 				_refreshTable(bForceSort);
 
 				if (bEnableTabViews && tabFolder != null && !tabFolder.isDisposed()
-						&& !tabFolder.getMinimized())
+						&& !tabFolder.getMinimized()) {
 					refreshSelectedSubView();
+				}
 			}
 		});
 
@@ -2102,19 +2142,20 @@ public class TableViewSWTImpl
 
 	private void _refreshTable(boolean bForceSort) {
 		// don't refresh while there's no table
-		if (table == null)
+		if (table == null) {
 			return;
-		
+		}
+
 		// call to trigger invalidation if visibility changes
 		isVisible();
-		
-		
+
 		// XXX Try/Finally used to be there for monitor.enter/exit, however
 		//     this doesn't stop re-entry from the same thread while already in
 		//     process.. need a bAlreadyRefreshing variable instead
 		try {
-			if (getComposite() == null || getComposite().isDisposed())
+			if (getComposite() == null || getComposite().isDisposed()) {
 				return;
+			}
 
 			if (checkColumnWidthsEvery != 0
 					&& (loopFactor % checkColumnWidthsEvery) == 0) {
@@ -2129,9 +2170,10 @@ public class TableViewSWTImpl
 					}
 				}
 			}
-			
-			if(columnVisibilitiesChanged == true)
+
+			if (columnVisibilitiesChanged == true) {
 				updateColumnVisibilities();
+			}
 
 			final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
 			final boolean bWillSort = bForceSort || (reOrderDelay != 0)
@@ -2156,8 +2198,9 @@ public class TableViewSWTImpl
 
 			if (DEBUGADDREMOVE) {
 				long lTimeDiff = (SystemTime.getMonotonousTime() - lTimeStart);
-				if (lTimeDiff > 500)
+				if (lTimeDiff > 500) {
 					debug(lTimeDiff + "ms to refresh rows");
+				}
 			}
 
 			loopFactor++;
@@ -2166,8 +2209,9 @@ public class TableViewSWTImpl
 	}
 
 	private void refreshVisibleRows() {
-		if (getComposite() == null || getComposite().isDisposed())
+		if (getComposite() == null || getComposite().isDisposed()) {
 			return;
+		}
 
 		runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
@@ -2185,17 +2229,19 @@ public class TableViewSWTImpl
 		try {
 			dataSourceToRow_mon.enter();
 			if (dataSourcesToAdd.size() > 0) {
-				if(dataSourcesToAdd.removeAll(dataSourcesToRemove) && DEBUGADDREMOVE)
+				if (dataSourcesToAdd.removeAll(dataSourcesToRemove) && DEBUGADDREMOVE) {
 					debug("Saved time by not adding a row that was removed");
+				}
 				dataSourcesAdd = dataSourcesToAdd.toArray();
 
 				dataSourcesToAdd.clear();
 			}
-			
+
 			if (dataSourcesToRemove.size() > 0) {
 				dataSourcesRemove = dataSourcesToRemove.toArray();
-				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
+				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1) {
 					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
+				}
 				dataSourcesToRemove.clear();
 			}
 		} finally {
@@ -2204,8 +2250,9 @@ public class TableViewSWTImpl
 
 		if (dataSourcesAdd != null && dataSourcesAdd.length > 0) {
 			reallyAddDataSources(dataSourcesAdd);
-			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1)
+			if (DEBUGADDREMOVE && dataSourcesAdd.length > 1) {
 				debug("Streamlined adding " + dataSourcesAdd.length + " rows");
+			}
 		}
 
 		if (dataSourcesRemove != null && dataSourcesRemove.length > 0) {
@@ -2214,11 +2261,12 @@ public class TableViewSWTImpl
 	}
 
 	private void locationChanged(final int iStartColumn) {
-		if (getComposite() == null || getComposite().isDisposed())
+		if (getComposite() == null || getComposite().isDisposed()) {
 			return;
-		
+		}
+
 		columnVisibilitiesChanged = true;
-		
+
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				row.locationChanged(iStartColumn);
@@ -2227,8 +2275,9 @@ public class TableViewSWTImpl
 	}
 
 	private void doPaint(final GC gc, final Rectangle dirtyArea) {
-		if (getComposite() == null || getComposite().isDisposed())
+		if (getComposite() == null || getComposite().isDisposed()) {
 			return;
+		}
 
 		runForVisibleRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
@@ -2238,13 +2287,13 @@ public class TableViewSWTImpl
 				TableRowSWT rowSWT = (TableRowSWT) row;
 				Rectangle bounds = rowSWT.getBounds();
 				if (bounds.intersects(dirtyArea)) {
-					
+
 					if (Constants.isWindowsVista) {
-  					Image imgBG = new Image(gc.getDevice(), bounds.width, bounds.height);
-  					gc.copyArea(imgBG, bounds.x, bounds.y);
-  					rowSWT.setBackgroundImage(imgBG);
+						Image imgBG = new Image(gc.getDevice(), bounds.width, bounds.height);
+						gc.copyArea(imgBG, bounds.x, bounds.y);
+						rowSWT.setBackgroundImage(imgBG);
 					}
-					
+
 					//System.out.println("paint " + row);
 					Color oldBG = (Color) row.getData("bgColor");
 					Color newBG = rowSWT.getBackground();
@@ -2270,20 +2319,22 @@ public class TableViewSWTImpl
 
 		if (tabViews != null && tabViews.size() > 0) {
 			for (int i = 0; i < tabViews.size(); i++) {
-				IView view = (IView) tabViews.get(i);
-				if (view != null)
+				IView view = tabViews.get(i);
+				if (view != null) {
 					view.delete();
+				}
 			}
 		}
 
 		TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		if (tcManager != null) {
-			tcManager.saveTableColumns(dataSourceType, sTableID);
+			tcManager.saveTableColumns(classDataSourceType, sTableID);
 		}
 
-		if (table != null && !table.isDisposed())
+		if (table != null && !table.isDisposed()) {
 			table.dispose();
+		}
 		removeAllTableRows();
 		configMan.removeParameterListener("ReOrder Delay", this);
 		configMan.removeParameterListener("Graphics Update", this);
@@ -2293,8 +2344,9 @@ public class TableViewSWTImpl
 
 		//oldSelectedItems =  null;
 		Composite comp = getComposite();
-		if (comp != null && !comp.isDisposed())
+		if (comp != null && !comp.isDisposed()) {
 			comp.dispose();
+		}
 	}
 
 	/* (non-Javadoc)
@@ -2303,32 +2355,35 @@ public class TableViewSWTImpl
 	public void updateLanguage() {
 		if (tabViews != null && tabViews.size() > 0) {
 			for (int i = 0; i < tabViews.size(); i++) {
-				IView view = (IView) tabViews.get(i);
-				if (view != null)
+				IView view = tabViews.get(i);
+				if (view != null) {
 					view.updateLanguage();
+				}
 			}
 		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#addDataSource(java.lang.Object, boolean)
-	public void addDataSource(Object datasource, boolean immediate) {
+	public void addDataSource(DATASOURCETYPE datasource, boolean immediate) {
 		addDataSource(datasource);
 	}
 
 	// see common.TableView
-	public void addDataSource(Object dataSource) {
-		addDataSources(new Object[] {
+	@SuppressWarnings("unchecked")
+	public void addDataSource(DATASOURCETYPE dataSource) {
+		addDataSources((DATASOURCETYPE[]) new Object[] {
 			dataSource
 		});
 	}
 
 	// see common.TableView
-	public void addDataSources(final Object dataSources[]) {
+	public void addDataSources(final DATASOURCETYPE dataSources[]) {
 
-		if (dataSources == null)
+		if (dataSources == null) {
 			return;
+		}
 
-		if ( Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyAddDataSources(dataSources);
 			return;
 		}
@@ -2356,9 +2411,10 @@ public class TableViewSWTImpl
 				}
 			}
 
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("Queued " + count + " of " + dataSources.length
 						+ " dataSources to add.  Total Queued: " + dataSourcesToAdd.size());
+			}
 
 		} finally {
 
@@ -2373,25 +2429,29 @@ public class TableViewSWTImpl
 			// when processDataSourceQueueCallback is null, we are disposing
 			return;
 		}
-		
-		if(cellEditNotifier != null)
+
+		if (cellEditNotifier != null) {
 			cellEditNotifier.sourcesChanged();
-		
-		boolean processQueueImmediately = Utils.addDataSourceAggregated( processDataSourceQueueCallback );
-		
-		if(processQueueImmediately)
+		}
+
+		boolean processQueueImmediately = Utils.addDataSourceAggregated(processDataSourceQueueCallback);
+
+		if (processQueueImmediately) {
 			processDataSourceQueue();
+		}
 	}
 
 	private void reallyAddDataSources(final Object dataSources[]) {
 
 		if (mainComposite == null || table == null || mainComposite.isDisposed()
-				|| table.isDisposed())
+				|| table.isDisposed()) {
 			return;
+		}
 
 		bReallyAddingDataSources = true;
-		if (DEBUGADDREMOVE)
+		if (DEBUGADDREMOVE) {
 			debug(">>" + " Add " + dataSources.length + " rows;");
+		}
 
 		Object[] remainingDataSources = null;
 		Object[] doneDataSources = dataSources;
@@ -2403,8 +2463,9 @@ public class TableViewSWTImpl
 			long lStartTime = SystemTime.getCurrentTime();
 
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[i] == null)
+				if (dataSources[i] == null) {
 					continue;
+				}
 
 				// Break off and add the rows to the UI if we've taken too long to
 				// create them
@@ -2427,7 +2488,7 @@ public class TableViewSWTImpl
 				} else {
 					TableRowImpl row = new TableRowImpl(this, table, sTableID,
 							columnsOrdered, dataSources[i], bSkipFirstColumn);
-					mapDataSourceToRow.put(dataSources[i], row);
+					mapDataSourceToRow.put((DATASOURCETYPE) dataSources[i], row);
 				}
 			}
 		} catch (Exception e) {
@@ -2437,8 +2498,9 @@ public class TableViewSWTImpl
 			dataSourceToRow_mon.exit();
 		}
 
-		if (DEBUGADDREMOVE)
+		if (DEBUGADDREMOVE) {
 			debug("--" + " Add " + doneDataSources.length + " rows;");
+		}
 
 		if (remainingDataSources == null) {
 			addDataSourcesToSWT(doneDataSources, true);
@@ -2459,9 +2521,10 @@ public class TableViewSWTImpl
 
 	private void addDataSourcesToSWT(final Object dataSources[], boolean async) {
 		try {
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("--" + " Add " + dataSources.length + " rows to SWT "
 						+ (async ? " async " : " NOW"));
+			}
 
 			if (async) {
 				table.getDisplay().asyncExec(new AERunnable() {
@@ -2489,7 +2552,8 @@ public class TableViewSWTImpl
 			return;
 		}
 
-		mainComposite.getParent().setCursor(table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+		mainComposite.getParent().setCursor(
+				table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 		TableRowCore[] selectedRows = getSelectedRows();
 
@@ -2500,8 +2564,9 @@ public class TableViewSWTImpl
 			dataSourceToRow_mon.enter();
 			sortedRows_mon.enter();
 
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("--" + " Add " + dataSources.length + " rows to SWT");
+			}
 
 			// purposefully not included in time check 
 			table.setItemCount(sortedRows.size() + dataSources.length);
@@ -2516,8 +2581,9 @@ public class TableViewSWTImpl
 			// calling SWT objects.
 			for (int i = 0; i < dataSources.length; i++) {
 				Object dataSource = dataSources[i];
-				if (dataSource == null)
+				if (dataSource == null) {
 					continue;
+				}
 
 				// If we've been processing on the SWT thread for too long,
 				// break off and allow SWT a breather to update.
@@ -2536,8 +2602,9 @@ public class TableViewSWTImpl
 				}
 
 				TableRowImpl row = (TableRowImpl) mapDataSourceToRow.get(dataSource);
-				if (row == null || row.getIndex() >= 0)
+				if (row == null || row.getIndex() >= 0) {
 					continue;
+				}
 				if (sortColumn != null) {
 					TableCellSWT cell = row.getTableCellSWT(sortColumn.getName());
 					if (cell != null) {
@@ -2557,28 +2624,33 @@ public class TableViewSWTImpl
 						// If we are >= to the last item, then just add it to the end
 						// instead of relying on binarySearch, which may return an item
 						// in the middle that also is equal.
-						TableRowSWT lastRow = (TableRowSWT) sortedRows.get(sortedRows.size() - 1);
+						TableRowSWT lastRow = sortedRows.get(sortedRows.size() - 1);
 						if (sortColumn == null || sortColumn.compare(row, lastRow) >= 0) {
 							index = sortedRows.size();
 							sortedRows.add(row);
-							if (DEBUGADDREMOVE)
+							if (DEBUGADDREMOVE) {
 								debug("Adding new row to bottom");
+							}
 						} else {
 							index = Collections.binarySearch(sortedRows, row, sortColumn);
-							if (index < 0)
+							if (index < 0) {
 								index = -1 * index - 1; // best guess
+							}
 
-							if (index > sortedRows.size())
+							if (index > sortedRows.size()) {
 								index = sortedRows.size();
+							}
 
-							if (DEBUGADDREMOVE)
+							if (DEBUGADDREMOVE) {
 								debug("Adding new row at position " + index + " of "
 										+ (sortedRows.size() - 1));
+							}
 							sortedRows.add(index, row);
 						}
 					} else {
-						if (DEBUGADDREMOVE)
+						if (DEBUGADDREMOVE) {
 							debug("Adding new row to bottom (1st Entry)");
+						}
 						index = sortedRows.size();
 						sortedRows.add(row);
 					}
@@ -2600,16 +2672,18 @@ public class TableViewSWTImpl
 					Logger.log(new LogEvent(LOGID, "Error adding a row to table "
 							+ sTableID, e));
 					try {
-						if (!sortedRows.contains(row))
+						if (!sortedRows.contains(row)) {
 							sortedRows.add(row);
+						}
 					} catch (Exception e2) {
 						Debug.out(e2);
 					}
 				}
 			} // for dataSources
-			
+
 			if (DEBUGADDREMOVE) {
-				debug("Adding took "+ (SystemTime.getCurrentTime() - lStartTime) + "ms");
+				debug("Adding took " + (SystemTime.getCurrentTime() - lStartTime)
+						+ "ms");
 			}
 
 			// Sanity Check: Make sure # of rows in table and in array match
@@ -2653,12 +2727,12 @@ public class TableViewSWTImpl
 					Rectangle bounds = item.getBounds(i);
 					int tcWidth = tc.getWidth();
 					if (tcWidth != 0 && bounds.width != 0) {
-  					int ofs = tc.getWidth() - bounds.width;
-  					if (ofs > 0) {
-  						tableColumnsSWT[i].setResizable(true);
-  						tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
-  						tc.triggerColumnSizeChange();
-  					}
+						int ofs = tc.getWidth() - bounds.width;
+						if (ofs > 0) {
+							tableColumnsSWT[i].setResizable(true);
+							tableColumnsSWT[i].setData("widthOffset", new Long(ofs));
+							tc.triggerColumnSizeChange();
+						}
 					}
 				}
 			}
@@ -2666,21 +2740,22 @@ public class TableViewSWTImpl
 		}
 
 		setSelectedRows(selectedRows);
-		if (DEBUGADDREMOVE)
+		if (DEBUGADDREMOVE) {
 			debug("<< " + sortedRows.size());
+		}
 
 		mainComposite.getParent().setCursor(null);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object, boolean)
-	public void removeDataSource(Object dataSource, boolean immediate) {
+	public void removeDataSource(DATASOURCETYPE dataSource, boolean immediate) {
 		removeDataSources(new Object[] {
 			dataSource
 		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
-	public void removeDataSource(final Object dataSource) {
+	public void removeDataSource(final DATASOURCETYPE dataSource) {
 		removeDataSources(new Object[] {
 			dataSource
 		});
@@ -2704,13 +2779,15 @@ public class TableViewSWTImpl
 		try {
 			dataSourceToRow_mon.enter();
 
-			for (int i = 0; i < dataSources.length; i++)
+			for (int i = 0; i < dataSources.length; i++) {
 				dataSourcesToRemove.add(dataSources[i]);
+			}
 
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("Queued " + dataSources.length
 						+ " dataSources to remove.  Total Queued: "
 						+ dataSourcesToRemove.size());
+			}
 		} finally {
 			dataSourceToRow_mon.exit();
 		}
@@ -2720,8 +2797,9 @@ public class TableViewSWTImpl
 
 	private void reallyRemoveDataSources(final Object[] dataSources) {
 
-		if (DEBUGADDREMOVE)
+		if (DEBUGADDREMOVE) {
 			debug(">> Remove rows");
+		}
 
 		final long lStart = SystemTime.getCurrentTime();
 
@@ -2730,10 +2808,11 @@ public class TableViewSWTImpl
 				if (table == null || table.isDisposed()) {
 					return;
 				}
-				
+
 				int numSelected = table.getSelectionCount();
-				
-				mainComposite.getParent().setCursor(table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+
+				mainComposite.getParent().setCursor(
+						table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 				StringBuffer sbWillRemove = null;
 				if (DEBUGADDREMOVE) {
@@ -2744,22 +2823,22 @@ public class TableViewSWTImpl
 					sbWillRemove = new StringBuffer("Will soon remove row #");
 				}
 
-				ArrayList itemsToRemove = new ArrayList();
-				ArrayList swtItemsToRemove = new ArrayList();
+				ArrayList<TableRowSWT> itemsToRemove = new ArrayList<TableRowSWT>();
+				ArrayList<Long> swtItemsToRemove = new ArrayList<Long>();
 				int iTopIndex = table.getTopIndex();
 				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 				boolean bRefresh = false;
-				
+
 				if (DEBUGADDREMOVE) {
 					debug("--- Remove: vis rows " + iTopIndex + " to " + iBottomIndex);
 				}
-				
 
 				// pass one: get the SWT indexes of the items we are going to remove
 				//           This will re-link them if they lost their link
 				for (int i = 0; i < dataSources.length; i++) {
-					if (dataSources[i] == null)
+					if (dataSources[i] == null) {
 						continue;
+					}
 
 					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
 					if (item != null) {
@@ -2790,8 +2869,9 @@ public class TableViewSWTImpl
 				boolean hasSelected = false;
 				// pass 2: remove from map and list, add removed to seperate list
 				for (int i = 0; i < dataSources.length; i++) {
-					if (dataSources[i] == null)
+					if (dataSources[i] == null) {
 						continue;
+					}
 
 					// Must remove from map before deleted from gui
 					TableRowSWT item = (TableRowSWT) mapDataSourceToRow.remove(dataSources[i]);
@@ -2812,11 +2892,11 @@ public class TableViewSWTImpl
 				// zero perf gain, and a small perf gain on Windows.  However, in the
 				// future it may be optimized.
 				if (swtItemsToRemove.size() > 0) {
-//					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
-//					for (int i = 0; i < swtItemsToRemove.size(); i++) {
-//						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
-//					}
-//					table.remove(swtRowsToRemove);
+					//					int[] swtRowsToRemove = new int[swtItemsToRemove.size()];
+					//					for (int i = 0; i < swtItemsToRemove.size(); i++) {
+					//						swtRowsToRemove[i] = ((Long) swtItemsToRemove.get(i)).intValue();
+					//					}
+					//					table.remove(swtRowsToRemove);
 					// refreshVisibleRows should fix up the display
 					table.setItemCount(mapDataSourceToRow.size());
 				}
@@ -2826,8 +2906,8 @@ public class TableViewSWTImpl
 				}
 
 				// Finally, delete the rows
-				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
-					TableRowCore row = (TableRowCore) iter.next();
+				for (Iterator<TableRowSWT> iter = itemsToRemove.iterator(); iter.hasNext();) {
+					TableRowCore row = iter.next();
 					row.delete();
 				}
 
@@ -2839,15 +2919,17 @@ public class TableViewSWTImpl
 					}
 				}
 
-				if (DEBUGADDREMOVE)
+				if (DEBUGADDREMOVE) {
 					debug("<< Remove " + itemsToRemove.size() + " rows. now "
 							+ mapDataSourceToRow.size() + "ds; tc=" + table.getItemCount());
+				}
 				mainComposite.getParent().setCursor(null);
-				
+
 				if (numSelected != table.getSelectionCount()) {
 					triggerDeselectionListeners(new TableRowCore[0]);
 				}
 				if (hasSelected) {
+					updateSelectedRowIndexes();
 					triggerSelectionListeners(getSelectedRows());
 				}
 			}
@@ -2856,8 +2938,9 @@ public class TableViewSWTImpl
 		if (!ok) {
 			// execRunnable will only fail if we are closing
 			for (int i = 0; i < dataSources.length; i++) {
-				if (dataSources[i] == null)
+				if (dataSources[i] == null) {
 					continue;
+				}
 
 				TableRowSWT item = (TableRowSWT) mapDataSourceToRow.get(dataSources[i]);
 				mapDataSourceToRow.remove(dataSources[i]);
@@ -2868,8 +2951,9 @@ public class TableViewSWTImpl
 			}
 
 			fillRowGaps(false);
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("<< Remove 1 row, noswt");
+			}
 		}
 	}
 
@@ -2889,8 +2973,9 @@ public class TableViewSWTImpl
 			dataSourcesToAdd.clear();
 			dataSourcesToRemove.clear();
 
-			if (DEBUGADDREMOVE)
+			if (DEBUGADDREMOVE) {
 				debug("removeAll");
+			}
 
 		} finally {
 
@@ -2900,20 +2985,23 @@ public class TableViewSWTImpl
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (table != null && !table.isDisposed())
+				if (table != null && !table.isDisposed()) {
 					table.removeAll();
+				}
 
 				// Image Disposal handled by each cell
 
-				for (int i = 0; i < rows.length; i++)
+				for (int i = 0; i < rows.length; i++) {
 					rows[i].delete();
+				}
 			}
 		});
 
 		if (DEBUGADDREMOVE) {
 			long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-			if (lTimeDiff > 10)
+			if (lTimeDiff > 10) {
 				debug("RemovaAll took " + lTimeDiff + "ms");
+			}
 		}
 	}
 
@@ -2927,11 +3015,9 @@ public class TableViewSWTImpl
 	public void parameterChanged(String parameterName) {
 		if (parameterName == null || parameterName.equals("Graphics Update")) {
 			graphicsUpdate = configMan.getIntParameter("Graphics Update");
-			return;
 		}
 		if (parameterName == null || parameterName.equals("ReOrder Delay")) {
 			reOrderDelay = configMan.getIntParameter("ReOrder Delay");
-			return;
 		}
 		if (parameterName == null || parameterName.startsWith("Color")) {
 			tableInvalidate();
@@ -2943,11 +3029,12 @@ public class TableViewSWTImpl
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_DESTROYED);
 
 		removeAllTableRows();
-		
-		if ( columnAddedOrRemoved ){
-			tableColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray( dataSourceType, sTableID);
+
+		if (columnAddedOrRemoved) {
+			tableColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray(
+					classDataSourceType, sTableID);
 		}
-		
+
 		initializeTableColumns(table);
 		refreshTable(false);
 
@@ -2973,8 +3060,9 @@ public class TableViewSWTImpl
 	// ITableStructureModificationListener
 	public void columnSizeChanged(TableColumnCore tableColumn) {
 		int newWidth = tableColumn.getWidth();
-		if (table == null || table.isDisposed())
+		if (table == null || table.isDisposed()) {
 			return;
+		}
 
 		TableColumn column = null;
 		TableColumn[] tableColumnsSWT = table.getColumns();
@@ -2984,13 +3072,16 @@ public class TableViewSWTImpl
 				break;
 			}
 		}
+		if (column == null) {
+			return;
+		}
 		Long lOfs = (Long) column.getData("widthOffset");
 		if (lOfs != null) {
 			newWidth += lOfs.intValue();
 		}
-		if (column.isDisposed()
-				|| (column.getWidth() == newWidth))
+		if (column.isDisposed() || (column.getWidth() == newWidth)) {
 			return;
+		}
 
 		if (Constants.isUnix) {
 			final int fNewWidth = newWidth;
@@ -3013,8 +3104,10 @@ public class TableViewSWTImpl
 		// We are being called from a plugin (probably), so we must refresh
 		columnInvalidate(tableColumn, true);
 	}
-	
-	public void cellInvalidate(TableColumnCore tableColumn, Object data_source) {
+
+	// @see com.aelitis.azureus.ui.common.table.TableStructureModificationListener#cellInvalidate(com.aelitis.azureus.ui.common.table.TableColumnCore, java.lang.Object)
+	public void cellInvalidate(TableColumnCore tableColumn,
+			DATASOURCETYPE data_source) {
 		cellInvalidate(tableColumn, data_source, true);
 	}
 
@@ -3023,8 +3116,9 @@ public class TableViewSWTImpl
 		runForAllRows(new TableGroupRowVisibilityRunner() {
 			public void run(TableRowCore row, boolean bVisible) {
 				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
-				if (cell != null)
+				if (cell != null) {
 					cell.refresh(true, bVisible);
+				}
 			}
 		});
 	}
@@ -3045,8 +3139,9 @@ public class TableViewSWTImpl
 	public void columnInvalidate(final String sColumnName) {
 		TableColumnCore tc = TableColumnManager.getInstance().getTableColumnCore(
 				sTableID, sColumnName);
-		if (tc != null)
+		if (tc != null) {
 			columnInvalidate(tc, tc.getType() == TableColumnCore.TYPE_TEXT_ONLY);
+		}
 	}
 
 	public void columnInvalidate(TableColumnCore tableColumn,
@@ -3056,24 +3151,26 @@ public class TableViewSWTImpl
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
-				if (cell != null)
+				if (cell != null) {
 					cell.invalidate(bMustRefresh);
+				}
 			}
 		});
 	}
-	
+
 	public void cellInvalidate(TableColumnCore tableColumn,
-			final Object data_source, final boolean bMustRefresh) {
+			final DATASOURCETYPE data_source, final boolean bMustRefresh) {
 		final String sColumnName = tableColumn.getName();
 
 		runForAllRows(new TableGroupRowRunner() {
 			public void run(TableRowCore row) {
 				TableCellSWT cell = ((TableRowSWT) row).getTableCellSWT(sColumnName);
-				if (cell != null && cell.getDataSource() != null && cell.getDataSource().equals(data_source)) {
+				if (cell != null && cell.getDataSource() != null
+						&& cell.getDataSource().equals(data_source)) {
 					cell.invalidate(bMustRefresh);
 				}
 			}
-		});		
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)
@@ -3084,8 +3181,8 @@ public class TableViewSWTImpl
 			sortedRows_mon.enter();
 
 			int i = 0;
-			for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
-				TableRowCore row = (TableRowCore) iter.next();
+			for (Iterator<TableRowSWT> iter = sortedRows.iterator(); iter.hasNext();) {
+				TableRowCore row = iter.next();
 				cells[i++] = row.getTableCellCore(sColumnName);
 			}
 
@@ -3095,7 +3192,7 @@ public class TableViewSWTImpl
 
 		return cells;
 	}
-	
+
 	public org.gudy.azureus2.plugins.ui.tables.TableColumn getTableColumn(
 			String sColumnName) {
 		for (int i = 0; i < tableColumns.length; i++) {
@@ -3112,7 +3209,7 @@ public class TableViewSWTImpl
 		try {
 			sortedRows_mon.enter();
 
-			return (TableRowCore[]) sortedRows.toArray(new TableRowCore[0]);
+			return sortedRows.toArray(new TableRowCore[0]);
 
 		} finally {
 			sortedRows_mon.exit();
@@ -3120,12 +3217,12 @@ public class TableViewSWTImpl
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(java.lang.Object)
-	public TableRowCore getRow(Object dataSource) {
-		return (TableRowCore) mapDataSourceToRow.get(dataSource);
+	public TableRowCore getRow(DATASOURCETYPE dataSource) {
+		return mapDataSourceToRow.get(dataSource);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getRowSWT(java.lang.Object)
-	public TableRowSWT getRowSWT(Object dataSource) {
+	public TableRowSWT getRowSWT(DATASOURCETYPE dataSource) {
 		return (TableRowSWT) mapDataSourceToRow.get(dataSource);
 	}
 
@@ -3135,7 +3232,7 @@ public class TableViewSWTImpl
 			sortedRows_mon.enter();
 
 			if (iPos >= 0 && iPos < sortedRows.size()) {
-				TableRowCore row = (TableRowCore) sortedRows.get(iPos);
+				TableRowCore row = sortedRows.get(iPos);
 
 				if (row.getIndex() != iPos) {
 					row.setTableItem(iPos);
@@ -3147,10 +3244,10 @@ public class TableViewSWTImpl
 		}
 		return null;
 	}
-	
+
 	protected TableRowCore getRowQuick(int iPos) {
 		try {
-			return (TableRowCore) sortedRows.get(iPos);
+			return sortedRows.get(iPos);
 		} catch (Exception e) {
 			return null;
 		}
@@ -3176,7 +3273,7 @@ public class TableViewSWTImpl
 				int iPos = table.indexOf(item);
 				//System.out.println(iPos + " has no table row.. associating. " + Debug.getCompressedStackTrace(4));
 				if (iPos >= 0 && iPos < sortedRows.size()) {
-					TableRowSWT row = (TableRowSWT) sortedRows.get(iPos);
+					TableRowSWT row = sortedRows.get(iPos);
 					//System.out.print(".. associating to " + row);
 					if (row != null) {
 						row.setTableItem(iPos);
@@ -3197,15 +3294,35 @@ public class TableViewSWTImpl
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
-	public Object[] getDataSources() {
-		return mapDataSourceToRow.keySet().toArray();
+	public DATASOURCETYPE[] getDataSources() {
+		return (DATASOURCETYPE[]) mapDataSourceToRow.keySet().toArray();
 	}
 
 	/* various selected rows functions */
 	/***********************************/
 
-	public List getSelectedDataSourcesList() {
-		return getSelectedDataSourcesList(true);
+	public List<DATASOURCETYPE> getSelectedDataSourcesList() {
+		if (listSelectedCoreDataSources != null) {
+			return listSelectedCoreDataSources;
+		}
+		if (table == null || table.isDisposed() || selectedRowIndexes == null
+				|| selectedRowIndexes.length == 0) {
+			return Collections.emptyList();
+		}
+
+		final ArrayList<DATASOURCETYPE> l = new ArrayList<DATASOURCETYPE>(
+				selectedRowIndexes.length);
+		for (int index : selectedRowIndexes) {
+			TableRowCore row = getRowQuick(index);
+			if (row != null) {
+				Object ds = row.getDataSource(true);
+				if (ds != null) {
+					l.add((DATASOURCETYPE) ds);
+				}
+			}
+		}
+		listSelectedCoreDataSources = l;
+		return l;
 	}
 
 	/** Returns an array of all selected Data Sources.  Null data sources are
@@ -3217,17 +3334,17 @@ public class TableViewSWTImpl
 	 *                  computePossibleActions isn't being calculated right
 	 *                  because of non-created rows when select user selects all
 	 */
-	public List getSelectedDataSourcesList(final boolean bCoreDataSource) {
+	public List<Object> getSelectedPluginDataSourcesList() {
 		if (table == null || table.isDisposed() || selectedRowIndexes == null
 				|| selectedRowIndexes.length == 0) {
-			return Collections.EMPTY_LIST;
+			return Collections.emptyList();
 		}
-		
-		final ArrayList l = new ArrayList(selectedRowIndexes.length);
+
+		final ArrayList<Object> l = new ArrayList<Object>(selectedRowIndexes.length);
 		for (int index : selectedRowIndexes) {
 			TableRowCore row = getRowQuick(index);
 			if (row != null) {
-				Object ds = row.getDataSource(bCoreDataSource);
+				Object ds = row.getDataSource(false);
 				if (ds != null) {
 					l.add(ds);
 				}
@@ -3250,18 +3367,21 @@ public class TableViewSWTImpl
 	}
 
 	// see common.TableView
-	public Object[] getSelectedDataSources() {
-		return getSelectedDataSourcesList().toArray();
+	public DATASOURCETYPE[] getSelectedDataSources() {
+		return (DATASOURCETYPE[]) getSelectedDataSourcesList().toArray();
 	}
 
 	// see common.TableView
 	public Object[] getSelectedDataSources(boolean bCoreDataSource) {
-		return getSelectedDataSourcesList(bCoreDataSource).toArray();
+		if (bCoreDataSource) {
+			return getSelectedDataSourcesList().toArray();
+		}
+		return getSelectedPluginDataSourcesList().toArray();
 	}
 
 	/** @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRows() */
 	public TableRowCore[] getSelectedRows() {
-		return (TableRowCore[]) getSelectedRowsList().toArray(new TableRowCore[0]);
+		return getSelectedRowsList().toArray(new TableRowCore[0]);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
@@ -3273,7 +3393,7 @@ public class TableViewSWTImpl
 	}
 
 	public TableRowSWT[] getSelectedRowsSWT() {
-		return (TableRowSWT[]) getSelectedRowsList().toArray(new TableRowSWT[0]);
+		return getSelectedRowsList().toArray(new TableRowSWT[0]);
 	}
 
 	/** Returns an list of all selected TableRowSWT objects.  Null data sources are
@@ -3281,14 +3401,15 @@ public class TableViewSWTImpl
 	 *
 	 * @return an list containing the selected TableRowSWT objects
 	 */
-	public List getSelectedRowsList() {
-		ArrayList l = new ArrayList();
+	public List<TableRowCore> getSelectedRowsList() {
+		List<TableRowCore> l = new ArrayList<TableRowCore>();
 		if (table != null && !table.isDisposed()) {
 			TableItem[] tis = table.getSelection();
 			for (int i = 0; i < tis.length; i++) {
 				TableRowSWT row = (TableRowSWT) getRow(tis[i]);
-				if (row != null && row.getDataSource(true) != null)
+				if (row != null && row.getDataSource(true) != null) {
 					l.add(row);
+				}
 			}
 		}
 		return l;
@@ -3304,8 +3425,9 @@ public class TableViewSWTImpl
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFirstSelectedDataSource()
-	public Object getFirstSelectedDataSource() {
-		return getFirstSelectedDataSource(true);
+	@SuppressWarnings("unchecked")
+	public DATASOURCETYPE getFirstSelectedDataSource() {
+		return (DATASOURCETYPE) getFirstSelectedDataSource(true);
 	}
 
 	public TableRowSWT[] getVisibleRows() {
@@ -3317,8 +3439,9 @@ public class TableViewSWTImpl
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		int size = iBottomIndex - iTopIndex + 1;
-		if (size <= 0)
+		if (size <= 0) {
 			return new TableRowSWT[0];
+		}
 
 		TableRowSWT[] rows = new TableRowSWT[size];
 		int pos = 0;
@@ -3348,12 +3471,14 @@ public class TableViewSWTImpl
 	 *         selected
 	 */
 	public Object getFirstSelectedDataSource(boolean bCoreObject) {
-		if (table == null || table.isDisposed() || table.getSelectionCount() == 0)
+		if (table == null || table.isDisposed() || table.getSelectionCount() == 0) {
 			return null;
+		}
 
 		TableRowCore row = getRow(table.getSelection()[0]);
-		if (row == null)
+		if (row == null) {
 			return null;
+		}
 		return row.getDataSource(bCoreObject);
 	}
 
@@ -3363,20 +3488,22 @@ public class TableViewSWTImpl
 	 * @param runner Code to run for each selected row/datasource
 	 */
 	public void runForSelectedRows(TableGroupRowRunner runner) {
-		if (table == null || table.isDisposed())
+		if (table == null || table.isDisposed()) {
 			return;
-		
+		}
+
 		TableItem[] tis = table.getSelection();
-		List rows_to_use = new ArrayList(tis.length);
+		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(tis.length);
 		for (int i = 0; i < tis.length; i++) {
 			TableRowCore row = getRow(tis[i]);
-			if (row != null)
+			if (row != null) {
 				if (rows_to_use != null) {
 					rows_to_use.add(row);
 				}
+			}
 		}
 		if (rows_to_use != null) {
-			TableRowCore[] rows = (TableRowCore[]) rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
+			TableRowCore[] rows = rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
 			boolean ran = runner.run(rows);
 			if (!ran) {
 				for (int i = 0; i < rows.length; i++) {
@@ -3398,8 +3525,9 @@ public class TableViewSWTImpl
 			return;
 		}
 
-		for (int i = 0; i < rows.length; i++)
+		for (int i = 0; i < rows.length; i++) {
 			runner.run(rows[i]);
+		}
 	}
 
 	// see common.tableview
@@ -3430,24 +3558,26 @@ public class TableViewSWTImpl
 	 * @param items A list of TableItems that are part of the table view
 	 * @param runner A task
 	 */
-	public void runForTableItems(List items, TableGroupRowRunner runner) {
-		if (table == null || table.isDisposed())
+	public void runForTableItems(List<TableItem> items, TableGroupRowRunner runner) {
+		if (table == null || table.isDisposed()) {
 			return;
+		}
 
-		final Iterator iter = items.iterator();
-		List rows_to_use = new ArrayList(items.size());
+		final Iterator<TableItem> iter = items.iterator();
+		List<TableRowCore> rows_to_use = new ArrayList<TableRowCore>(items.size());
 		while (iter.hasNext()) {
-			TableItem tableItem = (TableItem) iter.next();
-			if (tableItem.isDisposed())
+			TableItem tableItem = iter.next();
+			if (tableItem.isDisposed()) {
 				continue;
+			}
 
 			TableRowSWT row = (TableRowSWT) getRow(tableItem);
 			if (row != null) {
 				rows_to_use.add(row);
 			}
 		}
-		if (rows_to_use != null) {
-			TableRowCore[] rows = (TableRowCore[]) rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
+		if (rows_to_use.size() > 0) {
+			TableRowCore[] rows = rows_to_use.toArray(new TableRowCore[rows_to_use.size()]);
 			boolean ran = runner.run(rows);
 			if (!ran) {
 				for (int i = 0; i < rows.length; i++) {
@@ -3462,8 +3592,9 @@ public class TableViewSWTImpl
 	public void clipboardSelected() {
 		String sToClipboard = "";
 		for (int j = 0; j < table.getColumnCount(); j++) {
-			if (j != 0)
+			if (j != 0) {
 				sToClipboard += "\t";
+			}
 			sToClipboard += table.getColumn(j).getText();
 		}
 
@@ -3471,8 +3602,9 @@ public class TableViewSWTImpl
 		for (int i = 0; i < tis.length; i++) {
 			sToClipboard += "\n";
 			for (int j = 0; j < table.getColumnCount(); j++) {
-				if (j != 0)
+				if (j != 0) {
 					sToClipboard += "\t";
+				}
 				sToClipboard += tis[i].getText(j);
 			}
 		}
@@ -3501,8 +3633,9 @@ public class TableViewSWTImpl
 								Utils.execSWTThread(new AERunnable() {
 									public void runSupport() {
 										if (lLastColumnResizeOn == -1
-												|| System.currentTimeMillis() - lLastColumnResizeOn > 220)
+												|| System.currentTimeMillis() - lLastColumnResizeOn > 220) {
 											reallyHandleEvent(event);
+										}
 									}
 								});
 								timer.destroy();
@@ -3515,8 +3648,9 @@ public class TableViewSWTImpl
 
 		private void reallyHandleEvent(Event event) {
 			TableColumn column = (TableColumn) event.widget;
-			if (column == null)
+			if (column == null) {
 				return;
+			}
 			TableColumnCore tableColumnCore = (TableColumnCore) column.getData("TableColumnCore");
 			if (tableColumnCore != null) {
 				sortColumnReverse(tableColumnCore);
@@ -3535,12 +3669,14 @@ public class TableViewSWTImpl
 	{
 		public void handleEvent(Event event) {
 			TableColumn column = (TableColumn) event.widget;
-			if (column == null)
+			if (column == null) {
 				return;
+			}
 
 			TableColumnCore tableColumnCore = (TableColumnCore) column.getData("TableColumnCore");
-			if (tableColumnCore == null)
+			if (tableColumnCore == null) {
 				return;
+			}
 
 			Table table = column.getParent();
 
@@ -3550,11 +3686,13 @@ public class TableViewSWTImpl
 			TableColumn[] tableColumns = table.getColumns();
 			int iAddedPosition;
 			for (iAddedPosition = 0; iAddedPosition < tableColumns.length; iAddedPosition++) {
-				if (column == tableColumns[iAddedPosition])
+				if (column == tableColumns[iAddedPosition]) {
 					break;
+				}
 			}
-			if (iAddedPosition >= tableColumns.length)
+			if (iAddedPosition >= tableColumns.length) {
 				return;
+			}
 
 			// Find out position in the order list
 			int iColumnOrder[];
@@ -3618,24 +3756,27 @@ public class TableViewSWTImpl
 
 	public TableRowCore getRow(int x, int y) {
 		int iColumn = getColumnNo(x);
-		if (iColumn < 0)
+		if (iColumn < 0) {
 			return null;
+		}
 
 		TableItem item = table.getItem(new Point(2, y));
 		if (item == null) {
 			return null;
 		}
-		return (TableRowCore) getRow(item);
+		return getRow(item);
 	}
 
 	public TableCellSWT getTableCell(int x, int y) {
 		int iColumn = getColumnNo(x);
-		if (iColumn < 0)
+		if (iColumn < 0) {
 			return null;
+		}
 
 		TableItem item = table.getItem(new Point(2, y));
-		if (item == null)
+		if (item == null) {
 			return null;
+		}
 		TableRowSWT row = (TableRowSWT) getRow(item);
 
 		if (row == null) {
@@ -3644,23 +3785,26 @@ public class TableViewSWTImpl
 
 		TableColumn tcColumn = table.getColumn(iColumn);
 		String sCellName = (String) tcColumn.getData("Name");
-		if (sCellName == null)
+		if (sCellName == null) {
 			return null;
+		}
 
 		return row.getTableCellSWT(sCellName);
 	}
 
 	public TableRowSWT getTableRow(int x, int y) {
 		TableItem item = table.getItem(new Point(2, y));
-		if (item == null)
+		if (item == null) {
 			return null;
+		}
 		return (TableRowSWT) getRow(item);
 	}
 
 	private TableColumnCore getTableColumnByOffset(int x) {
 		int iColumn = getColumnNo(x);
-		if (iColumn < 0)
+		if (iColumn < 0) {
 			return null;
+		}
 
 		TableColumn column = table.getColumn(iColumn);
 		return (TableColumnCore) column.getData("TableColumnCore");
@@ -3672,12 +3816,12 @@ public class TableViewSWTImpl
 
 		try {
 			dataSourceToRow_mon.enter();
- 
+
 			writer.println("DataSources scheduled to Add/Remove: "
 					+ dataSourcesToAdd.size() + "/" + dataSourcesToRemove.size());
 
 			writer.println("TableView: " + mapDataSourceToRow.size() + " datasources");
-			Iterator it = mapDataSourceToRow.keySet().iterator();
+			Iterator<DATASOURCETYPE> it = mapDataSourceToRow.keySet().iterator();
 
 			while (it.hasNext()) {
 
@@ -3689,25 +3833,25 @@ public class TableViewSWTImpl
 			writer.println("# of SubViews: " + tabViews.size());
 			writer.indent();
 			try {
-				for (Iterator iter = tabViews.iterator(); iter.hasNext();) {
-					IView view = (IView) iter.next();
+				for (Iterator<IView> iter = tabViews.iterator(); iter.hasNext();) {
+					IView view = iter.next();
 					view.generateDiagnostics(writer);
 				}
 			} finally {
 				writer.exdent();
 			}
-			
+
 			writer.println("Columns:");
 			writer.indent();
 			try {
-  			TableColumn[] tableColumnsSWT = table.getColumns();
-  			for (int i = 0; i < tableColumnsSWT.length; i++) {
-  				final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
-  				if (tc != null) {
-  					writer.println(tc.getName() + ";w=" + tc.getWidth() + ";w-offset="
+				TableColumn[] tableColumnsSWT = table.getColumns();
+				for (int i = 0; i < tableColumnsSWT.length; i++) {
+					final TableColumnCore tc = (TableColumnCore) tableColumnsSWT[i].getData("TableColumnCore");
+					if (tc != null) {
+						writer.println(tc.getName() + ";w=" + tc.getWidth() + ";w-offset="
 								+ tableColumnsSWT[i].getData("widthOffset"));
-  				}
-  			}
+					}
+				}
 			} catch (Throwable t) {
 			} finally {
 				writer.exdent();
@@ -3725,16 +3869,18 @@ public class TableViewSWTImpl
 
 	// see common.TableView
 	public void setRowDefaultHeight(int iHeight) {
-		if (ptIconSize == null)
+		if (ptIconSize == null) {
 			ptIconSize = new Point(1, iHeight);
-		else
+		} else {
 			ptIconSize.y = iHeight;
+		}
 		bSkipFirstColumn = true;
 	}
 
 	public int getRowDefaultHeight() {
-		if (ptIconSize == null)
+		if (ptIconSize == null) {
 			return 0;
+		}
 		return ptIconSize.y;
 	}
 
@@ -3746,8 +3892,9 @@ public class TableViewSWTImpl
 
 	// TabViews Functions
 	public void addTabView(IView view) {
-		if (view == null || tabFolder == null)
+		if (view == null || tabFolder == null) {
 			return;
+		}
 
 		CTabItem item = new CTabItem(tabFolder, SWT.NULL);
 		item.setData("IView", view);
@@ -3809,11 +3956,11 @@ public class TableViewSWTImpl
 				if (bForceDataRefresh && sortColumn != null) {
 					int i = 0;
 					String sColumnID = sortColumn.getName();
-					for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
-						TableRowSWT row = (TableRowSWT) iter.next();
+					for (Iterator<TableRowSWT> iter = sortedRows.iterator(); iter.hasNext();) {
+						TableRowSWT row = iter.next();
 						TableCellSWT cell = row.getTableCellSWT(sColumnID);
 						if (cell != null) {
-							cell.refresh(true,i>=iTopIndex&&i<=iBottomIndex);
+							cell.refresh(true, i >= iTopIndex && i <= iBottomIndex);
 						}
 						i++;
 					}
@@ -3826,8 +3973,9 @@ public class TableViewSWTImpl
 						Collections.sort(sortedRows, sortColumn);
 						if (DEBUG_SORTER) {
 							long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-							if (lTimeDiff > 150)
+							if (lTimeDiff > 150) {
 								System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+							}
 						}
 					} else {
 						if (DEBUG_SORTER) {
@@ -3842,16 +3990,16 @@ public class TableViewSWTImpl
 				}
 				if (bTableVirtual && allSelectedRowsVisible) {
 					for (int i = 0; i < sortedRows.size(); i++) {
-						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
+						TableRowSWT row = sortedRows.get(i);
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
 						if (visible) {
-  						if (row.setTableItem(i)) {
-  							row.setAlternatingBGColor(true);
-  							iNumMoves++;
-  						}
+							if (row.setTableItem(i)) {
+								row.setAlternatingBGColor(true);
+								iNumMoves++;
+							}
 						} else {
 							if (row instanceof TableRowImpl) {
-								((TableRowImpl)row).setShown(visible, false);
+								((TableRowImpl) row).setShown(visible, false);
 							}
 						}
 					}
@@ -3860,12 +4008,12 @@ public class TableViewSWTImpl
 				} else {
 					for (int i = 0; i < sortedRows.size(); i++) {
 						boolean visible = i >= iTopIndex && i <= iBottomIndex;
-						TableRowSWT row = (TableRowSWT) sortedRows.get(i);
-						if (row.setTableItem(i,visible)) {
+						TableRowSWT row = sortedRows.get(i);
+						if (row.setTableItem(i, visible)) {
 							iNumMoves++;
 						} else {
 							if (row instanceof TableRowImpl) {
-								((TableRowImpl)row).setShown(visible, false);
+								((TableRowImpl) row).setShown(visible, false);
 							}
 						}
 					}
@@ -3915,6 +4063,8 @@ public class TableViewSWTImpl
 						iTopIndex = table.getTopIndex();
 					}
 					table.setSelection(newSelectedRowIndices);
+					setSelectedRowIndexes(newSelectedRowIndices);
+
 					if (!bFollowSelected) {
 						table.setTopIndex(iTopIndex);
 						table.setRedraw(true);
@@ -3924,13 +4074,30 @@ public class TableViewSWTImpl
 
 			if (DEBUG_SORTER) {
 				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-				if (lTimeDiff >= 500)
+				if (lTimeDiff >= 500) {
 					System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
 							+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
 							+ focusedRow + ";" + Debug.getCompressedStackTrace());
+				}
 			}
 		} finally {
 			sortColumn_mon.exit();
+		}
+	}
+
+	/**
+	 * @param newSelectedRowIndices
+	 *
+	 * @since 4.1.0.5
+	 */
+	private void setSelectedRowIndexes(int[] newSelectedRowIndices) {
+		selectedRowIndexes = newSelectedRowIndices;
+		listSelectedCoreDataSources = null;
+	}
+
+	protected void updateSelectedRowIndexes() {
+		if (!table.isDisposed()) {
+			setSelectedRowIndexes(table.getSelectionIndices());
 		}
 	}
 
@@ -3944,12 +4111,13 @@ public class TableViewSWTImpl
 			sortColumn = sorter;
 			fixAlignment(sorter, true);
 			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
-			if (iSortDirection == 0)
+			if (iSortDirection == 0) {
 				sortColumn.setSortAscending(true);
-			else if (iSortDirection == 1)
+			} else if (iSortDirection == 1) {
 				sortColumn.setSortAscending(false);
-			else
+			} else {
 				sortColumn.setSortAscending(!sortColumn.isSortAscending());
+			}
 
 			TableColumnManager.getInstance().setDefaultSortColumnName(sTableID,
 					sortColumn.getName());
@@ -3962,8 +4130,9 @@ public class TableViewSWTImpl
 	}
 
 	private void changeColumnIndicator() {
-		if (table == null || table.isDisposed())
+		if (table == null || table.isDisposed()) {
 			return;
+		}
 
 		try {
 			// can't use TableColumnCore.getPosition, because user may have moved
@@ -3986,7 +4155,7 @@ public class TableViewSWTImpl
 			// sWT < 3.2 doesn't have column indicaters
 		}
 	}
-	
+
 	// @see com.aelitis.azureus.ui.common.table.TableView#isRowVisible(com.aelitis.azureus.ui.common.table.TableRowCore)
 	public boolean isRowVisible(TableRowCore row) {
 		if (!isVisible()) {
@@ -4008,7 +4177,7 @@ public class TableViewSWTImpl
 			return;
 		}
 		//debug("VRC " + Debug.getCompressedStackTrace());
-		
+
 		boolean bTableUpdate = false;
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
@@ -4018,8 +4187,9 @@ public class TableViewSWTImpl
 			lastTopIndex = iTopIndex;
 
 			if (iTopIndex < tmpIndex) {
-				if (tmpIndex > iBottomIndex + 1 && iBottomIndex >= 0)
+				if (tmpIndex > iBottomIndex + 1 && iBottomIndex >= 0) {
 					tmpIndex = iBottomIndex + 1;
+				}
 
 				//debug("Refresh top rows " + iTopIndex + " to " + (tmpIndex - 1));
 				try {
@@ -4030,7 +4200,7 @@ public class TableViewSWTImpl
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
 							if (row instanceof TableRowImpl) {
-								((TableRowImpl)row).setShown(true, false);
+								((TableRowImpl) row).setShown(true, false);
 							}
 							if (Constants.isOSX) {
 								bTableUpdate = true;
@@ -4049,7 +4219,7 @@ public class TableViewSWTImpl
 				for (int i = tmpIndex; i < iTopIndex; i++) {
 					TableRowSWT row = (TableRowSWT) getRow(i);
 					if (row instanceof TableRowImpl) {
-						((TableRowImpl)row).setShown(false, false);
+						((TableRowImpl) row).setShown(false, false);
 					}
 				}
 			}
@@ -4059,8 +4229,9 @@ public class TableViewSWTImpl
 			int tmpIndex = lastBottomIndex;
 			lastBottomIndex = iBottomIndex;
 
-			if (tmpIndex < iTopIndex - 1)
+			if (tmpIndex < iTopIndex - 1) {
 				tmpIndex = iTopIndex - 1;
+			}
 
 			if (tmpIndex <= iBottomIndex) {
 				//debug("Refresh bottom rows " + (tmpIndex + 1) + " to " + iBottomIndex);
@@ -4072,7 +4243,7 @@ public class TableViewSWTImpl
 							row.setAlternatingBGColor(true);
 							row.refresh(true, true);
 							if (row instanceof TableRowImpl) {
-								((TableRowImpl)row).setShown(true, false);
+								((TableRowImpl) row).setShown(true, false);
 							}
 
 							if (Constants.isOSX) {
@@ -4088,7 +4259,7 @@ public class TableViewSWTImpl
 				for (int i = tmpIndex; i <= iBottomIndex; i++) {
 					TableRowSWT row = (TableRowSWT) getRow(i);
 					if (row instanceof TableRowImpl) {
-						((TableRowImpl)row).setShown(false, false);
+						((TableRowImpl) row).setShown(false, false);
 					}
 				}
 			}
@@ -4113,8 +4284,9 @@ public class TableViewSWTImpl
 				int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 				int size = iBottomIndex - iTopIndex + 1;
-				if (size <= 0)
+				if (size <= 0) {
 					continue;
+				}
 
 				for (int j = iTopIndex; j <= iBottomIndex; j++) {
 					TableItem rowSWT = table.getItem(j);
@@ -4262,7 +4434,7 @@ public class TableViewSWTImpl
 	 */
 	private void ensureAllRowsHaveIndex() {
 		for (int i = 0; i < sortedRows.size(); i++) {
-			TableRowSWT row = (TableRowSWT) sortedRows.get(i);
+			TableRowSWT row = sortedRows.get(i);
 			row.setTableItem(i);
 		}
 	}
@@ -4282,6 +4454,7 @@ public class TableViewSWTImpl
 			}
 			row.setSelected(true);
 		}
+		updateSelectedRowIndexes();
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#isTableFocus()
@@ -4295,7 +4468,7 @@ public class TableViewSWTImpl
 		table.addDisposeListener(new DisposeListener() {
 			// @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt.events.DisposeEvent)
 			public void widgetDisposed(DisposeEvent e) {
-				if (dragSource != null && !dragSource.isDisposed()) {
+				if (!dragSource.isDisposed()) {
 					dragSource.dispose();
 				}
 			}
@@ -4309,7 +4482,7 @@ public class TableViewSWTImpl
 		table.addDisposeListener(new DisposeListener() {
 			// @see org.eclipse.swt.events.DisposeListener#widgetDisposed(org.eclipse.swt.events.DisposeEvent)
 			public void widgetDisposed(DisposeEvent e) {
-				if (dropTarget != null && !dropTarget.isDisposed()) {
+				if (!dropTarget.isDisposed()) {
 					dropTarget.dispose();
 				}
 			}
@@ -4327,7 +4500,7 @@ public class TableViewSWTImpl
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#dataSourceExists(java.lang.Object)
-	public boolean dataSourceExists(Object dataSource) {
+	public boolean dataSourceExists(DATASOURCETYPE dataSource) {
 		return mapDataSourceToRow.containsKey(dataSource)
 				|| dataSourcesToAdd.contains(dataSource);
 	}
@@ -4369,9 +4542,10 @@ public class TableViewSWTImpl
 		}
 		Point pt = table.getDisplay().getCursorLocation();
 		pt = table.toControl(pt);
-		
+
 		Rectangle bounds = tableCell.getBounds();
-		int x = pt.x - bounds.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+		int x = pt.x - bounds.x
+				+ VerticalAligner.getTableAdjustHorizontallyBy(table);
 		if (x < 0 || x > bounds.width) {
 			return null;
 		}
@@ -4382,20 +4556,22 @@ public class TableViewSWTImpl
 		return new Point(x, y);
 	}
 
-	public Class getDataSourceType() {
-		return dataSourceType;
+	public Class<DATASOURCETYPE> getDataSourceType() {
+		return classDataSourceType;
 	}
 
-	public void setDataSourceType(Class dataSourceType) {
-		this.dataSourceType = dataSourceType;
+	// @see com.aelitis.azureus.ui.common.table.TableView#setDataSourceType(java.lang.Class)
+	public void setDataSourceType(Class<DATASOURCETYPE> dataSourceType) {
+		this.classDataSourceType = dataSourceType;
 	}
-	
+
 	public void addRefreshListener(TableRowRefreshListener listener) {
 		try {
 			listeners_mon.enter();
 
-			if (refreshListeners == null)
-				refreshListeners = new ArrayList(1);
+			if (refreshListeners == null) {
+				refreshListeners = new ArrayList<TableRowRefreshListener>(1);
+			}
 
 			refreshListeners.add(listener);
 
@@ -4408,8 +4584,9 @@ public class TableViewSWTImpl
 		try {
 			listeners_mon.enter();
 
-			if (refreshListeners == null)
+			if (refreshListeners == null) {
 				return;
+			}
 
 			refreshListeners.remove(listener);
 
@@ -4418,8 +4595,8 @@ public class TableViewSWTImpl
 		}
 	}
 
-  public void invokeRefreshListeners(TableRowCore row) {
-  	Object[] listeners;
+	public void invokeRefreshListeners(TableRowCore row) {
+		Object[] listeners;
 		try {
 			listeners_mon.enter();
 			if (refreshListeners == null) {
@@ -4430,7 +4607,7 @@ public class TableViewSWTImpl
 		} finally {
 			listeners_mon.exit();
 		}
-		
+
 		for (int i = 0; i < listeners.length; i++) {
 			try {
 				TableRowRefreshListener l = (TableRowRefreshListener) listeners[i];
@@ -4443,27 +4620,27 @@ public class TableViewSWTImpl
 		}
 	}
 
-  public boolean isVisible() {
-  	boolean wasVisible = isVisible;
-  	isVisible = table != null && !table.isDisposed() && table.isVisible();
-  	if (isVisible != wasVisible) {
-  		if (isVisible) {
-  			runForVisibleRows(new TableGroupRowRunner() {
-  				public void run(TableRowCore row) {
-  					row.invalidate();
-  				}
-  			});
-  		}
-  	}
-  	return isVisible;
-  }
-  
-  public void showRow(TableRowCore row) {
-  	int index = row.getIndex();
-  	if (index >= 0 && index < table.getItemCount()) {
-  		table.showItem(table.getItem(index));
-  	}
-  }
+	public boolean isVisible() {
+		boolean wasVisible = isVisible;
+		isVisible = table != null && !table.isDisposed() && table.isVisible();
+		if (isVisible != wasVisible) {
+			if (isVisible) {
+				runForVisibleRows(new TableGroupRowRunner() {
+					public void run(TableRowCore row) {
+						row.invalidate();
+					}
+				});
+			}
+		}
+		return isVisible;
+	}
+
+	public void showRow(TableRowCore row) {
+		int index = row.getIndex();
+		if (index >= 0 && index < table.getItemCount()) {
+			table.showItem(table.getItem(index));
+		}
+	}
 
 	public boolean isMenuEnabled() {
 		return menuEnabled;

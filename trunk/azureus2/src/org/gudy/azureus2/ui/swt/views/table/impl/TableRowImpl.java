@@ -606,6 +606,15 @@ public class TableRowImpl
 		}, 1000);
 	}
 
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)
+	public void setSelected(boolean selected) {
+		super.setSelected(selected);
+
+		if (tableView instanceof TableViewSWTImpl) {
+			((TableViewSWTImpl)tableView).updateSelectedRowIndexes();
+		}
+	}	
+	
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#isSelected()
 	public boolean isSelected() {
 		return Utils.execSWTThreadWithBool("isSelected", new AERunnableBoolean() {

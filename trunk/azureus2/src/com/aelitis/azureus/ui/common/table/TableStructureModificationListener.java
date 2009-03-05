@@ -28,7 +28,7 @@ package com.aelitis.azureus.ui.common.table;
  * @author Olivier
  *
  */
-public interface TableStructureModificationListener
+public interface TableStructureModificationListener<T>
 {
 	void tableStructureChanged(boolean columnAddedOrRemoved );
 
@@ -38,5 +38,5 @@ public interface TableStructureModificationListener
 
 	void columnInvalidate(TableColumnCore tableColumn);
 	
-	void cellInvalidate(TableColumnCore tableColumn, Object data_source);
+	void cellInvalidate(TableColumnCore tableColumn, T data_source);
 }

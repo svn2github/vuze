@@ -14,8 +14,8 @@ import com.aelitis.azureus.ui.common.table.*;
  * @author TuxPaper
  * @created Feb 6, 2007
  */
-public abstract class TableViewImpl
-	implements TableView
+public abstract class TableViewImpl<DATASOURCETYPE>
+	implements TableView<DATASOURCETYPE>
 {
 	// List of DataSourceChangedListener
 	private CopyOnWriteList<TableDataSourceChangedListener> listenersDataSourceChanged = new CopyOnWriteList<TableDataSourceChangedListener>();

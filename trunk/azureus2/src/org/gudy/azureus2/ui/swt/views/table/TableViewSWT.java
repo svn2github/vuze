@@ -40,8 +40,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
  * @created Feb 2, 2007
  *
  */
-public interface TableViewSWT
-	extends TableView
+public interface TableViewSWT<DATASOURCETYPE>
+	extends TableView<DATASOURCETYPE>
 {
 	/** Helpful output when trying to debug add/removal of rows */
 	public final static boolean DEBUGADDREMOVE = System.getProperty("debug.swt.table.addremove", "0").equals("1");
@@ -69,7 +69,7 @@ public interface TableViewSWT
 	 *
 	 * @since 3.0.0.7
 	 */
-	TableRowSWT getRowSWT(Object dataSource);
+	TableRowSWT getRowSWT(DATASOURCETYPE dataSource);
 
 	Composite getTableComposite();
 
