@@ -274,7 +274,9 @@ DisplayFormatters
 	private static String	ManagerItem_queued;
 	private static String	ManagerItem_error;
 	private static String	ManagerItem_forced;
-
+	private static String	yes;
+	private static String	no;
+	
 	public static void
 	loadMessages()
 	{
@@ -297,6 +299,8 @@ DisplayFormatters
 		ManagerItem_queued				= getResourceString( "ManagerItem.queued", "queued" );
 		ManagerItem_error				= getResourceString( "ManagerItem.error", "error" );
 		ManagerItem_forced				= getResourceString( "ManagerItem.forced", "forced" );
+		yes								= getResourceString( "GeneralView.yes", "Yes" );
+		no								= getResourceString( "GeneralView.no", "No" );
 	}
 	
 	private static String
@@ -330,6 +334,13 @@ DisplayFormatters
 		}
 	}
 
+	public static String
+	getYesNo(
+		boolean	b )
+	{
+		return( b?yes:no );
+	}
+	
 	public static String
 	getRateUnit(
 		int		unit_size )
