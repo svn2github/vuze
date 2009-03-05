@@ -135,6 +135,8 @@ public class SBC_LibraryView
 
 	private SWTSkinObject skinObject;
 
+	private InfoBarUtil infoBarUtil;
+
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		this.skinObject = skinObject;
@@ -298,8 +300,9 @@ public class SBC_LibraryView
 			COConfigurationManager.setParameter(torrentFilter + ".viewmode", viewMode);
 		}
 
-		if (torrentFilterMode == TORRENTS_ALL) {
-			new InfoBarUtil(skinObject, true, CFG_INFOBAR, "v3.library.infobar") {
+		if (torrentFilterMode == TORRENTS_ALL && infoBarUtil == null) {
+			infoBarUtil = new InfoBarUtil(skinObject, true, CFG_INFOBAR,
+					"v3.library.infobar") {
 				public boolean allowShow() {
 					return true;
 				}
