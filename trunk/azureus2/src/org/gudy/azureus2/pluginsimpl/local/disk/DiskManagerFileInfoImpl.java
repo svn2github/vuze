@@ -150,6 +150,13 @@ public class DiskManagerFileInfoImpl
 	public Download getDownload()
          throws DownloadException
     {
+		if ( download != null ){
+			
+			return( download );
+		}
+		
+			// not sure why this code is here as we already have the download - leaving in for the moment just in case...
+		
 		return DownloadManagerImpl.getDownloadStatic( core.getDownloadManager());
     }
 	
