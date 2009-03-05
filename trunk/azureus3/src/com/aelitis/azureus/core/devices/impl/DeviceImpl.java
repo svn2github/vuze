@@ -951,7 +951,7 @@ DeviceImpl
 			
 			for ( String s: errors.values()){
 				
-				res += (res.length()==0?"":", ") + s;
+				res += (res.length()==0?"":"; ") + s;
 			}
 			
 			return( res );
@@ -1003,7 +1003,7 @@ DeviceImpl
 			
 			for ( String s: infos.values()){
 				
-				res += (res.length()==0?"":", ") + s;
+				res += (res.length()==0?"":"; ") + s;
 			}
 			
 			return( res );

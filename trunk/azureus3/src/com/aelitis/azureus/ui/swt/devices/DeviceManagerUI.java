@@ -2168,12 +2168,14 @@ DeviceManagerUI
 		{
 				// possible during initialisation, status will be shown again on complete
 			
-			if ( warning != null ){
+			if ( warning != null && info != null ){
 							
 				String error = device.getError();
 				
 				if ( error != null ){
 				 
+					hideIcon( info );
+					
 					warning.setToolTip( error );
 					
 					warning.setImageID( ALERT_IMAGE_ID );
