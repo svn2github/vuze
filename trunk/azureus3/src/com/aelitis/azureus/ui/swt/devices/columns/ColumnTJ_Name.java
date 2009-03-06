@@ -39,7 +39,7 @@ public class ColumnTJ_Name
 	implements TableCellRefreshListener, ObfusticateCellText,
 	TableCellDisposeListener
 {
-	public static final String COLUMN_ID = "name";
+	public static final String COLUMN_ID = "transcode_name";
 
 	/**
 	 * 

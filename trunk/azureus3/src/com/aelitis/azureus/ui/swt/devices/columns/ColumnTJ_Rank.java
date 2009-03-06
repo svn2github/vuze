@@ -33,7 +33,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 public class ColumnTJ_Rank
 implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "rank";
+	public static final String COLUMN_ID = "trancode_qpos";
 
 	public ColumnTJ_Rank(TableColumn column) {
 		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 50);

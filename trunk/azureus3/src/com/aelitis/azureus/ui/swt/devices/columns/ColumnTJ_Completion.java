@@ -50,7 +50,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 {
 	private static final int borderWidth = 1;
 
-	public static final String COLUMN_ID = "completion";
+	public static final String COLUMN_ID = "trancode_completion";
 
 	private static Font fontText;
 

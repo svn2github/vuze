@@ -156,10 +156,22 @@ public class SBC_DevicesView
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
 		UIManager uiManager = pi.getUIManager();
 		TableManager tableManager = uiManager.getTableManager();
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Rank.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Rank(column);
+					}
+				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnAzProduct.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnAzProduct(column);
+					}
+				});
+		tableManager.registerColumn(TranscodeFile.class, ColumnThumbnail.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnThumbnail(column);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Name.COLUMN_ID,
@@ -168,16 +180,16 @@ public class SBC_DevicesView
 						new ColumnTJ_Name(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Rank.COLUMN_ID,
+		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Status.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Rank(column);
+						new ColumnTJ_Status(column);
 					}
 				});
-		tableManager.registerColumn(TranscodeFile.class, ColumnThumbnail.COLUMN_ID,
-				new TableColumnCreationListener() {
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Completion.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
-						new ColumnThumbnail(column);
+						new ColumnTJ_Completion(column);
 					}
 				});
 		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Device.COLUMN_ID,
@@ -195,18 +207,6 @@ public class SBC_DevicesView
 				ColumnTJ_Profile.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Profile(column);
-					}
-				});
-		tableManager.registerColumn(TranscodeFile.class, ColumnTJ_Status.COLUMN_ID,
-				new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Status(column);
-					}
-				});
-		tableManager.registerColumn(TranscodeFile.class,
-				ColumnTJ_Completion.COLUMN_ID, new TableColumnCreationListener() {
-					public void tableColumnCreated(TableColumn column) {
-						new ColumnTJ_Completion(column);
 					}
 				});
 		
