@@ -504,11 +504,17 @@ public class SBC_DevicesView
 
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				for (int i = 0; i < files.length; i++) {
-					TranscodeJob job = files[i].getJob();
+				for ( TranscodeFile file: files ){
+					TranscodeJob job = file.getJob();
 
 					if (job != null) {
 						job.remove();
+					}
+					
+					try{
+						file.delete( true );
+						
+					}catch( Throwable f ){
 					}
 				}
 			};

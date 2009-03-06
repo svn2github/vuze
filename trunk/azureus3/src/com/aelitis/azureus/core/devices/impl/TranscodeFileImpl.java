@@ -248,7 +248,7 @@ TranscodeFileImpl
 			return( getSourceFile());
 		}
 		
-		Debug.out( "Target file doesn't exist, returning cache file" );
+		Debug.out( "Target file for " + cache_file + " doesn't exist" );
 		
 		return( new DiskManagerFileInfoFile( cache_file ));
 	}
