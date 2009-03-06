@@ -723,11 +723,6 @@ public class SBC_DevicesView
 			return (can_move_down);
 		}
 
-		if (itemKey.equals("run")) {
-
-			return (true);
-		}
-
 		return (false);
 	}
 
@@ -740,26 +735,6 @@ public class SBC_DevicesView
 	public void itemActivated(final String itemKey) {
 		// assumed to be on SWT thread, so it's safe to use tvFiles without a sync
 		if (tvFiles == null) {
-			return;
-		}
-		if (itemKey.equals("run")) {
-			if (device instanceof TranscodeTarget) {
-				TranscodeTarget transTarget = (TranscodeTarget) device;
-
-				TranscodeFile[] files = transTarget.getFiles();
-				for (TranscodeFile transcodeFile : files) {
-					try{
-						System.out.println(transcodeFile.getSourceFile().getFile());
-	
-						TranscodeJob job = transcodeFile.getJob();
-						if (job != null) {
-							System.out.println("  FOUND JOB " + job.getName());
-						}
-					}catch( Throwable e ){
-					}
-				}
-			}
-
 			return;
 		}
 
