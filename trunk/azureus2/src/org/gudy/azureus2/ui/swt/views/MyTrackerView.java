@@ -180,7 +180,7 @@ public class MyTrackerView
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
-	   Object[] hostTorrents = tv.getSelectedDataSources();
+	   Object[] hostTorrents = tv.getSelectedDataSources().toArray();
 
 	   itemStart.setEnabled(false);
 	   itemStop.setEnabled(false);
@@ -339,7 +339,7 @@ public class MyTrackerView
   
   private void computePossibleActions() {
     start = stop = remove = false;
-    Object[] hostTorrents = tv.getSelectedDataSources();
+    Object[] hostTorrents = tv.getSelectedDataSources().toArray();
     if (hostTorrents.length > 0) {
       remove = true;
       for (int i = 0; i < hostTorrents.length; i++) {

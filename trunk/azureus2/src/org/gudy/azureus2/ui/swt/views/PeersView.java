@@ -176,7 +176,7 @@ public class PeersView
 
 	public static void fillMenu(final Menu menu, final TableView tv, final Shell shell, boolean download_specific) {
 		
-		Object[] peers = tv.getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources().toArray();
 		
 		boolean hasSelection = (peers.length > 0);
 
@@ -322,7 +322,7 @@ public class PeersView
 	}
 
 	private static void setSelectedPeersUpSpeed(int speed, TableView tv) {      
-		Object[] peers = tv.getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources().toArray();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
 				try {
@@ -336,7 +336,7 @@ public class PeersView
 	}
 
 	private static void setSelectedPeersDownSpeed(int speed, TableView tv) {      
-		Object[] peers = tv.getSelectedDataSources();
+		Object[] peers = tv.getSelectedDataSources().toArray();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
 				try {

@@ -221,7 +221,7 @@ implements ShareManagerListener,
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
 
-	   Object[] shares = tv.getSelectedDataSources();
+	   Object[] shares = tv.getSelectedDataSources().toArray();
 
 	   itemRemove.setEnabled(shares.length > 0);
 
@@ -421,7 +421,7 @@ implements ShareManagerListener,
   private List
   getSelectedItems()
   {
-	  Object[] shares = tv.getSelectedDataSources();
+	  Object[] shares = tv.getSelectedDataSources().toArray();
 	    
 	  List	items = new ArrayList();
 	  
@@ -589,7 +589,7 @@ implements ShareManagerListener,
   removeSelectedShares()
   {
 	stopSelectedShares();
-    Object[] shares = tv.getSelectedDataSources();
+    Object[] shares = tv.getSelectedDataSources().toArray();
     for (int i = 0; i < shares.length; i++) {
     	try{
     		((ShareResource)shares[i]).delete();

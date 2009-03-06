@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -177,7 +178,7 @@ public class FilesView
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWTMenuFillListener#fillMenu(org.eclipse.swt.widgets.Menu)
 	public void fillMenu(final Menu menu) {
 		Shell shell = menu.getShell();
-		Object[] data_sources = tv.getSelectedDataSources();
+		Object[] data_sources = tv.getSelectedDataSources().toArray();
 		boolean hasSelection = (data_sources.length > 0);
 
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
@@ -192,7 +193,7 @@ public class FilesView
 	Messages.setLanguageText(itemExplore, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
 	itemExplore.addListener(SWT.Selection, new Listener() {
 		public void handleEvent(Event event) {
-		    Object[] dataSources = tv.getSelectedDataSources();
+		    Object[] dataSources = tv.getSelectedDataSources().toArray();
 		    for (int i = dataSources.length - 1; i >= 0; i--) {
 		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
 		    	if (info != null) {
@@ -633,15 +634,15 @@ public class FilesView
 	    if (files != null && (this.force_refresh || !doAllExist(files))) {
 	    	this.force_refresh = false;
 
-	    	Object[] datasources = tv.getDataSources();
-	    	if(datasources.length == files.length)
+	    	List<DiskManagerFileInfo> datasources = tv.getDataSources();
+	    	if(datasources.size() == files.length)
 	    	{
 	    		// check if we actually have to replace anything
 	    		ArrayList toAdd = new ArrayList(Arrays.asList(files));
 		    	ArrayList toRemove = new ArrayList();
-		    	for(int i = 0;i < datasources.length;i++)
+		    	for(int i = 0;i < datasources.size();i++)
 		    	{
-		    		DiskManagerFileInfo info = (DiskManagerFileInfo)datasources[i];
+		    		DiskManagerFileInfo info = (DiskManagerFileInfo)datasources.get(i);
 		    		
 		    		if(files[info.getIndex()] == info)
 		    			toAdd.set(info.getIndex(), null);
@@ -795,7 +796,7 @@ public class FilesView
 
 						// Build eventData here because on OSX, selection gets cleared
 						// by the time dragSetData occurs
-						Object[] selectedDownloads = tv.getSelectedDataSources();
+						Object[] selectedDownloads = tv.getSelectedDataSources().toArray();
 						eventData = "DiskManagerFileInfo\n";
 						TOTorrent torrent = manager.getTorrent();
 						for (int i = 0; i < selectedDownloads.length; i++) {

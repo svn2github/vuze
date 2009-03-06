@@ -2371,11 +2371,45 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// see common.TableView
-	@SuppressWarnings("unchecked")
 	public void addDataSource(DATASOURCETYPE dataSource) {
-		addDataSources((DATASOURCETYPE[]) new Object[] {
-			dataSource
-		});
+
+		if (dataSource == null) {
+			return;
+		}
+
+		if (Utils.IMMEDIATE_ADDREMOVE_DELAY == 0) {
+			reallyAddDataSources(new Object[] {
+				dataSource
+			});
+			return;
+		}
+
+		// In order to save time, we cache entries to be added and process them
+		// in a refresh cycle.  This is a huge benefit to tables that have
+		// many rows being added and removed in rapid succession
+
+		try {
+			dataSourceToRow_mon.enter();
+
+				boolean alreadyThere = dataSourcesToAdd.contains(dataSource);
+				if (alreadyThere) {
+					// added twice.. ensure it's not in the remove list
+					dataSourcesToRemove.remove(dataSource);
+					if (DEBUGADDREMOVE) {
+						debug("AddDS: Already There.  Total Queued: " + dataSourcesToAdd.size());
+					}
+				} else {
+					dataSourcesToAdd.add(dataSource);
+					if (DEBUGADDREMOVE) {
+						debug("Queued 1 dataSource to add.  Total Queued: " + dataSourcesToAdd.size());
+					}
+					refreshenProcessDataSourcesTimer();
+				}
+
+		} finally {
+
+			dataSourceToRow_mon.exit();
+		}
 	}
 
 	// see common.TableView
@@ -3296,8 +3330,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
-	public Object[] getDataSources() {
-		return mapDataSourceToRow.keySet().toArray();
+	public ArrayList<DATASOURCETYPE> getDataSources() {
+		return new ArrayList<DATASOURCETYPE>(mapDataSourceToRow.keySet());
 	}
 
 	/* various selected rows functions */
@@ -3358,19 +3392,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** Returns an array of all selected Data Sources.  Null data sources are
 	 * ommitted.
 	 *
-	 * @param a the array into which the selected data sources are to be stored, 
-	 *          if the size is the big enough; otherwise, a new array of the same 
-	 *          runtime type is allocated for this purpose.
-	 *
 	 * @return an array containing the selected data sources
-	 */
-	public Object[] getSelectedDataSources(Object[] a) {
-		return getSelectedDataSourcesList().toArray(a);
-	}
-
+	 *
+	 **/
 	// see common.TableView
-	public Object[] getSelectedDataSources() {
-		return getSelectedDataSourcesList().toArray();
+	public List<DATASOURCETYPE> getSelectedDataSources() {
+		return new ArrayList<DATASOURCETYPE>(getSelectedDataSourcesList());
 	}
 
 	// see common.TableView

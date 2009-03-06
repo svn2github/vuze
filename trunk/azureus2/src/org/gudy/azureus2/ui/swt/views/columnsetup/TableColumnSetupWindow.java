@@ -707,7 +707,7 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void removeSelectedChosen() {
-		Object[] datasources = tvChosen.getSelectedDataSources();
+		Object[] datasources = tvChosen.getSelectedDataSources().toArray();
 		for (int i = 0; i < datasources.length; i++) {
 			TableColumnCore column = (TableColumnCore) datasources[i];
 			mapNewVisibility.put(column, Boolean.FALSE);
@@ -852,7 +852,7 @@ public class TableColumnSetupWindow
 
 						TableView tv = id.equals("c") ? tvChosen : tvAvail;
 
-						Object[] dataSources = tv.getSelectedDataSources();
+						Object[] dataSources = tv.getSelectedDataSources().toArray();
 						for (int i = 0; i < dataSources.length; i++) {
 							TableColumnCore column = (TableColumnCore) dataSources[i];
 							if (column != null) {

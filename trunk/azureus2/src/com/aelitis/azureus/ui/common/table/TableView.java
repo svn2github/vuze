@@ -20,6 +20,8 @@
 
 package com.aelitis.azureus.ui.common.table;
 
+import java.util.List;
+
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
@@ -116,7 +118,7 @@ public interface TableView<DATASOURCETYPE>
 	/**
 	 * @return not sorted
 	 */
-	Object[] getDataSources();
+	List<DATASOURCETYPE> getDataSources();
 
 	/**
 	 * @return
@@ -147,7 +149,7 @@ public interface TableView<DATASOURCETYPE>
 	 *
 	 * @return an array containing the selected data sources
 	 */
-	Object[] getSelectedDataSources();
+	List<DATASOURCETYPE> getSelectedDataSources();
 
 	/** 
 	 * Returns an array of all selected Data Sources.  Null data sources are

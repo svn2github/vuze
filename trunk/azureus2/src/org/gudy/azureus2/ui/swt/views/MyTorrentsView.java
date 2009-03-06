@@ -655,7 +655,7 @@ public class MyTorrentsView
 						drag_drop_line_start = -1;
 						drag_drop_rows = null;
 
-						TorrentUtil.assignToCategory(tv.getSelectedDataSources(),
+						TorrentUtil.assignToCategory(tv.getSelectedDataSources().toArray(),
 								(Category) catButton.getData("Category"));
 					}
 				}
@@ -1070,7 +1070,7 @@ public class MyTorrentsView
 	}
 	
 	public DownloadManager[] getSelectedDownloads() {
-		Object[] data_sources = tv.getSelectedDataSources();
+		Object[] data_sources = tv.getSelectedDataSources().toArray();
 		DownloadManager[] result = new DownloadManager[data_sources.length];
 		System.arraycopy(data_sources, 0, result, 0, result.length);
 		return result;
@@ -1086,7 +1086,7 @@ public class MyTorrentsView
 	}
   
   private void showSelectedDetails() {
-		Object[] dm_sources = tv.getSelectedDataSources();
+		Object[] dm_sources = tv.getSelectedDataSources().toArray();
 		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 		for (int i = 0; i < dm_sources.length; i++) {
 			if (dm_sources[i] == null) {
@@ -1142,7 +1142,7 @@ public class MyTorrentsView
   }
   
 	  public void fillMenu(final Menu menu) {
-			Object[] dm_items = tv.getSelectedDataSources();
+			Object[] dm_items = tv.getSelectedDataSources().toArray();
 			boolean hasSelection = (dm_items.length > 0);
 
 			if (hasSelection) {
@@ -1414,11 +1414,12 @@ public class MyTorrentsView
 
 			switch (key) {
 				case 'r': // CTRL+R resume/start selected Torrents
-					TorrentUtil.resumeTorrents(tv.getSelectedDataSources());
+					TorrentUtil.resumeTorrents(tv.getSelectedDataSources().toArray());
 					e.doit = false;
 					break;
 				case 's': // CTRL+S stop selected Torrents
-					TorrentUtil.stopTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
+					TorrentUtil.stopTorrents(tv.getSelectedDataSources().toArray(),
+							cTablePanel.getShell());
 					e.doit = false;
 					break;
 				case 'x': // CTRL+X: RegEx search switch
@@ -1434,7 +1435,7 @@ public class MyTorrentsView
 
 		// DEL remove selected Torrents
 		if (e.stateMask == 0 && e.keyCode == SWT.DEL && e.widget != txtFilter) {
-			TorrentUtil.removeTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
+			TorrentUtil.removeTorrents(tv.getSelectedDataSources().toArray(), cTablePanel.getShell());
 			e.doit = false;
 			return;
 		}
@@ -1587,7 +1588,7 @@ public class MyTorrentsView
 
   private void moveSelectedTorrentsDown() {
     // Don't use runForSelectDataSources to ensure the order we want
-    Object[] dataSources = tv.getSelectedDataSources();
+    Object[] dataSources = tv.getSelectedDataSources().toArray();
     Arrays.sort(dataSources, new Comparator() {
       public int compare (Object a, Object b) {
         return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
@@ -1607,7 +1608,7 @@ public class MyTorrentsView
 
   private void moveSelectedTorrentsUp() {
     // Don't use runForSelectDataSources to ensure the order we want
-    Object[] dataSources = tv.getSelectedDataSources();
+    Object[] dataSources = tv.getSelectedDataSources().toArray();
     Arrays.sort(dataSources, new Comparator() {
       public int compare (Object a, Object b) {
         return ((DownloadManager)a).getPosition() - ((DownloadManager)b).getPosition();
@@ -1627,7 +1628,7 @@ public class MyTorrentsView
 
 	private void moveSelectedTorrents(int by) {
 		// Don't use runForSelectDataSources to ensure the order we want
-		Object[] dataSources = tv.getSelectedDataSources();
+		Object[] dataSources = tv.getSelectedDataSources().toArray();
 		if (dataSources.length <= 0)
 			return;
 
@@ -1680,7 +1681,7 @@ public class MyTorrentsView
   }
 
   private void moveSelectedTorrentsTopOrEnd(boolean moveToTop) {
-  	Object[] datasources = tv.getSelectedDataSources();
+  	Object[] datasources = tv.getSelectedDataSources().toArray();
     if (datasources.length == 0)
       return;
   	DownloadManager[] downloadManagers = new DownloadManager[datasources.length];
@@ -1712,7 +1713,7 @@ public class MyTorrentsView
   private boolean top,bottom,up,down,run,start,stop,remove;
 
   private void computePossibleActions() {
-    Object[] dataSources = tv.getSelectedDataSources();
+    Object[] dataSources = tv.getSelectedDataSources().toArray();
     // enable up and down so that we can do the "selection rotate trick"
     up = down = run =  remove = (dataSources.length > 0);
     top = bottom = start = stop = false;
@@ -1772,19 +1773,22 @@ public class MyTorrentsView
       return;
     }
     if(itemKey.equals("run")){
-      TorrentUtil.runTorrents(tv.getSelectedDataSources());
+      TorrentUtil.runTorrents(tv.getSelectedDataSources().toArray());
       return;
     }
     if(itemKey.equals("start")){
-      TorrentUtil.queueTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
+      TorrentUtil.queueTorrents(tv.getSelectedDataSources().toArray(),
+					cTablePanel.getShell());
       return;
     }
     if(itemKey.equals("stop")){
-      TorrentUtil.stopTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
+      TorrentUtil.stopTorrents(tv.getSelectedDataSources().toArray(),
+					cTablePanel.getShell());
       return;
     }
     if(itemKey.equals("remove")){
-      TorrentUtil.removeTorrents(tv.getSelectedDataSources(), cTablePanel.getShell());
+      TorrentUtil.removeTorrents(tv.getSelectedDataSources().toArray(),
+					cTablePanel.getShell());
       return;
     }
     super.itemActivated(itemKey);
@@ -1896,7 +1900,7 @@ public class MyTorrentsView
 		}
 		
 		Object[] managers = globalManager.getDownloadManagers().toArray();
-		List list = Arrays.asList(tv.getDataSources());
+		List list = tv.getDataSources();
 		List listRemoves = new ArrayList();
 		List listAdds = new ArrayList();
 		
