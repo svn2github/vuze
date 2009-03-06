@@ -292,6 +292,12 @@ DeviceImpl
 		}
 	}
 	
+	protected boolean
+	isAlive()
+	{
+		return( online );
+	}
+	
 	protected void
 	dead()
 	{

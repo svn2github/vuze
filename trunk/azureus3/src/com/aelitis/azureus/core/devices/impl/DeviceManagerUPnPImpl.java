@@ -290,6 +290,12 @@ DeviceManagerUPnPImpl
 									handlePS3( client_address );
 									
 									handled = true;
+									
+								}else if ( user_agent.toUpperCase().contains( "XBOX")){
+								
+									handleXBox( client_address );
+									
+									handled = true;
 								}
 							}
 							
@@ -474,6 +480,31 @@ DeviceManagerUPnPImpl
 			};
 			
 			upnp.search( STs );
+		}
+	}
+	
+	protected void
+	handleXBox(
+		InetSocketAddress	address )
+	{
+		// normally we can detect the xbox renderer and things work automagically. However, on
+		// occasion we receive the browse before detection and if the device's IP has changed
+		// we need to associate its new address here otherwise association of browse to device
+		// fails
+		
+		DeviceImpl[] devices = manager.getDevices();
+		
+		for ( DeviceImpl device: devices ){
+			
+			if ( device instanceof DeviceMediaRendererImpl && !device.isAlive()){
+				
+				if ( device.getName().toUpperCase().contains( "XBOX" )){
+				
+					((DeviceMediaRendererImpl)device).setAddress( address.getAddress());
+					
+					device.alive();
+				}
+			}
 		}
 	}
 	
