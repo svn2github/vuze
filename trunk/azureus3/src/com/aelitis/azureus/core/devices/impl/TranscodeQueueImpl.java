@@ -223,7 +223,12 @@ TranscodeQueueImpl
 
 			transcode_file.update( provider_analysis );
 			
-			int	tt_req = job.getDevice().getTranscodeRequirement();
+			int	tt_req = job.getTranscodeRequirement();
+			
+			if ( tt_req == -1 ){
+				
+				tt_req = job.getDevice().getTranscodeRequirement();
+			}
 			
 			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
 				
@@ -794,7 +799,7 @@ TranscodeQueueImpl
 			}
 		}
 		
-		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, stream );
+		TranscodeJobImpl job = new TranscodeJobImpl( this, target, profile, file, transcode_requirement, stream );
 		
 		try{
 			synchronized( this ){

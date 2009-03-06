@@ -57,6 +57,8 @@ TranscodeJobImpl
 	private volatile InputStream	stream;
 	private AESemaphore				stream_sem = new AESemaphore( "TJ:s" );
 	
+	private int						transcode_requirement;
+	
 	private int						state 				= ST_QUEUED;
 	private int						percent_complete	= 0;
 	private String					error;
@@ -67,15 +69,17 @@ TranscodeJobImpl
 		TranscodeTarget			_target,
 		TranscodeProfile		_profile,
 		DiskManagerFileInfo		_file,
+		int						_transcode_requirement,
 		boolean					_is_stream )
 	
 		throws TranscodeException
 	{
-		queue		= _queue;
-		target		= _target;
-		profile		= _profile;
-		file		= _file;
-		is_stream	= _is_stream;
+		queue					= _queue;
+		target					= _target;
+		profile					= _profile;
+		file					= _file;
+		transcode_requirement	= _transcode_requirement;
+		is_stream				= _is_stream;
 		
 		init();
 	}
@@ -120,6 +124,8 @@ TranscodeJobImpl
 			file = new DiskManagerFileInfoFile( new File( file_str ));
 		}
 		
+		transcode_requirement	= ImportExportUtils.importInt( map, "trans_req", -1 );
+		
 		init();
 	}
 
@@ -152,6 +158,8 @@ TranscodeJobImpl
 				ImportExportUtils.exportString( map, "file", file.getFile().getAbsolutePath());
 			}
 		
+			ImportExportUtils.exportInt( map, "trans_req", transcode_requirement );
+					
 			return( map );
 			
 		}catch( Throwable e ){
@@ -297,6 +305,12 @@ TranscodeJobImpl
 	getTarget()
 	{
 		return( target );
+	}
+	
+	protected int
+	getTranscodeRequirement()
+	{
+		return( transcode_requirement );
 	}
 	
 	protected DeviceImpl
