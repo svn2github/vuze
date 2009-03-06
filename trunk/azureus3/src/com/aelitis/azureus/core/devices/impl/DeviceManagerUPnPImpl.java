@@ -278,22 +278,32 @@ DeviceManagerUPnPImpl
 							String client_info 	= (String)headers.get( "x-av-client-info" );
 							
 							InetSocketAddress client_address = request.getClientAddress2();
-							
+						
 							boolean	handled = false;
 							
 							boolean can_stream = false;
 							
 							if ( user_agent != null ){
 								
-								if ( user_agent.toUpperCase().contains( "PLAYSTATION 3")){
+								String lc_agent = user_agent.toLowerCase();
+								
+								if ( lc_agent.contains( "playstation 3")){
 									
 									handlePS3( client_address );
 									
 									handled = true;
 									
-								}else if ( user_agent.toUpperCase().contains( "XBOX")){
+								}else if ( lc_agent.contains( "xbox")){
 								
 									handleXBox( client_address );
+									
+									handled = true;
+									
+								}else if ( lc_agent.contains( "nintendo wii")){
+								
+									handleWii( client_address );
+									
+									can_stream = true;
 									
 									handled = true;
 								}
@@ -301,7 +311,9 @@ DeviceManagerUPnPImpl
 							
 							if ( client_info != null ){
 							
-								if ( client_info.toUpperCase().contains( "PLAYSTATION 3")){
+								String	lc_info = client_info.toLowerCase();
+								
+								if ( lc_info.contains( "playstation 3")){
 									
 									handlePS3( client_address );
 									
@@ -359,12 +371,9 @@ DeviceManagerUPnPImpl
 														
 														TranscodeProfile[] profs = renderer.getTranscodeProfiles();
 														
-														for ( TranscodeProfile prof: profs ){
-															
-															if ( prof.getName().equalsIgnoreCase( "wii" )){
-																
-																dynamic_profile = prof;
-															}
+														if ( profs.length > 0 ){
+														
+															dynamic_profile = profs[0];
 														}
 													}
 													
@@ -515,6 +524,13 @@ DeviceManagerUPnPImpl
 		handleGeneric( address, "ps3", "PS3" );
 	}
 
+	protected void
+	handleWii(
+		InetSocketAddress	address )
+	{
+		handleGeneric( address, "wii", "Wii" );
+	}
+	
 	protected void
 	handleBrowser(
 		InetSocketAddress	address )

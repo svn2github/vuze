@@ -239,9 +239,13 @@ DeviceImpl
 			
 			return( "microsoft.XBox" );
 		
-		}else if ( name.equalsIgnoreCase( "Browser" )){
+		}else if ( name.equalsIgnoreCase( "Wii" )){
 
 			return( "nintendo.Wii" );
+			
+		}else if ( name.equalsIgnoreCase( "Browser" )){
+
+			return( "browser.generic" );
 			
 		}else{
 			
