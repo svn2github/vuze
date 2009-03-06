@@ -36,7 +36,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class ColumnTJ_Status
 	implements TableCellRefreshListener
 {
-	public static final String COLUMN_ID = "trascode_status";
+	public static final String COLUMN_ID = "transcode_status";
 
 	private static final String[] js_resource_keys = {
 		"ManagerItem.queued",
