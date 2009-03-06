@@ -18,7 +18,9 @@
 
 package com.aelitis.azureus.ui.swt.devices;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 
 import org.eclipse.swt.SWT;
@@ -754,23 +756,22 @@ public class SBC_DevicesView
 			}
 		}
 
-		TranscodeJob[] jobs = new TranscodeJob[selectedDS.length];
-		int pos = 0;
-		for (int i = 0; i < jobs.length; i++) {
+		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(selectedDS.length);
+		
+		for (int i = 0; i < selectedDS.length; i++) {
 			TranscodeFile file = (TranscodeFile) selectedDS[i];
 			TranscodeJob job = file.getJob();
 			if (job != null) {
-				jobs[pos++] = job;
+				jobs.add( job );
 			}
 		}
-		if (pos == 0) {
+		if ( jobs.size() == 0 ){
 			return;
 		}
-		System.arraycopy(jobs, 0, jobs, 0, pos);
 
 		if (itemKey.equals("up") || itemKey.equals("down")) {
 
-			Arrays.sort(jobs, new Comparator<TranscodeJob>() {
+			Collections.sort(jobs, new Comparator<TranscodeJob>() {
 				public int compare(TranscodeJob j1, TranscodeJob j2) {
 
 					return ((itemKey.equals("up") ? 1 : -1) * (j1.getIndex() - j2.getIndex()));
