@@ -148,6 +148,7 @@ public class SideBarEntrySWT implements SideBarEntry
   		if (newText != null) {
   			pullTitleFromIView = false;
   			treeItem.setData("text", newText);
+  			redraw();
   		}
 		}
 	}
