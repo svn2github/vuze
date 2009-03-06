@@ -230,7 +230,7 @@ public class SBC_LibraryTableView
 
 				public void keyPressed(KeyEvent e) {
 					if (e.character == 15 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
-						Object[] selectedDataSources = tv.getSelectedDataSources();
+						Object[] selectedDataSources = tv.getSelectedDataSources().toArray();
 						for (int i = 0; i < selectedDataSources.length; i++) {
 							DownloadManager dm = (DownloadManager) selectedDataSources[i];
 							if (dm != null) {
@@ -286,7 +286,7 @@ public class SBC_LibraryTableView
 					public void pressed(SWTSkinButtonUtility buttonUtility,
 							SWTSkinObject skinObject, int stateMask) {
 						TableViewSWT tv = ((MyTorrentsView) view).getTableView();
-						Object[] dataSources = tv.getDataSources();
+						Object[] dataSources = tv.getDataSources().toArray();
 						for (int i = 0; i < dataSources.length; i++) {
 							Object ds = dataSources[i];
 							if (ds instanceof DownloadManager) {

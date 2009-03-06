@@ -408,7 +408,7 @@ public class SBC_DevicesView
 		
 			// pause
 		
-		Object[] _files = tvFiles.getSelectedDataSources();
+		Object[] _files = tvFiles.getSelectedDataSources().toArray();
 		
 		final TranscodeFile[]	files = new TranscodeFile[_files.length];
 		
@@ -643,7 +643,7 @@ public class SBC_DevicesView
 			if (tvFiles == null) {
 				return false;
 			}
-			selectedDS = tvFiles.getSelectedDataSources();
+			selectedDS = tvFiles.getSelectedDataSources().toArray();
 			size = tvFiles.size(false);
 		}
 		if (selectedDS.length == 0) {
@@ -738,7 +738,7 @@ public class SBC_DevicesView
 			return;
 		}
 
-		Object[] selectedDS = tvFiles.getSelectedDataSources();
+		Object[] selectedDS = tvFiles.getSelectedDataSources().toArray();
 		int size = tvFiles.size(false);
 		if (selectedDS.length == 0) {
 			return;

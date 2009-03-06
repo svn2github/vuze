@@ -279,7 +279,7 @@ public class SBC_ActivityTableView
 		Shell shell = view.getComposite().getShell();
 		Cursor oldCursor = shell.getCursor();
 		try {
-			Object[] selectedDataSources = view.getSelectedDataSources();
+			Object[] selectedDataSources = view.getSelectedDataSources().toArray();
 			VuzeActivitiesEntry[] entriesToRemove = new VuzeActivitiesEntry[selectedDataSources.length];
 			int entriesToRemovePos = 0;
 
