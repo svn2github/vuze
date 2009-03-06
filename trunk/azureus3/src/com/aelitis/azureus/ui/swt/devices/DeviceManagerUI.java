@@ -1120,13 +1120,13 @@ DeviceManagerUI
 															
 																Download download = (Download)obj;
 	
-																tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0], false );
+																tm.getQueue().add( renderer, profile, download.getDiskManagerFileInfo()[0] );
 		
 															}else{
 																
 																DiskManagerFileInfo file = (DiskManagerFileInfo)obj;
 																
-																tm.getQueue().add( renderer, profile, file, false );
+																tm.getQueue().add( renderer, profile, file );
 															}
 														}catch( Throwable e ){
 															
@@ -1449,8 +1449,7 @@ DeviceManagerUI
 						device_manager.getTranscodeManager().getQueue().add(
 							target,
 							profile,
-							new DiskManagerFileInfoFile( f ),
-							false );
+							new DiskManagerFileInfoFile( f ));
 						
 					}catch( Throwable e ){
 						
@@ -1506,8 +1505,7 @@ DeviceManagerUI
 										device_manager.getTranscodeManager().getQueue().add(
 											target,
 											profile,
-											dm_file,
-											false );
+											dm_file );
 										
 									}catch( Throwable e ){
 										
@@ -1531,8 +1529,7 @@ DeviceManagerUI
 									device_manager.getTranscodeManager().getQueue().add(
 										target,
 										profile,
-										dm_file,
-										false );
+										dm_file );
 									
 								}catch( Throwable e ){
 									

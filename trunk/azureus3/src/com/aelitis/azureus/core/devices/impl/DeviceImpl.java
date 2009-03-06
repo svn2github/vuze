@@ -678,17 +678,8 @@ DeviceImpl
 			
 			return( profile );
 		}
-		
-		log( "Default transcode profile for " + getName() + " not found, picking first" );
-			
-		TranscodeProfile[] profiles = getTranscodeProfiles();
-			
-		if ( profiles.length == 0 ){
-			
-			throw( new TranscodeException( "No profiles available" ));			
-		}
-		
-		return( profiles[0] );
+	
+		return( null );
 	}
 	
 	public void

@@ -30,8 +30,16 @@ TranscodeQueue
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
+		DiskManagerFileInfo		file )
+	
+		throws TranscodeException;
+	
+	public TranscodeJob
+	add(
+		TranscodeTarget			target,
+		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
-		boolean					stream )
+		int						transcode_requirement )	// from target.TRANSCODE_<x>
 	
 		throws TranscodeException;
 	

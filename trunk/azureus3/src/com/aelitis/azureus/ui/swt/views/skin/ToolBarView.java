@@ -195,8 +195,7 @@ public class ToolBarView
 												selectedDevice,
 												selectedProfile,
 												(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-														file, false),
-												!selectedContent.getDM().getAssumedComplete());
+														file, false));
 									} catch (TranscodeException e) {
 										Debug.out(e);
 									}

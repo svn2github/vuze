@@ -725,8 +725,44 @@ TranscodeQueueImpl
 	add(
 		TranscodeTarget			target,
 		TranscodeProfile		profile,
+		DiskManagerFileInfo		file )
+	
+		throws TranscodeException
+	{
+		return( add( target, profile, file, false ));
+	}
+	
+	public TranscodeJobImpl
+	add(
+		TranscodeTarget			target,
+		TranscodeProfile		profile,
+		DiskManagerFileInfo		file,
+		int						transcode_requirement )
+	
+		throws TranscodeException
+	{
+		return( add( target, profile, file, false, transcode_requirement ));
+	}
+	
+	public TranscodeJobImpl
+	add(
+		TranscodeTarget			target,
+		TranscodeProfile		profile,
 		DiskManagerFileInfo		file,
 		boolean					stream )
+	
+		throws TranscodeException
+	{
+		return( add( target, profile, file, false, -1 ));
+	}
+	
+	public TranscodeJobImpl
+	add(
+		TranscodeTarget			target,
+		TranscodeProfile		profile,
+		DiskManagerFileInfo		file,
+		boolean					stream,
+		int						transcode_requirement )
 	
 		throws TranscodeException
 	{
