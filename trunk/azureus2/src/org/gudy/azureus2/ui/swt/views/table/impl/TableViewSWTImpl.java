@@ -3296,8 +3296,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
-	public DATASOURCETYPE[] getDataSources() {
-		return (DATASOURCETYPE[]) mapDataSourceToRow.keySet().toArray();
+	public Object[] getDataSources() {
+		return mapDataSourceToRow.keySet().toArray();
 	}
 
 	/* various selected rows functions */
@@ -3369,8 +3369,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// see common.TableView
-	public DATASOURCETYPE[] getSelectedDataSources() {
-		return (DATASOURCETYPE[]) getSelectedDataSourcesList().toArray();
+	public Object[] getSelectedDataSources() {
+		return getSelectedDataSourcesList().toArray();
 	}
 
 	// see common.TableView

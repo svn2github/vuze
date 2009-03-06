@@ -116,7 +116,7 @@ public interface TableView<DATASOURCETYPE>
 	/**
 	 * @return not sorted
 	 */
-	DATASOURCETYPE[] getDataSources();
+	Object[] getDataSources();
 
 	/**
 	 * @return
@@ -147,7 +147,7 @@ public interface TableView<DATASOURCETYPE>
 	 *
 	 * @return an array containing the selected data sources
 	 */
-	DATASOURCETYPE[] getSelectedDataSources();
+	Object[] getSelectedDataSources();
 
 	/** 
 	 * Returns an array of all selected Data Sources.  Null data sources are
