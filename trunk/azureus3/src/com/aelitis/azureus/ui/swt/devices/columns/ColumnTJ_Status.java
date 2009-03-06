@@ -46,6 +46,9 @@ public class ColumnTJ_Status
 		"Progress.reporting.status.canceled",
 		"ManagerItem.error",
 		"ManagerItem.stopped",
+		"devices.copy.fail",		// 7
+		"devices.on.demand",		// 8 
+		"devices.ready"				// 9
 	};
 
 	private static String[] js_resources;
@@ -57,13 +60,10 @@ public class ColumnTJ_Status
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		column.setMinWidth(100);
 
-		js_resources = new String[js_resource_keys.length];
-		for (int i = 0; i < js_resources.length; i++) {
-			js_resources[i] = MessageText.getString(js_resource_keys[i]);
-		}
-
 		MessageText.addAndFireListener(new MessageTextListener() {
 			public void localeChanged(Locale old_locale, Locale new_locale) {
+				js_resources = new String[js_resource_keys.length];
+
 				for (int i = 0; i < js_resources.length; i++) {
 					js_resources[i] = MessageText.getString(js_resource_keys[i]);
 				}
@@ -82,13 +82,13 @@ public class ColumnTJ_Status
 		if (job == null) {
 			if ( tf.getCopyToDeviceFails() > 0 ){
 					// should be red but whatever
-				cell.setText( "!Failed to copy to device!" );
+				cell.setText( js_resources[7] );
 			}else if ( tf.isTemplate() && !tf.isComplete()){
 				
-				cell.setText("!On Demand!");
+				cell.setText( js_resources[8] );
 			}else{
 				
-				cell.setText("!Ready!");
+				cell.setText( js_resources[9] );
 			}
 			return;
 		}

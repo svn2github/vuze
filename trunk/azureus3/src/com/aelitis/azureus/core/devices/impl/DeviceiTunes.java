@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 
 public class 
@@ -209,7 +210,11 @@ DeviceiTunes
 	
 	protected void
 	updateiTunesStatus()
-	{
+	{	
+		if ( getManager().isClosing()){
+			
+			return;
+		}
 		
 		IPCInterface	ipc = itunes.getIPC();
 		

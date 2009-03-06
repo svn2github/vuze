@@ -361,6 +361,12 @@ DeviceManagerImpl
 		}
 	}
 	
+	protected boolean
+	isClosing()
+	{
+		return( closing );
+	}
+	
 	protected void
 	loadConfig()
 	{
