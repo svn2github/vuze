@@ -203,6 +203,19 @@ TranscodeJobImpl
 	
 		throws IOException
 	{
+		if ( state == ST_FAILED ){
+			
+			throw( new IOException( "Transcode job failed: " + error ));
+			
+		}else if ( state == ST_CANCELLED ){
+			
+			throw( new IOException( "Transcode job cancelled" ));
+
+		}else if ( state == ST_REMOVED ){
+			
+			throw( new IOException( "Transcode job removed" ));
+		}
+		
 		stream_sem.reserve( wait_for_millis );
 		
 		return( stream );

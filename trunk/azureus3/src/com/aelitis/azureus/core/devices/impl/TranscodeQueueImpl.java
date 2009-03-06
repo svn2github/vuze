@@ -758,7 +758,7 @@ TranscodeQueueImpl
 	
 		throws TranscodeException
 	{
-		return( add( target, profile, file, false, -1 ));
+		return( add( target, profile, file, stream, -1 ));
 	}
 	
 	public TranscodeJobImpl
