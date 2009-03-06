@@ -665,6 +665,10 @@ DeviceManagerUI
 	hideIcon(
 		SideBarVitalityImage	x )
 	{
+		if ( x == null ){
+			return;
+		}
+		
 		x.setVisible( false );
 		x.setToolTip( "" );
 	}
@@ -674,6 +678,10 @@ DeviceManagerUI
 		SideBarVitalityImage	x ,
 		String					t )
 	{
+		if ( x == null ){
+			return;
+		}
+		
 		x.setToolTip( t );
 		x.setVisible( true );
 	}
