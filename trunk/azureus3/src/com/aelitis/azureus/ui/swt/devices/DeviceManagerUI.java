@@ -1420,7 +1420,8 @@ DeviceManagerUI
 			closed() 
 			{
 				if (selectedDevice != null && selectedProfile != null) {
-					handleDrop(selectedDevice, selectedProfile, payload);
+					handleDrop(selectedDevice, selectedProfile, payload,
+							getTranscodeRequirement());
 				}else{
 					Debug.out( "no selection" );
 				}
@@ -1433,7 +1434,8 @@ DeviceManagerUI
 	handleDrop(
 		TranscodeTarget	target,
 		TranscodeProfile profile,
-		Object			payload )
+		Object			payload,
+		int			transcodeRequirement)
 	{
 		if ( payload instanceof String[]){
 			
@@ -1502,10 +1504,17 @@ DeviceManagerUI
 								if ( dm_files.length == 1 || dm_file.getLength() > 128*1024 ){
 									
 									try{
-										device_manager.getTranscodeManager().getQueue().add(
-											target,
-											profile,
-											dm_file );
+										if (transcodeRequirement >= 0) {
+  										device_manager.getTranscodeManager().getQueue().add(
+  											target,
+  											profile,
+  											dm_file, transcodeRequirement );
+										} else {
+  										device_manager.getTranscodeManager().getQueue().add(
+  												target,
+  												profile,
+  												dm_file);
+										}
 										
 									}catch( Throwable e ){
 										
