@@ -307,6 +307,8 @@ public class SBC_LibraryView
 					return true;
 				}
 			};
+		} else if (torrentFilterMode != TORRENTS_ALL && infoBarUtil != null) {
+			infoBarUtil.hide(true);
 		}
 		
 		String entryID = null;
