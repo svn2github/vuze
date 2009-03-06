@@ -405,13 +405,19 @@ public class SBC_DevicesView
 	 * @since 4.0.0.5
 	 */
 	protected void fillMenu(Menu menu) {
+		
+		Object[] _files = tvFiles.getSelectedDataSources();
+		
+		final TranscodeFile[]	files = new TranscodeFile[_files.length];
+		
+		System.arraycopy( _files, 0, files, 0, files.length );
+		
 		final MenuItem pause_item = new MenuItem(menu, SWT.PUSH);
 
 		pause_item.setText(MessageText.getString("v3.MainWindow.button.pause"));
 
 		pause_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				TranscodeFile[] files = tvFiles.getSelectedDataSources();
 
 				for (int i = 0; i < files.length; i++) {
 					TranscodeJob job = files[i].getJob();
@@ -431,8 +437,6 @@ public class SBC_DevicesView
 
 		resume_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				TranscodeFile[] files = tvFiles.getSelectedDataSources();
-
 				for (int i = 0; i < files.length; i++) {
 					TranscodeJob job = files[i].getJob();
 
@@ -455,10 +459,8 @@ public class SBC_DevicesView
 
 		remove_item.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
-				Object[] files = tvFiles.getSelectedDataSources();
-
 				for (int i = 0; i < files.length; i++) {
-					TranscodeJob job = ((TranscodeFile) files[i]).getJob();
+					TranscodeJob job = files[i].getJob();
 
 					if (job != null) {
 						job.remove();
@@ -472,8 +474,7 @@ public class SBC_DevicesView
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// Login to disable items 
-		Object[] files = tvFiles.getSelectedDataSources();
-
+		
 		boolean has_selection = files.length > 0;
 
 		remove_item.setEnabled(has_selection);
@@ -482,7 +483,7 @@ public class SBC_DevicesView
 		boolean can_resume = has_selection;
 
 		for (int i = 0; i < files.length; i++) {
-			TranscodeJob job = ((TranscodeFile) files[i]).getJob();
+			TranscodeJob job = files[i].getJob();
 			if (job == null) {
 				continue;
 			}
