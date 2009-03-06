@@ -34,12 +34,17 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
+
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 
 /**
  * @author TuxPaper
@@ -77,6 +82,7 @@ public abstract class TranscodeChooser
 	private int transcodeRequirement;
 
 	public TranscodeChooser() {
+		this(null);
 	}
 
 	public TranscodeChooser(TranscodeTarget device) {
@@ -84,6 +90,16 @@ public abstract class TranscodeChooser
 	}
 
 	public void show() {
+		// Check if plugin is installed
+		if (selectedDevice == null && false) {
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"vuzexcode");
+			if (pi == null) {
+				askToInstall();
+				return;
+			}
+		}
+
 		mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
 		shell = ShellFactory.createShell(mainShell, SWT.DIALOG_TRIM | SWT.RESIZE);
 
@@ -558,5 +574,39 @@ public abstract class TranscodeChooser
 	
 	public int getTranscodeRequirement() {
 		return transcodeRequirement;
+	}
+
+	/**
+	 * 
+	 *
+	 * @since 4.1.0.5
+	 */
+	private void askToInstall() {
+		int i = Utils.openMessageBox(Utils.findAnyShell(), SWT.OK | SWT.CANCEL,
+				"Turn On", "text text text... turn on, install xcode plugin?");
+		if (i != 0) {
+			return;
+		}
+		PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+
+		StandardPlugin vuze_plugin = null;
+
+		try {
+			vuze_plugin = installer.getStandardPlugin("vuzexcode");
+
+		} catch (Throwable e) {
+		}
+
+		if (vuze_plugin == null || vuze_plugin.isAlreadyInstalled()) {
+			return;
+		}
+
+		try{
+			vuze_plugin.install( true );
+
+		}catch( Throwable e ){
+			
+		}
+
 	}
 }
