@@ -673,8 +673,6 @@ DeviceImpl
 		
 	public TranscodeProfile
 	getDefaultTranscodeProfile()
-	
-		throws TranscodeException
 	{
 		String uid = getPersistentStringProperty( PP_REND_DEF_TRANS_PROF );
 		
@@ -781,13 +779,10 @@ DeviceImpl
 		List<String[]>	dp )
 	{
 		addDP( dp, "devices.xcode.working_dir", getWorkingDirectory().getAbsolutePath());
-		try{
-			addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
-		}catch( TranscodeException e ){
-			addDP( dp, "devices.xcode.prof_def", "None" );
-		}
+	
+		addDP( dp, "devices.xcode.prof_def", getDefaultTranscodeProfile());
 		
-		addDP( dp, "devices.xcode.profs", getTranscodeProfiles() );
+		addDP( dp, "devices.xcode.profs", getTranscodeProfiles());
 		
 		int	tran_req = getTranscodeRequirement();
 		

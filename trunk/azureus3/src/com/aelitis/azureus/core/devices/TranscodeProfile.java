@@ -33,6 +33,9 @@ TranscodeProfile
 	public String
 	getDescription();
 	
+	public boolean
+	isStreamable();
+	
 	public String
 	getIconURL();
 	

@@ -305,14 +305,30 @@ DeviceUPnPImpl
 	}
 	
 	protected void
-	browseReceived(
-		TranscodeProfile	_dynamic_transcode_profile )
+	browseReceived()
 	{
 		IPCInterface ipc = upnp_manager.getUPnPAVIPC();
 		
 		if ( ipc == null ){
 			
 			return;
+		}
+		
+		TranscodeProfile default_profile = getDefaultTranscodeProfile();
+		
+		if ( default_profile == null ){
+			
+			TranscodeProfile[] profiles = getTranscodeProfiles();
+			
+			for ( TranscodeProfile p: profiles ){
+				
+				if ( p.isStreamable()){
+					
+					default_profile = p;
+					
+					break;
+				}
+			}
 		}
 		
 		synchronized( this ){
@@ -324,7 +340,10 @@ DeviceUPnPImpl
 			
 			upnpav_ipc = ipc;
 			
-			dynamic_transcode_profile	= _dynamic_transcode_profile;
+			if ( default_profile != null && default_profile.isStreamable()){
+				
+				dynamic_transcode_profile	= default_profile;
+			}
 		}
 		
 		if ( dynamic_transcode_profile != null && this instanceof TranscodeTarget ){

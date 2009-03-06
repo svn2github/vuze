@@ -66,6 +66,14 @@ TranscodeProfileImpl
 		return( provider );
 	}
 	
+	public boolean
+	isStreamable()
+	{
+		String	res = (String)properties.get( "streamable" );
+
+		return( res != null && res.equalsIgnoreCase( "yes" ));
+	}
+	
 	public String 
 	getFileExtension() 
 	{

@@ -280,9 +280,7 @@ DeviceManagerUPnPImpl
 							InetSocketAddress client_address = request.getClientAddress2();
 						
 							boolean	handled = false;
-							
-							boolean can_stream = false;
-							
+														
 							if ( user_agent != null ){
 								
 								String lc_agent = user_agent.toLowerCase();
@@ -302,9 +300,7 @@ DeviceManagerUPnPImpl
 								}else if ( lc_agent.contains( "nintendo wii")){
 								
 									handleWii( client_address );
-									
-									can_stream = true;
-									
+																		
 									handled = true;
 								}
 							}
@@ -328,9 +324,7 @@ DeviceManagerUPnPImpl
 								if ( source != null && source.equalsIgnoreCase( "http" )){
 									
 									handleBrowser( client_address );
-									
-									can_stream = true;
-									
+																		
 									handled = true;
 								}
 							}
@@ -364,20 +358,8 @@ DeviceManagerUPnPImpl
 												if ( renderer.canFilterFilesView()){
 												
 													browse_devices.add( renderer );
-												
-													TranscodeProfile dynamic_profile = null;
 													
-													if ( can_stream ){
-														
-														TranscodeProfile[] profs = renderer.getTranscodeProfiles();
-														
-														if ( profs.length > 0 ){
-														
-															dynamic_profile = profs[0];
-														}
-													}
-													
-													renderer.browseReceived( dynamic_profile );
+													renderer.browseReceived();
 												}
 											}
 										}
