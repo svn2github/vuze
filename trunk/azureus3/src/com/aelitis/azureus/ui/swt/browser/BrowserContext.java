@@ -338,7 +338,9 @@ public class BrowserContext
 							"Tried to open " + event_location + " but it's blocked");
 					browser.back();
 				} else {
-					lastValidURL = event_location;
+					if (UrlFilter.getInstance().isWhitelisted(event_location)) {
+						lastValidURL = event_location;
+					}
 					setPageLoading(true, event.location);
 					if(event.top) {
 						if (widgetWaitIndicator != null && !widgetWaitIndicator.isDisposed()) {
