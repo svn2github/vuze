@@ -406,6 +406,8 @@ public class SBC_DevicesView
 	 */
 	protected void fillMenu(Menu menu) {
 		
+			// pause
+		
 		Object[] _files = tvFiles.getSelectedDataSources();
 		
 		final TranscodeFile[]	files = new TranscodeFile[_files.length];
@@ -429,7 +431,7 @@ public class SBC_DevicesView
 			};
 		});
 
-		// resume
+			// resume
 
 		final MenuItem resume_item = new MenuItem(menu, SWT.PUSH);
 
@@ -447,11 +449,52 @@ public class SBC_DevicesView
 			};
 		});
 
-		// separator
+			// separator
 
 		new MenuItem(menu, SWT.SEPARATOR);
+	
+		if ( device instanceof DeviceMediaRenderer ){
+			
+			DeviceMediaRenderer	dmr = (DeviceMediaRenderer)device;
+			
+			if ( dmr.canCopyToDevice()){
+				
+					// retry
+				
+				final MenuItem retry_item = new MenuItem(menu, SWT.PUSH);
 
-		// remove
+				retry_item.setText(MessageText.getString("device.retry.copy"));
+
+				retry_item.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						for (int i = 0; i < files.length; i++) {
+							TranscodeFile file = files[i];
+
+							if ( file.getCopyToDeviceFails() > 0 ){
+								
+								file.retryCopyToDevice();
+							}
+						}
+					};
+				});
+				
+				retry_item.setEnabled( false );
+				
+				for ( TranscodeFile file: files ){
+					
+					if ( file.getCopyToDeviceFails() > 0 ){
+						
+						retry_item.setEnabled( true );
+					}
+				}
+				
+					// separator
+
+				new MenuItem(menu, SWT.SEPARATOR);
+			}
+		}
+		
+			// remove
 
 		final MenuItem remove_item = new MenuItem(menu, SWT.PUSH);
 
@@ -469,11 +512,11 @@ public class SBC_DevicesView
 			};
 		});
 
-		// separator
+			// separator
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
-		// Login to disable items 
+			// Login to disable items 
 		
 		boolean has_selection = files.length > 0;
 
@@ -482,12 +525,16 @@ public class SBC_DevicesView
 		boolean can_pause = has_selection;
 		boolean can_resume = has_selection;
 
+		int	job_count = 0;
+		
 		for (int i = 0; i < files.length; i++) {
 			TranscodeJob job = files[i].getJob();
 			if (job == null) {
 				continue;
 			}
 
+			job_count++;
+			
 			int state = job.getState();
 
 			if (state != TranscodeJob.ST_RUNNING) {
@@ -501,8 +548,8 @@ public class SBC_DevicesView
 			}
 		}
 
-		pause_item.setEnabled(can_pause);
-		resume_item.setEnabled(can_resume);
+		pause_item.setEnabled(can_pause && job_count > 0);
+		resume_item.setEnabled(can_resume && job_count > 0);
 	}
 
 	/**

@@ -306,6 +306,12 @@ TranscodeFileImpl
 		return( getBoolean( PT_COPIED ));
 	}
 	
+	public void 
+	retryCopyToDevice() 
+	{
+		setLong( PT_COPY_FAILED, 0 );
+	}
+	
 	protected void
 	setProfileName(
 		String s )
@@ -467,14 +473,14 @@ TranscodeFileImpl
 				Map<String,?>	map = getMap();
 
 				ImportExportUtils.exportLong( map, key, value);
-				
-				device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
-				
+								
 			}catch( Throwable e ){
 				
 				Debug.out( e );
 			}
 		}
+		
+		device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
 	}
 	
 	protected String
@@ -518,14 +524,14 @@ TranscodeFileImpl
 			
 			try{
 				ImportExportUtils.exportString( map, key, value );
-				
-				device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
-				
+								
 			}catch( Throwable e ){
 				
 				Debug.out( e );
 			}
 		}
+		
+		device.fileDirty( this, TranscodeTargetListener.CT_PROPERTY, key );
 	}
 	
 	public void
