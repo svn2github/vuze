@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -42,7 +43,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
  * 
  */
 public class TrackerChangerWindow {
-  public TrackerChangerWindow(final Display display, final TRTrackerAnnouncer trackerConnection) {
+  public TrackerChangerWindow(final Display display, final DownloadManager[] dms ) {
     final Shell shell = ShellFactory.createShell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     Utils.setShellIcon(shell);
@@ -80,13 +81,23 @@ public class TrackerChangerWindow {
        */
       public void handleEvent(Event event) {
         try {
-        	TOTorrent	torrent = trackerConnection.getTorrent();
-        	
-        	TorrentUtils.announceGroupsInsertFirst( torrent, url.getText());
-        	
-        	TorrentUtils.writeToFile( torrent );
-        	
-        	trackerConnection.resetTrackerUrl(false);
+        	for ( DownloadManager dm: dms ){
+	        	TOTorrent	torrent = dm.getTorrent();
+	        	
+	        	if ( torrent != null ){
+	        	
+	        		TorrentUtils.announceGroupsInsertFirst( torrent, url.getText());
+	        	
+	        		TorrentUtils.writeToFile( torrent );
+	        	
+	        		TRTrackerAnnouncer announcer = dm.getTrackerClient();
+	        		
+	        		if ( announcer != null ){
+	        	
+	        			announcer.resetTrackerUrl(false);
+	        		}
+	        	}
+        	}
         	
         	shell.dispose();
         }

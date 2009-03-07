@@ -172,10 +172,6 @@ public class TorrentUtil {
 					Debug.printStackTrace(ex);
 				}
 
-				if (dm.getTrackerClient() == null) {
-					changeUrl = false;
-				}
-
 				if (barsOpened && !DownloadBar.getManager().isOpen(dm)) {
 					barsOpened = false;
 				}
@@ -388,9 +384,10 @@ public class TorrentUtil {
 		Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
 		Utils.setMenuItemImage(itemChangeTracker, "add_tracker");
 		itemChangeTracker.addListener(SWT.Selection, new DMTask(dms) {
-			public void run(DownloadManager dm) {
-				TRTrackerAnnouncer tc = dm.getTrackerClient();
-				if (tc != null) new TrackerChangerWindow(composite.getDisplay(), tc);
+			public void run(DownloadManager[] dms) {
+				if ( dms.length > 0 ){
+					new TrackerChangerWindow(composite.getDisplay(), dms);
+				}
 			}
 		});
 		itemChangeTracker.setEnabled(changeUrl);
