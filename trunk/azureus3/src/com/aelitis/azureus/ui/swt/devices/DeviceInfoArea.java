@@ -18,6 +18,9 @@
  
 package com.aelitis.azureus.ui.swt.devices;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -36,8 +39,13 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
  * @author TuxPaper
@@ -182,7 +190,7 @@ public class DeviceInfoArea
 		
 		vuze_button.setText( "Install Vuze Transcoder" );
 		
-		PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
 			
 		StandardPlugin vuze_plugin = null;
 		
@@ -208,10 +216,11 @@ public class DeviceInfoArea
 					Event arg0 ) 
 				{
 					try{
-						f_vuze_plugin.install( true );
+						f_vuze_plugin.install( false );
 
 					}catch( Throwable e ){
 						
+						Debug.printStackTrace(e);
 					}
 				}
 			});
@@ -271,7 +280,6 @@ public class DeviceInfoArea
 			}
 		}
 		
-		
 		Button itunes_button = new Button( main, SWT.NULL );
 		
 		itunes_button.setText( "Install iTunes Integration" );
@@ -301,10 +309,11 @@ public class DeviceInfoArea
 					Event arg0 ) 
 				{
 					try{
-						f_itunes_plugin.install( true );
+						f_itunes_plugin.install( false );
 
 					}catch( Throwable e ){
 						
+						Debug.printStackTrace(e);
 					}
 				}
 			});
@@ -314,12 +323,128 @@ public class DeviceInfoArea
 		data.top	= new FormAttachment(top,4);
 
 		itunes_button.setLayoutData( data );
+						
+		
+			// both - installer test
+		
+		final Button both_button = new Button( main, SWT.NULL );
+
+		both_button.setText( "Test! Install RSSGen and AZBlog!" );
+		
+
+		StandardPlugin plugin1 = null;
+		StandardPlugin plugin2 = null;
+		
+		try{
+			plugin1 = installer.getStandardPlugin( "azrssgen" );
+
+		}catch( Throwable e ){	
+		}
+		
+		try{
+			plugin2 = installer.getStandardPlugin( "azblog" );
+
+		}catch( Throwable e ){	
+		}
+	
+		if ( plugin1 != null && plugin2 != null ){
+			
+			final Composite install_area = new Composite( main, SWT.BORDER );
+			
+			data = new FormData();
+			data.left 	= new FormAttachment(both_button,0);
+			data.right	= new FormAttachment(100,0);
+			data.top	= new FormAttachment(itunes_button,4);
+			data.bottom	= new FormAttachment(100,0);
+
+			install_area.setLayoutData( data );
+			
+			final StandardPlugin	f_plugin1 = plugin1;
+			final StandardPlugin	f_plugin2 = plugin2;
+			
+			both_button.addListener(
+				SWT.Selection, 
+				new Listener() 
+				{
+					public void 
+					handleEvent(
+						Event arg0 ) 
+					{
+						both_button.setEnabled( false );
+						
+						try{
+							Map<Integer,Object>	properties = new HashMap<Integer, Object>();
+							
+							properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_SIMPLE );
+							
+							properties.put( UpdateCheckInstance.PT_UI_PARENT_SWT_COMPOSITE, install_area );
+							
+							properties.put( UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true );
+							
+							installer.install(
+								new InstallablePlugin[]{ f_plugin1, f_plugin2 },
+								false,
+								properties,
+								new PluginInstallationListener()
+								{
+									public void
+									completed()
+									{
+										System.out.println( "Install completed!" );
+										
+										tidy();
+									}
+									
+									public void
+									failed(
+										PluginException	e )
+									{
+										System.out.println( "Install failed: " + e );
+										
+										tidy();
+									}
+									
+									protected void
+									tidy()
+									{
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													Control[] kids = install_area.getChildren();
+													
+													for ( Control c: kids ){
+														
+														c.dispose();
+													}
+													
+													both_button.setEnabled( true );
+												}
+											});
+									}
+								});
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
+		}else{
+			
+			both_button.setEnabled(false);
+		}
 		
 		data = new FormData();
 		data.left 	= new FormAttachment(0,0);
-		data.right	= new FormAttachment(100,0);
 		data.top	= new FormAttachment(itunes_button,4);
+		data.bottom	= new FormAttachment(100,0);
 
+		both_button.setLayoutData( data );
+		
+		
 		parent.getParent().layout();
 	}
 }
