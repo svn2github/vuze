@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.installer;
 
 import java.io.File;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -76,6 +77,15 @@ PluginInstaller
 	
 		throws PluginException;
 	
+	public void
+	install(
+		InstallablePlugin[]			plugins,
+		boolean						shared,
+		Map<Integer,Object>			properties,
+		PluginInstallationListener	listener )
+	
+		throws PluginException;
+			
 		/**
 		 * Installs a plugin from a file - must be either a ZIP file or a JAR file as per
 		 * normal plugin update semantics. Name of file must be of the form:

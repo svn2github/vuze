@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.pluginsimpl.local.FailedPlugin;
+import org.gudy.azureus2.pluginsimpl.local.update.UpdateCheckInstanceImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
@@ -201,10 +202,11 @@ PluginInstallerImpl
 														new InstallablePlugin[]{ installer }, 
 														false, 
 														true,
-														new installListener()
+														null,
+														new PluginInstallationListener()
 														{											
 															public void 
-															done() 
+															completed() 
 															{
 																done_sem.release();
 															}
@@ -430,15 +432,28 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		install( plugins, shared, false, null );
+		install( plugins, shared, false, null, null );
+	}
+	
+	public void
+	install(
+		InstallablePlugin[]					plugins,
+		boolean								shared,
+		Map<Integer,Object>					properties,
+		final PluginInstallationListener	listener )
+	
+		throws PluginException
+	{
+		install( plugins, shared, false, properties, listener );
 	}
 	
 	protected void
 	install(
-		InstallablePlugin[]			plugins,
-		boolean						shared,
-		boolean						low_noise,
-		final installListener		listener )
+		InstallablePlugin[]					plugins,
+		boolean								shared,
+		boolean								low_noise,
+		Map<Integer,Object>					properties,
+		final PluginInstallationListener	listener )
 	
 		throws PluginException
 	{
@@ -446,11 +461,19 @@ PluginInstallerImpl
 		
 		UpdateManagerImpl	uman = (UpdateManagerImpl)manager.getDefaultPluginInterface().getUpdateManager();
 		
-		UpdateCheckInstance	inst = 
+		UpdateCheckInstanceImpl	inst = 
 			uman.createEmptyUpdateCheckInstance( 
 					UpdateCheckInstance.UCI_INSTALL,
 					"update.instance.install",
 					low_noise );
+		
+		if ( properties != null ){
+			
+			for ( Map.Entry<Integer,Object> entry: properties.entrySet()){
+				
+				inst.setProperty( entry.getKey(), entry.getValue());
+			}
+		}
 		
 		if ( listener != null ){
 			
@@ -516,7 +539,7 @@ PluginInstallerImpl
 												
 											}else{
 												
-												listener.done();
+												listener.completed();
 											}
 										}
 									});
@@ -875,16 +898,5 @@ PluginInstallerImpl
 		PluginInstallerListener		l )
 	{
 		listeners.remove( l );
-	}
-	
-	protected interface
-	installListener
-	{
-		public void
-		done();
-		
-		public void
-		failed(
-			PluginException	e );
 	}
 }

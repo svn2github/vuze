@@ -1569,16 +1569,20 @@ PluginUpdatePlugin
 				}	
 			}
 			
-			String msg =   "Version " + version + " of plugin '" + update.getName() + "' " +
-							"installed successfully";
-
-			if ( update_txt_found ){
-				
-				msg += " - See update log for details";
-			}
+			Boolean b_disable = (Boolean)update.getCheckInstance().getProperty( UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY );
 			
-			log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
-
+			if ( update_txt_found || b_disable == null || !b_disable ){
+				
+				String msg =   "Version " + version + " of plugin '" + update.getName() + "' " +
+								"installed successfully";
+	
+				if ( update_txt_found ){
+					
+					msg += " - See update log for details";
+				}
+				
+				log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
+			}
 		}catch( Throwable e ){
 					
 			String msg =   "Version " + version + " of plugin '" + 	update.getName() + "' " +

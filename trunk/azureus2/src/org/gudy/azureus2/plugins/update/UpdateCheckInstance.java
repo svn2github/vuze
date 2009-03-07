@@ -34,6 +34,14 @@ UpdateCheckInstance
 	public static final int	UCI_UPDATE			= 2;
 	public static final int	UCI_UNINSTALL		= 3;
 	
+	public static final int	PT_UI_STYLE				= 1;	//Integer
+	public static final int	PT_UI_STYLE_DEFAULT		= 1;
+	public static final int	PT_UI_STYLE_SIMPLE		= 2;
+	
+	public static final int	PT_UI_PARENT_SWT_COMPOSITE				= 2;	// SWT Composite
+	
+	public static final int	PT_UI_DISABLE_ON_SUCCESS_SLIDEY			= 3;	// Boolean
+
 		/**
 		 * returns one of the above UCI_ constants
 		 * @return
@@ -103,6 +111,15 @@ UpdateCheckInstance
 	
 	public boolean
 	isLowNoise();
+	
+	public Object
+	getProperty(
+		int		property_name );
+	
+	public void
+	setProperty(
+		int		property_name,
+		Object	value );
 	
 	public void
 	addDecisionListener(

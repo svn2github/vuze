@@ -139,7 +139,7 @@ UpdateManagerImpl
 		}
 	}
 	
-	public UpdateCheckInstance
+	public UpdateCheckInstanceImpl
 	createEmptyUpdateCheckInstance(
 		int			type,
 		String		name )
@@ -147,7 +147,7 @@ UpdateManagerImpl
 		return( createEmptyUpdateCheckInstance( type, name, false ));
 	}
 	
-	public UpdateCheckInstance
+	public UpdateCheckInstanceImpl
 	createEmptyUpdateCheckInstance(
 		int			type,
 		String		name,
@@ -158,7 +158,7 @@ UpdateManagerImpl
 	
 			UpdatableComponentImpl[]	comps = new UpdatableComponentImpl[0];
 			
-			UpdateCheckInstance	res = new UpdateCheckInstanceImpl( this, type, name, comps );
+			UpdateCheckInstanceImpl	res = new UpdateCheckInstanceImpl( this, type, name, comps );
 			
 			res.setLowNoise( low_noise );
 			

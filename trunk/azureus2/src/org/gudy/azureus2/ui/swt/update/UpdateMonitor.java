@@ -506,19 +506,10 @@ public class UpdateMonitor
 			
 			return;
 		}
-		// we can get here for either update actions (triggered above) or for plugin
-		// install actions (triggered by the plugin installer)
-
-		boolean update_action = instance.getType() == UpdateCheckInstance.UCI_UPDATE;
-
-		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-		if (uiFunctions != null) {
-			uiFunctions.setStatusText("");
-		}
+		
+		boolean hasDownloads = false;
 
 		Update[] us = instance.getUpdates();
-
-		boolean hasDownloads = false;
 
 		// updates with zero-length downloaders exist for admin purposes
 		// and shoudn't cause the window to be shown if only they exist
@@ -532,6 +523,33 @@ public class UpdateMonitor
 				break;
 			}
 		}
+
+		try{
+			int ui = (Integer)instance.getProperty( UpdateCheckInstance.PT_UI_STYLE );
+		
+			if ( ui == UpdateCheckInstance.PT_UI_STYLE_SIMPLE ){
+				
+				new SimpleInstallUI( this, instance );
+				
+				return;
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		// we can get here for either update actions (triggered above) or for plugin
+		// install actions (triggered by the plugin installer)
+
+		boolean update_action = instance.getType() == UpdateCheckInstance.UCI_UPDATE;
+
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		if (uiFunctions != null) {
+			uiFunctions.setStatusText("");
+		}
+
+
 
 		// this controls whether or not the update window is displayed
 		// note that we just don't show the window if this is set, we still do the
@@ -631,7 +649,7 @@ public class UpdateMonitor
 	}
 		
 	protected void
-	handleLowNoise(
+	addDecisionHandler(
 		UpdateCheckInstance		instance )
 	{
 		instance.addDecisionListener(
@@ -676,6 +694,13 @@ public class UpdateMonitor
 		  				return( null );
 		  			}
 		  		});		
+	}
+	
+	protected void
+	handleLowNoise(
+		UpdateCheckInstance		instance )
+	{
+		addDecisionHandler( instance );
 				
 		Update[] updates = instance.getUpdates();
 		
