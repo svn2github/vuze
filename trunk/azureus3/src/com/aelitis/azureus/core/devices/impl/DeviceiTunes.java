@@ -247,6 +247,9 @@ DeviceiTunes
 					
 					setInfo( ERRROR_KEY_ITUNES, "You need to start iTunes" );
 				}
+			}else{
+				
+				setInfo( ERRROR_KEY_ITUNES, null );
 			}
 			
 			Throwable error = (Throwable)properties.get( "error" );
