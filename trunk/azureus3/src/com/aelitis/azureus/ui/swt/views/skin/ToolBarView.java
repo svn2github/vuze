@@ -452,7 +452,8 @@ public class ToolBarView
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 
 		// == mode big
-		item = new ToolBarItem("modeBig", "image.toolbar.table_large", null);
+		item = new ToolBarItem("modeBig", "image.toolbar.table_large",
+				"v3.iconBar.view.big");
 		addToolBarItem(item, "toolbar.area.vitem.left", so2nd);
 		item.setEnabled(false);
 
@@ -460,14 +461,14 @@ public class ToolBarView
 		SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
 				item.getSkinButton().getSkinObject());
 		if (soTitle instanceof SWTSkinObjectText) {
-			((SWTSkinObjectText) soTitle).setText("Vi");
 			((SWTSkinObjectText) soTitle).setStyle(SWT.RIGHT);
 		}
 
 		addSeperator(so2nd);
 
 		// == mode small
-		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal", null);
+		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal",
+				"v3.iconBar.view.small");
 		addToolBarItem(item, "toolbar.area.vitem.right", so2nd);
 		item.setEnabled(false);
 
@@ -476,7 +477,6 @@ public class ToolBarView
 		soTitle = skin.getSkinObject("toolbar-item-title",
 				item.getSkinButton().getSkinObject());
 		if (soTitle instanceof SWTSkinObjectText) {
-			((SWTSkinObjectText) soTitle).setText("ew");
 			((SWTSkinObjectText) soTitle).setStyle(SWT.LEFT);
 		}
 
