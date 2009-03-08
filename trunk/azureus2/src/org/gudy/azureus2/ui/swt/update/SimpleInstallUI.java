@@ -133,9 +133,9 @@ SimpleInstallUI
 				});
 			
 		FormData	data = new FormData();
-		data.left 	= new FormAttachment(0,0);
-		data.top	= new FormAttachment(0,4);
-		data.bottom	= new FormAttachment(100,-4);
+		data.right 	= new FormAttachment(100,0);
+		data.top	= new FormAttachment(0,0);
+		data.bottom	= new FormAttachment(100,0);
 
 		cancel_button.setLayoutData( data );
 			
@@ -144,10 +144,8 @@ SimpleInstallUI
 		label.setText( "blah blah " );
 		
 		data = new FormData();
-		data.left 	= new FormAttachment(cancel_button,4);
-		data.top	= new FormAttachment(0,4);
-		data.right	= new FormAttachment(25,4);
-		data.bottom	= new FormAttachment(100,-4);
+		data.left 	= new FormAttachment(0,0);
+		data.top	= new FormAttachment(cancel_button,0, SWT.CENTER);
 
 		label.setLayoutData( data );
 
@@ -160,9 +158,8 @@ SimpleInstallUI
 		
 		data = new FormData();
 		data.left 	= new FormAttachment(label,4);
-		data.top	= new FormAttachment(0,4);
-		data.right	= new FormAttachment(100,4);
-		data.bottom	= new FormAttachment(100,-4);
+		data.top	= new FormAttachment(0,0);
+		data.right	= new FormAttachment(cancel_button,-4);
 
 		progress.setLayoutData( data );
 		
@@ -261,7 +258,10 @@ SimpleInstallUI
 						public void
 						run()
 						{
-							label.setText( str );
+							if (label != null && !label.isDisposed()) {
+								label.setText( str );
+								label.getParent().layout();
+							}
 						}
 					});
 			}
@@ -276,7 +276,9 @@ SimpleInstallUI
 						public void
 						run()
 						{
-							progress.setSelection( percent );
+							if (progress != null && !progress.isDisposed()) {
+								progress.setSelection( percent );
+							}
 						}
 					});
 			}
