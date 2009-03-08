@@ -1303,7 +1303,7 @@ public class GlobalManagerImpl
 	
 	long	lastListenerUpdate = 0;
 	
-	List<DownloadManager> managers = sortForStop(managers_cow);
+	List<DownloadManager> managers = sortForStop();
 	
 	int nbDownloads = managers.size();
 	
@@ -1407,7 +1407,7 @@ public class GlobalManagerImpl
   pauseDownloads(
 	boolean	tag_only )
   {
-	List<DownloadManager> managers = sortForStop(managers_cow);
+	List<DownloadManager> managers = sortForStop();
 	
     for( DownloadManager manager: managers ){
       
@@ -1615,9 +1615,10 @@ public class GlobalManagerImpl
   }
   
   	private List<DownloadManager>
-  	sortForStop(
-  		List<DownloadManager>	managers )
+  	sortForStop()
 	{
+  		List<DownloadManager>	managers = new ArrayList<DownloadManager>( managers_cow );
+  		
   		Collections.sort(
   			managers,
   			new Comparator<DownloadManager>()
