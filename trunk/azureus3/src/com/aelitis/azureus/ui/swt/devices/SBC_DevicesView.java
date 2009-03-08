@@ -19,7 +19,6 @@
 package com.aelitis.azureus.ui.swt.devices;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -75,6 +74,8 @@ public class SBC_DevicesView
 	public static final String TABLE_DEVICES = "Devices";
 
 	public static final String TABLE_TRANSCODE_QUEUE = "TranscodeQueue";
+
+	public static final String TABLE_DEVICE_LIBRARY = "DeviceLibrary";
 
 	private static boolean columnsAdded = false;
 
@@ -198,7 +199,7 @@ public class SBC_DevicesView
 						new ColumnTJ_Device(column);
 						// Device column not needed for Device specific view.  Since
 						// we can't remove it, just hide it
-						if (column.getTableID().length() > TABLE_TRANSCODE_QUEUE.length()) {
+						if (!column.getTableID().equals(TABLE_TRANSCODE_QUEUE)) {
 							column.setVisible(false);
 						}
 					}
@@ -221,7 +222,7 @@ public class SBC_DevicesView
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
-
+		
 		transcode_queue.addListener(this);
 
 		if (transTarget != null) {
@@ -233,13 +234,14 @@ public class SBC_DevicesView
 			initDeviceListTable((Composite) soDeviceList.getControl());
 		}
 
-		SWTSkinObject soTranscodeQueue = getSkinObject("transcode-queue");
-		if (soTranscodeQueue != null) {
+		SWTSkinObject soTranscodeQueue = getSkinObject("transcode-queue");	if (soTranscodeQueue != null) {
 			initTranscodeQueueTable((Composite) soTranscodeQueue.getControl());
 		}
 
 		Control control = skinObject.getControl();
 		dropTarget = new DropTarget(control, 0xFF);
+
+		DevicesFTUX.ensureInstalled();
 
 		return null;
 	}
@@ -318,7 +320,7 @@ public class SBC_DevicesView
 	 */
 	private void initTranscodeQueueTable(Composite control) {
 		String tableID = (device == null) ? TABLE_TRANSCODE_QUEUE
-				: TABLE_TRANSCODE_QUEUE + ":" + device.getID();
+				: TABLE_DEVICE_LIBRARY;
 
 		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
 				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
