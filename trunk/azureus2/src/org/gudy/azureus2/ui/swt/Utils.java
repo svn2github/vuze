@@ -751,7 +751,7 @@ public class Utils
 				} else {
 					queue.add(code);
 
-					diag_logger.log(SystemTime.getCurrentTime() + "] + QUEUE. size= "
+					diag_logger.log(SystemTime.getCurrentTime() + "] + Q. size= "
 							+ queue.size() + "; add " + code + " via "
 							+ Debug.getCompressedStackTrace());
 					final long lStart = SystemTime.getCurrentTime();
@@ -780,15 +780,17 @@ public class Utils
 									code.run();
 								}
 							} finally {
-								wait = SystemTime.getCurrentTime() - lStartTimeRun;
-								if (wait > 500) {
+								long runTIme = SystemTime.getCurrentTime() - lStartTimeRun;
+								if (runTIme > 500) {
 									diag_logger.log(SystemTime.getCurrentTime() + "] took "
-											+ wait + "ms to run " + code);
+											+ runTIme + "ms to run " + code);
 								}
 
-								diag_logger.log(SystemTime.getCurrentTime()
-										+ "] - QUEUE. size=" + queue.size());
 								queue.remove(code);
+
+								diag_logger.log(SystemTime.getCurrentTime()
+										+ "] - Q. size=" + queue.size() + ";wait:" + wait
+										+ "ms;run:" + runTIme + "ms");
 							}
 						}
 					};
