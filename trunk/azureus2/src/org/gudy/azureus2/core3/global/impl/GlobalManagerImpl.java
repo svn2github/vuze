@@ -144,7 +144,7 @@ public class GlobalManagerImpl
 				}
 			});
 	
-	private List 		managers_cow	= new ArrayList();
+	private List<DownloadManager> 		managers_cow	= new ArrayList<DownloadManager>();
 	private AEMonitor	managers_mon	= new AEMonitor( "GM:Managers" );
 	
 	private Map		manager_map			= new HashMap();
@@ -1303,7 +1303,7 @@ public class GlobalManagerImpl
 	
 	long	lastListenerUpdate = 0;
 	
-	List	managers = managers_cow;
+	List<DownloadManager> managers = sortForStop(managers_cow);
 	
 	int nbDownloads = managers.size();
 	
@@ -1407,8 +1407,9 @@ public class GlobalManagerImpl
   pauseDownloads(
 	boolean	tag_only )
   {
-    for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
-      DownloadManager manager = (DownloadManager)i.next();
+	List<DownloadManager> managers = sortForStop(managers_cow);
+	
+    for( DownloadManager manager: managers ){
       
       if ( manager.getTorrent() == null ) {
         continue;
@@ -1613,7 +1614,37 @@ public class GlobalManagerImpl
     return false;
   }
   
-  
+  	private List<DownloadManager>
+  	sortForStop(
+  		List<DownloadManager>	managers )
+	{
+  		Collections.sort(
+  			managers,
+  			new Comparator<DownloadManager>()
+  			{
+  				public int 
+  				compare(
+  					DownloadManager o1, 
+  					DownloadManager o2) 
+  				{
+  					int s1 = o1.getState();
+  					int s2 = o2.getState();
+  					
+  					if ( s2 == DownloadManager.STATE_QUEUED ){
+  						
+  						return( 1 );
+  						
+  					}else if ( s1 == DownloadManager.STATE_QUEUED ){
+
+  						return( -1 );
+  					}
+  					
+  					return( 0 );
+  				}
+  			});
+  		
+  		return( managers );
+	}
   
   private void loadDownloads() 
   {
