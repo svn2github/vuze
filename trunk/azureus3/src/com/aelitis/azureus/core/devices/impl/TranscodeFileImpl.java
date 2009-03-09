@@ -260,6 +260,12 @@ TranscodeFileImpl
 		setBoolean( KEY_NO_XCODE, !required );
 	}
 	
+	public boolean
+	getTranscodeRequired()
+	{
+		return( !getBoolean( KEY_NO_XCODE ));
+	}
+	
 	protected void
 	setComplete(
 		boolean b )

@@ -19,14 +19,16 @@
 package com.aelitis.azureus.ui.swt.devices.columns;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
@@ -36,7 +38,6 @@ import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
-import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -58,10 +59,12 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 	private int marginHeight = -1;
 
+	private String	na_text;
+	
 	Color textColor;
 	
 
-	public ColumnTJ_Completion(TableColumn column) {
+	public ColumnTJ_Completion(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 150);
 		column.addListeners(this);
 		// cheat.  TODO: Either auto-add (in above method), or provide
@@ -70,6 +73,15 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		column.setType(TableColumn.TYPE_GRAPHIC);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setMinWidth(100);
+		
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+
+				na_text = MessageText.getString( "general.na.short" );
+				
+				column.invalidateCells();
+			}
+		});
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -88,7 +100,9 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
-		int percentDone = getPercentDone(cell);
+		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
+
+		int percentDone = getPercentDone(tf);
 
 		Integer intObj = (Integer) mapCellLastPercentDone.get(cell);
 		int lastPercentDone = intObj == null ? 0 : intObj.intValue();
@@ -101,7 +115,9 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
 	public void cellPaint(GC gcImage, TableCellSWT cell) {
-		int percentDone = getPercentDone(cell) * 10;
+		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
+
+		int percentDone = getPercentDone(tf) * 10;
 
 		Rectangle bounds = cell.getBounds();
 
@@ -116,7 +132,7 @@ TableCellDisposeListener, TableCellSWTPaintListener
 
 		mapCellLastPercentDone.put(cell, new Integer(percentDone));
 		
-    ImageLoader imageLoader = ImageLoader.getInstance();
+		ImageLoader imageLoader = ImageLoader.getInstance();
 		Image imgEnd = imageLoader.getImage("tc_bar_end");
 		Image img0 = imageLoader.getImage("tc_bar_0");
 		Image img1 = imageLoader.getImage("tc_bar_1");
@@ -158,14 +174,23 @@ TableCellDisposeListener, TableCellSWTPaintListener
 		
 		gcImage.setFont(fontText);
 		
-		String sPercent = DisplayFormatters.formatPercentFromThousands(percentDone);
-		GCStringPrinter.printString(gcImage, sPercent, new Rectangle(bounds.x + 4,
+		String sText;
+		
+		if ( tf != null && percentDone == 1000 && !tf.getTranscodeRequired()){
+			
+			sText = na_text;
+			
+		}else{
+			
+			sText = DisplayFormatters.formatPercentFromThousands(percentDone);
+		}
+		
+		GCStringPrinter.printString(gcImage, sText, new Rectangle(bounds.x + 4,
 				bounds.y + yOfs, bounds.width - 4,13), true,
 				false, SWT.CENTER);
 	}
 
-	private int getPercentDone(TableCell cell) {
-		TranscodeFile tf =  (TranscodeFile) cell.getDataSource();
+	private int getPercentDone(TranscodeFile tf) {
 		if (tf == null) {
 			return 0;
 		}

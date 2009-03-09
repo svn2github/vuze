@@ -54,6 +54,9 @@ TranscodeFile
 	isComplete();
 	
 	public boolean
+	getTranscodeRequired();
+	
+	public boolean
 	isCopiedToDevice();
 	
 	public long
