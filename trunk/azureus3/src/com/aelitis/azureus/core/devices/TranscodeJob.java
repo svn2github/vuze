@@ -51,6 +51,9 @@ TranscodeJob
 	getTranscodeFile();
 	
 	public int
+	getTranscodeRequirement();
+	
+	public int
 	getIndex();
 	
 	public int

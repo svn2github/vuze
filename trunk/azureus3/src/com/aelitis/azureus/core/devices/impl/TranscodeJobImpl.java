@@ -321,10 +321,15 @@ TranscodeJobImpl
 		return( target );
 	}
 	
-	protected int
+	public int
 	getTranscodeRequirement()
 	{
-		return( transcode_requirement );
+		if ( transcode_requirement >= 0 ){
+			
+			return( transcode_requirement );
+		}
+		
+		return( getDevice().getTranscodeRequirement());
 	}
 	
 	protected DeviceImpl

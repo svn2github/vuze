@@ -226,11 +226,6 @@ TranscodeQueueImpl
 			
 			int	tt_req = job.getTranscodeRequirement();
 			
-			if ( tt_req == -1 ){
-				
-				tt_req = job.getDevice().getTranscodeRequirement();
-			}
-			
 			if ( tt_req == TranscodeTarget.TRANSCODE_NEVER ){
 				
 				xcode_required = false;
