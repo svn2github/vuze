@@ -1443,7 +1443,7 @@ DeviceManagerUI
 		TranscodeTarget	target,
 		TranscodeProfile profile,
 		Object			payload,
-		int			transcodeRequirement)
+		int				transcode_equirement )
 	{
 		if ( payload instanceof String[]){
 			
@@ -1459,7 +1459,8 @@ DeviceManagerUI
 						device_manager.getTranscodeManager().getQueue().add(
 							target,
 							profile,
-							new DiskManagerFileInfoFile( f ));
+							new DiskManagerFileInfoFile( f ),
+							transcode_equirement );
 						
 					}catch( Throwable e ){
 						
@@ -1512,17 +1513,12 @@ DeviceManagerUI
 								if ( dm_files.length == 1 || dm_file.getLength() > 128*1024 ){
 									
 									try{
-										if (transcodeRequirement >= 0) {
+
   										device_manager.getTranscodeManager().getQueue().add(
   											target,
   											profile,
-  											dm_file, transcodeRequirement );
-										} else {
-  										device_manager.getTranscodeManager().getQueue().add(
-  												target,
-  												profile,
-  												dm_file);
-										}
+  											dm_file, 
+  											transcode_equirement );
 										
 									}catch( Throwable e ){
 										
@@ -1546,7 +1542,8 @@ DeviceManagerUI
 									device_manager.getTranscodeManager().getQueue().add(
 										target,
 										profile,
-										dm_file );
+										dm_file,
+										transcode_equirement);
 									
 								}catch( Throwable e ){
 									
