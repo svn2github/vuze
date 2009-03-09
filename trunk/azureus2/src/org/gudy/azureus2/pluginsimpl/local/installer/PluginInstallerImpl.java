@@ -212,6 +212,12 @@ PluginInstallerImpl
 															}
 															
 															public void 
+															cancelled() 
+															{
+																done_sem.release();
+															}
+															
+															public void 
 															failed(
 																PluginException e ) 
 															{
@@ -484,7 +490,7 @@ PluginInstallerImpl
 					cancelled(
 						UpdateCheckInstance		instance )
 					{
-						listener.failed( new PluginException( "Installation cancelled" ));
+						listener.cancelled();
 					}
 					
 					public void
@@ -535,7 +541,7 @@ PluginInstallerImpl
 											
 											if ( cancelled ){
 												
-												listener.failed( new PluginException( "Installation cancelled" ));
+												listener.cancelled();
 												
 											}else{
 												

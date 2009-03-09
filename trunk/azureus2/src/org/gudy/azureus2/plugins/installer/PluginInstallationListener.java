@@ -30,6 +30,9 @@ PluginInstallationListener
 	completed();
 	
 	public void
+	cancelled();
+	
+	public void
 	failed(
 		PluginException	e );
 }

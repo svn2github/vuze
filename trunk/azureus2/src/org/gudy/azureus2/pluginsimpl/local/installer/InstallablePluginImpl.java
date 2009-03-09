@@ -126,6 +126,12 @@ InstallablePluginImpl
 				}
 				
 				public void 
+				cancelled() 
+				{
+					failed( new PluginException( "Install cancelled" ));
+				}
+				
+				public void 
 				failed(
 					PluginException e ) 
 				{
