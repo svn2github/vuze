@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.security.*;
 import org.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 
 public class 
 AuthenticatorWindow 
@@ -388,6 +389,18 @@ AuthenticatorWindow
 				return;
 			}
 			
+			final String ignore_key = "IgnoreAuth:" + realm + ":" + target + ":" + details;
+			
+			if ( RememberedDecisionsManager.getRememberedDecision( ignore_key ) == 1 ){
+				
+				Debug.out( "Authentication for " + realm + "/" + target + "/" + details + " ignored as told not to ask again" );
+				
+				sem.release();
+				
+				return;
+			}
+			
+				
 	 		shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	 	
 	 		Utils.setShellIcon(shell);
@@ -491,11 +504,22 @@ AuthenticatorWindow
 		    final Button checkBox = new Button(shell, SWT.CHECK);
 		    checkBox.setText(MessageText.getString( "authenticator.savepassword" ));
 			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 2;
+			gridData.horizontalSpan = 1;
 			checkBox.setLayoutData(gridData);
 			checkBox.addListener(SWT.Selection,new Listener() {
 		  		public void handleEvent(Event e) {
 			 		persist = checkBox.getSelection();
+		   		}
+			 });
+			
+		    final Button dontAsk = new Button(shell, SWT.CHECK);
+		    dontAsk.setText(MessageText.getString( "general.dont.ask.again" ));
+			gridData = new GridData(GridData.FILL_BOTH);
+			gridData.horizontalSpan = 1;
+			dontAsk.setLayoutData(gridData);
+			dontAsk.addListener(SWT.Selection,new Listener() {
+		  		public void handleEvent(Event e) {
+		  			RememberedDecisionsManager.setRemembered( ignore_key, dontAsk.getSelection()?1:0 );
 		   		}
 			 });
 			
