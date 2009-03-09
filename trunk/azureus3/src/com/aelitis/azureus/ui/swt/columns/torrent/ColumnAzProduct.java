@@ -81,21 +81,24 @@ public class ColumnAzProduct
 	public void cellPaint(GC gc, final TableCellSWT cell) {
 		Object ds = cell.getDataSource();
 
-		ContentNetwork cn = DataSourceUtils.getContentNetwork(ds);
-
-		long cnID = cn == null ? -1 : cn.getID();
-
-		Image img = imgProductGlobe; 
-		if (cnID > 0) {
-			img = ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
-				public void contentNetworkImageLoaded(Long contentNetworkID, Image image, boolean wasReturned) {
-					if (!wasReturned) {
-						cell.invalidate();
-					}
-				}
-			});
-		}
+		Image 			img = imgProductGlobe; 
+		ContentNetwork 	cn 	= null;
 		
+		if ( ds != null ){
+			cn = DataSourceUtils.getContentNetwork(ds);
+	
+			long cnID = cn == null ? -1 : cn.getID();
+	
+			if (cnID > 0) {
+				img = ContentNetworkUI.loadImage(cnID, new ContentNetworkImageLoadedListener() {
+					public void contentNetworkImageLoaded(Long contentNetworkID, Image image, boolean wasReturned) {
+						if (!wasReturned) {
+							cell.invalidate();
+						}
+					}
+				});
+			}
+		}
 		if (img == null) {
 			return;
 		}
