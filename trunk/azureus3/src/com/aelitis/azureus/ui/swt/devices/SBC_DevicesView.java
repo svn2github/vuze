@@ -241,6 +241,8 @@ public class SBC_DevicesView
 		Control control = skinObject.getControl();
 		dropTarget = new DropTarget(control, 0xFF);
 
+		setAdditionalInfoTitle(false);
+
 		DevicesFTUX.ensureInstalled();
 
 		return null;
@@ -310,6 +312,7 @@ public class SBC_DevicesView
 			tvDevices.delete();
 			tvDevices = null;
 		}
+		
 		return super.skinObjectHidden(skinObject, params);
 	}
 

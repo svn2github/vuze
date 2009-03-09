@@ -24,27 +24,27 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.installer.InstallablePlugin;
-import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
-import org.gudy.azureus2.plugins.installer.PluginInstaller;
-import org.gudy.azureus2.plugins.installer.StandardPlugin;
+import org.gudy.azureus2.plugins.installer.*;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 
 /**
@@ -79,9 +79,9 @@ public class DeviceInfoArea
 		super.skinObjectShown(skinObject, params);
 		
 		if (device == null) {
-			build();
+			initDeviceOverview();
 		} else {
-			initView();
+			initDeviceView();
 		}
 		return null;
 	}
@@ -97,7 +97,7 @@ public class DeviceInfoArea
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void initView() {
+	private void initDeviceView() {
 		main = new Composite( parent, SWT.NONE);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
@@ -164,29 +164,96 @@ public class DeviceInfoArea
 			 			}
 			 		});
 		 	}
+		 	
+		 	final Button btnReset = new Button(main, SWT.PUSH);
+		 	btnReset.setText("Forget Default Profile Choice");
+		 	btnReset.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					device.setDefaultTranscodeProfile(null);
+					btnReset.setEnabled(false);
+				}
+			
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			try {
+				btnReset.setEnabled(device.getDefaultTranscodeProfile() != null);
+			} catch (TranscodeException e1) {
+				btnReset.setEnabled(false);
+			}
+			btnReset.setLayoutData(new GridData());
+		 	
 		 	parent.getParent().layout();
 	}
 
-	protected void
-	build()
-	{
-		main = new Group(parent, SWT.NONE);
-		((Group)main).setText("Beta Debug");
+	protected void initDeviceOverview() {
+		final PluginInstaller installer = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInstaller();
+		boolean hasItunes = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+				"azitunes") != null;
+
+		main = new Composite( parent, SWT.NONE);
 		main.setLayoutData(Utils.getFilledFormData());
 		main.setLayout(new FormLayout());
 		
-		FormData data = new FormData();
-		data.left 	= new FormAttachment(0,0);
-		data.right	= new FormAttachment(100,0);
-		data.top	= new FormAttachment(main,0);
+	
+		FormData fd;
 
-		Label label = new Label( main, SWT.NULL );
+		Button itunes_button = null;
+		if (!hasItunes) {
+			itunes_button = new Button(main, SWT.NULL);
+
+			itunes_button.setText("Install iTunes Integration");
+
+			itunes_button.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event arg0) {
+					try {
+						StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
+
+						itunes_plugin.install(false);
+
+					} catch (Throwable e) {
+
+						Debug.printStackTrace(e);
+					}
+				}
+			});
+
+			fd = new FormData();
+			fd.left = new FormAttachment(0, 0);
+			fd.top = new FormAttachment(0, 4);
+
+			itunes_button.setLayoutData(fd);
+		}
+		
+		if (Constants.isCVSVersion()) {
+			buildBetaArea(main, itunes_button);
+		}
+		parent.getParent().layout();
+	}						
+		
+
+	private void buildBetaArea(Composite parent, Control above) {
+		FormData fd;
+
+		Group betaArea = new Group(parent, SWT.NONE);
+		betaArea.setText("Beta Debug");
+		betaArea.setLayout(new FormLayout());
+		fd = Utils.getFilledFormData();
+		fd.top = new FormAttachment(above, 5);
+		betaArea.setLayoutData(fd);
+		
+		fd = new FormData();
+		fd.left 	= new FormAttachment(0,0);
+		fd.right	= new FormAttachment(100,0);
+		fd.top	= new FormAttachment(0, 0);
+
+		Label label = new Label( betaArea, SWT.NULL );
 		
 		label.setText( "Transcode Providers:" );
 		
-		label.setLayoutData( data );
+		label.setLayoutData( fd );
 		
-		Button vuze_button = new Button( main, SWT.NULL );
+		Button vuze_button = new Button( betaArea, SWT.NULL );
 		
 		vuze_button.setText( "Install Vuze Transcoder" );
 		
@@ -225,11 +292,11 @@ public class DeviceInfoArea
 				}
 			});
 		
-		data = new FormData();
-		data.left 	= new FormAttachment(0,0);
-		data.top	= new FormAttachment(label,4);
+		fd = new FormData();
+		fd.left 	= new FormAttachment(0,0);
+		fd.top	= new FormAttachment(label,4);
 
-		vuze_button.setLayoutData( data );
+		vuze_button.setLayoutData( fd );
 
 		Control top = vuze_button;
 		
@@ -238,16 +305,16 @@ public class DeviceInfoArea
 		
 		for ( TranscodeProvider provider: providers ){
 			
-			data = new FormData();
-			data.left 	= new FormAttachment(0,10);
-			data.right	= new FormAttachment(100,0);
-			data.top	= new FormAttachment(top,4);
+			fd = new FormData();
+			fd.left 	= new FormAttachment(0,10);
+			fd.right	= new FormAttachment(100,0);
+			fd.top	= new FormAttachment(top,4);
 
-			Label prov_lab = new Label( main, SWT.NULL );
+			Label prov_lab = new Label( betaArea, SWT.NULL );
 			
 			prov_lab.setText( provider.getName());
 			
-			prov_lab.setLayoutData( data );
+			prov_lab.setLayoutData( fd );
 			
 			top = prov_lab;
 			
@@ -265,69 +332,24 @@ public class DeviceInfoArea
 			}
 
 			if (line != null) {
-  			data = new FormData();
-  			data.left 	= new FormAttachment(0,25);
-  			data.right	= new FormAttachment(100,0);
-  			data.top	= new FormAttachment(top,4);
+  			fd = new FormData();
+  			fd.left 	= new FormAttachment(0,25);
+  			fd.right	= new FormAttachment(100,0);
+  			fd.top	= new FormAttachment(top,4);
   
-  			Label prof_lab = new Label( main, SWT.WRAP );
+  			Label prof_lab = new Label( betaArea, SWT.WRAP );
   			
   			prof_lab.setText("Profiles: " + line);
   			
-  			prof_lab.setLayoutData( data );
+  			prof_lab.setLayoutData( fd );
   			
   			top = prof_lab;
 			}
 		}
 		
-		Button itunes_button = new Button( main, SWT.NULL );
-		
-		itunes_button.setText( "Install iTunes Integration" );
-		
-
-		StandardPlugin itunes_plugin = null;
-		
-		try{
-			itunes_plugin = installer.getStandardPlugin( "azitunes" );
-
-		}catch( Throwable e ){	
-		}
-		
-		if ( itunes_plugin == null || itunes_plugin.isAlreadyInstalled()){
-			
-			itunes_button.setEnabled( false );
-		}
-		
-		final StandardPlugin	f_itunes_plugin = itunes_plugin;
-		
-		itunes_button.addListener(
-			SWT.Selection, 
-			new Listener() 
-			{
-				public void 
-				handleEvent(
-					Event arg0 ) 
-				{
-					try{
-						f_itunes_plugin.install( false );
-
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-				}
-			});
-		
-		data = new FormData();
-		data.left 	= new FormAttachment(0,0);
-		data.top	= new FormAttachment(top,4);
-
-		itunes_button.setLayoutData( data );
-						
-		
 			// both - installer test
 		
-		final Button both_button = new Button( main, SWT.NULL );
+		final Button both_button = new Button( betaArea, SWT.NULL );
 
 		both_button.setText( "Test! Install RSSGen and AZBlog!" );
 		
@@ -349,15 +371,15 @@ public class DeviceInfoArea
 	
 		if ( plugin1 != null && plugin2 != null ){
 			
-			final Composite install_area = new Composite( main, SWT.BORDER );
+			final Composite install_area = new Composite( betaArea, SWT.BORDER );
 			
-			data = new FormData();
-			data.left 	= new FormAttachment(both_button,0);
-			data.right	= new FormAttachment(100,0);
-			data.top	= new FormAttachment(itunes_button,4);
-			data.bottom	= new FormAttachment(100,0);
+			fd = new FormData();
+			fd.left 	= new FormAttachment(both_button,0);
+			fd.right	= new FormAttachment(100,0);
+			fd.top	= new FormAttachment(top,4);
+			fd.bottom	= new FormAttachment(100,0);
 
-			install_area.setLayoutData( data );
+			install_area.setLayoutData( fd );
 			
 			final StandardPlugin	f_plugin1 = plugin1;
 			final StandardPlugin	f_plugin2 = plugin2;
@@ -445,14 +467,11 @@ public class DeviceInfoArea
 			both_button.setEnabled(false);
 		}
 		
-		data = new FormData();
-		data.left 	= new FormAttachment(0,0);
-		data.top	= new FormAttachment(itunes_button,4);
-		data.bottom	= new FormAttachment(100,0);
+		fd = new FormData();
+		fd.left 	= new FormAttachment(0,0);
+		fd.top	= new FormAttachment(top,4);
+		fd.bottom	= new FormAttachment(100,0);
 
-		both_button.setLayoutData( data );
-		
-		
-		parent.getParent().layout();
+		both_button.setLayoutData( fd );
 	}
 }
