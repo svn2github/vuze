@@ -395,6 +395,14 @@ public class DeviceInfoArea
 										tidy();
 									}
 									
+									public void 
+									cancelled()
+									{
+										System.out.println( "Install cancelled" );
+										
+										tidy();
+									}
+									
 									public void
 									failed(
 										PluginException	e )

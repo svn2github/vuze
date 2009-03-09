@@ -240,8 +240,13 @@ public class DevicesFTUX
 							close();
 						}
 
+						public void 
+						cancelled(){
+							close();
+						}
+						
 						public void failed(PluginException e) {
-							// probably cancel pressed
+							
 							Debug.out(e);
 							//Utils.openMessageBox(Utils.findAnyShell(), SWT.OK, "Error",
 							//		e.toString());
