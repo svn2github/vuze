@@ -18,8 +18,14 @@
  
 package com.aelitis.azureus.ui.swt.devices.columns;
 
+import java.util.Locale;
+
+import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -35,12 +41,23 @@ implements TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "copied";
 
-	public ColumnTJ_CopiedToDevice(TableColumn column) {
+	private String	na_text;
+
+	public ColumnTJ_CopiedToDevice(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 50);
 		column.addListeners(this);
 		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		column.setMinWidth(100);
+		
+		MessageText.addAndFireListener(new MessageTextListener() {
+			public void localeChanged(Locale old_locale, Locale new_locale) {
+
+				na_text = MessageText.getString( "general.na.short" );
+				
+				column.invalidateCells();
+			}
+		});
 	}
 
 	public void refresh(TableCell cell) {
@@ -49,8 +66,22 @@ implements TableCellRefreshListener
 			return;
 		}
 		
-		String value = DisplayFormatters.getYesNo( tf.isCopiedToDevice());
-
+		Device d = tf.getDevice();
+		
+		String value = null;
+		
+		if ( d instanceof DeviceMediaRenderer ){
+			
+			if (!((DeviceMediaRenderer)d).canCopyToDevice()){
+				
+				value = na_text;
+			}
+		}
+		
+		if ( value == null ){
+			value = DisplayFormatters.getYesNo( tf.isCopiedToDevice());
+		}
+		
 		if (cell.setSortValue(value) || !cell.isValid()) {
 			cell.setText(value);
 		}

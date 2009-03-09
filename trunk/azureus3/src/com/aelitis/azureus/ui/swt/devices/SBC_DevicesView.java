@@ -215,6 +215,10 @@ public class SBC_DevicesView
 				ColumnTJ_CopiedToDevice.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_CopiedToDevice(column);
+						
+						if (column.getTableID().endsWith( ":type=1" )){
+							column.setVisible(false);
+						}
 					}
 				});
 	}
@@ -322,9 +326,25 @@ public class SBC_DevicesView
 	 * @since 4.1.0.5
 	 */
 	private void initTranscodeQueueTable(Composite control) {
-		String tableID = (device == null) ? TABLE_TRANSCODE_QUEUE
-				: TABLE_DEVICE_LIBRARY;
-
+		String tableID;
+		
+		if ( device == null){
+			
+			tableID = TABLE_TRANSCODE_QUEUE;
+			
+		}else{
+			
+			tableID = TABLE_DEVICE_LIBRARY;
+			
+			if ( device instanceof DeviceMediaRenderer ){
+				
+				if (!((DeviceMediaRenderer)device).canCopyToDevice()){
+					
+					tableID += ":type=1";
+				}
+			}
+		}
+		
 		tvFiles = new TableViewSWTImpl<TranscodeFile>(tableID, tableID,
 				new TableColumnCore[0], "rank", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
