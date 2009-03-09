@@ -30,6 +30,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -509,5 +510,14 @@ TranscodeJobImpl
 	moveDown() 
 	{
 		queue.moveDown( this );
+	}
+		
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "target=" + target.getID() + ", profile=" + profile.getName() + ", file=" + file );
+		writer.println( "tfile=" + transcode_file.getString());
+		writer.println( "stream=" + is_stream + ", state=" + state + ", treq=" + transcode_requirement + ", %=" + percent_complete + ", error=" + error );
 	}
 }

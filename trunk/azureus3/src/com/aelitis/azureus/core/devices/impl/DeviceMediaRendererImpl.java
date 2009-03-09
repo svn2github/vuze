@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.net.upnp.UPnPDevice;
@@ -124,4 +125,21 @@ DeviceMediaRendererImpl
 
 		super.getTTDisplayProperties( dp );
 	}	
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		super.generate( writer );
+		
+		try{
+			writer.indent();
+	
+			generateTT( writer );
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

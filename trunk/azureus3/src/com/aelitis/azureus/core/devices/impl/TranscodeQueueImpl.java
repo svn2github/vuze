@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -899,12 +900,12 @@ TranscodeQueueImpl
 		return( queue.indexOf(job)+1);
 	}
 	
-	public TranscodeJob[]
+	public TranscodeJobImpl[]
 	getJobs()
 	{
 		synchronized( queue ){
 
-			return( queue.toArray( new TranscodeJob[queue.size()]));
+			return( queue.toArray( new TranscodeJobImpl[queue.size()]));
 		}
 	}
 	
@@ -1221,5 +1222,26 @@ TranscodeQueueImpl
 		Throwable	e )
 	{
 		manager.log( "Queue: " + str, e );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Transcode Queue: paused=" + paused + ",max_bps=" + max_bytes_per_sec );
+		
+		try{
+			writer.indent();
+	
+			TranscodeJobImpl[] jobs = getJobs();
+			
+			for ( TranscodeJobImpl job: jobs ){
+				
+				job.generate( writer );
+			}
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }

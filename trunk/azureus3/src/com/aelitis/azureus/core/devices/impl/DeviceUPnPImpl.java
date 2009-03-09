@@ -25,12 +25,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
@@ -856,6 +859,33 @@ DeviceUPnPImpl
 				
 				addDP( dp, "dht.reseed.ip", ia.getHostAddress()); 
 			}
+		}
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		super.generate( writer );
+		
+		try{
+			writer.indent();
+			
+			UPnPDevice device = device_may_be_null;
+			
+			if ( device == null ){
+				
+				writer.println( "upnp_device=null" );
+				
+			}else{
+				
+				writer.println( "upnp_device=" + device.getFriendlyName());
+			}
+	
+			writer.println( "dyn_xcode=" + (dynamic_transcode_profile==null?"null":dynamic_transcode_profile.getName()));
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }

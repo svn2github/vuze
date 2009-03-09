@@ -25,12 +25,15 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -43,7 +46,7 @@ import com.aelitis.azureus.core.util.*;
 
 public class 
 DeviceManagerImpl 
-	implements DeviceManager
+	implements DeviceManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final String	CONFIG_FILE 			= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
@@ -92,6 +95,8 @@ DeviceManagerImpl
 	protected
 	DeviceManagerImpl()
 	{
+		AEDiagnostics.addEvidenceGenerator( this );
+
 		upnp_manager = new DeviceManagerUPnPImpl( this );
 
 		loadConfig();
@@ -616,4 +621,27 @@ DeviceManagerImpl
   		
   		e.printStackTrace();
   	}
+ 	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Devices" );
+			
+		try{
+			writer.indent();
+			
+			DeviceImpl[] devices = getDevices();
+			
+			for ( DeviceImpl device: devices ){
+				
+				device.generate( writer );
+			}
+			
+			transcode_manager.generate( writer );
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

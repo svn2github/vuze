@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -1498,6 +1499,69 @@ DeviceImpl
 	getString()
 	{
 		return( "type=" + type + ",uid=" + uid + ",name=" + name );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( getName() + "/" + getID() + "/" + type );
+		
+		try{
+			writer.indent();
+			
+			writer.println( 
+				"hidden=" + hidden + 
+				", last_seen=" + new SimpleDateFormat().format(new Date(last_seen)) +
+				", online=" + online +
+				", transcoding=" + transcoding );
+			
+			writer.println( "p_props=" + persistent_properties );
+			writer.println( "t_props=" + transient_properties );
+			
+			writer.println( "errors=" + errors );
+			writer.println( "infos=" + infos );
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
+	public void
+	generateTT(
+		IndentWriter		writer )
+	{
+		TranscodeFileImpl[] files = getFiles();
+		
+		int	complete	 = 0;
+		int	copied		 = 0;
+		int	deleted	 	= 0;
+		int	template	 = 0;
+		
+		for ( TranscodeFileImpl f: files ){
+			
+			if ( f.isComplete()){
+				
+				complete++;
+			}
+			
+			if ( f.isCopiedToDevice()){
+				
+				copied++;
+			}
+			
+			if ( f.isDeleted()){
+				
+				deleted++;
+			}
+			
+			if ( f.isTemplate()){
+				
+				template++;
+			}
+		}
+		
+		writer.println( "files=" + files.length + ", comp=" + complete + ", copied=" + copied + ", deleted=" + deleted + ", template=" + template );
 	}
 	
 	protected class

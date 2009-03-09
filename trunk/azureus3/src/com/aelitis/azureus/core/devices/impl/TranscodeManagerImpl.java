@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.devices.impl;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -339,5 +340,14 @@ TranscodeManagerImpl
 		Throwable	e )
 	{
 		device_manager.log( "Trans: " + str, e );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Transcode Manager: vuze provider=" + vuzexcode_provider );
+		
+		queue.generate( writer );
 	}
 }

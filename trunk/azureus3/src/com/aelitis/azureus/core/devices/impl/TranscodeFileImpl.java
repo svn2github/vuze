@@ -566,4 +566,19 @@ TranscodeFileImpl
 	{
 		return( key.hashCode());
 	}
+	
+	protected String
+	getString()
+	{
+		Map<String,?> map = getMap();
+		
+		if ( map == null ){
+			
+			return( key + ": deleted" );
+			
+		}else{
+			
+			return( key + ": " + map );
+		}
+	}
 }

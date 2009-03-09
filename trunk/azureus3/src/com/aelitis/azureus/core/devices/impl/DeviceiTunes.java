@@ -23,7 +23,9 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -32,11 +34,11 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 
 public class 
@@ -529,5 +531,23 @@ DeviceiTunes
 		}
 		
 		super.getTTDisplayProperties( dp );
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		super.generate( writer );
+		
+		try{
+			writer.indent();
+	
+			writer.println( "itunes=" + itunes + ", installed=" + is_installed + ", running=" + is_running );
+			writer.println( "copy_os=" + copy_outstanding + ", last_fail=" + new SimpleDateFormat().format( new Date( last_update_fail )));
+			
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }
