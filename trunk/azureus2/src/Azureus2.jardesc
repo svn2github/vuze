@@ -154,6 +154,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.tableitems.pieces"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.bouncycastle.jce.interfaces"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.ui.swt.views.stats"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.devices.columns"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.dht.transport.udp"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.torrent"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.server.impl.udp"/>
@@ -399,9 +400,9 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.components"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.json.simple.parser"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.platform.macosx.access.cocoa"/>
-        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.messaging"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.messaging.generic"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.ui.swt.columns.utils"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.peermanager.messaging"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.plugins.ui.tables"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.update.sf"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.speedmanager.impl"/>
@@ -512,6 +513,7 @@
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.server"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.pluginsimpl.local.clientid"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp"/>
+        <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.util"/>
         <javaElement handleIdentifier="=azdiag/&lt;edu.harvard.syrah.nc"/>
         <javaElement handleIdentifier="=azureus2/&lt;org.gudy.azureus2.core3.category.impl"/>
         <javaElement handleIdentifier="=azureus2/&lt;com.aelitis.azureus.core.networkmanager.admin"/>
