@@ -27,6 +27,7 @@ import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * @author TuxPaper
@@ -44,7 +45,7 @@ public class ColumnTJ_Status
 		"ManagerItem.paused",
 		"sidebar.LibraryCD",
 		"Progress.reporting.status.canceled",
-		"ManagerItem.error",
+		"ManagerItem.error",		// 5
 		"ManagerItem.stopped",
 		"devices.copy.fail",		// 7
 		"devices.on.demand",		// 8 
@@ -56,7 +57,7 @@ public class ColumnTJ_Status
 	public ColumnTJ_Status(final TableColumn column) {
 		column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 120);
 		column.addListeners(this);
-		column.setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		column.setRefreshInterval(TableColumn.INTERVAL_GRAPHIC);
 		column.setType(TableColumn.TYPE_TEXT_ONLY);
 		column.setMinWidth(100);
 
@@ -79,34 +80,68 @@ public class ColumnTJ_Status
 			return;
 		}
 		TranscodeJob job = tf.getJob();
-		if (job == null) {
-			if ( tf.getCopyToDeviceFails() > 0 ){
-					// should be red but whatever
-				cell.setText( js_resources[7] );
-			}else if ( tf.isTemplate() && !tf.isComplete()){
-				
-				cell.setText( js_resources[8] );
-			}else{
-				
-				cell.setText( js_resources[9] );
-			}
-			return;
-		}
-		cell.setText(getJobStatus(job));
-	}
-
-	protected String getJobStatus(TranscodeJob job) {
-		int state = job.getState();
-
-		String res = js_resources[state];
-
-		if (state == TranscodeJob.ST_FAILED) {
-
-			// should be red but whatever
+		
+		String 	tooltip = null;
+		String	text	= null;
+		boolean	error	= false;
+		
+		if ( job == null ){
 			
-			res += ": " + job.getError();
-		}
+			try{
+				if ( tf.isComplete() && !tf.getTargetFile().getFile().exists()){
+					
+					tooltip = "File '" + tf.getTargetFile().getFile().getAbsolutePath() + "' not found";
+					
+					text = js_resources[5] + ": File not found";
+					
+					error = true;
+				}
+			}catch( Throwable e ){			
+			}
+			
+			if ( text == null ){
+				
+				if ( tf.getCopyToDeviceFails() > 0 ){
+			
+					text = js_resources[7];
+					
+					error = true;
+					
+				}else if ( tf.isTemplate() && !tf.isComplete()){
+					
+					text = js_resources[8];
+					
+				}else{
+					
+					text = js_resources[9];
+				}
+			}
+		}else{
+			
+			int state = job.getState();
 
-		return (res);
+			text = js_resources[state];
+
+			if ( state == TranscodeJob.ST_FAILED ) {
+
+				// should be red but whatever
+				
+				text += ": " + job.getError();
+				
+				error = true;
+			}
+		}
+		
+		cell.setText( text );
+		cell.setToolTip(tooltip);
+		
+		if ( error){
+			
+			cell.setForegroundToErrorColor();
+			
+		}else{
+			
+			cell.setForeground(Utils.colorToIntArray(null));
+		}
 	}
 }

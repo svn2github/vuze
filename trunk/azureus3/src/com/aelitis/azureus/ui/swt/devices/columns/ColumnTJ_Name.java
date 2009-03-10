@@ -66,24 +66,22 @@ public class ColumnTJ_Name
 		if (job == null) {
 			try{
 				DiskManagerFileInfo sourceFile = tf.getSourceFile();
-				if (sourceFile == null) {
-					text = tf.getCacheFile().getAbsolutePath();
-				} else {
-					try {
-						Download download = sourceFile.getDownload();
-						if (download == null) {
-							text = sourceFile.getFile().getName();
-						} else {
-							text = download.getName();
-							DiskManagerFileInfo[] fileInfo = download.getDiskManagerFileInfo();
-							if (fileInfo.length > 0) {
-								text += ": " + sourceFile.getFile().getName();
-							}
-						}
-					} catch (DownloadException e) {
+				
+				try {
+					Download download = sourceFile.getDownload();
+					if (download == null) {
 						text = sourceFile.getFile().getName();
+					} else {
+						text = download.getName();
+						DiskManagerFileInfo[] fileInfo = download.getDiskManagerFileInfo();
+						if (fileInfo.length > 1) {
+							text += ": " + sourceFile.getFile().getName();
+						}
 					}
+				} catch (DownloadException e) {
+					text = sourceFile.getFile().getName();
 				}
+			
 			}catch( Throwable e ){
 				// most likely been recently deleted, stick with existing text
 				return;

@@ -198,13 +198,15 @@ TranscodeFileImpl
 				
 			File link_file = new File( link );
 				
-			if ( link_file.exists()){
+				// if we're not transcoding then always return the source even if doesn't exist
+			
+			if ( link_file.exists() || getBoolean( KEY_NO_XCODE )){
 		
 				return( new DiskManagerFileInfoFile( link_file ));
 			}
 		}
 		
-		Debug.out( "Source file doesn't exist (hash=" + hash + ",link=" + link +"), returning cache file" );
+		// Debug.out( "Source file doesn't exist (hash=" + hash + ",link=" + link +"), returning cache file" );
 		
 		return( new DiskManagerFileInfoFile( getCacheFile()));
 	}

@@ -44,6 +44,11 @@ TranscodeFile
 	
 		throws TranscodeException;
 	
+	public DiskManagerFileInfo 
+	getTargetFile() 
+	
+		throws TranscodeException;
+	
 	public String
 	getProfileName();
 	
