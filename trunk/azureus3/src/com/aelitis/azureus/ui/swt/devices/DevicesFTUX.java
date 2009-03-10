@@ -90,6 +90,7 @@ public class DevicesFTUX
 		// This is a simple dialog box, so instead of using SkinnedDialog, we'll
 		// just built it old school
 		shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.DIALOG_TRIM);
+		shell.setText("Turn On Device Support");
 
 		Utils.setShellIcon(shell);
 
@@ -104,7 +105,7 @@ public class DevicesFTUX
 
 		checkITunes = new Button(shell, SWT.CHECK);
 		checkITunes.setSelection(true);
-		checkITunes.setText("Enable iTunes support");
+		checkITunes.setText("Include support for iTunes");
 
 		btnInstall = new Button(shell, SWT.NONE);
 		btnInstall.setText("Turn On");
@@ -175,6 +176,7 @@ public class DevicesFTUX
 				"http://vuze.com/devices.start", false, true);
 		browser.setUrl(url);
 		shell.setSize(600, 400);
+		Utils.centreWindow(shell);
 		shell.open();
 	}
 
