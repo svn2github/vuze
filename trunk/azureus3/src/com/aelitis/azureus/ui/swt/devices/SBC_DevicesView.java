@@ -726,7 +726,7 @@ public class SBC_DevicesView
 			}
 
 			if (state != TranscodeJob.ST_PAUSED && state != TranscodeJob.ST_STOPPED
-					&& state != TranscodeJob.ST_FAILED) {
+					&& state != TranscodeJob.ST_FAILED && state != TranscodeJob.ST_QUEUED) {
 
 				can_queue = false;
 			}
