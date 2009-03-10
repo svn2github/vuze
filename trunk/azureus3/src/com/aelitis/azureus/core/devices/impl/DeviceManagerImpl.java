@@ -27,6 +27,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -48,6 +49,7 @@ public class
 DeviceManagerImpl 
 	implements DeviceManager, AEDiagnosticsEvidenceGenerator
 {
+	private static final String	LOGGER_NAME 			= "Devices";
 	private static final String	CONFIG_FILE 			= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY	= "devices.config.auto_search";
 	
@@ -91,6 +93,8 @@ DeviceManagerImpl
 	private int		explicit_search;
 	
 	private TranscodeManagerImpl	transcode_manager;
+	
+	private AEDiagnosticsLogger		logger;
 	
 	protected
 	DeviceManagerImpl()
@@ -605,22 +609,36 @@ DeviceManagerImpl
   		listeners.remove( listener );
   	}
   	
-  	public void
-  	log(
-  		String		str )
-  	{
-  		System.out.println( str );
-  	}
-  	
- 	public void
-  	log(
-  		String		str,
-  		Throwable	e )
-  	{
-  		System.out.println( str );
-  		
-  		e.printStackTrace();
-  	}
+	protected synchronized AEDiagnosticsLogger
+	getLogger()
+	{
+		if ( logger == null ){
+			
+			logger = AEDiagnostics.getLogger( LOGGER_NAME );
+		}
+		
+		return( logger );
+	}
+	
+	public void 
+	log(
+		String 		s,
+		Throwable 	e )
+	{
+		AEDiagnosticsLogger diag_logger = getLogger();
+		
+		diag_logger.log( s );
+		diag_logger.log( e );
+	}
+	
+	public void 
+	log(
+		String 	s )
+	{
+		AEDiagnosticsLogger diag_logger = getLogger();
+		
+		diag_logger.log( s );
+	}
  	
 	public void
 	generate(
