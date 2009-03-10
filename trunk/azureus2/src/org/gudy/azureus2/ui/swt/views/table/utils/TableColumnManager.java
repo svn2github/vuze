@@ -476,7 +476,8 @@ public class TableColumnManager {
   public boolean loadTableColumnSettings(Class forDataSourceType, String sTableID) {
   	try {
   		Map mapTableConfig = getTableConfigMap(sTableID);
-  		if (mapTableConfig.isEmpty()) {
+  		int size = mapTableConfig.size();
+  		if (size == 0 || (size == 1 && mapTableConfig.containsKey("SortColumn"))) {
   			return false;
   		}
       TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
