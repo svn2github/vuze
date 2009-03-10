@@ -1257,7 +1257,7 @@ DeviceImpl
 		
 			device_files_ref = new WeakReference<Map<String,Map<String,?>>>( device_files );
 			
-			System.out.println( "Loaded device file for " + getName() + ": files=" + device_files.size());
+			log( "Loaded device file for " + getName() + ": files=" + device_files.size());
 		}
 		
 		final int GC_TIME = 15000;
