@@ -720,13 +720,13 @@ public class SBC_DevicesView
 			int state = job.getState();
 
 			if (state != TranscodeJob.ST_PAUSED && state != TranscodeJob.ST_RUNNING
-					&& state != TranscodeJob.ST_FAILED) {
+					&& state != TranscodeJob.ST_FAILED && state != TranscodeJob.ST_QUEUED) {
 
 				can_stop = false;
 			}
 
 			if (state != TranscodeJob.ST_PAUSED && state != TranscodeJob.ST_STOPPED
-					&& state != TranscodeJob.ST_FAILED && state != TranscodeJob.ST_QUEUED) {
+					&& state != TranscodeJob.ST_FAILED) {
 
 				can_queue = false;
 			}
