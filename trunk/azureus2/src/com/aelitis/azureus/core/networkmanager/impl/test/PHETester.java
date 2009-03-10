@@ -404,7 +404,7 @@ PHETester
 	main(
 		String[]	args )
 	{
-		AEDiagnostics.startup();
+		AEDiagnostics.startup( false );
 		
 		// OUTGOING_PLAIN	= true;
 		

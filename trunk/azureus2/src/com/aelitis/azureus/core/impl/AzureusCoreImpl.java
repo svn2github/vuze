@@ -167,8 +167,10 @@ AzureusCoreImpl
 		
 		MessageText.loadBundle();
 		
-		AEDiagnostics.startup();
+		AEDiagnostics.startup( COConfigurationManager.getBooleanParameter( "diags.enable.pending.writes", false ));
 		
+		COConfigurationManager.setParameter( "diags.enable.pending.writes", false );
+				
 		AEDiagnostics.markDirty();
 		
 		AETemporaryFileHandler.startup();
@@ -223,9 +225,12 @@ AzureusCoreImpl
 		
 		PeerManager.getSingleton();
 		
-		// Used to be a plugin, but not any more...
+			// Used to be a plugin, but not any more...
+		
 		ClientIDPlugin.initialize();
+		
 		pi = PluginInitializer.getSingleton( this, initialisation_op );
+		
 		
 		instance_manager = AZInstanceManagerFactory.getSingleton( this );
 		
@@ -741,6 +746,10 @@ AzureusCoreImpl
 	   				{
 	   					AEDiagnostics.checkDumpsAndNatives();
 
+	   					COConfigurationManager.setParameter( "diags.enable.pending.writes", true );
+	   					
+	   					AEDiagnostics.flushPendingLogs();
+	   					
 	   					NetworkAdmin na = NetworkAdmin.getSingleton();
 
 	   					na.runInitialChecks();
@@ -908,6 +917,8 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
+		AEDiagnostics.flushPendingLogs();
+		
 		try{
 			this_mon.enter();
 		

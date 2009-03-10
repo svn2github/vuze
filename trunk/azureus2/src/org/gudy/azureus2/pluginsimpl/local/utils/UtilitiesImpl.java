@@ -901,7 +901,7 @@ UtilitiesImpl
 	private static AESemaphore	delayed_tasks_sem	= new AESemaphore( "Utilities:delayedTask" );
 	private static AEThread2	delayed_task_thread;
 	
-	public static DelayedTaskImpl addDelayedTask(String	name, Runnable r) {
+	public static DelayedTask addDelayedTask(String	name, Runnable r) {
 		DelayedTaskImpl res = new DelayedTaskImpl(name);
 		res.setTask(r);
 		return res;
